@@ -1,0 +1,15 @@
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Node (in case Bolt output lands here later)
+node_modules/
+dist/
+.env
+.env.local
