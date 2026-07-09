@@ -44,6 +44,15 @@ const activeCSS = `
   position: absolute;
   pointer-events: none;
 }
+@keyframes combo-beat {
+  0%, 100% { transform: scale(0.85); opacity: 0.35; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+.combo-beat-dot {
+  animation-name: combo-beat;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
 `;
 
 export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
@@ -458,33 +467,16 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           <div style={{ width: 30 }}/>
         </div>
 
-        {/* Status bar */}
-        <div style={{
-          display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 8,
-          padding: '5px 12px', borderRadius: 8,
-          background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: ringColor, letterSpacing: '0.08em' }}>
-            ROUND {roundIdx + 1}/{totalRounds}
-          </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint }}>
-            {speedLabel}
-          </span>
-          {comboStreak > 0 && phase === 'round' && countdown === null && (
-            <span style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700,
-              color: rush ? '#f97316' : C.gold, letterSpacing: '0.06em',
-              padding: '2px 6px', borderRadius: 4,
-              background: rush ? 'rgba(249,115,22,0.12)' : 'rgba(253,224,71,0.08)',
-              border: `1px solid ${rush ? 'rgba(249,115,22,0.3)' : 'rgba(253,224,71,0.2)'}`,
-            }}>
-              {comboStreak} STREAK
-            </span>
-          )}
+        {/* Status chips (design 13b) */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 12 }}>
+          {[`ROUND ${roundIdx + 1}/${totalRounds}`, String(discipline).toUpperCase(), String(speedLabel).toUpperCase()].map((t, i) => (
+            <span key={i} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c9a6ff', border: '1px solid rgba(168,85,247,0.5)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>{t}</span>
+          ))}
         </div>
 
-        {/* Pulsing Ring / Timer */}
-        <div style={{ position: 'relative', width: RING_SIZE, height: RING_SIZE, margin: '0 auto 8px' }}>
+        {/* Pulsing beat-orb (design 13b) — responsive so it never clips on narrow
+            screens; the SVG viewBox keeps ring coordinates valid. */}
+        <div style={{ position: 'relative', width: 'min(86vw, 380px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 8px' }}>
           {/* Dimmed art background */}
           <img
             src="/static/ring-combo.webp"
@@ -492,7 +484,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
               objectFit: 'cover', borderRadius: '50%',
-              opacity: 0.07, filter: 'blur(1px)',
+              opacity: 0.2,
               pointerEvents: 'none',
             }}
           />
@@ -509,7 +501,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           {rush && <RushTimerAura intenseFinal={remaining <= 10} />}
           {rush && <RushGlowBurst intenseFinal={remaining <= 10} />}
 
-          <svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} style={{ display: 'block', overflow: 'visible' }}>
             <circle cx={cx} cy={cy} r={RING_R} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={RING_STROKE} />
             <circle cx={cx} cy={cy} r={RING_R + 14} fill="none"
               stroke={ringColor} opacity="0.15" strokeWidth="1"
@@ -539,21 +531,27 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
             {phase === 'round' && countdown === null ? (
               <>
-                {/* Current combo - LARGE */}
+                {/* Streak / rhythm cue */}
+                <div style={{
+                  fontFamily: "'Press Start 2P',monospace", fontSize: 8,
+                  color: rush ? '#f97316' : '#c9a6ff', letterSpacing: '0.08em', marginBottom: 8,
+                }}>
+                  {comboStreak > 0 ? `STREAK ×${comboStreak}` : 'STAY IN RHYTHM'}
+                </div>
+                {/* Current combo - LARGE (gold, design 13b) */}
                 <div className="anim-fade-up" key={currentCombo} style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
                   fontSize: currentCombo && currentCombo.length > 20 ? 22 : 28,
-                  color: '#fff', lineHeight: 1.2, textAlign: 'center',
-                  textShadow: `0 0 18px ${ringColor}`,
+                  color: '#fde047', lineHeight: 1.2, textAlign: 'center',
+                  textShadow: '0 0 18px rgba(253,224,71,0.4)',
                   maxWidth: 280,
                 }}>
                   {currentCombo}
                 </div>
                 {/* Timer below combo */}
                 <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 18,
-                  color: ringColor, marginTop: 12, letterSpacing: '0.05em',
-                  opacity: 0.9,
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 16,
+                  color: '#8b83a8', marginTop: 12, letterSpacing: '0.05em',
                 }}>
                   {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
                 </div>
@@ -593,6 +591,16 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             )}
           </div>
         </div>
+
+        {/* Cadence beat indicator (design 13b) */}
+        {phase === 'round' && countdown === null && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.08em' }}>CADENCE {(cadenceMs / 1000).toFixed(1)}s</span>
+            {[0, 1, 2].map(i => (
+              <span key={i} className="combo-beat-dot" style={{ width: 9, height: 9, borderRadius: '50%', background: rush ? '#f97316' : '#b06aff', animationDelay: `${i * (cadenceMs / 3000)}s`, animationDuration: pulseDuration }}/>
+            ))}
+          </div>
+        )}
 
         {/* Next combo preview */}
         {phase === 'round' && countdown === null && (
@@ -634,43 +642,46 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           })}
         </div>
 
-        {/* Controls */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 'auto' }}>
-          <button onClick={handleRewind} style={{
-            width: 52, height: 52, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(168,85,247,0.25)',
-            color: VIOLET,
-          }}>
-            <RotateCcw size={22} />
-          </button>
+        {/* Controls (design 13b) */}
+        <div style={{ width: '100%', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={handlePause} style={{
-            width: 68, height: 68, borderRadius: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: paused ? 'rgba(168,85,247,0.15)' : 'linear-gradient(135deg,#6D28D9,#a855f7)',
-            border: `1.5px solid ${paused ? VIOLET : 'rgba(168,85,247,0.6)'}`,
+            width: '100%', height: 56, border: 'none', borderRadius: 15, cursor: 'pointer',
+            background: paused ? 'linear-gradient(180deg,#34d372,#16a34a)' : 'linear-gradient(180deg,#b975ff,#a855f7)',
             color: '#fff',
-            boxShadow: paused ? 'none' : '0 0 24px rgba(168,85,247,0.35)',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em',
+            boxShadow: paused ? '0 6px 22px -6px rgba(34,197,94,0.7)' : '0 6px 22px -6px rgba(168,85,247,0.8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
           }}>
-            {paused ? <Play size={28} /> : <Pause size={28} />}
+            {paused ? <><Play size={20} fill="currentColor"/> RESUME</> : <><Pause size={20} fill="currentColor"/> PAUSE</>}
           </button>
-          <button onClick={() => setConfirmEnd(true)} style={{
-            width: 52, height: 52, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-            color: '#ef4444',
-          }}>
-            <Square size={20} />
-          </button>
-          <button onClick={handleNext} style={{
-            width: 52, height: 52, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: isFinalRound ? 'rgba(34,197,94,0.1)' : 'rgba(10,0,20,0.7)',
-            border: isFinalRound ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(168,85,247,0.25)',
-            color: isFinalRound ? '#22c55e' : VIOLET,
-          }}>
-            {isFinalRound ? <CheckCircle size={22} /> : <SkipForward size={22} />}
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={handleRewind} style={{
+              flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
+              border: '1px solid rgba(255,255,255,0.14)', background: '#130e20', color: '#c9bff0',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <RotateCcw size={15} /> REPLAY
+            </button>
+            <button onClick={handleNext} style={{
+              flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
+              border: isFinalRound ? '1px solid rgba(34,197,94,0.5)' : '1px solid rgba(255,255,255,0.14)',
+              background: isFinalRound ? 'rgba(34,197,94,0.1)' : '#130e20',
+              color: isFinalRound ? '#22c55e' : '#c9bff0',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              {isFinalRound ? <>FINISH <CheckCircle size={15} /></> : <>SKIP <SkipForward size={15} /></>}
+            </button>
+            <button onClick={() => setConfirmEnd(true)} style={{
+              flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
+              border: '1px solid rgba(255,90,90,0.4)', background: 'rgba(255,90,90,0.09)', color: '#ff8a8a',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <Square size={13} /> END
+            </button>
+          </div>
         </div>
       </div>
 
