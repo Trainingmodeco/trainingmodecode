@@ -371,7 +371,6 @@ export default function CardioProtocolPlayer({
       }
       return [56, 44, 50, 34, 40, 26, 30, 18].map((y, i) => `${6 + i * 41},${y}`).join(' ');
     })();
-    const TICKS = 44;
     const statusText = useGps ? (usingRealGps ? 'GPS LIVE' : 'GPS ACQUIRING…') : 'PACE TRACK';
     const statusColor = usingRealGps ? '#8fe8ac' : useGps ? '#ffd27a' : '#c9a6ff';
     const statusDot = usingRealGps ? '#22c55e' : useGps ? '#f5b942' : '#b06aff';
@@ -402,18 +401,18 @@ export default function CardioProtocolPlayer({
           </div>
         </div>
 
-        {/* Pace gauge */}
-        <div style={{ position: 'relative', width: 'min(72vw, 280px)', aspectRatio: '1/1', marginBottom: 14 }}>
-          <svg width="100%" height="100%" viewBox="0 0 260 260" style={{ display: 'block' }}>
-            {Array.from({ length: TICKS }).map((_, i) => {
-              const a = (i / TICKS) * 2 * Math.PI - Math.PI / 2;
-              const active = (i / TICKS) * 100 <= progressPct;
-              const r1 = 108, r2 = 122;
-              const cx = 130 + Math.cos(a) * r1, cy = 130 + Math.sin(a) * r1;
-              const ex = 130 + Math.cos(a) * r2, ey = 130 + Math.sin(a) * r2;
-              return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke={active ? gaugeColor : 'rgba(168,85,247,0.2)'} strokeWidth="3" strokeLinecap="round" style={{ filter: active ? `drop-shadow(0 0 3px ${surge ? 'rgba(255,138,74,0.8)' : 'rgba(176,106,255,0.7)'})` : 'none' }}/>;
-            })}
-            <circle cx="130" cy="130" r="96" fill="none" stroke="rgba(168,85,247,0.18)" strokeWidth="1"/>
+        {/* Pace gauge — design 12b cardio ring (dimmed) + progress arc on its outer band */}
+        <div style={{ position: 'relative', width: 'min(74vw, 288px)', aspectRatio: '1/1', marginBottom: 14 }}>
+          <img src="/static/timer-cardio.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.5, pointerEvents: 'none' }}/>
+          <svg width="100%" height="100%" viewBox="0 0 260 260" style={{ position: 'absolute', inset: 0, display: 'block' }}>
+            <circle
+              cx="130" cy="130" r="105" fill="none"
+              stroke={gaugeColor} strokeWidth="6" strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 105}
+              strokeDashoffset={(1 - Math.min(1, progressPct / 100)) * 2 * Math.PI * 105}
+              transform="rotate(-90 130 130)"
+              style={{ transition: 'stroke-dashoffset 0.9s linear', filter: `drop-shadow(0 0 8px ${surge ? 'rgba(255,138,74,0.8)' : 'rgba(176,106,255,0.7)'})` }}
+            />
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: VIOLET, letterSpacing: '0.16em', marginBottom: 2 }}>PACE /{unit}</div>
