@@ -416,7 +416,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       {/* Dimmed themed art background */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1, opacity: 0.08,
-        backgroundImage: 'url(/assets/ring-combat.png)',
+        backgroundImage: 'url(/static/ring-combat.png)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         filter: 'blur(2px) saturate(0.5)',
         pointerEvents: 'none',
@@ -477,89 +477,54 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           </span>
         </div>
 
-        {/* Main display area */}
-        {phase === 'ready' ? (
-          <div style={{
-            width: ringBox, height: ringBox, marginBottom: 18,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '50%', border: `4px solid ${COMBAT_RED}44`,
-            background: 'rgba(15,0,0,0.4)',
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
-              color: COMBAT_RED, letterSpacing: '0.1em',
-            }}>PREPARING...</div>
-          </div>
-        ) : phase === 'complete' ? (
-          <div style={{
-            width: ringBox, height: ringBox, marginBottom: 18,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '50%', border: `4px solid ${GOLD}66`,
-            background: 'rgba(15,0,0,0.4)',
-            boxShadow: '0 0 30px rgba(253,224,71,0.2)',
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20,
-              color: GOLD, letterSpacing: '0.12em',
-            }}>COMPLETE</div>
-          </div>
-        ) : (phase === 'working' && isTimed) || phase === 'resting' ? (
-          <div style={{ position: 'relative', width: ringBox, height: ringBox, marginBottom: 18 }}>
-            <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} style={{ display: 'block' }}>
-              <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={12}/>
-              <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none"
-                stroke={ringColor} strokeWidth={12} strokeLinecap="round"
+        {/* Main display area — 17c conditioning ring (dimmed) + live progress + content */}
+        <div style={{ position: 'relative', width: ringBox, height: ringBox, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Design 17c decorative conditioning ring, dimmed down */}
+          <img
+            src="/static/ring-conditioning.png"
+            alt=""
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.28, pointerEvents: 'none' }}
+          />
+
+          {/* Live progress arc over the ring for timed / rest phases */}
+          {((phase === 'working' && isTimed) || phase === 'resting') && (
+            <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} style={{ position: 'absolute', inset: 0, display: 'block' }}>
+              <circle cx={ringSize / 2} cy={ringSize / 2} r={ringR} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={10}/>
+              <circle
+                cx={ringSize / 2} cy={ringSize / 2} r={ringR} fill="none"
+                stroke={ringColor} strokeWidth={10} strokeLinecap="round"
                 strokeDasharray={2 * Math.PI * ringR}
                 strokeDashoffset={(1 - pct) * 2 * Math.PI * ringR}
-                transform={`rotate(-90 ${ringSize/2} ${ringSize/2})`}
-                style={{ transition: 'stroke-dashoffset 0.9s linear', filter: `drop-shadow(0 0 12px ${ringColor})` }}
+                transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
+                style={{ transition: 'stroke-dashoffset 0.9s linear', filter: `drop-shadow(0 0 10px ${ringColor})` }}
               />
             </svg>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56,
-                color: '#fff', textShadow: `0 0 20px ${ringColor}`,
-              }}>{formatTime(remaining)}</div>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700,
-                color: ringColor, letterSpacing: '0.2em', marginTop: 8,
-              }}>{phase === 'resting' ? 'REST' : 'WORK'}</div>
-            </div>
+          )}
+
+          {/* Centered content per phase */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 14%' }}>
+            {phase === 'ready' ? (
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: COMBAT_RED, letterSpacing: '0.1em' }}>PREPARING...</div>
+            ) : phase === 'complete' ? (
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: GOLD, letterSpacing: '0.12em', textShadow: '0 0 20px rgba(253,224,71,0.4)' }}>COMPLETE</div>
+            ) : (phase === 'working' && isTimed) || phase === 'resting' ? (
+              <>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56, color: '#fff', textShadow: `0 0 20px ${ringColor}` }}>{formatTime(remaining)}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700, color: ringColor, letterSpacing: '0.2em', marginTop: 8 }}>{phase === 'resting' ? 'REST' : 'WORK'}</div>
+              </>
+            ) : phase === 'working' && isReps && cadenceEnabled(currentDrill) ? (
+              <>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 64, color: COMBAT_RED, textShadow: '0 0 20px rgba(239,68,68,0.5)' }}>{repCount}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: '0.15em', marginTop: 8 }}>REP {repCount} / {currentDrill.reps || '?'}</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 52, color: COMBAT_RED }}>{currentDrill.reps || '--'}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 700, color: C.muted, letterSpacing: '0.15em', marginTop: 8 }}>REPS</div>
+              </>
+            )}
           </div>
-        ) : phase === 'working' && isReps && cadenceEnabled(currentDrill) ? (
-          <div style={{
-            width: ringBox, height: ringBox, marginBottom: 18,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '50%', border: `4px solid ${COMBAT_RED}55`,
-            background: 'rgba(15,0,0,0.4)',
-            boxShadow: '0 0 30px rgba(239,68,68,0.15)',
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 64,
-              color: COMBAT_RED, textShadow: '0 0 20px rgba(239,68,68,0.5)',
-            }}>{repCount}</div>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700,
-              color: C.muted, letterSpacing: '0.15em', marginTop: 8,
-            }}>REP {repCount} / {currentDrill.reps || '?'}</div>
-          </div>
-        ) : (
-          <div style={{
-            width: ringBox, height: ringBox, marginBottom: 18,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '50%', border: `4px solid ${COMBAT_RED}44`,
-            background: 'rgba(15,0,0,0.4)',
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 52,
-              color: COMBAT_RED,
-            }}>{currentDrill.reps || '--'}</div>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 700,
-              color: C.muted, letterSpacing: '0.15em', marginTop: 8,
-            }}>REPS</div>
-          </div>
-        )}
+        </div>
 
         {/* Current drill / Up Next card */}
         {phase !== 'ready' && phase !== 'complete' && (
