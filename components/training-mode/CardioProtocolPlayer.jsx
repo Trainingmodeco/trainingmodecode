@@ -401,9 +401,9 @@ export default function CardioProtocolPlayer({
           </div>
         </div>
 
-        {/* Pace gauge — design 12b cardio ring (dimmed) + progress arc on its outer band */}
-        <div style={{ position: 'relative', width: 'min(74vw, 288px)', aspectRatio: '1/1', marginBottom: 14 }}>
-          <img src="/static/timer-cardio.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.5, pointerEvents: 'none' }}/>
+        {/* Pace gauge — design 12b cardio ring (dimmed + enlarged so it clears the numbers) */}
+        <div style={{ position: 'relative', width: 'min(86vw, 330px)', aspectRatio: '1/1', marginBottom: 10, marginTop: -4 }}>
+          <img src="/static/timer-cardio.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.34, pointerEvents: 'none' }}/>
           <svg width="100%" height="100%" viewBox="0 0 260 260" style={{ position: 'absolute', inset: 0, display: 'block' }}>
             <circle
               cx="130" cy="130" r="105" fill="none"

@@ -257,7 +257,7 @@ export default function CardioMode({ onBack }) {
             </button>
             <IntroLogo size={26}/>
           </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: 4 }}>
             <CardioProtocolPlayer
               format={player.format}
               durationSeconds={player.durationSeconds}
