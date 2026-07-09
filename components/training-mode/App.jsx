@@ -292,6 +292,7 @@ export default function App() {
     goPaywall:      () => setScreen('paywall'),
     goGameLink:     () => setScreen('game_link'),
     goSubscription: () => setScreen('subscription'),
+    goNotifications: () => setScreen('notifications'),
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },

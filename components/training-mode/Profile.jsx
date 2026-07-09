@@ -193,7 +193,7 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
   );
 }
 
-export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription }) {
+export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription, onNotifications }) {
   const p = profile || {};
   const [profileView, setProfileView] = useState('overview');
   const [name,        setName       ] = useState(p.name        ?? '');
@@ -331,9 +331,16 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               )}
               <button onClick={() => setProfileView('audio')} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
                 <span style={{ fontSize: 14 }}>⚙</span>
-                <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>SETTINGS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Audio · units · notifications · subscription · privacy</div></div>
+                <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>SETTINGS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Audio · units · subscription · privacy</div></div>
                 <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
               </button>
+              {onNotifications && (
+                <button onClick={onNotifications} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ fontSize: 14 }}>🔔</span>
+                  <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>NOTIFICATIONS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Streak reminders &amp; alerts</div></div>
+                  <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

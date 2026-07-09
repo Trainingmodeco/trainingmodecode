@@ -4,6 +4,7 @@ import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { ChevronLeft } from 'lucide-react';
+import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
 
 // Progress · Overview — pixel match of design 23a:
@@ -220,6 +221,10 @@ export default function ProgressScreen({ onHome, profile }) {
                 <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
               </Card>
 
+              {sessions.length === 0 ? (
+                <EmptyState preset="firstRun" onPrimary={onHome} style={{ marginTop: 10 }}/>
+              ) : (<>
+
               {/* XP trend */}
               <Card>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
@@ -264,6 +269,7 @@ export default function ProgressScreen({ onHome, profile }) {
                   </button>
                 ))}
               </div>
+              </>)}
             </>
           ) : (
             <>
