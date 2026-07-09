@@ -121,6 +121,7 @@ export default function App() {
   const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
+  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine !== false));
   const activeSessionStateRef = useRef(null);
   const postGuideRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -214,6 +215,17 @@ export default function App() {
     if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
     if (document.body) document.body.scrollTop = 0;
   }, [screen]);
+
+  // Real connectivity detection for the offline banner (design 25d). The app is
+  // local-first, so offline is informational rather than blocking.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
 
   const reportSessionState = useCallback((state) => {
     activeSessionStateRef.current = state;
@@ -456,6 +468,13 @@ export default function App() {
   return (
     <>
       <style>{STYLE}</style>
+      {!online && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 12px', background: 'rgba(20,6,38,0.96)', borderBottom: '1px solid rgba(253,224,71,0.35)', backdropFilter: 'blur(8px)' }}>
+          <span style={{ fontSize: 13 }}>📡</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: '#fde047', letterSpacing: '0.06em' }}>OFFLINE</span>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#c4a4d8' }}>· sessions save &amp; sync when you&apos;re back online</span>
+        </div>
+      )}
       <div style={{ minHeight: '100dvh', background: C.bg }}>
         <ScreenRouter
           screen={screen} disc={disc} cfg={cfg} session={session}

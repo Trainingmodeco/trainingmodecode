@@ -85,6 +85,36 @@ const DEFENSE_FOOTWORK_INCLUDES = {
   MMA:       ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'],
 };
 
+// Sub-section label for a technique (design 21b/21c group techniques within a
+// category). Derived from the name since the data has no explicit sub-category.
+function subSectionFor(t) {
+  const n = String(t.name).toLowerCase();
+  if (t.category === 'Defense') {
+    if (/slip|bob|weave|roll|pull|lean|duck|sway/.test(n)) return 'HEAD MOVEMENT';
+    return 'BLOCKS & PARRIES';
+  }
+  if (t.category === 'Footwork') {
+    if (/pivot|angle|lateral|circle|exit|entry|switch/.test(n)) return 'ANGLES & PIVOTS';
+    return 'STEPS';
+  }
+  if (/knee/.test(n)) return 'KNEES';
+  if (/elbow/.test(n)) return 'ELBOWS';
+  if (/kick|teep|roundhouse|\bcheck\b/.test(n)) return 'KICKS';
+  return 'PUNCHES';
+}
+
+// Preserve first-seen order of sub-sections.
+function groupBySubSection(techniques) {
+  const groups = [];
+  const idx = {};
+  techniques.forEach(t => {
+    const s = subSectionFor(t);
+    if (idx[s] === undefined) { idx[s] = groups.length; groups.push({ section: s, items: [] }); }
+    groups[idx[s]].items.push(t);
+  });
+  return groups;
+}
+
 function getTechniquesFor(discipline, category) {
   if (category === 'Strikes') {
     return TECHNIQUES.filter(t => t.discipline === discipline && t.category === 'Strikes');
@@ -350,8 +380,8 @@ function ShadowboxDrillView({ technique, onBack }) {
         <div style={{ textAlign: 'center', padding: '10px 0 0' }}><span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#b06aff', letterSpacing: '0.14em' }}>SHADOWBOX DRILL · {name}</span></div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 11, color: '#c4a4d8', letterSpacing: '0.1em', marginBottom: 16 }}>{done ? 'DRILL COMPLETE' : 'THROW ON THE CALL'}</div>
-          <div style={{ position: 'relative', width: 'min(80vw, 320px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, animation: paused || done ? 'none' : `sb-pulse ${tempoMs}ms ease-in-out infinite` }}>
-            <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}/>
+          <div style={{ position: 'relative', width: 'min(90vw, 372px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, animation: paused || done ? 'none' : `sb-pulse ${tempoMs}ms ease-in-out infinite` }}>
+            <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.28 }}/>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 38, color: GOLD, textShadow: '0 0 18px rgba(253,224,71,.4)' }}>{name}</div>
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: '#fff', marginTop: 8 }}>{reps} / {TARGET}</div>
@@ -514,8 +544,8 @@ function ComboDrillView({ discipline, onBack }) {
       </div>
       <div style={{ textAlign: 'center', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#8b83a8', letterSpacing: '0.1em', marginTop: 6 }}>COMBO {comboIdx + 1} / {DRILL_COMBOS.length}</div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-        <div style={{ position: 'relative', width: 'min(80vw, 320px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, animation: paused ? 'none' : `cd-pulse ${tempoMs}ms ease-in-out infinite` }}>
-          <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}/>
+        <div style={{ position: 'relative', width: 'min(90vw, 372px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, animation: paused ? 'none' : `cd-pulse ${tempoMs}ms ease-in-out infinite` }}>
+          <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.28 }}/>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: '#c9a6ff', marginBottom: 12 }}>THROW IT</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
@@ -714,21 +744,19 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
               <ChevronRight size={16} style={{ color: '#b06aff' }}/>
             </button>
 
-            {/* Count */}
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9, flexShrink: 0 }}>
-              {category.toUpperCase()} &middot; {techniques.length}
-            </div>
-
-            {/* Scrollable list */}
+            {/* Scrollable list — grouped into sub-sections (design 21b/21c) */}
             <div className="pm-technique-list" style={{ flex: 1, minHeight: 0, paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))', paddingRight: 4 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {techniques.length > 0 ? techniques.map(t => (
-                  <TechniqueCard key={t.name} technique={t} onTap={openDetail}/>
-                )) : (
-                  <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 14, color: C.muted }}>Content coming soon.</div>
-                )}
-              </div>
-              <div style={{ marginTop: 20, textAlign: 'center', fontFamily: "'Press Start 2P',monospace", fontSize: 6.5, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.18em' }}>TRAIN &middot; FIGHT &middot; WIN</div>
+              {techniques.length > 0 ? groupBySubSection(techniques).map(({ section, items }) => (
+                <div key={section} style={{ marginBottom: 14 }}>
+                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9 }}>{section} &middot; {items.length}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {items.map(t => <TechniqueCard key={t.name} technique={t} onTap={openDetail}/>)}
+                  </div>
+                </div>
+              )) : (
+                <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 14, color: C.muted }}>Content coming soon.</div>
+              )}
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: "'Press Start 2P',monospace", fontSize: 6.5, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.18em' }}>TRAIN &middot; FIGHT &middot; WIN</div>
             </div>
           </>
         )}

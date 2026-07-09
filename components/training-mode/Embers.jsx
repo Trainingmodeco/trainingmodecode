@@ -1,14 +1,7 @@
-export default function Embers({ count = 18 }) {
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="ember" style={{
-          left: `${(i * 17) % 100}%`,
-          animationDuration: `${5 + (i % 5)}s`,
-          animationDelay: `${(i * 0.4) % 6}s`,
-          opacity: 0.6,
-        }}/>
-      ))}
-    </div>
-  );
+// The floating flame/spark effect is reserved for the hero/entry screen only
+// (SplashScreen renders its own dedicated spark animation). Everywhere else this
+// is a no-op so the ambient embers don't distract from screen content. Kept as a
+// component so the existing call sites need no changes.
+export default function Embers() {
+  return null;
 }

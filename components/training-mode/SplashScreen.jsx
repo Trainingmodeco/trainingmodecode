@@ -25,8 +25,8 @@ const splashCSS = `
   100% { transform: translateY(-92vh) translateX(var(--drift)) scale(1.3); opacity: 0; }
 }
 @keyframes glow-pulse-cta {
-  0%, 100% { opacity: 0.55; text-shadow: 0 0 8px rgba(168,85,247,0.4); }
-  50%      { opacity: 1;    text-shadow: 0 0 18px rgba(168,85,247,0.8), 0 0 36px rgba(168,85,247,0.3); }
+  0%, 100% { opacity: 0.35; transform: scale(0.98); text-shadow: 0 0 6px rgba(168,85,247,0.35); }
+  50%      { opacity: 1;    transform: scale(1.05); text-shadow: 0 0 16px rgba(253,224,71,0.75), 0 0 34px rgba(168,85,247,0.5); }
 }
 `;
 
@@ -191,15 +191,20 @@ export default function SplashScreen({ onStart }) {
             TRAIN LIKE A FIGHTER
           </div>
 
-          {/* TAP ANYWHERE TO ENTER */}
+          {/* TAP ANYWHERE TO ENTER — flashing, stylized */}
           <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10,
-            color: '#b06aff', letterSpacing: '0.2em', textAlign: 'center',
-            animation: barPhase === 'idle' ? 'glow-pulse-cta 2.6s ease-in-out infinite' : 'none',
+            display: 'inline-flex', alignItems: 'center', gap: 10, alignSelf: 'center',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11,
+            color: '#fde047', letterSpacing: '0.22em', textAlign: 'center',
+            padding: '6px 16px', borderRadius: 99,
+            border: '1px solid rgba(253,224,71,0.35)', background: 'rgba(20,6,38,0.35)',
+            animation: barPhase === 'idle' ? 'glow-pulse-cta 1.7s ease-in-out infinite' : 'none',
             opacity: barPhase !== 'idle' ? 0 : undefined,
             transition: 'opacity 0.3s',
           }}>
+            <span style={{ color: '#b06aff' }}>▸</span>
             TAP ANYWHERE TO ENTER
+            <span style={{ color: '#b06aff' }}>◂</span>
           </div>
 
           {/* Loading bar */}

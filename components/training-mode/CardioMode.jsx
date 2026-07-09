@@ -16,6 +16,7 @@ import {
 } from './data/cardioAddon';
 import CardioProtocolPlayer from './CardioProtocolPlayer';
 import CardioSummary from './CardioSummary';
+import EmptyState from './EmptyState';
 import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import { loadStats, getLevel } from './data/userStats';
 import { loadProfile } from './data/userProfile';
@@ -158,6 +159,35 @@ export default function CardioMode({ onBack, onHome }) {
 
   const addon = buildAddon();
   const summary = summarizeCardioAddon(addon);
+
+  // Outdoor runs need GPS; probe real permission and route to the GPS empty
+  // state (25d) if it's unavailable / denied.
+  const startCardio = () => {
+    setPlayerResult(null);
+    if (effectiveTarget === 'manual') { setPhase('summary'); return; }
+    if (cardioType === 'outdoor-run') {
+      if (typeof navigator === 'undefined' || !navigator.geolocation) { setPhase('gps'); return; }
+      navigator.geolocation.getCurrentPosition(() => setPhase('player'), () => setPhase('gps'), { timeout: 8000, maximumAge: 60000 });
+      return;
+    }
+    setPhase('player');
+  };
+
+  if (phase === 'gps') {
+    return (
+      <PhoneFrame useBrandBg>
+        <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={8}/>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+          <div style={{ padding: '12px 16px' }}>
+            <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+            <EmptyState preset="gps" onPrimary={startCardio} onSecondary={() => { setCardioType('treadmill'); setPhase('player'); }} style={{ width: '100%' }}/>
+          </div>
+        </div>
+      </PhoneFrame>
+    );
+  }
 
   if (phase === 'player') {
     const player = cardioAddonToPlayer(addon);
@@ -377,7 +407,7 @@ export default function CardioMode({ onBack, onHome }) {
             </span>
           </div>
 
-          <button onClick={() => { setPlayerResult(null); setPhase(effectiveTarget === 'manual' ? 'summary' : 'player'); }} style={{
+          <button onClick={startCardio} style={{
             width: '100%', height: 52, border: 'none', borderRadius: 12, cursor: 'pointer',
             background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff',
             fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 14, letterSpacing: '0.06em',
