@@ -34,6 +34,8 @@ const EQUIPMENT = [
   { id: 'BAG', label: 'BAG' },
   { id: 'WEIGHTS', label: 'WEIGHTS' },
 ];
+// Map the on-screen equipment choice to a generator equipment tier.
+const EQUIPMENT_TIER = { NONE: 'Bodyweight', BAG: 'Bags & Combat Gear', WEIGHTS: 'Basic Gym' };
 
 const setupCSS = `
 .cc-pill { transition: all 0.2s ease; cursor: pointer; }
@@ -114,7 +116,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
 
   const handleStart = () => {
     onStart({
-      style, duration, difficulty, equipment, format,
+      style, duration, difficulty, equipment: EQUIPMENT_TIER[equipment] || 'Any', format,
       voiceOn: true, formPreviewOn: true, cadenceCount: true, cadencePreset, cadenceMs, cardioAddon,
       rounds, workSec, restSec, focus, blend: FOCUS_BLEND[focus] ?? 50,
     });
