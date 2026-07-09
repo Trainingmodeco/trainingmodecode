@@ -394,7 +394,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
   // --- Ring display calc ---
   const ringSize = 394; // SVG viewBox coordinate system (kept fixed)
-  const ringR = (ringSize - 20) / 2;
+  // Radius tuned so the progress arc sits on the outer edge of the ring-conditioning.png band.
+  const ringR = ringSize * 0.395;
   const ringBox = 'min(74vw, 288px)'; // responsive rendered size so it fits + leaves room for the text/timer
   const maxTime = phase === 'resting'
     ? (currentDrill?.restSeconds || 30)
