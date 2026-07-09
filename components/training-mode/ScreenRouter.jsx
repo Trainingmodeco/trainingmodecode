@@ -2,6 +2,9 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import SplashScreen from './SplashScreen';
 import Onboarding from './Onboarding';
 import HowItWorksGuide from './HowItWorksGuide';
+import Paywall from './Paywall';
+import GameLink from './GameLink';
+import ManageSubscription from './ManageSubscription';
 import HomeDashboard from './HomeDashboard';
 import TrainingHub from './TrainingHub';
 import FightModeHub from './FightModeHub';
@@ -113,7 +116,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children }) {
 }
 
 export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, profile, updateProfile, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, finishGuide, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher } = actions;
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, finishGuide, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -320,7 +323,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'profile') {
     return (
       <WithNav activeTab="profile" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <Profile onHome={goHome} onBack={goHome} onSave={goHome} profile={profile} updateProfile={updateProfile} onBetaFeedback={goBetaFeedback}/>
+        <Profile onHome={goHome} onBack={goHome} onSave={goHome} profile={profile} updateProfile={updateProfile} onBetaFeedback={goBetaFeedback} onPaywall={goPaywall} onGameLink={goGameLink} onSubscription={goSubscription}/>
       </WithNav>
     );
   }
@@ -330,6 +333,15 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
         <BetaFeedback onBack={goProfile} profile={profile}/>
       </WithNav>
     );
+  }
+  if (screen === 'paywall') {
+    return <Paywall onClose={goProfile}/>;
+  }
+  if (screen === 'game_link') {
+    return <GameLink onBack={goProfile} profile={profile}/>;
+  }
+  if (screen === 'subscription') {
+    return <ManageSubscription onBack={goProfile}/>;
   }
   if (screen === 'arcade') {
     return (

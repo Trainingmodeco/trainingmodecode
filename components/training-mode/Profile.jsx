@@ -191,7 +191,7 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
   );
 }
 
-export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback }) {
+export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription }) {
   const p = profile || {};
   const [profileView, setProfileView] = useState('main');
   const [name,        setName       ] = useState(p.name        ?? '');
@@ -416,6 +416,27 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             <ChevronLeft size={16} color={C.muted} style={{ marginLeft: 'auto', transform: 'rotate(180deg)' }}/>
           </button>
+        </div>
+
+        {/* Account & PRO */}
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            { emoji: '👑', title: 'TRAINING MODE PRO', sub: 'Unlock all protocols, builder & skins.', onClick: onPaywall },
+            { emoji: '🎮', title: 'GAME LINK', sub: 'Connect your fighter — launches 2026.', onClick: onGameLink },
+            { emoji: '💳', title: 'MANAGE SUBSCRIPTION', sub: 'Plan, billing & renewals.', onClick: onSubscription },
+          ].filter(r => r.onClick).map(r => (
+            <button key={r.title} onClick={r.onClick} style={{
+              width: '100%', padding: '14px 16px', borderRadius: 12, borderWidth: 1, borderStyle: 'solid', borderColor: 'rgba(168,85,247,0.2)', cursor: 'pointer',
+              background: 'rgba(12,2,24,0.85)', display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(168,85,247,0.1)', border: '1.5px solid rgba(168,85,247,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 17 }}>{r.emoji}</div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: C.text, letterSpacing: '0.1em' }}>{r.title}</div>
+                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 11, color: C.muted, marginTop: 2 }}>{r.sub}</div>
+              </div>
+              <ChevronLeft size={16} color={C.muted} style={{ marginLeft: 'auto', transform: 'rotate(180deg)' }}/>
+            </button>
+          ))}
         </div>
 
         {/* Reminders & Notifications */}
