@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, loadStats, getLevel } from './data/userStats';
@@ -479,17 +479,19 @@ export default function App() {
         </div>
       )}
       <div style={{ minHeight: '100dvh', background: C.bg }}>
-        <ScreenRouter
-          screen={screen} disc={disc} cfg={cfg} session={session}
-          comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
-          ccMission={ccMission} ccResult={ccResult}
-          cardioContext={cardioContext} cardioResult={cardioResult}
-          arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
-          profile={profile} updateProfile={updateProfile} levelUp={levelUp}
-          pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
-          reportSessionState={reportSessionState} resumeData={resumeData}
-          actions={actions}
-        />
+        <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gold, fontFamily: "'Orbitron',sans-serif", fontSize: 11, letterSpacing: '0.2em' }}>LOADING…</div>}>
+          <ScreenRouter
+            screen={screen} disc={disc} cfg={cfg} session={session}
+            comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
+            ccMission={ccMission} ccResult={ccResult}
+            cardioContext={cardioContext} cardioResult={cardioResult}
+            arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
+            profile={profile} updateProfile={updateProfile} levelUp={levelUp}
+            pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
+            reportSessionState={reportSessionState} resumeData={resumeData}
+            actions={actions}
+          />
+        </Suspense>
       </div>
     </>
   );

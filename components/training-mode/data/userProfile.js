@@ -16,19 +16,28 @@ const DEFAULT_PROFILE = {
   encouragement: 'normal',
 };
 
+// Parsed-profile cache — avoids re-reading + JSON.parse on every render. Cleared
+// on save and on cross-tab storage changes so reads stay fresh.
+let _profileCache = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => { if (!e.key || e.key === STORAGE_KEY) _profileCache = null; });
+}
+
 export function loadProfile() {
+  if (_profileCache) return _profileCache;
   try {
     if (typeof localStorage === 'undefined') return { ...DEFAULT_PROFILE };
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_PROFILE };
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_PROFILE, ...parsed };
+    _profileCache = raw ? { ...DEFAULT_PROFILE, ...JSON.parse(raw) } : { ...DEFAULT_PROFILE };
+    return _profileCache;
   } catch {
     return { ...DEFAULT_PROFILE };
   }
 }
 
 export function saveProfile(profile) {
+  _profileCache = null; // invalidate → next load reflects the change
   if (typeof localStorage === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
 }

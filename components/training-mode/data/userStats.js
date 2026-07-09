@@ -16,20 +16,33 @@ function getDefaultStats() {
   };
 }
 
+// Cache the parsed stats so repeated loadStats() calls (many per render across
+// screens) don't re-read + JSON.parse localStorage every time. The cache is
+// invalidated on save and on cross-tab storage events, so the next load returns
+// a fresh object — keeping event-driven React refreshes reactive.
+let _statsCache = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => { if (!e.key || e.key === STORAGE_KEY) _statsCache = null; });
+}
+
 export function loadStats() {
+  if (_statsCache) return _statsCache;
   try {
     if (typeof localStorage === 'undefined') return getDefaultStats();
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return getDefaultStats();
+    if (!raw) { _statsCache = getDefaultStats(); return _statsCache; }
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.sessions)) return getDefaultStats();
-    return parsed;
+    if (!parsed || !Array.isArray(parsed.sessions)) { _statsCache = getDefaultStats(); return _statsCache; }
+    _statsCache = parsed;
+    return _statsCache;
   } catch {
     return getDefaultStats();
   }
 }
 
 function saveStats(stats) {
+  _statsCache = null; // invalidate → next loadStats re-parses a fresh object
   if (typeof localStorage === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
   if (typeof window !== 'undefined') {

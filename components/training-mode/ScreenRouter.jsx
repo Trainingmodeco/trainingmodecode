@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, lazy } from 'react';
 import SplashScreen from './SplashScreen';
 import Onboarding from './Onboarding';
 import HowItWorksGuide from './HowItWorksGuide';
@@ -33,12 +33,14 @@ import ProgressScreen from './ProgressScreen';
 import BottomNav from './BottomNav';
 import ScrollDownIndicator from './ScrollDownIndicator';
 import FloatingResumeButton from './FloatingResumeButton';
-import CodecApp from '../workout-codec/CodecApp';
-import TrainingArcade from './TrainingArcade';
-import ArcadeSeriesIntroPage from './ArcadeSeriesIntroPage';
-import ArcadeSeriesDetail from './ArcadeSeriesDetail';
-import ArcadeSessionPlayer from './ArcadeSessionPlayer';
 import LevelUpReveal from './LevelUpReveal';
+
+// Code-split the heavy, rarely-first screens so they're not in the initial bundle.
+const CodecApp = lazy(() => import('../workout-codec/CodecApp'));
+const TrainingArcade = lazy(() => import('./TrainingArcade'));
+const ArcadeSeriesIntroPage = lazy(() => import('./ArcadeSeriesIntroPage'));
+const ArcadeSeriesDetail = lazy(() => import('./ArcadeSeriesDetail'));
+const ArcadeSessionPlayer = lazy(() => import('./ArcadeSessionPlayer'));
 
 function useScrollIndicator(containerRef, children) {
   const [showScroll, setShowScroll] = useState(false);
