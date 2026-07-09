@@ -26,6 +26,29 @@ const TROPHIES = [
   { src: '/static/trophies/fight-ring-warrior.png', ring: 'rgba(176,106,255,0.7)' },
 ];
 
+// Trophy ladder per mode (design 23b). Unlocked once the athlete has logged
+// `need` sessions in that category.
+const TROPHY_GROUPS = [
+  { mode: '💪 FIT MODE', cat: 'fit', ring: 'rgba(253,224,71,0.6)', color: '#fde047', items: [
+    { src: 'fit-starter-build', label: 'STARTER', need: 1 },
+    { src: 'fit-gym-warrior', label: 'GYM WARRIOR', need: 3 },
+    { src: 'fit-rep-master', label: 'REP MASTER', need: 8 },
+    { src: 'fit-iron-legend', label: 'IRON LEGEND', need: 15 },
+  ] },
+  { mode: '🥊 FIGHT MODE', cat: 'fight', ring: 'rgba(176,106,255,0.6)', color: '#c9a6ff', items: [
+    { src: 'fight-combat-rookie', label: 'ROOKIE', need: 1 },
+    { src: 'fight-ring-warrior', label: 'RING WAR', need: 3 },
+    { src: 'fight-knockout-king', label: 'KO KING', need: 8 },
+    { src: 'fight-apex-champion', label: 'APEX', need: 15 },
+  ] },
+  { mode: '🕹 ARCADE', cat: 'arcade', ring: 'rgba(34,197,94,0.55)', color: '#8fe8ac', items: [
+    { src: 'arcade-recruit', label: 'RECRUIT', need: 1 },
+    { src: 'arcade-combo-hunter', label: 'COMBO', need: 3 },
+    { src: 'arcade-boss-breaker', label: 'BOSS', need: 6 },
+    { src: 'arcade-final-boss', label: 'FINAL', need: 10 },
+  ] },
+];
+
 function category(type) {
   const t = String(type || '').toLowerCase();
   if (/fight|combo|focus|practice/.test(t)) return 'fight';
@@ -161,23 +184,50 @@ export default function ProgressScreen({ onHome, profile }) {
             </>
           ) : (
             <>
-              {/* Trophies tab — rank ladder */}
-              <div style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em', margin: '4px 0 10px' }}>RANK LADDER</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-                {RANKS.map(r => {
-                  const unlocked = totalXp >= r.xp;
-                  const current = r === rank;
+              {/* Current + next rank (kept from the ladder) */}
+              <div style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em', margin: '2px 0 8px' }}>RANK</div>
+              <div style={{ display: 'flex', gap: 9, marginBottom: 14 }}>
+                {[{ r: rank, cur: true }, { r: RANKS[Math.min(RANKS.indexOf(rank) + 1, RANKS.length - 1)], cur: false }].map(({ r, cur }, i) => {
+                  const nextXp = RANKS[RANKS.indexOf(r)]?.xp ?? 0;
+                  const isMax = !cur && r === rank;
                   return (
-                    <div key={r.name} style={{ borderRadius: 12, border: `1.5px solid ${current ? r.color : unlocked ? `${r.color}70` : 'rgba(255,255,255,0.08)'}`, background: unlocked ? `radial-gradient(circle at 30% 25%, ${r.color}22, rgba(10,0,20,0.9))` : 'rgba(10,0,20,0.6)', boxShadow: current ? `0 0 16px ${r.color}55` : 'none', padding: '12px 6px', textAlign: 'center', opacity: unlocked ? 1 : 0.5 }}>
-                      <div style={{ width: 48, height: 60, margin: '0 auto 6px', borderRadius: 7, overflow: 'hidden', border: `1px solid ${r.color}66`, filter: unlocked ? 'none' : 'grayscale(0.8)' }}>
+                    <div key={i} style={{ flex: 1, borderRadius: 12, border: `1.5px solid ${cur ? r.color : `${r.color}55`}`, background: cur ? `radial-gradient(circle at 30% 25%, ${r.color}22, rgba(10,0,20,0.9))` : 'rgba(10,0,20,0.6)', boxShadow: cur ? `0 0 16px ${r.color}44` : 'none', padding: '11px 8px', textAlign: 'center' }}>
+                      <div style={{ font: "700 7px 'Orbitron',sans-serif", color: cur ? '#8fe8ac' : '#8b83a8', letterSpacing: '0.14em', marginBottom: 6 }}>{cur ? 'CURRENT' : isMax ? 'MAX' : 'NEXT'}</div>
+                      <div style={{ width: 46, height: 56, margin: '0 auto 6px', borderRadius: 7, overflow: 'hidden', border: `1px solid ${r.color}66`, filter: cur ? 'none' : 'grayscale(0.5)' }}>
                         <SafeImage src={`/static/tiers/${r.tier}-${sex}.png`} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
                       </div>
-                      <div style={{ font: "800 7px 'Orbitron',sans-serif", color: unlocked ? r.color : 'rgba(255,255,255,0.3)', letterSpacing: '0.04em', lineHeight: 1.2 }}>{r.name.toUpperCase()}</div>
-                      <div style={{ font: "600 7px 'Rajdhani',sans-serif", color: '#8b83a8', marginTop: 2 }}>{unlocked ? (current ? 'CURRENT' : 'UNLOCKED') : `${r.xp.toLocaleString()} XP`}</div>
+                      <div style={{ font: "800 8px 'Orbitron',sans-serif", color: r.color, letterSpacing: '0.03em', lineHeight: 1.2 }}>{r.name.toUpperCase()}</div>
+                      <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#8b83a8', marginTop: 2 }}>{cur ? `LV ${level}` : isMax ? 'TOP RANK' : `${nextXp.toLocaleString()} XP`}</div>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Trophy grid by mode (design 23b) */}
+              {TROPHY_GROUPS.map(g => {
+                const catCount = counts[g.cat] || 0;
+                const unlockedCount = g.items.filter(it => catCount >= it.need).length;
+                return (
+                  <div key={g.cat} style={{ marginBottom: 13 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>{g.mode}</span>
+                      <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{unlockedCount}/{g.items.length}</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 7 }}>
+                      {g.items.map(it => {
+                        const unlocked = catCount >= it.need;
+                        return (
+                          <div key={it.src} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: `1.5px solid ${unlocked ? g.ring : 'rgba(255,255,255,0.1)'}`, opacity: unlocked ? 1 : 0.45 }}>
+                            <SafeImage src={`/static/trophies/${it.src}.png`} alt={it.label} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block', filter: unlocked ? 'none' : 'grayscale(1)' }}/>
+                            {!unlocked && <span style={{ position: 'absolute', top: 3, right: 3, fontSize: 10 }}>🔒</span>}
+                            <div style={{ padding: 3, textAlign: 'center', background: 'rgba(8,2,18,0.92)' }}><div style={{ font: "800 6.5px 'Orbitron',sans-serif", color: unlocked ? g.color : '#9a90b8' }}>{it.label}</div></div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </>
           )}
         </div>
