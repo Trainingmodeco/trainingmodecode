@@ -60,6 +60,7 @@ function useScrollIndicator(containerRef, children) {
       window.removeEventListener('resize', check);
       ro.disconnect();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [check, children]);
 
   return showScroll;

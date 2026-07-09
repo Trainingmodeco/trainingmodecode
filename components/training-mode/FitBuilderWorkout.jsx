@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import SafeImage from './SafeImage';
 import { Check, Dumbbell, RotateCcw, Trophy, Play, ArrowRightLeft, X, SkipForward, ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
-import { isBodyweightExercise, hasNumericReps } from './fit-mode/isBodyweight';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitRepCoach from './FitRepCoach';
 import useWakeLock from './hooks/useWakeLock';

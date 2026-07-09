@@ -387,11 +387,14 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     if (firstCadence) {
       startCadence(firstEx);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [voiceOn, isWeighted]);
 
   useEffect(() => {
     if (!initialPaused) runIntro();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => { versionRef.current++; cadenceVersionRef.current++; cancelSpeech(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Timer for timed exercises and rest
@@ -420,6 +423,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     } else if (currentPhase === 'rest') {
       moveToNextRef.current?.();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
 
   // Beeps at 3, 2, 1
@@ -428,6 +432,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     if (remaining >= 1 && remaining <= 3) {
       playBeep();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
 
   // 10-second rest warning

@@ -5,7 +5,6 @@ import Embers from './Embers';
 import { ChevronRight, Flame, Play } from 'lucide-react';
 import { C } from './Styles';
 import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getStreak, getWeekDayCompletion, WEEKLY_GOAL } from './data/userStats';
-import { getDisplayName } from './data/userProfile';
 import { getSeriesProgress, getActiveChallenge as getStoredActiveChallenge } from './data/arcadeProgress';
 import { TRAINING_ARCADE_SERIES } from './data/trainingArcadeData';
 import { getFightMiniSuggestion } from './data/recommendations';

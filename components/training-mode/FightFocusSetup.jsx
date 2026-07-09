@@ -9,7 +9,6 @@ import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { IMG } from './data/optimizedImageMap';
 
 const GOLD = C.gold;
-const RED = '#ef4444';
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard'];
 const MODES = ['Technical', 'Combo'];

@@ -52,6 +52,7 @@ export default function TimerScreen({ blocks, onComplete, onBack }) {
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, phase, currentIdx, currentSet]);
 
   const startRest = () => {

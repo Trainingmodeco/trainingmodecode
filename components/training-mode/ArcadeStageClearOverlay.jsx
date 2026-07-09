@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
-import { ARCADE, ArcadeHudPanel, ArcadePrimaryButton, ArcadeSecondaryButton, ArcadeStatusChip } from './ArcadeUI';
+import { ArcadePrimaryButton, ArcadeSecondaryButton } from './ArcadeUI';
 import { RotateCcw, Play, Share2, ChevronLeft, Star } from 'lucide-react';
 
 const OVERLAY_STYLES = `

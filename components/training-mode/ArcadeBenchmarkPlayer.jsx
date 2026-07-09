@@ -196,6 +196,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
       setCountdownVal(3);
     }, 4000);
     return () => { clearTimeout(t); cancelSpeech(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   // Countdown phase
@@ -216,6 +217,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
       }
     }, 900);
     return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, countdownVal]);
 
   // Rest countdown
@@ -235,6 +237,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
       });
     }, 1000);
     return () => clearInterval(restRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   function announceExerciseStart() {
@@ -323,6 +326,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     };
 
     runLoop();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalTasks]);
 
   const resumeCadenceLoop = useCallback(() => {
@@ -378,6 +382,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     };
 
     runLoop();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalTasks]);
 
   function handleBenchmarkComplete() {
@@ -501,6 +506,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   const handleSkipRest = useCallback(() => {
     clearInterval(restRef.current);
     advanceToNextExercise();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Backup manual controls
@@ -509,11 +515,13 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     const newRep = Math.min(repRef.current + n, target);
     repRef.current = newRep;
     setCurrentRep(newRep);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       cadenceVersionRef.current++;
       cancelSpeech();
       clearInterval(elapsedRef.current);

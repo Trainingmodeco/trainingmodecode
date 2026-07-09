@@ -42,7 +42,6 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const xp = integrityResult?.awardXp
     ? calculatePartialXp(baseXp, integrityResult.validCompletedUnits, integrityResult.totalRequiredUnits)
     : (integrityResult ? 0 : baseXp);
-  const completionRatio = totalExercises > 0 ? exercisesCompleted / totalExercises : 0;
 
   return (
     <PhoneFrame useBrandBg>

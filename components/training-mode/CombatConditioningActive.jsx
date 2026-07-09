@@ -120,11 +120,14 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     })();
 
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       versionRef.current++;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       cadenceVersionRef.current++;
       cancelSpeech();
       stopVoiceSession();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Timer logic for timed drills and rest ---
@@ -155,6 +158,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     } else if (phaseRef.current === 'resting') {
       advanceToNextDrill();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
 
   // --- Cadence: async loop functions (pause-safe) ---

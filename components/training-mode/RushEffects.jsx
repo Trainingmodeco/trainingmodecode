@@ -205,6 +205,7 @@ export function RushOverlay({ onDone }) {
       onDone?.();
     }, 1300);
     return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!visible) return null;

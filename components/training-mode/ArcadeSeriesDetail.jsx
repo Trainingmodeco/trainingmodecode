@@ -2,9 +2,9 @@ import { useState, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
-import { ChevronLeft, Lock, CheckCircle, Trophy, Crown, Zap, Play } from 'lucide-react';
+import { ChevronLeft, Lock, CheckCircle, Trophy, Crown, Play } from 'lucide-react';
 import { C } from './Styles';
-import { ArcadeStatusChip, ArcadeSectionLabel, ArcadePrimaryButton, ArcadeHudPanel, ARCADE } from './ArcadeUI';
+import { ArcadeStatusChip, ArcadeSectionLabel, ARCADE } from './ArcadeUI';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable } from './data/trainingArcadeData';
 
@@ -327,6 +327,7 @@ export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStag
 }
 
 function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage }) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const stages = series.stages || [];
   const completedStageIds = useMemo(() =>
     Object.keys(progress.completedStages || {}).filter(id => progress.completedStages[id]?.completed),

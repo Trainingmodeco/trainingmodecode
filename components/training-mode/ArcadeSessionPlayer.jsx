@@ -152,7 +152,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const [timerActive, setTimerActive] = useState(false);
   const [currentSet, setCurrentSet] = useState(initialResumeData?.currentSet ?? 1);
   const [resting, setResting] = useState(false);
-  const [blockComplete, setBlockComplete] = useState(false);
+  const [, setBlockComplete] = useState(false);
   const [promptNextBlock, setPromptNextBlock] = useState(false);
   const [cardioPhase, setCardioPhase] = useState('select');
   const [cardioMethod, setCardioMethod] = useState(null);
@@ -249,6 +249,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     if (isBenchmark && !benchmarkActive && taskIdx === 0) {
       setBenchmarkActive(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBenchmark]);
 
   useEffect(() => {

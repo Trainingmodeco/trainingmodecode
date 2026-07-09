@@ -155,6 +155,7 @@ export default function ArcadeCadenceRepPlayer({
       }
     }, 900);
     return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, countdownVal]);
 
   // Rest countdown
@@ -175,6 +176,7 @@ export default function ArcadeCadenceRepPlayer({
       });
     }, 1000);
     return () => clearInterval(restRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, restSeconds]);
 
   const startCadenceLoop = useCallback(() => {
@@ -365,6 +367,7 @@ export default function ArcadeCadenceRepPlayer({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       cadenceVersionRef.current++;
       cancelSpeech();
       clearInterval(elapsedRef.current);

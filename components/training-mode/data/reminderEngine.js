@@ -1,4 +1,4 @@
-import { loadStats, getStreak, getLevel, getLevelProgress } from './userStats';
+import { loadStats, getStreak, getLevelProgress } from './userStats';
 import { getRandomMessage } from './notificationMessages';
 
 const SETTINGS_KEY = 'tm_reminder_settings';

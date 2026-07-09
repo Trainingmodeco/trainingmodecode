@@ -4,7 +4,7 @@ import TrainingHeader from './TrainingHeader';
 import WordmarkFightMode from './WordmarkFightMode';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
-import { ChevronLeft, Play, Lock, ChevronRight, Shield, CircleCheck as CheckCircle, Hand, Footprints, Flame, Swords } from 'lucide-react';
+import { ChevronLeft, Play, Lock, ChevronRight, Shield, CircleCheck as CheckCircle } from 'lucide-react';
 import { C } from './Styles';
 import { addStartHereLesson } from './data/userStats';
 import {
@@ -52,12 +52,6 @@ const START_HERE_LESSONS = {
   ],
 };
 
-const DISCIPLINE_ICONS = {
-  Boxing: Hand,
-  Kickboxing: Footprints,
-  'Muay Thai': Flame,
-  MMA: Swords,
-};
 
 const COMPLETION_KEY = 'tm_starthere_completed';
 

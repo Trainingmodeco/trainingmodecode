@@ -38,6 +38,7 @@ export default function UploadScreen({ onComplete, onBack, initialAction }) {
       }
     }, 100);
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAction]);
 
   const handleFile = async (file) => {
@@ -128,6 +129,7 @@ export default function UploadScreen({ onComplete, onBack, initialAction }) {
       }
       closeCamera();
     }, 'image/jpeg', 0.85);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const closeCamera = useCallback(() => {

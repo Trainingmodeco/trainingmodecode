@@ -147,6 +147,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     };
     start();
     return () => { cancelled = true; cancelSpeech(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundIdx]);
 
   useEffect(() => {
@@ -172,6 +173,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         break;
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, phase, paused, done, countdown]);
 
   useEffect(() => {
@@ -231,6 +233,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       integrity.startUnit('rounds');
       setRoundIdx(i => i + 1);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
 
   const handleRewind = () => {

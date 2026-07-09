@@ -86,6 +86,7 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => () => { clearTimer(); cancelSpeech(); }, []);
 
   const doRepAudio = useCallback((num) => {
@@ -128,6 +129,7 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
         finishSetRef.current();
       }
     }, ms);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pace, targetReps]);
 
   const startSet = useCallback(() => {
@@ -147,6 +149,7 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
       beginCounting();
     };
     doIntro();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beginCounting, currentSet, exercise.name]);
 
   // Rest countdown

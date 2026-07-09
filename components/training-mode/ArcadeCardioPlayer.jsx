@@ -148,6 +148,7 @@ export default function ArcadeCardioPlayer({
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, paused, totalDuration]);
 
   // Check for speed boost triggers
@@ -164,6 +165,7 @@ export default function ArcadeCardioPlayer({
       announcedBoostRef.current = currentBoostIdx;
       triggerSpeedBoost(nextBoost.duration);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elapsed, phase, paused, boostActive]);
 
   const triggerSpeedBoost = useCallback((duration) => {

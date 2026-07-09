@@ -185,6 +185,7 @@ export default function App() {
       setPausedSession(null);
       savePausedSession(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
   const reportSessionState = useCallback((state) => {

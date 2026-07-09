@@ -282,7 +282,7 @@ export default function CardioProtocolPlayer({
           </button>
         </div>
 
-        <button onClick={() => { setRunning(false); deferManualLog ? finish() : setShowManual(true); }} style={{
+        <button onClick={() => { setRunning(false); if (deferManualLog) finish(); else setShowManual(true); }} style={{
           marginTop: 16, width: '100%', maxWidth: 300, padding: '13px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
           background: `linear-gradient(135deg, ${GOLD}, ${C.gold})`, color: C.bg,
           fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, letterSpacing: '0.14em',
