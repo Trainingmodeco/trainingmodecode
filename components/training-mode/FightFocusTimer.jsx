@@ -374,25 +374,22 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           <div style={{ width: 30 }}/>
         </div>
 
-        {/* Glanceable status header */}
-        <div style={{
-          display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 10,
-          padding: '6px 14px', borderRadius: 8,
-          background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: ringColor, letterSpacing: '0.08em' }}>
-            ROUND {roundIdx + 1} OF {cfg.rounds}
+        {/* Status chips (design 13a) */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 12 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#facc15', border: '1px solid rgba(253,224,71,0.5)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
+            ROUND {roundIdx + 1}/{cfg.rounds}
           </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, letterSpacing: '0.05em' }}>
-            {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
+            {String(discipline).toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint }}>
-            {roundsLeft} LEFT
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
+            {String(cfg.difficulty).toUpperCase()}
           </span>
         </div>
 
-        {/* Ring Timer with dimmed art background */}
-        <div style={{ position: 'relative', width: RING_SIZE, height: RING_SIZE, margin: '0 auto 10px' }}>
+        {/* Ring Timer with dimmed art background — responsive so it never clips on
+            narrow screens; the SVG viewBox keeps all ring coordinates valid. */}
+        <div style={{ position: 'relative', width: 'min(86vw, 380px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 10px' }}>
           {/* Dimmed ring art behind */}
           <img
             src="/static/ring-fight.png"
@@ -400,7 +397,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
               objectFit: 'cover', borderRadius: '50%',
-              opacity: 0.08, filter: 'blur(1px)',
+              opacity: 0.2,
               pointerEvents: 'none',
             }}
           />
@@ -408,7 +405,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           {rush && <RushTimerAura intenseFinal={remaining <= 10} />}
           {rush && <RushGlowBurst intenseFinal={remaining <= 10} />}
 
-          <svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} style={{ display: 'block', overflow: 'visible' }}>
             <circle cx={cx} cy={cy} r={RING_R} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={RING_STROKE} />
             <circle cx={cx} cy={cy} r={RING_R + 14} fill="none"
               stroke={ringColor} opacity="0.15" strokeWidth="1"
@@ -438,6 +435,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           {/* Center content */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{
+              fontFamily: "'Press Start 2P',monospace", fontSize: 9,
+              color: phase === 'rest' ? '#7fb0ff' : rush ? '#ef4444' : '#facc15',
+              letterSpacing: '0.12em', marginBottom: 8, transition: 'color 0.8s ease',
+            }}>
+              {phase === 'rest' ? '☕ REST' : rush ? '⚡ RUSH' : '🔔 WORK'}
+            </div>
+            <div style={{
               fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56,
               color: '#fff', lineHeight: 1, letterSpacing: '0.02em',
               textShadow: `0 0 20px ${ringColor}`,
@@ -446,11 +450,10 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
             </div>
             <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
-              color: ringColor, letterSpacing: '0.2em', marginTop: 8,
-              transition: 'color 0.8s ease',
+              fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
+              color: '#8b83a8', letterSpacing: '0.1em', marginTop: 8,
             }}>
-              {phase === 'rest' ? 'REST' : rush ? 'RUSH MODE' : 'ACTIVE'}
+              OF {Math.floor(maxTime / 60)}:{String(maxTime % 60).padStart(2, '0')}
             </div>
             {phase === 'rest' && (
               <div style={{
@@ -467,6 +470,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               }}>FINAL 30</div>
             )}
           </div>
+        </div>
+
+        {/* Elapsed / rounds-left line (design 13a) */}
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.05em', marginBottom: 12, textAlign: 'center' }}>
+          ⏱ {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED · {roundsLeft} ROUND{roundsLeft === 1 ? '' : 'S'} LEFT{cfg.rushMode ? ' · ⚡ FINAL 10s FLASH' : ''}
         </div>
 
         {/* Round indicator dots */}
@@ -491,6 +499,20 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           })}
         </div>
 
+        {/* Up next chip (design 13a) */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(79,140,255,0.1)', border: '1px solid rgba(79,140,255,0.35)', borderRadius: 99, padding: '7px 15px' }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#7fb0ff', letterSpacing: '0.08em' }}>UP NEXT</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 800, color: '#fff' }}>
+              {phase === 'rest'
+                ? `ROUND ${roundIdx + 2}`
+                : roundIdx + 1 < cfg.rounds
+                  ? `REST · ${Math.floor(cfg.restSec / 60)}:${String(cfg.restSec % 60).padStart(2, '0')}`
+                  : 'FINAL ROUND'}
+            </span>
+          </div>
+        </div>
+
         {/* Focus command card */}
         {cur && phase === 'round' && countdown === null && (
           <div className="anim-fade-up" style={{
@@ -507,43 +529,45 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           </div>
         )}
 
-        {/* Controls */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 'auto' }}>
-          <button onClick={handleRewind} style={{
-            width: 52, height: 52, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(168,85,247,0.25)',
-            color: C.violet,
-          }}>
-            <RotateCcw size={22} />
-          </button>
+        {/* Controls (design 13a) */}
+        <div style={{ width: '100%', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={handlePause} style={{
-            width: 68, height: 68, borderRadius: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: paused ? 'rgba(168,85,247,0.15)' : 'linear-gradient(135deg,#6D28D9,#a855f7)',
-            border: `1.5px solid ${paused ? C.violet : 'rgba(168,85,247,0.6)'}`,
-            color: '#fff',
-            boxShadow: paused ? 'none' : '0 0 24px rgba(168,85,247,0.35)',
+            width: '100%', height: 56, border: 'none', borderRadius: 15, cursor: 'pointer',
+            background: paused ? 'linear-gradient(180deg,#34d372,#16a34a)' : 'linear-gradient(180deg,#ffd147,#f5b301)',
+            color: paused ? '#04140a' : '#1a1204',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em',
+            boxShadow: paused ? '0 6px 22px -6px rgba(34,197,94,0.7)' : '0 6px 22px -6px rgba(253,224,71,0.7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
           }}>
-            {paused ? <Play size={28} /> : <Pause size={28} />}
+            {paused ? <><Play size={20} fill="currentColor"/> RESUME</> : <><Pause size={20} fill="currentColor"/> PAUSE</>}
           </button>
-          <button onClick={() => setConfirmEnd(true)} style={{
-            width: 52, height: 52, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-            color: '#ef4444',
-          }}>
-            <Square size={20} />
-          </button>
-          <button onClick={handleNext} style={{
-            width: 52, height: 52, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: isFinalRound ? 'rgba(34,197,94,0.1)' : 'rgba(10,0,20,0.7)',
-            border: isFinalRound ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(168,85,247,0.25)',
-            color: isFinalRound ? '#22c55e' : C.violet,
-          }}>
-            {isFinalRound ? <CheckCircle size={22} /> : <SkipForward size={22} />}
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={handleRewind} aria-label="Rewind 10s" style={{
+              width: 52, height: 46, borderRadius: 12, cursor: 'pointer',
+              border: '1px solid rgba(168,85,247,0.3)', background: '#130e20', color: C.violet,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <RotateCcw size={18} />
+            </button>
+            <button onClick={handleNext} style={{
+              flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
+              border: isFinalRound ? '1px solid rgba(34,197,94,0.5)' : '1px solid rgba(255,255,255,0.14)',
+              background: isFinalRound ? 'rgba(34,197,94,0.1)' : '#130e20',
+              color: isFinalRound ? '#22c55e' : '#c9bff0',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              {isFinalRound ? <>FINISH <CheckCircle size={15} /></> : <>SKIP ROUND <SkipForward size={15} /></>}
+            </button>
+            <button onClick={() => setConfirmEnd(true)} style={{
+              flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
+              border: '1px solid rgba(255,90,90,0.4)', background: 'rgba(255,90,90,0.09)', color: '#ff8a8a',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <Square size={13} /> END
+            </button>
+          </div>
         </div>
       </div>
 
