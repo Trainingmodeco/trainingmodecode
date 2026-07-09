@@ -5,7 +5,7 @@ import Embers from './Embers';
 import CornerHUD from './CornerHUD';
 import { ChevronLeft, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { C } from './Styles';
-import { ARCADE, ArcadePrimaryButton } from './ArcadeUI';
+import { ARCADE } from './ArcadeUI';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import {
   CARDIO_ADDON_TYPES,
@@ -17,8 +17,24 @@ import {
 import CardioProtocolPlayer from './CardioProtocolPlayer';
 import CardioSummary from './CardioSummary';
 import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { loadStats, getLevel } from './data/userStats';
+import { loadProfile } from './data/userProfile';
 
 const GOLD = C.yellow;
+const VIOLET = '#b06aff';
+
+const fmtClock = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+
+// Auto pace target (design 12a): from the goal distance + the athlete's level we
+// set a target pace the voice coach holds them to. Base 10:00/mi at level 1,
+// ~18s/level faster, floored at 6:30/mi.
+function computeAutoPace(distance, unit, level) {
+  const paceSecPerMile = Math.max(390, 600 - (Math.max(1, level) - 1) * 18);
+  const miles = unit === 'km' ? distance * 0.621371 : distance;
+  const totalSec = Math.round(miles * paceSecPerMile);
+  const paceSecPerUnit = unit === 'km' ? paceSecPerMile * 0.621371 : paceSecPerMile;
+  return { totalSec, paceSecPerUnit, paceLabel: `${fmtClock(paceSecPerUnit)} /${unit}`, timeLabel: fmtClock(totalSec), goalLabel: `${distance} ${unit}` };
+}
 
 // Protocols mirror the Cardio Finisher. Steady / Custom run a plain timer;
 // the rest map to interval configs the player understands.
@@ -86,7 +102,7 @@ export default function CardioMode({ onBack, onHome }) {
   const [phase, setPhase] = useState('setup');
   const [cardioType, setCardioType] = useState('outdoor-run');
   const [style, setStyle] = useState('steady');
-  const [targetType, setTargetType] = useState('time');
+  const [targetType, setTargetType] = useState('distance');
   const [targetTimeSeconds, setTargetTimeSeconds] = useState(600);
   const [distancePreset, setDistancePreset] = useState('3mi');
   const [customDistance, setCustomDistance] = useState('');
@@ -97,6 +113,9 @@ export default function CardioMode({ onBack, onHome }) {
   const supportsDistance = method.supportsDistance;
   const effectiveTarget = targetType === 'distance' && !supportsDistance ? 'time' : targetType;
   const availableTargets = supportsDistance ? TARGETS : TARGETS.filter(t => t.id !== 'distance');
+
+  const level = getLevel(loadStats().xp);
+  const profile = loadProfile();
 
   const handleMethodChange = (id) => {
     setCardioType(id);
@@ -112,6 +131,10 @@ export default function CardioMode({ onBack, onHome }) {
     return { value: preset.value, unit: preset.unit };
   };
 
+  const autoPace = effectiveTarget === 'distance'
+    ? (() => { const d = resolveDistance(); return computeAutoPace(d.value, d.unit, level); })()
+    : null;
+
   const buildAddon = () => {
     const proto = PROTOCOLS.find(p => p.id === style) || PROTOCOLS[0];
     const dist = effectiveTarget === 'distance' ? resolveDistance() : null;
@@ -125,6 +148,8 @@ export default function CardioMode({ onBack, onHome }) {
       targetTimeSeconds,
       targetDistance: dist ? dist.value : null,
       distanceUnit: dist ? dist.unit : 'mi',
+      paceTargetSeconds: autoPace ? autoPace.paceSecPerUnit : null,
+      paceTargetLabel: autoPace ? autoPace.paceLabel : null,
       style,
       intervals: proto.intervals,
       bonusEligible: false,
@@ -158,6 +183,7 @@ export default function CardioMode({ onBack, onHome }) {
               distanceLabel={effectiveTarget === 'distance' ? player.distanceLabel : null}
               distanceMode={effectiveTarget === 'distance'}
               distanceTargetLabel={player.distanceLabel}
+              paceTargetLabel={addon.paceTargetLabel}
               initialDistanceUnit={addon.distanceUnit}
               deferManualLog={effectiveTarget === 'distance'}
               onComplete={(result) => { setPlayerResult(result); setPhase('summary'); }}
@@ -216,7 +242,7 @@ export default function CardioMode({ onBack, onHome }) {
             letterSpacing: '0.12em', textShadow: '0 0 14px rgba(253,224,71,0.4)',
           }}>CARDIO MODE</h1>
           <div style={{ fontFamily: ARCADE.fontBody, fontSize: 12, color: C.muted, marginTop: 3 }}>
-            Timed runs, intervals, Tabata, and machine cardio.
+            Pick method + goal. We set your pace.
           </div>
         </div>
 
@@ -230,9 +256,15 @@ export default function CardioMode({ onBack, onHome }) {
           </div>
 
           <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, color: GOLD, fontSize: 10, letterSpacing: '0.2em', marginBottom: 6 }}>PROTOCOL</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
             {PROTOCOLS.map(p => (
-              <Chip key={p.id} active={style === p.id} label={p.label} onClick={() => setStyle(p.id)}/>
+              <button key={p.id} onClick={() => setStyle(p.id)} style={{
+                padding: '8px 13px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
+                fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, letterSpacing: '0.05em',
+                background: style === p.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.65)',
+                border: style === p.id ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
+                color: style === p.id ? GOLD : C.muted,
+              }}>{p.label.toUpperCase()}</button>
             ))}
           </div>
 
@@ -262,7 +294,7 @@ export default function CardioMode({ onBack, onHome }) {
 
           {effectiveTarget === 'distance' && (
             <>
-              <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, color: GOLD, fontSize: 10, letterSpacing: '0.2em', marginBottom: 6 }}>TARGET DISTANCE</div>
+              <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, color: GOLD, fontSize: 10, letterSpacing: '0.2em', marginBottom: 6 }}>GOAL DISTANCE</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
                 {DISTANCE_PRESETS.map(p => (
                   <button key={p.id} onClick={() => setDistancePreset(p.id)} style={{
@@ -290,6 +322,18 @@ export default function CardioMode({ onBack, onHome }) {
                 </div>
               )}
               {distancePreset !== 'custom' && <div style={{ marginBottom: 8 }}/>}
+
+              {/* Auto pace target (design 12a) */}
+              {autoPace && (
+                <div style={{ borderRadius: 11, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '11px 13px', marginBottom: 16 }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em', marginBottom: 3 }}>AUTO PACE TARGET</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 17, color: '#fff' }}>{autoPace.goalLabel} · {autoPace.timeLabel}</span>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>= {autoPace.paceLabel}</span>
+                  </div>
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, marginTop: 2 }}>Set from your goal &amp; level {level}. Voice coaches you to hold it.</div>
+                </div>
+              )}
             </>
           )}
 
@@ -325,11 +369,20 @@ export default function CardioMode({ onBack, onHome }) {
             <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: 'rgba(239,68,68,0.85)', lineHeight: 1.4 }}>{CARDIO_SAFETY_COPY}</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <ArcadePrimaryButton onClick={() => { setPlayerResult(null); setPhase(effectiveTarget === 'manual' ? 'summary' : 'player'); }}>
-              {effectiveTarget === 'manual' ? 'LOG CARDIO' : 'START CARDIO'}
-            </ArcadePrimaryButton>
+          {/* Voice coach row (design 12a) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.7)', padding: '9px 12px', marginBottom: 12 }}>
+            <span style={{ fontSize: 14 }}>🔊</span>
+            <span style={{ flex: 1, fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, color: '#c4a4d8', letterSpacing: '0.04em' }}>
+              VOICE COACH · {String(profile?.voiceCoach || 'FEMALE').toUpperCase()} · {String(profile?.encouragement || 'HYPE').toUpperCase()}
+            </span>
           </div>
+
+          <button onClick={() => { setPlayerResult(null); setPhase(effectiveTarget === 'manual' ? 'summary' : 'player'); }} style={{
+            width: '100%', height: 52, border: 'none', borderRadius: 12, cursor: 'pointer',
+            background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff',
+            fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 14, letterSpacing: '0.06em',
+            boxShadow: '0 0 22px rgba(168,85,247,0.45)',
+          }}>▶ {effectiveTarget === 'manual' ? 'LOG CARDIO' : 'START CARDIO'}</button>
         </div>
       </div>
       <WorkoutHelpPanel contentKey="cardio_mode" open={helpOpen} onClose={() => setHelpOpen(false)}/>

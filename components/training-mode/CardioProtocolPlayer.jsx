@@ -187,6 +187,7 @@ export default function CardioProtocolPlayer({
   manualOnly = false,
   distanceMode = false,
   distanceTargetLabel = null,
+  paceTargetLabel = null,
   initialDistanceUnit = 'mi',
   deferManualLog = false,
   onComplete,
@@ -260,9 +261,15 @@ export default function CardioProtocolPlayer({
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
         <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
         {methodLabel && <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 900, color: '#c4b5fd', letterSpacing: '0.04em', textAlign: 'center' }}>{methodLabel}</div>}
-        <div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', marginTop: 4, marginBottom: 12, textShadow: '0 0 12px rgba(253,224,71,0.4)' }}>
+        <div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', marginTop: 4, marginBottom: paceTargetLabel ? 6 : 12, textShadow: '0 0 12px rgba(253,224,71,0.4)' }}>
           TARGET: {distanceTargetLabel || 'DISTANCE'}
         </div>
+        {paceTargetLabel && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 99, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.08)', padding: '5px 12px', marginBottom: 12 }}>
+            <span style={{ fontFamily: ARCADE.fontHead, fontSize: 8, fontWeight: 700, color: VIOLET, letterSpacing: '0.1em' }}>HOLD PACE</span>
+            <span style={{ fontFamily: ARCADE.fontHead, fontSize: 11, fontWeight: 900, color: '#fff' }}>{paceTargetLabel}</span>
+          </div>
+        )}
 
         <Ring progress={0} color={VIOLET} done={false}>
           <div style={{ fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', color: VIOLET, marginBottom: 2 }}>ELAPSED</div>
