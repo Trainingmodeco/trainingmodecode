@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
+import { ChevronLeft } from 'lucide-react';
 import { loadStats, getLevel, getStreak } from './data/userStats';
 
 // Progress · Overview — pixel match of design 23a:
@@ -64,6 +66,85 @@ const SPLIT = [
   { key: 'arcade', label: '🕹 ARCADE', color: '#22c55e' },
 ];
 
+// Progress detail (design 22b): range tabs + XP trend + weekly activity bars +
+// training split. Full-screen modal via portal.
+function ProgressDetail({ stats, rankName, level, onClose }) {
+  const [range, setRange] = useState('month');
+  const sessions = stats.sessions || [];
+  const now = new Date();
+  const inRange = (iso) => {
+    const d = new Date(iso);
+    if (range === 'week') return (now - d) <= 7 * 864e5;
+    if (range === 'month') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    return true;
+  };
+  const rs = sessions.filter(s => inRange(s.completedAt));
+  const rangeXp = rs.reduce((a, s) => a + (s.xpEarned || 0), 0);
+
+  const buckets = [0, 0, 0, 0];
+  rs.forEach(s => { const wk = Math.min(3, Math.floor((new Date(s.completedAt).getDate() - 1) / 7)); buckets[wk] += 1; });
+  const maxB = Math.max(1, ...buckets);
+
+  let cum = 0;
+  const cpts = rs.map(s => (cum += (s.xpEarned || 0)));
+  const maxCum = Math.max(1, ...cpts);
+  const pts = cpts.length >= 2
+    ? cpts.map((v, i) => ({ x: 6 + i * (286 / (cpts.length - 1)), y: 76 - (v / maxCum) * 62 }))
+    : [{ x: 6, y: 74 }, { x: 292, y: 74 }];
+  const trend = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+  const counts = { fight: 0, fit: 0, cardio: 0, arcade: 0 };
+  rs.forEach(s => { counts[category(s.type)] += 1; });
+  const totalC = Math.max(1, rs.length);
+
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 200, background: '#080012', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px 6px' }}>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#c4a4d8', cursor: 'pointer', display: 'flex', padding: 2 }}><ChevronLeft size={22}/></button>
+        <div><div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROGRESS DETAIL</div><div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>{rankName} · Level {level}</div></div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, padding: '2px 14px 10px' }}>
+        {['week', 'month', 'all'].map(r => (
+          <button key={r} onClick={() => setRange(r)} style={{ font: "800 8px 'Orbitron',sans-serif", color: range === r ? '#0a0014' : '#d9d1ef', background: range === r ? '#fde047' : 'rgba(16,4,30,0.8)', border: range === r ? 'none' : '1px solid rgba(168,85,247,0.3)', borderRadius: 99, padding: '6px 14px', cursor: 'pointer' }}>{r.toUpperCase()}</button>
+        ))}
+      </div>
+      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px calc(20px + env(safe-area-inset-bottom,0px))' }}>
+        <div style={{ background: 'rgba(8,2,18,0.82)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '13px 14px', marginBottom: 11 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}><span style={{ font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em' }}>XP EARNED</span><span style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fde047' }}>{rangeXp.toLocaleString()}</span></div>
+          <svg viewBox="0 0 300 90" style={{ width: '100%', height: 74, display: 'block' }}>
+            <defs><linearGradient id="xpfill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fde047" stopOpacity="0.3"/><stop offset="1" stopColor="#fde047" stopOpacity="0"/></linearGradient></defs>
+            <polygon points={`${trend} 292,84 6,84`} fill="url(#xpfill2)"/>
+            <polyline points={trend} fill="none" stroke="#fde047" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(253,224,71,.4))' }}/>
+          </svg>
+        </div>
+        <div style={{ background: 'rgba(8,2,18,0.82)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '13px 14px', marginBottom: 11 }}>
+          <div style={{ font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em', marginBottom: 12 }}>SESSIONS · {rs.length} {range === 'week' ? 'THIS WEEK' : range === 'month' ? 'THIS MONTH' : 'ALL TIME'}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 72 }}>
+            {buckets.map((b, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: '100%', height: Math.max(6, (b / maxB) * 62), borderRadius: 4, background: i === 3 ? 'linear-gradient(180deg,#fde047,#f59e0b)' : 'linear-gradient(180deg,#b06aff,#7c3aed)' }}/>
+                <span style={{ font: "600 7px 'Orbitron',sans-serif", color: i === 3 ? '#fde047' : '#6d5a8f' }}>W{i + 1}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ background: 'rgba(8,2,18,0.82)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '13px 14px' }}>
+          <div style={{ font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em', marginBottom: 12 }}>TRAINING SPLIT</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {SPLIT.map(s => { const p = Math.round((counts[s.key] / totalC) * 100); return (
+              <div key={s.key}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 9px 'Orbitron',sans-serif", color: '#fff', marginBottom: 4 }}><span>{s.label}</span><span style={{ color: s.color }}>{p}%</span></div>
+                <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}><div style={{ width: `${p}%`, height: '100%', background: s.color }}/></div>
+              </div>
+            ); })}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function Card({ children, style }) {
   return <div style={{ background: 'rgba(8,2,18,0.85)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 11, ...style }}>{children}</div>;
 }
@@ -71,6 +152,7 @@ function Card({ children, style }) {
 export default function ProgressScreen({ onHome, profile }) {
   const [stats, setStats] = useState(() => loadStats());
   const [tab, setTab] = useState('overview');
+  const [detailOpen, setDetailOpen] = useState(false);
   void onHome;
 
   useEffect(() => {
@@ -151,6 +233,7 @@ export default function ProgressScreen({ onHome, profile }) {
                   <polyline points={trend} fill="none" stroke="#fde047" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(253,224,71,.4))' }}/>
                   {ptCoords.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={i === ptCoords.length - 1 ? 3 : 2} fill={i === ptCoords.length - 1 ? '#fff' : '#fde047'} stroke="#fde047" strokeWidth="1"/>)}
                 </svg>
+                <button onClick={() => setDetailOpen(true)} style={{ width: '100%', marginTop: 8, padding: '7px 0', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer' }}>FULL STATS · TRENDS &amp; BREAKDOWN ›</button>
               </Card>
 
               {/* Training split */}
@@ -232,6 +315,7 @@ export default function ProgressScreen({ onHome, profile }) {
           )}
         </div>
       </div>
+      {detailOpen && <ProgressDetail stats={stats} rankName={rank.name} level={level} onClose={() => setDetailOpen(false)}/>}
     </PhoneFrame>
   );
 }
