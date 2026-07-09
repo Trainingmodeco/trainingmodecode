@@ -472,6 +472,86 @@ function StartHereLessonView({ lesson, onBack, onComplete }) {
   );
 }
 
+// ─── Combo Drill (design 22a: multi-strike call-out) ─────────────────────────
+const DRILL_COMBOS = [
+  ['JAB', 'CROSS'],
+  ['JAB', 'CROSS', 'HOOK'],
+  ['JAB', 'JAB', 'CROSS'],
+  ['CROSS', 'HOOK', 'CROSS'],
+];
+
+function ComboDrillView({ discipline, onBack }) {
+  const [comboIdx, setComboIdx] = useState(0);
+  const [strikeIdx, setStrikeIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [tempoMs, setTempoMs] = useState(1500);
+  const timer = useRef(null);
+
+  const combo = DRILL_COMBOS[comboIdx];
+
+  const advance = useCallback(() => {
+    setStrikeIdx(si => {
+      if (si + 1 < combo.length) return si + 1;
+      setComboIdx(ci => (ci + 1) % DRILL_COMBOS.length);
+      return 0;
+    });
+  }, [combo.length]);
+
+  useEffect(() => {
+    if (paused) { clearInterval(timer.current); return; }
+    timer.current = setInterval(advance, tempoMs);
+    return () => clearInterval(timer.current);
+  }, [paused, tempoMs, advance]);
+
+  const skip = () => { setComboIdx(ci => (ci + 1) % DRILL_COMBOS.length); setStrikeIdx(0); };
+
+  return createPortal(
+    <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 210, background: 'radial-gradient(ellipse at 50% 42%, rgba(168,85,247,0.22), rgba(10,7,20,0.96) 72%), #0a0714', display: 'flex', flexDirection: 'column' }}>
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes cd-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}' }}/>
+      <div style={{ textAlign: 'center', padding: '10px 0 0' }}><span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#b06aff', letterSpacing: '0.14em' }}>COMBO DRILL · {String(discipline).toUpperCase()}</span></div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '9px 0 0' }}>
+        {DRILL_COMBOS.map((_, i) => <span key={i} style={{ width: 22, height: 6, borderRadius: 99, background: i < comboIdx ? '#b06aff' : i === comboIdx ? '#fde047' : '#2a2140' }}/>)}
+      </div>
+      <div style={{ textAlign: 'center', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#8b83a8', letterSpacing: '0.1em', marginTop: 6 }}>COMBO {comboIdx + 1} / {DRILL_COMBOS.length}</div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+        <div style={{ position: 'relative', width: 'min(80vw, 320px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, animation: paused ? 'none' : `cd-pulse ${tempoMs}ms ease-in-out infinite` }}>
+          <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}/>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: '#c9a6ff', marginBottom: 12 }}>THROW IT</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+              {combo.map((s, i) => {
+                const cur = i === strikeIdx;
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 13 : 11, color: cur ? '#fde047' : '#6d5a8f' }}>{i + 1}</span>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 26 : 20, color: cur ? '#fde047' : '#8b83a8', textShadow: cur ? '0 0 18px rgba(253,224,71,.5)' : 'none' }}>{s}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#fff', letterSpacing: '0.08em', marginBottom: 10 }}>{combo.join(' · ')}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '8px 15px' }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 9, color: '#6d6688', letterSpacing: '0.08em' }}>SPEED</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#c9bff0' }}>{tempoMs <= 1200 ? 'FAST' : tempoMs >= 2000 ? 'SLOW' : 'MEDIUM'}</span>
+        </div>
+      </div>
+      <div style={{ padding: '0 22px calc(26px + env(safe-area-inset-bottom,0px))' }}>
+        <button onClick={() => setPaused(p => !p)} style={{ width: '100%', height: 56, border: 'none', borderRadius: 15, background: 'linear-gradient(180deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em', marginBottom: 11, cursor: 'pointer', boxShadow: '0 6px 22px -6px rgba(168,85,247,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          {paused ? <><Play size={18} fill="#fff"/> RESUME</> : <><Pause size={18} fill="#fff"/> PAUSE</>}
+        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => setTempoMs(m => Math.min(2500, m + 400))} style={{ flex: 1, height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: '#130e20', color: '#c9bff0', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>↺ SLOWER</button>
+          <button onClick={skip} style={{ flex: 1, height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: '#130e20', color: '#c9bff0', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>SKIP ⏭</button>
+          <button onClick={onBack} style={{ flex: 1, height: 46, border: '1px solid rgba(255,90,90,0.4)', borderRadius: 12, background: 'rgba(255,90,90,0.09)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>✕ END</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'library', onBack, onHome }) {
   const [view, setView] = useState(initialView === 'startHere' ? 'startHere' : 'library');
@@ -479,6 +559,7 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
   const [category, setCategory] = useState('Strikes');
   const [detail, setDetail] = useState(null);
   const [drill, setDrill] = useState(null);
+  const [comboDrill, setComboDrill] = useState(false);
   const [toast, setToast] = useState(false);
 
   // Start Here state
@@ -628,6 +709,15 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
               ))}
             </div>
 
+            {/* Combo drill launcher (design 22a) */}
+            <button onClick={() => setComboDrill(true)} style={{ width: '100%', marginBottom: 12, padding: '10px 14px', borderRadius: 11, border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,rgba(176,106,255,0.18),rgba(124,58,237,0.12))', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <span style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, color: '#c9a6ff', letterSpacing: '0.06em' }}>🥊 DRILL A COMBO</span>
+                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#9a90b8' }}>Multi-strike call-outs on the beat</span>
+              </span>
+              <ChevronRight size={16} style={{ color: '#b06aff' }}/>
+            </button>
+
             {/* Count */}
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9, flexShrink: 0 }}>
               {category.toUpperCase()} &middot; {techniques.length}
@@ -656,6 +746,11 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
       {/* Shadowbox drill overlay (21a) */}
       {drill && (
         <ShadowboxDrillView technique={drill} onBack={() => setDrill(null)}/>
+      )}
+
+      {/* Combo drill overlay (22a) */}
+      {comboDrill && (
+        <ComboDrillView discipline={discipline} onBack={() => setComboDrill(false)}/>
       )}
 
       {/* Start Here Lesson overlay */}
