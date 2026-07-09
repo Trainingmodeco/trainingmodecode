@@ -1,167 +1,121 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
-import TrainingHeader from './TrainingHeader';
+import SafeImage from './SafeImage';
 import Embers from './Embers';
-import { Zap } from 'lucide-react';
+import { ChevronLeft, Shuffle } from 'lucide-react';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import CardioFinisherSetup from './CardioFinisherSetup';
 
+// Quick Mission — pixel match of design 14a ("one screen, one tap"):
+// HOW LONG grid · FOCUS (optional) · INTENSITY · ADD CARDIO · sticky START.
+// Plus the designer's "Surprise me" random quick-pick.
 const GOLD = C.gold;
-const LENGTHS = [10, 20, 30];
-const INTENSITIES = ['Easy', 'Normal', 'Hard', 'Advanced'];
-const WORKOUT_TYPES = ['Bodyweight', 'Weighted', 'Hybrid'];
+const VIOLET = '#b06aff';
+const LENGTHS = [5, 10, 15, 20, 30];
+const FOCI = ['FULL BODY', 'UPPER', 'LOWER', 'CORE', 'COMBAT'];
+const INTENSITY = ['EASY', 'NORMAL', 'HARD'];
+const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-const setupCSS = `
-.qm-pill { transition: all 0.2s ease; cursor: pointer; }
-.qm-pill:hover { filter: brightness(1.1); transform: scale(1.03); }
-.qm-pill:active { transform: scale(0.96); }
-.qm-cta { transition: all 0.2s ease; }
-.qm-cta:hover { transform: translateY(-1px); filter: brightness(1.1); }
-.qm-cta:active { transform: scale(0.97); }
-`;
-
-export default function QuickMissionSetup({ onBack, onStart, onCardioOnly }) {
-  const [duration, setDuration] = useState(20);
-  const [difficulty, setDifficulty] = useState('Normal');
-  const [workoutType, setWorkoutType] = useState('Bodyweight');
-  const [voiceOn, setVoiceOn] = useState(true);
-  const [cadenceCount, setCadenceCount] = useState(true);
-  const cadencePreset = 'moderate';
-  const cadenceMs = CADENCE_PRESETS.moderate;
+export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnly }) {
+  const [duration, setDuration] = useState(10);
+  const [custom, setCustom] = useState(false);
+  const [focus, setFocus] = useState('FULL BODY');
+  const [difficulty, setDifficulty] = useState('NORMAL');
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
+  void onCardioOnly;
+
+  const surprise = () => { setCustom(false); setDuration(rand(LENGTHS)); setFocus(rand(FOCI)); setDifficulty(rand(INTENSITY)); };
 
   const handleStart = () => {
-    onStart({
-      workoutType, duration, difficulty, format: 'Auto',
-      cardioFinisher: false, cadenceCount, cadencePreset, cadenceMs, voiceOn, cardioAddon,
+    onStart?.({
+      workoutType: 'Bodyweight', duration, difficulty: cap(difficulty),
+      focus: focus === 'FULL BODY' ? 'Full Body' : cap(focus), format: 'Auto',
+      cardioFinisher: false, cadenceCount: true, cadencePreset: 'moderate',
+      cadenceMs: CADENCE_PRESETS.moderate, voiceOn: true, cardioAddon,
     });
   };
 
+  const Label = ({ children, right }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+      <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em' }}>{children}</span>
+      {right}
+    </div>
+  );
+
+  const chip = (active) => ({
+    color: active ? '#0a0014' : '#d9d1ef', background: active ? GOLD : 'rgba(16,4,30,0.8)',
+    border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
+  });
+
   return (
     <PhoneFrame useBrandBg>
-      <style dangerouslySetInnerHTML={{ __html: setupCSS }}/>
       <Embers count={3}/>
-
-      <TrainingHeader
-        title="QUICK MISSION"
-        subtitle="No setup. Pick and go."
-        onHome={onBack}
-        showBack
-        onBack={onBack}
-      />
-
-      <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', padding: '20px 16px 0',
-        paddingBottom: 'calc(170px + env(safe-area-inset-bottom, 0px))',
-      }}>
-
-        {/* Length pills */}
-        <SectionLabel>LENGTH</SectionLabel>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 24, width: '100%', justifyContent: 'center' }}>
-          {LENGTHS.map(len => {
-            const active = len === duration;
-            return (
-              <button key={len} className="qm-pill" onClick={() => setDuration(len)} style={{
-                width: 80, height: 80, borderRadius: 16,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                background: active ? 'rgba(168,85,247,0.15)' : 'rgba(10,0,20,0.6)',
-                border: active ? `2px solid ${C.violet}` : '2px solid rgba(168,85,247,0.12)',
-                boxShadow: active ? '0 0 18px rgba(168,85,247,0.3)' : 'none',
-              }}>
-                <span style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
-                  color: active ? '#fff' : C.faint,
-                }}>{len}</span>
-                <span style={{
-                  fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10,
-                  color: active ? C.violet : C.faint, marginTop: 2,
-                }}>MIN</span>
-              </button>
-            );
-          })}
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 8px' }}>
+          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><ChevronLeft size={20}/></button>
+          <div style={{ flex: 1 }}>
+            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: VIOLET, letterSpacing: '0.06em' }}>QUICK MISSION</div>
+            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>No planning. Pick time, train.</div>
+          </div>
+          <SafeImage src="/static/timer-quick-purple.png" alt="" style={{ width: 46, height: 46, objectFit: 'contain', opacity: 0.85 }}/>
         </div>
 
-        {/* Intensity */}
-        <SectionLabel>INTENSITY</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20, justifyContent: 'center' }}>
-          {INTENSITIES.map(d => {
-            const active = d === difficulty;
-            return (
-              <button key={d} className="qm-pill" onClick={() => setDifficulty(d)} style={{
-                padding: '9px 16px', borderRadius: 20,
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: '0.06em',
-                background: active ? 'rgba(253,224,71,0.15)' : 'rgba(10,0,20,0.6)',
-                border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(255,255,255,0.06)',
-                color: active ? GOLD : C.faint,
-                boxShadow: active ? '0 0 10px rgba(253,224,71,0.2)' : 'none',
-              }}>
-                {d.toUpperCase()}
-              </button>
-            );
-          })}
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(140px + env(safe-area-inset-bottom,0px))' }}>
+          {/* HOW LONG */}
+          <Label right={<button onClick={surprise} style={{ display: 'flex', alignItems: 'center', gap: 4, font: "800 8px 'Orbitron',sans-serif", color: VIOLET, background: 'rgba(176,106,255,0.1)', border: '1px solid rgba(176,106,255,0.35)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.06em' }}><Shuffle size={10}/> SURPRISE ME</button>}>HOW LONG?</Label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7, marginBottom: 16 }}>
+            {LENGTHS.map(len => {
+              const active = !custom && len === duration;
+              return (
+                <button key={len} onClick={() => { setCustom(false); setDuration(len); }} style={{ textAlign: 'center', borderRadius: 10, padding: '13px 0', cursor: 'pointer', boxShadow: active ? '0 0 12px rgba(253,224,71,.4)' : 'none', ...chip(active) }}>
+                  <span style={{ font: "800 14px 'Orbitron',sans-serif" }}>{len}</span>
+                  <span style={{ font: "700 7px 'Orbitron',sans-serif", opacity: 0.7 }}> MIN</span>
+                </button>
+              );
+            })}
+            <button onClick={() => { setCustom(true); setDuration(45); }} style={{ textAlign: 'center', borderRadius: 10, padding: '14px 0', cursor: 'pointer', font: "800 10px 'Orbitron',sans-serif", ...chip(custom) }}>CUSTOM</button>
+          </div>
+
+          {/* FOCUS */}
+          <Label><span>FOCUS <span style={{ color: '#6d5a8f' }}>· optional</span></span></Label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+            {FOCI.map(f => {
+              const active = f === focus;
+              return <button key={f} onClick={() => setFocus(f)} style={{ font: "800 9px 'Orbitron',sans-serif", borderRadius: 8, padding: '8px 12px', cursor: 'pointer', ...chip(active) }}>{f}</button>;
+            })}
+          </div>
+
+          {/* INTENSITY */}
+          <Label>INTENSITY</Label>
+          <div style={{ display: 'flex', gap: 7, marginBottom: 16 }}>
+            {INTENSITY.map(d => {
+              const active = d === difficulty;
+              return <button key={d} onClick={() => setDifficulty(d)} style={{ flex: 1, textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", borderRadius: 9, padding: '10px 0', cursor: 'pointer', ...chip(active) }}>{d}</button>;
+            })}
+          </div>
+
+          {/* ADD CARDIO */}
+          <button onClick={() => setCardioSheetOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(168,85,247,0.06))', padding: '11px 13px', cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>❤</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ font: "800 10px 'Orbitron',sans-serif", color: GOLD }}>{cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO'}</div>
+              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{cardioAddon ? (cardioAddon.method || 'Cardio finisher') : 'Finish with a run or intervals'}</div>
+            </div>
+            <span style={{ font: "900 14px 'Orbitron',sans-serif", color: GOLD }}>›</span>
+          </button>
         </div>
 
-        {/* Equipment type */}
-        <SectionLabel>EQUIPMENT</SectionLabel>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 20, justifyContent: 'center' }}>
-          {WORKOUT_TYPES.map(t => {
-            const active = t === workoutType;
-            return (
-              <button key={t} className="qm-pill" onClick={() => setWorkoutType(t)} style={{
-                padding: '9px 14px', borderRadius: 8,
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: '0.06em',
-                background: active ? 'rgba(253,224,71,0.12)' : 'rgba(10,0,20,0.6)',
-                border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(255,255,255,0.06)',
-                color: active ? GOLD : C.faint,
-              }}>
-                {t.toUpperCase()}
-              </button>
-            );
-          })}
+        {/* Sticky START */}
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 14px calc(14px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(0deg,#080012 70%,transparent)' }}>
+          <button onClick={handleStart} style={{ width: '100%', height: 54, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', cursor: 'pointer', boxShadow: '0 0 22px rgba(168,85,247,0.45)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <span style={{ font: "900 15px 'Orbitron',sans-serif", letterSpacing: '0.08em' }}>▶ START MISSION</span>
+            <span style={{ font: "600 8px 'Rajdhani',sans-serif", opacity: 0.8 }}>{duration} min · {focus === 'FULL BODY' ? 'Full Body' : cap(focus)} · {cap(difficulty)}</span>
+          </button>
         </div>
-
-        {/* Toggles */}
-        <div style={{ width: '100%', maxWidth: 340, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-          <ToggleRow label="VOICE COACH" value={voiceOn} onChange={setVoiceOn}/>
-          <ToggleRow label="CADENCE COUNT" value={cadenceCount} onChange={setCadenceCount}/>
-        </div>
-
-        {/* Cardio addon banner */}
-        <div
-          onClick={() => setCardioSheetOpen(true)}
-          style={{
-            width: '100%', maxWidth: 340, borderRadius: 10, padding: '10px 14px', marginBottom: 20,
-            background: cardioAddon ? 'rgba(255,138,74,0.1)' : 'rgba(255,138,74,0.04)',
-            border: `1px solid ${cardioAddon ? 'rgba(255,138,74,0.4)' : 'rgba(255,138,74,0.2)'}`,
-            display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-          }}
-        >
-          <span style={{ fontSize: 15 }}>&#127939;</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: C.cardio, letterSpacing: '0.06em' }}>
-            {cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO FINISHER'}
-          </span>
-          {cardioAddon && (
-            <button onClick={(e) => { e.stopPropagation(); setCardioAddon(null); }} style={{
-              marginLeft: 'auto', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 5, padding: '3px 7px', cursor: 'pointer',
-              fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.red,
-            }}>REMOVE</button>
-          )}
-        </div>
-
-        {/* CTA */}
-        <button className="qm-cta" onClick={handleStart} style={{
-          width: '100%', maxWidth: 340, padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: `linear-gradient(135deg, ${C.violet}, #7c3aed)`,
-          color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, letterSpacing: '0.14em',
-          boxShadow: '0 0 22px rgba(168,85,247,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <Zap size={16}/> START MISSION
-        </button>
       </div>
 
       {cardioSheetOpen && (
@@ -173,29 +127,5 @@ export default function QuickMissionSetup({ onBack, onStart, onCardioOnly }) {
         />
       )}
     </PhoneFrame>
-  );
-}
-
-function SectionLabel({ children }) {
-  return (
-    <div style={{
-      fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: C.faint,
-      fontSize: 9, letterSpacing: '0.15em', marginBottom: 8, textAlign: 'center',
-    }}>{children}</div>
-  );
-}
-
-function ToggleRow({ label, value, onChange }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: 'rgba(10,0,20,0.5)', borderRadius: 8, padding: '10px 12px',
-      border: '1px solid rgba(255,255,255,0.04)',
-    }}>
-      <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: C.muted, letterSpacing: '0.06em' }}>{label}</span>
-      <button onClick={() => onChange(!value)} style={{ background: 'none', border: 'none', padding: 0 }}>
-        <div className={`tm-toggle ${value ? 'on' : ''}`}><div className="tm-toggle-knob"/></div>
-      </button>
-    </div>
   );
 }
