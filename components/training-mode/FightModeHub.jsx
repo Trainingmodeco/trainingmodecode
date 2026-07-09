@@ -168,7 +168,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
           {/* START */}
           <div style={{ padding: '14px 0 0' }}>
-            <button onClick={start} style={{ width: '100%', height: 52, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 22px rgba(253,224,71,0.4)' }}>▶ START · {disc.toUpperCase()} {modeTitle}</button>
+            <button onClick={start} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 22px rgba(253,224,71,0.4)' }}>▶ START · {disc.toUpperCase()} {modeTitle}</button>
           </div>
         </div>
       </div>

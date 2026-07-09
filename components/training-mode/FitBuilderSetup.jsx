@@ -123,10 +123,10 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
                 })}
               </div>
               {/* Body maps */}
-              <div style={{ display: 'flex', gap: 9, marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 9, marginBottom: 12 }}>
                 {['front', 'back'].map(v => (
                   <div key={v} style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(34,211,238,0.3)', background: '#050010' }}>
-                    <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} style={{ width: '100%', display: 'block' }}/>
+                    <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} style={{ width: '100%', height: 168, objectFit: 'contain', display: 'block' }}/>
                     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
                   </div>
                 ))}
@@ -155,7 +155,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
 
         {/* Sticky GENERATE */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 14px calc(14px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(0deg,#080012 70%,transparent)' }}>
-          <button onClick={generate} style={{ width: '100%', height: 54, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', cursor: 'pointer', boxShadow: '0 0 22px rgba(253,224,71,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+          <button onClick={generate} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', cursor: 'pointer', boxShadow: '0 0 22px rgba(253,224,71,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <span style={{ font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.06em' }}>{isCardio ? '❤ START CARDIO' : '⚙ GENERATE WORKOUT'}</span>
             {!isCardio && <span style={{ font: "600 8px 'Rajdhani',sans-serif", opacity: 0.75 }}>{summary()}</span>}
           </button>
