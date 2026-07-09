@@ -1,6 +1,7 @@
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
+import TrainingHeader from './TrainingHeader';
 import { ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { IMG } from './data/optimizedImageMap';
@@ -35,14 +36,23 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
       <Embers count={3}/>
 
+      {/* Training Mode header — logo + back to home */}
+      <TrainingHeader
+        title="TRAINING MODE"
+        subtitle="Choose your path."
+        onHome={onHome}
+        showBack
+        onBack={onHome}
+      />
+
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         minHeight: '100dvh',
-        padding: '24px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
+        padding: '32px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Page title */}
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 20 }}>
           <h1 style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
             color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
@@ -177,13 +187,13 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           </div>
         </div>
 
-        {/* === COMBAT CONDITIONING STRIP === */}
+        {/* === COMBAT CONDITIONING === */}
         <div
           className="train-hub-card"
           onClick={onCombatConditioning}
           style={{
             '--card-glow': 'rgba(255,138,74,0.5)',
-            position: 'relative', height: 88, borderRadius: 14, overflow: 'hidden',
+            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
             border: '1px solid rgba(239,68,68,0.2)',
             boxShadow: '0 0 10px rgba(255,138,74,0.06)',
           }}
@@ -194,19 +204,17 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           }}/>
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(to right, rgba(8,0,18,0.9) 0%, rgba(8,0,18,0.5) 50%, rgba(8,0,18,0.3) 100%)',
+            background: 'linear-gradient(to right, rgba(8,0,18,0.88) 0%, rgba(8,0,18,0.4) 55%, transparent 100%)',
           }}/>
-          <div style={{
-            position: 'absolute', top: '50%', left: 16, transform: 'translateY(-50%)', zIndex: 5,
-          }}>
+          <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 5 }}>
             <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
               color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
-              textShadow: '0 0 10px rgba(255,138,74,0.4)',
+              textShadow: '0 0 14px rgba(255,138,74,0.5)',
             }}>COMBAT CONDITIONING</div>
             <div style={{
               fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
-              color: C.cardio, marginTop: 4, letterSpacing: '0.04em',
+              color: C.cardio, marginTop: 4, letterSpacing: '0.02em',
             }}>Fit + Fight crossover &middot; reachable from both</div>
           </div>
           <div style={{
