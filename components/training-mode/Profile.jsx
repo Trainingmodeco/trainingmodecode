@@ -5,6 +5,8 @@ import WordmarkTM from './WordmarkTM';
 import CornerHUD from './CornerHUD';
 import { ChevronLeft, MessageSquare, Bell, Volume2 } from 'lucide-react';
 import { C } from './Styles';
+import SafeImage from './SafeImage';
+import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 
@@ -193,7 +195,7 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
 
 export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription }) {
   const p = profile || {};
-  const [profileView, setProfileView] = useState('main');
+  const [profileView, setProfileView] = useState('overview');
   const [name,        setName       ] = useState(p.name        ?? '');
   const [sex,         setSex        ] = useState((p.sex        ?? 'male').toUpperCase());
   const [age,         setAge        ] = useState(p.age         ?? '');
@@ -253,10 +255,96 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     onSave();
   };
 
+  if (profileView === 'overview') {
+    const stats = loadStats();
+    const lvl = getLevel(stats.xp);
+    const strk = getStreak(stats);
+    const sessionCount = (stats.sessions || []).length;
+    const lp = getLevelProgress(stats.xp);
+    const RANK_NAMES = ['Combat Rookie', 'Combat Adept', 'Combat Veteran', 'Combat Elite', 'Combat Champion'];
+    const TIERS = ['rookie', 'adept', 'veteran', 'elite', 'champion'];
+    const ri = Math.min(Math.floor((lvl - 1) / 3), 4);
+    const avSex = sex.toLowerCase() === 'female' ? 'female' : 'male';
+    const displayName = (name && name.trim()) ? name.trim().toUpperCase() : 'TRAINEE';
+    const hw = [heightVal ? `${heightVal}` : null, weightVal ? `${weightVal}${weightUnit === 'LBS' ? 'lb' : ''}` : null].filter(Boolean).join(' · ') || '—';
+    const pctToNext = lp.needed ? Math.round((lp.current / lp.needed) * 100) : 100;
+    const statRows = [
+      { label: 'AVATAR', value: avSex.toUpperCase() },
+      { label: 'AGE', value: age ? String(age) : '—' },
+      { label: 'HEIGHT · WEIGHT', value: hw },
+      { label: 'EXPERIENCE', value: (experience || 'ROOKIE').toUpperCase(), gold: true },
+    ];
+    return (
+      <PhoneFrame useBrandBg>
+        <CornerHUD color="rgba(168,85,247,0.35)" size={22} inset={10}/>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom,0px))' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
+            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROFILE</div>
+            <button onClick={() => setProfileView('audio')} aria-label="Settings" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', fontSize: 15 }}>⚙</button>
+          </div>
+          <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px' }}>
+            {/* Avatar showcase */}
+            <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 12, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
+              <div style={{ display: 'flex', gap: 14, padding: 14, alignItems: 'center' }}>
+                <div style={{ width: 96, height: 120, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)' }}>
+                  <SafeImage src={`/static/tiers/${TIERS[ri]}-${avSex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em' }}>{displayName}</div>
+                  <div style={{ font: "700 9px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em', marginTop: 2 }}>LVL {lvl} · {RANK_NAMES[ri].toUpperCase()}</div>
+                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${pctToNext}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
+                  <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>{lp.current} / {lp.needed} XP to next</div>
+                  <button onClick={() => setProfileView('main')} style={{ marginTop: 9, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 8, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 9px 'Orbitron',sans-serif", padding: '6px 12px', cursor: 'pointer' }}>⚔ CHANGE AVATAR</button>
+                </div>
+              </div>
+            </div>
+            {/* Combat stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
+              {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(ri + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
+                <div key={s.label} style={{ background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+                  <div style={{ font: "900 17px 'Orbitron',sans-serif", color: s.color }}>{s.v}</div>
+                  <div style={{ font: "600 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.06em' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+            {/* Your stats */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em' }}>YOUR STATS</span>
+              <button onClick={() => setProfileView('main')} style={{ background: 'none', border: 'none', cursor: 'pointer', font: "700 7px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.06em' }}>TAP TO EDIT</button>
+            </div>
+            <div style={{ background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '4px 14px', marginBottom: 12 }}>
+              {statRows.map((r, i) => (
+                <button key={r.label} onClick={() => setProfileView('main')} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: i === statRows.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <span style={{ font: "700 10px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{r.label}</span>
+                  <span style={{ font: "800 10px 'Orbitron',sans-serif", color: r.gold ? '#fde047' : '#fff' }}>{r.value} ›</span>
+                </button>
+              ))}
+            </div>
+            {/* Links */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {onGameLink && (
+                <button onClick={onGameLink} style={{ display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', boxShadow: '0 0 16px -6px rgba(176,106,255,.5)', cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ fontSize: 16 }}>🎮</span>
+                  <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#c9a6ff' }}>GAME LINK</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#facc15' }}>Level up your in-game avatar · reserve now</div></div>
+                  <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
+                </button>
+              )}
+              <button onClick={() => setProfileView('audio')} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
+                <span style={{ fontSize: 14 }}>⚙</span>
+                <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>SETTINGS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Audio · units · notifications · subscription · privacy</div></div>
+                <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </PhoneFrame>
+    );
+  }
+
   if (profileView === 'audio') {
     return (
       <AudioSettingsView
-        onBack={() => setProfileView('main')}
+        onBack={() => setProfileView('overview')}
         onHome={onHome}
         voiceCoach={voiceCoach}
         setVoiceCoach={setVoiceCoach}
@@ -280,11 +368,11 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
       }}>
 
         <TrainingHeader
-          title="PROFILE"
+          title="EDIT PROFILE"
           subtitle="Player settings and preferences."
           onHome={onHome}
           showBack
-          onBack={onBack}
+          onBack={() => setProfileView('overview')}
           rightSlot={<WordmarkTM height={24}/>}
         />
 
