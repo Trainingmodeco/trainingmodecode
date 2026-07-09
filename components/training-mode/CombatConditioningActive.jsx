@@ -393,8 +393,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   };
 
   // --- Ring display calc ---
-  const ringSize = 394;
+  const ringSize = 394; // SVG viewBox coordinate system (kept fixed)
   const ringR = (ringSize - 20) / 2;
+  const ringBox = 'min(74vw, 288px)'; // responsive rendered size so it fits + leaves room for the text/timer
   const maxTime = phase === 'resting'
     ? (currentDrill?.restSeconds || 30)
     : (currentDrill?.workSeconds || 30);
@@ -410,6 +411,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
   return (
     <PhoneFrame usePhoto>
+      {/* Darken the photo so the timer + text are the focus */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'radial-gradient(ellipse at 50% 42%, rgba(8,1,15,0.35), rgba(6,0,12,0.78) 78%)', pointerEvents: 'none' }}/>
       {/* Dimmed themed art background */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1, opacity: 0.08,
@@ -477,7 +480,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         {/* Main display area */}
         {phase === 'ready' ? (
           <div style={{
-            width: ringSize, height: ringSize, marginBottom: 18,
+            width: ringBox, height: ringBox, marginBottom: 18,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${COMBAT_RED}44`,
             background: 'rgba(15,0,0,0.4)',
@@ -489,7 +492,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           </div>
         ) : phase === 'complete' ? (
           <div style={{
-            width: ringSize, height: ringSize, marginBottom: 18,
+            width: ringBox, height: ringBox, marginBottom: 18,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}66`,
             background: 'rgba(15,0,0,0.4)',
@@ -501,8 +504,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
             }}>COMPLETE</div>
           </div>
         ) : (phase === 'working' && isTimed) || phase === 'resting' ? (
-          <div style={{ position: 'relative', width: ringSize, height: ringSize, marginBottom: 18 }}>
-            <svg width={ringSize} height={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`}>
+          <div style={{ position: 'relative', width: ringBox, height: ringBox, marginBottom: 18 }}>
+            <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} style={{ display: 'block' }}>
               <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={12}/>
               <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none"
                 stroke={ringColor} strokeWidth={12} strokeLinecap="round"
@@ -525,7 +528,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           </div>
         ) : phase === 'working' && isReps && cadenceEnabled(currentDrill) ? (
           <div style={{
-            width: ringSize, height: ringSize, marginBottom: 18,
+            width: ringBox, height: ringBox, marginBottom: 18,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${COMBAT_RED}55`,
             background: 'rgba(15,0,0,0.4)',
@@ -542,7 +545,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           </div>
         ) : (
           <div style={{
-            width: ringSize, height: ringSize, marginBottom: 18,
+            width: ringBox, height: ringBox, marginBottom: 18,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${COMBAT_RED}44`,
             background: 'rgba(15,0,0,0.4)',

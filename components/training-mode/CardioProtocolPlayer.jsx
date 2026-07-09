@@ -188,6 +188,8 @@ export default function CardioProtocolPlayer({
   distanceMode = false,
   distanceTargetLabel = null,
   paceTargetLabel = null,
+  paceTargetSeconds = null,
+  goalDistance = null,
   initialDistanceUnit = 'mi',
   deferManualLog = false,
   onComplete,
@@ -240,6 +242,18 @@ export default function CardioProtocolPlayer({
     onComplete({ completedTimeSeconds: totalElapsed, completed: true, ...extra });
   };
 
+  // GPS run is simulated from elapsed time (~2% ahead of target pace). Auto-finish
+  // once the simulated distance reaches the goal.
+  const simPaceSec = paceTargetSeconds || 600;
+  const simDistance = distanceMode ? totalElapsed / (simPaceSec * 0.98) : 0;
+  const simGoal = goalDistance || parseFloat(distanceTargetLabel) || 3;
+  useEffect(() => {
+    if (distanceMode && running && !done && simDistance >= simGoal) {
+      finish({ completedDistance: simGoal, distanceUnit: initialDistanceUnit });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalElapsed, distanceMode, running, done]);
+
   if (showManual) {
     return (
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
@@ -257,52 +271,84 @@ export default function CardioProtocolPlayer({
   }
 
   if (distanceMode) {
+    const unit = initialDistanceUnit || 'mi';
+    const curPaceSec = running ? simPaceSec * (0.96 + 0.06 * Math.sin(totalElapsed / 8)) : simPaceSec;
+    const aheadSec = Math.round(simDistance * simPaceSec - totalElapsed);
+    const progressPct = Math.min(100, simGoal > 0 ? (simDistance / simGoal) * 100 : 0);
+    const fmtPace = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+    const coach = !running ? 'Tap play to start your run.'
+      : Math.abs(aheadSec) <= 6 ? 'Great pace — hold it right there!'
+        : aheadSec > 6 ? 'Ahead of target — settle into it.'
+          : 'Push a little — you\'re behind pace.';
+    // Decorative route line (fixed wiggle so it reads as an elevation trace).
+    const routePts = [56, 44, 50, 34, 40, 26, 30, 18].map((y, i) => `${6 + i * 41},${y}`).join(' ');
+    // Segmented gauge ticks.
+    const TICKS = 44;
     return (
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
-        <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
-        {methodLabel && <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 900, color: '#c4b5fd', letterSpacing: '0.04em', textAlign: 'center' }}>{methodLabel}</div>}
-        <div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', marginTop: 4, marginBottom: paceTargetLabel ? 6 : 12, textShadow: '0 0 12px rgba(253,224,71,0.4)' }}>
-          TARGET: {distanceTargetLabel || 'DISTANCE'}
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
+        {/* GPS live header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }}/>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: '#8fe8ac', letterSpacing: '0.1em' }}>GPS LIVE · {String(methodLabel || 'RUN').toUpperCase()} · {simGoal} {unit}</span>
         </div>
-        {paceTargetLabel && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 99, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.08)', padding: '5px 12px', marginBottom: 12 }}>
-            <span style={{ fontFamily: ARCADE.fontHead, fontSize: 8, fontWeight: 700, color: VIOLET, letterSpacing: '0.1em' }}>HOLD PACE</span>
-            <span style={{ fontFamily: ARCADE.fontHead, fontSize: 11, fontWeight: 900, color: '#fff' }}>{paceTargetLabel}</span>
+
+        {/* Route mini-chart */}
+        <div style={{ width: '100%', borderRadius: 11, border: '1px solid rgba(34,197,94,0.25)', background: 'rgba(8,2,18,0.6)', padding: '8px 12px', marginBottom: 12, position: 'relative' }}>
+          <svg viewBox="0 0 300 64" style={{ width: '100%', height: 44, display: 'block' }}>
+            <polyline points={routePts} fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(34,197,94,0.5))' }}/>
+          </svg>
+          <div style={{ position: 'absolute', top: 8, right: 12, display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8fe8ac' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }}/> ROUTE · {simDistance.toFixed(2)} {unit}
           </div>
-        )}
+        </div>
 
-        <Ring progress={0} color={VIOLET} done={false}>
-          <div style={{ fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', color: VIOLET, marginBottom: 2 }}>ELAPSED</div>
-          <div style={{ fontFamily: ARCADE.fontHead, fontSize: 46, fontWeight: 900, color: C.text, textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>{fmt(totalElapsed)}</div>
-          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, marginTop: 2 }}>stopwatch</div>
-        </Ring>
+        {/* Pace gauge */}
+        <div style={{ position: 'relative', width: 'min(72vw, 280px)', aspectRatio: '1/1', marginBottom: 14 }}>
+          <svg width="100%" height="100%" viewBox="0 0 260 260" style={{ display: 'block' }}>
+            {Array.from({ length: TICKS }).map((_, i) => {
+              const a = (i / TICKS) * 2 * Math.PI - Math.PI / 2;
+              const active = (i / TICKS) * 100 <= progressPct;
+              const r1 = 108, r2 = 122;
+              const cx = 130 + Math.cos(a) * r1, cy = 130 + Math.sin(a) * r1;
+              const ex = 130 + Math.cos(a) * r2, ey = 130 + Math.sin(a) * r2;
+              return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke={active ? '#c9a6ff' : 'rgba(168,85,247,0.2)'} strokeWidth="3" strokeLinecap="round" style={{ filter: active ? 'drop-shadow(0 0 3px rgba(176,106,255,0.7))' : 'none' }}/>;
+            })}
+            <circle cx="130" cy="130" r="96" fill="none" stroke="rgba(168,85,247,0.18)" strokeWidth="1"/>
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: VIOLET, letterSpacing: '0.16em', marginBottom: 2 }}>PACE /{unit}</div>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 44, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>{fmtPace(curPaceSec)}</div>
+            <div style={{ display: 'flex', gap: 18, marginTop: 12 }}>
+              <div style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color: GOLD }}>{simDistance.toFixed(2)}</div><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.08em' }}>{unit.toUpperCase() === 'MI' ? 'MILES' : 'KM'}</div></div>
+              <div style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color: '#fff' }}>{fmt(totalElapsed)}</div><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.08em' }}>TIME</div></div>
+            </div>
+          </div>
+        </div>
 
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
-          <button onClick={() => setRunning(v => !v)} style={{
-            width: 60, height: 60, borderRadius: 16, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: running ? 'linear-gradient(135deg, rgba(168,85,247,0.28), rgba(168,85,247,0.12))' : 'rgba(253,224,71,0.12)',
-            border: `1.5px solid ${running ? 'rgba(168,85,247,0.5)' : GOLD}`,
-            boxShadow: running ? '0 0 16px rgba(168,85,247,0.2)' : '0 0 16px rgba(253,224,71,0.25)',
-          }}>
-            {running ? <Pause size={24} color="#fff" /> : <Play size={24} color={GOLD} />}
+        {/* Target pace bar */}
+        <div style={{ width: '100%', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.06em' }}>TARGET {paceTargetLabel || `${fmtPace(simPaceSec)} /${unit}`}</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: aheadSec >= 0 ? '#8fe8ac' : '#ff9a52' }}>{Math.abs(aheadSec)}s {aheadSec >= 0 ? 'AHEAD ✓' : 'BEHIND'}</span>
+          </div>
+          <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}><div style={{ width: `${Math.max(3, progressPct)}%`, height: '100%', background: aheadSec >= 0 ? 'linear-gradient(90deg,#22c55e,#8fe8ac)' : 'linear-gradient(90deg,#f59e0b,#ff9a52)' }}/></div>
+        </div>
+
+        {/* Coach caption */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 99, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', padding: '7px 15px', marginBottom: 14 }}>
+          <span style={{ fontSize: 11 }}>💬</span>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#c9f5d6' }}>{coach}</span>
+        </div>
+
+        {/* Controls */}
+        <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+          <button onClick={() => setRunning(v => !v)} style={{ flex: 2, height: 52, border: 'none', borderRadius: 14, cursor: 'pointer', background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, letterSpacing: '0.08em', boxShadow: '0 0 20px rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {running ? <><Pause size={18} fill="#fff"/> PAUSE</> : <><Play size={18} fill="#fff"/> START</>}
+          </button>
+          <button onClick={() => { setRunning(false); if (deferManualLog) finish({ completedDistance: simDistance, distanceUnit: unit }); else setShowManual(true); }} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <Flag size={14}/> END
           </button>
         </div>
-
-        <button onClick={() => { setRunning(false); if (deferManualLog) finish(); else setShowManual(true); }} style={{
-          marginTop: 16, width: '100%', maxWidth: 300, padding: '13px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: `linear-gradient(135deg, ${GOLD}, ${C.gold})`, color: C.bg,
-          fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, letterSpacing: '0.14em',
-          boxShadow: '0 0 24px rgba(253,224,71,0.45)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <Flag size={15} /> FINISH &amp; LOG
-        </button>
-
-        <p style={{
-          fontFamily: ARCADE.fontBody, fontSize: 9, color: 'rgba(239,68,68,0.7)',
-          textAlign: 'center', marginTop: 12, maxWidth: 280, lineHeight: 1.4,
-        }}>{CARDIO_SAFETY_COPY}</p>
       </div>
     );
   }

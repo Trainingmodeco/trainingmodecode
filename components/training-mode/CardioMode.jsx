@@ -214,6 +214,8 @@ export default function CardioMode({ onBack, onHome }) {
               distanceMode={effectiveTarget === 'distance'}
               distanceTargetLabel={player.distanceLabel}
               paceTargetLabel={addon.paceTargetLabel}
+              paceTargetSeconds={addon.paceTargetSeconds}
+              goalDistance={addon.targetDistance}
               initialDistanceUnit={addon.distanceUnit}
               deferManualLog={effectiveTarget === 'distance'}
               onComplete={(result) => { setPlayerResult(result); setPhase('summary'); }}

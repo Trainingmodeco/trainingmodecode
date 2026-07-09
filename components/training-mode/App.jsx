@@ -121,7 +121,7 @@ export default function App() {
   const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
-  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine !== false));
+  const [showOffline, setShowOffline] = useState(false);
   const activeSessionStateRef = useRef(null);
   const postGuideRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -216,15 +216,18 @@ export default function App() {
     if (document.body) document.body.scrollTop = 0;
   }, [screen]);
 
-  // Real connectivity detection for the offline banner (design 25d). The app is
-  // local-first, so offline is informational rather than blocking.
+  // Real connectivity detection. The app is local-first, so going offline just
+  // flashes a small bottom-left toast for ~4s rather than blocking anything.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
+    let hideTimer;
+    const flash = () => { setShowOffline(true); clearTimeout(hideTimer); hideTimer = setTimeout(() => setShowOffline(false), 4000); };
+    const on = () => { setShowOffline(false); clearTimeout(hideTimer); };
+    const off = () => { flash(); };
     window.addEventListener('online', on);
     window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+    if (navigator.onLine === false) flash();
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); clearTimeout(hideTimer); };
   }, []);
 
   const reportSessionState = useCallback((state) => {
@@ -468,11 +471,11 @@ export default function App() {
   return (
     <>
       <style>{STYLE}</style>
-      {!online && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 12px', background: 'rgba(20,6,38,0.96)', borderBottom: '1px solid rgba(253,224,71,0.35)', backdropFilter: 'blur(8px)' }}>
-          <span style={{ fontSize: 13 }}>📡</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: '#fde047', letterSpacing: '0.06em' }}>OFFLINE</span>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#c4a4d8' }}>· sessions save &amp; sync when you&apos;re back online</span>
+      <style>{`@keyframes tm-offline-toast{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(8px)}}`}</style>
+      {showOffline && (
+        <div style={{ position: 'fixed', left: 12, bottom: 'calc(74px + env(safe-area-inset-bottom,0px))', zIndex: 600, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 99, background: 'rgba(20,6,38,0.95)', border: '1px solid rgba(253,224,71,0.35)', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'none', animation: 'tm-offline-toast 4s ease forwards' }}>
+          <span style={{ fontSize: 11 }}>📡</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#fde047', letterSpacing: '0.08em' }}>OFFLINE</span>
         </div>
       )}
       <div style={{ minHeight: '100dvh', background: C.bg }}>
