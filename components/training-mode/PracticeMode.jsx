@@ -627,58 +627,54 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
               ))}
             </div>
 
-            {/* Count */}
-            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: 'rgba(168,85,247,0.4)', letterSpacing: '0.1em', marginBottom: 8, flexShrink: 0 }}>
-              {(START_HERE_LESSONS[shDisc] || []).length} LESSON{(START_HERE_LESSONS[shDisc] || []).length !== 1 ? 'S' : ''} &bull; BEGINNER &bull; +20 XP EACH
-            </div>
+            {/* Continue learning banner (design 15a) */}
+            {(() => {
+              const ls = START_HERE_LESSONS[shDisc] || [];
+              const ci = ls.findIndex(l => !completed.includes(l.id));
+              const cur = ci >= 0 ? ls[ci] : null;
+              return cur ? (
+                <button onClick={() => setActiveLesson(cur)} style={{ width: '100%', borderRadius: 12, marginBottom: 14, padding: '12px 13px', border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(135deg,rgba(60,20,90,0.55),rgba(10,0,20,0.92))', cursor: 'pointer', textAlign: 'left', flexShrink: 0 }}>
+                  <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.12em', marginBottom: 3 }}>CONTINUE LEARNING</div>
+                  <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff' }}>LESSON {ci + 1} · {cur.title.toUpperCase()}</div>
+                  <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2 }}>{shDisc} · Fundamentals path</div>
+                  <span style={{ display: 'inline-block', marginTop: 10, borderRadius: 8, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 10px 'Orbitron',sans-serif", padding: '8px 16px' }}>▶ RESUME</span>
+                </button>
+              ) : null;
+            })()}
+
+            {/* Path header */}
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9, flexShrink: 0 }}>FUNDAMENTALS PATH</div>
 
             {/* Scrollable list */}
             <div className="pm-technique-list" style={{ flex: 1, minHeight: 0, paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))', paddingRight: 4 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(START_HERE_LESSONS[shDisc] || []).map((lesson, idx) => {
+                  const lsAll = START_HERE_LESSONS[shDisc] || [];
                   const done = completed.includes(lesson.id);
+                  const isCurrent = !done && lsAll.slice(0, idx).every(l => completed.includes(l.id));
+                  const upcoming = !done && !isCurrent;
                   return (
-                    <button key={lesson.id} className="pm-card" onClick={() => setActiveLesson(lesson)} style={{ width: '100%', border: 'none', textAlign: 'left' }}>
-                      <div style={{
-                        width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                        background: done ? 'rgba(34,197,94,0.07)' : 'rgba(168,85,247,0.07)',
-                        border: `1px solid ${done ? 'rgba(34,197,94,0.25)' : 'rgba(168,85,247,0.2)'}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
-                      }}>
-                        {done
-                          ? <CheckCircle size={18} style={{ color: '#22c55e' }}/>
-                          : <Play size={18} style={{ color: 'rgba(168,85,247,0.45)', marginLeft: 2 }}/>
-                        }
-                        <div style={{
-                          position: 'absolute', bottom: -4, right: -4,
-                          width: 16, height: 16, borderRadius: '50%',
-                          background: done ? 'rgba(34,197,94,0.15)' : 'rgba(10,0,20,0.95)',
-                          border: `1px solid ${done ? 'rgba(34,197,94,0.4)' : 'rgba(168,85,247,0.3)'}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          {done
-                            ? <CheckCircle size={7} style={{ color: '#22c55e' }}/>
-                            : <Lock size={7} style={{ color: 'rgba(168,85,247,0.65)' }}/>
-                          }
-                        </div>
-                      </div>
+                    <button key={lesson.id} onClick={() => setActiveLesson(lesson)} style={{
+                      display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left', cursor: 'pointer',
+                      borderRadius: 10, padding: '9px 12px',
+                      border: `1px solid ${done ? 'rgba(34,197,94,0.35)' : isCurrent ? 'rgba(253,224,71,0.6)' : 'rgba(168,85,247,0.2)'}`,
+                      background: done ? 'rgba(34,197,94,0.06)' : isCurrent ? 'rgba(253,224,71,0.07)' : 'rgba(16,4,30,0.6)',
+                      boxShadow: isCurrent ? '0 0 12px rgba(253,224,71,0.14)' : 'none', opacity: upcoming ? 0.72 : 1,
+                    }}>
+                      <span style={{
+                        width: 24, height: 24, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        font: "900 11px 'Orbitron',sans-serif",
+                        background: done ? 'rgba(34,197,94,0.15)' : isCurrent ? '#fde047' : 'rgba(16,4,30,0.9)',
+                        color: done ? '#22c55e' : isCurrent ? '#0a0014' : '#c4a4d8',
+                        border: upcoming ? '1px solid rgba(168,85,247,0.3)' : 'none',
+                      }}>{done ? '✓' : isCurrent ? idx + 1 : idx + 1}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-                          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.06em' }}>{lesson.title}</span>
-                          <LevelBadge level="Beginner"/>
-                          {done && (
-                            <span style={{
-                              fontFamily: "'Press Start 2P',monospace", fontSize: 6,
-                              color: '#22c55e', letterSpacing: '0.06em',
-                              padding: '2px 6px', borderRadius: 4,
-                              background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',
-                            }}>DONE</span>
-                          )}
+                        <div style={{ font: "900 11px 'Orbitron',sans-serif", color: done ? '#fff' : isCurrent ? '#fde047' : '#c4a4d8' }}>{lesson.title.toUpperCase()}</div>
+                        <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: done ? '#9a90b8' : isCurrent ? '#facc15' : '#6d5a8f' }}>
+                          {done ? `${lesson.steps.length} drills · complete` : isCurrent ? `in progress · ${lesson.steps.length} drills` : lesson.subtitle}
                         </div>
-                        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, lineHeight: 1.3 }}>{lesson.subtitle}</div>
-                        <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: 'rgba(168,85,247,0.4)', marginTop: 4, letterSpacing: '0.07em' }}>{lesson.steps.length} STEPS &bull; VIDEO COMING SOON</div>
                       </div>
-                      <ChevronRight size={16} style={{ color: 'rgba(168,85,247,0.35)', flexShrink: 0 }}/>
+                      {(isCurrent || done) && <ChevronRight size={15} style={{ color: isCurrent ? '#fde047' : 'rgba(168,85,247,0.4)', flexShrink: 0 }}/>}
                     </button>
                   );
                 })}
