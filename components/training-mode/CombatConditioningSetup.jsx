@@ -136,7 +136,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         padding: '10px 14px 0',
-        paddingBottom: 'calc(142px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Status row (moved up into the space the banner used to take) */}
@@ -155,12 +155,12 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
             const active = s.id === style;
             return (
               <button key={s.id} className="cc-pill" onClick={() => setStyle(s.id)} style={{
-                padding: '7px 13px', borderRadius: 20, cursor: 'pointer',
+                padding: '9px 14px', borderRadius: 9, cursor: 'pointer',
                 fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, letterSpacing: '0.05em',
-                background: active ? 'rgba(239,68,68,0.15)' : 'rgba(10,0,20,0.6)',
-                border: active ? `1.5px solid ${RED}` : '1.5px solid rgba(239,68,68,0.12)',
-                color: active ? RED : C.faint,
-                boxShadow: active ? '0 0 8px rgba(239,68,68,0.25)' : 'none',
+                background: active ? 'rgba(239,68,68,0.12)' : 'rgba(16,4,30,0.8)',
+                border: active ? `1.5px solid ${RED}` : '1px solid rgba(168,85,247,0.3)',
+                color: active ? '#ff8a8a' : '#d9d1ef',
+                boxShadow: active ? '0 0 8px rgba(239,68,68,0.22)' : 'none',
               }}>{s.label}</button>
             );
           })}
@@ -234,16 +234,10 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           )}
         </div>
 
-      </div>
+        {/* Start circuit — inline, just under Add Cardio */}
+        <TrainingCTA variant="red" label="START CIRCUIT" icon="⚔️" onClick={handleStart} height={50} style={{ width: '100%', fontSize: 13.5, letterSpacing: '0.1em' }} />
 
-      {/* Pinned CTA — always visible above the nav */}
-      {!cardioSheetOpen && (
-        <div style={{ position: 'fixed', bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 440, zIndex: 35, display: 'flex', justifyContent: 'center', padding: '24px 14px 8px', background: 'linear-gradient(to top, #0a0116 58%, rgba(10,1,22,0) 100%)', pointerEvents: 'none' }}>
-          <div style={{ pointerEvents: 'auto' }}>
-            <TrainingCTA variant="red" label="START CIRCUIT" icon="⚔️" onClick={handleStart} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 38, paddingRight: 38, fontSize: 12.5, letterSpacing: '0.1em' }} />
-          </div>
-        </div>
-      )}
+      </div>
 
       {cardioSheetOpen && (
         <CardioFinisherSetup
