@@ -3,15 +3,22 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
-import { Swords } from 'lucide-react';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import CardioFinisherSetup from './CardioFinisherSetup';
+import TrainingCTA from './shared/TrainingCTA';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
 
-const STYLES = ['Boxing', 'Kickboxing / Muay Thai', 'MMA', 'All-Around'];
+const STYLES = ['Boxing', 'Kickboxing / Muay Thai', 'MMA'];
+// Conditioning focus (design 15b) — replaces the strength/striking slider.
+const FOCUS_OPTIONS = [
+  { id: 'gas-tank', label: 'GAS TANK', sub: 'Endurance & conditioning' },
+  { id: 'power', label: 'POWER & EXPLOSIVE', sub: 'Fast-twitch power output' },
+  { id: 'strike-strength', label: 'STRIKE & STRENGTH', sub: 'Striking + raw strength' },
+];
+const FOCUS_BLEND = { 'gas-tank': 50, power: 40, 'strike-strength': 65 };
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard', 'Advanced'];
 const ROUNDS_OPTIONS = [3, 4, 5, 6, 8, 10];
 const WORK_OPTIONS = [20, 30, 40, 45, 60];
@@ -27,12 +34,12 @@ const setupCSS = `
 `;
 
 export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly, profile }) {
-  const [style, setStyle] = useState('All-Around');
+  const [style, setStyle] = useState('Boxing');
   const [difficulty, setDifficulty] = useState('Normal');
   const [rounds, setRounds] = useState(5);
   const [workSec, setWorkSec] = useState(40);
   const [restSec, setRestSec] = useState(15);
-  const [blend, setBlend] = useState(50);
+  const [focus, setFocus] = useState('gas-tank');
   const [voiceOn, setVoiceOn] = useState(true);
   const [cadenceCount, setCadenceCount] = useState(true);
   const [formPreviewOn, setFormPreviewOn] = useState(true);
@@ -49,7 +56,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
     onStart({
       style, duration, difficulty, equipment, format,
       voiceOn, formPreviewOn, cadenceCount, cadencePreset, cadenceMs, cardioAddon,
-      rounds, workSec, restSec, blend,
+      rounds, workSec, restSec, focus, blend: FOCUS_BLEND[focus] ?? 50,
     });
   };
 
@@ -69,13 +76,13 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         padding: '12px 14px 0',
-        paddingBottom: 'calc(170px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(142px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Banner */}
         <div style={{
-          width: '100%', height: 80, borderRadius: 12, overflow: 'hidden',
-          marginBottom: 14, position: 'relative',
+          width: '100%', height: 56, borderRadius: 12, overflow: 'hidden',
+          marginBottom: 10, position: 'relative',
           border: '1px solid rgba(239,68,68,0.2)',
         }}>
           <SafeImage
@@ -88,7 +95,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
 
         {/* Style */}
         <SectionLabel>STYLE</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 9 }}>
           {STYLES.map(s => {
             const active = s === style;
             return (
@@ -108,7 +115,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
 
         {/* Rounds */}
         <SectionLabel>ROUNDS</SectionLabel>
-        <div style={{ display: 'flex', gap: 5, marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 5, marginBottom: 9 }}>
           {ROUNDS_OPTIONS.map(r => {
             const active = r === rounds;
             return (
@@ -126,7 +133,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         </div>
 
         {/* Work / Rest */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 9 }}>
           <div style={{ flex: 1 }}>
             <SectionLabel>WORK (sec)</SectionLabel>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -175,27 +182,36 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           EST. {duration} MIN
         </div>
 
-        {/* Strength vs Striking blend slider */}
-        <SectionLabel>STRENGTH vs STRIKING</SectionLabel>
-        <div style={{
-          padding: '10px 14px', borderRadius: 10, marginBottom: 14,
-          background: 'rgba(10,0,20,0.5)', border: '1px solid rgba(239,68,68,0.12)',
-        }}>
-          <input
-            type="range" min={0} max={100} value={blend}
-            onChange={e => setBlend(Number(e.target.value))}
-            style={{ width: '100%', accentColor: RED }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: GOLD, letterSpacing: '0.06em' }}>STRENGTH</span>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.faint }}>{blend}%</span>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: RED, letterSpacing: '0.06em' }}>STRIKING</span>
-          </div>
+        {/* Conditioning focus (design 15b) */}
+        <SectionLabel>FOCUS</SectionLabel>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
+          {FOCUS_OPTIONS.map(f => {
+            const active = f.id === focus;
+            return (
+              <button key={f.id} className="cc-pill" onClick={() => setFocus(f.id)} style={{
+                textAlign: 'left', padding: '9px 12px', borderRadius: 10, cursor: 'pointer',
+                background: active ? 'rgba(239,68,68,0.14)' : 'rgba(10,0,20,0.55)',
+                border: active ? `1.5px solid ${RED}` : '1.5px solid rgba(239,68,68,0.12)',
+                boxShadow: active ? '0 0 12px rgba(239,68,68,0.22)' : 'none',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <span style={{
+                  width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+                  background: active ? RED : 'transparent', border: `1.5px solid ${active ? RED : 'rgba(239,68,68,0.4)'}`,
+                  boxShadow: active ? '0 0 8px rgba(239,68,68,0.6)' : 'none',
+                }}/>
+                <span style={{ flex: 1 }}>
+                  <span style={{ display: 'block', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.05em', color: active ? '#ff8a8a' : C.muted }}>{f.label}</span>
+                  <span style={{ display: 'block', fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.faint, marginTop: 1 }}>{f.sub}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Difficulty */}
         <SectionLabel>DIFFICULTY</SectionLabel>
-        <div style={{ display: 'flex', gap: 5, marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 5, marginBottom: 9 }}>
           {DIFFICULTIES.map(d => {
             const active = d === difficulty;
             return (
@@ -213,7 +229,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         </div>
 
         {/* Toggles */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
           <ToggleRow label="VOICE COACH" value={voiceOn} onChange={setVoiceOn}/>
           <ToggleRow label="CADENCE COUNT" value={cadenceCount} onChange={setCadenceCount}/>
           <ToggleRow label="FORM PREVIEW" value={formPreviewOn} onChange={setFormPreviewOn}/>
@@ -242,17 +258,16 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           )}
         </div>
 
-        {/* CTA */}
-        <button className="cc-cta" onClick={handleStart} style={{
-          width: '100%', padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: `linear-gradient(135deg, ${RED}, #b91c1c)`,
-          color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, letterSpacing: '0.12em',
-          boxShadow: '0 0 22px rgba(239,68,68,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <Swords size={16}/> GENERATE MISSION
-        </button>
       </div>
+
+      {/* Pinned CTA — always visible above the nav */}
+      {!cardioSheetOpen && (
+        <div style={{ position: 'fixed', bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 440, zIndex: 35, display: 'flex', justifyContent: 'center', padding: '24px 14px 8px', background: 'linear-gradient(to top, #0a0116 58%, rgba(10,1,22,0) 100%)', pointerEvents: 'none' }}>
+          <div style={{ pointerEvents: 'auto' }}>
+            <TrainingCTA variant="red" label="START CIRCUIT" icon="⚔️" onClick={handleStart} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 38, paddingRight: 38, fontSize: 12.5, letterSpacing: '0.1em' }} />
+          </div>
+        </div>
+      )}
 
       {cardioSheetOpen && (
         <CardioFinisherSetup

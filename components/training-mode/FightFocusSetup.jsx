@@ -3,10 +3,11 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
-import { Crosshair, Flame } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { C } from './Styles';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { IMG } from './data/optimizedImageMap';
+import TrainingCTA from './shared/TrainingCTA';
 
 const GOLD = C.gold;
 
@@ -64,13 +65,13 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         padding: '10px 14px 0',
-        paddingBottom: 'calc(170px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(142px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Banner */}
         <div style={{
-          width: '100%', height: 80, borderRadius: 12, overflow: 'hidden',
-          marginBottom: 14, position: 'relative',
+          width: '100%', height: 56, borderRadius: 12, overflow: 'hidden',
+          marginBottom: 10, position: 'relative',
           border: '1px solid rgba(253,224,71,0.2)',
         }}>
           <SafeImage
@@ -94,7 +95,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
         {/* Rounds */}
         <SectionLabel>ROUNDS</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 9 }}>
           {ROUND_OPTIONS.map(r => {
             const active = r === cfg.rounds;
             return (
@@ -113,7 +114,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
         {/* Round Length */}
         <SectionLabel>ROUND LENGTH</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 9 }}>
           {ROUND_LENGTH_OPTIONS.map(opt => {
             const active = opt.sec === cfg.roundMin * 60;
             return (
@@ -132,7 +133,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
         {/* Rest Length */}
         <SectionLabel>REST BETWEEN ROUNDS</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 9 }}>
           {REST_OPTIONS.map(opt => {
             const active = opt.sec === cfg.restSec;
             return (
@@ -159,7 +160,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
         {/* Difficulty */}
         <SectionLabel>DIFFICULTY</SectionLabel>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
           {DIFFICULTIES.map(d => {
             const active = d === cfg.difficulty;
             return (
@@ -178,7 +179,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
         {/* Mode */}
         <SectionLabel>MODE</SectionLabel>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
           {MODES.map(m => {
             const active = m === cfg.mode;
             return (
@@ -196,25 +197,26 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Toggles */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
           <ToggleRow label="VOICE COACHING" value={cfg.voiceOn} onChange={v => set('voiceOn', v)}/>
           <ToggleRow label="RUSH MODE" sub="Final 30s — go all out" value={cfg.rushMode} onChange={v => set('rushMode', v)} hot/>
         </div>
 
-        {/* CTA */}
-        <button className="ff-cta" onClick={async () => {
-          setVoiceGender(profile?.voiceCoach || 'FEMALE');
-          if (cfg.voiceOn) await primeSpeech();
-          onStart(cfg);
-        }} style={{
-          width: '100%', padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
-          color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, letterSpacing: '0.12em',
-          boxShadow: '0 0 22px rgba(253,224,71,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <Crosshair size={16}/> START SESSION
-        </button>
+      </div>
+
+      {/* Pinned CTA — always visible above the nav */}
+      <div style={{ position: 'fixed', bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 440, zIndex: 35, display: 'flex', justifyContent: 'center', padding: '24px 14px 8px', background: 'linear-gradient(to top, #0a0116 58%, rgba(10,1,22,0) 100%)', pointerEvents: 'none' }}>
+        <div style={{ pointerEvents: 'auto' }}>
+          <TrainingCTA
+            variant="gold" label="START SESSION" icon="🎯" height={46}
+            style={{ width: 'auto', minWidth: 264, paddingLeft: 40, paddingRight: 40, fontSize: 13, letterSpacing: '0.1em' }}
+            onClick={async () => {
+              setVoiceGender(profile?.voiceCoach || 'FEMALE');
+              if (cfg.voiceOn) await primeSpeech();
+              onStart(cfg);
+            }}
+          />
+        </div>
       </div>
     </PhoneFrame>
   );
