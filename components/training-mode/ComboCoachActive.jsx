@@ -14,7 +14,8 @@ import CoachCaption from './CoachCaption';
 
 const VIOLET = C.violet;
 const RING_SIZE = 394;
-const RING_R = 187;
+// Radius tuned so the progress arc sits on the outer edge of ring-combo.webp.
+const RING_R = 174;
 const RING_STROKE = 12;
 
 function getPhaseColor(remaining, phase, rush) {
