@@ -21,6 +21,11 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
 
   return (
     <PhoneFrame useBrandBg>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .fit-banner { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+        .fit-banner:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 0 30px rgba(var(--g),0.55), 0 10px 26px rgba(0,0,0,0.55) !important; border-color: rgba(var(--g),0.95) !important; z-index: 5; }
+        .fit-banner:active { transform: scale(0.98); transition-duration: 0.1s; }
+      `}}/>
       <Embers count={3}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom,0px))' }}>
         {/* Header */}
@@ -32,9 +37,10 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
 
         <div style={{ padding: '2px 14px 0' }}>
           <div style={{ font: "700 13px 'Orbitron',sans-serif", color: '#e2d6f5', letterSpacing: '0.18em', marginBottom: 16 }}>SELECT TRAINING PATH</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
             {BANNERS.map(b => (
-              <button key={b.key} onClick={b.onClick} style={{
+              <button key={b.key} onClick={b.onClick} className="fit-banner" style={{
+                '--g': b.rgb,
                 position: 'relative', height: 82, borderRadius: 12, overflow: 'hidden', padding: 0, cursor: 'pointer',
                 border: `1px solid rgba(${b.rgb},0.5)`, boxShadow: `0 0 14px rgba(${b.rgb},0.12)`,
               }}>

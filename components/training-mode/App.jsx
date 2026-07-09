@@ -206,6 +206,15 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
+  // Reset scroll to the top on every screen change so a new page never opens
+  // mid-scroll carried over from the previous one.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo(0, 0);
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  }, [screen]);
+
   const reportSessionState = useCallback((state) => {
     activeSessionStateRef.current = state;
   }, []);
