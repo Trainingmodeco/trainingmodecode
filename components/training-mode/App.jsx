@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { STYLE, C } from './Styles';
 import ScreenRouter from './ScreenRouter';
-import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus } from './data/userStats';
+import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, loadStats, getLevel } from './data/userStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession } from './voiceCoach';
@@ -120,8 +120,25 @@ export default function App() {
   const [profile,  setProfile ] = useState(() => loadProfile());
   const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
   const [resumeData, setResumeData] = useState(null);
+  const [levelUp, setLevelUp] = useState(null);
   const activeSessionStateRef = useRef(null);
   const postGuideRef = useRef(null);
+  // Level captured at the start of a session so the cardio finisher (which adds
+  // more XP after the main block) can still detect a level-up against it.
+  const sessionStartLevelRef = useRef(null);
+
+  // After a session awards XP, show the Level Up reveal (design 6a) before the
+  // completion screen when the player crossed a level boundary; otherwise go
+  // straight to the completion screen.
+  const routeAfterXp = (beforeLevel, nextScreen) => {
+    const afterLevel = getLevel(loadStats().xp);
+    if (afterLevel > beforeLevel) {
+      setLevelUp({ fromLevel: beforeLevel, toLevel: afterLevel, nextScreen });
+      setScreen('level_up');
+    } else {
+      setScreen(nextScreen);
+    }
+  };
 
   const updateProfile = (nextProfile) => {
     const merged = { ...profile, ...nextProfile };
@@ -206,6 +223,7 @@ export default function App() {
     goQuickMissionSetup: () => setScreen('qm_setup'),
     goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
+      const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null);
       savePausedSession(null);
       setResumeData(null);
@@ -215,12 +233,13 @@ export default function App() {
       setQmResult(result);
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {
+        sessionStartLevelRef.current = beforeLevel;
         setCardioResult(null);
         setCardioContext({ mode: 'qm', addon, mainCompleted: !!result.completed, hybridBonusKey: makeHybridBonusKey('qm') });
         setScreen('cardio_finisher');
       } else {
         setCardioResult(null);
-        setScreen('qm_complete');
+        routeAfterXp(beforeLevel, 'qm_complete');
       }
     },
     goCombatCondSetup: () => setScreen('cc_setup'),
@@ -242,6 +261,7 @@ export default function App() {
       setScreen('cc_active');
     },
     goCombatCondComplete: (result) => {
+      const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
       tryCompleteDailyMission('combatConditioning');
@@ -249,12 +269,13 @@ export default function App() {
       setCcResult(result);
       const addon = ccMission?.cardioAddon;
       if (addon?.enabled) {
+        sessionStartLevelRef.current = beforeLevel;
         setCardioResult(null);
         setCardioContext({ mode: 'cc', addon, mainCompleted: !!result.completed, hybridBonusKey: makeHybridBonusKey('cc') });
         setScreen('cardio_finisher');
       } else {
         setCardioResult(null);
-        setScreen('cc_complete');
+        routeAfterXp(beforeLevel, 'cc_complete');
       }
     },
     goProfile:     () => { pauseCurrentSession(); setScreen('profile'); },
@@ -266,6 +287,7 @@ export default function App() {
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult) => {
+      const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
@@ -273,10 +295,11 @@ export default function App() {
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: 'fightFocus', rounds: done });
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult });
-      setScreen('summary');
+      routeAfterXp(beforeLevel, 'summary');
     },
     goComboActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult) => {
+      const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
@@ -301,10 +324,11 @@ export default function App() {
         sessionSource: 'comboCoach',
         integrityResult,
       });
-      setScreen('summary');
+      routeAfterXp(beforeLevel, 'summary');
     },
     goFitWorkout:  (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
+      const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       addFitModeSession(done, total);
       tryCompleteDailyMission('fitMode');
@@ -313,12 +337,13 @@ export default function App() {
       setSession({ exerciseCount: done, totalCount: total });
       const addon = c?.cardioAddon;
       if (addon?.enabled) {
+        sessionStartLevelRef.current = beforeLevel;
         setCardioResult(null);
         setCardioContext({ mode: 'fit', addon, mainCompleted: total > 0 && done >= total, hybridBonusKey: makeHybridBonusKey('fit') });
         setScreen('cardio_finisher');
       } else {
         setCardioResult(null);
-        setScreen('fit_complete');
+        routeAfterXp(beforeLevel, 'fit_complete');
       }
     },
     finishCardioFinisher: (result) => {
@@ -338,13 +363,24 @@ export default function App() {
       setCardioResult({ ...result, hybridBonusXp });
       const mode = ctx?.mode;
       setCardioContext(null);
-      setScreen(mode === 'qm' ? 'qm_complete' : mode === 'cc' ? 'cc_complete' : 'fit_complete');
+      const dest = mode === 'qm' ? 'qm_complete' : mode === 'cc' ? 'cc_complete' : 'fit_complete';
+      const beforeLevel = sessionStartLevelRef.current ?? getLevel(loadStats().xp);
+      sessionStartLevelRef.current = null;
+      routeAfterXp(beforeLevel, dest);
     },
     skipCardioFinisher: () => {
       const mode = cardioContext?.mode;
       setCardioResult(null);
       setCardioContext(null);
-      setScreen(mode === 'qm' ? 'qm_complete' : mode === 'cc' ? 'cc_complete' : 'fit_complete');
+      const dest = mode === 'qm' ? 'qm_complete' : mode === 'cc' ? 'cc_complete' : 'fit_complete';
+      const beforeLevel = sessionStartLevelRef.current ?? getLevel(loadStats().xp);
+      sessionStartLevelRef.current = null;
+      routeAfterXp(beforeLevel, dest);
+    },
+    finishLevelUp: () => {
+      const dest = levelUp?.nextScreen || 'home';
+      setLevelUp(null);
+      setScreen(dest);
     },
     goPractice:    (d) => { setDisc(d); setScreen('practice'); },
     goStartHere:   () => { setDisc('Boxing'); setScreen('practice_starthere'); },
@@ -417,7 +453,7 @@ export default function App() {
           ccMission={ccMission} ccResult={ccResult}
           cardioContext={cardioContext} cardioResult={cardioResult}
           arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
-          profile={profile} updateProfile={updateProfile}
+          profile={profile} updateProfile={updateProfile} levelUp={levelUp}
           pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
           reportSessionState={reportSessionState} resumeData={resumeData}
           actions={actions}

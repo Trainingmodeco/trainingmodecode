@@ -116,8 +116,8 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children }) {
   );
 }
 
-export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, profile, updateProfile, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, finishGuide, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher } = actions;
+export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, finishGuide, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -173,10 +173,17 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     );
   }
   if (screen === 'level_up') {
-    // Prop-driven reveal (design 6a). The post-session trigger that supplies
-    // fromLevel/toLevel is a functional-pass item; defaults render standalone.
+    // Reveal (design 6a) shown after a session crosses a level boundary. Both
+    // CTAs advance to the pending completion screen (finishLevelUp); if reached
+    // without level-up context, the component renders standalone defaults.
     return (
-      <LevelUpReveal sex={profile?.sex} onEquip={goProfile} onContinue={goHome}/>
+      <LevelUpReveal
+        fromLevel={levelUp?.fromLevel}
+        toLevel={levelUp?.toLevel}
+        sex={profile?.sex}
+        onEquip={finishLevelUp || goProfile}
+        onContinue={finishLevelUp || goHome}
+      />
     );
   }
   if (screen === 'setup') {
