@@ -361,8 +361,39 @@ export default function HomeDashboard({ onHome, onFightMode, onFitBuilder, onPro
                 <ChevronRight size={16} color={C.violet}/>
               </div>
             </div>
+            {/* Segmented stage progress (design 9c) */}
+            <div style={{ display: 'flex', gap: 4, marginTop: 12 }}>
+              {Array.from({ length: activeChallenge.total || 0 }).map((_, i) => (
+                <span key={i} style={{
+                  flex: 1, height: 5, borderRadius: 99,
+                  background: i < activeChallenge.completedCount ? '#22c55e'
+                    : i === activeChallenge.completedCount ? '#fde047'
+                    : 'rgba(255,255,255,0.1)',
+                  boxShadow: i === activeChallenge.completedCount ? '0 0 6px rgba(253,224,71,.6)' : 'none',
+                }}/>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* === FAVORITES (design 9c) === */}
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: C.muted, letterSpacing: '0.16em', marginBottom: 8 }}>FAVORITES</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+          {[
+            { emoji: '🎯', label: 'QUICK', onClick: onQuickMission },
+            { emoji: '🔥', label: 'HIIT', onClick: onCombatConditioning },
+            { emoji: '🥊', label: 'FIGHT', onClick: onFightMode },
+            { emoji: '🛠', label: 'BUILD', onClick: onFitSetup },
+          ].filter(f => f.onClick).map(f => (
+            <button key={f.label} onClick={f.onClick} style={{
+              background: '#120d20', border: '1px solid rgba(168,85,247,0.18)', borderRadius: 9,
+              padding: '10px 3px', textAlign: 'center', cursor: 'pointer',
+            }}>
+              <div style={{ fontSize: 15 }}>{f.emoji}</div>
+              <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 8, color: '#d9d1ef', marginTop: 3 }}>{f.label}</div>
+            </button>
+          ))}
+        </div>
 
       </div>
     </PhoneFrame>
