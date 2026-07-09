@@ -121,6 +121,7 @@ export default function App() {
   const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
   const [resumeData, setResumeData] = useState(null);
   const activeSessionStateRef = useRef(null);
+  const postGuideRef = useRef(null);
 
   const updateProfile = (nextProfile) => {
     const merged = { ...profile, ...nextProfile };
@@ -375,6 +376,14 @@ export default function App() {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
       updateProfile(onboardingProfile || { goal, experience });
       trackEvent('onboarding_complete', { goal, experience });
+      // Show the first-run "How It Works" guide once, then route to the
+      // onboarding recommendation (stashed until the guide is dismissed).
+      postGuideRef.current = recommendation || null;
+      setScreen('how_it_works');
+    },
+    finishGuide: () => {
+      const recommendation = postGuideRef.current;
+      postGuideRef.current = null;
       if (recommendation?.type === 'startHere') {
         setDisc('Boxing');
         setScreen('practice_starthere');
