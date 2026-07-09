@@ -5,6 +5,7 @@ import Embers from './Embers';
 import { ChevronLeft, Home, Check } from 'lucide-react';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile } from './data/userProfile';
+import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { IMG } from './data/optimizedImageMap';
 
 // Fight Mode hub — pixel match of design 5a:
@@ -39,7 +40,7 @@ function SectionNum({ n, label, right }) {
   );
 }
 
-export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning }) {
+export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onQuickFight, onQuickCombo }) {
   const profile = loadProfile();
   const variant = getVariant(profile);
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
@@ -53,15 +54,35 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
   const [toast, setToast] = useState(false);
 
   const modeTitle = MODES.find(m => m.key === mode)?.title || '';
+  // 'NORMAL' -> 'Normal' to match the session config's difficulty casing.
+  const capDiff = difficulty.charAt(0) + difficulty.slice(1).toLowerCase();
 
-  const start = () => {
+  // QUICK CONFIG + START launches straight into the session (design 5a), carrying
+  // the chosen difficulty + rounds. Round length / rest / voice use the same
+  // defaults as the full setup; FULL ⚙ opens that setup for finer control.
+  const start = async () => {
     if (needsGate && (mode === 'fight_focus' || mode === 'combo_coach')) { onStartHere?.(disc); return; }
-    if (mode === 'fight_focus') onFightFocus?.(disc);
-    else if (mode === 'combo_coach') onComboCoach?.(disc);
-    else if (mode === 'practice') {
+    if (mode === 'practice') {
       if (onPractice) onPractice(disc);
       else { setToast(true); setTimeout(() => setToast(false), 2200); }
+      return;
     }
+    setVoiceGender(profile?.voiceCoach || 'FEMALE');
+    await primeSpeech().catch(() => {});
+    if (mode === 'fight_focus') {
+      if (onQuickFight) onQuickFight({ difficulty: capDiff, mode: 'Combo', rounds, roundMin: 3, restSec: 60, voiceOn: true, rushMode: false });
+      else onFightFocus?.(disc);
+    } else if (mode === 'combo_coach') {
+      if (onQuickCombo) onQuickCombo({ discipline: disc, difficulty: capDiff, speed: 'medium', speedLabel: 'MEDIUM', ms: 4000, rounds, roundMin: 3, voiceOn: true, rushMode: false, encouragement: profile?.encouragement || 'normal' });
+      else onComboCoach?.(disc);
+    }
+  };
+
+  // FULL ⚙ — open the detailed setup screen for the selected mode.
+  const openFullConfig = () => {
+    if (mode === 'combo_coach') onComboCoach?.(disc);
+    else if (mode === 'practice') { if (onPractice) onPractice(disc); }
+    else onFightFocus?.(disc);
   };
 
   return (
@@ -125,7 +146,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
           </div>
 
           {/* 3 · QUICK CONFIG */}
-          <SectionNum n={3} label="QUICK CONFIG" right={<span style={{ font: "700 8px 'Orbitron',sans-serif", color: VIOLET, letterSpacing: '0.05em' }}>FULL ⚙</span>}/>
+          <SectionNum n={3} label="QUICK CONFIG" right={<button onClick={openFullConfig} style={{ font: "700 8px 'Orbitron',sans-serif", color: VIOLET, letterSpacing: '0.05em', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>FULL ⚙</button>}/>
           <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '12px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <span style={{ font: "700 10px 'Rajdhani',sans-serif", color: '#c4a4d8', letterSpacing: '0.06em' }}>DIFFICULTY</span>
