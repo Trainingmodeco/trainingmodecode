@@ -31,8 +31,8 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
         </div>
 
         <div style={{ padding: '2px 14px 0' }}>
-          <div style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.25em', marginBottom: 10 }}>SELECT TRAINING PATH</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <div style={{ font: "700 13px 'Orbitron',sans-serif", color: '#e2d6f5', letterSpacing: '0.18em', marginBottom: 16 }}>SELECT TRAINING PATH</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {BANNERS.map(b => (
               <button key={b.key} onClick={b.onClick} style={{
                 position: 'relative', height: 82, borderRadius: 12, overflow: 'hidden', padding: 0, cursor: 'pointer',
