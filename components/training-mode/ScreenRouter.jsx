@@ -37,6 +37,7 @@ import TrainingArcade from './TrainingArcade';
 import ArcadeSeriesIntroPage from './ArcadeSeriesIntroPage';
 import ArcadeSeriesDetail from './ArcadeSeriesDetail';
 import ArcadeSessionPlayer from './ArcadeSessionPlayer';
+import LevelUpReveal from './LevelUpReveal';
 
 function useScrollIndicator(containerRef, children) {
   const [showScroll, setShowScroll] = useState(false);
@@ -169,6 +170,13 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
         <PracticeMode initialDisc={disc} initialView="library" onBack={goFightHub} onHome={goHome}/>
       </WithNav>
+    );
+  }
+  if (screen === 'level_up') {
+    // Prop-driven reveal (design 6a). The post-session trigger that supplies
+    // fromLevel/toLevel is a functional-pass item; defaults render standalone.
+    return (
+      <LevelUpReveal sex={profile?.sex} onEquip={goProfile} onContinue={goHome}/>
     );
   }
   if (screen === 'setup') {
