@@ -141,25 +141,24 @@ const css = `
   transition: all 0.18s ease;
 }
 .pm-cat-pill.active {
-  border-color: rgba(168,85,247,0.6);
-  background: rgba(168,85,247,0.1);
-  color: ${NEON};
+  border: none;
+  background: #fde047;
+  color: #0a0014;
 }
 .pm-cat-pill:hover:not(.active) {
   border-color: rgba(168,85,247,0.35);
   color: rgba(255,255,255,0.65);
 }
 .pm-card {
-  border-radius: 12px;
-  border: 1px solid rgba(168,85,247,0.15);
-  background: rgba(10,0,20,0.75);
-  padding: 13px 14px;
+  border-radius: 11px;
+  border: 1px solid rgba(168,85,247,0.2);
+  background: rgba(8,2,18,0.82);
+  padding: 9px 12px;
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 11px;
   cursor: pointer;
   transition: all 0.18s ease;
-  opacity: 0.82;
   position: relative;
   overflow: hidden;
 }
@@ -239,32 +238,26 @@ function LevelBadge({ level }) {
 
 // ─── Technique Card ──────────────────────────────────────────────────────────
 function TechniqueCard({ technique, onTap }) {
+  // Design 20a strike-library row: film thumbnail + play, name, description, chevron.
   return (
-    <button className="pm-card" onClick={() => onTap(technique)} style={{ width: '100%', border: 'none', textAlign: 'left' }}>
+    <button className="pm-card" onClick={() => onTap(technique)} style={{ width: '100%', textAlign: 'left' }}>
       <div style={{
-        width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-        background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+        position: 'relative', width: 52, height: 40, borderRadius: 7, flexShrink: 0,
+        overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'repeating-linear-gradient(45deg,#1a1030 0 6px,#241640 6px 12px)',
       }}>
-        <Play size={18} style={{ color: 'rgba(168,85,247,0.45)', marginLeft: 2 }}/>
-        <div style={{
-          position: 'absolute', bottom: -4, right: -4,
-          width: 16, height: 16, borderRadius: '50%',
-          background: 'rgba(10,0,20,0.95)', border: '1px solid rgba(168,85,247,0.3)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Lock size={7} style={{ color: 'rgba(168,85,247,0.65)' }}/>
-        </div>
+        <Play size={13} style={{ color: '#fde047', marginLeft: 1 }} fill="#fde047"/>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.06em' }}>{technique.name}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#fff', letterSpacing: '0.03em' }}>{technique.name}</span>
           <LevelBadge level={technique.level}/>
         </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, lineHeight: 1.3 }}>{technique.description}</div>
-        <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: 'rgba(168,85,247,0.4)', marginTop: 4, letterSpacing: '0.07em' }}>{technique.duration} &bull; VIDEO COMING SOON</div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#9a90b8', lineHeight: 1.3 }}>
+          {technique.description}{technique.duration ? ` · ${technique.duration}` : ''}
+        </div>
       </div>
-      <ChevronRight size={16} style={{ color: 'rgba(168,85,247,0.35)', flexShrink: 0 }}/>
+      <ChevronRight size={15} style={{ color: '#b06aff', flexShrink: 0 }}/>
     </button>
   );
 }
@@ -585,8 +578,8 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
             </div>
 
             {/* Count */}
-            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: 'rgba(168,85,247,0.4)', letterSpacing: '0.1em', marginBottom: 8, flexShrink: 0 }}>
-              {techniques.length} TECHNIQUE{techniques.length !== 1 ? 'S' : ''} &bull; ALL LOCKED
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9, flexShrink: 0 }}>
+              {category.toUpperCase()} &middot; {techniques.length}
             </div>
 
             {/* Scrollable list */}
