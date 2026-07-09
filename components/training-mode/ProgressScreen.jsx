@@ -76,9 +76,10 @@ export default function ProgressScreen({ onHome, profile }) {
   let cum = 0;
   const cumPts = recent.map(s => (cum += (s.xpEarned || 0)));
   const maxCum = Math.max(1, ...cumPts);
-  const trend = cumPts.length >= 2
-    ? cumPts.map((v, i) => `${6 + (i * (286 / (cumPts.length - 1)))},${60 - (v / maxCum) * 50}`).join(' ')
-    : '6,58 292,58';
+  const ptCoords = cumPts.length >= 2
+    ? cumPts.map((v, i) => ({ x: 6 + (i * (286 / (cumPts.length - 1))), y: 60 - (v / maxCum) * 48 }))
+    : [{ x: 6, y: 58 }, { x: 292, y: 58 }];
+  const trend = ptCoords.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
   // Training split.
   const counts = { fight: 0, fit: 0, cardio: 0, arcade: 0 };
@@ -121,9 +122,11 @@ export default function ProgressScreen({ onHome, profile }) {
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fde047' }}>{monthXp.toLocaleString()} {pct !== null && <span style={{ font: "700 8px 'Orbitron',sans-serif", color: pct >= 0 ? '#8fe8ac' : '#f87171' }}>{pct >= 0 ? '▲' : '▼'}{Math.abs(pct)}%</span>}</span>
                 </div>
                 <svg viewBox="0 0 300 70" style={{ width: '100%', height: 60, display: 'block' }}>
-                  <defs><linearGradient id="xpfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fde047" stopOpacity="0.32"/><stop offset="1" stopColor="#fde047" stopOpacity="0"/></linearGradient></defs>
-                  <polyline points={trend} fill="none" stroke="#fde047" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 4px rgba(253,224,71,.5))' }}/>
-                  <polygon points={`${trend} 292,70 6,70`} fill="url(#xpfill)"/>
+                  <defs><linearGradient id="xpfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fde047" stopOpacity="0.22"/><stop offset="1" stopColor="#fde047" stopOpacity="0"/></linearGradient></defs>
+                  {[12, 32, 52].map(y => <line key={y} x1="6" y1={y} x2="292" y2={y} stroke="rgba(168,85,247,0.12)" strokeWidth="1"/>)}
+                  <polygon points={`${trend} 292,64 6,64`} fill="url(#xpfill)"/>
+                  <polyline points={trend} fill="none" stroke="#fde047" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(253,224,71,.4))' }}/>
+                  {ptCoords.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={i === ptCoords.length - 1 ? 3 : 2} fill={i === ptCoords.length - 1 ? '#fff' : '#fde047'} stroke="#fde047" strokeWidth="1"/>)}
                 </svg>
               </Card>
 
