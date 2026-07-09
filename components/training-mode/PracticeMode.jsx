@@ -1,10 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import WordmarkFightMode from './WordmarkFightMode';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
-import { ChevronLeft, Play, Lock, ChevronRight, Shield, CircleCheck as CheckCircle } from 'lucide-react';
+import SafeImage from './SafeImage';
+import { ChevronLeft, Play, Pause, Lock, ChevronRight, Shield, CircleCheck as CheckCircle } from 'lucide-react';
 import { C } from './Styles';
 import { addStartHereLesson } from './data/userStats';
 import {
@@ -262,57 +264,117 @@ function TechniqueCard({ technique, onTap }) {
   );
 }
 
-// ─── Technique Detail panel ──────────────────────────────────────────────────
-function TechniqueDetail({ technique, onBack, onNext, onToast }) {
-  const Section = ({ title, items, color }) => (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: color || C.muted, letterSpacing: '0.12em', marginBottom: 7 }}>{title}</div>
-      {items.map((item, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 5 }}>
-          <div style={{ width: 5, height: 5, borderRadius: '50%', flexShrink: 0, marginTop: 5, background: color || 'rgba(168,85,247,0.5)' }}/>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: C.text, lineHeight: 1.4 }}>{item}</span>
+// ─── Technique Detail (design 20b: video + breakdown) ────────────────────────
+function TechniqueDetail({ technique, onBack, onToast, onDrill }) {
+  const catUpper = String(technique.category || '').toUpperCase();
+  const badge = catUpper === 'STRIKES' ? 'PUNCH' : catUpper.slice(0, -1) || 'MOVE';
+  return createPortal(
+    <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 200, background: '#080012', display: 'flex', flexDirection: 'column' }}>
+      {/* Video */}
+      <div style={{ position: 'relative', flexShrink: 0, aspectRatio: '16/10', background: 'repeating-linear-gradient(45deg,#140823 0 14px,#1c0d30 14px 28px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={onBack} style={{ position: 'absolute', top: 8, left: 12, background: 'none', border: 'none', color: '#f5e9ff', cursor: 'pointer', display: 'flex', padding: 4 }}><ChevronLeft size={20}/></button>
+        <div onClick={onToast} style={{ textAlign: 'center', cursor: 'pointer' }}>
+          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(253,224,71,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}><Play size={24} fill="#0a0014" color="#0a0014" style={{ marginLeft: 3 }}/></div>
+          <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#8a6fb0' }}>{technique.name} · tutorial video</div>
         </div>
-      ))}
-    </div>
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '10px 14px', background: 'linear-gradient(0deg,rgba(8,1,15,0.9),transparent)' }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}><div style={{ width: '35%', height: '100%', background: GOLD }}/></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Rajdhani',sans-serif", fontSize: 8, color: '#c4a4d8', marginTop: 5 }}><span>0:00</span><span>{technique.duration || '1:40'}</span></div>
+        </div>
+      </div>
+
+      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '14px 16px calc(90px + env(safe-area-inset-bottom,0px))' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, color: '#fff', letterSpacing: '0.03em' }}>{technique.name.toUpperCase()}</div>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#c9a6ff', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 5, padding: '3px 7px' }}>{badge}</span>
+        </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#c4a4d8', marginBottom: 14 }}>{technique.description}</div>
+
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9 }}>KEY POINTS</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
+          {(technique.cues || []).map((c, i) => (
+            <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 9, padding: '9px 12px' }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, color: GOLD }}>{i + 1}</span>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#e6dcff' }}>{c}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#ff8a8a', letterSpacing: '0.18em', marginBottom: 8 }}>COMMON MISTAKES</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {(technique.mistakes || []).map((m, i) => (
+            <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 9, padding: '9px 12px' }}>
+              <span style={{ color: '#ff8a8a', fontWeight: 800, fontSize: 11 }}>✕</span>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#e6dcff' }}>{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 16px calc(14px + env(safe-area-inset-bottom,0px))', display: 'flex', gap: 10, background: 'linear-gradient(0deg,#080012 72%,transparent)' }}>
+        <button onClick={onBack} style={{ flex: 1, height: 48, border: '1px solid rgba(168,85,247,0.4)', borderRadius: 11, background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.05em', cursor: 'pointer' }}>↺ LIBRARY</button>
+        <button onClick={() => onDrill(technique)} style={{ flex: 2, height: 48, border: 'none', borderRadius: 11, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.05em', cursor: 'pointer' }}>🥊 DRILL IT</button>
+      </div>
+    </div>,
+    document.body,
   );
+}
 
-  return (
-    <div className="pm-panel-in" style={{
-      position: 'absolute', inset: 0, zIndex: 50,
-      background: 'rgba(6,0,14,0.97)', overflowY: 'auto',
-      display: 'flex', flexDirection: 'column',
-      padding: '16px 16px calc(160px + env(safe-area-inset-bottom, 0px))',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Orbitron',sans-serif", fontSize: 10, color: C.muted, letterSpacing: '0.07em' }}>
-          <ChevronLeft size={18} style={{ color: C.muted }}/> BACK TO LIBRARY
-        </button>
-        <div style={{ marginLeft: 'auto' }}><LevelBadge level={technique.level}/></div>
-      </div>
-      <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: 'rgba(168,85,247,0.55)', letterSpacing: '0.2em', marginBottom: 4 }}>{technique.discipline.toUpperCase()} &bull; {technique.category.toUpperCase()}</div>
-      <h2 style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, color: GOLD, fontSize: 26, letterSpacing: '0.1em', textShadow: '0 0 14px rgba(253,224,71,0.4)', marginBottom: 4 }}>{technique.name.toUpperCase()}</h2>
-      <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 14, color: C.muted, marginBottom: 18 }}>{technique.description}</p>
+// ─── Shadowbox Drill (design 21a: guided reps) ───────────────────────────────
+function ShadowboxDrillView({ technique, onBack }) {
+  const TARGET = 30;
+  const [reps, setReps] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [tempoMs, setTempoMs] = useState(2000);
+  const [done, setDone] = useState(false);
+  const timer = useRef(null);
 
-      <div onClick={onToast} style={{
-        width: '100%', borderRadius: 12, overflow: 'hidden',
-        border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(10,0,20,0.8)',
-        aspectRatio: '16/9', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', marginBottom: 20,
-      }}>
-        <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(168,85,247,0.08)', border: '1.5px solid rgba(168,85,247,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Lock size={22} style={{ color: 'rgba(168,85,247,0.55)' }}/>
+  useEffect(() => {
+    if (paused || done) { clearInterval(timer.current); return; }
+    timer.current = setInterval(() => {
+      setReps(r => {
+        if (r + 1 >= TARGET) { setDone(true); return TARGET; }
+        return r + 1;
+      });
+    }, tempoMs);
+    return () => clearInterval(timer.current);
+  }, [paused, done, tempoMs]);
+
+  const name = String(technique.name || 'HOOK').toUpperCase();
+  const tempoLabel = `1 EVERY ${(tempoMs / 1000).toFixed(tempoMs % 1000 ? 1 : 0)}s`;
+
+  return createPortal(
+    <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 210, background: 'radial-gradient(ellipse at 50% 42%, rgba(168,85,247,0.22), rgba(10,7,20,0.96) 72%), #0a0714', display: 'flex', flexDirection: 'column' }}>
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes sb-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}' }}/>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <div style={{ textAlign: 'center', padding: '10px 0 0' }}><span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#b06aff', letterSpacing: '0.14em' }}>SHADOWBOX DRILL · {name}</span></div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 11, color: '#c4a4d8', letterSpacing: '0.1em', marginBottom: 16 }}>{done ? 'DRILL COMPLETE' : 'THROW ON THE CALL'}</div>
+          <div style={{ position: 'relative', width: 'min(80vw, 320px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, animation: paused || done ? 'none' : `sb-pulse ${tempoMs}ms ease-in-out infinite` }}>
+            <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}/>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 38, color: GOLD, textShadow: '0 0 18px rgba(253,224,71,.4)' }}>{name}</div>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: '#fff', marginTop: 8 }}>{reps} / {TARGET}</div>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#8b83a8', letterSpacing: '0.1em', marginTop: 4 }}>REPS</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '9px 15px' }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 9, color: '#6d6688', letterSpacing: '0.08em' }}>TEMPO</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#c9bff0' }}>{tempoLabel}</span>
+          </div>
         </div>
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 12, color: 'rgba(168,85,247,0.6)', letterSpacing: '0.12em' }}>COMING SOON</div>
+        <div style={{ padding: '0 22px calc(26px + env(safe-area-inset-bottom,0px))' }}>
+          <button onClick={() => setPaused(p => !p)} disabled={done} style={{ width: '100%', height: 56, border: 'none', borderRadius: 15, background: 'linear-gradient(180deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em', marginBottom: 11, cursor: 'pointer', boxShadow: '0 6px 22px -6px rgba(168,85,247,.7)', opacity: done ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {paused ? <><Play size={18} fill="#fff"/> RESUME</> : <><Pause size={18} fill="#fff"/> PAUSE</>}
+          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => setTempoMs(m => Math.min(4000, m + 500))} style={{ flex: 1, height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: '#130e20', color: '#c9bff0', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>↺ SLOWER</button>
+            <button onClick={onBack} style={{ flex: 1, height: 46, border: '1px solid rgba(255,90,90,0.4)', borderRadius: 12, background: 'rgba(255,90,90,0.09)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>✓ DONE</button>
+          </div>
+        </div>
       </div>
-
-      <Section title="KEY CUES" items={technique.cues} color="rgba(74,222,128,0.7)"/>
-      <Section title="COMMON MISTAKES" items={technique.mistakes} color="rgba(249,115,22,0.7)"/>
-
-      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-        <button onClick={onBack} style={{ flex: 1, padding: '13px 0', borderRadius: 10, background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(168,85,247,0.25)', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: 'rgba(168,85,247,0.7)', letterSpacing: '0.1em', cursor: 'pointer' }}>LIBRARY</button>
-        <button onClick={onNext} style={{ flex: 2, padding: '13px 0', borderRadius: 10, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.35)', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: NEON, letterSpacing: '0.1em', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>NEXT <ChevronRight size={14}/></button>
-      </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -416,6 +478,7 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
   const [discipline, setDisc] = useState(PRACTICE_DISCIPLINES.includes(initialDisc) ? initialDisc : 'Boxing');
   const [category, setCategory] = useState('Strikes');
   const [detail, setDetail] = useState(null);
+  const [drill, setDrill] = useState(null);
   const [toast, setToast] = useState(false);
 
   // Start Here state
@@ -430,21 +493,9 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
     setTimeout(() => setToast(false), 2200);
   }, []);
 
-  const openDetail = useCallback((t) => {
-    showToast();
-    setDetail(t);
-  }, [showToast]);
+  const openDetail = useCallback((t) => { setDetail(t); }, []);
 
   const closeDetail = () => setDetail(null);
-
-  const goNext = () => {
-    if (!detail) return;
-    const sameSet = getTechniquesFor(discipline, category);
-    const idx = sameSet.findIndex(t => t.name === detail.name);
-    const next = sameSet[(idx + 1) % sameSet.length];
-    setDetail(next);
-    showToast();
-  };
 
   const handleCompleteLesson = (lesson) => {
     markLessonComplete(lesson.id);
@@ -597,9 +648,14 @@ export default function PracticeMode({ initialDisc = 'Boxing', initialView = 'li
         )}
       </div>
 
-      {/* Technique Detail overlay */}
-      {detail && (
-        <TechniqueDetail technique={detail} onBack={closeDetail} onNext={goNext} onToast={showToast}/>
+      {/* Technique Detail overlay (20b) */}
+      {detail && !drill && (
+        <TechniqueDetail technique={detail} onBack={closeDetail} onToast={showToast} onDrill={t => { setDrill(t); setDetail(null); }}/>
+      )}
+
+      {/* Shadowbox drill overlay (21a) */}
+      {drill && (
+        <ShadowboxDrillView technique={drill} onBack={() => setDrill(null)}/>
       )}
 
       {/* Start Here Lesson overlay */}
