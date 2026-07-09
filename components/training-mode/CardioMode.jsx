@@ -356,6 +356,7 @@ export default function CardioMode({ onBack }) {
     <PhoneFrame useBrandBg>
       <Embers count={2}/>
       <CornerHUD color="rgba(253,224,71,0.25)" size={20} inset={10}/>
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes tm-subpop{0%{opacity:0;transform:translateY(-5px) scale(0.97)}100%{opacity:1;transform:none}}' }} />
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', padding: '12px 16px calc(78px + env(safe-area-inset-bottom, 0px))' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8, flexShrink: 0 }}>
@@ -394,7 +395,7 @@ export default function CardioMode({ onBack }) {
                   boxShadow: active ? '0 0 14px rgba(253,224,71,0.16)' : 'none', transition: 'all 0.15s',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 13 }}>{cat.icon}</span>
+                    <span style={{ fontSize: 10 }}>{cat.icon}</span>
                     <span style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: active ? GOLD : '#c4b5fd' }}>{cat.label}</span>
                   </div>
                   <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, lineHeight: 1.25 }}>{cat.sub}</div>
@@ -402,7 +403,7 @@ export default function CardioMode({ onBack }) {
               );
             })}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+          <div key={categoryId} style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14, animation: 'tm-subpop 0.24s ease' }}>
             {categoryOptions.map(opt => {
               const active = cardioType === opt.id;
               return (
@@ -457,40 +458,35 @@ export default function CardioMode({ onBack }) {
           {useDistanceGauge && (
             <>
               <div style={sectionLabel}>GOAL DISTANCE</div>
-              <div style={{ borderRadius: 12, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '11px 13px', marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 23, color: '#fff' }}>
-                    {customDistance ? parsedCustomDist : goalDistance}<span style={{ fontSize: 12, color: GOLD, marginLeft: 4 }}>{distanceUnit}</span>
+              <div style={{ borderRadius: 11, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '8px 12px 9px', marginBottom: 9 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 19, color: '#fff', flexShrink: 0 }}>
+                    {customDistance ? parsedCustomDist : goalDistance}<span style={{ fontSize: 11, color: GOLD, marginLeft: 3 }}>{distanceUnit}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {['km', 'mi'].map(u => (
-                      <button key={u} onClick={() => { setDistanceUnit(u); setGoalDistance(u === 'km' ? 5 : 3); setCustomDistance(''); }} style={{
-                        padding: '4px 11px', borderRadius: 8, cursor: 'pointer',
-                        background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
-                        border: distanceUnit === u ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                        color: distanceUnit === u ? GOLD : C.muted, fontFamily: ARCADE.fontHead, fontSize: 9.5, fontWeight: 700,
-                      }}>{u.toUpperCase()}</button>
-                    ))}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 3 }}>
+                      {['km', 'mi'].map(u => (
+                        <button key={u} onClick={() => { setDistanceUnit(u); setGoalDistance(u === 'km' ? 5 : 3); setCustomDistance(''); }} style={{
+                          padding: '3px 10px', borderRadius: 7, cursor: 'pointer',
+                          background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
+                          border: distanceUnit === u ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
+                          color: distanceUnit === u ? GOLD : C.muted, fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700,
+                        }}>{u.toUpperCase()}</button>
+                      ))}
+                    </div>
+                    <input
+                      type="number" inputMode="decimal" min="0" step="0.1" placeholder={`+${distanceUnit}`}
+                      value={customDistance} onChange={e => setCustomDistance(e.target.value)}
+                      style={{ width: 60, padding: '4px 8px', borderRadius: 7, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 11, fontWeight: 600, outline: 'none' }}
+                    />
                   </div>
                 </div>
                 <input
                   type="range" min={distanceUnit === 'km' ? 1 : 0.5} max={sliderMax} step={distanceUnit === 'km' ? 0.5 : 0.25}
                   value={Math.min(goalDistance, sliderMax)}
                   onChange={e => { setGoalDistance(parseFloat(e.target.value)); setCustomDistance(''); }}
-                  style={{ width: '100%', accentColor: GOLD, cursor: 'pointer' }}
+                  style={{ width: '100%', accentColor: GOLD, cursor: 'pointer', display: 'block' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: ARCADE.fontHead, fontSize: 8, color: '#6f6690', letterSpacing: '0.06em', marginTop: 1 }}>
-                  <span>{distanceUnit === 'km' ? '1' : '0.5'} {distanceUnit}</span>
-                  <span>{sliderMax}{distanceUnit === 'km' ? 'K' : ` ${distanceUnit}`}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 9, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, flexShrink: 0 }}>Going longer?</span>
-                  <input
-                    type="number" inputMode="decimal" min="0" step="0.1" placeholder={`Type ${distanceUnit}`}
-                    value={customDistance} onChange={e => setCustomDistance(e.target.value)}
-                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 12, fontWeight: 600, outline: 'none' }}
-                  />
-                </div>
               </div>
             </>
           )}
@@ -499,27 +495,23 @@ export default function CardioMode({ onBack }) {
           {showTimeGoal && (
             <>
               <div style={sectionLabel}>TARGET TIME</div>
-              <div style={{ borderRadius: 12, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '11px 13px', marginBottom: 10 }}>
-                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 23, color: '#fff', marginBottom: 8 }}>
-                  {Math.round(effGoalTime / 60)}<span style={{ fontSize: 12, color: GOLD, marginLeft: 4 }}>min</span>
+              <div style={{ borderRadius: 11, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '8px 12px 9px', marginBottom: 9 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 19, color: '#fff' }}>
+                    {Math.round(effGoalTime / 60)}<span style={{ fontSize: 11, color: GOLD, marginLeft: 3 }}>min</span>
+                  </div>
+                  <input
+                    type="number" inputMode="numeric" min="0" step="1" placeholder="+min"
+                    value={customTimeMin} onChange={e => setCustomTimeMin(e.target.value)}
+                    style={{ width: 64, padding: '4px 8px', borderRadius: 7, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 11, fontWeight: 600, outline: 'none' }}
+                  />
                 </div>
                 <input
                   type="range" min={5} max={60} step={5}
                   value={Math.min(Math.round(goalTimeSeconds / 60), 60)}
                   onChange={e => { setGoalTimeSeconds(parseInt(e.target.value, 10) * 60); setCustomTimeMin(''); }}
-                  style={{ width: '100%', accentColor: GOLD, cursor: 'pointer' }}
+                  style={{ width: '100%', accentColor: GOLD, cursor: 'pointer', display: 'block' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: ARCADE.fontHead, fontSize: 8, color: '#6f6690', letterSpacing: '0.06em', marginTop: 1 }}>
-                  <span>5 min</span><span>60 min</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 9, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, flexShrink: 0 }}>Going longer?</span>
-                  <input
-                    type="number" inputMode="numeric" min="0" step="1" placeholder="Type min"
-                    value={customTimeMin} onChange={e => setCustomTimeMin(e.target.value)}
-                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 12, fontWeight: 600, outline: 'none' }}
-                  />
-                </div>
               </div>
             </>
           )}
@@ -580,7 +572,7 @@ export default function CardioMode({ onBack }) {
             <span style={{ fontFamily: ARCADE.fontBody, fontSize: 8.5, color: 'rgba(239,68,68,0.8)', lineHeight: 1.3, textAlign: 'center' }}>{CARDIO_SAFETY_COPY}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 210, paddingLeft: 30, paddingRight: 30, fontSize: 13.5, letterSpacing: '0.12em' }} />
+            <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 42, paddingRight: 42, fontSize: 13.5, letterSpacing: '0.12em' }} />
           </div>
         </div>
 
