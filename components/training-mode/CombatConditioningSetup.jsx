@@ -3,15 +3,21 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
+import { ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
+import { summarizeCardioAddon } from './data/cardioAddon';
 import CardioFinisherSetup from './CardioFinisherSetup';
 import TrainingCTA from './shared/TrainingCTA';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
 
-const STYLES = ['Boxing', 'Kickboxing / Muay Thai', 'MMA'];
+const STYLES = [
+  { id: 'Boxing', label: 'BOXING', icon: '🥊' },
+  { id: 'Kickboxing / Muay Thai', label: 'KICKBOX', icon: '🦵' },
+  { id: 'MMA', label: 'MMA', icon: '🥋' },
+];
 // Conditioning focus (design 15b) — replaces the strength/striking slider.
 const FOCUS_OPTIONS = [
   { id: 'gas-tank', label: 'GAS TANK', sub: 'Endurance & conditioning' },
@@ -40,9 +46,6 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
   const [workSec, setWorkSec] = useState(40);
   const [restSec, setRestSec] = useState(15);
   const [focus, setFocus] = useState('gas-tank');
-  const [voiceOn, setVoiceOn] = useState(true);
-  const [cadenceCount, setCadenceCount] = useState(true);
-  const [formPreviewOn, setFormPreviewOn] = useState(true);
   const cadencePreset = 'moderate';
   const cadenceMs = CADENCE_PRESETS.moderate;
   const [cardioAddon, setCardioAddon] = useState(null);
@@ -55,7 +58,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
   const handleStart = () => {
     onStart({
       style, duration, difficulty, equipment, format,
-      voiceOn, formPreviewOn, cadenceCount, cadencePreset, cadenceMs, cardioAddon,
+      voiceOn: true, formPreviewOn: true, cadenceCount: true, cadencePreset, cadenceMs, cardioAddon,
       rounds, workSec, restSec, focus, blend: FOCUS_BLEND[focus] ?? 50,
     });
   };
@@ -93,21 +96,21 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,0,20,0.7), transparent)' }}/>
         </div>
 
-        {/* Style */}
-        <SectionLabel>STYLE</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 9 }}>
+        {/* Discipline — square tiles */}
+        <SectionLabel>DISCIPLINE</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 9 }}>
           {STYLES.map(s => {
-            const active = s === style;
+            const active = s.id === style;
             return (
-              <button key={s} className="cc-pill" onClick={() => setStyle(s)} style={{
-                padding: '7px 12px', borderRadius: 20,
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, letterSpacing: '0.05em',
+              <button key={s.id} className="cc-pill" onClick={() => setStyle(s.id)} style={{
+                aspectRatio: '1 / 0.82', borderRadius: 8, cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5,
                 background: active ? 'rgba(239,68,68,0.15)' : 'rgba(10,0,20,0.6)',
-                border: active ? `1.5px solid ${RED}` : '1.5px solid rgba(239,68,68,0.1)',
-                color: active ? RED : C.faint,
-                boxShadow: active ? '0 0 8px rgba(239,68,68,0.25)' : 'none',
+                border: active ? `1.5px solid ${RED}` : '1.5px solid rgba(239,68,68,0.12)',
+                boxShadow: active ? '0 0 10px rgba(239,68,68,0.25)' : 'none',
               }}>
-                {s.toUpperCase()}
+                <span style={{ fontSize: 20 }}>{s.icon}</span>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.04em', color: active ? RED : C.faint }}>{s.label}</span>
               </button>
             );
           })}
@@ -209,8 +212,8 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           })}
         </div>
 
-        {/* Difficulty */}
-        <SectionLabel>DIFFICULTY</SectionLabel>
+        {/* Intensity */}
+        <SectionLabel>INTENSITY</SectionLabel>
         <div style={{ display: 'flex', gap: 5, marginBottom: 9 }}>
           {DIFFICULTIES.map(d => {
             const active = d === difficulty;
@@ -228,33 +231,33 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           })}
         </div>
 
-        {/* Toggles */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
-          <ToggleRow label="VOICE COACH" value={voiceOn} onChange={setVoiceOn}/>
-          <ToggleRow label="CADENCE COUNT" value={cadenceCount} onChange={setCadenceCount}/>
-          <ToggleRow label="FORM PREVIEW" value={formPreviewOn} onChange={setFormPreviewOn}/>
-        </div>
-
-        {/* Cardio addon */}
+        {/* Cardio finisher add-on (design 15b) */}
         <div
           onClick={() => setCardioSheetOpen(true)}
           style={{
-            borderRadius: 10, padding: '10px 14px', marginBottom: 14,
-            background: cardioAddon ? 'rgba(255,138,74,0.1)' : 'rgba(255,138,74,0.04)',
-            border: `1px solid ${cardioAddon ? 'rgba(255,138,74,0.4)' : 'rgba(255,138,74,0.2)'}`,
-            display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+            borderRadius: 12, padding: '12px 14px', marginBottom: 14,
+            background: cardioAddon ? 'rgba(255,138,74,0.12)' : 'rgba(255,138,74,0.05)',
+            border: `1.5px solid ${cardioAddon ? 'rgba(255,138,74,0.45)' : 'rgba(255,138,74,0.22)'}`,
+            display: 'flex', alignItems: 'center', gap: 11, cursor: 'pointer',
           }}
         >
-          <span style={{ fontSize: 14 }}>&#127939;</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: C.cardio, letterSpacing: '0.06em' }}>
-            {cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO FINISHER'}
-          </span>
-          {cardioAddon && (
+          <span style={{ fontSize: 22, lineHeight: 1 }}>&#127939;</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: C.cardio, letterSpacing: '0.05em' }}>
+              {cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO FINISHER'}
+            </div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.faint, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {cardioAddon ? summarizeCardioAddon(cardioAddon) : 'Cap the circuit with a cardio burn'}
+            </div>
+          </div>
+          {cardioAddon ? (
             <button onClick={(e) => { e.stopPropagation(); setCardioAddon(null); }} style={{
-              marginLeft: 'auto', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 5, padding: '3px 7px', cursor: 'pointer',
-              fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.red,
+              background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
+              borderRadius: 6, padding: '4px 9px', cursor: 'pointer', flexShrink: 0,
+              fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.red,
             }}>REMOVE</button>
+          ) : (
+            <ChevronRight size={18} color={C.cardio} style={{ flexShrink: 0 }}/>
           )}
         </div>
 
@@ -287,20 +290,5 @@ function SectionLabel({ children }) {
       fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: C.faint,
       fontSize: 9, letterSpacing: '0.15em', marginBottom: 6,
     }}>{children}</div>
-  );
-}
-
-function ToggleRow({ label, value, onChange }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: 'rgba(10,0,20,0.5)', borderRadius: 8, padding: '9px 12px',
-      border: '1px solid rgba(255,255,255,0.04)',
-    }}>
-      <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: C.muted, letterSpacing: '0.06em' }}>{label}</span>
-      <button onClick={() => onChange(!value)} style={{ background: 'none', border: 'none', padding: 0 }}>
-        <div className={`tm-toggle ${value ? 'on' : ''}`}><div className="tm-toggle-knob"/></div>
-      </button>
-    </div>
   );
 }
