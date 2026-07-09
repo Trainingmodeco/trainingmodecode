@@ -4,10 +4,9 @@ import PhoneFrame from './PhoneFrame';
 import IntroLogo from './IntroLogo';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
-import { ChevronLeft, TriangleAlert as AlertTriangle, Minus, Plus, X } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
 import { C } from './Styles';
 import { ARCADE } from './ArcadeUI';
-import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import { CARDIO_ADDON_TYPES, cardioAddonToPlayer } from './data/cardioAddon';
 import CardioProtocolPlayer from './CardioProtocolPlayer';
 import CardioSummary from './CardioSummary';
@@ -15,7 +14,6 @@ import EmptyState from './EmptyState';
 import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import TrainingCTA from './shared/TrainingCTA';
 import { loadStats, getLevel } from './data/userStats';
-import { loadProfile } from './data/userProfile';
 
 const GOLD = C.yellow;
 const VIOLET = '#b06aff';
@@ -33,46 +31,14 @@ function computeAutoPace(distance, unit, level) {
   return { totalSec, paceSecPerUnit, paceLabel: `${fmtClock(paceSecPerUnit)} /${unit}`, timeLabel: fmtClock(totalSec), goalLabel: `${distance} ${unit}` };
 }
 
-// Simplified method taxonomy (design 12a). Four top-level categories; picking one
-// reveals a compact "expander" row of the specific modalities. IDs map to the
-// shared CARDIO_ADDON_TYPES so the player/summary keep working unchanged.
+// Simplified method taxonomy (design 12a). Four categories; the category IS the
+// selection (no sub-method chips). Each maps to a representative CARDIO_ADDON_TYPE
+// that decides distance-vs-time + whether GPS applies.
 const METHOD_CATEGORIES = [
-  {
-    id: 'running', label: 'RUNNING', icon: '🏃', sub: 'Outdoor GPS · Treadmill',
-    options: [
-      { id: 'outdoor-run', label: 'Outdoor · GPS' },
-      { id: 'treadmill', label: 'Treadmill' },
-    ],
-  },
-  {
-    id: 'machine', label: 'MACHINE', icon: '⚙️', sub: 'Elliptical · Row · Stairs · Bike',
-    options: [
-      { id: 'elliptical', label: 'Elliptical' },
-      { id: 'row-machine', label: 'Row' },
-      { id: 'stair-climber', label: 'Stairs' },
-      { id: 'bike', label: 'Bike' },
-      { id: 'assault-bike', label: 'Air Bike' },
-    ],
-  },
-  {
-    id: 'alternate', label: 'ALTERNATE', icon: '🥊', sub: 'Rope · Burpees · Swim · Shadowbox',
-    options: [
-      { id: 'jump-rope', label: 'Jump Rope' },
-      { id: 'burpees', label: 'Burpees' },
-      { id: 'swimming', label: 'Swimming' },
-      { id: 'shadowbox-footwork', label: 'Shadowbox' },
-      { id: 'low-impact', label: 'Jumping Jacks' },
-    ],
-  },
-  {
-    id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Climbers · Knees · Squats · KB',
-    options: [
-      { id: 'mountain-climbers', label: 'Mountain Climbers' },
-      { id: 'high-knees', label: 'High Knees' },
-      { id: 'squat-jumps', label: 'Squat Jumps' },
-      { id: 'kettlebell-swings', label: 'Kettlebell Swings' },
-    ],
-  },
+  { id: 'running', label: 'RUNNING', icon: '🏃', sub: 'Outdoor GPS · Treadmill', type: 'outdoor-run', methodLabel: 'Running' },
+  { id: 'machine', label: 'MACHINE', icon: '⚙️', sub: 'Elliptical · Row · Stairs · Bike', type: 'bike', methodLabel: 'Machine' },
+  { id: 'alternate', label: 'ALTERNATE', icon: '🥊', sub: 'Rope · Burpees · Swim · Shadowbox', type: 'jump-rope', methodLabel: 'Alternate' },
+  { id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Climbers · Knees · Squats · KB', type: 'mountain-climbers', methodLabel: 'Exercise' },
 ];
 
 const PROTOCOLS = [
@@ -84,79 +50,78 @@ const PROTOCOLS = [
 
 // Default work/rest structures per protocol; the config modal edits copies of these.
 const CFG_DEFAULTS = {
-  intervals: { warmupMin: 3, workSec: 60, restSec: 60, rounds: 8 },
-  tabata: { warmupMin: 2, workSec: 20, restSec: 10, rounds: 8 },
-  hiit: { warmupMin: 3, workSec: 45, restSec: 15, rounds: 10 },
+  intervals: { warmupMin: 3, workSec: 60, restSec: 60, rounds: 8, cooldownMin: 0 },
+  tabata: { warmupMin: 0, workSec: 20, restSec: 10, rounds: 8, cooldownMin: 0 },
+  hiit: { warmupMin: 2, workSec: 45, restSec: 15, rounds: 10, cooldownMin: 0 },
 };
 
-const cfgTargetSeconds = (c) => Math.round((c.warmupMin || 0) * 60) + c.rounds * (c.workSec + c.restSec);
+const cfgTargetSeconds = (c) => Math.round((c.warmupMin || 0) * 60) + c.rounds * (c.workSec + c.restSec) + Math.round((c.cooldownMin || 0) * 60);
 const cfgToIntervals = (c) => ({
   warmupSeconds: Math.round((c.warmupMin || 0) * 60),
   workSeconds: c.workSec,
   restSeconds: c.restSec,
   rounds: c.rounds,
+  cooldownSeconds: Math.round((c.cooldownMin || 0) * 60),
 });
 
 function getMethod(id) {
   return CARDIO_ADDON_TYPES.find(m => m.id === id) || CARDIO_ADDON_TYPES[0];
 }
-function findOption(catId, typeId) {
-  const cat = METHOD_CATEGORIES.find(c => c.id === catId) || METHOD_CATEGORIES[0];
-  return cat.options.find(o => o.id === typeId) || cat.options[0];
-}
 
 const sectionLabel = { fontFamily: ARCADE.fontHead, fontWeight: 700, color: GOLD, fontSize: 9, letterSpacing: '0.2em', marginBottom: 5 };
 
-function Stepper({ label, value, unit, min, max, step, onChange }) {
-  const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
-  const inc = () => onChange(Math.min(max, +(value + step).toFixed(2)));
-  const btn = {
-    width: 36, height: 36, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'rgba(176,106,255,0.12)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: '#d6c2ff',
+// One editable row in the interval config: label · typeable value · − · + .
+function NumRow({ label, value, unit, min, max, step, onChange }) {
+  const set = (v) => { const n = Number.isFinite(v) ? v : min; onChange(Math.max(min, Math.min(max, n))); };
+  const stepBtn = {
+    width: 30, height: 30, borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(176,106,255,0.14)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: '#d6c2ff', flexShrink: 0,
   };
   return (
-    <div style={{ marginBottom: 11 }}>
-      <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 5 }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button onClick={dec} style={btn}><Minus size={15} /></button>
-        <div style={{ flex: 1, textAlign: 'center', fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 19, color: '#fff' }}>
-          {value}<span style={{ fontSize: 12, color: C.muted, marginLeft: 2 }}>{unit}</span>
-        </div>
-        <button onClick={inc} style={btn}><Plus size={15} /></button>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 0', borderBottom: '1px solid rgba(176,106,255,0.12)' }}>
+      <span style={{ flex: 1, fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, letterSpacing: '0.1em', color: '#c4a4d8' }}>{label}</span>
+      <input
+        type="number" inputMode="numeric" value={value}
+        onChange={e => set(parseInt(e.target.value, 10))}
+        style={{ width: 48, textAlign: 'center', padding: '5px 2px', borderRadius: 7, background: 'rgba(6,0,16,0.85)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: '#fff', fontFamily: ARCADE.fontHead, fontWeight: 800, fontSize: 14, outline: 'none' }}
+      />
+      <span style={{ width: 20, fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, textAlign: 'left' }}>{unit}</span>
+      <button onClick={() => set(value - step)} style={stepBtn}><Minus size={13} /></button>
+      <button onClick={() => set(value + step)} style={stepBtn}><Plus size={13} /></button>
     </div>
   );
 }
 
-// Centered config modal for Target Intervals / Tabata / HIIT (design 12a).
+// Narrow, centered config modal for Target Intervals / Tabata / HIIT (design 12a).
 function ConfigModal({ styleId, cfg, onChange, onClose }) {
   const titleMap = { intervals: 'TARGET INTERVALS', tabata: 'TABATA', hiit: 'HIIT' };
-  const target = cfgTargetSeconds(cfg);
+  const total = cfgTargetSeconds(cfg);
   return createPortal(
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 18, background: 'rgba(4,0,10,0.8)', backdropFilter: 'blur(3px)',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: '100%', maxWidth: 372, marginBottom: '8vh',
+        width: '100%', maxWidth: 300, marginBottom: '6vh',
         background: 'linear-gradient(180deg,#140425,#0a0116)',
         borderRadius: 18, border: `1px solid ${ARCADE.goldBorder}`,
         boxShadow: '0 0 40px rgba(124,58,237,0.35), 0 20px 50px rgba(0,0,0,0.55)',
-        padding: '16px 18px 18px',
+        padding: '15px 16px 16px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: GOLD, letterSpacing: '0.1em' }}>{titleMap[styleId]} SETUP</div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: C.muted, cursor: 'pointer', padding: 4 }}><X size={19} /></button>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: C.muted, cursor: 'pointer', padding: 4 }}><X size={18} /></button>
         </div>
-        <Stepper label="WARM-UP" value={cfg.warmupMin} unit="min" min={0} max={15} step={1} onChange={v => onChange({ ...cfg, warmupMin: v })} />
-        <Stepper label="ACTIVE WORK" value={cfg.workSec} unit="sec" min={5} max={300} step={5} onChange={v => onChange({ ...cfg, workSec: v })} />
-        <Stepper label="REST" value={cfg.restSec} unit="sec" min={0} max={180} step={5} onChange={v => onChange({ ...cfg, restSec: v })} />
-        <Stepper label="ROUNDS" value={cfg.rounds} unit="" min={1} max={30} step={1} onChange={v => onChange({ ...cfg, rounds: v })} />
-        <div style={{ borderRadius: 11, border: '1px solid rgba(253,224,71,0.35)', background: 'rgba(253,224,71,0.07)', padding: '10px 13px', margin: '3px 0 15px', textAlign: 'center' }}>
-          <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.14em', marginBottom: 3 }}>GENERATED TARGET TIME</div>
-          <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 23, color: GOLD }}>{fmtClock(target)}</div>
+        <NumRow label="WARM-UP" value={cfg.warmupMin} unit="min" min={0} max={15} step={1} onChange={v => onChange({ ...cfg, warmupMin: v })} />
+        <NumRow label="ACTIVE WORK" value={cfg.workSec} unit="sec" min={5} max={300} step={5} onChange={v => onChange({ ...cfg, workSec: v })} />
+        <NumRow label="REST" value={cfg.restSec} unit="sec" min={0} max={180} step={5} onChange={v => onChange({ ...cfg, restSec: v })} />
+        <NumRow label="ROUNDS" value={cfg.rounds} unit="" min={1} max={30} step={1} onChange={v => onChange({ ...cfg, rounds: v })} />
+        <NumRow label="COOL DOWN" value={cfg.cooldownMin} unit="min" min={0} max={15} step={1} onChange={v => onChange({ ...cfg, cooldownMin: v })} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0 13px' }}>
+          <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 11, color: '#c4a4d8', letterSpacing: '0.16em' }}>TOTAL</span>
+          <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 21, color: GOLD, textShadow: '0 0 12px rgba(253,224,71,0.4)' }}>{fmtClock(total)}</span>
         </div>
-        <TrainingCTA label="DONE" icon="✓" height={48} onClick={onClose} />
+        <TrainingCTA label="DONE" icon="✓" height={48} depth onClick={onClose} />
       </div>
     </div>,
     document.body,
@@ -164,11 +129,10 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
 }
 
 // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
-// pinned low; awards normal cardio XP once (via CardioSummary), never the bonus.
+// pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
 export default function CardioMode({ onBack }) {
   const [phase, setPhase] = useState('setup');
   const [categoryId, setCategoryId] = useState('running');
-  const [cardioType, setCardioType] = useState('outdoor-run');
   const [style, setStyle] = useState('steady');
   const [intervalMode, setIntervalMode] = useState('target'); // 'random' | 'target'
   const [cfgByStyle, setCfgByStyle] = useState(CFG_DEFAULTS);
@@ -178,20 +142,21 @@ export default function CardioMode({ onBack }) {
   const [customDistance, setCustomDistance] = useState('');
   const [goalTimeSeconds, setGoalTimeSeconds] = useState(1200);
   const [customTimeMin, setCustomTimeMin] = useState('');
+  const [noGps, setNoGps] = useState(false);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
+  const category = METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0];
+  const cardioType = category.type;
   const method = getMethod(cardioType);
   const supportsDistance = method.supportsDistance;
-  const option = findOption(categoryId, cardioType);
-  const optionLabel = option.label;
+  const methodLabel = category.methodLabel;
   const level = getLevel(loadStats().xp);
-  const profile = loadProfile();
 
   const useDistanceGauge = supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
   const showTimeGoal = !supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
   const showConfigCard = style === 'tabata' || style === 'hiit' || (style === 'intervals' && intervalMode === 'target');
-  const usesGps = cardioType === 'outdoor-run' && useDistanceGauge;
+  const usesGps = cardioType === 'outdoor-run' && useDistanceGauge && !noGps;
 
   const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
   const parsedCustomDist = parseFloat(customDistance);
@@ -205,11 +170,7 @@ export default function CardioMode({ onBack }) {
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
       : style === 'tabata' ? 'Tabata' : 'HIIT';
 
-  const selectCategory = (catId) => {
-    setCategoryId(catId);
-    const first = (METHOD_CATEGORIES.find(c => c.id === catId) || METHOD_CATEGORIES[0]).options[0];
-    setCardioType(first.id);
-  };
+  const selectCategory = (catId) => { setCategoryId(catId); setNoGps(false); };
 
   const pickProtocol = (id) => {
     setStyle(id);
@@ -239,7 +200,7 @@ export default function CardioMode({ onBack }) {
       sourceMode: 'Cardio Mode',
       placement: 'standalone',
       cardioType,
-      cardioLabel: optionLabel,
+      cardioLabel: methodLabel,
       targetType: useDistanceGauge ? 'distance' : 'time',
       targetTimeSeconds: effGoalTime,
       targetDistance: dist ? dist.value : null,
@@ -254,8 +215,6 @@ export default function CardioMode({ onBack }) {
   };
 
   const addon = buildAddon();
-  const goalText = useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : showTimeGoal ? `${Math.round(effGoalTime / 60)} min` : fmtClock(cfgTargetSeconds(cfg));
-  const summary = `${optionLabel} · ${displayStyleLabel} · ${goalText}`;
 
   // Outdoor runs need GPS; probe real permission and route to the GPS empty
   // state (25d) if it's unavailable / denied.
@@ -278,7 +237,7 @@ export default function CardioMode({ onBack }) {
             <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <EmptyState preset="gps" onPrimary={startCardio} onSecondary={() => { selectCategory('running'); setCardioType('treadmill'); setPhase('player'); }} style={{ width: '100%' }}/>
+            <EmptyState preset="gps" onPrimary={startCardio} onSecondary={() => { setNoGps(true); setPhase('player'); }} style={{ width: '100%' }}/>
           </div>
         </div>
       </PhoneFrame>
@@ -304,7 +263,7 @@ export default function CardioMode({ onBack }) {
               durationSeconds={player.durationSeconds}
               intervalConfig={player.intervalConfig}
               headerLabel="CARDIO MODE"
-              methodLabel={optionLabel}
+              methodLabel={methodLabel}
               styleLabel={displayStyleLabel}
               distanceLabel={useDistanceGauge ? player.distanceLabel : null}
               distanceMode={useDistanceGauge}
@@ -335,7 +294,7 @@ export default function CardioMode({ onBack }) {
           <CardioSummary
             sourceMode="Cardio Mode"
             method={cardioType}
-            methodLabel={optionLabel}
+            methodLabel={methodLabel}
             cardioType={cardioType}
             targetType={addon.targetType}
             targetTimeSeconds={addon.targetType === 'time' ? addon.targetTimeSeconds : null}
@@ -350,13 +309,10 @@ export default function CardioMode({ onBack }) {
     );
   }
 
-  const categoryOptions = (METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0]).options;
-
   return (
     <PhoneFrame useBrandBg>
       <Embers count={2}/>
       <CornerHUD color="rgba(253,224,71,0.25)" size={20} inset={10}/>
-      <style dangerouslySetInnerHTML={{ __html: '@keyframes tm-subpop{0%{opacity:0;transform:translateY(-5px) scale(0.97)}100%{opacity:1;transform:none}}' }} />
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', padding: '12px 16px calc(78px + env(safe-area-inset-bottom, 0px))' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8, flexShrink: 0 }}>
@@ -382,9 +338,9 @@ export default function CardioMode({ onBack }) {
         {/* Options — top-aligned; this region fills, so the open space lands below the controls */}
         <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
-          {/* METHOD — 4 compact category cards + specific-type expander */}
+          {/* METHOD — 4 compact category cards (the category is the selection) */}
           <div style={sectionLabel}>METHOD</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 14 }}>
             {METHOD_CATEGORIES.map(cat => {
               const active = categoryId === cat.id;
               return (
@@ -400,20 +356,6 @@ export default function CardioMode({ onBack }) {
                   </div>
                   <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, lineHeight: 1.25 }}>{cat.sub}</div>
                 </button>
-              );
-            })}
-          </div>
-          <div key={categoryId} style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14, animation: 'tm-subpop 0.24s ease' }}>
-            {categoryOptions.map(opt => {
-              const active = cardioType === opt.id;
-              return (
-                <button key={opt.id} onClick={() => setCardioType(opt.id)} style={{
-                  padding: '5px 11px', borderRadius: 99, cursor: 'pointer',
-                  fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, letterSpacing: '0.03em',
-                  background: active ? 'rgba(176,106,255,0.18)' : 'rgba(8,2,18,0.55)',
-                  border: active ? '1.5px solid rgba(176,106,255,0.7)' : `1px solid ${ARCADE.violetBorderSoft}`,
-                  color: active ? '#e6d4ff' : C.muted,
-                }}>{opt.label.toUpperCase()}</button>
               );
             })}
           </div>
@@ -488,6 +430,15 @@ export default function CardioMode({ onBack }) {
                   style={{ width: '100%', accentColor: GOLD, cursor: 'pointer', display: 'block' }}
                 />
               </div>
+
+              {autoPace && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 9 }}>
+                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>AUTO PACE</span>
+                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
+                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>{autoPace.paceLabel}</span>
+                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>Lvl {level}</span>
+                </div>
+              )}
             </>
           )}
 
@@ -520,7 +471,7 @@ export default function CardioMode({ onBack }) {
           {showConfigCard && (
             <>
               <div style={sectionLabel}>INTERVAL SETUP</div>
-              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '11px 13px', marginBottom: 10 }}>
+              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '11px 13px', marginBottom: 9 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
                   <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10.5, color: '#e6d4ff', letterSpacing: '0.04em' }}>{displayStyleLabel} · {cfg.rounds} ROUNDS</div>
                   <button onClick={() => setConfigOpen(true)} style={{
@@ -534,21 +485,11 @@ export default function CardioMode({ onBack }) {
                   <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: '#8fe8ac' }}>😮‍💨 {cfg.restSec}s rest</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingTop: 7, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em' }}>TARGET TIME</span>
+                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em' }}>TOTAL TIME</span>
                   <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 17, color: GOLD }}>{fmtClock(cfgTargetSeconds(cfg))}</span>
                 </div>
               </div>
             </>
-          )}
-
-          {/* Auto pace target — compact (design 12a) */}
-          {autoPace && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 8 }}>
-              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>AUTO PACE</span>
-              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
-              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>{autoPace.paceLabel}</span>
-              <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>Lvl {level}</span>
-            </div>
           )}
 
           {/* Random-intervals note */}
@@ -559,25 +500,13 @@ export default function CardioMode({ onBack }) {
           )}
         </div>
 
-        {/* Footer — the CTA sits high, with open space above (in the options fill) and below */}
-        <div style={{ flexShrink: 0, paddingTop: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: ARCADE.fontBody, fontWeight: 600, fontSize: 11.5, color: GOLD }}>{summary}</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.04em' }}>
-              🔊 {String(profile?.voiceCoach || 'FEMALE').toUpperCase()}
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center', marginBottom: 11 }}>
-            <AlertTriangle size={10} color="#ef4444" style={{ flexShrink: 0 }}/>
-            <span style={{ fontFamily: ARCADE.fontBody, fontSize: 8.5, color: 'rgba(239,68,68,0.8)', lineHeight: 1.3, textAlign: 'center' }}>{CARDIO_SAFETY_COPY}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 42, paddingRight: 42, fontSize: 13.5, letterSpacing: '0.12em' }} />
-          </div>
+        {/* Footer — just the CTA, sitting high with open space above and below */}
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+          <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 42, paddingRight: 42, fontSize: 13.5, letterSpacing: '0.12em' }} />
         </div>
 
         {/* Open space below the CTA — keeps it lifted off the nav */}
-        <div style={{ flexShrink: 0, height: '6vh' }} />
+        <div style={{ flexShrink: 0, height: '9vh' }} />
       </div>
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>

@@ -17,6 +17,8 @@ const CTA_STYLES = `
   0% { transform: translateX(-160%) skewX(-18deg); }
   60%, 100% { transform: translateX(320%) skewX(-18deg); }
 }
+.tm-cta-3d { transition: transform .07s ease, box-shadow .07s ease; }
+.tm-cta-3d:active { transform: translateY(3px); }
 `;
 
 function corner(pos, c) {
@@ -27,7 +29,7 @@ function corner(pos, c) {
   return { ...base, bottom: 5, right: 5, borderBottom: `2px solid ${c}`, borderRight: `2px solid ${c}` };
 }
 
-export default function TrainingCTA({ label, onClick, icon = '▶', disabled = false, height = 56, variant = 'primary', style }) {
+export default function TrainingCTA({ label, onClick, icon = '▶', disabled = false, height = 56, variant = 'primary', depth = false, style }) {
   const gold = variant === 'gold';
   const base = {
     position: 'relative', overflow: 'hidden', width: '100%', height, flexShrink: 0,
@@ -36,26 +38,36 @@ export default function TrainingCTA({ label, onClick, icon = '▶', disabled = f
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     opacity: disabled ? 0.5 : 1,
   };
+  // 2.5D depth: a hard bottom "lip" + inset top highlight so the button reads as
+  // a raised physical key; it presses down on :active.
+  const depthShadow = gold
+    ? 'inset 0 2px 0 rgba(255,255,255,0.55), 0 5px 0 #a9741a, 0 10px 16px rgba(0,0,0,0.45)'
+    : 'inset 0 2px 0 rgba(255,255,255,0.34), 0 5px 0 #3a1d7a, 0 10px 16px rgba(0,0,0,0.45)';
   const skin = gold
     ? {
         border: '1.5px solid rgba(255,238,150,0.9)',
-        background: 'linear-gradient(135deg,#ffe574 0%,#f7c33f 55%,#eaa62a 100%)',
+        background: 'linear-gradient(180deg,#ffe574 0%,#f7c33f 55%,#eaa62a 100%)',
         color: '#2a1400', fontSize: 14,
         textShadow: '0 1px 0 rgba(255,255,255,0.25)',
-        animation: disabled ? 'none' : 'tm-cta-pulse-gold 2.6s ease-in-out infinite',
+        animation: disabled || depth ? 'none' : 'tm-cta-pulse-gold 2.6s ease-in-out infinite',
       }
     : {
         border: '1.5px solid rgba(253,224,71,0.7)',
-        background: 'linear-gradient(135deg,#7c3aed 0%,#8b5cf6 42%,#4f8cff 100%)',
+        background: 'linear-gradient(180deg,#8b5cf6 0%,#7c3aed 55%,#5b21b6 100%)',
         color: '#fff', fontSize: 15,
         textShadow: '0 1px 6px rgba(0,0,0,0.45)',
-        animation: disabled ? 'none' : 'tm-cta-pulse 2.6s ease-in-out infinite',
+        animation: disabled || depth ? 'none' : 'tm-cta-pulse 2.6s ease-in-out infinite',
       };
   const cornerColor = gold ? 'rgba(90,45,0,0.55)' : 'rgba(253,224,71,0.9)';
   const shimmerColor = gold ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.28)';
 
   return (
-    <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{ ...base, ...skin, ...style }}>
+    <button
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={depth ? 'tm-cta-3d' : undefined}
+      style={{ ...base, ...skin, ...(depth ? { boxShadow: depthShadow, marginBottom: 5 } : null), ...style }}
+    >
       <style dangerouslySetInnerHTML={{ __html: CTA_STYLES }} />
       <span style={corner('tl', cornerColor)} /><span style={corner('tr', cornerColor)} />
       <span style={corner('bl', cornerColor)} /><span style={corner('br', cornerColor)} />

@@ -42,6 +42,7 @@ function buildSegments(format, durationSeconds, intervalConfig) {
     const workSeconds = cfg.workSeconds ?? cfg.fastSeconds ?? cfg.hardSeconds ?? 30;
     const restSeconds = cfg.restSeconds ?? cfg.easySeconds ?? 15;
     const warmupSeconds = cfg.warmupSeconds ?? 0;
+    const cooldownSeconds = cfg.cooldownSeconds ?? 0;
     const workLabel = format === 'tabata' ? 'HARD' : 'WORK';
     const restLabel = format === 'tabata' ? 'REST' : 'RECOVER';
     const segments = [];
@@ -50,6 +51,7 @@ function buildSegments(format, durationSeconds, intervalConfig) {
       segments.push({ kind: 'work', seconds: workSeconds, round: r, label: workLabel, color: RED });
       segments.push({ kind: 'rest', seconds: restSeconds, round: r, label: restLabel, color: GREEN });
     }
+    if (cooldownSeconds > 0) segments.push({ kind: 'cooldown', seconds: cooldownSeconds, round: -1, label: 'COOL DOWN', color: GREEN });
     return { segments, rounds };
   }
   const seconds = durationSeconds || 600;
@@ -465,7 +467,7 @@ export default function CardioProtocolPlayer({
 
       {isInterval && (
         <div style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, color: C.muted, letterSpacing: '0.12em', marginBottom: 8 }}>
-          {seg.round > 0 ? `ROUND ${seg.round} OF ${rounds}` : 'WARM-UP'}
+          {seg.round > 0 ? `ROUND ${seg.round} OF ${rounds}` : seg.label}
         </div>
       )}
 
