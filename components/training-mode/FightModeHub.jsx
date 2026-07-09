@@ -7,19 +7,18 @@ import { Check, Crosshair, Zap, BookOpen } from 'lucide-react';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile } from './data/userProfile';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
-import { IMG } from './data/optimizedImageMap';
 
-// Fight Mode hub — select a discipline, then tap a mode to go. Matches the
-// SELECT DISCIPLINE grid + CHOOSE MODE list layout (no quick-config / single START).
+// Fight Mode hub — locked (non-scrolling) SELECT DISCIPLINE grid + CHOOSE MODE list.
 const GOLD = '#fde047';
 const VIOLET = '#b06aff';
 
 const DISCIPLINES = [
-  { id: 'Boxing',     label: 'BOXING',     sub: 'the sweet science',      img: IMG.fightMode.boxingMale,     imgF: IMG.fightMode.boxingFemale },
-  { id: 'Kickboxing', label: 'KICKBOXING', sub: 'hands, kicks, and rhythm', img: IMG.fightMode.kickboxingMale, imgF: IMG.fightMode.kickboxingFemale },
-  { id: 'Muay Thai',  label: 'MUAY THAI',  sub: 'art of the eight limbs',  img: IMG.fightMode.muayThaiMale,   imgF: IMG.fightMode.muayThaiFemale },
-  { id: 'MMA',        label: 'MMA',        sub: 'mixed martial arts',      img: IMG.fightMode.mmaMale,        imgF: IMG.fightMode.mmaFemale },
+  { id: 'Boxing',     key: 'boxing',     label: 'BOXING',     sub: 'the sweet science' },
+  { id: 'Kickboxing', key: 'kickboxing', label: 'KICKBOXING', sub: 'hands, kicks, and rhythm' },
+  { id: 'Muay Thai',  key: 'muay_thai',  label: 'MUAY THAI',  sub: 'art of the eight limbs' },
+  { id: 'MMA',        key: 'mma',        label: 'MMA',        sub: 'mixed martial arts' },
 ];
+const discImg = (key, variant) => `/discipline-cards/${key}_${variant}.webp`;
 
 const MODES = [
   { key: 'fight_focus', Icon: Crosshair, title: 'FIGHT FOCUS',   desc: 'Round timer with voice coaching',                          badge: 'REC',     gold: true },
@@ -27,11 +26,17 @@ const MODES = [
   { key: 'practice',    Icon: BookOpen,  title: 'PRACTICE MODE', desc: 'Learn strikes, defense & footwork with guided breakdowns.', badge: 'PREVIEW', gold: false },
 ];
 
-const getVariant = (p) => (String(p?.sex || p?.gender || '').toLowerCase() === 'female' ? 'female' : 'male');
+const getVariant = (p) => {
+  const pref = String(p?.avatarPreference || '').toLowerCase();
+  if (pref === 'female') return 'female';
+  if (pref === 'male') return 'male';
+  const s = String(p?.sex || p?.gender || '').toLowerCase();
+  return s === 'female' ? 'female' : 'male';
+};
 
 function SectionLabel({ children }) {
   return (
-    <div style={{ textAlign: 'center', font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.28em', marginBottom: 6 }}>{children}</div>
+    <div style={{ textAlign: 'center', font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.28em', marginBottom: 5 }}>{children}</div>
   );
 }
 
@@ -40,19 +45,17 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
   const variant = getVariant(profile);
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
   const needsGate = isBeginner && !hasCompletedFirstLesson();
-  void onCombatConditioning; // reachable from Fit/Train; not a Fight-Mode row here
+  void onCombatConditioning;
 
   const [disc, setDisc] = useState('Boxing');
   const [toast, setToast] = useState(false);
 
-  // Tapping a mode row launches that mode with the selected discipline.
   const goMode = async (key) => {
     if (key === 'practice') {
       if (onPractice) onPractice(disc);
       else { setToast(true); setTimeout(() => setToast(false), 2200); }
       return;
     }
-    // Beginners are routed through their first guided lesson before the timers.
     if (needsGate) { onStartHere?.(disc); return; }
     setVoiceGender(profile?.voiceCoach || 'FEMALE');
     await primeSpeech().catch(() => {});
@@ -62,7 +65,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
   return (
     <PhoneFrame useBrandBg>
-      <Embers count={4}/>
+      <Embers count={3}/>
 
       <TrainingHeader
         title="FIGHT MODE"
@@ -73,25 +76,38 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         rightSlot={<SafeImage src="/static/title-fight.png" alt="Fight Mode" style={{ height: 26, width: 'auto', display: 'block' }}/>}
       />
 
-      <div style={{ position: 'relative', zIndex: 10, padding: '14px 14px calc(96px + env(safe-area-inset-bottom,0px))' }}>
+      {/* Locked viewport — fits without scrolling */}
+      <div style={{
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
+        height: 'calc(100dvh - 132px)', overflow: 'hidden',
+        padding: '12px 14px 0',
+      }}>
 
         {/* Select discipline */}
         <SectionLabel>SELECT DISCIPLINE</SectionLabel>
-        <div style={{ textAlign: 'center', font: "900 26px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 14 }}>FIGHT MODE</div>
+        <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 11, flexShrink: 0 }}>FIGHT MODE</div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 12, flexShrink: 0 }}>
           {DISCIPLINES.map(d => {
             const active = d.id === disc;
             return (
               <button key={d.id} onClick={() => setDisc(d.id)} style={{
-                position: 'relative', height: 130, borderRadius: 13, overflow: 'hidden', padding: 0, cursor: 'pointer',
+                position: 'relative', aspectRatio: '1 / 0.92', borderRadius: 13, overflow: 'hidden', padding: 0, cursor: 'pointer',
                 border: `1.5px solid ${active ? 'rgba(253,224,71,0.85)' : 'rgba(168,85,247,0.28)'}`,
                 boxShadow: active ? '0 0 26px rgba(253,224,71,0.3)' : '0 2px 12px rgba(0,0,0,0.4)',
+                background: 'radial-gradient(ellipse at 50% 30%, rgba(60,20,90,0.5), rgba(12,3,24,0.95) 70%)',
               }}>
-                <SafeImage src={variant === 'female' ? d.imgF : d.img} alt={d.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%', opacity: active ? 1 : 0.9 }}/>
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '9px 9px 10px', textAlign: 'center', background: `linear-gradient(to top,${active ? 'rgba(20,6,38,0.94)' : 'rgba(8,2,18,0.88)'} 15%,transparent)` }}>
-                  <div style={{ font: "900 14px 'Orbitron',sans-serif", color: active ? GOLD : '#fff', letterSpacing: '0.05em', textShadow: active ? '0 0 10px rgba(253,224,71,0.4)' : '0 1px 4px rgba(0,0,0,0.7)' }}>{d.label}</div>
-                  <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: active ? 'rgba(253,224,71,0.85)' : 'rgba(226,214,245,0.85)', marginTop: 1 }}>{d.sub}</div>
+                <SafeImage src={discImg(d.key, variant)} fallbackSrc={discImg(d.key, 'male')} preferWebp={false} alt={d.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }}/>
+                {/* Blue text banner */}
+                <div style={{
+                  position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 8px 9px', textAlign: 'center',
+                  background: active
+                    ? 'linear-gradient(to top, rgba(37,78,163,0.96) 0%, rgba(37,78,163,0.62) 52%, rgba(37,78,163,0) 100%)'
+                    : 'linear-gradient(to top, rgba(24,52,118,0.94) 0%, rgba(24,52,118,0.55) 52%, rgba(24,52,118,0) 100%)',
+                  borderTop: active ? '1px solid rgba(253,224,71,0.5)' : '1px solid rgba(96,140,220,0.4)',
+                }}>
+                  <div style={{ font: "900 13px 'Orbitron',sans-serif", color: active ? GOLD : '#fff', letterSpacing: '0.05em', textShadow: active ? '0 0 10px rgba(253,224,71,0.4)' : '0 1px 4px rgba(0,0,0,0.8)' }}>{d.label}</div>
+                  <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: active ? 'rgba(253,224,71,0.9)' : 'rgba(224,235,255,0.92)', marginTop: 1, textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>{d.sub}</div>
                 </div>
                 {active && <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: GOLD, color: '#0a0014', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(253,224,71,0.7)' }}><Check size={13} strokeWidth={3}/></div>}
               </button>
@@ -101,34 +117,31 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
         {/* Choose mode */}
         <SectionLabel>CHOOSE MODE</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
           {MODES.map(m => {
             const accent = m.gold ? GOLD : VIOLET;
             const Icon = m.Icon;
             return (
               <button key={m.key} onClick={() => goMode(m.key)} style={{
-                display: 'flex', alignItems: 'center', gap: 13, borderRadius: 13, padding: '13px 15px', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: 12, borderRadius: 12, padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
                 background: 'rgba(16,4,30,0.82)',
                 border: `1px solid ${m.gold ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.4)'}`,
                 boxShadow: m.gold ? '0 0 16px rgba(253,224,71,0.14)' : '0 0 14px rgba(168,85,247,0.12)',
               }}>
-                <div style={{ width: 42, height: 42, borderRadius: 10, flexShrink: 0, background: m.gold ? 'rgba(253,224,71,0.1)' : 'rgba(168,85,247,0.1)', border: `1px solid ${m.gold ? 'rgba(253,224,71,0.3)' : 'rgba(168,85,247,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={20} color={accent}/>
+                <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: m.gold ? 'rgba(253,224,71,0.1)' : 'rgba(168,85,247,0.1)', border: `1px solid ${m.gold ? 'rgba(253,224,71,0.3)' : 'rgba(168,85,247,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={19} color={accent}/>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ font: "900 16px 'Orbitron',sans-serif", color: accent, letterSpacing: '0.06em' }}>{m.title}</span>
+                    <span style={{ font: "900 15px 'Orbitron',sans-serif", color: accent, letterSpacing: '0.06em' }}>{m.title}</span>
                     {m.badge && <span style={{ font: "700 7px 'Orbitron',sans-serif", color: GOLD, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 4, padding: '2px 6px' }}>{m.badge}</span>}
                   </div>
-                  <div style={{ font: "500 12px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 3, lineHeight: 1.3 }}>{m.desc}</div>
+                  <div style={{ font: "500 11.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, lineHeight: 1.25 }}>{m.desc}</div>
                 </div>
               </button>
             );
           })}
         </div>
-
-        {/* Brand footer line */}
-        <div style={{ textAlign: 'center', font: "700 9px 'Orbitron',sans-serif", color: 'rgba(196,164,216,0.28)', letterSpacing: '0.3em', marginTop: 20 }}>TRAIN · FIGHT · WIN</div>
       </div>
 
       {toast && <div style={{ position: 'absolute', left: '50%', bottom: 120, transform: 'translateX(-50%)', background: 'rgba(20,8,36,0.96)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 10, padding: '10px 16px', font: "700 10px 'Orbitron',sans-serif", color: '#c9a6ff', zIndex: 20, whiteSpace: 'nowrap' }}>Practice Mode preview — coming soon.</div>}
