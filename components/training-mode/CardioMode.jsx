@@ -13,6 +13,7 @@ import CardioProtocolPlayer from './CardioProtocolPlayer';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
 import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import TrainingCTA from './shared/TrainingCTA';
 import { loadStats, getLevel } from './data/userStats';
 import { loadProfile } from './data/userProfile';
 
@@ -33,8 +34,8 @@ function computeAutoPace(distance, unit, level) {
 }
 
 // Simplified method taxonomy (design 12a). Four top-level categories; picking one
-// reveals a small "expander" row of the specific modalities underneath. IDs map to
-// the shared CARDIO_ADDON_TYPES so the player/summary keep working unchanged.
+// reveals a compact "expander" row of the specific modalities. IDs map to the
+// shared CARDIO_ADDON_TYPES so the player/summary keep working unchanged.
 const METHOD_CATEGORIES = [
   {
     id: 'running', label: 'RUNNING', icon: '🏃', sub: 'Outdoor GPS · Treadmill',
@@ -64,11 +65,12 @@ const METHOD_CATEGORIES = [
     ],
   },
   {
-    id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Box jumps · Step-ups · Sprints',
+    id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Climbers · Knees · Squats · KB',
     options: [
-      { id: 'step-ups', label: 'Box / Step-Ups' },
-      { id: 'sprint-intervals', label: 'Sprints' },
-      { id: 'jump-rope', label: 'Jump Rope' },
+      { id: 'mountain-climbers', label: 'Mountain Climbers' },
+      { id: 'high-knees', label: 'High Knees' },
+      { id: 'squat-jumps', label: 'Squat Jumps' },
+      { id: 'kettlebell-swings', label: 'Kettlebell Swings' },
     ],
   },
 ];
@@ -103,69 +105,66 @@ function findOption(catId, typeId) {
   return cat.options.find(o => o.id === typeId) || cat.options[0];
 }
 
-const sectionLabel = { fontFamily: ARCADE.fontHead, fontWeight: 700, color: GOLD, fontSize: 10, letterSpacing: '0.2em', marginBottom: 6 };
+const sectionLabel = { fontFamily: ARCADE.fontHead, fontWeight: 700, color: GOLD, fontSize: 9, letterSpacing: '0.2em', marginBottom: 5 };
 
 function Stepper({ label, value, unit, min, max, step, onChange }) {
   const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
   const inc = () => onChange(Math.min(max, +(value + step).toFixed(2)));
   const btn = {
-    width: 38, height: 38, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: 'rgba(176,106,255,0.12)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: '#d6c2ff',
   };
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 6 }}>{label}</div>
+    <div style={{ marginBottom: 11 }}>
+      <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 5 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button onClick={dec} style={btn}><Minus size={16} /></button>
-        <div style={{ flex: 1, textAlign: 'center', fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 20, color: '#fff' }}>
+        <button onClick={dec} style={btn}><Minus size={15} /></button>
+        <div style={{ flex: 1, textAlign: 'center', fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 19, color: '#fff' }}>
           {value}<span style={{ fontSize: 12, color: C.muted, marginLeft: 2 }}>{unit}</span>
         </div>
-        <button onClick={inc} style={btn}><Plus size={16} /></button>
+        <button onClick={inc} style={btn}><Plus size={15} /></button>
       </div>
     </div>
   );
 }
 
-// Full-screen config modal for Target Intervals / Tabata / HIIT (design 12a).
+// Centered config modal for Target Intervals / Tabata / HIIT (design 12a).
 function ConfigModal({ styleId, cfg, onChange, onClose }) {
   const titleMap = { intervals: 'TARGET INTERVALS', tabata: 'TABATA', hiit: 'HIIT' };
   const target = cfgTargetSeconds(cfg);
   return createPortal(
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      background: 'rgba(4,0,10,0.78)', backdropFilter: 'blur(3px)',
+      position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 18, background: 'rgba(4,0,10,0.8)', backdropFilter: 'blur(3px)',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: '100%', maxWidth: 440, background: 'linear-gradient(180deg,#120322,#0a0116)',
-        borderTopLeftRadius: 20, borderTopRightRadius: 20, border: `1px solid ${ARCADE.violetBorderSoft}`, borderBottom: 'none',
-        padding: '18px 18px calc(20px + env(safe-area-inset-bottom,0px))', boxShadow: '0 -12px 40px rgba(0,0,0,0.5)',
+        width: '100%', maxWidth: 372, marginBottom: '8vh',
+        background: 'linear-gradient(180deg,#140425,#0a0116)',
+        borderRadius: 18, border: `1px solid ${ARCADE.goldBorder}`,
+        boxShadow: '0 0 40px rgba(124,58,237,0.35), 0 20px 50px rgba(0,0,0,0.55)',
+        padding: '16px 18px 18px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 14, color: GOLD, letterSpacing: '0.08em' }}>{titleMap[styleId]} SETUP</div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: C.muted, cursor: 'pointer', padding: 4 }}><X size={20} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: GOLD, letterSpacing: '0.1em' }}>{titleMap[styleId]} SETUP</div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: C.muted, cursor: 'pointer', padding: 4 }}><X size={19} /></button>
         </div>
         <Stepper label="WARM-UP" value={cfg.warmupMin} unit="min" min={0} max={15} step={1} onChange={v => onChange({ ...cfg, warmupMin: v })} />
         <Stepper label="ACTIVE WORK" value={cfg.workSec} unit="sec" min={5} max={300} step={5} onChange={v => onChange({ ...cfg, workSec: v })} />
         <Stepper label="REST" value={cfg.restSec} unit="sec" min={0} max={180} step={5} onChange={v => onChange({ ...cfg, restSec: v })} />
         <Stepper label="ROUNDS" value={cfg.rounds} unit="" min={1} max={30} step={1} onChange={v => onChange({ ...cfg, rounds: v })} />
-        <div style={{ borderRadius: 11, border: '1px solid rgba(253,224,71,0.35)', background: 'rgba(253,224,71,0.07)', padding: '11px 13px', margin: '4px 0 16px', textAlign: 'center' }}>
+        <div style={{ borderRadius: 11, border: '1px solid rgba(253,224,71,0.35)', background: 'rgba(253,224,71,0.07)', padding: '10px 13px', margin: '3px 0 15px', textAlign: 'center' }}>
           <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.14em', marginBottom: 3 }}>GENERATED TARGET TIME</div>
-          <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 24, color: GOLD }}>{fmtClock(target)}</div>
+          <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 23, color: GOLD }}>{fmtClock(target)}</div>
         </div>
-        <button onClick={onClose} style={{
-          width: '100%', height: 50, border: 'none', borderRadius: 12, cursor: 'pointer',
-          background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff',
-          fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', boxShadow: '0 0 20px rgba(168,85,247,0.4)',
-        }}>DONE</button>
+        <TrainingCTA label="DONE" icon="✓" height={48} onClick={onClose} />
       </div>
     </div>,
     document.body,
   );
 }
 
-// Standalone Cardio Mode (design 12a). Simplified method categories, a Steady /
-// Intervals / Tabata / HIIT protocol with configurable intervals, and a goal slider.
-// Awards normal cardio XP once (via CardioSummary); never the Hybrid Training Bonus.
+// Standalone Cardio Mode (design 12a). Compact, breathable options with the START
+// pinned low; awards normal cardio XP once (via CardioSummary), never the bonus.
 export default function CardioMode({ onBack }) {
   const [phase, setPhase] = useState('setup');
   const [categoryId, setCategoryId] = useState('running');
@@ -189,7 +188,6 @@ export default function CardioMode({ onBack }) {
   const level = getLevel(loadStats().xp);
   const profile = loadProfile();
 
-  // When distance/GPS applies vs. an interval-structured session.
   const useDistanceGauge = supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
   const showTimeGoal = !supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
   const showConfigCard = style === 'tabata' || style === 'hiit' || (style === 'intervals' && intervalMode === 'target');
@@ -256,7 +254,8 @@ export default function CardioMode({ onBack }) {
   };
 
   const addon = buildAddon();
-  const summary = `${optionLabel} · ${displayStyleLabel} · ${useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : showTimeGoal ? `${Math.round(effGoalTime / 60)} min` : fmtClock(cfgTargetSeconds(cfg))}`;
+  const goalText = useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : showTimeGoal ? `${Math.round(effGoalTime / 60)} min` : fmtClock(cfgTargetSeconds(cfg));
+  const summary = `${optionLabel} · ${displayStyleLabel} · ${goalText}`;
 
   // Outdoor runs need GPS; probe real permission and route to the GPS empty
   // state (25d) if it's unavailable / denied.
@@ -351,63 +350,66 @@ export default function CardioMode({ onBack }) {
     );
   }
 
+  const categoryOptions = (METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0]).options;
+
   return (
     <PhoneFrame useBrandBg>
-      <Embers count={3}/>
+      <Embers count={2}/>
       <CornerHUD color="rgba(253,224,71,0.25)" size={20} inset={10}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '12px 16px 0' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', padding: '12px 16px calc(78px + env(safe-area-inset-bottom, 0px))' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button onClick={onBack} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
               <ChevronLeft size={22}/>
             </button>
-            <IntroLogo size={30}/>
+            <IntroLogo size={26}/>
           </div>
           <HelpButton onClick={() => setHelpOpen(true)}/>
         </div>
 
-        <div style={{ textAlign: 'center', marginBottom: 14 }}>
+        <div style={{ textAlign: 'center', marginBottom: 12, flexShrink: 0 }}>
           <h1 style={{
-            fontFamily: ARCADE.fontHead, fontWeight: 900, color: GOLD, fontSize: 22,
+            fontFamily: ARCADE.fontHead, fontWeight: 900, color: GOLD, fontSize: 19,
             letterSpacing: '0.12em', textShadow: '0 0 14px rgba(253,224,71,0.4)',
           }}>CARDIO MODE</h1>
-          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 12, color: C.muted, marginTop: 3 }}>
+          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: C.muted, marginTop: 2 }}>
             Pick method + goal. We set your pace.
           </div>
         </div>
 
-        <div className="no-scrollbar" style={{ flex: 1, overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
+        {/* Options — top-aligned; this region fills, so the open space lands below the controls */}
+        <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
-          {/* METHOD — 4 category cards + specific-type expander */}
+          {/* METHOD — 4 compact category cards + specific-type expander */}
           <div style={sectionLabel}>METHOD</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 8 }}>
             {METHOD_CATEGORIES.map(cat => {
               const active = categoryId === cat.id;
               return (
                 <button key={cat.id} onClick={() => selectCategory(cat.id)} style={{
-                  textAlign: 'left', padding: '11px 12px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
-                  background: active ? 'rgba(253,224,71,0.1)' : 'rgba(14,2,28,0.65)',
+                  textAlign: 'left', padding: '8px 10px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
+                  background: active ? 'rgba(253,224,71,0.1)' : 'rgba(14,2,28,0.6)',
                   border: active ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                  boxShadow: active ? '0 0 16px rgba(253,224,71,0.16)' : 'none', transition: 'all 0.15s',
+                  boxShadow: active ? '0 0 14px rgba(253,224,71,0.16)' : 'none', transition: 'all 0.15s',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-                    <span style={{ fontSize: 15 }}>{cat.icon}</span>
-                    <span style={{ fontFamily: ARCADE.fontHead, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', color: active ? GOLD : '#c4b5fd' }}>{cat.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontSize: 13 }}>{cat.icon}</span>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: active ? GOLD : '#c4b5fd' }}>{cat.label}</span>
                   </div>
-                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, lineHeight: 1.3 }}>{cat.sub}</div>
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, lineHeight: 1.25 }}>{cat.sub}</div>
                 </button>
               );
             })}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-            {(METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0]).options.map(opt => {
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+            {categoryOptions.map(opt => {
               const active = cardioType === opt.id;
               return (
                 <button key={opt.id} onClick={() => setCardioType(opt.id)} style={{
-                  padding: '6px 12px', borderRadius: 99, cursor: 'pointer',
-                  fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9.5, letterSpacing: '0.03em',
-                  background: active ? 'rgba(176,106,255,0.18)' : 'rgba(8,2,18,0.6)',
+                  padding: '5px 11px', borderRadius: 99, cursor: 'pointer',
+                  fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, letterSpacing: '0.03em',
+                  background: active ? 'rgba(176,106,255,0.18)' : 'rgba(8,2,18,0.55)',
                   border: active ? '1.5px solid rgba(176,106,255,0.7)' : `1px solid ${ARCADE.violetBorderSoft}`,
                   color: active ? '#e6d4ff' : C.muted,
                 }}>{opt.label.toUpperCase()}</button>
@@ -417,12 +419,12 @@ export default function CardioMode({ onBack }) {
 
           {/* PROTOCOL */}
           <div style={sectionLabel}>PROTOCOL</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: style === 'intervals' ? 10 : 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: style === 'intervals' ? 8 : 14 }}>
             {PROTOCOLS.map(p => (
               <button key={p.id} onClick={() => pickProtocol(p.id)} style={{
-                padding: '8px 15px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
-                fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, letterSpacing: '0.05em',
-                background: style === p.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.65)',
+                padding: '6px 13px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
+                fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9.5, letterSpacing: '0.05em',
+                background: style === p.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.6)',
                 border: style === p.id ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
                 color: style === p.id ? GOLD : C.muted,
               }}>{p.label}</button>
@@ -431,7 +433,7 @@ export default function CardioMode({ onBack }) {
 
           {/* Intervals sub-choice: Random vs Target */}
           {style === 'intervals' && (
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
               {[
                 { id: 'random', label: 'RANDOM', sub: 'Surprise pace surges' },
                 { id: 'target', label: 'TARGET', sub: 'Set work / rest / rounds' },
@@ -439,12 +441,12 @@ export default function CardioMode({ onBack }) {
                 const active = intervalMode === m.id;
                 return (
                   <button key={m.id} onClick={() => pickIntervalMode(m.id)} style={{
-                    flex: 1, textAlign: 'left', padding: '9px 12px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
-                    background: active ? 'rgba(176,106,255,0.14)' : 'rgba(8,2,18,0.6)',
+                    flex: 1, textAlign: 'left', padding: '8px 11px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
+                    background: active ? 'rgba(176,106,255,0.14)' : 'rgba(8,2,18,0.55)',
                     border: active ? '1.5px solid rgba(176,106,255,0.7)' : `1px solid ${ARCADE.violetBorderSoft}`,
                   }}>
-                    <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.05em', color: active ? '#e6d4ff' : '#c4b5fd' }}>{m.label}</div>
-                    <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 2 }}>{m.sub}</div>
+                    <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, letterSpacing: '0.05em', color: active ? '#e6d4ff' : '#c4b5fd' }}>{m.label}</div>
+                    <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 1 }}>{m.sub}</div>
                   </button>
                 );
               })}
@@ -455,18 +457,18 @@ export default function CardioMode({ onBack }) {
           {useDistanceGauge && (
             <>
               <div style={sectionLabel}>GOAL DISTANCE</div>
-              <div style={{ borderRadius: 12, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.55)', padding: '13px 14px', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 26, color: '#fff' }}>
-                    {customDistance ? parsedCustomDist : goalDistance}<span style={{ fontSize: 13, color: GOLD, marginLeft: 4 }}>{distanceUnit}</span>
+              <div style={{ borderRadius: 12, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '11px 13px', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 23, color: '#fff' }}>
+                    {customDistance ? parsedCustomDist : goalDistance}<span style={{ fontSize: 12, color: GOLD, marginLeft: 4 }}>{distanceUnit}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {['km', 'mi'].map(u => (
                       <button key={u} onClick={() => { setDistanceUnit(u); setGoalDistance(u === 'km' ? 5 : 3); setCustomDistance(''); }} style={{
-                        padding: '5px 12px', borderRadius: 8, cursor: 'pointer',
+                        padding: '4px 11px', borderRadius: 8, cursor: 'pointer',
                         background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
                         border: distanceUnit === u ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                        color: distanceUnit === u ? GOLD : C.muted, fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700,
+                        color: distanceUnit === u ? GOLD : C.muted, fontFamily: ARCADE.fontHead, fontSize: 9.5, fontWeight: 700,
                       }}>{u.toUpperCase()}</button>
                     ))}
                   </div>
@@ -477,30 +479,19 @@ export default function CardioMode({ onBack }) {
                   onChange={e => { setGoalDistance(parseFloat(e.target.value)); setCustomDistance(''); }}
                   style={{ width: '100%', accentColor: GOLD, cursor: 'pointer' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: ARCADE.fontHead, fontSize: 8, color: '#6f6690', letterSpacing: '0.06em', marginTop: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: ARCADE.fontHead, fontSize: 8, color: '#6f6690', letterSpacing: '0.06em', marginTop: 1 }}>
                   <span>{distanceUnit === 'km' ? '1' : '0.5'} {distanceUnit}</span>
                   <span>{sliderMax}{distanceUnit === 'km' ? 'K' : ` ${distanceUnit}`}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted, flexShrink: 0 }}>Going longer?</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 9, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
+                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, flexShrink: 0 }}>Going longer?</span>
                   <input
                     type="number" inputMode="decimal" min="0" step="0.1" placeholder={`Type ${distanceUnit}`}
                     value={customDistance} onChange={e => setCustomDistance(e.target.value)}
-                    style={{ flex: 1, padding: '8px 10px', borderRadius: 8, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 13, fontWeight: 600, outline: 'none' }}
+                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 12, fontWeight: 600, outline: 'none' }}
                   />
                 </div>
               </div>
-
-              {autoPace && (
-                <div style={{ borderRadius: 11, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '11px 13px', marginBottom: 16 }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em', marginBottom: 3 }}>AUTO PACE TARGET</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 17, color: '#fff' }}>{autoPace.goalLabel} · {autoPace.timeLabel}</span>
-                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>= {autoPace.paceLabel}</span>
-                  </div>
-                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, marginTop: 2 }}>Set from your goal &amp; level {level}. Voice coaches you to hold it.</div>
-                </div>
-              )}
             </>
           )}
 
@@ -508,9 +499,9 @@ export default function CardioMode({ onBack }) {
           {showTimeGoal && (
             <>
               <div style={sectionLabel}>TARGET TIME</div>
-              <div style={{ borderRadius: 12, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.55)', padding: '13px 14px', marginBottom: 16 }}>
-                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 26, color: '#fff', marginBottom: 10 }}>
-                  {Math.round(effGoalTime / 60)}<span style={{ fontSize: 13, color: GOLD, marginLeft: 4 }}>min</span>
+              <div style={{ borderRadius: 12, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '11px 13px', marginBottom: 10 }}>
+                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 23, color: '#fff', marginBottom: 8 }}>
+                  {Math.round(effGoalTime / 60)}<span style={{ fontSize: 12, color: GOLD, marginLeft: 4 }}>min</span>
                 </div>
                 <input
                   type="range" min={5} max={60} step={5}
@@ -518,15 +509,15 @@ export default function CardioMode({ onBack }) {
                   onChange={e => { setGoalTimeSeconds(parseInt(e.target.value, 10) * 60); setCustomTimeMin(''); }}
                   style={{ width: '100%', accentColor: GOLD, cursor: 'pointer' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: ARCADE.fontHead, fontSize: 8, color: '#6f6690', letterSpacing: '0.06em', marginTop: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: ARCADE.fontHead, fontSize: 8, color: '#6f6690', letterSpacing: '0.06em', marginTop: 1 }}>
                   <span>5 min</span><span>60 min</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted, flexShrink: 0 }}>Going longer?</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 9, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
+                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10, color: C.muted, flexShrink: 0 }}>Going longer?</span>
                   <input
                     type="number" inputMode="numeric" min="0" step="1" placeholder="Type min"
                     value={customTimeMin} onChange={e => setCustomTimeMin(e.target.value)}
-                    style={{ flex: 1, padding: '8px 10px', borderRadius: 8, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 13, fontWeight: 600, outline: 'none' }}
+                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 12, fontWeight: 600, outline: 'none' }}
                   />
                 </div>
               </div>
@@ -537,62 +528,64 @@ export default function CardioMode({ onBack }) {
           {showConfigCard && (
             <>
               <div style={sectionLabel}>INTERVAL SETUP</div>
-              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '13px 14px', marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: '#e6d4ff', letterSpacing: '0.04em' }}>{displayStyleLabel} · {cfg.rounds} ROUNDS</div>
+              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '11px 13px', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10.5, color: '#e6d4ff', letterSpacing: '0.04em' }}>{displayStyleLabel} · {cfg.rounds} ROUNDS</div>
                   <button onClick={() => setConfigOpen(true)} style={{
-                    padding: '5px 13px', borderRadius: 8, cursor: 'pointer', background: 'rgba(253,224,71,0.12)',
+                    padding: '4px 12px', borderRadius: 8, cursor: 'pointer', background: 'rgba(253,224,71,0.12)',
                     border: `1px solid ${ARCADE.goldBorder}`, color: GOLD, fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
                   }}>EDIT</button>
                 </div>
-                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 10 }}>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: C.muted }}>🔥 {cfg.warmupMin}m warm-up</span>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: '#ff9a8a' }}>💪 {cfg.workSec}s work</span>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: '#8fe8ac' }}>😮‍💨 {cfg.restSec}s rest</span>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted }}>🔥 {cfg.warmupMin}m warm-up</span>
+                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: '#ff9a8a' }}>💪 {cfg.workSec}s work</span>
+                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: '#8fe8ac' }}>😮‍💨 {cfg.restSec}s rest</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingTop: 8, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingTop: 7, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
                   <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em' }}>TARGET TIME</span>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 18, color: GOLD }}>{fmtClock(cfgTargetSeconds(cfg))}</span>
+                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 17, color: GOLD }}>{fmtClock(cfgTargetSeconds(cfg))}</span>
                 </div>
               </div>
             </>
           )}
 
-          {/* Random-intervals note */}
-          {style === 'intervals' && intervalMode === 'random' && (
-            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: C.muted, marginTop: -6, marginBottom: 14, lineHeight: 1.4 }}>
-              We&apos;ll throw in surprise pace surges a few times during the session — hold the surge until the coach calls it off.
+          {/* Auto pace target — compact (design 12a) */}
+          {autoPace && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 8 }}>
+              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>AUTO PACE</span>
+              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
+              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>{autoPace.paceLabel}</span>
+              <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>Lvl {level}</span>
             </div>
           )}
 
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12,
-            fontFamily: ARCADE.fontBody, fontWeight: 600, fontSize: 12.5, color: GOLD, justifyContent: 'center', textAlign: 'center',
-          }}>{summary}</div>
+          {/* Random-intervals note */}
+          {style === 'intervals' && intervalMode === 'random' && (
+            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted, marginBottom: 8, lineHeight: 1.4 }}>
+              We&apos;ll throw in surprise pace surges a few times — hold each surge until the coach calls it off.
+            </div>
+          )}
+        </div>
 
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 6, padding: '8px 10px', borderRadius: ARCADE.radius.sm,
-            background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', marginBottom: 16,
-          }}>
-            <AlertTriangle size={12} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }}/>
-            <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: 'rgba(239,68,68,0.85)', lineHeight: 1.4 }}>{CARDIO_SAFETY_COPY}</span>
-          </div>
-
-          {/* Voice coach row (design 12a) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.7)', padding: '9px 12px', marginBottom: 12 }}>
-            <span style={{ fontSize: 14 }}>🔊</span>
-            <span style={{ flex: 1, fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9, color: '#c4a4d8', letterSpacing: '0.04em' }}>
-              VOICE COACH · {String(profile?.voiceCoach || 'FEMALE').toUpperCase()} · {String(profile?.encouragement || 'HYPE').toUpperCase()}
+        {/* Footer — the CTA sits high, with open space above (in the options fill) and below */}
+        <div style={{ flexShrink: 0, paddingTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: ARCADE.fontBody, fontWeight: 600, fontSize: 11.5, color: GOLD }}>{summary}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.04em' }}>
+              🔊 {String(profile?.voiceCoach || 'FEMALE').toUpperCase()}
             </span>
           </div>
-
-          <button onClick={startCardio} style={{
-            width: '100%', height: 52, border: 'none', borderRadius: 12, cursor: 'pointer',
-            background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff',
-            fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 14, letterSpacing: '0.06em',
-            boxShadow: '0 0 22px rgba(168,85,247,0.45)',
-          }}>▶ START CARDIO</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center', marginBottom: 11 }}>
+            <AlertTriangle size={10} color="#ef4444" style={{ flexShrink: 0 }}/>
+            <span style={{ fontFamily: ARCADE.fontBody, fontSize: 8.5, color: 'rgba(239,68,68,0.8)', lineHeight: 1.3, textAlign: 'center' }}>{CARDIO_SAFETY_COPY}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 210, paddingLeft: 30, paddingRight: 30, fontSize: 13.5, letterSpacing: '0.12em' }} />
+          </div>
         </div>
+
+        {/* Open space below the CTA — keeps it lifted off the nav */}
+        <div style={{ flexShrink: 0, height: '6vh' }} />
       </div>
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>
