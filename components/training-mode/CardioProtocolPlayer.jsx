@@ -23,6 +23,16 @@ function fmt(sec) {
   return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
+// Great-circle distance between two lat/lng points, in meters.
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
 // Turns a protocol into an ordered list of countdown segments. Interval / Tabata
 // alternate work and rest for each round; steady / custom is a single segment.
 function buildSegments(format, durationSeconds, intervalConfig) {
@@ -31,9 +41,11 @@ function buildSegments(format, durationSeconds, intervalConfig) {
     const rounds = cfg.rounds || 8;
     const workSeconds = cfg.workSeconds ?? cfg.fastSeconds ?? cfg.hardSeconds ?? 30;
     const restSeconds = cfg.restSeconds ?? cfg.easySeconds ?? 15;
+    const warmupSeconds = cfg.warmupSeconds ?? 0;
     const workLabel = format === 'tabata' ? 'HARD' : 'WORK';
     const restLabel = format === 'tabata' ? 'REST' : 'RECOVER';
     const segments = [];
+    if (warmupSeconds > 0) segments.push({ kind: 'warmup', seconds: warmupSeconds, round: 0, label: 'WARM-UP', color: GOLD });
     for (let r = 1; r <= rounds; r++) {
       segments.push({ kind: 'work', seconds: workSeconds, round: r, label: workLabel, color: RED });
       segments.push({ kind: 'rest', seconds: restSeconds, round: r, label: restLabel, color: GREEN });
@@ -186,6 +198,8 @@ export default function CardioProtocolPlayer({
   subLabel,
   manualOnly = false,
   distanceMode = false,
+  useGps = false,
+  randomSurges = false,
   distanceTargetLabel = null,
   paceTargetLabel = null,
   paceTargetSeconds = null,
@@ -206,6 +220,15 @@ export default function CardioProtocolPlayer({
   const [showManual, setShowManual] = useState(manualOnly);
   const firedRef = useRef(false);
   const tickRef = useRef(null);
+
+  // Real GPS tracking (outdoor runs). Accumulates distance between fixes and keeps
+  // a route trail; falls back to the simulation when GPS is unavailable/denied.
+  const gpsRef = useRef({ watchId: null, last: null, meters: 0, pts: [] });
+  const [gpsMeters, setGpsMeters] = useState(0);
+  const [gpsFix, setGpsFix] = useState(false);
+  const [gpsRoute, setGpsRoute] = useState([]);
+  const [gpsSpeed, setGpsSpeed] = useState(0);
+  const [surge, setSurge] = useState(false);
 
   const seg = segments[segIndex];
   const isInterval = format === 'interval' || format === 'tabata';
@@ -242,17 +265,61 @@ export default function CardioProtocolPlayer({
     onComplete({ completedTimeSeconds: totalElapsed, completed: true, ...extra });
   };
 
-  // GPS run is simulated from elapsed time (~2% ahead of target pace). Auto-finish
-  // once the simulated distance reaches the goal.
+  // Live GPS: start/stop watchPosition with the run. Reject sub-meter jitter and
+  // impossible jumps between fixes so the distance total stays honest.
+  useEffect(() => {
+    if (!useGps || !distanceMode || !running) return undefined;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return undefined;
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude, speed } = pos.coords;
+        const prev = gpsRef.current.last;
+        if (prev) {
+          const d = haversineMeters(prev.lat, prev.lng, latitude, longitude);
+          if (d > 1 && d < 75) { gpsRef.current.meters += d; setGpsMeters(gpsRef.current.meters); }
+        }
+        gpsRef.current.last = { lat: latitude, lng: longitude };
+        gpsRef.current.pts.push({ lat: latitude, lng: longitude });
+        if (gpsRef.current.pts.length > 240) gpsRef.current.pts.shift();
+        setGpsRoute(gpsRef.current.pts.slice());
+        if (typeof speed === 'number' && speed >= 0) setGpsSpeed(speed);
+        setGpsFix(true);
+      },
+      () => { setGpsFix(false); },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 12000 },
+    );
+    gpsRef.current.watchId = id;
+    return () => { if (id != null && navigator.geolocation) navigator.geolocation.clearWatch(id); };
+  }, [useGps, distanceMode, running]);
+
+  // Random-interval surges: every 45–90s, call a 20–30s surge, then reschedule.
+  useEffect(() => {
+    if (!randomSurges || !running || done) return undefined;
+    let timer;
+    const schedule = () => {
+      timer = setTimeout(() => {
+        setSurge(true);
+        timer = setTimeout(() => { setSurge(false); schedule(); }, 20000 + Math.random() * 10000);
+      }, 45000 + Math.random() * 45000);
+    };
+    schedule();
+    return () => { clearTimeout(timer); setSurge(false); };
+  }, [randomSurges, running, done]);
+
+  // Distance/pace come from real GPS when we have a fix; otherwise simulate from
+  // elapsed time (~2% ahead of target pace). Auto-finish once the goal is reached.
   const simPaceSec = paceTargetSeconds || 600;
   const simDistance = distanceMode ? totalElapsed / (simPaceSec * 0.98) : 0;
   const simGoal = goalDistance || parseFloat(distanceTargetLabel) || 3;
+  const usingRealGps = useGps && gpsFix;
+  const gpsDistanceUnit = (initialDistanceUnit || 'mi') === 'km' ? gpsMeters / 1000 : gpsMeters / 1609.344;
+  const trackedDistance = usingRealGps ? gpsDistanceUnit : simDistance;
   useEffect(() => {
-    if (distanceMode && running && !done && simDistance >= simGoal) {
-      finish({ completedDistance: simGoal, distanceUnit: initialDistanceUnit });
+    if (distanceMode && running && !done && trackedDistance >= simGoal) {
+      finish({ completedDistance: usingRealGps ? +trackedDistance.toFixed(2) : simGoal, distanceUnit: initialDistanceUnit });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalElapsed, distanceMode, running, done]);
+  }, [totalElapsed, gpsMeters, distanceMode, running, done]);
 
   if (showManual) {
     return (
@@ -272,25 +339,56 @@ export default function CardioProtocolPlayer({
 
   if (distanceMode) {
     const unit = initialDistanceUnit || 'mi';
-    const curPaceSec = running ? simPaceSec * (0.96 + 0.06 * Math.sin(totalElapsed / 8)) : simPaceSec;
-    const aheadSec = Math.round(simDistance * simPaceSec - totalElapsed);
-    const progressPct = Math.min(100, simGoal > 0 ? (simDistance / simGoal) * 100 : 0);
+    const dist = trackedDistance;
     const fmtPace = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-    const coach = !running ? 'Tap play to start your run.'
-      : Math.abs(aheadSec) <= 6 ? 'Great pace — hold it right there!'
-        : aheadSec > 6 ? 'Ahead of target — settle into it.'
-          : 'Push a little — you\'re behind pace.';
-    // Decorative route line (fixed wiggle so it reads as an elevation trace).
-    const routePts = [56, 44, 50, 34, 40, 26, 30, 18].map((y, i) => `${6 + i * 41},${y}`).join(' ');
-    // Segmented gauge ticks.
+    // Current pace: from GPS speed while moving, else derived from distance/time; sim otherwise.
+    const gpsPaceSec = gpsSpeed > 0.4
+      ? (unit === 'km' ? 1000 / gpsSpeed : 1609.344 / gpsSpeed)
+      : (dist > 0.02 ? totalElapsed / dist : simPaceSec);
+    const curPaceSec = usingRealGps ? gpsPaceSec : (running ? simPaceSec * (0.96 + 0.06 * Math.sin(totalElapsed / 8)) : simPaceSec);
+    const aheadSec = Math.round(dist * simPaceSec - totalElapsed);
+    const progressPct = Math.min(100, simGoal > 0 ? (dist / simGoal) * 100 : 0);
+    const coach = surge ? 'SURGE! Push the pace — hold it!'
+      : !running ? (useGps ? 'Tap start — we\'ll lock onto GPS.' : 'Tap start to begin.')
+        : Math.abs(aheadSec) <= 6 ? 'Great pace — hold it right there!'
+          : aheadSec > 6 ? 'Ahead of target — settle into it.'
+            : 'Push a little — you\'re behind pace.';
+    // Route trail: real GPS path once we have ≥2 fixes, else a decorative trace.
+    const routePts = (() => {
+      if (usingRealGps && gpsRoute.length >= 2) {
+        const lats = gpsRoute.map(p => p.lat), lngs = gpsRoute.map(p => p.lng);
+        const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+        const spanLat = Math.max(1e-6, maxLat - minLat), spanLng = Math.max(1e-6, maxLng - minLng);
+        const pad = 6;
+        return gpsRoute.map(p => {
+          const x = pad + ((p.lng - minLng) / spanLng) * (300 - pad * 2);
+          const y = 58 - ((p.lat - minLat) / spanLat) * (58 - 6);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+      }
+      return [56, 44, 50, 34, 40, 26, 30, 18].map((y, i) => `${6 + i * 41},${y}`).join(' ');
+    })();
     const TICKS = 44;
+    const statusText = useGps ? (usingRealGps ? 'GPS LIVE' : 'GPS ACQUIRING…') : 'PACE TRACK';
+    const statusColor = usingRealGps ? '#8fe8ac' : useGps ? '#ffd27a' : '#c9a6ff';
+    const statusDot = usingRealGps ? '#22c55e' : useGps ? '#f5b942' : '#b06aff';
+    const gaugeColor = surge ? '#ff8a4a' : '#c9a6ff';
     return (
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
+        <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
         {/* GPS live header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }}/>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: '#8fe8ac', letterSpacing: '0.1em' }}>GPS LIVE · {String(methodLabel || 'RUN').toUpperCase()} · {simGoal} {unit}</span>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusDot, boxShadow: `0 0 8px ${statusDot}`, animation: usingRealGps || !useGps ? 'none' : 'cardio-ring-glow 1.4s ease-in-out infinite' }}/>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: statusColor, letterSpacing: '0.1em' }}>{statusText} · {String(methodLabel || 'RUN').toUpperCase()} · {simGoal} {unit}</span>
         </div>
+
+        {/* Surge banner */}
+        {surge && (
+          <div style={{ width: '100%', borderRadius: 10, background: 'rgba(255,138,74,0.14)', border: '1px solid rgba(255,138,74,0.5)', padding: '7px 12px', marginBottom: 10, textAlign: 'center', animation: 'cardio-ring-glow 0.9s ease-in-out infinite' }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 900, color: '#ff8a4a', letterSpacing: '0.1em' }}>🔥 SURGE — PUSH THE PACE</span>
+          </div>
+        )}
 
         {/* Route mini-chart */}
         <div style={{ width: '100%', borderRadius: 11, border: '1px solid rgba(34,197,94,0.25)', background: 'rgba(8,2,18,0.6)', padding: '8px 12px', marginBottom: 12, position: 'relative' }}>
@@ -298,7 +396,7 @@ export default function CardioProtocolPlayer({
             <polyline points={routePts} fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(34,197,94,0.5))' }}/>
           </svg>
           <div style={{ position: 'absolute', top: 8, right: 12, display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8fe8ac' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }}/> ROUTE · {simDistance.toFixed(2)} {unit}
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }}/> ROUTE · {dist.toFixed(2)} {unit}
           </div>
         </div>
 
@@ -311,7 +409,7 @@ export default function CardioProtocolPlayer({
               const r1 = 108, r2 = 122;
               const cx = 130 + Math.cos(a) * r1, cy = 130 + Math.sin(a) * r1;
               const ex = 130 + Math.cos(a) * r2, ey = 130 + Math.sin(a) * r2;
-              return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke={active ? '#c9a6ff' : 'rgba(168,85,247,0.2)'} strokeWidth="3" strokeLinecap="round" style={{ filter: active ? 'drop-shadow(0 0 3px rgba(176,106,255,0.7))' : 'none' }}/>;
+              return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke={active ? gaugeColor : 'rgba(168,85,247,0.2)'} strokeWidth="3" strokeLinecap="round" style={{ filter: active ? `drop-shadow(0 0 3px ${surge ? 'rgba(255,138,74,0.8)' : 'rgba(176,106,255,0.7)'})` : 'none' }}/>;
             })}
             <circle cx="130" cy="130" r="96" fill="none" stroke="rgba(168,85,247,0.18)" strokeWidth="1"/>
           </svg>
@@ -319,7 +417,7 @@ export default function CardioProtocolPlayer({
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: VIOLET, letterSpacing: '0.16em', marginBottom: 2 }}>PACE /{unit}</div>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 44, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>{fmtPace(curPaceSec)}</div>
             <div style={{ display: 'flex', gap: 18, marginTop: 12 }}>
-              <div style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color: GOLD }}>{simDistance.toFixed(2)}</div><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.08em' }}>{unit.toUpperCase() === 'MI' ? 'MILES' : 'KM'}</div></div>
+              <div style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color: GOLD }}>{dist.toFixed(2)}</div><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.08em' }}>{unit.toUpperCase() === 'MI' ? 'MILES' : 'KM'}</div></div>
               <div style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color: '#fff' }}>{fmt(totalElapsed)}</div><div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.08em' }}>TIME</div></div>
             </div>
           </div>
@@ -335,9 +433,9 @@ export default function CardioProtocolPlayer({
         </div>
 
         {/* Coach caption */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 99, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', padding: '7px 15px', marginBottom: 14 }}>
-          <span style={{ fontSize: 11 }}>💬</span>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#c9f5d6' }}>{coach}</span>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 99, background: surge ? 'rgba(255,138,74,0.12)' : 'rgba(34,197,94,0.1)', border: `1px solid ${surge ? 'rgba(255,138,74,0.4)' : 'rgba(34,197,94,0.3)'}`, padding: '7px 15px', marginBottom: 14 }}>
+          <span style={{ fontSize: 11 }}>{surge ? '🔥' : '💬'}</span>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: surge ? '#ffd0b0' : '#c9f5d6' }}>{coach}</span>
         </div>
 
         {/* Controls */}
@@ -345,7 +443,7 @@ export default function CardioProtocolPlayer({
           <button onClick={() => setRunning(v => !v)} style={{ flex: 2, height: 52, border: 'none', borderRadius: 14, cursor: 'pointer', background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, letterSpacing: '0.08em', boxShadow: '0 0 20px rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {running ? <><Pause size={18} fill="#fff"/> PAUSE</> : <><Play size={18} fill="#fff"/> START</>}
           </button>
-          <button onClick={() => { setRunning(false); if (deferManualLog) finish({ completedDistance: simDistance, distanceUnit: unit }); else setShowManual(true); }} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <button onClick={() => { setRunning(false); if (deferManualLog) finish({ completedDistance: +dist.toFixed(2), distanceUnit: unit }); else setShowManual(true); }} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <Flag size={14}/> END
           </button>
         </div>
@@ -367,7 +465,7 @@ export default function CardioProtocolPlayer({
 
       {isInterval && (
         <div style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, color: C.muted, letterSpacing: '0.12em', marginBottom: 8 }}>
-          ROUND {seg.round} OF {rounds}
+          {seg.round > 0 ? `ROUND ${seg.round} OF ${rounds}` : 'WARM-UP'}
         </div>
       )}
 
