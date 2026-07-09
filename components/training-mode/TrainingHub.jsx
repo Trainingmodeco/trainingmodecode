@@ -1,0 +1,217 @@
+import PhoneFrame from './PhoneFrame';
+import Embers from './Embers';
+import SafeImage from './SafeImage';
+import { ChevronRight } from 'lucide-react';
+import { C } from './Styles';
+import { IMG } from './data/optimizedImageMap';
+
+const hubCSS = `
+.train-hub-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+}
+.train-hub-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 0 24px var(--card-glow), 0 8px 24px rgba(0,0,0,0.4) !important;
+  border-color: var(--card-glow) !important;
+}
+.train-hub-card:active {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+}
+`;
+
+export default function TrainingHub({ onHome, onFightMode, onFitMode, onTrainingArcade, onCombatConditioning, onProfile, profile }) {
+  return (
+    <PhoneFrame useBrandBg>
+      <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
+      <Embers count={3}/>
+
+      <div style={{
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
+        minHeight: '100dvh',
+        padding: '24px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
+      }}>
+
+        {/* Page title */}
+        <div style={{ marginBottom: 18 }}>
+          <h1 style={{
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
+            color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
+            textTransform: 'uppercase',
+          }}>TRAIN</h1>
+          <p style={{
+            fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 500,
+            color: C.muted, margin: 0,
+          }}>Choose your path</p>
+        </div>
+
+        {/* === FIGHT MODE === */}
+        <div
+          className="train-hub-card"
+          onClick={onFightMode}
+          style={{
+            '--card-glow': 'rgba(239,68,68,0.5)',
+            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            border: '1px solid rgba(239,68,68,0.25)',
+            boxShadow: '0 0 12px rgba(239,68,68,0.08)',
+            marginBottom: 12,
+          }}
+        >
+          <SafeImage src={IMG.hub.fight} alt="Fight Mode" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to right, rgba(8,0,18,0.88) 0%, rgba(8,0,18,0.4) 55%, transparent 100%)',
+          }}/>
+          <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 5 }}>
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
+              color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
+              textShadow: '0 0 14px rgba(239,68,68,0.5)',
+            }}>FIGHT MODE</div>
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+              color: C.muted, marginTop: 4, letterSpacing: '0.02em',
+            }}>Combo coach &middot; fight focus &middot; practice</div>
+          </div>
+          <div style={{
+            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 5,
+            width: 28, height: 28, borderRadius: 7,
+            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ChevronRight size={14} color={C.red}/>
+          </div>
+        </div>
+
+        {/* === FIT MODE === */}
+        <div
+          className="train-hub-card"
+          onClick={onFitMode}
+          style={{
+            '--card-glow': 'rgba(168,85,247,0.5)',
+            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            border: '1px solid rgba(168,85,247,0.25)',
+            boxShadow: '0 0 12px rgba(168,85,247,0.08)',
+            marginBottom: 12,
+          }}
+        >
+          <SafeImage src={IMG.hub.fit} alt="Fit Mode" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to right, rgba(8,0,18,0.88) 0%, rgba(8,0,18,0.4) 55%, transparent 100%)',
+          }}/>
+          <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 5 }}>
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
+              color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
+              textShadow: '0 0 14px rgba(168,85,247,0.5)',
+            }}>FIT MODE</div>
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+              color: C.muted, marginTop: 4, letterSpacing: '0.02em',
+            }}>Builder &middot; quick mission &middot; cardio</div>
+          </div>
+          <div style={{
+            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 5,
+            width: 28, height: 28, borderRadius: 7,
+            background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ChevronRight size={14} color={C.violet}/>
+          </div>
+        </div>
+
+        {/* === TRAINING ARCADE === */}
+        <div
+          className="train-hub-card"
+          onClick={onTrainingArcade}
+          style={{
+            '--card-glow': 'rgba(34,197,94,0.5)',
+            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            border: '1px solid rgba(34,197,94,0.25)',
+            boxShadow: '0 0 12px rgba(34,197,94,0.08)',
+            marginBottom: 16,
+          }}
+        >
+          <SafeImage src={IMG.hub.arcade} alt="Training Arcade" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to right, rgba(8,0,18,0.88) 0%, rgba(8,0,18,0.4) 55%, transparent 100%)',
+          }}/>
+          <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 5 }}>
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
+              color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
+              textShadow: '0 0 14px rgba(34,197,94,0.5)',
+            }}>TRAINING ARCADE</div>
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+              color: C.muted, marginTop: 4, letterSpacing: '0.02em',
+            }}>Timed stages & bosses</div>
+          </div>
+          <div style={{
+            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 5,
+            width: 28, height: 28, borderRadius: 7,
+            background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ChevronRight size={14} color={C.green}/>
+          </div>
+        </div>
+
+        {/* === COMBAT CONDITIONING STRIP === */}
+        <div
+          className="train-hub-card"
+          onClick={onCombatConditioning}
+          style={{
+            '--card-glow': 'rgba(255,138,74,0.5)',
+            position: 'relative', height: 88, borderRadius: 14, overflow: 'hidden',
+            border: '1px solid rgba(239,68,68,0.2)',
+            boxShadow: '0 0 10px rgba(255,138,74,0.06)',
+          }}
+        >
+          <SafeImage src={IMG.hub.combatBanner} alt="Combat Conditioning" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to right, rgba(8,0,18,0.9) 0%, rgba(8,0,18,0.5) 50%, rgba(8,0,18,0.3) 100%)',
+          }}/>
+          <div style={{
+            position: 'absolute', top: '50%', left: 16, transform: 'translateY(-50%)', zIndex: 5,
+          }}>
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
+              color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
+              textShadow: '0 0 10px rgba(255,138,74,0.4)',
+            }}>COMBAT CONDITIONING</div>
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+              color: C.cardio, marginTop: 4, letterSpacing: '0.04em',
+            }}>HYBRID &middot; fit x fight circuit</div>
+          </div>
+          <div style={{
+            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 5,
+            width: 28, height: 28, borderRadius: 7,
+            background: 'rgba(255,138,74,0.15)', border: '1px solid rgba(255,138,74,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ChevronRight size={14} color={C.cardio}/>
+          </div>
+        </div>
+
+      </div>
+    </PhoneFrame>
+  );
+}

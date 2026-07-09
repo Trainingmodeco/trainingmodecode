@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" fill="none">
+  <rect width="400" height="160" rx="12" fill="#0a0014"/>
+  <rect width="400" height="160" rx="12" fill="url(#fg)" opacity="0.6"/>
+  <defs><linearGradient id="fg" x1="0" y1="0" x2="400" y2="160"><stop stop-color="#1a1800"/><stop offset="1" stop-color="#0a0014"/></linearGradient></defs>
+  <circle cx="330" cy="80" r="45" fill="#fde047" opacity="0.06"/>
+  <text x="32" y="72" font-family="sans-serif" font-weight="900" font-size="28" fill="#ffffff" letter-spacing="2">FIT MODE</text>
+  <text x="32" y="104" font-family="sans-serif" font-weight="500" font-size="14" fill="#a78bb8">Strength, quick workouts, and combat conditioning.</text>
+  <rect x="300" y="60" width="50" height="8" rx="4" fill="#fde047" opacity="0.3"/>
+  <rect x="290" y="76" width="70" height="8" rx="4" fill="#fde047" opacity="0.2"/>
+  <rect x="305" y="92" width="40" height="8" rx="4" fill="#fde047" opacity="0.15"/>
+</svg>
