@@ -17,6 +17,10 @@ const CTA_STYLES = `
   0%, 100% { box-shadow: 0 0 16px rgba(239,68,68,0.42), 0 6px 20px rgba(0,0,0,0.35); }
   50% { box-shadow: 0 0 28px rgba(239,68,68,0.62), 0 6px 20px rgba(0,0,0,0.35); }
 }
+@keyframes tm-cta-pulse-violet {
+  0%, 100% { box-shadow: 0 0 16px rgba(176,106,255,0.42), 0 6px 20px rgba(0,0,0,0.35); }
+  50% { box-shadow: 0 0 28px rgba(201,166,255,0.62), 0 6px 20px rgba(0,0,0,0.35); }
+}
 @keyframes tm-cta-shimmer {
   0% { transform: translateX(-160%) skewX(-18deg); }
   60%, 100% { transform: translateX(320%) skewX(-18deg); }
@@ -54,6 +58,14 @@ const SKINS = {
     color: '#fff', fontSize: 15, textShadow: '0 1px 6px rgba(0,0,0,0.45)',
     pulse: 'tm-cta-pulse', corner: 'rgba(253,224,71,0.9)', shimmer: 'rgba(255,255,255,0.28)',
     lip: '#3a1d7a', inset: 'rgba(255,255,255,0.34)',
+  },
+  // Light violet — used for the PAUSE state of the go/pause toggle.
+  violet: {
+    border: '1.5px solid rgba(224,196,255,0.75)',
+    background: 'linear-gradient(180deg,#d8bcff 0%,#b975ff 55%,#a855f7 100%)',
+    color: '#2a0a45', fontSize: 15, textShadow: '0 1px 0 rgba(255,255,255,0.28)',
+    pulse: 'tm-cta-pulse-violet', corner: 'rgba(60,20,90,0.5)', shimmer: 'rgba(255,255,255,0.5)',
+    lip: '#7c3aed', inset: 'rgba(255,255,255,0.5)',
   },
 };
 

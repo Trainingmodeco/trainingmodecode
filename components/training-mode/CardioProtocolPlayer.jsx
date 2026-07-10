@@ -3,6 +3,7 @@ import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
 import { ARCADE } from './ArcadeUI';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
+import TrainingCTA from './shared/TrainingCTA';
 
 const GOLD = C.yellow;
 const VIOLET = '#a855f7';
@@ -441,9 +442,14 @@ export default function CardioProtocolPlayer({
 
         {/* Controls */}
         <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-          <button onClick={() => setRunning(v => !v)} style={{ flex: 2, height: 52, border: 'none', borderRadius: 14, cursor: 'pointer', background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, letterSpacing: '0.08em', boxShadow: '0 0 20px rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            {running ? <><Pause size={18} fill="#fff"/> PAUSE</> : <><Play size={18} fill="#fff"/> START</>}
-          </button>
+          <TrainingCTA
+            variant={running ? 'violet' : 'gold'}
+            label={running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
+            icon={running ? '❚❚' : '▶'}
+            height={52}
+            onClick={() => setRunning(v => !v)}
+            style={{ flex: '2 1 0', width: 'auto', fontSize: 14, letterSpacing: '0.08em' }}
+          />
           <button onClick={() => { setRunning(false); if (deferManualLog) finish({ completedDistance: +dist.toFixed(2), distanceUnit: unit }); else setShowManual(true); }} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <Flag size={14}/> END
           </button>

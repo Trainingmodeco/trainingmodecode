@@ -634,12 +634,12 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
             <button onClick={handlePauseToggle} style={{
               width: 70, height: 70, borderRadius: 18,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: paused ? 'rgba(253,224,71,0.12)' : 'linear-gradient(135deg, rgba(253,224,71,0.3), rgba(239,68,68,0.15))',
-              border: `1.5px solid ${paused ? GOLD : 'rgba(253,224,71,0.4)'}`,
-              color: '#fff', cursor: 'pointer',
-              boxShadow: paused ? 'none' : '0 0 20px rgba(253,224,71,0.2)',
+              background: paused ? 'linear-gradient(180deg,#ffe574,#eaa62a)' : 'linear-gradient(180deg,#d8bcff,#a855f7)',
+              border: `1.5px solid ${paused ? 'rgba(255,238,150,0.9)' : 'rgba(224,196,255,0.75)'}`,
+              color: paused ? '#2a1400' : '#2a0a45', cursor: 'pointer',
+              boxShadow: paused ? '0 0 18px rgba(253,224,71,0.4)' : '0 0 18px rgba(176,106,255,0.45)',
             }}>
-              {paused ? <Play size={28}/> : <Pause size={28}/>}
+              {paused ? <Play size={28} fill="#2a1400"/> : <Pause size={28} fill="#2a0a45"/>}
             </button>
 
             <button onClick={handleSkip} style={{

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
-import { ChevronLeft, RotateCcw, Pause, Play, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
+import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
 import { generateComboCoachSession } from './data/sessionGenerator';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
@@ -11,6 +11,7 @@ import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
 import CoachCaption from './CoachCaption';
+import TrainingCTA from './shared/TrainingCTA';
 
 const VIOLET = C.violet;
 const RING_SIZE = 394;
@@ -645,16 +646,14 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
         {/* Controls (design 13b) */}
         <div style={{ width: '100%', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <button onClick={handlePause} style={{
-            width: '100%', height: 56, border: 'none', borderRadius: 15, cursor: 'pointer',
-            background: paused ? 'linear-gradient(180deg,#34d372,#16a34a)' : 'linear-gradient(180deg,#b975ff,#a855f7)',
-            color: '#fff',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em',
-            boxShadow: paused ? '0 6px 22px -6px rgba(34,197,94,0.7)' : '0 6px 22px -6px rgba(168,85,247,0.8)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-          }}>
-            {paused ? <><Play size={20} fill="currentColor"/> RESUME</> : <><Pause size={20} fill="currentColor"/> PAUSE</>}
-          </button>
+          <TrainingCTA
+            variant={paused ? 'gold' : 'violet'}
+            label={paused ? 'RESUME' : 'PAUSE'}
+            icon={paused ? '▶' : '❚❚'}
+            height={56}
+            onClick={handlePause}
+            style={{ fontSize: 16, letterSpacing: '0.12em' }}
+          />
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={handleRewind} style={{
               flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
