@@ -194,4 +194,13 @@ export const SINGLE_STRIKES = {
   mma: [...BOXING_SINGLES, 'Teep', 'Low Kick', 'Rear Roundhouse', 'Lead Knee', 'Rear Knee', 'Overhand'],
 };
 
+// Flashy / advanced single techniques — introduced in Technical mode at the
+// Hard and Advanced difficulties (spinning kicks, bolo punch, flying knees, …).
+export const ADVANCED_STRIKES = {
+  boxing: ['Bolo Punch', 'Check Hook', 'Shovel Hook', 'Overhand'],
+  kickboxing: ['Spinning Back Kick', 'Tornado Kick', 'Question Mark Kick', 'Axe Kick', 'Superman Punch', 'Spinning Backfist', 'Flying Knee', 'Hook Kick'],
+  'muay-thai': ['Spinning Back Elbow', 'Spinning Back Kick', 'Question Mark Kick', 'Flying Knee', 'Jumping Elbow', 'Axe Kick', 'Spinning Heel Kick'],
+  mma: ['Spinning Back Kick', 'Spinning Backfist', 'Superman Punch', 'Flying Knee', 'Question Mark Kick', 'Wheel Kick', 'Oblique Kick'],
+};
+
 export default COMBO_POOL;

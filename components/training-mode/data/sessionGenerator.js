@@ -1,5 +1,5 @@
 import FIGHT_FOCUS_POOL from './fightFocusData';
-import COMBO_POOL, { SINGLE_STRIKES } from './comboCoachData';
+import COMBO_POOL, { SINGLE_STRIKES, ADVANCED_STRIKES } from './comboCoachData';
 
 const DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'advanced'];
 
@@ -250,26 +250,45 @@ export function generateFightFocusSession({ discipline, difficulty, rounds }) {
   }));
 }
 
-// TECHNICAL mode (beginner-friendly): mostly single strikes + short basic
-// combos (~65%), with a minority of longer combos (~35%). Immediate repeats
-// (e.g. "Jab, Jab") are intentional — it drills clean reps.
+// TECHNICAL mode: mostly single strikes + basic combos, scaling with difficulty.
+// Easy is nearly all base singles + a few basic combos; higher difficulties fold
+// in advanced single strikes (spinning kicks, bolo punch…) and longer/advanced
+// combos for a more fight-paced feel. Immediate repeats ("Jab, Jab") are
+// intentional — it drills clean reps.
+const TECH_WEIGHTS = {
+  //          base  advStrike  basic  normal  adv
+  easy:     { base: 0.72, advStrike: 0.00, basic: 0.28, normal: 0.00, adv: 0.00 },
+  normal:   { base: 0.54, advStrike: 0.03, basic: 0.10, normal: 0.33, adv: 0.00 },
+  hard:     { base: 0.32, advStrike: 0.15, basic: 0.11, normal: 0.22, adv: 0.20 },
+  advanced: { base: 0.22, advStrike: 0.20, basic: 0.08, normal: 0.22, adv: 0.28 },
+};
+
 function buildTechnicalComboList(discipline, difficulty) {
   const disc = normalizeDiscipline(discipline);
   const singles = SINGLE_STRIKES[disc] || SINGLE_STRIKES.boxing;
-  const eligible = filterPool(COMBO_POOL, discipline, difficulty);
-  const basics = eligible.filter(c => c.category === 'basic' || c.category === 'single').map(c => c.comboText);
-  const combos = eligible.filter(c => ['combination', 'counter', 'advanced', 'elite'].includes(c.category)).map(c => c.comboText);
-  const basicsPool = basics.length ? basics : singles;
-  const combosPool = combos.length ? combos : basicsPool;
-  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const advStrikes = ADVANCED_STRIKES[disc] || ADVANCED_STRIKES.boxing;
+  const all = COMBO_POOL.filter(c => c.discipline === disc);
+  const basics = all.filter(c => c.category === 'basic' || c.category === 'single').map(c => c.comboText);
+  const normals = all.filter(c => ['combination', 'counter'].includes(c.category)).map(c => c.comboText);
+  const advs = all.filter(c => ['advanced', 'elite'].includes(c.category)).map(c => c.comboText);
+
+  const W = TECH_WEIGHTS[normalizeDifficulty(difficulty)] || TECH_WEIGHTS.normal;
+  const buckets = [
+    { pool: singles, w: W.base },
+    { pool: advStrikes, w: W.advStrike },
+    { pool: basics.length ? basics : singles, w: W.basic },
+    { pool: normals.length ? normals : (basics.length ? basics : singles), w: W.normal },
+    { pool: advs.length ? advs : (normals.length ? normals : singles), w: W.adv },
+  ].filter(b => b.w > 0 && b.pool.length);
+  const total = buckets.reduce((s, b) => s + b.w, 0) || 1;
 
   const N = 80;
   const out = [];
   for (let i = 0; i < N; i++) {
-    const r = Math.random();
-    if (r < 0.45) out.push(pick(singles));         // ~45% single strikes
-    else if (r < 0.65) out.push(pick(basicsPool));  // ~20% short basic combos
-    else out.push(pick(combosPool));                // ~35% combos
+    let r = Math.random() * total;
+    let chosen = buckets[0];
+    for (const b of buckets) { if (r < b.w) { chosen = b; break; } r -= b.w; }
+    out.push(chosen.pool[Math.floor(Math.random() * chosen.pool.length)]);
   }
   return out;
 }
