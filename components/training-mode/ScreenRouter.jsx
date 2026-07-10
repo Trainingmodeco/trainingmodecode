@@ -74,7 +74,7 @@ function useScrollIndicator(containerRef, children) {
   return showScroll;
 }
 
-function WithNav({ activeTab, onNavigate, pausedSession, onResume, children }) {
+function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, lock = false }) {
   const containerRef = useRef(null);
   const showScroll = useScrollIndicator(containerRef, children);
 
@@ -93,16 +93,16 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children }) {
         className="no-scrollbar"
         style={{
           height: '100dvh',
-          overflowY: 'auto',
+          overflowY: lock ? 'hidden' : 'auto',
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
-          paddingBottom: 'calc(110px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: lock ? 0 : 'calc(110px + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {children}
       </div>
-      <ScrollDownIndicator visible={showScroll} />
+      <ScrollDownIndicator visible={showScroll && !lock} />
       <FloatingResumeButton pausedSession={pausedSession} onResume={onResume} />
       <div style={{
         position: 'fixed',
@@ -156,7 +156,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   }
   if (screen === 'fight_hub') {
     return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
         <FightModeHub onHome={goHome} onBack={goTrainingHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onQuickFight={goTimer} onQuickCombo={goComboActive}/>
       </WithNav>
     );

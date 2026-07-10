@@ -35,13 +35,13 @@ function windowsFor(roundSec, roundIndex) {
   return cache.get(key);
 }
 
-// pattern: 'random' | 'every10' | 'endRound'
+// pattern: 'random' | 'perMin10' | 'perMin5' | 'endRound'
 export function isRushAt(pattern, elapsedSec, remainingSec, roundSec, roundIndex = 0) {
   if (elapsedSec < 1) return false;
-  if (pattern === 'every10') {
-    // 5s rush at the top of each 10s block: 1–5 rush, 6–10 breathe, repeat.
-    return Math.floor(elapsedSec) % 10 < 5;
-  }
+  // Rush the last N seconds of every minute — e.g. a 3-min round surges at
+  // 0:50, 1:50, 2:50 (perMin10) or 0:55, 1:55, 2:55 (perMin5).
+  if (pattern === 'perMin10') return (Math.floor(elapsedSec) % 60) >= 50;
+  if (pattern === 'perMin5') return (Math.floor(elapsedSec) % 60) >= 55;
   if (pattern === 'random') {
     const e = Math.floor(elapsedSec);
     return windowsFor(roundSec, roundIndex).some(([s, en]) => e >= s && e < en);
@@ -52,7 +52,8 @@ export function isRushAt(pattern, elapsedSec, remainingSec, roundSec, roundIndex
 
 export const RUSH_PATTERNS = [
   { id: 'random', label: 'RANDOM SURGES', sub: 'Random 5–10s bursts throughout the round.' },
-  { id: 'every10', label: 'EVERY 10 SECONDS', sub: 'A short rush every 10s of the round.' },
+  { id: 'perMin10', label: 'MINUTE RUSH · 10s', sub: 'A 10s rush at the end of every minute (0:50, 1:50…).' },
+  { id: 'perMin5', label: 'MINUTE RUSH · 5s', sub: 'A 5s rush at the end of every minute (0:55, 1:55…).' },
   { id: 'endRound', label: 'END OF ROUND', sub: 'A 20–30s all-out push at the end of each round.' },
 ];
 

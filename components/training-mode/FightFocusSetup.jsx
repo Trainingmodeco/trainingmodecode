@@ -8,7 +8,7 @@ import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { IMG } from './data/optimizedImageMap';
 import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
-import Stepper from './shared/Stepper';
+import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
 
 const GOLD = C.gold;
@@ -17,6 +17,10 @@ const BLUE = '#4f8cff';
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard'];
 const MODES = ['Technical', 'Combo'];
+const MODE_DESC = {
+  Technical: 'One focus per round — sharpen form, timing & precision on single strikes.',
+  Combo: 'Combinations on the beat — chain strikes together to build flow & speed.',
+};
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
 
@@ -27,22 +31,22 @@ const setupCSS = `
 
 function SectionLabel({ children }) {
   return (
-    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8', fontSize: 8, letterSpacing: '0.16em', marginBottom: 7 }}>{children}</div>
+    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8', fontSize: 8.5, letterSpacing: '0.16em', marginBottom: 7 }}>{children}</div>
   );
 }
 
-// Segmented selector (difficulty / mode) — sits on top of the steppers.
+// Full-width segmented selector (stacked: label above the row).
 function Segmented({ label, options, value, onChange, accent }) {
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
+    <div>
       <SectionLabel>{label}</SectionLabel>
-      <div style={{ display: 'flex', gap: 4 }}>
+      <div style={{ display: 'flex', gap: 6 }}>
         {options.map(o => {
           const active = o === value;
           return (
             <button key={o} className="ff-seg" onClick={() => onChange(o)} style={{
-              flex: 1, textAlign: 'center', padding: '9px 0', borderRadius: 8,
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, letterSpacing: '0.03em',
+              flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8,
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.04em',
               background: active ? accent : 'rgba(16,4,30,0.8)',
               border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
               color: active ? '#0a0014' : '#d9d1ef',
@@ -85,37 +89,35 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
       }}>
 
-        {/* Banner (dimmed) */}
-        <div style={{ width: '100%', height: 56, borderRadius: 12, overflow: 'hidden', marginBottom: 12, position: 'relative', border: '1px solid rgba(253,224,71,0.2)' }}>
+        {/* Banner (dimmed, bigger title) */}
+        <div style={{ width: '100%', height: 62, borderRadius: 12, overflow: 'hidden', marginBottom: 13, position: 'relative', border: '1px solid rgba(253,224,71,0.2)' }}>
           <SafeImage src={IMG.hub.fight} alt="Fight Focus" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.5 }}/>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,0,20,0.86) 0%, rgba(10,0,20,0.5) 55%, rgba(10,0,20,0.3) 100%)' }}/>
-          <div style={{ position: 'absolute', bottom: 10, left: 14, zIndex: 2 }}>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: GOLD, letterSpacing: '0.1em', textShadow: '0 0 10px rgba(253,224,71,0.4)' }}>FIGHT FOCUS</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 1 }}>Round timer with focus calls</div>
+          <div style={{ position: 'absolute', bottom: 11, left: 15, zIndex: 2 }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 10px rgba(253,224,71,0.4)' }}>FIGHT FOCUS</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: 'rgba(255,255,255,0.72)', marginTop: 1 }}>Round timer with focus calls</div>
           </div>
         </div>
 
-        {/* Difficulty + Mode on top */}
-        <div style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
+        {/* Difficulty */}
+        <div style={{ marginBottom: 12 }}>
           <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} accent={GOLD}/>
+        </div>
+
+        {/* Mode + explanation */}
+        <div style={{ marginBottom: 6 }}>
           <Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/>
         </div>
-
-        {/* Rounds + Round Length steppers */}
-        <div style={{ display: 'flex', gap: 11, marginBottom: 11 }}>
-          <Stepper label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} onChange={v => set('rounds', v)} accent={GOLD}/>
-          <Stepper label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} onChange={v => set('roundMin', v)} accent={GOLD}/>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 14, minHeight: 28 }}>
+          <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
         </div>
 
-        {/* Round Rest + total */}
-        <div style={{ display: 'flex', gap: 11, marginBottom: 13, alignItems: 'flex-end' }}>
-          <Stepper label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} onChange={v => set('restSec', v)} accent={BLUE}/>
-          <div style={{ flex: 1 }}>
-            <SectionLabel>TOTAL</SectionLabel>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,2,18,0.5)', border: '1px dashed rgba(168,85,247,0.25)', borderRadius: 9, padding: '9px 10px' }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: GOLD }}>~{totalEst} MIN</span>
-            </div>
-          </div>
+        {/* Stacked steppers */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} onChange={v => set('rounds', v)} accent={GOLD}/>
+          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} onChange={v => set('roundMin', v)} accent={GOLD}/>
+          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} onChange={v => set('restSec', v)} accent={BLUE}/>
+          <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
         </div>
 
         {/* Rush mode (opens the flame popup) */}

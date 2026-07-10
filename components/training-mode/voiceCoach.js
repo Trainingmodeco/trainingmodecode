@@ -150,8 +150,10 @@ export async function primeSpeech() {
         resolve({ ready: success, reason: success ? 'ok' : 'timeout' });
       };
 
-      const primer = new SpeechSynthesisUtterance('Ready.');
-      primer.volume = 0.12;
+      // Silent primer — warms up the speech engine on the user gesture without
+      // speaking an audible word ("Ready.").
+      const primer = new SpeechSynthesisUtterance(' ');
+      primer.volume = 0;
       primer.rate = 1.8;
       primer.pitch = 1.0;
       const v = pickVoice();
