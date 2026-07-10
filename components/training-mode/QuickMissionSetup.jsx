@@ -6,6 +6,7 @@ import { ChevronLeft, Shuffle } from 'lucide-react';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import CardioFinisherSetup from './CardioFinisherSetup';
+import TrainingCTA from './shared/TrainingCTA';
 
 // Quick Mission — pixel match of design 14a ("one screen, one tap"):
 // HOW LONG grid · FOCUS (optional) · INTENSITY · ADD CARDIO · sticky START.
@@ -111,10 +112,8 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
 
         {/* Sticky START */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 14px calc(14px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(0deg,#080012 70%,transparent)' }}>
-          <button onClick={handleStart} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', cursor: 'pointer', boxShadow: '0 0 22px rgba(168,85,247,0.45)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <span style={{ font: "900 15px 'Orbitron',sans-serif", letterSpacing: '0.08em' }}>▶ START MISSION</span>
-            <span style={{ font: "600 8px 'Rajdhani',sans-serif", opacity: 0.8 }}>{duration} min · {focus === 'FULL BODY' ? 'Full Body' : cap(focus)} · {cap(difficulty)}</span>
-          </button>
+          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginBottom: 6 }}>{duration} min · {focus === 'FULL BODY' ? 'Full Body' : cap(focus)} · {cap(difficulty)}</div>
+          <TrainingCTA variant="gold" label="START MISSION" icon="▶" height={48} onClick={handleStart} style={{ fontSize: 14, letterSpacing: '0.08em' }}/>
         </div>
       </div>
 

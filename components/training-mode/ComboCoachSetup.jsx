@@ -3,9 +3,10 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
-import { Zap, Flame } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { C } from './Styles';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
+import TrainingCTA from './shared/TrainingCTA';
 
 const GOLD = C.gold;
 const VIOLET = C.violet;
@@ -186,7 +187,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* CTA */}
-        <button className="cc-s-cta" onClick={async () => {
+        <TrainingCTA variant="gold" label="START COMBOS" icon="⚡" height={50} style={{ fontSize: 13, letterSpacing: '0.1em' }} onClick={async () => {
           setVoiceGender(profile?.voiceCoach || 'FEMALE');
           if (voiceOn) await primeSpeech();
           onStart({
@@ -196,15 +197,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
             rounds, roundMin, voiceOn, rushMode,
             encouragement: profile?.encouragement || 'normal',
           });
-        }} style={{
-          width: '100%', padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: `linear-gradient(135deg, ${VIOLET}, #7c3aed)`,
-          color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, letterSpacing: '0.12em',
-          boxShadow: '0 0 22px rgba(168,85,247,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <Zap size={16}/> START COMBOS
-        </button>
+        }}/>
       </div>
     </PhoneFrame>
   );

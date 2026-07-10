@@ -5,6 +5,7 @@ import Embers from './Embers';
 import { ChevronLeft, Home } from 'lucide-react';
 import { C } from './Styles';
 import CardioFinisherSetup from './CardioFinisherSetup';
+import TrainingCTA from './shared/TrainingCTA';
 
 // Workout Builder — pixel match of design 11a ("streamlined manual"):
 // TYPE segmented · TARGET MUSCLES chip grid + two body maps · EQUIPMENT ·
@@ -155,10 +156,8 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
 
         {/* Sticky GENERATE */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 14px calc(14px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(0deg,#080012 70%,transparent)' }}>
-          <button onClick={generate} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', cursor: 'pointer', boxShadow: '0 0 22px rgba(253,224,71,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <span style={{ font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.06em' }}>{isCardio ? '❤ START CARDIO' : '⚙ GENERATE WORKOUT'}</span>
-            {!isCardio && <span style={{ font: "600 8px 'Rajdhani',sans-serif", opacity: 0.75 }}>{summary()}</span>}
-          </button>
+          {!isCardio && <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginBottom: 6 }}>{summary()}</div>}
+          <TrainingCTA variant="gold" label={isCardio ? 'START CARDIO' : 'GENERATE WORKOUT'} icon={isCardio ? '❤' : '⚙'} height={48} onClick={generate} style={{ fontSize: 13.5, letterSpacing: '0.06em' }}/>
         </div>
       </div>
 
