@@ -9,6 +9,7 @@ import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { C } from './Styles';
 import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
+import { isRushAt } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
@@ -227,16 +228,25 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
   useEffect(() => {
     if (doneRef.current || remaining > 0) {
-      if (phaseRef.current === 'round' && cfg.rushMode && remaining === 30 && !rushRef.current) {
-        setRush(true);
-        setShowRushOverlay(true);
-        if (cfg.voiceOn !== false && !rushSpoken.current) {
-          rushSpoken.current = true;
-          speakAsync('Rush mode! Finish strong!');
+      if (phaseRef.current === 'round' && cfg.rushMode) {
+        const elapsed = roundSec - remaining;
+        const wantRush = isRushAt(cfg.rushPattern || 'endRound', elapsed, remaining, roundSec, roundIdxRef.current);
+        if (wantRush && !rushRef.current) {
+          setRush(true);
+          setShowRushOverlay(true);
+          if (cfg.voiceOn !== false && !rushSpoken.current) {
+            rushSpoken.current = true;
+            speakAsync('Rush! Go!');
+          }
+        } else if (!wantRush && rushRef.current) {
+          setRush(false);
+          setShowRushOverlay(false);
+          rushSpoken.current = false;
         }
       }
       if (
         phaseRef.current === 'round' && cfg.rushMode && rushRef.current &&
+        (cfg.rushPattern || 'endRound') === 'endRound' &&
         remaining >= 1 && remaining <= 10 &&
         cfg.voiceOn !== false && lastRushCountdownSecond.current !== remaining
       ) {

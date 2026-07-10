@@ -89,7 +89,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         <SectionLabel>SELECT DISCIPLINE</SectionLabel>
         <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 11, flexShrink: 0 }}>FIGHT MODE</div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 12, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0, width: '100%', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
           {DISCIPLINES.map(d => {
             const active = d.id === disc;
             return (

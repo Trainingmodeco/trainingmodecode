@@ -9,6 +9,7 @@ import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { C } from './Styles';
 import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
+import { isRushAt, rushPatternLabel } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
@@ -180,16 +181,25 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   useEffect(() => {
     if (doneRef.current || remaining > 0) {
-      if (phaseRef.current === 'round' && cfg.rushMode && remaining === 30 && !rushRef.current) {
-        setRush(true);
-        setShowRushOverlay(true);
-        if (cfg.voiceOn && !rushSpoken.current) {
-          rushSpoken.current = true;
-          speakAsync('Rush mode! Finish strong!');
+      if (phaseRef.current === 'round' && cfg.rushMode) {
+        const elapsed = roundSec - remaining;
+        const wantRush = isRushAt(cfg.rushPattern || 'endRound', elapsed, remaining, roundSec, roundIdxRef.current);
+        if (wantRush && !rushRef.current) {
+          setRush(true);
+          setShowRushOverlay(true);
+          if (cfg.voiceOn && !rushSpoken.current) {
+            rushSpoken.current = true;
+            speakAsync('Rush! Go!');
+          }
+        } else if (!wantRush && rushRef.current) {
+          setRush(false);
+          setShowRushOverlay(false);
+          rushSpoken.current = false;
         }
       }
       if (
         phaseRef.current === 'round' && cfg.rushMode && rushRef.current &&
+        (cfg.rushPattern || 'endRound') === 'endRound' &&
         remaining >= 1 && remaining <= 10 &&
         cfg.voiceOn && lastRushCountdownSecond.current !== remaining
       ) {
@@ -476,7 +486,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* Elapsed / rounds-left line (design 13a) */}
         <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.05em', marginBottom: 12, textAlign: 'center' }}>
-          ⏱ {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED · {roundsLeft} ROUND{roundsLeft === 1 ? '' : 'S'} LEFT{cfg.rushMode ? ' · ⚡ FINAL 10s FLASH' : ''}
+          ⏱ {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED · {roundsLeft} ROUND{roundsLeft === 1 ? '' : 'S'} LEFT{cfg.rushMode ? ` · ⚡ ${rushPatternLabel(cfg.rushPattern)}` : ''}
         </div>
 
         {/* Round indicator dots */}
