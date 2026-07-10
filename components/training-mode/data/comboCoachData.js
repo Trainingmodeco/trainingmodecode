@@ -184,4 +184,14 @@ const COMBO_POOL = [
   { id: 'mma-38', discipline: 'mma', minDifficulty: 'easy', comboText: 'Double Jab Low Kick', category: 'basic', coachingCue: 'Stack jabs, chop the leg.' },
 ];
 
+// Single strikes per discipline — used by Combo Coach's TECHNICAL mode, which
+// drills mostly single shots (with some short combos mixed in) for beginners.
+const BOXING_SINGLES = ['Jab', 'Cross', 'Lead Hook', 'Rear Hook', 'Lead Uppercut', 'Rear Uppercut', 'Body Jab', 'Body Cross'];
+export const SINGLE_STRIKES = {
+  boxing: BOXING_SINGLES,
+  kickboxing: [...BOXING_SINGLES, 'Teep', 'Lead Kick', 'Low Kick', 'Rear Roundhouse', 'Lead Knee', 'Rear Knee'],
+  'muay-thai': [...BOXING_SINGLES, 'Teep', 'Roundhouse', 'Low Kick', 'Lead Knee', 'Rear Knee', 'Lead Elbow', 'Rear Elbow'],
+  mma: [...BOXING_SINGLES, 'Teep', 'Low Kick', 'Rear Roundhouse', 'Lead Knee', 'Rear Knee', 'Overhand'],
+};
+
 export default COMBO_POOL;

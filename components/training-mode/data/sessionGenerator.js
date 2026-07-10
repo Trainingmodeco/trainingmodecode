@@ -1,5 +1,5 @@
 import FIGHT_FOCUS_POOL from './fightFocusData';
-import COMBO_POOL from './comboCoachData';
+import COMBO_POOL, { SINGLE_STRIKES } from './comboCoachData';
 
 const DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'advanced'];
 
@@ -250,7 +250,34 @@ export function generateFightFocusSession({ discipline, difficulty, rounds }) {
   }));
 }
 
-export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration }) {
+// TECHNICAL mode (beginner-friendly): mostly single strikes + short basic
+// combos (~65%), with a minority of longer combos (~35%). Immediate repeats
+// (e.g. "Jab, Jab") are intentional — it drills clean reps.
+function buildTechnicalComboList(discipline, difficulty) {
+  const disc = normalizeDiscipline(discipline);
+  const singles = SINGLE_STRIKES[disc] || SINGLE_STRIKES.boxing;
+  const eligible = filterPool(COMBO_POOL, discipline, difficulty);
+  const basics = eligible.filter(c => c.category === 'basic' || c.category === 'single').map(c => c.comboText);
+  const combos = eligible.filter(c => ['combination', 'counter', 'advanced', 'elite'].includes(c.category)).map(c => c.comboText);
+  const basicsPool = basics.length ? basics : singles;
+  const combosPool = combos.length ? combos : basicsPool;
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  const N = 80;
+  const out = [];
+  for (let i = 0; i < N; i++) {
+    const r = Math.random();
+    if (r < 0.45) out.push(pick(singles));         // ~45% single strikes
+    else if (r < 0.65) out.push(pick(basicsPool));  // ~20% short basic combos
+    else out.push(pick(combosPool));                // ~35% combos
+  }
+  return out;
+}
+
+export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode }) {
+  if (String(mode).toLowerCase() === 'technical') {
+    return buildTechnicalComboList(discipline, difficulty);
+  }
   const eligible = filterPool(COMBO_POOL, discipline, difficulty);
   if (eligible.length === 0) {
     const fallback = COMBO_POOL.filter(c => c.discipline === normalizeDiscipline(discipline));
