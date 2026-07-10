@@ -97,7 +97,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
           <button onClick={onHome || onBack} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><Home size={17}/></button>
         </div>
 
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(140px + env(safe-area-inset-bottom,0px))' }}>
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
           {/* TYPE */}
           <div style={{ display: 'flex', gap: 6, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 10, padding: 4, marginBottom: 13 }}>
             {TYPES.map(t => {
@@ -152,11 +152,9 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
             </div>
             <span style={{ font: "900 15px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
-        </div>
 
-        {/* Sticky GENERATE */}
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 14px calc(14px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(0deg,#080012 70%,transparent)' }}>
-          {!isCardio && <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginBottom: 6 }}>{summary()}</div>}
+          {/* Generate — inline, right under Add Cardio so it's never hidden */}
+          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{summary()}</div>
           <TrainingCTA variant="gold" label={isCardio ? 'START CARDIO' : 'GENERATE WORKOUT'} icon={isCardio ? '❤' : '⚙'} height={48} onClick={generate} style={{ fontSize: 13.5, letterSpacing: '0.06em' }}/>
         </div>
       </div>

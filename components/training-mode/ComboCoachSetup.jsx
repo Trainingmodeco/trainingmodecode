@@ -7,6 +7,7 @@ import { Flame } from 'lucide-react';
 import { C } from './Styles';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import TrainingCTA from './shared/TrainingCTA';
+import FightRingBackdrop from './shared/FightRingBackdrop';
 
 const GOLD = C.gold;
 const VIOLET = C.violet;
@@ -49,6 +50,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
   return (
     <PhoneFrame useBrandBg>
+      <FightRingBackdrop/>
       <style dangerouslySetInnerHTML={{ __html: setupCSS }}/>
       <Embers count={3}/>
 

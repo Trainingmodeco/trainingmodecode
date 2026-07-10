@@ -7,6 +7,7 @@ import { Check, Crosshair, Zap, BookOpen } from 'lucide-react';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile } from './data/userProfile';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
+import FightRingBackdrop from './shared/FightRingBackdrop';
 
 // Fight Mode hub — locked (non-scrolling) SELECT DISCIPLINE grid + CHOOSE MODE list.
 const GOLD = '#fde047';
@@ -65,6 +66,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
   return (
     <PhoneFrame useBrandBg>
+      <FightRingBackdrop opacity={0.22}/>
       <Embers count={3}/>
 
       <TrainingHeader

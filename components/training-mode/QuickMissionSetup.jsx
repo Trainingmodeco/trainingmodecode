@@ -65,7 +65,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
           <SafeImage src="/static/timer-quick-purple.png" alt="" style={{ width: 46, height: 46, objectFit: 'contain', opacity: 0.85 }}/>
         </div>
 
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(140px + env(safe-area-inset-bottom,0px))' }}>
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
           {/* HOW LONG */}
           <Label right={<button onClick={surprise} style={{ display: 'flex', alignItems: 'center', gap: 4, font: "800 8px 'Orbitron',sans-serif", color: VIOLET, background: 'rgba(176,106,255,0.1)', border: '1px solid rgba(176,106,255,0.35)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.06em' }}><Shuffle size={10}/> SURPRISE ME</button>}>HOW LONG?</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7, marginBottom: 16 }}>
@@ -108,11 +108,9 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             </div>
             <span style={{ font: "900 14px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
-        </div>
 
-        {/* Sticky START */}
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 14px calc(14px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(0deg,#080012 70%,transparent)' }}>
-          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginBottom: 6 }}>{duration} min · {focus === 'FULL BODY' ? 'Full Body' : cap(focus)} · {cap(difficulty)}</div>
+          {/* Start — inline, right under Add Cardio so it's never hidden */}
+          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{duration} min · {focus === 'FULL BODY' ? 'Full Body' : cap(focus)} · {cap(difficulty)}</div>
           <TrainingCTA variant="gold" label="START MISSION" icon="▶" height={48} onClick={handleStart} style={{ fontSize: 14, letterSpacing: '0.08em' }}/>
         </div>
       </div>

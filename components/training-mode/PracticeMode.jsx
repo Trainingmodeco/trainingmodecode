@@ -654,8 +654,6 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
   const [completed, setCompleted] = useState(() => getCompletedLessons());
 
   const basics = useMemo(() => START_HERE_LESSONS[discipline] || [], [discipline]);
-  const doneCount = basics.filter(l => completed.includes(l.id)).length;
-  const allBasicsDone = basics.length > 0 && doneCount === basics.length;
   const techniques = getTechniquesFor(discipline, category);
 
   const showToast = useCallback(() => {
@@ -757,61 +755,37 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
             })}
           </div>
 
-          {/* ── Technique Library (unlocks after the basics) ── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 9 }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: allBasicsDone ? '#c4a4d8' : '#6d5a8f', letterSpacing: '0.18em' }}>TECHNIQUE LIBRARY</span>
-            {!allBasicsDone && <Lock size={10} style={{ color: '#8b6fc0' }}/>}
+          {/* ── Technique Library (always available, under the basics) ── */}
+          <SectionLabel>TECHNIQUE LIBRARY</SectionLabel>
+
+          {/* Category pills */}
+          <div style={{ display: 'flex', gap: 7, marginBottom: 10 }}>
+            {PRACTICE_CATEGORIES.map(c => (
+              <button key={c} className={`pm-cat-pill${category === c ? ' active' : ''}`} onClick={() => { setCategory(c); setDetail(null); }}>
+                {c}
+              </button>
+            ))}
           </div>
 
-          {allBasicsDone ? (
-            <>
-              {/* Category pills */}
-              <div style={{ display: 'flex', gap: 7, marginBottom: 10 }}>
-                {PRACTICE_CATEGORIES.map(c => (
-                  <button key={c} className={`pm-cat-pill${category === c ? ' active' : ''}`} onClick={() => { setCategory(c); setDetail(null); }}>
-                    {c}
-                  </button>
-                ))}
-              </div>
+          {/* Combo drill launcher */}
+          <button onClick={() => setComboDrill(true)} style={{ width: '100%', marginBottom: 12, padding: '10px 14px', borderRadius: 11, border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,rgba(176,106,255,0.18),rgba(124,58,237,0.12))', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, color: '#c9a6ff', letterSpacing: '0.06em' }}>🥊 DRILL A COMBO</span>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#9a90b8' }}>Multi-strike call-outs on the beat</span>
+            </span>
+            <ChevronRight size={16} style={{ color: '#b06aff' }}/>
+          </button>
 
-              {/* Combo drill launcher */}
-              <button onClick={() => setComboDrill(true)} style={{ width: '100%', marginBottom: 12, padding: '10px 14px', borderRadius: 11, border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,rgba(176,106,255,0.18),rgba(124,58,237,0.12))', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, color: '#c9a6ff', letterSpacing: '0.06em' }}>🥊 DRILL A COMBO</span>
-                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#9a90b8' }}>Multi-strike call-outs on the beat</span>
-                </span>
-                <ChevronRight size={16} style={{ color: '#b06aff' }}/>
-              </button>
-
-              {/* Grouped technique list */}
-              {techniques.length > 0 ? groupBySubSection(techniques).map(({ section, items }) => (
-                <div key={section} style={{ marginBottom: 14 }}>
-                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9 }}>{section} &middot; {items.length}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {items.map(t => <TechniqueCard key={t.name} technique={t} onTap={openTechnique}/>)}
-                  </div>
-                </div>
-              )) : (
-                <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: C.muted }}>Content coming soon.</div>
-              )}
-            </>
-          ) : (
-            /* Locked teaser */
-            <div style={{ position: 'relative', borderRadius: 12, border: '1px dashed rgba(168,85,247,0.4)', background: 'rgba(16,4,30,0.55)', padding: '18px 16px', textAlign: 'center', overflow: 'hidden' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 11, margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                <Lock size={17} style={{ color: '#b06aff' }}/>
-              </div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11, color: '#c9a6ff', letterSpacing: '0.08em', marginBottom: 6 }}>LOCKED — FINISH THE BASICS</div>
-              <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#9a90b8', lineHeight: 1.4, maxWidth: 260, margin: '0 auto 12px' }}>
-                Complete all {basics.length} {discipline} basics to unlock the full technique library — every strike, defense &amp; footwork drill.
-              </div>
-              <div style={{ maxWidth: 220, margin: '0 auto' }}>
-                <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-                  <div style={{ width: `${basics.length ? (doneCount / basics.length) * 100 : 0}%`, height: '100%', background: 'linear-gradient(90deg,#fde047,#f59e0b)', transition: 'width 0.3s ease' }}/>
-                </div>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.1em', marginTop: 6 }}>{doneCount} / {basics.length} BASICS DONE</div>
+          {/* Grouped technique list */}
+          {techniques.length > 0 ? groupBySubSection(techniques).map(({ section, items }) => (
+            <div key={section} style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9 }}>{section} &middot; {items.length}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {items.map(t => <TechniqueCard key={t.name} technique={t} onTap={openTechnique}/>)}
               </div>
             </div>
+          )) : (
+            <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: C.muted }}>Content coming soon.</div>
           )}
 
           <div style={{ marginTop: 16, textAlign: 'center', fontFamily: "'Press Start 2P',monospace", fontSize: 6.5, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.18em' }}>TRAIN &middot; FIGHT &middot; WIN</div>
