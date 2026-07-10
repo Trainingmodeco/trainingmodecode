@@ -235,7 +235,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         if (wantRush && !rushRef.current) {
           setRush(true);
           setShowRushOverlay(true);
-          if (cfg.voiceOn !== false && !rushSpoken.current) {
+          // Only speak the rush cue in a gap between combos so it never clips
+          // a combo call; if a combo is mid-speech we retry on the next tick.
+          if (cfg.voiceOn !== false && !rushSpoken.current && !isSpeakingCombo.current) {
             rushSpoken.current = true;
             speakAsync('Rush! Go!');
           }

@@ -15,6 +15,11 @@ const GOLD = C.gold;
 const BLUE = '#4f8cff';
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard'];
+const DIFF_DESC = {
+  Easy: 'Fundamental focuses — clean technique, one cue at a time.',
+  Normal: 'Balanced focuses & combinations across your discipline.',
+  Hard: 'Tougher focuses, faster combinations — sharper pace.',
+};
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
 const toInt = (s) => parseInt(s, 10);
@@ -93,9 +98,12 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
           </div>
         </div>
 
-        {/* Difficulty */}
-        <div style={{ marginBottom: 14 }}>
+        {/* Difficulty + explanation */}
+        <div style={{ marginBottom: 6 }}>
           <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} accent={GOLD}/>
+        </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 14, minHeight: 26 }}>
+          <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
         </div>
 
         {/* Stacked steppers */}

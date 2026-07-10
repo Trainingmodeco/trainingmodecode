@@ -617,8 +617,8 @@ function LearningBanner({ discipline, variant, basics, completed, onResume }) {
         cursor: cur ? 'pointer' : 'default',
       }}
     >
-      <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.55 }}/>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(8,1,15,0.94) 0%, rgba(8,1,15,0.66) 42%, rgba(8,1,15,0.22) 100%)' }}/>
+      <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.78 }}/>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(8,1,15,0.9) 0%, rgba(8,1,15,0.5) 46%, rgba(8,1,15,0.08) 100%)' }}/>
       <div style={{ position: 'absolute', left: 16, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'left', maxWidth: '64%' }}>
         {cur ? (
           <>

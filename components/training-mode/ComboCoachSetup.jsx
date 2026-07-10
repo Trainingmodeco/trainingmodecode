@@ -21,6 +21,15 @@ const MODE_DESC = {
   Technical: 'Single strikes on the beat — drill clean technique one shot at a time.',
   Combo: 'Full combinations on the beat — chain strikes together for flow & speed.',
 };
+// Picking a difficulty sets a default cadence (faster as it gets harder); the
+// user can still adjust the CADENCE stepper afterward.
+const CADENCE_BY_DIFF = { Easy: 4, Normal: 3.5, Hard: 3, Advanced: 2.5 };
+const DIFF_DESC = {
+  Easy: 'Base single strikes & simple combos — relaxed pace.',
+  Normal: 'Singles and combinations, about half and half — steady pace.',
+  Hard: 'Adds advanced strikes & longer combos — semi fight pace.',
+  Advanced: 'Advanced strikes & full combos — fight pace.',
+};
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
 const toInt = (s) => parseInt(s, 10);
@@ -62,7 +71,7 @@ function Segmented({ label, options, value, onChange, accent }) {
 
 export default function ComboCoachSetup({ discipline, onBack, onStart, profile }) {
   const [cfg, setCfg] = useState({
-    difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 4,
+    difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
     rush: { on: false, pattern: 'endRound' },
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
@@ -99,9 +108,12 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           </div>
         </div>
 
-        {/* Difficulty */}
-        <div style={{ marginBottom: 12 }}>
-          <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} accent={GOLD}/>
+        {/* Difficulty + explanation (also sets a default cadence) */}
+        <div style={{ marginBottom: 6 }}>
+          <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))} accent={GOLD}/>
+        </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 12, minHeight: 26 }}>
+          <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
         </div>
 
         {/* Mode + explanation */}
