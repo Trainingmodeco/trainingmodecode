@@ -12,17 +12,12 @@ import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
 
 const GOLD = C.gold;
-const VIOLET = C.violet;
 const BLUE = '#4f8cff';
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard'];
-const MODES = ['Technical', 'Combo'];
-const MODE_DESC = {
-  Technical: 'One focus per round — sharpen form, timing & precision on single strikes.',
-  Combo: 'Combinations on the beat — chain strikes together to build flow & speed.',
-};
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
+const toInt = (s) => parseInt(s, 10);
 
 const setupCSS = `
 .ff-seg { transition: all 0.18s ease; cursor: pointer; }
@@ -35,7 +30,6 @@ function SectionLabel({ children }) {
   );
 }
 
-// Full-width segmented selector (stacked: label above the row).
 function Segmented({ label, options, value, onChange, accent }) {
   return (
     <div>
@@ -60,7 +54,7 @@ function Segmented({ label, options, value, onChange, accent }) {
 
 export default function FightFocusSetup({ discipline, onBack, onStart, profile }) {
   const [cfg, setCfg] = useState({
-    difficulty: 'Normal', mode: 'Combo', rounds: 3,
+    difficulty: 'Normal', mode: 'Technical', rounds: 3,
     roundMin: 3, restSec: 60, voiceOn: true,
     rush: { on: false, pattern: 'endRound' },
     encouragement: profile?.encouragement || 'normal',
@@ -100,23 +94,15 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Difficulty */}
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 14 }}>
           <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} accent={GOLD}/>
-        </div>
-
-        {/* Mode + explanation */}
-        <div style={{ marginBottom: 6 }}>
-          <Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 14, minHeight: 28 }}>
-          <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
         </div>
 
         {/* Stacked steppers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
-          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} onChange={v => set('rounds', v)} accent={GOLD}/>
-          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} onChange={v => set('roundMin', v)} accent={GOLD}/>
-          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} onChange={v => set('restSec', v)} accent={BLUE}/>
+          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
+          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
+          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
         </div>
 

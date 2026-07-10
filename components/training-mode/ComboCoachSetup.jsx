@@ -16,8 +16,14 @@ const VIOLET = C.violet;
 const BLUE = '#4f8cff';
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard', 'Advanced'];
+const MODES = ['Technical', 'Combo'];
+const MODE_DESC = {
+  Technical: 'Single strikes on the beat — drill clean technique one shot at a time.',
+  Combo: 'Full combinations on the beat — chain strikes together for flow & speed.',
+};
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
+const toInt = (s) => parseInt(s, 10);
 // Cadence seconds → speed word (drives voice pacing + colour in the player).
 const speedFor = (sec) => (sec >= 5.5 ? 'slow' : sec <= 3.5 ? 'turbo' : 'medium');
 
@@ -56,7 +62,7 @@ function Segmented({ label, options, value, onChange, accent }) {
 
 export default function ComboCoachSetup({ discipline, onBack, onStart, profile }) {
   const [cfg, setCfg] = useState({
-    difficulty: 'Normal', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 4,
+    difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 4,
     rush: { on: false, pattern: 'endRound' },
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
@@ -94,16 +100,24 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Difficulty */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 12 }}>
           <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} accent={GOLD}/>
+        </div>
+
+        {/* Mode + explanation */}
+        <div style={{ marginBottom: 6 }}>
+          <Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/>
+        </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 14, minHeight: 28 }}>
+          <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
         </div>
 
         {/* Stacked steppers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} onChange={v => set('rounds', v)} accent={GOLD}/>
-          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} onChange={v => set('roundMin', v)} accent={GOLD}/>
-          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} onChange={v => set('restSec', v)} accent={BLUE}/>
-          <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="s" min={2} max={8} step={0.5} display={v => v.toFixed(1)} onChange={v => set('cadenceSec', v)} accent={VIOLET}/>
+          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
+          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
+          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
+          <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="s" min={2} max={8} step={0.5} display={v => v.toFixed(1)} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('cadenceSec', v)} accent={VIOLET}/>
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
         </div>
 
@@ -121,7 +135,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
             await primeSpeech();
             const speed = speedFor(cfg.cadenceSec);
             onStart({
-              discipline, difficulty: cfg.difficulty,
+              discipline, difficulty: cfg.difficulty, mode: cfg.mode,
               speed, speedLabel: `${cfg.cadenceSec.toFixed(1)}s`, ms: Math.round(cfg.cadenceSec * 1000),
               rounds: cfg.rounds, roundMin: cfg.roundMin, restSec: cfg.restSec,
               voiceOn: true, rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
