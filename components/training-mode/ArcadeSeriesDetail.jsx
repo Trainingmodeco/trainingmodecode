@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
-import { ChevronLeft, Lock, CheckCircle, Trophy, Crown, Play } from 'lucide-react';
+import FightRingBackdrop from './shared/FightRingBackdrop';
+import { ChevronLeft, Lock, CheckCircle, Trophy, Play } from 'lucide-react';
 import { C } from './Styles';
-import { ArcadeStatusChip, ArcadeSectionLabel, ARCADE } from './ArcadeUI';
+import { ArcadeStatusChip, ArcadeSectionLabel } from './ArcadeUI';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable } from './data/trainingArcadeData';
 
@@ -38,160 +39,11 @@ const detailStyles = `
 }
 `;
 
-const DIFFICULTIES = ['rookie', 'standard', 'heroic', 'boss'];
-const DIFFICULTY_LABELS = { rookie: 'ROOKIE', standard: 'STANDARD', heroic: 'HEROIC', boss: 'BOSS' };
-
-const CADENCE_PRESETS = ['slow', 'moderate', 'fast', 'custom'];
-const CADENCE_LABELS = { slow: 'SLOW', moderate: 'MODERATE', fast: 'FAST', custom: 'CUSTOM' };
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
 
 const REST_OPTIONS = ['short', 'normal', 'extended'];
 const REST_LABELS = { short: 'SHORT', normal: 'NORMAL', extended: 'EXTENDED' };
 const REST_MS_MAP = { short: 15, normal: 30, extended: 60 };
-
-function SegmentedRow({ options, labels, value, onChange, small }) {
-  return (
-    <div style={{
-      display: 'flex', borderRadius: 10, overflow: 'hidden',
-      border: `1px solid ${ARCADE.violetBorderSoft}`,
-    }}>
-      {options.map((o, idx) => {
-        const active = o === value;
-        return (
-          <button key={o} onClick={() => onChange(o)} style={{
-            flex: 1, padding: small ? '9px 4px' : '11px 8px', border: 'none',
-            borderRight: idx < options.length - 1 ? `1px solid ${ARCADE.violetBorderSoft}` : 'none',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
-            fontSize: small ? 8 : 9, letterSpacing: '0.06em',
-            transition: 'all 0.2s ease',
-            background: active ? 'rgba(253,224,71,0.15)' : 'rgba(10,0,20,0.5)',
-            color: active ? GOLD : 'rgba(196,181,253,0.7)',
-            boxShadow: active ? 'inset 0 0 12px rgba(253,224,71,0.18)' : 'none',
-            cursor: 'pointer',
-          }}>
-            {(labels && labels[o]) || o.toUpperCase()}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ToggleRow({ label, description, value, onChange }) {
-  return (
-    <div style={{
-      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: 'rgba(10,0,20,0.6)', borderRadius: 10, padding: '10px 12px',
-      marginBottom: 12,
-      border: `1px solid ${value ? ARCADE.goldBorderSoft : ARCADE.violetBorderSoft}`,
-      transition: 'border-color 0.2s ease',
-    }}>
-      <div>
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: C.text, fontSize: 10, letterSpacing: '0.06em' }}>{label}</div>
-        {description && <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted, marginTop: 2 }}>{description}</div>}
-      </div>
-      <button onClick={() => onChange(!value)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-        <div className={`tm-toggle ${value ? 'on' : ''}`}><div className="tm-toggle-knob"/></div>
-      </button>
-    </div>
-  );
-}
-
-function StageCell({ stage, idx, state, isBoss, isSelected, onSelect }) {
-  const stageNum = stage.stageNumber || (idx + 1);
-  const imgSrc = `/static/stages/s${Math.min(stageNum, 10)}.webp`;
-  const isLocked = state === 'locked';
-  const isComplete = state === 'complete';
-  const isCurrent = state === 'current';
-
-  const borderColor = isComplete
-    ? 'rgba(34,197,94,0.6)'
-    : isCurrent
-      ? 'rgba(253,224,71,0.7)'
-      : 'rgba(168,85,247,0.15)';
-
-  const boxShadow = isCurrent
-    ? '0 0 14px rgba(253,224,71,0.3)'
-    : isComplete
-      ? '0 0 8px rgba(34,197,94,0.2)'
-      : 'none';
-
-  return (
-    <button
-      className={`stage-cell${isLocked ? ' stage-cell-locked' : ''}`}
-      onClick={() => !isLocked && onSelect(idx)}
-      disabled={isLocked}
-      style={{
-        position: 'relative',
-        width: '100%',
-        aspectRatio: '1',
-        borderRadius: 12,
-        border: `2px solid ${borderColor}`,
-        background: isSelected ? 'rgba(253,224,71,0.08)' : 'rgba(10,0,20,0.6)',
-        boxShadow: isSelected ? '0 0 16px rgba(253,224,71,0.35)' : boxShadow,
-        overflow: 'hidden',
-        padding: 0,
-      }}
-    >
-      {/* Stage art - FULL, no crop, no overlay */}
-      <SafeImage
-        src={imgSrc}
-        alt={`Stage ${stageNum}`}
-        loading="lazy"
-        decoding="async"
-        style={{
-          width: '100%', height: '100%',
-          objectFit: 'contain',
-          display: 'block',
-        }}
-      />
-
-      {/* State indicators */}
-      {isComplete && (
-        <div style={{
-          position: 'absolute', top: 4, right: 4,
-          width: 18, height: 18, borderRadius: '50%',
-          background: 'rgba(34,197,94,0.9)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 0 6px rgba(34,197,94,0.5)',
-        }}>
-          <CheckCircle size={11} color="#fff" strokeWidth={2.5}/>
-        </div>
-      )}
-
-      {isCurrent && (
-        <div style={{
-          position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
-          padding: '2px 6px', borderRadius: 4,
-          background: 'rgba(253,224,71,0.9)', color: '#0a0014',
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 6,
-          letterSpacing: '0.06em', whiteSpace: 'nowrap',
-        }}>CURRENT</div>
-      )}
-
-      {isLocked && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(5,0,15,0.4)',
-        }}>
-          <Lock size={16} color="rgba(255,255,255,0.3)"/>
-        </div>
-      )}
-
-      {isBoss && (
-        <div style={{
-          position: 'absolute', top: 4, left: 4,
-          width: 16, height: 16, borderRadius: '50%',
-          background: 'rgba(253,224,71,0.15)', border: '1px solid rgba(253,224,71,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Crown size={9} color={GOLD}/>
-        </div>
-      )}
-    </button>
-  );
-}
 
 function StageDetailCard({ stage, onStart, disabled }) {
   const stageNum = stage.stageNumber || 1;
@@ -355,21 +207,11 @@ function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage 
     return stages.length - 1;
   });
 
-  const [difficulty, setDifficulty] = useState(arcadeSettings?.difficulty || 'standard');
-  const [cadencePreset, setCadencePreset] = useState(arcadeSettings?.cadence || 'moderate');
-  const [customCadenceMs, setCustomCadenceMs] = useState(arcadeSettings?.cadenceMs || 2000);
+  // Difficulty, cadence, voice, and cardio are embedded in the workout / handled
+  // on the timer page — the only session choice here is REST.
   const [rest, setRest] = useState(arcadeSettings?.rest || 'normal');
-  const [voiceCoach, setVoiceCoach] = useState(arcadeSettings?.voiceCoach !== false);
-  const [cadenceCount, setCadenceCount] = useState(arcadeSettings?.cadenceCount !== false);
-  const [cardioFinisher, setCardioFinisher] = useState(arcadeSettings?.cardioFinisher !== false);
 
   const selectedStage = stages[selectedStageIdx];
-  const stageHasCardio = !!selectedStage?.cardioBlock;
-  const cardioRequired = !!selectedStage?.cardioBlock?.cardioRequired;
-  const isBenchmarkStage = selectedStage?.stageType === 'benchmark';
-  const cadenceLocked = selectedStage?.cadenceLocked || false;
-
-  const cadenceMs = cadencePreset === 'custom' ? customCadenceMs : (CADENCE_MS_MAP[cadencePreset] || 2000);
 
   function isStageAccessible(idx) {
     return idx < highestUnlocked;
@@ -387,15 +229,15 @@ function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage 
     if (!isStageAccessible(selectedStageIdx)) return;
 
     const settings = {
-      difficulty,
-      cadence: cadencePreset,
-      cadenceMs,
+      difficulty: arcadeSettings?.difficulty || 'standard',
+      cadence: arcadeSettings?.cadence || 'moderate',
+      cadenceMs: arcadeSettings?.cadenceMs || CADENCE_MS_MAP.moderate,
       rest,
       restSeconds: REST_MS_MAP[rest] || 30,
-      voiceCoach,
-      cadenceCount,
-      cardioFinisher,
-      sound: voiceCoach ? 'on' : 'off',
+      voiceCoach: true,
+      cadenceCount: true,
+      cardioFinisher: true,
+      sound: 'on',
     };
     setActiveChallenge({ seriesId: series.id, stageId: selectedStage.id, selectedMode: 'fit', lastPlayedAt: Date.now() });
     onStartStage(series, selectedStage, 'fit', null, settings);
@@ -403,6 +245,7 @@ function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage 
 
   return (
     <PhoneFrame useBrandBg>
+      <FightRingBackdrop opacity={0.14}/>
       <style dangerouslySetInnerHTML={{ __html: detailStyles }}/>
       <Embers count={3}/>
       <div style={{
@@ -420,7 +263,7 @@ function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage 
           </ArcadeStatusChip>
         </div>
 
-        <div className="no-scrollbar" style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(180px + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="no-scrollbar" style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(90px + env(safe-area-inset-bottom, 0px))' }}>
 
           {/* Series title */}
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
@@ -437,26 +280,55 @@ function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage 
             </div>
           </div>
 
-          {/* 3-column stage grid */}
-          <ArcadeSectionLabel style={{ marginBottom: 8 }}>STAGE SELECT</ArcadeSectionLabel>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
-            marginBottom: 16,
-          }}>
-            {stages.map((stage, idx) => (
-              <StageCell
-                key={stage.id}
-                stage={stage}
-                idx={idx}
-                state={getStageState(idx)}
-                isBoss={stage.isFinalRound}
-                isSelected={idx === selectedStageIdx}
-                onSelect={setSelectedStageIdx}
-              />
-            ))}
+          {/* Horizontal stage map */}
+          <ArcadeSectionLabel style={{ marginBottom: 8 }}>STAGE MAP &middot; {completedStageIds.length}/{stages.length}</ArcadeSectionLabel>
+          <div className="no-scrollbar" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 16, WebkitOverflowScrolling: 'touch' }}>
+            {stages.map((stage, idx) => {
+              const st = getStageState(idx);
+              const selected = idx === selectedStageIdx;
+              const accessible = isStageAccessible(idx);
+              const src = `/static/series/stages/stage-${Math.min(idx + 1, 10)}.webp`;
+              return (
+                <button key={stage.id} onClick={() => accessible && setSelectedStageIdx(idx)} style={{
+                  position: 'relative', flexShrink: 0, width: 60, aspectRatio: '0.6', borderRadius: 10, overflow: 'hidden', padding: 0, background: '#0a0014',
+                  border: selected ? '2px solid #fde047' : st === 'complete' ? '1.5px solid rgba(34,197,94,0.55)' : '1.5px solid rgba(168,85,247,0.25)',
+                  boxShadow: selected ? '0 0 14px rgba(253,224,71,0.5)' : 'none',
+                  cursor: accessible ? 'pointer' : 'default',
+                }}>
+                  <SafeImage src={src} alt={`Stage ${idx + 1}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(0.85) brightness(0.4)' : 'none' }}/>
+                  {st === 'complete' && (
+                    <div style={{ position: 'absolute', top: 3, right: 3, width: 16, height: 16, borderRadius: '50%', background: 'rgba(34,197,94,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CheckCircle size={11} color="#fff"/>
+                    </div>
+                  )}
+                  {st === 'locked' && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={14} color="rgba(255,255,255,0.55)"/>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Selected stage detail card */}
+          {/* Rest — fight-mode style segmented */}
+          <ArcadeSectionLabel style={{ marginBottom: 7 }}>REST</ArcadeSectionLabel>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {REST_OPTIONS.map(o => {
+              const active = o === rest;
+              return (
+                <button key={o} onClick={() => setRest(o)} style={{
+                  flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8,
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, letterSpacing: '0.04em',
+                  background: active ? GOLD : 'rgba(16,4,30,0.8)',
+                  border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
+                  color: active ? '#0a0014' : '#d9d1ef', cursor: 'pointer',
+                }}>{REST_LABELS[o]}</button>
+              );
+            })}
+          </div>
+
+          {/* Selected stage detail card (includes START) */}
           {selectedStage && (
             <StageDetailCard
               stage={selectedStage}
@@ -464,112 +336,6 @@ function OnePunchSetup({ series, progress, arcadeSettings, onBack, onStartStage 
               disabled={!isStageAccessible(selectedStageIdx)}
             />
           )}
-
-          {/* Settings section */}
-          <div style={{ marginTop: 18 }}>
-            <ArcadeSectionLabel style={{ marginBottom: 6 }}>DIFFICULTY</ArcadeSectionLabel>
-            <div style={{ marginBottom: 14 }}>
-              <SegmentedRow options={DIFFICULTIES} labels={DIFFICULTY_LABELS} value={difficulty} onChange={setDifficulty} small/>
-            </div>
-
-            <ArcadeSectionLabel style={{ marginBottom: 6 }}>CADENCE</ArcadeSectionLabel>
-            {cadenceLocked ? (
-              <div style={{
-                padding: '10px 12px', borderRadius: 10, marginBottom: 14,
-                background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)',
-              }}>
-                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: 'rgba(239,68,68,0.8)', fontWeight: 600 }}>
-                  Cadence locked for this stage.
-                </span>
-              </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: 8 }}>
-                  <SegmentedRow options={CADENCE_PRESETS} labels={CADENCE_LABELS} value={cadencePreset} onChange={setCadencePreset}/>
-                </div>
-                {cadencePreset === 'custom' && (
-                  <div style={{
-                    padding: '10px 14px', borderRadius: 10,
-                    background: 'rgba(10,0,20,0.6)', border: `1px solid ${ARCADE.violetBorderSoft}`,
-                    marginBottom: 14,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: GOLD }}>
-                        {(customCadenceMs / 1000).toFixed(2)}
-                      </span>
-                      <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: C.muted }}>
-                        sec / rep
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={750}
-                      max={4000}
-                      step={250}
-                      value={customCadenceMs}
-                      onChange={e => setCustomCadenceMs(Number(e.target.value))}
-                      style={{
-                        width: '100%', height: 6, appearance: 'none', borderRadius: 3,
-                        background: `linear-gradient(to right, ${GOLD} 0%, ${GOLD} ${((customCadenceMs - 750) / (4000 - 750)) * 100}%, rgba(255,255,255,0.08) ${((customCadenceMs - 750) / (4000 - 750)) * 100}%, rgba(255,255,255,0.08) 100%)`,
-                        cursor: 'pointer',
-                      }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                      <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted }}>0.75s FAST</span>
-                      <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted }}>4.00s SLOW</span>
-                    </div>
-                  </div>
-                )}
-                {cadencePreset !== 'custom' && <div style={{ marginBottom: 14 }}/>}
-              </>
-            )}
-
-            <ArcadeSectionLabel style={{ marginBottom: 6 }}>REST</ArcadeSectionLabel>
-            <div style={{ marginBottom: 14 }}>
-              <SegmentedRow options={REST_OPTIONS} labels={REST_LABELS} value={rest} onChange={setRest}/>
-            </div>
-
-            <ToggleRow
-              label="VOICE COACH"
-              description="Audio prompts and rep guidance"
-              value={voiceCoach}
-              onChange={setVoiceCoach}
-            />
-            <ToggleRow
-              label="CADENCE COUNT"
-              description="Coach counts your reps automatically"
-              value={cadenceCount}
-              onChange={setCadenceCount}
-            />
-            {isBenchmarkStage ? (
-              <div style={{
-                width: '100%', borderRadius: 10, padding: '10px 12px', marginBottom: 12,
-                background: 'rgba(10,0,20,0.6)', border: `1px solid ${ARCADE.violetBorderSoft}`,
-              }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: C.text, fontSize: 10, letterSpacing: '0.06em' }}>CARDIO</div>
-                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, marginTop: 2, lineHeight: 1.4 }}>
-                  Stage 1 is benchmark only. Cardio unlocks in Stage 2.
-                </div>
-              </div>
-            ) : stageHasCardio && cardioRequired ? (
-              <div style={{
-                width: '100%', borderRadius: 10, padding: '10px 12px', marginBottom: 12,
-                background: 'rgba(253,224,71,0.06)', border: `1px solid ${ARCADE.goldBorderSoft}`,
-              }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: GOLD, fontSize: 10, letterSpacing: '0.06em' }}>CARDIO BLOCK — REQUIRED</div>
-                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, marginTop: 2, lineHeight: 1.4 }}>
-                  Cardio runs after your rep work to complete this stage.
-                </div>
-              </div>
-            ) : stageHasCardio ? (
-              <ToggleRow
-                label="CARDIO FINISHER"
-                description="Optional cardio block after rep work"
-                value={cardioFinisher}
-                onChange={setCardioFinisher}
-              />
-            ) : null}
-          </div>
         </div>
       </div>
     </PhoneFrame>
