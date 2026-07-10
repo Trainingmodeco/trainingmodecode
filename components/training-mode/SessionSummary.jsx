@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SharePromptModal from './SharePromptModal';
-import CompletedWorkoutShareModal from './CompletedWorkoutShareModal';
 import MissionIntegrityBanner from './MissionIntegrityBanner';
 import SafeImage from './SafeImage';
 import { MessageSquare } from 'lucide-react';
@@ -207,12 +206,6 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
         </div>
       </div>
 
-      <CompletedWorkoutShareModal shareData={{
-        workoutName: modeName,
-        modeName: `${discipline} ${modeName}`,
-        xpEarned,
-        streakDays: streak,
-      }}/>
     </PhoneFrame>
   );
 }

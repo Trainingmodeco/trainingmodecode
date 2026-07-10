@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SharePromptModal from './SharePromptModal';
-import CompletedWorkoutShareModal from './CompletedWorkoutShareModal';
 import CardioFinisherSummaryCard from './CardioFinisherSummaryCard';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
@@ -102,7 +101,6 @@ export default function FitWorkoutComplete({ cfg, completedCount, totalCount, ca
         </div>
       </div>
 
-      <CompletedWorkoutShareModal shareData={{ workoutName: cfg.muscleGroups.join(' + '), modeName: 'Fit Mode', xpEarned: xp, streakDays: streak }}/>
     </PhoneFrame>
   );
 }

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SharePromptModal from './SharePromptModal';
-import CompletedWorkoutShareModal from './CompletedWorkoutShareModal';
 import MissionIntegrityBanner from './MissionIntegrityBanner';
 import CardioFinisherSummaryCard from './CardioFinisherSummaryCard';
 import SafeImage from './SafeImage';
@@ -99,7 +98,6 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
         </div>
       </div>
 
-      <CompletedWorkoutShareModal shareData={{ workoutName: mission.missionName || 'Combat Conditioning', modeName: `Combat Conditioning (${mission.style})`, xpEarned: xp, streakDays: streak }}/>
     </PhoneFrame>
   );
 }
