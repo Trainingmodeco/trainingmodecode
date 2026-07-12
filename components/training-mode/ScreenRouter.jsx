@@ -380,9 +380,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   }
   if (screen === 'arcade_series' && arcadeSeries) {
     return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <ArcadeSeriesDetail onHome={goHome} series={arcadeSeries} onBack={() => arcadeSeries.id === 'one-punch-protocol' ? goTrainingArcade() : goArcadeSeries(arcadeSeries)} onStartStage={goArcadeSession} arcadeSettings={arcadeSettings}/>
-      </WithNav>
+      <ArcadeSeriesDetail onHome={goHome} series={arcadeSeries} onBack={() => arcadeSeries.id === 'one-punch-protocol' ? goTrainingArcade() : goArcadeSeries(arcadeSeries)} onStartStage={goArcadeSession} arcadeSettings={arcadeSettings}/>
     );
   }
   if (screen === 'arcade_session' && arcadeSeries && arcadeStage) {
