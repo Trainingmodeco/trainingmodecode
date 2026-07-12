@@ -37,7 +37,7 @@ function getStageObjectives(stage) {
   const cb = stage.cardioBlock;
   const mins = cb?.durationMinutes || cb?.totalDurationMinutes;
   if (mins) out.push({ label: `${mins} min Cardio`, detail: cb.distanceEquivalent || 'steady pace' });
-  return out.slice(0, 4);
+  return out.slice(0, 3);
 }
 
 export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStage, arcadeSettings }) {
@@ -70,7 +70,7 @@ const ROW = 88;
 const NODE_W = 62;
 const NODE_H = 78;
 const TOP_PAD = 12;
-const MODAL_APPROX = 470; // reserve scroll space so bottom nodes clear the modal
+const MODAL_APPROX = 420; // reserve scroll space so bottom nodes clear the floating modal + nav
 
 function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage }) {
   const stages = useMemo(() => series.stages || [], [series]);
@@ -105,9 +105,9 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
   };
   const accessible = (idx) => idx < highestUnlocked;
 
-  // Render boss (last) at the top, stage 1 at the bottom.
+  // Render boss (last) at the top, stage 1 at the bottom — a straight central climb.
   const rendered = useMemo(() => stages.map((stage, idx) => ({ stage, idx })).reverse(), [stages]);
-  const laneX = (j) => (j === 0 ? 0.5 : j % 2 === 1 ? 0.72 : 0.28);
+  const laneX = () => 0.5;
   const ladderHeight = TOP_PAD + rendered.length * ROW + 20;
 
   // Centre the selected node on mount.
@@ -233,13 +233,13 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
         {/* Stage accordion modal */}
         {selected && (
           <div key={selected.id} className="stage-modal" style={{
-            position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 20,
+            position: 'absolute', left: 10, right: 10, bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))', zIndex: 20,
             background: 'linear-gradient(180deg, rgba(20,6,38,0.98), rgba(10,2,20,0.99))',
-            borderTop: '1.5px solid rgba(253,224,71,0.3)', borderRadius: '20px 20px 0 0',
-            boxShadow: '0 -12px 34px rgba(0,0,0,0.6)',
-            padding: '10px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+            border: '1.5px solid rgba(253,224,71,0.32)', borderRadius: 20,
+            boxShadow: '0 14px 36px rgba(0,0,0,0.6)',
+            padding: '7px 14px 13px',
           }}>
-            <div style={{ width: 38, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.22)', margin: '0 auto 10px' }} />
+            <div style={{ width: 34, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.22)', margin: '0 auto 8px' }} />
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
               <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: GOLD, letterSpacing: '0.14em' }}>
@@ -251,7 +251,7 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
             </div>
 
             {/* Difficulty + best */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '7px 0 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '5px 0 9px' }}>
               <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: C.muted, letterSpacing: '0.04em' }}>Difficulty</span>
               <span style={{ display: 'inline-flex', gap: 2 }}>
                 {Array.from({ length: 5 }, (_, i) => (
@@ -264,10 +264,10 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
             </div>
 
             {/* Objectives */}
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: 'rgba(200,170,255,0.65)', letterSpacing: '0.16em', marginBottom: 6 }}>MISSION OBJECTIVES</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: 'rgba(200,170,255,0.65)', letterSpacing: '0.16em', marginBottom: 5 }}>MISSION OBJECTIVES</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
               {objectives.map((o, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 11px', borderRadius: 9, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(168,85,247,0.16)' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 11px', borderRadius: 9, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(168,85,247,0.16)' }}>
                   <span style={{ color: GOLD, fontSize: 9 }}>◆</span>
                   <span style={{ flex: 1, fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: '#f2ecff' }}>{o.label}</span>
                   <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: C.muted }}>{o.detail}</span>
@@ -276,7 +276,7 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
             </div>
 
             {/* Star reward tiers */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 13 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 11 }}>
               {tiers.map(t => (
                 <div key={t.stars} style={{ flex: 1, textAlign: 'center', padding: '7px 0', borderRadius: 9, background: 'rgba(253,224,71,0.05)', border: '1px solid rgba(253,224,71,0.18)' }}>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: 1, marginBottom: 3 }}>
@@ -288,7 +288,7 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
               ))}
             </div>
 
-            <TrainingCTA label={canEnter ? 'ENTER STAGE' : 'LOCKED'} icon={canEnter ? '▶' : '🔒'} variant="gold" disabled={!canEnter} onClick={handleStart} height={52} />
+            <TrainingCTA label={canEnter ? 'ENTER STAGE' : 'LOCKED'} icon={canEnter ? '▶' : '🔒'} variant="gold" disabled={!canEnter} onClick={handleStart} height={48} />
           </div>
         )}
       </div>
