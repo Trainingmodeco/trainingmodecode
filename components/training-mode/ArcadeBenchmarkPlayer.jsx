@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
-import SafeImage from './SafeImage';
-import { Play, Pause, Square, RotateCcw, MoveHorizontal as MoreHorizontal, Zap } from 'lucide-react';
+import BattleHUD from './shared/BattleHUD';
+import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, recordInvalidAttempt } from './data/arcadeProgress';
 import { addFitModeSession } from './data/userStats';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
-import { getStageBanner } from './data/arcadeVisualAssets';
 
 const GOLD = C.yellow;
 const MIN_CADENCE_MS = 750;
@@ -509,6 +508,25 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Battle HUD "SET COMPLETE": user finished the movement ahead of the count —
+  // jump reps to target, stop the cadence loop, and advance (rest or finish).
+  const handleSetComplete = useCallback(() => {
+    if (phaseRef.current !== 'active') return;
+    cadenceVersionRef.current++;
+    cancelSpeech();
+    const t = tasks[taskIdxRef.current];
+    const target = t?.reps || 100;
+    repRef.current = target;
+    setCurrentRep(target);
+    announce(`${t?.title || 'Exercise'} complete!`);
+    setTimeout(() => {
+      if (phaseRef.current !== 'active') return;
+      if (taskIdxRef.current + 1 < totalTasks) setPhase('rest');
+      else handleBenchmarkComplete();
+    }, 700);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalTasks]);
+
   // Backup manual controls
   const handleManualAdd = useCallback((n) => {
     const target = tasks[taskIdxRef.current]?.reps || 100;
@@ -738,271 +756,119 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     );
   }
 
-  // Active phase
-  const repProgress = currentRep / targetReps;
+  // Active phase — 31a Battle HUD (stage-as-boss). All counting/voice logic
+  // above is unchanged; this is a presentational skin over it.
+  const totalRepsAll = tasks.reduce((s, t) => s + (t.reps || 0), 0) || 1;
+  const doneReps = tasks.slice(0, taskIdx).reduce((s, t) => s + (t.reps || 0), 0) + currentRep;
+  const targetTier = tiers.find(t => Number.isFinite(t.maxMinutes));
+  const targetSec = targetTier ? targetTier.maxMinutes * 60 : null;
+  const ahead = targetSec ? (doneReps / totalRepsAll) >= (elapsed / targetSec) : true;
+  const paceLabel = ({ S: 'PERFECT PACE', A: 'GREAT PACE', B: 'ON PACE', C: 'GRIND IT OUT' })[currentRank.rank] || 'FINISH STRONG';
+  const starsInReach = ({ S: '★★★', A: '★★', B: '★' })[currentRank.rank] || null;
+
+  const hudExtras = (
+    <div style={{ flexShrink: 0 }}>
+      {/* Slim cadence slider */}
+      <div style={{ padding: '0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.14em' }}>CADENCE · {cadenceLabel}</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>
+            {cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s`}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={MIN_CADENCE_MS}
+          max={MAX_CADENCE_MS}
+          step={CADENCE_STEP}
+          value={cadenceMs}
+          onChange={handleCadenceChange}
+          disabled={cadenceLocked}
+          style={{
+            width: '100%', height: 5, borderRadius: 999, outline: 'none',
+            background: cadenceLocked
+              ? 'rgba(239,68,68,0.15)'
+              : `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`,
+            opacity: cadenceLocked ? 0.5 : 1,
+            cursor: cadenceLocked ? 'not-allowed' : 'pointer',
+          }}
+        />
+      </div>
+
+      {/* Backup controls toggle */}
+      <button onClick={() => setShowBackup(!showBackup)} style={{
+        marginTop: 4, background: 'none', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%',
+      }}>
+        <MoreHorizontal size={13} color={C.muted}/>
+        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9.5, color: C.muted }}>
+          {showBackup ? 'Hide Backup' : 'Backup Controls'}
+        </span>
+      </button>
+
+      {showBackup && (
+        <div style={{
+          marginTop: 4, padding: '8px 10px', borderRadius: 10,
+          background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={handleRewind} style={{
+              flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid rgba(168,85,247,0.3)', cursor: 'pointer',
+              background: 'rgba(10,0,20,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.neon,
+            }}><RotateCcw size={11} color={C.neon}/> -5</button>
+            <button onClick={() => handleManualAdd(1)} style={{
+              flex: 1, padding: '7px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+              background: 'rgba(253,224,71,0.06)', fontFamily: "'Orbitron',sans-serif",
+              fontWeight: 700, fontSize: 9, color: GOLD,
+            }}>+1</button>
+            <button onClick={() => handleManualAdd(5)} style={{
+              flex: 1, padding: '7px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+              background: 'rgba(168,85,247,0.06)', fontFamily: "'Orbitron',sans-serif",
+              fontWeight: 700, fontSize: 9, color: '#a855f7',
+            }}>+5</button>
+            <button onClick={() => handleManualAdd(10)} style={{
+              flex: 1, padding: '7px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+              background: 'rgba(59,130,246,0.06)', fontFamily: "'Orbitron',sans-serif",
+              fontWeight: 700, fontSize: 9, color: '#3b82f6',
+            }}>+10</button>
+            <button onClick={handleResetExercise} style={{
+              flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid rgba(245,158,11,0.3)', cursor: 'pointer',
+              background: 'rgba(10,0,20,0.7)', fontFamily: "'Orbitron',sans-serif",
+              fontWeight: 900, fontSize: 8, color: '#f59e0b',
+            }}>RST</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
-      <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        minHeight: '100dvh', padding: '14px 16px calc(160px + env(safe-area-inset-bottom, 0px))',
-        animation: 'bm-fade-in 0.3s ease',
-      }}>
-        {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: GOLD, letterSpacing: '0.15em' }}>
-              ONE PUNCH PROTOCOL
-            </div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted }}>
-              Stage 1 — Hero Entry Test
-            </div>
-          </div>
-          {/* Rank window */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: getRankColor(currentRank.rank),
-              boxShadow: `0 0 5px ${getRankColor(currentRank.rank)}`,
-            }}/>
-            <span style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-              color: getRankColor(currentRank.rank), letterSpacing: '0.08em',
-            }}>{currentRank.label}</span>
-          </div>
-        </div>
-
-        {/* Compact stage banner */}
-        {getStageBanner(stage?.stageNumber) && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
-            <SafeImage
-              src={getStageBanner(stage?.stageNumber)}
-              alt={`STAGE ${stage?.stageNumber}`}
-              preferWebp={false}
-              style={{
-                display: 'block', width: 'auto', maxWidth: '100%', maxHeight: 40,
-                objectFit: 'contain', background: 'transparent',
-              }}
-            />
-          </div>
-        )}
-
-        {/* Benchmark total timer */}
-        <div style={{
-          textAlign: 'center', marginBottom: 6, padding: '6px 12px',
-          background: 'rgba(14,0,28,0.8)', borderRadius: 8,
-          border: '1px solid rgba(253,224,71,0.1)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          alignSelf: 'center',
-        }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: C.text, letterSpacing: '0.05em' }}>
-            {formatTime(elapsed)}
-          </span>
-        </div>
-
-        {/* Exercise badge */}
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
-          <span style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-            padding: '3px 9px', borderRadius: 4,
-            background: 'rgba(253,224,71,0.06)', border: '1px solid rgba(253,224,71,0.2)',
-            color: GOLD,
-          }}>EXERCISE {taskIdx + 1}/{totalTasks}</span>
-          <span style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-            padding: '3px 9px', borderRadius: 4,
-            background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)',
-            color: '#22c55e',
-          }}>CADENCE ON</span>
-          <span style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-            padding: '3px 9px', borderRadius: 4,
-            background: 'rgba(253,224,71,0.04)', border: '1px solid rgba(253,224,71,0.15)',
-            color: GOLD,
-          }}>{cadenceLabel}</span>
-        </div>
-
-        {/* Exercise name */}
-        <h3 style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: GOLD,
-          margin: '0 0 4px', letterSpacing: '0.06em', textAlign: 'center',
-          textShadow: '0 0 12px rgba(253,224,71,0.4)',
-        }}>{task?.title}</h3>
-        {task?.instructions && (
-          <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted, margin: '0 0 8px', textAlign: 'center', lineHeight: 1.3 }}>
-            {task.instructions}
-          </p>
-        )}
-
-        {/* Circular counter */}
-        <CircularProgress
-          progress={repProgress}
-          size={190}
-          strokeWidth={10}
-          color={currentRep >= targetReps ? '#22c55e' : '#a855f7'}
-          bgColor={currentRep >= targetReps ? 'rgba(34,197,94,0.08)' : 'rgba(168,85,247,0.1)'}
-        >
-          <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 44, fontWeight: 900, color: GOLD,
-            animation: currentRep > 0 ? 'bm-rep-pop 0.2s ease-out' : 'none',
-            textShadow: '0 0 16px rgba(253,224,71,0.5)',
-          }}>{currentRep}</div>
-          <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
-            color: C.muted, letterSpacing: '0.15em', marginTop: 4,
-          }}>/ {targetReps}</div>
-        </CircularProgress>
-
-        {/* Announcer text */}
-        <div style={{
-          marginTop: 10, padding: '6px 14px', borderRadius: 8,
-          background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(253,224,71,0.12)',
-          minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{
-            fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 600,
-            color: paused ? GOLD : C.text,
-          }}>{announcerText}</span>
-        </div>
-
-        {/* Next exercise preview */}
-        {nextTask && (
-          <div style={{
-            marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}>
-            <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 5, color: C.muted, letterSpacing: '0.1em' }}>NEXT:</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.text, fontWeight: 600 }}>{nextTask.title}</span>
-          </div>
-        )}
-
-        {/* Cadence slider */}
-        <div style={{ marginTop: 10, padding: '0 8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted, letterSpacing: '0.1em' }}>
-              CADENCE SPEED
-            </span>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>
-              {cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s`}
-            </span>
-          </div>
-          <input
-            type="range"
-            min={MIN_CADENCE_MS}
-            max={MAX_CADENCE_MS}
-            step={CADENCE_STEP}
-            value={cadenceMs}
-            onChange={handleCadenceChange}
-            disabled={cadenceLocked}
-            style={{
-              width: '100%', height: 6, borderRadius: 999, outline: 'none',
-              background: cadenceLocked
-                ? 'rgba(239,68,68,0.15)'
-                : `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`,
-              opacity: cadenceLocked ? 0.5 : 1,
-              cursor: cadenceLocked ? 'not-allowed' : 'pointer',
-            }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted }}>Fast (0.75s)</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted }}>Slow (4s)</span>
-          </div>
-          {cadenceLocked && (
-            <div style={{ textAlign: 'center', marginTop: 4 }}>
-              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: 'rgba(239,68,68,0.7)' }}>
-                Cadence locked for this stage.
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Controls */}
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 12, alignItems: 'center' }}>
-          {/* Rewind */}
-          <button onClick={handleRewind} style={{
-            width: 46, height: 46, borderRadius: 12,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(168,85,247,0.3)',
-            cursor: 'pointer',
-          }}>
-            <RotateCcw size={16} color={C.neon}/>
-          </button>
-
-          {/* Pause/Resume */}
-          <button onClick={handlePauseToggle} style={{
-            width: 60, height: 60, borderRadius: 16,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: paused
-              ? 'rgba(253,224,71,0.12)'
-              : 'linear-gradient(135deg, rgba(253,224,71,0.25), rgba(253,224,71,0.12))',
-            border: `1.5px solid ${paused ? GOLD : 'rgba(253,224,71,0.4)'}`,
-            cursor: 'pointer',
-            boxShadow: paused ? 'none' : '0 0 16px rgba(253,224,71,0.15)',
-          }}>
-            {paused ? <Play size={22} color={GOLD}/> : <Pause size={22} color="#fff"/>}
-          </button>
-
-          {/* Reset */}
-          <button onClick={handleResetExercise} style={{
-            width: 46, height: 46, borderRadius: 12,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(245,158,11,0.3)',
-            cursor: 'pointer',
-          }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 900, color: '#f59e0b' }}>RST</span>
-          </button>
-
-          {/* Stop */}
-          <button onClick={handleStop} style={{
-            width: 46, height: 46, borderRadius: 12,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-            cursor: 'pointer',
-          }}>
-            <Square size={14} color="#ef4444"/>
-          </button>
-        </div>
-
-        {/* Backup controls toggle */}
-        <button onClick={() => setShowBackup(!showBackup)} style={{
-          marginTop: 10, background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%',
-        }}>
-          <MoreHorizontal size={14} color={C.muted}/>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted }}>
-            {showBackup ? 'Hide Backup' : 'Backup Controls'}
-          </span>
-        </button>
-
-        {/* Backup manual rep controls (hidden by default) */}
-        {showBackup && (
-          <div style={{
-            marginTop: 6, padding: '10px 12px', borderRadius: 10,
-            background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-          }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, marginBottom: 6, textAlign: 'center' }}>
-              Manual adjustment (backup only)
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => handleManualAdd(1)} style={{
-                flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                background: 'rgba(253,224,71,0.06)', fontFamily: "'Orbitron',sans-serif",
-                fontWeight: 700, fontSize: 9, color: GOLD,
-              }}>+1</button>
-              <button onClick={() => handleManualAdd(5)} style={{
-                flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                background: 'rgba(168,85,247,0.06)', fontFamily: "'Orbitron',sans-serif",
-                fontWeight: 700, fontSize: 9, color: '#a855f7',
-              }}>+5</button>
-              <button onClick={() => handleManualAdd(10)} style={{
-                flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                background: 'rgba(59,130,246,0.06)', fontFamily: "'Orbitron',sans-serif",
-                fontWeight: 700, fontSize: 9, color: '#3b82f6',
-              }}>+10</button>
-            </div>
-          </div>
-        )}
-      </div>
+      <BattleHUD
+        stageNumber={stage?.stageNumber || 1}
+        stageTitle={stage?.title}
+        hp={Math.max(0, 1 - doneReps / totalRepsAll)}
+        move={task?.title}
+        rep={currentRep}
+        target={targetReps}
+        combo={currentRep}
+        paceLabel={paceLabel}
+        elapsedLabel={formatTime(elapsed)}
+        targetLabel={targetSec ? formatTime(targetSec) : null}
+        barFrac={doneReps / totalRepsAll}
+        ahead={ahead}
+        starsInReach={starsInReach}
+        nextLabel={nextTask ? `${nextTask.title.toUpperCase()} ×${nextTask.reps}` : 'FINAL SET — STAGE CLEAR'}
+        nextSub={nextTask ? `after ${selectedRestSeconds}s rest` : null}
+        announcerText={announcerText}
+        paused={paused}
+        onSetComplete={handleSetComplete}
+        onPauseToggle={handlePauseToggle}
+        onStop={handleStop}
+        extras={hudExtras}
+      />
 
       {/* Stop confirmation modal */}
       {confirmStop && (
