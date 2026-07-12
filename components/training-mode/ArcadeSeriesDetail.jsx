@@ -1,10 +1,10 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import TrainingCTA from './shared/TrainingCTA';
-import { ChevronLeft, Lock, Check, Trophy, CheckCircle, Star } from 'lucide-react';
+import { ChevronLeft, Lock, Check, Trophy, CheckCircle, X } from 'lucide-react';
 import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable } from './data/trainingArcadeData';
@@ -66,11 +66,16 @@ export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStag
 }
 
 // ── 30b: branching ladder + stage accordion modal ─────────────────────────────
-const ROW = 88;
-const NODE_W = 62;
-const NODE_H = 78;
-const TOP_PAD = 12;
-const MODAL_APPROX = 420; // reserve scroll space so bottom nodes clear the floating modal + nav
+const NODE_W = 40;
+const NODE_H = 50;
+const BOSS_W = 50;
+const BOSS_H = 60;
+// Node centres as a fraction of the ladder height, so all stages always fit
+// on one screen (no scroll) regardless of viewport size.
+const CF_TOP = 0.06;
+const CF_SPAN = 0.9;
+// Zig-zag lanes: boss centred at the top, the rest alternate left/right.
+const laneX = (j) => (j === 0 ? 0.5 : j % 2 === 1 ? 0.24 : 0.76);
 
 function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage }) {
   const stages = useMemo(() => series.stages || [], [series]);
@@ -88,15 +93,8 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
     return stages.length;
   }, [stages, progress]);
 
-  const [selectedIdx, setSelectedIdx] = useState(() => {
-    for (let i = 0; i < stages.length; i++) {
-      if (!completedSet.has(stages[i].id)) return Math.min(i, Math.max(0, highestUnlocked - 1));
-    }
-    return stages.length - 1;
-  });
-
-  const ladderRef = useRef(null);
-  const nodeRefs = useRef({});
+  // The modal is closed until a stage is tapped.
+  const [openIdx, setOpenIdx] = useState(null);
 
   const stageState = (idx) => {
     if (completedSet.has(stages[idx].id)) return 'complete';
@@ -105,23 +103,13 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
   };
   const accessible = (idx) => idx < highestUnlocked;
 
-  // Render boss (last) at the top, stage 1 at the bottom — a straight central climb.
+  // Render boss (last) at the top, stage 1 at the bottom.
   const rendered = useMemo(() => stages.map((stage, idx) => ({ stage, idx })).reverse(), [stages]);
-  const laneX = () => 0.5;
-  const ladderHeight = TOP_PAD + rendered.length * ROW + 20;
+  const cf = (j) => CF_TOP + (rendered.length > 1 ? (j / (rendered.length - 1)) * CF_SPAN : 0);
 
-  // Centre the selected node on mount.
-  useEffect(() => {
-    const el = nodeRefs.current[selectedIdx];
-    const c = ladderRef.current;
-    // Centre the selected node within the region visible above the modal.
-    if (el && c) c.scrollTop = Math.max(0, el.offsetTop - (c.clientHeight - MODAL_APPROX) / 2 - NODE_H / 2);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const selected = stages[selectedIdx];
-  const canEnter = accessible(selectedIdx);
   const clearedCount = completedSet.size;
+  const selected = openIdx != null ? stages[openIdx] : null;
+  const canEnter = openIdx != null && accessible(openIdx);
 
   function handleStart() {
     if (!selected || !canEnter) return;
@@ -139,11 +127,6 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
   const objectives = selected ? getStageObjectives(selected) : [];
   const difficulty = selected ? Math.min(5, Math.max(1, Math.ceil((selected.stageNumber || 1) / 2))) : 1;
   const baseXp = selected?.rewards?.xp || 100;
-  const tiers = [
-    { stars: 1, label: 'CLEAR', xp: baseXp },
-    { stars: 2, label: 'GREAT', xp: Math.round(baseXp * 1.5) },
-    { stars: 3, label: 'PERFECT', xp: baseXp * 2 },
-  ];
 
   return (
     <PhoneFrame useBrandBg>
@@ -151,144 +134,130 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
       <style dangerouslySetInnerHTML={{ __html: detailStyles }} />
       <Embers count={3} />
 
-      <div style={{ position: 'relative', zIndex: 10, height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{
+        position: 'relative', zIndex: 10, height: '100dvh', boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+      }}>
         {/* Header */}
-        <div style={{ position: 'relative', flexShrink: 0, padding: '12px 16px 8px', textAlign: 'center' }}>
+        <div style={{ position: 'relative', flexShrink: 0, padding: '12px 16px 6px', textAlign: 'center' }}>
           <button onClick={onBack} aria-label="Back" style={{ position: 'absolute', left: 12, top: 10, width: 32, height: 32, borderRadius: 9, border: '1px solid rgba(253,224,71,0.28)', background: 'rgba(14,3,26,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ChevronLeft size={18} color={GOLD} />
           </button>
+          <div style={{ position: 'absolute', right: 12, top: 12, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
+            {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
+          </div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.08em', background: 'linear-gradient(180deg,#fff6c2,#fde047 45%,#f59e0b 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 0 12px rgba(253,224,71,0.35))' }}>{series.title.toUpperCase()}</div>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: 'rgba(230,215,255,0.6)', letterSpacing: '0.14em', marginTop: 4 }}>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: 'rgba(230,215,255,0.6)', letterSpacing: '0.14em', marginTop: 3 }}>
             THE CLIMB · {clearedCount} of {stages.length} · tap a stage
           </div>
         </div>
 
-        {/* Ladder */}
-        <div ref={ladderRef} className="ladder-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative', WebkitOverflowScrolling: 'touch' }}>
-          <div style={{ position: 'relative', height: ladderHeight + MODAL_APPROX }}>
-            {/* Connector path */}
-            <svg width="100%" height={ladderHeight} viewBox={`0 0 100 ${ladderHeight}`} preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-              <defs>
-                <linearGradient id="ladderPath" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(253,224,71,0.55)" />
-                  <stop offset="100%" stopColor="rgba(168,85,247,0.45)" />
-                </linearGradient>
-              </defs>
-              <polyline
-                points={rendered.map((_, j) => `${laneX(j) * 100},${TOP_PAD + j * ROW + NODE_H / 2}`).join(' ')}
-                fill="none" stroke="url(#ladderPath)" strokeWidth={3} strokeLinejoin="round" strokeLinecap="round"
-                strokeDasharray="2 5" vectorEffect="non-scaling-stroke"
-              />
-            </svg>
+        {/* Ladder — fixed, no scroll; nodes distributed by % of the height */}
+        <div style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+          {/* Connector zig-zag */}
+          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            <defs>
+              <linearGradient id="ladderPath" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(253,224,71,0.55)" />
+                <stop offset="100%" stopColor="rgba(168,85,247,0.45)" />
+              </linearGradient>
+            </defs>
+            <polyline
+              points={rendered.map((_, j) => `${laneX(j) * 100},${cf(j) * 100}`).join(' ')}
+              fill="none" stroke="url(#ladderPath)" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
+              strokeDasharray="2 5" vectorEffect="non-scaling-stroke"
+            />
+          </svg>
 
-            {/* Nodes */}
-            {rendered.map(({ stage, idx }, j) => {
-              const st = stageState(idx);
-              const isSel = idx === selectedIdx;
-              const isBoss = stage.isFinalRound;
-              const src = `/static/series/stages/stage-${Math.min(idx + 1, 10)}.webp`;
-              const w = isBoss ? NODE_W + 10 : NODE_W;
-              const h = isBoss ? NODE_H + 8 : NODE_H;
-              return (
-                <button
-                  key={stage.id}
-                  ref={el => { nodeRefs.current[idx] = el; }}
-                  className="ladder-node"
-                  onClick={() => accessible(idx) && setSelectedIdx(idx)}
-                  style={{
-                    position: 'absolute', top: TOP_PAD + j * ROW - (h - NODE_H) / 2, left: `${laneX(j) * 100}%`, transform: 'translateX(-50%)',
-                    width: w, height: h, padding: 0, borderRadius: 12, overflow: 'hidden', background: '#0a0014',
-                    border: isSel ? '2px solid #fde047' : st === 'complete' ? '1.5px solid rgba(52,211,153,0.6)' : isBoss ? '1.5px solid rgba(253,224,71,0.5)' : '1.5px solid rgba(168,85,247,0.3)',
-                    boxShadow: isSel ? '0 0 18px rgba(253,224,71,0.6)' : isBoss ? '0 0 16px rgba(253,224,71,0.3)' : '0 4px 12px rgba(0,0,0,0.5)',
-                    cursor: accessible(idx) ? 'pointer' : 'default', zIndex: 2,
-                  }}
-                >
-                  <SafeImage src={src} alt={`Stage ${idx + 1}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(0.9) brightness(0.4)' : 'none' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.5)' : 'linear-gradient(to top, rgba(5,0,12,0.85), transparent 60%)' }} />
-                  {/* number / boss badge */}
-                  <div style={{ position: 'absolute', top: 3, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isBoss ? 9 : 11, color: isBoss ? GOLD : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                    {isBoss ? 'BOSS' : idx + 1}
+          {/* Nodes */}
+          {rendered.map(({ stage, idx }, j) => {
+            const st = stageState(idx);
+            const isOpen = idx === openIdx;
+            const isBoss = stage.isFinalRound;
+            const src = `/static/series/stages/stage-${Math.min(idx + 1, 10)}.webp`;
+            const w = isBoss ? BOSS_W : NODE_W;
+            const h = isBoss ? BOSS_H : NODE_H;
+            return (
+              <button
+                key={stage.id}
+                className="ladder-node"
+                onClick={() => setOpenIdx(idx)}
+                style={{
+                  position: 'absolute', top: `calc(${(cf(j) * 100).toFixed(3)}% - ${h / 2}px)`, left: `${laneX(j) * 100}%`,
+                  transform: isOpen ? 'translateX(-50%) scale(1.12)' : 'translateX(-50%)',
+                  width: w, height: h, padding: 0, borderRadius: 10, overflow: 'hidden', background: '#0a0014',
+                  border: isOpen ? '2px solid #fff' : st === 'complete' ? '1.5px solid rgba(52,211,153,0.65)' : st === 'current' ? '2px solid #fde047' : isBoss ? '1.5px solid rgba(253,224,71,0.5)' : '1.5px solid rgba(168,85,247,0.3)',
+                  boxShadow: isOpen ? '0 0 18px rgba(255,255,255,0.5)' : st === 'current' ? '0 0 16px rgba(253,224,71,0.55)' : isBoss ? '0 0 14px rgba(253,224,71,0.3)' : '0 3px 10px rgba(0,0,0,0.5)',
+                  cursor: 'pointer', zIndex: isOpen ? 4 : 2,
+                }}
+              >
+                <SafeImage src={src} alt={`Stage ${idx + 1}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(0.9) brightness(0.4)' : 'none' }} />
+                <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.45)' : 'linear-gradient(to top, rgba(5,0,12,0.8), transparent 62%)' }} />
+                <div style={{ position: 'absolute', top: 2, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isBoss ? 8 : 11, color: isBoss ? GOLD : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                  {isBoss ? 'BOSS' : idx + 1}
+                </div>
+                {st === 'complete' && (
+                  <div style={{ position: 'absolute', top: 2, right: 2, width: 14, height: 14, borderRadius: '50%', background: 'rgba(52,211,153,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Check size={9} color="#04140c" strokeWidth={3} />
                   </div>
-                  {st === 'complete' && (
-                    <div style={{ position: 'absolute', top: 3, right: 3, width: 16, height: 16, borderRadius: '50%', background: 'rgba(52,211,153,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Check size={11} color="#04140c" strokeWidth={3} />
-                    </div>
-                  )}
-                  {st === 'locked' && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Lock size={16} color="rgba(255,255,255,0.6)" />
-                    </div>
-                  )}
-                  {isBoss && st !== 'locked' && (
-                    <div style={{ position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)' }}>
-                      <Trophy size={13} color={GOLD} />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                )}
+                {st === 'locked' && (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Lock size={14} color="rgba(255,255,255,0.6)" />
+                  </div>
+                )}
+                {isBoss && st !== 'locked' && (
+                  <div style={{ position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)' }}>
+                    <Trophy size={11} color={GOLD} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Stage accordion modal */}
+        {/* Compact stage popup — opens on tap */}
         {selected && (
           <div key={selected.id} className="stage-modal" style={{
-            position: 'absolute', left: 10, right: 10, bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))', zIndex: 20,
-            background: 'linear-gradient(180deg, rgba(20,6,38,0.98), rgba(10,2,20,0.99))',
-            border: '1.5px solid rgba(253,224,71,0.32)', borderRadius: 20,
-            boxShadow: '0 14px 36px rgba(0,0,0,0.6)',
-            padding: '7px 14px 13px',
+            position: 'absolute', left: 10, right: 10, bottom: 'calc(78px + env(safe-area-inset-bottom, 0px))', zIndex: 20,
+            background: 'linear-gradient(180deg, rgba(22,7,40,0.98), rgba(10,2,20,0.99))',
+            border: '1.5px solid rgba(253,224,71,0.34)', borderRadius: 18,
+            boxShadow: '0 14px 36px rgba(0,0,0,0.65)',
+            padding: '10px 14px 12px',
           }}>
-            <div style={{ width: 34, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.22)', margin: '0 auto 8px' }} />
+            <button onClick={() => setOpenIdx(null)} aria-label="Close" style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X size={14} color="rgba(235,225,255,0.8)" />
+            </button>
 
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: GOLD, letterSpacing: '0.14em' }}>
-                SELECTED · {selected.isFinalRound ? 'FINAL BOSS' : `STAGE ${selected.stageNumber}`}
-              </span>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: GOLD, letterSpacing: '0.14em' }}>
+              {selected.isFinalRound ? 'FINAL BOSS' : `STAGE ${selected.stageNumber}`}
             </div>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.05 }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.05, marginTop: 1, paddingRight: 22 }}>
               {selected.title.toUpperCase()}
             </div>
 
-            {/* Difficulty + best */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '5px 0 9px' }}>
-              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: C.muted, letterSpacing: '0.04em' }}>Difficulty</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '5px 0 8px' }}>
               <span style={{ display: 'inline-flex', gap: 2 }}>
                 {Array.from({ length: 5 }, (_, i) => (
-                  <span key={i} style={{ width: 8, height: 12, borderRadius: 2, background: i < difficulty ? 'linear-gradient(180deg,#fde047,#f59e0b)' : 'rgba(255,255,255,0.14)' }} />
+                  <span key={i} style={{ width: 7, height: 11, borderRadius: 2, background: i < difficulty ? 'linear-gradient(180deg,#fde047,#f59e0b)' : 'rgba(255,255,255,0.14)' }} />
                 ))}
               </span>
-              <span style={{ marginLeft: 'auto', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: 'rgba(200,170,255,0.7)' }}>
-                {clearedCount >= (selected.stageNumber || 0) ? '✓ Cleared' : `+${baseXp} XP on clear`}
+              <span style={{ marginLeft: 'auto', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: GOLD, letterSpacing: '0.06em' }}>
+                {clearedCount >= (selected.stageNumber || 0) ? '✓ CLEARED' : `+${baseXp} XP`}
               </span>
             </div>
 
-            {/* Objectives */}
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: 'rgba(200,170,255,0.65)', letterSpacing: '0.16em', marginBottom: 5 }}>MISSION OBJECTIVES</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
+            {/* Objectives as compact chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 11 }}>
               {objectives.map((o, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 11px', borderRadius: 9, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(168,85,247,0.16)' }}>
-                  <span style={{ color: GOLD, fontSize: 9 }}>◆</span>
-                  <span style={{ flex: 1, fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: '#f2ecff' }}>{o.label}</span>
-                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: C.muted }}>{o.detail}</span>
-                </div>
+                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 7, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(168,85,247,0.2)', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#f2ecff' }}>
+                  <span style={{ color: GOLD, fontSize: 8 }}>◆</span>{o.label}
+                </span>
               ))}
             </div>
 
-            {/* Star reward tiers */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 11 }}>
-              {tiers.map(t => (
-                <div key={t.stars} style={{ flex: 1, textAlign: 'center', padding: '7px 0', borderRadius: 9, background: 'rgba(253,224,71,0.05)', border: '1px solid rgba(253,224,71,0.18)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: 1, marginBottom: 3 }}>
-                    {Array.from({ length: t.stars }, (_, i) => <Star key={i} size={9} fill={GOLD} color={GOLD} strokeWidth={0} />)}
-                  </div>
-                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7, color: 'rgba(230,215,255,0.7)', letterSpacing: '0.06em' }}>{t.label}</div>
-                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, color: GOLD, marginTop: 1 }}>+{t.xp}</div>
-                </div>
-              ))}
-            </div>
-
-            <TrainingCTA label={canEnter ? 'ENTER STAGE' : 'LOCKED'} icon={canEnter ? '▶' : '🔒'} variant="gold" disabled={!canEnter} onClick={handleStart} height={48} />
+            <TrainingCTA label={canEnter ? 'ENTER STAGE' : 'LOCKED'} icon={canEnter ? '▶' : '🔒'} variant="gold" disabled={!canEnter} onClick={handleStart} height={46} />
           </div>
         )}
       </div>
