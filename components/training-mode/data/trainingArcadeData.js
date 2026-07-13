@@ -586,6 +586,12 @@ const ONE_PUNCH_STAGES = [
     requiresFullCompletionToUnlockNext: false,
     cardioMode: 'choice',
     scoringTiers: BOSS_SCORING,
+    // ~21 min reps (mixed cadences) + 8 min rests + 40 min cardio + inserts ≈ 73 min.
+    starTiers: [
+      { stars: 3, maxMinutes: 75 },
+      { stars: 2, maxMinutes: 85 },
+      { stars: 1, maxMinutes: 100 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 8,
@@ -642,6 +648,12 @@ const MYTHIC_BOSS_STAGE = {
   displayLabel: 'Elite challenge. Not required for series completion.',
   basePoints: 1000,
   requiresFullCompletionToUnlockNext: false,
+  // 1500 reps (~50 min at cadence) + rests + 20 km cardio (~120 min) ≈ 190 min.
+  starTiers: [
+    { stars: 3, maxMinutes: 195 },
+    { stars: 2, maxMinutes: 220 },
+    { stars: 1, maxMinutes: 250 },
+  ],
   fitBlock: {
     mode: 'fit',
     rounds: 20,

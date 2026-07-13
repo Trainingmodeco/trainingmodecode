@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { C } from './Styles';
 import StageChrome from './shared/StageChrome';
 import BattleHUD from './shared/BattleHUD';
-import { SkipForward, RotateCcw, Play, Pause } from 'lucide-react';
+import { SkipForward, RotateCcw } from 'lucide-react';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 
@@ -415,66 +415,42 @@ export default function ArcadeCadenceRepPlayer({
     );
   }
 
-  // Rest phase
+  const stageHp = Math.max(0, 1 - (taskIdx + Math.min(currentRep / targetReps, 1)) / Math.max(totalTasks, 1));
+
+  // Rest phase — 31a rest state inside the Battle HUD (HP frozen, blue
+  // countdown centre, SKIP REST as the primary button).
   if (phase === 'rest') {
-    const restProgress = restTimer / restSeconds;
-    const nextLabel = nextTaskTitle || null;
     return (
       <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
         <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '16px', animation: 'cadence-fade-in 0.3s ease' }}>
-          <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: '#4f8cff',
-            letterSpacing: '0.2em', marginBottom: 14, animation: 'cadence-rest-glow 1.5s ease-in-out infinite',
-          }}>REST</div>
-          <CircularProgress progress={restProgress} size={170} color="#4f8cff" bgColor="rgba(79,140,255,0.08)">
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 38, fontWeight: 900, color: C.text,
-              textShadow: '0 0 12px rgba(79,140,255,0.4)',
-            }}>{restSeconds - restTimer}</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, marginTop: 2 }}>seconds</div>
-          </CircularProgress>
-          {nextLabel && (
-            <div style={{
-              marginTop: 14, padding: '8px 14px', borderRadius: 8,
-              background: 'rgba(253,224,71,0.04)', border: '1px solid rgba(253,224,71,0.12)',
-            }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.16em' }}>NEXT UP</span>
-              <p style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: GOLD, margin: '4px 0 0' }}>
-                {nextLabel}
-              </p>
-            </div>
-          )}
-          <div style={{
-            marginTop: 10, padding: '8px 14px', borderRadius: 8,
-            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(79,140,255,0.15)',
-          }}>
-            <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, margin: 0 }}>
-              {announcerText}
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
-            <button onClick={handlePauseToggle} aria-label={paused ? 'Resume rest' : 'Pause rest'} style={{
-              width: 38, height: 34, borderRadius: 8, cursor: 'pointer',
-              background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)',
-              border: `1px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {paused ? <Play size={14} color={GOLD}/> : <Pause size={14} color="#e6d4ff"/>}
-            </button>
-            <button onClick={() => onComplete({ valid: true, elapsed })} style={{
-              padding: '9px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: 'rgba(79,140,255,0.12)', fontFamily: "'Orbitron',sans-serif",
-              fontWeight: 700, fontSize: 9, color: '#4f8cff', letterSpacing: '0.1em',
-            }}>SKIP REST</button>
-          </div>
-        </div>
+        <BattleHUD
+          stageNumber={stage?.stageNumber || ''}
+          stageTitle={stage?.title}
+          hp={stageHp}
+          move={task?.title}
+          rep={currentRep}
+          target={targetReps}
+          combo={currentRep}
+          paceLabel="REST"
+          elapsedLabel={formatTime(elapsed)}
+          targetLabel={null}
+          barFrac={restSeconds > 0 ? restTimer / restSeconds : 0}
+          ahead
+          paceStatusLabel="RECOVER & BREATHE"
+          starsInReach={null}
+          nextLabel={nextTaskTitle ? nextTaskTitle.toUpperCase() : 'NEXT ROUND'}
+          nextSub={`in ${Math.max(0, restSeconds - restTimer)}s`}
+          announcerText={announcerText}
+          paused={paused}
+          rest={{ seconds: Math.max(0, restSeconds - restTimer), onSkip: () => onComplete({ valid: true, elapsed }) }}
+          onPauseToggle={handlePauseToggle}
+          onStop={handleStop}
+        />
       </StageChrome>
     );
   }
 
   // Active phase — Battle HUD (stage-as-boss)
-  const stageHp = Math.max(0, 1 - (taskIdx + Math.min(currentRep / targetReps, 1)) / Math.max(totalTasks, 1));
   const hudExtras = (
     <div style={{ flexShrink: 0 }}>
       <div style={{ padding: '0 4px' }}>

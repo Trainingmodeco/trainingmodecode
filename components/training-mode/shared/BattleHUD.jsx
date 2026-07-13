@@ -1,15 +1,50 @@
-import { Pause, Play, Square, Check } from 'lucide-react';
+import { Pause, Play, Square, Check, SkipForward } from 'lucide-react';
 
 // 31a — Battle HUD: the arcade live-stage skin. Purely presentational; the
 // hosting player owns all timers, counting and voice. The stage is framed as a
-// boss with an HP bar that drains as reps land.
+// boss with an HP bar that drains as reps land. Passing `rest` swaps the
+// centre + primary button into the between-rounds rest state.
 const GOLD = '#fde047';
+const REST_BLUE = '#4f8cff';
 
 const HUD_STYLES = `
 @keyframes hud-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes hud-rep-pop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
 @keyframes hud-pace-blink { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes hud-rest-pulse { 0%,100% { text-shadow: 0 0 14px rgba(79,140,255,0.4); } 50% { text-shadow: 0 0 26px rgba(79,140,255,0.75); } }
+@keyframes hud-clear-in { 0% { transform: scale(0.4); opacity: 0; } 55% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes hud-clear-rays { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes hud-clear-flash { 0% { opacity: 0.9; } 100% { opacity: 0; } }
 `;
+
+// Stage-finish moment: a short K.O.-style flash the host shows for ~2s when
+// the last rep lands, before the full clear screen takes over.
+export function StageClearFlash({ stageNumber, label = 'STAGE CLEAR!' }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,0,12,0.88)' }}>
+      <style dangerouslySetInnerHTML={{ __html: HUD_STYLES }} />
+      {/* white impact flash */}
+      <div style={{ position: 'absolute', inset: 0, background: '#fff', animation: 'hud-clear-flash 0.5s ease-out forwards' }} />
+      {/* rotating rays */}
+      <div aria-hidden style={{ position: 'absolute', width: 520, height: 520, borderRadius: '50%', background: 'conic-gradient(from 0deg, transparent 0deg, rgba(253,224,71,0.18) 14deg, transparent 28deg, transparent 90deg, rgba(253,224,71,0.18) 104deg, transparent 118deg, transparent 180deg, rgba(253,224,71,0.18) 194deg, transparent 208deg, transparent 270deg, rgba(253,224,71,0.18) 284deg, transparent 298deg)', animation: 'hud-clear-rays 7s linear infinite', filter: 'blur(1px)' }} />
+      <div style={{ position: 'relative', textAlign: 'center', animation: 'hud-clear-in 0.55s cubic-bezier(.2,1.6,.4,1) both' }}>
+        {Number.isFinite(stageNumber) && (
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: '#c9a6ff', letterSpacing: '0.3em', marginBottom: 10 }}>STAGE {stageNumber}</div>
+        )}
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40, color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 30px rgba(253,224,71,0.7), 0 4px 0 rgba(160,105,10,0.9)' }}>
+          {label}
+        </div>
+        {/* HP bar smashed to zero */}
+        <div style={{ width: 220, margin: '14px auto 0' }}>
+          <div style={{ height: 9, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(168,85,247,0.4)' }}>
+            <div style={{ width: 0, height: '100%' }} />
+          </div>
+          <div style={{ marginTop: 5, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, color: '#fca5a5', letterSpacing: '0.22em' }}>STAGE HP 0% · DOWN!</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BattleHUD({
   stageNumber, stageTitle,
@@ -21,9 +56,11 @@ export default function BattleHUD({
   nextLabel, nextSub,
   announcerText, paused,
   onSetComplete, onPauseToggle, onStop,
+  rest,                  // { seconds, onSkip } — between-rounds rest state
   extras,
 }) {
   const hpPct = Math.round(Math.max(0, Math.min(1, hp)) * 100);
+  const restClock = rest ? `${Math.floor(Math.max(0, rest.seconds) / 60)}:${String(Math.max(0, rest.seconds) % 60).padStart(2, '0')}` : null;
 
   return (
     <div style={{
@@ -59,8 +96,22 @@ export default function BattleHUD({
         </button>
       </div>
 
-      {/* Centre: current move + counter (the stage banner art is the backdrop) */}
+      {/* Centre: current move + counter, or the 31a rest state between rounds */}
       <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {rest ? (
+          <div style={{ position: 'relative', textAlign: 'center', animation: 'hud-fade-in 0.25s ease' }}>
+            <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 99, background: 'rgba(79,140,255,0.1)', border: '1px solid rgba(79,140,255,0.4)', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: REST_BLUE, letterSpacing: '0.22em', marginBottom: 8 }}>
+              ROUND COMPLETE
+            </div>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: '#9db9ff', letterSpacing: '0.3em', marginBottom: 2 }}>REST</div>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 52, color: paused ? '#fca5a5' : '#fff', lineHeight: 1.05, animation: paused ? 'none' : 'hud-rest-pulse 2s ease-in-out infinite' }}>
+              {restClock}
+            </div>
+            <div style={{ marginTop: 8, fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: 'rgba(200,215,255,0.75)' }}>
+              {paused ? 'Rest paused' : 'Recover. Next round starts automatically.'}
+            </div>
+          </div>
+        ) : (
         <div style={{ position: 'relative', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 99, background: 'rgba(253,224,71,0.07)', border: '1px solid rgba(253,224,71,0.3)', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: GOLD, letterSpacing: '0.22em', marginBottom: 8 }}>
             CURRENT MOVE
@@ -84,6 +135,7 @@ export default function BattleHUD({
             </span>
           </div>
         </div>
+        )}
       </div>
 
       {/* Pace panel */}
@@ -122,8 +174,20 @@ export default function BattleHUD({
         {nextSub && <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(200,170,255,0.6)', flexShrink: 0 }}>{nextSub}</span>}
       </div>
 
-      {/* Set complete + pause */}
+      {/* Set complete (or skip rest) + pause */}
       <div style={{ flexShrink: 0, display: 'flex', gap: 8 }}>
+        {rest ? (
+          <button onClick={rest.onSkip} style={{
+            flex: 1, height: 52, borderRadius: 13, cursor: 'pointer',
+            background: 'rgba(79,140,255,0.14)',
+            border: '1.5px solid rgba(79,140,255,0.55)',
+            boxShadow: '0 0 16px rgba(79,140,255,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#9db9ff', letterSpacing: '0.12em',
+          }}>
+            <SkipForward size={16} /> SKIP REST
+          </button>
+        ) : (
         <button onClick={onSetComplete} style={{
           flex: 1, height: 52, borderRadius: 13, cursor: 'pointer',
           background: 'linear-gradient(180deg,#ffe574 0%,#f7c33f 55%,#eaa62a 100%)',
@@ -134,6 +198,7 @@ export default function BattleHUD({
         }}>
           <Check size={16} strokeWidth={3} /> SET COMPLETE
         </button>
+        )}
         <button onClick={onPauseToggle} aria-label={paused ? 'Resume' : 'Pause'} style={{
           width: 52, height: 52, borderRadius: 13, cursor: 'pointer', flexShrink: 0,
           background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)',

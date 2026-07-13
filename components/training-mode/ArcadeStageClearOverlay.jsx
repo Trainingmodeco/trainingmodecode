@@ -180,6 +180,11 @@ function StageClearedScreen({
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: '#fff' }}>
               {formatTime(result?.elapsedSeconds)}
             </div>
+            {result?.newBest && (
+              <div style={{ marginTop: 3, display: 'inline-block', padding: '1px 7px', borderRadius: 99, background: 'rgba(253,224,71,0.12)', border: '1px solid rgba(253,224,71,0.45)', fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, color: '#fde047', letterSpacing: '0.14em' }}>
+                ★ NEW BEST
+              </div>
+            )}
           </div>
 
           <div style={{ width: 1, height: 28, background: 'rgba(34,197,94,0.2)' }}/>
@@ -194,13 +199,18 @@ function StageClearedScreen({
 
           <div style={{ width: 1, height: 28, background: 'rgba(34,197,94,0.2)' }}/>
 
-          {/* Stars */}
+          {/* Stars — benchmark shows its rank; timed stages show the 3-star
+              tier rating earned this run */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>RANK</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>{rank ? 'RANK' : 'STARS'}</div>
             <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star key={i} size={12} fill={i < getRankStars(rank) ? '#22c55e' : 'transparent'} color={i < getRankStars(rank) ? '#22c55e' : 'rgba(255,255,255,0.15)'} strokeWidth={1.5}/>
-              ))}
+              {rank
+                ? Array.from({ length: 5 }, (_, i) => (
+                    <Star key={i} size={12} fill={i < getRankStars(rank) ? '#22c55e' : 'transparent'} color={i < getRankStars(rank) ? '#22c55e' : 'rgba(255,255,255,0.15)'} strokeWidth={1.5}/>
+                  ))
+                : Array.from({ length: 3 }, (_, i) => (
+                    <Star key={i} size={13} fill={i < (result?.stars || 1) ? '#fde047' : 'transparent'} color={i < (result?.stars || 1) ? '#fde047' : 'rgba(255,255,255,0.18)'} strokeWidth={1.5}/>
+                  ))}
             </div>
           </div>
         </div>

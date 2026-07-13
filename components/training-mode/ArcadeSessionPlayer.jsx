@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import StageChrome from './shared/StageChrome';
+import { StageClearFlash } from './shared/BattleHUD';
 import { Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, getSeriesProgress } from './data/arcadeProgress';
@@ -191,7 +192,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     setSessionPhase('clear');
   }, []);
 
-  const handleNormalStageComplete = useCallback(() => {
+  const handleNormalStageComplete = useCallback((extra = {}) => {
     const xp = stage?.rewards?.xp || 0;
     setStageResult({
       invalid: false,
@@ -199,6 +200,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
       points: xp,
       xpEarned: xp,
       statRewards: stage?.rewards?.statRewards || null,
+      ...extra, // elapsedSeconds / stars / newBest from the timed run
     });
     setSessionPhase('clear');
   }, [stage]);
@@ -301,9 +303,15 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
           const elapsedSec = sessionStartedAtRef.current
             ? Math.round((Date.now() - sessionStartedAtRef.current) / 1000)
             : null;
+          // Snapshot the previous best BEFORE completeStage writes the new one.
+          const prevBest = progress?.completedStages?.[stage.id]?.bestTimeSeconds;
+          const stars = getStarsForTime(stage, elapsedSec);
+          const newBest = Number.isFinite(elapsedSec) && (!Number.isFinite(prevBest) || elapsedSec < prevBest);
           completeStage(series.id, stage.id, stage.rewards.xp, stage.rewards?.badge, stage.rewards?.title, stage.rewards?.statRewards,
-            { timeSeconds: elapsedSec, stars: getStarsForTime(stage, elapsedSec) });
-          handleNormalStageComplete();
+            { timeSeconds: elapsedSec, stars });
+          // 31a stage-finish moment: flash STAGE CLEAR before the results.
+          setSessionPhase('finish');
+          setTimeout(() => handleNormalStageComplete({ elapsedSeconds: elapsedSec, stars, newBest }), 2100);
         } else {
           setStageResult({
             invalid: true,
@@ -402,6 +410,11 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   }
 
   // Stage Clear overlay
+  // 31a stage-finish moment — brief K.O. flash before the clear screen.
+  if (sessionPhase === 'finish') {
+    return <StageClearFlash stageNumber={stage?.stageNumber} />;
+  }
+
   if (sessionPhase === 'clear' && stageResult) {
     return (
       <ArcadeStageClearOverlay
