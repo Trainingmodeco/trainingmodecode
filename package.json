@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env EXPO_NO_TELEMETRY=1 expo start",
     "dev:web": "cross-env EXPO_NO_TELEMETRY=1 expo start --web",
-    "build:web": "expo export --platform web && node scripts/copy-public-assets.mjs",
+    "build:web": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && expo export --platform web && node scripts/copy-public-assets.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",
     "check:assets": "node scripts/check-public-assets.mjs",
     "lint": "expo lint",

@@ -233,15 +233,7 @@ export function generateFightFocusSession({ discipline, difficulty, rounds }) {
   // Append picked IDs to history.
   appendToLruHistory(historyKey, selected.map(f => f.id), eligible.length);
 
-  console.log("Fight Focus Generated:", {
-    discipline,
-    difficulty,
-    rounds,
-    poolSize: eligible.length,
-    historyKey,
-    selectedFocuses: selected.map(f => f.title),
-  });
-
+  
   return selected.map(f => ({
     round_title: f.title,
     coach_prompt: f.coachingCue,
@@ -310,14 +302,6 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
   // Append first 20 combo IDs to history.
   appendToLruHistory(historyKey, comboOrder.slice(0, 20).map(c => c.id), eligible.length);
 
-  console.log("Combo Coach Generated:", {
-    discipline,
-    difficulty,
-    speed,
-    poolSize: eligible.length,
-    historyKey,
-    selectedCombos: comboOrder.slice(0, 10).map(c => c.comboText),
-  });
-
+  
   return comboOrder.map(c => c.comboText);
 }

@@ -444,7 +444,6 @@ export function generateFitModeWorkout(cfg) {
   const signature = configSignature(safeCfg);
   const recent = loadHistory()[signature] || [];
 
-  console.log('[FitModeGenerator] safeCfg:', safeCfg, '| signature:', signature);
 
   // Get names from the most recent workout for this signature to check novelty.
   const lastNames = recent.length > 0 ? new Set(recent[0].split('||')) : null;
