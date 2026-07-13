@@ -29,8 +29,13 @@ function getActiveChallenge() {
   return { series: activeSeries, completedCount, total: activeSeries.stages.length, stored: null };
 }
 
+// Continue-Challenge banner art (neon arcade hallway), dimmed behind the
+// Training Arcade card so the stage info + CTA stay readable.
+const ARCADE_CONTINUE_BG = '/static/hub/arcade-continue-bg.webp';
+
 export default function HomeDashboard({ onHome, onFightMode, onProfile, profile, onPractice, onFightFocus, onQuickMission, onFitSetup, onComboCoach, onStartHere, onCombatConditioning, onTrainingArcade, onTrain }) {
   const [stats, setStats] = useState(() => loadStats());
+  const [arcadeBgFail, setArcadeBgFail] = useState(false);
 
   useEffect(() => {
     const refreshStats = () => setStats(loadStats());
@@ -150,18 +155,26 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
         {/* Training Arcade (prominent) */}
         {arSeries && (
           <button onClick={() => onTrainingArcade?.()} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,#1a1030,#241640)', boxShadow: '0 0 20px -6px rgba(176,106,255,0.4)', marginBottom: 10, padding: '12px 13px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'block' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+            {/* Dimmed hallway banner art (falls back to the gradient if absent) */}
+            {!arcadeBgFail && (
+              <>
+                <img src={ARCADE_CONTINUE_BG} alt="" aria-hidden loading="lazy" decoding="async" onError={() => setArcadeBgFail(true)}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%', opacity: 0.75, zIndex: 0 }}/>
+                <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(90deg, rgba(12,4,26,0.78) 0%, rgba(12,4,26,0.42) 45%, rgba(12,4,26,0.22) 100%)' }}/>
+              </>
+            )}
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
               <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.12em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🕹 TRAINING ARCADE · {String(arSeries.title || '').toUpperCase()}</span>
               <span style={{ font: "800 8px 'Orbitron',sans-serif", color: '#8b83a8', flexShrink: 0 }}>STAGE {arCurIdx + 1}/{arTotal}</span>
             </div>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 9 }}>
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 4, marginBottom: 9 }}>
               {Array.from({ length: arTotal }).map((_, i) => (
                 <span key={i} style={{ flex: 1, height: 5, borderRadius: 99, background: i < arDone ? '#22c55e' : i === arDone ? '#fde047' : 'rgba(255,255,255,0.1)', boxShadow: i === arDone ? '0 0 6px rgba(253,224,71,0.6)' : 'none' }}/>
               ))}
             </div>
-            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff', marginBottom: 2 }}>STAGE {arCurIdx + 1}{arCur?.title ? ` · ${String(arCur.title).toUpperCase()}` : ''}</div>
-            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', marginBottom: 10 }}>{arNext?.title ? `Next up after this: Stage ${arCurIdx + 2} · ${arNext.title} (locked)` : 'Final stage — clear it to finish the series.'}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ position: 'relative', zIndex: 1, font: "900 15px 'Orbitron',sans-serif", color: '#fff', marginBottom: 2, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>STAGE {arCurIdx + 1}{arCur?.title ? ` · ${String(arCur.title).toUpperCase()}` : ''}</div>
+            <div style={{ position: 'relative', zIndex: 1, font: "600 9px 'Rajdhani',sans-serif", color: '#b3a9cc', marginBottom: 10, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{arNext?.title ? `Next up after this: Stage ${arCurIdx + 2} · ${arNext.title} (locked)` : 'Final stage — clear it to finish the series.'}</div>
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fde047' }}>{arDone}/{arTotal} CLEARED</span>
               <span style={{ border: 'none', borderRadius: 9, background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.05em', padding: '9px 18px', boxShadow: '0 0 16px rgba(168,85,247,0.4)' }}>{arDone > 0 ? 'CONTINUE CHALLENGE' : 'START CHALLENGE'}</span>
             </div>
