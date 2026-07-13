@@ -194,9 +194,20 @@ export function stopVoiceSession() {
   stopResumeKeepAlive();
 }
 
-export async function speakAsync(text, opts = {}) {
+// TTS voices misread hyphenated / title-cased words — "Push-Ups" gets split at
+// the hyphen and "Ups" is read as the initialism "U-P-S". De-hyphenate between
+// letters and lowercase everything; speech doesn't need casing.
+function normalizeSpeech(text) {
+  return String(text)
+    .replace(/([a-zA-Z])-([a-zA-Z])/g, '$1 $2')
+    .toLowerCase();
+}
+
+export async function speakAsync(rawText, opts = {}) {
   const synth = getSynth();
   if (!synth) return;
+
+  const text = normalizeSpeech(rawText);
 
   await ensureVoicesReady();
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import PhoneFrame from './PhoneFrame';
-import { ChevronLeft, Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
+import StageChrome from './shared/StageChrome';
+import { Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, getSeriesProgress } from './data/arcadeProgress';
 import { addFitModeSession, addFightFocusSession } from './data/userStats';
@@ -369,9 +369,12 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   }
 
   // Cadence sets (stages 2-10) render full-screen through the Battle HUD too.
+  // Keyed per task: without a fresh mount the player keeps its old phase
+  // ('rest', interval already cleared) and the session stalls at 0 seconds.
   if (isCadenceTask && sessionPhase === 'active') {
     return (
       <ArcadeCadenceRepPlayer
+        key={`${currentBlock}-${task?.id || taskIdx}`}
         task={task}
         taskIdx={taskIdx}
         totalTasks={tasks.length}
@@ -412,10 +415,15 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     const completedMode = firstBlock === 'fit' ? 'Fit Mode' : 'Fight Mode';
     const nextMode = secondBlock === 'fit' ? 'Fit Mode' : 'Fight Mode';
     return (
-      <PhoneFrame useBrandBg>
+      <StageChrome
+        title={(series?.title || '').toUpperCase()}
+        subtitle={`${stage.isFinalRound ? 'Final Boss' : `Stage ${stage.stageNumber}`}`}
+        onHome={onHome}
+        onBack={handleSaveForLater}
+      >
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          minHeight: '100dvh', padding: 24, textAlign: 'center',
+          flex: 1, minHeight: 0, padding: 24, textAlign: 'center',
         }}>
           <CheckCircle size={40} color="#22c55e" style={{ marginBottom: 12 }}/>
           <h2 style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 14, color: C.text, margin: '0 0 8px' }}>
@@ -437,7 +445,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
             }}>Save for Later</button>
           </div>
         </div>
-      </PhoneFrame>
+      </StageChrome>
     );
   }
 
@@ -447,7 +455,18 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const timerTarget = isTimerTask ? (task?.durationSeconds || 60) : 0;
 
   return (
-    <PhoneFrame useBrandBg>
+    <StageChrome
+      title={(series?.title || '').toUpperCase()}
+      subtitle={`${stage.isFinalRound ? 'Final Boss' : `Stage ${stage.stageNumber}`} · ${isBenchmark ? 'Benchmark' : currentBlock === 'fit' ? 'Fit Mode' : 'Fight Mode'}`}
+      onHome={onHome}
+      onBack={handleSaveForLater}
+      rightSlot={(
+        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, fontWeight: 600 }}>
+          {taskIdx + 1}/{tasks.length}
+        </span>
+      )}
+      scroll
+    >
       {/* Rapid action warning */}
       {rapidWarning && (
         <div style={{
@@ -464,26 +483,8 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
       )}
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        minHeight: '100dvh', padding: '20px 16px calc(160px + env(safe-area-inset-bottom, 0px))',
+        flex: 1, minHeight: 0, padding: '14px 16px 20px',
       }}>
-        {/* Top Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <button onClick={handleSaveForLater} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-            <ChevronLeft size={20} color={C.text}/>
-          </button>
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.yellow, fontWeight: 700, letterSpacing: '0.1em' }}>
-              {stage.isFinalRound ? 'FINAL BOSS' : `STAGE ${stage.stageNumber}`}
-            </span>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, fontWeight: 500 }}>
-              {isBenchmark ? 'Benchmark' : currentBlock === 'fit' ? 'Fit Mode' : 'Fight Mode'}
-            </div>
-          </div>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, fontWeight: 600, minWidth: 40, textAlign: 'right' }}>
-            {taskIdx + 1}/{tasks.length}
-          </span>
-        </div>
-
         {/* Benchmark running timer */}
         {isBenchmark && benchmarkActive && (
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
@@ -609,6 +610,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
             />
           ) : isBackBalance && backBalancePhase === 'active' && task?._selectedOption ? (
             <ArcadeCadenceRepPlayer
+              key={`bb-${taskIdx}-${task._selectedOption.id || task._selectedOption.label}`}
               task={{
                 ...task,
                 title: task._selectedOption.label,
@@ -731,6 +733,6 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
           </div>
         )}
       </div>
-    </PhoneFrame>
+    </StageChrome>
   );
 }

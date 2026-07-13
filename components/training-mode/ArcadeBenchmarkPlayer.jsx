@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import StageChrome from './shared/StageChrome';
 import BattleHUD from './shared/BattleHUD';
-import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap } from 'lucide-react';
+import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap, Play, Pause } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, recordInvalidAttempt } from './data/arcadeProgress';
 import { addFitModeSession } from './data/userStats';
@@ -239,6 +239,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     const nextTitle = nextTask?.title || 'the next exercise';
     announce(`Rest. Next workout is ${nextTitle}. If you need more rest, pause before the next session.`);
     restRef.current = setInterval(() => {
+      if (pausedRef.current) return; // rest can be paused too
       setRestTimer(t => {
         const next = t + 1;
         if (next >= selectedRestSeconds) {
@@ -709,12 +710,22 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
             </p>
           </div>
 
-          {/* Skip rest */}
-          <button onClick={handleSkipRest} style={{
-            marginTop: 12, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: 'rgba(79,140,255,0.12)', fontFamily: "'Orbitron',sans-serif",
-            fontWeight: 700, fontSize: 9, color: '#4f8cff', letterSpacing: '0.1em',
-          }}>SKIP REST</button>
+          {/* Pause + skip rest */}
+          <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
+            <button onClick={handlePauseToggle} aria-label={paused ? 'Resume rest' : 'Pause rest'} style={{
+              width: 38, height: 34, borderRadius: 8, cursor: 'pointer',
+              background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)',
+              border: `1px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {paused ? <Play size={14} color={GOLD}/> : <Pause size={14} color="#e6d4ff"/>}
+            </button>
+            <button onClick={handleSkipRest} style={{
+              padding: '9px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: 'rgba(79,140,255,0.12)', fontFamily: "'Orbitron',sans-serif",
+              fontWeight: 700, fontSize: 9, color: '#4f8cff', letterSpacing: '0.1em',
+            }}>SKIP REST</button>
+          </div>
 
           {/* Rank window */}
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
