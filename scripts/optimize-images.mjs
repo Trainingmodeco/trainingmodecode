@@ -50,6 +50,12 @@ const DIR_TARGETS = {
   'static/fitmode': 800,
   'static/arcade': 640,
   'static/stages': 320,
+  // Folders added in the July 2026 sweep — previously had no WebP coverage.
+  'social': 1200,
+  'ui': 520,
+  'mode-icons': 520,
+  'brand': 900,
+  'banners/icons': 420,
 };
 
 const QUALITY = 82;
