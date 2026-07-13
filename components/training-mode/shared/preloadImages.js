@@ -15,6 +15,10 @@ function preferWebp(src) {
 const CRITICAL_ART = [
   // Every screen (PhoneFrame backdrop)
   '/static/app-bg.png',
+  // Home hero cards (first screen after splash)
+  '/static/bout-bg.png',
+  '/static/hub/arcade-continue-bg.webp',
+  '/static/logo-mark.png',
   // Train hub banners
   '/static/hub/fight.png',
   '/static/hub/fit.png',
