@@ -12,8 +12,8 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, a
   const clamp = (v) => Math.min(max, Math.max(min, v));
   const resting = display ? display(value) : String(value);
   const btn = {
-    width: 34, height: 34, borderRadius: 8, border: `1px solid ${accent}66`, color: accent,
-    fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, lineHeight: 1,
+    width: 28, height: 28, borderRadius: 7, border: `1px solid ${accent}66`, color: accent,
+    fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, lineHeight: 1,
     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
     background: `${accent}14`, flexShrink: 0,
   };
@@ -23,7 +23,7 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, a
     if (Number.isFinite(raw)) onChange(round(clamp(raw)));
   };
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(8,2,18,0.82)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '8px 10px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(8,2,18,0.82)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '6px 10px' }}>
       <span style={{ flex: 1, minWidth: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.07em', color: '#d9d1ef' }}>{label}</span>
       <button onClick={() => onChange(round(clamp(value - step)))} style={btn}>−</button>
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 62 }}>
@@ -50,7 +50,7 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, a
 // Full-width read-only row (e.g. TOTAL): label left, value right, no controls.
 export function TotalRow({ label, value, accent = C.gold }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(8,2,18,0.5)', border: '1px dashed rgba(168,85,247,0.25)', borderRadius: 11, padding: '10px 12px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(8,2,18,0.5)', border: '1px dashed rgba(168,85,247,0.25)', borderRadius: 11, padding: '7px 12px' }}>
       <span style={{ flex: 1, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.07em', color: '#c4a4d8' }}>{label}</span>
       <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, color: accent }}>{value}</span>
     </div>

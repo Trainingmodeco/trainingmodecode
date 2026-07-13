@@ -89,7 +89,7 @@ export default function RushModeRow({ rush, onChange }) {
       <style dangerouslySetInnerHTML={{ __html: rushCSS }}/>
       <div onClick={clickRow} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
-        borderRadius: 10, padding: '11px 13px',
+        borderRadius: 10, padding: '8px 13px',
         background: on ? 'linear-gradient(100deg, rgba(239,68,68,0.3) 0%, rgba(249,115,22,0.16) 100%)' : 'rgba(10,0,20,0.5)',
         border: on ? '1.5px solid rgba(249,115,22,0.75)' : '1px solid rgba(239,68,68,0.15)',
         animation: on ? 'rush-flames 1.4s ease-in-out infinite' : 'none',

@@ -131,53 +131,61 @@ export default function SplashScreen({ onStart }) {
       <FireSparks/>
       <CornerBrackets/>
 
-      {/* Content — single centered column (24a) */}
+      {/* Content — matches the original splash layout: tagline pinned at the
+          top on ONE line, breathing room, then logo + wordmark, then the
+          lower cluster spread down the page. */}
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', minHeight: '100dvh',
-        padding: '0 30px 30px', textAlign: 'center',
+        alignItems: 'center', height: '100dvh', boxSizing: 'border-box',
+        padding: '30px 26px 26px', textAlign: 'center',
       }}>
-        {/* System tagline */}
-        <div style={{ font: "700 12px 'Orbitron',sans-serif", color: '#f5b301', letterSpacing: '0.16em', lineHeight: 1.4, textShadow: '0 0 12px rgba(245,179,1,0.5)', marginBottom: 16 }}>
-          TACTICAL COMBAT<br/>FITNESS SYSTEM
+        {/* System tagline — single line across the top */}
+        <div style={{ font: "700 11px 'Orbitron',sans-serif", color: '#f5b301', letterSpacing: '0.28em', whiteSpace: 'nowrap', textShadow: '0 0 12px rgba(245,179,1,0.5)' }}>
+          TACTICAL COMBAT FITNESS SYSTEM
         </div>
 
-        {/* Logo mark */}
-        <img src="/static/logo-mark.png" alt="" style={{ width: 70, height: 'auto', marginBottom: 14, filter: 'drop-shadow(0 0 18px rgba(245,179,1,0.6))' }}/>
+        {/* Space between the tagline and the logo (as in the original) */}
+        <div style={{ flex: 1, minHeight: 18 }}/>
+
+        {/* Logo mark — larger, clear of the text */}
+        <img src="/static/logo-mark.png" alt="" style={{ width: 96, height: 'auto', marginBottom: 22, filter: 'drop-shadow(0 0 18px rgba(245,179,1,0.6))' }}/>
 
         {/* Wordmark */}
-        <div style={{ font: "900 46px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em', lineHeight: 0.98, textShadow: '0 0 24px rgba(168,85,247,0.55)', marginBottom: 20 }}>
+        <div style={{ font: "900 44px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', lineHeight: 1.18, textShadow: '0 0 24px rgba(168,85,247,0.55)' }}>
           TRAINING<br/>MODE
         </div>
 
+        {/* Larger gap before the lower cluster */}
+        <div style={{ flex: 1.7, minHeight: 26 }}/>
+
         {/* Disciplines */}
-        <div style={{ font: "700 10px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.14em', lineHeight: 1.5, marginBottom: 20 }}>
+        <div style={{ font: "700 10px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.18em', lineHeight: 1.7, marginBottom: 18 }}>
           BOXING &middot; KICKBOXING<br/>MUAY THAI &middot; MMA
         </div>
 
         {/* Train like a fighter */}
-        <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.05em', marginBottom: 22, textShadow: '0 0 16px rgba(168,85,247,0.6)' }}>
+        <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.08em', marginBottom: 20, textShadow: '0 0 16px rgba(168,85,247,0.6)' }}>
           TRAIN LIKE A FIGHTER
         </div>
 
-        {/* Tap anywhere to enter (24a) — plain lavender, subtle glow in/out */}
+        {/* Tap anywhere to enter — plain lavender, subtle glow in/out */}
         {barPhase === 'idle' ? (
-          <div style={{ font: "700 11px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.2em', marginBottom: 20, animation: 'tapGlow 2.6s ease-in-out infinite' }}>
+          <div style={{ font: "700 10px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.26em', marginBottom: 18, animation: 'tapGlow 2.6s ease-in-out infinite' }}>
             TAP ANYWHERE TO ENTER
           </div>
         ) : (
-          <div style={{ width: '100%', maxWidth: 280, marginBottom: 20 }}>
+          <div style={{ width: '100%', maxWidth: 280, marginBottom: 18 }}>
             <div style={{ width: '100%', height: 4, borderRadius: 999, background: 'rgba(20,0,40,0.85)', border: '1px solid rgba(168,85,247,0.5)', overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 999, width: `${fillPct}%`, background: 'linear-gradient(90deg, #5b21b6, #a855f7, #c084fc)', boxShadow: '0 0 14px rgba(168,85,247,0.9)', transition: 'width 0.02s linear' }}/>
             </div>
           </div>
         )}
 
-        {/* Divider */}
-        <div style={{ width: '100%', maxWidth: 280, height: 2, background: 'linear-gradient(90deg,transparent,#b06aff,transparent)', marginBottom: 16 }}/>
+        {/* Divider — full width, meeting the bottom corner brackets */}
+        <div style={{ width: '100%', height: 2, background: 'linear-gradient(90deg,transparent,#b06aff,transparent)', marginBottom: 14 }}/>
 
         {/* Train · Fight · Win */}
-        <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.24em' }}>
+        <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.3em' }}>
           TRAIN &middot; FIGHT &middot; WIN
         </div>
       </div>

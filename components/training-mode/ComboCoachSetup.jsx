@@ -43,7 +43,7 @@ const setupCSS = `
 
 function SectionLabel({ children }) {
   return (
-    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8', fontSize: 8.5, letterSpacing: '0.16em', marginBottom: 7 }}>{children}</div>
+    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8', fontSize: 8.5, letterSpacing: '0.16em', marginBottom: 5 }}>{children}</div>
   );
 }
 
@@ -56,7 +56,7 @@ function Segmented({ label, options, value, onChange, accent }) {
           const active = o === value;
           return (
             <button key={o} className="cc-seg" onClick={() => onChange(o)} style={{
-              flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8,
+              flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8,
               fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, letterSpacing: '0.03em',
               background: active ? accent : 'rgba(16,4,30,0.8)',
               border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
@@ -94,38 +94,38 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        padding: '10px 14px 0',
-        paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
+        padding: '8px 14px 0',
+        paddingBottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Banner (identical to Fight Focus, dimmed, bigger title) */}
-        <div style={{ width: '100%', height: 62, borderRadius: 12, overflow: 'hidden', marginBottom: 13, position: 'relative', border: '1px solid rgba(253,224,71,0.2)' }}>
+        <div style={{ width: '100%', height: 52, borderRadius: 12, overflow: 'hidden', marginBottom: 10, position: 'relative', border: '1px solid rgba(253,224,71,0.2)' }}>
           <SafeImage src={IMG.hub.fight} alt="Combo Coach" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.5 }}/>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,0,20,0.86) 0%, rgba(10,0,20,0.5) 55%, rgba(10,0,20,0.3) 100%)' }}/>
-          <div style={{ position: 'absolute', bottom: 11, left: 15, zIndex: 2 }}>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, color: VIOLET, letterSpacing: '0.08em', textShadow: '0 0 10px rgba(168,85,247,0.4)' }}>COMBO COACH</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: 'rgba(255,255,255,0.72)', marginTop: 1 }}>Flash combos, build flow</div>
+          <div style={{ position: 'absolute', bottom: 8, left: 15, zIndex: 2 }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 17, color: VIOLET, letterSpacing: '0.08em', textShadow: '0 0 10px rgba(168,85,247,0.4)' }}>COMBO COACH</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: 'rgba(255,255,255,0.72)', marginTop: 0 }}>Flash combos, build flow</div>
           </div>
         </div>
 
         {/* Difficulty + explanation (also sets a default cadence) */}
-        <div style={{ marginBottom: 6 }}>
+        <div style={{ marginBottom: 5 }}>
           <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))} accent={GOLD}/>
         </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 12, minHeight: 26 }}>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 8, minHeight: 20 }}>
           <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
         </div>
 
         {/* Mode + explanation */}
-        <div style={{ marginBottom: 6 }}>
+        <div style={{ marginBottom: 5 }}>
           <Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/>
         </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 14, minHeight: 28 }}>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 9, minHeight: 20 }}>
           <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
         </div>
 
         {/* Stacked steppers */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
           <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
           <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
           <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
@@ -134,13 +134,13 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Rush mode (opens the flame popup) */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 10 }}>
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
         </div>
 
         {/* Start */}
         <TrainingCTA
-          variant="gold" label="START COMBOS" icon="⚡" height={50}
+          variant="gold" label="START COMBOS" icon="⚡" height={48}
           style={{ width: '100%', fontSize: 13, letterSpacing: '0.1em' }}
           onClick={async () => {
             setVoiceGender(profile?.voiceCoach || 'FEMALE');

@@ -51,10 +51,13 @@ function buildTitle(cfg) {
 }
 
 function getAlternates(exercise, cfg) {
-  const muscle = exercise.muscle || exercise.primaryMuscle;
+  // Generated items carry `muscle` in UPPERCASE while the exercise DB uses
+  // title case in `primaryMuscle` — compare case-insensitively or the list
+  // always comes back empty.
+  const muscle = String(exercise.primaryMuscle || exercise.muscle || '').toLowerCase();
   return FIT_MODE_EXERCISES.filter(ex =>
     ex.active &&
-    ex.primaryMuscle === muscle &&
+    String(ex.primaryMuscle || '').toLowerCase() === muscle &&
     ex.name !== exercise.name &&
     (cfg.equipment === 'Hybrid' || ex.equipment.toLowerCase() === cfg.equipment.toLowerCase() || ex.equipment === 'Bodyweight')
   ).slice(0, 8);
@@ -295,7 +298,9 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
       reps: alt.reps,
       rest: `${alt.restSeconds}s`,
       restSeconds: alt.restSeconds,
-      muscle: alt.primaryMuscle,
+      // Keep the UPPERCASE convention the generator uses (display + colours).
+      muscle: String(alt.primaryMuscle || '').toUpperCase(),
+      primaryMuscle: alt.primaryMuscle,
       equipment: alt.equipment,
       coachNote: alt.coachNote,
     } : ex));
