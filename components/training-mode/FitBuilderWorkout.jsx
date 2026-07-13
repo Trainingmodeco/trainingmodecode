@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Check, Dumbbell, RotateCcw, Trophy, Play, ArrowRightLeft, X, SkipForward, ChevronRight } from 'lucide-react';
+import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, X, ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
-import FitRepCoach from './FitRepCoach';
+import FitBuilderGuidedPlayer from './FitBuilderGuidedPlayer';
+import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 
 const GOLD = C.gold;
@@ -119,165 +120,13 @@ function SwapSheet({ exercise, alternates, onSelect, onClose }) {
   );
 }
 
-function GuidedActiveScreen({ exercises, exerciseIdx, onComplete, onBack, profile }) {
-  const ex = exercises[exerciseIdx];
-  const [currentSet, setCurrentSet] = useState(1);
-  const totalSets = ex.sets || 3;
-  const [resting, setResting] = useState(false);
-  const [restTime, setRestTime] = useState(0);
-  const restMax = ex.restSeconds || parseInt(ex.rest) || 60;
-  const timerRef = useRef(null);
-  const progress = exerciseIdx / exercises.length;
-
-  const nextExercise = exerciseIdx < exercises.length - 1 ? exercises[exerciseIdx + 1] : null;
-
-  useEffect(() => {
-    if (resting) {
-      setRestTime(restMax);
-      timerRef.current = setInterval(() => {
-        setRestTime(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            setResting(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timerRef.current);
-    }
-  }, [resting, restMax]);
-
-  const confirmSet = () => {
-    if (currentSet < totalSets) {
-      setCurrentSet(s => s + 1);
-      setResting(true);
-    } else {
-      onComplete();
-    }
-  };
-
-  const skipRest = () => {
-    clearInterval(timerRef.current);
-    setResting(false);
-    setRestTime(0);
-  };
-
-  return (
-    <PhoneFrame useBrandBg>
-      <Embers count={2}/>
-      <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        minHeight: '100dvh', padding: '16px',
-      }}>
-        {/* Back */}
-        <button onClick={onBack} style={{
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,
-          color: C.faint, letterSpacing: '0.1em', marginBottom: 12, alignSelf: 'flex-start',
-        }}>&#x2190; BACK TO LIST</button>
-
-        {/* Progress bar */}
-        <div style={{ width: '100%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 20 }}>
-          <div style={{
-            width: `${progress * 100}%`, height: '100%', borderRadius: 2,
-            background: `linear-gradient(90deg, ${GOLD}, ${C.cardio})`,
-            transition: 'width 0.4s ease',
-          }}/>
-        </div>
-
-        {/* Exercise info */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Form demo placeholder */}
-          <div style={{
-            width: 140, height: 140, borderRadius: 12, marginBottom: 20,
-            background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Dumbbell size={36} color="rgba(168,85,247,0.3)"/>
-          </div>
-
-          <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18,
-            color: '#fff', letterSpacing: '0.06em', textAlign: 'center', marginBottom: 6,
-          }}>{ex.name}</div>
-
-          <div style={{
-            fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12,
-            color: C.faint, marginBottom: 20,
-          }}>{ex.muscle} &middot; {ex.sets}x{ex.reps}</div>
-
-          {resting ? (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 48,
-                color: C.cardio, marginBottom: 6,
-              }}>{restTime}</div>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10,
-                color: C.faint, letterSpacing: '0.12em', marginBottom: 16,
-              }}>REST</div>
-              <button onClick={skipRest} className="wo-cta" style={{
-                padding: '10px 24px', borderRadius: 8, cursor: 'pointer',
-                background: 'rgba(255,138,74,0.15)', border: '1px solid rgba(255,138,74,0.4)',
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10,
-                color: C.cardio, letterSpacing: '0.08em',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>
-                <SkipForward size={13}/> SKIP REST
-              </button>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 13,
-                color: GOLD, letterSpacing: '0.08em', marginBottom: 16,
-              }}>SET {currentSet} / {totalSets}</div>
-              <button onClick={confirmSet} className="wo-cta" style={{
-                padding: '16px 40px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
-                color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
-                letterSpacing: '0.12em',
-                boxShadow: '0 0 20px rgba(253,224,71,0.35)',
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                <Check size={16} strokeWidth={3}/> DONE
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Next exercise preview */}
-        {nextExercise && !resting && (
-          <div style={{
-            borderRadius: 8, padding: '8px 12px', marginTop: 16,
-            background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700,
-              color: C.faint, letterSpacing: '0.1em',
-            }}>NEXT:</div>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
-              color: C.muted, letterSpacing: '0.04em',
-            }}>{nextExercise.name}</div>
-          </div>
-        )}
-      </div>
-    </PhoneFrame>
-  );
-}
-
 export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   const [exercises, setExercises] = useState(() => generateFitModeWorkout(cfg));
   const [completed, setCompleted] = useState(initialResumeData?.completed ?? {});
-  const [repCoachIdx, setRepCoachIdx] = useState(null);
   const [activeIdx, setActiveIdx] = useState(null);
   const [swapIdx, setSwapIdx] = useState(null);
 
-  const toggle = (i) => setCompleted(prev => ({ ...prev, [i]: !prev[i] }));
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
   const allDone = doneCount === exercises.length && exercises.length > 0;
@@ -313,13 +162,15 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
     }
   }, [completed, onStateChange]);
 
-  // Guided active screen
+  // Voice-guided player (design 34) — cycles sets/exercises like Quick
+  // Mission; BACK returns to the list mid-workout for review + swaps.
   if (activeIdx !== null) {
     return (
-      <GuidedActiveScreen
+      <FitBuilderGuidedPlayer
+        key={`guided-${activeIdx}`}
         exercises={exercises}
         exerciseIdx={activeIdx}
-        profile={profile}
+        voiceOn
         onBack={() => setActiveIdx(null)}
         onComplete={() => {
           setCompleted(prev => ({ ...prev, [activeIdx]: true }));
@@ -328,22 +179,6 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
           } else {
             setActiveIdx(null);
           }
-        }}
-      />
-    );
-  }
-
-  // Rep coach fallback for bodyweight
-  if (repCoachIdx !== null) {
-    const ex = exercises[repCoachIdx];
-    return (
-      <FitRepCoach
-        exercise={ex}
-        profile={profile}
-        onBack={() => setRepCoachIdx(null)}
-        onComplete={() => {
-          setCompleted(prev => ({ ...prev, [repCoachIdx]: true }));
-          setRepCoachIdx(null);
         }}
       />
     );
@@ -398,17 +233,14 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
           </div>
         </div>
 
-        {/* Regenerate button */}
-        <button onClick={regenerate} className="wo-regen" style={{
-          width: '100%', padding: '10px 0', borderRadius: 8, marginBottom: 12,
-          cursor: 'pointer',
-          background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)',
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11,
-          color: C.violet, letterSpacing: '0.1em',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <RotateCcw size={14}/> REGENERATE
-        </button>
+        {/* Workout / swap header — exercises can only be swapped, never
+            checked off by hand; the guided player crosses them out itself. */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 7 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>
+            WORKOUT <span style={{ color: 'rgba(255,255,255,0.3)' }}>/</span> <span style={{ color: C.violet }}>SWAP WORKOUT</span>
+          </span>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap a row to swap</span>
+        </div>
 
         {/* Exercise rows */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -435,8 +267,9 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
                   }
                 </div>
 
-                {/* Name + details */}
-                <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => toggle(i)}>
+                {/* Name + details — tapping opens the swap sheet (rows are
+                    never checked off by hand) */}
+                <div style={{ flex: 1, minWidth: 0, cursor: done ? 'default' : 'pointer' }} onClick={() => !done && setSwapIdx(i)}>
                   <div style={{
                     fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10.5,
                     color: done ? 'rgba(253,224,71,0.7)' : '#fff',
@@ -462,6 +295,18 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
             );
           })}
         </div>
+
+        {/* Regenerate — under the workout list */}
+        <button onClick={regenerate} className="wo-regen" style={{
+          width: '100%', padding: '10px 0', borderRadius: 8, marginTop: 12,
+          cursor: 'pointer',
+          background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)',
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11,
+          color: C.violet, letterSpacing: '0.1em',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <RotateCcw size={14}/> REGENERATE
+        </button>
       </div>
 
       {/* Bottom CTA */}
@@ -474,10 +319,13 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
       }}>
         <button
           className="wo-cta"
-          onClick={() => {
+          onClick={async () => {
             if (allDone) {
               onDone(doneCount, exercises.length);
             } else {
+              // Prime speech on the user gesture so the guided coach can talk.
+              setVoiceGender(profile?.voiceCoach || 'FEMALE');
+              await primeSpeech();
               const firstIncomplete = exercises.findIndex((_, i) => !completed[i]);
               setActiveIdx(firstIncomplete >= 0 ? firstIncomplete : 0);
             }

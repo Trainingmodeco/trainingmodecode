@@ -11,7 +11,6 @@ import { getFightMiniSuggestion } from './data/recommendations';
 // strip, weekly-progress tracker, compact "today's bout" card, a prominent
 // Training Arcade card, and a favorites grid.
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-const TIERS = ['rookie', 'adept', 'veteran', 'elite', 'champion'];
 
 function getActiveChallenge() {
   const stored = getStoredActiveChallenge();
@@ -54,8 +53,6 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
   const weeklyCount = getWeeklySessions(stats).length;
   const suggestion = getFightMiniSuggestion({ profile: profile || {}, stats, dailyMission: null });
 
-  const sex = String(profile?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
-  const tier = TIERS[Math.min(Math.floor((level - 1) / 3), 4)];
   const name = (profile?.name || 'FIGHTER').toUpperCase();
 
   // Arcade card data (falls back to the active/first series at stage 1).
@@ -136,17 +133,16 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fde047' }}>{weeklyCount}/{WEEKLY_GOAL}</span>
         </div>
 
-        {/* Today's bout (compact) */}
-        <button data-tour="todays-bout" onClick={handleBoutStart} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(168,85,247,0.5)', background: 'radial-gradient(ellipse at 28% 15%, rgba(60,20,90,0.6), #0a0014 68%)', marginBottom: 10, padding: '11px 12px', display: 'flex', gap: 11, alignItems: 'center', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-          <div style={{ width: 52, height: 66, flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)' }}>
-            <SafeImage src={`/static/tiers/${tier}-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
+        {/* Today's bout — hero card with the bout art behind */}
+        <button data-tour="todays-bout" onClick={handleBoutStart} style={{ position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+          <SafeImage src="/static/bout-bg.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }}/>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(8,0,16,0.92) 0%, rgba(8,0,16,0.62) 48%, rgba(8,0,16,0.12) 100%)' }}/>
+          <div style={{ position: 'absolute', left: 15, right: 15, top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
+            <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>⚔ TODAY&apos;S BOUT</div>
+            <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.12, letterSpacing: '0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.7)', maxWidth: '72%' }}>{(suggestion?.title || 'Fight Focus').toUpperCase()}</div>
+            <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 4, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{suggestion?.subtitle || 'Timed rounds with coaching'}</div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', background: 'linear-gradient(135deg,#fde047,#f59e0b)', borderRadius: 8, padding: '9px 14px', marginTop: 11, boxShadow: '0 0 14px rgba(253,224,71,0.4)' }}>▶ START</span>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ font: "700 6px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 3 }}>TODAY&apos;S BOUT</div>
-            <div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.1 }}>{suggestion?.title || 'Fight Focus'}</div>
-            <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{suggestion?.subtitle || 'Timed rounds with coaching'}</div>
-          </div>
-          <span style={{ font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', background: 'linear-gradient(135deg,#fde047,#f59e0b)', borderRadius: 7, padding: '8px 11px', flexShrink: 0 }}>ENTER</span>
         </button>
 
         {/* Training Arcade (prominent) */}

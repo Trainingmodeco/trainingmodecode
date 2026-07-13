@@ -139,13 +139,13 @@ export default function SplashScreen({ onStart }) {
         alignItems: 'center', height: '100dvh', boxSizing: 'border-box',
         padding: '30px 26px 26px', textAlign: 'center',
       }}>
-        {/* System tagline — single line across the top */}
-        <div style={{ font: "700 11px 'Orbitron',sans-serif", color: '#f5b301', letterSpacing: '0.28em', whiteSpace: 'nowrap', textShadow: '0 0 12px rgba(245,179,1,0.5)' }}>
+        {/* Upper spacer — the tagline+logo group sits in the upper-middle */}
+        <div style={{ flex: 0.9, minHeight: 22 }}/>
+
+        {/* System tagline — single line, directly above the logo (as in the original) */}
+        <div style={{ font: "700 11px 'Orbitron',sans-serif", color: '#f5b301', letterSpacing: '0.28em', whiteSpace: 'nowrap', textShadow: '0 0 12px rgba(245,179,1,0.5)', marginBottom: 16 }}>
           TACTICAL COMBAT FITNESS SYSTEM
         </div>
-
-        {/* Space between the tagline and the logo (as in the original) */}
-        <div style={{ flex: 1, minHeight: 18 }}/>
 
         {/* Logo mark — larger, clear of the text */}
         <img src="/static/logo-mark.png" alt="" style={{ width: 96, height: 'auto', marginBottom: 22, filter: 'drop-shadow(0 0 18px rgba(245,179,1,0.6))' }}/>
