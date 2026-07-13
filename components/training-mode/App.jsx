@@ -7,6 +7,7 @@ import { generateCombatConditioningMission } from './data/combatConditioningGene
 import { stopVoiceSession } from './voiceCoach';
 import { trackEvent } from './data/analytics';
 import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
+import { preloadCriticalArt } from './shared/preloadImages';
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
   const _imgPaths = [
@@ -235,6 +236,10 @@ export default function App() {
   const reportSessionState = useCallback((state) => {
     activeSessionStateRef.current = state;
   }, []);
+
+  // Warm the cache for upcoming art (hub banners, saga posters, backdrops)
+  // once, at idle priority, so screens open with images already loaded.
+  useEffect(() => { preloadCriticalArt(); }, []);
 
   // ── Design 33: first-run feature tour (spotlight coach marks) ──
   // The overlay lives at app level; each step declares which screen it runs on.

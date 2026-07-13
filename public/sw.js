@@ -1,5 +1,7 @@
 // Training Mode service worker — offline app shell + runtime asset caching.
-const CACHE = 'tm-cache-v1';
+// v2: cache-bust so clients drop the pre-optimization multi-MB images and
+// refill the cache with the resized WebP assets.
+const CACHE = 'tm-cache-v2';
 const SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {

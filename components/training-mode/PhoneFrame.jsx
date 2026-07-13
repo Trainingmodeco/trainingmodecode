@@ -1,4 +1,5 @@
 import IMG1 from './IMG1';
+import SafeImage from './SafeImage';
 
 // Shared phone-frame background — matches the designer's layered background on
 // every screen: dark violet base + violet radial glow (top) + magenta glow
@@ -32,7 +33,7 @@ export default function PhoneFrame({ children, usePhoto = false, extraClass = ''
         </>
       ) : (
         <>
-          <img src={APP_BG} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.22, zIndex: 0 }}/>
+          <SafeImage src={APP_BG} alt="" loading="eager" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.22, zIndex: 0 }}/>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,2,18,0.42)', zIndex: 0 }}/>
         </>
       )}
