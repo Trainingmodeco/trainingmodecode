@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { C } from './Styles';
-import SafeImage from './SafeImage';
-import { Play, Pause, SkipForward, Square, RotateCcw, MoveHorizontal as MoreHorizontal } from 'lucide-react';
+import StageChrome from './shared/StageChrome';
+import BattleHUD from './shared/BattleHUD';
+import { SkipForward, RotateCcw } from 'lucide-react';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
-import { getStageBanner } from './data/arcadeVisualAssets';
 
 const CADENCE_STYLES = `
 @keyframes cadence-ring-pulse {
@@ -90,7 +90,7 @@ function CircularProgress({ progress, size = 200, strokeWidth = 10, color, bgCol
 }
 
 export default function ArcadeCadenceRepPlayer({
-  task, taskIdx, totalTasks, stage, arcadeSettings, nextTaskTitle, onComplete, onSkip, onExit,
+  task, taskIdx, totalTasks, stage, series, arcadeSettings, nextTaskTitle, onComplete, onSkip, onExit, onHome,
 }) {
   const targetReps = task?.reps || 10;
   const baseCadenceMs = arcadeSettings?.cadenceMs || task?.cadenceMs || 2000;
@@ -106,7 +106,6 @@ export default function ArcadeCadenceRepPlayer({
   const [elapsed, setElapsed] = useState(0);
   const [announcerText, setAnnouncerText] = useState('Get ready...');
   const [confirmStop, setConfirmStop] = useState(false);
-  const [showMore, setShowMore] = useState(false);
 
   const cadenceVersionRef = useRef(0);
   const elapsedRef = useRef(null);
@@ -167,12 +166,14 @@ export default function ArcadeCadenceRepPlayer({
     if (voiceEnabledRef.current) speakAsync(`Rest for ${restSeconds} seconds. Next workout is ${nextLabel}. If you need more rest, pause before the next session.`);
     restRef.current = setInterval(() => {
       setRestTimer(t => {
-        if (t + 1 >= restSeconds) {
+        const next = t + 1;
+        if (next >= restSeconds) {
           clearInterval(restRef.current);
-          onComplete({ valid: true, elapsed });
+          // Defer the parent advance out of the state updater.
+          setTimeout(() => onComplete({ valid: true, elapsed }), 0);
           return restSeconds;
         }
-        return t + 1;
+        return next;
       });
     }, 1000);
     return () => clearInterval(restRef.current);
@@ -329,7 +330,6 @@ export default function ArcadeCadenceRepPlayer({
     setPhase('countdown');
     setCountdownVal(3);
     setAnnouncerText('Resetting...');
-    setShowMore(false);
   }, []);
 
   const handleStop = useCallback(() => {
@@ -351,13 +351,17 @@ export default function ArcadeCadenceRepPlayer({
     onSkip();
   }, [onSkip]);
 
-  const handleManualComplete = useCallback(() => {
+  // Battle HUD "SET COMPLETE": finished the movement ahead of the count —
+  // jump to target and drop into this exercise's rest.
+  const handleSetComplete = useCallback(() => {
+    if (phaseRef.current !== 'active') return;
     cadenceVersionRef.current++;
     cancelSpeech();
-    clearInterval(restRef.current);
-    onComplete({ valid: true, elapsed });
-    setShowMore(false);
-  }, [onComplete, elapsed]);
+    repRef.current = targetReps;
+    setCurrentRep(targetReps);
+    setAnnouncerText('Set complete!');
+    setTimeout(() => { if (phaseRef.current === 'active') setPhase('rest'); }, 500);
+  }, [targetReps]);
 
   const handleCadenceChange = useCallback((e) => {
     if (cadenceLocked) return;
@@ -376,30 +380,36 @@ export default function ArcadeCadenceRepPlayer({
   }, []);
 
   const cadenceLabel = cadenceMs <= 1000 ? 'FAST' : cadenceMs <= 1500 ? 'QUICK' : cadenceMs <= 2500 ? 'MODERATE' : 'SLOW';
-  const cadenceBpm = Math.round(60000 / cadenceMs);
+  const chromeTitle = (series?.title || 'ONE PUNCH PROTOCOL').toUpperCase();
+  const chromeSub = `Stage ${stage?.stageNumber || ''} · ${stage?.title || ''}`;
 
   // Countdown phase
   if (phase === 'countdown') {
     return (
-      <div style={{ textAlign: 'center', padding: '24px 16px', animation: 'cadence-fade-in 0.3s ease' }}>
+      <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop}>
         <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
-        <CircularProgress progress={0} size={180} color="rgba(253,224,71,0.4)" bgColor="rgba(253,224,71,0.06)">
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '16px', animation: 'cadence-fade-in 0.3s ease' }}>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: GOLD, letterSpacing: '0.15em', marginBottom: 8 }}>
+            EXERCISE {taskIdx + 1}/{totalTasks}{task?._round ? ` · ROUND ${task._round}` : ''}
+          </div>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 14, fontWeight: 900, color: C.text, marginBottom: 14 }}>{task?.title}</div>
+          <CircularProgress progress={0} size={180} color="rgba(253,224,71,0.4)" bgColor="rgba(253,224,71,0.06)">
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontSize: 52, fontWeight: 900,
+              color: GOLD, animation: 'cadence-rep-pop 0.6s ease-in-out',
+              textShadow: '0 0 16px rgba(253,224,71,0.5)',
+            }}>{countdownVal || 'GO'}</div>
+          </CircularProgress>
           <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 52, fontWeight: 900,
-            color: GOLD, animation: 'cadence-rep-pop 0.6s ease-in-out',
-            textShadow: '0 0 16px rgba(253,224,71,0.5)',
-          }}>{countdownVal || 'GO'}</div>
-        </CircularProgress>
-        <div style={{
-          marginTop: 16, padding: '8px 14px', borderRadius: 8,
-          background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(253,224,71,0.15)',
-          display: 'inline-block',
-        }}>
-          <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, margin: 0 }}>
-            {announcerText}
-          </p>
+            marginTop: 16, padding: '8px 14px', borderRadius: 8,
+            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(253,224,71,0.15)',
+          }}>
+            <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, margin: 0 }}>
+              {announcerText}
+            </p>
+          </div>
         </div>
-      </div>
+      </StageChrome>
     );
   }
 
@@ -408,300 +418,108 @@ export default function ArcadeCadenceRepPlayer({
     const restProgress = restTimer / restSeconds;
     const nextLabel = nextTaskTitle || null;
     return (
-      <div style={{ textAlign: 'center', padding: '20px 16px', animation: 'cadence-fade-in 0.3s ease' }}>
+      <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop}>
         <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
-        <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: '#4f8cff',
-          letterSpacing: '0.2em', marginBottom: 14, animation: 'cadence-rest-glow 1.5s ease-in-out infinite',
-        }}>REST</div>
-        <CircularProgress progress={restProgress} size={170} color="#4f8cff" bgColor="rgba(79,140,255,0.08)">
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '16px', animation: 'cadence-fade-in 0.3s ease' }}>
           <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontSize: 38, fontWeight: 900, color: C.text,
-            textShadow: '0 0 12px rgba(79,140,255,0.4)',
-          }}>{restSeconds - restTimer}</div>
-          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, marginTop: 2 }}>seconds</div>
-        </CircularProgress>
-        {/* Next exercise preview */}
-        {nextLabel && (
+            fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: '#4f8cff',
+            letterSpacing: '0.2em', marginBottom: 14, animation: 'cadence-rest-glow 1.5s ease-in-out infinite',
+          }}>REST</div>
+          <CircularProgress progress={restProgress} size={170} color="#4f8cff" bgColor="rgba(79,140,255,0.08)">
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontSize: 38, fontWeight: 900, color: C.text,
+              textShadow: '0 0 12px rgba(79,140,255,0.4)',
+            }}>{restSeconds - restTimer}</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, marginTop: 2 }}>seconds</div>
+          </CircularProgress>
+          {nextLabel && (
+            <div style={{
+              marginTop: 14, padding: '8px 14px', borderRadius: 8,
+              background: 'rgba(253,224,71,0.04)', border: '1px solid rgba(253,224,71,0.12)',
+            }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.16em' }}>NEXT UP</span>
+              <p style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: GOLD, margin: '4px 0 0' }}>
+                {nextLabel}
+              </p>
+            </div>
+          )}
           <div style={{
-            marginTop: 14, padding: '8px 14px', borderRadius: 8,
-            background: 'rgba(253,224,71,0.04)', border: '1px solid rgba(253,224,71,0.12)',
+            marginTop: 10, padding: '8px 14px', borderRadius: 8,
+            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(79,140,255,0.15)',
           }}>
-            <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted, letterSpacing: '0.15em' }}>
-              NEXT UP
-            </span>
-            <p style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: GOLD, margin: '4px 0 0' }}>
-              {nextLabel}
+            <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, margin: 0 }}>
+              {announcerText}
             </p>
           </div>
-        )}
-        {/* Announcer */}
-        <div style={{
-          marginTop: 10, padding: '8px 14px', borderRadius: 8,
-          background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(79,140,255,0.15)',
-        }}>
-          <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, margin: 0 }}>
-            {announcerText}
-          </p>
+          <button onClick={() => onComplete({ valid: true, elapsed })} style={{
+            marginTop: 12, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: 'rgba(79,140,255,0.12)', fontFamily: "'Orbitron',sans-serif",
+            fontWeight: 700, fontSize: 9, color: '#4f8cff', letterSpacing: '0.1em',
+          }}>SKIP REST</button>
         </div>
-        {/* Skip rest */}
-        <button onClick={() => onComplete({ valid: true, elapsed })} style={{
-          marginTop: 12, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-          background: 'rgba(79,140,255,0.12)', fontFamily: "'Orbitron',sans-serif",
-          fontWeight: 700, fontSize: 9, color: '#4f8cff', letterSpacing: '0.1em',
-        }}>SKIP REST</button>
-      </div>
+      </StageChrome>
     );
   }
 
-  // Active cadence phase
-  const repProgress = currentRep / targetReps;
+  // Active phase — Battle HUD (stage-as-boss)
+  const stageHp = Math.max(0, 1 - (taskIdx + Math.min(currentRep / targetReps, 1)) / Math.max(totalTasks, 1));
+  const hudExtras = (
+    <div style={{ flexShrink: 0 }}>
+      <div style={{ padding: '0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.14em' }}>CADENCE · {cadenceLabel}</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>{cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s`}</span>
+        </div>
+        <input type="range" min={MIN_CADENCE_MS} max={MAX_CADENCE_MS} step={CADENCE_STEP} value={cadenceMs} onChange={handleCadenceChange} disabled={cadenceLocked}
+          style={{ width: '100%', height: 5, borderRadius: 999, outline: 'none', background: cadenceLocked ? 'rgba(239,68,68,0.15)' : `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`, opacity: cadenceLocked ? 0.5 : 1, cursor: cadenceLocked ? 'not-allowed' : 'pointer' }} />
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+        <button onClick={handleRewind} style={{ flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid rgba(168,85,247,0.3)', cursor: 'pointer', background: 'rgba(10,0,20,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.neon }}><RotateCcw size={11} color={C.neon}/> -5</button>
+        <button onClick={handleSkip} style={{ flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid rgba(168,85,247,0.3)', cursor: 'pointer', background: 'rgba(10,0,20,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.neon }}><SkipForward size={11} color={C.neon}/> SKIP</button>
+        <button onClick={handleReset} style={{ flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid rgba(245,158,11,0.3)', cursor: 'pointer', background: 'rgba(10,0,20,0.7)', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 8, color: '#f59e0b' }}>RST</button>
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ textAlign: 'center', padding: '12px 16px', animation: 'cadence-fade-in 0.3s ease' }}>
+    <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop}>
       <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
-
-      {/* Task header */}
-      <div style={{ marginBottom: 10 }}>
-        {getStageBanner(stage?.stageNumber) && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-            <SafeImage
-              src={getStageBanner(stage?.stageNumber)}
-              alt={`STAGE ${stage?.stageNumber}`}
-              preferWebp={false}
-              style={{
-                display: 'block', width: 'auto', maxWidth: '100%', maxHeight: 36,
-                objectFit: 'contain', background: 'transparent',
-              }}
-            />
-          </div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{
-            fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.muted, letterSpacing: '0.15em',
-          }}>EXERCISE {taskIdx + 1}/{totalTasks}</span>
-          {task?._round && (
-            <span style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-              padding: '2px 7px', borderRadius: 4,
-              background: 'rgba(79,140,255,0.08)', border: '1px solid rgba(79,140,255,0.25)',
-              color: '#4f8cff',
-            }}>R{task._round}</span>
-          )}
-        </div>
-        <h3 style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: GOLD,
-          margin: '0 0 4px', letterSpacing: '0.06em',
-          textShadow: '0 0 12px rgba(253,224,71,0.4)',
-        }}>{task?.title}</h3>
-        {task?.instructions && (
-          <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: C.muted, margin: 0, lineHeight: 1.4 }}>
-            {task.instructions}
-          </p>
-        )}
-      </div>
-
-      {/* Cadence badge */}
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
-        <span style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-          padding: '3px 9px', borderRadius: 4,
-          background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)',
-          color: '#22c55e',
-        }}>CADENCE ON</span>
-        <span style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
-          padding: '3px 9px', borderRadius: 4,
-          background: 'rgba(253,224,71,0.06)', border: '1px solid rgba(253,224,71,0.2)',
-          color: GOLD,
-        }}>{cadenceLabel} ({cadenceBpm} BPM)</span>
-      </div>
-
-      {/* Circular rep counter */}
-      <CircularProgress
-        progress={repProgress}
-        size={200}
-        strokeWidth={10}
-        color={currentRep >= targetReps ? '#22c55e' : '#a855f7'}
-        bgColor={currentRep >= targetReps ? 'rgba(34,197,94,0.08)' : 'rgba(168,85,247,0.1)'}
-      >
-        <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 48, fontWeight: 900, color: GOLD,
-          animation: currentRep > 0 ? 'cadence-rep-pop 0.2s ease-out' : 'none',
-          textShadow: '0 0 16px rgba(253,224,71,0.5)',
-        }}>{currentRep}</div>
-        <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
-          color: C.muted, letterSpacing: '0.15em', marginTop: 4,
-        }}>REP {currentRep} / {targetReps}</div>
-      </CircularProgress>
-
-      {/* Announcer text */}
-      <div style={{
-        marginTop: 12, padding: '8px 16px', borderRadius: 8,
-        background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(253,224,71,0.12)',
-        minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span style={{
-          fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
-          color: paused ? GOLD : C.text,
-        }}>{announcerText}</span>
-      </div>
-
-      {/* Elapsed */}
-      <div style={{ marginTop: 8, fontFamily: "'Orbitron',sans-serif", fontSize: 11, color: C.muted }}>
-        {formatTime(elapsed)}
-      </div>
-
-      {/* Cadence slider */}
-      <div style={{ marginTop: 12, padding: '0 8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted, letterSpacing: '0.1em' }}>
-            CADENCE SPEED
-          </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>
-            {cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s`}
-          </span>
-        </div>
-        <input
-          type="range"
-          min={MIN_CADENCE_MS}
-          max={MAX_CADENCE_MS}
-          step={CADENCE_STEP}
-          value={cadenceMs}
-          onChange={handleCadenceChange}
-          disabled={cadenceLocked}
-          style={{
-            width: '100%', height: 6, borderRadius: 999, outline: 'none',
-            background: cadenceLocked
-              ? 'rgba(239,68,68,0.15)'
-              : `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`,
-            opacity: cadenceLocked ? 0.5 : 1,
-            cursor: cadenceLocked ? 'not-allowed' : 'pointer',
-          }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted }}>Fast (0.75s)</span>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted }}>Slow (4s)</span>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 14, alignItems: 'center' }}>
-        {/* Rewind */}
-        <button onClick={handleRewind} style={{
-          width: 48, height: 48, borderRadius: 12,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(168,85,247,0.3)',
-          cursor: 'pointer',
-        }}>
-          <RotateCcw size={18} color={C.neon}/>
-        </button>
-
-        {/* Pause/Resume */}
-        <button onClick={handlePauseToggle} style={{
-          width: 62, height: 62, borderRadius: 16,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: paused
-            ? 'rgba(253,224,71,0.12)'
-            : 'linear-gradient(135deg, rgba(253,224,71,0.25), rgba(253,224,71,0.12))',
-          border: `1.5px solid ${paused ? GOLD : 'rgba(253,224,71,0.4)'}`,
-          cursor: 'pointer',
-          boxShadow: paused ? 'none' : '0 0 16px rgba(253,224,71,0.15)',
-        }}>
-          {paused ? <Play size={24} color={GOLD}/> : <Pause size={24} color="#fff"/>}
-        </button>
-
-        {/* Skip */}
-        <button onClick={handleSkip} style={{
-          width: 48, height: 48, borderRadius: 12,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(168,85,247,0.3)',
-          cursor: 'pointer',
-        }}>
-          <SkipForward size={18} color={C.neon}/>
-        </button>
-
-        {/* Stop */}
-        <button onClick={handleStop} style={{
-          width: 48, height: 48, borderRadius: 12,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-          cursor: 'pointer',
-        }}>
-          <Square size={16} color="#ef4444"/>
-        </button>
-      </div>
-
-      {/* More options toggle */}
-      <button onClick={() => setShowMore(!showMore)} style={{
-        marginTop: 10, background: 'none', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%',
-      }}>
-        <MoreHorizontal size={14} color={C.muted}/>
-        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted }}>
-          {showMore ? 'Less' : 'More'}
-        </span>
-      </button>
-
-      {/* More section (manual complete, reset) */}
-      {showMore && (
-        <div style={{
-          marginTop: 8, padding: '10px 12px', borderRadius: 10,
-          background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap',
-        }}>
-          <button onClick={handleManualComplete} style={{
-            padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: 'rgba(34,197,94,0.1)', fontFamily: "'Orbitron',sans-serif",
-            fontWeight: 700, fontSize: 9, color: '#22c55e', letterSpacing: '0.08em',
-          }}>MARK DONE</button>
-          <button onClick={handleReset} style={{
-            padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: 'rgba(245,158,11,0.1)', fontFamily: "'Orbitron',sans-serif",
-            fontWeight: 700, fontSize: 9, color: '#f59e0b', letterSpacing: '0.08em',
-          }}>RESET</button>
-        </div>
-      )}
-
-      {/* Stop confirmation modal */}
+      <BattleHUD
+        stageNumber={stage?.stageNumber || ''}
+        stageTitle={stage?.title}
+        hp={stageHp}
+        move={task?.title}
+        rep={currentRep}
+        target={targetReps}
+        combo={currentRep}
+        paceLabel={`${cadenceLabel} PACE`}
+        elapsedLabel={formatTime(elapsed)}
+        targetLabel={null}
+        barFrac={currentRep / targetReps}
+        ahead
+        paceStatusLabel={task?._round ? `ROUND ${task._round}` : 'KEEP THE BEAT'}
+        starsInReach={null}
+        nextLabel={nextTaskTitle ? nextTaskTitle.toUpperCase() : 'STAGE CLEAR'}
+        nextSub={nextTaskTitle ? `after ${restSeconds}s rest` : null}
+        announcerText={announcerText}
+        paused={paused}
+        onSetComplete={handleSetComplete}
+        onPauseToggle={handlePauseToggle}
+        onStop={handleStop}
+        extras={hudExtras}
+      />
       {confirmStop && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(5,0,15,0.88)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          backdropFilter: 'blur(6px)',
-        }}>
-          <div style={{
-            background: 'rgba(15,5,30,0.95)', border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: 16, padding: '28px 24px', textAlign: 'center',
-            maxWidth: 280, width: '85%',
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
-              color: '#fff', letterSpacing: '0.1em', marginBottom: 10,
-            }}>End Exercise?</div>
-            <div style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 500,
-              color: C.muted, lineHeight: 1.5, marginBottom: 20,
-            }}>Progress on this exercise will not be saved.</div>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(5,0,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: 'rgba(15,5,30,0.95)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 16, padding: '28px 24px', textAlign: 'center', maxWidth: 280, width: '85%' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#fff', letterSpacing: '0.1em', marginBottom: 10 }}>End Exercise?</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 500, color: C.muted, lineHeight: 1.5, marginBottom: 20 }}>Progress on this exercise will not be saved.</div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmStop(false)} style={{
-                flex: 1, padding: '11px 0', borderRadius: 10,
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-                color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
-                fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer',
-              }}>CANCEL</button>
-              <button onClick={handleStopConfirm} style={{
-                flex: 1, padding: '11px 0', borderRadius: 10,
-                background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)',
-                color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
-                fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer',
-              }}>END</button>
+              <button onClick={() => setConfirmStop(false)} style={{ flex: 1, padding: '11px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>CANCEL</button>
+              <button onClick={handleStopConfirm} style={{ flex: 1, padding: '11px 0', borderRadius: 10, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)', color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>END</button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </StageChrome>
   );
 }

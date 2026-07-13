@@ -17,6 +17,7 @@ export default function BattleHUD({
   move, rep, target,
   combo, paceLabel,
   elapsedLabel, targetLabel, barFrac, ahead, starsInReach,
+  paceStatusLabel,       // optional override for the "AHEAD OF PACE" line
   nextLabel, nextSub,
   announcerText, paused,
   onSetComplete, onPauseToggle, onStop,
@@ -26,9 +27,9 @@ export default function BattleHUD({
 
   return (
     <div style={{
-      position: 'relative', zIndex: 10, height: '100dvh', boxSizing: 'border-box',
+      position: 'relative', zIndex: 10, flex: 1, minHeight: 0, boxSizing: 'border-box',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      padding: '12px 14px calc(14px + env(safe-area-inset-bottom, 0px))',
+      padding: '8px 14px 8px',
       animation: 'hud-fade-in 0.3s ease',
     }}>
       <style dangerouslySetInnerHTML={{ __html: HUD_STYLES }} />
@@ -101,7 +102,7 @@ export default function BattleHUD({
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, letterSpacing: '0.1em', color: ahead ? '#86efac' : '#fcd34d', animation: 'hud-pace-blink 2s ease-in-out infinite' }}>
-            {ahead ? 'AHEAD OF PACE ▲' : 'BEHIND PACE ▼'}
+            {paceStatusLabel || (ahead ? 'AHEAD OF PACE ▲' : 'BEHIND PACE ▼')}
           </span>
           {starsInReach && (
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, letterSpacing: '0.08em', color: GOLD }}>

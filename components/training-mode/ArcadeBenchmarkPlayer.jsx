@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
+import StageChrome from './shared/StageChrome';
 import BattleHUD from './shared/BattleHUD';
 import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap } from 'lucide-react';
 import { C } from './Styles';
@@ -112,7 +113,7 @@ function formatCadenceCount(num) {
   return `${ones[h]} ${twoDigit(rest)}`;
 }
 
-export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, onComplete, onExit, onStateChange, skipIntro = false }) {
+export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, onComplete, onExit, onStateChange, onHome, skipIntro = false }) {
   const tasks = stage?.fitBlock?.tasks || [];
   const tiers = stage?.scoringTiers || [];
   const minValid = stage?.minValidSeconds || 180;
@@ -239,12 +240,13 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     announce(`Rest. Next workout is ${nextTitle}. If you need more rest, pause before the next session.`);
     restRef.current = setInterval(() => {
       setRestTimer(t => {
-        if (t + 1 >= selectedRestSeconds) {
+        const next = t + 1;
+        if (next >= selectedRestSeconds) {
           clearInterval(restRef.current);
-          advanceToNextExercise();
+          setTimeout(() => advanceToNextExercise(), 0);
           return selectedRestSeconds;
         }
-        return t + 1;
+        return next;
       });
     }, 1000);
     return () => clearInterval(restRef.current);
@@ -603,12 +605,12 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   // Countdown phase
   if (phase === 'countdown') {
     return (
-      <PhoneFrame useBrandBg>
+      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop}>
         <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
         <div style={{
-          position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
+          position: 'relative', zIndex: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          minHeight: '100dvh', padding: '20px 16px', textAlign: 'center',
+          padding: '16px', textAlign: 'center',
           animation: 'bm-fade-in 0.3s ease',
         }}>
           {/* Benchmark timer */}
@@ -643,7 +645,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
             </p>
           </div>
         </div>
-      </PhoneFrame>
+      </StageChrome>
     );
   }
 
@@ -652,17 +654,17 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     const restProgress = restTimer / selectedRestSeconds;
     const nextTitle = nextTask?.title || 'Next';
     return (
-      <PhoneFrame useBrandBg>
+      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop}>
         <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
         <div style={{
-          position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
+          position: 'relative', zIndex: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          minHeight: '100dvh', padding: '20px 16px', textAlign: 'center',
+          padding: '16px', textAlign: 'center',
           animation: 'bm-fade-in 0.3s ease',
         }}>
           {/* Benchmark timer */}
           <div style={{
-            position: 'absolute', top: 20, right: 20,
+            position: 'absolute', top: 12, right: 12,
             padding: '4px 10px', borderRadius: 6,
             background: 'rgba(253,224,71,0.06)', border: '1px solid rgba(253,224,71,0.15)',
           }}>
@@ -727,19 +729,19 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
             }}>{currentRank.label} WINDOW</span>
           </div>
         </div>
-      </PhoneFrame>
+      </StageChrome>
     );
   }
 
   // Complete phase (brief transition)
   if (phase === 'complete') {
     return (
-      <PhoneFrame useBrandBg>
+      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop}>
         <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
         <div style={{
-          position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
+          position: 'relative', zIndex: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          minHeight: '100dvh', padding: '20px 16px', textAlign: 'center',
+          padding: '16px', textAlign: 'center',
           animation: 'bm-fade-in 0.3s ease',
         }}>
           <div style={{
@@ -764,7 +766,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
             }}>{currentRank.label}</span>
           </div>
         </div>
-      </PhoneFrame>
+      </StageChrome>
     );
   }
 
@@ -856,7 +858,12 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   );
 
   return (
-    <PhoneFrame useBrandBg>
+    <StageChrome
+      title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()}
+      subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`}
+      onHome={onHome}
+      onBack={handleStop}
+    >
       <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
       <BattleHUD
         stageNumber={stage?.stageNumber || 1}
@@ -959,6 +966,6 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
           </div>
         </div>
       )}
-    </PhoneFrame>
+    </StageChrome>
   );
 }

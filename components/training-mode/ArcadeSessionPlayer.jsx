@@ -138,7 +138,7 @@ function buildTaskList(stage, blockKey, arcadeSettings) {
   return tasks;
 }
 
-export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeOrder, arcadeSettings, onComplete, onExit, initialPaused, onStateChange, initialResumeData }) {
+export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeOrder, arcadeSettings, onComplete, onExit, onHome, initialPaused, onStateChange, initialResumeData }) {
   const firstBlock = selectedMode === 'both'
     ? (modeOrder === 'fight-first' ? 'fight' : 'fit')
     : selectedMode;
@@ -360,9 +360,29 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
         stage={stage}
         arcadeSettings={arcadeSettings}
         skipIntro
+        onHome={onHome}
         onComplete={handleBenchmarkComplete}
         onExit={onExit}
         onStateChange={onStateChange}
+      />
+    );
+  }
+
+  // Cadence sets (stages 2-10) render full-screen through the Battle HUD too.
+  if (isCadenceTask && sessionPhase === 'active') {
+    return (
+      <ArcadeCadenceRepPlayer
+        task={task}
+        taskIdx={taskIdx}
+        totalTasks={tasks.length}
+        stage={stage}
+        series={series}
+        arcadeSettings={arcadeSettings}
+        nextTaskTitle={taskIdx + 1 < tasks.length ? tasks[taskIdx + 1]?.title : null}
+        onComplete={() => handleCompleteTask()}
+        onSkip={() => { integrityRef.current?.skipUnit(); handleCompleteTask(); }}
+        onExit={handleSaveForLater}
+        onHome={onHome}
       />
     );
   }
