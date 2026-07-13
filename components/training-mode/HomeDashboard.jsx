@@ -137,7 +137,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
         </div>
 
         {/* Today's bout (compact) */}
-        <button onClick={handleBoutStart} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(168,85,247,0.5)', background: 'radial-gradient(ellipse at 28% 15%, rgba(60,20,90,0.6), #0a0014 68%)', marginBottom: 10, padding: '11px 12px', display: 'flex', gap: 11, alignItems: 'center', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+        <button data-tour="todays-bout" onClick={handleBoutStart} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(168,85,247,0.5)', background: 'radial-gradient(ellipse at 28% 15%, rgba(60,20,90,0.6), #0a0014 68%)', marginBottom: 10, padding: '11px 12px', display: 'flex', gap: 11, alignItems: 'center', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <div style={{ width: 52, height: 66, flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)' }}>
             <SafeImage src={`/static/tiers/${tier}-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
           </div>

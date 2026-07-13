@@ -146,8 +146,8 @@ function ProgressDetail({ stats, rankName, level, onClose }) {
   );
 }
 
-function Card({ children, style }) {
-  return <div style={{ background: 'rgba(8,2,18,0.85)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 11, ...style }}>{children}</div>;
+function Card({ children, style, ...rest }) {
+  return <div {...rest} style={{ background: 'rgba(8,2,18,0.85)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 11, ...style }}>{children}</div>;
 }
 
 export default function ProgressScreen({ onHome, profile }) {
@@ -210,7 +210,7 @@ export default function ProgressScreen({ onHome, profile }) {
           {tab === 'overview' ? (
             <>
               {/* Rank card */}
-              <Card style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+              <Card data-tour="rank-card" style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                 <div style={{ width: 38, height: 38, borderRadius: 9, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
                   <SafeImage src={`/static/tiers/${rank.tier}-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%' }}/>
                 </div>

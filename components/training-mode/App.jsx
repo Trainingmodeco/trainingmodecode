@@ -6,6 +6,7 @@ import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession } from './voiceCoach';
 import { trackEvent } from './data/analytics';
+import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
   const _imgPaths = [
@@ -68,6 +69,7 @@ function tryCompleteDailyMission(completedActionType) {
 }
 
 const ONBOARDING_KEY = 'trainingModeOnboardingComplete';
+const TOUR_KEY = 'trainingModeTourComplete';
 
 const PAUSED_SESSION_KEY = 'trainingModePausedSession';
 const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -122,8 +124,8 @@ export default function App() {
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
+  const [tourStep, setTourStep] = useState(null); // design 33 feature tour (null = off)
   const activeSessionStateRef = useRef(null);
-  const postGuideRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
   // more XP after the main block) can still detect a level-up against it.
   const sessionStartLevelRef = useRef(null);
@@ -233,6 +235,29 @@ export default function App() {
   const reportSessionState = useCallback((state) => {
     activeSessionStateRef.current = state;
   }, []);
+
+  // ── Design 33: first-run feature tour (spotlight coach marks) ──
+  // The overlay lives at app level; each step declares which screen it runs on.
+  const markTourDone = () => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(TOUR_KEY, 'true');
+  };
+  const advanceTour = () => {
+    const next = (tourStep ?? 0) + 1;
+    if (next >= TOUR_STEPS.length) {
+      markTourDone();
+      setTourStep(null);
+      setScreen('home');
+      trackEvent('feature_tour_complete');
+    } else {
+      setScreen(TOUR_STEPS[next].screen);
+      setTourStep(next);
+    }
+  };
+  const skipTour = () => {
+    markTourDone();
+    setTourStep(null);
+    trackEvent('feature_tour_skipped', { step: tourStep });
+  };
 
   const actions = {
     goStart:       () => setScreen('start'),
@@ -436,30 +461,21 @@ export default function App() {
       const done = typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true';
       setScreen(done ? 'home' : 'onboarding');
     },
-    completeOnboarding: ({ goal, experience, recommendation, profile: onboardingProfile }) => {
+    completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
       updateProfile(onboardingProfile || { goal, experience });
       trackEvent('onboarding_complete', { goal, experience });
-      // Show the first-run "How It Works" guide once, then route to the
-      // onboarding recommendation (stashed until the guide is dismissed).
-      postGuideRef.current = recommendation || null;
-      setScreen('how_it_works');
+      // Design 33: land on the REAL Home and run the one-time interactive
+      // feature tour (replaces the static 27a guide). Never auto-show again.
+      setScreen('home');
+      const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
+      if (!tourDone) setTourStep(0);
     },
-    finishGuide: () => {
-      const recommendation = postGuideRef.current;
-      postGuideRef.current = null;
-      if (recommendation?.type === 'startHere') {
-        setDisc('Boxing');
-        setScreen('practice_starthere');
-      } else if (recommendation?.type === 'practice') {
-        setDisc('Boxing');
-        setScreen('practice');
-      } else if (recommendation?.type === 'fightFocus') {
-        setDisc('Boxing');
-        setScreen('setup');
-      } else {
-        setScreen('qm_setup');
-      }
+    startFeatureTour: () => {
+      // Settings → "Replay intro guide".
+      setScreen('home');
+      setTourStep(0);
+      trackEvent('feature_tour_replay');
     },
     skipOnboardingToHome: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -492,6 +508,9 @@ export default function App() {
             actions={actions}
           />
         </Suspense>
+        {tourStep != null && (
+          <FeatureTour step={tourStep} onNext={advanceTour} onSkip={skipTour} />
+        )}
       </div>
     </>
   );

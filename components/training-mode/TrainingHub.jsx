@@ -67,6 +67,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         {/* === FIGHT MODE === */}
         <div
           className="train-hub-card"
+          data-tour="mode-fight"
           onClick={onFightMode}
           style={{
             '--card-glow': 'rgba(239,68,68,0.5)',
@@ -108,6 +109,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         {/* === FIT MODE === */}
         <div
           className="train-hub-card"
+          data-tour="mode-fit"
           onClick={onFitMode}
           style={{
             '--card-glow': 'rgba(168,85,247,0.5)',
@@ -149,6 +151,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         {/* === TRAINING ARCADE === */}
         <div
           className="train-hub-card"
+          data-tour="mode-arcade"
           onClick={onTrainingArcade}
           style={{
             '--card-glow': 'rgba(34,197,94,0.5)',
