@@ -268,7 +268,7 @@ export default function App() {
     },
     goCombatCondSetup: () => setScreen('cc_setup'),
     goTrainingArcade: () => setScreen('arcade'),
-    goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen(series?.id === 'one-punch-protocol' ? 'arcade_series' : 'arcade_intro'); },
+    goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen(['one-punch-protocol', 'demon-back-protocol'].includes(series?.id) ? 'arcade_series' : 'arcade_intro'); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;

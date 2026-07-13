@@ -1,11 +1,11 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import TrainingCTA from './shared/TrainingCTA';
-import { ChevronLeft, Lock, Check, Trophy, CheckCircle, X } from 'lucide-react';
+import { Lock, Check, X } from 'lucide-react';
 import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable } from './data/trainingArcadeData';
@@ -47,7 +47,6 @@ function getStageObjectives(stage) {
 
 export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStage, arcadeSettings }) {
   const progress = getSeriesProgress(series.id);
-  const isOnePunch = series.id === 'one-punch-protocol';
 
   if (!isSeriesPlayable(series)) {
     return (
@@ -64,10 +63,7 @@ export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStag
     );
   }
 
-  if (isOnePunch) {
-    return <StageLadder series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} />;
-  }
-  return <DefaultSeriesDetail series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} />;
+  return <StageLadder series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} />;
 }
 
 // ── 30b: branching ladder + stage accordion modal ─────────────────────────────
@@ -106,41 +102,57 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const [openInfo, setOpenInfo] = useState(null);
   const [shakeIdx, setShakeIdx] = useState(null);
   const [toast, setToast] = useState(null);
+  const [boxH, setBoxH] = useState(0);
   const boxRef = useRef(null);
   const shakeTimer = useRef(null);
   const toastTimer = useRef(null);
 
-  const stageState = (idx) => {
-    if (completedSet.has(stages[idx].id)) return 'complete';
-    if (idx < highestUnlocked) return 'current';
-    return 'locked';
-  };
-  const accessible = (idx) => idx < highestUnlocked;
-
-  // Render boss (last) at the top, stage 1 at the bottom.
-  const rendered = useMemo(() => stages.map((stage, idx) => ({ stage, idx })).reverse(), [stages]);
-  const N = rendered.length;
-  const cf = (j) => CF_TOP + (N > 1 ? (j / (N - 1)) * CF_SPAN : 0);
-  // Stage 1 and the boss sit on the spine; even stages branch LEFT, odd RIGHT.
-  const laneFor = (stage, idx) => {
-    if (idx === 0 || stage.isFinalRound) return 0.5;
-    return (stage.stageNumber || idx + 1) % 2 === 0 ? LANE_L : LANE_R;
-  };
+  useEffect(() => {
+    const measure = () => { if (boxRef.current) setBoxH(boxRef.current.clientHeight); };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   // Contiguously-cleared count drives the green spine fill.
   let clearedRun = 0;
   while (clearedRun < stages.length && completedSet.has(stages[clearedRun].id)) clearedRun++;
   const clearedCount = completedSet.size;
 
+  // Optional mythic / elite boss sits above the required stages (unlocks once
+  // every required stage is cleared; not required for series completion).
+  const mythic = series.mythicBoss || null;
+  const nodes = useMemo(() => (mythic ? [...stages, mythic] : stages), [stages, mythic]);
+  const mythicIdx = mythic ? stages.length : -1;
+
+  const accessible = (idx) => (idx === mythicIdx ? clearedCount >= stages.length : idx < highestUnlocked);
+  const stageState = (idx) => {
+    if (completedSet.has(nodes[idx].id)) return 'complete';
+    if (accessible(idx)) return 'current';
+    return 'locked';
+  };
+
+  // Render boss (last) at the top, stage 1 at the bottom.
+  const rendered = useMemo(() => nodes.map((stage, idx) => ({ stage, idx })).reverse(), [nodes]);
+  const N = rendered.length;
+  const cf = (j) => CF_TOP + (N > 1 ? (j / (N - 1)) * CF_SPAN : 0);
+  // Vertical space between node centres — used to cap node height so they never overlap.
+  const rowGap = boxH > 0 ? (boxH * CF_SPAN) / Math.max(N - 1, 1) : 82;
+  // Stage 1 and the boss(es) sit on the spine; even stages branch LEFT, odd RIGHT.
+  const laneFor = (stage, idx) => {
+    if (idx === 0 || idx === mythicIdx || stage.isFinalRound) return 0.5;
+    return (stage.stageNumber || idx + 1) % 2 === 0 ? LANE_L : LANE_R;
+  };
+
   const openIdx = openInfo?.idx ?? null;
-  const selected = openIdx != null ? stages[openIdx] : null;
+  const selected = openIdx != null ? nodes[openIdx] : null;
   const canEnter = openIdx != null && accessible(openIdx);
 
   function onNodeTap(e, idx) {
     if (!accessible(idx)) {
       // Locked: brief shake + unlock hint toast instead of the modal.
       setShakeIdx(idx);
-      setToast(`CLEAR STAGE ${(stages[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
+      setToast(idx === mythicIdx ? 'CLEAR ALL STAGES TO UNLOCK' : `CLEAR STAGE ${(nodes[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
       clearTimeout(shakeTimer.current); clearTimeout(toastTimer.current);
       shakeTimer.current = setTimeout(() => setShakeIdx(null), 500);
       toastTimer.current = setTimeout(() => setToast(null), 1800);
@@ -149,7 +161,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     const btn = e.currentTarget;
     const boxH = boxRef.current ? boxRef.current.clientHeight : 600;
     const nodeY = btn.offsetTop + btn.offsetHeight / 2;
-    const stage = stages[idx];
+    const stage = nodes[idx];
     const lane = laneFor(stage, idx);
     let side, top, notch;
     if (lane === 0.5) {
@@ -165,6 +177,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     setOpenInfo({ idx, top, side, notchY, notch });
   }
 
+  // Play the fit block by default (every series here has one); the stage's own
+  // fight block is a future toggle.
+  const startMode = series.availableModes?.includes('fit') ? 'fit' : (series.availableModes?.[0] || 'fit');
+
   function handleStart() {
     if (!selected || !canEnter) return;
     const settings = {
@@ -174,8 +190,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
       rest: 'normal', restSeconds: 30,
       voiceCoach: true, cadenceCount: true, cardioFinisher: true, sound: 'on',
     };
-    setActiveChallenge({ seriesId: series.id, stageId: selected.id, selectedMode: 'fit', lastPlayedAt: Date.now() });
-    onStartStage(series, selected, 'fit', null, settings);
+    setActiveChallenge({ seriesId: series.id, stageId: selected.id, selectedMode: startMode, lastPlayedAt: Date.now() });
+    onStartStage(series, selected, startMode, null, settings);
   }
 
   // ── Modal content data ──
@@ -249,12 +265,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
             {rendered.map(({ stage, idx }, j) => {
               const st = stageState(idx);
               const isOpen = idx === openIdx;
-              const isBoss = stage.isFinalRound;
+              const isMythic = idx === mythicIdx;
+              const isBoss = stage.isFinalRound && !isMythic;
               const lane = laneFor(stage, idx);
               const src = `/static/series/stages/stage-${Math.min(idx + 1, 10)}.webp`;
-              const w = isBoss ? BOSS_W : st === 'current' ? CUR_W : NODE_W;
-              const h = Math.round(w * ART_AR);
+              const w = isMythic || isBoss ? BOSS_W : st === 'current' ? CUR_W : NODE_W;
+              // Cap height so every node (incl. an extra mythic boss) fits with no scroll.
+              const h = Math.min(Math.round(w * ART_AR), Math.max(46, Math.round(rowGap - 6)));
               const border = isOpen ? '2px solid #fff'
+                : isMythic ? '2px solid #d946ef'
                 : st === 'current' ? '2px solid #fde047'
                 : st === 'complete' ? '1.5px solid rgba(34,197,94,0.8)'
                 : isBoss ? '1.5px solid rgba(253,224,71,0.55)'
@@ -272,7 +291,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                   <button
                     className="ladder-node"
                     onClick={(e) => onNodeTap(e, idx)}
-                    aria-label={isBoss ? 'Boss stage' : `Stage ${stage.stageNumber || idx + 1}`}
+                    aria-label={isMythic ? 'Elite boss' : isBoss ? 'Boss stage' : `Stage ${stage.stageNumber || idx + 1}`}
                     style={{
                       position: 'absolute', top: `calc(${(cf(j) * 100).toFixed(3)}% - ${h / 2}px)`, left: `${lane * 100}%`,
                       transform: 'translateX(-50%)', width: Math.max(w, 44), height: h,
@@ -284,14 +303,14 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                       className="ladder-node-inner"
                       style={{
                         width: w, height: h, background: '#0a0014', border,
-                        boxShadow: isOpen ? '0 0 18px rgba(255,255,255,0.5)' : isBoss ? '0 0 14px rgba(253,224,71,0.3)' : '0 3px 10px rgba(0,0,0,0.5)',
-                        animation: shakeIdx === idx ? 'node-shake 0.45s ease' : st === 'current' ? 'node-pulse 2.2s ease-in-out infinite' : 'none',
+                        boxShadow: isOpen ? '0 0 18px rgba(255,255,255,0.5)' : isMythic ? '0 0 16px rgba(217,70,239,0.5)' : isBoss ? '0 0 14px rgba(253,224,71,0.3)' : '0 3px 10px rgba(0,0,0,0.5)',
+                        animation: shakeIdx === idx ? 'node-shake 0.45s ease' : (st === 'current' || (isMythic && accessible(idx))) ? 'node-pulse 2.2s ease-in-out infinite' : 'none',
                       }}
                     >
-                      <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(1) brightness(0.45)' : 'none' }} />
-                      <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.4)' : 'linear-gradient(to top, rgba(5,0,12,0.75), transparent 60%)' }} />
-                      <div style={{ position: 'absolute', top: 2, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isBoss ? 8 : 10, color: isBoss ? GOLD : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                        {isBoss ? 'BOSS' : stage.stageNumber || idx + 1}
+                      <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(1) brightness(0.45)' : isMythic ? 'hue-rotate(35deg) saturate(1.3)' : 'none' }} />
+                      <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.4)' : isMythic ? 'linear-gradient(to top, rgba(30,2,30,0.78), rgba(80,10,90,0.25) 60%)' : 'linear-gradient(to top, rgba(5,0,12,0.75), transparent 60%)' }} />
+                      <div style={{ position: 'absolute', top: 2, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isMythic || isBoss ? 7.5 : 10, color: isMythic ? '#f0abfc' : isBoss ? GOLD : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0.04em' }}>
+                        {isMythic ? 'ELITE' : isBoss ? 'BOSS' : stage.stageNumber || idx + 1}
                       </div>
                       {st === 'complete' && (
                         <div style={{ position: 'absolute', top: 2, right: 2, width: 13, height: 13, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -301,8 +320,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                       {st === 'locked' && (
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>🔒</div>
                       )}
-                      {isBoss && (
-                        <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', fontSize: 11 }}>👑</div>
+                      {(isBoss || isMythic) && (
+                        <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', fontSize: 11 }}>{isMythic ? '💀' : '👑'}</div>
                       )}
                     </div>
                   </button>
@@ -346,10 +365,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 <X size={12} color="rgba(235,225,255,0.8)" />
               </button>
 
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7, color: GOLD, letterSpacing: '0.18em' }}>
-                SELECTED · {selected.isFinalRound ? 'FINAL BOSS' : `STAGE ${selected.stageNumber}`}
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7, color: openIdx === mythicIdx ? '#f0abfc' : GOLD, letterSpacing: '0.18em' }}>
+                {openIdx === mythicIdx ? '💀 ELITE CHALLENGE · OPTIONAL' : `SELECTED · ${selected.isFinalRound ? 'FINAL BOSS' : `STAGE ${selected.stageNumber}`}`}
               </div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, color: GOLD, letterSpacing: '0.02em', lineHeight: 1.08, marginTop: 2, paddingRight: 20 }}>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, color: openIdx === mythicIdx ? '#f0abfc' : GOLD, letterSpacing: '0.02em', lineHeight: 1.08, marginTop: 2, paddingRight: 20 }}>
                 {selected.title.toUpperCase()}
               </div>
               <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: '#c4a4d8', margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -412,109 +431,6 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
         {/* A little breathing room above the footer tabs */}
         <div style={{ height: '5dvh', flexShrink: 0 }} />
-      </div>
-    </PhoneFrame>
-  );
-}
-
-function DefaultSeriesDetail({ series, progress, arcadeSettings, onBack, onStartStage }) {
-  const initialMode = series.availableModes?.length === 1 ? series.availableModes[0] : null;
-  const [selectedMode, setSelectedMode] = useState(initialMode);
-  const [modeOrder, setModeOrder] = useState(null);
-  const isPro = true;
-
-  const stages = series.stages;
-  const freeLimit = series.freePreviewStages || 0;
-
-  function handleStageSelect(stage, stageIdx) {
-    if (!isPro && stageIdx >= freeLimit) return;
-    if (!selectedMode) return;
-    setActiveChallenge({ seriesId: series.id, stageId: stage.id, selectedMode, modeOrder, lastPlayedAt: Date.now() });
-    onStartStage(series, stage, selectedMode, modeOrder, arcadeSettings);
-  }
-
-  function isStageAccessible(idx) {
-    if (!isPro && idx >= freeLimit) return false;
-    if (idx === 0) return true;
-    const prev = stages[idx - 1];
-    const prevData = progress.completedStages[prev.id];
-    return prevData && prevData.completed;
-  }
-
-  function getStageStatus(stageId) {
-    const data = progress.completedStages[stageId];
-    if (!data) return 'locked';
-    if (data.completed) return 'complete';
-    if (data.fit || data.fight) return 'partial';
-    return 'locked';
-  }
-
-  return (
-    <PhoneFrame useBrandBg>
-      <style dangerouslySetInnerHTML={{ __html: detailStyles }} />
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', overflowX: 'hidden', padding: '20px 14px calc(170px + env(safe-area-inset-bottom, 0px))' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <button onClick={onBack} style={{ background: 'transparent', border: 'none', padding: '6px', color: C.text, display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-            <ChevronLeft size={22} />
-          </button>
-          <div>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 900, color: C.text, letterSpacing: '0.06em' }}>{series.title}</span>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted }}>Arcade Series</div>
-          </div>
-        </div>
-
-        <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: 'rgba(245,233,255,0.65)', lineHeight: 1.4, margin: '0 0 12px', fontWeight: 400 }}>{series.description}</p>
-
-        {series.availableModes?.length > 1 && (
-          <div style={{ background: 'rgba(14,0,28,0.9)', borderRadius: 10, padding: 10, border: '1px solid rgba(253,224,71,0.12)', marginBottom: 12 }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.muted, letterSpacing: '0.12em', display: 'block', marginBottom: 8 }}>SELECT MODE</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {series.availableModes.map(mode => (
-                <button key={mode} onClick={() => { setSelectedMode(mode); setModeOrder(null); }} style={{ flex: 1, padding: '9px 8px', borderRadius: 8, cursor: 'pointer', background: selectedMode === mode ? 'rgba(253,224,71,0.08)' : 'rgba(255,255,255,0.02)', borderWidth: 1, borderStyle: 'solid', borderColor: selectedMode === mode ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.08)', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: selectedMode === mode ? C.yellow : C.muted, letterSpacing: '0.04em' }}>
-                  {mode.toUpperCase()}
-                </button>
-              ))}
-            </div>
-            {selectedMode === 'both' && !modeOrder && (
-              <div style={{ marginTop: 8 }}>
-                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted, fontWeight: 600, display: 'block', marginBottom: 5 }}>What do you want to complete first?</span>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => setModeOrder('fit-first')} style={{ flex: 1, padding: '7px', borderRadius: 6, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.06)', cursor: 'pointer', fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 10, color: '#a855f7' }}>Start with Fit</button>
-                  <button onClick={() => setModeOrder('fight-first')} style={{ flex: 1, padding: '7px', borderRadius: 6, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)', cursor: 'pointer', fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 10, color: '#ef4444' }}>Start with Fight</button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!selectedMode && series.availableModes?.length > 1 && (
-          <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted, textAlign: 'center', margin: '8px 0' }}>Select a mode above to unlock stages.</p>
-        )}
-
-        {selectedMode && (selectedMode !== 'both' || modeOrder) && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {stages.map((stage, idx) => {
-              const acc = isStageAccessible(idx);
-              const locked = !isPro && idx >= freeLimit;
-              const status = getStageStatus(stage.id);
-              return (
-                <button key={stage.id} onClick={() => acc && !locked && handleStageSelect(stage, idx)} disabled={!acc || locked || !selectedMode}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, background: status === 'complete' ? 'rgba(34,197,94,0.04)' : 'rgba(14,0,28,0.9)', border: stage.isFinalRound ? '1px solid rgba(253,224,71,0.3)' : status === 'complete' ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '9px 10px', cursor: acc && !locked ? 'pointer' : 'not-allowed', width: '100%', textAlign: 'left', opacity: (!acc || locked) ? 0.45 : 1 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: stage.isFinalRound ? 'rgba(253,224,71,0.1)' : status === 'complete' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)', border: stage.isFinalRound ? '1px solid rgba(253,224,71,0.3)' : 'none', flexShrink: 0 }}>
-                    {locked ? <Lock size={11} color={C.muted} /> : status === 'complete' ? <CheckCircle size={11} color="#22c55e" /> : stage.isFinalRound ? <Trophy size={11} color={C.yellow} /> : <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: C.text }}>{stage.stageNumber}</span>}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: stage.isFinalRound ? C.yellow : C.text, marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {stage.isFinalRound ? 'FINAL ROUND' : `Stage ${stage.stageNumber}`}: {stage.title}
-                    </div>
-                    <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 400 }}>{stage.focus}</div>
-                  </div>
-                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.yellow, fontWeight: 700, flexShrink: 0 }}>+{stage.rewards.xp}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
     </PhoneFrame>
   );
