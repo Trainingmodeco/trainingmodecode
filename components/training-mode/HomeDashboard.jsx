@@ -137,6 +137,8 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
         <button data-tour="todays-bout" onClick={handleBoutStart} style={{ position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <SafeImage src="/static/bout-bg.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }}/>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(8,0,16,0.92) 0%, rgba(8,0,16,0.62) 48%, rgba(8,0,16,0.12) 100%)' }}/>
+          {/* Slight uniform dim over the art */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,0,16,0.24)' }}/>
           <div style={{ position: 'absolute', left: 15, right: 15, top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
             <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>⚔ TODAY&apos;S BOUT</div>
             <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.12, letterSpacing: '0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.7)', maxWidth: '72%' }}>{(suggestion?.title || 'Fight Focus').toUpperCase()}</div>

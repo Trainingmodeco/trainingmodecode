@@ -233,13 +233,14 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
           </div>
         </div>
 
-        {/* Workout / swap header — exercises can only be swapped, never
-            checked off by hand; the guided player crosses them out itself. */}
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 7 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>
-            WORKOUT <span style={{ color: 'rgba(255,255,255,0.3)' }}>/</span> <span style={{ color: C.violet }}>SWAP WORKOUT</span>
-          </span>
-          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap a row to swap</span>
+        {/* Workout header — exercises can only be swapped, never checked off
+            by hand; the guided player crosses them out itself. */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 7 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.25 }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: C.violet, letterSpacing: '0.1em' }}>SWAP WORKOUT</span>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap to change workout</span>
+          </div>
         </div>
 
         {/* Exercise rows */}

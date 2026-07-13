@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
+import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import { Play, Pause, SkipForward, Check } from 'lucide-react';
 import { C } from './Styles';
@@ -221,90 +222,103 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     : plan.kind === 'weighted' ? `${plan.reps} REPS · ${fmtClock(plan.windowSec)} WINDOW`
     : `${plan.seconds}s HOLD`;
 
+  const controls = (
+    <div style={{ flexShrink: 0, display: 'flex', gap: 8, width: '100%', maxWidth: 360 }}>
+      <button onClick={handlePauseToggle} aria-label={paused ? 'Resume' : 'Pause'} style={{ width: 52, height: 48, borderRadius: 11, cursor: 'pointer', background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {paused ? <Play size={18} color={GOLD}/> : <Pause size={18} color="#e6d4ff"/>}
+      </button>
+      {(plan.kind !== 'reps' && phase === 'active') ? (
+        <button onClick={handleDoneEarly} style={{ flex: 1, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
+          <Check size={16} strokeWidth={3}/> SET DONE
+        </button>
+      ) : (
+        <button onClick={handleSkipSet} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: 'rgba(16,4,30,0.85)', border: '1px solid rgba(168,85,247,0.35)', color: '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+          <SkipForward size={15} color={VIOLET}/> {phase === 'rest' ? 'SKIP REST' : 'SKIP SET'}
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <PhoneFrame useBrandBg>
       <Embers count={2}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', padding: '14px 16px 18px' }}>
-        {/* Top: back to list + progress */}
-        <button onClick={handleBack} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: C.faint, letterSpacing: '0.1em', marginBottom: 10, alignSelf: 'flex-start' }}>
-          ← BACK TO LIST · REVIEW &amp; SWAP
-        </button>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>SET {set}/{totalSets}</span>
-        </div>
-        <div style={{ width: '100%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 14 }}>
-          <div style={{ width: `${progress * 100}%`, height: '100%', borderRadius: 2, background: `linear-gradient(90deg, ${GOLD}, ${VIOLET})`, transition: 'width 0.4s ease' }}/>
-        </div>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
+        {/* Training Mode logo header — back arrow returns to the list */}
+        <TrainingHeader
+          title="GUIDED WORKOUT"
+          subtitle={`Exercise ${exerciseIdx + 1} of ${exercises.length} · review & swap`}
+          showBack
+          onBack={handleBack}
+          onHome={handleBack}
+        />
 
-        {/* Centre display */}
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: '#fff', letterSpacing: '0.05em', marginBottom: 4 }}>{ex.name}</div>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: VIOLET, letterSpacing: '0.14em', marginBottom: 16 }}>{ex.muscle} · {kindLabel}</div>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '8px 16px calc(78px + env(safe-area-inset-bottom, 0px))' }}>
+          {/* Progress */}
+          <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>SET {set}/{totalSets}</span>
+          </div>
+          <div style={{ flexShrink: 0, width: '100%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 12 }}>
+            <div style={{ width: `${progress * 100}%`, height: '100%', borderRadius: 2, background: `linear-gradient(90deg, ${GOLD}, ${VIOLET})`, transition: 'width 0.4s ease' }}/>
+          </div>
 
-          {phase === 'position' ? (
-            <>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#f97316', letterSpacing: '0.18em', marginBottom: 8 }}>GET INTO POSITION</div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56, color: '#f97316', textShadow: '0 0 18px rgba(249,115,22,0.5)' }}>{display || 5}</div>
-            </>
-          ) : phase === 'rest' ? (
-            <>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#4f8cff', letterSpacing: '0.18em', marginBottom: 8 }}>REST</div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56, color: '#fff', textShadow: '0 0 14px rgba(79,140,255,0.4)' }}>{fmtClock(display)}</div>
-              <button onClick={handleSkipSet} style={{ marginTop: 14, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(79,140,255,0.14)', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: '#4f8cff', letterSpacing: '0.1em' }}>SKIP REST</button>
-            </>
-          ) : plan.kind === 'reps' ? (
+          {/* Centre: display + announcer + controls (kept high, no scroll) */}
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
             <div>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 64, color: GOLD, textShadow: '0 0 20px rgba(253,224,71,0.5)' }}>{display}</span>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 24, color: 'rgba(230,215,255,0.45)' }}>/{plan.reps}</span>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 19, color: '#fff', letterSpacing: '0.04em', marginBottom: 4 }}>{ex.name}</div>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: VIOLET, letterSpacing: '0.14em' }}>{ex.muscle} · {kindLabel}</div>
             </div>
-          ) : (
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56, color: phase === 'active' ? GOLD : '#fff', textShadow: '0 0 20px rgba(253,224,71,0.45)' }}>
-              {fmtClock(display)}
+
+            {phase === 'position' ? (
+              <div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#f97316', letterSpacing: '0.18em', marginBottom: 6 }}>GET INTO POSITION</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: '#f97316', lineHeight: 1, textShadow: '0 0 18px rgba(249,115,22,0.5)' }}>{display || 5}</div>
+              </div>
+            ) : phase === 'rest' ? (
+              <div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#4f8cff', letterSpacing: '0.18em', marginBottom: 6 }}>REST</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: '#fff', lineHeight: 1, textShadow: '0 0 14px rgba(79,140,255,0.4)' }}>{fmtClock(display)}</div>
+              </div>
+            ) : plan.kind === 'reps' ? (
+              <div style={{ lineHeight: 1 }}>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 62, color: GOLD, textShadow: '0 0 20px rgba(253,224,71,0.5)' }}>{display}</span>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 24, color: 'rgba(230,215,255,0.45)' }}>/{plan.reps}</span>
+              </div>
+            ) : (
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: phase === 'active' ? GOLD : '#fff', lineHeight: 1, textShadow: '0 0 20px rgba(253,224,71,0.45)' }}>
+                {fmtClock(display)}
+              </div>
+            )}
+
+            {/* Announcer */}
+            <div style={{ minHeight: 28, maxWidth: 320, padding: '6px 14px', borderRadius: 9, background: 'rgba(10,0,20,0.72)', border: '1px solid rgba(168,85,247,0.2)', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: paused ? GOLD : '#e7ddf7' }}>
+              {announcer}
+            </div>
+
+            {/* Controls — up in the centre block */}
+            {controls}
+          </div>
+
+          {/* Cadence slider (rep-counted sets only) */}
+          {plan.kind === 'reps' && (
+            <div style={{ flexShrink: 0, marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.faint, letterSpacing: '0.14em' }}>CADENCE</span>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: GOLD }}>{cadenceSec.toFixed(2)}s / rep</span>
+              </div>
+              <input type="range" min={1} max={4} step={0.25} value={cadenceSec} onChange={e => setCadenceSec(Number(e.target.value))}
+                style={{ width: '100%', height: 5, borderRadius: 999, outline: 'none', background: `linear-gradient(90deg, ${VIOLET} 0%, ${GOLD} ${((cadenceSec - 1) / 3) * 100}%, rgba(255,255,255,0.08) ${((cadenceSec - 1) / 3) * 100}%)`, cursor: 'pointer' }}/>
             </div>
           )}
 
-          {/* Announcer */}
-          <div style={{ marginTop: 16, minHeight: 30, maxWidth: 300, padding: '7px 14px', borderRadius: 9, background: 'rgba(10,0,20,0.72)', border: '1px solid rgba(168,85,247,0.2)', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: paused ? GOLD : '#e7ddf7' }}>
-            {announcer}
-          </div>
-        </div>
-
-        {/* Cadence slider (rep-counted sets only) */}
-        {plan.kind === 'reps' && (
-          <div style={{ flexShrink: 0, marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.faint, letterSpacing: '0.14em' }}>CADENCE</span>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: GOLD }}>{cadenceSec.toFixed(2)}s / rep</span>
+          {/* Next preview */}
+          {nextExercise && (
+            <div style={{ flexShrink: 0, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '6px 11px', borderRadius: 9, background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.faint, letterSpacing: '0.12em' }}>NEXT ▶</span>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9.5, fontWeight: 700, color: C.muted, letterSpacing: '0.03em' }}>{nextExercise.name}</span>
             </div>
-            <input type="range" min={1} max={4} step={0.25} value={cadenceSec} onChange={e => setCadenceSec(Number(e.target.value))}
-              style={{ width: '100%', height: 5, borderRadius: 999, outline: 'none', background: `linear-gradient(90deg, ${VIOLET} 0%, ${GOLD} ${((cadenceSec - 1) / 3) * 100}%, rgba(255,255,255,0.08) ${((cadenceSec - 1) / 3) * 100}%)`, cursor: 'pointer' }}/>
-          </div>
-        )}
-
-        {/* Controls */}
-        <div style={{ flexShrink: 0, display: 'flex', gap: 8 }}>
-          <button onClick={handlePauseToggle} aria-label={paused ? 'Resume' : 'Pause'} style={{ width: 52, height: 48, borderRadius: 11, cursor: 'pointer', background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {paused ? <Play size={18} color={GOLD}/> : <Pause size={18} color="#e6d4ff"/>}
-          </button>
-          {(plan.kind !== 'reps' && phase === 'active') ? (
-            <button onClick={handleDoneEarly} style={{ flex: 1, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
-              <Check size={15} strokeWidth={3}/> SET DONE
-            </button>
-          ) : (
-            <button onClick={handleSkipSet} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: 'rgba(16,4,30,0.85)', border: '1px solid rgba(168,85,247,0.35)', color: '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-              <SkipForward size={14} color={VIOLET}/> SKIP SET
-            </button>
           )}
         </div>
-
-        {/* Next preview */}
-        {nextExercise && (
-          <div style={{ flexShrink: 0, marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, padding: '7px 11px', borderRadius: 9, background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.faint, letterSpacing: '0.12em' }}>NEXT ▶</span>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9.5, fontWeight: 700, color: C.muted, letterSpacing: '0.03em' }}>{nextExercise.name}</span>
-          </div>
-        )}
       </div>
     </PhoneFrame>
   );

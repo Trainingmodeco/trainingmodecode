@@ -32,6 +32,38 @@ const DIFFICULTY = ['EASY', 'NORMAL', 'HARD'];
 
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 
+// Glow spots per muscle chip, as %-of-figure coordinates on the front/back
+// anatomy (the 450x600 body maps place the figure centred in-frame). Same
+// layout works for the male and female art. Bilateral muscles get two spots.
+const GLOW_MAP = {
+  CHEST:     { front: [[42, 30], [58, 30]], back: [] },
+  BACK:      { front: [], back: [[42, 33], [58, 33], [50, 44]] },
+  SHOULDERS: { front: [[32, 25], [68, 25]], back: [[33, 26], [67, 26]] },
+  ARMS:      { front: [[25, 40], [75, 40]], back: [[26, 41], [74, 41]] },
+  CORE:      { front: [[50, 45]], back: [[50, 47]] },
+  LEGS:      { front: [[43, 65], [57, 65]], back: [[43, 66], [57, 66]] },
+  GLUTES:    { front: [], back: [[43, 55], [57, 55]] },
+};
+
+const bodymapCSS = `
+@keyframes bm-glow {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.9); }
+  50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.12); }
+}
+`;
+
+function MuscleGlow({ x, y }) {
+  return (
+    <span aria-hidden style={{
+      position: 'absolute', left: `${x}%`, top: `${y}%`,
+      width: 22, height: 27, borderRadius: '50%',
+      background: 'radial-gradient(ellipse, rgba(253,224,71,0.95) 0%, rgba(253,224,71,0.4) 45%, transparent 72%)',
+      filter: 'blur(0.5px)', mixBlendMode: 'screen', pointerEvents: 'none',
+      animation: 'bm-glow 1.8s ease-in-out infinite',
+    }}/>
+  );
+}
+
 function Segmented({ options, value, onPick }) {
   return (
     <div style={{ display: 'flex', gap: 7 }}>
@@ -85,6 +117,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
 
   return (
     <PhoneFrame useBrandBg>
+      <style dangerouslySetInnerHTML={{ __html: bodymapCSS }}/>
       <Embers count={2}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
         {/* Header */}
@@ -123,14 +156,21 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
                   );
                 })}
               </div>
-              {/* Body maps */}
+              {/* Body maps — selected muscle chips light up the anatomy */}
               <div style={{ display: 'flex', gap: 9, marginBottom: 12 }}>
-                {['front', 'back'].map(v => (
-                  <div key={v} style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(34,211,238,0.3)', background: '#050010' }}>
-                    <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} style={{ width: '100%', height: 168, objectFit: 'contain', display: 'block' }}/>
-                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
-                  </div>
-                ))}
+                {['front', 'back'].map(v => {
+                  const spots = chips.flatMap(id => GLOW_MAP[id]?.[v] || []);
+                  return (
+                    <div key={v} style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(34,211,238,0.3)', background: '#050010', display: 'flex', justifyContent: 'center' }}>
+                      {/* Figure box — glows are positioned relative to the image itself */}
+                      <div style={{ position: 'relative', height: 168 }}>
+                        <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} style={{ height: 168, width: 'auto', objectFit: 'contain', display: 'block' }}/>
+                        {spots.map(([x, y], i) => <MuscleGlow key={i} x={x} y={y}/>)}
+                      </div>
+                      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
+                    </div>
+                  );
+                })}
               </div>
             </>
           )}
