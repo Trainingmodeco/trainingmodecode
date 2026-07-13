@@ -163,7 +163,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const [benchmarkActive, setBenchmarkActive] = useState(false);
   const [sessionPhase, setSessionPhase] = useState(() => {
     if (initialPaused || initialResumeData) return 'active';
-    if (stage?.stageType === 'benchmark') return 'active';
+    // All stages (benchmark included) open with the shared briefing intro.
     return 'intro';
   });
   const [stageResult, setStageResult] = useState(null);
@@ -199,7 +199,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
 
   const handleRetryStage = useCallback(() => {
     setStageResult(null);
-    setSessionPhase(stage?.stageType === 'benchmark' ? 'active' : 'intro');
+    setSessionPhase('intro');
     setTaskIdx(0);
     setTimer(0);
     setTimerActive(false);
@@ -215,7 +215,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     setCurrentBlock(firstBlock);
     integrityRef.current?.destroy();
     integrityRef.current = null;
-  }, [firstBlock, stage?.stageType]);
+  }, [firstBlock]);
 
   const tasks = useMemo(() => buildTaskList(stage, currentBlock, arcadeSettings), [stage, currentBlock, arcadeSettings]);
 
@@ -359,6 +359,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
         series={series}
         stage={stage}
         arcadeSettings={arcadeSettings}
+        skipIntro
         onComplete={handleBenchmarkComplete}
         onExit={onExit}
         onStateChange={onStateChange}

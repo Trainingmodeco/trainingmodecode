@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
+import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import FightRingBackdrop from './shared/FightRingBackdrop';
@@ -64,29 +65,28 @@ export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStag
   }
 
   if (isOnePunch) {
-    return <StageLadder series={series} progress={progress} arcadeSettings={arcadeSettings} onBack={onBack} onStartStage={onStartStage} />;
+    return <StageLadder series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} />;
   }
   return <DefaultSeriesDetail series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} />;
 }
 
 // ── 30b: branching ladder + stage accordion modal ─────────────────────────────
-// Stage-card sizes (spec): normal 44px, current 56px, boss 52px wide,
-// portrait art at 971:1619.
-const NODE_W = 44;
-const CUR_W = 56;
-const BOSS_W = 52;
+// Stage-card sizes: portrait art at 971:1619, sized up a touch per feedback.
+const NODE_W = 52;
+const CUR_W = 66;
+const BOSS_W = 62;
 const ART_AR = 1619 / 971;
 // Node centres as a fraction of the ladder-box height, so all stages always
 // fit on one screen (no scroll) regardless of viewport size.
-const CF_TOP = 0.06;
-const CF_SPAN = 0.88;
+const CF_TOP = 0.085;
+const CF_SPAN = 0.85;
 // Branch lanes off the centre spine: even stages LEFT, odd stages RIGHT;
 // stage 1 and the boss sit on the spine itself.
 const LANE_L = 0.26;
 const LANE_R = 0.74;
 const MODAL_H = 300; // approximate popup height used for clamping
 
-function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage }) {
+function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStartStage }) {
   const stages = useMemo(() => series.stages || [], [series]);
 
   const completedSet = useMemo(() => new Set(
@@ -211,18 +211,20 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
       }}>
-        {/* Header — back chevron + title + climb subtitle */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flexShrink: 0, padding: '12px 16px 6px' }}>
-          <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: '2px 2px 0 0', cursor: 'pointer', display: 'flex' }}>
-            <ChevronLeft size={18} color="#c4a4d8" />
-          </button>
-          <div>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#fff', letterSpacing: '0.06em' }}>{series.title.toUpperCase()}</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: '#c4a4d8', letterSpacing: '0.08em', marginTop: 2 }}>
-              THE CLIMB · {clearedCount} of {stages.length} · tap a stage
-            </div>
-          </div>
-        </div>
+        {/* Standard app header (TT logo) */}
+        <TrainingHeader
+          title={series.title.toUpperCase()}
+          subtitle={`THE CLIMB · ${clearedCount} of ${stages.length} · tap a stage`}
+          onHome={onHome}
+          showBack
+          onBack={onBack}
+          rightSlot={(
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
+              {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
+            </span>
+          )}
+        />
+        <div style={{ height: 6, flexShrink: 0 }} />
 
         {/* Ladder box — compact, no scroll */}
         <div ref={boxRef} style={{ flex: 1, minHeight: 0, position: 'relative' }}>
@@ -408,8 +410,8 @@ function StageLadder({ series, progress, arcadeSettings, onBack, onStartStage })
           )}
         </div>
 
-        {/* Reserved breathing room above the footer tabs (~20% of the viewport) */}
-        <div style={{ height: '12dvh', flexShrink: 0 }} />
+        {/* A little breathing room above the footer tabs */}
+        <div style={{ height: '5dvh', flexShrink: 0 }} />
       </div>
     </PhoneFrame>
   );

@@ -112,7 +112,7 @@ function formatCadenceCount(num) {
   return `${ones[h]} ${twoDigit(rest)}`;
 }
 
-export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, onComplete, onExit, onStateChange }) {
+export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, onComplete, onExit, onStateChange, skipIntro = false }) {
   const tasks = stage?.fitBlock?.tasks || [];
   const tiers = stage?.scoringTiers || [];
   const minValid = stage?.minValidSeconds || 180;
@@ -128,7 +128,9 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
 
   const [taskIdx, setTaskIdx] = useState(0);
   const [currentRep, setCurrentRep] = useState(0);
-  const [phase, setPhase] = useState('intro'); // intro | countdown | active | rest | complete
+  // The shared briefing intro (ArcadeStageIntroOverlay) now runs upstream, so
+  // when skipIntro is set we drop straight into the countdown.
+  const [phase, setPhase] = useState(skipIntro ? 'countdown' : 'intro'); // intro | countdown | active | rest | complete
   const [countdownVal, setCountdownVal] = useState(3);
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -182,6 +184,16 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
       onStateChange({ taskIdx, currentRep, elapsed, phase });
     }
   }, [taskIdx, currentRep, elapsed, phase, onStateChange]);
+
+  // When the upstream briefing intro already ran, start the wall-clock now.
+  useEffect(() => {
+    if (skipIntro && benchmarkStartedAtRef.current == null) {
+      benchmarkStartedAtRef.current = Date.now();
+      totalPausedMsRef.current = 0;
+      pauseStartedAtRef.current = null;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Intro phase
   useEffect(() => {
