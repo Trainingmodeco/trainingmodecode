@@ -132,17 +132,35 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     return 'locked';
   };
 
-  // Render boss (last) at the top, stage 1 at the bottom.
-  const rendered = useMemo(() => nodes.map((stage, idx) => ({ stage, idx })).reverse(), [nodes]);
-  const N = rendered.length;
-  const cf = (j) => CF_TOP + (N > 1 ? (j / (N - 1)) * CF_SPAN : 0);
-  // Vertical space between node centres — used to cap node height so they never overlap.
-  const rowGap = boxH > 0 ? (boxH * CF_SPAN) / Math.max(N - 1, 1) : 82;
-  // Stage 1 and the boss(es) sit on the spine; even stages branch LEFT, odd RIGHT.
-  const laneFor = (stage, idx) => {
-    if (idx === 0 || idx === mythicIdx || stage.isFinalRound) return 0.5;
-    return (stage.stageNumber || idx + 1) % 2 === 0 ? LANE_L : LANE_R;
-  };
+  // Ladder layout. Top row: BOSS top-left + ELITE top-right when a mythic
+  // exists (boss stays top-centre otherwise); below, the stages zig-zag down
+  // the spine (even LEFT / odd RIGHT) and stage 1 sits bottom-centre.
+  const bossIdx = stages.length - 1;
+  const layout = useMemo(() => {
+    const out = [];
+    if (mythic) {
+      out.push({ stage: stages[bossIdx], idx: bossIdx, lane: LANE_L, row: 0 });
+      out.push({ stage: mythic, idx: mythicIdx, lane: LANE_R, row: 0 });
+    } else {
+      out.push({ stage: stages[bossIdx], idx: bossIdx, lane: 0.5, row: 0 });
+    }
+    for (let i = bossIdx - 1, r = 1; i >= 0; i--, r++) {
+      const stage = stages[i];
+      const lane = i === 0 ? 0.5 : ((stage.stageNumber || i + 1) % 2 === 0 ? LANE_L : LANE_R);
+      out.push({ stage, idx: i, lane, row: r });
+    }
+    return out;
+  }, [stages, mythic, mythicIdx, bossIdx]);
+
+  // Row positions: sharing the top row keeps the row count at stages.length,
+  // so nodes get their full size back. A wider first gap keeps the boss pair
+  // clear of the first zig-zag node beneath them.
+  const rowCount = Math.max(stages.length, 2);
+  const firstGap = mythic ? 1.55 : 1;
+  const totalUnits = firstGap + (rowCount - 2);
+  const rowY = (row) => CF_TOP + ((row === 0 ? 0 : firstGap + (row - 1)) / totalUnits) * CF_SPAN;
+  const unitPx = boxH > 0 ? (boxH * CF_SPAN) / totalUnits : 78;
+  const laneOf = (idx) => layout.find(l => l.idx === idx)?.lane ?? 0.5;
 
   const openIdx = openInfo?.idx ?? null;
   const selected = openIdx != null ? nodes[openIdx] : null;
@@ -162,7 +180,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     const boxH = boxRef.current ? boxRef.current.clientHeight : 600;
     const nodeY = btn.offsetTop + btn.offsetHeight / 2;
     const stage = nodes[idx];
-    const lane = laneFor(stage, idx);
+    const lane = laneOf(idx);
     let side, top, notch;
     if (lane === 0.5) {
       if (stage.isFinalRound) { side = 'C'; notch = 'top'; top = Math.min(nodeY + btn.offsetHeight / 2 + 12, Math.max(6, boxH - MODAL_H - 6)); }
@@ -249,29 +267,31 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
             {/* Centre spine: gold → violet, green over the cleared lower section */}
             <div style={{
               position: 'absolute', left: 'calc(50% - 1.5px)', width: 3, borderRadius: 2,
-              top: `${cf(0) * 100}%`, height: `${(cf(N - 1) - cf(0)) * 100}%`,
+              top: `${rowY(0) * 100}%`, height: `${(rowY(rowCount - 1) - rowY(0)) * 100}%`,
               background: 'linear-gradient(180deg, rgba(250,204,21,0.5), rgba(168,85,247,0.35))',
             }} />
             {clearedRun > 0 && (
               <div style={{
                 position: 'absolute', left: 'calc(50% - 1.5px)', width: 3, borderRadius: 2,
-                top: `${cf(N - clearedRun) * 100}%`, height: `${(cf(N - 1) - cf(N - clearedRun)) * 100}%`,
+                top: `${rowY(clearedRun >= stages.length ? 0 : bossIdx - (clearedRun - 1)) * 100}%`,
+                height: `${(rowY(rowCount - 1) - rowY(clearedRun >= stages.length ? 0 : bossIdx - (clearedRun - 1))) * 100}%`,
                 background: '#22c55e', boxShadow: '0 0 8px rgba(34,197,94,0.6)',
                 transition: 'top .8s ease, height .8s ease',
               }} />
             )}
 
             {/* Branches + nodes */}
-            {rendered.map(({ stage, idx }, j) => {
+            {layout.map(({ stage, idx, lane, row }) => {
               const st = stageState(idx);
               const isOpen = idx === openIdx;
               const isMythic = idx === mythicIdx;
               const isBoss = stage.isFinalRound && !isMythic;
-              const lane = laneFor(stage, idx);
               const src = `/static/series/stages/stage-${Math.min(idx + 1, 10)}.webp`;
-              const w = isMythic || isBoss ? BOSS_W : st === 'current' ? CUR_W : NODE_W;
-              // Cap height so every node (incl. an extra mythic boss) fits with no scroll.
-              const h = Math.min(Math.round(w * ART_AR), Math.max(46, Math.round(rowGap - 6)));
+              // Full-size cards, aspect preserved: cap the height against the
+              // row pitch and derive the width from it so nothing squashes.
+              const idealW = isMythic || isBoss ? BOSS_W : st === 'current' ? CUR_W : NODE_W;
+              const h = Math.min(Math.round(idealW * ART_AR), Math.max(52, Math.round(unitPx * 1.45)));
+              const w = Math.round(h / ART_AR);
               const border = isOpen ? '2px solid #fff'
                 : isMythic ? '2px solid #d946ef'
                 : st === 'current' ? '2px solid #fde047'
@@ -283,7 +303,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                   {/* Branch line from the spine */}
                   {lane !== 0.5 && (
                     <div style={{
-                      position: 'absolute', top: `calc(${(cf(j) * 100).toFixed(3)}% - 1px)`, height: 2,
+                      position: 'absolute', top: `calc(${(rowY(row) * 100).toFixed(3)}% - 1px)`, height: 2,
                       left: lane < 0.5 ? `${lane * 100}%` : '50%', width: `${Math.abs(lane - 0.5) * 100}%`,
                       background: st === 'complete' ? 'rgba(34,197,94,0.5)' : 'rgba(168,85,247,0.3)',
                     }} />
@@ -293,7 +313,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                     onClick={(e) => onNodeTap(e, idx)}
                     aria-label={isMythic ? 'Elite boss' : isBoss ? 'Boss stage' : `Stage ${stage.stageNumber || idx + 1}`}
                     style={{
-                      position: 'absolute', top: `calc(${(cf(j) * 100).toFixed(3)}% - ${h / 2}px)`, left: `${lane * 100}%`,
+                      position: 'absolute', top: `calc(${(rowY(row) * 100).toFixed(3)}% - ${h / 2}px)`, left: `${lane * 100}%`,
                       transform: 'translateX(-50%)', width: Math.max(w, 44), height: h,
                       padding: 0, border: 'none', background: 'transparent', zIndex: isOpen ? 4 : 2,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
