@@ -169,6 +169,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   const targetReps = task?.reps || 100;
   const totalTasks = tasks.length;
   const nextTask = taskIdx + 1 < totalTasks ? tasks[taskIdx + 1] : null;
+  const stageBg = `/static/series/stage-bg/stage-${Math.min(Math.max(stage?.stageNumber || 1, 1), 10)}.webp`;
 
   // Total elapsed timer - runs from intro completion to end
   useEffect(() => {
@@ -606,7 +607,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   // Countdown phase
   if (phase === 'countdown') {
     return (
-      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop}>
+      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
         <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
         <div style={{
           position: 'relative', zIndex: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
@@ -655,7 +656,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     const restProgress = restTimer / selectedRestSeconds;
     const nextTitle = nextTask?.title || 'Next';
     return (
-      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop}>
+      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
         <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
         <div style={{
           position: 'relative', zIndex: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
@@ -747,7 +748,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   // Complete phase (brief transition)
   if (phase === 'complete') {
     return (
-      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop}>
+      <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
         <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
         <div style={{
           position: 'relative', zIndex: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
@@ -874,6 +875,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
       subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`}
       onHome={onHome}
       onBack={handleStop}
+      bgImage={stageBg}
     >
       <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
       <BattleHUD

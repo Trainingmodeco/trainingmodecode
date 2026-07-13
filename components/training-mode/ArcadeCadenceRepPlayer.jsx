@@ -383,11 +383,12 @@ export default function ArcadeCadenceRepPlayer({
   const cadenceLabel = cadenceMs <= 1000 ? 'FAST' : cadenceMs <= 1500 ? 'QUICK' : cadenceMs <= 2500 ? 'MODERATE' : 'SLOW';
   const chromeTitle = (series?.title || 'ONE PUNCH PROTOCOL').toUpperCase();
   const chromeSub = `Stage ${stage?.stageNumber || ''} · ${stage?.title || ''}`;
+  const stageBg = `/static/series/stage-bg/stage-${Math.min(Math.max(stage?.stageNumber || 1, 1), 10)}.webp`;
 
   // Countdown phase
   if (phase === 'countdown') {
     return (
-      <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop}>
+      <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
         <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '16px', animation: 'cadence-fade-in 0.3s ease' }}>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: GOLD, letterSpacing: '0.15em', marginBottom: 8 }}>
@@ -419,7 +420,7 @@ export default function ArcadeCadenceRepPlayer({
     const restProgress = restTimer / restSeconds;
     const nextLabel = nextTaskTitle || null;
     return (
-      <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop}>
+      <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
         <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '16px', animation: 'cadence-fade-in 0.3s ease' }}>
           <div style={{
@@ -493,7 +494,7 @@ export default function ArcadeCadenceRepPlayer({
   );
 
   return (
-    <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop}>
+    <StageChrome title={chromeTitle} subtitle={chromeSub} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
       <style dangerouslySetInnerHTML={{ __html: CADENCE_STYLES }}/>
       <BattleHUD
         stageNumber={stage?.stageNumber || ''}

@@ -29,7 +29,8 @@ export default function BattleHUD({
     <div style={{
       position: 'relative', zIndex: 10, flex: 1, minHeight: 0, boxSizing: 'border-box',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      padding: '8px 14px 8px',
+      // Keep every feature well clear of the phone's rounded corners (~10% each side).
+      padding: '8px 10% 8px',
       animation: 'hud-fade-in 0.3s ease',
     }}>
       <style dangerouslySetInnerHTML={{ __html: HUD_STYLES }} />
@@ -58,14 +59,8 @@ export default function BattleHUD({
         </button>
       </div>
 
-      {/* Centre: watermark + current move + counter */}
+      {/* Centre: current move + counter (the stage banner art is the backdrop) */}
       <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        {/* Ghost stage watermark */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 26, letterSpacing: '0.35em', color: 'rgba(255,255,255,0.05)' }}>STAGE</div>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 110, lineHeight: 0.9, color: 'rgba(255,255,255,0.055)' }}>{stageNumber}</div>
-        </div>
-
         <div style={{ position: 'relative', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 99, background: 'rgba(253,224,71,0.07)', border: '1px solid rgba(253,224,71,0.3)', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: GOLD, letterSpacing: '0.22em', marginBottom: 8 }}>
             CURRENT MOVE

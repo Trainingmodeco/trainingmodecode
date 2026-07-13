@@ -232,6 +232,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const isBenchmark = stage.stageType === 'benchmark';
   const isCadenceTask = task?.type === 'cadenceReps';
   const isBackBalance = task?.type === 'backBalance';
+  const stageBg = `/static/series/stage-bg/stage-${Math.min(Math.max(stage?.stageNumber || 1, 1), 10)}.webp`;
 
   useEffect(() => {
     if (!timerActive) { clearInterval(timerRef.current); return; }
@@ -420,6 +421,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
         subtitle={`${stage.isFinalRound ? 'Final Boss' : `Stage ${stage.stageNumber}`}`}
         onHome={onHome}
         onBack={handleSaveForLater}
+        bgImage={stageBg}
       >
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -465,6 +467,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
           {taskIdx + 1}/{tasks.length}
         </span>
       )}
+      bgImage={stageBg}
       scroll
     >
       {/* Rapid action warning */}
