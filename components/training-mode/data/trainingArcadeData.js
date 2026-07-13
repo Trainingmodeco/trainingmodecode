@@ -223,6 +223,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 200,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'choice',
+    // Rep circuit at pure cadence ≈ 22 min (10 rounds × 60s work + 70s rest).
+    starTiers: [
+      { stars: 3, maxMinutes: 22 },
+      { stars: 2, maxMinutes: 28 },
+      { stars: 1, maxMinutes: 36 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 10,
@@ -256,6 +262,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 200,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'choice',
+    // 5 rounds × ~165s (3×10 reps + 5 pulls + rests) ≈ 14 min at cadence.
+    starTiers: [
+      { stars: 3, maxMinutes: 15 },
+      { stars: 2, maxMinutes: 20 },
+      { stars: 1, maxMinutes: 26 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 5,
@@ -294,6 +306,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 250,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'choice',
+    // 5 rounds × ~196s (3×20 reps + rests) ≈ 16.5 min at cadence.
+    starTiers: [
+      { stars: 3, maxMinutes: 17 },
+      { stars: 2, maxMinutes: 22 },
+      { stars: 1, maxMinutes: 29 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 5,
@@ -327,6 +345,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 300,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'choice',
+    // 2 rounds × ~450s (3×50 reps + long rests) ≈ 15 min at cadence.
+    starTiers: [
+      { stars: 3, maxMinutes: 16 },
+      { stars: 2, maxMinutes: 21 },
+      { stars: 1, maxMinutes: 28 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 2,
@@ -360,6 +384,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 350,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'choice',
+    // Straight 100/100/100 at cadence ≈ 13 min; slower structures add rest.
+    starTiers: [
+      { stars: 3, maxMinutes: 15 },
+      { stars: 2, maxMinutes: 20 },
+      { stars: 1, maxMinutes: 27 },
+    ],
     allowStructureChoice: true,
     structureOptions: [
       { id: 'straight', label: 'Straight Set', description: '100 / 100 / 100', rounds: 1, repsPerRound: 100 },
@@ -399,6 +429,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 350,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'choice',
+    // 12 variation sets of 25 (mixed cadences) ≈ 12.5 min at cadence.
+    starTiers: [
+      { stars: 3, maxMinutes: 14 },
+      { stars: 2, maxMinutes: 18 },
+      { stars: 1, maxMinutes: 24 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 4,
@@ -441,6 +477,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 400,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'circuit',
+    // Slow-tempo circuit: 4 rounds × ~375s ≈ 25 min at cadence.
+    starTiers: [
+      { stars: 3, maxMinutes: 27 },
+      { stars: 2, maxMinutes: 33 },
+      { stars: 1, maxMinutes: 42 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 4,
@@ -485,6 +527,12 @@ const ONE_PUNCH_STAGES = [
     basePoints: 450,
     requiresFullCompletionToUnlockNext: true,
     cardioMode: 'circuit',
+    // 18 variation sets of 25 (450 reps, mixed cadences) ≈ 21 min at cadence.
+    starTiers: [
+      { stars: 3, maxMinutes: 23 },
+      { stars: 2, maxMinutes: 29 },
+      { stars: 1, maxMinutes: 37 },
+    ],
     fitBlock: {
       mode: 'fit',
       rounds: 6,
@@ -866,3 +914,32 @@ const VISIBLE_SERIES_IDS = [
 export const VISIBLE_ARCADE_SERIES = TRAINING_ARCADE_SERIES.filter(
   s => VISIBLE_SERIES_IDS.includes(s.id)
 );
+
+// --- Star ratings -----------------------------------------------------------
+
+// Time-based star tiers for a stage, fastest first. Prefers the hand-tuned
+// `starTiers`; falls back to deriving them from time-ranked scoring tiers
+// (stage 1 benchmark and the boss), where tier order is fastest → slowest.
+export function getStarTiersForStage(stage) {
+  if (Array.isArray(stage?.starTiers) && stage.starTiers.length) return stage.starTiers;
+  const timeTiers = (stage?.scoringTiers || []).filter(t => Number.isFinite(t.maxMinutes));
+  if (timeTiers.length >= 3) {
+    return [
+      { stars: 3, maxMinutes: timeTiers[0].maxMinutes },
+      { stars: 2, maxMinutes: timeTiers[1].maxMinutes },
+      { stars: 1, maxMinutes: timeTiers[2].maxMinutes },
+    ];
+  }
+  return null;
+}
+
+// Stars earned for a completion time. Clearing a stage always earns at
+// least 1 star; beating the tier cutoffs earns 2 or 3.
+export function getStarsForTime(stage, timeSeconds) {
+  const tiers = getStarTiersForStage(stage);
+  if (!tiers || !Number.isFinite(timeSeconds) || timeSeconds <= 0) return 1;
+  const minutes = timeSeconds / 60;
+  let best = 1;
+  tiers.forEach(t => { if (minutes < t.maxMinutes) best = Math.max(best, t.stars); });
+  return best;
+}

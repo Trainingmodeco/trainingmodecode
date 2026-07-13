@@ -6,6 +6,7 @@ import { ChevronLeft, Home } from 'lucide-react';
 import { C } from './Styles';
 import CardioFinisherSetup from './CardioFinisherSetup';
 import TrainingCTA from './shared/TrainingCTA';
+import { loadRoutines, deleteRoutine } from './data/savedRoutines';
 
 // Workout Builder — pixel match of design 11a ("streamlined manual"):
 // TYPE segmented · TARGET MUSCLES chip grid + two body maps · EQUIPMENT ·
@@ -87,6 +88,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
   const [difficulty, setDifficulty] = useState('NORMAL');
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
+  const [routines, setRoutines] = useState(() => loadRoutines());
 
   const sex = String(profileSex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const isCardio = type === 'CARDIO';
@@ -192,6 +194,25 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
             </div>
             <span style={{ font: "900 15px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
+
+          {/* Saved routines — load a named workout exactly as it was saved */}
+          {!isCardio && routines.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <Label>SAVED ROUTINES</Label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {routines.map(r => (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(253,224,71,0.3)', background: 'rgba(16,4,30,0.8)', padding: '9px 11px' }}>
+                    <button onClick={() => onGenerate?.({ ...r.cfg, savedExercises: r.exercises })} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                      <div style={{ font: "800 10px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🔖 {r.name.toUpperCase()}</div>
+                      <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{r.exercises?.length || 0} exercises · {r.cfg?.equipment || ''} · {r.cfg?.difficulty || ''}</div>
+                    </button>
+                    <button onClick={() => setRoutines(list => { deleteRoutine(r.id); return list.filter(x => x.id !== r.id); })} aria-label={`Delete ${r.name}`}
+                      style={{ width: 26, height: 26, borderRadius: 6, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', font: "700 11px 'Rajdhani',sans-serif", flexShrink: 0 }}>✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Generate — inline, right under Add Cardio so it's never hidden */}
           <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{summary()}</div>

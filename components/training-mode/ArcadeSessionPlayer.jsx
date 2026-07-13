@@ -3,6 +3,7 @@ import StageChrome from './shared/StageChrome';
 import { Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, getSeriesProgress } from './data/arcadeProgress';
+import { getStarsForTime } from './data/trainingArcadeData';
 import { addFitModeSession, addFightFocusSession } from './data/userStats';
 import { IntegritySession, MODE_RULES, isStageFullyValid } from './utils/missionIntegrity';
 import CardioProtocolSelector from './CardioProtocolSelector';
@@ -170,6 +171,8 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const timerRef = useRef(null);
   const benchmarkRef = useRef(null);
   const integrityRef = useRef(null);
+  // Wall-clock start of the active session — used for best-time / star tracking.
+  const sessionStartedAtRef = useRef(initialPaused || initialResumeData ? Date.now() : null);
 
   const progress = getSeriesProgress(series?.id);
   const currentStageNum = progress?.currentStage || stage?.stageNumber || 1;
@@ -178,7 +181,10 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   );
   const totalXpBefore = progress?.xpEarned || 0;
 
-  const handleIntroComplete = useCallback(() => setSessionPhase('active'), []);
+  const handleIntroComplete = useCallback(() => {
+    if (sessionStartedAtRef.current == null) sessionStartedAtRef.current = Date.now();
+    setSessionPhase('active');
+  }, []);
 
   const handleBenchmarkComplete = useCallback((result) => {
     setStageResult(result);
@@ -292,7 +298,11 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
       } else {
         const stageValid = integrityRef.current ? isStageFullyValid(integrityRef.current) : true;
         if (stageValid) {
-          completeStage(series.id, stage.id, stage.rewards.xp, stage.rewards?.badge, stage.rewards?.title, stage.rewards?.statRewards);
+          const elapsedSec = sessionStartedAtRef.current
+            ? Math.round((Date.now() - sessionStartedAtRef.current) / 1000)
+            : null;
+          completeStage(series.id, stage.id, stage.rewards.xp, stage.rewards?.badge, stage.rewards?.title, stage.rewards?.statRewards,
+            { timeSeconds: elapsedSec, stars: getStarsForTime(stage, elapsedSec) });
           handleNormalStageComplete();
         } else {
           setStageResult({

@@ -8,7 +8,7 @@ import TrainingCTA from './shared/TrainingCTA';
 import { Lock, Check, X } from 'lucide-react';
 import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
-import { isSeriesPlayable } from './data/trainingArcadeData';
+import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -220,12 +220,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const compData = selected ? progress.completedStages[selected.id] : null;
   const bestSec = compData?.bestTimeSeconds ?? compData?.timeSeconds ?? compData?.durationSeconds ?? null;
   const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-  const targetMin = selected?.scoringTiers?.find(t => Number.isFinite(t.maxMinutes))?.maxMinutes ?? null;
-  const timeTiers = (selected?.scoringTiers || []).filter(t => Number.isFinite(t.maxMinutes));
-  const starGoals = timeTiers.length >= 3
-    ? [{ n: 1, label: `< ${timeTiers[2].maxMinutes}:00` }, { n: 2, label: `< ${timeTiers[1].maxMinutes}:00` }, { n: 3, label: `< ${timeTiers[0].maxMinutes}:00` }]
+  // Real per-stage time cutoffs (starTiers on stages 2-9, scoring tiers on
+  // the benchmark/boss); XP labels only when a stage truly has no times.
+  const starTierList = selected ? getStarTiersForStage(selected) : null;
+  const targetMin = starTierList?.find(t => t.stars === 3)?.maxMinutes
+    ?? selected?.scoringTiers?.find(t => Number.isFinite(t.maxMinutes))?.maxMinutes ?? null;
+  const starGoals = starTierList
+    ? [...starTierList].sort((a, b) => a.stars - b.stars).map(t => ({ n: t.stars, label: `< ${t.maxMinutes}:00` }))
     : [{ n: 1, label: `CLEAR +${baseXp}` }, { n: 2, label: `+${Math.round(baseXp * 1.5)}` }, { n: 3, label: `+${baseXp * 2}` }];
-  const earnedStars = isCleared ? 1 : 0;
+  const earnedStars = compData?.stars || (isCleared ? 1 : 0);
 
   // Modal horizontal placement per side.
   const modalPos = openInfo

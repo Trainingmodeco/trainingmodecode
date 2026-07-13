@@ -48,11 +48,11 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         minHeight: '100dvh',
-        padding: '32px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
+        padding: '10px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Page title */}
-        <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: 12 }}>
           <h1 style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
             color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
@@ -148,48 +148,6 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           </div>
         </div>
 
-        {/* === TRAINING ARCADE === */}
-        <div
-          className="train-hub-card"
-          data-tour="mode-arcade"
-          onClick={onTrainingArcade}
-          style={{
-            '--card-glow': 'rgba(34,197,94,0.5)',
-            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
-            border: '1px solid rgba(34,197,94,0.25)',
-            boxShadow: '0 0 12px rgba(34,197,94,0.08)',
-            marginBottom: 16,
-          }}
-        >
-          <SafeImage src={IMG.hub.arcade} alt="Training Arcade" style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: 'center',
-          }}/>
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to right, rgba(8,0,18,0.88) 0%, rgba(8,0,18,0.4) 55%, transparent 100%)',
-          }}/>
-          <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 5 }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
-              color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
-              textShadow: '0 0 14px rgba(34,197,94,0.5)',
-            }}>TRAINING ARCADE</div>
-            <div style={{
-              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
-              color: C.muted, marginTop: 4, letterSpacing: '0.02em',
-            }}>Stage-based challenges. Earn XP, clear bosses.</div>
-          </div>
-          <div style={{
-            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 5,
-            width: 28, height: 28, borderRadius: 7,
-            background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <ChevronRight size={14} color={C.green}/>
-          </div>
-        </div>
-
         {/* === COMBAT CONDITIONING === */}
         <div
           className="train-hub-card"
@@ -199,6 +157,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
             position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
             border: '1px solid rgba(239,68,68,0.2)',
             boxShadow: '0 0 10px rgba(255,138,74,0.06)',
+            marginBottom: 12,
           }}
         >
           <SafeImage src={IMG.hub.combatBanner} alt="Combat Conditioning" style={{
@@ -227,6 +186,47 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <ChevronRight size={14} color={C.cardio}/>
+          </div>
+        </div>
+
+        {/* === TRAINING ARCADE === */}
+        <div
+          className="train-hub-card"
+          data-tour="mode-arcade"
+          onClick={onTrainingArcade}
+          style={{
+            '--card-glow': 'rgba(34,197,94,0.5)',
+            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            border: '1px solid rgba(34,197,94,0.25)',
+            boxShadow: '0 0 12px rgba(34,197,94,0.08)',
+          }}
+        >
+          <SafeImage src={IMG.hub.arcade} alt="Training Arcade" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to right, rgba(8,0,18,0.88) 0%, rgba(8,0,18,0.4) 55%, transparent 100%)',
+          }}/>
+          <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 5 }}>
+            <div style={{
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
+              color: '#fff', letterSpacing: '0.08em', lineHeight: 1,
+              textShadow: '0 0 14px rgba(34,197,94,0.5)',
+            }}>TRAINING ARCADE</div>
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+              color: C.muted, marginTop: 4, letterSpacing: '0.02em',
+            }}>Stage-based challenges. Earn XP, clear bosses.</div>
+          </div>
+          <div style={{
+            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', zIndex: 5,
+            width: 28, height: 28, borderRadius: 7,
+            background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ChevronRight size={14} color={C.green}/>
           </div>
         </div>
 

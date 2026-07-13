@@ -5,6 +5,7 @@ import BattleHUD from './shared/BattleHUD';
 import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap, Play, Pause } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, recordInvalidAttempt } from './data/arcadeProgress';
+import { getStarsForTime } from './data/trainingArcadeData';
 import { addFitModeSession } from './data/userStats';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
@@ -436,7 +437,8 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
 
       const rank = getCurrentRank(elapsedSeconds, tiers);
       const xpToAward = rank.points || stage?.basePoints || stage?.rewards?.xp || 100;
-      completeStage(series.id, stage.id, xpToAward, stage?.rewards?.badge, stage?.rewards?.title, stage?.rewards?.statRewards);
+      completeStage(series.id, stage.id, xpToAward, stage?.rewards?.badge, stage?.rewards?.title, stage?.rewards?.statRewards,
+        { timeSeconds: elapsedSeconds, stars: getStarsForTime(stage, elapsedSeconds) });
 
       onComplete({
         invalid: false,

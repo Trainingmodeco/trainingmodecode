@@ -69,10 +69,27 @@ export function isStageComplete(seriesId, stageId, selectedMode) {
   return stageData[selectedMode] === true;
 }
 
-export function completeStage(seriesId, stageId, xpReward, badge, title, statRewards) {
+export function completeStage(seriesId, stageId, xpReward, badge, title, statRewards, result = {}) {
   const all = loadAll();
   if (!all[seriesId]) all[seriesId] = defaultProgress();
-  all[seriesId].completedStages[stageId] = { fit: true, fight: true, completed: true, completedAt: Date.now() };
+  const prev = all[seriesId].completedStages[stageId] || {};
+  const entry = { fit: true, fight: true, completed: true, completedAt: Date.now() };
+  // Persist the run time (best-of) and star rating (max-of) across clears.
+  if (Number.isFinite(result.timeSeconds) && result.timeSeconds > 0) {
+    entry.lastTimeSeconds = Math.round(result.timeSeconds);
+    entry.bestTimeSeconds = Number.isFinite(prev.bestTimeSeconds)
+      ? Math.min(prev.bestTimeSeconds, entry.lastTimeSeconds)
+      : entry.lastTimeSeconds;
+  } else if (Number.isFinite(prev.bestTimeSeconds)) {
+    entry.bestTimeSeconds = prev.bestTimeSeconds;
+    if (Number.isFinite(prev.lastTimeSeconds)) entry.lastTimeSeconds = prev.lastTimeSeconds;
+  }
+  if (Number.isFinite(result.stars) && result.stars > 0) {
+    entry.stars = Math.max(prev.stars || 0, Math.min(3, Math.round(result.stars)));
+  } else if (prev.stars) {
+    entry.stars = prev.stars;
+  }
+  all[seriesId].completedStages[stageId] = entry;
   all[seriesId].xpEarned += (xpReward || 0);
   if (badge && !all[seriesId].badges.includes(badge)) all[seriesId].badges.push(badge);
   if (title) all[seriesId].title = title;
