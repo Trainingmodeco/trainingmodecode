@@ -33,6 +33,17 @@ for (const entry of entries) {
 
 console.log(`[copy-public-assets] Done. Copied ${copied} top-level entr${copied === 1 ? 'y' : 'ies'} from public/ into dist/ (including public/static).`);
 
+// Stamp a per-build id into dist/sw.js so every deploy ships a byte-new
+// worker: the browser installs it, it WAITS (no mid-session takeover), and
+// the update activates with a fresh cache on the next app launch.
+const swPath = join(distDir, 'sw.js');
+if (existsSync(swPath)) {
+  const buildId = Date.now().toString(36);
+  const sw = readFileSync(swPath, 'utf8').replace('__TM_BUILD_ID__', buildId);
+  writeFileSync(swPath, sw);
+  console.log(`[copy-public-assets] Stamped sw.js build id: ${buildId}`);
+}
+
 // PWA: inject the manifest link, theme-color, and service-worker registration
 // into the Expo-generated index.html (idempotent).
 const indexPath = join(distDir, 'index.html');
@@ -43,7 +54,10 @@ if (existsSync(indexPath)) {
     html = html.replace('</head>', `${headTags}</head>`);
   }
   if (!html.includes('serviceWorker.register')) {
-    const swScript = '<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>';
+    // updateViaCache:'none' + an explicit update() make installed PWAs check
+    // for a new worker on every launch; the new worker then waits until the
+    // next launch to activate (no skipWaiting in sw.js).
+    const swScript = '<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).then(function(reg){reg.update().catch(function(){});}).catch(function(){});});}</script>';
     html = html.replace('</body>', `${swScript}</body>`);
   }
   writeFileSync(indexPath, html);
