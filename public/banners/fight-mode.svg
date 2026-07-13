@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" fill="none">
-  <rect width="400" height="160" rx="12" fill="#0a0014"/>
-  <rect width="400" height="160" rx="12" fill="url(#fg)" opacity="0.6"/>
-  <defs><linearGradient id="fg" x1="0" y1="0" x2="400" y2="160"><stop stop-color="#2a0a3e"/><stop offset="1" stop-color="#0a0014"/></linearGradient></defs>
-  <circle cx="320" cy="80" r="50" fill="#a855f7" opacity="0.08"/>
-  <text x="32" y="72" font-family="sans-serif" font-weight="900" font-size="28" fill="#ffffff" letter-spacing="2">FIGHT MODE</text>
-  <text x="32" y="104" font-family="sans-serif" font-weight="500" font-size="14" fill="#a78bb8">Striking, rounds, combos, and skill training.</text>
-  <path d="M300 55 L330 80 L300 105 M310 55 L340 80 L310 105" stroke="#a855f7" stroke-width="2" opacity="0.4"/>
-</svg>

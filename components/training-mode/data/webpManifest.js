@@ -73,6 +73,8 @@ export const WEBP_FILES = [
   '/static/brand/background-w-logo-alt.webp',
   '/static/brand/background-w-logo.webp',
   '/static/brand/favicon.webp',
+  '/static/brand/icon-192.webp',
+  '/static/brand/icon-512.webp',
   '/static/brand/tm-logo-gold.webp',
   '/static/discipline/boxing.webp',
   '/static/discipline/boxing_female.webp',

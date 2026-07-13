@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" fill="none">
-  <rect width="400" height="160" rx="12" fill="#0a0014"/>
-  <rect width="400" height="160" rx="12" fill="url(#fg)" opacity="0.6"/>
-  <defs><linearGradient id="fg" x1="0" y1="0" x2="400" y2="160"><stop stop-color="#0c0218"/><stop offset="1" stop-color="#0a0014"/></linearGradient></defs>
-  <circle cx="330" cy="80" r="45" fill="#a855f7" opacity="0.06"/>
-  <text x="32" y="72" font-family="sans-serif" font-weight="900" font-size="26" fill="#ffffff" letter-spacing="2">QUICK MISSION</text>
-  <text x="32" y="104" font-family="sans-serif" font-weight="500" font-size="14" fill="#a78bb8">No planning. Pick time and train.</text>
-  <polygon points="320,55 345,80 320,105" fill="#a855f7" opacity="0.2"/>
-</svg>
