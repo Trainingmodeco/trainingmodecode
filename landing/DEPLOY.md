@@ -16,16 +16,17 @@ optimized, fonts self-hosted). No build step, no server code.
    ```
    public_html/
    ├── index.html
+   ├── styles.css
+   ├── script.js
    └── assets/
        ├── fonts/…
-       ├── hub/…
        ├── tiers/…
-       ├── fitmode/…
-       ├── trophies/…
-       ├── hero-enter.webp
-       ├── app-bg.webp
+       ├── features/…
+       ├── phones/…
+       ├── social/…
        ├── app-icon.webp
-       └── logo-mark.png
+       ├── logo-mark.png
+       └── training-mode-logo.png
    ```
 5. Visit https://trainingmode.co in a private/incognito window (Hostinger
    caches aggressively — if you see the old site, clear the cache under
@@ -33,12 +34,14 @@ optimized, fonts self-hosted). No build step, no server code.
 
 ## Links to double-check before/after upload
 
-- Both gold CTAs ("Enter Training Mode" / "Join the Beta") currently point
-  to the Google Play listing:
-  `https://play.google.com/store/apps/details?id=app.trainingmode.pro`
-  Swap these if you have a different beta signup link (TestFlight, form, etc.).
-- The "Send Feedback" button and footer link use
-  `mailto:trainingmode.co@gmail.com`.
+- "Go To App" buttons and the Google Play store button point to
+  `https://play.google.com/store/apps/details?id=app.trainingmode.pro`.
+- The App Store button, Subscribe button, and the social icons in the
+  footer are placeholders (`#app-store-placeholder`, `#subscribe-placeholder`,
+  `#instagram-placeholder`, …) — swap in the real URLs when ready.
+- "Join Community" and the contact form hand off to
+  `mailto:trainingmode.co@gmail.com`. Replace the form with a real
+  newsletter endpoint (e.g. Mailchimp, Beehiiv) when you have one.
 
 ## Notes
 

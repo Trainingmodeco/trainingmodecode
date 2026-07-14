@@ -1,482 +1,387 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Training Mode — Level Up Your Body</title>
-<meta name="description" content="Anime-inspired fitness &amp; combat training built like a game. Train boxing, kickboxing, Muay Thai &amp; MMA — earn XP, keep your streak, and climb from Rookie to Champion.">
-<link rel="icon" type="image/webp" href="assets/app-icon.webp">
-<meta property="og:title" content="Training Mode — Level Up Your Body">
-<meta property="og:description" content="Real workouts, built like a fighter's game. Train here. Win there.">
-<meta property="og:image" content="assets/hero-enter.webp">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://trainingmode.co/">
-<style>
-@font-face{
-  font-family:'Orbitron';font-style:normal;font-weight:700 900;font-display:swap;
-  src:url('assets/fonts/orbitron-latin.woff2') format('woff2');
-}
-@font-face{
-  font-family:'Rajdhani';font-style:normal;font-weight:500;font-display:swap;
-  src:url('assets/fonts/rajdhani-500-latin.woff2') format('woff2');
-}
-@font-face{
-  font-family:'Rajdhani';font-style:normal;font-weight:600;font-display:swap;
-  src:url('assets/fonts/rajdhani-600-latin.woff2') format('woff2');
-}
-@font-face{
-  font-family:'Rajdhani';font-style:normal;font-weight:700;font-display:swap;
-  src:url('assets/fonts/rajdhani-700-latin.woff2') format('woff2');
-}
-:root{
-  --bg:#080012;
-  --panel-hi:#120726;
-  --panel-lo:#0a0416;
-  --gold:#fde047;
-  --gold-deep:#f59e0b;
-  --violet:#a855f7;
-  --violet-hi:#b06aff;
-  --violet-soft:#c9a6ff;
-  --red:#ef4444;
-  --green:#22c55e;
-  --orange:#ff8a4a;
-  --text:#f5e9ff;
-  --muted:#c4a4d8;
-  --faint:#9a90b8;
-  --card-border:rgba(168,85,247,.25);
-  --display:'Orbitron',system-ui,sans-serif;
-  --body:'Rajdhani',system-ui,sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--body);
-  font-size:18px;
-  line-height:1.6;
-  overflow-x:hidden;
-}
-img{max-width:100%;display:block}
-a{color:var(--violet-hi)}
-h1,h2,h3{font-family:var(--display);text-transform:uppercase;text-wrap:balance}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Training Mode — Level Up Your Body. Power Up Your Life.</title>
+    <meta
+      name="description"
+      content="Training Mode is the anime-inspired fitness and combat training app that turns every workout into a quest. Fit Mode, Fight Mode, combat conditioning, and arcade-style progression."
+    />
+    <link rel="icon" type="image/webp" href="assets/app-icon.webp" />
+    <meta property="og:title" content="Training Mode — Level Up Your Body. Power Up Your Life." />
+    <meta property="og:description" content="The anime-inspired fitness and combat training app that turns every workout into a quest." />
+    <meta property="og:image" content="assets/features/hero-background.webp" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://trainingmode.co/" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header" data-header>
+        <a class="brand-link" href="#home" aria-label="Training Mode home">
+          <img src="./assets/training-mode-logo.png" alt="Training Mode — Train Fight Win" />
+        </a>
 
-/* ---------- shared ---------- */
-.wrap{max-width:1100px;margin:0 auto;padding:0 22px}
-.eyebrow{
-  font-family:var(--display);font-weight:700;font-size:12px;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--violet-soft);
-  display:flex;align-items:center;gap:14px;justify-content:center;
-}
-.eyebrow::before,.eyebrow::after{
-  content:"";height:1px;width:44px;
-  background:linear-gradient(90deg,transparent,var(--violet-hi));
-}
-.eyebrow::after{background:linear-gradient(90deg,var(--violet-hi),transparent)}
-.section-title{
-  font-weight:900;font-size:clamp(26px,4.2vw,40px);letter-spacing:.03em;
-  text-align:center;margin:14px 0 10px;
-  text-shadow:0 0 24px rgba(168,85,247,.45);
-}
-.section-sub{
-  color:var(--muted);font-weight:600;font-size:clamp(16px,2vw,19px);
-  text-align:center;max-width:620px;margin:0 auto;
-}
-section{padding:88px 0}
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="#home">Home</a>
+          <a href="#modes">Modes</a>
+          <a href="#arcade">Arcade</a>
+          <a href="#progress">Progress</a>
+          <a href="#community">Community</a>
+          <a href="#subscribe">Subscribe</a>
+        </nav>
 
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:10px;
-  height:56px;padding:0 34px;border-radius:13px;border:none;cursor:pointer;
-  font-family:var(--display);font-weight:900;font-size:14px;letter-spacing:.08em;
-  text-transform:uppercase;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease;
-}
-.btn:hover{transform:translateY(-2px)}
-.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-.btn-gold{
-  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
-  color:#0a0014;box-shadow:0 0 26px rgba(253,224,71,.35);
-}
-.btn-gold:hover{box-shadow:0 0 40px rgba(253,224,71,.55)}
-.btn-violet{
-  background:linear-gradient(135deg,#b975ff,var(--violet));
-  color:#fff;box-shadow:0 0 22px rgba(168,85,247,.4);
-}
-.btn-ghost{
-  background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--muted);
-}
-.btn-ghost:hover{border-color:var(--violet-hi);color:var(--text)}
-
-.card{
-  background:rgba(8,2,18,.8);
-  border:1px solid var(--card-border);
-  border-radius:14px;
-}
-
-/* ---------- hero ---------- */
-.hero{
-  position:relative;min-height:100svh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:80px 22px 70px;isolation:isolate;
-}
-.hero-bg{
-  position:absolute;inset:0;z-index:-2;
-  background:url("assets/hero-enter.webp") center 18%/cover no-repeat;
-}
-.hero-scrim{
-  position:absolute;inset:0;z-index:-1;
-  background:linear-gradient(180deg,rgba(8,1,15,.55) 0%,rgba(8,1,15,.35) 30%,rgba(8,1,15,.5) 55%,rgba(8,1,15,.78) 80%,var(--bg) 100%);
-}
-.corner{position:absolute;width:26px;height:26px;z-index:1}
-.corner.tl{top:26px;left:26px;border-left:2px solid var(--violet-hi);border-top:2px solid var(--violet-hi)}
-.corner.tr{top:26px;right:26px;border-right:2px solid var(--violet-hi);border-top:2px solid var(--violet-hi)}
-.corner.bl{bottom:26px;left:26px;border-left:2px solid var(--violet-hi);border-bottom:2px solid var(--violet-hi)}
-.corner.br{bottom:26px;right:26px;border-right:2px solid var(--violet-hi);border-bottom:2px solid var(--violet-hi)}
-.hero-tagline{
-  font-family:var(--display);font-weight:700;font-size:clamp(11px,1.6vw,14px);
-  letter-spacing:.18em;color:#f5b301;text-shadow:0 0 12px rgba(245,179,1,.5);
-  margin-bottom:22px;animation:rise .8s ease both;
-}
-.hero-mark{width:74px;margin:0 auto 16px;filter:drop-shadow(0 0 18px rgba(245,179,1,.6));animation:rise .8s .1s ease both}
-.hero h1{
-  font-weight:900;font-size:clamp(44px,9vw,96px);line-height:.98;letter-spacing:.02em;
-  color:#fff;text-shadow:0 0 34px rgba(168,85,247,.6);
-  margin-bottom:20px;animation:rise .8s .2s ease both;
-}
-.hero-level{
-  font-family:var(--display);font-weight:900;font-size:clamp(16px,2.6vw,24px);
-  letter-spacing:.1em;color:var(--gold);text-shadow:0 0 18px rgba(253,224,71,.5);
-  margin-bottom:18px;animation:rise .8s .3s ease both;
-}
-.hero-disciplines{
-  font-family:var(--display);font-weight:700;font-size:clamp(11px,1.5vw,13px);
-  letter-spacing:.16em;color:var(--violet-hi);margin-bottom:30px;animation:rise .8s .4s ease both;
-}
-.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:rise .8s .5s ease both}
-.hero-rule{
-  width:min(300px,70%);height:2px;margin:34px auto 16px;
-  background:linear-gradient(90deg,transparent,var(--violet-hi),transparent);
-}
-.hero-motto{
-  font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.28em;color:var(--violet-soft);
-}
-.sparks{position:absolute;left:0;right:0;bottom:0;height:220px;pointer-events:none;overflow:hidden}
-.sparks span{
-  position:absolute;bottom:8px;width:4px;height:4px;border-radius:50%;
-  background:#ff8a3a;box-shadow:0 0 9px #ff6b00;
-}
-.sparks span:nth-child(2n){background:#ffd27a;width:3px;height:3px}
-.sparks span:nth-child(1){left:8%;animation:sparkTall 3.6s ease-in .2s infinite}
-.sparks span:nth-child(2){left:22%;animation:sparkMid 3.1s ease-in .8s infinite}
-.sparks span:nth-child(3){left:37%;animation:sparkTall 4s ease-in 1.2s infinite}
-.sparks span:nth-child(4){left:52%;animation:sparkMid 2.9s ease-in .4s infinite}
-.sparks span:nth-child(5){left:66%;animation:sparkTall 3.4s ease-in 1.6s infinite}
-.sparks span:nth-child(6){left:79%;animation:sparkMid 3.8s ease-in .6s infinite}
-.sparks span:nth-child(7){left:91%;animation:sparkTall 3.2s ease-in 1s infinite}
-
-/* ---------- intro ---------- */
-.intro{padding:70px 0 60px}
-.intro p{
-  max-width:640px;margin:18px auto 0;text-align:center;
-  color:var(--text);font-weight:600;font-size:clamp(17px,2.2vw,21px);line-height:1.7;
-}
-.intro p strong{color:var(--gold);font-weight:700}
-
-/* ---------- modes ---------- */
-.mode-grid{display:grid;gap:18px;margin-top:44px}
-.mode{
-  position:relative;overflow:hidden;border-radius:14px;
-  border:1px solid var(--mode-border,var(--card-border));
-  background:rgba(8,2,18,.8);
-  transition:transform .2s ease,box-shadow .2s ease;
-}
-.mode:hover{transform:translateY(-3px);box-shadow:0 14px 44px -14px var(--mode-glow,rgba(168,85,247,.5))}
-.mode img{width:100%;height:200px;object-fit:cover;object-position:center 30%}
-.mode-body{padding:20px 22px 24px}
-.mode-kicker{
-  font-family:var(--display);font-weight:900;font-size:16px;letter-spacing:.06em;
-  color:var(--mode-color,var(--violet-soft));margin-bottom:6px;text-transform:uppercase;
-}
-.mode-body p{color:var(--muted);font-weight:600;font-size:16px}
-.mode.fit{--mode-color:#c9a6ff;--mode-border:rgba(176,106,255,.35);--mode-glow:rgba(176,106,255,.45)}
-.mode.fight{--mode-color:#ff8a8a;--mode-border:rgba(239,68,68,.35);--mode-glow:rgba(239,68,68,.4)}
-.mode.combat{--mode-color:#ffb07a;--mode-border:rgba(255,138,74,.35);--mode-glow:rgba(255,138,74,.4)}
-.mode.arcade{--mode-color:#8fe8ac;--mode-border:rgba(34,197,94,.35);--mode-glow:rgba(34,197,94,.35)}
-@media(min-width:760px){.mode-grid{grid-template-columns:1fr 1fr}}
-
-/* ---------- codex banner ---------- */
-.banner{
-  border-radius:16px;overflow:hidden;border:1px solid var(--card-border);
-  box-shadow:0 24px 70px -30px rgba(168,85,247,.55);
-}
-.banner+.banner{margin-top:20px}
-.banner img{width:100%}
-
-/* ---------- level up ---------- */
-.levelup{
-  background:
-    radial-gradient(ellipse at 50% 0%,rgba(168,85,247,.14),transparent 60%),
-    linear-gradient(180deg,var(--bg),#0b0318 50%,var(--bg));
-}
-.tier-ladder{
-  display:flex;align-items:flex-end;justify-content:center;gap:clamp(6px,1.2vw,12px);
-  margin:48px auto 30px;flex-wrap:nowrap;
-}
-.tier{
-  border-radius:12px;overflow:hidden;border:1px solid rgba(168,85,247,.4);
-  width:clamp(58px,16.5vw,168px);flex:none;position:relative;
-  transition:transform .2s ease;
-}
-@media(max-width:480px){
-  .tier figcaption{font-size:7px;letter-spacing:.08em;padding-bottom:5px}
-}
-.tier:hover{transform:translateY(-4px)}
-.tier img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 12%}
-.tier figcaption{
-  position:absolute;left:0;right:0;bottom:0;padding:20px 0 7px;text-align:center;
-  font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;color:var(--muted);
-  background:linear-gradient(180deg,transparent,rgba(5,0,10,.92));text-transform:uppercase;
-}
-.tier.champ{
-  border:1.5px solid rgba(253,224,71,.7);
-  box-shadow:0 0 22px rgba(253,224,71,.35);
-}
-.tier.champ figcaption{color:var(--gold)}
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:720px;margin:36px auto 0}
-.stat{padding:20px 12px;text-align:center}
-.stat b{
-  display:block;font-family:var(--display);font-weight:900;font-size:clamp(18px,3vw,26px);
-  color:var(--gold);letter-spacing:.04em;margin-bottom:4px;
-}
-.stat span{color:var(--muted);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
-
-/* ---------- game sync ---------- */
-.gamesync{text-align:center}
-.coming{
-  display:inline-block;font-family:var(--display);font-weight:700;font-size:11px;
-  color:#facc15;letter-spacing:.14em;border:1px solid rgba(250,204,21,.4);
-  border-radius:6px;padding:5px 12px;margin-bottom:18px;
-}
-.gamesync p{max-width:600px;margin:0 auto;color:var(--muted);font-weight:600;font-size:clamp(16px,2vw,19px)}
-.gamesync p strong{color:var(--text)}
-.sync-visual{display:flex;align-items:center;justify-content:center;gap:18px;margin:38px 0 10px}
-.sync-visual .avatar{width:86px;border-radius:10px;overflow:hidden;border:1px solid rgba(253,224,71,.5)}
-.sync-visual .arrow{
-  font-family:var(--display);font-weight:900;font-size:26px;color:var(--gold);
-  animation:tapGlow 2.4s ease-in-out infinite;
-}
-.sync-visual .slot{
-  width:86px;aspect-ratio:3/4;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  background:repeating-linear-gradient(45deg,#1a1030 0 8px,#241640 8px 16px);
-  border:1px dashed rgba(176,106,255,.5);font-size:26px;
-}
-
-/* ---------- beta ---------- */
-.beta-card{
-  max-width:760px;margin:0 auto;padding:clamp(28px,5vw,52px);text-align:center;
-  background:linear-gradient(180deg,var(--panel-hi),var(--panel-lo));
-  border:1px solid rgba(168,85,247,.3);border-radius:20px;
-  box-shadow:0 30px 80px -30px rgba(168,85,247,.4);
-}
-.beta-card h2{font-size:clamp(24px,3.6vw,34px);font-weight:900;letter-spacing:.03em;color:var(--gold);margin-bottom:16px}
-.beta-list{list-style:none;max-width:480px;margin:22px auto 30px;text-align:left}
-.beta-list li{
-  display:flex;gap:12px;align-items:flex-start;padding:10px 0;
-  color:var(--text);font-weight:600;font-size:17px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.beta-list li:last-child{border-bottom:none}
-.beta-list li::before{content:"▸";color:var(--gold);font-weight:900;margin-top:1px}
-
-/* ---------- footer ---------- */
-footer{
-  border-top:1px solid rgba(168,85,247,.15);
-  background:rgba(11,8,20,.9);
-  padding:44px 0 36px;text-align:center;
-}
-footer .mark{width:44px;margin:0 auto 14px;filter:drop-shadow(0 0 12px rgba(245,179,1,.5))}
-footer .motto{
-  font-family:var(--display);font-weight:800;font-size:11px;letter-spacing:.26em;
-  color:var(--violet-soft);margin-bottom:14px;
-}
-footer p{color:var(--faint);font-weight:600;font-size:14px}
-footer a{color:var(--muted);text-decoration:none}
-footer a:hover{color:var(--gold)}
-
-/* ---------- animation ---------- */
-@keyframes rise{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:translateY(0)}}
-@keyframes tapGlow{0%,100%{opacity:.55;text-shadow:0 0 6px rgba(253,224,71,.4)}50%{opacity:1;text-shadow:0 0 18px rgba(253,224,71,.9)}}
-@keyframes sparkTall{0%{opacity:0;transform:translateY(0) scale(1)}14%{opacity:1}85%{opacity:.9}100%{opacity:0;transform:translateY(-540px) translateX(-16px) scale(.3)}}
-@keyframes sparkMid{0%{opacity:0;transform:translateY(0) scale(1)}18%{opacity:1}82%{opacity:.85}100%{opacity:0;transform:translateY(-320px) translateX(12px) scale(.35)}}
-.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
-.reveal.in{opacity:1;transform:translateY(0)}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important}
-  .reveal{opacity:1;transform:none}
-}
-</style>
-</head>
-<body>
-
-<!-- ============ HERO ============ -->
-<header class="hero">
-  <div class="hero-bg" role="img" aria-label="Anime fighter standing in a glowing purple boxing ring"></div>
-  <div class="hero-scrim"></div>
-  <span class="corner tl"></span><span class="corner tr"></span>
-  <span class="corner bl"></span><span class="corner br"></span>
-  <div class="sparks" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-
-  <div class="hero-tagline">TACTICAL COMBAT FITNESS SYSTEM</div>
-  <img class="hero-mark" src="assets/logo-mark.png" alt="Training Mode logo" width="74" height="83">
-  <h1>Training<br>Mode</h1>
-  <div class="hero-level">LEVEL UP YOUR BODY</div>
-  <div class="hero-disciplines">BOXING · KICKBOXING · MUAY THAI · MMA</div>
-  <div class="hero-ctas">
-    <a class="btn btn-gold" href="https://play.google.com/store/apps/details?id=app.trainingmode.pro">▶ Enter Training Mode</a>
-    <a class="btn btn-ghost" href="#how-it-works">See How It Works</a>
-  </div>
-  <div class="hero-rule"></div>
-  <div class="hero-motto">TRAIN · FIGHT · WIN</div>
-</header>
-
-<!-- ============ INTRO ============ -->
-<section class="intro" id="how-it-works">
-  <div class="wrap reveal">
-    <div class="eyebrow">What Is Training Mode</div>
-    <h2 class="section-title">Real Workouts, Built Like a Fighter's Game</h2>
-    <p>Training Mode turns fitness and combat sports training into an
-    <strong>anime arcade-style progression system</strong>. Show up, train with
-    structure, and feel every session move you closer to the next level —
-    on the mat and on screen.</p>
-  </div>
-</section>
-
-<!-- ============ WAYS TO TRAIN ============ -->
-<section>
-  <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">Ways to Train</div>
-      <h2 class="section-title">Two Core Modes. Two Ways to Bridge Them.</h2>
-      <p class="section-sub">Every path earns XP. Every rep counts toward your next rank.</p>
-    </div>
-    <div class="mode-grid">
-      <article class="mode fit reveal">
-        <img src="assets/hub/fit.webp" alt="Fit Mode — fighter curling a dumbbell in neon purple light" loading="lazy">
-        <div class="mode-body">
-          <div class="mode-kicker">💪 Fit Mode</div>
-          <p>Workout builder, quick missions, cardio &amp; conditioning circuits — structured strength for fighters.</p>
+        <div class="header-actions">
+          <a class="button button-small button-primary" href="https://play.google.com/store/apps/details?id=app.trainingmode.pro" target="_blank" rel="noreferrer">Go To App</a>
+          <button class="menu-toggle" type="button" aria-label="Open menu" data-menu-toggle>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
-      </article>
-      <article class="mode fight reveal">
-        <img src="assets/hub/fight.webp" alt="Fight Mode — fighter throwing a strike" loading="lazy">
-        <div class="mode-body">
-          <div class="mode-kicker">🥊 Fight Mode</div>
-          <p>Combo coach, fight-focus rounds &amp; technique practice across boxing, kickboxing, Muay Thai and MMA.</p>
+
+        <nav class="mobile-nav" aria-label="Mobile navigation" data-mobile-nav>
+          <a href="#home">Home</a>
+          <a href="#modes">Modes</a>
+          <a href="#arcade">Arcade</a>
+          <a href="#progress">Progress</a>
+          <a href="#community">Community</a>
+          <a href="#subscribe">Subscribe</a>
+          <a href="https://play.google.com/store/apps/details?id=app.trainingmode.pro" target="_blank" rel="noreferrer">Go To App</a>
+        </nav>
+      </header>
+
+      <main>
+        <!-- ============ HERO ============ -->
+        <section class="hero-section" id="home">
+          <div class="hero-backdrop" aria-hidden="true">
+            <img src="./assets/features/hero-background.webp" alt="" />
+          </div>
+
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <div class="hero-lives" aria-hidden="true">
+                <span>❤️</span><span>❤️</span><span>❤️</span><span class="spent">🖤</span><span class="spent">🖤</span>
+              </div>
+              <h1>
+                Level Up Your Body.
+                <span class="powerup">Power Up</span>
+                Your Life.
+              </h1>
+              <p class="hero-lede">
+                Training Mode is the anime-inspired fitness and combat training
+                app that turns every workout into a quest.
+              </p>
+              <span class="beta-chip">★ Beta Wave 01 Now Open</span>
+
+              <div class="hero-actions">
+                <a class="button button-primary" href="https://play.google.com/store/apps/details?id=app.trainingmode.pro" target="_blank" rel="noreferrer">Go To App</a>
+                <a class="button button-ghost" href="#subscribe">Subscribe</a>
+              </div>
+
+              <div class="download-cluster" aria-label="Download options">
+                <a class="store-button" href="https://play.google.com/store/apps/details?id=app.trainingmode.pro" target="_blank" rel="noreferrer">
+                  <span>Get it on</span>
+                  <strong>Google Play</strong>
+                </a>
+                <a class="store-button" href="#app-store-placeholder">
+                  <span>Download on the</span>
+                  <strong>App Store</strong>
+                </a>
+              </div>
+
+              <div class="hero-proof">
+                <span>Fit Mode</span>
+                <span>Fight Mode</span>
+                <span>Voice Coach</span>
+                <span>XP Tracking</span>
+              </div>
+            </div>
+
+            <div class="hero-visual" aria-label="Training Mode app preview">
+              <img
+                class="hero-character"
+                src="./assets/features/hero-character.webp"
+                alt="Training Mode hero character wearing the gold T jacket"
+              />
+              <div class="phone-carousel" data-carousel>
+                <div class="phone-slot pos-n2"><img src="./assets/phones/fit-mode-menu.webp" alt="Fit Mode menu screen" /></div>
+                <div class="phone-slot pos-n1"><img src="./assets/phones/train-hub.webp" alt="Train hub screen" /></div>
+                <div class="phone-slot pos-0"><img src="./assets/phones/home-scoreboard.webp" alt="Home scoreboard screen" /></div>
+                <div class="phone-slot pos-1"><img src="./assets/phones/progress-screen.webp" alt="Progress tracking screen" /></div>
+                <div class="phone-slot pos-2"><img src="./assets/phones/fight-mode-menu.webp" alt="Fight Mode menu screen" /></div>
+                <div class="carousel-dots" data-carousel-dots role="tablist" aria-label="App screenshots"></div>
+              </div>
+            </div>
+          </div>
+
+          <a class="scroll-cue" href="#modes" aria-label="Scroll to modes">
+            <span>Scroll to select mode</span>
+            <i></i>
+          </a>
+        </section>
+
+        <!-- ============ MODES ============ -->
+        <section class="mode-section section-pad" id="modes">
+          <div class="section-inner">
+            <div class="section-heading reveal">
+              <span class="section-code">Mode Select</span>
+              <h2>Two Core Modes. Two Ways to Bridge Them.</h2>
+              <p>Every path earns XP. Every rep counts toward your next rank.</p>
+            </div>
+
+            <div class="mode-layout">
+              <article class="mode-panel mode-fit reveal">
+                <img src="./assets/features/fit-mode.webp" alt="Fit Mode — fighter training with weights" />
+                <div class="mode-content">
+                  <h3>💪 Fit Mode</h3>
+                  <p>Workouts for strength, conditioning, mobility, hypertrophy, and repeatable gym sessions.</p>
+                  <ul>
+                    <li>Workout builder</li>
+                    <li>Muscle targeting</li>
+                    <li>Difficulty scaling</li>
+                  </ul>
+                </div>
+              </article>
+
+              <article class="mode-panel mode-fight reveal">
+                <img src="./assets/features/fight-mode.webp" alt="Fight Mode — fighter mid-strike" />
+                <div class="mode-content">
+                  <h3>🥊 Fight Mode</h3>
+                  <p>Combat rounds, combo prompts, shadowboxing, bag work, footwork, and reaction flow.</p>
+                  <ul>
+                    <li>Round timer</li>
+                    <li>Combo calls</li>
+                    <li>Focus themes</li>
+                  </ul>
+                </div>
+              </article>
+            </div>
+
+            <div class="bridge-grid">
+              <div class="bridge-card bridge-combat reveal">
+                <span class="icon" aria-hidden="true">⚡</span>
+                <div>
+                  <h3>Combat Conditioning</h3>
+                  <p>The bridge — sweat-heavy circuits, core rounds, and finishers that blend Fit &amp; Fight into one engine.</p>
+                </div>
+              </div>
+              <div class="bridge-card bridge-arcade reveal">
+                <span class="icon" aria-hidden="true">🕹</span>
+                <div>
+                  <h3>Training Arcade</h3>
+                  <p>Beat timed stages &amp; bosses to earn big XP. <a href="#arcade">See how the ladder works ›</a></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ ARCADE ============ -->
+        <section class="arcade-section section-pad" id="arcade">
+          <div class="arcade-media reveal">
+            <img src="./assets/features/training-arcade.webp" alt="Training Arcade workout series poster" />
+          </div>
+
+          <div class="arcade-copy reveal">
+            <span class="section-code">Training Arcade</span>
+            <h2>Clear Stages. Unlock the Build.</h2>
+            <p>
+              Weekly training framed as an arcade ladder: strength, technique,
+              conditioning, then a final boss round.
+            </p>
+
+            <div class="stage-grid">
+              <button class="stage-card active" type="button" data-stage="strength">
+                <span>Stage 01</span>
+                <strong>Strength</strong>
+              </button>
+              <button class="stage-card" type="button" data-stage="technique">
+                <span>Stage 02</span>
+                <strong>Technique</strong>
+              </button>
+              <button class="stage-card" type="button" data-stage="conditioning">
+                <span>Stage 03</span>
+                <strong>Conditioning</strong>
+              </button>
+              <button class="stage-card boss" type="button" data-stage="boss">
+                <span>Boss Round</span>
+                <strong>Hybrid Test</strong>
+              </button>
+            </div>
+
+            <div class="stage-output" data-stage-output aria-live="polite">
+              Push strength with a focused lift plan, then log the session to your build.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PROGRESS / CHARACTER BUILD ============ -->
+        <section class="progress-section section-pad" id="progress">
+          <div class="section-inner">
+            <div class="section-heading reveal">
+              <span class="section-code">Character Build</span>
+              <h2>Every Rep Levels You Up</h2>
+              <p>
+                Finish workouts to earn XP, keep your streak, and climb from
+                Rookie to Champion. Your avatar evolves as you get stronger.
+              </p>
+            </div>
+
+            <div class="tier-ladder reveal">
+              <figure class="tier"><img src="./assets/tiers/rookie-male.webp" alt="Rookie tier avatar" loading="lazy" /><figcaption>LV1 Rookie</figcaption></figure>
+              <figure class="tier"><img src="./assets/tiers/adept-male.webp" alt="Adept tier avatar" loading="lazy" /><figcaption>LV2 Adept</figcaption></figure>
+              <figure class="tier"><img src="./assets/tiers/veteran-male.webp" alt="Veteran tier avatar" loading="lazy" /><figcaption>LV3 Veteran</figcaption></figure>
+              <figure class="tier"><img src="./assets/tiers/elite-male.webp" alt="Elite tier avatar" loading="lazy" /><figcaption>LV4 Elite</figcaption></figure>
+              <figure class="tier champ"><img src="./assets/tiers/champion-male.webp" alt="Champion tier avatar" loading="lazy" /><figcaption>LV5 Champion</figcaption></figure>
+            </div>
+
+            <div class="progress-grid">
+              <div class="build-card reveal">
+                <img src="./assets/features/tm-mascot.webp" alt="Training Mode sensei portrait" loading="lazy" />
+                <div>
+                  <span>Current Build</span><br />
+                  <strong>Hybrid Athlete</strong>
+                  <p>Strength plus combat skill, built session by session. No fake counters — just the signals that keep you showing up.</p>
+                </div>
+              </div>
+
+              <div class="stat-list reveal">
+                <div class="stat-row">
+                  <span>Strength</span>
+                  <div><i style="width: 82%"></i></div>
+                  <b>Gym output</b>
+                </div>
+                <div class="stat-row red">
+                  <span>Stamina</span>
+                  <div><i style="width: 74%"></i></div>
+                  <b>Rounds and cardio</b>
+                </div>
+                <div class="stat-row violet">
+                  <span>Technique</span>
+                  <div><i style="width: 69%"></i></div>
+                  <b>Combos and flow</b>
+                </div>
+                <div class="stat-row green">
+                  <span>Consistency</span>
+                  <div><i style="width: 88%"></i></div>
+                  <b>Streaks and history</b>
+                </div>
+              </div>
+
+              <div class="phone-feature reveal">
+                <img src="./assets/phones/progress-screen.webp" alt="Training Mode progress screen" loading="lazy" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ GAME SYNC ============ -->
+        <section class="gamesync-section section-pad" id="gamesync">
+          <div class="gamesync-inner reveal">
+            <span class="coming-chip">Coming Soon</span>
+            <h2>Train Here. Win There.</h2>
+            <div class="sync-visual" aria-hidden="true">
+              <span class="avatar"><img src="./assets/tiers/veteran-male.webp" alt="" loading="lazy" /></span>
+              <span class="arrow">→</span>
+              <span class="slot">🎮</span>
+            </div>
+            <p>
+              The long-term vision: a hybrid functional video game — a
+              <strong>pixel-anime beat 'em up</strong> where your real workouts
+              power your in-game fighter's stats, rank &amp; skins.
+              <strong>Build the body. Power the avatar.</strong>
+            </p>
+          </div>
+        </section>
+
+        <!-- ============ COMMUNITY ============ -->
+        <section class="community-section section-pad" id="community">
+          <div class="guide-card reveal">
+            <img src="./assets/features/tm-mascot.webp" alt="Training Mode sensei guide" loading="lazy" />
+            <div>
+              <span class="section-code">Sensei Guide</span>
+              <h2>Join the Dojo</h2>
+              <p>
+                Training Mode was built for people who love fitness, combat
+                sports, anime, and gaming culture. Get drops, challenges,
+                creator updates, and behind-the-scenes notes — and help decide
+                what gets built next.
+              </p>
+              <a class="button button-violet" href="mailto:trainingmode.co@gmail.com?subject=Join%20the%20Training%20Mode%20Community">Join Community</a>
+            </div>
+          </div>
+
+          <form class="contact-card" data-contact-form>
+            <h3>Newsletter / Contact</h3>
+            <p>Get drops, app updates, training challenges, and partnership notes.</p>
+            <label>
+              Name
+              <input type="text" name="name" placeholder="Your name" autocomplete="name" />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+            </label>
+            <label>
+              Message
+              <textarea name="message" placeholder="Tell us what you train or what you want to see next."></textarea>
+            </label>
+            <button class="button button-primary" type="submit">Send</button>
+            <p class="form-status" data-form-status aria-live="polite"></p>
+          </form>
+        </section>
+
+        <!-- ============ SUBSCRIBE ============ -->
+        <section class="subscribe-section section-pad" id="subscribe">
+          <div class="subscribe-copy reveal">
+            <span class="section-code">Subscribe</span>
+            <h2>Upgrade the Training Loop</h2>
+            <p>
+              Premium modes, guided drops, advanced tracking, and challenge
+              series — for people who want structure, intensity, and a reason
+              to keep showing up.
+            </p>
+          </div>
+
+          <div class="subscribe-card reveal">
+            <img src="./assets/logo-mark.png" alt="" aria-hidden="true" />
+            <h3>Training Mode Plus</h3>
+            <ul>
+              <li>Advanced workout and combo drops</li>
+              <li>Expanded progression tracking</li>
+              <li>Challenge series and boss rounds</li>
+              <li>Post-launch feature updates</li>
+            </ul>
+            <div class="subscribe-actions">
+              <a class="button button-primary" href="#subscribe-placeholder">Subscribe</a>
+              <a class="button button-ghost" href="https://play.google.com/store/apps/details?id=app.trainingmode.pro" target="_blank" rel="noreferrer">Go To App</a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <img src="./assets/training-mode-logo.png" alt="Training Mode" />
+        <nav aria-label="Footer navigation">
+          <a href="#modes">Modes</a>
+          <a href="#arcade">Arcade</a>
+          <a href="#progress">Progress</a>
+          <a href="#community">Community</a>
+          <a href="#subscribe">Subscribe</a>
+        </nav>
+        <div class="footer-social">
+          <a href="#instagram-placeholder" aria-label="Instagram"><img src="./assets/social/instagram.png" alt="" /></a>
+          <a href="#tiktok-placeholder" aria-label="TikTok"><img src="./assets/social/tiktok.png" alt="" /></a>
+          <a href="#youtube-placeholder" aria-label="YouTube"><img src="./assets/social/youtube.png" alt="" /></a>
+          <a href="#facebook-placeholder" aria-label="Facebook"><img src="./assets/social/facebook.png" alt="" /></a>
         </div>
-      </article>
-      <article class="mode combat reveal">
-        <img src="assets/hub/combat.webp" alt="Combat Conditioning — strength and striking circuit" loading="lazy">
-        <div class="mode-body">
-          <div class="mode-kicker">⚡ Combat Conditioning</div>
-          <p>The bridge — strength + striking circuits that blend Fit &amp; Fight into one engine.</p>
-        </div>
-      </article>
-      <article class="mode arcade reveal">
-        <img src="assets/hub/arcade.webp" alt="Training Arcade — two fighters sprinting through a glowing stage" loading="lazy">
-        <div class="mode-body">
-          <div class="mode-kicker">🕹 Training Arcade</div>
-          <p>Beat timed stages &amp; bosses to earn big XP. Push start. Power up.</p>
-        </div>
-      </article>
+        <p><a href="mailto:trainingmode.co@gmail.com">trainingmode.co@gmail.com</a></p>
+        <p class="copyright">© 2026 Training Mode · Train · Fight · Win</p>
+      </footer>
     </div>
-  </div>
-</section>
 
-<!-- ============ CODEX ============ -->
-<section style="padding-top:20px">
-  <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">Build Your Training Arc</div>
-      <h2 class="section-title">The Workout Codex</h2>
-      <p class="section-sub" style="margin-bottom:40px">Download the workout. Decode the mission. Log every session as part of a bigger story.</p>
-    </div>
-    <div class="banner reveal"><img src="assets/fitmode/workout-codex.webp" alt="Workout Codex — mission file importing on a holographic screen" loading="lazy"></div>
-    <div class="banner reveal"><img src="assets/fitmode/combat-conditioning.webp" alt="Combat Conditioning banner" loading="lazy"></div>
-  </div>
-</section>
-
-<!-- ============ LEVEL UP ============ -->
-<section class="levelup">
-  <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">Progression</div>
-      <h2 class="section-title">Every Rep Levels You Up</h2>
-      <p class="section-sub">Finish workouts to earn XP, keep your streak, and climb from
-      Rookie to Champion. Your avatar evolves as you get stronger.</p>
-    </div>
-    <div class="tier-ladder reveal">
-      <figure class="tier"><img src="assets/tiers/rookie-male.webp" alt="Rookie tier avatar" loading="lazy"><figcaption>LV1 Rookie</figcaption></figure>
-      <figure class="tier"><img src="assets/tiers/adept-male.webp" alt="Adept tier avatar" loading="lazy"><figcaption>LV2 Adept</figcaption></figure>
-      <figure class="tier"><img src="assets/tiers/veteran-male.webp" alt="Veteran tier avatar" loading="lazy"><figcaption>LV3 Veteran</figcaption></figure>
-      <figure class="tier"><img src="assets/tiers/elite-male.webp" alt="Elite tier avatar" loading="lazy"><figcaption>LV4 Elite</figcaption></figure>
-      <figure class="tier champ"><img src="assets/tiers/champion-male.webp" alt="Champion tier avatar" loading="lazy"><figcaption>LV5 Champion</figcaption></figure>
-    </div>
-    <div class="stat-row reveal">
-      <div class="stat card"><b>XP</b><span>Earned per session</span></div>
-      <div class="stat card"><b>Streaks</b><span>Show up daily</span></div>
-      <div class="stat card"><b>Trophies</b><span>Stack achievements</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ GAME SYNC ============ -->
-<section class="gamesync">
-  <div class="wrap reveal">
-    <span class="coming">COMING SOON</span>
-    <h2 class="section-title">Train Here. Win There.</h2>
-    <div class="sync-visual" aria-hidden="true">
-      <span class="avatar"><img src="assets/tiers/veteran-male.webp" alt="" loading="lazy" style="height:100%;object-fit:cover"></span>
-      <span class="arrow">→</span>
-      <span class="slot">🎮</span>
-    </div>
-    <p>The long-term vision: a hybrid functional video game — a
-    <strong>pixel-anime beat 'em up</strong> where your real workouts power your
-    in-game fighter's stats, rank &amp; skins. <strong>Build the body. Power the avatar.</strong></p>
-  </div>
-</section>
-
-<!-- ============ BETA ============ -->
-<section style="padding-top:30px">
-  <div class="wrap">
-    <div class="beta-card reveal">
-      <div class="eyebrow" style="margin-bottom:12px">Now in Beta</div>
-      <h2>Join the Beta. Shape the Game.</h2>
-      <p class="section-sub">Training Mode was built for people who love fitness, combat
-      sports, anime and gaming culture — and it's being built in the open.</p>
-      <ul class="beta-list">
-        <li>Give feedback directly to the person building the app</li>
-        <li>Get new features and improvements before anyone else</li>
-        <li>Your input helps decide what gets built next</li>
-      </ul>
-      <a class="btn btn-gold" href="https://play.google.com/store/apps/details?id=app.trainingmode.pro">▶ Join the Beta</a>
-      &nbsp;
-      <a class="btn btn-violet" href="mailto:trainingmode.co@gmail.com?subject=Training%20Mode%20Beta%20Feedback">Send Feedback</a>
-    </div>
-  </div>
-</section>
-
-<!-- ============ FOOTER ============ -->
-<footer>
-  <img class="mark" src="assets/logo-mark.png" alt="" width="44" height="50">
-  <div class="motto">TRAIN · FIGHT · WIN</div>
-  <p>© 2026 Training Mode · <a href="mailto:trainingmode.co@gmail.com">trainingmode.co@gmail.com</a></p>
-</footer>
-
-<script>
-// scroll-reveal
-const obs=new IntersectionObserver(entries=>{
-  for(const e of entries){if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target)}}
-},{threshold:.12});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-</script>
-</body>
+    <script src="./script.js"></script>
+  </body>
 </html>
