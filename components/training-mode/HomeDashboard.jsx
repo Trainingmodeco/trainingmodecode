@@ -85,6 +85,11 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
 
   return (
     <PhoneFrame useBrandBg>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .home-hero-card { transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease; }
+        .home-hero-card:hover { transform: translateY(-2px); box-shadow: 0 0 26px var(--card-glow) !important; border-color: var(--card-glow-border) !important; }
+        .home-hero-card:active { transform: scale(0.98); transition-duration: 0.1s; }
+      ` }}/>
       <Embers count={3}/>
 
       {/* === TOP BAR === */}
@@ -139,7 +144,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
         </div>
 
         {/* Today's bout — hero card with the bout art behind */}
-        <button data-tour="todays-bout" onClick={handleBoutStart} style={{ position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+        <button data-tour="todays-bout" className="home-hero-card" onClick={handleBoutStart} style={{ '--card-glow': 'rgba(253,224,71,0.45)', '--card-glow-border': 'rgba(253,224,71,0.9)', position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <SafeImage src="/static/bout-bg.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }}/>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(8,0,16,0.92) 0%, rgba(8,0,16,0.62) 48%, rgba(8,0,16,0.12) 100%)' }}/>
           {/* Slight uniform dim over the art */}
@@ -154,7 +159,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
 
         {/* Training Arcade (prominent) */}
         {arSeries && (
-          <button onClick={() => onTrainingArcade?.()} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,#1a1030,#241640)', boxShadow: '0 0 20px -6px rgba(176,106,255,0.4)', marginBottom: 10, padding: '12px 13px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'block' }}>
+          <button className="home-hero-card" onClick={() => onTrainingArcade?.()} style={{ '--card-glow': 'rgba(176,106,255,0.5)', '--card-glow-border': 'rgba(176,106,255,0.95)', position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,#1a1030,#241640)', boxShadow: '0 0 20px -6px rgba(176,106,255,0.4)', marginBottom: 10, padding: '12px 13px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'block' }}>
             {/* Dimmed hallway banner art (falls back to the gradient if absent) */}
             {!arcadeBgFail && (
               <>
