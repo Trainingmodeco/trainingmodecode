@@ -66,7 +66,7 @@ function AudioSlider({ label, value, onChange }) {
   );
 }
 
-function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio, onReplayTour }) {
+function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio }) {
   const [saved, setSaved] = useState(false);
 
   const handleSaveAudio = () => {
@@ -186,22 +186,6 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
                 {saved ? 'SAVED' : 'SAVE AUDIO SETTINGS'}
               </button>
             </div>
-
-            {/* Replay the first-run feature tour (design 33) */}
-            {onReplayTour && (
-              <button onClick={onReplayTour} style={{
-                display: 'flex', alignItems: 'center', gap: 11,
-                background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)',
-                borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left',
-              }}>
-                <span style={{ fontSize: 14 }}>🔁</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>REPLAY INTRO GUIDE</div>
-                  <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Take the 4-step feature tour again</div>
-                </div>
-                <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -357,6 +341,15 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
                 </button>
               )}
+              {/* Replay the first-run feature tour (design 33) — lives under
+                  Notifications on the profile overview. */}
+              {onReplayTour && (
+                <button onClick={onReplayTour} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ fontSize: 14 }}>🔁</span>
+                  <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>REPLAY INTRO GUIDE</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Take the 4-step feature tour again</div></div>
+                  <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -377,7 +370,6 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         setEncouragement={setEncouragement}
         audioSettings={audioSettings}
         updateAudio={updateAudio}
-        onReplayTour={onReplayTour}
       />
     );
   }
