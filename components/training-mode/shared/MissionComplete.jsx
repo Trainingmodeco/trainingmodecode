@@ -7,6 +7,7 @@ import MissionIntegrityBanner from '../MissionIntegrityBanner';
 import CardioFinisherSummaryCard from '../CardioFinisherSummaryCard';
 import { Trophy } from 'lucide-react';
 import { loadStats, getStreak, getLevel, getLevelProgress, getWeeklySessions } from '../data/userStats';
+import { getCurrentTier, tierImage } from '../data/tiers';
 import { loadProfile } from '../data/userProfile';
 import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
 
@@ -15,8 +16,6 @@ import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
 // grid, an optional extra card (round recap / muscle chips), the shared
 // YOUR PROGRESS roundup, and per-mode CTAs. One look across the whole app.
 const GOLD = '#fde047';
-const RANKS = ['Combat Rookie', 'Combat Adept', 'Combat Veteran', 'Combat Elite', 'Combat Champion'];
-const TIERS = ['rookie', 'adept', 'veteran', 'elite', 'champion'];
 
 const mcCSS = `
 @keyframes mc-medal-pulse {
@@ -77,7 +76,7 @@ export default function MissionComplete({
   const level = getLevel(stats0.xp);
   const lp = getLevelProgress(stats0.xp);
   const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
-  const ri = Math.min(Math.floor((level - 1) / 3), 4);
+  const tier = getCurrentTier(stats0);
   const weekSess = getWeeklySessions(stats0);
   const weekXp = weekSess.reduce((a, s) => a + (s.xpEarned || 0), 0);
   const weekModes = new Set(weekSess.map(s => s.type)).size;
@@ -139,10 +138,10 @@ export default function MissionComplete({
             <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.16em', marginBottom: 9 }}>YOUR PROGRESS</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 34, height: 34, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
-                <SafeImage src={`/static/tiers/${TIERS[ri]}-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
+                <SafeImage src={tierImage(tier.id, sex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 10px 'Orbitron',sans-serif", color: '#fde047', marginBottom: 3 }}><span>LEVEL {level} · {RANKS[ri].toUpperCase()}</span><span style={{ color: '#c4a4d8', fontWeight: 600 }}>{lp.current}/{lp.needed} XP</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 10px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', marginBottom: 3 }}><span>LEVEL {level} · {tier.label.toUpperCase()}</span><span style={{ color: '#c4a4d8', fontWeight: 600 }}>{lp.current}/{lp.needed} XP</span></div>
                 <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
               </div>
             </div>

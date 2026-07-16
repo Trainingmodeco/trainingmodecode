@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SafeImage from './SafeImage';
 import { X } from 'lucide-react';
+import { trackEvent } from './data/analytics';
 
 // Paywall / Training Mode PRO — UI port of design 25a.
 // UI-only: the CTA is a placeholder (no real IAP wired yet).
+// Funnel events fire so conversion intent is measurable before Stripe ships.
 
 const BENEFITS = [
   'All Arcade protocols & boss stages',
@@ -16,7 +18,13 @@ export default function Paywall({ onClose }) {
   const [plan, setPlan] = useState('annual');
   const [toast, setToast] = useState(false);
 
-  const startTrial = () => { setToast(true); setTimeout(() => setToast(false), 2400); };
+  useEffect(() => { trackEvent('paywall_viewed'); }, []);
+
+  const startTrial = () => {
+    trackEvent('paywall_trial_clicked', { plan });
+    setToast(true);
+    setTimeout(() => setToast(false), 2400);
+  };
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 440, height: '100dvh', margin: '0 auto', background: '#08010f', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

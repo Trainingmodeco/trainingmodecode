@@ -6,18 +6,15 @@ import Embers from './Embers';
 import { ChevronLeft } from 'lucide-react';
 import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
+import { VISIBLE_TIERS, getCurrentTier } from './data/tiers';
 
 // Progress · Overview — pixel match of design 23a:
 // PROGRESS header + OVERVIEW/TROPHIES toggle · rank card · XP-this-month trend ·
 // TRAINING SPLIT bars · recent-trophies row. Trophies tab shows the rank ladder.
-const RANKS = [
-  { name: 'Combat Rookie', xp: 0, tier: 'rookie', color: '#b87333' },
-  { name: 'Combat Adept', xp: 500, tier: 'adept', color: '#c0c0c0' },
-  { name: 'Combat Veteran', xp: 1500, tier: 'veteran', color: '#fde047' },
-  { name: 'Combat Elite', xp: 3500, tier: 'elite', color: '#60a5fa' },
-  { name: 'Combat Champion', xp: 7000, tier: 'champion', color: '#c084fc' },
-  { name: 'Apex Legend', xp: 12000, tier: 'champion', color: '#f43f5e' },
-];
+// Visible ladder from the shared tier engine; past 12,000 XP the secret
+// tiers (Peak Physique / Fight Ascendant / Final Form) take over via
+// getCurrentTier.
+const RANKS = VISIBLE_TIERS.map(t => ({ name: t.label, xp: t.xp, tier: t.id, color: t.color }));
 const getRank = (xp) => { let r = RANKS[0]; for (const x of RANKS) if (xp >= x.xp) r = x; return r; };
 const rankProgress = (xp) => { const r = getRank(xp); const i = RANKS.indexOf(r); const n = RANKS[i + 1]; return n ? Math.min(1, Math.max(0, (xp - r.xp) / (n.xp - r.xp))) : 1; };
 
@@ -168,7 +165,11 @@ export default function ProgressScreen({ onHome, profile }) {
   const totalXp = stats.xp || 0;
   const level = getLevel(totalXp);
   const streak = getStreak(stats);
-  const rank = getRank(totalXp);
+  // Secret tiers replace the visible rank once unlocked.
+  const curTier = getCurrentTier(stats);
+  const rank = curTier.secret
+    ? { name: curTier.label, xp: totalXp, tier: curTier.id, color: curTier.color, secret: true }
+    : getRank(totalXp);
   const sessions = stats.sessions || [];
 
   // XP this month + a simple trend from recent sessions.
@@ -276,7 +277,7 @@ export default function ProgressScreen({ onHome, profile }) {
               {/* Current + next rank (kept from the ladder) */}
               <div style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em', margin: '2px 0 8px' }}>RANK</div>
               <div style={{ display: 'flex', gap: 9, marginBottom: 14 }}>
-                {[{ r: rank, cur: true }, { r: RANKS[Math.min(RANKS.indexOf(rank) + 1, RANKS.length - 1)], cur: false }].map(({ r, cur }, i) => {
+                {[{ r: rank, cur: true }, { r: rank.secret ? rank : RANKS[Math.min(RANKS.indexOf(rank) + 1, RANKS.length - 1)], cur: false }].map(({ r, cur }, i) => {
                   const nextXp = RANKS[RANKS.indexOf(r)]?.xp ?? 0;
                   const isMax = !cur && r === rank;
                   return (

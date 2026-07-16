@@ -19,7 +19,7 @@ const POSTER_MAP = {
   'ultra-ego-style': '/static/series/posters/ultra-ego.png',
 };
 
-const RANKS = ['ROOKIE', 'ADEPT', 'VETERAN', 'ELITE', 'CHAMPION'];
+const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'ELITE', 'CHAMPION'];
 const TEAL = '#5eead4';
 
 const arcadeStyles = `

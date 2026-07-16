@@ -1,13 +1,13 @@
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
+import { VISIBLE_TIERS, tierImage } from './data/tiers';
 
 // Level Up reveal — pixel match of design 6a: rank-up tag, big level pop, rank
 // transition, "new avatar unlocked" card (shine sweep + corner brackets), stat
 // boosts, and Equip / Continue CTAs. Prop-driven so the post-session flow can
 // mount it when a workout pushes the player past a level boundary.
-const RANKS = ['Combat Rookie', 'Combat Adept', 'Combat Veteran', 'Combat Elite', 'Combat Champion'];
-const TIERS = ['rookie', 'adept', 'veteran', 'elite', 'champion'];
+const RANKS = VISIBLE_TIERS.map(t => t.label);
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 
 const css = `
@@ -50,7 +50,7 @@ export default function LevelUpReveal({ fromLevel = 3, toLevel = 4, sex = 'male'
 
           {/* Avatar reveal card */}
           <div className="lur-a" style={{ position: 'relative', width: 230, height: 190, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.7)', boxShadow: '0 0 34px rgba(253,224,71,0.3), 0 0 60px rgba(168,85,247,0.25)', animation: 'lur-rise .6s cubic-bezier(.2,.8,.3,1) 1.85s forwards' }}>
-            <SafeImage src={`/static/tiers/${TIERS[toIdx]}-${s}.png`} alt="New avatar" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}/>
+            <SafeImage src={tierImage(VISIBLE_TIERS[toIdx].id, s)} alt="New avatar" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}/>
             <div style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '100%', background: 'linear-gradient(120deg,transparent,rgba(255,255,255,0.35),transparent)', transform: 'translateX(-120%) skewX(-20deg)', animation: 'lur-shine 1.1s ease 2.5s 1' }}/>
             <span style={{ position: 'absolute', top: -1, left: -1, width: 18, height: 18, borderLeft: '2px solid #fde047', borderTop: '2px solid #fde047' }}/>
             <span style={{ position: 'absolute', top: -1, right: -1, width: 18, height: 18, borderRight: '2px solid #fde047', borderTop: '2px solid #fde047' }}/>

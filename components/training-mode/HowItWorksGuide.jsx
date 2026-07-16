@@ -35,7 +35,7 @@ export default function HowItWorksGuide({ onDone, profile }) {
   const tier = (name) => `/static/tiers/${name}-${sex}.png`;
 
   const next = () => (card < 3 ? setCard(card + 1) : onDone?.());
-  const TIERS = ['rookie', 'adept', 'veteran', 'elite', 'champion'];
+  const TIERS = ['rookie', 'novice', 'warrior', 'elite', 'champion'];
   const ladderSizes = [[40, 52, 0.6, 'rgba(168,85,247,0.4)'], [46, 60, 0.75, 'rgba(168,85,247,0.5)'], [54, 72, 1, 'rgba(253,224,71,0.7)'], [46, 60, 0.75, 'rgba(168,85,247,0.5)'], [40, 52, 0.6, 'rgba(168,85,247,0.4)']];
 
   return (
@@ -108,7 +108,7 @@ export default function HowItWorksGuide({ onDone, profile }) {
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 18 }}>
                 <div style={{ width: 56, height: 70, borderRadius: 9, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)' }}>
-                  <SafeImage src={tier('veteran')} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+                  <SafeImage src={tier('warrior')} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
                 </div>
                 <div style={{ font: "900 20px 'Orbitron',sans-serif", color: '#fde047' }}>→</div>
                 <div style={{ width: 56, height: 70, borderRadius: 9, background: 'repeating-linear-gradient(45deg,#1a1030 0 7px,#241640 7px 14px)', border: '1px dashed rgba(176,106,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎮</div>

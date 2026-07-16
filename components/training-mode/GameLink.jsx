@@ -42,7 +42,7 @@ export default function GameLink({ onBack, profile }) {
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 66, height: 82, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)' }}>
-                <SafeImage src={`/static/tiers/veteran-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+                <SafeImage src={`/static/tiers/warrior-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
               </div>
               <div style={{ font: "900 20px 'Orbitron',sans-serif", color: '#fde047' }}>→</div>
               <div style={{ width: 66, height: 82, borderRadius: 10, background: 'repeating-linear-gradient(45deg,#1a1030 0 8px,#241640 8px 16px)', border: '1px dashed rgba(176,106,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🎮</div>

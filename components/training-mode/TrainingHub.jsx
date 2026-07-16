@@ -7,7 +7,7 @@ import { C } from './Styles';
 import { IMG } from './data/optimizedImageMap';
 import { loadStats, getLevel, getStreak } from './data/userStats';
 
-const RANKS = ['Combat Rookie', 'Combat Adept', 'Combat Veteran', 'Combat Elite', 'Combat Champion'];
+const RANKS = ['Combat Rookie', 'Combat Novice', 'Combat Warrior', 'Combat Elite', 'Combat Champion'];
 const rankFor = (lvl) => RANKS[Math.min(Math.floor((lvl - 1) / 3), RANKS.length - 1)];
 
 const hubCSS = `

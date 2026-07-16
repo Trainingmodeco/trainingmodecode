@@ -35,7 +35,7 @@ export const TOUR_STEPS = [
     title: '📈 EVERY REP LEVELS YOU UP',
     body: (
       <>Workouts earn <b style={{ color: GOLD }}>XP</b>. Fill the bar to climb{' '}
-        <b style={{ color: '#fff' }}>Rookie → Adept → Veteran → Elite → Champion</b> — your avatar
+        <b style={{ color: '#fff' }}>Rookie → Novice → Warrior → Elite → Champion</b> — your avatar
         evolves at each rank, and trophies collect in the <b style={{ color: GOLD }}>TROPHIES</b> tab above.</>
     ),
   },

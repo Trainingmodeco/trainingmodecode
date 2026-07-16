@@ -7,6 +7,8 @@ import { ChevronLeft, MessageSquare, Bell, Volume2 } from 'lucide-react';
 import { C } from './Styles';
 import SafeImage from './SafeImage';
 import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
+import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
+import { trackEvent } from './data/analytics';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 
@@ -196,6 +198,18 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
 export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription, onNotifications, onReplayTour }) {
   const p = profile || {};
   const [profileView, setProfileView] = useState('overview');
+  // Demand-validation votes for features on the roadmap (video form check,
+  // workout codex). One tap per feature; counted via trackEvent.
+  const [featureVotes, setFeatureVotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('tm_feature_votes') || '{}'); } catch { return {}; }
+  });
+  const castFeatureVote = (key) => {
+    if (featureVotes[key]) return;
+    const next = { ...featureVotes, [key]: true };
+    setFeatureVotes(next);
+    try { localStorage.setItem('tm_feature_votes', JSON.stringify(next)); } catch {}
+    trackEvent('feature_vote', { feature: key });
+  };
   const [name,        setName       ] = useState(p.name        ?? '');
   const [sex,         setSex        ] = useState((p.sex        ?? 'male').toUpperCase());
   const [age,         setAge        ] = useState(p.age         ?? '');
@@ -261,9 +275,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     const strk = getStreak(stats);
     const sessionCount = (stats.sessions || []).length;
     const lp = getLevelProgress(stats.xp);
-    const RANK_NAMES = ['Combat Rookie', 'Combat Adept', 'Combat Veteran', 'Combat Elite', 'Combat Champion'];
-    const TIERS = ['rookie', 'adept', 'veteran', 'elite', 'champion'];
-    const ri = Math.min(Math.floor((lvl - 1) / 3), 4);
+    const tier = getCurrentTier(stats);
     const avSex = sex.toLowerCase() === 'female' ? 'female' : 'male';
     const displayName = (name && name.trim()) ? name.trim().toUpperCase() : 'TRAINEE';
     const hw = [heightVal ? `${heightVal}` : null, weightVal ? `${weightVal}${weightUnit === 'LBS' ? 'lb' : ''}` : null].filter(Boolean).join(' · ') || '—';
@@ -287,11 +299,11 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 12, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
               <div style={{ display: 'flex', gap: 14, padding: 14, alignItems: 'center' }}>
                 <div style={{ width: 96, height: 120, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)' }}>
-                  <SafeImage src={`/static/tiers/${TIERS[ri]}-${avSex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+                  <SafeImage src={tierImage(tier.id, avSex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em' }}>{displayName}</div>
-                  <div style={{ font: "700 9px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em', marginTop: 2 }}>LVL {lvl} · {RANK_NAMES[ri].toUpperCase()}</div>
+                  <div style={{ font: "700 9px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', letterSpacing: '0.06em', marginTop: 2 }}>LVL {lvl} · {tier.label.toUpperCase()}{tier.secret ? ' ★' : ''}</div>
                   <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${pctToNext}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
                   <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>{lp.current} / {lp.needed} XP to next</div>
                   <button onClick={() => setProfileView('main')} style={{ marginTop: 9, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 8, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 9px 'Orbitron',sans-serif", padding: '6px 12px', cursor: 'pointer' }}>⚔ CHANGE AVATAR</button>
@@ -300,7 +312,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             {/* Combat stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-              {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(ri + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
+              {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
                 <div key={s.label} style={{ background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
                   <div style={{ font: "900 17px 'Orbitron',sans-serif", color: s.color }}>{s.v}</div>
                   <div style={{ font: "600 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.06em' }}>{s.label}</div>
@@ -350,6 +362,31 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
                 </button>
               )}
+            </div>
+
+            {/* Roadmap demand votes — measures want before we build */}
+            <div style={{ margin: '14px 0 4px', font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>COMING SOON · CAST YOUR VOTE</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[
+                { key: 'video-form-check', emoji: '🎥', title: 'VIDEO FORM CHECK', sub: 'Record your rounds' },
+                { key: 'workout-codex', emoji: '📖', title: 'WORKOUT CODEX', sub: 'Full move library' },
+              ].map(f => {
+                const voted = !!featureVotes[f.key];
+                return (
+                  <button key={f.key} onClick={() => castFeatureVote(f.key)} style={{
+                    flex: 1, borderRadius: 11, padding: '11px 10px', textAlign: 'left', cursor: voted ? 'default' : 'pointer',
+                    background: voted ? 'rgba(34,197,94,0.08)' : 'rgba(8,2,18,0.8)',
+                    border: `1px solid ${voted ? 'rgba(34,197,94,0.45)' : 'rgba(253,224,71,0.3)'}`,
+                  }}>
+                    <div style={{ fontSize: 15, marginBottom: 4 }}>{f.emoji}</div>
+                    <div style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.04em' }}>{f.title}</div>
+                    <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{f.sub}</div>
+                    <div style={{ marginTop: 7, display: 'inline-block', padding: '3px 9px', borderRadius: 99, font: "800 7.5px 'Orbitron',sans-serif", letterSpacing: '0.1em', color: voted ? '#4ade80' : '#fde047', background: voted ? 'rgba(34,197,94,0.12)' : 'rgba(253,224,71,0.1)', border: `1px solid ${voted ? 'rgba(34,197,94,0.4)' : 'rgba(253,224,71,0.35)'}` }}>
+                      {voted ? '✓ VOTED' : '👍 I WANT THIS'}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
