@@ -8,7 +8,9 @@ import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile } from './data/userProfile';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import FightRingBackdrop from './shared/FightRingBackdrop';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 
 // Fight Mode hub — locked (non-scrolling) SELECT DISCIPLINE grid + CHOOSE MODE list.
 const GOLD = '#fde047';
@@ -77,7 +79,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         onHome={onHome}
         showBack
         onBack={onBack}
-        rightSlot={<SafeImage src="/static/title-fight.png" alt="Fight Mode" style={{ height: 26, width: 'auto', display: 'block' }}/>}
+        rightSlot={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><SafeImage src="/static/title-fight.png" alt="Fight Mode" style={{ height: 26, width: 'auto', display: 'block' }}/><HelpButton onClick={() => setHelpOpen(true)}/></div>}
       />
 
       {/* Locked viewport — fits without scrolling */}
@@ -94,7 +96,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
           <HelpButton onClick={() => setHelpOpen(true)} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}/>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0, width: '100%', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
+        <div data-guide="fh-disciplines" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0, width: '100%', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
           {DISCIPLINES.map(d => {
             const active = d.id === disc;
             return (
@@ -129,7 +131,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
             const accent = m.gold ? GOLD : VIOLET;
             const Icon = m.Icon;
             return (
-              <button key={m.key} onClick={() => goMode(m.key)} style={{
+              <button key={m.key} data-guide={m.key === 'fight_focus' ? 'fh-fight-focus' : m.key === 'combo_coach' ? 'fh-combo' : 'fh-practice'} onClick={() => goMode(m.key)} style={{
                 display: 'flex', alignItems: 'center', gap: 12, borderRadius: 12, padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
                 background: 'rgba(16,4,30,0.82)',
                 border: `1px solid ${m.gold ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.4)'}`,
@@ -153,7 +155,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
       {toast && <div style={{ position: 'absolute', left: '50%', bottom: 120, transform: 'translateX(-50%)', background: 'rgba(20,8,36,0.96)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 10, padding: '10px 16px', font: "700 10px 'Orbitron',sans-serif", color: '#c9a6ff', zIndex: 20, whiteSpace: 'nowrap' }}>Practice Mode preview — coming soon.</div>}
 
-      <WorkoutHelpPanel contentKey="fight_hub" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fight_hub} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

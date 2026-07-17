@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
@@ -113,7 +115,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
         {/* Difficulty + explanation (also sets a default cadence) */}
         <div style={{ marginBottom: 5 }}>
-          <Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))} accent={GOLD}/>
+          <div data-guide="cc-difficulty"><Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))} accent={GOLD}/></div>
         </div>
         <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 8, minHeight: 20 }}>
           <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
@@ -121,7 +123,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
         {/* Mode + explanation */}
         <div style={{ marginBottom: 5 }}>
-          <Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/>
+          <div data-guide="cc-mode"><Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/></div>
         </div>
         <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 9, minHeight: 20 }}>
           <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
@@ -129,11 +131,13 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
         {/* Stacked steppers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
+          <div data-guide="cc-steppers">
           <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
           <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
           <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
           <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="s" min={2} max={8} step={0.5} display={v => v.toFixed(1)} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('cadenceSec', v)} accent={VIOLET}/>
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
+          </div>
         </div>
 
         {/* Rush mode (opens the flame popup) */}
@@ -142,6 +146,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Start */}
+        <div data-guide="cc-start">
         <TrainingCTA
           variant="gold" label="START COMBOS" icon="⚡" height={48}
           style={{ width: '100%', fontSize: 13, letterSpacing: '0.1em' }}
@@ -158,9 +163,10 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
             });
           }}
         />
+        </div>
 
       </div>
-      <WorkoutHelpPanel contentKey="combo_coach_setup" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.combo_coach_setup} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

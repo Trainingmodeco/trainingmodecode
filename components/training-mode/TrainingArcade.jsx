@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import FightRingBackdrop from './shared/FightRingBackdrop';
@@ -134,7 +136,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
         </div>
 
         {/* Player bar */}
-        <div style={{ margin: '2px 14px 4px', padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(12,4,26,0.72)', border: '1px solid rgba(168,85,247,0.28)' }}>
+        <div data-guide="ar-player" style={{ margin: '2px 14px 4px', padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(12,4,26,0.72)', border: '1px solid rgba(168,85,247,0.28)' }}>
           <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg,#a855f7,#5b21b6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 10px rgba(168,85,247,0.4)' }}>
             <Gamepad2 size={16} color="#fff" />
           </div>
@@ -149,7 +151,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
         </div>
 
         {/* Carousel */}
-        <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
+        <div data-guide="ar-carousel" style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
           <div
             ref={scrollerRef}
             className="saga-scroller"
@@ -272,7 +274,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
           TAP CARD TO ENTER SAGA
         </div>
       </div>
-      <WorkoutHelpPanel contentKey="arcade_saga_select" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.arcade_saga_select} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

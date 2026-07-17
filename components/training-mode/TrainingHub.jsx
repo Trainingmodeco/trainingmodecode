@@ -3,7 +3,9 @@ import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import TrainingHeader from './TrainingHeader';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import { ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { IMG } from './data/optimizedImageMap';
@@ -46,6 +48,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         onHome={onHome}
         showBack
         onBack={onHome}
+        rightSlot={<HelpButton dataTour="screen-info" onClick={() => setHelpOpen(true)}/>}
       />
 
       <div style={{
@@ -54,26 +57,24 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         padding: '10px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
       }}>
 
-        {/* Page title + screen info */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
-          <div>
-            <h1 style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
-              color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
-              textTransform: 'uppercase',
-            }}>CHOOSE YOUR PATH</h1>
-            <p style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
-              color: C.muted, margin: 0,
-            }}>Level {level} · {rank} · <span style={{ color: '#ff8a4a' }}>🔥 {streak} streak</span></p>
-          </div>
-          <HelpButton dataTour="screen-info" onClick={() => setHelpOpen(true)}/>
+        {/* Page title */}
+        <div style={{ marginBottom: 12 }}>
+          <h1 style={{
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
+            color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
+            textTransform: 'uppercase',
+          }}>CHOOSE YOUR PATH</h1>
+          <p style={{
+            fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
+            color: C.muted, margin: 0,
+          }}>Level {level} · {rank} · <span style={{ color: '#ff8a4a' }}>🔥 {streak} streak</span></p>
         </div>
 
         {/* === FIGHT MODE === */}
         <div
           className="train-hub-card"
           data-tour="mode-fight"
+          data-guide="hub-fight"
           onClick={onFightMode}
           style={{
             '--card-glow': 'rgba(239,68,68,0.5)',
@@ -116,6 +117,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         <div
           className="train-hub-card"
           data-tour="mode-fit"
+          data-guide="hub-fit"
           onClick={onFitMode}
           style={{
             '--card-glow': 'rgba(168,85,247,0.5)',
@@ -157,6 +159,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         {/* === COMBAT CONDITIONING === */}
         <div
           className="train-hub-card"
+          data-guide="hub-combat"
           onClick={onCombatConditioning}
           style={{
             '--card-glow': 'rgba(255,138,74,0.5)',
@@ -199,6 +202,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         <div
           className="train-hub-card"
           data-tour="mode-arcade"
+          data-guide="hub-arcade"
           onClick={onTrainingArcade}
           style={{
             '--card-glow': 'rgba(34,197,94,0.5)',
@@ -238,7 +242,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
 
       </div>
 
-      <WorkoutHelpPanel contentKey="train_hub" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.train_hub} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

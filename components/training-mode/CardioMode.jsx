@@ -11,7 +11,9 @@ import { CARDIO_ADDON_TYPES, cardioAddonToPlayer } from './data/cardioAddon';
 import CardioProtocolPlayer from './CardioProtocolPlayer';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import TrainingCTA from './shared/TrainingCTA';
 import { loadStats, getLevel } from './data/userStats';
 
@@ -339,6 +341,7 @@ export default function CardioMode({ onBack }) {
         <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
           {/* METHOD — 4 compact category cards (the category is the selection) */}
+          <div data-guide="cm-method">
           <div style={sectionLabel}>METHOD</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 14 }}>
             {METHOD_CATEGORIES.map(cat => {
@@ -361,6 +364,8 @@ export default function CardioMode({ onBack }) {
           </div>
 
           {/* PROTOCOL */}
+          </div>
+          <div data-guide="cm-protocol">
           <div style={sectionLabel}>PROTOCOL</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: style === 'intervals' ? 8 : 14 }}>
             {PROTOCOLS.map(p => (
@@ -396,9 +401,12 @@ export default function CardioMode({ onBack }) {
             </div>
           )}
 
+          </div>
+
           {/* GOAL — distance slider (design 12a) */}
           {useDistanceGauge && (
             <>
+              <div data-guide="cm-goal">
               <div style={sectionLabel}>GOAL DISTANCE</div>
               <div style={{ borderRadius: 11, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '8px 12px 9px', marginBottom: 9 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
@@ -439,6 +447,7 @@ export default function CardioMode({ onBack }) {
                   <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>Lvl {level}</span>
                 </div>
               )}
+              </div>
             </>
           )}
 
@@ -502,7 +511,9 @@ export default function CardioMode({ onBack }) {
 
         {/* Footer — just the CTA, sitting high with open space above and below */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+          <div data-guide="cm-start">
           <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 42, paddingRight: 42, fontSize: 13.5, letterSpacing: '0.12em' }} />
+          </div>
         </div>
 
         {/* Open space below the CTA — keeps it lifted off the nav */}
@@ -511,7 +522,7 @@ export default function CardioMode({ onBack }) {
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>
       )}
-      <WorkoutHelpPanel contentKey="cardio_mode" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.cardio_mode} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

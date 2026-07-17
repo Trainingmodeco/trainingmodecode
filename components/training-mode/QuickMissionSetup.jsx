@@ -3,7 +3,9 @@ import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { ChevronLeft, Shuffle } from 'lucide-react';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import CardioFinisherSetup from './CardioFinisherSetup';
@@ -70,6 +72,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
 
         <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
           {/* HOW LONG */}
+          <div data-guide="qm-length">
           <Label right={<button onClick={surprise} style={{ display: 'flex', alignItems: 'center', gap: 4, font: "800 8px 'Orbitron',sans-serif", color: VIOLET, background: 'rgba(176,106,255,0.1)', border: '1px solid rgba(176,106,255,0.35)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.06em' }}><Shuffle size={10}/> SURPRISE ME</button>}>HOW LONG?</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7, marginBottom: 16 }}>
             {LENGTHS.map(len => {
@@ -93,7 +96,9 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             })}
           </div>
 
+          </div>
           {/* INTENSITY */}
+          <div data-guide="qm-intensity">
           <Label>INTENSITY</Label>
           <div style={{ display: 'flex', gap: 7, marginBottom: 16 }}>
             {INTENSITY.map(d => {
@@ -102,7 +107,9 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             })}
           </div>
 
+          </div>
           {/* ADD CARDIO */}
+          <div data-guide="qm-cardio">
           <button onClick={() => setCardioSheetOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(168,85,247,0.06))', padding: '11px 13px', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>❤</div>
             <div style={{ flex: 1 }}>
@@ -111,10 +118,13 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             </div>
             <span style={{ font: "900 14px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
+          </div>
 
           {/* Start — inline, right under Add Cardio so it's never hidden */}
           <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{duration} min · {focus === 'FULL BODY' ? 'Full Body' : cap(focus)} · {cap(difficulty)}</div>
+          <div data-guide="qm-start">
           <TrainingCTA variant="gold" label="START MISSION" icon="▶" height={48} onClick={handleStart} style={{ fontSize: 14, letterSpacing: '0.08em' }}/>
+          </div>
         </div>
       </div>
 
@@ -126,7 +136,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
           onClose={() => setCardioSheetOpen(false)}
         />
       )}
-      <WorkoutHelpPanel contentKey="quick_mission_setup" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.quick_mission_setup} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

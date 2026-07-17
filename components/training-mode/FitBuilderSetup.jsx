@@ -6,7 +6,9 @@ import { ChevronLeft, Home } from 'lucide-react';
 import { C } from './Styles';
 import CardioFinisherSetup from './CardioFinisherSetup';
 import TrainingCTA from './shared/TrainingCTA';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import { loadRoutines, deleteRoutine } from './data/savedRoutines';
 
 // Workout Builder — pixel match of design 11a ("streamlined manual"):
@@ -137,7 +139,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
 
         <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
           {/* TYPE */}
-          <div style={{ display: 'flex', gap: 6, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 10, padding: 4, marginBottom: 13 }}>
+          <div data-guide="wb-type" style={{ display: 'flex', gap: 6, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 10, padding: 4, marginBottom: 13 }}>
             {TYPES.map(t => {
               const active = t.id === type;
               return (
@@ -149,6 +151,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
           {!isCardio && (
             <>
               {/* TARGET MUSCLES */}
+              <div data-guide="wb-muscles">
               <Label right={<span style={{ font: "800 8px 'Orbitron',sans-serif", color: GOLD }}>{chips.length} SELECTED</span>}>TARGET MUSCLES</Label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 10 }}>
                 {CHIPS.map(c => {
@@ -177,18 +180,24 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
                   );
                 })}
               </div>
+              </div>
             </>
           )}
 
           {/* EQUIPMENT */}
+          <div data-guide="wb-equipment">
           <Label>EQUIPMENT</Label>
           <div style={{ marginBottom: 13 }}><Segmented options={EQUIPMENT} value={equipment} onPick={setEquipment}/></div>
+          </div>
 
           {/* DIFFICULTY */}
+          <div data-guide="wb-difficulty">
           <Label>DIFFICULTY</Label>
           <div style={{ marginBottom: 13 }}><Segmented options={DIFFICULTY} value={difficulty} onPick={setDifficulty}/></div>
+          </div>
 
           {/* ADD CARDIO */}
+          <div data-guide="wb-cardio">
           <button onClick={() => setCardioSheetOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(168,85,247,0.06))', padding: '11px 13px', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>❤</div>
             <div style={{ flex: 1 }}>
@@ -197,6 +206,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
             </div>
             <span style={{ font: "900 15px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
+          </div>
 
           {/* Saved routines — load a named workout exactly as it was saved */}
           {!isCardio && routines.length > 0 && (
@@ -219,7 +229,9 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
 
           {/* Generate — inline, right under Add Cardio so it's never hidden */}
           <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{summary()}</div>
+          <div data-guide="wb-generate">
           <TrainingCTA variant="gold" label={isCardio ? 'START CARDIO' : 'GENERATE WORKOUT'} icon={isCardio ? '❤' : '⚙'} height={48} onClick={generate} style={{ fontSize: 13.5, letterSpacing: '0.06em' }}/>
+          </div>
         </div>
       </div>
 
@@ -231,7 +243,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
           onClose={() => setCardioSheetOpen(false)}
         />
       )}
-      <WorkoutHelpPanel contentKey="workout_builder" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.workout_builder} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

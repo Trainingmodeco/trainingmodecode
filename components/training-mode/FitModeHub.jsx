@@ -2,7 +2,9 @@ import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import { ChevronLeft, Home } from 'lucide-react';
 import { IMG } from './data/optimizedImageMap';
 
@@ -45,6 +47,7 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
             {BANNERS.map(b => (
               <button
                 key={b.key}
+                data-guide={'fit-' + b.key}
                 onClick={b.dimmed ? undefined : b.onClick}
                 className={b.dimmed ? undefined : 'fit-banner'}
                 aria-disabled={b.dimmed || undefined}
@@ -72,7 +75,7 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
         </div>
       </div>
 
-      <WorkoutHelpPanel contentKey="fit_hub" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fit_hub} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

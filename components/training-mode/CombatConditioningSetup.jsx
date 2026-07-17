@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import Embers from './Embers';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
@@ -154,6 +156,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         </div>
 
         {/* Discipline — pills */}
+        <div data-guide="ccs-discipline">
         <SectionLabel>DISCIPLINE</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
           {STYLES.map(s => {
@@ -172,6 +175,8 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         </div>
 
         {/* Circuit style (design 15b) */}
+        </div>
+        <div data-guide="ccs-style">
         <SectionLabel>CIRCUIT STYLE</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           {FOCUS_OPTIONS.map(f => {
@@ -197,6 +202,8 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
 
         {/* Rounds + Intensity (design 15b) */}
         <div style={{ display: 'flex', gap: 11, marginBottom: 11 }}>
+          </div>
+          <div data-guide="ccs-config">
           <Stepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
           <Segmented label="INTENSITY" options={INTENSITIES} value={difficulty} onChange={setDifficulty} accent={RED}/>
         </div>
@@ -210,6 +217,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         {/* Equipment (design 15b) */}
         <div style={{ marginBottom: 12 }}>
           <Segmented label="EQUIPMENT" options={EQUIPMENT} value={equipment} onChange={setEquipment} accent={GOLD}/>
+        </div>
         </div>
 
         {/* Add cardio (design 15b) */}
@@ -240,7 +248,9 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         </div>
 
         {/* Start circuit — inline, just under Add Cardio */}
+        <div data-guide="ccs-start">
         <TrainingCTA variant="red" label="START CIRCUIT" icon="⚔️" onClick={handleStart} height={50} style={{ width: '100%', fontSize: 13.5, letterSpacing: '0.1em' }} />
+        </div>
 
       </div>
 
@@ -252,7 +262,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           onClose={() => setCardioSheetOpen(false)}
         />
       )}
-      <WorkoutHelpPanel contentKey="combat_conditioning_setup" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.combat_conditioning_setup} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }
