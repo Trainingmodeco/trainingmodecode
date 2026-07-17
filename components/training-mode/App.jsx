@@ -485,7 +485,11 @@ export default function App() {
     skipOnboardingToHome: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
       updateProfile(onboardingProfile || { goal, experience });
+      // The feature tour runs right after the questionnaire no matter how it
+      // ended — skipping the wizard doesn't skip the tour.
       setScreen('home');
+      const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
+      if (!tourDone) setTourStep(0);
     },
   };
 

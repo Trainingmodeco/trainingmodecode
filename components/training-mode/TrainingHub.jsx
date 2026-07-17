@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import TrainingHeader from './TrainingHeader';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import { ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { IMG } from './data/optimizedImageMap';
@@ -31,6 +33,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
   const level = getLevel(stats.xp);
   const rank = rankFor(level);
   const streak = getStreak(stats);
+  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
@@ -51,17 +54,20 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         padding: '10px 14px calc(160px + env(safe-area-inset-bottom, 0px))',
       }}>
 
-        {/* Page title */}
-        <div style={{ marginBottom: 12 }}>
-          <h1 style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
-            color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
-            textTransform: 'uppercase',
-          }}>CHOOSE YOUR PATH</h1>
-          <p style={{
-            fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
-            color: C.muted, margin: 0,
-          }}>Level {level} · {rank} · <span style={{ color: '#ff8a4a' }}>🔥 {streak} streak</span></p>
+        {/* Page title + screen info */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
+          <div>
+            <h1 style={{
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
+              color: '#fff', letterSpacing: '0.06em', margin: '0 0 4px',
+              textTransform: 'uppercase',
+            }}>CHOOSE YOUR PATH</h1>
+            <p style={{
+              fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
+              color: C.muted, margin: 0,
+            }}>Level {level} · {rank} · <span style={{ color: '#ff8a4a' }}>🔥 {streak} streak</span></p>
+          </div>
+          <HelpButton dataTour="screen-info" onClick={() => setHelpOpen(true)}/>
         </div>
 
         {/* === FIGHT MODE === */}
@@ -231,6 +237,8 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         </div>
 
       </div>
+
+      <WorkoutHelpPanel contentKey="train_hub" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

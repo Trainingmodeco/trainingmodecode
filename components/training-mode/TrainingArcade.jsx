@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import FightRingBackdrop from './shared/FightRingBackdrop';
@@ -44,6 +45,7 @@ function StarRow({ count = 0, size = 11 }) {
 
 export default function TrainingArcade({ onBack, onSelectSeries }) {
   const series = VISIBLE_ARCADE_SERIES;
+  const [helpOpen, setHelpOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [padInline, setPadInline] = useState(40);
   const [stats, setStats] = useState(null);
@@ -126,6 +128,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
           <button aria-label="Back" onClick={onBack} style={{ position: 'absolute', left: 12, top: 12, width: 32, height: 32, borderRadius: 9, border: '1px solid rgba(94,234,212,0.3)', background: 'rgba(8,20,20,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ChevronLeft size={18} color={TEAL} />
           </button>
+          <HelpButton onClick={() => setHelpOpen(true)} style={{ position: 'absolute', right: 12, top: 12 }}/>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, letterSpacing: '0.06em', background: 'linear-gradient(90deg,#5eead4,#2dd4bf)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', textShadow: '0 0 18px rgba(45,212,191,0.35)' }}>TRAINING ARCADE</div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: 'rgba(94,234,212,0.75)', letterSpacing: '0.24em', marginTop: 4 }}>‹ SWIPE TO CHOOSE YOUR SAGA ›</div>
         </div>
@@ -269,6 +272,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
           TAP CARD TO ENTER SAGA
         </div>
       </div>
+      <WorkoutHelpPanel contentKey="arcade_saga_select" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

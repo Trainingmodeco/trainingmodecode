@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
@@ -58,6 +59,7 @@ function Segmented({ label, options, value, onChange, accent }) {
 }
 
 export default function FightFocusSetup({ discipline, onBack, onStart, profile }) {
+  const [helpOpen, setHelpOpen] = useState(false);
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Technical', rounds: 3,
     roundMin: 3, restSec: 60, voiceOn: true,
@@ -80,6 +82,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         onHome={onBack}
         showBack
         onBack={onBack}
+        rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
       />
 
       <div style={{
@@ -136,6 +139,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         />
 
       </div>
+      <WorkoutHelpPanel contentKey="fight_focus_setup" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

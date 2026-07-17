@@ -8,7 +8,6 @@ import { C } from './Styles';
 import SafeImage from './SafeImage';
 import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
 import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
-import { trackEvent } from './data/analytics';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 
@@ -198,18 +197,6 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
 export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription, onNotifications, onReplayTour }) {
   const p = profile || {};
   const [profileView, setProfileView] = useState('overview');
-  // Demand-validation votes for features on the roadmap (video form check,
-  // workout codex). One tap per feature; counted via trackEvent.
-  const [featureVotes, setFeatureVotes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tm_feature_votes') || '{}'); } catch { return {}; }
-  });
-  const castFeatureVote = (key) => {
-    if (featureVotes[key]) return;
-    const next = { ...featureVotes, [key]: true };
-    setFeatureVotes(next);
-    try { localStorage.setItem('tm_feature_votes', JSON.stringify(next)); } catch {}
-    trackEvent('feature_vote', { feature: key });
-  };
   const [name,        setName       ] = useState(p.name        ?? '');
   const [sex,         setSex        ] = useState((p.sex        ?? 'male').toUpperCase());
   const [age,         setAge        ] = useState(p.age         ?? '');
@@ -364,30 +351,6 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               )}
             </div>
 
-            {/* Roadmap demand votes — measures want before we build */}
-            <div style={{ margin: '14px 0 4px', font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>COMING SOON · CAST YOUR VOTE</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {[
-                { key: 'video-form-check', emoji: '🎥', title: 'VIDEO FORM CHECK', sub: 'Record your rounds' },
-                { key: 'workout-codex', emoji: '📖', title: 'WORKOUT CODEX', sub: 'Full move library' },
-              ].map(f => {
-                const voted = !!featureVotes[f.key];
-                return (
-                  <button key={f.key} onClick={() => castFeatureVote(f.key)} style={{
-                    flex: 1, borderRadius: 11, padding: '11px 10px', textAlign: 'left', cursor: voted ? 'default' : 'pointer',
-                    background: voted ? 'rgba(34,197,94,0.08)' : 'rgba(8,2,18,0.8)',
-                    border: `1px solid ${voted ? 'rgba(34,197,94,0.45)' : 'rgba(253,224,71,0.3)'}`,
-                  }}>
-                    <div style={{ fontSize: 15, marginBottom: 4 }}>{f.emoji}</div>
-                    <div style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.04em' }}>{f.title}</div>
-                    <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{f.sub}</div>
-                    <div style={{ marginTop: 7, display: 'inline-block', padding: '3px 9px', borderRadius: 99, font: "800 7.5px 'Orbitron',sans-serif", letterSpacing: '0.1em', color: voted ? '#4ade80' : '#fde047', background: voted ? 'rgba(34,197,94,0.12)' : 'rgba(253,224,71,0.1)', border: `1px solid ${voted ? 'rgba(34,197,94,0.4)' : 'rgba(253,224,71,0.35)'}` }}>
-                      {voted ? '✓ VOTED' : '👍 I WANT THIS'}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
           </div>
         </div>
       </PhoneFrame>

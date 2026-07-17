@@ -6,6 +6,7 @@ import { ChevronLeft, Home } from 'lucide-react';
 import { C } from './Styles';
 import CardioFinisherSetup from './CardioFinisherSetup';
 import TrainingCTA from './shared/TrainingCTA';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import { loadRoutines, deleteRoutine } from './data/savedRoutines';
 
 // Workout Builder — pixel match of design 11a ("streamlined manual"):
@@ -82,6 +83,7 @@ function Segmented({ options, value, onPick }) {
 }
 
 export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOnly, profileSex }) {
+  const [helpOpen, setHelpOpen] = useState(false);
   const [type, setType] = useState('STRENGTH');
   const [chips, setChips] = useState(['CHEST', 'BACK']);
   const [equipment, setEquipment] = useState('BODYWEIGHT');
@@ -129,6 +131,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
             <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.06em' }}>WORKOUT BUILDER</div>
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>Target muscles, pick gear, generate.</div>
           </div>
+          <HelpButton onClick={() => setHelpOpen(true)}/>
           <button onClick={onHome || onBack} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><Home size={17}/></button>
         </div>
 
@@ -228,6 +231,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
           onClose={() => setCardioSheetOpen(false)}
         />
       )}
+      <WorkoutHelpPanel contentKey="workout_builder" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

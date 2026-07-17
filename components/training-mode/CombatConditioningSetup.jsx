@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import Embers from './Embers';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
@@ -97,6 +98,7 @@ function Segmented({ label, options, value, onChange, accent }) {
 }
 
 export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly, profile }) {
+  const [helpOpen, setHelpOpen] = useState(false);
   const [style, setStyle] = useState('Boxing');
   const [difficulty, setDifficulty] = useState('Normal');
   const [rounds, setRounds] = useState(5);
@@ -133,6 +135,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         onHome={onBack}
         showBack
         onBack={onBack}
+        rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
       />
 
       <div style={{
@@ -249,6 +252,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           onClose={() => setCardioSheetOpen(false)}
         />
       )}
+      <WorkoutHelpPanel contentKey="combat_conditioning_setup" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

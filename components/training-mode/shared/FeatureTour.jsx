@@ -45,7 +45,16 @@ export const TOUR_STEPS = [
     title: '🎮 TRAIN HERE, WIN THERE',
     body: (
       <>When the companion game launches, your <b style={{ color: '#c9a6ff' }}>rank, XP &amp; unlocked tiers</b>{' '}
-        sync to your in-game fighter. Tap the card to join the launch list. That&apos;s the tour —{' '}
+        sync to your in-game fighter. Tap the card to join the launch list.</>
+    ),
+  },
+  {
+    screen: 'training_hub',
+    targets: ['screen-info'],
+    title: '❓ LOST? TAP THIS ICON',
+    body: (
+      <>This button lives on <b style={{ color: GOLD }}>every mode&apos;s screen</b>. Tap it any time to see{' '}
+        what the feature does, how hard to push, and how to finish it. That&apos;s the tour —{' '}
         <b style={{ color: GOLD }}>go train!</b></>
     ),
   },

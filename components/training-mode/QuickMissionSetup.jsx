@@ -3,6 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { ChevronLeft, Shuffle } from 'lucide-react';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import CardioFinisherSetup from './CardioFinisherSetup';
@@ -20,6 +21,7 @@ const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnly }) {
+  const [helpOpen, setHelpOpen] = useState(false);
   const [duration, setDuration] = useState(10);
   const [custom, setCustom] = useState(false);
   const [focus, setFocus] = useState('FULL BODY');
@@ -62,6 +64,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             <div style={{ font: "900 15px 'Orbitron',sans-serif", color: VIOLET, letterSpacing: '0.06em' }}>QUICK MISSION</div>
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>No planning. Pick time, train.</div>
           </div>
+          <HelpButton onClick={() => setHelpOpen(true)}/>
           <SafeImage src="/static/timer-quick-purple.png" alt="" style={{ width: 46, height: 46, objectFit: 'contain', opacity: 0.85 }}/>
         </div>
 
@@ -123,6 +126,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
           onClose={() => setCardioSheetOpen(false)}
         />
       )}
+      <WorkoutHelpPanel contentKey="quick_mission_setup" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

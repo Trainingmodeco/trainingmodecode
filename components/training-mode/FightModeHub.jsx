@@ -8,6 +8,7 @@ import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile } from './data/userProfile';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import FightRingBackdrop from './shared/FightRingBackdrop';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 
 // Fight Mode hub — locked (non-scrolling) SELECT DISCIPLINE grid + CHOOSE MODE list.
 const GOLD = '#fde047';
@@ -49,6 +50,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
   void onCombatConditioning;
 
   const [disc, setDisc] = useState('Boxing');
+  const [helpOpen, setHelpOpen] = useState(false);
   const [toast, setToast] = useState(false);
 
   const goMode = async (key) => {
@@ -85,9 +87,12 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         padding: '12px 14px 0',
       }}>
 
-        {/* Select discipline */}
+        {/* Select discipline (+ screen info) */}
         <SectionLabel>SELECT DISCIPLINE</SectionLabel>
-        <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 11, flexShrink: 0 }}>FIGHT MODE</div>
+        <div style={{ position: 'relative', marginBottom: 11, flexShrink: 0 }}>
+          <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)' }}>FIGHT MODE</div>
+          <HelpButton onClick={() => setHelpOpen(true)} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}/>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0, width: '100%', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
           {DISCIPLINES.map(d => {
@@ -147,6 +152,8 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
       </div>
 
       {toast && <div style={{ position: 'absolute', left: '50%', bottom: 120, transform: 'translateX(-50%)', background: 'rgba(20,8,36,0.96)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 10, padding: '10px 16px', font: "700 10px 'Orbitron',sans-serif", color: '#c9a6ff', zIndex: 20, whiteSpace: 'nowrap' }}>Practice Mode preview — coming soon.</div>}
+
+      <WorkoutHelpPanel contentKey="fight_hub" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

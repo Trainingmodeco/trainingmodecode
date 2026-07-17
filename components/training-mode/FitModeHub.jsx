@@ -1,23 +1,26 @@
+import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
+import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 import { ChevronLeft, Home } from 'lucide-react';
 import { IMG } from './data/optimizedImageMap';
 
-// Fit Mode list — pixel match of design 3d: header (title-fit) + SELECT TRAINING PATH
-// + five full-width art banners, tap straight in.
+// Fit Mode list — design 3d: header (title-fit) + SELECT TRAINING PATH + art
+// banners. Combat Conditioning lives on the Train tab now (not repeated here);
+// Workout Codex stays visible but dimmed until it ships.
 const GOLD = '#fde047';
 const VIOLET = '#b06aff';
-const RED = '#ef4444';
 
-export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMission, onCombatConditioning, onCardioMode, onWorkoutCodec }) {
+export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMission, onCardioMode }) {
+  const [helpOpen, setHelpOpen] = useState(false);
   const BANNERS = [
-    { key: 'builder', img: IMG.fitMode.workoutBuilder,      alt: 'Workout Builder',      color: GOLD,   rgb: '250,204,21', pos: 'center 42%', onClick: onWorkoutBuilder },
-    { key: 'quick',   img: IMG.fitMode.quickMission,        alt: 'Quick Mission',        color: VIOLET, rgb: '176,106,255', pos: 'center 40%', onClick: onQuickMission },
-    { key: 'combat',  img: IMG.fitMode.combatConditioning,  alt: 'Combat Conditioning',  color: RED,    rgb: '239,68,68', pos: 'center 34%', onClick: onCombatConditioning },
-    { key: 'cardio',  img: IMG.fitMode.cardioMode,          alt: 'Cardio Mode',          color: VIOLET, rgb: '176,106,255', pos: 'center 45%', badge: 'BETA', onClick: onCardioMode },
-    { key: 'codex',   img: IMG.fitMode.workoutCodex,        alt: 'Workout Codex',        color: GOLD,   rgb: '250,204,21', pos: 'center 40%', badge: 'BETA · UNFINISHED', onClick: onWorkoutCodec },
-  ].filter(b => b.onClick);
+    { key: 'builder', img: IMG.fitMode.workoutBuilder, alt: 'Workout Builder', color: GOLD,   rgb: '250,204,21',  pos: 'center 42%', onClick: onWorkoutBuilder },
+    { key: 'quick',   img: IMG.fitMode.quickMission,   alt: 'Quick Mission',   color: VIOLET, rgb: '176,106,255', pos: 'center 40%', onClick: onQuickMission },
+    { key: 'cardio',  img: IMG.fitMode.cardioMode,     alt: 'Cardio Mode',     color: VIOLET, rgb: '176,106,255', pos: 'center 45%', badge: 'BETA', onClick: onCardioMode },
+    // Dimmed — not tappable until the Codex is finished.
+    { key: 'codex',   img: IMG.fitMode.workoutCodex,   alt: 'Workout Codex',   color: GOLD,   rgb: '250,204,21',  pos: 'center 40%', badge: 'COMING SOON', dimmed: true },
+  ].filter(b => b.onClick || b.dimmed);
 
   return (
     <PhoneFrame useBrandBg>
@@ -32,6 +35,7 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px' }}>
           <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><ChevronLeft size={22}/></button>
           <div style={{ flex: 1 }}><SafeImage src="/static/title-fit.png" alt="Fit Mode" style={{ height: 30, width: 'auto', maxWidth: '100%', display: 'block' }}/></div>
+          <HelpButton onClick={() => setHelpOpen(true)}/>
           <button onClick={onHome} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><Home size={18}/></button>
         </div>
 
@@ -39,22 +43,36 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
           <div style={{ font: "700 13px 'Orbitron',sans-serif", color: '#e2d6f5', letterSpacing: '0.18em', marginBottom: 16 }}>SELECT TRAINING PATH</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
             {BANNERS.map(b => (
-              <button key={b.key} onClick={b.onClick} className="fit-banner" style={{
-                '--g': b.rgb,
-                position: 'relative', height: 82, borderRadius: 12, overflow: 'hidden', padding: 0, cursor: 'pointer',
-                border: `1px solid rgba(${b.rgb},0.5)`, boxShadow: `0 0 14px rgba(${b.rgb},0.12)`,
-              }}>
+              <button
+                key={b.key}
+                onClick={b.dimmed ? undefined : b.onClick}
+                className={b.dimmed ? undefined : 'fit-banner'}
+                aria-disabled={b.dimmed || undefined}
+                style={{
+                  '--g': b.rgb,
+                  position: 'relative', height: 82, borderRadius: 12, overflow: 'hidden', padding: 0,
+                  cursor: b.dimmed ? 'default' : 'pointer',
+                  border: `1px solid rgba(${b.rgb},${b.dimmed ? 0.2 : 0.5})`,
+                  boxShadow: b.dimmed ? 'none' : `0 0 14px rgba(${b.rgb},0.12)`,
+                  opacity: b.dimmed ? 0.45 : 1,
+                  filter: b.dimmed ? 'grayscale(0.5)' : 'none',
+                }}
+              >
                 <SafeImage src={b.img} alt={b.alt} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: b.pos }}/>
                 {b.badge && (
                   <span style={{ position: 'absolute', top: 7, left: 8, font: "700 7px 'Orbitron',sans-serif", color: '#facc15', background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(250,204,21,0.4)', borderRadius: 4, padding: '2px 6px' }}>{b.badge}</span>
                 )}
-                <span style={{ position: 'absolute', bottom: 8, right: 9, width: 26, height: 26, borderRadius: '50%', background: 'rgba(8,2,18,0.78)', border: `1px solid rgba(${b.rgb},0.6)`, display: 'flex', alignItems: 'center', justifyContent: 'center', font: "900 15px 'Orbitron',sans-serif", color: b.color }}>›</span>
+                {!b.dimmed && (
+                  <span style={{ position: 'absolute', bottom: 8, right: 9, width: 26, height: 26, borderRadius: '50%', background: 'rgba(8,2,18,0.78)', border: `1px solid rgba(${b.rgb},0.6)`, display: 'flex', alignItems: 'center', justifyContent: 'center', font: "900 15px 'Orbitron',sans-serif", color: b.color }}>›</span>
+                )}
               </button>
             ))}
           </div>
           <div style={{ textAlign: 'center', font: "500 9px 'Rajdhani',sans-serif", color: '#6d5a8f', marginTop: 11 }}>Tap a banner to start &mdash; details on demand.</div>
         </div>
       </div>
+
+      <WorkoutHelpPanel contentKey="fit_hub" open={helpOpen} onClose={() => setHelpOpen(false)}/>
     </PhoneFrame>
   );
 }

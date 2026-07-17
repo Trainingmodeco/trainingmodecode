@@ -85,6 +85,85 @@ export const HELP_CONTENT = {
     modifications: 'Shadow the movement without power, or slow the pace while keeping the pattern.',
     completion: 'Finish all rounds to complete the circuit. Your session logs your effort.',
   },
+  train_hub: {
+    title: 'THE TRAIN TAB',
+    purpose: 'Your mission select. Every training path in the app starts here — pick the kind of fighter work you want today.',
+    cues: [
+      'Fight Mode trains striking skill: rounds, combos, and technique.',
+      'Fit Mode builds the body: strength workouts, quick missions, and cardio.',
+      'Combat Conditioning blends both into fight-pace circuits.',
+      'Training Arcade turns workouts into stages, bosses, and star ranks.',
+    ],
+    howHard: 'Each mode has its own difficulty settings inside — this screen is just the doorway.',
+    safety: 'New here? Start with a Quick Mission or Fight Focus on Normal to find your level.',
+    modifications: 'You can mix modes freely. Nothing locks you into one path.',
+    completion: 'Every mode banks XP toward the same rank — Rookie to Champion and beyond.',
+  },
+  fight_hub: {
+    title: 'FIGHT MODE',
+    purpose: 'The striking-skill wing. Pick a discipline, then train rounds, combos, or technique fundamentals.',
+    cues: [
+      'Fight Focus runs voice-coached rounds like a real session.',
+      'Combo Coach calls strike combinations for you to throw.',
+      'Practice Mode teaches strikes, defense, and footwork step by step.',
+    ],
+    howHard: 'Round count, round length, and difficulty are set on the next screen.',
+    safety: 'Shadowbox with control — full extension, never locked joints. Clear space around you.',
+    modifications: 'No experience? Start in Practice Mode, then graduate to Fight Focus.',
+    completion: 'Finishing rounds logs the session and earns Fight XP toward your rank.',
+  },
+  fight_focus_setup: {
+    title: 'FIGHT FOCUS',
+    purpose: 'A voice-coached round timer. You pick the discipline and rounds; the coach calls the work like a trainer in your corner.',
+    cues: [
+      'Each round has a focus (volume, power, movement) the coach announces.',
+      'Fight the whole round — the rest period is your corner break.',
+      'Stay on your toes and keep your guard up between combinations.',
+    ],
+    howHard: 'More rounds and shorter rests raise the challenge. Difficulty tunes the coaching pace.',
+    safety: 'Warm up shoulders and hips first. Throw at a speed you can control for every round.',
+    modifications: 'Drop to fewer rounds or longer rests any time — finishing strong beats surviving sloppy.',
+    completion: 'Complete the planned rounds to log the session and bank XP.',
+  },
+  combo_coach_setup: {
+    title: 'COMBO COACH',
+    purpose: 'The coach calls strike combinations, you throw them. Builds reaction, rhythm, and clean technique.',
+    cues: [
+      'React to the call, do not anticipate it.',
+      'Reset your stance after every combination.',
+      'Speed controls how fast the next call comes.',
+    ],
+    howHard: 'Higher speeds shrink your thinking time. Difficulty adds longer, trickier combinations.',
+    safety: 'Snap punches back to guard. Keep wrists straight and never fully lock the elbow.',
+    modifications: 'Start slow and clean. Raise the speed only when combos feel automatic.',
+    completion: 'Finish the session timer to log it. Consistency here sharpens every other fight mode.',
+  },
+  fit_hub: {
+    title: 'FIT MODE',
+    purpose: 'The body-building wing. Build a custom strength workout, run a fast mission, or do straight cardio.',
+    cues: [
+      'Workout Builder targets the exact muscles you choose.',
+      'Quick Mission builds a session instantly when you do not want to plan.',
+      'Cardio Mode is pure engine work with pace coaching.',
+    ],
+    howHard: 'Every option has its own difficulty controls on the next screen.',
+    safety: 'Warm up before strength work and keep water nearby.',
+    modifications: 'Short on time? Quick Mission at 10-15 minutes still counts and still logs.',
+    completion: 'All of it earns Fit XP toward your rank — and secret tiers reward the dedicated.',
+  },
+  arcade_saga_select: {
+    title: 'TRAINING ARCADE',
+    purpose: 'Workouts as a video game. Pick a saga, climb its stage ladder, beat the boss. Every rep hits the stage HP bar.',
+    cues: [
+      'Swipe through sagas and tap one to enter its stage ladder.',
+      'Stages unlock in order — clear one to open the next.',
+      'Star ratings come from your completion time. Faster runs, more stars.',
+    ],
+    howHard: 'Early stages teach the format. Later stages and bosses are genuine endurance tests.',
+    safety: 'The timer rewards pace, not recklessness — clean reps always beat rushed ones.',
+    modifications: 'You can replay any cleared stage to chase a better time and more stars.',
+    completion: 'Clear every stage to finish a saga. Bosses drop badges, titles, and big XP.',
+  },
   cardio_mode: {
     title: 'CARDIO MODE',
     purpose: 'A standalone cardio session. Pick a method and protocol, run the timer, and log your effort.',
@@ -118,16 +197,18 @@ function Section({ icon: Icon, label, children }) {
   );
 }
 
-export function HelpButton({ onClick, size = 20 }) {
+export function HelpButton({ onClick, size = 20, dataTour, style }) {
   return (
     <button
       onClick={onClick}
       aria-label="Workout help"
+      data-tour={dataTour}
       style={{
         width: 32, height: 32, borderRadius: 8, flexShrink: 0,
         background: 'rgba(8,0,18,0.86)', border: '1px solid rgba(253,224,71,0.25)',
         color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer', padding: 0,
+        ...style,
       }}
     >
       <HelpCircle size={size}/>
