@@ -1,0 +1,32 @@
+# Netlify build config — read automatically when the repo is linked, so the
+# build settings never have to be typed into the dashboard by hand.
+[build]
+  command = "npm run build:web"
+  publish = "dist"
+
+[build.environment]
+  # Match the local toolchain; Expo 54 needs a modern Node.
+  NODE_VERSION = "20"
+  # Expo/Metro can be memory-hungry on CI.
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
+# Single-page app: everything renders from index.html. Netlify serves real
+# files first, so this only catches paths that aren't actual assets (e.g. a
+# refresh on a deep link) instead of 404ing.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# The service worker must never be cached, or clients can get stuck on an old
+# worker and miss updates. (The build stamps a fresh id into it each deploy.)
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Content-hashed bundle files are immutable — cache them hard.
+[[headers]]
+  for = "/_expo/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
