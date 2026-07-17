@@ -160,6 +160,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         <div
           className="train-hub-card"
           data-guide="hub-combat"
+          data-tour="mode-combat"
           onClick={onCombatConditioning}
           style={{
             '--card-glow': 'rgba(255,138,74,0.5)',

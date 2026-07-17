@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getStreak, getWeekDayCompletion, WEEKLY_GOAL } from './data/userStats';
 import { getSeriesProgress, getActiveChallenge as getStoredActiveChallenge } from './data/arcadeProgress';
 import { TRAINING_ARCADE_SERIES } from './data/trainingArcadeData';
 import { getFightMiniSuggestion } from './data/recommendations';
+import { getProgressionNudge, snoozeProgressionNudge } from './data/progressionNudge';
 
 // Home — pixel match of design 9c: minimal top bar (logo + name), compact level
 // strip, weekly-progress tracker, compact "today's bout" card, a prominent
@@ -36,6 +40,11 @@ const ARCADE_CONTINUE_BG = '/static/hub/arcade-continue-bg.webp';
 export default function HomeDashboard({ onHome, onFightMode, onProfile, profile, onPractice, onFightFocus, onQuickMission, onFitSetup, onComboCoach, onStartHere, onCombatConditioning, onTrainingArcade, onTrain }) {
   const [stats, setStats] = useState(() => loadStats());
   const [arcadeBgFail, setArcadeBgFail] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  // Anti-stagnation nudge: after ~2 weeks of consistent strength or cardio
+  // work, encourage raising weight / distance / pace. Dismiss snoozes 14 days.
+  const [nudge, setNudge] = useState(() => getProgressionNudge());
+  const dismissNudge = () => { if (nudge) { snoozeProgressionNudge(nudge.lane); setNudge(null); } };
 
   useEffect(() => {
     const refreshStats = () => setStats(loadStats());
@@ -98,17 +107,20 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           <SafeImage src="/static/logo-mark.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain' }}/>
           <span style={{ font: "800 11px 'Orbitron',sans-serif", color: '#f5e9ff', letterSpacing: '0.06em' }}>TRAINING MODE</span>
         </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <HelpButton onClick={() => setHelpOpen(true)}/>
         <button onClick={onProfile} style={{ display: 'flex', alignItems: 'center', gap: 5, border: '1px solid rgba(168,85,247,0.3)', borderRadius: 18, padding: '4px 10px', background: 'none', cursor: 'pointer' }}>
           <span style={{ fontSize: 11 }}>👤</span>
           <span style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', letterSpacing: '0.04em', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
         </button>
+        </div>
       </div>
 
       {/* === BODY === */}
       <div className="no-scrollbar" style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', padding: '6px 14px 0', paddingBottom: 'calc(150px + env(safe-area-inset-bottom,0px))' }}>
 
         {/* Level strip */}
-        <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '8px 11px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 9 }}>
+        <div data-guide="home-level" style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '8px 11px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 9 }}>
           <div style={{ width: 30, height: 30, borderRadius: 7, background: 'radial-gradient(circle, rgba(168,85,247,0.2), rgba(10,0,20,0.9))', border: '1px solid rgba(168,85,247,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: "900 13px 'Orbitron',sans-serif", color: '#fff', flexShrink: 0 }}>{level}</div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
@@ -143,8 +155,31 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fde047' }}>{weeklyCount}/{WEEKLY_GOAL}</span>
         </div>
 
+        {/* Progression nudge — raise the bar after 2 weeks of consistency */}
+        {nudge && (
+          <div style={{ position: 'relative', borderRadius: 12, border: '1.5px solid rgba(255,138,58,0.55)', background: 'linear-gradient(135deg, rgba(255,138,58,0.14), rgba(8,2,18,0.9))', boxShadow: '0 0 18px -6px rgba(255,138,58,0.5)', padding: '11px 12px', marginBottom: 10 }}>
+            <button onClick={dismissNudge} aria-label="Dismiss" style={{ position: 'absolute', top: 6, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.45)', fontSize: 13, padding: 2 }}>✕</button>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ fontSize: 20, lineHeight: 1 }}>{nudge.emoji}</span>
+              <div style={{ flex: 1, paddingRight: 14 }}>
+                <div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#ff8a3a', letterSpacing: '0.1em' }}>{nudge.title}</div>
+                <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#e7ddf7', lineHeight: 1.4, marginTop: 3 }}>{nudge.body}</div>
+                <button
+                  onClick={() => {
+                    const lane = nudge.lane;
+                    dismissNudge();
+                    // Strength → straight into the Builder; cardio → Train tab (Fit → Cardio Mode).
+                    if (lane === 'strength') onFitSetup?.(); else onTrain?.();
+                  }}
+                  style={{ marginTop: 8, border: '1px solid rgba(255,138,58,0.55)', borderRadius: 8, background: 'rgba(255,138,58,0.12)', color: '#ffb27a', font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.1em', padding: '7px 13px', cursor: 'pointer' }}
+                >{nudge.cta} ›</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Today's bout — hero card with the bout art behind */}
-        <button data-tour="todays-bout" className="home-hero-card" onClick={handleBoutStart} style={{ '--card-glow': 'rgba(253,224,71,0.45)', '--card-glow-border': 'rgba(253,224,71,0.9)', position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+        <button data-tour="todays-bout" data-guide="todays-bout" className="home-hero-card" onClick={handleBoutStart} style={{ '--card-glow': 'rgba(253,224,71,0.45)', '--card-glow-border': 'rgba(253,224,71,0.9)', position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <SafeImage src="/static/bout-bg.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }}/>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(8,0,16,0.92) 0%, rgba(8,0,16,0.62) 48%, rgba(8,0,16,0.12) 100%)' }}/>
           {/* Slight uniform dim over the art */}
@@ -159,7 +194,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
 
         {/* Training Arcade (prominent) */}
         {arSeries && (
-          <button className="home-hero-card" onClick={() => onTrainingArcade?.()} style={{ '--card-glow': 'rgba(176,106,255,0.5)', '--card-glow-border': 'rgba(176,106,255,0.95)', position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,#1a1030,#241640)', boxShadow: '0 0 20px -6px rgba(176,106,255,0.4)', marginBottom: 10, padding: '12px 13px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'block' }}>
+          <button data-guide="home-arcade" className="home-hero-card" onClick={() => onTrainingArcade?.()} style={{ '--card-glow': 'rgba(176,106,255,0.5)', '--card-glow-border': 'rgba(176,106,255,0.95)', position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,#1a1030,#241640)', boxShadow: '0 0 20px -6px rgba(176,106,255,0.4)', marginBottom: 10, padding: '12px 13px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'block' }}>
             {/* Dimmed hallway banner art (falls back to the gradient if absent) */}
             {!arcadeBgFail && (
               <>
@@ -186,6 +221,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           </button>
         )}
 
+        <div data-guide="home-favorites">
         {/* Favorites */}
         <div style={{ font: "600 7px 'Orbitron',sans-serif", color: '#8b83a8', letterSpacing: '0.16em', marginBottom: 6 }}>FAVORITES</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
@@ -201,8 +237,11 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
             </button>
           ))}
         </div>
+        </div>
 
       </div>
+
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.home} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

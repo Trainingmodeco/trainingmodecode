@@ -89,12 +89,9 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         padding: '12px 14px 0',
       }}>
 
-        {/* Select discipline (+ screen info) */}
+        {/* Select discipline — the ⓘ guide lives in the header's right slot */}
         <SectionLabel>SELECT DISCIPLINE</SectionLabel>
-        <div style={{ position: 'relative', marginBottom: 11, flexShrink: 0 }}>
-          <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)' }}>FIGHT MODE</div>
-          <HelpButton onClick={() => setHelpOpen(true)} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}/>
-        </div>
+        <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 11, flexShrink: 0 }}>FIGHT MODE</div>
 
         <div data-guide="fh-disciplines" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0, width: '100%', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
           {DISCIPLINES.map(d => {

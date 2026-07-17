@@ -3,6 +3,21 @@
 // Tone: direct "this is / choose this if…" per the product owner's script.
 
 export const SCREEN_GUIDES = {
+  home: [
+    { target: null, title: '🏠 HOME', body: 'This is Home — your daily command center. Everything you need for today lives on this screen.' },
+    { target: 'home-level', title: 'YOUR LEVEL & STREAK', body: 'Your level, XP bar, and 🔥 streak. Every workout you finish feeds this — keep the streak alive.' },
+    { target: 'todays-bout', title: "TODAY'S BOUT", body: 'A daily mission picked for you from your discipline and level. Tap START to jump straight into training.' },
+    { target: 'home-arcade', title: 'YOUR ARCADE CHALLENGE', body: 'Your active Training Arcade saga — continue the climb right from here.' },
+    { target: 'home-favorites', title: 'FAVORITES', body: 'One-tap shortcuts to your go-to modes. Quick, HIIT, Fight, or Build — no menus needed.' },
+  ],
+
+  profile: [
+    { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, and app settings all live here.' },
+    { target: 'pr-avatar', title: 'YOUR FIGHTER', body: 'Your avatar and rank. It evolves as you level up — Rookie to Champion… and there are secret tiers beyond.' },
+    { target: 'pr-stats', title: 'YOUR STATS', body: 'Your body profile — avatar style, age, height, weight, experience. Tap any row to edit.' },
+    { target: 'pr-menu', title: 'SETTINGS & MORE', body: 'Game Link, audio settings, notifications — and REPLAY INTRO GUIDE any time you want the tour again.' },
+  ],
+
   train_hub: [
     { target: null, title: '🥊 THE TRAIN TAB', body: 'This is your mission select. Every training path in Training Mode starts from this screen — tap a banner to enter.' },
     { target: 'hub-fight', title: 'FIGHT MODE', body: 'For striking skill — voice-coached rounds, strike combos, and technique lessons. Choose Fight Mode.' },

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 import TrainingHeader from './TrainingHeader';
 import WordmarkTM from './WordmarkTM';
 import CornerHUD from './CornerHUD';
@@ -197,6 +200,7 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
 export default function Profile({ onHome, onBack, onSave, profile, updateProfile, onBetaFeedback, onPaywall, onGameLink, onSubscription, onNotifications, onReplayTour }) {
   const p = profile || {};
   const [profileView, setProfileView] = useState('overview');
+  const [helpOpen, setHelpOpen] = useState(false);
   const [name,        setName       ] = useState(p.name        ?? '');
   const [sex,         setSex        ] = useState((p.sex        ?? 'male').toUpperCase());
   const [age,         setAge        ] = useState(p.age         ?? '');
@@ -279,11 +283,11 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
             <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROFILE</div>
-            <button onClick={() => setProfileView('audio')} aria-label="Settings" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', fontSize: 15 }}>⚙</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><HelpButton onClick={() => setHelpOpen(true)}/><button onClick={() => setProfileView('audio')} aria-label="Settings" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', fontSize: 15 }}>⚙</button></div>
           </div>
           <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px' }}>
             {/* Avatar showcase */}
-            <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 12, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
+            <div data-guide="pr-avatar" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 12, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
               <div style={{ display: 'flex', gap: 14, padding: 14, alignItems: 'center' }}>
                 <div style={{ width: 96, height: 120, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)' }}>
                   <SafeImage src={tierImage(tier.id, avSex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
@@ -307,6 +311,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               ))}
             </div>
             {/* Your stats */}
+            <div data-guide="pr-stats">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em' }}>YOUR STATS</span>
               <button onClick={() => setProfileView('main')} style={{ background: 'none', border: 'none', cursor: 'pointer', font: "700 7px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.06em' }}>TAP TO EDIT</button>
@@ -319,8 +324,9 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                 </button>
               ))}
             </div>
+            </div>
             {/* Links */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {onGameLink && (
                 <button data-tour="game-link" onClick={onGameLink} style={{ display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', boxShadow: '0 0 16px -6px rgba(176,106,255,.5)', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: 16 }}>🎮</span>
@@ -353,6 +359,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
 
           </div>
         </div>
+
+        {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.profile} onClose={() => setHelpOpen(false)}/>}
       </PhoneFrame>
     );
   }

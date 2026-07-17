@@ -20,7 +20,7 @@ export const TOUR_STEPS = [
   },
   {
     screen: 'training_hub',
-    targets: ['mode-fight', 'mode-fit', 'mode-arcade'],
+    targets: ['mode-fight', 'mode-fit', 'mode-combat', 'mode-arcade'],
     title: '🥊 THE TRAIN TAB — PICK YOUR PATH',
     body: (
       <><b style={{ color: '#f87171' }}>Fight</b> trains skill,{' '}
