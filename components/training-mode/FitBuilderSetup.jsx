@@ -37,6 +37,35 @@ const DIFFICULTY = ['EASY', 'NORMAL', 'HARD'];
 
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 
+// 38b — set schemes applied to every weighted lift in the generated workout.
+// AUTO keeps the generator's own numbers; Custom opens numeric inputs.
+const SET_SCHEMES = [
+  { id: 'auto', label: 'AUTO', sub: 'Generator' },
+  { id: '3x10', label: '3×10', sub: 'Hypertrophy', sets: 3, reps: 10, restSeconds: 60 },
+  { id: '5x5', label: '5×5', sub: 'Strength', sets: 5, reps: 5, restSeconds: 90 },
+  { id: '4x8', label: '4×8', sub: 'Build', sets: 4, reps: 8, restSeconds: 75 },
+  { id: '3x15', label: '3×15', sub: 'Endurance', sets: 3, reps: 15, restSeconds: 45 },
+  { id: 'custom', label: 'CUSTOM', sub: '✎' },
+];
+
+// 38b — popular program shortcuts over the existing generator. Split programs
+// rotate their day each tap (counter in localStorage) so "3-day" means it.
+const ALL_CHIP_IDS = ['CHEST', 'BACK', 'SHOULDERS', 'ARMS', 'CORE', 'LEGS', 'GLUTES'];
+const PROGRAMS = [
+  { id: 'fullbody', title: 'FULL BODY', meta: 'All groups · 3×10 · ~40 min', scheme: { id: '3x10', sets: 3, reps: 10, restSeconds: 60 }, duration: 40, days: [{ label: '', chips: ALL_CHIP_IDS }] },
+  { id: 'ppl', title: 'PUSH / PULL / LEGS', meta: '3-day · 4×8', rotateKey: 'tm_prog_ppl', scheme: { id: '4x8', sets: 4, reps: 8, restSeconds: 75 }, duration: 35,
+    days: [{ label: 'PUSH', chips: ['CHEST', 'SHOULDERS', 'ARMS'] }, { label: 'PULL', chips: ['BACK', 'ARMS'] }, { label: 'LEGS', chips: ['LEGS', 'GLUTES', 'CORE'] }] },
+  { id: 'ul', title: 'UPPER / LOWER', meta: '2-day · 5×5', rotateKey: 'tm_prog_ul', scheme: { id: '5x5', sets: 5, reps: 5, restSeconds: 90 }, duration: 35,
+    days: [{ label: 'UPPER', chips: ['CHEST', 'BACK', 'SHOULDERS', 'ARMS'] }, { label: 'LOWER', chips: ['LEGS', 'GLUTES', 'CORE'] }] },
+  { id: 'bro', title: 'BRO SPLIT', meta: '1 group/day · 4×10', rotateKey: 'tm_prog_bro', scheme: { id: '4x10', sets: 4, reps: 10, restSeconds: 60 }, duration: 30,
+    days: [{ label: 'CHEST', chips: ['CHEST'] }, { label: 'BACK', chips: ['BACK'] }, { label: 'SHOULDERS', chips: ['SHOULDERS'] }, { label: 'ARMS', chips: ['ARMS'] }, { label: 'LEGS', chips: ['LEGS'] }] },
+];
+
+const programDayIndex = (p) => {
+  if (!p.rotateKey) return 0;
+  try { return (parseInt(localStorage.getItem(p.rotateKey), 10) || 0) % p.days.length; } catch { return 0; }
+};
+
 // Glow spots per muscle chip, as %-of-figure coordinates on the front/back
 // anatomy (the 450x600 body maps place the figure centred in-frame). Same
 // layout works for the male and female art. Bilateral muscles get two spots.
@@ -94,6 +123,16 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [routines, setRoutines] = useState(() => loadRoutines());
+  const [schemeId, setSchemeId] = useState('auto');
+  const [customScheme, setCustomScheme] = useState({ sets: 4, reps: 10, restSeconds: 60 });
+
+  // Resolve the selected chip into the config's setScheme (null = generator).
+  const resolveScheme = () => {
+    if (schemeId === 'auto') return null;
+    if (schemeId === 'custom') return { id: 'custom', ...customScheme };
+    const s = SET_SCHEMES.find(x => x.id === schemeId);
+    return s ? { id: s.id, sets: s.sets, reps: s.reps, restSeconds: s.restSeconds } : null;
+  };
 
   const sex = String(profileSex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const isCardio = type === 'CARDIO';
@@ -112,7 +151,18 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
     if (isCardio) { onCardioOnly?.(); return; }
     const muscleGroups = chips.flatMap(id => CHIPS.find(c => c.id === id)?.groups || []);
     if (!muscleGroups.length) return;
-    onGenerate?.({ muscleGroups, equipment: cap(equipment), difficulty: cap(difficulty), focus: TYPES.find(t => t.id === type)?.focus || 'Strength', duration: 30, cardioAddon, addCardio: false });
+    onGenerate?.({ muscleGroups, equipment: cap(equipment), difficulty: cap(difficulty), focus: TYPES.find(t => t.id === type)?.focus || 'Strength', duration: 30, cardioAddon, addCardio: false, setScheme: resolveScheme() });
+  };
+
+  // 38b — program shortcut: pre-fill targets + scheme + duration, advance the
+  // split's day counter, and route straight to Generate. Still goes through
+  // the normal generator with focus + setScheme in the config.
+  const launchProgram = (p) => {
+    const dayIdx = programDayIndex(p);
+    const day = p.days[dayIdx];
+    const muscleGroups = day.chips.flatMap(id => CHIPS.find(c => c.id === id)?.groups || []);
+    if (p.rotateKey) { try { localStorage.setItem(p.rotateKey, String(dayIdx + 1)); } catch { /* noop */ } }
+    onGenerate?.({ muscleGroups, equipment: cap(equipment), difficulty: cap(difficulty), focus: 'Strength', duration: p.duration, cardioAddon, addCardio: false, setScheme: p.scheme });
   };
 
   const Label = ({ children, right }) => (
@@ -197,6 +247,62 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
           <Label>DIFFICULTY</Label>
           <div style={{ marginBottom: 13 }}><Segmented options={DIFFICULTY} value={difficulty} onPick={setDifficulty}/></div>
           </div>
+
+          {/* 38b — SET SCHEME: one scrollable chip row for all weighted lifts */}
+          {!isCardio && (
+            <>
+              <Label right={<span style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>weighted lifts</span>}>SET SCHEME</Label>
+              <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2, marginBottom: schemeId === 'custom' ? 8 : 13 }}>
+                {SET_SCHEMES.map(s => {
+                  const active = s.id === schemeId;
+                  return (
+                    <button key={s.id} onClick={() => setSchemeId(s.id)} style={{
+                      flexShrink: 0, padding: '7px 11px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
+                      background: active ? GOLD : 'rgba(16,4,30,0.8)',
+                      border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
+                      boxShadow: active ? '0 0 8px rgba(253,224,71,.4)' : 'none',
+                    }}>
+                      <div style={{ font: "800 10px 'Orbitron',sans-serif", color: active ? '#0a0014' : '#fff', letterSpacing: '0.04em' }}>{s.label}</div>
+                      <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: active ? 'rgba(10,0,20,0.7)' : '#9a90b8', marginTop: 1 }}>{s.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              {schemeId === 'custom' && (
+                <div style={{ display: 'flex', gap: 8, marginBottom: 13 }}>
+                  {[['SETS', 'sets', 1, 8], ['REPS', 'reps', 1, 50], ['REST s', 'restSeconds', 15, 300]].map(([lab, key, min, max]) => (
+                    <div key={key} style={{ flex: 1 }}>
+                      <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 3 }}>{lab}</div>
+                      <input type="number" inputMode="numeric" value={customScheme[key]}
+                        onChange={e => { const n = Math.max(min, Math.min(max, parseInt(e.target.value, 10) || min)); setCustomScheme(cs => ({ ...cs, [key]: n })); }}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '8px 6px', textAlign: 'center', borderRadius: 8, background: 'rgba(16,4,30,0.85)', border: '1px solid rgba(168,85,247,0.35)', color: '#fff', font: "800 13px 'Orbitron',sans-serif", outline: 'none' }}/>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 38b — POPULAR PROGRAMS: 4 thin shortcut rows over the generator */}
+              <Label>POPULAR PROGRAMS</Label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 13 }}>
+                {PROGRAMS.map(p => {
+                  const day = p.days[programDayIndex(p)];
+                  return (
+                    <button key={p.id} onClick={() => launchProgram(p)} style={{
+                      display: 'flex', alignItems: 'center', gap: 9, borderRadius: 9, padding: '8px 11px', cursor: 'pointer', textAlign: 'left',
+                      background: 'rgba(16,4,30,0.8)', border: '1px solid rgba(168,85,247,0.28)',
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ font: "800 9.5px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.05em' }}>{p.title}</span>
+                        {day.label ? <span style={{ font: "800 8px 'Orbitron',sans-serif", color: GOLD, marginLeft: 7 }}>· TODAY: {day.label}</span> : null}
+                        <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{p.meta}</div>
+                      </div>
+                      <span style={{ font: "900 12px 'Orbitron',sans-serif", color: '#b06aff', flexShrink: 0 }}>›</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           {/* ADD CARDIO */}
           <div data-guide="wb-cardio">

@@ -193,10 +193,22 @@ function EditSheet({ exercise, onSave, onClose }) {
   );
 }
 
+// 38b — a selected set scheme (3×10 / 5×5 / …) becomes the default for every
+// WEIGHTED lift in the generated list; bodyweight rows keep the generator's
+// numbers, and a per-row edit afterwards still overrides just that row.
+function applyScheme(list, scheme) {
+  if (!scheme?.sets) return list;
+  return list.map(ex =>
+    String(ex.equipment || '').toLowerCase() === 'bodyweight'
+      ? ex
+      : { ...ex, sets: scheme.sets, reps: scheme.reps, rest: `${scheme.restSeconds}s`, restSeconds: scheme.restSeconds }
+  );
+}
+
 export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   // A saved routine loads its exact (possibly hand-tuned) exercise list.
-  const [exercises, setExercises] = useState(() => cfg.savedExercises || generateFitModeWorkout(cfg));
+  const [exercises, setExercises] = useState(() => cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
   const [completed, setCompleted] = useState(initialResumeData?.completed ?? {});
   const [activeIdx, setActiveIdx] = useState(null);
   const [swapIdx, setSwapIdx] = useState(null);
@@ -211,7 +223,7 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
   const title = buildTitle(cfg);
 
   const regenerate = () => {
-    setExercises(generateFitModeWorkout(cfg));
+    setExercises(applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
     setCompleted({});
     setActiveIdx(null);
     setSwapIdx(null);

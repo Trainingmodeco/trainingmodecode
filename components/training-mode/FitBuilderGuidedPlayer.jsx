@@ -6,6 +6,8 @@ import { Play, Pause, SkipForward, Check } from 'lucide-react';
 import { C } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
+import { logSetWeight, getLastWeight, defaultWeight } from './data/weightLog';
+import { loadProfile } from './data/userProfile';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -57,11 +59,27 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   const [paused, setPaused] = useState(false);
   const [cadenceSec, setCadenceSec] = useState(2);
 
+  // Rest-time weight logger (design 38a) — weighted exercises only.
+  const exId = ex?.id || ex?.name || 'exercise';
+  const weightUnit = String(loadProfile()?.weightUnit || 'LBS').toUpperCase() === 'KG' ? 'KG' : 'LB';
+  const [logWeight, setLogWeight] = useState(0);
+  const [logSaved, setLogSaved] = useState(false);
+
   const versionRef = useRef(0);
   const pausedRef = useRef(false);
   const cadenceRef = useRef(cadenceSec);
+  const logWeightRef = useRef(0);
+  const logSavedRef = useRef(false);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
   useEffect(() => { cadenceRef.current = cadenceSec; }, [cadenceSec]);
+  useEffect(() => { logWeightRef.current = logWeight; }, [logWeight]);
+  useEffect(() => { logSavedRef.current = logSaved; }, [logSaved]);
+
+  const saveLoggedWeight = useCallback((setIndex) => {
+    if (logSavedRef.current || !Number.isFinite(logWeightRef.current) || logWeightRef.current <= 0) return;
+    logSetWeight({ exerciseId: exId, setIndex, weight: logWeightRef.current, unit: weightUnit, reps: plan.reps || null });
+    setLogSaved(true);
+  }, [exId, weightUnit, plan]);
 
   const say = useCallback((text, opts) => {
     setAnnouncer(text);
@@ -84,20 +102,33 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
 
   const finishSet = useCallback(async (version) => {
     if (versionRef.current !== version) return;
+    const finishedSet = set;
+    // Arm the rest-time weight logger for weighted lifts: auto-fill from the
+    // last logged load (this session or a previous one), else a placeholder.
+    if (plan.kind === 'weighted') {
+      const last = getLastWeight(exId);
+      const w = last?.weight || defaultWeight(weightUnit);
+      // Set refs directly too — the last-set path saves before effects flush.
+      setLogWeight(w); logWeightRef.current = w;
+      setLogSaved(false); logSavedRef.current = false;
+    }
     if (set < totalSets) {
       setPhase('rest');
       say(`Set complete. Rest ${sayWindow(restMax)}.`);
       const ok = await waitSec(version, restMax, (r) => setDisplay(r));
+      // Rest ran out without an explicit save → auto-save the shown value.
+      if (plan.kind === 'weighted') saveLoggedWeight(finishedSet);
       if (!ok) return;
       setSet(s => s + 1);
       setPhase('intro');
     } else {
+      if (plan.kind === 'weighted') saveLoggedWeight(finishedSet);
       say(`${ex.name} complete.`);
       await delay(900);
       if (versionRef.current !== version) return;
       onComplete();
     }
-  }, [set, totalSets, restMax, ex, onComplete, say, waitSec]);
+  }, [set, totalSets, restMax, ex, plan, exId, weightUnit, onComplete, say, waitSec, saveLoggedWeight]);
 
   // Stable invalidator so effect cleanups don't read the ref directly.
   const invalidate = useCallback(() => { versionRef.current += 1; }, []);
@@ -139,7 +170,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
         if (versionRef.current !== version) return;
         const okPos = await waitSec(version, 5, (r) => setDisplay(r));
         if (!okPos) return;
-        say('Get ready. Lift.');
+        // Announce the load from the athlete's logged weight (38a).
+        const lastW = getLastWeight(exId);
+        say(lastW ? `Load ${lastW.weight}. Get ready. Lift.` : 'Get ready. Lift.');
         await delay(1200);
         if (versionRef.current !== version) return;
         setPhase('active');
@@ -200,6 +233,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
 
   const handleSkipSet = () => {
     // Jump straight to the next set (also serves as SKIP REST) — no rest replay.
+    // Skipping a weighted rest still banks the shown weight (fully skippable
+    // means the logger never blocks — not that the number is lost).
+    if (phase === 'rest' && plan.kind === 'weighted') saveLoggedWeight(set);
     invalidate();
     cancelSpeech();
     if (set < totalSets) {
@@ -276,8 +312,34 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
               </div>
             ) : phase === 'rest' ? (
               <div>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#4f8cff', letterSpacing: '0.18em', marginBottom: 6 }}>REST</div>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: '#fff', lineHeight: 1, textShadow: '0 0 14px rgba(79,140,255,0.4)' }}>{fmtClock(display)}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#4a7dff', letterSpacing: '0.18em', marginBottom: 6 }}>REST</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: '#fff', lineHeight: 1, textShadow: '0 0 14px rgba(74,125,255,0.4)' }}>{fmtClock(display)}</div>
+
+                {/* 38a — optional weight logger for the set that just finished.
+                    Never blocks rest: save it, tweak it, or ignore it (the
+                    shown value auto-saves when rest runs out). */}
+                {plan.kind === 'weighted' && (
+                  <div style={{ marginTop: 14, width: 264, maxWidth: '86vw', marginLeft: 'auto', marginRight: 'auto', borderRadius: 12, border: `1px solid ${logSaved ? 'rgba(34,197,94,0.5)' : 'rgba(168,85,247,0.35)'}`, background: 'rgba(10,2,20,0.82)', padding: '9px 11px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.12em' }}>LOG SET {set} · WEIGHT USED</span>
+                      <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(200,170,255,0.55)' }}>optional</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                      <button onClick={() => { setLogWeight(w => Math.max(0, w - 5)); setLogSaved(false); }} aria-label="Decrease weight" style={{ width: 34, height: 34, borderRadius: 8, cursor: 'pointer', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)', color: VIOLET, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15 }}>−</button>
+                      <div style={{ minWidth: 92, textAlign: 'center' }}>
+                        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 27, color: '#fff' }}>{logWeight}</span>
+                        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: GOLD, marginLeft: 4 }}>{weightUnit}</span>
+                      </div>
+                      <button onClick={() => { setLogWeight(w => w + 5); setLogSaved(false); }} aria-label="Increase weight" style={{ width: 34, height: 34, borderRadius: 8, cursor: 'pointer', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)', color: VIOLET, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15 }}>＋</button>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                      {[-5, 5, 10].map(d => (
+                        <button key={d} onClick={() => { setLogWeight(w => Math.max(0, w + d)); setLogSaved(false); }} style={{ flex: 1, padding: '6px 0', borderRadius: 7, cursor: 'pointer', background: 'rgba(16,4,30,0.85)', border: '1px solid rgba(168,85,247,0.3)', color: '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9 }}>{d > 0 ? `+${d}` : d}</button>
+                      ))}
+                      <button onClick={() => { setLogSaved(false); saveLoggedWeight(set); }} style={{ flex: 1.4, padding: '6px 0', borderRadius: 7, cursor: 'pointer', background: logSaved ? 'rgba(34,197,94,0.16)' : `linear-gradient(135deg, ${GOLD}, #f59e0b)`, border: logSaved ? '1px solid rgba(34,197,94,0.55)' : 'none', color: logSaved ? '#4ade80' : '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, letterSpacing: '0.06em' }}>{logSaved ? '✓ SAVED' : '✓ SAVE'}</button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : plan.kind === 'reps' ? (
               <div style={{ lineHeight: 1 }}>
