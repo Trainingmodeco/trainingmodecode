@@ -257,7 +257,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'fit_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
-        <FitBuilderSetup onBack={goFitHub} onGenerate={goFitWorkout} onCardioOnly={goCardioMode} profileSex={profile?.sex || 'male'}/>
+        <FitBuilderSetup onBack={goFitHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'}/>
       </WithNav>
     );
   }
