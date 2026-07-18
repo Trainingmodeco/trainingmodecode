@@ -7,7 +7,8 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
-import CardioFinisherSetup from './CardioFinisherSetup';
+import AddCardioSheet from './AddCardioSheet';
+import { summarizeCardioAddon } from './data/cardioAddon';
 import TrainingCTA from './shared/TrainingCTA';
 
 // Quick Mission — pixel match of design 14a ("one screen, one tap"):
@@ -112,7 +113,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>❤</div>
             <div style={{ flex: 1 }}>
               <div style={{ font: "800 10px 'Orbitron',sans-serif", color: GOLD }}>{cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO'}</div>
-              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{cardioAddon ? (cardioAddon.method || 'Cardio finisher') : 'Finish with a run or intervals'}</div>
+              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{cardioAddon ? summarizeCardioAddon(cardioAddon) : 'One tap — we generate the finisher for you'}</div>
             </div>
             <span style={{ font: "900 14px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
@@ -127,10 +128,10 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
       </div>
 
       {cardioSheetOpen && (
-        <CardioFinisherSetup
+        <AddCardioSheet
+          context={{ source: 'Quick Mission', difficulty: cap(difficulty), durationMin: duration }}
           initialAddon={cardioAddon}
-          sourceMode="Quick Mission"
-          onSave={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
+          onAdd={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
           onClose={() => setCardioSheetOpen(false)}
         />
       )}

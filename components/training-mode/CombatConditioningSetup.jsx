@@ -8,7 +8,7 @@ import Embers from './Embers';
 import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import { summarizeCardioAddon } from './data/cardioAddon';
-import CardioFinisherSetup from './CardioFinisherSetup';
+import AddCardioSheet from './AddCardioSheet';
 import TrainingCTA from './shared/TrainingCTA';
 
 const GOLD = C.gold;
@@ -255,10 +255,10 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
       </div>
 
       {cardioSheetOpen && (
-        <CardioFinisherSetup
+        <AddCardioSheet
+          context={{ source: 'Combat Conditioning', difficulty, durationMin: duration }}
           initialAddon={cardioAddon}
-          sourceMode="Combat Conditioning"
-          onSave={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
+          onAdd={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
           onClose={() => setCardioSheetOpen(false)}
         />
       )}

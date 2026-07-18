@@ -7,6 +7,7 @@ export const CARDIO_ADDON_TYPES = [
   { id: 'outdoor-run', label: 'Outdoor Run', methodId: 'outdoor-run', supportsDistance: true },
   { id: 'treadmill', label: 'Treadmill', methodId: 'treadmill', supportsDistance: true },
   { id: 'bike', label: 'Bike', methodId: 'bike', supportsDistance: true },
+  { id: 'walk', label: 'Walk', methodId: 'outdoor-run', supportsDistance: true },
   { id: 'assault-bike', label: 'Assault / Air Bike', methodId: 'assault-bike', supportsDistance: true },
   { id: 'row-machine', label: 'Row Machine', methodId: 'row-machine', supportsDistance: true },
   { id: 'elliptical', label: 'Elliptical', methodId: 'elliptical', supportsDistance: false },

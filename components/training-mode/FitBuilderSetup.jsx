@@ -4,8 +4,9 @@ import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { ChevronLeft, Home, SlidersHorizontal } from 'lucide-react';
 import { C } from './Styles';
-import CardioFinisherSetup from './CardioFinisherSetup';
+import AddCardioSheet from './AddCardioSheet';
 import WorkoutProgrammingSheet from './WorkoutProgrammingSheet';
+import { summarizeCardioAddon } from './data/cardioAddon';
 import TrainingCTA from './shared/TrainingCTA';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
@@ -217,7 +218,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
             <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>❤</div>
             <div style={{ flex: 1 }}>
               <div style={{ font: "800 11px 'Orbitron',sans-serif", color: GOLD }}>{cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO'}</div>
-              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{cardioAddon ? `${cardioAddon.method || 'Cardio'}` : 'Tack on a run, intervals, or Tabata finisher'}</div>
+              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{cardioAddon ? summarizeCardioAddon(cardioAddon) : 'One tap — we generate the finisher for you'}</div>
             </div>
             <span style={{ font: "900 15px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
@@ -258,10 +259,10 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
         />
       )}
       {cardioSheetOpen && (
-        <CardioFinisherSetup
+        <AddCardioSheet
+          context={{ source: 'Workout Builder', difficulty: cap(difficulty), durationMin: duration }}
           initialAddon={cardioAddon}
-          sourceMode="Workout Builder"
-          onSave={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
+          onAdd={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
           onClose={() => setCardioSheetOpen(false)}
         />
       )}

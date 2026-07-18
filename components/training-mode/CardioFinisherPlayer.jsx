@@ -81,7 +81,7 @@ export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, on
         </div>
 
         <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 8, color: NEON, letterSpacing: '0.2em', marginBottom: 6 }}>
-          CARDIO FINISHER
+          CARDIO FINISHER · UP NEXT
         </div>
         <h1 style={{
           fontFamily: "'Orbitron',sans-serif", fontWeight: 900, color: C.text,
