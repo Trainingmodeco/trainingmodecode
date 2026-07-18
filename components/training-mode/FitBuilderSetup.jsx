@@ -27,10 +27,12 @@ const CHIPS = [
   { id: 'LEGS', groups: ['Quads', 'Hamstrings'] },
   { id: 'GLUTES', groups: ['Glutes'], span2: true },
 ];
+// CARDIO removed from the builder — it only jumped out to the dedicated
+// Cardio Mode (reachable from its own Fit-hub banner) and collapsed the
+// screen. STRENGTH vs HYBRID still generate genuinely different workouts.
 const TYPES = [
   { id: 'STRENGTH', focus: 'Strength' },
   { id: 'HYBRID', focus: 'Hybrid' },
-  { id: 'CARDIO', focus: 'Cardio Only' },
 ];
 const EQUIPMENT = ['BODYWEIGHT', 'WEIGHTED', 'HYBRID'];
 const DIFFICULTY = ['EASY', 'NORMAL', 'HARD'];
