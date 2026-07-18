@@ -143,7 +143,9 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         padding: '10px 14px 0',
-        paddingBottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
+        // ~20% of the viewport of clear space under START CIRCUIT so the CTA
+        // never crowds the bottom nav.
+        paddingBottom: 'calc(20dvh + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Status row (moved up into the space the banner used to take) */}
