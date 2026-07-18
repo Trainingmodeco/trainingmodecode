@@ -12,6 +12,7 @@ import CardioProtocolPlayer from './CardioProtocolPlayer';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
 import { HelpButton } from './shared/WorkoutHelpPanel';
+import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import TrainingCTA from './shared/TrainingCTA';
@@ -341,6 +342,7 @@ export default function CardioMode({ onBack }) {
         <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
           {/* METHOD — 4 compact category cards (the category is the selection) */}
+          <ProgressionNudgeCard lane="cardio"/>
           <div data-guide="cm-method">
           <div style={sectionLabel}>METHOD</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 14 }}>

@@ -7,6 +7,7 @@ import { C } from './Styles';
 import CardioFinisherSetup from './CardioFinisherSetup';
 import TrainingCTA from './shared/TrainingCTA';
 import { HelpButton } from './shared/WorkoutHelpPanel';
+import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { loadRoutines, deleteRoutine } from './data/savedRoutines';
@@ -138,6 +139,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, onCardioOn
         </div>
 
         <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
+          <ProgressionNudgeCard lane="strength"/>
           {/* TYPE */}
           <div data-guide="wb-type" style={{ display: 'flex', gap: 6, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: 10, padding: 4, marginBottom: 13 }}>
             {TYPES.map(t => {

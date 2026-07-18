@@ -9,7 +9,6 @@ import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getStreak, ge
 import { getSeriesProgress, getActiveChallenge as getStoredActiveChallenge } from './data/arcadeProgress';
 import { TRAINING_ARCADE_SERIES } from './data/trainingArcadeData';
 import { getFightMiniSuggestion } from './data/recommendations';
-import { getProgressionNudge, snoozeProgressionNudge } from './data/progressionNudge';
 
 // Home — pixel match of design 9c: minimal top bar (logo + name), compact level
 // strip, weekly-progress tracker, compact "today's bout" card, a prominent
@@ -41,10 +40,6 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
   const [stats, setStats] = useState(() => loadStats());
   const [arcadeBgFail, setArcadeBgFail] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  // Anti-stagnation nudge: after ~2 weeks of consistent strength or cardio
-  // work, encourage raising weight / distance / pace. Dismiss snoozes 14 days.
-  const [nudge, setNudge] = useState(() => getProgressionNudge());
-  const dismissNudge = () => { if (nudge) { snoozeProgressionNudge(nudge.lane); setNudge(null); } };
 
   useEffect(() => {
     const refreshStats = () => setStats(loadStats());
@@ -154,29 +149,6 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           </div>
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fde047' }}>{weeklyCount}/{WEEKLY_GOAL}</span>
         </div>
-
-        {/* Progression nudge — raise the bar after 2 weeks of consistency */}
-        {nudge && (
-          <div style={{ position: 'relative', borderRadius: 12, border: '1.5px solid rgba(255,138,58,0.55)', background: 'linear-gradient(135deg, rgba(255,138,58,0.14), rgba(8,2,18,0.9))', boxShadow: '0 0 18px -6px rgba(255,138,58,0.5)', padding: '11px 12px', marginBottom: 10 }}>
-            <button onClick={dismissNudge} aria-label="Dismiss" style={{ position: 'absolute', top: 6, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.45)', fontSize: 13, padding: 2 }}>✕</button>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ fontSize: 20, lineHeight: 1 }}>{nudge.emoji}</span>
-              <div style={{ flex: 1, paddingRight: 14 }}>
-                <div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#ff8a3a', letterSpacing: '0.1em' }}>{nudge.title}</div>
-                <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#e7ddf7', lineHeight: 1.4, marginTop: 3 }}>{nudge.body}</div>
-                <button
-                  onClick={() => {
-                    const lane = nudge.lane;
-                    dismissNudge();
-                    // Strength → straight into the Builder; cardio → Train tab (Fit → Cardio Mode).
-                    if (lane === 'strength') onFitSetup?.(); else onTrain?.();
-                  }}
-                  style={{ marginTop: 8, border: '1px solid rgba(255,138,58,0.55)', borderRadius: 8, background: 'rgba(255,138,58,0.12)', color: '#ffb27a', font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.1em', padding: '7px 13px', cursor: 'pointer' }}
-                >{nudge.cta} ›</button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Today's bout — hero card with the bout art behind */}
         <button data-tour="todays-bout" data-guide="todays-bout" className="home-hero-card" onClick={handleBoutStart} style={{ '--card-glow': 'rgba(253,224,71,0.45)', '--card-glow-border': 'rgba(253,224,71,0.9)', position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>

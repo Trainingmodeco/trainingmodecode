@@ -88,7 +88,7 @@ export function addComboCoachSession(roundsCompleted, totalRounds) {
   return xpEarned;
 }
 
-export function addFitModeSession(exercisesCompleted, totalExercises) {
+export function addFitModeSession(exercisesCompleted, totalExercises, difficulty) {
   const stats = loadStats();
   const full = exercisesCompleted === totalExercises && totalExercises > 0;
   const xpEarned = (exercisesCompleted * XP_PER_FIT_EXERCISE) +
@@ -98,6 +98,7 @@ export function addFitModeSession(exercisesCompleted, totalExercises) {
     id: makeId(),
     type: 'Fit Mode',
     completedAt: new Date().toISOString(),
+    difficulty: difficulty || null,
     completedCount: exercisesCompleted,
     totalCount: totalExercises,
     xpEarned,

@@ -385,7 +385,7 @@ export default function App() {
     goFitComplete: (c, done, total) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
-      addFitModeSession(done, total);
+      addFitModeSession(done, total, c?.difficulty);
       tryCompleteDailyMission('fitMode');
       trackEvent('session_complete', { mode: 'fitMode', exercises: done });
       setFitCfg(c);
