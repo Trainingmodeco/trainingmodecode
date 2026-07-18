@@ -47,6 +47,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       subtitle={`${discipline} · ${cfg.difficulty} · ${modeName}`}
       accent={GOLD}
       xp={xp}
+      heroImage="/static/trophies/mission-complete-fight.webp"
       integrityResult={integrityResult}
       stats={[
         { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },

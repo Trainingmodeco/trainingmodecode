@@ -28,6 +28,7 @@ export default function FitWorkoutComplete({ cfg, completedCount, totalCount, ca
       subtitle={`${cfg.muscleGroups.join(' + ')} · ${cfg.equipment} · ${cfg.difficulty}`}
       accent={GOLD}
       xp={xp}
+      heroImage="/static/trophies/mission-complete-fit.webp"
       stats={[
         { value: exerciseLabel, label: 'EXERCISES', color: GOLD },
         { value: String(cfg.muscleGroups.length), label: 'MUSCLE FOCUS', color: '#fff' },

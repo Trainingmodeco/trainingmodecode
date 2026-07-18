@@ -19,6 +19,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       subtitle={`${mission.workoutType} · ${mission.difficulty} · Quick Mission`}
       accent={GOLD}
       xp={xp}
+      heroImage="/static/trophies/mission-complete-fit.webp"
       integrityResult={integrityResult}
       stats={[
         { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS COMPLETED', color: GOLD },

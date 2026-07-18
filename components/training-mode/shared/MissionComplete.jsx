@@ -65,6 +65,7 @@ export default function MissionComplete({
   extra = null,             // optional ReactNode (recap / chips)
   cardioResult,
   shareData,
+  heroImage,                // optional badge art (replaces the trophy medal)
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
   const partial = variant === 'partial';
@@ -94,6 +95,14 @@ export default function MissionComplete({
 
           {/* Medal hero */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 12 }}>
+            {heroImage ? (
+              // Mode badge art (transparent PNG/WebP over the dark bg). Kept
+              // compact so it never dominates the screen; a soft accent glow
+              // grounds it and a gentle pop plays it in.
+              <div style={{ position: 'relative', height: 122, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
+                <SafeImage src={heroImage} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+              </div>
+            ) : (
             <div style={{ position: 'relative', width: 96, height: 96, marginBottom: 10 }}>
               {!partial && (
                 <div aria-hidden style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: `conic-gradient(from 0deg, transparent 0deg, ${hexA(accent, 0.28)} 20deg, transparent 40deg, transparent 180deg, ${hexA(accent, 0.28)} 200deg, transparent 220deg)`, animation: 'mc-rays-spin 9s linear infinite', filter: 'blur(1px)' }}/>
@@ -109,6 +118,7 @@ export default function MissionComplete({
                 <Trophy size={44} color={partial ? '#b06aff' : accent} strokeWidth={1.6}/>
               </div>
             </div>
+            )}
             <div style={{ font: "700 8px 'Press Start 2P',monospace", color: partial ? '#c9a6ff' : '#facc15', letterSpacing: '0.16em', marginBottom: 8 }}>◈ {label} ◈</div>
             <div style={{ font: "900 21px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.12 }}>{title}</div>
             {subtitle && <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 3, textAlign: 'center' }}>{subtitle}</div>}

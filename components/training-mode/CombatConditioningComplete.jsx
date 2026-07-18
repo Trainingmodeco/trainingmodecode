@@ -19,6 +19,7 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
       subtitle={`${mission.style} · ${mission.difficulty} · ${mission.estimatedMinutes || '--'} min`}
       accent={GOLD}
       xp={xp}
+      heroImage="/static/trophies/mission-complete-combat.webp"
       integrityResult={integrityResult}
       stats={[
         { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS COMPLETED', color: GOLD },
