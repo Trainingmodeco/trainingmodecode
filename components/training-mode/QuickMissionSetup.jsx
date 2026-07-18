@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
-import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { ChevronLeft, Shuffle } from 'lucide-react';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -67,7 +66,6 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>No planning. Pick time, train.</div>
           </div>
           <HelpButton onClick={() => setHelpOpen(true)}/>
-          <SafeImage src="/static/timer-quick-purple.png" alt="" style={{ width: 46, height: 46, objectFit: 'contain', opacity: 0.85 }}/>
         </div>
 
         <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>

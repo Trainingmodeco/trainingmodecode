@@ -57,12 +57,21 @@ function getAlternates(exercise, cfg) {
   // title case in `primaryMuscle` — compare case-insensitively or the list
   // always comes back empty.
   const muscle = String(exercise.primaryMuscle || exercise.muscle || '').toLowerCase();
-  return FIT_MODE_EXERCISES.filter(ex =>
+  const pool = FIT_MODE_EXERCISES.filter(ex =>
     ex.active &&
     String(ex.primaryMuscle || '').toLowerCase() === muscle &&
-    ex.name !== exercise.name &&
-    (cfg.equipment === 'Hybrid' || ex.equipment.toLowerCase() === cfg.equipment.toLowerCase() || ex.equipment === 'Bodyweight')
-  ).slice(0, 8);
+    ex.name !== exercise.name
+  );
+  const isBw = (ex) => ex.equipment === 'Bodyweight';
+
+  // Weighted workouts swap to weighted work: ~80% loaded alternatives —
+  // 5 weighted (incl. cable/machine/band) + 2 bodyweight fallbacks.
+  if (cfg.equipment === 'Weighted') {
+    return [...pool.filter(ex => !isBw(ex)).slice(0, 5), ...pool.filter(isBw).slice(0, 2)];
+  }
+  if (cfg.equipment === 'Hybrid') return pool.slice(0, 8);
+  // Bodyweight config: bodyweight alternates only.
+  return pool.filter(isBw).slice(0, 8);
 }
 
 function SwapSheet({ exercise, alternates, onSelect, onClose }) {
