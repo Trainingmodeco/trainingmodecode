@@ -68,7 +68,7 @@ export const SCREEN_GUIDES = {
     { target: 'wb-muscles', title: 'TARGET MUSCLES', body: 'Tap the muscle groups you want to hit — they light up on the body map. Fewer groups = more focused volume.' },
     { target: 'wb-equipment', title: 'EQUIPMENT', body: 'Bodyweight, Weighted, or Hybrid — set what you actually have so every exercise is doable.' },
     { target: 'wb-difficulty', title: 'DIFFICULTY', body: 'Easy, Normal, or Hard — scales the reps, sets, and rest.' },
-    { target: 'wb-programming', title: 'PROGRAMMING', body: 'Optional. Open this for set schemes (5×5, 3×10…), popular programs (Push/Pull/Legs, Upper/Lower…), and session length. Leave it on AUTO and the generator picks for you.' },
+    { target: 'wb-programming', title: 'WORKOUT PROGRAMS', body: 'Optional. Open this for set schemes (5×5, 3×10…), popular programs (Push/Pull/Legs, Upper/Lower…), and session length. Leave it on AUTO and the generator picks for you.' },
     { target: 'wb-cardio', title: 'ADD CARDIO', body: 'Optional finisher — tack a run, intervals, or Tabata onto the end of your workout.' },
     { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. You can swap any exercise, edit sets and reps, and save it as a routine.' },
   ],

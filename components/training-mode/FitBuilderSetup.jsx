@@ -204,7 +204,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
           <button onClick={() => setProgrammingOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(90deg,rgba(168,85,247,0.12),rgba(253,224,71,0.05))', padding: '11px 13px', cursor: 'pointer', textAlign: 'left', marginBottom: 12 }}>
             <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SlidersHorizontal size={17} color="#c9a6ff"/></div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#c9a6ff' }}>PROGRAMMING</div>
+              <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#c9a6ff' }}>WORKOUT PROGRAMS</div>
               <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>Set scheme · programs · duration</div>
             </div>
             <span style={{ font: "800 10px 'Orbitron',sans-serif", color: progSummary === 'AUTO' ? '#9a90b8' : GOLD, flexShrink: 0, maxWidth: 118, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{progSummary}</span>

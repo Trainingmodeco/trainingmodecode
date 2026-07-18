@@ -92,7 +92,7 @@ export default function WorkoutProgrammingSheet({ initial, onApply, onClose }) {
               <SlidersHorizontal size={19} color={NEON}/>
             </div>
             <div>
-              <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.06em' }}>PROGRAMMING</div>
+              <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.06em' }}>WORKOUT PROGRAMS</div>
               <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>Leave on AUTO for a balanced workout.</div>
             </div>
           </div>
