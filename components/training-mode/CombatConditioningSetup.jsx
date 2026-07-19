@@ -50,7 +50,7 @@ function SectionLabel({ children }) {
   return (
     <div style={{
       fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8',
-      fontSize: 8, letterSpacing: '0.16em', marginBottom: 7,
+      fontSize: 8, letterSpacing: '0.16em', marginBottom: 5,
     }}>{children}</div>
   );
 }
@@ -143,13 +143,13 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         padding: '10px 14px 0',
-        // ~20% of the viewport of clear space under START CIRCUIT so the CTA
+        // ~30% of the viewport of clear space under START CIRCUIT so the CTA
         // never crowds the bottom nav.
-        paddingBottom: 'calc(20dvh + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(30dvh + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Status row (moved up into the space the banner used to take) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7, color: '#ff9a9a', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 4, padding: '3px 7px', letterSpacing: '0.08em', flexShrink: 0 }}>HYBRID</span>
           <span style={{ flex: 1, fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.faint, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {focusLabel} · {rounds} rounds · {intensityLabel}
@@ -160,12 +160,12 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         {/* Discipline — pills */}
         <div data-guide="ccs-discipline">
         <SectionLabel>DISCIPLINE</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
           {STYLES.map(s => {
             const active = s.id === style;
             return (
               <button key={s.id} className="cc-pill" onClick={() => setStyle(s.id)} style={{
-                padding: '9px 14px', borderRadius: 9, cursor: 'pointer',
+                padding: '8px 13px', borderRadius: 9, cursor: 'pointer',
                 fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, letterSpacing: '0.05em',
                 background: active ? 'rgba(239,68,68,0.12)' : 'rgba(16,4,30,0.8)',
                 border: active ? `1.5px solid ${RED}` : '1px solid rgba(168,85,247,0.3)',
@@ -180,19 +180,19 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
         </div>
         <div data-guide="ccs-style">
         <SectionLabel>CIRCUIT STYLE</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
           {FOCUS_OPTIONS.map(f => {
             const active = f.id === focus;
             return (
               <button key={f.id} className="cc-pill" onClick={() => setFocus(f.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '10px 13px', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: 9, borderRadius: 11, padding: '8px 12px', cursor: 'pointer', textAlign: 'left',
                 background: active ? 'rgba(239,68,68,0.06)' : 'rgba(16,4,30,0.8)',
                 border: active ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(168,85,247,0.3)',
               }}>
-                <span style={{ fontSize: 17 }}>{f.icon}</span>
-                <span style={{ flex: 1 }}>
-                  <span style={{ display: 'block', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, color: active ? '#ff7a7a' : '#fff' }}>{f.label}</span>
-                  <span style={{ display: 'block', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: '#9a90b8', marginTop: 1 }}>{f.sub}</span>
+                <span style={{ fontSize: 15, flexShrink: 0 }}>{f.icon}</span>
+                <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11.5, color: active ? '#ff7a7a' : '#fff' }}>{f.label}</span>
+                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: '#9a90b8', marginLeft: 7 }}>{f.sub}</span>
                 </span>
                 {active && (
                   <span style={{ width: 16, height: 16, borderRadius: '50%', background: RED, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 8, flexShrink: 0 }}>✓</span>
@@ -202,22 +202,22 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           })}
         </div>
 
-        {/* Rounds + Intensity (design 15b) */}
-        <div style={{ display: 'flex', gap: 11, marginBottom: 11 }}>
+        {/* Rounds + Intensity (design 15b) — side by side to save a row */}
+        <div data-guide="ccs-config">
+          <div style={{ display: 'flex', gap: 11, marginBottom: 9 }}>
+            <Stepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
+            <Segmented label="INTENSITY" options={INTENSITIES} value={difficulty} onChange={setDifficulty} accent={RED}/>
           </div>
-          <div data-guide="ccs-config">
-          <Stepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
-          <Segmented label="INTENSITY" options={INTENSITIES} value={difficulty} onChange={setDifficulty} accent={RED}/>
         </div>
 
         {/* Work + Rest steppers */}
-        <div style={{ display: 'flex', gap: 11, marginBottom: 11 }}>
+        <div style={{ display: 'flex', gap: 11, marginBottom: 9 }}>
           <Stepper label="WORK" value={workSec} unit="s" min={10} max={120} step={5} onChange={setWorkSec}/>
           <Stepper label="REST" value={restSec} unit="s" min={0} max={90} step={5} onChange={setRestSec}/>
         </div>
 
         {/* Equipment (design 15b) */}
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 9 }}>
           <Segmented label="EQUIPMENT" options={EQUIPMENT} value={equipment} onChange={setEquipment} accent={GOLD}/>
         </div>
         </div>
@@ -227,7 +227,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           onClick={() => setCardioSheetOpen(true)}
           className="cc-pill"
           style={{
-            display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, padding: '11px 13px', marginBottom: 14, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, padding: '10px 13px', marginBottom: 10, cursor: 'pointer',
             border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(239,68,68,0.06))',
           }}
         >
