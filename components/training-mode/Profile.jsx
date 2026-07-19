@@ -9,6 +9,7 @@ import CornerHUD from './CornerHUD';
 import { ChevronLeft, MessageSquare, Bell, Volume2 } from 'lucide-react';
 import { C } from './Styles';
 import SafeImage from './SafeImage';
+import AccountCard from './AccountCard';
 import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
 import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
@@ -327,6 +328,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             {/* Links */}
             <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <AccountCard/>
               {onGameLink && (
                 <button data-tour="game-link" onClick={onGameLink} style={{ display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', boxShadow: '0 0 16px -6px rgba(176,106,255,.5)', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: 16 }}>🎮</span>
