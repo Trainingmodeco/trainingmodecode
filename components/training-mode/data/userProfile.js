@@ -24,6 +24,16 @@ if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => { if (!e.key || e.key === STORAGE_KEY) _profileCache = null; });
 }
 
+// A "beginner learner" told onboarding they're new AND want to learn combat.
+// Fight Mode gates combos to their learned arsenal by default and nudges them
+// to Practice; everyone else gets all strikes. (Shared by Practice + Combo Coach.)
+export function isBeginnerLearner(p) {
+  const exp = String(p?.experience || '').toLowerCase();
+  const isNew = exp === 'beginner' || exp === 'some training' || exp === '';
+  const goal = String(p?.goal || '').toLowerCase();
+  return isNew && goal === 'learn combat basics';
+}
+
 export function loadProfile() {
   if (_profileCache) return _profileCache;
   try {

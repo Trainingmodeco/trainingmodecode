@@ -1,5 +1,6 @@
 import FIGHT_FOCUS_POOL from './fightFocusData';
 import COMBO_POOL, { SINGLE_STRIKES, ADVANCED_STRIKES } from './comboCoachData';
+import { filterCombosToArsenal } from './arsenal';
 
 const DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'advanced'];
 
@@ -285,15 +286,17 @@ function buildTechnicalComboList(discipline, difficulty) {
   return out;
 }
 
-export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode }) {
+export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode, arsenalOnly, arsenal }) {
+  // 1.2 — beginners drill only strikes they've learned in Practice (never empty).
+  const gate = (list) => (arsenalOnly ? filterCombosToArsenal(list, arsenal) : list);
   if (String(mode).toLowerCase() === 'technical') {
-    return buildTechnicalComboList(discipline, difficulty);
+    return gate(buildTechnicalComboList(discipline, difficulty));
   }
   const eligible = filterPool(COMBO_POOL, discipline, difficulty);
   if (eligible.length === 0) {
     const fallback = COMBO_POOL.filter(c => c.discipline === normalizeDiscipline(discipline));
     const pool = fallback.length > 0 ? fallback : COMBO_POOL.slice(0, 30);
-    return shuffle(pool).map(c => c.comboText);
+    return gate(shuffle(pool).map(c => c.comboText));
   }
 
   const historyKey = lruKey('tm_cc_recent', discipline, difficulty);
@@ -302,6 +305,5 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
   // Append first 20 combo IDs to history.
   appendToLruHistory(historyKey, comboOrder.slice(0, 20).map(c => c.id), eligible.length);
 
-  
-  return comboOrder.map(c => c.comboText);
+  return gate(comboOrder.map(c => c.comboText));
 }

@@ -74,7 +74,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     rounds: totalRounds,
     roundDuration: cfg.roundMin,
     mode: cfg.mode,
-  }), [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode]);
+    arsenalOnly: cfg.arsenalOnly,
+    arsenal: cfg.arsenal,
+  }), [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal]);
   const comboIndexRef = useRef(0);
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? 'round');

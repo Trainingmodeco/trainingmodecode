@@ -9,7 +9,7 @@ import SafeImage from './SafeImage';
 import { ChevronLeft, Play, Pause, Lock, ChevronRight, Volume2, Square } from 'lucide-react';
 import { C } from './Styles';
 import { addStartHereLesson } from './data/userStats';
-import { loadProfile } from './data/userProfile';
+import { loadProfile, isBeginnerLearner } from './data/userProfile';
 import {
   primeSpeech, setVoiceGender, speakAsync, cancelSpeech, stopVoiceSession, delay,
 } from './voiceCoach';
@@ -93,17 +93,9 @@ const getVariant = (p) => {
   return s === 'female' ? 'female' : 'male';
 };
 
-// A "beginner learner" is someone who told onboarding they're new AND want to
-// learn combat. For them, drilling a basic is mandatory for it to count complete
-// (and the Technique Library stays locked until all basics are drilled). Everyone
-// else completes a basic just by opening it.
-const isBeginnerLearner = (p) => {
-  const exp = String(p?.experience || '').toLowerCase();
-  const isNew = exp === 'beginner' || exp === 'some training' || exp === '';
-  const goal = String(p?.goal || '').toLowerCase();
-  return isNew && goal === 'learn combat basics';
-};
-
+// A "beginner learner" (told onboarding they're new AND want to learn combat)
+// must drill a basic for it to count, and the Technique Library stays locked
+// until all basics are drilled. Shared helper — see data/userProfile.
 const DISC_KEY = { Boxing: 'boxing', Kickboxing: 'kickbox', 'Muay Thai': 'muaythai', MMA: 'mma' };
 const bannerSrc = (disc, variant) => `/static/practice/${DISC_KEY[disc] || 'boxing'}-${variant}.png`;
 

@@ -13,6 +13,8 @@ import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
+import { getArsenal } from './data/arsenal';
+import { isBeginnerLearner } from './data/userProfile';
 
 const GOLD = C.gold;
 const VIOLET = C.violet;
@@ -74,11 +76,17 @@ function Segmented({ label, options, value, onChange, accent }) {
 
 export default function ComboCoachSetup({ discipline, onBack, onStart, profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  // 1.2 — a beginner learner drills only strikes learned in Practice by default;
+  // everyone else gets ALL STRIKES. Either can flip it here.
+  const beginner = isBeginnerLearner(profile);
+  const arsenal = getArsenal(discipline);
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
     rush: { on: false, pattern: 'endRound' },
+    strikeSource: beginner ? 'ARSENAL' : 'ALL STRIKES',
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
+  const arsenalOnly = cfg.strikeSource === 'ARSENAL';
 
   const totalEst = Math.round((cfg.rounds * (cfg.roundMin * 60 + cfg.restSec)) / 60);
 
@@ -129,6 +137,17 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
         </div>
 
+        {/* 1.2 — strikes source: your learned arsenal vs everything */}
+        <div style={{ marginBottom: 5, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: '#0a0014', background: GOLD, borderRadius: 5, padding: '4px 8px', letterSpacing: '0.06em', flexShrink: 0 }}>🥊 YOUR ARSENAL: {arsenal.length}</span>
+          <div style={{ flex: 1 }}><Segmented options={['ARSENAL', 'ALL STRIKES']} value={cfg.strikeSource} onChange={v => set('strikeSource', v)} accent={VIOLET}/></div>
+        </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: arsenalOnly ? '#facc15' : '#a99cc4', lineHeight: 1.3, marginBottom: 9, minHeight: 20 }}>
+          {arsenalOnly
+            ? <>Calling only strikes you&apos;ve learned. <span style={{ color: GOLD, fontWeight: 700 }}>Learn more in Practice Mode to unlock combos.</span></>
+            : 'Drilling every strike in the discipline — including ones you haven’t practiced yet.'}
+        </div>
+
         {/* Stacked steppers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
           <div data-guide="cc-steppers">
@@ -160,6 +179,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
               rounds: cfg.rounds, roundMin: cfg.roundMin, restSec: cfg.restSec,
               voiceOn: true, rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
               encouragement: profile?.encouragement || 'normal',
+              arsenalOnly, arsenal,
             });
           }}
         />

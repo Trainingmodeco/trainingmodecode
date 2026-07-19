@@ -23,8 +23,13 @@ ship. Nothing here is built yet.
         name→strike normalizer); wired into PracticeMode basics + technique
         drills with a "STRIKE ADDED TO YOUR ARSENAL" toast. Verified: Jab/Cross
         bank, Stance/Guard/Defense bank nothing.
-- [ ] 1.2 Combo Coach ← arsenal link: combos call only learned strikes;
+- [x] 1.2 Combo Coach ← arsenal link: combos call only learned strikes;
       "YOUR ARSENAL: n" chip + ALL STRIKES toggle; lesson-complete toast.
+      → BEGINNER LEARNERS (new + "learn combat basics") default to ARSENAL and
+        get a "Practice more to unlock combos" nudge; everyone else defaults to
+        ALL STRIKES. Filtering ignores non-strike movements (slip/roll/…) and
+        never leaves a session empty. Verified: Jab+Cross arsenal → only
+        Jab/Cross combos live.
 - [ ] 1.3 Combo Coach upgrades: DEFENSE CALLS toggle (SLIP/ROLL/CHECK/PIVOT
       in violet), stance setting (orthodox/southpaw), custom combo builder
       with saved combo chips.

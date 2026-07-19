@@ -79,3 +79,21 @@ export function arsenalCount(discipline) {
 export function hasStrike(discipline, token) {
   return getArsenal(discipline).includes(token);
 }
+
+// True when every STRIKE in a combo is in the arsenal. Non-strike movements
+// (slip, roll, sprawl, feint, pivot, clinch, check, level change…) are not
+// gated — only strikes must be learned.
+export function comboUsesOnlyLearned(comboText, arsenalArr) {
+  const have = new Set(arsenalArr || []);
+  const strikes = strikesFrom(comboText);
+  return strikes.length > 0 && strikes.every(s => have.has(s));
+}
+
+// Filter a list of combo strings to those using only learned strikes (1.2).
+// Never returns empty — if the arsenal can't form any combo, the original
+// list is returned so a session always has content (the UI nudges practice).
+export function filterCombosToArsenal(combos, arsenalArr) {
+  if (!arsenalArr || !arsenalArr.length) return combos;
+  const usable = combos.filter(c => comboUsesOnlyLearned(c, arsenalArr));
+  return usable.length ? usable : combos;
+}
