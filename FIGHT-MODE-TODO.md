@@ -16,9 +16,13 @@ ship. Nothing here is built yet.
 ---
 
 ## PHASE 1 — FOUNDATIONS (everything else builds on these)
-- [ ] 1.1 Practice Mode completion loop: finishing DRILL IT marks a lesson
+- [x] 1.1 Practice Mode completion loop: finishing DRILL IT marks a lesson
       done ✓, advances the lesson unlock chain, and adds the strike to the
       user's learned "arsenal" (persisted per discipline).
+      → data/arsenal.js (canonical strike tokens, per-discipline persistence,
+        name→strike normalizer); wired into PracticeMode basics + technique
+        drills with a "STRIKE ADDED TO YOUR ARSENAL" toast. Verified: Jab/Cross
+        bank, Stance/Guard/Defense bank nothing.
 - [ ] 1.2 Combo Coach ← arsenal link: combos call only learned strikes;
       "YOUR ARSENAL: n" chip + ALL STRIKES toggle; lesson-complete toast.
 - [ ] 1.3 Combo Coach upgrades: DEFENSE CALLS toggle (SLIP/ROLL/CHECK/PIVOT

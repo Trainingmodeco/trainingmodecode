@@ -19,6 +19,7 @@ import {
   PRACTICE_CATEGORIES,
   TECHNIQUES,
 } from './practiceData';
+import { addLearned } from './data/arsenal';
 
 const GOLD = C.yellow;
 const NEON = C.neon;
@@ -651,7 +652,14 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
   const [drill, setDrill] = useState(null);
   const [comboDrill, setComboDrill] = useState(false);
   const [toast, setToast] = useState(false);
+  const [learned, setLearned] = useState(null); // strikes just added to the arsenal (1.1)
   const [completed, setCompleted] = useState(() => getCompletedLessons());
+
+  // Bank strikes into the arsenal and flash a "learned" toast (1.1).
+  const bankArsenal = useCallback((name) => {
+    const gained = addLearned(discipline, name);
+    if (gained.length) { setLearned(gained); setTimeout(() => setLearned(null), 2600); }
+  }, [discipline]);
 
   const basics = useMemo(() => START_HERE_LESSONS[discipline] || [], [discipline]);
   const techniques = getTechniquesFor(discipline, category);
@@ -667,7 +675,9 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
     markLessonComplete(lesson.id);
     if (!already && lesson.title) addStartHereLesson(lesson.title);
     setCompleted(getCompletedLessons());
-  }, []);
+    // 1.1 — completing a strike lesson banks it into the arsenal.
+    if (!already) bankArsenal(lesson.title);
+  }, [bankArsenal]);
 
   // Open a basic lesson. Non-beginners complete it just by opening; beginners
   // must finish the drill (handled on drill complete) for it to count.
@@ -684,8 +694,11 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
     if (drill?.lessonId) {
       const lesson = basics.find(b => b.id === drill.lessonId) || { id: drill.lessonId, title: drill.title };
       completeBasic(lesson);
+    } else if (drill?.title) {
+      // Drilling a Technique Library strike also banks it (1.1).
+      bankArsenal(drill.title);
     }
-  }, [drill, basics, completeBasic]);
+  }, [drill, basics, completeBasic, bankArsenal]);
 
   return (
     <PhoneFrame useBrandBg>
@@ -818,6 +831,22 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
         }}>
           <Lock size={11} style={{ color: NEON }}/>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: NEON, letterSpacing: '0.08em' }}>Tutorial video coming soon.</span>
+        </div>
+      )}
+
+      {/* Arsenal toast (1.1) — a learned strike was banked */}
+      {learned && (
+        <div className="pm-toast" style={{
+          position: 'fixed', bottom: 100, left: '50%', zIndex: 300, pointerEvents: 'none',
+          padding: '10px 20px', borderRadius: 10,
+          background: 'rgba(10,2,22,0.96)', border: '1px solid rgba(253,224,71,0.55)',
+          boxShadow: '0 0 18px rgba(253,224,71,0.28)',
+          display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+        }}>
+          <span style={{ fontSize: 13 }}>🥊</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: GOLD, letterSpacing: '0.06em' }}>
+            {learned.map(s => s.toUpperCase()).join(' + ')} ADDED TO YOUR ARSENAL
+          </span>
         </div>
       )}
     </PhoneFrame>
