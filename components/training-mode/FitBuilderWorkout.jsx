@@ -10,8 +10,17 @@ import FitBuilderGuidedPlayer from './FitBuilderGuidedPlayer';
 import { saveRoutine } from './data/savedRoutines';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
+import { loadProfile } from './data/userProfile';
+import { classifyType, exerciseWeight, unitLabel, normUnit, stepFor, convertWeight, defaultWeight } from './data/weightLog';
 
 const GOLD = C.gold;
+
+// −/＋ button in the working-weight stepper (design 39).
+const weightBtn = {
+  width: 34, height: 34, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
+  background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.4)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+};
 
 const workoutCSS = `
 @keyframes fadeSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
@@ -157,6 +166,21 @@ function EditSheet({ exercise, onSave, onClose }) {
   const [rest, setRest] = useState(exercise.restSeconds || parseInt(exercise.rest) || 60);
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+  // Design 39 — optional WORKING WEIGHT (weighted lifts only).
+  const isWeighted = classifyType(exercise) === 'weighted';
+  const existing = exerciseWeight(exercise);
+  const initUnit = existing?.unit || normUnit(loadProfile()?.weightUnit);
+  const [unit, setUnit] = useState(initUnit);
+  const [weight, setWeight] = useState(existing?.weight || defaultWeight(initUnit));
+  const [hasWeight, setHasWeight] = useState(!!existing);
+  const toggleUnit = (u) => { if (u !== unit) { setWeight(w => convertWeight(w, unit, u)); setUnit(u); } };
+  const wStep = stepFor(unit);
+
+  const save = () => onSave({
+    sets, reps: isHold ? `${reps}s` : reps, restSeconds: rest, rest: `${rest}s`,
+    ...(isWeighted ? { weight: hasWeight ? weight : null, unit } : {}),
+  });
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <div onClick={onClose} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
@@ -180,7 +204,36 @@ function EditSheet({ exercise, onSave, onClose }) {
           onInc={() => setReps(r => clamp(r + (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}/>
         <Stepper label="REST" value={rest} display={`${rest}s`}
           onDec={() => setRest(r => clamp(r - 15, 15, 300))} onInc={() => setRest(r => clamp(r + 15, 15, 300))}/>
-        <button className="wo-cta" onClick={() => onSave({ sets, reps: isHold ? `${reps}s` : reps, restSeconds: rest, rest: `${rest}s` })} style={{
+
+        {/* Design 39 — WORKING WEIGHT (optional, weighted lifts only) */}
+        {isWeighted && (
+          <div style={{ marginTop: 10, borderRadius: 12, border: '1px solid rgba(253,224,71,0.55)', background: 'rgba(253,224,71,0.05)', boxShadow: '0 0 14px rgba(253,224,71,0.14)', padding: '10px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: hasWeight ? 8 : 0 }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: GOLD, letterSpacing: '0.1em' }}>WORKING WEIGHT</span>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5, color: '#0a0014', background: GOLD, borderRadius: 3, padding: '2px 5px', letterSpacing: '0.08em' }}>· NEW</span>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>optional</span>
+            </div>
+            {!hasWeight ? (
+              <button onClick={() => setHasWeight(true)} style={{ width: '100%', padding: '9px 0', borderRadius: 9, cursor: 'pointer', background: 'rgba(253,224,71,0.1)', border: '1px dashed rgba(253,224,71,0.5)', color: GOLD, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.06em' }}>+ ADD WEIGHT</button>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button onClick={() => setWeight(w => Math.max(wStep, w - wStep))} style={weightBtn}><Minus size={15} color={GOLD}/></button>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 26, color: '#fff' }}>{weight}</span>
+                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: GOLD, marginLeft: 4 }}>{unitLabel(unit)}</span>
+                </div>
+                <button onClick={() => setWeight(w => Math.min(2000, w + wStep))} style={weightBtn}><Plus size={15} color={GOLD}/></button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginLeft: 2 }}>
+                  {['lb', 'kg'].map(u => (
+                    <button key={u} onClick={() => toggleUnit(u)} style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, letterSpacing: '0.05em', color: unit === u ? '#0a0014' : '#c9b8e8', background: unit === u ? GOLD : 'rgba(16,4,30,0.8)', border: unit === u ? 'none' : '1px solid rgba(168,85,247,0.3)' }}>{u.toUpperCase()}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <button className="wo-cta" onClick={save} style={{
           width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer', marginTop: 10,
           background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014',
           fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
@@ -352,6 +405,8 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
           {exercises.map((ex, i) => {
             const done = !!completed[i];
             const muscleColor = MUSCLE_COLORS[ex.muscle] || C.faint;
+            // Design 39 — weight only shows on weighted lifts.
+            const wLog = classifyType(ex) === 'weighted' ? exerciseWeight(ex) : null;
             return (
               <div key={`${ex.name}-${i}`} className="wo-row" style={{
                 display: 'flex', alignItems: 'center', gap: 8,
@@ -387,7 +442,13 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
                     color: done ? C.faint : '#c9b8e8', cursor: done ? 'default' : 'pointer',
                     textDecoration: done ? 'none' : 'underline dotted rgba(168,85,247,0.5)',
                     textUnderlineOffset: 2,
-                  }}>{ex.sets}x{ex.reps} &middot; {ex.rest} rest</div>
+                  }}>{ex.sets}x{ex.reps} &middot; {ex.rest} rest
+                    {wLog
+                      ? <span style={{ color: GOLD }}> &middot; {wLog.weight} {unitLabel(wLog.unit)}</span>
+                      : classifyType(ex) === 'weighted' && !done
+                        ? <span style={{ color: '#6d5a8f' }}> &middot; + add weight</span>
+                        : null}
+                  </div>
                 </div>
 
                 {/* Swap button */}

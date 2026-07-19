@@ -32,5 +32,55 @@ export function getLastWeight(exerciseId) {
 // Placeholder when an exercise has never been logged: an empty bar (LB)
 // or a starter pair of dumbbells (KG).
 export function defaultWeight(unit) {
-  return unit === 'KG' ? 20 : 45;
+  return String(unit).toLowerCase() === 'kg' ? 20 : 45;
+}
+
+// ── Weight display helpers (design 39) ──────────────────────────────────────
+// Stable key for an exercise's weight history (matches the rest-time logger).
+export function exerciseKey(ex) {
+  return ex?.id || ex?.name || 'exercise';
+}
+
+// Classify a workout row so the UI knows whether a weight applies.
+//   timed      — a hold/duration ("40s")
+//   bodyweight — equipment is bodyweight
+//   weighted   — everything else (a load applies)
+export function classifyType(ex) {
+  if (/^\d+\s*s$/i.test(String(ex?.reps || '').trim())) return 'timed';
+  if (String(ex?.equipment || '').toLowerCase() === 'bodyweight') return 'bodyweight';
+  return 'weighted';
+}
+
+// Normalize any unit spelling to 'lb' | 'kg'.
+export function normUnit(unit) {
+  return String(unit || 'lb').toLowerCase() === 'kg' ? 'kg' : 'lb';
+}
+
+// Uppercase label for display ('LB' | 'KG').
+export function unitLabel(unit) {
+  return normUnit(unit).toUpperCase();
+}
+
+// The stepper increment for a unit (5 lb / 2.5 kg).
+export function stepFor(unit) {
+  return normUnit(unit) === 'kg' ? 2.5 : 5;
+}
+
+// Convert a value between lb/kg, rounded to that unit's step so the number
+// stays clean (e.g. 135 lb → 60 kg, 245 lb → 110 kg, 80 kg → 175 lb).
+export function convertWeight(value, fromUnit, toUnit) {
+  const from = normUnit(fromUnit);
+  const to = normUnit(toUnit);
+  if (from === to || !Number.isFinite(value)) return value;
+  const raw = to === 'kg' ? value / 2.2046226 : value * 2.2046226;
+  const step = stepFor(to);
+  return Math.max(step, Math.round(raw / step) * step);
+}
+
+// The weight to show for a row, or null. Priority: a weight set on the exercise
+// this session (edit sheet) → the last logged set from history → null.
+export function exerciseWeight(ex) {
+  if (Number.isFinite(ex?.weight) && ex.weight > 0) return { weight: ex.weight, unit: normUnit(ex.unit) };
+  const last = getLastWeight(exerciseKey(ex));
+  return last ? { weight: last.weight, unit: normUnit(last.unit) } : null;
 }
