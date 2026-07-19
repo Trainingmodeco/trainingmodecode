@@ -81,6 +81,33 @@ export function onAuthChange(cb) {
   return () => data?.subscription?.unsubscribe?.();
 }
 
+// Current session's access token (JWT), or null. Used to authorize REST reads
+// against the user's own rows (RLS).
+export async function getAccessToken() {
+  const sb = getSupabase();
+  if (!sb) return null;
+  try {
+    const { data } = await sb.auth.getSession();
+    return data?.session?.access_token || null;
+  } catch { return null; }
+}
+
+// Read this user's entitlement row from Supabase (RLS lets them read only their
+// own). Returns { plan, is_pro, current_period_end } or null when signed out /
+// no row / offline. Never throws — entitlement is best-effort.
+export async function fetchEntitlement() {
+  const token = await getAccessToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/entitlements?select=plan,is_pro,current_period_end`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return Array.isArray(rows) && rows.length ? rows[0] : { plan: 'free', is_pro: false };
+  } catch { return null; }
+}
+
 // Pull the display bits Google gives us into a flat shape for the UI.
 export function userProfile(user) {
   if (!user) return null;

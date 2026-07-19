@@ -1,16 +1,20 @@
-// ─── Entitlements skeleton (DORMANT) ────────────────────────────────────────
-// The Pro / free split from the monetization blueprint, defined in ONE place
-// so flipping the paywall on later is a matter of calling these gates from
-// the UI — no logic hunting. Nothing enforces these yet: isPro() returns
-// true for everyone until real accounts + Stripe entitlements ship.
+// ─── Entitlements ───────────────────────────────────────────────────────────
+// The Pro / free split from the monetization blueprint, in ONE place so gates
+// read the same source everywhere. Pro status comes from the signed-in user's
+// Supabase `entitlements` row (set by the Stripe webhook on payment); it's
+// cached in localStorage so gates stay synchronous and work offline.
+//
+// Nothing is enforced until PAYWALL_ENABLED is flipped on — until then isPro()
+// returns true for everyone (the app ships fully unlocked during beta).
 //
 // Planned free tier (see blueprint):
 //   · Arcade: Saga 1, stages 1–3 free; 4+ / boss / mythic are Pro
 //   · Workout Builder: 1 saved routine slot free
-//   · Everything else (daily bout, XP, streaks, Fight Focus, Quick Mission)
-//     stays free forever.
+//   · Everything else (daily bout, XP, streaks, Fight Focus, Quick Mission) free
+import { fetchEntitlement } from './authClient';
 
-const KEY = 'tm_entitlements';
+const KEY = 'tm_entitlements';        // legacy/dev manual plan ('pro'|'founder')
+const CACHE_KEY = 'tm_entitlement_cache';  // { plan, is_pro } synced from Supabase
 
 export const GATES = {
   freeArcadeStages: 3,   // stages 1..N free per saga
@@ -21,6 +25,14 @@ export const GATES = {
 // tier limits should start applying to non-Pro users.
 export const PAYWALL_ENABLED = false;
 
+function readJSON(key) {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : null;
+  } catch { return null; }
+}
+
 function storedPlan() {
   try {
     if (typeof localStorage === 'undefined') return null;
@@ -28,10 +40,32 @@ function storedPlan() {
   } catch { return null; }
 }
 
-// Until the paywall is enabled, everyone is effectively Pro.
+// Synchronous Pro check used by every gate. Reads the cached entitlement (and a
+// manual dev plan). Until the paywall is enabled, everyone is effectively Pro.
 export function isPro() {
   if (!PAYWALL_ENABLED) return true;
-  return storedPlan() === 'pro' || storedPlan() === 'founder';
+  const cache = readJSON(CACHE_KEY);
+  if (cache?.is_pro) return true;
+  const manual = storedPlan();
+  return manual === 'pro' || manual === 'founder';
+}
+
+// Fetch the latest entitlement from Supabase and cache it. Call after sign-in
+// and after returning from Stripe checkout. Returns the cached entitlement.
+export async function refreshEntitlement() {
+  const ent = await fetchEntitlement();
+  try {
+    if (typeof localStorage !== 'undefined') {
+      if (ent) localStorage.setItem(CACHE_KEY, JSON.stringify({ plan: ent.plan || 'free', is_pro: !!ent.is_pro }));
+      else localStorage.removeItem(CACHE_KEY);
+    }
+  } catch { /* quota */ }
+  return ent;
+}
+
+// Clear the cached entitlement (on sign-out).
+export function clearEntitlementCache() {
+  try { if (typeof localStorage !== 'undefined') localStorage.removeItem(CACHE_KEY); } catch { /* noop */ }
 }
 
 export function canAccessStage(stageNumber) {
@@ -42,7 +76,7 @@ export function routineSlotLimit() {
   return isPro() ? Infinity : GATES.freeRoutineSlots;
 }
 
-// Dev/test helper (and the hook Stripe's webhook target will eventually set).
+// Dev/test helper — force a plan locally without paying.
 export function setPlanForTesting(plan) {
   try {
     if (typeof localStorage === 'undefined') return;

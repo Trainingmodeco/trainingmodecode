@@ -6,6 +6,7 @@ import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession } from './voiceCoach';
 import { trackEvent } from './data/analytics';
+import { refreshEntitlement } from './data/entitlements';
 import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
 import { preloadCriticalArt } from './shared/preloadImages';
 
@@ -240,6 +241,21 @@ export default function App() {
   // Warm the cache for upcoming art (hub banners, saga posters, backdrops)
   // once, at idle priority, so screens open with images already loaded.
   useEffect(() => { preloadCriticalArt(); }, []);
+
+  // Returning from Stripe checkout (?checkout=success): re-sync the Pro
+  // entitlement from Supabase and clean the query string. Purely additive —
+  // does nothing on a normal load.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+      refreshEntitlement();
+      trackEvent('checkout_return_success');
+      params.delete('checkout');
+      const qs = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+    }
+  }, []);
 
   // ── Design 33: first-run feature tour (spotlight coach marks) ──
   // The overlay lives at app level; each step declares which screen it runs on.

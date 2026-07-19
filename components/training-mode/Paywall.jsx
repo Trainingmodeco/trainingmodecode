@@ -2,29 +2,44 @@ import { useState, useEffect } from 'react';
 import SafeImage from './SafeImage';
 import { X } from 'lucide-react';
 import { trackEvent } from './data/analytics';
+import { PLANS, PLAN_ORDER, startCheckout } from './data/stripe';
+import { getCurrentUser, onAuthChange, signInWithGoogle } from './data/authClient';
 
-// Paywall / Training Mode PRO — UI port of design 25a.
-// UI-only: the CTA is a placeholder (no real IAP wired yet).
-// Funnel events fire so conversion intent is measurable before Stripe ships.
+// Paywall / Training Mode PRO (design 25a). Plans link to Stripe hosted
+// checkout; the purchase is tied to the signed-in account so the webhook can
+// grant Pro. Requires sign-in first (so Pro unlocks on any device).
 
 const BENEFITS = [
   'All Arcade protocols & boss stages',
-  'Unlimited Workout Builder & Cardio',
+  'Unlimited Workout Builder & routines',
   'Every avatar tier + exclusive skins',
   'Full voice coaching + game-link rewards',
 ];
 
 export default function Paywall({ onClose }) {
   const [plan, setPlan] = useState('annual');
-  const [toast, setToast] = useState(false);
+  const [user, setUser] = useState(null);
 
-  useEffect(() => { trackEvent('paywall_viewed'); }, []);
+  useEffect(() => {
+    trackEvent('paywall_viewed');
+    let alive = true;
+    getCurrentUser().then(u => { if (alive) setUser(u); }).catch(() => {});
+    const unsub = onAuthChange(u => { if (alive) setUser(u); });
+    return () => { alive = false; unsub(); };
+  }, []);
 
-  const startTrial = () => {
-    trackEvent('paywall_trial_clicked', { plan });
-    setToast(true);
-    setTimeout(() => setToast(false), 2400);
+  const proceed = () => {
+    if (!user) {
+      trackEvent('paywall_signin_clicked', { plan });
+      signInWithGoogle();   // redirects to Google; user re-opens paywall after
+      return;
+    }
+    trackEvent('paywall_checkout_clicked', { plan });
+    startCheckout(plan, user);   // redirects to Stripe
   };
+
+  const founder = plan === 'founder';
+  const ctaLabel = !user ? 'SIGN IN TO CONTINUE' : founder ? 'GET FOUNDER LIFETIME' : 'UPGRADE TO PRO';
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 440, height: '100dvh', margin: '0 auto', background: '#08010f', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -56,36 +71,36 @@ export default function Paywall({ onClose }) {
 
           {/* Plans */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            <button onClick={() => setPlan('annual')} style={{ textAlign: 'left', position: 'relative', borderRadius: 12, border: `2px solid ${plan === 'annual' ? '#fde047' : 'rgba(168,85,247,0.35)'}`, background: plan === 'annual' ? 'rgba(253,224,71,0.08)' : 'rgba(16,4,30,0.7)', padding: '12px 14px', boxShadow: plan === 'annual' ? '0 0 18px rgba(253,224,71,.2)' : 'none', cursor: 'pointer' }}>
-              <span style={{ position: 'absolute', top: -9, left: 14, font: "800 7px 'Orbitron',sans-serif", color: '#0a0014', background: '#fde047', borderRadius: 4, padding: '2px 7px' }}>BEST VALUE · SAVE 40%</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div><div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fde047' }}>ANNUAL</div><div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>$59.99/yr · billed yearly</div></div>
-                <div style={{ textAlign: 'right' }}><div style={{ font: "900 16px 'Orbitron',sans-serif", color: '#fff' }}>$5</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>/mo</div></div>
-              </div>
-            </button>
-            <button onClick={() => setPlan('monthly')} style={{ textAlign: 'left', borderRadius: 12, border: `${plan === 'monthly' ? 2 : 1}px solid ${plan === 'monthly' ? '#fde047' : 'rgba(168,85,247,0.35)'}`, background: 'rgba(16,4,30,0.7)', padding: '12px 14px', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div><div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff' }}>MONTHLY</div><div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>Cancel anytime</div></div>
-                <div style={{ textAlign: 'right' }}><div style={{ font: "900 16px 'Orbitron',sans-serif", color: '#fff' }}>$8.99</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>/mo</div></div>
-              </div>
-            </button>
+            {PLAN_ORDER.map(id => {
+              const p = PLANS[id];
+              const active = plan === id;
+              return (
+                <button key={id} onClick={() => setPlan(id)} style={{ textAlign: 'left', position: 'relative', borderRadius: 12, border: `${active ? 2 : 1}px solid ${active ? '#fde047' : 'rgba(168,85,247,0.35)'}`, background: active ? 'rgba(253,224,71,0.08)' : 'rgba(16,4,30,0.7)', padding: '12px 14px', boxShadow: active ? '0 0 18px rgba(253,224,71,.2)' : 'none', cursor: 'pointer' }}>
+                  {p.badge && <span style={{ position: 'absolute', top: -9, left: 14, font: "800 7px 'Orbitron',sans-serif", color: '#0a0014', background: '#fde047', borderRadius: 4, padding: '2px 7px' }}>{p.badge}</span>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ font: "900 13px 'Orbitron',sans-serif", color: active ? '#fde047' : '#fff' }}>{p.label}</div>
+                      <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>{p.sub}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ font: "900 16px 'Orbitron',sans-serif", color: '#fff' }}>{p.price}</div>
+                      <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{p.cadence}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Footer CTA */}
         <div style={{ padding: '12px 20px 26px', flexShrink: 0 }}>
-          <button onClick={startTrial} style={{ width: '100%', height: 54, border: 'none', borderRadius: 13, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 15px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 0 24px rgba(253,224,71,.45)' }}>START 7-DAY FREE TRIAL</button>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 12 }}>
-            {['Restore Purchase', 'Terms', 'Privacy'].map(t => <span key={t} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{t}</span>)}
+          <button onClick={proceed} style={{ width: '100%', height: 54, border: 'none', borderRadius: 13, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 15px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 0 24px rgba(253,224,71,.45)' }}>{ctaLabel}</button>
+          <div style={{ textAlign: 'center', font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 10 }}>
+            {user ? 'Secure checkout via Stripe · cancel anytime' : 'Sign in so your purchase unlocks on any device'}
           </div>
         </div>
       </div>
-
-      {toast && (
-        <div style={{ position: 'absolute', left: '50%', bottom: 96, transform: 'translateX(-50%)', background: 'rgba(20,8,36,0.96)', border: '1px solid rgba(253,224,71,0.4)', borderRadius: 10, padding: '10px 16px', font: "700 10px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.04em', whiteSpace: 'nowrap', zIndex: 10 }}>
-          Payments aren&apos;t wired up yet — coming soon.
-        </div>
-      )}
     </div>
   );
 }

@@ -3,6 +3,9 @@
 [build]
   command = "npm run build:web"
   publish = "dist"
+  # Server-side functions (the Stripe webhook lives here). Reachable at
+  # /.netlify/functions/stripe-webhook — set that as the Stripe endpoint URL.
+  functions = "netlify/functions"
 
 [build.environment]
   # Match the local toolchain; Expo 54 needs a modern Node.

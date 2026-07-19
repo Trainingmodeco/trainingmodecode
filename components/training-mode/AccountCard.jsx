@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { getCurrentUser, onAuthChange, signInWithGoogle, signOut, userProfile } from './data/authClient';
+import { refreshEntitlement, clearEntitlementCache } from './data/entitlements';
 
 // Account card for the Profile screen. Signed out → "Continue with Google";
 // signed in → the athlete's Google identity + sign out. Sign-in is optional —
@@ -28,7 +29,12 @@ export default function AccountCard() {
 
   useEffect(() => {
     let alive = true;
-    const done = (u) => { if (alive) { setUser(u); setReady(true); } };
+    const done = (u) => {
+      if (!alive) return;
+      setUser(u); setReady(true);
+      // Keep the cached Pro entitlement in sync with the account.
+      if (u) refreshEntitlement(); else clearEntitlementCache();
+    };
     getCurrentUser().then(done).catch(() => done(null));
     const unsub = onAuthChange(done);
     // Fail open: never leave the card stuck on its placeholder if the auth
