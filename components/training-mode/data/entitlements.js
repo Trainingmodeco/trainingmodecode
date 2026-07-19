@@ -68,6 +68,15 @@ export function clearEntitlementCache() {
   try { if (typeof localStorage !== 'undefined') localStorage.removeItem(CACHE_KEY); } catch { /* noop */ }
 }
 
+// Whether the account actually holds a paid Pro entitlement — independent of
+// the beta "everyone is Pro" switch. Used to show upsell vs. member state.
+export function hasProEntitlement() {
+  const cache = readJSON(CACHE_KEY);
+  if (cache?.is_pro) return true;
+  const manual = storedPlan();
+  return manual === 'pro' || manual === 'founder';
+}
+
 export function canAccessStage(stageNumber) {
   return isPro() || (stageNumber || 1) <= GATES.freeArcadeStages;
 }
