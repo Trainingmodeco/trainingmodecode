@@ -6,7 +6,7 @@ import { Play, Pause, SkipForward, Check } from 'lucide-react';
 import { C } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
-import { logSetWeight, getLastWeight, defaultWeight } from './data/weightLog';
+import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
 import { loadProfile } from './data/userProfile';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
@@ -65,6 +65,18 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   const [logWeight, setLogWeight] = useState(0);
   const [logSaved, setLogSaved] = useState(false);
 
+  // Design 39 — "get ready" load callout before a weighted exercise's first set.
+  const prevWeight = getLastWeight(exId);   // last logged session (the "last time")
+  const [readyWeight, setReadyWeight] = useState(() => exerciseWeight(ex)?.weight || defaultWeight(weightUnit));
+  const [changeWtOpen, setChangeWtOpen] = useState(false);
+  const readyWeightRef = useRef(readyWeight);
+  const startLiftRef = useRef(null);
+  const wStep = stepFor(weightUnit);
+  useEffect(() => { readyWeightRef.current = readyWeight; }, [readyWeight]);
+  // The working weight is one value shared by get-ready + the rest logger.
+  useEffect(() => { if (logWeight > 0) readyWeightRef.current = logWeight; }, [logWeight]);
+  const waitForStart = (version) => new Promise(res => { startLiftRef.current = { version, res }; });
+
   const versionRef = useRef(0);
   const pausedRef = useRef(false);
   const cadenceRef = useRef(cadenceSec);
@@ -106,8 +118,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     // Arm the rest-time weight logger for weighted lifts: auto-fill from the
     // last logged load (this session or a previous one), else a placeholder.
     if (plan.kind === 'weighted') {
-      const last = getLastWeight(exId);
-      const w = last?.weight || defaultWeight(weightUnit);
+      // Prefer the working weight already set (get-ready or a prior set) so it
+      // carries across sets; else the last logged load, else a placeholder.
+      const w = logWeightRef.current > 0 ? logWeightRef.current : (getLastWeight(exId)?.weight || defaultWeight(weightUnit));
       // Set refs directly too — the last-set path saves before effects flush.
       setLogWeight(w); logWeightRef.current = w;
       setLogSaved(false); logSavedRef.current = false;
@@ -164,15 +177,32 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
         await delay(700);
         finishSet(version);
       } else if (plan.kind === 'weighted') {
+        // Design 39 — a "get ready" load callout gates the FIRST set: show the
+        // load, let the athlete change it, and wait for START — LIFT. Later sets
+        // flow straight through the usual "get into position" countdown.
+        if (set === 1) {
+          setPhase('getready');
+          say(readyWeightRef.current > 0 ? `Load ${readyWeightRef.current}. Get ready. Lift.` : 'Get ready. Lift.');
+          const started = await waitForStart(version);
+          if (!started || versionRef.current !== version) return;
+          // Seed the working weight so the rest logger pre-fills what was lifted.
+          setLogWeight(readyWeightRef.current); logWeightRef.current = readyWeightRef.current;
+          setPhase('active');
+          setDisplay(0);
+          let a30 = false;
+          const okW = await waitSec(version, plan.windowSec, (r) => { setDisplay(r); if (r === 30 && !a30) { a30 = true; say('30 seconds.'); } });
+          if (!okW) return;
+          finishSet(version);
+          return;
+        }
         say(`${ex.name}. Set ${set} of ${totalSets}. ${plan.reps} reps. ${sayWindow(plan.windowSec)} to complete, with ${sayWindow(restMax)} rest. Get into position.`);
         setPhase('position');
         await delay(2800);
         if (versionRef.current !== version) return;
         const okPos = await waitSec(version, 5, (r) => setDisplay(r));
         if (!okPos) return;
-        // Announce the load from the athlete's logged weight (38a).
-        const lastW = getLastWeight(exId);
-        say(lastW ? `Load ${lastW.weight}. Get ready. Lift.` : 'Get ready. Lift.');
+        // Announce the load from the working weight (get-ready / prior set).
+        say(readyWeightRef.current > 0 ? `Load ${readyWeightRef.current}. Get ready. Lift.` : 'Get ready. Lift.');
         await delay(1200);
         if (versionRef.current !== version) return;
         setPhase('active');
@@ -210,7 +240,12 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     };
 
     run();
-    return () => { invalidate(); cancelSpeech(); };
+    return () => {
+      invalidate(); cancelSpeech();
+      // Release a pending get-ready gate so the async runner can unwind.
+      const s = startLiftRef.current;
+      if (s) { startLiftRef.current = null; s.res(false); }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [set, exerciseIdx]);
 
@@ -252,6 +287,13 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     cancelSpeech();
     onBack();
   };
+
+  // Design 39 — START — LIFT dismisses the get-ready gate.
+  const handleStartLift = () => {
+    const s = startLiftRef.current;
+    if (s) { startLiftRef.current = null; s.res(true); }
+  };
+  const bumpReady = (d) => { setChangeWtOpen(true); setReadyWeight(w => Math.max(wStep, w + d)); };
 
   const progress = exerciseIdx / exercises.length;
   const kindLabel = plan.kind === 'reps' ? `${plan.reps} REPS · ON THE COUNT`
@@ -305,7 +347,22 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: VIOLET, letterSpacing: '0.14em' }}>{ex.muscle} · {kindLabel}</div>
             </div>
 
-            {phase === 'position' ? (
+            {phase === 'getready' ? (
+              <div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#f97316', letterSpacing: '0.22em', marginBottom: 8 }}>NEXT UP</div>
+                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 13, color: '#c4a4d8', marginBottom: 14 }}>{totalSets} sets · {plan.reps} reps</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: GOLD, letterSpacing: '0.2em', marginBottom: 2 }}>LOAD</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: changeWtOpen ? 14 : 0 }}>
+                  {changeWtOpen && <button onClick={() => bumpReady(-wStep)} aria-label="Less weight" style={{ width: 40, height: 40, borderRadius: 10, cursor: 'pointer', background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.4)', color: GOLD, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>−</button>}
+                  <div style={{ lineHeight: 1 }}>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 60, color: GOLD, textShadow: '0 0 24px rgba(253,224,71,0.55)' }}>{readyWeight}</span>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', marginLeft: 6 }}>{weightUnit}</span>
+                  </div>
+                  {changeWtOpen && <button onClick={() => bumpReady(wStep)} aria-label="More weight" style={{ width: 40, height: 40, borderRadius: 10, cursor: 'pointer', background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.4)', color: GOLD, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>＋</button>}
+                </div>
+                {prevWeight && <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#9a90b8', marginTop: 8 }}>last time: {prevWeight.weight} {weightUnit}</div>}
+              </div>
+            ) : phase === 'position' ? (
               <div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#f97316', letterSpacing: '0.18em', marginBottom: 6 }}>GET INTO POSITION</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: '#f97316', lineHeight: 1, textShadow: '0 0 18px rgba(249,115,22,0.5)' }}>{display || 5}</div>
@@ -357,8 +414,15 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
               {announcer}
             </div>
 
-            {/* Controls — up in the centre block */}
-            {controls}
+            {/* Controls — get-ready shows CHANGE WT + START — LIFT (design 39) */}
+            {phase === 'getready' ? (
+              <div style={{ flexShrink: 0, display: 'flex', gap: 8, width: '100%', maxWidth: 360 }}>
+                <button onClick={() => setChangeWtOpen(o => !o)} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: changeWtOpen ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${changeWtOpen ? GOLD : 'rgba(168,85,247,0.4)'}`, color: changeWtOpen ? GOLD : '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.08em' }}>CHANGE WT</button>
+                <button onClick={handleStartLift} style={{ flex: 1.6, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
+                  <Play size={15}/> START — LIFT
+                </button>
+              </div>
+            ) : controls}
           </div>
 
           {/* Cadence slider (rep-counted sets only) */}
