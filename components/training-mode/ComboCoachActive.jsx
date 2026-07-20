@@ -15,7 +15,7 @@ import { isRushAt } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
-import { disciplineSlug } from './data/arsenal';
+import { disciplineSlug, countStrikes } from './data/arsenal';
 
 // 1.3 — defense calls mixed between combos (shown in violet). Check is a
 // kick-sport defense; Sprawl is MMA's takedown answer.
@@ -102,7 +102,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     mode: cfg.mode,
     arsenalOnly: cfg.arsenalOnly,
     arsenal: cfg.arsenal,
-  }), [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal]);
+    customCombos: cfg.customCombos,
+  }), [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal, cfg.customCombos]);
   const comboIndexRef = useRef(0);
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? 'round');
@@ -144,6 +145,12 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const isSpeakingCombo = useRef(false);
   const skipInitialIntro = useRef(!!initialPaused);
   const streakRef = useRef(0);
+  // 1.5 — session tallies: total strikes called across all combos delivered,
+  // and the best streak reached. Refs so they survive re-renders; snapshotted
+  // into the summary at session end.
+  const totalStrikesRef = useRef(0);
+  const peakStreakRef = useRef(0);
+  const sessionStats = () => ({ strikes: totalStrikesRef.current, peakStreak: peakStreakRef.current });
 
   const phaseRef     = useRef('round');
   const roundIdxRef  = useRef(0);
@@ -343,7 +350,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         setTimeout(() => {
           if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'));
         }, 400);
-        setTimeout(() => { stopVoiceSession(); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult); }, 1500);
+        setTimeout(() => { stopVoiceSession(); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult, sessionStats()); }, 1500);
       } else {
         if (!roundEndBellPlayedRef.current) {
           roundEndBellPlayedRef.current = true;
@@ -402,6 +409,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         setCurrentCombo(next);
         setCallTick(t => t + 1);
         streakRef.current++;
+        peakStreakRef.current = Math.max(peakStreakRef.current, streakRef.current);
+        totalStrikesRef.current += countStrikes(next);
         setComboStreak(streakRef.current);
         await delay(500);
         if (!active || pausedRef.current) break;
@@ -471,7 +480,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       setRoundIdx(i => i + 1);
     } else {
       const integrityResult = integrity.finalize();
-      onEnd(roundIdx + 1, totalRounds, integrityResult);
+      onEnd(roundIdx + 1, totalRounds, integrityResult, sessionStats());
     }
   };
 
@@ -490,7 +499,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     roundVersion.current++;
     const completed = Math.min(phase === 'rest' ? roundIdx + 1 : roundIdx, totalRounds);
     const integrityResult = integrity.finalize();
-    onEnd(completed, totalRounds, integrityResult);
+    onEnd(completed, totalRounds, integrityResult, sessionStats());
   };
 
   const isFinalRound = roundIdx + 1 >= totalRounds;

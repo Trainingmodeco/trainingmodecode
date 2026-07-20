@@ -17,6 +17,8 @@ import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
 import { isBeginnerLearner } from './data/userProfile';
+import { loadCombos, comboText } from './data/customCombos';
+import ComboBuilderSheet from './ComboBuilderSheet';
 
 const GOLD = C.gold;
 const VIOLET = C.violet;
@@ -89,6 +91,24 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
     rush: { on: false, pattern: 'endRound' }, warmupMin: loadWarmup('comboCoach'),
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
+
+  // 1.3b — saved custom combos for this discipline; select any to drill them
+  // instead of the generated pool.
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [savedCombos, setSavedCombos] = useState(() => loadCombos(discipline));
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const refreshCombos = () => {
+    const list = loadCombos(discipline);
+    setSavedCombos(list);
+    // Drop any selection that no longer exists (e.g. deleted in the builder).
+    setSelectedIds(prev => new Set([...prev].filter(id => list.some(c => c.id === id))));
+  };
+  const toggleCombo = (id) => setSelectedIds(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const selectedCombos = savedCombos.filter(c => selectedIds.has(c.id));
 
   const totalEst = Math.round((cfg.rounds * (cfg.roundMin * 60 + cfg.restSec)) / 60);
 
@@ -164,6 +184,38 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           </div>
         </div>
 
+        {/* 1.3b — My Combos: build custom combos and pick which to drill. */}
+        <div style={{ marginBottom: 9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+            <SectionLabel>MY COMBOS{selectedCombos.length > 0 ? ` · DRILLING ${selectedCombos.length}` : ''}</SectionLabel>
+            <button onClick={() => setBuilderOpen(true)} style={{
+              display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 7, cursor: 'pointer',
+              background: 'rgba(168,85,247,0.16)', border: '1px solid rgba(168,85,247,0.5)',
+              color: '#e6d4ff', font: "800 8.5px 'Orbitron',sans-serif", letterSpacing: '0.04em',
+            }}>＋ BUILD</button>
+          </div>
+          {savedCombos.length === 0 ? (
+            <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#8b83a8', lineHeight: 1.3 }}>
+              Build your own combos to drill exactly what you want. Otherwise Combo Coach picks for you.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {savedCombos.map(combo => {
+                const on = selectedIds.has(combo.id);
+                return (
+                  <button key={combo.id} onClick={() => toggleCombo(combo.id)} title={comboText(combo)} style={{
+                    maxWidth: '100%', padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
+                    background: on ? VIOLET : 'rgba(16,4,30,0.8)',
+                    border: on ? 'none' : '1px solid rgba(168,85,247,0.35)',
+                    color: on ? '#0a0014' : '#d9d1ef', font: "800 9.5px 'Orbitron',sans-serif", letterSpacing: '0.02em',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{on ? '✓ ' : ''}{combo.name.toUpperCase()}</button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Rush mode (opens the flame popup) */}
         <div style={{ marginBottom: 9 }}>
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
@@ -182,7 +234,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         {/* Start */}
         <div data-guide="cc-start">
         <TrainingCTA
-          variant="gold" label="START COMBOS" icon="⚡" height={48}
+          variant="gold" label={selectedCombos.length > 0 ? 'DRILL MY COMBOS' : 'START COMBOS'} icon="⚡" height={48}
           style={{ width: '100%', fontSize: 13, letterSpacing: '0.1em' }}
           onClick={async () => {
             setVoiceGender(profile?.voiceCoach || 'FEMALE');
@@ -195,12 +247,21 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
               voiceOn: true, rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
               encouragement: profile?.encouragement || 'normal',
               arsenalOnly, arsenal, warmupMin: cfg.warmupMin,
+              customCombos: selectedCombos.map(comboText),
             });
           }}
         />
         </div>
 
       </div>
+      {builderOpen && (
+        <ComboBuilderSheet
+          discipline={discipline}
+          beginner={beginner}
+          onChange={refreshCombos}
+          onClose={() => { refreshCombos(); setBuilderOpen(false); }}
+        />
+      )}
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.combo_coach_setup} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );

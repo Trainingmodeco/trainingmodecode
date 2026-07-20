@@ -6,7 +6,7 @@ import { calculatePartialXp } from './utils/missionIntegrity';
 // design-24f screen, with a round-by-round recap as the extra card.
 const GOLD = '#fde047';
 
-export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, onAgain, onBack, onHome }) {
+export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome }) {
   const completed = typeof completedRounds === 'number' ? completedRounds : rounds.length;
   const totalPlanned = cfg.rounds || rounds.length;
   const stoppedEarly = completed < totalPlanned;
@@ -17,7 +17,22 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   const xp = integrityResult?.awardXp
     ? calculatePartialXp(baseXp, integrityResult.validCompletedUnits, integrityResult.totalRequiredUnits)
     : (integrityResult ? 0 : baseXp);
-  const modeName = cfg.mode === 'Combo Coach' ? 'Combo Coach' : 'Fight Focus';
+  const isCombo = cfg.mode === 'Combo Coach';
+  const modeName = isCombo ? 'Combo Coach' : 'Fight Focus';
+
+  // 1.5 — Combo Coach knows how many strikes it called and the best streak, so
+  // it shows ROUNDS · STRIKES · STREAK. Fight Focus has no combo call-outs, so
+  // it keeps ROUNDS · MINUTES.
+  const statRow = isCombo
+    ? [
+        { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
+        { value: String(fightStats?.strikes ?? 0), label: 'STRIKES', color: '#fff' },
+        { value: `${fightStats?.peakStreak ?? 0}`, label: 'BEST STREAK', color: '#fff' },
+      ]
+    : [
+        { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
+        { value: String(totalMin), label: 'MINUTES', color: '#fff' },
+      ];
 
   // LT-5 — one tight line per round, capped, so a 12-round session can't push
   // the outcome screen past a single viewport.
@@ -54,12 +69,9 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       xp={xp}
       heroImage="/static/trophies/mission-complete-fight.webp"
       integrityResult={integrityResult}
-      stats={[
-        { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
-        { value: String(totalMin), label: 'MINUTES', color: '#fff' },
-      ]}
+      stats={statRow}
       extra={recap}
-      shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned }}
+      shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
       actions={[
         { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary' },
         { label: 'CHANGE DISCIPLINE', onClick: onBack, kind: 'secondary' },

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, loadStats, getLevel } from './data/userStats';
+import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession } from './voiceCoach';
@@ -363,18 +364,23 @@ export default function App() {
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
       addFightFocusSession(done, total);
+      recordFightSession({ rounds: done }); // 1.5 lifetime totals (no combo strikes here)
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: 'fightFocus', rounds: done });
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult });
       routeAfterXp(beforeLevel, 'summary');
     },
     goComboActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
-    goComboEnd:    (roundsDone, totalRounds, integrityResult) => {
+    goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
       addComboCoachSession(done, total);
+      // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
+      // lifetime totals and hand the session numbers to the summary screen.
+      const cs = fightSessionStats || {};
+      recordFightSession({ rounds: done, strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0 });
       tryCompleteDailyMission('comboCoach');
       trackEvent('session_complete', { mode: 'comboCoach', rounds: done });
       const comboCfgSnapshot = comboCfg;
@@ -394,6 +400,7 @@ export default function App() {
         completedRounds: done,
         sessionSource: 'comboCoach',
         integrityResult,
+        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0 },
       });
       routeAfterXp(beforeLevel, 'summary');
     },

@@ -42,6 +42,25 @@ export function strikesFrom(name) {
   return found;
 }
 
+// Count how many strikes a combo string contains (1.5 stats). Unlike
+// strikesFrom, which reports which DISTINCT strikes appear (for arsenal
+// gating), this counts every occurrence — "Jab Jab Cross" is 3, not 2 —
+// and matches compound strikes first so "Low Kick" isn't double-counted as
+// a "Kick". Non-strike movements (slip/roll/pivot) count as 0.
+export function countStrikes(name) {
+  let work = ` ${String(name || '').toLowerCase()} `;
+  let n = 0;
+  for (const tok of STRIKE_TOKENS) {
+    const t = tok.toLowerCase();
+    let idx;
+    while ((idx = work.indexOf(t)) !== -1) {
+      n++;
+      work = work.slice(0, idx) + ' ' + work.slice(idx + t.length);
+    }
+  }
+  return n;
+}
+
 function loadAll() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
 }

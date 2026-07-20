@@ -286,7 +286,13 @@ function buildTechnicalComboList(discipline, difficulty) {
   return out;
 }
 
-export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode, arsenalOnly, arsenal }) {
+export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode, arsenalOnly, arsenal, customCombos }) {
+  // 1.3b — if the fighter picked their own saved combos, drill exactly those
+  // (shuffled so back-to-back rounds feel fresh). Overrides difficulty/mode
+  // selection since the athlete chose the content directly.
+  if (Array.isArray(customCombos) && customCombos.length > 0) {
+    return shuffle([...customCombos]);
+  }
   // 1.2 — beginners drill only strikes they've learned in Practice (never empty).
   const gate = (list) => (arsenalOnly ? filterCombosToArsenal(list, arsenal) : list);
   if (String(mode).toLowerCase() === 'technical') {

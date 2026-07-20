@@ -1,5 +1,9 @@
 export const PUBLIC_SITE_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://trainingmode.co';
 export const BETA_APP_URL = PUBLIC_SITE_URL;
+// Privacy policy is a static page shipped with the app build (public/privacy.html),
+// so it lives on the app's own domain. Absolute URL so it also satisfies the
+// Google OAuth consent screen, which needs a stable public link.
+export const PRIVACY_URL = 'https://apptrainingmode.com/privacy.html';
 export const WAITLIST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfcnxvfMVlaPoUQZJ3MkRA-Fgo_6QQIzNC40CLPOTckMuZUsQ/viewform?usp=header';
 export const BETA_FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfS54mSuzUJPFGbCDj6zfYHWVTKv1-NVI90Nl-I-BGOmq2lNg/viewform?usp=header';
 

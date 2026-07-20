@@ -15,6 +15,7 @@ import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userSta
 import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
+import { PRIVACY_URL, openExternalUrl } from './data/links';
 
 
 function SectionLabel({ text }) {
@@ -190,6 +191,19 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
                 transition: 'all 0.3s ease',
               }}>
                 {saved ? 'SAVED' : 'SAVE AUDIO SETTINGS'}
+              </button>
+            </div>
+
+            {/* Legal */}
+            <div style={{ paddingTop: 6 }}>
+              <SectionLabel text="LEGAL"/>
+              <button onClick={() => openExternalUrl(PRIVACY_URL)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 14px', borderRadius: 12, cursor: 'pointer',
+                background: 'rgba(8,2,18,0.6)', border: '1px solid rgba(168,85,247,0.25)',
+              }}>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: '#fff', letterSpacing: '0.04em' }}>PRIVACY POLICY</span>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#b06aff' }}>↗</span>
               </button>
             </div>
           </div>

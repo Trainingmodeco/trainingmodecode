@@ -240,14 +240,37 @@ HOW MUCH TO MAKE (guidance):
       YOUR ARSENAL chip removed (Basic Mode chip is enough); setup page keeps
       ~15% clear space at the bottom. Verified live: SLIP! violet auto-fired
       in a Normal session with no toggle.
-- [ ] 1.3b Custom combo builder with saved combo chips (the bigger half —
-      still to do).
+- [x] 1.3b Custom combo builder with saved combo chips. SHIPPED (Jul 20).
+      → data/customCombos.js persists combos per discipline (tm_custom_combos,
+        capped 24). Palette = the discipline's full strike vocabulary for
+        experienced fighters, or the effective arsenal for beginners (same gate
+        as Basic Mode). ComboBuilderSheet.jsx: tap strikes to chain them (each
+        appended chip removable), name + SAVE, saved list with delete. A "MY
+        COMBOS" section on the Combo Coach setup shows saved combos as toggle
+        chips + a "＋ BUILD" button; selecting ≥1 flips the CTA to "DRILL MY
+        COMBOS" and generateComboCoachSession returns exactly those (shuffled),
+        overriding the generated pool. Verified live: built "Jab Cross Hook",
+        saved + persisted, selected, drilled — every call-out was that combo,
+        nothing from the pool.
 - [ ] 1.4 Strike counter pipeline: accelerometer sampling during WORK phases,
       high-pass filter, magnitude peak detection with ~200ms refractory
       window, adaptive threshold. One shared module used by every Fight Mode
       feature. Live "STRIKES" HUD counter + placement hint sheet.
-- [ ] 1.5 Fight Mode stats: STRIKES THROWN · ROUNDS · BEST STREAK row on
-      Mission Complete; lifetime totals persisted for trophies/ghosts.
+- [x] 1.5 Fight Mode stats: STRIKES · ROUNDS · BEST STREAK row on Mission
+      Complete; lifetime totals persisted for trophies/ghosts. SHIPPED (Jul 20).
+      → arsenal.countStrikes() counts strike occurrences in a combo (longest-
+        match-first, so "Low Kick" ≠ 2 kicks). ComboCoachActive tallies total
+        strikes called + peak streak, handed to the summary via onEnd. Combo
+        Coach summary shows ROUNDS · STRIKES · BEST STREAK (4-up with XP);
+        Fight Focus keeps ROUNDS · MINUTES (no combo call-outs to count).
+        data/fightStats.js persists lifetime rounds/strikes/bestStreak/sessions
+        (tm_fight_stats). Verified: "Jab Cross Hook" ×5 → STRIKES 15, BEST
+        STREAK 5, and lifetime totals persisted.
+      ⚠ HONEST LABEL: "STRIKES" here = strikes the coach CALLED and you
+        shadowboxed, not motion-verified throws. When 1.4 (accelerometer)
+        lands it replaces this with verified thrown strikes and the label can
+        become "STRIKES THROWN". The plumbing (countStrikes + fightStats) is
+        already the right shape for that swap.
 - [ ] 1.6 Anti-cheat wiring: strike counter feeds the integrity evaluation
       (strikes verify effort; low count = soft flag only; stationary device
       falls back to plain motion gate).

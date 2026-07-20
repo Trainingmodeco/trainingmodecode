@@ -220,6 +220,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
           cfg={session.cfg}
           completedRounds={session.completedRounds}
           integrityResult={session.integrityResult}
+          fightStats={session.fightStats}
           onAgain={handleRetry}
           onBack={goFightHub}
           onHome={goHome}
