@@ -10,6 +10,15 @@ const GOLD = '#fde047';
 const VIOLET = '#b06aff';
 const TEAL = '#2dd4bf';
 
+// The STORY card is the designed poster — wordmark, characters, QR, mode
+// cards and footer are all baked into the art. We only fill the empty panel
+// it leaves at the bottom. Bounds measured off the asset itself (675x1200)
+// and kept normalised so a higher-resolution re-export drops straight in.
+const STORY_TEMPLATE = '/social/training-mode-share-card-template.webp';
+const STORY_BOX = { left: 0.0474, right: 0.9526, top: 0.6342, bottom: 0.9300 };
+// The trophy sits in the panel's top-right; nothing centred gets near it, but
+// keep it in mind before widening anything on the first line.
+
 export const FORMATS = {
   story: { w: 1080, h: 1920, label: 'STORY', sub: '9:16 · IG / TikTok' },
   post: { w: 1080, h: 1080, label: 'POST', sub: '1:1 · Feed' },
@@ -205,6 +214,63 @@ function drawVerified(ctx, cx, y, scale = 1) {
   });
 }
 
+// Fill the poster's empty panel. Everything else on the STORY card is artwork,
+// so this is the only place session data appears.
+function drawStoryPanel(ctx, W, H, data) {
+  const box = {
+    x: STORY_BOX.left * W,
+    y: STORY_BOX.top * H,
+    w: (STORY_BOX.right - STORY_BOX.left) * W,
+    h: (STORY_BOX.bottom - STORY_BOX.top) * H,
+  };
+  const cx = box.x + box.w / 2;
+  // Tuned so the stack sits centred in the panel rather than riding the top
+  // edge — roughly equal air above the headline and below the shield.
+  const pad = box.h * 0.10;
+  let y = box.y + pad;
+
+  // Headline
+  y += 44;
+  text(ctx, (data.eyebrow || 'MISSION COMPLETE').toUpperCase(), cx, y, {
+    font: '900 44px Orbitron, sans-serif', color: GOLD, letterSpacing: '3px', shadow: 'rgba(253,224,71,0.55)',
+  });
+
+  // What was trained
+  if (data.subtitle) {
+    y += 40;
+    text(ctx, data.subtitle, cx, y, { font: '600 28px Rajdhani, sans-serif', color: '#c4a4d8' });
+  }
+
+  y += 42;
+  text(ctx, `LEVEL ${data.level ?? 1} · ${(data.tierLabel || 'FIGHTER').toUpperCase()}`, cx, y, {
+    font: '900 30px Orbitron, sans-serif', color: '#fff', letterSpacing: '2px',
+  });
+
+  // XP — the number is the hero of this panel
+  y += 86;
+  text(ctx, `+${data.xp ?? 0}`, cx, y, {
+    font: '900 84px Orbitron, sans-serif', color: GOLD, shadow: 'rgba(253,224,71,0.5)',
+  });
+  y += 30;
+  text(ctx, 'XP EARNED', cx, y, { font: '700 22px Orbitron, sans-serif', color: '#facc15', letterSpacing: '6px' });
+
+  // Stats row, sized off the panel so it stays inside the frame
+  y += 26;
+  const gap = 18;
+  const pillW = Math.min(280, (box.w - gap * 2) / 3);
+  const pillH = 100;
+  const rowW = pillW * 3 + gap * 2;
+  let px = cx - rowW / 2;
+  drawStatPill(ctx, px, y, pillW, pillH, String(data.level ?? 1), 'LEVEL');
+  px += pillW + gap;
+  drawStatPill(ctx, px, y, pillW, pillH, `${data.streak ?? 0}`, 'DAY STREAK');
+  px += pillW + gap;
+  drawStatPill(ctx, px, y, pillW, pillH, String(data.sessions ?? 0), 'SESSIONS');
+  y += pillH + 28;
+
+  if (data.verified) drawVerified(ctx, cx, y, 0.85);
+}
+
 /**
  * Render the share card. Returns a Blob (image/png).
  * data: { eyebrow, title, subtitle, xp, level, tierLabel, tierImg, streak, sessions, verified }
@@ -222,6 +288,17 @@ export async function renderShareCard({ format = 'story', data = {} }) {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d');
+
+  // STORY rides the designed poster. If the art ever fails to load we fall
+  // through to the generated layout rather than shipping a blank card.
+  if (story) {
+    const template = await loadImage(STORY_TEMPLATE);
+    if (template) {
+      ctx.drawImage(template, 0, 0, w, h);
+      drawStoryPanel(ctx, w, h, data);
+      return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    }
+  }
 
   drawBackground(ctx, w, h);
 
