@@ -18,21 +18,20 @@ ship. Nothing here is built yet.
 ## LIVE-TESTING FIXES (from the user's real-device testing — build in order,
 ## one at a time, BEFORE resuming the phases below)
 
-- [ ] LT-1 AUDIO MIX — voice cues must sit clearly on top of music.
-      · Two channels: CUES (voice/bells/beeps) 90% default · MUSIC 55%.
-      · Hard ducking: music → ~20% while any cue plays (<50ms attack,
-        ~400ms recovery). Bells/beeps duck too.
-      · Speaker icon on every ring-timer screen → compact overlay, two
-        sliders (🔊 VOICE / 🎵 MUSIC), adjustable mid-session without
-        pausing, auto-dismisses after 3s, persists as new defaults.
-      · Setup screens: replace voice on/off with an AUDIO row showing both
-        levels; one-time "Voice cues are off" hint if VOICE = 0.
-      ⚠ CONSTRAINT FOUND IN CODE: the app has a musicVolume setting but NO
-        in-app music player (only asset = the bell). Live-testing music was
-        the phone's own (Spotify etc.) — a web PWA cannot duck another
-        app's audio. Plan: max/boost cue gain + the mixer UI now; true
-        ducking requires adding an in-app training-music player (decide:
-        add music as a feature, or reframe MUSIC slider until native).
+- [ ] LT-1 AUDIO MIX — **CUE-BOOST ONLY for now** (user decision Jul 20).
+      A web PWA cannot duck another app's audio (the music burying cues in
+      testing was the phone's own Spotify/Apple Music), so this pass makes
+      the app's own voice as loud and clear as possible:
+      · Raise cue gain: voice/bells/beeps at 90–100% of master, boosted
+        over the current mix; ensure nothing else competes.
+      · Speaker icon on every ring-timer screen → compact overlay with a
+        🔊 VOICE slider (MUSIC slider hidden until in-app music exists),
+        adjustable mid-session WITHOUT pausing, auto-dismisses after 3s,
+        persists as the new default.
+      · Setup screens: replace the voice on/off toggle with an AUDIO row
+        showing the cue level; one-time "Voice cues are off" hint if 0.
+      · Practical note for users: phone music should be turned down by the
+        user — we can't touch it from the web.
 - [ ] LT-2 RUSH MODE VOICE — stop repeating "rush mode go".
       · Activation once: "RUSH MODE — GO!" + riser sting + orange ring.
       · Then a shuffled motivational pool (~every 8–10s, no immediate
@@ -73,6 +72,38 @@ ship. Nothing here is built yet.
         Deep links can OPEN those apps but can't attach the image from
         web — full Stories/TikTok integration lands with the native
         wrapper. Fallbacks above cover it meanwhile.
+- [ ] LT-5 OUTCOME SCREENS TOO TALL — Mission Complete / SESSION STOPPED /
+      GOOD EFFORT and every other outcome screen must fit WITHOUT
+      scrolling, with ~10–15% clear space at the bottom.
+      · Crunch the stack: smaller badge art, tighter section gaps, merge
+        or shrink the stat blocks (VALID ROUNDS / XP / LEADERBOARD and
+        ROUNDS / MINUTES overlap conceptually), condense Round Recap.
+      · Move SHARE higher — directly above or below YOUR PROGRESS rather
+        than buried at the bottom.
+      · Applies to: Fit/Quick Mission/Combat Conditioning completes,
+        Fight Focus SessionSummary, arcade stage clear.
+
+---
+
+## LATER — IN-APP TRAINING MUSIC (Pro perk; unlocks true ducking)
+User decision Jul 20: build this AFTER the LT queue and monetization.
+Once the app plays its own music, real hard-ducking (music → 20% under
+every cue) becomes possible and the 🎵 MUSIC slider returns.
+- [ ] Music player + per-phase playlists (warm-up / work / rush / rest)
+- [ ] Restore MUSIC slider in the mixer + hard ducking (<50ms attack,
+      ~400ms release), bells/beeps duck too
+- [ ] Gate music behind Pro (free tier keeps cues only)
+HOW MUCH TO MAKE (guidance):
+  · Minimum viable: 6 seamless loops × 2–3 min ≈ 15 min unique audio.
+  · Good launch: 10–12 tracks ≈ 30 min — enough that a 12-min session
+    never repeats and back-to-back sessions feel fresh.
+  · Cover 4 moods: WARM-UP (calm build) · WORK (driving, steady BPM ~140
+    –150 to match cadence) · RUSH (aggressive, ~160+) · REST (ambient).
+    2–3 tracks per mood.
+  · Encode 96–128 kbps mp3/m4a (~1.5–3 MB per track). LAZY-LOAD/stream —
+    do NOT bundle into dist (it's already ~69 MB).
+  · Must be royalty-free/owned with commercial rights (a paid app makes
+    licensing non-negotiable).
 
 ---
 
