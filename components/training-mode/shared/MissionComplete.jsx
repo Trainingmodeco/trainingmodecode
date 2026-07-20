@@ -73,10 +73,16 @@ export default function MissionComplete({
   cardioResult,
   shareData,
   heroImage,                // optional badge art (replaces the trophy medal)
+  heroImagePartial,         // optional badge art for a stopped/partial session
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
   const partial = variant === 'partial';
   const label = eyebrow || (partial ? 'GOOD EFFORT' : 'MISSION COMPLETE');
+  // The mode badges literally read "MISSION COMPLETE", so showing one over a
+  // stopped session contradicts the GOOD EFFORT headline. Fall back to the
+  // medal, which already has a partial treatment (violet, no rays, no pulse),
+  // unless a dedicated partial badge is supplied.
+  const hero = partial ? (heroImagePartial || null) : heroImage;
   const displayXp = useCountUp(xp);
 
   const [stats0] = useState(() => loadStats());
@@ -106,12 +112,12 @@ export default function MissionComplete({
 
           {/* Medal hero */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 6 }}>
-            {heroImage ? (
+            {hero ? (
               // Mode badge art (transparent PNG/WebP over the dark bg). Kept
               // compact so it never dominates the screen; a soft accent glow
               // grounds it and a gentle pop plays it in.
               <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
-                <SafeImage src={heroImage} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+                <SafeImage src={hero} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>

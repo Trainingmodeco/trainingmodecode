@@ -11,6 +11,7 @@ import { summarizeCardioAddon } from './data/cardioAddon';
 import AddCardioSheet from './AddCardioSheet';
 import TrainingCTA from './shared/TrainingCTA';
 import AudioLevelRow from './shared/AudioLevelRow';
+import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
@@ -113,6 +114,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
   const cadenceMs = CADENCE_PRESETS.moderate;
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
+  const [warmupMin, setWarmupMin] = useState(() => loadWarmup('combatConditioning'));
 
   const duration = Math.round((rounds * (workSec + restSec)) / 60);
   const format = 'Auto';
@@ -123,7 +125,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
     onStart({
       style, duration, difficulty, equipment: EQUIPMENT_TIER[equipment] || 'Any', format,
       voiceOn: true, formPreviewOn: true, cadenceCount: true, cadencePreset, cadenceMs, cardioAddon,
-      rounds, workSec, restSec, focus, blend: FOCUS_BLEND[focus] ?? 50,
+      rounds, workSec, restSec, focus, blend: FOCUS_BLEND[focus] ?? 50, warmupMin,
     });
   };
 
@@ -248,6 +250,11 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           ) : (
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: GOLD, flexShrink: 0 }}>›</span>
           )}
+        </div>
+
+        {/* LT-3 — optional warm-up before round 1. */}
+        <div style={{ marginBottom: 10 }}>
+          <WarmupRow feature="combatConditioning" value={warmupMin} onChange={setWarmupMin}/>
         </div>
 
         {/* LT-1 — cue level before you start (also adjustable mid-round). */}

@@ -13,6 +13,7 @@ import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import AudioLevelRow from './shared/AudioLevelRow';
+import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
 import { isBeginnerLearner } from './data/userProfile';
@@ -85,7 +86,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
   const arsenalOnly = beginner;
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
-    rush: { on: false, pattern: 'endRound' },
+    rush: { on: false, pattern: 'endRound' }, warmupMin: loadWarmup('comboCoach'),
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
 
@@ -168,6 +169,11 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
         </div>
 
+        {/* LT-3 — optional warm-up before round 1. */}
+        <div style={{ marginBottom: 9 }}>
+          <WarmupRow feature="comboCoach" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
+        </div>
+
         {/* LT-1 — cue level before you start (also adjustable mid-round). */}
         <div style={{ marginBottom: 10 }}>
           <AudioLevelRow/>
@@ -188,7 +194,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
               rounds: cfg.rounds, roundMin: cfg.roundMin, restSec: cfg.restSec,
               voiceOn: true, rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
               encouragement: profile?.encouragement || 'normal',
-              arsenalOnly, arsenal,
+              arsenalOnly, arsenal, warmupMin: cfg.warmupMin,
             });
           }}
         />

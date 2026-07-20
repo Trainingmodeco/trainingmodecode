@@ -14,6 +14,7 @@ import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
 import AudioLevelRow from './shared/AudioLevelRow';
+import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 
 const GOLD = C.gold;
 const BLUE = '#4f8cff';
@@ -68,6 +69,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
     roundMin: 3, restSec: 60, voiceOn: true,
     rush: { on: false, pattern: 'endRound' },
     encouragement: profile?.encouragement || 'normal',
+    warmupMin: loadWarmup('fightFocus'),
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
 
@@ -127,6 +129,11 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
         </div>
 
+        {/* LT-3 — optional warm-up before round 1. */}
+        <div style={{ marginBottom: 9 }}>
+          <WarmupRow feature="fightFocus" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
+        </div>
+
         {/* LT-1 — cue level before you start (also adjustable mid-round). */}
         <div style={{ marginBottom: 14 }}>
           <AudioLevelRow/>
@@ -145,6 +152,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
               roundMin: cfg.roundMin, restSec: cfg.restSec, voiceOn: true,
               rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
               encouragement: cfg.encouragement,
+              warmupMin: cfg.warmupMin,
             });
           }}
         />

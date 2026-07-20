@@ -23,6 +23,7 @@ import QuickMissionActive from './QuickMissionActive';
 import QuickMissionComplete from './QuickMissionComplete';
 import CombatConditioningSetup from './CombatConditioningSetup';
 import CombatConditioningActive from './CombatConditioningActive';
+import WithWarmup from './shared/WithWarmup';
 import CombatConditioningComplete from './CombatConditioningComplete';
 import CardioFinisherPlayer from './CardioFinisherPlayer';
 import Profile from './Profile';
@@ -200,7 +201,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'timer' && cfg) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <FightFocusTimer discipline={disc} cfg={cfg} onEnd={(rounds, c, completed, integrityResult) => goSummary(rounds, c, completed, integrityResult)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title="FIGHT FOCUS">
+          <FightFocusTimer discipline={disc} cfg={cfg} onEnd={(rounds, c, completed, integrityResult) => goSummary(rounds, c, completed, integrityResult)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        </WithWarmup>
       </WithNav>
     );
   }
@@ -234,7 +237,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'combo_active' && comboCfg) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <ComboCoachActive discipline={disc} cfg={comboCfg} onEnd={goComboEnd} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <WithWarmup minutes={comboCfg.warmupMin} enabled={!isResuming} title="COMBO COACH">
+          <ComboCoachActive discipline={disc} cfg={comboCfg} onEnd={goComboEnd} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        </WithWarmup>
       </WithNav>
     );
   }
@@ -321,7 +326,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'cc_active' && ccMission) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <CombatConditioningActive mission={ccMission} profile={profile} onEnd={goCombatCondComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <WithWarmup minutes={ccMission.warmupMin} enabled={!isResuming} title="COMBAT CONDITIONING">
+          <CombatConditioningActive mission={ccMission} profile={profile} onEnd={goCombatCondComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        </WithWarmup>
       </WithNav>
     );
   }

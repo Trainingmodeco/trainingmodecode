@@ -76,7 +76,7 @@ ship. Nothing here is built yet.
       via speechSynthesis: "rush mode — go!" exactly once, old "Rush! Go!"
       gone, one pool line ("leave nothing behind!") between combos, clean
       10→1 countdown with ZERO pool lines over it.
-- [ ] LT-3 WARM-UP TIMER — new setup option on Fight Focus, Combo Coach,
+- [x] LT-3 WARM-UP TIMER — new setup option on Fight Focus, Combo Coach,
       Combat Conditioning (NOT Practice/Drill It).
       · Setup row "WARM-UP": OFF · 5 · 10 · 15 · 20 MIN pills (gold
         selected); remembers last choice per feature.
@@ -88,6 +88,24 @@ ship. Nothing here is built yet.
       · "SKIP → START" button visible during warm-up.
       · Motion-gate exempt (like rest), no XP, doesn't count toward
         strike/round stats.
+      SHIPPED (Jul 20):
+      · shared/WarmupRow.jsx — OFF · 5 · 10 · 15 · 20 pills, teal, saved
+        PER FEATURE (tm_warmup_<feature>) since a warm-up before Combat
+        Conditioning is a different habit than before Combo Coach.
+      · shared/WarmupTimer.jsx — teal ring on the same geometry as the
+        work timers, big countdown, "WARM-UP · STRETCH & GET LOOSE",
+        5 MIN / NO XP chips, last-10s flash + beeps, bell at zero, and
+        the VoiceMixer so cue level is adjustable here too.
+      · shared/WithWarmup.jsx — wraps the session in ScreenRouter instead
+        of adding a phase to three different state machines. children is
+        a JSX element, so the session's timers/voice don't start until
+        the warm-up hands over. Skipped when resuming a paused session.
+      · No XP, no rounds, no integrity — nothing to motion-gate.
+      VERIFIED live (5-min warm-up, clock time-warped in the harness so
+      the real completion path ran, not just SKIP): 05:00→00:00, opening
+      cue, halfway cue at 2:30, "warm up complete. here we go.", then
+      auto-handoff → 3-2-1 → ROUND 1/3 at 03:00. SKIP → START jumps
+      straight in. Setting persisted and was remembered on return.
 - [ ] LT-4 SHARE FIX — share a rendered IMAGE, never plain text.
       · Card image: dark app bg, avatar tier art prominent, "MISSION
         COMPLETE" header, session summary, stats row (LEVEL · 🔥 STREAK ·
