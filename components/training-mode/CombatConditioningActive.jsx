@@ -7,6 +7,7 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
+import VoiceMixer from './shared/VoiceMixer';
 import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
 
 const GOLD = C.yellow;
@@ -430,6 +431,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         padding: '20px 16px calc(160px + env(safe-area-inset-bottom, 0px))',
         overflowX: 'hidden',
       }}>
+
+        {/* LT-1 — cue level, adjustable mid-round without pausing. */}
+        <VoiceMixer top={14} right={12}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>

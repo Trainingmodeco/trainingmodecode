@@ -5,7 +5,9 @@ import { generateFightFocusSession } from './data/sessionGenerator';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
-import { playBell, playBeep, unlockAudio } from './data/audioEngine';
+import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
+import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
+import VoiceMixer from './shared/VoiceMixer';
 import { C } from './Styles';
 import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
@@ -54,6 +56,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
   const rushSpoken = useRef(false);
+  // LT-2 — shuffled push-cue pool + a per-second countdown to the next one.
+  const rushVoice = useRef(createRushVoice());
+  const rushCueIn = useRef(0);
   const lastRushCountdownSecond = useRef(null);
   const lastBeepSecondRef = useRef(null);
   const roundStartBellPlayedRef = useRef(false);
@@ -189,12 +194,35 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           setShowRushOverlay(true);
           if (cfg.voiceOn && !rushSpoken.current) {
             rushSpoken.current = true;
-            speakAsync('Rush! Go!');
+            playRiser();
+            speakAsync(RUSH_ACTIVATION);
+            rushVoice.current.reset();
+            rushCueIn.current = nextCueDelaySec();
           }
         } else if (!wantRush && rushRef.current) {
           setRush(false);
           setShowRushOverlay(false);
           rushSpoken.current = false;
+          // "Rush mode complete" only makes sense if there's session left — at
+          // the final bell the bell itself is the closing statement.
+          const moreToCome = remaining > 3 || roundIdxRef.current + 1 < cfg.rounds;
+          if (cfg.voiceOn && moreToCome) speakAsync(RUSH_COMPLETE);
+        }
+
+        // Push cues while the surge runs, spaced 8-10s, never during the
+        // final-10s number countdown.
+        if (rushRef.current && cfg.voiceOn) {
+          rushCueIn.current -= 1;
+          const inFinalCountdown =
+            (cfg.rushPattern || 'endRound') === 'endRound' && remaining <= 10;
+          if (rushCueIn.current <= 0) {
+            if (!inFinalCountdown && remaining > 3) {
+              speakAsync(rushVoice.current.nextLine());
+              rushCueIn.current = nextCueDelaySec();
+            } else {
+              rushCueIn.current = 1;
+            }
+          }
         }
       }
       if (
@@ -372,6 +400,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh', padding: '14px 14px calc(100px + env(safe-area-inset-bottom, 0px))',
       }}>
+
+        {/* LT-1 — cue level, adjustable mid-round without pausing. */}
+        <VoiceMixer top={10} right={10}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>

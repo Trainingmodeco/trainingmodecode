@@ -10,6 +10,7 @@ import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import AddCardioSheet from './AddCardioSheet';
 import TrainingCTA from './shared/TrainingCTA';
+import AudioLevelRow from './shared/AudioLevelRow';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
@@ -247,6 +248,11 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           ) : (
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: GOLD, flexShrink: 0 }}>›</span>
           )}
+        </div>
+
+        {/* LT-1 — cue level before you start (also adjustable mid-round). */}
+        <div style={{ marginBottom: 10 }}>
+          <AudioLevelRow/>
         </div>
 
         {/* Start circuit — inline, just under Add Cardio */}

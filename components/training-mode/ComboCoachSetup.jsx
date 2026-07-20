@@ -12,6 +12,7 @@ import { IMG } from './data/optimizedImageMap';
 import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
+import AudioLevelRow from './shared/AudioLevelRow';
 import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
 import { isBeginnerLearner } from './data/userProfile';
@@ -163,8 +164,13 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Rush mode (opens the flame popup) */}
-        <div style={{ marginBottom: 10 }}>
+        <div style={{ marginBottom: 9 }}>
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
+        </div>
+
+        {/* LT-1 — cue level before you start (also adjustable mid-round). */}
+        <div style={{ marginBottom: 10 }}>
+          <AudioLevelRow/>
         </div>
 
         {/* Start */}

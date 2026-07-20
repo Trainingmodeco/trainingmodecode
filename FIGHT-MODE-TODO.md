@@ -18,7 +18,7 @@ ship. Nothing here is built yet.
 ## LIVE-TESTING FIXES (from the user's real-device testing — build in order,
 ## one at a time, BEFORE resuming the phases below)
 
-- [ ] LT-1 AUDIO MIX — **CUE-BOOST ONLY for now** (user decision Jul 20).
+- [x] LT-1 AUDIO MIX — **CUE-BOOST ONLY for now** (user decision Jul 20).
       A web PWA cannot duck another app's audio (the music burying cues in
       testing was the phone's own Spotify/Apple Music), so this pass makes
       the app's own voice as loud and clear as possible:
@@ -32,7 +32,25 @@ ship. Nothing here is built yet.
         showing the cue level; one-time "Voice cues are off" hint if 0.
       · Practical note for users: phone music should be turned down by the
         user — we can't touch it from the web.
-- [ ] LT-2 RUSH MODE VOICE — stop repeating "rush mode go".
+      SHIPPED (Jul 20):
+      · audioEngine defaults now put voice AND sfx at full master (was
+        sfx 0.9). A one-time versioned migration (v:2) boosts mixes saved
+        before this, without clobbering a level the athlete chose later.
+        BUG CAUGHT IN TEST: the first cut read the version off the MERGED
+        settings, and since DEFAULTS carries v:2 the migration never ran
+        for anyone — it now reads the version off the STORED object.
+      · shared/VoiceMixer.jsx — speaker button top-right of every ring
+        timer (Combo Coach, Fight Focus, Combat Conditioning). Tap → 🔊
+        VOICE slider, auto-hides after 3s, persists, and does NOT pause.
+        No MUSIC slider (nothing to fade until the Pro music player).
+      · shared/AudioLevelRow.jsx — AUDIO row on the three setup screens
+        showing cue level, with an explicit "Voice cues are off" state and
+        an honest note that phone music must be turned down on the phone.
+      VERIFIED live: mixer opened mid-round at 02:05 with combos still
+      firing; slider → 55 persisted to storage and the very next call-outs
+      carried volume 0.55; panel self-dismissed; migration turned a seeded
+      0.9/0.8 mix into 1.0/1.0 on load.
+- [x] LT-2 RUSH MODE VOICE — stop repeating "rush mode go".
       · Activation once: "RUSH MODE — GO!" + riser sting + orange ring.
       · Then a shuffled motivational pool (~every 8–10s, no immediate
         repeats): "Give it everything you've got!" / "Strike hard and
@@ -43,6 +61,21 @@ ship. Nothing here is built yet.
         ring; if rush ends at the final bell, skip the line — just bell.
       · Pool = simple string array; cues never talk over combo call-outs
         (wait until the call finishes).
+      SHIPPED (Jul 20):
+      · data/rushVoice.js — "Rush mode — go!" once on activation (+ a
+        synthesised riser sting, playRiser(), no new asset), then a
+        SHUFFLE-BAG of the 8 push lines every 8–10s: every line is heard
+        before any repeats and a reshuffle never puts one back-to-back.
+        "Rush mode complete." only when the session continues; at the
+        final bell the bell speaks for itself.
+      · Wired into Combo Coach and Fight Focus. Cues are skipped while a
+        combo is mid-call and during the last-10s number countdown, then
+        retried on the next tick.
+      VERIFIED: 7500 simulated draws → 0 immediate repeats, all 8 lines
+      even (929–943 each), delays all within 8–10s. Live session recorded
+      via speechSynthesis: "rush mode — go!" exactly once, old "Rush! Go!"
+      gone, one pool line ("leave nothing behind!") between combos, clean
+      10→1 countdown with ZERO pool lines over it.
 - [ ] LT-3 WARM-UP TIMER — new setup option on Fight Focus, Combo Coach,
       Combat Conditioning (NOT Practice/Drill It).
       · Setup row "WARM-UP": OFF · 5 · 10 · 15 · 20 MIN pills (gold

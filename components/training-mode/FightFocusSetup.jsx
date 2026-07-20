@@ -13,6 +13,7 @@ import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
+import AudioLevelRow from './shared/AudioLevelRow';
 
 const GOLD = C.gold;
 const BLUE = '#4f8cff';
@@ -122,8 +123,13 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         </div>
 
         {/* Rush mode (opens the flame popup) */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 9 }}>
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
+        </div>
+
+        {/* LT-1 — cue level before you start (also adjustable mid-round). */}
+        <div style={{ marginBottom: 14 }}>
+          <AudioLevelRow/>
         </div>
 
         {/* Start — inline, right under Rush Mode so it's never hidden */}

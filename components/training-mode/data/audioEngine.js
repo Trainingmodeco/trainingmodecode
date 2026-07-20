@@ -1,12 +1,20 @@
 const STORAGE_KEY = 'tm_audio_settings';
 
+// LT-1 — cue-boost. A web PWA can't duck the phone's own music player, so the
+// only lever we have is making our own cues as loud and clear as possible:
+// voice and SFX both sit at full master. SETTINGS_VERSION bumps once so
+// athletes who already had the quieter 0.9 mix get the boost too; anything
+// they change after that is theirs and sticks.
+const SETTINGS_VERSION = 2;
+
 const DEFAULTS = {
   masterVolume: 1.0,
-  sfxVolume: 0.9,
+  sfxVolume: 1.0,
   voiceVolume: 1.0,
   musicVolume: 0.6,
   duckingEnabled: true,
   duckingStrength: 'normal',
+  v: SETTINGS_VERSION,
 };
 
 const DUCK_PROFILES = {
@@ -34,11 +42,31 @@ let bellLoadQueue = [];
 
 function getSettings() {
   if (settings) return settings;
+
+  let parsed = null;
   try {
     const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    settings = stored ? { ...DEFAULTS, ...JSON.parse(stored) } : { ...DEFAULTS };
+    if (stored) parsed = JSON.parse(stored);
   } catch {
-    settings = { ...DEFAULTS };
+    parsed = null;
+  }
+  settings = parsed ? { ...DEFAULTS, ...parsed } : { ...DEFAULTS };
+
+  // One-time cue-boost migration for mixes saved before LT-1. The version has
+  // to be read off the STORED object — DEFAULTS carries the current version, so
+  // checking the merged result would always look already-migrated.
+  if (parsed && parsed.v !== SETTINGS_VERSION) {
+    settings = {
+      ...settings,
+      sfxVolume: Math.max(parsed.sfxVolume ?? 0, DEFAULTS.sfxVolume),
+      voiceVolume: Math.max(parsed.voiceVolume ?? 0, DEFAULTS.voiceVolume),
+      v: SETTINGS_VERSION,
+    };
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      }
+    } catch {}
   }
   return settings;
 }
@@ -223,4 +251,32 @@ function playTone(freq, duration, type, volume, startTime) {
 export function playBeep() {
   duckAppAudio(400);
   playTone(1200, 0.12, 'sine', 0.6, null);
+}
+
+// LT-2 — riser sting under the "RUSH MODE — GO!" call. Synthesised rather than
+// shipped as an asset so it costs nothing in the bundle.
+export function playRiser() {
+  const ctx = getCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  const t = ctx.currentTime;
+  const peak = Math.max(0.0001, 0.32 * getEffectiveSfxVolume());
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(200, t);
+  osc.frequency.exponentialRampToValueAtTime(900, t + 0.5);
+
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(peak, t + 0.34);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.68);
+
+  osc.start(t);
+  osc.stop(t + 0.7);
+  duckAppAudio(800);
 }
