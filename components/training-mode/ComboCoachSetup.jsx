@@ -14,7 +14,7 @@ import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
-import { isBeginnerLearner } from './data/userProfile';
+import { isBeginnerLearner, loadProfile, saveProfile } from './data/userProfile';
 
 const GOLD = C.gold;
 const VIOLET = C.violet;
@@ -85,8 +85,15 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
     rush: { on: false, pattern: 'endRound' },
+    // 1.3 — defense calls between combos + fighter stance (stance persists).
+    defenseCalls: false,
+    stance: String(loadProfile()?.stance || 'ORTHODOX').toUpperCase() === 'SOUTHPAW' ? 'SOUTHPAW' : 'ORTHODOX',
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
+  const setStance = (v) => {
+    set('stance', v);
+    try { saveProfile({ ...loadProfile(), stance: v }); } catch { /* noop */ }
+  };
 
   const totalEst = Math.round((cfg.rounds * (cfg.roundMin * 60 + cfg.restSec)) / 60);
 
@@ -151,6 +158,32 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           </>
         )}
 
+        {/* 1.3 — stance (persists to profile) */}
+        <div style={{ marginBottom: 9 }}>
+          <Segmented label="STANCE" options={['ORTHODOX', 'SOUTHPAW']} value={cfg.stance} onChange={setStance} accent={GOLD}/>
+        </div>
+
+        {/* 1.3 — defense calls toggle (SLIP / ROLL / CHECK / PIVOT in violet) */}
+        <button onClick={() => set('defenseCalls', !cfg.defenseCalls)} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '10px 13px', marginBottom: 9,
+          cursor: 'pointer', textAlign: 'left',
+          border: `1px solid ${cfg.defenseCalls ? 'rgba(168,85,247,0.65)' : 'rgba(168,85,247,0.28)'}`,
+          background: cfg.defenseCalls ? 'rgba(168,85,247,0.12)' : 'rgba(16,4,30,0.6)',
+          boxShadow: cfg.defenseCalls ? '0 0 12px rgba(168,85,247,0.25)' : 'none',
+        }}>
+          <span style={{ fontSize: 15, flexShrink: 0 }}>🛡️</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: cfg.defenseCalls ? '#c9a6ff' : '#d9d1ef', letterSpacing: '0.06em' }}>DEFENSE CALLS</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8.5, color: '#9a90b8', marginTop: 1 }}>Slip · Roll · Check · Pivot mixed between combos</div>
+          </div>
+          <span style={{
+            width: 38, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative',
+            background: cfg.defenseCalls ? VIOLET : 'rgba(255,255,255,0.12)', transition: 'background 0.2s',
+          }}>
+            <span style={{ position: 'absolute', top: 2, left: cfg.defenseCalls ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }}/>
+          </span>
+        </button>
+
         {/* Stacked steppers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
           <div data-guide="cc-steppers">
@@ -183,6 +216,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
               voiceOn: true, rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
               encouragement: profile?.encouragement || 'normal',
               arsenalOnly, arsenal,
+              defenseCalls: cfg.defenseCalls, stance: cfg.stance,
             });
           }}
         />

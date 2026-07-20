@@ -13,6 +13,16 @@ import { isRushAt } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
+import { disciplineSlug } from './data/arsenal';
+
+// 1.3 — defense calls mixed between combos (shown in violet). Check is a
+// kick-sport defense; Sprawl is MMA's takedown answer.
+const DEFENSE_CALLS = {
+  boxing: ['Slip', 'Roll', 'Pivot'],
+  kickboxing: ['Slip', 'Roll', 'Check', 'Pivot'],
+  'muay-thai': ['Slip', 'Roll', 'Check', 'Pivot'],
+  mma: ['Slip', 'Roll', 'Check', 'Pivot', 'Sprawl'],
+};
 
 const VIOLET = C.violet;
 const RING_SIZE = 394;
@@ -89,6 +99,12 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const [countdownSub, setCountdownSub] = useState('');
   const [currentCombo, setCurrentCombo] = useState(pool[0]);
   const [comboStreak, setComboStreak] = useState(0);
+  // 1.3 — defense-call state: violet display + a countdown of combos until
+  // the next call (randomized 2–4 so it never feels scripted).
+  const [isDefense, setIsDefense] = useState(false);
+  const [callTick, setCallTick] = useState(0);
+  const defenseInRef = useRef(2 + Math.floor(Math.random() * 3));
+  const defensePool = DEFENSE_CALLS[disciplineSlug(discipline)] || DEFENSE_CALLS.boxing;
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
@@ -158,8 +174,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (aborted()) return;
 
     setCountdown(`ROUND ${rIdx + 1}`);
-    setCountdownSub(`${discipline} \u2022 ${speedLabel}`);
-    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedLabel} speed.`, 1200, { voice });
+    const stance = cfg.stance ? ` \u2022 ${cfg.stance}` : '';
+    setCountdownSub(`${discipline} \u2022 ${speedLabel}${stance}`);
+    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedLabel} speed.${cfg.stance ? ` ${cfg.stance.toLowerCase()} stance.` : ''}`, 1200, { voice });
     if (aborted()) return;
 
     setCountdown('GO');
@@ -169,7 +186,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     setCountdown(null);
     setCountdownSub('');
-  }, [discipline, speedLabel, cfg.voiceOn]);
+  }, [discipline, speedLabel, cfg.voiceOn, cfg.stance]);
 
   useEffect(() => {
     rushSpoken.current = false;
@@ -312,10 +329,34 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     const loop = async () => {
       while (active && comboLoopRef.current && !pausedRef.current) {
+        // 1.3 — every 2–4 combos, a defense call fires instead (violet, quick).
+        const defenseNow = cfg.defenseCalls && !rushRef.current && defenseInRef.current <= 0;
+        if (defenseNow) {
+          const call = defensePool[Math.floor(Math.random() * defensePool.length)];
+          defenseInRef.current = 2 + Math.floor(Math.random() * 3);
+          setIsDefense(true);
+          setCurrentCombo(`${call.toUpperCase()}!`);
+          setCallTick(t => t + 1);
+          await delay(300);
+          if (!active || pausedRef.current) break;
+          if (cfg.voiceOn !== false && remainingRef.current > 3) {
+            isSpeakingCombo.current = true;
+            await speakAsync(call, { rate: Math.min(voiceRate + 0.15, 1.3) });
+            isSpeakingCombo.current = false;
+          }
+          if (!active || pausedRef.current) break;
+          // Defense reactions are snappier than a full combo window.
+          await delay(Math.max(cadenceMs * 0.55, 1000));
+          continue;
+        }
+
         const idx = comboIndexRef.current % pool.length;
         comboIndexRef.current++;
+        defenseInRef.current--;
         const next = pool[idx];
+        setIsDefense(false);
         setCurrentCombo(next);
+        setCallTick(t => t + 1);
         streakRef.current++;
         setComboStreak(streakRef.current);
         await delay(500);
@@ -555,12 +596,12 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
                 }}>
                   {comboStreak > 0 ? `STREAK ×${comboStreak}` : 'STAY IN RHYTHM'}
                 </div>
-                {/* Current combo - LARGE (gold, design 13b) */}
-                <div className="anim-fade-up" key={currentCombo} style={{
+                {/* Current call — combos gold, defense calls violet (1.3) */}
+                <div className="anim-fade-up" key={callTick} style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
-                  fontSize: currentCombo && currentCombo.length > 20 ? 22 : 28,
-                  color: '#fde047', lineHeight: 1.2, textAlign: 'center',
-                  textShadow: '0 0 18px rgba(253,224,71,0.4)',
+                  fontSize: isDefense ? 34 : currentCombo && currentCombo.length > 20 ? 22 : 28,
+                  color: isDefense ? '#a855f7' : '#fde047', lineHeight: 1.2, textAlign: 'center',
+                  textShadow: isDefense ? '0 0 22px rgba(168,85,247,0.65)' : '0 0 18px rgba(253,224,71,0.4)',
                   maxWidth: 280,
                 }}>
                   {currentCombo}

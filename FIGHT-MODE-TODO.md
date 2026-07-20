@@ -35,9 +35,13 @@ ship. Nothing here is built yet.
         getEffectiveArsenal = starter ∪ Practice-learned. Filtering ignores
         non-strike movements and never leaves a session empty. Verified both
         views live.
-- [ ] 1.3 Combo Coach upgrades: DEFENSE CALLS toggle (SLIP/ROLL/CHECK/PIVOT
-      in violet), stance setting (orthodox/southpaw), custom combo builder
-      with saved combo chips.
+- [x] 1.3a Combo Coach upgrades — DEFENSE CALLS toggle (SLIP/ROLL/CHECK/PIVOT
+      in violet; +Sprawl for MMA, no Check for boxing; fires every 2–4 combos,
+      snappier window, never during Rush) and STANCE setting
+      (orthodox/southpaw, persists to profile, announced in the round intro).
+      Verified live: PIVOT! rendered violet #a855f7, gold combos resume after.
+- [ ] 1.3b Custom combo builder with saved combo chips (the bigger half —
+      still to do).
 - [ ] 1.4 Strike counter pipeline: accelerometer sampling during WORK phases,
       high-pass filter, magnitude peak detection with ~200ms refractory
       window, adaptive threshold. One shared module used by every Fight Mode
