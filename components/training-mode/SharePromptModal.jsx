@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Share2, X, QrCode, Copy } from 'lucide-react';
 import { C } from './Styles';
-import { shareTrainingResult, buildShareText, copyShareText } from './data/shareUtils';
+import { buildShareText, copyShareText } from './data/shareUtils';
 import SafeImage from './SafeImage';
+import ShareCardSheet from './ShareCardSheet';
+import { loadStats, getStreak, getLevel } from './data/userStats';
+import { getCurrentTier, tierImage } from './data/tiers';
+import { loadProfile } from './data/userProfile';
 
 export default function SharePromptModal({ shareData, delayMs = 2500, placement = 'fixed' }) {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), delayMs);
@@ -17,6 +22,26 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
   if (!visible || dismissed || (shareData?.xpEarned ?? 0) === 0) return null;
 
   const isInline = placement === 'inline';
+
+  // LT-4 — everything the rendered card needs, read at share time so it always
+  // reflects the stats the athlete just earned.
+  const buildCardData = () => {
+    const stats = loadStats();
+    const tier = getCurrentTier(stats);
+    const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
+    return {
+      eyebrow: shareData?.eyebrow || 'MISSION COMPLETE',
+      title: shareData?.workoutName || null,
+      subtitle: [shareData?.mode, shareData?.style, shareData?.difficulty].filter(Boolean).join(' · '),
+      xp: shareData?.xpEarned ?? 0,
+      level: shareData?.level ?? getLevel(stats.xp),
+      tierLabel: tier.label,
+      tierImg: tierImage(tier.id, sex),
+      streak: shareData?.streak ?? getStreak(stats),
+      sessions: Array.isArray(stats.sessions) ? stats.sessions.length : (stats.totalSessions ?? 0),
+      verified: shareData?.verified !== false,
+    };
+  };
 
   // Inline placement lives on the outcome screen, which has to fit in one
   // viewport (LT-5) — so it runs tighter than the floating prompt.
@@ -77,7 +102,7 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: isInline ? 8 : 12 }}>
-        <button onClick={() => { shareTrainingResult(shareData); setDismissed(true); }} style={{
+        <button onClick={() => setCardOpen(true)} style={{
           flex: 1, padding: isInline ? '8px 0' : '10px 0', borderRadius: 8, border: 'none',
           background: `linear-gradient(135deg, ${C.yellow}, ${C.yellow})`,
           color: C.bg, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
@@ -118,6 +143,14 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
             fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, marginTop: 6,
           }}>Scan to join Training Mode</div>
         </div>
+      )}
+
+      {cardOpen && (
+        <ShareCardSheet
+          shareData={shareData}
+          cardData={buildCardData()}
+          onClose={() => setCardOpen(false)}
+        />
       )}
     </div>
   );

@@ -106,7 +106,7 @@ ship. Nothing here is built yet.
       cue, halfway cue at 2:30, "warm up complete. here we go.", then
       auto-handoff → 3-2-1 → ROUND 1/3 at 03:00. SKIP → START jumps
       straight in. Setting persisted and was remembered on return.
-- [ ] LT-4 SHARE FIX — share a rendered IMAGE, never plain text.
+- [x] LT-4 SHARE FIX — share a rendered IMAGE, never plain text.
       · Card image: dark app bg, avatar tier art prominent, "MISSION
         COMPLETE" header, session summary, stats row (LEVEL · 🔥 STREAK ·
         SESSIONS), XP, trophies strip, VERIFIED shield when integrity
@@ -123,6 +123,30 @@ ship. Nothing here is built yet.
         Deep links can OPEN those apps but can't attach the image from
         web — full Stories/TikTok integration lands with the native
         wrapper. Fallbacks above cover it meanwhile.
+      SHIPPED (Jul 20):
+      · data/shareCard.js — canvas renderer at real export sizes: STORY
+        1080×1920 (250px kept clear top and bottom for IG's own chrome)
+        and POST 1080×1080. Dark app background with the violet glows and
+        grid, tier avatar in a glowing gold ring, MISSION COMPLETE header,
+        session line, XP hero, LEVEL / DAY STREAK / SESSIONS pills, teal
+        VERIFIED SESSION shield, apptrainingmode.com footer. Waits on
+        document.fonts.ready or canvas silently substitutes a system face.
+      · ShareCardSheet.jsx — STORY/POST toggle where the preview IS the
+        rendered PNG (never a mock-up), shimmer while rendering, SHARE
+        IMAGE / SAVE / COPY TEXT.
+      · SHARE hands the file to navigator.share when the browser accepts
+        files (phones), which puts Instagram/TikTok/etc in the OS sheet.
+        Where files aren't shareable (most desktop browsers) it saves the
+        PNG instead so you still end up with the image, never nothing.
+      TWO BUGS CAUGHT IN REVIEW: the VERIFIED pill was a fixed width, so
+      the shield sat on top of the "V" — it now measures its own text.
+      And the 1:1 layout ran past the canvas (stats row landed on the
+      footer) because story/post ternaries were scattered through the draw
+      code; both formats now read from one LAYOUT table, checked to clear
+      the footer even with an optional title line (story 108px, post 73px).
+      VERIFIED live: real 1080×1920 and 1080×1080 PNGs rendered from a
+      finished session, both formats screenshotted, SAVE produced
+      training-mode-post.png with the confirmation toast.
 - [x] LT-5 OUTCOME SCREENS TOO TALL — Mission Complete / SESSION STOPPED /
       GOOD EFFORT and every other outcome screen must fit WITHOUT
       scrolling, with ~10–15% clear space at the bottom.
