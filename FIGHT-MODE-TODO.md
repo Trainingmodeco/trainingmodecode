@@ -23,13 +23,18 @@ ship. Nothing here is built yet.
         name→strike normalizer); wired into PracticeMode basics + technique
         drills with a "STRIKE ADDED TO YOUR ARSENAL" toast. Verified: Jab/Cross
         bank, Stance/Guard/Defense bank nothing.
-- [x] 1.2 Combo Coach ← arsenal link: combos call only learned strikes;
-      "YOUR ARSENAL: n" chip + ALL STRIKES toggle; lesson-complete toast.
-      → BEGINNER LEARNERS (new + "learn combat basics") default to ARSENAL and
-        get a "Practice more to unlock combos" nudge; everyone else defaults to
-        ALL STRIKES. Filtering ignores non-strike movements (slip/roll/…) and
-        never leaves a session empty. Verified: Jab+Cross arsenal → only
-        Jab/Cross combos live.
+- [x] 1.2 Combo Coach ← arsenal link (REVISED per user): BEGINNER LEARNERS
+      (new + "learn combat basics") are LOCKED to 🔒 BASIC MODE — no ALL
+      STRIKES escape hatch — with a "YOUR ARSENAL: n" chip and the subtitle
+      "Calling basic strikes plus ones you've learned through Practice. Do
+      more Practice Mode training to unlock combos." Experienced users see NO
+      gating UI at all (full pool, no toggle).
+      → Starter basics so beginners aren't hostage: Boxing Jab/Cross/Hook/
+        Uppercut · Kickboxing +Rear Roundhouse · Muay Thai +Rear Knee · MMA
+        all of it (sprawl/footwork/defense are movements, never gated).
+        getEffectiveArsenal = starter ∪ Practice-learned. Filtering ignores
+        non-strike movements and never leaves a session empty. Verified both
+        views live.
 - [ ] 1.3 Combo Coach upgrades: DEFENSE CALLS toggle (SLIP/ROLL/CHECK/PIVOT
       in violet), stance setting (orthodox/southpaw), custom combo builder
       with saved combo chips.

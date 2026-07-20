@@ -13,7 +13,7 @@ import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
-import { getArsenal } from './data/arsenal';
+import { getEffectiveArsenal } from './data/arsenal';
 import { isBeginnerLearner } from './data/userProfile';
 
 const GOLD = C.gold;
@@ -76,17 +76,17 @@ function Segmented({ label, options, value, onChange, accent }) {
 
 export default function ComboCoachSetup({ discipline, onBack, onStart, profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
-  // 1.2 — a beginner learner drills only strikes learned in Practice by default;
-  // everyone else gets ALL STRIKES. Either can flip it here.
+  // 1.2 — beginner learners are LOCKED to Basic Mode: starter basics + strikes
+  // learned in Practice (no ALL STRIKES escape hatch). Experienced users see no
+  // gating UI at all and always drill the full pool.
   const beginner = isBeginnerLearner(profile);
-  const arsenal = getArsenal(discipline);
+  const arsenal = getEffectiveArsenal(discipline);
+  const arsenalOnly = beginner;
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
     rush: { on: false, pattern: 'endRound' },
-    strikeSource: beginner ? 'ARSENAL' : 'ALL STRIKES',
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
-  const arsenalOnly = cfg.strikeSource === 'ARSENAL';
 
   const totalEst = Math.round((cfg.rounds * (cfg.roundMin * 60 + cfg.restSec)) / 60);
 
@@ -137,16 +137,19 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
         </div>
 
-        {/* 1.2 — strikes source: your learned arsenal vs everything */}
-        <div style={{ marginBottom: 5, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: '#0a0014', background: GOLD, borderRadius: 5, padding: '4px 8px', letterSpacing: '0.06em', flexShrink: 0 }}>🥊 YOUR ARSENAL: {arsenal.length}</span>
-          <div style={{ flex: 1 }}><Segmented options={['ARSENAL', 'ALL STRIKES']} value={cfg.strikeSource} onChange={v => set('strikeSource', v)} accent={VIOLET}/></div>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: arsenalOnly ? '#facc15' : '#a99cc4', lineHeight: 1.3, marginBottom: 9, minHeight: 20 }}>
-          {arsenalOnly
-            ? <>Calling only strikes you&apos;ve learned. <span style={{ color: GOLD, fontWeight: 700 }}>Learn more in Practice Mode to unlock combos.</span></>
-            : 'Drilling every strike in the discipline — including ones you haven’t practiced yet.'}
-        </div>
+        {/* 1.2 — Basic Mode (beginner learners only): locked to starter basics
+            + Practice-learned strikes, with the unlock path spelled out. */}
+        {beginner && (
+          <>
+            <div style={{ marginBottom: 5, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: '#e6d4ff', background: 'rgba(168,85,247,0.16)', border: '1px solid rgba(168,85,247,0.5)', borderRadius: 5, padding: '4px 8px', letterSpacing: '0.06em', flexShrink: 0 }}>🔒 BASIC MODE</span>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: '#0a0014', background: GOLD, borderRadius: 5, padding: '4px 8px', letterSpacing: '0.06em', flexShrink: 0 }}>🥊 YOUR ARSENAL: {arsenal.length}</span>
+            </div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 9 }}>
+              Calling basic strikes plus ones you&apos;ve learned through Practice. <span style={{ color: GOLD, fontWeight: 700 }}>Do more Practice Mode training to unlock combos.</span>
+            </div>
+          </>
+        )}
 
         {/* Stacked steppers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>

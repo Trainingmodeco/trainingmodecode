@@ -72,6 +72,25 @@ export function getArsenal(discipline) {
   return loadAll()[disciplineSlug(discipline)] || [];
 }
 
+// Starter basics every beginner begins with — Basic Mode is a floor, not a
+// cage. Tokens cover lead+rear variants ('Hook' spans Lead/Rear Hook).
+// Boxing: Jab/Cross/Hooks/Uppercuts · Kickboxing: +Rear Roundhouse ·
+// Muay Thai: +Rear Knee · MMA: all of it (sprawl/footwork/defense are
+// movements and never gated).
+const BOXING_BASICS = ['Jab', 'Cross', 'Hook', 'Uppercut'];
+export const STARTER_ARSENAL = {
+  boxing: BOXING_BASICS,
+  kickboxing: [...BOXING_BASICS, 'Roundhouse'],
+  'muay-thai': [...BOXING_BASICS, 'Roundhouse', 'Knee'],
+  mma: [...BOXING_BASICS, 'Roundhouse', 'Knee'],
+};
+
+// The arsenal Basic Mode actually calls from: starter basics ∪ learned.
+export function getEffectiveArsenal(discipline) {
+  const slug = disciplineSlug(discipline);
+  return [...new Set([...(STARTER_ARSENAL[slug] || []), ...(loadAll()[slug] || [])])];
+}
+
 export function arsenalCount(discipline) {
   return getArsenal(discipline).length;
 }
