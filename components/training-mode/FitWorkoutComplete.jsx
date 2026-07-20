@@ -31,7 +31,7 @@ export default function FitWorkoutComplete({ cfg, completedCount, totalCount, ca
       heroImage="/static/trophies/mission-complete-fit.webp"
       stats={[
         { value: exerciseLabel, label: 'EXERCISES', color: GOLD },
-        { value: String(cfg.muscleGroups.length), label: 'MUSCLE FOCUS', color: '#fff' },
+        { value: String(cfg.muscleGroups.length), label: 'MUSCLES', color: '#fff' },
       ]}
       extra={chips}
       cardioResult={cardioResult}

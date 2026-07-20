@@ -22,7 +22,7 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
       heroImage="/static/trophies/mission-complete-combat.webp"
       integrityResult={integrityResult}
       stats={[
-        { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS COMPLETED', color: GOLD },
+        { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
         { value: String(drillsCompleted), label: 'DRILLS', color: '#fff' },
       ]}
       cardioResult={cardioResult}

@@ -47,7 +47,12 @@ function useScrollIndicator(containerRef, children) {
   const check = useCallback(() => {
     const root = containerRef.current;
     if (!root) return;
-    const overflows = root.scrollHeight > root.clientHeight + 12;
+    // scrollHeight includes the bottom padding we reserve for the tab bar, so
+    // comparing it directly flagged every screen as scrollable and showed the
+    // chevron over nothing. Measure where the content actually ends instead.
+    const padBottom = parseFloat(getComputedStyle(root).paddingBottom) || 0;
+    const contentBottom = root.scrollHeight - padBottom;
+    const overflows = contentBottom > root.clientHeight + 12;
     const nearBottom = root.scrollTop + root.clientHeight >= root.scrollHeight - 24;
     setShowScroll(overflows && !nearBottom);
   }, [containerRef]);

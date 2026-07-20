@@ -18,9 +18,11 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
 
   const isInline = placement === 'inline';
 
+  // Inline placement lives on the outcome screen, which has to fit in one
+  // viewport (LT-5) — so it runs tighter than the floating prompt.
   const containerStyle = isInline ? {
-    width: '100%', maxWidth: 360, marginTop: 16,
-    borderRadius: 14, padding: '16px 18px',
+    width: '100%', maxWidth: 360,
+    borderRadius: 11, padding: '9px 12px',
     background: 'rgba(12,2,24,0.97)',
     border: '1.5px solid rgba(253,224,71,0.3)',
     boxShadow: '0 0 30px rgba(253,224,71,0.12), 0 8px 30px rgba(0,0,0,0.6)',
@@ -52,36 +54,38 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
         <X size={14}/>
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isInline ? 8 : 10 }}>
         <div style={{
-          width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+          width: isInline ? 28 : 36, height: isInline ? 28 : 36, borderRadius: 8, flexShrink: 0,
           background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.2)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Share2 size={18} color={C.yellow}/>
+          <Share2 size={isInline ? 15 : 18} color={C.yellow}/>
         </div>
         <div style={{ flex: 1 }}>
           <div style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11,
             color: '#fff', letterSpacing: '0.08em',
           }}>SHARE YOUR WIN</div>
-          <div style={{
-            fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 500,
-            color: C.muted, marginTop: 1,
-          }}>Let your crew know you showed up today.</div>
+          {!isInline && (
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 500,
+              color: C.muted, marginTop: 1,
+            }}>Let your crew know you showed up today.</div>
+          )}
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: isInline ? 8 : 12 }}>
         <button onClick={() => { shareTrainingResult(shareData); setDismissed(true); }} style={{
-          flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
+          flex: 1, padding: isInline ? '8px 0' : '10px 0', borderRadius: 8, border: 'none',
           background: `linear-gradient(135deg, ${C.yellow}, ${C.yellow})`,
           color: C.bg, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
           letterSpacing: '0.1em', cursor: 'pointer',
           boxShadow: '0 0 14px rgba(253,224,71,0.3)',
         }}>SHARE</button>
         <button onClick={() => { copyShareText(buildShareText(shareData)); }} style={{
-          padding: '10px 12px', borderRadius: 8,
+          padding: isInline ? '8px 10px' : '10px 12px', borderRadius: 8,
           background: 'rgba(168,85,247,0.08)',
           border: '1px solid rgba(168,85,247,0.25)',
           color: C.neon, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,
@@ -89,7 +93,7 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
           display: 'flex', alignItems: 'center', gap: 4,
         }}><Copy size={12}/> COPY</button>
         <button onClick={() => setShowQr(!showQr)} style={{
-          padding: '10px 12px', borderRadius: 8,
+          padding: isInline ? '8px 10px' : '10px 12px', borderRadius: 8,
           background: showQr ? 'rgba(253,224,71,0.1)' : 'transparent',
           border: '1px solid rgba(253,224,71,0.2)',
           color: C.yellow, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,

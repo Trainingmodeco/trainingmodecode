@@ -7,7 +7,7 @@ function getBannerConfig(integrityResult) {
   const { validityStatus, isFullyValid } = integrityResult;
   if (isFullyValid) {
     return {
-      icon: <Trophy size={32} color={GOLD} />,
+      icon: <Trophy size={18} color={GOLD} />,
       title: 'MISSION COMPLETE',
       subtitle: 'All rounds verified',
       color: GOLD,
@@ -18,7 +18,7 @@ function getBannerConfig(integrityResult) {
   switch (validityStatus) {
     case 'partial':
       return {
-        icon: <Shield size={32} color="#4f8cff" />,
+        icon: <Shield size={18} color="#4f8cff" />,
         title: 'PARTIAL COMPLETION',
         subtitle: 'Valid rounds counted toward XP',
         color: '#4f8cff',
@@ -27,7 +27,7 @@ function getBannerConfig(integrityResult) {
       };
     case 'tooFast':
       return {
-        icon: <AlertTriangle size={32} color="#f59e0b" />,
+        icon: <AlertTriangle size={18} color="#f59e0b" />,
         title: 'TOO FAST TO VERIFY',
         subtitle: 'Rounds completed below minimum time',
         color: '#f59e0b',
@@ -37,7 +37,7 @@ function getBannerConfig(integrityResult) {
     case 'expired':
     case 'idleTimeout':
       return {
-        icon: <Clock size={32} color="#ef4444" />,
+        icon: <Clock size={18} color="#ef4444" />,
         title: 'SESSION EXPIRED',
         subtitle: 'Session exceeded time limit or was idle',
         color: '#ef4444',
@@ -46,7 +46,7 @@ function getBannerConfig(integrityResult) {
       };
     case 'suspicious':
       return {
-        icon: <AlertTriangle size={32} color="#ef4444" />,
+        icon: <AlertTriangle size={18} color="#ef4444" />,
         title: 'MISSION VALIDATION FAILED',
         subtitle: 'Unverified completion detected',
         color: '#ef4444',
@@ -55,7 +55,7 @@ function getBannerConfig(integrityResult) {
       };
     default:
       return {
-        icon: <AlertTriangle size={32} color={C.muted} />,
+        icon: <AlertTriangle size={18} color={C.muted} />,
         title: 'INCOMPLETE',
         subtitle: 'Mission was not finished',
         color: C.muted,
@@ -65,92 +65,101 @@ function getBannerConfig(integrityResult) {
   }
 }
 
-export default function MissionIntegrityBanner({ integrityResult, xpAwarded, onRetry, onHome }) {
+export default function MissionIntegrityBanner({ integrityResult, onRetry, onHome }) {
   if (!integrityResult) return null;
 
-  const { validCompletedUnits, totalRequiredUnits, partialCompletionRatio, awardXp, leaderboardEligible } = integrityResult;
+  const { validCompletedUnits, totalRequiredUnits, partialCompletionRatio, awardXp, leaderboardEligible, isFullyValid } = integrityResult;
   const banner = getBannerConfig(integrityResult);
+
+  // LT-5 — a clean session doesn't need the forensic breakdown: the round
+  // count and XP are already on the outcome screen, so collapse to one line.
+  // The full stats/completion detail stays for anything that didn't verify.
+  if (isFullyValid && !onRetry && !onHome) {
+    return (
+      <div style={{
+        width: '100%', maxWidth: 360, borderRadius: 10,
+        background: `linear-gradient(135deg, rgba(10,0,20,0.9), ${banner.bgGlow})`,
+        border: `1px solid ${banner.borderColor}`,
+        padding: '8px 12px', marginBottom: 8,
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <span style={{ display: 'flex', flexShrink: 0 }}>{banner.icon}</span>
+        <span style={{
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10.5,
+          color: banner.color, letterSpacing: '0.09em',
+        }}>{banner.title}</span>
+        <span style={{
+          fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600,
+          color: C.muted, marginLeft: 'auto', textAlign: 'right',
+        }}>{banner.subtitle}</span>
+      </div>
+    );
+  }
 
   return (
     <div style={{
-      width: '100%', maxWidth: 360, borderRadius: 14,
+      width: '100%', maxWidth: 360, borderRadius: 12,
       background: `linear-gradient(135deg, rgba(10,0,20,0.9), ${banner.bgGlow})`,
       border: `1px solid ${banner.borderColor}`,
-      padding: '20px 18px', marginBottom: 16,
+      padding: '11px 13px', marginBottom: 8,
     }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 12,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: `${banner.color}15`, border: `1px solid ${banner.color}44`,
-        }}>
-          {banner.icon}
-        </div>
-        <div>
+      {/* Header — icon sits inline (LT-5); the old 38px icon tile was pure
+          height on a screen that has to fit in one viewport. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
+        <span style={{ display: 'flex', flexShrink: 0 }}>{banner.icon}</span>
+        <div style={{ minWidth: 0 }}>
           <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
-            color: banner.color, letterSpacing: '0.1em',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11.5,
+            color: banner.color, letterSpacing: '0.09em',
           }}>{banner.title}</div>
           <div style={{
-            fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
-            color: C.muted, marginTop: 2,
+            fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 500,
+            color: C.muted, marginTop: 1,
           }}>{banner.subtitle}</div>
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* Stats + completion, merged into one block (LT-5). XP lives in the big
+          card below this banner, so it isn't repeated here. */}
       <div style={{
-        display: 'flex', gap: 10, marginBottom: 14,
-        padding: '10px 12px', borderRadius: 8,
+        marginBottom: 8, padding: '7px 10px 8px', borderRadius: 8,
         background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, color: banner.color }}>
-            {validCompletedUnits}/{totalRequiredUnits}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 7 }}>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: banner.color }}>
+              {validCompletedUnits}/{totalRequiredUnits}
+            </div>
+            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 5.5, color: C.muted, letterSpacing: '0.1em', marginTop: 2 }}>
+              VALID ROUNDS
+            </div>
           </div>
-          <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted, letterSpacing: '0.1em', marginTop: 3 }}>
-            VALID ROUNDS
+          <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: banner.color }}>
+              {Math.round(partialCompletionRatio * 100)}%
+            </div>
+            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 5.5, color: C.muted, letterSpacing: '0.1em', marginTop: 2 }}>
+              COMPLETION
+            </div>
           </div>
-        </div>
-        <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, color: awardXp ? GOLD : C.muted }}>
-            {awardXp ? `+${xpAwarded || 0}` : '0'}
+          <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: leaderboardEligible ? '#22c55e' : C.muted }}>
+              {leaderboardEligible ? 'YES' : 'NO'}
+            </div>
+            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 5.5, color: C.muted, letterSpacing: '0.1em', marginTop: 2 }}>
+              LEADERBOARD
+            </div>
           </div>
-          <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted, letterSpacing: '0.1em', marginTop: 3 }}>
-            XP EARNED
-          </div>
-        </div>
-        <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, color: leaderboardEligible ? '#22c55e' : C.muted }}>
-            {leaderboardEligible ? 'YES' : 'NO'}
-          </div>
-          <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.muted, letterSpacing: '0.1em', marginTop: 3 }}>
-            LEADERBOARD
-          </div>
-        </div>
-      </div>
-
-      {/* Completion bar */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.muted, letterSpacing: '0.1em' }}>
-            COMPLETION
-          </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: banner.color, letterSpacing: '0.1em' }}>
-            {Math.round(partialCompletionRatio * 100)}%
-          </span>
         </div>
         <div style={{
-          width: '100%', height: 6, borderRadius: 3,
-          background: 'rgba(255,255,255,0.06)',
-          overflow: 'hidden',
+          width: '100%', height: 4, borderRadius: 2,
+          background: 'rgba(255,255,255,0.06)', overflow: 'hidden',
         }}>
           <div style={{
             width: `${Math.min(partialCompletionRatio * 100, 100)}%`,
-            height: '100%', borderRadius: 3,
+            height: '100%', borderRadius: 2,
             background: `linear-gradient(90deg, ${banner.color}, ${banner.color}aa)`,
             transition: 'width 0.6s ease',
           }} />
@@ -160,8 +169,8 @@ export default function MissionIntegrityBanner({ integrityResult, xpAwarded, onR
       {/* Leaderboard note for partial */}
       {!leaderboardEligible && awardXp && (
         <div style={{
-          fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 500,
-          color: C.muted, textAlign: 'center', marginBottom: 12,
+          fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 500,
+          color: C.muted, textAlign: 'center', marginBottom: 8,
           fontStyle: 'italic',
         }}>
           No leaderboard credit unless fully completed
@@ -171,9 +180,9 @@ export default function MissionIntegrityBanner({ integrityResult, xpAwarded, onR
       {/* No XP message */}
       {!awardXp && (
         <div style={{
-          fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 600,
-          color: '#f59e0b', textAlign: 'center', marginBottom: 12,
-          padding: '8px 12px', borderRadius: 6,
+          fontFamily: "'Rajdhani',sans-serif", fontSize: 11.5, fontWeight: 600,
+          color: '#f59e0b', textAlign: 'center', marginBottom: 8,
+          padding: '6px 12px', borderRadius: 6,
           background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)',
         }}>
           No XP Awarded

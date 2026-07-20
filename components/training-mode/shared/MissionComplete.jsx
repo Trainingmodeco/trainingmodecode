@@ -24,13 +24,20 @@ const mcCSS = `
 }
 @keyframes mc-rays-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes mc-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+/* LT-5 — short phones (iPhone SE and friends) can't hold the full stack above
+   the tab bar. Drop the expendable pieces there rather than make the athlete
+   scroll for the CTAs: the recap/chips detail and the beta-feedback link. */
+@media (max-height: 740px) {
+  .mc-hero-badge { height: 44px !important; }
+  .mc-extra, .mc-beta { display: none !important; }
+}
 `;
 
 function Stat({ value, label, color = '#fff', highlight }) {
   return (
-    <div style={{ background: highlight ? 'rgba(253,224,71,0.08)' : 'rgba(8,2,18,0.88)', border: `1px solid ${highlight ? 'rgba(253,224,71,0.4)' : 'rgba(168,85,247,0.25)'}`, borderRadius: 11, padding: 11, textAlign: 'center' }}>
-      <div style={{ font: "900 20px 'Orbitron',sans-serif", color }}>{value}</div>
-      <div style={{ font: "600 8px 'Orbitron',sans-serif", color: highlight ? '#facc15' : '#c4a4d8', letterSpacing: '0.08em', marginTop: 2 }}>{label}</div>
+    <div style={{ background: highlight ? 'rgba(253,224,71,0.08)' : 'rgba(8,2,18,0.88)', border: `1px solid ${highlight ? 'rgba(253,224,71,0.4)' : 'rgba(168,85,247,0.25)'}`, borderRadius: 10, padding: '8px 10px', textAlign: 'center' }}>
+      <div style={{ font: "900 17px 'Orbitron',sans-serif", color }}>{value}</div>
+      <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: highlight ? '#facc15' : '#c4a4d8', letterSpacing: '0.08em', marginTop: 1 }}>{label}</div>
     </div>
   );
 }
@@ -90,64 +97,66 @@ export default function MissionComplete({
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: mcCSS }}/>
       <Embers count={5}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '18px 16px calc(24px + env(safe-area-inset-bottom,0px))' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column' }}>
+        {/* LT-5 — no scroll container of our own: ScreenRouter already scrolls
+            and already reserves 110px under every screen for the tab bar. The
+            old minHeight:100dvh + 12dvh padding here double-counted that and
+            left the screen scrollable past its own content. */}
+        <div style={{ padding: '10px 16px 0' }}>
 
           {/* Medal hero */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 6 }}>
             {heroImage ? (
               // Mode badge art (transparent PNG/WebP over the dark bg). Kept
               // compact so it never dominates the screen; a soft accent glow
               // grounds it and a gentle pop plays it in.
-              <div style={{ position: 'relative', height: 122, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
+              <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
                 <SafeImage src={heroImage} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
-            <div style={{ position: 'relative', width: 96, height: 96, marginBottom: 10 }}>
+            <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>
               {!partial && (
                 <div aria-hidden style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: `conic-gradient(from 0deg, transparent 0deg, ${hexA(accent, 0.28)} 20deg, transparent 40deg, transparent 180deg, ${hexA(accent, 0.28)} 200deg, transparent 220deg)`, animation: 'mc-rays-spin 9s linear infinite', filter: 'blur(1px)' }}/>
               )}
               <div style={{
-                position: 'relative', width: 96, height: 96, borderRadius: '50%',
+                position: 'relative', width: 76, height: 76, borderRadius: '50%',
                 background: 'radial-gradient(circle at 50% 35%, rgba(30,10,50,0.95), rgba(8,2,18,0.95))',
                 border: `2px solid ${partial ? 'rgba(168,85,247,0.5)' : accent}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 ['--mc-glow-a']: glowA, ['--mc-glow-b']: glowB,
                 animation: partial ? 'none' : 'mc-medal-pulse 2.5s ease-in-out infinite',
               }}>
-                <Trophy size={44} color={partial ? '#b06aff' : accent} strokeWidth={1.6}/>
+                <Trophy size={36} color={partial ? '#b06aff' : accent} strokeWidth={1.6}/>
               </div>
             </div>
             )}
-            <div style={{ font: "700 8px 'Press Start 2P',monospace", color: partial ? '#c9a6ff' : '#facc15', letterSpacing: '0.16em', marginBottom: 8 }}>◈ {label} ◈</div>
-            <div style={{ font: "900 21px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.12 }}>{title}</div>
-            {subtitle && <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 3, textAlign: 'center' }}>{subtitle}</div>}
+            <div style={{ font: "700 7px 'Press Start 2P',monospace", color: partial ? '#c9a6ff' : '#facc15', letterSpacing: '0.16em', marginBottom: 4 }}>◈ {label} ◈</div>
+            <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.08 }}>{title}</div>
+            {subtitle && <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, textAlign: 'center' }}>{subtitle}</div>}
           </div>
 
-          {integrityResult && <div style={{ marginBottom: 12 }}><MissionIntegrityBanner integrityResult={integrityResult} xpAwarded={xp}/></div>}
+          {integrityResult && <div style={{ marginBottom: 6 }}><MissionIntegrityBanner integrityResult={integrityResult}/></div>}
 
-          {/* XP hero */}
-          <div style={{ borderRadius: 14, border: `1px solid ${hexA(accent, 0.4)}`, background: `linear-gradient(135deg, ${hexA(accent, 0.12)}, rgba(8,2,18,0.6))`, padding: '14px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', animation: 'mc-pop 0.5s ease both' }}>
-            <div style={{ font: "700 9px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.14em' }}>XP EARNED</div>
-            <div style={{ font: "900 30px 'Orbitron',sans-serif", color: accent, textShadow: `0 0 18px ${hexA(accent, 0.5)}` }}>+{displayXp}</div>
-          </div>
-
-          {/* Stat grid */}
-          {stats.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 14 }}>
-              {stats.map((s, i) => <Stat key={i} {...s}/>)}
+          {/* XP + session stats, one row (LT-5). The XP hero card used to sit
+              above the stat grid saying much the same thing; merged, it costs a
+              third of the height. */}
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
+            <div style={{ borderRadius: 10, border: `1px solid ${hexA(accent, 0.45)}`, background: `linear-gradient(135deg, ${hexA(accent, 0.14)}, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
+              <div style={{ font: "900 17px 'Orbitron',sans-serif", color: accent, textShadow: `0 0 14px ${hexA(accent, 0.5)}` }}>+{displayXp}</div>
+              <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.08em', marginTop: 1 }}>XP EARNED</div>
             </div>
-          )}
+            {stats.map((s, i) => <Stat key={i} {...s}/>)}
+          </div>
 
-          {extra && <div style={{ marginBottom: 14 }}>{extra}</div>}
+          {extra && <div className="mc-extra" style={{ marginBottom: 6 }}>{extra}</div>}
 
           <CardioFinisherSummaryCard cardioResult={cardioResult}/>
 
           {/* Your progress */}
-          <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(176,106,255,0.3)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
-            <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.16em', marginBottom: 9 }}>YOUR PROGRESS</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
+          <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(176,106,255,0.3)', borderRadius: 11, padding: '9px 12px', marginBottom: 6 }}>
+            <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.16em', marginBottom: 7 }}>YOUR PROGRESS</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
                 <SafeImage src={tierImage(tier.id, sex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
               </div>
               <div style={{ flex: 1 }}>
@@ -158,27 +167,28 @@ export default function MissionComplete({
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8' }}>This week: <span style={{ color: '#fff', fontWeight: 700 }}>{weekSess.length} sessions</span> · <span style={{ color: '#fde047', fontWeight: 700 }}>{weekXp.toLocaleString()} XP</span> · <span style={{ color: '#fff', fontWeight: 700 }}>{weekModes} mode{weekModes === 1 ? '' : 's'}</span></div>
           </div>
 
-          {/* CTAs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {actions.map((a, i) => {
-              if (a.kind === 'ghost') {
-                return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 44, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
-              }
-              if (a.kind === 'secondary') {
-                return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 46, border: '1px solid rgba(176,106,255,0.4)', borderRadius: 12, background: 'rgba(176,106,255,0.08)', color: '#b06aff', font: "800 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
-              }
-              return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 50, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 20px rgba(253,224,71,0.35)' }}>{a.label}</button>;
-            })}
-          </div>
-
-          {/* Share your win */}
+          {/* Share your win — sits right under YOUR PROGRESS (LT-5) so the
+              athlete sees it without scrolling past the CTAs. */}
           {shareData && (
-            <div style={{ marginTop: 14 }}>
+            <div style={{ marginBottom: 6 }}>
               <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, level }}/>
             </div>
           )}
 
-          <button onClick={() => openExternalUrl(BETA_FEEDBACK_FORM_URL)} style={{ margin: '12px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 'none', background: 'rgba(253,224,71,0.06)', cursor: 'pointer' }}>
+          {/* CTAs */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {actions.map((a, i) => {
+              if (a.kind === 'ghost') {
+                return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
+              }
+              if (a.kind === 'secondary') {
+                return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 40, border: '1px solid rgba(176,106,255,0.4)', borderRadius: 11, background: 'rgba(176,106,255,0.08)', color: '#b06aff', font: "800 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
+              }
+              return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 44, border: 'none', borderRadius: 11, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 20px rgba(253,224,71,0.35)' }}>{a.label}</button>;
+            })}
+          </div>
+
+          <button className="mc-beta" onClick={() => openExternalUrl(BETA_FEEDBACK_FORM_URL)} style={{ margin: '6px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: 'none', background: 'rgba(253,224,71,0.06)', cursor: 'pointer' }}>
             <span style={{ font: "700 8px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em' }}>💬 GIVE BETA FEEDBACK</span>
           </button>
         </div>

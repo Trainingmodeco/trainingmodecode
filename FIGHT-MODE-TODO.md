@@ -72,7 +72,7 @@ ship. Nothing here is built yet.
         Deep links can OPEN those apps but can't attach the image from
         web — full Stories/TikTok integration lands with the native
         wrapper. Fallbacks above cover it meanwhile.
-- [ ] LT-5 OUTCOME SCREENS TOO TALL — Mission Complete / SESSION STOPPED /
+- [x] LT-5 OUTCOME SCREENS TOO TALL — Mission Complete / SESSION STOPPED /
       GOOD EFFORT and every other outcome screen must fit WITHOUT
       scrolling, with ~10–15% clear space at the bottom.
       · Crunch the stack: smaller badge art, tighter section gaps, merge
@@ -82,6 +82,34 @@ ship. Nothing here is built yet.
         than buried at the bottom.
       · Applies to: Fit/Quick Mission/Combat Conditioning completes,
         Fight Focus SessionSummary, arcade stage clear.
+      SHIPPED (Jul 20). What actually changed:
+      · Root cause of the scrolling wasn't only height — MissionComplete
+        wrapped itself in minHeight:100dvh + its own 12dvh scroller INSIDE
+        ScreenRouter, which already reserves 110px under every screen for
+        the tab bar. That double-count made the screen scrollable past its
+        own content. Removed; the shell is now the only scroll container.
+      · XP hero card + stat grid merged into ONE row: XP EARNED · ROUNDS ·
+        MINUTES (every mode passes exactly 2 stats, so it's always 3-up).
+      · Integrity banner: XP column dropped (duplicated the XP card),
+        stats + completion bar merged into one block, icon tile removed.
+        On a fully-valid session it now collapses to a single line
+        ("🏆 MISSION COMPLETE — All rounds verified"); the full forensic
+        breakdown still renders for partial / too-fast / failed.
+      · Round recap: one tight line per round, capped at 3 + "+n more
+        rounds completed" so a 12-round session can't blow the layout.
+      · SHARE moved above the CTAs, directly under YOUR PROGRESS, and runs
+        a tighter inline variant (no subtitle, smaller icon/buttons).
+      · Hero badge 122→60px, plus a pass over every font/gap/CTA height.
+      · ScrollDownIndicator was firing on EVERY screen because scrollHeight
+        includes the reserved tab-bar padding — now measures real content,
+        so the chevron no longer invites a scroll to nowhere (app-wide fix).
+      · @media (max-height:740px): on iPhone-SE-class phones the recap/chips
+        and the beta-feedback link drop out and the badge shrinks, so the
+        CTAs stay above the tab bar there too.
+      MEASURED at 375×812: MISSION COMPLETE content ends 627px, tab bar at
+      750px → 123.6px clear (15.2%). SESSION STOPPED → 139px (17.2%).
+      Worst case (12 rounds, 3-row recap + "+9 more") → 687px, still clear.
+      At 375×667 (SE): 568px vs tab bar 606px — fits, nothing clipped.
 
 ---
 

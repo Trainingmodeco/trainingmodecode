@@ -19,22 +19,27 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
     : (integrityResult ? 0 : baseXp);
   const modeName = cfg.mode === 'Combo Coach' ? 'Combo Coach' : 'Fight Focus';
 
+  // LT-5 — one tight line per round, capped, so a 12-round session can't push
+  // the outcome screen past a single viewport.
+  const RECAP_MAX = 3;
   const recap = displayRounds.length > 0 ? (
-    <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '11px 14px' }}>
-      <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.16em', marginBottom: 9 }}>ROUND RECAP</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {displayRounds.map((r, i) => (
-          <div key={i} style={{ borderRadius: 8, padding: '7px 9px', display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(20,0,35,0.6)', border: '1px solid rgba(168,85,247,0.15)' }}>
-            <div style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 5, background: 'rgba(10,0,20,0.8)', border: '1px solid rgba(253,224,71,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, color: GOLD, fontSize: 10 }}>{i + 1}</span>
+    <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '9px 12px' }}>
+      <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.16em', marginBottom: 6 }}>ROUND RECAP</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {displayRounds.slice(0, RECAP_MAX).map((r, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flexShrink: 0, width: 18, height: 18, borderRadius: 4, background: 'rgba(10,0,20,0.8)', border: '1px solid rgba(253,224,71,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ font: "900 9px 'Orbitron',sans-serif", color: GOLD }}>{i + 1}</span>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: C.text, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.round_title}</div>
-              <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9.5, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.coach_prompt}</div>
-            </div>
-            <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: '#22c55e', letterSpacing: '0.05em', flexShrink: 0 }}>DONE</span>
+            <div style={{ flex: 1, minWidth: 0, font: "700 10.5px 'Orbitron',sans-serif", color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.round_title}</div>
+            <span style={{ font: "6px 'Press Start 2P',monospace", color: '#22c55e', letterSpacing: '0.05em', flexShrink: 0 }}>DONE</span>
           </div>
         ))}
+        {displayRounds.length > RECAP_MAX && (
+          <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#9a90b8', paddingLeft: 26 }}>
+            +{displayRounds.length - RECAP_MAX} more round{displayRounds.length - RECAP_MAX === 1 ? '' : 's'} completed
+          </div>
+        )}
       </div>
     </div>
   ) : null;

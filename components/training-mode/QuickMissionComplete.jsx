@@ -22,7 +22,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       heroImage="/static/trophies/mission-complete-fit.webp"
       integrityResult={integrityResult}
       stats={[
-        { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS COMPLETED', color: GOLD },
+        { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
         { value: String(exercisesCompleted), label: 'EXERCISES', color: '#fff' },
       ]}
       cardioResult={cardioResult}
