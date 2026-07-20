@@ -10,18 +10,37 @@ const GOLD = '#fde047';
 const VIOLET = '#b06aff';
 const TEAL = '#2dd4bf';
 
-// The STORY card is the designed poster — wordmark, characters, QR, mode
-// cards and footer are all baked into the art. We only fill the empty panel
-// it leaves at the bottom. Bounds measured off the asset itself (675x1200)
-// and kept normalised so a higher-resolution re-export drops straight in.
-const STORY_TEMPLATE = '/social/training-mode-share-card-template.webp';
-const STORY_BOX = { left: 0.0474, right: 0.9526, top: 0.6342, bottom: 0.9300 };
-// The trophy sits in the panel's top-right; nothing centred gets near it, but
-// keep it in mind before widening anything on the first line.
+// Both cards are designed posters — wordmark, characters, QR, mode cards and
+// footer are baked into the art. We only fill the empty panel each one leaves
+// near the bottom. Panel bounds were measured by sampling the assets rather
+// than eyeballed, and are normalised so a re-export at any resolution drops
+// straight in. A trophy sits in each panel's top-right; nothing centred
+// reaches it, but keep that in mind before widening the first line.
+const TEMPLATES = {
+  story: {
+    src: '/social/training_mode_share_story_1.webp',
+    panel: { left: 0.0616, right: 0.9394, top: 0.7075, bottom: 0.8816 },
+  },
+  post: {
+    src: '/social/training_mode_share_post_2.webp',
+    panel: { left: 0.0446, right: 0.9403, top: 0.7454, bottom: 0.9037 },
+  },
+};
 
+// The two panels are very different shapes — story gets ~334px of height at
+// export size, post only ~214px — so each gets its own type scale rather than
+// one set of numbers stretched across both.
+const PANEL_SCALE = {
+  story: { head: 38, sub: 22, headDrop: 34, subDrop: 30, bandDrop: 20, cellH: 100, val: 38, lab: 14, verGap: 16, verScale: 0.85 },
+  post:  { head: 30, sub: 18, headDrop: 26, subDrop: 24, bandDrop: 14, cellH: 76,  val: 30, lab: 12, verGap: 10, verScale: 0.70 },
+};
+
+// Sizes follow the artwork: the story asset is 9:16 and the post asset is 4:5
+// (1122x1402), not square — so POST exports at 1080x1350, which is also the
+// tallest shape Instagram's feed accepts without cropping.
 export const FORMATS = {
   story: { w: 1080, h: 1920, label: 'STORY', sub: '9:16 · IG / TikTok' },
-  post: { w: 1080, h: 1080, label: 'POST', sub: '1:1 · Feed' },
+  post: { w: 1080, h: 1350, label: 'POST', sub: '4:5 · Feed' },
 };
 
 // Every vertical measurement in one place per format. The first cut scattered
@@ -152,18 +171,47 @@ function drawAvatar(ctx, img, cx, cy, r) {
   ctx.restore();
 }
 
-function drawStatPill(ctx, x, y, w, h, value, label) {
+// Step a font down until it fits the width it's given. The panels are fixed
+// and the strings are user data (a long tier name, a four-digit XP number), so
+// nothing here is allowed to assume it fits.
+function fitSize(ctx, str, maxW, size, weight, family, letterSpacing) {
+  let s = size;
   ctx.save();
-  roundRect(ctx, x, y, w, h, 22);
-  ctx.fillStyle = 'rgba(8,2,18,0.86)';
+  for (; s > 8; s--) {
+    ctx.font = `${weight} ${s}px ${family}`;
+    if (letterSpacing && 'letterSpacing' in ctx) ctx.letterSpacing = letterSpacing;
+    if (ctx.measureText(str).width <= maxW) break;
+  }
+  ctx.restore();
+  return s;
+}
+
+function drawStatPill(ctx, x, y, w, h, value, label, opts = {}) {
+  const { highlight = false, valueSize, labelSize } = opts;
+  ctx.save();
+  roundRect(ctx, x, y, w, h, Math.min(22, h * 0.22));
+  ctx.fillStyle = highlight ? 'rgba(253,224,71,0.12)' : 'rgba(8,2,18,0.86)';
   ctx.fill();
-  ctx.strokeStyle = 'rgba(168,85,247,0.35)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = highlight ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.35)';
+  ctx.lineWidth = highlight ? 3 : 2;
   ctx.stroke();
   ctx.restore();
 
-  text(ctx, value, x + w / 2, y + h * 0.52, { font: `900 ${Math.round(h * 0.34)}px Orbitron, sans-serif`, color: '#fff' });
-  text(ctx, label, x + w / 2, y + h * 0.80, { font: `700 ${Math.round(h * 0.16)}px Orbitron, sans-serif`, color: '#c4a4d8', letterSpacing: '2px' });
+  const vSize = valueSize || Math.round(h * 0.34);
+  const lSize = labelSize || Math.round(h * 0.16);
+  const pad = w * 0.12;
+  const v = fitSize(ctx, value, w - pad, vSize, 900, 'Orbitron, sans-serif');
+  const l = fitSize(ctx, label, w - pad, lSize, 700, 'Orbitron, sans-serif', '2px');
+
+  text(ctx, value, x + w / 2, y + h * 0.52, {
+    font: `900 ${v}px Orbitron, sans-serif`,
+    color: highlight ? GOLD : '#fff',
+    shadow: highlight ? 'rgba(253,224,71,0.45)' : undefined,
+  });
+  text(ctx, label, x + w / 2, y + h * 0.80, {
+    font: `700 ${l}px Orbitron, sans-serif`,
+    color: highlight ? '#facc15' : '#c4a4d8', letterSpacing: '2px',
+  });
 }
 
 function drawVerified(ctx, cx, y, scale = 1) {
@@ -214,61 +262,61 @@ function drawVerified(ctx, cx, y, scale = 1) {
   });
 }
 
-// Fill the poster's empty panel. Everything else on the STORY card is artwork,
-// so this is the only place session data appears.
-function drawStoryPanel(ctx, W, H, data) {
+// Fill the poster's empty panel. Everything else on these cards is artwork, so
+// this is the only place session data appears.
+//
+// The panels are wide and short — the post one is barely 214px tall at export
+// size — so XP rides in the stat band as a highlighted cell rather than
+// getting its own hero block. That keeps the whole readout to three bands and
+// lets the same shape serve both cards.
+function drawPanel(ctx, W, H, data, fmt) {
+  const t = TEMPLATES[fmt];
+  const s = PANEL_SCALE[fmt];
   const box = {
-    x: STORY_BOX.left * W,
-    y: STORY_BOX.top * H,
-    w: (STORY_BOX.right - STORY_BOX.left) * W,
-    h: (STORY_BOX.bottom - STORY_BOX.top) * H,
+    x: t.panel.left * W,
+    y: t.panel.top * H,
+    w: (t.panel.right - t.panel.left) * W,
+    h: (t.panel.bottom - t.panel.top) * H,
   };
   const cx = box.x + box.w / 2;
-  // Tuned so the stack sits centred in the panel rather than riding the top
-  // edge — roughly equal air above the headline and below the shield.
-  const pad = box.h * 0.10;
-  let y = box.y + pad;
+
+  const verH = 62 * s.verScale;
+  const contentH = s.headDrop + s.subDrop + s.bandDrop + s.cellH + s.verGap + (data.verified ? verH : 0);
+  let y = box.y + Math.max(8, (box.h - contentH) / 2);
 
   // Headline
-  y += 44;
-  text(ctx, (data.eyebrow || 'MISSION COMPLETE').toUpperCase(), cx, y, {
-    font: '900 44px Orbitron, sans-serif', color: GOLD, letterSpacing: '3px', shadow: 'rgba(253,224,71,0.55)',
+  const headline = (data.eyebrow || 'MISSION COMPLETE').toUpperCase();
+  const headSize = fitSize(ctx, headline, box.w * 0.72, s.head, 900, 'Orbitron, sans-serif', '3px');
+  y += s.headDrop;
+  text(ctx, headline, cx, y, {
+    font: `900 ${headSize}px Orbitron, sans-serif`, color: GOLD,
+    letterSpacing: '3px', shadow: 'rgba(253,224,71,0.55)',
   });
 
-  // What was trained
-  if (data.subtitle) {
-    y += 40;
-    text(ctx, data.subtitle, cx, y, { font: '600 28px Rajdhani, sans-serif', color: '#c4a4d8' });
-  }
+  // One line for what was trained and who you are now — two separate lines
+  // don't fit the post panel.
+  const bits = [data.subtitle, `LEVEL ${data.level ?? 1}`, (data.tierLabel || '').toUpperCase()].filter(Boolean);
+  const subline = bits.join('  ·  ');
+  const subSize = fitSize(ctx, subline, box.w * 0.9, s.sub, 600, 'Rajdhani, sans-serif');
+  y += s.subDrop;
+  text(ctx, subline, cx, y, { font: `600 ${subSize}px Rajdhani, sans-serif`, color: '#c4a4d8' });
 
-  y += 42;
-  text(ctx, `LEVEL ${data.level ?? 1} · ${(data.tierLabel || 'FIGHTER').toUpperCase()}`, cx, y, {
-    font: '900 30px Orbitron, sans-serif', color: '#fff', letterSpacing: '2px',
-  });
+  // Band: XP first and highlighted, then the running totals.
+  y += s.bandDrop;
+  const gap = Math.round(box.w * 0.016);
+  const cellW = (box.w - gap * 3) / 4;
+  let px = box.x;
+  const cell = (value, label, highlight) => {
+    drawStatPill(ctx, px, y, cellW, s.cellH, value, label, { highlight, valueSize: s.val, labelSize: s.lab });
+    px += cellW + gap;
+  };
+  cell(`+${data.xp ?? 0}`, 'XP EARNED', true);
+  cell(String(data.level ?? 1), 'LEVEL');
+  cell(String(data.streak ?? 0), 'DAY STREAK');
+  cell(String(data.sessions ?? 0), 'SESSIONS');
 
-  // XP — the number is the hero of this panel
-  y += 86;
-  text(ctx, `+${data.xp ?? 0}`, cx, y, {
-    font: '900 84px Orbitron, sans-serif', color: GOLD, shadow: 'rgba(253,224,71,0.5)',
-  });
-  y += 30;
-  text(ctx, 'XP EARNED', cx, y, { font: '700 22px Orbitron, sans-serif', color: '#facc15', letterSpacing: '6px' });
-
-  // Stats row, sized off the panel so it stays inside the frame
-  y += 26;
-  const gap = 18;
-  const pillW = Math.min(280, (box.w - gap * 2) / 3);
-  const pillH = 100;
-  const rowW = pillW * 3 + gap * 2;
-  let px = cx - rowW / 2;
-  drawStatPill(ctx, px, y, pillW, pillH, String(data.level ?? 1), 'LEVEL');
-  px += pillW + gap;
-  drawStatPill(ctx, px, y, pillW, pillH, `${data.streak ?? 0}`, 'DAY STREAK');
-  px += pillW + gap;
-  drawStatPill(ctx, px, y, pillW, pillH, String(data.sessions ?? 0), 'SESSIONS');
-  y += pillH + 28;
-
-  if (data.verified) drawVerified(ctx, cx, y, 0.85);
+  y += s.cellH + s.verGap;
+  if (data.verified) drawVerified(ctx, cx, y, s.verScale);
 }
 
 /**
@@ -289,13 +337,14 @@ export async function renderShareCard({ format = 'story', data = {} }) {
   canvas.height = h;
   const ctx = canvas.getContext('2d');
 
-  // STORY rides the designed poster. If the art ever fails to load we fall
-  // through to the generated layout rather than shipping a blank card.
-  if (story) {
-    const template = await loadImage(STORY_TEMPLATE);
+  // Both formats ride their designed poster. If the art ever fails to load we
+  // fall through to the generated layout rather than shipping a blank card.
+  const tpl = TEMPLATES[format];
+  if (tpl) {
+    const template = await loadImage(tpl.src);
     if (template) {
       ctx.drawImage(template, 0, 0, w, h);
-      drawStoryPanel(ctx, w, h, data);
+      drawPanel(ctx, w, h, data, format);
       return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
     }
   }
