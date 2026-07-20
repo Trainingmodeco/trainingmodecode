@@ -124,4 +124,14 @@ const FIGHT_FOCUS_POOL = [
   { id: 'mma-27', discipline: 'mma', minDifficulty: 'easy', title: 'Light Kick Balance', description: 'Low kicks with clean balance recovery.', coachingCue: 'Kick light, land in stance.', sampleCommands: ['Low Kick', 'Low Kick Reset'] },
 ];
 
+// ── Southpaw rounds (1.3 revision) ─────────────────────────────────────────
+// Stance-switch training as an occasional round theme at every difficulty —
+// most fighters are orthodox, so a full southpaw round builds both sides.
+FIGHT_FOCUS_POOL.push(
+  { id: 'box-sp', discipline: 'boxing', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Right foot forward. Your jab is now your right hand.', sampleCommands: ['Southpaw Jab', 'Southpaw Jab Cross'] },
+  { id: 'kb-sp', discipline: 'kickboxing', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Switch your feet. Lead with the right, kick with the left.', sampleCommands: ['Southpaw Jab', 'Southpaw Low Kick'] },
+  { id: 'mt-sp', discipline: 'muay-thai', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Mirror everything. Left roundhouse becomes your power kick.', sampleCommands: ['Southpaw Teep', 'Southpaw Roundhouse'] },
+  { id: 'mma-sp', discipline: 'mma', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Switch stance. Watch your lead leg — it is exposed now.', sampleCommands: ['Southpaw Jab Cross', 'Southpaw Low Kick'] },
+);
+
 export default FIGHT_FOCUS_POOL;

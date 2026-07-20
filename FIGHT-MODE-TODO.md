@@ -35,11 +35,16 @@ ship. Nothing here is built yet.
         getEffectiveArsenal = starter ∪ Practice-learned. Filtering ignores
         non-strike movements and never leaves a session empty. Verified both
         views live.
-- [x] 1.3a Combo Coach upgrades — DEFENSE CALLS toggle (SLIP/ROLL/CHECK/PIVOT
-      in violet; +Sprawl for MMA, no Check for boxing; fires every 2–4 combos,
-      snappier window, never during Rush) and STANCE setting
-      (orthodox/southpaw, persists to profile, announced in the round intro).
-      Verified live: PIVOT! rendered violet #a855f7, gold combos resume after.
+- [x] 1.3a Combo Coach upgrades (REVISED per user) — defense is EMBEDDED
+      automatically, no toggle: TECHNICAL every 2–3 calls (most defense);
+      COMBO Easy ~3 · Normal ~4 · Hard ~5 · Advanced none standalone (defense
+      already lives inside advanced combo text). Calls render violet #a855f7
+      (SLIP/ROLL/PIVOT, +CHECK kick sports, +SPRAWL MMA), snappier window,
+      never during Rush. NO stance setting — instead a "Southpaw Round" card
+      joined every discipline's Fight Focus rotation (all difficulties).
+      YOUR ARSENAL chip removed (Basic Mode chip is enough); setup page keeps
+      ~15% clear space at the bottom. Verified live: SLIP! violet auto-fired
+      in a Normal session with no toggle.
 - [ ] 1.3b Custom combo builder with saved combo chips (the bigger half —
       still to do).
 - [ ] 1.4 Strike counter pipeline: accelerometer sampling during WORK phases,

@@ -24,6 +24,20 @@ const DEFENSE_CALLS = {
   mma: ['Slip', 'Roll', 'Check', 'Pivot', 'Sprawl'],
 };
 
+// Defense is embedded automatically — no toggle. Technical drills the most
+// defense; Combo tapers with difficulty until Advanced, where the defense
+// already lives inside the combo text (Slip/Roll/Check are called there).
+// Returns [min, max] combos between calls, or null for none.
+function defenseCadenceFor(mode, difficulty) {
+  if (String(mode).toLowerCase() === 'technical') return [2, 3];
+  const d = String(difficulty).toLowerCase();
+  if (d === 'easy') return [2, 4];
+  if (d === 'normal') return [3, 5];
+  if (d === 'hard') return [4, 6];
+  return null; // advanced
+}
+const rollCadence = ([min, max]) => min + Math.floor(Math.random() * (max - min + 1));
+
 const VIOLET = C.violet;
 const RING_SIZE = 394;
 // Radius tuned so the progress arc sits on the outer edge of ring-combo.webp.
@@ -99,11 +113,12 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const [countdownSub, setCountdownSub] = useState('');
   const [currentCombo, setCurrentCombo] = useState(pool[0]);
   const [comboStreak, setComboStreak] = useState(0);
-  // 1.3 — defense-call state: violet display + a countdown of combos until
-  // the next call (randomized 2–4 so it never feels scripted).
+  // 1.3 — defense-call state: violet display + a countdown of combos until the
+  // next call. Cadence comes from mode+difficulty (null = no standalone calls).
   const [isDefense, setIsDefense] = useState(false);
   const [callTick, setCallTick] = useState(0);
-  const defenseInRef = useRef(2 + Math.floor(Math.random() * 3));
+  const defenseCadence = defenseCadenceFor(cfg.mode, cfg.difficulty);
+  const defenseInRef = useRef(defenseCadence ? rollCadence(defenseCadence) : Infinity);
   const defensePool = DEFENSE_CALLS[disciplineSlug(discipline)] || DEFENSE_CALLS.boxing;
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [showRushOverlay, setShowRushOverlay] = useState(false);
@@ -174,9 +189,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (aborted()) return;
 
     setCountdown(`ROUND ${rIdx + 1}`);
-    const stance = cfg.stance ? ` \u2022 ${cfg.stance}` : '';
-    setCountdownSub(`${discipline} \u2022 ${speedLabel}${stance}`);
-    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedLabel} speed.${cfg.stance ? ` ${cfg.stance.toLowerCase()} stance.` : ''}`, 1200, { voice });
+    setCountdownSub(`${discipline} \u2022 ${speedLabel}`);
+    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedLabel} speed.`, 1200, { voice });
     if (aborted()) return;
 
     setCountdown('GO');
@@ -186,7 +200,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     setCountdown(null);
     setCountdownSub('');
-  }, [discipline, speedLabel, cfg.voiceOn, cfg.stance]);
+  }, [discipline, speedLabel, cfg.voiceOn]);
 
   useEffect(() => {
     rushSpoken.current = false;
@@ -329,11 +343,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     const loop = async () => {
       while (active && comboLoopRef.current && !pausedRef.current) {
-        // 1.3 — every 2–4 combos, a defense call fires instead (violet, quick).
-        const defenseNow = cfg.defenseCalls && !rushRef.current && defenseInRef.current <= 0;
+        // 1.3 — on cadence, a defense call fires instead (violet, quick).
+        const defenseNow = defenseCadence && !rushRef.current && defenseInRef.current <= 0;
         if (defenseNow) {
           const call = defensePool[Math.floor(Math.random() * defensePool.length)];
-          defenseInRef.current = 2 + Math.floor(Math.random() * 3);
+          defenseInRef.current = rollCadence(defenseCadence);
           setIsDefense(true);
           setCurrentCombo(`${call.toUpperCase()}!`);
           setCallTick(t => t + 1);
