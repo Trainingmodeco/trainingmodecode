@@ -15,6 +15,67 @@ ship. Nothing here is built yet.
 
 ---
 
+## LIVE-TESTING FIXES (from the user's real-device testing — build in order,
+## one at a time, BEFORE resuming the phases below)
+
+- [ ] LT-1 AUDIO MIX — voice cues must sit clearly on top of music.
+      · Two channels: CUES (voice/bells/beeps) 90% default · MUSIC 55%.
+      · Hard ducking: music → ~20% while any cue plays (<50ms attack,
+        ~400ms recovery). Bells/beeps duck too.
+      · Speaker icon on every ring-timer screen → compact overlay, two
+        sliders (🔊 VOICE / 🎵 MUSIC), adjustable mid-session without
+        pausing, auto-dismisses after 3s, persists as new defaults.
+      · Setup screens: replace voice on/off with an AUDIO row showing both
+        levels; one-time "Voice cues are off" hint if VOICE = 0.
+      ⚠ CONSTRAINT FOUND IN CODE: the app has a musicVolume setting but NO
+        in-app music player (only asset = the bell). Live-testing music was
+        the phone's own (Spotify etc.) — a web PWA cannot duck another
+        app's audio. Plan: max/boost cue gain + the mixer UI now; true
+        ducking requires adding an in-app training-music player (decide:
+        add music as a feature, or reframe MUSIC slider until native).
+- [ ] LT-2 RUSH MODE VOICE — stop repeating "rush mode go".
+      · Activation once: "RUSH MODE — GO!" + riser sting + orange ring.
+      · Then a shuffled motivational pool (~every 8–10s, no immediate
+        repeats): "Give it everything you've got!" / "Strike hard and
+        fast!" / "Empty the tank!" / "Push the pace — faster!" / "Don't
+        slow down now!" / "Finish strong!" / "Hands up — keep firing!" /
+        "Leave nothing behind!"
+      · After rush (if session continues): "Rush mode complete." + normal
+        ring; if rush ends at the final bell, skip the line — just bell.
+      · Pool = simple string array; cues never talk over combo call-outs
+        (wait until the call finishes).
+- [ ] LT-3 WARM-UP TIMER — new setup option on Fight Focus, Combo Coach,
+      Combat Conditioning (NOT Practice/Drill It).
+      · Setup row "WARM-UP": OFF · 5 · 10 · 15 · 20 MIN pills (gold
+        selected); remembers last choice per feature.
+      · Session opens in a WARM-UP phase on the same ring timer before
+        round 1: teal/green ring (distinct from red WORK / blue REST),
+        large countdown, "WARM-UP · STRETCH & GET LOOSE", voice cue at
+        start + halfway, last-10s flash + beeps, then bell → 3-2-1 →
+        round 1. One tap starts everything.
+      · "SKIP → START" button visible during warm-up.
+      · Motion-gate exempt (like rest), no XP, doesn't count toward
+        strike/round stats.
+- [ ] LT-4 SHARE FIX — share a rendered IMAGE, never plain text.
+      · Card image: dark app bg, avatar tier art prominent, "MISSION
+        COMPLETE" header, session summary, stats row (LEVEL · 🔥 STREAK ·
+        SESSIONS), XP, trophies strip, VERIFIED shield when integrity
+        passed, logo + handle footer.
+      · Two formats with preview toggle: STORY 1080×1920 (IG-safe
+        margins) · POST 1080×1080; preview IS the rendered image.
+      · Targets (hide if app not installed): INSTAGRAM Stories · FACEBOOK
+        Stories → feed fallback · TIKTOK Share Kit → SAVE + toast
+        fallback · native SHARE sheet with image attached · SAVE to
+        photos. Render on demand with shimmer; never placeholder art.
+      ⚠ PWA CONSTRAINT: direct IG/FB/TikTok SDK integrations are
+        native-app mechanisms. Web build delivers: real canvas-rendered
+        image + preview + native share sheet with the image file + SAVE.
+        Deep links can OPEN those apps but can't attach the image from
+        web — full Stories/TikTok integration lands with the native
+        wrapper. Fallbacks above cover it meanwhile.
+
+---
+
 ## PHASE 1 — FOUNDATIONS (everything else builds on these)
 - [x] 1.1 Practice Mode completion loop: finishing DRILL IT marks a lesson
       done ✓, advances the lesson unlock chain, and adds the strike to the
