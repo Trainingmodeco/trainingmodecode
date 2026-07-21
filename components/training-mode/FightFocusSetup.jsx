@@ -13,7 +13,6 @@ import TrainingCTA from './shared/TrainingCTA';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
-import AudioLevelRow from './shared/AudioLevelRow';
 import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 
 const GOLD = C.gold;
@@ -114,9 +113,11 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
           <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
         </div>
 
-        {/* Stacked steppers */}
+        {/* Stacked steppers — WARM-UP first, since it's the first thing that
+            happens in the session. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
           <div data-guide="ff-steppers">
+          <WarmupRow feature="fightFocus" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
           <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
           <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
           <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
@@ -127,16 +128,6 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         {/* Rush mode (opens the flame popup) */}
         <div style={{ marginBottom: 9 }}>
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
-        </div>
-
-        {/* LT-3 — optional warm-up before round 1. */}
-        <div style={{ marginBottom: 9 }}>
-          <WarmupRow feature="fightFocus" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
-        </div>
-
-        {/* LT-1 — cue level before you start (also adjustable mid-round). */}
-        <div style={{ marginBottom: 14 }}>
-          <AudioLevelRow/>
         </div>
 
         {/* Start — inline, right under Rush Mode so it's never hidden */}

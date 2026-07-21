@@ -10,7 +10,6 @@ import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import AddCardioSheet from './AddCardioSheet';
 import TrainingCTA from './shared/TrainingCTA';
-import AudioLevelRow from './shared/AudioLevelRow';
 import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 
 const GOLD = C.gold;
@@ -205,8 +204,13 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           })}
         </div>
 
-        {/* Rounds + Intensity (design 15b) — side by side to save a row */}
+        {/* Rounds + Intensity (design 15b) — side by side to save a row.
+            WARM-UP sits first: it's the first thing that happens in the
+            circuit. */}
         <div data-guide="ccs-config">
+          <div style={{ marginBottom: 9 }}>
+            <WarmupRow feature="combatConditioning" value={warmupMin} onChange={setWarmupMin}/>
+          </div>
           <div style={{ display: 'flex', gap: 11, marginBottom: 9 }}>
             <Stepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
             <Segmented label="INTENSITY" options={INTENSITIES} value={difficulty} onChange={setDifficulty} accent={RED}/>
@@ -250,16 +254,6 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly,
           ) : (
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: GOLD, flexShrink: 0 }}>›</span>
           )}
-        </div>
-
-        {/* LT-3 — optional warm-up before round 1. */}
-        <div style={{ marginBottom: 10 }}>
-          <WarmupRow feature="combatConditioning" value={warmupMin} onChange={setWarmupMin}/>
-        </div>
-
-        {/* LT-1 — cue level before you start (also adjustable mid-round). */}
-        <div style={{ marginBottom: 10 }}>
-          <AudioLevelRow/>
         </div>
 
         {/* Start circuit — inline, just under Add Cardio */}

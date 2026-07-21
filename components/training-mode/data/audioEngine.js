@@ -1,16 +1,19 @@
 const STORAGE_KEY = 'tm_audio_settings';
 
-// LT-1 — cue-boost. A web PWA can't duck the phone's own music player, so the
-// only lever we have is making our own cues as loud and clear as possible:
-// voice and SFX both sit at full master. SETTINGS_VERSION bumps once so
-// athletes who already had the quieter 0.9 mix get the boost too; anything
-// they change after that is theirs and sticks.
-const SETTINGS_VERSION = 2;
+// Cue-boost. A web PWA can't duck the phone's own music player or push the
+// browser's TTS past 1.0, so the only levers we have are making our own cues
+// as loud as the platform allows and defaulting the voice above 100% (the
+// boost tier + external ducking activate in the native wrapper).
+// voiceVolume is 0..VOICE_MAX (2.0); default 1.5. SETTINGS_VERSION bumps so
+// existing athletes pick up the new louder default; anything they set after
+// that is theirs and sticks.
+export const VOICE_MAX = 2.0;
+const SETTINGS_VERSION = 3;
 
 const DEFAULTS = {
   masterVolume: 1.0,
   sfxVolume: 1.0,
-  voiceVolume: 1.0,
+  voiceVolume: 1.5,
   musicVolume: 0.6,
   duckingEnabled: true,
   duckingStrength: 'normal',
@@ -52,9 +55,10 @@ function getSettings() {
   }
   settings = parsed ? { ...DEFAULTS, ...parsed } : { ...DEFAULTS };
 
-  // One-time cue-boost migration for mixes saved before LT-1. The version has
-  // to be read off the STORED object — DEFAULTS carries the current version, so
-  // checking the merged result would always look already-migrated.
+  // One-time cue-boost migration for older saved mixes. The version has to be
+  // read off the STORED object — DEFAULTS carries the current version, so
+  // checking the merged result would always look already-migrated. v3 also
+  // floors the voice at the new 1.5 default so existing users get the boost.
   if (parsed && parsed.v !== SETTINGS_VERSION) {
     settings = {
       ...settings,
@@ -86,17 +90,27 @@ export function saveAudioSettings(newSettings) {
 
 export function setMasterVolume(v) { saveAudioSettings({ masterVolume: Math.max(0, Math.min(1, v)) }); }
 export function setSfxVolume(v) { saveAudioSettings({ sfxVolume: Math.max(0, Math.min(1, v)) }); }
-export function setVoiceVolume(v) { saveAudioSettings({ voiceVolume: Math.max(0, Math.min(1, v)) }); }
+// Voice can be set up to 200% — the boost above 100% is applied to the app's
+// own Web Audio cues and takes full effect (incl. TTS + external ducking) in
+// the native wrapper. Stored raw; consumers cap where the platform requires.
+export function setVoiceVolume(v) { saveAudioSettings({ voiceVolume: Math.max(0, Math.min(VOICE_MAX, v)) }); }
 export function setMusicVolume(v) { saveAudioSettings({ musicVolume: Math.max(0, Math.min(1, v)) }); }
 
+// Raw voice setting (0..2.0) for the mixer UI and native gain.
+export function getVoiceVolume() { return getSettings().voiceVolume; }
+
+// For browser SpeechSynthesis, whose utterance.volume is capped at 1.0.
 export function getEffectiveVoiceVolume() {
   const s = getSettings();
   return Math.min(1, s.masterVolume * s.voiceVolume);
 }
 
-function getEffectiveSfxVolume() {
+// Gain for the app's own cue sounds (bells / beeps / riser). These play through
+// Web Audio, so unlike browser TTS they CAN exceed 1.0 — the VOICE slider drives
+// them across the full 0..200% range so cues audibly cut through even on web.
+function getCueGain() {
   const s = getSettings();
-  return s.masterVolume * s.sfxVolume;
+  return Math.max(0, Math.min(VOICE_MAX, s.masterVolume * s.sfxVolume * s.voiceVolume));
 }
 
 export function getEffectiveMusicVolume() {
@@ -199,7 +213,7 @@ function playBellSegment(count) {
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
   const seg = BELL_SEGMENTS[count] || BELL_SEGMENTS[1];
-  const vol = getEffectiveSfxVolume();
+  const vol = getCueGain();
 
   const source = ctx.createBufferSource();
   const gain = ctx.createGain();
@@ -239,7 +253,7 @@ function playTone(freq, duration, type, volume, startTime) {
   osc.type = type;
   osc.frequency.value = freq;
 
-  const vol = volume * getEffectiveSfxVolume();
+  const vol = volume * getCueGain();
   const t = startTime || ctx.currentTime;
   gain.gain.setValueAtTime(vol, t);
   gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
@@ -266,7 +280,7 @@ export function playRiser() {
   gain.connect(ctx.destination);
 
   const t = ctx.currentTime;
-  const peak = Math.max(0.0001, 0.32 * getEffectiveSfxVolume());
+  const peak = Math.max(0.0001, 0.32 * getCueGain());
 
   osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(200, t);

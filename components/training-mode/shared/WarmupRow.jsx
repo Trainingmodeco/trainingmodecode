@@ -1,16 +1,16 @@
 import { StepperRow } from './Stepper';
 
-// LT-3 — WARM-UP setup row. Rendered as a stepper (WARM-UP  −  10:00  +) so it
-// matches the round controls above it; 0 reads as OFF. Remembers the last
-// choice PER FEATURE, because a warm-up before Combat Conditioning and a
-// warm-up before Combo Coach are different habits.
+// WARM-UP setup row. Exactly the same control as ROUNDS / ROUND REST — a − / +
+// stepper with the value in the middle (tappable to type an exact number of
+// minutes). 1-minute steps, 0 = OFF (no warm-up). Value shows as mm:ss.
+// Remembers the last choice PER FEATURE (a warm-up before Combat Conditioning
+// and one before Combo Coach are different habits).
 const TEAL = '#2dd4bf';
-const MAX_MIN = 20;
+const MAX_MIN = 60;
 
 const KEY = (feature) => `tm_warmup_${feature}`;
 
 const clampMin = (n) => Math.max(0, Math.min(MAX_MIN, Math.round(n)));
-// mm:ss for the resting value; OFF at zero.
 const fmtWarmup = (v) => (v <= 0 ? 'OFF' : `${v}:00`);
 
 export function loadWarmup(feature) {
@@ -33,27 +33,17 @@ export default function WarmupRow({ feature, value, onChange }) {
   const set = (v) => { const n = clampMin(v); saveWarmup(feature, n); onChange(n); };
 
   return (
-    <div>
-      <StepperRow
-        label="WARM-UP"
-        value={value}
-        min={0}
-        max={MAX_MIN}
-        step={5}
-        display={fmtWarmup}
-        editDisplay={(v) => String(v)}
-        parse={(s) => parseInt(s, 10)}
-        onChange={set}
-        accent={TEAL}
-      />
-      {value > 0 && (
-        <div style={{
-          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5,
-          color: '#8b83a8', marginTop: 4, paddingLeft: 2,
-        }}>
-          {value} min of loosening up before round 1. No XP, skippable any time.
-        </div>
-      )}
-    </div>
+    <StepperRow
+      label="WARM-UP"
+      value={value}
+      min={0}
+      max={MAX_MIN}
+      step={1}
+      display={fmtWarmup}
+      editDisplay={(v) => String(v)}
+      parse={(s) => parseInt(s, 10)}
+      onChange={set}
+      accent={TEAL}
+    />
   );
 }

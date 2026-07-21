@@ -51,27 +51,6 @@ function PillRow({ opts, val, onPick, wrap = false }) {
   );
 }
 
-function AudioSlider({ label, value, onChange }) {
-  const pct = Math.round(value * 100);
-  return (
-    <div style={{
-      background: 'rgba(12,2,24,0.8)', borderRadius: 8, padding: '6px 14px',
-      border: '1px solid rgba(255,255,255,0.06)',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: C.text }}>{label}</span>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: C.yellow }}>{pct}%</span>
-      </div>
-      <input type="range" min={0} max={100} value={pct}
-        onChange={e => onChange(Number(e.target.value) / 100)}
-        style={{
-          width: '100%', height: 4, borderRadius: 2, appearance: 'none',
-          background: `linear-gradient(to right, ${C.neon} ${pct}%, rgba(255,255,255,0.1) ${pct}%)`,
-          outline: 'none', cursor: 'pointer',
-        }}/>
-    </div>
-  );
-}
 
 function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio }) {
   const [saved, setSaved] = useState(false);
@@ -122,16 +101,9 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
               <PillRow opts={['OFF', 'LOW', 'NORMAL', 'HIGH']} val={encouragement.toUpperCase()} onPick={v => setEncouragement(v.toLowerCase())} wrap/>
             </div>
 
-            {/* Volume Controls */}
-            <div>
-              <SectionLabel text="VOLUME CONTROLS"/>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <AudioSlider label="Voice Volume" value={audioSettings.voiceVolume} onChange={v => updateAudio('voiceVolume', v)}/>
-                <AudioSlider label="Music Volume" value={audioSettings.musicVolume ?? 0.6} onChange={v => updateAudio('musicVolume', v)}/>
-                <AudioSlider label="Bell / Beep Volume" value={audioSettings.sfxVolume} onChange={v => updateAudio('sfxVolume', v)}/>
-                <AudioSlider label="Master Volume" value={audioSettings.masterVolume} onChange={v => updateAudio('masterVolume', v)}/>
-              </div>
-            </div>
+            {/* Volume now lives only inside the timer overlay (speaker icon,
+                mid-session, no pause). No volume sliders on this options
+                screen. */}
 
             {/* Ducking */}
             <div>
