@@ -257,6 +257,18 @@ HOW MUCH TO MAKE (guidance):
         overriding the generated pool. Verified live: built "Jab Cross Hook",
         saved + persisted, selected, drilled — every call-out was that combo,
         nothing from the pool.
+- [~] 1.3c Custom strikes — user is REBUILDING (Jul 21). User-defined strikes
+      (tap to create/name your own techniques) that then feed Combo Coach /
+      Fight Focus, sibling to 1.3b custom combos. User is redesigning in the
+      designer and will bring the spec back.
+      TIER RECOMMENDATION (freemium-limited, matches the existing GATES pattern
+      in data/entitlements.js): free users can CREATE a small number for the
+      taste (e.g. GATES.freeCustomStrikes = 3, like freeRoutineSlots = 1);
+      unlimited custom strikes + saved library become PRO. This hooks free users
+      on personalization, then converts at the cap — same shape as the arcade
+      (3 free stages) and routine (1 free slot) gates. Nothing to enforce until
+      PAYWALL_ENABLED flips; add the gate constant when the redesign lands.
+      FINAL free-vs-Pro call still pending user.
 - [x] 1.4 Strike counter pipeline. SHIPPED (Jul 21).
       → data/strikeCounter.js — pure detector: gravity removal (high-pass, or
         the device's linear accel when available) → magnitude → adaptive
@@ -334,7 +346,12 @@ HOW MUCH TO MAKE (guidance):
 - [ ] 2.5 Fight Mode trophies live: CAMP CHAMPION · COMBO MACHINE · SCHOLAR
       OF THE SWEET SCIENCE · IRON ROUNDS, wired to real events.
 
-## PHASE 3 — DIFFERENTIATORS (competitive layer; needs Phase 1)
+## PHASE 3 — DIFFERENTIATORS (competitive layer; PRO tier; needs Phase 1)
+> TIER (Jul 21, user decision): Phase 3 is PRO — the whole competitive layer
+> (camera pose verification, reaction mode, ghost battles, verified leaderboards)
+> ships gated behind Pro and bundled with TRAINING CAMP (Phase 2). User is
+> building/integrating this later this week. Casual play stays free and
+> sensor-optional; the accelerometer bonus (1.6) remains free and positive-only.
 - [ ] 3.0 CAMERA POSE VERIFICATION (the real anti-cheat engine). On-device
       browser pose estimation (TensorFlow.js MoveNet/BlazePose or MediaPipe
       Tasks) via getUserMedia — counts real punches from wrist/elbow keypoints
