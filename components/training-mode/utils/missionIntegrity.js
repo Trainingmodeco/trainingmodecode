@@ -234,11 +234,12 @@ export class IntegritySession {
 
 // --- Core calculation functions ---
 
-// 1.6 — motion effort thresholds. Deliberately lenient so poor phone placement
-// or under-counting never false-flags a real workout; only a near-zero count
-// over completed rounds (with motion ON) trips the soft flag.
-const VERIFY_STRIKES_PER_UNIT = 10;  // healthy output → effort verified
-const LOW_STRIKES_PER_UNIT = 3;      // below this over completed rounds → soft flag
+// 1.6 — on-body strike count (per completed round) that earns the motion-
+// verified ✓ bonus. Bonus-only: falling short is NEVER penalized, so the bar
+// can stay meaningful without risking a false flag on a phone that's off the
+// body. Kept generous so a genuine in-pocket/on-wrap session clears it. Real-
+// device calibration still pending a phone.
+const VERIFY_STRIKES_PER_UNIT = 6;
 
 export function calculateMissionIntegrity(session, motion = {}) {
   const validUnits = session.units.filter(u => u.validityStatus === VALIDITY.VALID);
@@ -285,28 +286,33 @@ export function calculateMissionIntegrity(session, motion = {}) {
 
   const message = getResultMessage(validityStatus, validCompletedUnits, totalRequiredUnits, partialCompletionRatio);
 
-  // 1.6 — fold motion (accelerometer) into the verdict. It's OPT-IN, so it can
-  // only ADD trust: without it, effort is 'unmeasured' and the plain time gate
-  // stands unchanged. With it, a healthy strike count over the completed rounds
-  // verifies effort; a near-zero count is a SOFT flag — the session keeps its
-  // full XP but doesn't earn leaderboard credit (a completed-but-motionless run
-  // shouldn't top a board). A stationary phone therefore just falls back to the
-  // plain gate; it is never blocked or docked XP.
+  // 1.6 (revamped) — motion is a POSITIVE-ONLY signal, never a gate.
+  //
+  // A phone's accelerometer can only feel strikes when the phone is ON the
+  // athlete (pocket, armband, hand wraps). But the common — and correct — setup
+  // is the phone OFF the body: on the floor by the bag, propped up, or mounted
+  // to watch the timer. A stationary phone there is the NORMAL case, and the
+  // accelerometer genuinely cannot tell "phone on the floor, working hard" from
+  // "did nothing." Penalizing a low count would false-flag that exact setup.
+  //
+  // So motion NEVER subtracts trust and NEVER withholds credit. It can only ADD
+  // a verification bonus when on-body strikes are clearly detected. The baseline
+  // anti-cheat remains the time / idle / rapid-action gate computed above, which
+  // holds no matter where the phone sits. Real motion verification for the
+  // competitive layer will come from camera pose tracking later (see Phase 3),
+  // which works precisely for the mounted/floor-facing setup.
   const motionUsed = !!motion.motionUsed;
   const strikesThrown = Math.max(0, Math.round(motion.thrown || 0));
-  let effort = 'unmeasured';
+  let effort = 'unmeasured';   // motion off, or phone off-body — no signal, no penalty
   let motionVerified = false;
-  let leaderboardEligible = isFullyValid;
+  const leaderboardEligible = isFullyValid;   // time gate only; motion never gates
 
-  if (motionUsed && validCompletedUnits > 0) {
+  if (motionUsed && validCompletedUnits > 0 && strikesThrown > 0) {
     if (strikesThrown >= validCompletedUnits * VERIFY_STRIKES_PER_UNIT) {
-      effort = 'verified';
+      effort = 'verified';       // clearly on-body + working → ✓ bonus
       motionVerified = true;
-    } else if (strikesThrown < validCompletedUnits * LOW_STRIKES_PER_UNIT) {
-      effort = 'low';
-      leaderboardEligible = false;   // soft flag: keep XP, withhold board credit
     } else {
-      effort = 'measured';
+      effort = 'measured';       // some on-body motion, below the ✓ bar — no penalty
     }
   }
 

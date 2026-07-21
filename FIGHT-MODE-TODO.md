@@ -299,18 +299,26 @@ HOW MUCH TO MAKE (guidance):
         lands it replaces this with verified thrown strikes and the label can
         become "STRIKES THROWN". The plumbing (countStrikes + fightStats) is
         already the right shape for that swap.
-- [x] 1.6 Anti-cheat wiring. SHIPPED (Jul 21). Strike count now folds into
-      calculateMissionIntegrity(session, motion): motion is OPT-IN and can only
-      ADD trust. effort ∈ {unmeasured, verified, measured, low}. With motion on
-      and ≥1 valid round: ≥10 strikes/round → 'verified' (motionVerified true);
-      <3 strikes/round → 'low' (SOFT flag — keeps full XP, withholds
-      leaderboardEligible only); in between → 'measured'. No motion → effort
-      'unmeasured' and the plain time gate stands unchanged (a stationary phone
-      is never blocked or docked). MissionComplete's integrity banner shows a
-      gentle "Low movement — XP kept, no leaderboard credit" note on 'low'.
-      effort/motionVerified/strikesThrown persisted to tm_integrity_log for
-      analytics. Unit-tested (9 cases incl. boundaries). Real-device threshold
-      calibration still pending a phone (shares the 1.4 caveat).
+- [x] 1.6 Anti-cheat wiring. SHIPPED (Jul 21), REVAMPED to POSITIVE-ONLY
+      (Jul 21). Strike count folds into calculateMissionIntegrity(session,
+      motion) as a bonus signal that can only ADD trust — it NEVER penalizes or
+      withholds credit. Rationale: a phone accelerometer only senses strikes
+      when the phone is ON the body, but the common/correct setup is OFF the
+      body (floor by the bag, propped, or mounted to watch the timer). A
+      stationary phone there is normal, and the sensor can't tell "on the floor,
+      working hard" from "did nothing" — so a low count must never be a flag.
+      effort ∈ {unmeasured, measured, verified}: motion on + ≥1 valid round +
+      ≥6 strikes/round → 'verified' (✓ bonus, motionVerified true); any lower
+      positive count → 'measured'; motion off / phone off-body / zero →
+      'unmeasured'. leaderboardEligible = isFullyValid ALWAYS (time gate only;
+      motion never gates). Removed the old 'low' soft-flag + its banner note.
+      Baseline anti-cheat stays the time/idle/rapid-action gate, which holds
+      regardless of phone placement. Real motion verification for the
+      competitive layer is deferred to camera pose tracking (Phase 3), which
+      works for the mounted/floor-facing setup. effort/motionVerified/
+      strikesThrown persisted to tm_integrity_log. Unit-tested (8 cases:
+      on-floor zero = no penalty, tiny count = no penalty, verified bonus,
+      boundaries, "never emits low"). Real-device calibration pending a phone.
 
 ## PHASE 2 — PROGRESSION (the retention layer)
 - [ ] 2.1 Session recipe format + runner: a camp session = JSON list of
@@ -327,9 +335,21 @@ HOW MUCH TO MAKE (guidance):
       OF THE SWEET SCIENCE · IRON ROUNDS, wired to real events.
 
 ## PHASE 3 — DIFFERENTIATORS (competitive layer; needs Phase 1)
+- [ ] 3.0 CAMERA POSE VERIFICATION (the real anti-cheat engine). On-device
+      browser pose estimation (TensorFlow.js MoveNet/BlazePose or MediaPipe
+      Tasks) via getUserMedia — counts real punches from wrist/elbow keypoints
+      and confirms a person is actually moving, REGARDLESS of where the phone
+      sits, as long as the camera faces the athlete. Solves the accelerometer
+      blind spot (phone on the floor / mounted / propped to watch the timer =
+      the common setup). 100% on-device: no video leaves the phone, needs
+      explicit camera permission + a lit, framed view. This — not the
+      accelerometer — is what powers a trustworthy VERIFIED leaderboard, ghost
+      battles, and reaction mode. Cost: ~3–6 MB model, CPU/battery, tuning.
+      Gate the competitive tier behind it; keep casual play sensor-free.
 - [ ] 3.1 REACTION MODE: opponent windup cues → defense calls → motion-
-      verified reactions, PERFECT/GOOD/HIT grading, HP bars, counter-combo
-      windows, KO/decision outcomes, avg-reaction-time stat on Progress.
+      verified reactions (via 3.0 camera pose), PERFECT/GOOD/HIT grading, HP
+      bars, counter-combo windows, KO/decision outcomes, avg-reaction-time
+      stat on Progress.
 - [ ] 3.2 GHOST BATTLES data: record per-10s strike buckets on every
       verified Fight Mode session; "MY BEST" ghost always available.
 - [ ] 3.3 GHOST BATTLES live screen: split strike bar (you vs ghost replay),
