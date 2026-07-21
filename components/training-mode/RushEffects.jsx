@@ -240,8 +240,10 @@ export function RushOverlay({ onDone }) {
         <div className="rush-title" style={{
           fontFamily: "'Orbitron', sans-serif",
           fontWeight: 900,
-          fontSize: 'clamp(48px, 18vw, 72px)',
-          letterSpacing: '0.14em',
+          // Sized so "RUSH MODE" fits one line on a phone without overflowing
+          // the frame (was clamp(48,18vw,72) which spilled off narrow screens).
+          fontSize: 'clamp(28px, 10.5vw, 48px)',
+          letterSpacing: '0.08em',
           lineHeight: 1.1,
           whiteSpace: 'nowrap',
           padding: '8px 0',

@@ -68,13 +68,15 @@ function getBannerConfig(integrityResult) {
 export default function MissionIntegrityBanner({ integrityResult, onRetry, onHome }) {
   if (!integrityResult) return null;
 
-  const { validCompletedUnits, totalRequiredUnits, partialCompletionRatio, awardXp, leaderboardEligible, isFullyValid } = integrityResult;
+  const { validCompletedUnits, totalRequiredUnits, partialCompletionRatio, awardXp, leaderboardEligible, validityStatus } = integrityResult;
   const banner = getBannerConfig(integrityResult);
 
-  // LT-5 — a clean session doesn't need the forensic breakdown: the round
-  // count and XP are already on the outcome screen, so collapse to one line.
-  // The full stats/completion detail stays for anything that didn't verify.
-  if (isFullyValid && !onRetry && !onHome) {
+  // Collapse to a single clean line for everything benign — a verified win OR
+  // just stopping early — so GOOD EFFORT reads as calm as MISSION COMPLETE.
+  // The full forensic breakdown only shows for real anti-cheat flags, where the
+  // numbers actually explain a withheld/blocked result.
+  const forensic = ['tooFast', 'suspicious', 'expired', 'idleTimeout'].includes(validityStatus);
+  if (!forensic && !onRetry && !onHome) {
     return (
       <div style={{
         width: '100%', maxWidth: 360, borderRadius: 10,
