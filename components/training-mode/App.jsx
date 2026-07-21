@@ -358,16 +358,19 @@ export default function App() {
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
-    goSummary:     (rounds, c, completed, integrityResult) => {
+    goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
       addFightFocusSession(done, total);
-      recordFightSession({ rounds: done }); // 1.5 lifetime totals (no combo strikes here)
+      // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
+      // from the accelerometer (motion-verified thrown strikes) or is zero.
+      const fs = fightSessionStats || {};
+      recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: 'fightFocus', rounds: done });
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult });
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed } });
       routeAfterXp(beforeLevel, 'summary');
     },
     goComboActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
@@ -379,8 +382,11 @@ export default function App() {
       addComboCoachSession(done, total);
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
+      // 1.4 — when the accelerometer counted real thrown strikes, that number
+      // (motion-verified) is the one that counts; otherwise the called count.
       const cs = fightSessionStats || {};
-      recordFightSession({ rounds: done, strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0 });
+      const strikeTotal = cs.motionUsed ? (cs.thrown || 0) : (cs.strikes || 0);
+      recordFightSession({ rounds: done, strikes: strikeTotal, peakStreak: cs.peakStreak || 0 });
       tryCompleteDailyMission('comboCoach');
       trackEvent('session_complete', { mode: 'comboCoach', rounds: done });
       const comboCfgSnapshot = comboCfg;
@@ -400,7 +406,7 @@ export default function App() {
         completedRounds: done,
         sessionSource: 'comboCoach',
         integrityResult,
-        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0 },
+        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed },
       });
       routeAfterXp(beforeLevel, 'summary');
     },

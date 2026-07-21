@@ -8,6 +8,9 @@ import useIntegritySession from './hooks/useIntegritySession';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import VoiceMixer from './shared/VoiceMixer';
+import useStrikeCounter from './hooks/useStrikeCounter';
+import StrikeHud from './shared/StrikeHud';
+import StrikeCounterSheet from './shared/StrikeCounterSheet';
 import { C } from './Styles';
 import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
@@ -55,6 +58,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
+  // 1.4 — motion-verified thrown strikes, counted only during a live work round.
+  const [strikeSheetOpen, setStrikeSheetOpen] = useState(false);
   const rushSpoken = useRef(false);
   // LT-2 — shuffled push-cue pool + a per-second countdown to the next one.
   const rushVoice = useRef(createRushVoice());
@@ -78,6 +83,14 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   useEffect(() => { roundIdxRef.current = roundIdx; }, [roundIdx]);
   useEffect(() => { rushRef.current     = rush;     }, [rush]);
   useEffect(() => { doneRef.current     = done;     }, [done]);
+
+  // 1.4 — accelerometer strike counter, live only during a work round.
+  const roundActive = phase === 'round' && countdown === null && !paused && !done;
+  const strike = useStrikeCounter({ active: roundActive });
+  const thrownRef = useRef(0);
+  const motionRef = useRef(false);
+  thrownRef.current = strike.count;
+  motionRef.current = strike.motionSeen;
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
@@ -258,7 +271,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         setTimeout(() => {
           if (cfg.voiceOn) speakAsync(getCoachCopy('fightComplete'));
         }, 400);
-        setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult); }, 1500);
+        setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, 1500);
       } else {
         if (!roundEndBellPlayedRef.current) {
           roundEndBellPlayedRef.current = true;
@@ -312,7 +325,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       setRoundIdx(i => i + 1);
     } else {
       const integrityResult = integrity.finalize();
-      onEnd(rounds, cfg, cfg.rounds, integrityResult);
+      onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
     }
   };
 
@@ -331,7 +344,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     roundVersion.current++;
     const completed = Math.min(phase === 'rest' ? roundIdx + 1 : roundIdx, cfg.rounds);
     const integrityResult = integrity.finalize();
-    onEnd(rounds, cfg, completed, integrityResult);
+    onEnd(rounds, cfg, completed, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
   };
 
   const isFinalRound = roundIdx + 1 >= cfg.rounds;
@@ -428,6 +441,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
             {String(cfg.difficulty).toUpperCase()}
           </span>
+        </div>
+
+        {/* 1.4 — live motion strike counter */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 26 }}>
+          <StrikeHud supported={strike.supported} permission={strike.permission} count={strike.count} onOpen={() => setStrikeSheetOpen(true)}/>
         </div>
 
         {/* Ring Timer with dimmed art background — responsive so it never clips on
@@ -671,6 +689,14 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       )}
 
       <CoachCaption text={captionText} />
+      {strikeSheetOpen && (
+        <StrikeCounterSheet
+          supported={strike.supported}
+          permission={strike.permission}
+          onEnable={strike.requestPermission}
+          onClose={() => setStrikeSheetOpen(false)}
+        />
+      )}
     </PhoneFrame>
   );
 }

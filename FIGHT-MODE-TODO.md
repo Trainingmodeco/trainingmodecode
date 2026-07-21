@@ -257,10 +257,33 @@ HOW MUCH TO MAKE (guidance):
         overriding the generated pool. Verified live: built "Jab Cross Hook",
         saved + persisted, selected, drilled — every call-out was that combo,
         nothing from the pool.
-- [ ] 1.4 Strike counter pipeline: accelerometer sampling during WORK phases,
-      high-pass filter, magnitude peak detection with ~200ms refractory
-      window, adaptive threshold. One shared module used by every Fight Mode
-      feature. Live "STRIKES" HUD counter + placement hint sheet.
+- [x] 1.4 Strike counter pipeline. SHIPPED (Jul 21).
+      → data/strikeCounter.js — pure detector: gravity removal (high-pass, or
+        the device's linear accel when available) → magnitude → adaptive
+        threshold (max of an absolute floor and 3× a slow noise-floor EMA) →
+        peak detection with a 200ms refractory window + hysteresis re-arm.
+      → hooks/useStrikeCounter.js — DeviceMotion subscription (only while the
+        WORK round is live), iOS DeviceMotionEvent.requestPermission() from a
+        user gesture, grant remembered (tm_motion_granted). Exposes count +
+        motionSeen so callers can tell "granted but phone on a table" from a
+        real zero.
+      → shared/StrikeHud.jsx — the 👊 pill: a COUNT STRIKES CTA that opens the
+        sheet, then a live count once enabled. shared/StrikeCounterSheet.jsx —
+        placement tips (pocket/waistband · armband · lead hand) + the enable
+        button; honest "it's an estimate" note.
+      → Wired into Combo Coach and Fight Focus (HUD + sheet + count gated to the
+        work round). Feeds 1.5: when motion counted this session the summary
+        shows the motion-verified thrown count as "STRIKES ✓" and lifetime
+        fightStats records it; otherwise the called count.
+      VERIFIED: detector unit-tested (7 synthetic cases — normal/fast/weak/
+        linear/rest-only/refractory all pass). Full pipeline exercised in the
+        browser by dispatching synthetic DeviceMotion events: 10 punch spikes →
+        HUD counted exactly 10 → summary showed STRIKES ✓ 10 → lifetime +10.
+      ⚠ REAL-DEVICE TESTING STILL NEEDED (the user's phone): the desktop pane
+        has no accelerometer, so real punches weren't tested. The thresholds
+        (minThreshold 12 m/s² ≈ 1.2 g, peakFactor 3×) are sensible defaults but
+        will likely want calibration once tested against real punches in each
+        placement — if it under-counts, lower minThreshold / peakFactor.
 - [x] 1.5 Fight Mode stats: STRIKES · ROUNDS · BEST STREAK row on Mission
       Complete; lifetime totals persisted for trophies/ghosts. SHIPPED (Jul 20).
       → arsenal.countStrikes() counts strike occurrences in a combo (longest-

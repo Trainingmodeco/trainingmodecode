@@ -23,16 +23,28 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   // 1.5 — Combo Coach knows how many strikes it called and the best streak, so
   // it shows ROUNDS · STRIKES · STREAK. Fight Focus has no combo call-outs, so
   // it keeps ROUNDS · MINUTES.
+  // 1.4 — when the accelerometer counted real thrown strikes this session, that
+  // motion-verified number is shown (labelled STRIKES ✓); otherwise the called
+  // count.
+  const motionUsed = !!fightStats?.motionUsed;
+  const strikeValue = motionUsed ? (fightStats?.thrown ?? 0) : (fightStats?.strikes ?? 0);
+  const strikeLabel = motionUsed ? 'STRIKES ✓' : 'STRIKES';
   const statRow = isCombo
     ? [
         { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
-        { value: String(fightStats?.strikes ?? 0), label: 'STRIKES', color: '#fff' },
+        { value: String(strikeValue), label: strikeLabel, color: '#fff' },
         { value: `${fightStats?.peakStreak ?? 0}`, label: 'BEST STREAK', color: '#fff' },
       ]
-    : [
-        { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
-        { value: String(totalMin), label: 'MINUTES', color: '#fff' },
-      ];
+    : motionUsed
+      ? [
+          { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
+          { value: String(fightStats?.thrown ?? 0), label: 'STRIKES ✓', color: '#fff' },
+          { value: String(totalMin), label: 'MINUTES', color: '#fff' },
+        ]
+      : [
+          { value: `${completed}/${totalPlanned}`, label: 'ROUNDS', color: GOLD },
+          { value: String(totalMin), label: 'MINUTES', color: '#fff' },
+        ];
 
   // LT-5 — one tight line per round, capped, so a 12-round session can't push
   // the outcome screen past a single viewport.

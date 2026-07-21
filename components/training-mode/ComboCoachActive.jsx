@@ -8,6 +8,9 @@ import useIntegritySession from './hooks/useIntegritySession';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import VoiceMixer from './shared/VoiceMixer';
+import useStrikeCounter from './hooks/useStrikeCounter';
+import StrikeHud from './shared/StrikeHud';
+import StrikeCounterSheet from './shared/StrikeCounterSheet';
 import { C } from './Styles';
 import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
@@ -150,7 +153,19 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   // into the summary at session end.
   const totalStrikesRef = useRef(0);
   const peakStreakRef = useRef(0);
-  const sessionStats = () => ({ strikes: totalStrikesRef.current, peakStreak: peakStreakRef.current });
+  // 1.4 — motion-verified thrown strikes (accelerometer). Counts only during a
+  // live work round. Snapshotted via refs so end-of-session closures aren't stale.
+  const [strikeSheetOpen, setStrikeSheetOpen] = useState(false);
+  const roundActive = phase === 'round' && countdown === null && !paused && !done;
+  const strike = useStrikeCounter({ active: roundActive });
+  const thrownRef = useRef(0);
+  const motionRef = useRef(false);
+  thrownRef.current = strike.count;
+  motionRef.current = strike.motionSeen;
+  const sessionStats = () => ({
+    strikes: totalStrikesRef.current, peakStreak: peakStreakRef.current,
+    thrown: thrownRef.current, motionUsed: motionRef.current,
+  });
 
   const phaseRef     = useRef('round');
   const roundIdxRef  = useRef(0);
@@ -582,10 +597,15 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         </div>
 
         {/* Status chips (design 13b) */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 8 }}>
           {[`ROUND ${roundIdx + 1}/${totalRounds}`, String(discipline).toUpperCase(), String(speedLabel).toUpperCase()].map((t, i) => (
             <span key={i} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c9a6ff', border: '1px solid rgba(168,85,247,0.5)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>{t}</span>
           ))}
+        </div>
+
+        {/* 1.4 — live motion strike counter */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 26 }}>
+          <StrikeHud supported={strike.supported} permission={strike.permission} count={strike.count} onOpen={() => setStrikeSheetOpen(true)}/>
         </div>
 
         {/* Pulsing beat-orb (design 13b) — responsive so it never clips on narrow
@@ -856,6 +876,14 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       )}
 
       <CoachCaption text={captionText} />
+      {strikeSheetOpen && (
+        <StrikeCounterSheet
+          supported={strike.supported}
+          permission={strike.permission}
+          onEnable={strike.requestPermission}
+          onClose={() => setStrikeSheetOpen(false)}
+        />
+      )}
     </PhoneFrame>
   );
 }
