@@ -267,7 +267,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           playBell(3);
         }
         setDone(true);
-        const integrityResult = integrity.finalize();
+        const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
         setTimeout(() => {
           if (cfg.voiceOn) speakAsync(getCoachCopy('fightComplete'));
         }, 400);
@@ -324,7 +324,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       integrity.startUnit('rounds');
       setRoundIdx(i => i + 1);
     } else {
-      const integrityResult = integrity.finalize();
+      const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
       onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
     }
   };
@@ -343,7 +343,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     stopVoiceSession();
     roundVersion.current++;
     const completed = Math.min(phase === 'rest' ? roundIdx + 1 : roundIdx, cfg.rounds);
-    const integrityResult = integrity.finalize();
+    const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
     onEnd(rounds, cfg, completed, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
   };
 

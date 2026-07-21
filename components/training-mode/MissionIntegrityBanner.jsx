@@ -68,8 +68,14 @@ function getBannerConfig(integrityResult) {
 export default function MissionIntegrityBanner({ integrityResult, onRetry, onHome }) {
   if (!integrityResult) return null;
 
-  const { validCompletedUnits, totalRequiredUnits, partialCompletionRatio, awardXp, leaderboardEligible, validityStatus } = integrityResult;
+  const { validCompletedUnits, totalRequiredUnits, partialCompletionRatio, awardXp, leaderboardEligible, validityStatus, effort } = integrityResult;
   const banner = getBannerConfig(integrityResult);
+
+  // 1.6 — soft motion flag. When the athlete opted into strike counting but the
+  // phone barely moved, we keep every point of XP but withhold leaderboard
+  // credit and say so, gently. Never accusatory: poor placement reads the same
+  // as a phone on a table, so the copy stays "let's verify" not "you cheated".
+  const lowMotion = effort === 'low';
 
   // Collapse to a single clean line for everything benign — a verified win OR
   // just stopping early — so GOOD EFFORT reads as calm as MISSION COMPLETE.
@@ -83,17 +89,35 @@ export default function MissionIntegrityBanner({ integrityResult, onRetry, onHom
         background: `linear-gradient(135deg, rgba(10,0,20,0.9), ${banner.bgGlow})`,
         border: `1px solid ${banner.borderColor}`,
         padding: '8px 12px', marginBottom: 8,
-        display: 'flex', alignItems: 'center', gap: 8,
+        display: 'flex', flexDirection: 'column', gap: 6,
       }}>
-        <span style={{ display: 'flex', flexShrink: 0 }}>{banner.icon}</span>
-        <span style={{
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10.5,
-          color: banner.color, letterSpacing: '0.09em',
-        }}>{banner.title}</span>
-        <span style={{
-          fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600,
-          color: C.muted, marginLeft: 'auto', textAlign: 'right',
-        }}>{banner.subtitle}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ display: 'flex', flexShrink: 0 }}>{banner.icon}</span>
+          <span style={{
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10.5,
+            color: banner.color, letterSpacing: '0.09em',
+          }}>{banner.title}</span>
+          <span style={{
+            fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600,
+            color: C.muted, marginLeft: 'auto', textAlign: 'right',
+          }}>{banner.subtitle}</span>
+        </div>
+        {lowMotion && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.07)',
+          }}>
+            <span style={{ display: 'flex', flexShrink: 0 }}>
+              <AlertTriangle size={13} color="#f59e0b" />
+            </span>
+            <span style={{
+              fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600,
+              color: C.muted, lineHeight: 1.25,
+            }}>
+              Low movement — XP kept, no leaderboard credit. Keep the phone on you to verify strikes.
+            </span>
+          </div>
+        )}
       </div>
     );
   }

@@ -211,7 +211,7 @@ export class IntegritySession {
     return { idle: false };
   }
 
-  finalize() {
+  finalize(motion) {
     this.missionEndedAt = Date.now();
 
     const unit = this.units[this.currentUnitIndex];
@@ -220,7 +220,7 @@ export class IntegritySession {
       unit.validityStatus = VALIDITY.INCOMPLETE;
     }
 
-    return calculateMissionIntegrity(this);
+    return calculateMissionIntegrity(this, motion);
   }
 
   _validateUnit(unit) {
@@ -234,7 +234,13 @@ export class IntegritySession {
 
 // --- Core calculation functions ---
 
-export function calculateMissionIntegrity(session) {
+// 1.6 — motion effort thresholds. Deliberately lenient so poor phone placement
+// or under-counting never false-flags a real workout; only a near-zero count
+// over completed rounds (with motion ON) trips the soft flag.
+const VERIFY_STRIKES_PER_UNIT = 10;  // healthy output → effort verified
+const LOW_STRIKES_PER_UNIT = 3;      // below this over completed rounds → soft flag
+
+export function calculateMissionIntegrity(session, motion = {}) {
   const validUnits = session.units.filter(u => u.validityStatus === VALIDITY.VALID);
   const validCompletedUnits = validUnits.length;
   const totalRequiredUnits = session.totalUnits;
@@ -279,6 +285,31 @@ export function calculateMissionIntegrity(session) {
 
   const message = getResultMessage(validityStatus, validCompletedUnits, totalRequiredUnits, partialCompletionRatio);
 
+  // 1.6 — fold motion (accelerometer) into the verdict. It's OPT-IN, so it can
+  // only ADD trust: without it, effort is 'unmeasured' and the plain time gate
+  // stands unchanged. With it, a healthy strike count over the completed rounds
+  // verifies effort; a near-zero count is a SOFT flag — the session keeps its
+  // full XP but doesn't earn leaderboard credit (a completed-but-motionless run
+  // shouldn't top a board). A stationary phone therefore just falls back to the
+  // plain gate; it is never blocked or docked XP.
+  const motionUsed = !!motion.motionUsed;
+  const strikesThrown = Math.max(0, Math.round(motion.thrown || 0));
+  let effort = 'unmeasured';
+  let motionVerified = false;
+  let leaderboardEligible = isFullyValid;
+
+  if (motionUsed && validCompletedUnits > 0) {
+    if (strikesThrown >= validCompletedUnits * VERIFY_STRIKES_PER_UNIT) {
+      effort = 'verified';
+      motionVerified = true;
+    } else if (strikesThrown < validCompletedUnits * LOW_STRIKES_PER_UNIT) {
+      effort = 'low';
+      leaderboardEligible = false;   // soft flag: keep XP, withhold board credit
+    } else {
+      effort = 'measured';
+    }
+  }
+
   return {
     isFullyValid,
     isPartiallyValid,
@@ -289,7 +320,11 @@ export function calculateMissionIntegrity(session) {
     awardXp,
     xpMultiplier,
     message,
-    leaderboardEligible: isFullyValid,
+    leaderboardEligible,
+    effort,
+    motionUsed,
+    motionVerified,
+    strikesThrown,
   };
 }
 
@@ -353,6 +388,10 @@ export function saveIntegrityResult(missionId, mode, integrityResult, xpAwarded)
       partialCompletionRatio: integrityResult.partialCompletionRatio,
       xpAwarded,
       leaderboardEligible: integrityResult.leaderboardEligible,
+      // 1.6 — motion effort for anti-cheat analytics.
+      effort: integrityResult.effort,
+      motionVerified: integrityResult.motionVerified,
+      strikesThrown: integrityResult.strikesThrown,
     });
     if (log.length > 200) log.splice(0, log.length - 200);
     localStorage.setItem(INTEGRITY_LOG_KEY, JSON.stringify(log));

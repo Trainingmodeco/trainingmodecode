@@ -361,7 +361,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           playBell(3);
         }
         setDone(true);
-        const integrityResult = integrity.finalize();
+        const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
         setTimeout(() => {
           if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'));
         }, 400);
@@ -494,7 +494,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       integrity.startUnit('rounds');
       setRoundIdx(i => i + 1);
     } else {
-      const integrityResult = integrity.finalize();
+      const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
       onEnd(roundIdx + 1, totalRounds, integrityResult, sessionStats());
     }
   };
@@ -513,7 +513,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     stopVoiceSession();
     roundVersion.current++;
     const completed = Math.min(phase === 'rest' ? roundIdx + 1 : roundIdx, totalRounds);
-    const integrityResult = integrity.finalize();
+    const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
     onEnd(completed, totalRounds, integrityResult, sessionStats());
   };
 

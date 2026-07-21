@@ -299,9 +299,18 @@ HOW MUCH TO MAKE (guidance):
         lands it replaces this with verified thrown strikes and the label can
         become "STRIKES THROWN". The plumbing (countStrikes + fightStats) is
         already the right shape for that swap.
-- [ ] 1.6 Anti-cheat wiring: strike counter feeds the integrity evaluation
-      (strikes verify effort; low count = soft flag only; stationary device
-      falls back to plain motion gate).
+- [x] 1.6 Anti-cheat wiring. SHIPPED (Jul 21). Strike count now folds into
+      calculateMissionIntegrity(session, motion): motion is OPT-IN and can only
+      ADD trust. effort ∈ {unmeasured, verified, measured, low}. With motion on
+      and ≥1 valid round: ≥10 strikes/round → 'verified' (motionVerified true);
+      <3 strikes/round → 'low' (SOFT flag — keeps full XP, withholds
+      leaderboardEligible only); in between → 'measured'. No motion → effort
+      'unmeasured' and the plain time gate stands unchanged (a stationary phone
+      is never blocked or docked). MissionComplete's integrity banner shows a
+      gentle "Low movement — XP kept, no leaderboard credit" note on 'low'.
+      effort/motionVerified/strikesThrown persisted to tm_integrity_log for
+      analytics. Unit-tested (9 cases incl. boundaries). Real-device threshold
+      calibration still pending a phone (shares the 1.4 caveat).
 
 ## PHASE 2 — PROGRESSION (the retention layer)
 - [ ] 2.1 Session recipe format + runner: a camp session = JSON list of

@@ -45,8 +45,8 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
     return sessionRef.current?.checkIdle() || { idle: false };
   }, []);
 
-  const finalize = useCallback(() => {
-    return sessionRef.current?.finalize() || null;
+  const finalize = useCallback((motion) => {
+    return sessionRef.current?.finalize(motion) || null;
   }, []);
 
   const checkManualComplete = useCallback(() => {
