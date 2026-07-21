@@ -1,17 +1,6 @@
 import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
 import { calculatePartialXp } from './utils/missionIntegrity';
-import { disciplineSlug } from './data/arsenal';
-import { loadProfile } from './data/userProfile';
-
-// GOOD EFFORT hero = the discipline's fighter portrait (by sex), framed on the
-// stopped-session screen. Files use underscores (muay_thai), the slug uses a
-// hyphen (muay-thai).
-function partialPortraitFor(discipline) {
-  const disc = disciplineSlug(discipline).replace('-', '_');
-  const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
-  return `/discipline-cards/${disc}_${sex}.webp`;
-}
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
@@ -79,7 +68,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       accent={GOLD}
       xp={xp}
       heroImage="/static/trophies/mission-complete-fight.webp"
-      partialPortrait={partialPortraitFor(discipline)}
+      partialBadge="/static/trophies/good-effort.png"
       integrityResult={integrityResult}
       stats={statRow}
       extra={recap}

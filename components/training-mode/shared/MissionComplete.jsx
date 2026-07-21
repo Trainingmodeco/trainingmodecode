@@ -28,8 +28,7 @@ const mcCSS = `
    the tab bar. Drop the expendable pieces there rather than make the athlete
    scroll for the CTAs: the recap/chips detail and the beta-feedback link. */
 @media (max-height: 740px) {
-  .mc-hero-badge { height: 44px !important; }
-  .mc-hero-portrait { width: 132px !important; height: 78px !important; }
+  .mc-hero-badge { height: 52px !important; }
   .mc-extra, .mc-beta { display: none !important; }
 }
 `;
@@ -73,18 +72,15 @@ export default function MissionComplete({
   extra = null,             // optional ReactNode (recap / chips)
   cardioResult,
   shareData,
-  heroImage,                // optional badge art (replaces the trophy medal)
-  partialPortrait,          // fighter portrait embedded on the GOOD EFFORT screen
+  heroImage,                // badge art for a completed session
+  partialBadge,             // badge art for a stopped/partial (GOOD EFFORT) session
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
   const partial = variant === 'partial';
   const label = eyebrow || (partial ? 'GOOD EFFORT' : 'MISSION COMPLETE');
-  // Success shows the mode's "MISSION COMPLETE" badge. That badge literally
-  // reads MISSION COMPLETE, so a stopped session can't use it — instead the
-  // GOOD EFFORT screen embeds a framed fighter portrait ("you fought, come
-  // back and finish it"). No portrait supplied → the violet medal.
-  const badge = partial ? null : heroImage;
-  const portrait = partial ? partialPortrait : null;
+  // Each variant shows its own emblem: the MISSION COMPLETE badge on a win, the
+  // GOOD EFFORT badge on a stopped session. No art → the violet medal.
+  const badge = partial ? partialBadge : heroImage;
   const displayXp = useCountUp(xp);
 
   const [stats0] = useState(() => loadStats());
@@ -110,23 +106,17 @@ export default function MissionComplete({
             and already reserves 110px under every screen for the tab bar. The
             old minHeight:100dvh + 12dvh padding here double-counted that and
             left the screen scrollable past its own content. */}
-        <div style={{ padding: '10px 16px 0' }}>
+        <div style={{ padding: `${partial ? 40 : 10}px 16px 0` }}>
 
           {/* Medal hero */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 6 }}>
             {badge ? (
               // Mode badge art (transparent PNG/WebP over the dark bg). Kept
               // compact so it never dominates the screen; a soft accent glow
-              // grounds it and a gentle pop plays it in.
-              <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
+              // grounds it and a gentle pop plays it in. The GOOD EFFORT badge
+              // is a wider emblem, so it gets a little more height to read.
+              <div className="mc-hero-badge" style={{ position: 'relative', height: partial ? 78 : 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
                 <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
-              </div>
-            ) : portrait ? (
-              // GOOD EFFORT — a framed fighter portrait embedded in place of the
-              // badge. Violet border + glow to match the partial treatment.
-              <div className="mc-hero-portrait" style={{ position: 'relative', width: 176, height: 104, marginBottom: 6, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(168,85,247,0.6)', boxShadow: '0 0 22px rgba(168,85,247,0.4), 0 6px 18px rgba(0,0,0,0.5)', animation: 'mc-pop 0.5s ease both' }}>
-                <SafeImage src={portrait} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}/>
-                <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,2,18,0) 45%, rgba(8,2,18,0.7) 100%)' }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>

@@ -240,7 +240,12 @@ HOW MUCH TO MAKE (guidance):
       YOUR ARSENAL chip removed (Basic Mode chip is enough); setup page keeps
       ~15% clear space at the bottom. Verified live: SLIP! violet auto-fired
       in a Normal session with no toggle.
-- [x] 1.3b Custom combo builder with saved combo chips. SHIPPED (Jul 20).
+- [~] 1.3b Custom combo builder — ON HOLD (Jul 21, user decision). The UI
+      (MY COMBOS section + builder sheet) was removed from the Combo Coach
+      setup; the user wants to redesign this in the designer first and will
+      revisit. The data modules (data/customCombos.js, ComboBuilderSheet.jsx)
+      remain in the repo, unused, as a reference for the redesign. Original
+      build notes kept below.
       → data/customCombos.js persists combos per discipline (tm_custom_combos,
         capped 24). Palette = the discipline's full strike vocabulary for
         experienced fighters, or the effective arsenal for beginners (same gate
