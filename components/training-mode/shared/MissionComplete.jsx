@@ -29,6 +29,7 @@ const mcCSS = `
    scroll for the CTAs: the recap/chips detail and the beta-feedback link. */
 @media (max-height: 740px) {
   .mc-hero-badge { height: 44px !important; }
+  .mc-hero-portrait { width: 132px !important; height: 78px !important; }
   .mc-extra, .mc-beta { display: none !important; }
 }
 `;
@@ -73,16 +74,17 @@ export default function MissionComplete({
   cardioResult,
   shareData,
   heroImage,                // optional badge art (replaces the trophy medal)
-  heroImagePartial,         // optional badge art for a stopped/partial session
+  partialPortrait,          // fighter portrait embedded on the GOOD EFFORT screen
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
   const partial = variant === 'partial';
   const label = eyebrow || (partial ? 'GOOD EFFORT' : 'MISSION COMPLETE');
-  // The mode badges literally read "MISSION COMPLETE", so showing one over a
-  // stopped session contradicts the GOOD EFFORT headline. Fall back to the
-  // medal, which already has a partial treatment (violet, no rays, no pulse),
-  // unless a dedicated partial badge is supplied.
-  const hero = partial ? (heroImagePartial || null) : heroImage;
+  // Success shows the mode's "MISSION COMPLETE" badge. That badge literally
+  // reads MISSION COMPLETE, so a stopped session can't use it — instead the
+  // GOOD EFFORT screen embeds a framed fighter portrait ("you fought, come
+  // back and finish it"). No portrait supplied → the violet medal.
+  const badge = partial ? null : heroImage;
+  const portrait = partial ? partialPortrait : null;
   const displayXp = useCountUp(xp);
 
   const [stats0] = useState(() => loadStats());
@@ -112,12 +114,19 @@ export default function MissionComplete({
 
           {/* Medal hero */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 6 }}>
-            {hero ? (
+            {badge ? (
               // Mode badge art (transparent PNG/WebP over the dark bg). Kept
               // compact so it never dominates the screen; a soft accent glow
               // grounds it and a gentle pop plays it in.
               <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
-                <SafeImage src={hero} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+              </div>
+            ) : portrait ? (
+              // GOOD EFFORT — a framed fighter portrait embedded in place of the
+              // badge. Violet border + glow to match the partial treatment.
+              <div className="mc-hero-portrait" style={{ position: 'relative', width: 176, height: 104, marginBottom: 6, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(168,85,247,0.6)', boxShadow: '0 0 22px rgba(168,85,247,0.4), 0 6px 18px rgba(0,0,0,0.5)', animation: 'mc-pop 0.5s ease both' }}>
+                <SafeImage src={portrait} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}/>
+                <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,2,18,0) 45%, rgba(8,2,18,0.7) 100%)' }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>
