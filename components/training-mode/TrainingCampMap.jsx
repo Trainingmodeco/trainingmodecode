@@ -182,54 +182,57 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
         </div>
       </div>
 
-      {/* Level modal (45b) */}
+      {/* Level modal (45b) — small, centered, translucent popup over the
+          still-visible ladder (light backdrop, frosted glass card). */}
       {open && (
-        <div onClick={() => setOpenLevel(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.74)', display: 'flex', alignItems: 'flex-end' }}>
+        <div onClick={() => setOpenLevel(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div onClick={(e) => e.stopPropagation()} style={{
-            width: '100%', background: 'linear-gradient(180deg, rgba(22,10,40,0.98), rgba(8,2,18,0.98))',
-            borderTop: `1px solid ${PHASE[open.phase]}66`, borderRadius: '16px 16px 0 0', padding: '15px 18px 20px',
+            width: '100%', maxWidth: 292,
+            background: 'rgba(16,7,32,0.68)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            border: `1px solid ${PHASE[open.phase]}66`, borderRadius: 16, padding: '13px 15px 15px',
+            boxShadow: `0 16px 44px rgba(0,0,0,0.55), 0 0 26px ${PHASE[open.phase]}22`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 11 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <NodeCircle level={open.level} state={open.level < current ? 'done' : open.level === current ? 'current' : 'locked'} boss={open.phase === 'final_boss'} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "700 8px 'Orbitron',sans-serif", color: PHASE[open.phase], letterSpacing: '0.14em' }}>{open.phase_label}</div>
-                <div style={{ font: "900 16px 'Orbitron',sans-serif", color: '#fff' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : open.title}</div>
-                <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 1 }}>
-                  {isSplitAvailable(open.level) ? '2 sessions · AM/PM split' : open.phase === 'final_boss' ? 'one extended mission' : 'single session'} · unlocks L{Math.min(12, open.level + 1)}
+                <div style={{ font: "700 7.5px 'Orbitron',sans-serif", color: PHASE[open.phase], letterSpacing: '0.12em' }}>{open.phase_label}</div>
+                <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : open.title}</div>
+                <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 1 }}>
+                  {isSplitAvailable(open.level) ? '2 sessions · AM/PM' : open.phase === 'final_boss' ? 'extended mission' : 'single session'} · unlocks L{Math.min(12, open.level + 1)}
                 </div>
               </div>
-              <button onClick={() => setOpenLevel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={18} color="#9a90b8" /></button>
+              <button onClick={() => setOpenLevel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><X size={16} color="#9a90b8" /></button>
             </div>
 
-            <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
               {DIFFS.map((d) => {
                 const on = d === difficulty;
                 return (
                   <button key={d} onClick={() => setDifficulty(d)} style={{
-                    flex: 1, padding: '7px 0', borderRadius: 8, cursor: 'pointer',
-                    background: on ? 'rgba(253,224,71,0.12)' : 'rgba(8,2,18,0.6)',
+                    flex: 1, padding: '6px 0', borderRadius: 7, cursor: 'pointer',
+                    background: on ? 'rgba(253,224,71,0.14)' : 'rgba(8,2,18,0.4)',
                     border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.25)'}`,
-                    font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.06em', color: on ? GOLD : '#c4a4d8',
+                    font: "800 8.5px 'Orbitron',sans-serif", letterSpacing: '0.05em', color: on ? GOLD : '#c4a4d8',
                   }}>{DIFF_LABEL[d]}</button>
                 );
               })}
             </div>
 
-            <div style={{ background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 9, padding: '9px 11px', textAlign: 'center', marginBottom: 11 }}>
-              <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fff' }}>{previewLine}</div>
-              <div style={{ font: "600 6.5px 'Press Start 2P',monospace", color: '#c4a4d8', letterSpacing: '0.08em', marginTop: 3 }}>ROUND PLAN{openRt?.taperApplied ? ' · TAPER' : ''}</div>
+            <div style={{ background: 'rgba(8,2,18,0.45)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 8, padding: '8px 10px', textAlign: 'center', marginBottom: 10 }}>
+              <div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff' }}>{previewLine}</div>
+              <div style={{ font: "600 6px 'Press Start 2P',monospace", color: '#c4a4d8', letterSpacing: '0.07em', marginTop: 3 }}>ROUND PLAN{openRt?.taperApplied ? ' · TAPER' : ''}</div>
             </div>
 
-            <div style={{ marginBottom: 5, font: "700 8px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.12em' }}>COMBAT</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 9 }}>
-              {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 6, padding: '3px 8px' }}>{c}</span>)}
+            <div style={{ marginBottom: 4, font: "700 7.5px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>COMBAT</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+              {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 7px' }}>{c}</span>)}
             </div>
-            <div style={{ marginBottom: 5, font: "700 8px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.12em' }}>PHYSICAL</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
-              {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 6, padding: '3px 8px' }}>{c}</span>)}
+            <div style={{ marginBottom: 4, font: "700 7.5px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.1em' }}>PHYSICAL</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 13 }}>
+              {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 7px' }}>{c}</span>)}
             </div>
 
-            <button disabled style={{ width: '100%', height: 42, borderRadius: 11, border: '1px dashed rgba(253,224,71,0.4)', background: 'rgba(253,224,71,0.06)', color: 'rgba(253,224,71,0.75)', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.09em', cursor: 'not-allowed' }}>
+            <button disabled style={{ width: '100%', height: 38, borderRadius: 10, border: '1px dashed rgba(253,224,71,0.4)', background: 'rgba(253,224,71,0.07)', color: 'rgba(253,224,71,0.78)', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'not-allowed' }}>
               ▶ START — RUNNER COMING SOON
             </button>
           </div>
