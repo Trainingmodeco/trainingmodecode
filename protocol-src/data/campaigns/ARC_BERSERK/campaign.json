@@ -1,0 +1,143 @@
+{
+  "campaign_id": "ARC_BERSERK",
+  "name": "THE STRUGGLER — BLACK SWORDSMAN PROTOCOL",
+  "type": "fit_fight",
+  "combat_style": "Two-handed power weapon-work + hybrid striking (greatsword-analog: sledgehammer, steel mace, heavy swings)",
+  "stage_count": 12,
+  "paths_available": ["fit", "fight", "full_arc"],
+  "difficulty_labels_note": "Difficulty personas themed to the arc, not to any single character.",
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Grow into a bigger sword. Train raw functional strength, survival endurance, and controlled fury — power that never loses its form.",
+  "tagline": "The bigger the sword, the stronger you grow.",
+  "core_rule": "Fury without control consumes you.",
+  "core_rule_enforcement": "The armor rewards output only while form holds. When technique breaks down, the Beast takes over — the session fails. Reckless volume, ego-load, and grinding to collapse are never rewarded and never required.",
+  "sourcing_note": "Fit/fight content grounded in the deep-research report (The Bioneer + SuperheroJacked Guts programs, HEMA analysis for Casca/Griffith, sledgehammer/mace mechanics, and a 2024 systematic review on HIFT rhabdomyolysis for the Eclipse safety caps). Two attractive claims were REFUTED and are NOT presented as canon: the 400 lb 'Dragon Slayer' strength benchmark and Guts using the HEMA Ox guard. The Zodd 'strength benchmark' stage and the Beast of Darkness / Berserk Armor finale are the campaign's OWN thematic invention, not documented canon.",
+  "persona_progression": [
+    { "persona": "Young Guts",              "stages": [1, 2],  "theme": "The sword bigger than himself — fundamentals and survival base" },
+    { "persona": "Casca",                   "stages": [3],     "theme": "The Falcon's blade — speed, precision, guard transitions, footwork" },
+    { "persona": "Pre-Eclipse Griffith",    "stages": [4, 5],  "theme": "The White Hawk — elegant fencing precision, lunges, point control, calm" },
+    { "persona": "Adult Guts",              "stages": [6, 7],  "theme": "The Black Swordsman — strongman power-endurance, club/mace swings, loaded carries" },
+    { "persona": "Nosferatu Zodd",          "stages": [8],     "theme": "The strength benchmark (thematic invention) — controlled max-power test" },
+    { "persona": "The Eclipse",             "stages": [9, 10, 11], "theme": "Survival under overwhelming odds — the hardest block, SAFETY-CAPPED" },
+    { "persona": "Beast of Darkness / Berserk Armor", "stages": [12], "theme": "Controlled fury finale — maximal output that fails you if form collapses" }
+  ],
+  "fit_focus": [
+    "Grip and forearm strength", "Core and rotational power", "Two-handed swing power (sledgehammer, mace)",
+    "Loaded-carry strength endurance", "Old-time-strongman functional strength", "High-rep power-endurance",
+    "Survival conditioning", "Explosive full-body output", "Landing and bracing control"
+  ],
+  "fight_focus": [
+    "Oversized-weapon swing fundamentals (shadow greatsword)", "Overhead and diagonal power strikes",
+    "Guard transitions and footwork (Casca)", "Thrust, lunge and point control (Griffith)",
+    "Two-handed combination swings", "Defensive brace and recovery", "High-output survival rounds",
+    "Controlled-fury finishing", "Tire strikes and mace 360s"
+  ],
+  "split_stages": [4, 11],
+  "double_training_stages": [4, 11],
+  "peak_stage": 11,
+  "no_taper": true,
+  "load_curve_note": "Unlike the periodized campaigns, Berserk does NOT taper — the Eclipse (9-11) escalates straight into the boss. Because there is no taper to protect the athlete, the Eclipse block is hard-capped for volume and gated by an enhanced readiness check instead.",
+  "difficulty_scaling": {
+    "easy": {
+      "label": "BRANDED",
+      "fit": { "working_sets": [2, 3], "resistance": "bodyweight or light implement", "rep_band": [15, 20], "rest": "longer" },
+      "fight": { "rounds": [4, 5], "round_sec": 60, "rest_sec": [60, 75], "requirements": "light swing patterns, guard basics; no maximal loads; no jumping strikes" },
+      "target_rpe": [4, 6]
+    },
+    "normal": {
+      "label": "BLACK SWORDSMAN",
+      "fit": { "working_sets": [3, 4], "resistance": "moderate implement", "rep_band": [10, 12], "rest": "moderate" },
+      "fight": { "rounds": [5, 6], "round_sec": 120, "rest_sec": [45, 60], "requirements": "loaded swings, combination strikes, guard transitions, carries; implement recommended" },
+      "target_rpe": [6, 8]
+    },
+    "hard": {
+      "label": "BERSERKER",
+      "fit": { "working_sets": [4, 5], "resistance": "heavy implement or advanced progressions", "rep_band": [5, 8], "rest": "shorter (but never to failure — see safety)", "note": "Strength band 5-8 for heavy stages; endurance stages keep 15-20 with capped total volume." },
+      "fight": { "rounds": [6, 8], "round_sec": 180, "rest_sec": [30, 45], "requirements": "heavy two-handed power, sustained output rounds, controlled-fury finishing; experienced athletes" },
+      "target_rpe": [7, 9]
+    },
+    "rep_bands_source": "SuperheroJacked Guts program: Strength 5-8, Hypertrophy 10-12, Endurance 15-20.",
+    "hard_never_requires": [
+      "Deliberately taking hits", "Unsupervised hard sparring", "Training through sharp pain",
+      "Extreme dehydration", "Every set taken to failure", "Uncapped high-rep arm volume"
+    ]
+  },
+  "eclipse_safety": {
+    "applies_to_stages": [9, 10, 11, 12],
+    "why": "These stages emulate CrossFit-style high-intensity functional training, which a 2024 PRISMA systematic review links to exertional rhabdomyolysis (26 studies, 63 cases, CK up to 232,579 U/L vs ~200 normal). Cases predominantly affected the upper body/arms and included untrained beginners, not only elite athletes.",
+    "rules": [
+      "Predetermined rep/round targets only — never 'max until collapse'.",
+      "Hard cap on high-rep arm volume (push-ups/pull-ups): no unbounded AMRAP arm circuits.",
+      "Enhanced readiness gate before every Eclipse stage (adds heat, recent illness, hydration, and prior-session soreness questions).",
+      "Progression limit: an Eclipse stage cannot be attempted on Hard until the prior Eclipse stage was cleared without a safety flag.",
+      "Extra rest floors enforced even on Hard for these stages."
+    ],
+    "user_facing_stop_criteria": [
+      "Severe or unusual muscle pain out of proportion to the workout",
+      "Muscle swelling or tightness that won't ease",
+      "Dark, cola-colored urine",
+      "Nausea, dizziness, or feeling faint"
+    ],
+    "stop_action": "Any stop criterion halts the session immediately, shows a plain-language rhabdomyolysis caution ('this can be serious — stop training and seek medical advice if it persists'), and applies no XP penalty."
+  },
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_MINIMAL": ["SANDBAG", "BAND", "MAT", "KETTLEBELL"],
+    "C_WEAPON_TRAINING": ["SLEDGEHAMMER", "STEEL_MACE", "HEAVY_BAG", "GLOVES"],
+    "D_FULL_STRUGGLER": ["SLEDGEHAMMER", "STEEL_MACE", "KETTLEBELL", "SANDBAG", "PULLUP_BAR", "LIGHT_WEIGHTS", "HEAVY_BAG", "MAT"],
+    "rule": "Every stage must support at least the MINIMAL version. Every implement has a no-equipment shadow/band substitute — the swing PATTERN matters more than the load (specificity + progressive overload)."
+  },
+  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_ARC_CLEAR", "FINAL_BOSS_CLEAR"],
+  "achievements": [
+    { "id": "ACH_BK_GROW_INTO_IT",   "name": "Grow Into It",       "trigger": "Clear Stages 1-2 (Young Guts foundation)" },
+    { "id": "ACH_BK_FALCONS_BLADE",  "name": "The Falcon's Blade", "trigger": "Clear Stage 3 guard-transition rounds cleanly" },
+    { "id": "ACH_BK_WHITE_HAWK",     "name": "The White Hawk",     "trigger": "Clear both Griffith stages within target precision" },
+    { "id": "ACH_BK_BLACK_SWORDSMAN","name": "Black Swordsman",    "trigger": "Complete a full 1-mile-equivalent loaded carry (Stage 7)" },
+    { "id": "ACH_BK_BENCHMARK",      "name": "Immovable",          "trigger": "Hit the Stage 8 power-test targets with form intact" },
+    { "id": "ACH_BK_SURVIVOR",       "name": "Survivor",           "trigger": "Clear all three Eclipse stages with zero safety flags" },
+    { "id": "ACH_BK_CONTROLLED_FURY","name": "Controlled Fury",    "trigger": "Defeat Stage 12 without a form-breakdown fail" },
+    { "id": "ACH_BK_STRUGGLER",      "name": "The Struggler",      "trigger": "Clear Fit and Fight for all 12 stages" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Prescribed work not completed", "Form or bracing breaks down", "Effort far above target", "Recovery inadequate", "Any Eclipse safety stop criterion reported"],
+      "response": ["Reduce load or reps", "Recommend one difficulty lower", "Preserve the Fight difficulty where appropriate"]
+    },
+    "fight": {
+      "causes": ["Swing form collapses (the Beast takes over)", "Guard/brace repeatedly abandoned", "Cannot complete the rounds", "Objective ignored", "Unsafe symptoms reported"],
+      "response": ["Recommend slowing the swing — control before load", "Recommend Practice Mode", "Shorten round length", "Increase rest", "Drop Fight difficulty by one level", "Do NOT automatically lower the Fit path"]
+    },
+    "safety_stop": ["Sharp pain", "Chest pain", "Dizziness", "Faintness", "New concussion symptoms", "Severe breathing difficulty", "Acute injury", "Severe/unusual muscle pain", "Muscle swelling", "Dark cola-colored urine"]
+  },
+  "final_boss": {
+    "stage_id": "ARC_BERSERK_STG12",
+    "no_hard_morning_workout": true,
+    "fight_trial_name": "Trial of the Berserk Armor",
+    "control_mechanic": "This is a controlled-fury test: output is rewarded ONLY while form holds. Each round tracks technique-breakdown flags; exceeding the breakdown limit = the Beast takes over = round fails. Winning means maximal output WITHOUT losing control.",
+    "round_objectives": [
+      "Don the armor — brace, breathe, controlled stance",
+      "First swings — clean overhead power, form locked",
+      "Diagonal combination swings",
+      "Sustained output — hold form under fatigue",
+      "Defensive brace and recover",
+      "Power carry interval",
+      "Tire strikes / mace 360s at pace",
+      "The Beast stirs — resist the urge to flail, keep form",
+      "Survival round — capped high output",
+      "Controlled fury — maximal output, form gate active",
+      "Hold the line — do not break",
+      "Master the armor — finish in control"
+    ],
+    "timing": {
+      "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45, "approx_total_min": 20 },
+      "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30, "approx_total_min": 30 },
+      "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30, "approx_total_min": 42 }
+    },
+    "fit_final_test": {
+      "categories": ["Sledgehammer or shadow-swing power target", "Loaded-carry distance target", "Grip/hold for time", "Core-brace hold", "Capped high-rep endurance circuit", "Controlled full-body finisher"],
+      "rule": "Predetermined targets only — never uncontrolled maximum-until-collapse work. Eclipse safety caps apply."
+    },
+    "full_arc_flow": ["Brace and breathe activation", "Transition period", "Trial of the Berserk Armor (12 controlled-fury rounds)", "Cooldown and readiness report (includes rhabdo stop-criteria reminder)"]
+  },
+  "art": { "banner": "/assets/series/demon-back.png", "stage_badges": "reuse /assets/stages/s1-s10 + boss badge" }
+}

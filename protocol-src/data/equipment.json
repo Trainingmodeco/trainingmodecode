@@ -32,7 +32,13 @@
     { "id": "TENNIS_BALL",   "icon": "🎾", "label": "Tennis Ball",    "category": "optional",
       "substitutes": ["Any small ball (wall bounce)", "Random-light reflex app"] },
     { "id": "AGILITY_LADDER","icon": "🪜", "label": "Agility Ladder", "category": "optional",
-      "substitutes": ["Floor lines", "Chalk or tape marks"] }
+      "substitutes": ["Floor lines", "Chalk or tape marks"] },
+    { "id": "SLEDGEHAMMER",  "icon": "🔨", "label": "Sledgehammer + Tire", "category": "optional",
+      "substitutes": ["Shadow greatsword swings", "Band chops", "Weighted overhead swings"] },
+    { "id": "STEEL_MACE",    "icon": "⚒",  "label": "Steel Mace / Club",  "category": "optional",
+      "substitutes": ["Single dumbbell offset swings", "Band 360s", "Long-lever bottle/backpack"] },
+    { "id": "SANDBAG",       "icon": "🎒", "label": "Sandbag / Loaded Bag", "category": "optional",
+      "substitutes": ["Loaded backpack", "Heavy kettlebell", "Water jug"] }
   ],
   "rules": {
     "minimum_viable": ["OPEN_SPACE", "TIMER_PHONE"],

@@ -1,0 +1,197 @@
+[
+  {
+    "stage_id": "ARC_BERSERK_STG01", "campaign_id": "ARC_BERSERK", "title": "The Sword Bigger Than Himself",
+    "phase": "foundation", "stage_number": 1, "persona": "Young Guts",
+    "purpose": "Fundamentals — brace, grip, and the first swing pattern with a light implement. Grow into it.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S01_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S01_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Every swing braced and controlled — the implement never swings you.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["SANDBAG", "MAT"],
+      "alternatives": { "SANDBAG": ["LOADED_BACKPACK", "BODYWEIGHT"], "MAT": ["FLOOR_SPACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_GROW_INTO_IT"], "video_ids": ["VID_BK_S01_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG02", "campaign_id": "ARC_BERSERK", "title": "Mercenary Camp",
+    "phase": "foundation", "stage_number": 2, "persona": "Young Guts",
+    "purpose": "Build the survival base — full-body strength and conditioning under a growing load.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S02_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S02_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Finish every set with form intact — build the base that survives the war.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["SANDBAG", "KETTLEBELL", "PULLUP_BAR"],
+      "alternatives": { "KETTLEBELL": ["LOADED_BACKPACK"], "PULLUP_BAR": ["BAND_ROW", "DOORWAY_ROW"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_GROW_INTO_IT"], "video_ids": ["VID_BK_S02_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG03", "campaign_id": "ARC_BERSERK", "title": "The Falcon's Blade",
+    "phase": "foundation", "stage_number": 3, "persona": "Casca",
+    "purpose": "Speed and precision — guard transitions and footwork. Casca's near-textbook longsword guards.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S03_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S03_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Flow between guards without dropping the blade — precision over power.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["STEEL_MACE", "AGILITY_LADDER", "CONES"],
+      "alternatives": { "STEEL_MACE": ["SINGLE_DUMBBELL", "BROOMSTICK"], "AGILITY_LADDER": ["FLOOR_LINES"], "CONES": ["FLOOR_MARKERS"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_FALCONS_BLADE"], "video_ids": ["VID_BK_S03_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG04", "campaign_id": "ARC_BERSERK", "title": "The White Hawk",
+    "phase": "development", "stage_number": 4, "persona": "Pre-Eclipse Griffith", "load": "moderate",
+    "purpose": "Elegant precision — thrust, lunge, point control. Rapier-style fencing, leverage over strength.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S04_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S04_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "One clean thrust ends it — precision, balance, and calm.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["CONES", "LIGHT_WEIGHTS", "BAND"],
+      "alternatives": { "CONES": ["FLOOR_MARKERS"], "LIGHT_WEIGHTS": ["BODYWEIGHT"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_WHITE_HAWK"], "video_ids": ["VID_BK_S04_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG05", "campaign_id": "ARC_BERSERK", "title": "Band of the Hawk",
+    "phase": "development", "stage_number": 5, "persona": "Pre-Eclipse Griffith", "load": "moderate",
+    "purpose": "Precision under tempo — lunges, redoubles, and agility. The commander's poise.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S05_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S05_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Explode into the lunge, recover in balance — tempo without haste.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["CONES", "AGILITY_LADDER", "JUMP_ROPE"],
+      "alternatives": { "AGILITY_LADDER": ["FLOOR_LINES"], "JUMP_ROPE": ["INVISIBLE_ROPE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_WHITE_HAWK"], "video_ids": ["VID_BK_S05_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG06", "campaign_id": "ARC_BERSERK", "title": "The Black Swordsman",
+    "phase": "development", "stage_number": 6, "persona": "Adult Guts", "load": "moderate_high",
+    "purpose": "Strongman power-endurance begins — club and mace swings, rotational power, grip.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S06_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S06_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Power from the ground up — hips and core drive the swing, not the arms.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["STEEL_MACE", "KETTLEBELL", "HEAVY_BAG"],
+      "alternatives": { "STEEL_MACE": ["SINGLE_DUMBBELL_OFFSET", "BAND_360"], "KETTLEBELL": ["LOADED_BACKPACK"], "HEAVY_BAG": ["SHADOW_SWINGS"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_BK_S06_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG07", "campaign_id": "ARC_BERSERK", "title": "Dragonslayer",
+    "phase": "hard_camp", "stage_number": 7, "persona": "Adult Guts", "load": "high",
+    "purpose": "Heavy two-handed power and the loaded carry — carry the great sword a mile.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S07_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S07_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Never put it down — grip, traps, and core hold the line for distance.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["SLEDGEHAMMER", "KETTLEBELL", "SANDBAG"],
+      "alternatives": { "SLEDGEHAMMER": ["SHADOW_GREATSWORD_SWINGS", "WEIGHTED_OVERHEAD"], "KETTLEBELL": ["LOADED_BACKPACK"], "SANDBAG": ["HEAVY_BACKPACK", "WATER_JUG"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_BLACK_SWORDSMAN"], "video_ids": ["VID_BK_S07_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG08", "campaign_id": "ARC_BERSERK", "title": "The Immortal",
+    "phase": "hard_camp", "stage_number": 8, "persona": "Nosferatu Zodd", "load": "high",
+    "purpose": "The strength benchmark (the campaign's own thematic invention) — a controlled max-power test.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S08_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S08_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Hit the power targets with form intact — strength you can control, not ego load.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["SLEDGEHAMMER", "STEEL_MACE", "KETTLEBELL", "PULLUP_BAR"],
+      "alternatives": { "SLEDGEHAMMER": ["SHADOW_SWINGS"], "STEEL_MACE": ["BAND_360"], "PULLUP_BAR": ["BAND_ROW"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_BENCHMARK"], "video_ids": ["VID_BK_S08_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG09", "campaign_id": "ARC_BERSERK", "title": "The Brand",
+    "phase": "eclipse", "stage_number": 9, "persona": "The Eclipse", "load": "eclipse_1",
+    "purpose": "Survival endurance begins — capped high-output circuits. The hardest block starts here.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "eclipse_safety": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S09_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S09_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Survive the round to its TARGET — not to collapse. Stop if the warning signs appear.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["SANDBAG", "KETTLEBELL", "JUMP_ROPE"],
+      "alternatives": { "SANDBAG": ["LOADED_BACKPACK"], "JUMP_ROPE": ["INVISIBLE_ROPE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "heat", "recent_illness", "hydration"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_SURVIVOR"], "video_ids": ["VID_BK_S09_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG10", "campaign_id": "ARC_BERSERK", "title": "A Thousand Apostles",
+    "phase": "eclipse", "stage_number": 10, "persona": "The Eclipse", "load": "eclipse_2",
+    "purpose": "Overwhelming odds — sustained capped output. Volume-limited, not open-ended.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "eclipse_safety": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S10_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S10_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Endure the wave — hold pace to the target, respect the rest floors.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["SANDBAG", "KETTLEBELL", "STEEL_MACE"],
+      "alternatives": { "STEEL_MACE": ["BAND_360"], "SANDBAG": ["LOADED_BACKPACK"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "heat", "recent_illness", "hydration"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_SURVIVOR"], "video_ids": ["VID_BK_S10_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG11", "campaign_id": "ARC_BERSERK", "title": "Sacrifice",
+    "phase": "eclipse", "stage_number": 11, "persona": "The Eclipse", "load": "eclipse_3_peak",
+    "purpose": "The peak of the campaign — the hardest survival stage. Enhanced gate, hard volume cap.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "eclipse_safety": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S11_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S11_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Endure to the target and live to fight the armor — never grind to failure.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["SANDBAG", "SLEDGEHAMMER", "KETTLEBELL"],
+      "alternatives": { "SLEDGEHAMMER": ["SHADOW_SWINGS"], "SANDBAG": ["LOADED_BACKPACK"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "heat", "recent_illness", "hydration"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_SURVIVOR"], "video_ids": ["VID_BK_S11_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_BERSERK_STG12", "campaign_id": "ARC_BERSERK", "title": "Trial of the Berserk Armor",
+    "phase": "final_boss", "stage_number": 12, "persona": "Beast of Darkness / Berserk Armor", "load": "boss",
+    "purpose": "Controlled-fury finale — maximal output that FAILS you the moment form collapses.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full", "boss": true, "eclipse_safety": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_BK_S12_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_BK_S12_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Twelve rounds of fury — win by staying in control. Break form and the Beast wins.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["SLEDGEHAMMER", "STEEL_MACE", "SANDBAG"],
+      "alternatives": { "SLEDGEHAMMER": ["SHADOW_GREATSWORD_SWINGS"], "STEEL_MACE": ["BAND_360"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "heat", "recent_illness", "hydration"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_BK_CONTROLLED_FURY", "ACH_BK_STRUGGLER"], "video_ids": ["VID_BK_S12_OVERVIEW"]
+  }
+]
