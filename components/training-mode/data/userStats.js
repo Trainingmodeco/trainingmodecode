@@ -71,6 +71,26 @@ export function addFightFocusSession(roundsCompleted, totalRounds) {
   return xpEarned;
 }
 
+// Phase 2 · 2.4 — a Training Camp session. Same XP economy as a fight round
+// session; recorded with its camp level so Progress can show camp history.
+export function addCampSession(level, roundsCompleted, totalRounds) {
+  const stats = loadStats();
+  const xpEarned = (roundsCompleted * XP_PER_FIGHT_ROUND) +
+    (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+  stats.xp += xpEarned;
+  stats.sessions.push({
+    id: makeId(),
+    type: 'Training Camp',
+    completedAt: new Date().toISOString(),
+    completedCount: roundsCompleted,
+    totalCount: totalRounds,
+    xpEarned,
+    campLevel: level,
+  });
+  saveStats(stats);
+  return xpEarned;
+}
+
 export function addComboCoachSession(roundsCompleted, totalRounds) {
   const stats = loadStats();
   const xpEarned = (roundsCompleted * XP_PER_COMBO_ROUND) +

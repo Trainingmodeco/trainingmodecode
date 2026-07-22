@@ -11,6 +11,7 @@ import FightModeHub from './FightModeHub';
 import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
+import MissionComplete from './shared/MissionComplete';
 import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
 import FitModeHub from './FitModeHub';
@@ -125,8 +126,8 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
   );
 }
 
-export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp } = actions;
+export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -169,7 +170,39 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // footer; header lives in the screen, back chevron returns to the Fight hub.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
-        <TrainingCampMap discipline={disc} onBack={goFightHub} onHome={goHome}/>
+        <TrainingCampMap discipline={disc} onBack={goFightHub} onStartSession={goCampSession}/>
+      </WithNav>
+    );
+  }
+  if (screen === 'camp_session' && cfg) {
+    // 2.4 — a camp level's session runs on the shared Fight Focus round timer,
+    // driven by the engine's round template; onEnd → camp completion.
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate}>
+        <FightFocusTimer discipline={disc} cfg={cfg} onEnd={goCampComplete} initialPaused={false}/>
+      </WithNav>
+    );
+  }
+  if (screen === 'camp_complete' && campResult) {
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
+        <MissionComplete
+          variant={campResult.cleared ? 'success' : 'partial'}
+          eyebrow={campResult.cleared ? 'LEVEL CLEARED' : 'SESSION STOPPED'}
+          title={campResult.cleared ? `LEVEL ${campResult.level} CLEAR` : 'GOOD EFFORT'}
+          subtitle={`TRAINING CAMP · ${campResult.discipline} · ${campResult.difficulty}`}
+          xp={campResult.xpEarned}
+          heroImage="/static/trophies/mission-complete-fight.webp"
+          partialBadge="/static/trophies/good-effort.png"
+          integrityResult={campResult.integrityResult}
+          stats={[{ value: `${campResult.rounds}/${campResult.total}`, label: 'ROUNDS' }]}
+          actions={[
+            campResult.unlockedTo
+              ? { label: `CONTINUE → L${campResult.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
+              : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
+            { label: 'HOME', onClick: goHome, kind: 'ghost' },
+          ]}
+        />
       </WithNav>
     );
   }

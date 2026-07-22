@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable } from './protocol/content';
+import { loadCampProgress } from './data/campProgress';
 
 // Phase 2 · 2.3 — TRAINING CAMP ladder (design 45a) + level modal (45b).
 // CSS neon-spine ladder over the tower backdrop: nodes 01–12 climb the spine,
@@ -31,11 +32,6 @@ const PHASE = {
 
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 const pad2 = (n) => String(n).padStart(2, '0');
-
-function loadProgress() {
-  try { return Math.max(1, Math.min(12, parseInt(localStorage.getItem('tm_camp_progress') || '1', 10) || 1)); }
-  catch { return 1; }
-}
 
 function NodeCircle({ level, state, boss }) {
   const size = boss ? 34 : 26;
@@ -87,12 +83,12 @@ function NodePips({ level, state }) {
   return null;
 }
 
-export default function TrainingCampMap({ discipline = 'Boxing', onBack }) {
+export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStartSession }) {
   const discKey = DISC_KEY[discipline] || 'boxing';
   const [difficulty, setDifficulty] = useState('normal');
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
-  const [current] = useState(loadProgress);
+  const [current] = useState(loadCampProgress);
 
   const archetype = archetypesFor(discKey)[0];   // 2.2 will make this a picker
   const curPhase = campLevels.find((l) => l.level === current) || campLevels[0];
@@ -113,6 +109,21 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack }) {
   const tapLevel = (level, e) => {
     setOpenAtY(e?.clientY ?? 0);
     setOpenLevel(level);
+  };
+
+  // You can play the level you're on (or replay a cleared one); locked levels
+  // wait their turn. Build the round cfg from the engine and hand it up.
+  const canStart = open != null && open.level <= current;
+  const startSession = () => {
+    if (!open || !canStart) return;
+    const rt = roundTemplate(discKey, open.level, difficulty);
+    const rounds = rt.rounds || 1;
+    const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
+    const cfg = {
+      difficulty, rounds, roundMin, restSec: rt.restSec ?? 60,
+      voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0,
+    };
+    onStartSession?.({ discipline, level: open.level, difficulty, cfg });
   };
 
   // Modal lands near the tapped node, clamped to stay fully on screen.
@@ -234,9 +245,15 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack }) {
               {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
             </div>
 
-            <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px dashed rgba(253,224,71,0.4)', background: 'rgba(253,224,71,0.07)', color: 'rgba(253,224,71,0.78)', font: "900 10.5px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'not-allowed' }}>
-              ▶ START — RUNNER COMING SOON
-            </button>
+            {canStart ? (
+              <button onClick={startSession} style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>
+                ▶ START {isSplitAvailable(open.level) ? 'SESSION 1' : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
+              </button>
+            ) : (
+              <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.5)', color: '#8b7fb0', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'not-allowed' }}>
+                🔒 CLEAR L{open.level - 1} FIRST
+              </button>
+            )}
           </div>
         </div>
       )}

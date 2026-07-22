@@ -385,7 +385,23 @@ HOW MUCH TO MAKE (guidance):
       Decisions locked (Jul 21): `title` per level added; AM/PM = S1 SKILL
       (combat, fresh) / S2 CONDITIONING (physical), skill-first, spec 10 P5
       updated to match.
-- [ ] 2.4 Session runner: chain fit/fight module blocks → normal Mission
+- [~] 2.4 Session runner — SLICE 1 SHIPPED (Jul 21): a camp level is now
+      PLAYABLE end-to-end. 45b START builds a cfg from the engine round template
+      (rounds/length/rest) and launches the session on the shared FightFocusTimer
+      (reuse, not a fork) → onEnd → MissionComplete outcome. New: data/
+      campProgress.js (tm_camp_progress, loadCampProgress/completeCampLevel),
+      userStats.addCampSession (type 'Training Camp'), App campCtx/campResult +
+      goCampSession/goCampComplete/goCampMap, ScreenRouter camp_session +
+      camp_complete screens. Camp progression RESPECTS the 1.6 anti-cheat: a
+      valid full completion clears the level (advances the cursor, unlocks the
+      next) and awards XP; a too-fast/suspicious session earns 0 XP and does NOT
+      clear. Verified in-browser (time-warped): valid run → LEVEL 3 CLEAR +170XP
+      + CONTINUE→L4 + session recorded; rushed run → GOOD EFFORT +0XP, progress
+      stays L3. No console errors.
+      REMAINING for full 2.4: chain MULTIPLE block types (fit + fight) with
+      transition cards (spec S7) rather than one fight round block; split AM/PM
+      S1→S2 sequencing; readiness gate (2.6) before START; warm-up.
+- [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
       with independent AM/PM chips + a 4-question inter-session check

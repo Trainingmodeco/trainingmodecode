@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C } from './Styles';
 import ScreenRouter from './ScreenRouter';
-import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, loadStats, getLevel } from './data/userStats';
+import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
+import { completeCampLevel } from './data/campProgress';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
@@ -109,6 +110,8 @@ export default function App() {
   const [disc,     setDisc    ] = useState('Boxing');
   const [cfg,      setCfg     ] = useState(null);
   const [session,  setSession ] = useState(null);
+  const [campCtx,    setCampCtx   ] = useState(null);   // 2.4 — active camp session ctx
+  const [campResult, setCampResult] = useState(null);   // 2.4 — camp completion result
   const [comboCfg, setComboCfg] = useState(null);
   const [fitCfg,   setFitCfg  ] = useState(null);
   const [qmCfg,    setQmCfg   ] = useState(null);
@@ -358,6 +361,33 @@ export default function App() {
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
+    // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
+    goCampSession: (ctx) => {
+      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      setCampCtx(ctx); setDisc(ctx.discipline); setCfg(ctx.cfg); setScreen('camp_session');
+    },
+    // 2.4 — camp session finished (same onEnd shape as FightFocusTimer). Award
+    // XP, clear the level (advancing the cursor + unlocking the next) on a full
+    // completion, then show the outcome.
+    goCampComplete: (rounds, c, completed, integrityResult) => {
+      const beforeLevel = getLevel(loadStats().xp);
+      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
+      const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
+      const level = campCtx?.level;
+      // Camp progression respects the 1.6 anti-cheat: a session flagged invalid
+      // (too fast / suspicious) earns no XP and does NOT clear the level.
+      const ir = integrityResult;
+      const awarded = !ir || ir.awardXp !== false;
+      const fullyValid = !ir || ir.isFullyValid;
+      const xpEarned = awarded ? addCampSession(level, done, total) : 0;
+      const cleared = done >= total && awarded && fullyValid;
+      const unlockedTo = (cleared && level != null) ? completeCampLevel(level) : null;
+      trackEvent('session_complete', { mode: 'trainingCamp', level, rounds: done });
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned, integrityResult, cleared, unlockedTo });
+      routeAfterXp(beforeLevel, 'camp_complete');
+    },
+    goCampMap: () => setScreen('training_camp'),
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
@@ -541,6 +571,7 @@ export default function App() {
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult}
             arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
+            campCtx={campCtx} campResult={campResult}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
             reportSessionState={reportSessionState} resumeData={resumeData}
