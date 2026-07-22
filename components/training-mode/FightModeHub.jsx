@@ -93,14 +93,16 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
         {/* Select discipline — the ⓘ guide lives in the header's right slot */}
         <SectionLabel>SELECT DISCIPLINE</SectionLabel>
-        <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 11, flexShrink: 0 }}>FIGHT MODE</div>
+        <div style={{ textAlign: 'center', font: "900 24px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 16px rgba(253,224,71,0.4)', marginBottom: 9, flexShrink: 0 }}>FIGHT MODE</div>
 
-        <div data-guide="fh-disciplines" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0, width: '100%', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
+        {/* Slightly smaller cards (four mode rows now live below) so the page
+            breathes and keeps ~10–15% clear space above the tab bar. */}
+        <div data-guide="fh-disciplines" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 13, flexShrink: 0, width: '100%', maxWidth: 272, marginLeft: 'auto', marginRight: 'auto' }}>
           {DISCIPLINES.map(d => {
             const active = d.id === disc;
             return (
               <button key={d.id} onClick={() => setDisc(d.id)} style={{
-                position: 'relative', aspectRatio: '1 / 0.92', borderRadius: 13, overflow: 'hidden', padding: 0, cursor: 'pointer',
+                position: 'relative', aspectRatio: '1 / 0.88', borderRadius: 13, overflow: 'hidden', padding: 0, cursor: 'pointer',
                 border: `1.5px solid ${active ? 'rgba(253,224,71,0.85)' : 'rgba(168,85,247,0.28)'}`,
                 boxShadow: active ? '0 0 26px rgba(253,224,71,0.3)' : '0 2px 12px rgba(0,0,0,0.4)',
                 background: 'radial-gradient(ellipse at 50% 30%, rgba(60,20,90,0.5), rgba(12,3,24,0.95) 70%)',
@@ -130,21 +132,21 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
             const accent = m.gold ? GOLD : VIOLET;
             const Icon = m.Icon;
             return (
-              <button key={m.key} data-guide={m.key === 'fight_focus' ? 'fh-fight-focus' : m.key === 'combo_coach' ? 'fh-combo' : 'fh-practice'} onClick={() => goMode(m.key)} style={{
-                display: 'flex', alignItems: 'center', gap: 12, borderRadius: 12, padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
+              <button key={m.key} data-guide={m.key === 'training_camp' ? 'fh-camp' : m.key === 'fight_focus' ? 'fh-fight-focus' : m.key === 'combo_coach' ? 'fh-combo' : 'fh-practice'} onClick={() => goMode(m.key)} style={{
+                display: 'flex', alignItems: 'center', gap: 11, borderRadius: 12, padding: '9px 13px', cursor: 'pointer', textAlign: 'left',
                 background: 'rgba(16,4,30,0.82)',
                 border: `1px solid ${m.gold ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.4)'}`,
                 boxShadow: m.gold ? '0 0 16px rgba(253,224,71,0.14)' : '0 0 14px rgba(168,85,247,0.12)',
               }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: m.gold ? 'rgba(253,224,71,0.1)' : 'rgba(168,85,247,0.1)', border: `1px solid ${m.gold ? 'rgba(253,224,71,0.3)' : 'rgba(168,85,247,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={19} color={accent}/>
+                <div style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0, background: m.gold ? 'rgba(253,224,71,0.1)' : 'rgba(168,85,247,0.1)', border: `1px solid ${m.gold ? 'rgba(253,224,71,0.3)' : 'rgba(168,85,247,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={17} color={accent}/>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ font: "900 15px 'Orbitron',sans-serif", color: accent, letterSpacing: '0.06em' }}>{m.title}</span>
+                    <span style={{ font: "900 14px 'Orbitron',sans-serif", color: accent, letterSpacing: '0.06em' }}>{m.title}</span>
                     {m.badge && <span style={{ font: "700 7px 'Orbitron',sans-serif", color: GOLD, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 4, padding: '2px 6px' }}>{m.badge}</span>}
                   </div>
-                  <div style={{ font: "500 11.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, lineHeight: 1.25 }}>{m.desc}</div>
+                  <div style={{ font: "500 10.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, lineHeight: 1.25 }}>{m.desc}</div>
                 </div>
               </button>
             );

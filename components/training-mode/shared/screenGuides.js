@@ -29,9 +29,18 @@ export const SCREEN_GUIDES = {
   fight_hub: [
     { target: null, title: '🥊 FIGHT MODE', body: 'This is the Fight Mode hub — the striking-skill side of Training Mode. Pick a discipline first, then choose how to train it.' },
     { target: 'fh-disciplines', title: 'SELECT DISCIPLINE', body: 'Boxing, Kickboxing, Muay Thai, or MMA — your session is built around the one you pick.' },
+    { target: 'fh-camp', title: 'TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight — real periodization: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next. Choose Training Camp.' },
     { target: 'fh-fight-focus', title: 'FIGHT FOCUS', body: 'Voice-coached rounds like a real session — a round timer with a coach calling the work. Choose Fight Focus.' },
     { target: 'fh-combo', title: 'COMBO COACH', body: 'The coach calls strike combinations and you throw them — builds speed, rhythm, and reaction. Choose Combo Coach.' },
     { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense, and footwork step by step. Choose Practice Mode.' },
+  ],
+
+  training_camp: [
+    { target: null, title: '🏕 TRAINING CAMP', body: 'This is your fight camp — 12 levels that build you to a Title Fight the way real camps do. Train it in order: clear the level you are on to unlock the next.' },
+    { target: null, title: 'THE LADDER', body: 'Five phases climb the tower: FOUNDATION learns the basics, DEVELOPMENT builds volume, HARD CAMP is your peak load, TAPER sharpens you while you recover — and Level 12 is the TITLE FIGHT. The gold ring is where you are now; tap any level to see its plan.' },
+    { target: null, title: 'S1 / S2 — SPLIT MISSIONS', body: 'From Level 4, each level is two missions like a real two-a-day: S1 · SKILL — your combat work, done fresh — then S2 · CONDITIONING later on. Leave 4–8 hours between them. The level clears when both are ✓✓.' },
+    { target: null, title: 'READINESS CHECK', body: 'Before every session you get a quick gut-check — sleep, energy, soreness, stress, mood. Feeling rough? An easier session still counts and keeps your streak. Flag a danger symptom and the camp tells you to rest — no penalty, ever.' },
+    { target: null, title: 'EARN & ADVANCE', body: 'Every mission you finish earns XP toward your fighter level. Difficulty is yours to pick — EASY, NORMAL, or HARD — and a clean easy session always beats a sloppy hard one. Clear all 12 levels and the belt is yours.' },
   ],
 
   fit_hub: [
@@ -46,6 +55,9 @@ export const SCREEN_GUIDES = {
     { target: null, title: '🕹 TRAINING ARCADE', body: 'This is the Training Arcade — workouts as a retro game. Each saga is a training storyline with stages to climb and a boss to beat.' },
     { target: 'ar-carousel', title: 'CHOOSE YOUR SAGA', body: 'Swipe left and right to browse sagas. Tap a card to open its stage ladder and start climbing.' },
     { target: 'ar-player', title: 'YOUR PLAYER BAR', body: 'Your arcade progress lives here — XP, badges, and your active challenge carry across sagas.' },
+    { target: null, title: 'HOW A STAGE WORKS', body: 'Every stage is a real workout with an HP bar — each rep you finish chips it down. Clear the stage to unlock the next one on the ladder.' },
+    { target: null, title: '★ STAR RANKS', body: 'Beat a stage fast enough to earn stars — ★, ★★, or ★★★. Your best time is saved on the stage, and an elite MYTHIC tier waits above three stars for the fastest fighters.' },
+    { target: null, title: '👑 THE BOSS', body: 'The final stage of every saga is the boss — the hardest session of the storyline. Beat it to finish the saga and claim its trophy.' },
   ],
 
   fight_focus_setup: [

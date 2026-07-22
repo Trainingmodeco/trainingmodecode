@@ -5,6 +5,9 @@ import { campLevels, roundTemplate, archetypesFor, isSplitAvailable } from './pr
 import { loadCampProgress } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
 import ReadinessSheet from './shared/ReadinessSheet';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 
 // Phase 2 · 2.3 — TRAINING CAMP ladder (design 45a) + level modal (45b).
 // CSS neon-spine ladder over the tower backdrop: nodes 01–12 climb the spine,
@@ -98,6 +101,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
   const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
+  const [helpOpen, setHelpOpen] = useState(false);
   const [current] = useState(loadCampProgress);
   const [sessAll] = useState(() => loadCampSessions());     // 2.4b — per-level S1/S2 state
 
@@ -176,10 +180,11 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               Level {current} of 12 · {curPhase.phase_label} · {archetype?.name}
             </div>
           </div>
+          <HelpButton onClick={() => setHelpOpen(true)} />
         </div>
 
         {/* Ladder */}
-        <div style={{ position: 'relative', flex: 1, minHeight: 0, padding: '2px 12px 4px' }}>
+        <div data-guide="tc-ladder" style={{ position: 'relative', flex: 1, minHeight: 0, padding: '2px 12px 4px' }}>
           <div style={{ position: 'absolute', left: '50%', top: 8, bottom: 8, width: 3, transform: 'translateX(-50%)', background: spine, borderRadius: 2, boxShadow: '0 0 12px rgba(168,85,247,0.6)' }} />
           <div style={{ position: 'absolute', left: '50%', bottom: 0, width: 54, height: 18, transform: 'translateX(-50%)', background: 'radial-gradient(ellipse at 50% 100%, rgba(168,85,247,0.5), transparent 70%)' }} />
 
@@ -312,6 +317,8 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
           </div>
         </div>
       )}
+
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.training_camp} onClose={() => setHelpOpen(false)} />}
 
       {/* 2.6 — readiness gate before the session actually launches. */}
       {readinessCtx && (
