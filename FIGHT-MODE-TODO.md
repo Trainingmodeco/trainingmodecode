@@ -332,19 +332,75 @@ HOW MUCH TO MAKE (guidance):
       on-floor zero = no penalty, tiny count = no penalty, verified bonus,
       boundaries, "never emits low"). Real-device calibration pending a phone.
 
-## PHASE 2 — PROGRESSION (the retention layer)
-- [ ] 2.1 Session recipe format + runner: a camp session = JSON list of
-      blocks (lesson / fightFocus / comboCoach / conditioning) chained with
-      transition cards, ending in the normal Mission Complete flow.
-- [ ] 2.2 TRAINING CAMP map screen: 12 nodes, phase labels (FUNDAMENTALS /
-      BUILDING / CONDITIONING / FIGHT SIM / TITLE FIGHT), node states,
-      session detail cards, saved cursor {discipline, tier, sessionIndex}.
-- [ ] 2.3 TITLE FIGHT session + "TITLE FIGHT WON" outcome screen; camp
-      completion → CAMP CHAMPION trophy + bonus XP → offer next camp/tier.
-- [ ] 2.4 Home integration: active camp drives Today's Bout ("TRAINING CAMP
-      · SESSION n").
-- [ ] 2.5 Fight Mode trophies live: CAMP CHAMPION · COMBO MACHINE · SCHOLAR
-      OF THE SWEET SCIENCE · IRON ROUNDS, wired to real events.
+## PHASE 2 — TRAINING CAMP + ARCADE v2 (protocol-driven; PRO tier)
+> PROTOCOL LANDED Jul 21 (`protocol-src/` on `app`, merged via PR #2 from the
+> fight-mode chat). Contents: specs 10 (camp) + 11 (arcade), DESIGN-SPEC.md
+> (designer handoff), INTEGRATION.md (wiring steps), 14 JSON content files,
+> 2 JSON schemas, and one framework-free `training-engine.ts` (pure functions:
+> resolveRoundTemplate / evaluateSession / calcXp / assessReadiness + lookups).
+> STATUS: STAGED, NOT integrated — nothing in the app imports the engine yet.
+> It SUPERSEDES the old simple 12-session camp. Design principle: ONE ENGINE,
+> MANY SKINS — Arcade stages are themed layers over the Camp engine. 36 camp
+> variants (4 disciplines × 3 archetypes × 3 difficulties). Content is fully
+> data-driven: adding a camp/campaign/archetype/module = editing JSON, zero
+> new screens. Pro-tier, bundled with Phase 3. User-led this week.
+- [ ] 2.0 Integrate the engine: copy `protocol-src/data/*.json` into the app
+      content dir + `training-engine.ts` into an engine dir (per INTEGRATION.md);
+      validate every JSON against `schemas/`; Node smoke-test the pure functions.
+      Rule: ALL camp/arcade timers derive from resolveRoundTemplate — never
+      hardcode round counts/lengths in components.
+- [ ] 2.1 Content data model wired: CAMPAIGN → STAGES → STAGE_PATHS (fit/fight)
+      → reusable WORKOUT_MODULES (easy/normal/hard variants). Replace the sample
+      stage-catalog + workout-modules with the real catalogs (samples show shape).
+- [ ] 2.2 Camp setup flow: DISCIPLINE (existing art) → ARCHETYPE (12 in
+      archetypes.json, card UI: name + tagline + selected-difficulty variant) →
+      DIFFICULTY (E/N/H). Archetype drives drills/tactics; difficulty drives
+      volume/rest/complexity/decision load. (DESIGN-SPEC S2.)
+- [ ] 2.3 TRAINING CAMP map: 12 nodes / 5 phases — FOUNDATION(1–3) ·
+      DEVELOPMENT(4–6) · HARD CAMP(7–9) · TAPER(10–11) · FINAL BOSS(12). KEEP
+      the existing tree-ladder/node-state UI; drive phase labels + session cards
+      from camp-levels.json. Saved cursor {discipline, archetype, level}.
+      (DESIGN-SPEC S1.)
+- [ ] 2.4 Session runner: chain fit/fight module blocks → normal Mission
+      Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
+      fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
+      with independent AM/PM chips + a 4-question inter-session check
+      (never shaming). L1–3 and L12 are single-session only. (spec 10 P5.)
+- [ ] 2.5 Round timing from timing-tables.json via resolveRoundTemplate
+      (striking vs MMA bands; L10–11 taper reduces round COUNT, keeps LENGTH;
+      L12 final-boss table — striking = active-minute target, MMA = 5×5:00).
+- [ ] 2.6 Safety gates (two-stage): PAR-Q+ once at camp onboarding (any "yes"
+      → recommend medical guidance + default to Easy, never hard-block); daily
+      readiness before EVERY session (5×1–5 taps + danger-symptom) via
+      assessReadiness → halt / suggest_easy_or_recovery / go. Recovery keeps the
+      streak. Never rewards dehydration / weight-cut / hard sparring.
+      (readiness.json, DESIGN-SPEC S3.)
+- [ ] 2.7 Pass rules + adaptive failure: evaluateSession → pass / partial /
+      fail / validation_failed onto the EXISTING outcome screens + 1.6 anti-
+      cheat. 4 fail types (safety/conditioning/technical/tactical), each with
+      its own response line — never random punishment. (pass-rules.json.)
+- [ ] 2.8 XP via calcXp + xp-rules.json (active_min × 10 × difficulty ×
+      completion × quality bonuses). Formula guarantees a clean Easy pass beats
+      a repeated Hard fail. Store as a remote-configurable ruleset.
+- [ ] 2.9 Equipment-aware routing: user equipment profile in settings; MINIMUM
+      VIABLE = open space + phone (every stage completable bare); data-driven
+      substitutions (bag → shadowbox power rounds, rope → fast feet, etc.) show
+      a chip and NEVER dock XP — punish nothing but effort. (equipment.json.)
+- [ ] 2.10 ARCADE v2: stages become themed skins over the camp engine. Per-
+      stage FIT / FIGHT / FULL ARC path flags; Full Arc reveals SPLIT/FULL
+      format + separate Fit & Fight difficulty. Rebuild the stage-selection
+      screen (header · path · format · difficulty · equipment chips · warnings ·
+      LIVE preview that updates on selector change). Validate stages against
+      stage.schema.json. Keep campaign names ORIGINAL (ARC_NIGHTGUARD etc., no
+      trademarked IP). (spec 11 P1–P2, DESIGN-SPEC.)
+- [ ] 2.11 TITLE FIGHT (L12) + "TITLE FIGHT WON" outcome; camp completion →
+      CAMP CHAMPION trophy + bonus XP → offer next camp/tier.
+- [ ] 2.12 Achievements (9 families → Progress tab arcade section, wired to
+      real events): FIT CLEAR · FIGHT CLEAR · FULL ARC CLEAR · NO-DROP RUN ·
+      PERFECT DEFENSE · LATE-ROUND SURGE · TACTICAL BOSS CLEAR · MINIMAL
+      EQUIPMENT MASTER · CONSISTENCY STREAK. (achievements.json.)
+- [ ] 2.13 Home integration: active camp drives Today's Bout ("TRAINING CAMP ·
+      L n"). Fight Mode trophies (CAMP CHAMPION etc.) wired to camp events.
 
 ## PHASE 3 — DIFFERENTIATORS (competitive layer; PRO tier; needs Phase 1)
 > TIER (Jul 21, user decision): Phase 3 is PRO — the whole competitive layer
@@ -378,6 +434,11 @@ HOW MUCH TO MAKE (guidance):
       VERIFIED shield badge.
 
 ## DESIGN CHECKLIST (assets needed, can run in parallel)
+> Screen specs for the v2 protocol are in `protocol-src/DESIGN-SPEC.md`
+> (containers only — all copy comes from `protocol-src/data/*.json`). New
+> screens it defines: archetype picker (S2), stage-selection (S…), readiness
+> sheet (S3), split-day AM/PM card (S5). Art-generation prompts live on the
+> `main` branch at bolt-rebuild-kit/prompts/05e-fight-mode-design-prompts.md.
 - [ ] Training Camp map art direction (path bg, phase dividers, 👑 boss node)
 - [ ] /assets/fight/placement-hint.png (phone/pocket/watch illustration)
 - [ ] /assets/fight/opponent-{discipline}.png (reaction-mode opponents)
