@@ -16,7 +16,19 @@
     { "id": "BAND",          "icon": "🧵", "label": "Resistance Band", "category": "optional",
       "substitutes": ["Isometrics", "Bodyweight alternatives"] },
     { "id": "MAT",           "icon": "🧘", "label": "Mat",            "category": "recommended_mma",
-      "substitutes": ["Towel", "Carpet-safe floor space"] }
+      "substitutes": ["Towel", "Carpet-safe floor space"] },
+    { "id": "MEDICINE_BALL", "icon": "⚽", "label": "Medicine Ball",  "category": "optional",
+      "substitutes": ["Band press/throws", "Bodyweight rotational jumps"] },
+    { "id": "KETTLEBELL",    "icon": "🔔", "label": "Kettlebell",     "category": "optional",
+      "substitutes": ["Light dumbbell", "Loaded backpack", "Bodyweight"] },
+    { "id": "PULLUP_BAR",    "icon": "🏗", "label": "Pull-up Bar",    "category": "optional",
+      "substitutes": ["Doorway row", "Band row/pulldown", "Towel isometric"] },
+    { "id": "CONES",         "icon": "🔺", "label": "Cones",          "category": "optional",
+      "substitutes": ["Floor lines", "Any floor markers"] },
+    { "id": "SLIP_LINE",     "icon": "〰", "label": "Slip Line",      "category": "optional",
+      "substitutes": ["Wall marker", "Shadow-defense cues"] },
+    { "id": "HAND_WRAPS",    "icon": "🩹", "label": "Hand Wraps",     "category": "optional",
+      "substitutes": ["Gloves only (light bag work)"] }
   ],
   "rules": {
     "minimum_viable": ["OPEN_SPACE", "TIMER_PHONE"],

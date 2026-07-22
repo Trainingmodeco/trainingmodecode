@@ -25,8 +25,12 @@
         },
         "fight": {
           "type": "object",
-          "required": ["protocol_family", "discipline", "archetype", "level_reference"],
+          "anyOf": [
+            { "required": ["module_ids"] },
+            { "required": ["protocol_family", "discipline", "archetype", "level_reference"] }
+          ],
           "properties": {
+            "module_ids": { "type": "array", "items": { "type": "string" } },
             "protocol_family": { "const": "training_camp" },
             "discipline": { "enum": ["boxing", "kickboxing", "muay_thai", "mma"] },
             "archetype": { "type": "string" },
