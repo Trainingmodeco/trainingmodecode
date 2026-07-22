@@ -68,7 +68,9 @@ Session execution for Ultra Ego stages:
   Hard 3:00 + shorter rest), taper multiplier applied on stages 10–11.
   Strike counter runs; warm-up option applies as everywhere else.
 - FULL ARC: per selected format —
-  · SPLIT CAMP: AM fit mission / PM evening fight mission with independent
+  · SPLIT CAMP (skill-first, per the app-wide Jul 21 decision): S1/AM = the
+    FIGHT mission (skill trained fresh), S2/PM = the FIT mission
+    (conditioning) — with independent
     completion states and the between-session mini-check.
   · FULL CAMP SESSION: warm-up → fit block → 8–15 min transition break
     (countdown card, skippable after 8 min) → fight block → cooldown, one

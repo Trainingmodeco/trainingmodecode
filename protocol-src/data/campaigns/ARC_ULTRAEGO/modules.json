@@ -68,7 +68,7 @@
       "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "HEAVY_BAG": "controlled_shadow_kicks" } },
 
-    { "module_id": "MOD_UE_S04_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 32,
+    { "module_id": "MOD_UE_S04_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 32,
       "title": "Grounding and Bracing",
       "exercises": ["Stability plank", "Medicine-ball chest throw", "Sumo deadlift or kettlebell deadlift", "Pallof press", "Loaded carry", "Neck isometric series"],
       "warmup": ["dynamic_stretch_3min", "bracing_drill_2min"], "target_rpe": [6, 7],
@@ -76,7 +76,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "MEDICINE_BALL": "band_press", "KETTLEBELL": "light_weights_or_band" } },
 
-    { "module_id": "MOD_UE_S04_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 26,
+    { "module_id": "MOD_UE_S04_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
       "title": "Grounded Power",
       "drills": ["Power jab-cross", "Lead hook-rear low kick", "Cross-hook-rear knee", "Heavy single-strike bag work", "Combination followed by defensive brace", "Controlled power rounds"],
       "warmup": ["shadowbox_3min"], "target_rpe": [6, 8],
@@ -91,7 +91,7 @@
       "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "HEAVY_BAG": "power_shadowboxing_controlled" } },
 
-    { "module_id": "MOD_UE_S05_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 30,
+    { "module_id": "MOD_UE_S05_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 30,
       "title": "Aerobic Engine",
       "exercises": ["Easy roadwork, bike, or walk-jog", "Jump rope", "Push-ups", "Squats", "Pull-up or row variation", "Core circuit"],
       "warmup": ["dynamic_stretch_3min"], "target_rpe": [5, 7],
@@ -99,7 +99,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
       "substitutions": { "JUMP_ROPE": "invisible_rope", "PULLUP_BAR": "band_row" } },
 
-    { "module_id": "MOD_UE_S05_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 26,
+    { "module_id": "MOD_UE_S05_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
       "title": "Pressure Combinations",
       "drills": ["Double jab-cross", "Jab-cross-hook-low kick", "Cross-hook-cross-rear knee", "Forward combination and angle exit", "Bag-pressure rounds", "Controlled output surges"],
       "warmup": ["shadowbox_3min"], "target_rpe": [6, 8],
@@ -114,7 +114,7 @@
       "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "HEAVY_BAG": "shadowboxing", "JUMP_ROPE": "invisible_rope" } },
 
-    { "module_id": "MOD_UE_S06_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 28,
+    { "module_id": "MOD_UE_S06_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28,
       "title": "Defensive Structure",
       "exercises": ["Neck mobility and isometrics", "Shoulder stability", "Plank shoulder taps", "Rotational core work", "Light roadwork", "Mobility sequence"],
       "warmup": ["dynamic_stretch_3min"], "target_rpe": [5, 7],
@@ -122,7 +122,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
       "substitutions": {} },
 
-    { "module_id": "MOD_UE_S06_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 26,
+    { "module_id": "MOD_UE_S06_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
       "title": "Head Movement and Counters",
       "drills": ["Slip-cross", "Roll-hook", "Roll-cross-hook", "Block-return", "Parry-cross-low kick", "Defensive movement around the bag"],
       "warmup": ["shadowbox_3min", "slip_line_2min"], "target_rpe": [6, 8],
@@ -137,7 +137,7 @@
       "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "SLIP_LINE": "wall_marker_or_shadow_defense", "HEAVY_BAG": "shadowboxing" } },
 
-    { "module_id": "MOD_UE_S07_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 36,
+    { "module_id": "MOD_UE_S07_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 36,
       "title": "Strength Endurance",
       "exercises": ["Military press", "Shrug variation", "Pull-up or pulldown", "Bent-over row", "Goblet or front squat", "Loaded carry", "High-repetition bodyweight finisher"],
       "warmup": ["dynamic_stretch_3min", "band_activation_2min"], "target_rpe": [7, 8],
@@ -145,7 +145,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "LIGHT_WEIGHTS": "bands_backpack_bodyweight", "PULLUP_BAR": "band_pulldown" } },
 
-    { "module_id": "MOD_UE_S07_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 28,
+    { "module_id": "MOD_UE_S07_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 28,
       "title": "Power Pressure",
       "drills": ["Punch combination into low kick", "Body-head combination", "Rear knee after boxing entry", "Clinch-position knees on the bag", "Power rounds", "Short output bursts followed by composed movement"],
       "warmup": ["shadowbox_3min"], "target_rpe": [7, 8],
@@ -160,7 +160,7 @@
       "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "HEAVY_BAG": "power_shadowboxing" } },
 
-    { "module_id": "MOD_UE_S08_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 28,
+    { "module_id": "MOD_UE_S08_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28,
       "title": "Speed and Agility",
       "exercises": ["Jump rope", "Ladder or line drills", "Cone-direction changes", "Short sprint intervals", "Low-volume jump training", "Medicine-ball rotational throw"],
       "warmup": ["dynamic_stretch_3min", "fast_feet_2min"], "target_rpe": [6, 8],
@@ -168,7 +168,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
       "substitutions": { "CONES": "floor_lines", "MEDICINE_BALL": "bodyweight_rotational_jumps", "JUMP_ROPE": "invisible_rope" } },
 
-    { "module_id": "MOD_UE_S08_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 26,
+    { "module_id": "MOD_UE_S08_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
       "title": "Explosive Attack",
       "drills": ["Fast-entry jab-cross", "Punch-kick burst combinations", "Jumping knee progression", "Step-through knee", "Angle change into power combination", "Aggressive shadowboxing rounds"],
       "warmup": ["shadowbox_3min"], "target_rpe": [7, 8],
@@ -184,7 +184,7 @@
       "substitutions": { "HEAVY_BAG": "shadow_knees" },
       "difficulty_notes": { "easy": "no jumping strikes — replace jumping knee with rear knee" } },
 
-    { "module_id": "MOD_UE_S09_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 38,
+    { "module_id": "MOD_UE_S09_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 38,
       "title": "Destroyer Circuit",
       "exercises": ["Dive-bomber push-ups", "Tiptoe jumping squats", "Archer pull-up progression", "Tiger-rock push-ups", "V-ups", "Loaded carries", "Neck isometrics", "Short conditioning intervals"],
       "warmup": ["dynamic_stretch_3min", "activation_3min"], "target_rpe": [7, 9],
@@ -192,7 +192,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "PULLUP_BAR": "band_row", "LIGHT_WEIGHTS": "bodyweight_only" } },
 
-    { "module_id": "MOD_UE_S09_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 30,
+    { "module_id": "MOD_UE_S09_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 30,
       "title": "Pressure Test",
       "drills": ["Forward-pressure bag rounds", "Body-to-head combinations", "Low-kick accumulation", "Knee and clinch-pressure rounds", "Defense-to-counter rounds", "High-output finishing intervals", "Tactical opponent simulation"],
       "warmup": ["shadowbox_3min"], "target_rpe": [7, 9],
@@ -208,7 +208,7 @@
       "completion_rules": { "min_rounds_completed": 6, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "HEAVY_BAG": "full_shadowboxing" } },
 
-    { "module_id": "MOD_UE_S10_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 24,
+    { "module_id": "MOD_UE_S10_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 24,
       "title": "Sharpening",
       "exercises": ["Easy roadwork", "Light jump rope", "Mobility", "Core stability", "Short low-volume power activation"],
       "rules": ["No heavy training to failure"],
@@ -217,7 +217,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
       "substitutions": { "JUMP_ROPE": "invisible_rope" } },
 
-    { "module_id": "MOD_UE_S10_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 22,
+    { "module_id": "MOD_UE_S10_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 22,
       "title": "Controlled Destruction",
       "drills": ["Accuracy shadowboxing", "Clean power combinations", "Light-to-moderate bag work", "Defensive counters", "Footwork and pressure control", "Short speed bursts with full recovery"],
       "warmup": ["shadowbox_3min"], "target_rpe": [5, 7],
@@ -231,7 +231,7 @@
       "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
       "substitutions": { "HEAVY_BAG": "shadowboxing" } },
 
-    { "module_id": "MOD_UE_S11_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 20,
+    { "module_id": "MOD_UE_S11_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 20,
       "title": "Final Preparation",
       "exercises": ["Walk, light jog, or easy bike", "Mobility", "Light core activation", "Breathing drills", "Neck and shoulder mobility", "Optional very light calisthenics"],
       "warmup": [], "target_rpe": [3, 5],
@@ -239,7 +239,7 @@
       "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 3, "pain_flag_stop": true },
       "substitutions": {} },
 
-    { "module_id": "MOD_UE_S11_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "evening", "duration_min": 20,
+    { "module_id": "MOD_UE_S11_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 20,
       "title": "Calm Before Destruction",
       "drills": ["Relaxed shadowboxing", "Primary-combination review", "Defensive review", "Pressure-footwork rehearsal", "Light bag touches", "Tactical visualization", "Controlled final speed bursts"],
       "warmup": ["shadowbox_2min"], "target_rpe": [4, 6],
