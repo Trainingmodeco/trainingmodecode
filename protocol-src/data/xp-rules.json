@@ -1,0 +1,16 @@
+{
+  "XP_STANDARD": {
+    "base_xp_per_active_minute": 10,
+    "difficulty_multiplier": { "easy": 1.0, "normal": 1.15, "hard": 1.3 },
+    "full_arc_completion_bonus": 0.15,
+    "clean_technique_bonus": 0.05,
+    "no_difficulty_drop_weekly_bonus": 0.10,
+    "completion_multiplier": {
+      "pass": 1.0,
+      "partial": 0.5,
+      "fail": 0.15,
+      "validation_failed": 0.0
+    },
+    "balancing_rule": "Clean completion on Easy is always worth more than repeated failure on Hard."
+  }
+}

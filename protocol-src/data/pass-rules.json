@@ -1,0 +1,31 @@
+{
+  "thresholds": {
+    "easy":   { "min_completion": 0.85, "technique": "no_major_breakdown",   "tactical_objective": "attempted" },
+    "normal": { "min_completion": 0.90, "technique": "no_repeated_breakdown", "tactical_objective": "completed" },
+    "hard":   { "min_completion": 0.95, "technique": "clean_under_fatigue",  "tactical_objective": "completed_cleanly" }
+  },
+  "universal_requirements": {
+    "rpe_within_assigned_band": true,
+    "zero_safety_flags": true
+  },
+  "fail_types": {
+    "safety": {
+      "cause": "Safety flag raised during session",
+      "response": "Stop progression. Show recovery / medical-advice note. No retry pressure."
+    },
+    "conditioning": {
+      "cause": "Did not complete the required work",
+      "response": "Retry a modified session, or reduce only the affected section by one step."
+    },
+    "technical": {
+      "cause": "Technique broke down beyond the difficulty's limit",
+      "response": "Recommend Practice Mode drills for the failing technique + suggest a lower difficulty."
+    },
+    "tactical": {
+      "cause": "Tactical objective missed",
+      "response": "Repeat the same mission once; if missed again, lower only the tactical layer."
+    }
+  },
+  "evaluation_order": ["safety", "conditioning", "technical", "tactical"],
+  "note": "Evaluated at session end; feeds the existing outcome screens and anti-cheat integrity evaluation."
+}

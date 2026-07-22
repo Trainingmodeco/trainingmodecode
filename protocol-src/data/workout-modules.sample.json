@@ -1,0 +1,95 @@
+[
+  {
+    "module_id": "MOD_BOX_JAB_ENGINE_N",
+    "module_type": "fight",
+    "discipline": "boxing",
+    "difficulty": "normal",
+    "format": "evening",
+    "duration_min": 28,
+    "tags": ["jab", "footwork", "ring-control"],
+    "warmup": ["shadowbox_3min", "jump_rope_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "jab_variations_move" },
+      { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "jab_cross_ring_cut" },
+      { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "jab_body_head" },
+      { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "jab_defense_exit" },
+      { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "free_jab_round" }
+    ],
+    "target_rpe": [6, 7],
+    "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
+    "substitutions": { "HEAVY_BAG": "power_shadowboxing" },
+    "notes": "Stage 4-6 usage"
+  },
+  {
+    "module_id": "MOD_BOX_COUNTER_PM_N",
+    "module_type": "fight",
+    "discipline": "boxing",
+    "difficulty": "normal",
+    "format": "evening",
+    "duration_min": 30,
+    "tags": ["counters", "defense", "pivots"],
+    "warmup": ["shadowbox_3min", "jump_rope_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 180, "rest_sec": 45, "goal": "jab_feint_entry" },
+      { "index": 2, "length_sec": 180, "rest_sec": 45, "goal": "slip_cross_pivot" },
+      { "index": 3, "length_sec": 180, "rest_sec": 45, "goal": "body_head_counter" }
+    ],
+    "target_rpe": [6, 7],
+    "completion_rules": { "min_rounds_completed": 3, "technique_breakdown_limit": 1, "pain_flag_stop": true },
+    "substitutions": { "HEAVY_BAG": "power_shadowboxing" }
+  },
+  {
+    "module_id": "MOD_MMA_WALL_ESCAPE_H",
+    "module_type": "fight",
+    "discipline": "mma",
+    "difficulty": "hard",
+    "format": "evening",
+    "duration_min": 24,
+    "tags": ["wall", "underhook", "get-up"],
+    "warmup": ["shadowbox_3min", "mobility_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 240, "rest_sec": 60, "goal": "wall_frame_underhook" },
+      { "index": 2, "length_sec": 240, "rest_sec": 60, "goal": "technical_getup_chain" },
+      { "index": 3, "length_sec": 240, "rest_sec": 60, "goal": "strike_on_break" }
+    ],
+    "target_rpe": [7, 9],
+    "completion_rules": { "min_rounds_completed": 3, "technique_breakdown_limit": 0, "pain_flag_stop": true },
+    "substitutions": { "MAT": "towel_floor_space" },
+    "notes": "Stage 7-11 usage"
+  },
+  {
+    "module_id": "MOD_FIT_ROADWORK_E",
+    "module_type": "fit",
+    "discipline": "multi",
+    "difficulty": "easy",
+    "format": "morning",
+    "duration_min": 20,
+    "tags": ["aerobic", "beginner"],
+    "warmup": ["dynamic_stretch_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 1200, "rest_sec": 0, "goal": "steady_aerobic_pace" }
+    ],
+    "target_rpe": [4, 6],
+    "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 99, "pain_flag_stop": true },
+    "substitutions": { "ROAD": "bike_or_brisk_walk" },
+    "notes": "Stage 1-5 usage"
+  },
+  {
+    "module_id": "MOD_FIT_POWER_TAPER_N",
+    "module_type": "fit",
+    "discipline": "multi",
+    "difficulty": "normal",
+    "format": "morning",
+    "duration_min": 16,
+    "tags": ["medball", "jumps", "taper"],
+    "warmup": ["dynamic_stretch_3min", "activation_2min"],
+    "rounds": [
+      { "index": 1, "length_sec": 300, "rest_sec": 90, "goal": "low_volume_jumps" },
+      { "index": 2, "length_sec": 300, "rest_sec": 90, "goal": "explosive_throws_or_band_pops" }
+    ],
+    "target_rpe": [5, 7],
+    "completion_rules": { "min_rounds_completed": 2, "technique_breakdown_limit": 1, "pain_flag_stop": true },
+    "substitutions": { "MEDBALL": "band_pops" },
+    "notes": "Stage 10 taper usage"
+  }
+]

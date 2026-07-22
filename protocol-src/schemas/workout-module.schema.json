@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkoutModule",
+  "type": "object",
+  "required": ["module_id", "module_type", "difficulty", "duration_min", "rounds"],
+  "properties": {
+    "module_id": { "type": "string" },
+    "module_type": { "enum": ["fit", "fight"] },
+    "discipline": { "enum": ["boxing", "kickboxing", "muay_thai", "mma", "multi"] },
+    "difficulty": { "enum": ["easy", "normal", "hard"] },
+    "format": { "enum": ["single", "morning", "evening"] },
+    "duration_min": { "type": "number", "minimum": 1 },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "warmup": { "type": "array", "items": { "type": "string" } },
+    "rounds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["index", "length_sec", "rest_sec", "goal"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 1 },
+          "length_sec": { "type": "integer", "minimum": 10 },
+          "rest_sec": { "type": "integer", "minimum": 0 },
+          "goal": { "type": "string" }
+        }
+      }
+    },
+    "target_rpe": {
+      "type": "array", "items": { "type": "number", "minimum": 1, "maximum": 10 },
+      "minItems": 2, "maxItems": 2
+    },
+    "completion_rules": {
+      "type": "object",
+      "properties": {
+        "min_rounds_completed": { "type": "integer" },
+        "technique_breakdown_limit": { "type": "integer" },
+        "pain_flag_stop": { "type": "boolean" }
+      }
+    },
+    "substitutions": { "type": "object", "additionalProperties": { "type": "string" } },
+    "video_ids": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}
