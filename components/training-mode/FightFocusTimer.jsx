@@ -40,7 +40,15 @@ function getTipPosition(offset, circ, R, cx, cy) {
 
 export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
-  const rounds = useMemo(() => generateFightFocusSession({ discipline, difficulty: cfg.difficulty, rounds: cfg.rounds }), [discipline, cfg.difficulty, cfg.rounds]);
+  // 2.4b — a camp block injects its own per-round titles/prompts (real skill or
+  // conditioning goals). When present they drive the session instead of the
+  // generated fight combos; the normal Fight Focus path is untouched.
+  const rounds = useMemo(
+    () => (cfg.blockRounds && cfg.blockRounds.length
+      ? cfg.blockRounds
+      : generateFightFocusSession({ discipline, difficulty: cfg.difficulty, rounds: cfg.rounds })),
+    [discipline, cfg.difficulty, cfg.rounds, cfg.blockRounds],
+  );
   const roundSec = cfg.roundMin * 60;
 
   const integrity = useIntegritySession('fightFocus', cfg.rounds);

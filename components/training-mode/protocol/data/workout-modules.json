@@ -1,0 +1,90 @@
+[
+  { "module_id": "MOD_BOX_FIGHT_FOUNDATION", "module_type": "fight", "discipline": "boxing", "phase": "foundation", "difficulty": "normal", "format": "evening", "duration_min": 18, "tags": ["fundamentals"],
+    "warmup": ["shadowbox_3min", "neck_and_shoulder_mobility"],
+    "rounds": [
+      { "index": 1, "length_sec": 60, "rest_sec": 60, "goal": "guard_and_stance" },
+      { "index": 2, "length_sec": 60, "rest_sec": 60, "goal": "jab_and_move" },
+      { "index": 3, "length_sec": 60, "rest_sec": 60, "goal": "one_two_reset" },
+      { "index": 4, "length_sec": 60, "rest_sec": 60, "goal": "slip_and_return" },
+      { "index": 5, "length_sec": 60, "rest_sec": 60, "goal": "free_shadow_flow" }
+    ],
+    "target_rpe": [4, 6], "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 2, "pain_flag_stop": true }, "substitutions": { "HEAVY_BAG": "power_shadowboxing" } },
+
+  { "module_id": "MOD_BOX_FIGHT_DEVELOPMENT", "module_type": "fight", "discipline": "boxing", "phase": "development", "difficulty": "normal", "format": "evening", "duration_min": 26, "tags": ["combinations"],
+    "warmup": ["shadowbox_3min", "jump_rope_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "jab_cross_ring_cut" },
+      { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "body_head_combos" },
+      { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "hook_off_the_jab" },
+      { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "slip_counter_pivot" },
+      { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "pressure_combinations" },
+      { "index": 6, "length_sec": 120, "rest_sec": 45, "goal": "free_bag_round" }
+    ],
+    "target_rpe": [6, 7], "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true }, "substitutions": { "HEAVY_BAG": "power_shadowboxing" } },
+
+  { "module_id": "MOD_BOX_FIGHT_HARDCAMP", "module_type": "fight", "discipline": "boxing", "phase": "hard_camp", "difficulty": "normal", "format": "evening", "duration_min": 34, "tags": ["high-output"],
+    "warmup": ["shadowbox_3min", "jump_rope_3min", "activation_2min"],
+    "rounds": [
+      { "index": 1, "length_sec": 180, "rest_sec": 60, "goal": "high_output_volume" },
+      { "index": 2, "length_sec": 180, "rest_sec": 60, "goal": "body_attack_pressure" },
+      { "index": 3, "length_sec": 180, "rest_sec": 60, "goal": "tactical_pressure_round" },
+      { "index": 4, "length_sec": 180, "rest_sec": 60, "goal": "late_round_surge" },
+      { "index": 5, "length_sec": 180, "rest_sec": 60, "goal": "championship_round" },
+      { "index": 6, "length_sec": 180, "rest_sec": 60, "goal": "empty_the_tank" }
+    ],
+    "target_rpe": [7, 9], "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true }, "substitutions": { "HEAVY_BAG": "power_shadowboxing" } },
+
+  { "module_id": "MOD_BOX_FIGHT_TAPER", "module_type": "fight", "discipline": "boxing", "phase": "taper", "difficulty": "normal", "format": "evening", "duration_min": 22, "tags": ["sharpen"],
+    "warmup": ["shadowbox_3min", "mobility_2min"],
+    "rounds": [
+      { "index": 1, "length_sec": 180, "rest_sec": 60, "goal": "sharp_accuracy" },
+      { "index": 2, "length_sec": 180, "rest_sec": 60, "goal": "clean_two_threes" },
+      { "index": 3, "length_sec": 180, "rest_sec": 60, "goal": "reaction_counters" },
+      { "index": 4, "length_sec": 180, "rest_sec": 60, "goal": "game_plan_rehearsal" }
+    ],
+    "target_rpe": [5, 7], "completion_rules": { "min_rounds_completed": 3, "technique_breakdown_limit": 0, "pain_flag_stop": true }, "substitutions": { "HEAVY_BAG": "clean_shadowboxing" } },
+
+  { "module_id": "MOD_FIT_FOUNDATION", "module_type": "fit", "discipline": "multi", "phase": "foundation", "difficulty": "normal", "format": "morning", "duration_min": 16, "tags": ["base"],
+    "warmup": ["dynamic_stretch_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 60, "rest_sec": 45, "goal": "bodyweight_squats" },
+      { "index": 2, "length_sec": 60, "rest_sec": 45, "goal": "pushups_and_plank" },
+      { "index": 3, "length_sec": 60, "rest_sec": 45, "goal": "steady_aerobic_pace" },
+      { "index": 4, "length_sec": 60, "rest_sec": 45, "goal": "core_hold" },
+      { "index": 5, "length_sec": 60, "rest_sec": 45, "goal": "mobility_flow" }
+    ],
+    "target_rpe": [4, 6], "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 99, "pain_flag_stop": true }, "substitutions": { "ROAD": "brisk_walk_or_bike" } },
+
+  { "module_id": "MOD_FIT_DEVELOPMENT", "module_type": "fit", "discipline": "multi", "phase": "development", "difficulty": "normal", "format": "morning", "duration_min": 22, "tags": ["build"],
+    "warmup": ["dynamic_stretch_3min", "jump_rope_2min"],
+    "rounds": [
+      { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "jump_rope_intervals" },
+      { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "roadwork_tempo" },
+      { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "bodyweight_strength_circuit" },
+      { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "core_circuit" },
+      { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "loaded_carries_or_backpack" },
+      { "index": 6, "length_sec": 120, "rest_sec": 45, "goal": "mobility_flush" }
+    ],
+    "target_rpe": [6, 7], "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 99, "pain_flag_stop": true }, "substitutions": { "LIGHT_WEIGHTS": "backpack_or_bands", "ROPE": "fast_feet" } },
+
+  { "module_id": "MOD_FIT_HARDCAMP", "module_type": "fit", "discipline": "multi", "phase": "hard_camp", "difficulty": "normal", "format": "morning", "duration_min": 26, "tags": ["peak-load"],
+    "warmup": ["dynamic_stretch_3min", "activation_2min"],
+    "rounds": [
+      { "index": 1, "length_sec": 180, "rest_sec": 45, "goal": "hard_intervals" },
+      { "index": 2, "length_sec": 180, "rest_sec": 45, "goal": "power_carries" },
+      { "index": 3, "length_sec": 180, "rest_sec": 45, "goal": "strength_endurance_circuit" },
+      { "index": 4, "length_sec": 180, "rest_sec": 45, "goal": "sprint_repeats" },
+      { "index": 5, "length_sec": 180, "rest_sec": 45, "goal": "tank_builder_finisher" }
+    ],
+    "target_rpe": [7, 9], "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 99, "pain_flag_stop": true }, "substitutions": { "LIGHT_WEIGHTS": "backpack_or_bands" } },
+
+  { "module_id": "MOD_FIT_TAPER", "module_type": "fit", "discipline": "multi", "phase": "taper", "difficulty": "normal", "format": "morning", "duration_min": 15, "tags": ["taper"],
+    "warmup": ["dynamic_stretch_3min"],
+    "rounds": [
+      { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "light_conditioning" },
+      { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "low_volume_power" },
+      { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "mobility_and_activation" },
+      { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "recovery_flush" }
+    ],
+    "target_rpe": [4, 6], "completion_rules": { "min_rounds_completed": 3, "technique_breakdown_limit": 99, "pain_flag_stop": true }, "substitutions": { "MEDBALL": "band_pops" } }
+]

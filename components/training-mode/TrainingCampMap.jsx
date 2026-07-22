@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
-import { campLevels, roundTemplate, archetypesFor, isSplitAvailable } from './protocol/content';
+import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, blockRoundsFor, humanizeGoal } from './protocol/content';
 import { loadCampProgress } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
 import ReadinessSheet from './shared/ReadinessSheet';
@@ -129,15 +129,19 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // You can play the level you're on (or replay a cleared one); locked levels
   // wait their turn. Build the round cfg from the engine and hand it up.
   const canStart = open != null && open.level <= current;
-  const buildCfg = (level, diff) => {
+  const buildCfg = (level, diff, kind) => {
     const rt = roundTemplate(discKey, level, diff);
     const rounds = rt.rounds || 1;
     const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
-    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0 };
+    // 2.4b — real per-round goals (skill or conditioning) drive the timer.
+    const blockRounds = blockRoundsFor(discKey, level, diff, kind, rounds);
+    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0, blockRounds };
   };
   const launch = (level, diff, slot) => {
     const split = isSplitAvailable(level);
-    onStartSession?.({ discipline, level, difficulty: diff, cfg: buildCfg(level, diff), split, slot: split ? slot : 's1' });
+    // Split S2 is the conditioning (fit) block; everything else is skill (fight).
+    const kind = (split && slot === 's2') ? 'fit' : 'fight';
+    onStartSession?.({ discipline, level, difficulty: diff, cfg: buildCfg(level, diff, kind), split, slot: split ? slot : 's1' });
   };
   // 2.4b — on split levels the next mission is S1 until it's ✓, then S2.
   const openSess = open ? (sessAll[open.level] || {}) : {};
@@ -265,11 +269,14 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                 {/* 2.4b — the two missions with real completion state. S1 first
                     (skill while fresh), S2 unlocks after; level clears at ✓✓. */}
                 {[
-                  { slot: 's1', num: 1, ampm: 'AM', kind: 'SKILL', color: '#e879f9', items: open.combat_emphasis },
-                  { slot: 's2', num: 2, ampm: 'PM', kind: 'CONDITIONING', color: '#7fd6c8', items: open.physical_emphasis },
+                  { slot: 's1', num: 1, ampm: 'AM', kind: 'SKILL', color: '#e879f9', block: 'fight' },
+                  { slot: 's2', num: 2, ampm: 'PM', kind: 'CONDITIONING', color: '#7fd6c8', block: 'fit' },
                 ].map((m) => {
                   const isDone = !!openSess[m.slot];
                   const isNext = !isDone && (m.slot === 's1' || !!openSess.s1);
+                  // 2.4b — real block content for this mission (module or emphasis).
+                  const blk = campBlock(discKey, open.level, difficulty, m.block);
+                  const items = blk.goals.map(humanizeGoal);
                   return (
                     <div key={m.slot} style={{
                       borderRadius: 9, padding: '7px 9px', marginBottom: 6,
@@ -278,12 +285,13 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ font: "800 8.5px 'Orbitron',sans-serif", color: m.color, letterSpacing: '0.04em' }}>S{m.num} · {m.ampm} — {m.kind}</span>
+                        {blk.durationMin ? <span style={{ font: "600 7px 'Rajdhani',sans-serif", color: '#8b7fb0' }}>~{blk.durationMin}m</span> : null}
                         <span style={{ marginLeft: 'auto', font: "700 7px 'Orbitron',sans-serif", color: isDone ? '#22c55e' : isNext ? GOLD : '#8b7fb0' }}>
                           {isDone ? '✓ COMPLETE' : isNext ? '▶ UP NEXT' : 'PENDING'}
                         </span>
                       </div>
                       <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {m.items.join(' · ')}
+                        {items.join(' · ')}
                       </div>
                     </div>
                   );
@@ -294,13 +302,9 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               </>
             ) : (
               <>
-                <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>COMBAT</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 7 }}>
-                  {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
-                </div>
-                <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.1em' }}>PHYSICAL</div>
+                <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>THIS SESSION</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
-                  {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
+                  {campBlock(discKey, open.level, difficulty, 'fight').goals.map(humanizeGoal).map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
                 </div>
               </>
             )}

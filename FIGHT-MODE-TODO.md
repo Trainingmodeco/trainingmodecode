@@ -423,10 +423,23 @@ HOW MUCH TO MAKE (guidance):
       START SESSION 2 → LEVEL 4 CLEAR +170XP → progress 5, sessions
       {4:{s1,s2}} persisted through reload. Trophy size unified (maxWidth
       clamp — wide GOOD EFFORT emblem now matches the other badges).
-      REMAINING for full 2.4: real fit-vs-fight block CONTENT per mission (S2
-      currently runs the same round engine with a conditioning label — needs
-      workout-modules.json); chaining multiple blocks inside one session (FULL
-      CAMP format with 8–15 min transition); warm-up phase.
+      REAL BLOCK CONTENT WIRED (Jul 22, slice 3): S1/S2 now carry distinct real
+      content. protocol/data/workout-modules.json — authored starter catalog
+      (boxing FIGHT per phase + multi FIT per phase). content.ts adds campModule
+      (module resolver by discipline/type/phase/difficulty) + campBlock
+      (module-first, falls back to camp-levels combat_emphasis [skill] /
+      physical_emphasis [conditioning] so EVERY discipline & level has content
+      today) + blockRoundsFor + humanizeGoal. FightFocusTimer takes an optional
+      cfg.blockRounds that overrides the generated combos with the block's real
+      per-round goals (gated; normal Fight Focus untouched). 45b modal shows each
+      mission's real goals + ~duration; the running timer shows the goal as the
+      round title (verified: boxing L5 S1 → "JAB CROSS RING CUT / Sharp
+      technique…"; S2 conditioning → "Jump Rope Intervals" etc.). The fight-mode
+      chat's future camp modules drop into workout-modules.json over the fallback.
+      REMAINING for full 2.4: fit-specific runner visuals for S2 (still uses the
+      fight ring timer shell); more authored modules (kickboxing/MT/MMA fight,
+      easy/hard variants); chaining multiple blocks in one session (FULL CAMP,
+      8–15 min transition); warm-up phase.
 - [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
