@@ -1,0 +1,197 @@
+[
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG01", "campaign_id": "ARC_DARKKNIGHT", "title": "The Making of a Man",
+    "phase": "foundation", "stage_number": 1, "pillar": "calisthenics",
+    "purpose": "Calisthenics base — bodyweight mastery and a solid core. The foundation everything else stands on.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S01_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S01_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Own your bodyweight — clean, controlled reps and a braced core.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["PULLUP_BAR", "MAT"],
+      "alternatives": { "PULLUP_BAR": ["BAND_ROW", "DOORWAY_ROW"], "MAT": ["FLOOR_SPACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_FORGED"], "video_ids": ["VID_DK_S01_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG02", "campaign_id": "ARC_DARKKNIGHT", "title": "Forge the Body",
+    "phase": "foundation", "stage_number": 2, "pillar": "strength",
+    "purpose": "Strength — compound patterns and weighted calisthenics. Build the engine of power.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S02_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S02_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Hit strength targets with clean form — power built, never forced.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["PULLUP_BAR", "KETTLEBELL", "LIGHT_WEIGHTS"],
+      "alternatives": { "KETTLEBELL": ["LOADED_BACKPACK"], "LIGHT_WEIGHTS": ["HARDEST_BODYWEIGHT_PROGRESSION"], "PULLUP_BAR": ["BAND_ROW"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_FORGED"], "video_ids": ["VID_DK_S02_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG03", "campaign_id": "ARC_DARKKNIGHT", "title": "The Long Night",
+    "phase": "foundation", "stage_number": 3, "pillar": "cardio_conditioning",
+    "purpose": "Cardio and conditioning — energy systems, roadwork, HIIT. The engine that lasts all night.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S03_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S03_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Build the engine — sustainable pace, then controlled bursts.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["JUMP_ROPE"],
+      "alternatives": { "JUMP_ROPE": ["INVISIBLE_ROPE", "HIGH_KNEES"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_DK_S03_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG04", "campaign_id": "ARC_DARKKNIGHT", "title": "Balance and Control",
+    "phase": "development", "stage_number": 4, "pillar": "gymnastics", "load": "moderate",
+    "purpose": "Gymnastics I — wrist/shoulder prep, handstands, ring/bar support. Body control begins.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split", "gymnastics_safety": true,
+    "fantasy_lore": "⚠ Wrist safety first: gymnasts have very high wrist-injury rates. We do daily wrist prehab and stop on front-of-wrist pinch pain — advanced skills come only after the progressions.",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S04_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S04_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Control your body in space — steady holds, safe wrists, no pinch pain.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["GYMNASTIC_RINGS", "PULLUP_BAR", "MAT"],
+      "alternatives": { "GYMNASTIC_RINGS": ["PULLUP_BAR", "TRX", "FLOOR_PROGRESSIONS"], "MAT": ["FLOOR_SPACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_AERIAL"], "video_ids": ["VID_DK_S04_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG05", "campaign_id": "ARC_DARKKNIGHT", "title": "The Escape",
+    "phase": "development", "stage_number": 5, "pillar": "parkour", "load": "moderate",
+    "purpose": "Parkour I — landing, rolls, precision jumps, safety vaults. Move through the city, safely.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split", "parkour_safety": true,
+    "fantasy_lore": "⚠ Start low, land soft. Targets 1-2 ft away, landing area cleared, roll from a squat. NO flips — those are advanced, not part of this training.",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S05_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S05_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Land silent, roll smooth — control every landing before adding distance.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["LOW_STEP", "MAT"],
+      "alternatives": { "LOW_STEP": ["FLOOR_TAPE_TARGETS", "GROUND_LINE"], "MAT": ["GRASS_OR_SOFT_SURFACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_TRACEUR"], "video_ids": ["VID_DK_S05_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG06", "campaign_id": "ARC_DARKKNIGHT", "title": "First Blood",
+    "phase": "development", "stage_number": 6, "pillar": "fight", "load": "moderate",
+    "purpose": "Fight I — boxing base. Hands, footwork, and the first striking rounds.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S06_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S06_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Clean hands, balanced feet — power from the ground, always in guard.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_MANY_STYLES"], "video_ids": ["VID_DK_S06_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG07", "campaign_id": "ARC_DARKKNIGHT", "title": "The Art of War",
+    "phase": "hard_camp", "stage_number": 7, "pillar": "fight", "load": "high",
+    "purpose": "Fight II — technical multi-discipline. Muay Thai kicks/knees/clinch and defensive counters.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S07_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S07_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Many styles, one flow — strike, clinch, and counter without losing form.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES", "MAT"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_MANY_STYLES"], "video_ids": ["VID_DK_S07_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG08", "campaign_id": "ARC_DARKKNIGHT", "title": "Above the City",
+    "phase": "hard_camp", "stage_number": 8, "pillar": "gymnastics", "load": "high",
+    "purpose": "Gymnastics II — ring strength, straight-arm work, lever progressions (gated). Recovery-aware.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split", "gymnastics_safety": true, "deload_after": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S08_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S08_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Strength in stillness — straight-arm control, wrists safe, skills earned by progression.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["GYMNASTIC_RINGS", "PULLUP_BAR", "MAT"],
+      "alternatives": { "GYMNASTIC_RINGS": ["PULLUP_BAR", "TRX"], "MAT": ["FLOOR_SPACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_AERIAL"], "video_ids": ["VID_DK_S08_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG09", "campaign_id": "ARC_DARKKNIGHT", "title": "No Man's Land",
+    "phase": "hard_camp", "stage_number": 9, "pillar": "cardio_conditioning", "load": "high",
+    "purpose": "Peak conditioning + movement endurance — capped high output. Manage the load.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split", "parkour_safety": true, "deload_after": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S09_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S09_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Endure the long night — hold pace to target, never grind to collapse.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["JUMP_ROPE", "LOW_STEP", "MAT"],
+      "alternatives": { "JUMP_ROPE": ["HIGH_KNEES"], "LOW_STEP": ["FLOOR_TARGETS"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "joint_soreness"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_DK_S09_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG10", "campaign_id": "ARC_DARKKNIGHT", "title": "The Detective's Body",
+    "phase": "integration", "stage_number": 10, "pillar": "integration", "load": "peak_1",
+    "purpose": "Integration I — combine pillars in one session. Pillar rotation keeps it safe.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split", "gymnastics_safety": true, "parkour_safety": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S10_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S10_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Chain the pillars — strength, movement, and skill without dropping quality.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["GYMNASTIC_RINGS", "HEAVY_BAG", "GLOVES", "PULLUP_BAR", "LOW_STEP", "MAT"],
+      "alternatives": { "GYMNASTIC_RINGS": ["PULLUP_BAR"], "HEAVY_BAG": ["SHADOWBOXING"], "LOW_STEP": ["FLOOR_TARGETS"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "joint_soreness"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_DETECTIVE"], "video_ids": ["VID_DK_S10_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG11", "campaign_id": "ARC_DARKKNIGHT", "title": "The Dark Knight Rises",
+    "phase": "integration", "stage_number": 11, "pillar": "integration", "load": "peak_2",
+    "purpose": "Integration II — all six pillars at peak. The hardest stage before the trial, capped for safety.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split", "gymnastics_safety": true, "parkour_safety": true,
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S11_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S11_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Six pillars, one athlete — peak output to target, control never breaks.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["GYMNASTIC_RINGS", "HEAVY_BAG", "GLOVES", "PULLUP_BAR", "KETTLEBELL", "LOW_STEP", "MAT"],
+      "alternatives": { "GYMNASTIC_RINGS": ["PULLUP_BAR"], "HEAVY_BAG": ["SHADOWBOXING"], "KETTLEBELL": ["LOADED_BACKPACK"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "joint_soreness"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_DETECTIVE"], "video_ids": ["VID_DK_S11_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_DARKKNIGHT_STG12", "campaign_id": "ARC_DARKKNIGHT", "title": "Become the Bat",
+    "phase": "final_boss", "stage_number": 12, "pillar": "all", "load": "boss",
+    "purpose": "The peak-human trial — twelve rounds cycling every pillar, gated on control and safety.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full", "boss": true, "gymnastics_safety": true, "parkour_safety": true,
+    "fantasy_lore": "⚠ Batman's '127 martial arts' and comic feats are lore, not a training goal. The real trial is mastering six pillars safely and in control.",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_DK_S12_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_DK_S12_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Twelve rounds, six pillars. Become more than a man — in complete control.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["GYMNASTIC_RINGS", "HEAVY_BAG", "GLOVES", "PULLUP_BAR", "LOW_STEP", "MAT"],
+      "alternatives": { "GYMNASTIC_RINGS": ["PULLUP_BAR"], "HEAVY_BAG": ["SHADOWBOXING"], "LOW_STEP": ["FLOOR_TARGETS"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag", "joint_soreness"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_DK_BECOME_BAT", "ACH_DK_PEAK_HUMAN"], "video_ids": ["VID_DK_S12_OVERVIEW"]
+  }
+]

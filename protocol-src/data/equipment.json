@@ -40,7 +40,11 @@
     { "id": "SANDBAG",       "icon": "🎒", "label": "Sandbag / Loaded Bag", "category": "optional",
       "substitutes": ["Loaded backpack", "Heavy kettlebell", "Water jug"] },
     { "id": "GRIP_TRAINER",  "icon": "🤜", "label": "Grip Trainer / Thick Bar", "category": "optional",
-      "substitutes": ["Towel-wrapped pull-ups", "Plate pinch", "Rice-bucket digs", "Farmer holds"] }
+      "substitutes": ["Towel-wrapped pull-ups", "Plate pinch", "Rice-bucket digs", "Farmer holds"] },
+    { "id": "GYMNASTIC_RINGS", "icon": "⭕", "label": "Gymnastic Rings", "category": "optional",
+      "substitutes": ["Pull-up bar work", "Suspension trainer / TRX", "Floor bodyweight progressions"] },
+    { "id": "LOW_STEP",      "icon": "📦", "label": "Low Step / Curb (parkour)", "category": "optional",
+      "substitutes": ["Floor tape targets", "Line on the ground", "Sturdy low platform"] }
   ],
   "rules": {
     "minimum_viable": ["OPEN_SPACE", "TIMER_PHONE"],
