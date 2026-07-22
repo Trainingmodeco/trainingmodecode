@@ -1,0 +1,134 @@
+[
+  {
+    "id": "pressure_dog",
+    "discipline": "boxing",
+    "name": "Pressure Dog",
+    "tagline": "Relentless forward pressure",
+    "variants": {
+      "easy": "Basic jab-cross-hook pressure, short rounds, longer rest",
+      "normal": "Ring-cutting, body jab, body-head combinations",
+      "hard": "High-output pressure, body attack volume, late-round surges"
+    }
+  },
+  {
+    "id": "slick_counter_boxer",
+    "discipline": "boxing",
+    "name": "Slick Counter Boxer",
+    "tagline": "Defense into offense",
+    "variants": {
+      "easy": "Guard, slip line, jab and exit",
+      "normal": "Slip-counter, pull-counter, pivot finishes",
+      "hard": "Multi-layer defense, trap counters, angle resets under fatigue"
+    }
+  },
+  {
+    "id": "twelve_round_finisher",
+    "discipline": "boxing",
+    "name": "Twelve-Round Finisher",
+    "tagline": "Pace and championship endurance",
+    "variants": {
+      "easy": "Relaxed output, breathing and pace",
+      "normal": "Even pace, composure between rounds, steady volume",
+      "hard": "Championship-round simulation, late surges, short-rest finishers"
+    }
+  },
+  {
+    "id": "dutch_volume_pressure",
+    "discipline": "kickboxing",
+    "name": "Dutch Volume Pressure",
+    "tagline": "Punch-low-kick chains",
+    "variants": {
+      "easy": "Punch and low-kick basics",
+      "normal": "3-4 strike Dutch chains, compact defense",
+      "hard": "Long chains, pressure, low-kick attrition, high-density rounds"
+    }
+  },
+  {
+    "id": "long_range_kicker",
+    "discipline": "kickboxing",
+    "name": "Long-Range Kicker",
+    "tagline": "Distance control and kick volume",
+    "variants": {
+      "easy": "Jab, teep-style lead kick, round-kick mechanics",
+      "normal": "Distance control, body kick and reset",
+      "hard": "Interception, long-range scoring, kick volume with short rest"
+    }
+  },
+  {
+    "id": "angle_counter_kickboxer",
+    "discipline": "kickboxing",
+    "name": "Angle Counter Kickboxer",
+    "tagline": "Catch, return, angle out",
+    "variants": {
+      "easy": "Basic exits after striking",
+      "normal": "Catch-return, check-return, angle step-outs",
+      "hard": "Reactive counter layers, hand-kick counters, pace changes"
+    }
+  },
+  {
+    "id": "muay_femur_technician",
+    "discipline": "muay_thai",
+    "name": "Muay Femur Technician",
+    "tagline": "The technician",
+    "variants": {
+      "easy": "Teep, balance, long guard basics",
+      "normal": "Technical kicking, timing, composure, scoring awareness",
+      "hard": "Teep-kick-counter control, ring craft, high-precision rounds"
+    }
+  },
+  {
+    "id": "muay_khao_clinch_grinder",
+    "discipline": "muay_thai",
+    "name": "Muay Khao Clinch Grinder",
+    "tagline": "Knees and clinch dominance",
+    "variants": {
+      "easy": "Knee posture and bag-clinch basics",
+      "normal": "Knees, turns, inside control, clinch endurance",
+      "hard": "High clinch density, knees under fatigue, balance recovery"
+    }
+  },
+  {
+    "id": "muay_mat_power_puncher",
+    "discipline": "muay_thai",
+    "name": "Muay Mat Power Puncher",
+    "tagline": "Heavy hands with kicks",
+    "variants": {
+      "easy": "Basic boxing entries with kicks",
+      "normal": "Punch-heavy pressure, low kick, elbow entry mechanics",
+      "hard": "Power chains, forward pressure, body-head-elbow aggression"
+    }
+  },
+  {
+    "id": "wrestle_box_control",
+    "discipline": "mma",
+    "name": "Wrestle-Box Control",
+    "tagline": "Strike to takedown to control",
+    "variants": {
+      "easy": "Jab to level-change mechanics",
+      "normal": "Cage entries, top control drills, mat returns",
+      "hard": "Long control rounds, wall pressure, chain entries under fatigue"
+    }
+  },
+  {
+    "id": "anti_wrestling_sniper",
+    "discipline": "mma",
+    "name": "Anti-Wrestling Sniper",
+    "tagline": "Sprawl and punish",
+    "variants": {
+      "easy": "Sprawl form, circling, straight strikes",
+      "normal": "Underhooks, wall exits, strike-on-break",
+      "hard": "Defensive wrestling into counters, layered get-ups, punish entries"
+    }
+  },
+  {
+    "id": "chaos_finisher",
+    "discipline": "mma",
+    "name": "Chaos Finisher",
+    "tagline": "Scrambles and finishes",
+    "variants": {
+      "easy": "Basic transitions, technical stand-up",
+      "normal": "Scramble chains, finish reactions, ground-and-pound patterns",
+      "hard": "High-transition rounds, unstable-position offense, finish scenarios"
+    }
+  }
+]

@@ -344,11 +344,21 @@ HOW MUCH TO MAKE (guidance):
 > variants (4 disciplines × 3 archetypes × 3 difficulties). Content is fully
 > data-driven: adding a camp/campaign/archetype/module = editing JSON, zero
 > new screens. Pro-tier, bundled with Phase 3. User-led this week.
-- [ ] 2.0 Integrate the engine: copy `protocol-src/data/*.json` into the app
-      content dir + `training-engine.ts` into an engine dir (per INTEGRATION.md);
-      validate every JSON against `schemas/`; Node smoke-test the pure functions.
-      Rule: ALL camp/arcade timers derive from resolveRoundTemplate — never
-      hardcode round counts/lengths in components.
+- [x] 2.0 Engine integrated (Jul 21). `protocol-src/` copied into
+      `components/training-mode/protocol/` (data/ + engine/trainingEngine.ts +
+      schemas/). `protocol/content.ts` binds the JSON to the pure engine and
+      exposes bound helpers (roundTemplate / archetypesFor / campLevel /
+      isSplitAvailable / evaluate / xpFor / readiness) so screens never pass
+      content by hand. Node smoke-test = 28 cases pass (all JSON parse, 12
+      levels, 12 archetypes, resolveRoundTemplate covers all 144 disc×level×diff
+      combos with no gaps, taper reduces L10/11 count & keeps length, L12 boss
+      shapes, XP balancing rule, evaluateSession order, readiness gate, sample
+      stages/modules pass their schemas). typecheck + lint + build:web clean.
+      TRAINING CAMP entry added ATOP the Fight Mode hub (gold, Tent icon, NEW
+      badge) → routes to `training_camp` screen. TrainingCampMap.jsx v0 renders
+      the 12-level / 5-phase ladder from content with LIVE engine round previews
+      (verified in-browser: EASY/NORMAL/HARD re-preview the whole ladder, taper
+      shows L9 6×3:00 → L10 5×3:00 → L11 4×3:00, TITLE FIGHT ~27–38 active min).
 - [ ] 2.1 Content data model wired: CAMPAIGN → STAGES → STAGE_PATHS (fit/fight)
       → reusable WORKOUT_MODULES (easy/normal/hard variants). Replace the sample
       stage-catalog + workout-modules with the real catalogs (samples show shape).

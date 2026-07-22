@@ -1,0 +1,21 @@
+{
+  "warnings": {
+    "no_bag": "No heavy bag? Shadowboxing version available.",
+    "hard_mode": "Hard mode is intended for experienced fighters.",
+    "stop_training": "If you feel sharp pain, dizziness, or concussion symptoms, stop training."
+  },
+  "paths": { "fit": "FIT", "fight": "FIGHT", "full_arc": "FULL ARC" },
+  "formats": { "split": "SPLIT CAMP", "full": "FULL CAMP SESSION" },
+  "difficulties": { "easy": "EASY", "normal": "NORMAL", "hard": "HARD" },
+  "phases": {
+    "foundation": "FOUNDATION", "development": "DEVELOPMENT",
+    "hard_camp": "HARD CAMP", "taper": "TAPER", "final_boss": "FINAL BOSS"
+  },
+  "split": {
+    "am_label": "MORNING MISSION", "pm_label": "EVENING MISSION",
+    "gap_hint": "Leave 4-8 hours between missions"
+  },
+  "substitution_chip": "{equipment} → {substitute}",
+  "readiness_low": "Feeling rough today? An easier session still counts.",
+  "voice_off_hint": "Voice cues are off"
+}

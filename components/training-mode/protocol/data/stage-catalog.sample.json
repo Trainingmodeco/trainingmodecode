@@ -1,0 +1,62 @@
+[
+  {
+    "stage_id": "ARC_NIGHTGUARD_STG07",
+    "campaign_id": "ARC_NIGHTGUARD",
+    "title": "Urban Predator",
+    "phase": "hard_camp",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit": {
+        "module_ids": ["MOD_FIT_INTERVALS_N", "MOD_FIT_CORE_N"],
+        "difficulty": ["easy", "normal", "hard"]
+      },
+      "fight": {
+        "protocol_family": "training_camp",
+        "discipline": "boxing",
+        "archetype": "slick_counter_boxer",
+        "level_reference": 7,
+        "difficulty": ["easy", "normal", "hard"]
+      }
+    },
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["JUMP_ROPE", "GLOVES", "HEAVY_BAG"],
+      "alternatives": {
+        "JUMP_ROPE": ["INVISIBLE_ROPE", "FAST_FEET"],
+        "HEAVY_BAG": ["POWER_SHADOWBOXING"]
+      }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_NO_DROP", "ACH_PERFECT_DEFENSE"],
+    "video_ids": ["VID_STAGE_OVERVIEW", "VID_TECHNIQUE_A", "VID_PRACTICE_LINK"]
+  },
+  {
+    "stage_id": "ARC_ENDLESS_STG03",
+    "campaign_id": "ARC_ENDLESS",
+    "title": "Endless Reps",
+    "phase": "foundation",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit": {
+        "module_ids": ["MOD_FIT_ROADWORK_E", "MOD_FIT_BODYWEIGHT_E"],
+        "difficulty": ["easy", "normal", "hard"]
+      }
+    },
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": [],
+      "alternatives": {}
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_MINIMAL_GEAR", "ACH_CONSISTENCY"],
+    "video_ids": ["VID_STAGE_OVERVIEW"]
+  }
+]

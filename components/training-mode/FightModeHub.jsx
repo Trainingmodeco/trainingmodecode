@@ -3,7 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
 import TrainingHeader from './TrainingHeader';
-import { Check, Crosshair, Zap, BookOpen } from 'lucide-react';
+import { Check, Crosshair, Zap, BookOpen, Tent } from 'lucide-react';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile } from './data/userProfile';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
@@ -25,9 +25,10 @@ const DISCIPLINES = [
 const discImg = (key, variant) => `/discipline-cards/${key}_${variant}.webp`;
 
 const MODES = [
-  { key: 'fight_focus', Icon: Crosshair, title: 'FIGHT FOCUS',   desc: 'Round timer with voice coaching',                          badge: 'REC',     gold: true },
-  { key: 'combo_coach', Icon: Zap,       title: 'COMBO COACH',   desc: 'Strike combos at your pace',                               badge: null,      gold: false },
-  { key: 'practice',    Icon: BookOpen,  title: 'PRACTICE MODE', desc: 'Learn strikes, defense & footwork with guided breakdowns.', badge: 'PREVIEW', gold: false },
+  { key: 'training_camp', Icon: Tent,      title: 'TRAINING CAMP', desc: '12-level fight camp — periodized to a title fight',        badge: 'NEW',     gold: true },
+  { key: 'fight_focus',   Icon: Crosshair, title: 'FIGHT FOCUS',   desc: 'Round timer with voice coaching',                          badge: 'REC',     gold: true },
+  { key: 'combo_coach',   Icon: Zap,       title: 'COMBO COACH',   desc: 'Strike combos at your pace',                               badge: null,      gold: false },
+  { key: 'practice',      Icon: BookOpen,  title: 'PRACTICE MODE', desc: 'Learn strikes, defense & footwork with guided breakdowns.', badge: 'PREVIEW', gold: false },
 ];
 
 const getVariant = (p) => {
@@ -44,7 +45,7 @@ function SectionLabel({ children }) {
   );
 }
 
-export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning }) {
+export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp }) {
   const profile = loadProfile();
   const variant = getVariant(profile);
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
@@ -56,6 +57,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
   const [toast, setToast] = useState(false);
 
   const goMode = async (key) => {
+    if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
     if (key === 'practice') {
       if (onPractice) onPractice(disc);
       else { setToast(true); setTimeout(() => setToast(false), 2200); }

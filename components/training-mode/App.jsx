@@ -357,6 +357,7 @@ export default function App() {
     goNotifications: () => setScreen('notifications'),
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
+    goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);

@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stage",
+  "type": "object",
+  "required": ["stage_id", "campaign_id", "title", "phase", "paths"],
+  "properties": {
+    "stage_id": { "type": "string" },
+    "campaign_id": { "type": "string" },
+    "title": { "type": "string" },
+    "phase": { "enum": ["foundation", "development", "hard_camp", "taper", "final_boss"] },
+    "fit_available": { "type": "boolean" },
+    "fight_available": { "type": "boolean" },
+    "full_arc_available": { "type": "boolean" },
+    "default_format": { "enum": ["split", "full"] },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "fit": {
+          "type": "object",
+          "required": ["module_ids"],
+          "properties": {
+            "module_ids": { "type": "array", "items": { "type": "string" } },
+            "difficulty": { "type": "array", "items": { "enum": ["easy", "normal", "hard"] } }
+          }
+        },
+        "fight": {
+          "type": "object",
+          "required": ["protocol_family", "discipline", "archetype", "level_reference"],
+          "properties": {
+            "protocol_family": { "const": "training_camp" },
+            "discipline": { "enum": ["boxing", "kickboxing", "muay_thai", "mma"] },
+            "archetype": { "type": "string" },
+            "level_reference": { "type": "integer", "minimum": 1, "maximum": 12 },
+            "difficulty": { "type": "array", "items": { "enum": ["easy", "normal", "hard"] } }
+          }
+        }
+      }
+    },
+    "equipment": {
+      "type": "object",
+      "properties": {
+        "required": { "type": "array", "items": { "type": "string" } },
+        "recommended": { "type": "array", "items": { "type": "string" } },
+        "alternatives": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } }
+      }
+    },
+    "readiness_checks": { "type": "array", "items": { "type": "string" } },
+    "xp_rule_id": { "type": "string" },
+    "achievement_rule_ids": { "type": "array", "items": { "type": "string" } },
+    "video_ids": { "type": "array", "items": { "type": "string" } }
+  }
+}
