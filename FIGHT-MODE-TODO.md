@@ -405,9 +405,28 @@ HOW MUCH TO MAKE (guidance):
       the check first. Verified in-browser (go → session launches; danger → halt
       blocks). Also unified GOOD EFFORT (partial) with MISSION COMPLETE layout
       (same padding + badge size).
-      REMAINING for full 2.4: chain MULTIPLE block types (fit + fight) with
-      transition cards (spec S7) rather than one fight round block; split AM/PM
-      S1→S2 sequencing; warm-up.
+      SPLIT SEQUENCING + S7 TRANSITION SHIPPED (Jul 21, slice 2): split levels
+      (L4–11) now run S1 · AM — SKILL then S2 · PM — CONDITIONING as separate
+      missions with independent completion (data/campSessions.js,
+      tm_camp_sessions); the level clears ONLY at ✓✓, then unlocks the next.
+      45b modal shows both mission cards with real state (✓ COMPLETE / ▶ UP
+      NEXT / PENDING) + "leave 4–8 h" rule; ladder pips are live (S1✓ S2▶);
+      START SESSION {next} auto-targets the first incomplete mission. Every camp
+      session opens with the S7 transition card (shared/CampTransitionCard.jsx —
+      "NEXT UP · S{n} · {SKILL|CONDITIONING}", blue/violet, auto-advance bar)
+      via CampSessionRunner, which is the chaining point for future multi-block
+      sessions. S1-done outcome = "SESSION 1 COMPLETE · S2 tonight — leave
+      4–8 h" (no unlock); S2-done = LEVEL CLEAR + CONTINUE → L{n+1}. Each
+      mission awards XP; anti-cheat still gates (invalid session marks nothing).
+      Verified in-browser end-to-end with a clock+timer warp (integrity saw
+      full-length rounds): L4 S1 → SESSION 1 COMPLETE +170XP → pips flip →
+      START SESSION 2 → LEVEL 4 CLEAR +170XP → progress 5, sessions
+      {4:{s1,s2}} persisted through reload. Trophy size unified (maxWidth
+      clamp — wide GOOD EFFORT emblem now matches the other badges).
+      REMAINING for full 2.4: real fit-vs-fight block CONTENT per mission (S2
+      currently runs the same round engine with a conditioning label — needs
+      workout-modules.json); chaining multiple blocks inside one session (FULL
+      CAMP format with 8–15 min transition); warm-up phase.
 - [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat

@@ -12,6 +12,7 @@ import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
 import MissionComplete from './shared/MissionComplete';
+import CampTransitionCard from './shared/CampTransitionCard';
 import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
 import FitModeHub from './FitModeHub';
@@ -79,6 +80,15 @@ function useScrollIndicator(containerRef, children) {
   }, [check, children]);
 
   return showScroll;
+}
+
+// 2.4b — camp block runner: an S7 "NEXT UP" interstitial leads into the round
+// timer. As multi-block sessions land, this is where blocks chain — each block
+// gets its transition card, then its timer.
+function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd }) {
+  const [running, setRunning] = useState(false);
+  if (!running) return <CampTransitionCard label={label} sub={sub} detail={detail} onDone={() => setRunning(true)} />;
+  return <FightFocusTimer discipline={discipline} cfg={cfg} onEnd={onEnd} initialPaused={false} />;
 }
 
 function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, lock = false }) {
@@ -175,30 +185,51 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     );
   }
   if (screen === 'camp_session' && cfg) {
-    // 2.4 — a camp level's session runs on the shared Fight Focus round timer,
-    // driven by the engine's round template; onEnd → camp completion.
+    // 2.4 — a camp session: S7 transition card, then the shared Fight Focus
+    // round timer driven by the engine's round template; onEnd → completion.
+    const slotNum = campCtx?.slot === 's2' ? 2 : 1;
+    const kind = campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL';
+    const roundSec = Math.round((cfg.roundMin || 1) * 60);
+    const mmss = `${Math.floor(roundSec / 60)}:${String(roundSec % 60).padStart(2, '0')}`;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <FightFocusTimer discipline={disc} cfg={cfg} onEnd={goCampComplete} initialPaused={false}/>
+        <CampSessionRunner
+          discipline={disc} cfg={cfg}
+          label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
+          sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
+          detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
+          onEnd={goCampComplete}
+        />
       </WithNav>
     );
   }
   if (screen === 'camp_complete' && campResult) {
+    const r = campResult;
+    // Three outcomes: level cleared · one split mission done (level pending) ·
+    // stopped/invalid (GOOD EFFORT, nothing counted).
+    const missionDone = r.split && r.sessionValid && !r.cleared;
+    const slotNum = r.slot === 's2' ? 2 : 1;
+    const kindLbl = r.slot === 's2' ? 'CONDITIONING' : 'SKILL';
+    const eyebrow = r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
+    const title = r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
+    const subtitle = missionDone && slotNum === 1
+      ? `TRAINING CAMP · ${r.discipline} · S2 tonight — leave 4–8 h`
+      : `TRAINING CAMP · ${r.discipline} · ${r.difficulty}`;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
         <MissionComplete
-          variant={campResult.cleared ? 'success' : 'partial'}
-          eyebrow={campResult.cleared ? 'LEVEL CLEARED' : 'SESSION STOPPED'}
-          title={campResult.cleared ? `LEVEL ${campResult.level} CLEAR` : 'GOOD EFFORT'}
-          subtitle={`TRAINING CAMP · ${campResult.discipline} · ${campResult.difficulty}`}
-          xp={campResult.xpEarned}
+          variant={r.cleared || missionDone ? 'success' : 'partial'}
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={subtitle}
+          xp={r.xpEarned}
           heroImage="/static/trophies/mission-complete-fight.webp"
           partialBadge="/static/trophies/good-effort.png"
-          integrityResult={campResult.integrityResult}
-          stats={[{ value: `${campResult.rounds}/${campResult.total}`, label: 'ROUNDS' }]}
+          integrityResult={r.integrityResult}
+          stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
           actions={[
-            campResult.unlockedTo
-              ? { label: `CONTINUE → L${campResult.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
+            r.unlockedTo
+              ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
               : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
             { label: 'HOME', onClick: goHome, kind: 'ghost' },
           ]}

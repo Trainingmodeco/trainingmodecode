@@ -118,7 +118,10 @@ export default function MissionComplete({
               // compact so it never dominates the screen; a soft accent glow
               // grounds it and a gentle pop plays it in.
               <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
-                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+                {/* maxWidth keeps wide emblems (GOOD EFFORT ribbon) in the same
+                    visual footprint as the square badges — every trophy renders
+                    at a similar size. */}
+                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 120, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>

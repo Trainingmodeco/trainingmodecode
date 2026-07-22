@@ -3,6 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable } from './protocol/content';
 import { loadCampProgress } from './data/campProgress';
+import { loadCampSessions } from './data/campSessions';
 import ReadinessSheet from './shared/ReadinessSheet';
 
 // Phase 2 · 2.3 — TRAINING CAMP ladder (design 45a) + level modal (45b).
@@ -72,13 +73,20 @@ function Pip({ label, tone }) {
   );
 }
 
-function NodePips({ level, state }) {
+function NodePips({ level, state, sess }) {
   if (level === 12) return <Lock size={11} color={state === 'done' ? '#22c55e' : '#ff6b6b'} />;
   const split = isSplitAvailable(level);      // L4–11
   if (state === 'done') return <Check size={13} color="#22c55e" strokeWidth={3} />;
   if (state === 'current') {
-    if (split) return <><Pip label="S1" tone="next" /><Pip label="S2" tone="dim" /></>;
-    return <><Pip label="R1 ✓" tone="done" /><Pip label="R2 ▶" tone="next" /></>;
+    if (split) {
+      // 2.4b — real S1/S2 state: S1 first, S2 unlocks once S1 is ✓.
+      const s1 = !!sess?.s1;
+      return <>
+        <Pip label={s1 ? 'S1 ✓' : 'S1 ▶'} tone={s1 ? 'done' : 'next'} />
+        <Pip label={s1 ? 'S2 ▶' : 'S2'} tone={s1 ? 'next' : 'dim'} />
+      </>;
+    }
+    return <Pip label="GO ▶" tone="next" />;
   }
   if (split) return <><Pip label="S1" tone="dim" /><Pip label="S2" tone="dim" /></>;
   return null;
@@ -89,8 +97,9 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [difficulty, setDifficulty] = useState('normal');
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
-  const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty}
+  const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
   const [current] = useState(loadCampProgress);
+  const [sessAll] = useState(() => loadCampSessions());     // 2.4b — per-level S1/S2 state
 
   const archetype = archetypesFor(discKey)[0];   // 2.2 will make this a picker
   const curPhase = campLevels.find((l) => l.level === current) || campLevels[0];
@@ -122,11 +131,17 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
     const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
     return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0 };
   };
-  const launch = (level, diff) => onStartSession?.({ discipline, level, difficulty: diff, cfg: buildCfg(level, diff) });
+  const launch = (level, diff, slot) => {
+    const split = isSplitAvailable(level);
+    onStartSession?.({ discipline, level, difficulty: diff, cfg: buildCfg(level, diff), split, slot: split ? slot : 's1' });
+  };
+  // 2.4b — on split levels the next mission is S1 until it's ✓, then S2.
+  const openSess = open ? (sessAll[open.level] || {}) : {};
+  const nextSlot = openSess.s1 ? 's2' : 's1';
   // 45b START runs the readiness check (2.6) first; the sheet launches on 'go'.
   const requestStart = () => {
     if (!open || !canStart) return;
-    setReadinessCtx({ level: open.level, difficulty });
+    setReadinessCtx({ level: open.level, difficulty, slot: nextSlot });
     setOpenLevel(null);
   };
 
@@ -190,7 +205,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                     <NodeCircle level={lv.level} state={state} boss={boss} />
                   </div>
                   <div style={{ paddingLeft: 9, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <NodePips level={lv.level} state={state} />
+                    <NodePips level={lv.level} state={state} sess={sessAll[lv.level]} />
                   </div>
                 </button>
               );
@@ -240,18 +255,54 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               <div style={{ font: "600 5.5px 'Press Start 2P',monospace", color: '#c4a4d8', letterSpacing: '0.06em', marginTop: 3 }}>ROUND PLAN{openRt?.taperApplied ? ' · TAPER' : ''}</div>
             </div>
 
-            <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>COMBAT</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 7 }}>
-              {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
-            </div>
-            <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.1em' }}>PHYSICAL</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
-              {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
-            </div>
+            {isSplitAvailable(open.level) ? (
+              <>
+                {/* 2.4b — the two missions with real completion state. S1 first
+                    (skill while fresh), S2 unlocks after; level clears at ✓✓. */}
+                {[
+                  { slot: 's1', num: 1, ampm: 'AM', kind: 'SKILL', color: '#e879f9', items: open.combat_emphasis },
+                  { slot: 's2', num: 2, ampm: 'PM', kind: 'CONDITIONING', color: '#7fd6c8', items: open.physical_emphasis },
+                ].map((m) => {
+                  const isDone = !!openSess[m.slot];
+                  const isNext = !isDone && (m.slot === 's1' || !!openSess.s1);
+                  return (
+                    <div key={m.slot} style={{
+                      borderRadius: 9, padding: '7px 9px', marginBottom: 6,
+                      background: 'rgba(8,2,18,0.45)',
+                      border: `1px solid ${isDone ? 'rgba(34,197,94,0.45)' : isNext ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.22)'}`,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ font: "800 8.5px 'Orbitron',sans-serif", color: m.color, letterSpacing: '0.04em' }}>S{m.num} · {m.ampm} — {m.kind}</span>
+                        <span style={{ marginLeft: 'auto', font: "700 7px 'Orbitron',sans-serif", color: isDone ? '#22c55e' : isNext ? GOLD : '#8b7fb0' }}>
+                          {isDone ? '✓ COMPLETE' : isNext ? '▶ UP NEXT' : 'PENDING'}
+                        </span>
+                      </div>
+                      <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {m.items.join(' · ')}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#8b7fb0', textAlign: 'center', marginBottom: 10 }}>
+                  Leave 4–8 hours between missions · level clears at ✓✓
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>COMBAT</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 7 }}>
+                  {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
+                </div>
+                <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.1em' }}>PHYSICAL</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+                  {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
+                </div>
+              </>
+            )}
 
             {canStart ? (
               <button onClick={requestStart} style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>
-                ▶ START {isSplitAvailable(open.level) ? 'SESSION 1' : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
+                ▶ START {isSplitAvailable(open.level) ? `SESSION ${nextSlot === 's2' ? 2 : 1}` : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
               </button>
             ) : (
               <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.5)', color: '#8b7fb0', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'not-allowed' }}>
@@ -267,7 +318,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         <ReadinessSheet
           onGo={({ easy }) => {
             const diff = easy ? 'easy' : readinessCtx.difficulty;
-            launch(readinessCtx.level, diff);
+            launch(readinessCtx.level, diff, readinessCtx.slot);
             setReadinessCtx(null);
           }}
           onClose={() => setReadinessCtx(null)}

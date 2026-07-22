@@ -3,6 +3,7 @@ import { STYLE, C } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
 import { completeCampLevel } from './data/campProgress';
+import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
@@ -367,24 +368,34 @@ export default function App() {
       setCampCtx(ctx); setDisc(ctx.discipline); setCfg(ctx.cfg); setScreen('camp_session');
     },
     // 2.4 — camp session finished (same onEnd shape as FightFocusTimer). Award
-    // XP, clear the level (advancing the cursor + unlocking the next) on a full
-    // completion, then show the outcome.
+    // XP, then advance: single levels clear on a valid full completion; split
+    // levels (L4–11) mark S1/S2 done independently and clear only at ✓✓.
     goCampComplete: (rounds, c, completed, integrityResult) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
       const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
       const level = campCtx?.level;
+      const split = !!campCtx?.split;
+      const slot = campCtx?.slot || 's1';
       // Camp progression respects the 1.6 anti-cheat: a session flagged invalid
-      // (too fast / suspicious) earns no XP and does NOT clear the level.
+      // (too fast / suspicious) earns no XP and does NOT count toward the level.
       const ir = integrityResult;
       const awarded = !ir || ir.awardXp !== false;
       const fullyValid = !ir || ir.isFullyValid;
+      const sessionValid = done >= total && awarded && fullyValid;
       const xpEarned = awarded ? addCampSession(level, done, total) : 0;
-      const cleared = done >= total && awarded && fullyValid;
+      let cleared;
+      if (split) {
+        let st = campSessionState(level);
+        if (sessionValid && level != null) st = markCampSessionDone(level, slot);
+        cleared = !!(st.s1 && st.s2);
+      } else {
+        cleared = sessionValid;
+      }
       const unlockedTo = (cleared && level != null) ? completeCampLevel(level) : null;
-      trackEvent('session_complete', { mode: 'trainingCamp', level, rounds: done });
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned, integrityResult, cleared, unlockedTo });
+      trackEvent('session_complete', { mode: 'trainingCamp', level, slot: split ? slot : undefined, rounds: done });
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned, integrityResult, cleared, unlockedTo, split, slot, sessionValid });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goCampMap: () => setScreen('training_camp'),
