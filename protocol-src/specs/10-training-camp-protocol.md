@@ -131,12 +131,18 @@ Rest is 1:00 between rounds unless the band says otherwise.
 
 Add the two-a-day option for levels 4–11 (L1–3 and L12 are single-session
 only):
-- SPLIT CAMP (recommended default L4–11): MORNING MISSION = physical prep
-  (roadwork, jump rope, intervals, bodyweight/loaded strength, mobility,
-  core, optional low-volume explosive work). EVENING MISSION = combat work
-  (shadowboxing, bag, footwork, defense, tactical rounds, discipline
-  conditioning). Recommend 4–8 hours between; show both missions on the
-  level card as AM / PM chips with independent completion states.
+- SPLIT CAMP (recommended default L4–11): S1 · MORNING MISSION = SKILL
+  (the combat/technical work: shadowboxing, bag, footwork, defense, tactical
+  rounds) — done FIRST, while fresh, because skill degrades under fatigue.
+  S2 · EVENING MISSION = CONDITIONING (the physical work: roadwork, jump
+  rope, intervals, bodyweight/loaded strength, mobility, core, optional
+  low-volume explosive work). Recommend 4–8 hours between; show both missions
+  on the level card / 45b modal as S1 (AM) / S2 (PM) with independent
+  completion states.
+  [DECISION Jul 21: skill-first ordering — combat when fresh protects
+  technique quality (esp. beginners), conditioning tolerates fatigue better,
+  and it keeps the marquee combat session as S1. AM/PM are guidance labels
+  for "session 1 / session 2, 4–8h apart," not literal clock times.]
 - Between AM and PM, a quick 4-question check: Have you eaten and hydrated?
   Feeling unusually heavy or slow? Did the morning stay within the assigned
   effort? Any sharp pain or new injury? Bad answers → suggest moving PM to

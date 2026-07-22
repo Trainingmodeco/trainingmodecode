@@ -83,15 +83,17 @@ Bottom-anchored modal over the dimmed ladder.
 - Primary CTA (gold): `▶ START SESSION {next incomplete}` (or `▶ START` on
   single-session) → runs the S4 readiness check first.
 
-⚠ OPEN (needs your call): the mockup labels S1/AM = SKILL (combat) and
-S2/PM = CONDITIONING (physical); spec 10 Prompt 5 has it the other way
-(AM = physical prep, PM = combat work). Pick one so split content is
-consistent — 45b above is written as the mockup shows.
+RESOLVED (Jul 21): S1/AM = SKILL (combat, done fresh), S2/PM = CONDITIONING
+(physical). Skill-first protects technique under fatigue and keeps the
+combat session as the marquee; spec 10 Prompt 5 updated to match. AM/PM are
+"session 1 / session 2, 4–8h apart" guidance labels, not literal clock times.
 
-Content this design adds: `title` per level in `camp-levels.json`; real
-per-session blocks + `gear` + `duration_min` in `workout-modules.json` so
-45b renders from data. The in-app `TrainingCampMap.jsx` v0 (plain stacked
-list) is the scaffold 45a/45b replaces.
+Content this design adds: `title` per level in `camp-levels.json` (DONE —
+BASICS/RHYTHM/FINISHER · BASE/VOLUME/POWER · ENGINE/GRIND/PEAK · SPEED/
+SHARPEN · TITLE FIGHT); still TODO: real per-session blocks + `gear` +
+`duration_min` in `workout-modules.json` so 45b renders from data. The
+in-app `TrainingCampMap.jsx` v0 (plain stacked list) is the scaffold 45a/45b
+replaces.
 
 ## S2 · Archetype picker (new screen)
 

@@ -120,7 +120,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                           <span style={{ font: "800 12px 'Orbitron',sans-serif", color: isNext ? GOLD : '#d7c9ee', letterSpacing: '0.04em' }}>
-                            {isBoss ? 'TITLE FIGHT' : `LEVEL ${lv.level}`}
+                            {isBoss ? 'TITLE FIGHT' : `L${lv.level} · ${lv.title}`}
                           </span>
                           {isNext && <span style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#0a0014', background: GOLD, borderRadius: 4, padding: '3px 5px' }}>UP NEXT</span>}
                           {isSplitAvailable(lv.level) && <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#7fd6c8', border: '1px solid rgba(45,212,191,0.35)', borderRadius: 4, padding: '1px 5px' }}>AM/PM</span>}
@@ -153,7 +153,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div>
                 <div style={{ font: "700 8px 'Orbitron',sans-serif", color: PHASE_ACCENT[open.phase] || VIOLET, letterSpacing: '0.16em' }}>{open.phase_label}</div>
-                <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : `LEVEL ${open.level}`}</div>
+                <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : `LEVEL ${open.level} · ${open.title}`}</div>
               </div>
               <button onClick={() => setOpenLevel(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={18} color="#9a90b8" /></button>
             </div>

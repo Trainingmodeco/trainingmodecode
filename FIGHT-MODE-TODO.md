@@ -374,10 +374,13 @@ HOW MUCH TO MAKE (guidance):
       here" / locked), S1/S2 session pips from L4 up. 45b = level modal
       (TOTAL TIME · +XP · GEAR tiles + per-session S1 AM / S2 PM cards +
       "clears when both ✓✓" + START SESSION n). Replaces the v0 stacked list.
-      Content to add first: `title` per level in camp-levels.json; real
-      per-session blocks/gear/duration in workout-modules.json.
-      ⚠ OPEN: mockup has S1/AM=SKILL, S2/PM=CONDITIONING — spec 10 P5 has AM=
-      physical, PM=combat. User to confirm which ordering wins.
+      Content to add first: `title` per level in camp-levels.json (DONE
+      Jul 21 — BASICS/RHYTHM/FINISHER…TITLE FIGHT, surfaced in the v0 ladder);
+      still needed: real per-session blocks/gear/duration in
+      workout-modules.json.
+      RESOLVED (Jul 21): S1/AM = SKILL (combat, fresh), S2/PM = CONDITIONING
+      (physical) — skill-first protects technique under fatigue; spec 10 P5
+      updated to match.
 - [ ] 2.4 Session runner: chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat

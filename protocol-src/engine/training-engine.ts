@@ -25,6 +25,7 @@ export interface CampLevel {
   level: number;
   phase: Phase;
   phase_label: string;
+  title: string;              // short per-level nickname (BASICS, ENGINE, PEAK, …) — 45a ladder label
   session_pattern: SessionPattern;
   physical_emphasis: string[];
   combat_emphasis: string[];
