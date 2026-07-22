@@ -366,20 +366,24 @@ HOW MUCH TO MAKE (guidance):
       archetypes.json, card UI: name + tagline + selected-difficulty variant) →
       DIFFICULTY (E/N/H). Archetype drives drills/tactics; difficulty drives
       volume/rest/complexity/decision load. (DESIGN-SPEC S2.)
-- [ ] 2.3 TRAINING CAMP map → rebuild to DESIGN 45a/45b (DESIGN-SPEC S1,
-      updated Jul 21). 45a = CSS neon-spine ladder (no bg art): 12 numbered
-      nodes 01–12 up a gradient spine, per-level `{PHASE} · {TITLE}` labels
-      (BASICS/RHYTHM/FINISHER · BASE/VOLUME/POWER · ENGINE/GRIND/PEAK ·
-      SPEED/SHARPEN · TITLE FIGHT), state rings (done ✓ / current "you are
-      here" / locked), S1/S2 session pips from L4 up. 45b = level modal
-      (TOTAL TIME · +XP · GEAR tiles + per-session S1 AM / S2 PM cards +
-      "clears when both ✓✓" + START SESSION n). Replaces the v0 stacked list.
-      Content to add first: `title` per level in camp-levels.json (DONE
-      Jul 21 — BASICS/RHYTHM/FINISHER…TITLE FIGHT, surfaced in the v0 ladder);
-      still needed: real per-session blocks/gear/duration in
-      workout-modules.json.
-      RESOLVED (Jul 21): S1/AM = SKILL (combat, fresh), S2/PM = CONDITIONING
-      (physical) — skill-first protects technique under fatigue; spec 10 P5
+- [~] 2.3 TRAINING CAMP map → 45a ladder BUILT (Jul 21), 45b modal interim.
+      45a: CSS neon-spine ladder over a full-bleed tower backdrop, LOCKED to one
+      viewport (verified: docScrollH == winH, no scroll). 12 numbered nodes on a
+      green→gold→violet→red progress spine, {PHASE·TITLE} labels left (phase-
+      tinted), S1/S2 pips right (L4–11), completed ✓ / current "you are here" +
+      R1✓ R2▶ / locked / 🏆 TITLE FIGHT. Rendered bare (no bottom nav) so it
+      fills the frame; back chevron → Fight hub. Current level from
+      tm_camp_progress (placeholder until 2.4 wires real completion).
+      ⚠ AWAITING ART: background reads /static/training-camp-tower.webp — user
+      must drop the tower image there (CSS gradient fallback stands in until
+      then). 45b modal is the interim (round plan + combat/physical chips + E/N/H);
+      full 45b (TOTAL TIME·XP·GEAR tiles + per-session S1/S2 cards) needs the
+      workout-modules content.
+      Remaining for full 45a/45b: real per-session blocks/gear/duration in
+      workout-modules.json; then wire the fuller modal (per-session S1/S2 cards
+      + TOTAL TIME·XP·GEAR tiles). Full spec: DESIGN-SPEC S1.
+      Decisions locked (Jul 21): `title` per level added; AM/PM = S1 SKILL
+      (combat, fresh) / S2 CONDITIONING (physical), skill-first, spec 10 P5
       updated to match.
 - [ ] 2.4 Session runner: chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →

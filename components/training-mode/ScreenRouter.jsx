@@ -165,11 +165,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     );
   }
   if (screen === 'training_camp') {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <TrainingCampMap discipline={disc} onBack={goFightHub} onHome={goHome}/>
-      </WithNav>
-    );
+    // Full-bleed deep screen (no bottom nav) so the ladder fills the viewport,
+    // matching design 45a; back chevron returns to the Fight hub.
+    return <TrainingCampMap discipline={disc} onBack={goFightHub} onHome={goHome}/>;
   }
   if (screen === 'start_here' || screen === 'practice_starthere') {
     return (
