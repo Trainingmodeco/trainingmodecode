@@ -1,0 +1,44 @@
+{
+  "onboarding_screening": {
+    "style": "PAR-Q+ based pre-participation gate, shown once at camp onboarding",
+    "on_yes_answer": "Recommend medical guidance before training; default the user toward Easy. Never hard-block silently.",
+    "questions": [
+      "Has a doctor ever said you have a heart condition or high blood pressure?",
+      "Do you feel pain in your chest at rest or during physical activity?",
+      "Do you lose balance because of dizziness, or have you lost consciousness in the last 12 months?",
+      "Do you have a bone, joint, or soft-tissue problem that could be made worse by becoming more physically active?",
+      "Are you currently taking prescribed medication for a chronic medical condition?",
+      "Has your doctor ever said you should only do medically supervised physical activity?"
+    ]
+  },
+  "daily_readiness": {
+    "shown": "Before every camp session",
+    "scale_questions": [
+      { "id": "sleep",    "label": "Sleep quality",    "scale": [1, 5] },
+      { "id": "fatigue",  "label": "Fatigue",          "scale": [1, 5] },
+      { "id": "soreness", "label": "Muscle soreness",  "scale": [1, 5] },
+      { "id": "stress",   "label": "Stress",           "scale": [1, 5] },
+      { "id": "mood",     "label": "Mood / motivation", "scale": [1, 5] }
+    ],
+    "danger_question": {
+      "label": "Any dizziness, chest symptoms, sharp pain, concussion symptoms, or new injury?",
+      "on_yes": "Halt the session. Clearly advise stopping exercise. No progression penalty."
+    },
+    "low_readiness_response": "Offer the Easy variant or a recovery session instead. Completing it keeps the streak."
+  },
+  "between_split_sessions": {
+    "shown": "Before the PM mission on split days",
+    "questions": [
+      "Have you eaten and hydrated?",
+      "Do you feel unusually heavy or slow?",
+      "Did you complete the morning session within the assigned effort?",
+      "Do you have sharp pain or a new injury?"
+    ],
+    "on_bad_answers": "Suggest moving the PM mission to tomorrow or an Easy variant. Never shame."
+  },
+  "hard_rules": [
+    "Never reward or require dehydration or rapid weight cutting",
+    "Never require hard sparring",
+    "Danger symptoms always halt the session with a clear stop-exercise advisory"
+  ]
+}

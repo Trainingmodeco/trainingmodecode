@@ -1,0 +1,11 @@
+[
+  { "id": "ACH_FIT_CLEAR",        "family": "Fit Clear",              "trigger": "Complete all Fit paths in a campaign" },
+  { "id": "ACH_FIGHT_CLEAR",      "family": "Fight Clear",            "trigger": "Complete all Fight paths in a campaign" },
+  { "id": "ACH_FULL_ARC_CLEAR",   "family": "Full Arc Clear",         "trigger": "Complete a campaign entirely on Full Arc" },
+  { "id": "ACH_NO_DROP",          "family": "No-Drop Run",            "trigger": "Finish a campaign without ever lowering difficulty" },
+  { "id": "ACH_PERFECT_DEFENSE",  "family": "Perfect Defense",        "trigger": "Complete a defense-objective session with zero breakdowns" },
+  { "id": "ACH_LATE_ROUND_SURGE", "family": "Late-Round Surge",       "trigger": "Highest output round is the final round of a session" },
+  { "id": "ACH_TACTICAL_BOSS",    "family": "Tactical Boss Clear",    "trigger": "Pass a Final Boss with the tactical objective completed cleanly" },
+  { "id": "ACH_MINIMAL_GEAR",     "family": "Minimal Equipment Master", "trigger": "Clear 10 stages using only open space + phone" },
+  { "id": "ACH_CONSISTENCY",      "family": "Consistency Streak",     "trigger": "Train on schedule for 4 consecutive weeks" }
+]

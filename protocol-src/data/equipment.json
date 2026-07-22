@@ -1,0 +1,26 @@
+{
+  "items": [
+    { "id": "OPEN_SPACE",    "icon": "🧍", "label": "Open Space",    "category": "required_baseline" },
+    { "id": "TIMER_PHONE",   "icon": "⏱",  "label": "Timer / Phone", "category": "required_baseline" },
+    { "id": "WATER",         "icon": "💧", "label": "Water",         "category": "required_baseline" },
+    { "id": "JUMP_ROPE",     "icon": "🪢", "label": "Jump Rope",     "category": "recommended",
+      "substitutes": ["Invisible rope", "Fast feet", "Lateral shuffles"] },
+    { "id": "GLOVES",        "icon": "🧤", "label": "Gloves",        "category": "recommended",
+      "substitutes": ["Bare shadowboxing (no bag contact)"] },
+    { "id": "HEAVY_BAG",     "icon": "🥊", "label": "Heavy Bag",     "category": "recommended",
+      "substitutes": ["Shadowboxing power rounds", "Wall target markers"] },
+    { "id": "LIGHT_WEIGHTS", "icon": "🏋", "label": "Light Weights", "category": "recommended",
+      "substitutes": ["Bodyweight tempo work", "Loaded backpack", "Bands"] },
+    { "id": "PADS",          "icon": "🎯", "label": "Focus Mitts / Thai Pads", "category": "optional",
+      "substitutes": ["Bag rounds", "Cue-based shadowboxing"] },
+    { "id": "BAND",          "icon": "🧵", "label": "Resistance Band", "category": "optional",
+      "substitutes": ["Isometrics", "Bodyweight alternatives"] },
+    { "id": "MAT",           "icon": "🧘", "label": "Mat",            "category": "recommended_mma",
+      "substitutes": ["Towel", "Carpet-safe floor space"] }
+  ],
+  "rules": {
+    "minimum_viable": ["OPEN_SPACE", "TIMER_PHONE"],
+    "substitutions_cost_xp": false,
+    "note": "Every stage must be completable with minimum viable equipment. Richer gear routes to richer module variants. Substitutions never reduce XP - only effort matters."
+  }
+}

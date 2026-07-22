@@ -1,0 +1,26 @@
+{
+  "boxing": {
+    "name": "Boxing",
+    "official_timing": "3 x 3:00, 1:00 rest",
+    "simulation_note": "Early 1-2 min skill rounds, building to 3-min fight rounds",
+    "art": { "male": "/assets/discipline/boxing.webp", "female": "/assets/discipline/boxing_female.webp" }
+  },
+  "kickboxing": {
+    "name": "Kickboxing",
+    "official_timing": "Amateur 3 x 2:00, 1:00 rest; pro-style commonly 3:00 rounds",
+    "simulation_note": "Normal peaks at 2-min rounds; Hard simulates 3-min pro-style rounds",
+    "art": { "male": "/assets/discipline/kickboxing.webp", "female": "/assets/discipline/kickboxing_female.webp" }
+  },
+  "muay_thai": {
+    "name": "Muay Thai",
+    "official_timing": "3 x 3:00, 1:00 rest",
+    "simulation_note": "Builds toward 3-min scoring and clinch-aware rounds",
+    "art": { "male": "/assets/discipline/muay_thai.webp", "female": "/assets/discipline/muay_thai_female.webp" }
+  },
+  "mma": {
+    "name": "MMA",
+    "official_timing": "3-5 rounds x 5:00, 1:00 rest",
+    "simulation_note": "Builds toward 4-5 min integrated rounds",
+    "art": { "male": "/assets/discipline/mma.webp", "female": "/assets/discipline/mma_female.webp" }
+  }
+}
