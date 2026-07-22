@@ -20,22 +20,78 @@ JSON in `protocol-src/data/` — design the containers, don't invent copy.
 
 ---
 
-## S1 · Training Camp map
+## S1 · Training Camp ladder + level modal (design 45a / 45b)
 
-Tree-ladder of 12 session nodes over the existing splash/app background
-(no new bg art). Single trunk climbing bottom → top, boss node last.
-- Phase group labels along the ladder: FOUNDATION (1–3) → DEVELOPMENT
-  (4–6) → HARD CAMP (7–9) → TAPER (10–11) → FINAL BOSS (12).
-- Node = existing arcade stage badge art + code-drawn state ring:
-  done (green ring + ✓) · current (gold ring + glow + "UP NEXT ▸") ·
-  locked (greyscale 45% + 🔒). Node 12 uses the new Title Fight boss badge,
-  larger, gold/red glow.
-- Header: discipline + archetype name + difficulty chip (e.g. "BOXING ·
-  SLICK COUNTER BOXER · NORMAL"), camp progress "n/12".
-- Tapping a node opens the Session Card: session name, contents list built
-  from its blocks (e.g. "🥊 3 RDS FIGHT FOCUS · 🎯 2 COMBO SETS"), est.
-  time, +XP chip, gold ▶ START. Split-capable levels (4–11) show the AM/PM
-  chips here (see S5).
+Rebuilt entirely in UI — a neon "spine" ladder drawn in CSS/SVG over the
+existing dark app backdrop (reuse FightRingBackdrop; NO new bespoke map
+art). Replaces the old badge-tree concept.
+
+### 45a · Camp ladder (`tap a level →` opens 45b)
+
+- Layout: one vertical neon spine climbing bottom → top — node 01 at the
+  bottom, node 12 (Title Fight) at the top. The spine is a 2–3px gradient
+  rail (violet `#a855f7` → gold near the current node) with a soft glow;
+  segments below the current node read brighter (cleared), segments above
+  dim to ~35% (locked).
+- Header (fixed, top): `TRAINING CAMP · {DISCIPLINE}` (Orbitron 900, gold)
+  over a status line `Level {n} of 12 · {PHASE} · {progress}`, where
+  progress = "Round r of R" on single-session foundation levels or
+  "Session s of 2" on split levels.
+- Node = a code-drawn circle showing the zero-padded level number
+  (`01`…`12`), NOT badge art:
+  · complete → green ring `#22c55e` + ✓, number dimmed
+  · current → gold ring `#fde047` + glow + a `you are here` caption beneath
+  · locked → greyscale ~45% + number; node 12 also shows 🔒
+  Node 12 (Title Fight) is larger with 🏆 and a gold/red glow.
+- Level label sits to the left of each node: `{PHASE} · {TITLE}` (Orbitron,
+  phase-tinted). Titles are NEW copy — add a `title` per level to
+  `camp-levels.json`:
+  FOUNDATION → L1 BASICS · L2 RHYTHM · L3 FINISHER; DEVELOPMENT → L4 BASE ·
+  L5 VOLUME · L6 POWER; HARD CAMP → L7 ENGINE · L8 GRIND · L9 PEAK; TAPER →
+  L10 SPEED · L11 SHARPEN; FINAL BOSS → L12 TITLE FIGHT ("final test · the
+  belt").
+- Session pips: from DEVELOPMENT (L4) up, each node carries two small pips —
+  `S1` (AM) and `S2` (PM) — with per-session state (done ✓ / up-next ▸ /
+  pending). Foundation levels (L1–3) are single-session; the current one
+  shows round pips instead (e.g. `R1✓ R2▸`). The boss (L12) shows none.
+- Phase color key (spine + labels + pips), matching the in-app PHASE_ACCENT:
+  FOUNDATION teal-green, DEVELOPMENT violet, HARD CAMP red, TAPER teal,
+  FINAL BOSS gold.
+- Tap any unlocked node → Level modal (45b). Locked nodes are inert (small
+  "clears L{n−1} first" tip is fine).
+
+### 45b · Level modal (routines · time · gear)
+
+Bottom-anchored modal over the dimmed ladder.
+- Header: level-number circle (state-colored) + `{PHASE} · {TITLE}` +
+  subtitle `{n} sessions · {AM/PM split | single session} · unlocks
+  L{n+1}` + close ✕.
+- Stat tiles (3, existing card style): `~{total} MIN / TOTAL TIME` ·
+  `+{xp} XP` (gold) · `GEAR` (equipment icon chips). Total time + XP are
+  engine-derived — sum the level's modules; XP via `xpFor`.
+- Session cards (one per session; single-session levels show one):
+  · Header row: `S{k} · {AM|PM} — {SKILL|CONDITIONING}` + a state pill
+    (`✓ COMPLETE` green / `▶ UP NEXT` gold / pending).
+  · Contents line: the module's block summary (e.g. "Combo ladder 4 rounds ·
+    footwork drill · shadowbox finisher") — from `workout-modules.json` block
+    goals, never invented.
+  · Meta line: `⏱ {min} min · {gear icons + labels} · {done-time when
+    complete}`.
+- Rule line (muted): "Level clears when both sessions are complete ✓✓ —
+  then L{n+1} unlocks." (single-session: "Complete this session to clear
+  the level.")
+- Primary CTA (gold): `▶ START SESSION {next incomplete}` (or `▶ START` on
+  single-session) → runs the S4 readiness check first.
+
+⚠ OPEN (needs your call): the mockup labels S1/AM = SKILL (combat) and
+S2/PM = CONDITIONING (physical); spec 10 Prompt 5 has it the other way
+(AM = physical prep, PM = combat work). Pick one so split content is
+consistent — 45b above is written as the mockup shows.
+
+Content this design adds: `title` per level in `camp-levels.json`; real
+per-session blocks + `gear` + `duration_min` in `workout-modules.json` so
+45b renders from data. The in-app `TrainingCampMap.jsx` v0 (plain stacked
+list) is the scaffold 45a/45b replaces.
 
 ## S2 · Archetype picker (new screen)
 
@@ -75,10 +131,10 @@ Compact bottom sheet, calm not clinical:
 
 ## S5 · Split day card (levels 4–11)
 
-On the session card and camp map: two mission chips —
-🌅 MORNING MISSION (fit block) and 🌙 EVENING MISSION (fight block) —
-each with its own done ✓ / pending state. Hint line: "Leave 4–8 hours
-between missions." Before the PM mission, a 4-question mini-check (eaten/
+NOTE: the AM/PM split now lives inside the Level modal (45b) as the two
+session cards (S1 AM / S2 PM), each with its own state pill. This section
+covers only the extra split-specific behaviour layered on top.
+- Hint line under the two session cards: "Leave 4–8 hours between missions." Before the PM mission, a 4-question mini-check (eaten/
 hydrated · heavy or slow · AM effort ok · pain) using the S4 sheet style;
 bad answers offer "move PM to tomorrow" or Easy variant, copy never shames.
 FULL CAMP alternative shows one chip with the internal sequence: warm-up →
@@ -130,13 +186,15 @@ AudioLevelRow, Mission Complete + share flow, trophy grid, streak/XP bars.
 ## Asset checklist (image generation prompts live on `main`:
 ## bolt-rebuild-kit/prompts/05e-fight-mode-design-prompts.md)
 
-NEW, needed now (3):
-- [ ] Title Fight boss node badge (square, matches s1–s10 badge family)
+NEW, needed now (2 — the ladder nodes are CSS-drawn per 45a, so no
+per-node badge art is required):
 - [ ] TITLE FIGHT WON victory art (portrait, no text)
 - [ ] Camp Champion belt trophy (or map an existing belt trophy)
+Optional: a 🏆 boss glyph/badge for node 12 if the emoji isn't enough.
 
-REUSE: splash/app bg (map), s1–s10 stage badges (nodes), discipline art
-(headers), ring timers, trophy frame style.
+REUSE: dark app backdrop / FightRingBackdrop (behind the CSS spine),
+discipline art (headers), ring timers, trophy frame style. Ladder nodes,
+spine, pips, and state rings are all code-drawn — no image assets.
 
 LATER (Reaction Mode / Ghost Battles phase): placement-hint illustration,
 4 opponent portraits, KO splash, ghost share-card background, 3 remaining

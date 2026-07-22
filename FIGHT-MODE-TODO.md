@@ -366,11 +366,18 @@ HOW MUCH TO MAKE (guidance):
       archetypes.json, card UI: name + tagline + selected-difficulty variant) →
       DIFFICULTY (E/N/H). Archetype drives drills/tactics; difficulty drives
       volume/rest/complexity/decision load. (DESIGN-SPEC S2.)
-- [ ] 2.3 TRAINING CAMP map: 12 nodes / 5 phases — FOUNDATION(1–3) ·
-      DEVELOPMENT(4–6) · HARD CAMP(7–9) · TAPER(10–11) · FINAL BOSS(12). KEEP
-      the existing tree-ladder/node-state UI; drive phase labels + session cards
-      from camp-levels.json. Saved cursor {discipline, archetype, level}.
-      (DESIGN-SPEC S1.)
+- [ ] 2.3 TRAINING CAMP map → rebuild to DESIGN 45a/45b (DESIGN-SPEC S1,
+      updated Jul 21). 45a = CSS neon-spine ladder (no bg art): 12 numbered
+      nodes 01–12 up a gradient spine, per-level `{PHASE} · {TITLE}` labels
+      (BASICS/RHYTHM/FINISHER · BASE/VOLUME/POWER · ENGINE/GRIND/PEAK ·
+      SPEED/SHARPEN · TITLE FIGHT), state rings (done ✓ / current "you are
+      here" / locked), S1/S2 session pips from L4 up. 45b = level modal
+      (TOTAL TIME · +XP · GEAR tiles + per-session S1 AM / S2 PM cards +
+      "clears when both ✓✓" + START SESSION n). Replaces the v0 stacked list.
+      Content to add first: `title` per level in camp-levels.json; real
+      per-session blocks/gear/duration in workout-modules.json.
+      ⚠ OPEN: mockup has S1/AM=SKILL, S2/PM=CONDITIONING — spec 10 P5 has AM=
+      physical, PM=combat. User to confirm which ordering wins.
 - [ ] 2.4 Session runner: chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
