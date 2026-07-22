@@ -28,7 +28,11 @@
     { "id": "SLIP_LINE",     "icon": "〰", "label": "Slip Line",      "category": "optional",
       "substitutes": ["Wall marker", "Shadow-defense cues"] },
     { "id": "HAND_WRAPS",    "icon": "🩹", "label": "Hand Wraps",     "category": "optional",
-      "substitutes": ["Gloves only (light bag work)"] }
+      "substitutes": ["Gloves only (light bag work)"] },
+    { "id": "TENNIS_BALL",   "icon": "🎾", "label": "Tennis Ball",    "category": "optional",
+      "substitutes": ["Any small ball (wall bounce)", "Random-light reflex app"] },
+    { "id": "AGILITY_LADDER","icon": "🪜", "label": "Agility Ladder", "category": "optional",
+      "substitutes": ["Floor lines", "Chalk or tape marks"] }
   ],
   "rules": {
     "minimum_viable": ["OPEN_SPACE", "TIMER_PHONE"],

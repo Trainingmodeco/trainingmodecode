@@ -1,0 +1,116 @@
+{
+  "campaign_id": "ARC_ULTRAINSTINCT",
+  "name": "ULTRA INSTINCT STYLE — FLOW STATE PROTOCOL",
+  "type": "fit_fight",
+  "combat_style": "Counter-striking / hybrid striking (boxing movement + kicks)",
+  "stage_count": 12,
+  "paths_available": ["fit", "fight", "full_arc"],
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Build a lean, exceptionally responsive physique and learn to move, dodge, and counter without conscious thought — the flow state.",
+  "tagline": "Train it a thousand times. Then stop thinking.",
+  "core_rule": "Flow is earned, not rushed.",
+  "core_rule_enforcement": "Never reward sloppy speed, tension, or flailing. Effortless precision comes from thousands of clean repetitions — rushing with broken form scores nothing.",
+  "identity": [
+    "Lean, responsive physique", "Reaction independent of thought", "Perfect timing and precision",
+    "Elusive footwork and angles", "Precognitive dodging", "Reflexes before recognition",
+    "Counter-striking accuracy", "Mental clarity and calm", "High-repetition mastery", "Flow state under fire"
+  ],
+  "fit_focus": [
+    "Explosive power (plyometrics)", "Agility and directional change", "Foundational multi-muscle strength",
+    "High-rep muscular endurance", "Functional multi-group integration", "Lean muscle, low tension",
+    "Reactive jump/landing control", "Core control (L-sits, V-ups)", "Speed of movement"
+  ],
+  "fight_focus": [
+    "Repetition (one technique, a thousand times)", "Angles (L-step, pivot, shift, Cuban cross turn)",
+    "Head movement and dodging", "Reflex training (tennis ball, random cues)", "Counter-striking",
+    "Footwork like Ali", "Flow-state shadowboxing", "Flow-state bag work at 30-40% effort", "Meditation and visualization"
+  ],
+  "split_stages": [4, 11],
+  "double_training_stages": [4, 9],
+  "peak_stage": 9,
+  "stage_load_multiplier": { "10": 0.75, "11": 0.55 },
+  "difficulty_scaling": {
+    "easy": {
+      "label": "SIGN",
+      "fit": { "working_sets": [2, 3], "resistance": "bodyweight or light", "rest": "longer" },
+      "fight": { "rounds": [4, 5], "round_sec": 60, "rest_sec": [60, 75], "requirements": "basic strikes and combos (jab-roundhouse); no jumping or spinning strikes; no partner drills" },
+      "target_rpe": [4, 6]
+    },
+    "normal": {
+      "label": "INSTINCT",
+      "fit": { "working_sets": [3, 4], "resistance": "moderate", "rest": "moderate" },
+      "fight": { "rounds": [5, 6], "round_sec": 120, "rest_sec": [45, 60], "requirements": "longer combos, angle exits after combos, head-movement requirements, reflex drills; bag recommended" },
+      "target_rpe": [6, 8]
+    },
+    "hard": {
+      "label": "MASTERED",
+      "fit": { "working_sets": [4, 5], "resistance": "advanced bodyweight progressions (muscle-ups, archer work) or loaded", "rest": "shorter" },
+      "fight": { "rounds": [6, 8], "round_sec": 180, "rest_sec": [30, 45], "requirements": "Tekken-style long combos (jab, cross to body, low switch kick, cross, lead shovel, high roundhouse), spinning strikes, counter-strike windows, flow rounds at pace; intended for experienced athletes" },
+      "target_rpe": [7, 9]
+    },
+    "hard_never_requires": [
+      "Deliberately taking punches", "Unsupervised hard sparring", "Training through sharp pain",
+      "Extreme dehydration", "Every set taken to failure"
+    ]
+  },
+  "meditation_rule": "Meditation blocks appear across the campaign (pre-session visualization round, evening meditation). They are completion-only: no difficulty, no failure state, and skipping them never blocks a stage — but completing every one earns the Calm Mind achievement.",
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_MINIMAL": ["JUMP_ROPE", "BAND", "MAT", "TENNIS_BALL", "CONES"],
+    "C_FIGHT_TRAINING": ["HEAVY_BAG", "GLOVES", "HAND_WRAPS", "JUMP_ROPE", "SLIP_LINE"],
+    "D_FULL_INSTINCT": ["HEAVY_BAG", "LIGHT_WEIGHTS", "PULLUP_BAR", "MEDICINE_BALL", "KETTLEBELL", "AGILITY_LADDER", "CONES", "TENNIS_BALL", "MAT"],
+    "rule": "Every stage must support at least the MINIMAL version. Partner drills (tennis-ball dodgeball, gladiator stick, pad work) are always optional — solo alternatives are provided."
+  },
+  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_ARC_CLEAR", "FINAL_BOSS_CLEAR"],
+  "achievements": [
+    { "id": "ACH_UI_THOUSAND_FISTS",  "name": "A Thousand Fists",   "trigger": "Complete every repetition round in Stage 2" },
+    { "id": "ACH_UI_PERFECT_ANGLES",  "name": "Perfect Angles",     "trigger": "Clear Stage 5 cone rounds without standing in the pocket" },
+    { "id": "ACH_UI_UNTOUCHABLE",     "name": "Untouchable",        "trigger": "Complete all Stage 6 dodging drills cleanly" },
+    { "id": "ACH_UI_SHARP_REFLEXES",  "name": "Sharp Reflexes",     "trigger": "Complete every reflex-training block in the campaign" },
+    { "id": "ACH_UI_CALM_MIND",       "name": "Calm Mind",          "trigger": "Complete every meditation block in the campaign" },
+    { "id": "ACH_UI_FLOW_STATE",      "name": "Flow State",         "trigger": "Finish Stage 9 with technique intact" },
+    { "id": "ACH_UI_INSTINCT_CLEAR",  "name": "Instinct Clear",     "trigger": "Defeat Stage 12" },
+    { "id": "ACH_UI_MASTERED",        "name": "Mastered Instinct",  "trigger": "Clear Fit and Fight for all 12 stages" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Prescribed work not completed", "Technique or landing control breaks down", "Reported effort far above target", "Recovery inadequate"],
+      "response": ["Reduce reps or resistance", "Recommend one difficulty lower", "Preserve the Fight difficulty where appropriate"]
+    },
+    "fight": {
+      "causes": ["Rushing and flailing instead of flowing", "Guard or head movement repeatedly abandoned", "Cannot complete the rounds", "Defensive or reflex objective ignored", "Unsafe symptoms reported"],
+      "response": ["Recommend slowing down — flow before speed", "Recommend Practice Mode", "Shorten round length", "Increase rest", "Drop Fight difficulty by one level", "Do NOT automatically lower the Fit path"]
+    },
+    "safety_stop": ["Sharp pain", "Chest pain", "Dizziness", "Faintness", "New concussion symptoms", "Severe breathing difficulty", "Acute injury"]
+  },
+  "final_boss": {
+    "stage_id": "ARC_ULTRAINSTINCT_STG12",
+    "no_hard_morning_workout": true,
+    "fight_trial_name": "Twelve-Round Trial of Instinct",
+    "round_objectives": [
+      "Breath and stillness — stance, guard, breathing",
+      "The jab, repeated — single-strike repetition",
+      "Combo repetition at speed",
+      "Angles — L-step and pivot exits",
+      "Cut the angle mid-combination",
+      "Pure defense — slips, rolls, ducks, no strikes",
+      "Dodge and return — defense into counter",
+      "Counter-strike windows — check-return, slip-to-strike",
+      "Reflex burst — react on cue, freestyle",
+      "Flow state — moderate pace, minimum thought",
+      "Flow under fire — high pace, stay loose",
+      "Mastered instinct — effortless freestyle finish"
+    ],
+    "timing": {
+      "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45, "approx_total_min": 20 },
+      "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30, "approx_total_min": 30 },
+      "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30, "approx_total_min": 42 }
+    },
+    "fit_final_test": {
+      "categories": ["Max push-ups in 1 minute", "High-rep squat target", "L-sit or core-hold time", "Cone agility circuit for time", "Depth-jump landing control", "Muscle-up or pull-up/row target", "Final endurance circuit"],
+      "rule": "Predetermined targets only — never uncontrolled maximum-until-collapse work."
+    },
+    "full_arc_flow": ["Pre-trial meditation round (visualization)", "Short activation circuit", "Transition period", "Twelve-round trial of instinct", "Cooldown and final readiness report"]
+  },
+  "art": { "banner": "/assets/series/ultra-instinct.png", "stage_badges": "reuse /assets/stages/s1-s10 + boss badge" }
+}
