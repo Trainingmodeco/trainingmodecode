@@ -4,24 +4,23 @@ import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable } from './protocol/content';
 
 // Phase 2 · 2.3 — TRAINING CAMP ladder (design 45a) + level modal (45b).
-// A CSS neon-spine ladder over the tower backdrop: nodes 01–12 climb the spine,
-// {PHASE · TITLE} labels on the left, S1/S2 session pips on the right, and the
-// whole thing is LOCKED to one viewport (no scroll). Content is data-driven from
-// protocol/content.ts. Progress (current level) is a placeholder until session
-// completion is wired (2.4) — reads tm_camp_progress, defaults to L1.
+// CSS neon-spine ladder over the tower backdrop: nodes 01–12 climb the spine,
+// {PHASE · TITLE} labels left, S1/S2 pips right. Header on top, the app's bottom
+// nav (footer) below (WithNav in ScreenRouter). Everything is sized to fit above
+// the nav with no scroll. Content is data-driven from protocol/content.ts;
+// current level is a placeholder (tm_camp_progress, default 1) until 2.4 wires
+// real session completion.
 const GOLD = '#fde047';
 
-// Background art the user supplies — drop the tower image at this path
-// (public/static/training-camp-tower.webp). Until then a palette-matched CSS
-// gradient stands in so the screen never looks broken.
+// Tower art (converted from 04_DESIGN_ASSETS/App/Banners/Training Camp).
 const BG_SRC = '/static/training-camp-tower.webp';
+// Reserve room at the bottom for the fixed nav footer.
+const NAV_RESERVE = 92;
 
 const DISC_KEY = { Boxing: 'boxing', Kickboxing: 'kickboxing', 'Muay Thai': 'muay_thai', MMA: 'mma' };
 const DIFFS = ['easy', 'normal', 'hard'];
 const DIFF_LABEL = { easy: 'EASY', normal: 'NORMAL', hard: 'HARD' };
 
-// Phase accents tuned to the mockup: foundation green, development violet,
-// hard camp amber, taper teal, title fight red.
 const PHASE = {
   foundation: '#22c55e',
   development: '#a855f7',
@@ -39,7 +38,7 @@ function loadProgress() {
 }
 
 function NodeCircle({ level, state, boss }) {
-  const size = boss ? 42 : 30;
+  const size = boss ? 34 : 26;
   const c = state === 'done' ? '#22c55e'
     : state === 'current' ? GOLD
     : boss ? '#ef4444'
@@ -48,8 +47,8 @@ function NodeCircle({ level, state, boss }) {
     : state === 'current' ? GOLD
     : boss ? '#ff6b6b'
     : 'rgba(190,170,225,0.8)';
-  const glow = state === 'current' ? '0 0 18px rgba(253,224,71,0.55)'
-    : boss ? '0 0 18px rgba(239,68,68,0.5)' : 'none';
+  const glow = state === 'current' ? '0 0 16px rgba(253,224,71,0.55)'
+    : boss ? '0 0 16px rgba(239,68,68,0.5)' : 'none';
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
@@ -57,7 +56,7 @@ function NodeCircle({ level, state, boss }) {
       border: `2px solid ${c}`, boxShadow: glow,
       background: 'radial-gradient(circle at 50% 35%, rgba(20,8,40,0.92), rgba(6,1,14,0.96))',
     }}>
-      <span style={{ font: `800 ${boss ? 15 : 12}px 'Orbitron',sans-serif`, color: num }}>{pad2(level)}</span>
+      <span style={{ font: `800 ${boss ? 13 : 11}px 'Orbitron',sans-serif`, color: num }}>{pad2(level)}</span>
     </div>
   );
 }
@@ -70,16 +69,16 @@ function Pip({ label, tone }) {
   }[tone] || {};
   return (
     <span style={{
-      font: "700 7px 'Orbitron',sans-serif", color: map.c, letterSpacing: '0.04em',
+      font: "700 6.5px 'Orbitron',sans-serif", color: map.c, letterSpacing: '0.03em',
       background: map.bg, border: `1px solid ${map.b}`, borderRadius: 4, padding: '2px 5px', whiteSpace: 'nowrap',
     }}>{label}</span>
   );
 }
 
 function NodePips({ level, state }) {
-  if (level === 12) return <Lock size={12} color={state === 'done' ? '#22c55e' : '#ff6b6b'} />;
+  if (level === 12) return <Lock size={11} color={state === 'done' ? '#22c55e' : '#ff6b6b'} />;
   const split = isSplitAvailable(level);      // L4–11
-  if (state === 'done') return <Check size={14} color="#22c55e" strokeWidth={3} />;
+  if (state === 'done') return <Check size={13} color="#22c55e" strokeWidth={3} />;
   if (state === 'current') {
     if (split) return <><Pip label="S1" tone="next" /><Pip label="S2" tone="dim" /></>;
     return <><Pip label="R1 ✓" tone="done" /><Pip label="R2 ▶" tone="next" /></>;
@@ -88,19 +87,17 @@ function NodePips({ level, state }) {
   return null;
 }
 
-export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome }) {
+export default function TrainingCampMap({ discipline = 'Boxing', onBack }) {
   const discKey = DISC_KEY[discipline] || 'boxing';
   const [difficulty, setDifficulty] = useState('normal');
   const [openLevel, setOpenLevel] = useState(null);
+  const [openAtY, setOpenAtY] = useState(0);
   const [current] = useState(loadProgress);
 
   const archetype = archetypesFor(discKey)[0];   // 2.2 will make this a picker
   const curPhase = campLevels.find((l) => l.level === current) || campLevels[0];
-
-  // Top → bottom = level 12 → 1.
   const topDown = [...campLevels].sort((a, b) => b.level - a.level);
 
-  // Spine gradient: green up to the current node, then violet→red above it.
   const frac = ((current - 1) / 11) * 100;
   const spine = `linear-gradient(to top,
     #22c55e 0%, #22c55e ${Math.max(0, frac - 4)}%,
@@ -113,40 +110,48 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
        : `${openRt.rounds} × ${mmss(openRt.roundSec)} · ${openRt.restSec}s rest`)
     : '';
 
+  const tapLevel = (level, e) => {
+    setOpenAtY(e?.clientY ?? 0);
+    setOpenLevel(level);
+  };
+
+  // Modal lands near the tapped node, clamped to stay fully on screen.
+  const winH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const modalTop = Math.min(Math.max(openAtY, 200), winH - 210);
+
   return (
     <PhoneFrame>
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Background: CSS fallback → tower art on top → legibility overlay. */}
-        <div style={{ position: 'absolute', inset: 0, background:
-          'radial-gradient(120% 55% at 50% 0%, rgba(239,68,68,0.28), transparent 55%),' +
-          'radial-gradient(90% 40% at 50% 100%, rgba(45,212,191,0.16), transparent 60%),' +
-          'linear-gradient(180deg, #1a0a2e 0%, #10061f 45%, #0a0416 100%)' }} />
-        <img src={BG_SRC} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
-        <div style={{ position: 'absolute', inset: 0, background:
-          'linear-gradient(180deg, rgba(4,0,10,0.55) 0%, rgba(4,0,10,0.35) 30%, rgba(4,0,10,0.55) 100%)' }} />
+      {/* Full-bleed background: CSS fallback → tower art → legibility overlay. */}
+      <div style={{ position: 'absolute', inset: 0, background:
+        'radial-gradient(120% 55% at 50% 0%, rgba(239,68,68,0.28), transparent 55%),' +
+        'radial-gradient(90% 40% at 50% 100%, rgba(45,212,191,0.16), transparent 60%),' +
+        'linear-gradient(180deg, #1a0a2e 0%, #10061f 45%, #0a0416 100%)' }} />
+      <img src={BG_SRC} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+      <div style={{ position: 'absolute', inset: 0, background:
+        'linear-gradient(180deg, rgba(4,0,10,0.5) 0%, rgba(4,0,10,0.3) 30%, rgba(4,0,10,0.5) 100%)' }} />
 
+      {/* Header + ladder, bounded above the nav footer. */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_RESERVE, zIndex: 5, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ position: 'relative', zIndex: 5, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px 8px' }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px 6px' }}>
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}>
-            <ChevronLeft size={22} color="#d7c9ee" />
+            <ChevronLeft size={20} color="#d7c9ee" />
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.04em', textShadow: '0 0 14px rgba(232,121,249,0.5)' }}>
+            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.04em', textShadow: '0 0 14px rgba(232,121,249,0.5)' }}>
               TRAINING CAMP · {discipline.toUpperCase()}
             </div>
-            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#b9a9d8', letterSpacing: '0.04em', marginTop: 1 }}>
+            <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#b9a9d8', letterSpacing: '0.04em', marginTop: 1 }}>
               Level {current} of 12 · {curPhase.phase_label} · {archetype?.name}
             </div>
           </div>
         </div>
 
-        {/* Ladder — locked to the remaining height, distributed, no scroll. */}
-        <div style={{ position: 'relative', zIndex: 5, flex: 1, minHeight: 0, padding: '2px 12px 8px' }}>
-          {/* neon spine */}
-          <div style={{ position: 'absolute', left: '50%', top: 10, bottom: 10, width: 3, transform: 'translateX(-50%)', background: spine, borderRadius: 2, boxShadow: '0 0 12px rgba(168,85,247,0.6)', filter: 'blur(0.2px)' }} />
-          {/* base portal glow */}
-          <div style={{ position: 'absolute', left: '50%', bottom: 2, width: 60, height: 22, transform: 'translateX(-50%)', background: 'radial-gradient(ellipse at 50% 100%, rgba(168,85,247,0.5), transparent 70%)' }} />
+        {/* Ladder */}
+        <div style={{ position: 'relative', flex: 1, minHeight: 0, padding: '2px 12px 4px' }}>
+          <div style={{ position: 'absolute', left: '50%', top: 8, bottom: 8, width: 3, transform: 'translateX(-50%)', background: spine, borderRadius: 2, boxShadow: '0 0 12px rgba(168,85,247,0.6)' }} />
+          <div style={{ position: 'absolute', left: '50%', bottom: 0, width: 54, height: 18, transform: 'translateX(-50%)', background: 'radial-gradient(ellipse at 50% 100%, rgba(168,85,247,0.5), transparent 70%)' }} />
 
           <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             {topDown.map((lv) => {
@@ -155,24 +160,21 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
               const accent = PHASE[lv.phase];
               const labelColor = state === 'current' ? GOLD : boss ? '#ff8a8a' : state === 'done' ? '#8be6a8' : accent;
               return (
-                <button key={lv.level} onClick={() => setOpenLevel(lv.level)} style={{
+                <button key={lv.level} onClick={(e) => tapLevel(lv.level, e)} style={{
                   background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-                  display: 'grid', gridTemplateColumns: '1fr 44px 1fr', alignItems: 'center',
+                  display: 'grid', gridTemplateColumns: '1fr 40px 1fr', alignItems: 'center',
                 }}>
-                  {/* left: label */}
-                  <div style={{ textAlign: 'right', paddingRight: 10, minWidth: 0 }}>
-                    <div style={{ font: "800 9px 'Orbitron',sans-serif", color: labelColor, letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                  <div style={{ textAlign: 'right', paddingRight: 9, minWidth: 0 }}>
+                    <div style={{ font: "800 8.5px 'Orbitron',sans-serif", color: labelColor, letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
                       {boss ? '🏆 TITLE FIGHT' : `${lv.phase_label} · ${lv.title}`}
                     </div>
-                    {boss && <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#c9a6ff', marginTop: 1 }}>final test · the belt</div>}
-                    {state === 'current' && <div style={{ font: "700 7px 'Press Start 2P',monospace", color: GOLD, marginTop: 3, letterSpacing: '0.02em' }}>you are here</div>}
+                    {boss && <div style={{ font: "600 7px 'Rajdhani',sans-serif", color: '#c9a6ff', marginTop: 1 }}>final test · the belt</div>}
+                    {state === 'current' && <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: GOLD, marginTop: 2 }}>you are here</div>}
                   </div>
-                  {/* center: node on the spine */}
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <NodeCircle level={lv.level} state={state} boss={boss} />
                   </div>
-                  {/* right: session pips */}
-                  <div style={{ paddingLeft: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ paddingLeft: 9, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <NodePips level={lv.level} state={state} />
                   </div>
                 </button>
@@ -182,29 +184,29 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
         </div>
       </div>
 
-      {/* Level modal (45b) — small, centered, translucent popup over the
-          still-visible ladder (light backdrop, frosted glass card). */}
+      {/* Level modal (45b) — small, translucent, lands near the tapped node. */}
       {open && (
-        <div onClick={() => setOpenLevel(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+        <div onClick={() => setOpenLevel(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.3)' }}>
           <div onClick={(e) => e.stopPropagation()} style={{
-            width: '100%', maxWidth: 292,
-            background: 'rgba(16,7,32,0.68)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-            border: `1px solid ${PHASE[open.phase]}66`, borderRadius: 16, padding: '13px 15px 15px',
+            position: 'absolute', left: '50%', top: modalTop, transform: 'translate(-50%, -50%)',
+            width: '86%', maxWidth: 286,
+            background: 'rgba(16,7,32,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            border: `1px solid ${PHASE[open.phase]}66`, borderRadius: 15, padding: '12px 14px 14px',
             boxShadow: `0 16px 44px rgba(0,0,0,0.55), 0 0 26px ${PHASE[open.phase]}22`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
               <NodeCircle level={open.level} state={open.level < current ? 'done' : open.level === current ? 'current' : 'locked'} boss={open.phase === 'final_boss'} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "700 7.5px 'Orbitron',sans-serif", color: PHASE[open.phase], letterSpacing: '0.12em' }}>{open.phase_label}</div>
-                <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : open.title}</div>
-                <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 1 }}>
+                <div style={{ font: "700 7px 'Orbitron',sans-serif", color: PHASE[open.phase], letterSpacing: '0.12em' }}>{open.phase_label}</div>
+                <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fff' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : open.title}</div>
+                <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 1 }}>
                   {isSplitAvailable(open.level) ? '2 sessions · AM/PM' : open.phase === 'final_boss' ? 'extended mission' : 'single session'} · unlocks L{Math.min(12, open.level + 1)}
                 </div>
               </div>
-              <button onClick={() => setOpenLevel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><X size={16} color="#9a90b8" /></button>
+              <button onClick={() => setOpenLevel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><X size={15} color="#9a90b8" /></button>
             </div>
 
-            <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
+            <div style={{ display: 'flex', gap: 5, marginBottom: 9 }}>
               {DIFFS.map((d) => {
                 const on = d === difficulty;
                 return (
@@ -212,27 +214,27 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onHome 
                     flex: 1, padding: '6px 0', borderRadius: 7, cursor: 'pointer',
                     background: on ? 'rgba(253,224,71,0.14)' : 'rgba(8,2,18,0.4)',
                     border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.25)'}`,
-                    font: "800 8.5px 'Orbitron',sans-serif", letterSpacing: '0.05em', color: on ? GOLD : '#c4a4d8',
+                    font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.05em', color: on ? GOLD : '#c4a4d8',
                   }}>{DIFF_LABEL[d]}</button>
                 );
               })}
             </div>
 
-            <div style={{ background: 'rgba(8,2,18,0.45)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 8, padding: '8px 10px', textAlign: 'center', marginBottom: 10 }}>
-              <div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff' }}>{previewLine}</div>
-              <div style={{ font: "600 6px 'Press Start 2P',monospace", color: '#c4a4d8', letterSpacing: '0.07em', marginTop: 3 }}>ROUND PLAN{openRt?.taperApplied ? ' · TAPER' : ''}</div>
+            <div style={{ background: 'rgba(8,2,18,0.45)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 8, padding: '7px 10px', textAlign: 'center', marginBottom: 9 }}>
+              <div style={{ font: "900 12px 'Orbitron',sans-serif", color: '#fff' }}>{previewLine}</div>
+              <div style={{ font: "600 5.5px 'Press Start 2P',monospace", color: '#c4a4d8', letterSpacing: '0.06em', marginTop: 3 }}>ROUND PLAN{openRt?.taperApplied ? ' · TAPER' : ''}</div>
             </div>
 
-            <div style={{ marginBottom: 4, font: "700 7.5px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>COMBAT</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-              {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 7px' }}>{c}</span>)}
+            <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>COMBAT</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 7 }}>
+              {open.combat_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
             </div>
-            <div style={{ marginBottom: 4, font: "700 7.5px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.1em' }}>PHYSICAL</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 13 }}>
-              {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 7px' }}>{c}</span>)}
+            <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.1em' }}>PHYSICAL</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+              {open.physical_emphasis.map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.22)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
             </div>
 
-            <button disabled style={{ width: '100%', height: 38, borderRadius: 10, border: '1px dashed rgba(253,224,71,0.4)', background: 'rgba(253,224,71,0.07)', color: 'rgba(253,224,71,0.78)', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'not-allowed' }}>
+            <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px dashed rgba(253,224,71,0.4)', background: 'rgba(253,224,71,0.07)', color: 'rgba(253,224,71,0.78)', font: "900 10.5px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'not-allowed' }}>
               ▶ START — RUNNER COMING SOON
             </button>
           </div>
