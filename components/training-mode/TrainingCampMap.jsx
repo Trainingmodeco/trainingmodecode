@@ -3,6 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable } from './protocol/content';
 import { loadCampProgress } from './data/campProgress';
+import ReadinessSheet from './shared/ReadinessSheet';
 
 // Phase 2 · 2.3 — TRAINING CAMP ladder (design 45a) + level modal (45b).
 // CSS neon-spine ladder over the tower backdrop: nodes 01–12 climb the spine,
@@ -88,6 +89,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [difficulty, setDifficulty] = useState('normal');
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
+  const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty}
   const [current] = useState(loadCampProgress);
 
   const archetype = archetypesFor(discKey)[0];   // 2.2 will make this a picker
@@ -114,16 +116,18 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // You can play the level you're on (or replay a cleared one); locked levels
   // wait their turn. Build the round cfg from the engine and hand it up.
   const canStart = open != null && open.level <= current;
-  const startSession = () => {
-    if (!open || !canStart) return;
-    const rt = roundTemplate(discKey, open.level, difficulty);
+  const buildCfg = (level, diff) => {
+    const rt = roundTemplate(discKey, level, diff);
     const rounds = rt.rounds || 1;
     const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
-    const cfg = {
-      difficulty, rounds, roundMin, restSec: rt.restSec ?? 60,
-      voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0,
-    };
-    onStartSession?.({ discipline, level: open.level, difficulty, cfg });
+    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0 };
+  };
+  const launch = (level, diff) => onStartSession?.({ discipline, level, difficulty: diff, cfg: buildCfg(level, diff) });
+  // 45b START runs the readiness check (2.6) first; the sheet launches on 'go'.
+  const requestStart = () => {
+    if (!open || !canStart) return;
+    setReadinessCtx({ level: open.level, difficulty });
+    setOpenLevel(null);
   };
 
   // Modal lands near the tapped node, clamped to stay fully on screen.
@@ -246,7 +250,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
             </div>
 
             {canStart ? (
-              <button onClick={startSession} style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>
+              <button onClick={requestStart} style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>
                 ▶ START {isSplitAvailable(open.level) ? 'SESSION 1' : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
               </button>
             ) : (
@@ -256,6 +260,18 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
             )}
           </div>
         </div>
+      )}
+
+      {/* 2.6 — readiness gate before the session actually launches. */}
+      {readinessCtx && (
+        <ReadinessSheet
+          onGo={({ easy }) => {
+            const diff = easy ? 'easy' : readinessCtx.difficulty;
+            launch(readinessCtx.level, diff);
+            setReadinessCtx(null);
+          }}
+          onClose={() => setReadinessCtx(null)}
+        />
       )}
     </PhoneFrame>
   );

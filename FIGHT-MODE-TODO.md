@@ -398,9 +398,16 @@ HOW MUCH TO MAKE (guidance):
       clear. Verified in-browser (time-warped): valid run → LEVEL 3 CLEAR +170XP
       + CONTINUE→L4 + session recorded; rushed run → GOOD EFFORT +0XP, progress
       stays L3. No console errors.
+      2.6 readiness gate SHIPPED (Jul 21): shared/ReadinessSheet.jsx — 5×1–5
+      taps + danger question → engine assessReadiness → go (launch) /
+      suggest_easy_or_recovery (offer Easy variant or start anyway, keeps streak)
+      / halt (danger → REST TODAY advisory, blocks, no penalty). START now runs
+      the check first. Verified in-browser (go → session launches; danger → halt
+      blocks). Also unified GOOD EFFORT (partial) with MISSION COMPLETE layout
+      (same padding + badge size).
       REMAINING for full 2.4: chain MULTIPLE block types (fit + fight) with
       transition cards (spec S7) rather than one fight round block; split AM/PM
-      S1→S2 sequencing; readiness gate (2.6) before START; warm-up.
+      S1→S2 sequencing; warm-up.
 - [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat

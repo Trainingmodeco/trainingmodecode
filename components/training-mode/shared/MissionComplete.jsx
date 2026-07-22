@@ -106,16 +106,18 @@ export default function MissionComplete({
             and already reserves 110px under every screen for the tab bar. The
             old minHeight:100dvh + 12dvh padding here double-counted that and
             left the screen scrollable past its own content. */}
-        <div style={{ padding: `${partial ? 40 : 10}px 16px 0` }}>
+        {/* GOOD EFFORT (partial) and MISSION COMPLETE (success) share one
+            layout — same top padding and badge size — so a stopped session
+            reads as calm and consistent as a completed one. */}
+        <div style={{ padding: '10px 16px 0' }}>
 
           {/* Medal hero */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 6 }}>
             {badge ? (
               // Mode badge art (transparent PNG/WebP over the dark bg). Kept
               // compact so it never dominates the screen; a soft accent glow
-              // grounds it and a gentle pop plays it in. The GOOD EFFORT badge
-              // is a wider emblem, so it gets a little more height to read.
-              <div className="mc-hero-badge" style={{ position: 'relative', height: partial ? 78 : 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
+              // grounds it and a gentle pop plays it in.
+              <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
                 <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
