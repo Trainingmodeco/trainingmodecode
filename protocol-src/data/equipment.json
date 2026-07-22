@@ -38,7 +38,9 @@
     { "id": "STEEL_MACE",    "icon": "⚒",  "label": "Steel Mace / Club",  "category": "optional",
       "substitutes": ["Single dumbbell offset swings", "Band 360s", "Long-lever bottle/backpack"] },
     { "id": "SANDBAG",       "icon": "🎒", "label": "Sandbag / Loaded Bag", "category": "optional",
-      "substitutes": ["Loaded backpack", "Heavy kettlebell", "Water jug"] }
+      "substitutes": ["Loaded backpack", "Heavy kettlebell", "Water jug"] },
+    { "id": "GRIP_TRAINER",  "icon": "🤜", "label": "Grip Trainer / Thick Bar", "category": "optional",
+      "substitutes": ["Towel-wrapped pull-ups", "Plate pinch", "Rice-bucket digs", "Farmer holds"] }
   ],
   "rules": {
     "minimum_viable": ["OPEN_SPACE", "TIMER_PHONE"],
