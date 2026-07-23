@@ -136,13 +136,23 @@ export function resolveArcadeRounds(campaignId: string, stageId: string, path: '
     return { rounds: Math.max(1, rounds), roundSec, restSec, goals: goals.length ? goals : ['free_round'], durationMin: mod.duration_min };
   }
 
-  // fit — a conditioning circuit; keep the module's own round timing. Difficulty
-  // scaling adjusts sets/reps/rest inside the block, surfaced as a note, not the
-  // round count. Exercises drive the goal list when no per-round goal exists.
+  // fit — surface each authored exercise as its OWN timed work round, so the
+  // conditioning session cycles real named drills instead of one long generic
+  // circuit. Per-exercise work time is the block duration split across the
+  // exercises, clamped to a sane 2–4 min; rest scales with difficulty.
+  const ex = (mod.exercises || []).filter(Boolean);
+  if (ex.length > 1) {
+    const totalSec = (mod.duration_min ? mod.duration_min * 60 : (modRounds[0]?.length_sec || 1500));
+    let roundSec = Math.round((totalSec / ex.length) / 5) * 5;
+    roundSec = Math.max(120, Math.min(240, roundSec));
+    const restSec = difficulty === 'hard' ? 30 : difficulty === 'easy' ? 60 : 45;
+    return { rounds: ex.length, roundSec, restSec, goals: ex, durationMin: mod.duration_min };
+  }
+  // fallback — a single circuit (module has no exercise list)
   const rounds = Math.max(1, modRounds.length || 1);
   const roundSec = modRounds[0]?.length_sec || 1200;
   const restSec = modRounds[0]?.rest_sec ?? 0;
-  const fitGoals = goals.length ? goals : (mod.exercises || []).slice(0, 6);
+  const fitGoals = goals.length ? goals : ex.slice(0, 6);
   return { rounds, roundSec, restSec, goals: fitGoals.length ? fitGoals : ['conditioning_round'], durationMin: mod.duration_min };
 }
 
