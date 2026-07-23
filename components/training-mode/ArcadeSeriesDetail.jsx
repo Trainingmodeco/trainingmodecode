@@ -571,7 +571,27 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{series.title}</div>
                 {series.subtitle && <div style={{ font: "700 9px 'Rajdhani',sans-serif", color: GOLD, letterSpacing: '0.03em', margin: '3px 0 11px' }}>{series.subtitle}</div>}
                 <div style={{ font: "600 11.5px 'Rajdhani',sans-serif", color: '#e6d9ff', lineHeight: 1.45, marginBottom: 14 }}>{series.description}</div>
-                {series.rewards && (
+                {/* 2.10 — the ? button also explains how the whole page works. */}
+                {intro === 'help' && (
+                  <div style={{ background: 'rgba(8,2,18,0.5)', border: '1px solid rgba(168,85,247,0.28)', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
+                    <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.12em', marginBottom: 7 }}>HOW THIS PAGE WORKS</div>
+                    {[
+                      ['🪜 THE LADDER', 'Climb the campaign stage by stage — clear one to unlock the next. Tap a stage node to open it.'],
+                      ['📋 STAGE MODAL', 'Shows the stage’s mission — tap ENTER STAGE to set it up.'],
+                      ['⚙ PATH & DIFFICULTY', 'Pick FIT, FIGHT or FULL ARC, and EASY / NORMAL / HARD, then START.'],
+                      ['⏱ THE TIMER', 'Work and rest rounds with coach calls. WORK = train, REST = breathe.'],
+                      ['🎛 CONTROLS', 'PAUSE/RESUME · SKIP ROUND (next) · ⟲ REWIND 10s · END (exit the session).'],
+                      ['🔊 VOLUME', 'Tap the speaker (top-right of the timer) to adjust cues mid-round.'],
+                      ['‹ BACK', 'The chevron / BACK returns you to the saga select.'],
+                    ].map(([h, d]) => (
+                      <div key={h} style={{ marginBottom: 7 }}>
+                        <div style={{ font: "800 9px 'Orbitron',sans-serif", color: '#e6d9ff', letterSpacing: '0.02em' }}>{h}</div>
+                        <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#9fb0d8', lineHeight: 1.3 }}>{d}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {intro === 'first' && series.rewards && (
                   <div style={{ background: 'rgba(8,2,18,0.5)', border: '1px solid rgba(168,85,247,0.28)', borderRadius: 10, padding: '9px 12px', marginBottom: 16 }}>
                     <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.12em', marginBottom: 6 }}>REWARDS</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
