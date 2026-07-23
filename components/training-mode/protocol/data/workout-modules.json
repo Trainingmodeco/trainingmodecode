@@ -2964,7 +2964,66 @@
     }
   },
   {
-    "module_id": "MOD_FIT_FOUNDATION",
+    "module_id": "MOD_FIT_FOUNDATION_E",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "foundation",
+    "difficulty": "easy",
+    "format": "morning",
+    "duration_min": 12,
+    "tags": [
+      "foundation"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "easy_bodyweight"
+      },
+      {
+        "index": 2,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "gentle_core"
+      },
+      {
+        "index": 3,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "brisk_walk_pace"
+      },
+      {
+        "index": 4,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "mobility_flow"
+      },
+      {
+        "index": 5,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "breathe_and_reset"
+      }
+    ],
+    "target_rpe": [
+      3,
+      5
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 4,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "ROAD": "brisk_walk_or_bike"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_FOUNDATION_N",
     "module_type": "fit",
     "discipline": "multi",
     "phase": "foundation",
@@ -3023,7 +3082,127 @@
     }
   },
   {
-    "module_id": "MOD_FIT_DEVELOPMENT",
+    "module_id": "MOD_FIT_FOUNDATION_H",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "foundation",
+    "difficulty": "hard",
+    "format": "morning",
+    "duration_min": 20,
+    "tags": [
+      "foundation"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "tempo_bodyweight"
+      },
+      {
+        "index": 2,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "pushup_pike_mix"
+      },
+      {
+        "index": 3,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "aerobic_tempo"
+      },
+      {
+        "index": 4,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "plank_variations"
+      },
+      {
+        "index": 5,
+        "length_sec": 60,
+        "rest_sec": 60,
+        "goal": "core_and_mobility"
+      }
+    ],
+    "target_rpe": [
+      6,
+      7
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 4,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "ROAD": "brisk_walk_or_bike"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_DEVELOPMENT_E",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "development",
+    "difficulty": "easy",
+    "format": "morning",
+    "duration_min": 18,
+    "tags": [
+      "development"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min",
+      "jump_rope_2min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "easy_rope"
+      },
+      {
+        "index": 2,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "light_roadwork"
+      },
+      {
+        "index": 3,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "bodyweight_circuit"
+      },
+      {
+        "index": 4,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "short_core"
+      },
+      {
+        "index": 5,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "mobility_flush"
+      }
+    ],
+    "target_rpe": [
+      4,
+      6
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 4,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "LIGHT_WEIGHTS": "backpack_or_bands",
+      "ROPE": "fast_feet"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_DEVELOPMENT_N",
     "module_type": "fit",
     "discipline": "multi",
     "phase": "development",
@@ -3076,7 +3255,7 @@
       }
     ],
     "target_rpe": [
-      4,
+      6,
       7
     ],
     "completion_rules": {
@@ -3090,7 +3269,134 @@
     }
   },
   {
-    "module_id": "MOD_FIT_HARD_CAMP",
+    "module_id": "MOD_FIT_DEVELOPMENT_H",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "development",
+    "difficulty": "hard",
+    "format": "morning",
+    "duration_min": 26,
+    "tags": [
+      "development"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min",
+      "jump_rope_2min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "fast_rope_intervals"
+      },
+      {
+        "index": 2,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "tempo_roadwork"
+      },
+      {
+        "index": 3,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "loaded_strength_circuit"
+      },
+      {
+        "index": 4,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "hard_core_circuit"
+      },
+      {
+        "index": 5,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "heavy_carries"
+      },
+      {
+        "index": 6,
+        "length_sec": 120,
+        "rest_sec": 45,
+        "goal": "mobility_flush"
+      }
+    ],
+    "target_rpe": [
+      7,
+      8
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 5,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "LIGHT_WEIGHTS": "backpack_or_bands",
+      "ROPE": "fast_feet"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_HARD_CAMP_E",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "hard_camp",
+    "difficulty": "easy",
+    "format": "morning",
+    "duration_min": 22,
+    "tags": [
+      "hard_camp"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min",
+      "activation_2min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "moderate_intervals"
+      },
+      {
+        "index": 2,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "light_carries"
+      },
+      {
+        "index": 3,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "strength_circuit"
+      },
+      {
+        "index": 4,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "tempo_repeats"
+      },
+      {
+        "index": 5,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "cooldown_flush"
+      }
+    ],
+    "target_rpe": [
+      5,
+      7
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 4,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "LIGHT_WEIGHTS": "backpack_or_bands"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_HARD_CAMP_N",
     "module_type": "fit",
     "discipline": "multi",
     "phase": "hard_camp",
@@ -3150,7 +3456,120 @@
     }
   },
   {
-    "module_id": "MOD_FIT_TAPER",
+    "module_id": "MOD_FIT_HARD_CAMP_H",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "hard_camp",
+    "difficulty": "hard",
+    "format": "morning",
+    "duration_min": 30,
+    "tags": [
+      "hard_camp"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min",
+      "activation_2min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "max_intervals"
+      },
+      {
+        "index": 2,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "heavy_power_carries"
+      },
+      {
+        "index": 3,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "strength_endurance_grind"
+      },
+      {
+        "index": 4,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "all_out_sprints"
+      },
+      {
+        "index": 5,
+        "length_sec": 180,
+        "rest_sec": 60,
+        "goal": "tank_emptier"
+      }
+    ],
+    "target_rpe": [
+      8,
+      9
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 4,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "LIGHT_WEIGHTS": "backpack_or_bands"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_TAPER_E",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "taper",
+    "difficulty": "easy",
+    "format": "morning",
+    "duration_min": 11,
+    "tags": [
+      "taper"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "recovery_walk"
+      },
+      {
+        "index": 2,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "gentle_mobility"
+      },
+      {
+        "index": 3,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "activation_only"
+      },
+      {
+        "index": 4,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "breathe_and_flush"
+      }
+    ],
+    "target_rpe": [
+      3,
+      5
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 3,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "MEDBALL": "band_pops"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_TAPER_N",
     "module_type": "fit",
     "discipline": "multi",
     "phase": "taper",
@@ -3191,6 +3610,59 @@
     ],
     "target_rpe": [
       4,
+      6
+    ],
+    "completion_rules": {
+      "min_rounds_completed": 3,
+      "technique_breakdown_limit": 99,
+      "pain_flag_stop": true
+    },
+    "substitutions": {
+      "MEDBALL": "band_pops"
+    }
+  },
+  {
+    "module_id": "MOD_FIT_TAPER_H",
+    "module_type": "fit",
+    "discipline": "multi",
+    "phase": "taper",
+    "difficulty": "hard",
+    "format": "morning",
+    "duration_min": 19,
+    "tags": [
+      "taper"
+    ],
+    "warmup": [
+      "dynamic_stretch_3min"
+    ],
+    "rounds": [
+      {
+        "index": 1,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "sharp_activation"
+      },
+      {
+        "index": 2,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "low_volume_power"
+      },
+      {
+        "index": 3,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "crisp_mobility"
+      },
+      {
+        "index": 4,
+        "length_sec": 120,
+        "rest_sec": 60,
+        "goal": "recovery_flush"
+      }
+    ],
+    "target_rpe": [
+      5,
       6
     ],
     "completion_rules": {

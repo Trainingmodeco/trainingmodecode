@@ -457,9 +457,15 @@ HOW MUCH TO MAKE (guidance):
       "CONDITIONING · ROUND 1/6" running "JUMP ROPE INTERVALS / Move with intent"
       (teal ring, WORK 2:00); END → GOOD EFFORT +0 XP 0/6 (integrity gate intact,
       routed through camp_complete). No console errors.
-      REMAINING for full 2.4: FIT easy/hard difficulty variants (S2 falls back to
-      normal); chaining multiple blocks in one session (FULL CAMP, 8–15 min
-      transition); warm-up phase.
+      FIT EASY/HARD VARIANTS SHIPPED (Jul 22): workout-modules.json now 60
+      modules — 48 fight + 12 fit (4 phases × 3 difficulties). Every discipline×
+      level(1–11)×difficulty resolves to an exact-difficulty module for BOTH
+      fight AND fit (verified Node: fit 33/33). S2 now scales with difficulty —
+      verified in-browser (boxing L5 fit: EASY "Easy Rope · Light Roadwork ·
+      Bodyweight Circuit…" ~18m vs NORMAL "Jump Rope Intervals · Roadwork
+      Tempo…"). Full camp content matrix is complete.
+      REMAINING for full 2.4: chaining multiple blocks in one session (FULL CAMP,
+      8–15 min transition); warm-up phase.
 - [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
