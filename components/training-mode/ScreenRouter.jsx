@@ -225,6 +225,35 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   }
   if (screen === 'camp_complete' && campResult) {
     const r = campResult;
+    // 2.10 — arcade v2 stage completion reuses this screen with arcade wording +
+    // routing: trophy → the saga select (carousel); yellow → back to the arcade
+    // ladder; a share card on both outcomes.
+    if (r.arcade) {
+      const aEyebrow = r.cleared ? 'STAGE CLEARED' : 'STAGE STOPPED';
+      const aTitle = r.cleared ? `STAGE ${r.stageNumber || r.level} CLEAR` : 'GOOD EFFORT';
+      const aSub = `TRAINING ARCADE · ${r.campaignName || 'Arcade'} · ${r.difficulty}`;
+      return (
+        <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
+          <MissionComplete
+            variant={r.cleared ? 'success' : 'partial'}
+            eyebrow={aEyebrow}
+            title={aTitle}
+            subtitle={aSub}
+            xp={r.xpEarned}
+            heroImage="/static/trophies/mission-complete-fight.webp"
+            partialBadge="/static/trophies/good-effort.png"
+            onHero={goTrainingArcade}
+            integrityResult={r.integrityResult}
+            stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
+            shareData={{ title: aTitle, subtitle: aSub, mode: 'Training Arcade' }}
+            actions={[
+              { label: 'BACK TO ARCADE', onClick: goArcadeComplete, kind: 'primary' },
+              { label: 'HOME', onClick: goHome, kind: 'ghost' },
+            ]}
+          />
+        </WithNav>
+      );
+    }
     // Three outcomes: level cleared · one split mission done (level pending) ·
     // stopped/invalid (GOOD EFFORT, nothing counted).
     const missionDone = r.split && r.sessionValid && !r.cleared;
@@ -484,7 +513,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'arcade_series' && arcadeSeries) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
-        <ArcadeSeriesDetail onHome={goHome} series={arcadeSeries} onBack={() => arcadeSeries.id === 'one-punch-protocol' ? goTrainingArcade() : goArcadeSeries(arcadeSeries)} onStartStage={goArcadeSession} onPaywall={goPaywall} arcadeSettings={arcadeSettings}/>
+        <ArcadeSeriesDetail onHome={goHome} series={arcadeSeries} onBack={goTrainingArcade} onStartStage={goArcadeSession} onPaywall={goPaywall} arcadeSettings={arcadeSettings}/>
       </WithNav>
     );
   }

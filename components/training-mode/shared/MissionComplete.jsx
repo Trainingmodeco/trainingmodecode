@@ -24,19 +24,20 @@ const mcCSS = `
 }
 @keyframes mc-rays-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes mc-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
-/* Content sits ~1cm down from the top, badge is a prominent ~1.2in emblem. */
-.mc-top { padding: 30px 16px 0; }
-.mc-hero-badge { height: 108px; }
+/* Content sits well down from the top; badge is a big, prominent emblem. */
+.mc-top { padding: 64px 16px 0; }
+.mc-hero-badge { height: 160px; }
 /* Short phones can't hold the full stack above the tab bar with a big badge —
    pull the top in, shrink the badge, and drop the expendable pieces (recap/
    chips detail and the beta-feedback link) rather than make the athlete scroll. */
 @media (max-height: 812px) {
-  .mc-top { padding: 16px 16px 0; }
-  .mc-hero-badge { height: 88px; }
+  .mc-top { padding: 44px 16px 0; }
+  .mc-hero-badge { height: 128px; }
   .mc-extra, .mc-beta { display: none !important; }
 }
 @media (max-height: 700px) {
-  .mc-hero-badge { height: 72px; }
+  .mc-top { padding: 28px 16px 0; }
+  .mc-hero-badge { height: 104px; }
 }
 `;
 
@@ -81,6 +82,7 @@ export default function MissionComplete({
   shareData,
   heroImage,                // badge art for a completed session
   partialBadge,             // badge art for a stopped/partial (GOOD EFFORT) session
+  onHero,                   // optional: tap the badge to leave (e.g. arcade → saga select)
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
   const partial = variant === 'partial';
@@ -123,11 +125,11 @@ export default function MissionComplete({
             {badge ? (
               // Mode badge art (transparent PNG/WebP) — a ~1.2in emblem sized via
               // .mc-hero-badge; a soft accent glow grounds it and a pop plays it in.
-              <div className="mc-hero-badge" style={{ position: 'relative', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
+              <div onClick={onHero} className="mc-hero-badge" style={{ position: 'relative', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both', cursor: onHero ? 'pointer' : 'default' }}>
                 {/* maxWidth keeps wide emblems (GOOD EFFORT ribbon) in the same
                     visual footprint as the square badges — every trophy renders
                     at a similar size. */}
-                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 150, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 210, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>
