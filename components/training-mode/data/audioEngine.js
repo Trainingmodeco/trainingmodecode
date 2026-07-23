@@ -10,6 +10,16 @@ const STORAGE_KEY = 'tm_audio_settings';
 export const VOICE_MAX = 2.0;
 const SETTINGS_VERSION = 3;
 
+// Cue loudness boost (user: "boost by 300%"). The app's own Web Audio cues —
+// round-start bell, beeps, riser — are tripled and pushed through a master
+// limiter so they cut through loudly without hard-clipping/distorting. Applies
+// to everyone immediately (it's a code constant, not a saved setting). Note: the
+// SPOKEN voice coach is browser TTS, hard-capped at 1.0 by the browser, so it
+// can't be boosted past 100% on web — only the native wrapper / phone media
+// volume can take the voice itself louder.
+const CUE_BOOST = 3.0;
+const CUE_MAX = 6.0;
+
 const DEFAULTS = {
   masterVolume: 1.0,
   sfxVolume: 1.0,
@@ -42,6 +52,32 @@ let preDuckVolume = null;
 let bellBuffer = null;
 let bellLoading = false;
 let bellLoadQueue = [];
+let masterLimiter = null;
+let limiterCtx = null;
+
+// Shared brick-wall-ish limiter for the boosted cues: lets us push cue gain to
+// 300% for loudness while catching peaks so nothing hard-clips into distortion.
+// Recreated if the AudioContext is replaced. Cues connect here, not straight to
+// destination.
+function cueOut() {
+  const ctx = getCtx();
+  if (!ctx) return null;
+  if (masterLimiter && limiterCtx === ctx) return masterLimiter;
+  try {
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -4;
+    comp.knee.value = 0;
+    comp.ratio.value = 20;
+    comp.attack.value = 0.002;
+    comp.release.value = 0.14;
+    comp.connect(ctx.destination);
+    masterLimiter = comp;
+    limiterCtx = ctx;
+    return comp;
+  } catch {
+    return ctx.destination;
+  }
+}
 
 function getSettings() {
   if (settings) return settings;
@@ -110,7 +146,7 @@ export function getEffectiveVoiceVolume() {
 // them across the full 0..200% range so cues audibly cut through even on web.
 function getCueGain() {
   const s = getSettings();
-  return Math.max(0, Math.min(VOICE_MAX, s.masterVolume * s.sfxVolume * s.voiceVolume));
+  return Math.max(0, Math.min(CUE_MAX, s.masterVolume * s.sfxVolume * s.voiceVolume * CUE_BOOST));
 }
 
 export function getEffectiveMusicVolume() {
@@ -219,7 +255,7 @@ function playBellSegment(count) {
   const gain = ctx.createGain();
   source.buffer = bellBuffer;
   source.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(cueOut() || ctx.destination);
   gain.gain.value = vol;
   source.start(0, seg.start, seg.duration);
 }
@@ -248,7 +284,7 @@ function playTone(freq, duration, type, volume, startTime) {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(cueOut() || ctx.destination);
 
   osc.type = type;
   osc.frequency.value = freq;
@@ -277,7 +313,7 @@ export function playRiser() {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(cueOut() || ctx.destination);
 
   const t = ctx.currentTime;
   const peak = Math.max(0.0001, 0.32 * getCueGain());
