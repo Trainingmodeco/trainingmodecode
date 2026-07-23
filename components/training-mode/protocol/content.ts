@@ -166,6 +166,14 @@ export function campBlock(discipline: Discipline, level: number, difficulty: Dif
   };
 }
 
+// 2.9 — the block's gear→substitution map ({ EQUIP_ID: substitute_goal }) from
+// its module. Equipment-aware routing reads this against the athlete's owned
+// gear to surface bodyweight substitutions; substitutions never affect XP.
+export function campSubs(discipline: Discipline, level: number, difficulty: Difficulty, slot: CampSlot): Record<string, string> {
+  const mod = campModule(discipline, level, difficulty, slot);
+  return mod?.substitutions || {};
+}
+
 // Per-round {round_title, coach_prompt} to feed the shared round timer — cycles
 // the block's goal pool across the engine-driven round count.
 export function blockRoundsFor(discipline: Discipline, level: number, difficulty: Difficulty, slot: CampSlot, roundCount: number) {

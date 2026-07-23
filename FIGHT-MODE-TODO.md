@@ -534,7 +534,19 @@ HOW MUCH TO MAKE (guidance):
       (clean Easy pass 100 > Hard fail 4). Verified in-browser: boxing L5 NORMAL
       S1 → +138 XP recorded (was flat 170), total 850→988, no console errors.
       xp-rules.json is the remote-configurable ruleset.
-- [ ] 2.9 Equipment-aware routing: user equipment profile in settings; MINIMUM
+- [x] 2.9 Equipment-aware routing — SHIPPED (Jul 23). data/equipmentProfile.js
+      (tm_equipment) holds the athlete's gear (default: all owned, so no noise);
+      Profile → MY GEAR is the settings screen (7 toggles keyed to the module
+      substitution IDs + "JUST A PHONE" / "FULL GYM" presets, bodyweight-first
+      framing). content.campSubs() exposes a block's gear→substitution map;
+      TrainingCampMap computes neededSubstitutions() for the block(s) about to run
+      and shows a "GEAR SWAPS · NO XP LOST" panel ("🔁 No Heavy Bag → Power
+      Shadowboxing"). XP is unchanged — the 2.8 formula is active-minutes based,
+      so substitutions never dock XP (only effort counts). Verified in-browser:
+      phone-only → swap chip shows; own the bag → chip gone; MY GEAR presets flip
+      0/7 ↔ 7/7 and persist; no console errors. (equipment.json / workout-modules
+      substitutions are the data source.) ORIGINAL TODO TEXT BELOW:
+      user equipment profile in settings; MINIMUM
       VIABLE = open space + phone (every stage completable bare); data-driven
       substitutions (bag → shadowbox power rounds, rope → fast feet, etc.) show
       a chip and NEVER dock XP — punish nothing but effort. (equipment.json.)

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
-import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, blockRoundsFor, humanizeGoal } from './protocol/content';
+import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, humanizeGoal } from './protocol/content';
 import { loadCampProgress } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
 import { loadParq, saveParq } from './data/parq';
+import { loadEquipment, neededSubstitutions, GEAR } from './data/equipmentProfile';
 import ReadinessSheet from './shared/ReadinessSheet';
 import ParQSheet from './shared/ParQSheet';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -39,6 +40,7 @@ const PHASE = {
 
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 const pad2 = (n) => String(n).padStart(2, '0');
+const GEAR_LABEL = Object.fromEntries(GEAR.map((g) => [g.id, g]));
 
 // Slow red pulse for the Title Fight (boss) node.
 const CAMP_CSS = `
@@ -163,6 +165,16 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // FULL CAMP is only offered on a fresh split level (neither mission done yet).
   const canFull = open != null && isSplitAvailable(open.level) && !openSess.s1 && !openSess.s2;
   const useFull = canFull && format === 'full';
+  // 2.9 — equipment-aware routing: for the block(s) about to run, surface a
+  // bodyweight substitution for any gear the athlete hasn't got. Never docks XP.
+  const gearOwned = loadEquipment();
+  const subSlots = open == null ? []
+    : (useFull ? ['fight', 'fit']
+      : [(isSplitAvailable(open.level) && nextSlot === 's2') ? 'fit' : 'fight']);
+  const subChips = open == null ? []
+    : subSlots
+      .flatMap((slot) => neededSubstitutions(campSubs(discKey, open.level, difficulty, slot), gearOwned))
+      .filter((v, i, a) => a.findIndex((x) => x.id === v.id) === i);
   // 45b START runs the readiness check (2.6) first; the sheet launches on 'go'.
   const requestStart = () => {
     if (!open || !canStart) return;
@@ -349,6 +361,21 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                   {campBlock(discKey, open.level, difficulty, 'fight').goals.map(humanizeGoal).map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
                 </div>
               </>
+            )}
+
+            {/* 2.9 — gear swaps: bodyweight substitutions for kit you don't have.
+                Never affects XP — only effort counts. Managed in Profile → Gear. */}
+            {canStart && subChips.length > 0 && (
+              <div style={{ marginBottom: 9, padding: '7px 9px', borderRadius: 8, background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.28)' }}>
+                <div style={{ font: "700 6.5px 'Orbitron',sans-serif", color: '#5eead4', letterSpacing: '0.1em', marginBottom: 5 }}>GEAR SWAPS · NO XP LOST</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {subChips.map(({ id, sub }) => (
+                    <div key={id} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#c4e9e2', lineHeight: 1.25 }}>
+                      🔁 No {GEAR_LABEL[id]?.label || humanizeGoal(id)} → <span style={{ color: '#e6fffb', fontWeight: 700 }}>{humanizeGoal(sub)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {canStart ? (
