@@ -186,7 +186,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // footer; header lives in the screen, back chevron returns to the Fight hub.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
-        <TrainingCampMap discipline={disc} onBack={goFightHub} onStartSession={goCampSession}/>
+        <TrainingCampMap discipline={disc} onBack={goFightHub} onStartSession={goCampSession} onPaywall={goPaywall}/>
       </WithNav>
     );
   }

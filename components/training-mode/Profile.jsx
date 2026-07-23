@@ -16,7 +16,6 @@ import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 import { PRIVACY_URL, openExternalUrl } from './data/links';
-import { GEAR, GEAR_IDS, loadEquipment, saveEquipment } from './data/equipmentProfile';
 
 
 function SectionLabel({ text }) {
@@ -52,59 +51,6 @@ function PillRow({ opts, val, onPick, wrap = false }) {
   );
 }
 
-
-// Phase 2 · 2.9 — the equipment profile. Bodyweight-first: every session works
-// with just open space + a phone. Toggling gear on routes richer variants; gear
-// left off surfaces a substitution in the camp modal and NEVER costs XP.
-function EquipmentSettingsView({ onBack, onHome }) {
-  const [owned, setOwned] = useState(loadEquipment);
-  const toggle = (id) => {
-    const next = new Set(owned);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    setOwned(next); saveEquipment(next);
-  };
-  const setAll = (on) => { const next = new Set(on ? GEAR_IDS : []); setOwned(next); saveEquipment(next); };
-  const count = owned.size;
-  return (
-    <PhoneFrame useBrandBg>
-      <CornerHUD color="rgba(45,212,191,0.3)" size={24} inset={12}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-        <TrainingHeader title="MY GEAR" subtitle="What you train with." onHome={onHome} showBack onBack={onBack}/>
-        <div className="no-scrollbar" style={{ flex: 1, overflowX: 'hidden', padding: '12px 16px calc(190px + env(safe-area-inset-bottom, 0px))' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.28)', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ font: "800 9px 'Orbitron',sans-serif", color: '#5eead4', letterSpacing: '0.05em', marginBottom: 3 }}>🧍 OPEN SPACE + 📱 PHONE = ALL YOU NEED</div>
-              <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#c4e9e2', lineHeight: 1.35 }}>Every session is completable with zero gear. Tell us what you&apos;ve got and we&apos;ll route richer drills — anything you skip gets a bodyweight swap. Substitutions never cost XP.</div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 7 }}>
-              <button onClick={() => setAll(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, cursor: 'pointer', background: count === 0 ? 'rgba(45,212,191,0.16)' : 'rgba(12,2,24,0.7)', border: `1px solid ${count === 0 ? 'rgba(45,212,191,0.6)' : 'rgba(255,255,255,0.08)'}`, font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.04em', color: count === 0 ? '#5eead4' : 'rgba(255,255,255,0.55)' }}>📱 JUST A PHONE</button>
-              <button onClick={() => setAll(true)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, cursor: 'pointer', background: count === GEAR_IDS.length ? 'rgba(168,85,247,0.14)' : 'rgba(12,2,24,0.7)', border: `1px solid ${count === GEAR_IDS.length ? 'rgba(168,85,247,0.6)' : 'rgba(255,255,255,0.08)'}`, font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.04em', color: count === GEAR_IDS.length ? C.neon : 'rgba(255,255,255,0.55)' }}>🏠 FULL GYM</button>
-            </div>
-
-            <div>
-              <SectionLabel text={`MY GEAR · ${count}/${GEAR_IDS.length}`}/>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {GEAR.map((g) => {
-                  const on = owned.has(g.id);
-                  return (
-                    <button key={g.id} onClick={() => toggle(g.id)} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(12,2,24,0.8)', borderRadius: 8, padding: '10px 14px', border: `1px solid ${on ? 'rgba(45,212,191,0.4)' : 'rgba(255,255,255,0.06)'}`, cursor: 'pointer', textAlign: 'left' }}>
-                      <span style={{ fontSize: 17 }}>{g.icon}</span>
-                      <span style={{ flex: 1, font: "700 12px 'Rajdhani',sans-serif", color: on ? C.text : 'rgba(255,255,255,0.5)' }}>{g.label}</span>
-                      <div style={{ width: 38, height: 20, borderRadius: 10, position: 'relative', background: on ? '#2dd4bf' : 'rgba(255,255,255,0.12)', transition: 'background 0.2s' }}>
-                        <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: on ? 20 : 2, transition: 'left 0.2s' }}/>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </PhoneFrame>
-  );
-}
 
 function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio }) {
   const [saved, setSaved] = useState(false);
@@ -398,13 +344,6 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                 <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>SETTINGS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Audio · units · subscription · privacy</div></div>
                 <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
               </button>
-              {/* 2.9 — equipment profile: routes richer camp variants, bodyweight
-                  swaps for missing gear (never costs XP). */}
-              <button onClick={() => setProfileView('equipment')} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(45,212,191,0.3)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
-                <span style={{ fontSize: 14 }}>🥊</span>
-                <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>MY GEAR</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>What you train with · bodyweight-first</div></div>
-                <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#5eead4' }}>›</span>
-              </button>
               {onNotifications && (
                 <button onClick={onNotifications} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: 14 }}>🔔</span>
@@ -429,10 +368,6 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.profile} onClose={() => setHelpOpen(false)}/>}
       </PhoneFrame>
     );
-  }
-
-  if (profileView === 'equipment') {
-    return <EquipmentSettingsView onBack={() => setProfileView('overview')} onHome={onHome}/>;
   }
 
   if (profileView === 'audio') {

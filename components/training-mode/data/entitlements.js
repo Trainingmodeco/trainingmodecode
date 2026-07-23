@@ -18,6 +18,7 @@ const CACHE_KEY = 'tm_entitlement_cache';  // { plan, is_pro } synced from Supab
 
 export const GATES = {
   freeArcadeStages: 3,   // stages 1..N free per saga
+  freeCampLevels: 3,     // Training Camp levels 1..N free; N+1..12 are Pro
   freeRoutineSlots: 1,   // saved-routine slots on the free tier
 };
 
@@ -113,6 +114,13 @@ export function hasProEntitlement() {
 
 export function canAccessStage(stageNumber) {
   return isPro() || (stageNumber || 1) <= GATES.freeArcadeStages;
+}
+
+// Training Camp: levels 1..freeCampLevels are free, the rest are Pro. Like the
+// arcade gate, progression already locks levels you haven't reached — this is
+// the separate paywall gate (only bites when the switch/preview is active).
+export function canAccessCampLevel(level) {
+  return isPro() || (level || 1) <= GATES.freeCampLevels;
 }
 
 export function routineSlotLimit() {

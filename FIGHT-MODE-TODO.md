@@ -545,7 +545,21 @@ HOW MUCH TO MAKE (guidance):
       so substitutions never dock XP (only effort counts). Verified in-browser:
       phone-only → swap chip shows; own the bag → chip gone; MY GEAR presets flip
       0/7 ↔ 7/7 and persist; no console errors. (equipment.json / workout-modules
-      substitutions are the data source.) ORIGINAL TODO TEXT BELOW:
+      substitutions are the data source.)
+      REPOSITIONED (Jul 23, user): gear is contextual, not a global setting — the
+      Profile → MY GEAR screen was REMOVED and replaced by shared/GearSheet.jsx,
+      a small in-flow modal shown in the camp start flow AFTER the readiness/vibe
+      check (START → readiness → gear → warm-up → session), with the same presets
+      + live "GEAR SWAPS · NO XP LOST" line. The 45b pre-start swap chips were
+      removed (gear is now picked in-flow). Verified in-browser: START → readiness
+      → GEAR CHECK (phone-only default, live "No Heavy Bag → Power Shadowboxing")
+      → CONTINUE → warm-up → session; MY GEAR no longer in Profile.
+      CAMP PAYWALL (Jul 23, user): free levels 1–3, 4–12 Pro
+      (entitlements.GATES.freeCampLevels=3 + canAccessCampLevel). A free user on a
+      Pro level sees "Levels 1–3 are free · 👑 UNLOCK WITH PRO" → Paywall (onPaywall
+      threaded via ScreenRouter). Verified in-browser with ?paywall=preview: L5 →
+      UNLOCK WITH PRO → Paywall; L3 → normal START SESSION. Custom combo (1.3b,
+      rebuilt later) is also Pro. ORIGINAL TODO TEXT BELOW:
       user equipment profile in settings; MINIMUM
       VIABLE = open space + phone (every stage completable bare); data-driven
       substitutions (bag → shadowbox power rounds, rope → fast feet, etc.) show

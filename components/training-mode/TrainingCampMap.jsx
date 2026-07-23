@@ -5,9 +5,10 @@ import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, 
 import { loadCampProgress } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
 import { loadParq, saveParq } from './data/parq';
-import { loadEquipment, neededSubstitutions, GEAR } from './data/equipmentProfile';
+import { canAccessCampLevel, GATES } from './data/entitlements';
 import ReadinessSheet from './shared/ReadinessSheet';
 import ParQSheet from './shared/ParQSheet';
+import GearSheet from './shared/GearSheet';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -40,7 +41,6 @@ const PHASE = {
 
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 const pad2 = (n) => String(n).padStart(2, '0');
-const GEAR_LABEL = Object.fromEntries(GEAR.map((g) => [g.id, g]));
 
 // Slow red pulse for the Title Fight (boss) node.
 const CAMP_CSS = `
@@ -106,7 +106,7 @@ function NodePips({ level, state, sess }) {
   return null;
 }
 
-export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStartSession }) {
+export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStartSession, onPaywall }) {
   const discKey = DISC_KEY[discipline] || 'boxing';
   // 2.6 (stage 1) — PAR-Q+ one-time screening. If it was taken and flagged a
   // "yes", the camp softly defaults to Easy (never a hard block). Shown once.
@@ -116,6 +116,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
   const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
+  const [gearCtx, setGearCtx] = useState(null);             // 2.9 — gear check, after readiness
   const [format, setFormat] = useState('split');            // 2.4 — 'split' | 'full'
   const [helpOpen, setHelpOpen] = useState(false);
   const [current] = useState(loadCampProgress);
@@ -165,21 +166,29 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // FULL CAMP is only offered on a fresh split level (neither mission done yet).
   const canFull = open != null && isSplitAvailable(open.level) && !openSess.s1 && !openSess.s2;
   const useFull = canFull && format === 'full';
-  // 2.9 — equipment-aware routing: for the block(s) about to run, surface a
-  // bodyweight substitution for any gear the athlete hasn't got. Never docks XP.
-  const gearOwned = loadEquipment();
-  const subSlots = open == null ? []
-    : (useFull ? ['fight', 'fit']
-      : [(isSplitAvailable(open.level) && nextSlot === 's2') ? 'fit' : 'fight']);
-  const subChips = open == null ? []
-    : subSlots
-      .flatMap((slot) => neededSubstitutions(campSubs(discKey, open.level, difficulty, slot), gearOwned))
-      .filter((v, i, a) => a.findIndex((x) => x.id === v.id) === i);
-  // 45b START runs the readiness check (2.6) first; the sheet launches on 'go'.
+  // 2.9 (gate-aware) — free camp levels 1..N; higher levels are Pro.
+  const levelGated = open != null && !canAccessCampLevel(open.level);
+  // 2.9 — merged gear→substitution map for the block(s) a ctx will run, fed to
+  // the in-flow GearSheet so swaps update live as the athlete picks their kit.
+  const subsForCtx = (ctx) => {
+    if (!ctx) return {};
+    const slots = ctx.full ? ['fight', 'fit'] : [(isSplitAvailable(ctx.level) && ctx.slot === 's2') ? 'fit' : 'fight'];
+    return slots.reduce((acc, slot) => ({ ...acc, ...campSubs(discKey, ctx.level, ctx.difficulty, slot) }), {});
+  };
+  // 45b START → paywall gate → readiness check (2.6) → gear check (2.9) → launch.
   const requestStart = () => {
     if (!open || !canStart) return;
+    if (levelGated) { onPaywall?.(); setOpenLevel(null); return; }
     setReadinessCtx({ level: open.level, difficulty, slot: openSess.s1 ? 's2' : 's1', full: useFull });
     setOpenLevel(null);
+  };
+  // After a gear check, actually launch (split mission or full camp).
+  const doLaunch = (ctx) => {
+    if (ctx.full) {
+      onStartSession?.({ discipline, level: ctx.level, difficulty: ctx.difficulty, format: 'full', cfgSkill: buildCfg(ctx.level, ctx.difficulty, 'fight'), cfgFit: buildCfg(ctx.level, ctx.difficulty, 'fit') });
+    } else {
+      launch(ctx.level, ctx.difficulty, ctx.slot);
+    }
   };
 
   // Modal lands near the tapped node, clamped to stay fully on screen.
@@ -363,24 +372,19 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               </>
             )}
 
-            {/* 2.9 — gear swaps: bodyweight substitutions for kit you don't have.
-                Never affects XP — only effort counts. Managed in Profile → Gear. */}
-            {canStart && subChips.length > 0 && (
-              <div style={{ marginBottom: 9, padding: '7px 9px', borderRadius: 8, background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.28)' }}>
-                <div style={{ font: "700 6.5px 'Orbitron',sans-serif", color: '#5eead4', letterSpacing: '0.1em', marginBottom: 5 }}>GEAR SWAPS · NO XP LOST</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {subChips.map(({ id, sub }) => (
-                    <div key={id} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#c4e9e2', lineHeight: 1.25 }}>
-                      🔁 No {GEAR_LABEL[id]?.label || humanizeGoal(id)} → <span style={{ color: '#e6fffb', fontWeight: 700 }}>{humanizeGoal(sub)}</span>
-                    </div>
-                  ))}
-                </div>
+            {/* 2.9 (gate) — free levels 1..N; a Pro level shows the upsell note. */}
+            {canStart && levelGated && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, padding: '6px 9px', borderRadius: 8, background: 'rgba(253,224,71,0.09)', border: '1px solid rgba(253,224,71,0.4)' }}>
+                <span style={{ fontSize: 12 }}>👑</span>
+                <span style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#facc15', lineHeight: 1.25 }}>Levels 1–{GATES.freeCampLevels} are free. Go Pro to finish the camp to the belt.</span>
               </div>
             )}
 
             {canStart ? (
               <button onClick={requestStart} style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>
-                ▶ START {useFull ? 'FULL CAMP' : isSplitAvailable(open.level) ? `SESSION ${nextSlot === 's2' ? 2 : 1}` : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
+                {levelGated
+                  ? '👑 UNLOCK WITH PRO'
+                  : `▶ START ${useFull ? 'FULL CAMP' : isSplitAvailable(open.level) ? `SESSION ${nextSlot === 's2' ? 2 : 1}` : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}`}
               </button>
             ) : (
               <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.5)', color: '#8b7fb0', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'not-allowed' }}>
@@ -393,19 +397,26 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
 
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.training_camp} onClose={() => setHelpOpen(false)} />}
 
-      {/* 2.6 — readiness gate before the session actually launches. */}
+      {/* 2.6 — readiness gate. On 'go' it hands off to the gear check (2.9),
+          which then launches. Easy variant carries through as the difficulty. */}
       {readinessCtx && (
         <ReadinessSheet
           onGo={({ easy }) => {
             const diff = easy ? 'easy' : readinessCtx.difficulty;
-            if (readinessCtx.full) {
-              onStartSession?.({ discipline, level: readinessCtx.level, difficulty: diff, format: 'full', cfgSkill: buildCfg(readinessCtx.level, diff, 'fight'), cfgFit: buildCfg(readinessCtx.level, diff, 'fit') });
-            } else {
-              launch(readinessCtx.level, diff, readinessCtx.slot);
-            }
+            setGearCtx({ ...readinessCtx, difficulty: diff });
             setReadinessCtx(null);
           }}
           onClose={() => setReadinessCtx(null)}
+        />
+      )}
+
+      {/* 2.9 — gear check, right after the readiness check. Confirms today's kit
+          (phone-only is fine), shows bodyweight swaps live, then launches. */}
+      {gearCtx && (
+        <GearSheet
+          substitutions={subsForCtx(gearCtx)}
+          onContinue={() => { doLaunch(gearCtx); setGearCtx(null); }}
+          onClose={() => setGearCtx(null)}
         />
       )}
 
