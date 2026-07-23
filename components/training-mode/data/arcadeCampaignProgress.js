@@ -23,3 +23,20 @@ export function clearArcadeStage(campaignId, stageNumber) {
   }
   return p[campaignId];
 }
+
+// First-time campaign intro: the big description/rewards modal auto-shows once
+// per campaign (then hands off to the stage-1 modal). Tracked separately.
+const INTRO_KEY = 'tm_arcade_intro_seen';
+
+export function hasSeenIntro(campaignId) {
+  try { return (JSON.parse(localStorage.getItem(INTRO_KEY) || '{}') || {})[campaignId] === true; }
+  catch { return false; }
+}
+
+export function markIntroSeen(campaignId) {
+  try {
+    const o = JSON.parse(localStorage.getItem(INTRO_KEY) || '{}') || {};
+    o[campaignId] = true;
+    localStorage.setItem(INTRO_KEY, JSON.stringify(o));
+  } catch { /* quota */ }
+}

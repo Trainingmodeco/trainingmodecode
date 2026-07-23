@@ -10,6 +10,7 @@ import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
 import { canAccessStage, GATES } from './data/entitlements';
+import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -106,6 +107,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const [selectFor, setSelectFor] = useState(null);
   const [selMode, setSelMode] = useState('fight');
   const [selDiff, setSelDiff] = useState('normal');
+  // 2.10 — first-time campaign intro (big description/rewards). null | 'first' | 'help'.
+  const [intro, setIntro] = useState(null);
   const [shakeIdx, setShakeIdx] = useState(null);
   const [toast, setToast] = useState(null);
   const [boxH, setBoxH] = useState(0);
@@ -244,6 +247,31 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     onStartStage(series, stage, selMode, null, { difficulty: selDiff, voiceCoach: true, sound: 'on' });
   }
 
+  // 2.10 — first-time campaign intro auto-opens once, then hands to the stage-1
+  // modal. Later visits skip it (the how-to button re-opens it any time).
+  useEffect(() => {
+    if (series.v2Campaign && !hasSeenIntro(series.id)) {
+      const t = setTimeout(() => setIntro('first'), 450);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [series.v2Campaign, series.id]);
+
+  const currentStageIdx = () => {
+    for (let i = 0; i < nodes.length; i++) if (stageState(i) === 'current') return i;
+    return 0;
+  };
+  const openStageCentered = (idx) => {
+    const bh = boxRef.current ? boxRef.current.clientHeight : 600;
+    setOpenInfo({ idx, top: Math.max(6, (bh - MODAL_H) / 2), side: 'C', notch: 'none', notchY: 0 });
+  };
+  const dismissIntro = () => {
+    const wasFirst = intro === 'first';
+    markIntroSeen(series.id);
+    setIntro(null);
+    if (wasFirst) setTimeout(() => openStageCentered(currentStageIdx()), 140);
+  };
+
   // ── Modal content data ──
   const objectives = selected ? getStageObjectives(selected) : [];
   const difficulty = selected ? Math.min(5, Math.max(1, Math.ceil((selected.stageNumber || 1) / 2))) : 1;
@@ -288,9 +316,14 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           showBack
           onBack={onBack}
           rightSlot={(
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
-              {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {series.v2Campaign && (
+                <button onClick={() => setIntro('help')} aria-label="Campaign info" style={{ width: 26, height: 26, borderRadius: 7, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.12)', color: '#c9a6ff', font: "900 12px 'Orbitron',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+              )}
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
+                {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
+              </span>
+            </div>
           )}
         />
         <div style={{ height: 6, flexShrink: 0 }} />
@@ -525,6 +558,29 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 </div>
 
                 <button onClick={startSelected} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>▶ START</button>
+              </div>
+            </div>
+          )}
+
+          {/* 2.10 — first-time campaign intro (description + rewards, no banner).
+              Auto-opens once, then hands to the stage-1 modal; also via the ? button. */}
+          {intro && (
+            <div onClick={dismissIntro} style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(4,0,10,0.8)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: '92%', maxWidth: 340, maxHeight: '86%', overflowY: 'auto', background: 'rgba(16,7,32,0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(253,224,71,0.4)', borderRadius: 16, padding: '18px', boxShadow: '0 20px 55px rgba(0,0,0,0.7)' }}>
+                <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 4 }}>TRAINING ARCADE · CAMPAIGN</div>
+                <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{series.title}</div>
+                {series.subtitle && <div style={{ font: "700 9px 'Rajdhani',sans-serif", color: GOLD, letterSpacing: '0.03em', margin: '3px 0 11px' }}>{series.subtitle}</div>}
+                <div style={{ font: "600 11.5px 'Rajdhani',sans-serif", color: '#e6d9ff', lineHeight: 1.45, marginBottom: 14 }}>{series.description}</div>
+                {series.rewards && (
+                  <div style={{ background: 'rgba(8,2,18,0.5)', border: '1px solid rgba(168,85,247,0.28)', borderRadius: 10, padding: '9px 12px', marginBottom: 16 }}>
+                    <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.12em', marginBottom: 6 }}>REWARDS</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                      {series.rewards.badge && <span style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#fff' }}>🏆 {series.rewards.badge}</span>}
+                      {series.rewards.xp && <span style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#facc15' }}>◎ {series.rewards.xp} XP</span>}
+                    </div>
+                  </div>
+                )}
+                <button onClick={dismissIntro} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{intro === 'first' ? '▶ START THE CLIMB' : 'GOT IT'}</button>
               </div>
             </div>
           )}
