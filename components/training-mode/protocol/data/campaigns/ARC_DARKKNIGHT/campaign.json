@@ -1,0 +1,150 @@
+{
+  "campaign_id": "ARC_DARKKNIGHT",
+  "name": "THE DARK KNIGHT — PEAK HUMAN PROTOCOL",
+  "type": "fit_fight",
+  "combat_style": "Multi-discipline: boxing + Muay Thai + clinch/grappling + defensive counter — the all-rounder",
+  "stage_count": 12,
+  "flagship": true,
+  "flagship_note": "The app's hardest, most comprehensive campaign — the only one integrating all SIX pillars: gymnastics, calisthenics, strength, cardio/conditioning, fight (conditioning + technical), and parkour. Because no real program safely fuses six pillars at high volume, this campaign actively MANAGES concurrent-training load (pillar rotation, deloads, enhanced gates) — see campaign.safety_scaffolding.",
+  "pillars": ["gymnastics", "calisthenics", "strength", "cardio_conditioning", "fight", "parkour"],
+  "paths_available": ["fit", "fight", "full_arc"],
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Forge a peak-human all-rounder — the body of an acrobat, the strength of a fighter, the movement of a traceur, and the discipline to master all of it without breaking.",
+  "tagline": "Become more than a man.",
+  "core_rule": "The body is a tool — sharpen it, don't shatter it.",
+  "core_rule_enforcement": "Six pillars at high volume is the real overtraining risk. This campaign never stacks heavy strength + high-impact parkour + gymnastics in one session, prescribes deloads, gates advanced/high-risk skills behind progressions, and enforces parkour/gymnastics safety. Discipline means recovering as hard as you train — reckless volume is failure, not virtue.",
+  "sourcing_note": "Grounded in the deep-research report (protocol-src/research/darkknight-research-report.md). VERIFIED: fan calisthenics structure (SuperheroJacked 5-day A/B + core + cardio; Darebee bodyweight circuit), the parkour beginner progression (landing / roll-from-squat / precision jumps with 1-2 ft targets and cleared landing / safety vaults; flips deferred to advanced), and peer-reviewed gymnastics wrist-injury data (~53% adolescent prevalence, up to 75% chronic in male gymnasts) mandating wrist prehab + pinch-pain screening. IMPORTANT: research confirmed NO existing program fuses six pillars and NO source covers safe six-pillar periodization — that fusion is this campaign's design, built conservatively. One research sub-source (a karate blog) was flagged for suspicious activity and EXCLUDED; martial-arts content uses the app's existing disciplines instead. The '~127 martial arts' Batman claim was not substantiated and is treated as comic lore, not a training target.",
+  "fit_focus_by_pillar": {
+    "gymnastics": ["Wrist/shoulder prep (daily lacrosse-ball prehab)", "Handstand progressions", "Ring/bar support and rows", "Levers (gated behind progressions)", "Balance and body control"],
+    "calisthenics": ["Push/pull/squat progressions", "High-rep bodyweight mastery", "Core and stability"],
+    "strength": ["Compound patterns to target", "Weighted calisthenics", "Posterior chain"],
+    "cardio_conditioning": ["Running / roadwork", "HIIT and energy-system work", "Circuit conditioning"],
+    "parkour": ["Landing mechanics", "Safety and shoulder rolls", "Precision jumps (close, cleared)", "Safety vaults", "Balance and wall work — NO flips prescribed"]
+  },
+  "fight_focus": [
+    "Boxing base (jab, cross, hooks, footwork)", "Muay Thai (kicks, knees, clinch)", "Defensive counters and blocks",
+    "Multi-discipline flow (strike into clinch into control)", "Bag conditioning rounds", "Composure under fatigue"
+  ],
+  "split_stages": [4, 11],
+  "double_training_stages": [4, 11],
+  "peak_stage": 11,
+  "difficulty_scaling": {
+    "easy": {
+      "label": "VIGILANTE",
+      "fit": { "working_sets": [2, 3], "resistance": "bodyweight / beginner progressions", "rest": "longer" },
+      "fight": { "rounds": [4, 5], "round_sec": 60, "rest_sec": [60, 75], "requirements": "basic strikes, beginner movement drills, lowest/closest parkour targets, wrist prehab" },
+      "target_rpe": [4, 6]
+    },
+    "normal": {
+      "label": "DETECTIVE",
+      "fit": { "working_sets": [3, 4], "resistance": "intermediate progressions / moderate load", "rest": "moderate" },
+      "fight": { "rounds": [5, 6], "round_sec": 120, "rest_sec": [45, 60], "requirements": "combinations, intermediate movement, precision jumps + safety vaults, handstand/ring progressions" },
+      "target_rpe": [6, 8]
+    },
+    "hard": {
+      "label": "DARK KNIGHT",
+      "fit": { "working_sets": [4, 5], "resistance": "advanced progressions / weighted", "rest": "shorter (never to failure)" },
+      "fight": { "rounds": [6, 8], "round_sec": 180, "rest_sec": [30, 45], "requirements": "advanced combinations, full movement integration; advanced gymnastics skills only after progression gates; experienced athletes" },
+      "target_rpe": [7, 9]
+    },
+    "hard_never_requires": [
+      "Flips or advanced acrobatics (backflips, wall flips) — deferred, never auto-prescribed",
+      "Parkour on hard/high surfaces or big gaps", "Gymnastics skills past your progression",
+      "Training through wrist pinch-pain or joint pain", "Stacking all pillars heavy in one day",
+      "Sets to failure", "Skipping prescribed deloads"
+    ]
+  },
+  "safety_scaffolding": {
+    "overtraining_management": {
+      "why": "No source covers safe six-pillar periodization — the research's flagged core risk. This campaign manages it explicitly.",
+      "rules": [
+        "PILLAR ROTATION: never stack heavy strength + high-impact parkour + gymnastics load in the same session; each session leads with one primary pillar and keeps the others light.",
+        "DELOAD: after each hard-camp block, a lighter recovery stage/week is prescribed; skipping it is discouraged (and completing it earns an achievement).",
+        "ENHANCED READINESS GATE on integration/peak stages (10-12): normal readiness plus joint-soreness and sleep-debt questions; poor answers push toward Easy or a movement-quality day.",
+        "This is the hardest campaign — predetermined targets, no max-until-collapse, and rest floors on peak stages."
+      ]
+    },
+    "parkour_safety": {
+      "applies_to_stages": [5, 9, 10, 11, 12],
+      "rules": [
+        "START LOW: beginner precision-jump targets ~1-2 ft away; progress distance/height slowly.",
+        "CLEARED LANDING: confirm the landing area is clear and safe before any jump.",
+        "LANDING MECHANICS: bend knees to absorb impact, land balls-of-feet to heel, quiet landings.",
+        "ROLL FROM A SQUAT: feet shoulder-width, head tucked to chest, roll diagonally over one shoulder to disperse impact.",
+        "NO FLIPS / ADVANCED ACROBATICS prescribed — framed as advanced 'beyond the basics', deferred, never auto-assigned.",
+        "Forgiving surfaces (grass/mats) for beginners; never train new drills fatigued."
+      ]
+    },
+    "gymnastics_safety": {
+      "applies_to_stages": [4, 8, 10, 11, 12],
+      "why": "Wrist pain is highly prevalent in gymnastics (~53% adolescent prevalence; up to 75% chronic in male gymnasts) — peer-reviewed.",
+      "rules": [
+        "DAILY WRIST PREHAB: soft-tissue work (lacrosse ball) + wrist mobility before ring/handstand/bar work.",
+        "SCREEN FOR PINCH-PAIN: front-of-wrist 'pinch' pain is an early warning sign — stop that work and regress if it appears.",
+        "CONNECTIVE-TISSUE PREP: build support holds and straight-arm strength before loading levers/skills.",
+        "SKILL GATES: levers, muscle-ups and advanced ring skills unlock only after their progression is cleared — never assigned cold."
+      ]
+    },
+    "fantasy_flags": "Batman's '127 martial arts' and peak-human comic feats are lore only, shown with a '⚠ comic fantasy — not a training goal' tag. The real lesson is disciplined, well-rounded, safe training."
+  },
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_MINIMAL": ["PULLUP_BAR", "MAT", "BAND", "LOW_STEP"],
+    "C_FIGHT_TRAINING": ["HEAVY_BAG", "GLOVES", "PULLUP_BAR", "MAT"],
+    "D_FULL_DARKKNIGHT": ["GYMNASTIC_RINGS", "PULLUP_BAR", "HEAVY_BAG", "GLOVES", "KETTLEBELL", "LIGHT_WEIGHTS", "LOW_STEP", "MAT"],
+    "rule": "Every stage runs on at least the MINIMAL version. Rings substitute to bar/TRX/floor; parkour needs only floor targets + a low step; martial arts run on a bag or shadow."
+  },
+  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_ARC_CLEAR", "FINAL_BOSS_CLEAR"],
+  "achievements": [
+    { "id": "ACH_DK_FORGED",     "name": "Forged",           "trigger": "Clear the foundation stages (1-3)" },
+    { "id": "ACH_DK_AERIAL",     "name": "Aerial Control",   "trigger": "Clear the gymnastics stages with no wrist-pain flags" },
+    { "id": "ACH_DK_TRACEUR",    "name": "Traceur",          "trigger": "Clear the parkour stages with clean landings and rolls" },
+    { "id": "ACH_DK_MANY_STYLES","name": "Many Styles",      "trigger": "Clear both technical-fight stages (6-7)" },
+    { "id": "ACH_DK_DISCIPLINE", "name": "Discipline",       "trigger": "Complete every prescribed deload / recovery day" },
+    { "id": "ACH_DK_DETECTIVE",  "name": "World's Greatest", "trigger": "Clear the integration stages (10-11)" },
+    { "id": "ACH_DK_BECOME_BAT", "name": "Become the Bat",   "trigger": "Defeat Stage 12 without a control-breakdown fail" },
+    { "id": "ACH_DK_PEAK_HUMAN", "name": "Peak Human",       "trigger": "Clear Fit and Fight for all 12 stages" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Prescribed work not completed", "Form breaks down", "Wrist pinch-pain or joint pain", "Poor landing/roll control (parkour)", "Effort far above target", "Recovery inadequate"],
+      "response": ["Regress to an easier progression", "Reduce parkour target distance/height", "Add wrist prehab and reduce gymnastics load", "Recommend one difficulty lower", "Preserve Fight difficulty where appropriate"]
+    },
+    "fight": {
+      "causes": ["Combination/technique collapses", "Guard or control repeatedly lost", "Cannot complete the rounds", "Objective ignored", "Unsafe symptoms reported"],
+      "response": ["Recommend Practice Mode", "Shorten round length", "Increase rest", "Drop Fight difficulty by one level", "Do NOT automatically lower the Fit path"]
+    },
+    "safety_stop": ["Sharp pain", "Chest pain", "Dizziness", "Faintness", "New concussion symptoms", "Severe breathing difficulty", "Acute injury", "Front-of-wrist pinch pain (stop gymnastics work)", "Any fall/landing injury (stop parkour)"]
+  },
+  "final_boss": {
+    "stage_id": "ARC_DARKKNIGHT_STG12",
+    "no_hard_morning_workout": true,
+    "fight_trial_name": "Become the Bat — The Peak Human Trial",
+    "control_mechanic": "The all-pillar trial: twelve rounds cycling every pillar (gymnastic control, calisthenic power, strength, conditioning, each fight discipline, movement/parkour). Form and control are gated — sloppy or unsafe execution fails the round. Mastery = all six pillars, in control, composed.",
+    "round_objectives": [
+      "Center yourself — breath, posture, control",
+      "Calisthenic power — explosive push/pull",
+      "Strength — a heavy controlled effort",
+      "Conditioning burst (capped)",
+      "Boxing round — hands and footwork",
+      "Muay Thai round — kicks, knees, clinch",
+      "Defensive round — counters and blocks",
+      "Gymnastic control — handstand/ring hold or balance",
+      "Movement round — landing, roll, precision (safe, low)",
+      "All-around combination — strike into movement",
+      "Composure under fatigue — hold quality",
+      "Become the Bat — finish in complete control"
+    ],
+    "timing": {
+      "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45, "approx_total_min": 20 },
+      "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30, "approx_total_min": 30 },
+      "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30, "approx_total_min": 42 }
+    },
+    "fit_final_test": {
+      "categories": ["Handstand or ring-support hold for time", "Weighted or advanced calisthenic strength target", "Conditioning circuit to target (capped)", "Precision-jump + roll movement test (safe, low)", "Core hold", "Controlled full-body finisher"],
+      "rule": "Predetermined targets only — never max-until-collapse. Parkour test stays low and cleared; gymnastics test respects wrist prehab and pinch-pain stop."
+    },
+    "full_arc_flow": ["Mobility + wrist prehab activation", "Transition period", "Become the Bat — 12-round all-pillar trial", "Cooldown and readiness report"]
+  },
+  "art": { "banner": "/assets/series/dark-knight.png", "stage_badges": "reuse /assets/stages/s1-s10 + boss badge", "art_note": "Placeholder banner reuse — swap for an original Dark-Knight-inspired asset before launch (IP)." }
+}

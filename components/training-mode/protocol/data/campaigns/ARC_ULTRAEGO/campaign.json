@@ -1,0 +1,114 @@
+{
+  "campaign_id": "ARC_ULTRAEGO",
+  "name": "ULTRA EGO STYLE — DESTROYER PROTOCOL",
+  "type": "fit_fight",
+  "combat_style": "Pressure Muay Thai / hybrid striking",
+  "stage_count": 12,
+  "paths_available": ["fit", "fight", "full_arc"],
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Develop a dense, powerful physique and an aggressive — but controlled — pressure-fighting style.",
+  "tagline": "Build the frame. Control the pressure. Unleash the power.",
+  "core_rule": "Power without control is failure.",
+  "core_rule_enforcement": "Never reward reckless technique, intentionally absorbing strikes, or poor form used to complete a higher difficulty.",
+  "identity": [
+    "Relentless forward pressure", "Physical density", "Grounded striking power",
+    "Strong neck and trunk", "Thick shoulders, traps, lats, and forearms",
+    "Powerful legs", "High work capacity", "Confidence under pressure",
+    "Controlled aggression", "Refusal to mentally break"
+  ],
+  "fit_focus": [
+    "Neck strength", "Shoulders and traps", "Back and lats", "Forearms and grip",
+    "Legs and hips", "Functional core", "Strength endurance", "Muscular density", "Explosive power"
+  ],
+  "fight_focus": [
+    "Grounded stance", "Pressure footwork", "Power combinations", "Muay Thai knees and kicks",
+    "Boxing-style head movement", "Counters", "Clinch posture", "Bag-work endurance", "Tactical aggression"
+  ],
+  "split_stages": [4, 11],
+  "double_training_stages": [4, 9],
+  "peak_stage": 9,
+  "stage_load_multiplier": { "10": 0.75, "11": 0.55 },
+  "difficulty_scaling": {
+    "easy": {
+      "label": "AWAKENING",
+      "fit": { "working_sets": [2, 3], "resistance": "bodyweight or light", "rest": "longer" },
+      "fight": { "rounds": [4, 5], "round_sec": 60, "rest_sec": [60, 75], "requirements": "basic combinations; no jumping strikes; no partner" },
+      "target_rpe": [4, 6]
+    },
+    "normal": {
+      "label": "DESTROYER",
+      "fit": { "working_sets": [3, 4], "resistance": "moderate", "rest": "moderate" },
+      "fight": { "rounds": [5, 6], "round_sec": 120, "rest_sec": [45, 60], "requirements": "combination + defensive requirements; roadwork and interval development; bag recommended" },
+      "target_rpe": [6, 8]
+    },
+    "hard": {
+      "label": "GOD OF DESTRUCTION",
+      "fit": { "working_sets": [4, 5], "resistance": "advanced or advanced bodyweight progressions", "rest": "shorter" },
+      "fight": { "rounds": [6, 8], "round_sec": 180, "rest_sec": [30, 45], "requirements": "tactical pressure; advanced clinch, counter, and angle work; intended for experienced athletes" },
+      "target_rpe": [7, 9]
+    },
+    "hard_never_requires": [
+      "Deliberately taking punches", "Unsupervised hard sparring", "Training through sharp pain",
+      "Extreme dehydration", "Every set taken to failure"
+    ]
+  },
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_MINIMAL": ["JUMP_ROPE", "BAND", "MAT", "LIGHT_WEIGHTS"],
+    "C_FIGHT_TRAINING": ["HEAVY_BAG", "GLOVES", "HAND_WRAPS", "JUMP_ROPE"],
+    "D_FULL_DESTROYER": ["HEAVY_BAG", "LIGHT_WEIGHTS", "PULLUP_BAR", "MEDICINE_BALL", "KETTLEBELL", "BAND", "MAT"],
+    "rule": "Every stage must support at least the MINIMAL version."
+  },
+  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_ARC_CLEAR", "FINAL_BOSS_CLEAR"],
+  "achievements": [
+    { "id": "ACH_UE_GROUNDED_POWER",    "name": "Grounded Power",    "trigger": "Clear Stage 4 with no balance failures" },
+    { "id": "ACH_UE_RELENTLESS",        "name": "Relentless Advance", "trigger": "Complete every required pressure round" },
+    { "id": "ACH_UE_ROLL_THROUGH_FIRE", "name": "Roll Through Fire", "trigger": "Complete all Stage 6 counters cleanly" },
+    { "id": "ACH_UE_NO_HESITATION",     "name": "No Hesitation",     "trigger": "Complete Stage 8 without missed transitions" },
+    { "id": "ACH_UE_CONTROLLED_EGO",    "name": "Controlled Ego",    "trigger": "Finish Stage 9 without excessive technique breakdown" },
+    { "id": "ACH_UE_PERFECT_TAPER",     "name": "Perfect Taper",     "trigger": "Complete Stages 10 and 11 within target intensity" },
+    { "id": "ACH_UE_DESTROYER_CLEAR",   "name": "Destroyer Clear",   "trigger": "Defeat Stage 12" },
+    { "id": "ACH_UE_FULL_ARC_ASCENSION","name": "Full Arc Ascension","trigger": "Clear Fit and Fight for all 12 stages" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Prescribed work not completed", "Technique or posture breaks down", "Reported effort far above target", "Recovery inadequate"],
+      "response": ["Reduce reps or resistance", "Recommend one difficulty lower", "Preserve the Fight difficulty where appropriate"]
+    },
+    "fight": {
+      "causes": ["Guard repeatedly drops", "Balance repeatedly lost", "Cannot complete the rounds", "Defensive or tactical objective ignored", "Unsafe symptoms reported"],
+      "response": ["Recommend Practice Mode", "Shorten round length", "Increase rest", "Drop Fight difficulty by one level", "Do NOT automatically lower the Fit path"]
+    },
+    "safety_stop": ["Sharp pain", "Chest pain", "Dizziness", "Faintness", "New concussion symptoms", "Severe breathing difficulty", "Acute injury"]
+  },
+  "final_boss": {
+    "stage_id": "ARC_ULTRAEGO_STG12",
+    "no_hard_morning_workout": true,
+    "fight_trial_name": "Twelve-Round Destruction Trial",
+    "round_objectives": [
+      "Stance, guard, and breathing",
+      "Jab and forward pressure",
+      "Boxing combination into low kick",
+      "Body attack",
+      "Rear knee and clinch entry",
+      "Defense and counter",
+      "Head movement and return",
+      "Pressure against a retreating opponent",
+      "Power-strike control",
+      "High-output combination round",
+      "Adversity and composure",
+      "Championship finish"
+    ],
+    "timing": {
+      "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45, "approx_total_min": 20 },
+      "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30, "approx_total_min": 30 },
+      "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30, "approx_total_min": 42 }
+    },
+    "fit_final_test": {
+      "categories": ["Push-up variation", "Squat variation", "Pull-up or row", "Loaded or bodyweight carry", "Core hold", "Controlled neck-strength exercise", "Final endurance circuit"],
+      "rule": "Predetermined targets — never uncontrolled maximum-until-collapse work."
+    },
+    "full_arc_flow": ["Short activation circuit", "Transition period", "Twelve-round striking trial", "Cooldown and final readiness report"]
+  },
+  "art": { "banner": "/assets/series/ultra-ego.png", "stage_badges": "reuse /assets/stages/s1-s10 + boss badge" }
+}

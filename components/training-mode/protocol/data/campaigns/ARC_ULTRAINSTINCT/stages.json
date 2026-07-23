@@ -1,0 +1,196 @@
+[
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG01", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Awaken the Senses",
+    "phase": "foundation", "stage_number": 1,
+    "purpose": "Relaxed stance, breathing, guard, and the first meditation — flow starts with calm.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S01_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S01_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Stay relaxed — shoulders down, breathing steady, guard recovered after every strike.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["MAT"],
+      "alternatives": { "MAT": ["FLOOR_SPACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UI_S01_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG02", "campaign_id": "ARC_ULTRAINSTINCT", "title": "A Thousand Fists",
+    "phase": "foundation", "stage_number": 2,
+    "purpose": "Repetition — pick three strikes and drill them until they are second thought.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S02_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S02_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Every repetition identical — same form on rep 1 and rep 100.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["PULLUP_BAR", "LIGHT_WEIGHTS"],
+      "alternatives": { "PULLUP_BAR": ["DOORWAY_ROW", "BAND_ROW"], "LIGHT_WEIGHTS": ["BODYWEIGHT_ONLY"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UI_THOUSAND_FISTS"], "video_ids": ["VID_UI_S02_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG03", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Feet Like Water",
+    "phase": "foundation", "stage_number": 3,
+    "purpose": "Footwork foundations — ladder rhythm, L-step, pivot; move like Ali.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S03_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S03_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Never cross the feet, never stand flat — always in position to move.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["AGILITY_LADDER", "CONES", "JUMP_ROPE"],
+      "alternatives": { "AGILITY_LADDER": ["FLOOR_LINES"], "CONES": ["FLOOR_MARKERS"], "JUMP_ROPE": ["INVISIBLE_ROPE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UI_S03_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG04", "campaign_id": "ARC_ULTRAINSTINCT", "title": "The Lean Frame",
+    "phase": "development", "stage_number": 4, "load": "moderate",
+    "purpose": "Foundational strength meets single-strike bag repetition.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S04_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S04_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "One strike per round, every one clean — muscle memory with intent.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES", "PULLUP_BAR", "LIGHT_WEIGHTS"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"], "PULLUP_BAR": ["BAND_ROW"], "LIGHT_WEIGHTS": ["BODYWEIGHT_ONLY"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UI_S04_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG05", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Angles of Attack",
+    "phase": "development", "stage_number": 5, "load": "moderate",
+    "purpose": "Plyometric power plus cone shadowboxing — cut angles, never stand in the line of fire.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S05_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S05_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Exit every combination on an angle — the cone marks your opponent's range.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["CONES", "MEDICINE_BALL", "JUMP_ROPE"],
+      "alternatives": { "CONES": ["FLOOR_MARKERS"], "MEDICINE_BALL": ["BODYWEIGHT_THROWS"], "JUMP_ROPE": ["INVISIBLE_ROPE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UI_PERFECT_ANGLES"], "video_ids": ["VID_UI_S05_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG06", "campaign_id": "ARC_ULTRAINSTINCT", "title": "See It Coming",
+    "phase": "development", "stage_number": 6, "load": "moderate_high",
+    "purpose": "Dodging and reflex — duck the rope, work the slip bag, react before you think.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S06_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S06_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Head off the center line — dodge, then be in position to answer.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["SLIP_LINE", "TENNIS_BALL", "CONES"],
+      "alternatives": { "SLIP_LINE": ["WALL_MARKER", "SHADOW_DEFENSE_CUES"], "TENNIS_BALL": ["WALL_BOUNCE_ANY_BALL"] },
+      "note": "Partner drills (tennis-ball dodgeball, gladiator stick) are optional — never mandatory." },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UI_UNTOUCHABLE"], "video_ids": ["VID_UI_S06_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG07", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Instinct Engine",
+    "phase": "hard_camp", "stage_number": 7, "load": "high",
+    "purpose": "High-volume endurance (the 100s) plus repetition at speed — action, not thought.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S07_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S07_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Speed without tension — the last round as clean as the first.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES", "PULLUP_BAR"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"], "PULLUP_BAR": ["BAND_ROW", "DOORWAY_ROW"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UI_S07_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG08", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Strike the Opening",
+    "phase": "hard_camp", "stage_number": 8, "load": "high",
+    "purpose": "Counter-striking — turn their aggression into their downfall; functional strength underneath.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S08_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S08_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Defense first, answer instantly — check-return, slip-to-strike, angle strike.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES", "KETTLEBELL", "LIGHT_WEIGHTS"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"], "KETTLEBELL": ["LIGHT_WEIGHTS", "BAND"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UI_S08_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG09", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Silent Storm",
+    "phase": "hard_camp", "stage_number": 9, "load": "peak",
+    "purpose": "Peak load: the Instinct Circuit plus the flow-state pressure test — everything integrated.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S09_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S09_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Flow under fatigue — stay loose when everything says tense up.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES", "JUMP_ROPE", "PULLUP_BAR", "TENNIS_BALL"],
+      "alternatives": { "HEAVY_BAG": ["FULL_SHADOWBOXING"], "PULLUP_BAR": ["BAND_ROW"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UI_FLOW_STATE"], "video_ids": ["VID_UI_S09_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG10", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Effortless Motion",
+    "phase": "taper", "stage_number": 10, "load": "taper_20_30",
+    "purpose": "Sharpening — accuracy flow at 30-40% effort; speed should feel free, not forced.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S10_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S10_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Everything at 30-40% effort with perfect form — like a dance.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["JUMP_ROPE", "HEAVY_BAG", "GLOVES"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"], "JUMP_ROPE": ["INVISIBLE_ROPE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UI_S10_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG11", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Still Mind",
+    "phase": "taper", "stage_number": 11, "load": "taper_40_50",
+    "purpose": "Final preparation — meditation, visualization, relaxed flow. Face your mind before the trial.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S11_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S11_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Finish feeling faster, calmer, and more confident than when you started.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["MAT"], "optional": ["JUMP_ROPE"],
+      "alternatives": { "MAT": ["FLOOR_SPACE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UI_CALM_MIND"], "video_ids": ["VID_UI_S11_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAINSTINCT_STG12", "campaign_id": "ARC_ULTRAINSTINCT", "title": "Trial of Instinct",
+    "phase": "final_boss", "stage_number": 12, "load": "boss",
+    "purpose": "One extended final level. Twelve rounds, twelve objectives — enter fresh, finish flowing.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UI_S12_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UI_S12_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Twelve rounds. By the last bell, you are not thinking — you are flowing.",
+    "boss": true,
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["HEAVY_BAG", "GLOVES", "TENNIS_BALL"],
+      "alternatives": { "HEAVY_BAG": ["FULL_SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UI_INSTINCT_CLEAR", "ACH_UI_MASTERED"], "video_ids": ["VID_UI_S12_OVERVIEW"]
+  }
+]

@@ -1,0 +1,196 @@
+[
+  {
+    "stage_id": "ARC_ULTRAEGO_STG01", "campaign_id": "ARC_ULTRAEGO", "title": "Pride Awakens",
+    "phase": "foundation", "stage_number": 1,
+    "purpose": "Establish posture, bracing, movement, and basic physical preparation.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S01_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S01_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Maintain posture and guard without rushing.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["MAT", "BAND"],
+      "alternatives": { "MAT": ["FLOOR_SPACE"], "BAND": ["BODYWEIGHT_ONLY"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UE_S01_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG02", "campaign_id": "ARC_ULTRAEGO", "title": "Destroyer Frame",
+    "phase": "foundation", "stage_number": 2,
+    "purpose": "Begin building the upper-back, lat, shoulder, and forearm structure.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S02_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S02_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Move forward without crossing the feet or losing balance.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["PULLUP_BAR", "BAND"],
+      "alternatives": { "PULLUP_BAR": ["DOORWAY_ROW", "TOWEL_ISOMETRIC"], "LIGHT_WEIGHTS": ["BODYWEIGHT_SHOULDER_WORK"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UE_S02_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG03", "campaign_id": "ARC_ULTRAEGO", "title": "Legs of the Prince",
+    "phase": "foundation", "stage_number": 3,
+    "purpose": "Build the lower-body base required for powerful grounded striking.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S03_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S03_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Finish every kick or knee in a balanced stance.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["KETTLEBELL"],
+      "alternatives": { "KETTLEBELL": ["LIGHT_WEIGHTS", "BODYWEIGHT_SQUATS"], "HEAVY_BAG": ["SHADOW_KICKS"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UE_S03_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG04", "campaign_id": "ARC_ULTRAEGO", "title": "Immovable Force",
+    "phase": "development", "stage_number": 4, "load": "moderate",
+    "purpose": "Grounding and bracing meets grounded striking power.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S04_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S04_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Generate force without leaning excessively or losing posture.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["MEDICINE_BALL", "KETTLEBELL", "HEAVY_BAG"],
+      "alternatives": { "MEDICINE_BALL": ["BAND"], "KETTLEBELL": ["LIGHT_WEIGHTS", "BAND"], "HEAVY_BAG": ["POWER_SHADOWBOXING_CONTROLLED"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_GROUNDED_POWER"], "video_ids": ["VID_UE_S04_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG05", "campaign_id": "ARC_ULTRAEGO", "title": "Relentless Advance",
+    "phase": "development", "stage_number": 5, "load": "moderate",
+    "purpose": "Aerobic engine plus pressure combinations.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S05_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S05_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Apply pressure while remaining defensively responsible.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["JUMP_ROPE", "HEAVY_BAG", "GLOVES"],
+      "alternatives": { "JUMP_ROPE": ["INVISIBLE_ROPE"], "HEAVY_BAG": ["SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_RELENTLESS"], "video_ids": ["VID_UE_S05_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG06", "campaign_id": "ARC_ULTRAEGO", "title": "Roll Through Fire",
+    "phase": "development", "stage_number": 6, "load": "moderate_high",
+    "purpose": "Defensive structure, head movement, and counters.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S06_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S06_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Defense must lead immediately into a balanced counter.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["SLIP_LINE", "HEAVY_BAG", "GLOVES"],
+      "alternatives": { "SLIP_LINE": ["WALL_MARKER", "SHADOW_DEFENSE_CUES"], "HEAVY_BAG": ["SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_ROLL_THROUGH_FIRE"], "video_ids": ["VID_UE_S06_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG07", "campaign_id": "ARC_ULTRAEGO", "title": "Titan Engine",
+    "phase": "hard_camp", "stage_number": 7, "load": "high",
+    "purpose": "Strength endurance under fatigue with power pressure striking.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S07_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S07_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Maintain striking quality after the strength-endurance work.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["LIGHT_WEIGHTS", "PULLUP_BAR", "HEAVY_BAG"],
+      "alternatives": { "LIGHT_WEIGHTS": ["BAND", "LOADED_BACKPACK"], "PULLUP_BAR": ["BAND_PULLDOWN", "DOORWAY_ROW"], "HEAVY_BAG": ["POWER_SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": [], "video_ids": ["VID_UE_S07_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG08", "campaign_id": "ARC_ULTRAEGO", "title": "No Hesitation",
+    "phase": "hard_camp", "stage_number": 8, "load": "high",
+    "purpose": "Speed, agility, and explosive attack entries.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S08_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S08_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Explode into the attack, then recover immediately into stance.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["JUMP_ROPE", "CONES", "MEDICINE_BALL", "HEAVY_BAG"],
+      "alternatives": { "CONES": ["FLOOR_LINES"], "MEDICINE_BALL": ["BODYWEIGHT_JUMPS"], "HEAVY_BAG": ["SHADOW_KNEES"] },
+      "note": "Pads are optional, never mandatory." },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_NO_HESITATION"], "video_ids": ["VID_UE_S08_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG09", "campaign_id": "ARC_ULTRAEGO", "title": "Ego Unleashed",
+    "phase": "hard_camp", "stage_number": 9, "load": "peak",
+    "purpose": "The Destroyer Circuit and the Pressure Test — hardest total stage of the campaign.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S09_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S09_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Remain dangerous without becoming reckless.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG", "GLOVES", "JUMP_ROPE", "PULLUP_BAR"],
+      "alternatives": { "HEAVY_BAG": ["FULL_SHADOWBOXING"], "PULLUP_BAR": ["BAND_ROW"], "LIGHT_WEIGHTS": ["BODYWEIGHT_ONLY"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_CONTROLLED_EGO"], "video_ids": ["VID_UE_S09_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG10", "campaign_id": "ARC_ULTRAEGO", "title": "Controlled Destruction",
+    "phase": "taper", "stage_number": 10, "load": "taper_20_30",
+    "purpose": "Sharpening: power should feel sharp rather than forced.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "split",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S10_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S10_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Power should feel sharp rather than forced.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["JUMP_ROPE", "HEAVY_BAG", "GLOVES"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"], "JUMP_ROPE": ["INVISIBLE_ROPE"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_PERFECT_TAPER"], "video_ids": ["VID_UE_S10_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG11", "campaign_id": "ARC_ULTRAEGO", "title": "Calm Before Destruction",
+    "phase": "taper", "stage_number": 11, "load": "taper_40_50",
+    "purpose": "Final preparation: finish feeling faster and more confident than when it started.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": true,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S11_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S11_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Complete the stage feeling faster and more confident than when it started.",
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE"], "recommended": ["HEAVY_BAG"], "optional": ["JUMP_ROPE"],
+      "alternatives": { "HEAVY_BAG": ["SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_PERFECT_TAPER"], "video_ids": ["VID_UE_S11_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_ULTRAEGO_STG12", "campaign_id": "ARC_ULTRAEGO", "title": "Destroyer's Trial",
+    "phase": "final_boss", "stage_number": 12, "load": "boss",
+    "purpose": "One extended final level. Enter fresh — no separate hard morning workout.",
+    "fit_available": true, "fight_available": true, "full_arc_available": true, "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_UE_S12_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_UE_S12_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Twelve rounds. Twelve objectives. Stay composed to the final bell.",
+    "boss": true,
+    "equipment": { "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"], "recommended": ["HEAVY_BAG", "GLOVES"],
+      "alternatives": { "HEAVY_BAG": ["FULL_SHADOWBOXING"] } },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD", "achievement_rule_ids": ["ACH_UE_DESTROYER_CLEAR", "ACH_UE_FULL_ARC_ASCENSION"], "video_ids": ["VID_UE_S12_OVERVIEW"]
+  }
+]
