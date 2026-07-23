@@ -1,11 +1,20 @@
 # 18 · GHOST BATTLES (build prompts)
 
-Race against the recorded strike-pace of a past VERIFIED session — like a
-racing game's ghost lap, for a fight workout. No live multiplayer: a ghost is
-saved numbers, replayed. Data model: `protocol-src/data/ghost-battles.json`.
-Engine (tested, pure): `protocol-src/engine/ghost-engine.ts`. Designer
-visuals: design 40d. Depends on the strike counter (Fight Mode revamp 1.4)
-and the anti-cheat verify flag (only verified sessions become ghosts).
+Race against a past VERIFIED session — like a racing game's ghost lap, for a
+fight workout. No live multiplayer: a ghost is saved numbers, replayed. Data
+model: `protocol-src/data/ghost-battles.json`. Engine (tested, pure):
+`protocol-src/engine/ghost-engine.ts`. Designer visuals: share card 40e
+(1080x1080), Fight Mode trophies 40f (512x512). Depends on the strike counter
+(Fight Mode revamp 1.4) and the anti-cheat verify flag (only verified sessions
+become ghosts).
+
+WIN METRIC — two ways a battle is decided (each ghost stores which):
+- STRIKES: open sessions (Combo Coach, Fight Focus) — more verified strikes
+  wins.
+- TIME: stage-based runs (Arcade, Camp) — FASTER completion wins, the
+  beat-the-clock model. This is what card 40e shows ("Stage 3 · 4:12 vs 4:38
+  · ▲ 26s FASTER"). The engine's resolveGhostBattle + battleHeadline handle
+  both; the HUD/card copy adapts (time delta vs strike delta).
 
 --- PROMPT 1: Record ghosts on every verified session ---
 
@@ -26,21 +35,25 @@ Wire ghost recording into the Fight Mode session runner:
 Add a ghost-battle run built on the existing Combo Coach / Fight Focus timer:
 - SETUP inherits the ghost's rounds_config (you fight its format — show it
   read-only for a fair race).
-- LIVE HUD (design 40d): split strike bar at top — your avatar + live strike
-  count (gold) vs the ghost's avatar + replayed count (violet). Drive the
-  ghost number every tick with `ghostCountAtTime(ghost, elapsedSec)` so it
-  climbs in real time — it should FEEL like they're punching now. Lead chip
-  between them from `liveLead(...)` ("+12 AHEAD" green / "-8 BEHIND" red).
-  Per-round mini bars underneath.
+- LIVE HUD: split strike bar at top — your avatar + live strike count (gold)
+  vs the ghost's avatar + replayed count (violet). Drive the ghost number
+  every tick with `ghostCountAtTime(ghost, elapsedSec)` so it climbs in real
+  time — it should FEEL like they're punching now (this drives the live race
+  in BOTH win metrics). Lead chip from `liveLead(...)` ("+12 AHEAD" green /
+  "-8 BEHIND" red). On TIME-metric stage runs, also show the elapsed-vs-ghost
+  clock (you're racing their finish time). Per-round mini bars underneath.
 - END: `resolveGhostBattle(you, ghost)` → VICTORY (gold radial) / DEFEAT
-  (red) / TIE. Both avatars faced off, per-round comparison, totals (STRIKES
-  · BEST ROUND · MARGIN), "↻ REMATCH" + "SET AS CHALLENGE" + share card
-  (both avatars + result + the VERIFIED shield). Victory grants bonus XP; a
-  loss still grants the normal session XP — never punish showing up.
+  (red) / TIE, using the ghost's win metric (faster time OR more strikes).
+  The share card is design 40e (1080x1080): both avatars faced off (TODAY
+  gold / GHOST violet), per-side stat line "{stage} · {time} · {streak}
+  streak", the green headline from `battleHeadline(result)` ("▲ 26s FASTER ·
+  GHOST DEFEATED" / "▲ +12 STRIKES · GHOST DEFEATED"), and the VERIFIED hex
+  badge. "↻ REMATCH" + "SET AS CHALLENGE". Victory grants bonus XP; a loss
+  still grants the normal session XP — never punish showing up.
 
 --- PROMPT 3: Surfacing — Combo Coach icon + VS pop-up ---
 
-Two entry points beyond the outcome screen (per product direction + 40d):
+Two entry points beyond the outcome screen (per product direction; visuals per designer):
 - COMBO COACH GHOST ICON: a small 👻 icon on the Combo Coach setup screen,
   visible from the start. Tap → ghost opponent picker (MY BEST / recent
   ghosts / "⚔ ENTER CHALLENGE CODE") → starts a ghost battle using Combo

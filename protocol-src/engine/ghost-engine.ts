@@ -2,12 +2,21 @@
  * Ghost Battles — pure engine.
  * A ghost is the recorded per-interval strike output of a VERIFIED session.
  * You race its replay (no live multiplayer). Framework-free; drop in anywhere.
- * Config + data model: ../data/ghost-battles.json. Designer visuals: 40d.
+ * Config + data model: ../data/ghost-battles.json. Share card: design 40e.
  */
 
 export type GhostMode = "combo_coach" | "fight_focus" | "arcade" | "camp";
 export type Difficulty = "easy" | "normal" | "hard";
 export type BattleOutcome = "victory" | "defeat" | "tie";
+
+/**
+ * How a ghost battle is decided:
+ * - "strikes": more verified strikes wins — open sessions (Combo Coach / Fight
+ *   Focus) with no fixed end.
+ * - "time": faster completion wins — stage-based runs (Arcade / Camp) that have
+ *   a defined finish. This is what designer card 40e shows ("26s FASTER").
+ */
+export type WinMetric = "strikes" | "time";
 
 export interface RoundsConfig { rounds: number; roundSec: number; restSec: number; }
 
@@ -18,10 +27,14 @@ export interface GhostRecord {
   avatarTier: string;
   gender: "male" | "female";
   source: { mode: GhostMode; disciplineOrCampaign: string; difficulty: Difficulty; roundsConfig: RoundsConfig };
+  winMetric: WinMetric;    // "strikes" (open sessions) | "time" (stage runs)
   bucketSec: number;       // interval size, default 10
-  buckets: number[];       // strikes per interval across the session
+  buckets: number[];       // strikes per interval across the session (drives live replay in BOTH metrics)
   totalStrikes: number;
-  bestRound: number;       // highest single-round strike count (tiebreak)
+  bestRound: number;       // highest single-round strike count (strikes tiebreak)
+  completionSec?: number;  // total time to finish — required for winMetric "time"
+  stageLabel?: string;     // e.g. "Stage 3" — for the share card (40e)
+  streak?: number;         // streak at run time — secondary stat on the card (40e)
   verified: boolean;       // only verified sessions may become ghosts
   createdAt: number;       // stamped by the app, not the engine
 }
@@ -64,10 +77,14 @@ export function makeGhost(
     avatarTier: input.avatarTier,
     gender: input.gender,
     source: input.source,
+    winMetric: input.winMetric,
     bucketSec: input.bucketSec || 10,
     buckets,
     totalStrikes: buckets.reduce((a, b) => a + b, 0),
     bestRound: input.perRoundStrikes.length ? Math.max(...input.perRoundStrikes) : 0,
+    completionSec: input.completionSec,
+    stageLabel: input.stageLabel,
+    streak: input.streak,
     verified: true,
     createdAt: input.createdAt,
   };
@@ -102,30 +119,65 @@ export function liveLead(ghost: GhostRecord, elapsedSec: number, yourStrikes: nu
 
 export interface BattleResult {
   outcome: BattleOutcome;
-  yourTotal: number;
-  ghostTotal: number;
-  margin: number;          // yourTotal - ghostTotal
+  metric: WinMetric;
+  yourValue: number;       // your strikes (strikes) or your seconds (time)
+  ghostValue: number;      // ghost's strikes or seconds
+  margin: number;          // strikes: +ve = you threw more · time: +ve = you were FASTER (ghostSec - yourSec)
   decidedByTiebreak: boolean;
 }
 
 /**
- * Decide the battle at session end. Higher verified total wins; ties broken
- * by best round; still tied → draw. A loss is still a completed session
- * (the app grants normal XP; victory adds bonus) — never punish showing up.
+ * Decide the battle at session end, per the ghost's win metric.
+ * - strikes: more verified strikes wins; tie broken by best round; else draw.
+ * - time: faster completion wins (lower seconds); tie broken by more strikes;
+ *   else draw.
+ * A loss is still a completed session (app grants normal XP; victory adds
+ * bonus) — never punish showing up.
  */
 export function resolveGhostBattle(
-  you: { totalStrikes: number; bestRound: number },
+  you: { totalStrikes: number; bestRound: number; completionSec?: number },
   ghost: GhostRecord
 ): BattleResult {
+  if (ghost.winMetric === "time") {
+    const yourSec = you.completionSec ?? Infinity;
+    const ghostSec = ghost.completionSec ?? Infinity;
+    const margin = ghostSec - yourSec;                 // +ve = you were faster
+    if (margin !== 0 && Number.isFinite(margin)) {
+      return { outcome: margin > 0 ? "victory" : "defeat", metric: "time", yourValue: yourSec, ghostValue: ghostSec, margin, decidedByTiebreak: false };
+    }
+    const tb = you.totalStrikes - ghost.totalStrikes;  // tie on time → more strikes wins
+    if (tb !== 0) {
+      return { outcome: tb > 0 ? "victory" : "defeat", metric: "time", yourValue: yourSec, ghostValue: ghostSec, margin: 0, decidedByTiebreak: true };
+    }
+    return { outcome: "tie", metric: "time", yourValue: yourSec, ghostValue: ghostSec, margin: 0, decidedByTiebreak: true };
+  }
+
   const margin = you.totalStrikes - ghost.totalStrikes;
   if (margin !== 0) {
-    return { outcome: margin > 0 ? "victory" : "defeat", yourTotal: you.totalStrikes, ghostTotal: ghost.totalStrikes, margin, decidedByTiebreak: false };
+    return { outcome: margin > 0 ? "victory" : "defeat", metric: "strikes", yourValue: you.totalStrikes, ghostValue: ghost.totalStrikes, margin, decidedByTiebreak: false };
   }
   const tb = you.bestRound - ghost.bestRound;
   if (tb !== 0) {
-    return { outcome: tb > 0 ? "victory" : "defeat", yourTotal: you.totalStrikes, ghostTotal: ghost.totalStrikes, margin: 0, decidedByTiebreak: true };
+    return { outcome: tb > 0 ? "victory" : "defeat", metric: "strikes", yourValue: you.totalStrikes, ghostValue: ghost.totalStrikes, margin: 0, decidedByTiebreak: true };
   }
-  return { outcome: "tie", yourTotal: you.totalStrikes, ghostTotal: ghost.totalStrikes, margin: 0, decidedByTiebreak: true };
+  return { outcome: "tie", metric: "strikes", yourValue: you.totalStrikes, ghostValue: ghost.totalStrikes, margin: 0, decidedByTiebreak: true };
+}
+
+/**
+ * The share-card headline (design 40e), e.g. "▲ 26s FASTER · GHOST DEFEATED"
+ * or "▲ +12 STRIKES · GHOST DEFEATED". Pure string formatting for the card.
+ */
+export function battleHeadline(r: BattleResult): string {
+  if (r.outcome === "tie") return "DEAD HEAT · DRAW";
+  const beat = r.outcome === "victory";
+  const tag = beat ? "GHOST DEFEATED" : "GHOST WINS";
+  const arrow = beat ? "▲" : "▼";
+  if (r.metric === "time") {
+    const secs = Math.abs(Math.round(r.margin));
+    return `${arrow} ${secs}s ${beat ? "FASTER" : "SLOWER"} · ${tag}`;
+  }
+  const n = Math.abs(r.margin);
+  return `${arrow} ${beat ? "+" : "-"}${n} STRIKES · ${tag}`;
 }
 
 // ---------- Matchmaking ----------
