@@ -588,6 +588,22 @@ HOW MUCH TO MAKE (guidance):
       console errors. ⚠ IN-APP CLICK-THROUGH NOT YET DONE — browser pane input was
       wedged this session; confirm the v2 screens + a stage play-through when the
       pane recovers.
+      SLICE 2 UI REVERTED (Jul 23, user): the new grid stage-select (ArcadeV2Hub +
+      ArcadeStageSelect) was REJECTED — user wants the ORIGINAL arcade UI kept (the
+      sliding saga carousel TrainingArcade + the zig-zag ladder ArcadeSeriesDetail),
+      with the 5 campaigns ADDED into it as extra series. Deleted the two new
+      components; goTrainingArcade → 'arcade' (old carousel) again. Also cleared a
+      "require unknownModule" runtime error (stale lazy chunk). KEPT for the new
+      plan: protocol/campaigns.ts resolvers + arcadeCfg, data/arcadeCampaignProgress,
+      App goArcadeV2Start + the campCtx.arcade completion branch, canAccessCampLevel.
+      Decisions (user): keep old sagas + add 5 campaigns; FULL mapping of
+      FIT/FIGHT/FULL ARC → modes + easy/normal/hard via the EXISTING selectors; run
+      stages on the CAMP round-timer engine (not the old ArcadeSessionPlayer); keep
+      SPLIT + FULL for full arc. NEXT: adapter converting each campaign → the old
+      series shape (metadata for carousel + ladder) tagged v2Campaign; append to
+      VISIBLE_ARCADE_SERIES; intercept ArcadeSeriesDetail onStartStage for v2 series
+      → goArcadeV2Start (camp engine). Verified: old carousel restored, renders,
+      console clean, build mrxsxu4u.
       SLICE 3 POLISH (remaining): the shared camp_complete screen shows "LEVEL N"
       not "STAGE N" for arcade + records sessions as 'Training Camp' — relabel for
       arcade; add readiness+gear before an arcade START (currently straight to

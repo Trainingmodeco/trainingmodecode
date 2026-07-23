@@ -129,7 +129,6 @@ export default function App() {
   const [arcadeMode,   setArcadeMode  ] = useState(null);
   const [arcadeOrder,  setArcadeOrder ] = useState(null);
   const [arcadeSettings, setArcadeSettings] = useState(null);
-  const [arcadeV2Sel, setArcadeV2Sel] = useState(null);   // 2.10 — {campaignId, stageId}
   const [profile,  setProfile ] = useState(() => loadProfile());
   const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
   const [resumeData, setResumeData] = useState(null);
@@ -322,10 +321,11 @@ export default function App() {
       }
     },
     goCombatCondSetup: () => setScreen('cc_setup'),
-    // 2.10 v2 — the arcade entry now opens the campaign/stage picker.
-    goTrainingArcade: () => setScreen('arcade_v2'),
-    goArcadeV2Stage: (campaignId, stageId) => { setArcadeV2Sel({ campaignId, stageId }); setScreen('arcade_stage'); },
-    // 2.10 slice 2→3 — launch a v2 stage over the camp engine. A fit path runs
+    // 2.10 — arcade keeps its original carousel + ladder UI; the 5 campaigns are
+    // adapted into it as extra series (see data/trainingArcadeData). START on a
+    // campaign stage routes to the camp engine via goArcadeV2Start.
+    goTrainingArcade: () => setScreen('arcade'),
+    // 2.10 — launch a v2 campaign stage over the camp engine. A fit path runs
     // the conditioning runner (slot s2), fight the skill timer, full arc both.
     // Marked `arcade` so the shared camp completion updates arcade progress.
     goArcadeV2Start: (ctx) => {
@@ -672,7 +672,7 @@ export default function App() {
             comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult}
-            arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings} arcadeV2Sel={arcadeV2Sel}
+            arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
             campCtx={campCtx} campResult={campResult}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}

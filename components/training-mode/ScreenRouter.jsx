@@ -42,8 +42,6 @@ import LevelUpReveal from './LevelUpReveal';
 // Code-split the heavy, rarely-first screens so they're not in the initial bundle.
 const CodecApp = lazy(() => import('../workout-codec/CodecApp'));
 const TrainingArcade = lazy(() => import('./TrainingArcade'));
-const ArcadeV2Hub = lazy(() => import('./ArcadeV2Hub'));
-const ArcadeStageSelect = lazy(() => import('./ArcadeStageSelect'));
 const TrainingCampMap = lazy(() => import('./TrainingCampMap'));
 const ArcadeSeriesIntroPage = lazy(() => import('./ArcadeSeriesIntroPage'));
 const ArcadeSeriesDetail = lazy(() => import('./ArcadeSeriesDetail'));
@@ -144,8 +142,8 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
   );
 }
 
-export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, arcadeV2Sel, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, goArcadeV2Stage, goArcadeV2Start, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
+export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -473,21 +471,6 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
         <TrainingArcade onHome={goHome} onBack={goTrainingHub} onSelectSeries={goArcadeSeries}/>
-      </WithNav>
-    );
-  }
-  // 2.10 v2 — campaign/stage picker → S6 stage-select.
-  if (screen === 'arcade_v2') {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <ArcadeV2Hub onHome={goHome} onBack={goTrainingHub} onSelectStage={goArcadeV2Stage}/>
-      </WithNav>
-    );
-  }
-  if (screen === 'arcade_stage' && arcadeV2Sel) {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <ArcadeStageSelect campaignId={arcadeV2Sel.campaignId} stageId={arcadeV2Sel.stageId} onBack={goTrainingArcade} onStart={goArcadeV2Start} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
