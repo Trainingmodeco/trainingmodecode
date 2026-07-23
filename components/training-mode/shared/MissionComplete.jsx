@@ -24,12 +24,19 @@ const mcCSS = `
 }
 @keyframes mc-rays-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes mc-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
-/* LT-5 — short phones (iPhone SE and friends) can't hold the full stack above
-   the tab bar. Drop the expendable pieces there rather than make the athlete
-   scroll for the CTAs: the recap/chips detail and the beta-feedback link. */
-@media (max-height: 740px) {
-  .mc-hero-badge { height: 52px !important; }
+/* Content sits ~1cm down from the top, badge is a prominent ~1.2in emblem. */
+.mc-top { padding: 30px 16px 0; }
+.mc-hero-badge { height: 108px; }
+/* Short phones can't hold the full stack above the tab bar with a big badge —
+   pull the top in, shrink the badge, and drop the expendable pieces (recap/
+   chips detail and the beta-feedback link) rather than make the athlete scroll. */
+@media (max-height: 812px) {
+  .mc-top { padding: 16px 16px 0; }
+  .mc-hero-badge { height: 88px; }
   .mc-extra, .mc-beta { display: none !important; }
+}
+@media (max-height: 700px) {
+  .mc-hero-badge { height: 72px; }
 }
 `;
 
@@ -107,21 +114,20 @@ export default function MissionComplete({
             old minHeight:100dvh + 12dvh padding here double-counted that and
             left the screen scrollable past its own content. */}
         {/* GOOD EFFORT (partial) and MISSION COMPLETE (success) share one
-            layout — same top padding and badge size — so a stopped session
-            reads as calm and consistent as a completed one. */}
-        <div style={{ padding: '10px 16px 0' }}>
+            layout — same top spacing (.mc-top) and badge size (.mc-hero-badge,
+            both responsive) — so every outcome screen reads at the same scale. */}
+        <div className="mc-top">
 
           {/* Medal hero */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8 }}>
             {badge ? (
-              // Mode badge art (transparent PNG/WebP over the dark bg). Kept
-              // compact so it never dominates the screen; a soft accent glow
-              // grounds it and a gentle pop plays it in.
-              <div className="mc-hero-badge" style={{ position: 'relative', height: 60, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
+              // Mode badge art (transparent PNG/WebP) — a ~1.2in emblem sized via
+              // .mc-hero-badge; a soft accent glow grounds it and a pop plays it in.
+              <div className="mc-hero-badge" style={{ position: 'relative', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'mc-pop 0.5s ease both' }}>
                 {/* maxWidth keeps wide emblems (GOOD EFFORT ribbon) in the same
                     visual footprint as the square badges — every trophy renders
                     at a similar size. */}
-                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 120, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 150, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>

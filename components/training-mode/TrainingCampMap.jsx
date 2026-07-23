@@ -38,8 +38,15 @@ const PHASE = {
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 const pad2 = (n) => String(n).padStart(2, '0');
 
+// Slow red pulse for the Title Fight (boss) node.
+const CAMP_CSS = `
+@keyframes camp-boss-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(239,68,68,0.35); border-color: rgba(239,68,68,0.7); }
+  50%      { box-shadow: 0 0 26px rgba(239,68,68,0.9); border-color: #ff5252; }
+}`;
+
 function NodeCircle({ level, state, boss }) {
-  const size = boss ? 34 : 26;
+  const size = boss ? 36 : 27;
   const c = state === 'done' ? '#22c55e'
     : state === 'current' ? GOLD
     : boss ? '#ef4444'
@@ -48,30 +55,30 @@ function NodeCircle({ level, state, boss }) {
     : state === 'current' ? GOLD
     : boss ? '#ff6b6b'
     : 'rgba(190,170,225,0.8)';
-  const glow = state === 'current' ? '0 0 16px rgba(253,224,71,0.55)'
-    : boss ? '0 0 16px rgba(239,68,68,0.5)' : 'none';
+  const glow = state === 'current' ? '0 0 16px rgba(253,224,71,0.55)' : 'none';
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       border: `2px solid ${c}`, boxShadow: glow,
+      animation: boss ? 'camp-boss-pulse 2.6s ease-in-out infinite' : 'none',
       background: 'radial-gradient(circle at 50% 35%, rgba(20,8,40,0.92), rgba(6,1,14,0.96))',
     }}>
-      <span style={{ font: `800 ${boss ? 13 : 11}px 'Orbitron',sans-serif`, color: num }}>{pad2(level)}</span>
+      <span style={{ font: `800 ${boss ? 14 : 11.5}px 'Orbitron',sans-serif`, color: num }}>{pad2(level)}</span>
     </div>
   );
 }
 
 function Pip({ label, tone }) {
   const map = {
-    done:  { c: '#22c55e', bg: 'rgba(34,197,94,0.14)', b: 'rgba(34,197,94,0.5)' },
-    next:  { c: GOLD,      bg: 'rgba(253,224,71,0.12)', b: 'rgba(253,224,71,0.5)' },
-    dim:   { c: '#9a90b8', bg: 'rgba(168,85,247,0.06)', b: 'rgba(168,85,247,0.3)' },
+    done:  { c: '#22c55e', bg: 'rgba(34,197,94,0.16)', b: 'rgba(34,197,94,0.55)' },
+    next:  { c: GOLD,      bg: 'rgba(253,224,71,0.14)', b: 'rgba(253,224,71,0.55)' },
+    dim:   { c: '#b7abd6', bg: 'rgba(168,85,247,0.08)', b: 'rgba(168,85,247,0.35)' },
   }[tone] || {};
   return (
     <span style={{
-      font: "700 6.5px 'Orbitron',sans-serif", color: map.c, letterSpacing: '0.03em',
-      background: map.bg, border: `1px solid ${map.b}`, borderRadius: 4, padding: '2px 5px', whiteSpace: 'nowrap',
+      font: "800 9px 'Orbitron',sans-serif", color: map.c, letterSpacing: '0.02em',
+      background: map.bg, border: `1px solid ${map.b}`, borderRadius: 5, padding: '3px 7px', whiteSpace: 'nowrap',
     }}>{label}</span>
   );
 }
@@ -135,7 +142,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
     const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
     // 2.4b — real per-round goals (skill or conditioning) drive the timer.
     const blockRounds = blockRoundsFor(discKey, level, diff, kind, rounds);
-    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 0, blockRounds };
+    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 3, blockRounds };
   };
   const launch = (level, diff, slot) => {
     const split = isSplitAvailable(level);
@@ -159,6 +166,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
 
   return (
     <PhoneFrame>
+      <style dangerouslySetInnerHTML={{ __html: CAMP_CSS }} />
       {/* Full-bleed background: CSS fallback → tower art → legibility overlay. */}
       <div style={{ position: 'absolute', inset: 0, background:
         'radial-gradient(120% 55% at 50% 0%, rgba(239,68,68,0.28), transparent 55%),' +
@@ -201,19 +209,19 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               return (
                 <button key={lv.level} onClick={(e) => tapLevel(lv.level, e)} style={{
                   background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-                  display: 'grid', gridTemplateColumns: '1fr 40px 1fr', alignItems: 'center',
+                  display: 'grid', gridTemplateColumns: '1fr 46px 1fr', alignItems: 'center',
                 }}>
-                  <div style={{ textAlign: 'right', paddingRight: 9, minWidth: 0 }}>
-                    <div style={{ font: "800 8.5px 'Orbitron',sans-serif", color: labelColor, letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
+                  <div {...(state === 'current' ? { 'data-guide': 'tc-current' } : {})} style={{ textAlign: 'right', paddingRight: 10, minWidth: 0 }}>
+                    <div style={{ font: "800 9.5px 'Orbitron',sans-serif", color: labelColor, letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
                       {boss ? '🏆 TITLE FIGHT' : `${lv.phase_label} · ${lv.title}`}
                     </div>
-                    {boss && <div style={{ font: "600 7px 'Rajdhani',sans-serif", color: '#c9a6ff', marginTop: 1 }}>final test · the belt</div>}
-                    {state === 'current' && <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: GOLD, marginTop: 2 }}>you are here</div>}
+                    {boss && <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#c9a6ff', marginTop: 1 }}>final test · the belt</div>}
+                    {state === 'current' && <div style={{ font: "700 7px 'Press Start 2P',monospace", color: GOLD, marginTop: 3 }}>you are here</div>}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <NodeCircle level={lv.level} state={state} boss={boss} />
                   </div>
-                  <div style={{ paddingLeft: 9, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div {...(state === 'current' ? { 'data-guide': 'tc-pips' } : {})} style={{ paddingLeft: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <NodePips level={lv.level} state={state} sess={sessAll[lv.level]} />
                   </div>
                 </button>
@@ -237,7 +245,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               <NodeCircle level={open.level} state={open.level < current ? 'done' : open.level === current ? 'current' : 'locked'} boss={open.phase === 'final_boss'} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: "700 7px 'Orbitron',sans-serif", color: PHASE[open.phase], letterSpacing: '0.12em' }}>{open.phase_label}</div>
-                <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fff' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT' : open.title}</div>
+                <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff' }}>{open.phase === 'final_boss' ? 'TITLE FIGHT 🏆' : open.title}</div>
                 <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 1 }}>
                   {isSplitAvailable(open.level) ? '2 sessions · AM/PM' : open.phase === 'final_boss' ? 'extended mission' : 'single session'} · unlocks L{Math.min(12, open.level + 1)}
                 </div>
@@ -279,18 +287,20 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                   const items = blk.goals.map(humanizeGoal);
                   return (
                     <div key={m.slot} style={{
-                      borderRadius: 9, padding: '7px 9px', marginBottom: 6,
+                      borderRadius: 9, padding: '8px 10px', marginBottom: 6,
                       background: 'rgba(8,2,18,0.45)',
                       border: `1px solid ${isDone ? 'rgba(34,197,94,0.45)' : isNext ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.22)'}`,
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ font: "800 8.5px 'Orbitron',sans-serif", color: m.color, letterSpacing: '0.04em' }}>S{m.num} · {m.ampm} — {m.kind}</span>
-                        {blk.durationMin ? <span style={{ font: "600 7px 'Rajdhani',sans-serif", color: '#8b7fb0' }}>~{blk.durationMin}m</span> : null}
-                        <span style={{ marginLeft: 'auto', font: "700 7px 'Orbitron',sans-serif", color: isDone ? '#22c55e' : isNext ? GOLD : '#8b7fb0' }}>
+                        <span style={{ font: "900 11.5px 'Orbitron',sans-serif", color: m.color, letterSpacing: '0.03em' }}>SESSION {m.num}</span>
+                        <span style={{ marginLeft: 'auto', font: "700 7.5px 'Orbitron',sans-serif", color: isDone ? '#22c55e' : isNext ? GOLD : '#8b7fb0' }}>
                           {isDone ? '✓ COMPLETE' : isNext ? '▶ UP NEXT' : 'PENDING'}
                         </span>
                       </div>
-                      <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b9a9d8', letterSpacing: '0.04em', marginTop: 2 }}>
+                        {m.ampm} · {m.kind}{blk.durationMin ? ` · ~${blk.durationMin}m` : ''}
+                      </div>
+                      <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#cfc2e8', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {items.join(' · ')}
                       </div>
                     </div>

@@ -198,14 +198,17 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const mmss = `${Math.floor(roundSec / 60)}:${String(roundSec % 60).padStart(2, '0')}`;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <CampSessionRunner
-          discipline={disc} cfg={cfg}
-          fit={!!campCtx?.split && campCtx?.slot === 's2'}
-          label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
-          sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
-          detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
-          onEnd={goCampComplete}
-        />
+        {/* 2.4 — a warm-up phase leads into every camp session (skippable). */}
+        <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
+          <CampSessionRunner
+            discipline={disc} cfg={cfg}
+            fit={!!campCtx?.split && campCtx?.slot === 's2'}
+            label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
+            sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
+            detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
+            onEnd={goCampComplete}
+          />
+        </WithWarmup>
       </WithNav>
     );
   }
