@@ -436,10 +436,20 @@ HOW MUCH TO MAKE (guidance):
       round title (verified: boxing L5 S1 → "JAB CROSS RING CUT / Sharp
       technique…"; S2 conditioning → "Jump Rope Intervals" etc.). The fight-mode
       chat's future camp modules drop into workout-modules.json over the fallback.
+      FULL FIGHT MODULE CATALOG AUTHORED (Jul 22): workout-modules.json now has
+      52 modules — 48 FIGHT (4 disciplines × 4 phases × 3 difficulties, all
+      discipline-authentic: boxing combos/ring craft, kickboxing Dutch chains/
+      low kicks, Muay Thai teeps/knees/clinch/elbows, MMA level-change/wall/
+      ground) + 4 FIT (multi). Every discipline×level(1–11)×difficulty resolves
+      to an EXACT-difficulty module (132/132, verified in Node); L12 boss falls
+      back to combat_emphasis. Difficulty variants distinct + round plan scales
+      (verified MT L8: NORMAL 6×3:00 "High Kick Output…" vs HARD 8×3:00 "Max
+      Kick Volume · High Clinch Density · Knees Under Fatigue…"). Generated from
+      a compact goal table via a one-off script for consistency.
       REMAINING for full 2.4: fit-specific runner visuals for S2 (still uses the
-      fight ring timer shell); more authored modules (kickboxing/MT/MMA fight,
-      easy/hard variants); chaining multiple blocks in one session (FULL CAMP,
-      8–15 min transition); warm-up phase.
+      fight ring timer shell); FIT easy/hard difficulty variants (S2 falls back
+      to normal); chaining multiple blocks in one session (FULL CAMP, 8–15 min
+      transition); warm-up phase.
 - [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
       fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
