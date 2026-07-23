@@ -101,6 +101,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   // Modal state: { idx, top, side ('L'|'R'|'C'), notchY, notch ('side'|'top'|'bottom') }
   const [openInfo, setOpenInfo] = useState(null);
+  // 2.10 — v2 campaigns: ENTER STAGE opens a per-stage selection modal (path +
+  // difficulty) before the timer, instead of starting straight away.
+  const [selectFor, setSelectFor] = useState(null);
+  const [selMode, setSelMode] = useState('fight');
+  const [selDiff, setSelDiff] = useState('normal');
   const [shakeIdx, setShakeIdx] = useState(null);
   const [toast, setToast] = useState(null);
   const [boxH, setBoxH] = useState(0);
@@ -210,6 +215,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     if (!selected || !canEnter) return;
     // Paywall gate: a Pro stage routes to the paywall instead of starting.
     if (selectedGated) { onPaywall?.(); return; }
+    // 2.10 — v2 campaign: choose PATH + DIFFICULTY per stage first.
+    if (series.v2Campaign) {
+      const modes = series.modeOptions || ['fight'];
+      setSelMode(modes.includes('fight') ? 'fight' : modes[0]);
+      setSelDiff('normal');
+      setSelectFor(selected);
+      setOpenInfo(null);
+      return;
+    }
     const settings = {
       difficulty: arcadeSettings?.difficulty || 'standard',
       cadence: arcadeSettings?.cadence || 'moderate',
@@ -219,6 +233,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     };
     setActiveChallenge({ seriesId: series.id, stageId: selected.id, selectedMode: startMode, lastPlayedAt: Date.now() });
     onStartStage(series, selected, startMode, null, settings);
+  }
+
+  // 2.10 — launch a v2 campaign stage with the modal-selected path + difficulty.
+  function startSelected() {
+    const stage = selectFor;
+    if (!stage) return;
+    setSelectFor(null);
+    setActiveChallenge({ seriesId: series.id, stageId: stage.id, selectedMode: selMode, lastPlayedAt: Date.now() });
+    onStartStage(series, stage, selMode, null, { difficulty: selDiff, voiceCoach: true, sound: 'on' });
   }
 
   // ── Modal content data ──
@@ -474,6 +497,35 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
               whiteSpace: 'nowrap', animation: 'toast-in .2s ease forwards',
             }}>
               🔒 {toast}
+            </div>
+          )}
+
+          {/* 2.10 — per-stage selection modal (PATH + DIFFICULTY) for v2 campaigns */}
+          {selectFor && (
+            <div onClick={() => setSelectFor(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: '92%', maxWidth: 320, background: 'rgba(16,7,32,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(253,224,71,0.4)', borderRadius: 16, padding: '15px 16px 16px', boxShadow: '0 18px 50px rgba(0,0,0,0.65)' }}>
+                <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em' }}>STAGE {selectFor.stageNumber} · {String(selectFor.phase || '').replace('_', ' ').toUpperCase()}</div>
+                <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em', marginBottom: 12 }}>{selectFor.title}</div>
+
+                <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 6 }}>PATH</div>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                  {(series.modeOptions || ['fight']).map((m) => {
+                    const on = selMode === m; const lbl = m === 'both' ? 'FULL ARC' : m.toUpperCase();
+                    const ac = m === 'fit' ? '#2dd4bf' : m === 'both' ? '#a855f7' : '#fde047';
+                    return <button key={m} onClick={() => setSelMode(m)} style={{ flex: 1, padding: '9px 4px', borderRadius: 9, cursor: 'pointer', background: on ? `${ac}22` : 'rgba(8,2,18,0.5)', border: `1px solid ${on ? ac : 'rgba(168,85,247,0.28)'}`, font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.04em', color: on ? ac : '#c4a4d8' }}>{lbl}</button>;
+                  })}
+                </div>
+
+                <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 6 }}>DIFFICULTY</div>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 15 }}>
+                  {['easy', 'normal', 'hard'].map((d) => {
+                    const on = selDiff === d; const ac = d === 'easy' ? '#22c55e' : d === 'hard' ? '#ef4444' : '#3b82f6';
+                    return <button key={d} onClick={() => setSelDiff(d)} style={{ flex: 1, padding: '9px 4px', borderRadius: 9, cursor: 'pointer', background: on ? `${ac}22` : 'rgba(8,2,18,0.5)', border: `1px solid ${on ? ac : 'rgba(168,85,247,0.28)'}`, font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.04em', color: on ? ac : '#c4a4d8' }}>{d.toUpperCase()}</button>;
+                  })}
+                </div>
+
+                <button onClick={startSelected} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>▶ START</button>
+              </div>
             </div>
           )}
         </div>

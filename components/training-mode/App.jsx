@@ -325,7 +325,9 @@ export default function App() {
     // adapted into it as extra series (data/arcadeCampaignSeries). START on a
     // campaign stage routes to the camp engine from goArcadeSession (below).
     goTrainingArcade: () => setScreen('arcade'),
-    goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen(['one-punch-protocol', 'demon-back-protocol'].includes(series?.id) ? 'arcade_series' : 'arcade_intro'); },
+    // 2.10 — playable series (the two originals + the v2 campaigns) go straight
+    // to the stage ladder; unfinished placeholders still show the intro page.
+    goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen((series?.v2Campaign || ['one-punch-protocol', 'demon-back-protocol'].includes(series?.id)) ? 'arcade_series' : 'arcade_intro'); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
