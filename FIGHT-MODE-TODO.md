@@ -564,13 +564,22 @@ HOW MUCH TO MAKE (guidance):
       VIABLE = open space + phone (every stage completable bare); data-driven
       substitutions (bag → shadowbox power rounds, rope → fast feet, etc.) show
       a chip and NEVER dock XP — punish nothing but effort. (equipment.json.)
-- [ ] 2.10 ARCADE v2: stages become themed skins over the camp engine. Per-
-      stage FIT / FIGHT / FULL ARC path flags; Full Arc reveals SPLIT/FULL
-      format + separate Fit & Fight difficulty. Rebuild the stage-selection
-      screen (header · path · format · difficulty · equipment chips · warnings ·
-      LIVE preview that updates on selector change). Validate stages against
-      stage.schema.json. Keep campaign names ORIGINAL (ARC_NIGHTGUARD etc., no
-      trademarked IP). (spec 11 P1–P2, DESIGN-SPEC.)
+- [~] 2.10 ARCADE v2 — SLICE 1 SHIPPED (Jul 23): campaign content foundation. The
+      5 campaigns (Baki, Berserk, Dark Knight, Ultra Ego, Ultra Instinct) copied
+      into components/training-mode/protocol/data/campaigns/ (12 stages + 24
+      modules each); new protocol/campaigns.ts loads them + exposes arcadeCampaigns
+      metadata and resolvers (getCampaign, campaignStages, arcadeStage,
+      stageModule, stageFormats, stageEquipment, resolveArcadeRounds — the runner
+      bridge). Node-validated: 360 resolutions (5×12×fit/fight×easy/normal/hard),
+      0 failures; typecheck + lint + build clean.
+      REMAINING: SLICE 2 — rebuild the stage-selection screen consuming the new
+      data (saga list + stage ladder from arcadeCampaigns; header · path · format ·
+      difficulty · equipment chips · warnings · LIVE preview updating on selector
+      change); validate vs stage.schema.json. SLICE 3 — wire stage START to run
+      over the camp engine (FightFocusTimer / CampFitRunner / CampFullSession) via
+      resolveArcadeRounds, completion → arcade progress + achievements + paywall
+      gate (canAccessStage). Keep campaign names ORIGINAL (no trademarked IP).
+      (spec 11 P1–P2, DESIGN-SPEC.)
 - [ ] 2.11 TITLE FIGHT (L12) + "TITLE FIGHT WON" outcome; camp completion →
       CAMP CHAMPION trophy + bonus XP → offer next camp/tier.
 - [ ] 2.12 Achievements (9 families → Progress tab arcade section, wired to
