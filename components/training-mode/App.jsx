@@ -4,6 +4,7 @@ import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
 import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
+import { campSessionXp } from './protocol/content';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
@@ -388,7 +389,15 @@ export default function App() {
       const awarded = !ir || ir.awardXp !== false;
       const fullyValid = !ir || ir.isFullyValid;
       const sessionValid = done >= total && awarded && fullyValid;
-      const xpEarned = awarded ? addCampSession(level, done, total) : 0;
+      // 2.8 — XP from the engine ruleset (active-min × difficulty × completion).
+      // The anti-cheat gate is preserved: not awarded → no XP, no record.
+      const diff = c?.difficulty || campCtx?.difficulty || 'normal';
+      const xpEarned = awarded
+        ? addCampSession(level, done, total, campSessionXp({
+            difficulty: diff, roundMin: c?.roundMin ?? 2,
+            doneRounds: done, totalRounds: total, valid: true,
+          }))
+        : 0;
       let cleared;
       if (split) {
         let st = campSessionState(level);
@@ -411,10 +420,13 @@ export default function App() {
       const level = campCtx?.level;
       const s = skill || { total: 1, done: 0, valid: false };
       const f = fit || { total: 1, done: 0, valid: false };
+      // 2.8 — real XP per block; both-block completion earns the full-arc bonus.
+      const diff = campCtx?.difficulty || 'normal';
+      const bothValid = s.valid && f.valid;
       let xpEarned = 0;
       if (level != null) {
-        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total); markCampSessionDone(level, 's1'); }
-        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total); markCampSessionDone(level, 's2'); }
+        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: true, fullArc: bothValid })); markCampSessionDone(level, 's1'); }
+        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: true, fullArc: bothValid })); markCampSessionDone(level, 's2'); }
       }
       const st = level != null ? campSessionState(level) : {};
       const cleared = !!(st.s1 && st.s2);

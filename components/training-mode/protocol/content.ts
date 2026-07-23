@@ -36,6 +36,7 @@ import type {
   Evaluation,
   SessionResult,
   XpInput,
+  SessionOutcome,
   ReadinessAnswers,
   ReadinessVerdict,
 } from './engine/trainingEngine';
@@ -72,6 +73,41 @@ export function evaluate(result: SessionResult, difficulty: Difficulty): Evaluat
 }
 export function xpFor(input: XpInput): number {
   return calcXp(input, xpRuleset);
+}
+
+// Phase 2 · 2.8 — real XP for a camp block, from the xp-rules ruleset.
+// XP = active_minutes × base(10) × difficulty × completion, plus optional
+// quality bonuses. Active minutes = rounds actually completed × round length.
+// Outcome is derived from completion + the 1.6 anti-cheat gate (invalid →
+// validation_failed → 0 XP, so the gate is preserved). The ruleset guarantees a
+// clean Easy pass out-earns a repeated Hard fail. When 2.7 lands, pass an
+// explicit `outcome` from evaluateSession instead of deriving it here.
+export function campSessionXp(opts: {
+  difficulty: Difficulty;
+  roundMin: number;        // length of ONE round, in minutes
+  doneRounds: number;      // rounds actually completed
+  totalRounds: number;     // rounds prescribed
+  valid: boolean;          // passed the 1.6 anti-cheat gate
+  outcome?: SessionOutcome; // override (e.g. from 2.7 evaluateSession)
+  fullArc?: boolean;        // FULL CAMP both-block completion
+  cleanTechnique?: boolean;
+  weeklyNoDrop?: boolean;
+}): number {
+  const activeMinutes = Math.max(0, opts.doneRounds) * Math.max(0, opts.roundMin);
+  let outcome: SessionOutcome;
+  if (opts.outcome) outcome = opts.outcome;
+  else if (!opts.valid) outcome = 'validation_failed';
+  else if (opts.doneRounds >= opts.totalRounds) outcome = 'pass';
+  else if (opts.doneRounds >= opts.totalRounds * 0.5) outcome = 'partial';
+  else outcome = 'fail';
+  return xpFor({
+    activeMinutes,
+    difficulty: opts.difficulty,
+    outcome,
+    fullArc: opts.fullArc,
+    cleanTechnique: opts.cleanTechnique,
+    weeklyNoDropBonus: opts.weeklyNoDrop,
+  });
 }
 export function readiness(answers: ReadinessAnswers): ReadinessVerdict {
   return assessReadiness(answers);

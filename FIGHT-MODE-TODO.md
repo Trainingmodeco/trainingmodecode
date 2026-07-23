@@ -521,9 +521,19 @@ HOW MUCH TO MAKE (guidance):
       fail / validation_failed onto the EXISTING outcome screens + 1.6 anti-
       cheat. 4 fail types (safety/conditioning/technical/tactical), each with
       its own response line — never random punishment. (pass-rules.json.)
-- [ ] 2.8 XP via calcXp + xp-rules.json (active_min × 10 × difficulty ×
-      completion × quality bonuses). Formula guarantees a clean Easy pass beats
-      a repeated Hard fail. Store as a remote-configurable ruleset.
+- [x] 2.8 XP via calcXp + xp-rules.json — SHIPPED (Jul 23). Camp XP is now the
+      engine ruleset, not a flat round count: content.campSessionXp() computes
+      active_minutes (done rounds × round length) × base(10) × difficulty ×
+      completion, + full-arc bonus for FULL CAMP. Outcome derived from completion
+      ratio + the 1.6 gate (pass/partial/fail; invalid → validation_failed → 0),
+      so anti-cheat is preserved; when 2.7 lands it can pass an explicit outcome.
+      userStats.addCampSession takes the precomputed xpAward; App.jsx goCampComplete
+      + goCampFullComplete compute it from cfg.roundMin/difficulty. Node-verified
+      economy (Easy pass 100 / Normal 138 / Hard 156 for L5 6×2:00; partial 0.5×;
+      fail 0.15×; cheat 0; MMA L9 5×5:00 = 325) and the balancing rule holds
+      (clean Easy pass 100 > Hard fail 4). Verified in-browser: boxing L5 NORMAL
+      S1 → +138 XP recorded (was flat 170), total 850→988, no console errors.
+      xp-rules.json is the remote-configurable ruleset.
 - [ ] 2.9 Equipment-aware routing: user equipment profile in settings; MINIMUM
       VIABLE = open space + phone (every stage completable bare); data-driven
       substitutions (bag → shadowbox power rounds, rope → fast feet, etc.) show

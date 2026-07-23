@@ -71,12 +71,15 @@ export function addFightFocusSession(roundsCompleted, totalRounds) {
   return xpEarned;
 }
 
-// Phase 2 · 2.4 — a Training Camp session. Same XP economy as a fight round
-// session; recorded with its camp level so Progress can show camp history.
-export function addCampSession(level, roundsCompleted, totalRounds) {
+// Phase 2 · 2.4 — a Training Camp session, recorded with its camp level so
+// Progress can show camp history. 2.8: XP is now computed by the engine's
+// campSessionXp (active-minutes × difficulty × completion + bonuses) and passed
+// in as `xpAward`. Falls back to the old round-based economy if omitted.
+export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
   const stats = loadStats();
-  const xpEarned = (roundsCompleted * XP_PER_FIGHT_ROUND) +
-    (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+  const xpEarned = typeof xpAward === 'number'
+    ? Math.max(0, Math.round(xpAward))
+    : (roundsCompleted * XP_PER_FIGHT_ROUND) + (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),
