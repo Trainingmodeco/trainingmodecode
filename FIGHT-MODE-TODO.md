@@ -446,9 +446,19 @@ HOW MUCH TO MAKE (guidance):
       (verified MT L8: NORMAL 6×3:00 "High Kick Output…" vs HARD 8×3:00 "Max
       Kick Volume · High Clinch Density · Knees Under Fatigue…"). Generated from
       a compact goal table via a one-off script for consistency.
-      REMAINING for full 2.4: fit-specific runner visuals for S2 (still uses the
-      fight ring timer shell); FIT easy/hard difficulty variants (S2 falls back
-      to normal); chaining multiple blocks in one session (FULL CAMP, 8–15 min
+      FIT-SPECIFIC S2 RUNNER SHIPPED (Jul 22): CampFitRunner.jsx — a dedicated
+      conditioning timer (teal palette, 🔥 WORK / ☕ REST, exercise goal front-
+      and-centre, round pips, no strike counter, no fight framing). Isolated
+      from FightFocusTimer but produces the identical onEnd(rounds, cfg,
+      completed, integrityResult) via useIntegritySession('combatConditioning')
+      so the 1.6 anti-cheat gate + goCampComplete work unchanged. ScreenRouter's
+      CampSessionRunner routes S2 (split slot s2) → CampFitRunner, S1/skill →
+      FightFocusTimer. Verified in-browser: boxing L5 S2 launched via readiness →
+      "CONDITIONING · ROUND 1/6" running "JUMP ROPE INTERVALS / Move with intent"
+      (teal ring, WORK 2:00); END → GOOD EFFORT +0 XP 0/6 (integrity gate intact,
+      routed through camp_complete). No console errors.
+      REMAINING for full 2.4: FIT easy/hard difficulty variants (S2 falls back to
+      normal); chaining multiple blocks in one session (FULL CAMP, 8–15 min
       transition); warm-up phase.
 - [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
       Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →

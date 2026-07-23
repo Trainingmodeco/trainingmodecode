@@ -13,6 +13,7 @@ import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
+import CampFitRunner from './CampFitRunner';
 import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
 import FitModeHub from './FitModeHub';
@@ -85,10 +86,14 @@ function useScrollIndicator(containerRef, children) {
 // 2.4b — camp block runner: an S7 "NEXT UP" interstitial leads into the round
 // timer. As multi-block sessions land, this is where blocks chain — each block
 // gets its transition card, then its timer.
-function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd }) {
+function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit }) {
   const [running, setRunning] = useState(false);
   if (!running) return <CampTransitionCard label={label} sub={sub} detail={detail} onDone={() => setRunning(true)} />;
-  return <FightFocusTimer discipline={discipline} cfg={cfg} onEnd={onEnd} initialPaused={false} />;
+  // S2 (PM conditioning) runs the dedicated fit runner; skill blocks use the
+  // shared striking ring timer. Both produce the same onEnd shape.
+  return fit
+    ? <CampFitRunner cfg={cfg} onEnd={onEnd} />
+    : <FightFocusTimer discipline={discipline} cfg={cfg} onEnd={onEnd} initialPaused={false} />;
 }
 
 function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, lock = false }) {
@@ -195,6 +200,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <CampSessionRunner
           discipline={disc} cfg={cfg}
+          fit={!!campCtx?.split && campCtx?.slot === 's2'}
           label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
           sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
           detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
