@@ -25,6 +25,40 @@ export const GATES = {
 // tier limits should start applying to non-Pro users.
 export const PAYWALL_ENABLED = false;
 
+// DEVICE-ONLY PREVIEW: test the free-tier gates on YOUR browser without flipping
+// the launch switch for everyone. Visit any app URL with ?paywall=preview to
+// turn it on (?paywall=off to clear). Only affects this browser — live users are
+// untouched until PAYWALL_ENABLED itself is flipped. Use it to confirm gates +
+// the Stripe checkout → Pro unlock flow before going live for real.
+const PREVIEW_KEY = 'tm_paywall_preview';
+
+function syncPreviewFromUrl() {
+  try {
+    if (typeof window === 'undefined' || !window.location) return;
+    const p = new URLSearchParams(window.location.search).get('paywall');
+    if (p == null) return;
+    if (p === 'preview' || p === 'on') localStorage.setItem(PREVIEW_KEY, '1');
+    else if (p === 'off' || p === 'reset') localStorage.removeItem(PREVIEW_KEY);
+  } catch { /* no-op */ }
+}
+syncPreviewFromUrl();
+
+export function isPaywallPreview() {
+  try { return typeof localStorage !== 'undefined' && localStorage.getItem(PREVIEW_KEY) === '1'; } catch { return false; }
+}
+export function setPaywallPreview(on) {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    if (on) localStorage.setItem(PREVIEW_KEY, '1'); else localStorage.removeItem(PREVIEW_KEY);
+  } catch { /* quota */ }
+}
+
+// Gates are enforced when the launch switch is on OR this browser opted into
+// preview. Everything below reads this instead of PAYWALL_ENABLED directly.
+export function paywallActive() {
+  return PAYWALL_ENABLED || isPaywallPreview();
+}
+
 function readJSON(key) {
   try {
     if (typeof localStorage === 'undefined') return null;
@@ -43,7 +77,7 @@ function storedPlan() {
 // Synchronous Pro check used by every gate. Reads the cached entitlement (and a
 // manual dev plan). Until the paywall is enabled, everyone is effectively Pro.
 export function isPro() {
-  if (!PAYWALL_ENABLED) return true;
+  if (!paywallActive()) return true;
   const cache = readJSON(CACHE_KEY);
   if (cache?.is_pro) return true;
   const manual = storedPlan();

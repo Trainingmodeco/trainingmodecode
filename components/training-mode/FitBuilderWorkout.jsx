@@ -7,7 +7,8 @@ import { C } from './Styles';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitBuilderGuidedPlayer from './FitBuilderGuidedPlayer';
-import { saveRoutine } from './data/savedRoutines';
+import { saveRoutine, loadRoutines } from './data/savedRoutines';
+import { routineSlotLimit } from './data/entitlements';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import { loadProfile } from './data/userProfile';
@@ -258,7 +259,7 @@ function applyScheme(list, scheme) {
   );
 }
 
-export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused, onStateChange, initialResumeData }) {
+export default function FitBuilderWorkout({ cfg, onDone, profile, onPaywall, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   // A saved routine loads its exact (possibly hand-tuned) exercise list.
   const [exercises, setExercises] = useState(() => cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
@@ -289,6 +290,16 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, initialPaused,
 
   const handleSaveRoutine = () => {
     const name = routineName.trim() || buildTitle(cfg);
+    // Free tier: one saved-routine slot. Overwriting a same-named routine is
+    // always allowed; saving a NEW one past the limit routes to the paywall.
+    const list = loadRoutines();
+    const isReplace = list.some(r => r.name.toLowerCase() === name.toLowerCase());
+    if (!isReplace && list.length >= routineSlotLimit()) {
+      setSaveOpen(false);
+      setRoutineName('');
+      onPaywall?.();
+      return;
+    }
     saveRoutine(name, cfg, exercises);
     setSaveOpen(false);
     setRoutineName('');

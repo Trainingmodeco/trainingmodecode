@@ -9,6 +9,7 @@ import { Lock, Check, X } from 'lucide-react';
 import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
+import { canAccessStage, GATES } from './data/entitlements';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -45,7 +46,7 @@ function getStageObjectives(stage) {
   return out.slice(0, 3);
 }
 
-export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStage, arcadeSettings }) {
+export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStage, onPaywall, arcadeSettings }) {
   const progress = getSeriesProgress(series.id);
 
   if (!isSeriesPlayable(series)) {
@@ -63,7 +64,7 @@ export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStag
     );
   }
 
-  return <StageLadder series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} />;
+  return <StageLadder series={series} progress={progress} arcadeSettings={arcadeSettings} onHome={onHome} onBack={onBack} onStartStage={onStartStage} onPaywall={onPaywall} />;
 }
 
 // ── 30b: branching ladder + stage accordion modal ─────────────────────────────
@@ -82,7 +83,7 @@ const LANE_L = 0.26;
 const LANE_R = 0.74;
 const MODAL_H = 300; // approximate popup height used for clamping
 
-function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStartStage }) {
+function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStartStage, onPaywall }) {
   const stages = useMemo(() => series.stages || [], [series]);
 
   const completedSet = useMemo(() => new Set(
@@ -165,6 +166,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const openIdx = openInfo?.idx ?? null;
   const selected = openIdx != null ? nodes[openIdx] : null;
   const canEnter = openIdx != null && accessible(openIdx);
+  // Free tier: stages 1..GATES.freeArcadeStages are free; higher stages + the
+  // mythic boss are Pro. Progression already locks stages you haven't unlocked;
+  // this is the SEPARATE paywall gate (only bites once the switch is on).
+  const stageNumOf = (idx) => (idx == null ? 1 : (nodes[idx]?.stageNumber || (idx === mythicIdx ? stages.length + 1 : idx + 1)));
+  const selectedGated = selected != null && !canAccessStage(stageNumOf(openIdx));
 
   function onNodeTap(e, idx) {
     if (!accessible(idx)) {
@@ -201,6 +207,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   function handleStart() {
     if (!selected || !canEnter) return;
+    // Paywall gate: a Pro stage routes to the paywall instead of starting.
+    if (selectedGated) { onPaywall?.(); return; }
     const settings = {
       difficulty: arcadeSettings?.difficulty || 'standard',
       cadence: arcadeSettings?.cadence || 'moderate',
@@ -442,7 +450,16 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 ))}
               </div>
 
-              <TrainingCTA label={canEnter ? 'ENTER STAGE' : 'LOCKED'} icon={canEnter ? '▶' : '🔒'} variant="gold" disabled={!canEnter} onClick={handleStart} height={44} />
+              {canEnter && selectedGated && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, padding: '6px 9px', borderRadius: 8, background: 'rgba(253,224,71,0.09)', border: '1px solid rgba(253,224,71,0.4)' }}>
+                  <span style={{ fontSize: 12 }}>👑</span>
+                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: '#facc15', lineHeight: 1.25 }}>Stages 1–{GATES.freeArcadeStages} are free. Go Pro to unlock the full climb.</span>
+                </div>
+              )}
+              <TrainingCTA
+                label={!canEnter ? 'LOCKED' : selectedGated ? 'UNLOCK WITH PRO' : 'ENTER STAGE'}
+                icon={!canEnter ? '🔒' : selectedGated ? '👑' : '▶'}
+                variant="gold" disabled={!canEnter} onClick={handleStart} height={44} />
             </div>
           )}
 

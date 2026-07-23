@@ -70,6 +70,21 @@ is appended automatically by the app — nothing to configure for that.)
 
 ---
 
+## 4b. Preview the gated experience safely (no live impact)
+
+The free-tier limits are now **wired**: a free user who taps arcade **stage 4+**,
+or tries to save a **2nd Workout Builder routine**, is routed to the Paywall.
+These only bite once `PAYWALL_ENABLED` is on — OR when you opt this browser into
+**preview**, which changes nothing for anyone else:
+
+- Turn on:  visit `https://apptrainingmode.com/?paywall=preview`
+- Turn off: visit `https://apptrainingmode.com/?paywall=off`
+
+With preview on you can walk the whole funnel — hit a gate → land on the Paywall
+→ (once steps 1–4 are done) pay in Stripe **test mode** → confirm the account
+flips to Pro and the gate opens — all without gating real beta users. Combine
+with a signed-in test account to exercise the checkout → entitlement path.
+
 ## 5. Test, then go live
 
 1. Do a full run in Stripe **test mode** (test card `4242 4242 4242 4242`): sign
