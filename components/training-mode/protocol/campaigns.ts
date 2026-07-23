@@ -41,6 +41,32 @@ const RAW: Record<string, Raw> = {
 // Display order for the saga carousel.
 export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO'];
 
+// 2.10 — franchise-flavored coach lines per campaign (archetype-safe, original —
+// never reproduces trademarked characters/quotes). Rotated across the rounds so
+// each drill carries the campaign's identity; the underlying exercises stay real.
+const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
+  ARC_BAKI: {
+    fit: ['Own your bodyweight — brace the core.', 'Train like a human, chase the monster.', 'Iron core. Control every rep.'],
+    fight: ['Read the phantom — counter it.', 'Shadow-fight your strongest self.', 'Relaxed power. Flow into the strike.'],
+  },
+  ARC_DARKKNIGHT: {
+    fit: ['Train in the dark. Master your body.', 'No shortcuts — forge every rep.', 'Peak human is built, not born.'],
+    fight: ['Control the fight. Never panic.', 'Precise, silent, decisive.', 'Read, counter, reset.'],
+  },
+  ARC_BERSERK: {
+    fit: ['Struggle forward — one more rep.', 'Heavy work builds a heavy blade.', 'Endure. Swing through the fatigue.'],
+    fight: ['Relentless pressure — keep advancing.', 'Every swing carries your whole body.', 'Never stop moving forward.'],
+  },
+  ARC_ULTRAEGO: {
+    fit: ['Embrace the strain — grow from it.', 'Pride fuels the last rep.', 'The harder it gets, the stronger you get.'],
+    fight: ['Take the hit, return it doubled.', 'Rising power under pressure.', 'Dominate the exchange.'],
+  },
+  ARC_ULTRAINSTINCT: {
+    fit: ['Move before you think — stay loose.', 'Flow: smooth, relaxed, precise.', 'Let the body lead.'],
+    fight: ['React, don’t decide — pure flow.', 'Slip, counter, flow onward.', 'Calm mind, instant hands.'],
+  },
+};
+
 const mid = (v: any, fallback = 0): number => {
   if (Array.isArray(v)) return Math.round((Number(v[0]) + Number(v[1])) / 2);
   return Number.isFinite(Number(v)) ? Number(v) : fallback;
@@ -163,10 +189,11 @@ export function arcadeBlockRounds(campaignId: string, stageId: string, path: 'fi
   const plan = resolveArcadeRounds(campaignId, stageId, path, difficulty);
   if (!plan) return [];
   const goals = plan.goals.length ? plan.goals : [path === 'fit' ? 'conditioning_round' : 'free_round'];
-  const cue = path === 'fit' ? 'Move with intent. Control your breathing.' : 'Sharp technique. Reset your stance.';
+  const fallback = path === 'fit' ? ['Move with intent. Control your breathing.'] : ['Sharp technique. Reset your stance.'];
+  const cues = CAMPAIGN_COACH[campaignId]?.[path === 'fit' ? 'fit' : 'fight'] || fallback;
   return Array.from({ length: Math.max(1, plan.rounds) }, (_, i) => ({
     round_title: humanizeGoal(goals[i % goals.length]),
-    coach_prompt: cue,
+    coach_prompt: cues[i % cues.length],
   }));
 }
 
