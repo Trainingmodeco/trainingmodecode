@@ -78,7 +78,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           onClick={onFightMode}
           style={{
             '--card-glow': 'rgba(239,68,68,0.5)',
-            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            position: 'relative', height: 110, borderRadius: 14, overflow: 'hidden',
             border: '1px solid rgba(239,68,68,0.25)',
             boxShadow: '0 0 12px rgba(239,68,68,0.08)',
             marginBottom: 12,
@@ -121,7 +121,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           onClick={onFitMode}
           style={{
             '--card-glow': 'rgba(168,85,247,0.5)',
-            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            position: 'relative', height: 110, borderRadius: 14, overflow: 'hidden',
             border: '1px solid rgba(168,85,247,0.25)',
             boxShadow: '0 0 12px rgba(168,85,247,0.08)',
             marginBottom: 12,
@@ -164,7 +164,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           onClick={onCombatConditioning}
           style={{
             '--card-glow': 'rgba(255,138,74,0.5)',
-            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            position: 'relative', height: 110, borderRadius: 14, overflow: 'hidden',
             border: '1px solid rgba(239,68,68,0.2)',
             boxShadow: '0 0 10px rgba(255,138,74,0.06)',
             marginBottom: 12,
@@ -207,7 +207,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
           onClick={onTrainingArcade}
           style={{
             '--card-glow': 'rgba(34,197,94,0.5)',
-            position: 'relative', height: 126, borderRadius: 14, overflow: 'hidden',
+            position: 'relative', height: 110, borderRadius: 14, overflow: 'hidden',
             border: '1px solid rgba(34,197,94,0.25)',
             boxShadow: '0 0 12px rgba(34,197,94,0.08)',
           }}
