@@ -5,6 +5,8 @@ import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuick
 import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
+import { clearArcadeStage } from './data/arcadeCampaignProgress';
+import { arcadeCfg, arcadeStage as arcadeStageOf, getCampaign as getArcadeCampaign } from './protocol/campaigns';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
@@ -127,6 +129,7 @@ export default function App() {
   const [arcadeMode,   setArcadeMode  ] = useState(null);
   const [arcadeOrder,  setArcadeOrder ] = useState(null);
   const [arcadeSettings, setArcadeSettings] = useState(null);
+  const [arcadeV2Sel, setArcadeV2Sel] = useState(null);   // 2.10 — {campaignId, stageId}
   const [profile,  setProfile ] = useState(() => loadProfile());
   const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
   const [resumeData, setResumeData] = useState(null);
@@ -319,7 +322,30 @@ export default function App() {
       }
     },
     goCombatCondSetup: () => setScreen('cc_setup'),
-    goTrainingArcade: () => setScreen('arcade'),
+    // 2.10 v2 — the arcade entry now opens the campaign/stage picker.
+    goTrainingArcade: () => setScreen('arcade_v2'),
+    goArcadeV2Stage: (campaignId, stageId) => { setArcadeV2Sel({ campaignId, stageId }); setScreen('arcade_stage'); },
+    // 2.10 slice 2→3 — launch a v2 stage over the camp engine. A fit path runs
+    // the conditioning runner (slot s2), fight the skill timer, full arc both.
+    // Marked `arcade` so the shared camp completion updates arcade progress.
+    goArcadeV2Start: (ctx) => {
+      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      const stage = arcadeStageOf(ctx.campaignId, ctx.stageId);
+      const stageNumber = stage?.stage_number || 1;
+      const campaignName = (getArcadeCampaign(ctx.campaignId)?.name || '').split('—')[0].trim();
+      const arcade = { campaignId: ctx.campaignId, stageId: ctx.stageId, stageNumber, campaignName };
+      if (ctx.path === 'full_arc') {
+        const cfgSkill = arcadeCfg(ctx.campaignId, ctx.stageId, 'fight', ctx.fightDifficulty);
+        const cfgFit = arcadeCfg(ctx.campaignId, ctx.stageId, 'fit', ctx.fitDifficulty);
+        const cc = { discipline: 'Boxing', level: stageNumber, difficulty: ctx.fightDifficulty, format: 'full', cfgSkill, cfgFit, arcade };
+        setCampCtx(cc); setCfg(cfgSkill); setScreen('camp_full');
+      } else {
+        const diff = ctx.path === 'fit' ? ctx.fitDifficulty : ctx.fightDifficulty;
+        const cfg = arcadeCfg(ctx.campaignId, ctx.stageId, ctx.path, diff);
+        const cc = { discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: ctx.path === 'fit', slot: ctx.path === 'fit' ? 's2' : 's1', arcade };
+        setCampCtx(cc); setCfg(cfg); setScreen('camp_session');
+      }
+    },
     goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen(['one-punch-protocol', 'demon-back-protocol'].includes(series?.id) ? 'arcade_series' : 'arcade_intro'); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
@@ -380,6 +406,21 @@ export default function App() {
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
       const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
+      // 2.10 — arcade v2 stage completion reuses this pipeline but updates arcade
+      // progress instead of camp progress. Same 1.6 anti-cheat gate + 2.8 XP.
+      if (campCtx?.arcade) {
+        const a = campCtx.arcade;
+        const irA = integrityResult;
+        const awardedA = !irA || irA.awardXp !== false;
+        const validA = done >= total && awardedA && (!irA || irA.isFullyValid);
+        const diffA = c?.difficulty || campCtx?.difficulty || 'normal';
+        const xpA = awardedA ? addCampSession(a.stageNumber, done, total, campSessionXp({ difficulty: diffA, roundMin: c?.roundMin ?? 2, doneRounds: done, totalRounds: total, valid: true })) : 0;
+        const nextStage = validA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
+        trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber });
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA });
+        routeAfterXp(beforeLevel, 'camp_complete');
+        return;
+      }
       const level = campCtx?.level;
       const split = !!campCtx?.split;
       const slot = campCtx?.slot || 's1';
@@ -417,9 +458,23 @@ export default function App() {
     goCampFullComplete: ({ skill, fit }) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
-      const level = campCtx?.level;
       const s = skill || { total: 1, done: 0, valid: false };
       const f = fit || { total: 1, done: 0, valid: false };
+      // 2.10 — FULL ARC arcade stage: both blocks over the shared runner.
+      if (campCtx?.arcade) {
+        const a = campCtx.arcade;
+        const diffA = campCtx?.difficulty || 'normal';
+        const bothValidA = s.valid && f.valid;
+        let xpA = 0;
+        xpA += addCampSession(a.stageNumber, s.done, s.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: s.valid, fullArc: bothValidA }));
+        xpA += addCampSession(a.stageNumber, f.done, f.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: f.valid, fullArc: bothValidA }));
+        const nextStage = bothValidA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
+        trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber, format: 'full' });
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA });
+        routeAfterXp(beforeLevel, 'camp_complete');
+        return;
+      }
+      const level = campCtx?.level;
       // 2.8 — real XP per block; both-block completion earns the full-arc bonus.
       const diff = campCtx?.difficulty || 'normal';
       const bothValid = s.valid && f.valid;
@@ -617,7 +672,7 @@ export default function App() {
             comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult}
-            arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
+            arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings} arcadeV2Sel={arcadeV2Sel}
             campCtx={campCtx} campResult={campResult}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}

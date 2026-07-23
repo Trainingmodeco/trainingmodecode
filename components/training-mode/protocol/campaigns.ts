@@ -20,6 +20,7 @@ import ultraegoModules from './data/campaigns/ARC_ULTRAEGO/modules.json';
 import ultrainstinctCampaign from './data/campaigns/ARC_ULTRAINSTINCT/campaign.json';
 import ultrainstinctStages from './data/campaigns/ARC_ULTRAINSTINCT/stages.json';
 import ultrainstinctModules from './data/campaigns/ARC_ULTRAINSTINCT/modules.json';
+import { humanizeGoal } from './content';
 
 export type ArcadePath = 'fit' | 'fight' | 'full_arc';
 export type ArcadeDifficulty = 'easy' | 'normal' | 'hard';
@@ -143,6 +144,44 @@ export function resolveArcadeRounds(campaignId: string, stageId: string, path: '
   const restSec = modRounds[0]?.rest_sec ?? 0;
   const fitGoals = goals.length ? goals : (mod.exercises || []).slice(0, 6);
   return { rounds, roundSec, restSec, goals: fitGoals.length ? fitGoals : ['conditioning_round'], durationMin: mod.duration_min };
+}
+
+// ── Runner cfg — the camp timers consume this shape (slice 3 handoff) ────────
+// Turns a stage+path+difficulty into the same cfg FightFocusTimer / CampFitRunner
+// read (rounds, roundMin, restSec, blockRounds), so arcade reuses the camp engine.
+export function arcadeBlockRounds(campaignId: string, stageId: string, path: 'fit' | 'fight', difficulty: ArcadeDifficulty) {
+  const plan = resolveArcadeRounds(campaignId, stageId, path, difficulty);
+  if (!plan) return [];
+  const goals = plan.goals.length ? plan.goals : [path === 'fit' ? 'conditioning_round' : 'free_round'];
+  const cue = path === 'fit' ? 'Move with intent. Control your breathing.' : 'Sharp technique. Reset your stance.';
+  return Array.from({ length: Math.max(1, plan.rounds) }, (_, i) => ({
+    round_title: humanizeGoal(goals[i % goals.length]),
+    coach_prompt: cue,
+  }));
+}
+
+export function arcadeCfg(campaignId: string, stageId: string, path: 'fit' | 'fight', difficulty: ArcadeDifficulty) {
+  const plan = resolveArcadeRounds(campaignId, stageId, path, difficulty);
+  if (!plan) return null;
+  return {
+    difficulty,
+    rounds: plan.rounds,
+    roundMin: plan.roundSec / 60,
+    restSec: plan.restSec,
+    voiceOn: true,
+    encouragement: 'normal',
+    rushMode: false,
+    warmupMin: 3,
+    blockRounds: arcadeBlockRounds(campaignId, stageId, path, difficulty),
+  };
+}
+
+// Merged gear→substitution map for a stage's path(s) — feeds the gear check.
+export function arcadeSubs(campaignId: string, stageId: string, paths: ('fit' | 'fight')[]): Record<string, string> {
+  return paths.reduce((acc, p) => {
+    const mod = stageModule(campaignId, stageId, p);
+    return { ...acc, ...(mod?.substitutions || {}) };
+  }, {} as Record<string, string>);
 }
 
 // Stage equipment (for the stage-select chips): required / recommended + swaps.

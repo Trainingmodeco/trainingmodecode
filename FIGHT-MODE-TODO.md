@@ -572,14 +572,27 @@ HOW MUCH TO MAKE (guidance):
       stageModule, stageFormats, stageEquipment, resolveArcadeRounds — the runner
       bridge). Node-validated: 360 resolutions (5×12×fit/fight×easy/normal/hard),
       0 failures; typecheck + lint + build clean.
-      REMAINING: SLICE 2 — rebuild the stage-selection screen consuming the new
-      data (saga list + stage ladder from arcadeCampaigns; header · path · format ·
-      difficulty · equipment chips · warnings · LIVE preview updating on selector
-      change); validate vs stage.schema.json. SLICE 3 — wire stage START to run
-      over the camp engine (FightFocusTimer / CampFitRunner / CampFullSession) via
-      resolveArcadeRounds, completion → arcade progress + achievements + paywall
-      gate (canAccessStage). Keep campaign names ORIGINAL (no trademarked IP).
-      (spec 11 P1–P2, DESIGN-SPEC.)
+      SLICE 2 SHIPPED (Jul 23): the selection flow + runner handoff. ArcadeV2Hub
+      (campaign chips + 12-stage grid with lock/current/done from
+      arcadeCampaignProgress) → ArcadeStageSelect (DESIGN-SPEC S6: header · PATH
+      FIT/FIGHT/FULL ARC · FORMAT split/full for full arc · DIFFICULTY (two rows on
+      full arc) · EQUIPMENT chips (required solid / recommended dim) · WARNINGS ·
+      LIVE PREVIEW re-rendering on selector change · gold START). The arcade entry
+      (goTrainingArcade) now opens arcade_v2. campaigns.ts adds arcadeCfg /
+      arcadeBlockRounds / arcadeSubs (the runner bridge). START reuses the camp
+      engine: goArcadeV2Start builds a camp-style cfg and routes to
+      camp_session/camp_full; goCampComplete/goCampFullComplete branch on
+      campCtx.arcade to update arcade progress (clearArcadeStage) + the 2.8 XP + the
+      1.6 gate, with a paywall gate (canAccessStage, free stages 1–3). Verified:
+      typecheck + lint + build clean; campaign resolvers Node-validated (360); no
+      console errors. ⚠ IN-APP CLICK-THROUGH NOT YET DONE — browser pane input was
+      wedged this session; confirm the v2 screens + a stage play-through when the
+      pane recovers.
+      SLICE 3 POLISH (remaining): the shared camp_complete screen shows "LEVEL N"
+      not "STAGE N" for arcade + records sessions as 'Training Camp' — relabel for
+      arcade; add readiness+gear before an arcade START (currently straight to
+      warm-up); wire the 9 achievements; original campaign banners (IP). Keep names
+      ORIGINAL. (spec 11 P1–P2, DESIGN-SPEC S6.)
 - [ ] 2.11 TITLE FIGHT (L12) + "TITLE FIGHT WON" outcome; camp completion →
       CAMP CHAMPION trophy + bonus XP → offer next camp/tier.
 - [ ] 2.12 Achievements (9 families → Progress tab arcade section, wired to
