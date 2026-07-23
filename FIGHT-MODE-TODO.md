@@ -488,15 +488,35 @@ HOW MUCH TO MAKE (guidance):
       transition card → combined Mission Complete; SPLIT CAMP (default L4–11) runs
       S1 · SKILL / S2 · CONDITIONING as independent sessions with per-slot chips
       and readiness check. L1–3 and L12 are single-session. (spec 10 P5.)
-- [ ] 2.5 Round timing from timing-tables.json via resolveRoundTemplate
-      (striking vs MMA bands; L10–11 taper reduces round COUNT, keeps LENGTH;
-      L12 final-boss table — striking = active-minute target, MMA = 5×5:00).
-- [ ] 2.6 Safety gates (two-stage): PAR-Q+ once at camp onboarding (any "yes"
-      → recommend medical guidance + default to Easy, never hard-block); daily
-      readiness before EVERY session (5×1–5 taps + danger-symptom) via
-      assessReadiness → halt / suggest_easy_or_recovery / go. Recovery keeps the
-      streak. Never rewards dehydration / weight-cut / hard sparring.
-      (readiness.json, DESIGN-SPEC S3.)
+- [x] 2.5 Round timing from timing-tables.json via resolveRoundTemplate —
+      SHIPPED (Jul 23). The engine's resolveRoundTemplate (protocol/engine) is
+      the single source of round counts/lengths/rest; content.roundTemplate wraps
+      it and TrainingCampMap.buildCfg drives EVERY camp/full timer from it (no
+      hardcoded rounds). Striking vs MMA bands honoured (verified: boxing L5
+      6×2:00·45s vs MMA L7 6×4:00·60s vs MMA L9 hard 5×5:00 fight_simulation);
+      L10–11 taper reduces round COUNT, keeps LENGTH (verified: boxing L10 5×3:00
+      [TAPER], L11 4×3:00 [TAPER], down from the L9-band 6×3:00); L12 final-boss
+      table resolves (MMA 5×5:00, striking → active-minute target e.g. boxing L12
+      hard ~38 active min). The 45b modal preview surfaces the plan + a TAPER tag
+      + the "~N active min · objective rounds" line for the boss. NOTE: the L12
+      active-minute RUNNER (a timed objective session vs fixed rounds) is built
+      under 2.11 TITLE FIGHT; the timing itself is done here.
+- [x] 2.6 Safety gates (two-stage) — SHIPPED (Jul 23). Stage 2 (daily readiness)
+      landed Jul 21 (shared/ReadinessSheet.jsx: 5×1–5 taps + danger question →
+      engine assessReadiness → halt / suggest_easy_or_recovery / go; recovery
+      keeps the streak; runs before every camp session). Stage 1 (PAR-Q+) now
+      landed: shared/ParQSheet.jsx + data/parq.js (tm_camp_parq) show a ONE-TIME
+      6-question pre-participation screening the first time a camp opens. Any
+      "yes" NEVER hard-blocks — it shows a "CHECK IN FIRST" advisory (see a
+      professional; not medical advice) and softly defaults the camp to Easy with
+      a "⚕ EASY RECOMMENDED" header chip (changeable any time). All-NO enters
+      normally. Result is persisted so it never nags again. Questions/copy come
+      from readiness.json onboarding_screening. Verified in-browser both paths
+      (all-NO → normal entry, no chip; one-YES → advisory → Easy default + chip +
+      L6 modal pre-selects EASY 5×2:00 easy content; re-entry skips the gate;
+      tm_camp_parq {done,anyYes} persisted; no console errors). Hard rules from
+      readiness.json (never reward dehydration / weight-cut / hard sparring;
+      danger halts) hold. (readiness.json, DESIGN-SPEC S3.)
 - [ ] 2.7 Pass rules + adaptive failure: evaluateSession → pass / partial /
       fail / validation_failed onto the EXISTING outcome screens + 1.6 anti-
       cheat. 4 fail types (safety/conditioning/technical/tactical), each with

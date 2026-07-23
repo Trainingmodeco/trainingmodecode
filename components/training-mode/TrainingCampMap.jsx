@@ -4,7 +4,9 @@ import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, blockRoundsFor, humanizeGoal } from './protocol/content';
 import { loadCampProgress } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
+import { loadParq, saveParq } from './data/parq';
 import ReadinessSheet from './shared/ReadinessSheet';
+import ParQSheet from './shared/ParQSheet';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -104,7 +106,11 @@ function NodePips({ level, state, sess }) {
 
 export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStartSession }) {
   const discKey = DISC_KEY[discipline] || 'boxing';
-  const [difficulty, setDifficulty] = useState('normal');
+  // 2.6 (stage 1) — PAR-Q+ one-time screening. If it was taken and flagged a
+  // "yes", the camp softly defaults to Easy (never a hard block). Shown once.
+  const [parq, setParq] = useState(loadParq);
+  const [showParq, setShowParq] = useState(() => !loadParq().done);
+  const [difficulty, setDifficulty] = useState(() => (loadParq().anyYes ? 'easy' : 'normal'));
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
   const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
@@ -195,6 +201,11 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
             <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#b9a9d8', letterSpacing: '0.04em', marginTop: 1 }}>
               Level {current} of 12 · {curPhase.phase_label} · {archetype?.name}
             </div>
+            {parq.anyYes && (
+              <div title="You flagged a health item at screening — Easy is recommended. Change it any time." style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.4)', borderRadius: 5, padding: '2px 6px', font: "700 7px 'Orbitron',sans-serif", color: '#7fd6c8', letterSpacing: '0.04em' }}>
+                ⚕ EASY RECOMMENDED
+              </div>
+            )}
           </div>
           <HelpButton onClick={() => setHelpOpen(true)} />
         </div>
@@ -369,6 +380,17 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
           }}
           onClose={() => setReadinessCtx(null)}
         />
+      )}
+
+      {/* 2.6 (stage 1) — one-time PAR-Q+ screening on first camp entry. Any
+          "yes" softly defaults the camp to Easy; it never blocks entry. */}
+      {showParq && (
+        <ParQSheet onDone={(anyYes) => {
+          const rec = saveParq(anyYes);
+          setParq(rec);
+          if (anyYes) setDifficulty('easy');
+          setShowParq(false);
+        }} />
       )}
     </PhoneFrame>
   );
