@@ -1,0 +1,74 @@
+{
+  "notes": "Ghost Battles config + data model. A 'ghost' is the recorded per-interval strike output of a completed, VERIFIED Fight Mode session. You race against its replay: no live multiplayer, just a saved-numbers playback (like a racing-game ghost lap). Engine: protocol-src/engine/ghost-engine.ts. Designer visuals: design 40d.",
+
+  "ghost_record": {
+    "description": "What every ghost stores. Small — just enough to replay pace and show identity.",
+    "shape": {
+      "ghost_id": "string",
+      "owner_id": "string",
+      "owner_name": "string",
+      "avatar_tier": "string (tiers/{tier}-{gender})",
+      "gender": "male | female",
+      "source": {
+        "mode": "combo_coach | fight_focus | arcade | camp",
+        "discipline_or_campaign": "string",
+        "difficulty": "easy | normal | hard",
+        "rounds_config": { "rounds": "int", "round_sec": "int", "rest_sec": "int" }
+      },
+      "bucket_sec": 10,
+      "buckets": "number[] — strikes per 10-second interval across the whole session (work phases; rest buckets are 0)",
+      "total_strikes": "int",
+      "best_round": "int — highest single-round strike count (tiebreak)",
+      "verified": "bool — ONLY sessions that passed the anti-cheat integrity check can become ghosts",
+      "created_at": "timestamp (stamped by app, not the engine)"
+    },
+    "rule": "Only verified sessions become ghosts. Unverified sessions are never offered as a challenge — this is the 'no fake scores' guarantee and a marketing point."
+  },
+
+  "battle_result": {
+    "win_rule": "Higher verified total_strikes wins.",
+    "tiebreak": "Higher best_round wins; still tied → draw.",
+    "xp": "Victory grants bonus XP; a loss still grants the normal session XP (never punish showing up).",
+    "outcomes": ["victory", "defeat", "tie"]
+  },
+
+  "matchmaking": {
+    "always_available": ["MY_BEST — the user's own best verified ghost for the chosen mode/discipline"],
+    "sources": [
+      "RECENT_GHOSTS — ghosts the user downloaded via challenge code/link",
+      "CHALLENGE_CODE — a shared code/link a friend sent",
+      "SUGGESTED — a ghost near the user's level (see selection)"
+    ],
+    "selection_for_suggested": "Prefer a ghost whose total_strikes is within ~15% of the user's own best for that mode — a beatable-but-challenging race. Fall back to MY_BEST if none.",
+    "format_rule": "A ghost battle inherits the ghost's rounds_config — you fight its format so the comparison is fair. Show it read-only on setup."
+  },
+
+  "surfacing": {
+    "combo_coach_icon": {
+      "where": "A small ghost icon (👻) on the Combo Coach setup screen, present from the start (per user request + designer 40d).",
+      "tap": "Opens the ghost opponent picker (MY BEST / recent / enter code) → starts a ghost battle using Combo Coach as the session.",
+      "empty_state": "If the user has no ghost yet, the icon still shows and explains: 'Finish a session to create your first ghost, then race it.'"
+    },
+    "vs_popup": {
+      "where": "An occasional VS-mode pop-up (framed like a fighting-game 'VS' screen).",
+      "when": "Fires at most once every ~2-3 days, and ONLY when there is something real to react to: a newly downloaded friend ghost, or 'someone beat your challenge' (a friend's session beat a ghost you set).",
+      "cadence_rules": {
+        "min_days_between": 2,
+        "requires_fresh_event": true,
+        "never_interrupt_active_session": true,
+        "dismissible": "Always dismissible; dismissing does not re-prompt the same event."
+      },
+      "content": "Both avatars faced off, the challenge (e.g. 'RYAN threw 214 — beat it') and a gold 'ACCEPT · VS' CTA that starts the matching session; a 'later' option."
+    },
+    "set_as_challenge": {
+      "where": "On every VERIFIED Fight Mode Mission Complete / outcome screen.",
+      "action": "Generates a short challenge code / share link; the recipient enters it to download the ghost and race it. Only verified sessions can be set as a challenge."
+    }
+  },
+
+  "privacy": {
+    "opt_in": "Sharing a ghost is user-initiated (SET AS CHALLENGE) — sessions are never auto-published.",
+    "data_shared": "Only the ghost_record fields above (pace buckets + display identity). No location, no health data.",
+    "friend_ghosts_are_read_only": "Downloaded ghosts replay locally; they are recordings, not live connections."
+  }
+}
