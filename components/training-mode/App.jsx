@@ -365,7 +365,11 @@ export default function App() {
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
-      setCampCtx(ctx); setDisc(ctx.discipline); setCfg(ctx.cfg); setScreen('camp_session');
+      setCampCtx(ctx); setDisc(ctx.discipline);
+      // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
+      // the warm-up wrapper still reads warmupMin.
+      setCfg(ctx.format === 'full' ? ctx.cfgSkill : ctx.cfg);
+      setScreen(ctx.format === 'full' ? 'camp_full' : 'camp_session');
     },
     // 2.4 — camp session finished (same onEnd shape as FightFocusTimer). Award
     // XP, then advance: single levels clear on a valid full completion; split
@@ -399,6 +403,26 @@ export default function App() {
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goCampMap: () => setScreen('training_camp'),
+    // 2.4 — FULL CAMP finished (both blocks). Each valid block earns XP and
+    // marks its slot; the level clears when both are ✓✓.
+    goCampFullComplete: ({ skill, fit }) => {
+      const beforeLevel = getLevel(loadStats().xp);
+      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      const level = campCtx?.level;
+      const s = skill || { total: 1, done: 0, valid: false };
+      const f = fit || { total: 1, done: 0, valid: false };
+      let xpEarned = 0;
+      if (level != null) {
+        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total); markCampSessionDone(level, 's1'); }
+        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total); markCampSessionDone(level, 's2'); }
+      }
+      const st = level != null ? campSessionState(level) : {};
+      const cleared = !!(st.s1 && st.s2);
+      const unlockedTo = cleared ? completeCampLevel(level) : null;
+      trackEvent('session_complete', { mode: 'trainingCamp', level, format: 'full' });
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid });
+      routeAfterXp(beforeLevel, 'camp_complete');
+    },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);

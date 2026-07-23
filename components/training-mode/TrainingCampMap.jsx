@@ -108,6 +108,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [openLevel, setOpenLevel] = useState(null);
   const [openAtY, setOpenAtY] = useState(0);
   const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
+  const [format, setFormat] = useState('split');            // 2.4 — 'split' | 'full'
   const [helpOpen, setHelpOpen] = useState(false);
   const [current] = useState(loadCampProgress);
   const [sessAll] = useState(() => loadCampSessions());     // 2.4b — per-level S1/S2 state
@@ -153,10 +154,13 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // 2.4b — on split levels the next mission is S1 until it's ✓, then S2.
   const openSess = open ? (sessAll[open.level] || {}) : {};
   const nextSlot = openSess.s1 ? 's2' : 's1';
+  // FULL CAMP is only offered on a fresh split level (neither mission done yet).
+  const canFull = open != null && isSplitAvailable(open.level) && !openSess.s1 && !openSess.s2;
+  const useFull = canFull && format === 'full';
   // 45b START runs the readiness check (2.6) first; the sheet launches on 'go'.
   const requestStart = () => {
     if (!open || !canStart) return;
-    setReadinessCtx({ level: open.level, difficulty, slot: nextSlot });
+    setReadinessCtx({ level: open.level, difficulty, slot: openSess.s1 ? 's2' : 's1', full: useFull });
     setOpenLevel(null);
   };
 
@@ -274,6 +278,23 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
 
             {isSplitAvailable(open.level) ? (
               <>
+                {/* 2.4 — on a fresh split level, choose SPLIT (two days) or
+                    FULL CAMP (both blocks back-to-back in one sitting). */}
+                {canFull && (
+                  <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
+                    {[['split', 'SPLIT · 2 DAYS'], ['full', 'FULL CAMP · 1 SITTING']].map(([f, lbl]) => {
+                      const on = format === f;
+                      return (
+                        <button key={f} onClick={() => setFormat(f)} style={{
+                          flex: 1, padding: '6px 0', borderRadius: 7, cursor: 'pointer',
+                          background: on ? 'rgba(45,212,191,0.14)' : 'rgba(8,2,18,0.4)',
+                          border: `1px solid ${on ? 'rgba(45,212,191,0.55)' : 'rgba(168,85,247,0.25)'}`,
+                          font: "800 7.5px 'Orbitron',sans-serif", letterSpacing: '0.03em', color: on ? '#7fd6c8' : '#c4a4d8',
+                        }}>{lbl}</button>
+                      );
+                    })}
+                  </div>
+                )}
                 {/* 2.4b — the two missions with real completion state. S1 first
                     (skill while fresh), S2 unlocks after; level clears at ✓✓. */}
                 {[
@@ -307,7 +328,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                   );
                 })}
                 <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#8b7fb0', textAlign: 'center', marginBottom: 10 }}>
-                  Leave 4–8 hours between missions · level clears at ✓✓
+                  {useFull ? 'Both blocks back-to-back · level clears at ✓✓' : 'Leave 4–8 hours between missions · level clears at ✓✓'}
                 </div>
               </>
             ) : (
@@ -321,7 +342,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
 
             {canStart ? (
               <button onClick={requestStart} style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>
-                ▶ START {isSplitAvailable(open.level) ? `SESSION ${nextSlot === 's2' ? 2 : 1}` : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
+                ▶ START {useFull ? 'FULL CAMP' : isSplitAvailable(open.level) ? `SESSION ${nextSlot === 's2' ? 2 : 1}` : open.phase === 'final_boss' ? 'TITLE FIGHT' : 'SESSION'}
               </button>
             ) : (
               <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.5)', color: '#8b7fb0', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'not-allowed' }}>
@@ -339,7 +360,11 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         <ReadinessSheet
           onGo={({ easy }) => {
             const diff = easy ? 'easy' : readinessCtx.difficulty;
-            launch(readinessCtx.level, diff, readinessCtx.slot);
+            if (readinessCtx.full) {
+              onStartSession?.({ discipline, level: readinessCtx.level, difficulty: diff, format: 'full', cfgSkill: buildCfg(readinessCtx.level, diff, 'fight'), cfgFit: buildCfg(readinessCtx.level, diff, 'fit') });
+            } else {
+              launch(readinessCtx.level, diff, readinessCtx.slot);
+            }
             setReadinessCtx(null);
           }}
           onClose={() => setReadinessCtx(null)}

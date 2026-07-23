@@ -385,7 +385,7 @@ HOW MUCH TO MAKE (guidance):
       Decisions locked (Jul 21): `title` per level added; AM/PM = S1 SKILL
       (combat, fresh) / S2 CONDITIONING (physical), skill-first, spec 10 P5
       updated to match.
-- [~] 2.4 Session runner — SLICE 1 SHIPPED (Jul 21): a camp level is now
+- [x] 2.4 Session runner — COMPLETE (Jul 23; slices Jul 21–23). Slice 1 SHIPPED (Jul 21): a camp level is now
       PLAYABLE end-to-end. 45b START builds a cfg from the engine round template
       (rounds/length/rest) and launches the session on the shared FightFocusTimer
       (reuse, not a fork) → onEnd → MissionComplete outcome. New: data/
@@ -464,13 +464,30 @@ HOW MUCH TO MAKE (guidance):
       verified in-browser (boxing L5 fit: EASY "Easy Rope · Light Roadwork ·
       Bodyweight Circuit…" ~18m vs NORMAL "Jump Rope Intervals · Roadwork
       Tempo…"). Full camp content matrix is complete.
-      REMAINING for full 2.4: chaining multiple blocks in one session (FULL CAMP,
-      8–15 min transition); warm-up phase.
-- [ ] 2.4b Session runner (full): chain fit/fight module blocks → normal Mission
-      Complete. FULL CAMP = one block (warm-up → fit → 8–15min transition →
-      fight → cooldown). SPLIT CAMP (default L4–11) = AM physical / PM combat
-      with independent AM/PM chips + a 4-question inter-session check
-      (never shaming). L1–3 and L12 are single-session only. (spec 10 P5.)
+      WARM-UP PHASE SHIPPED (Jul 23): every camp session (split S1/S2 and full)
+      opens with an optional warm-up — shared/WithWarmup.jsx wraps the runner
+      with a "WARM UP · {mode}" teal timer (3 min, NO XP, "SKIP → START" to jump
+      straight in); cfg.warmupMin drives it (buildCfg sets 3). Verified in-browser
+      (WARM UP · FULL CAMP teal timer → SKIP → session starts).
+      FULL CAMP SHIPPED (Jul 23): the two split missions now run back-to-back as
+      ONE sitting. 45b modal shows a SPLIT · 2 DAYS / FULL CAMP · 1 SITTING toggle
+      on fresh split levels (canFull); FULL CAMP launches CampFullSession.jsx
+      (intro1 → skill FightFocusTimer → intro2 CampTransitionCard → fit
+      CampFitRunner) via App.goCampSession(format:'full') → screen camp_full
+      (WithNav + WithWarmup), and reports a combined {skill, fit} to
+      goCampFullComplete — each block judged by the SAME 1.6 anti-cheat gate,
+      both slots mark done + level clears at ✓✓ in one go, XP awarded per valid
+      block. Verified in-browser (clock+timer warp so integrity saw full-length
+      rounds): boxing L5 FULL CAMP → warm-up → skill 6 rounds ("JAB CROSS RING
+      CUT" … "SLIP COUNTER PIVOT") → S2 · CONDITIONING transition → fit 6 rounds
+      ("JUMP ROPE INTERVALS" … "MOBILITY FLUSH") → LEVEL 5 CLEAR +340 XP 12/12
+      ROUNDS → CONTINUE → L6; tm_camp_progress=6, tm_camp_sessions {5:{s1,s2}}
+      persisted, no console errors. 2.4 content + runner matrix now COMPLETE.
+- [x] 2.4b Session runner (full): SHIPPED (Jul 23) — see FULL CAMP note above.
+      FULL CAMP chains skill+fit blocks back-to-back with an inter-block
+      transition card → combined Mission Complete; SPLIT CAMP (default L4–11) runs
+      S1 · SKILL / S2 · CONDITIONING as independent sessions with per-slot chips
+      and readiness check. L1–3 and L12 are single-session. (spec 10 P5.)
 - [ ] 2.5 Round timing from timing-tables.json via resolveRoundTemplate
       (striking vs MMA bands; L10–11 taper reduces round COUNT, keeps LENGTH;
       L12 final-boss table — striking = active-minute target, MMA = 5×5:00).

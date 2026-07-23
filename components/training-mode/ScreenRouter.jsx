@@ -14,6 +14,7 @@ import SessionSummary from './SessionSummary';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
+import CampFullSession from './CampFullSession';
 import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
 import FitModeHub from './FitModeHub';
@@ -142,7 +143,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
 }
 
 export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap } = actions;
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -208,6 +209,16 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
             detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
             onEnd={goCampComplete}
           />
+        </WithWarmup>
+      </WithNav>
+    );
+  }
+  if (screen === 'camp_full' && campCtx?.cfgSkill && campCtx?.cfgFit) {
+    // FULL CAMP — warm-up, then skill block → transition → conditioning block.
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate}>
+        <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
+          <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />
         </WithWarmup>
       </WithNav>
     );
