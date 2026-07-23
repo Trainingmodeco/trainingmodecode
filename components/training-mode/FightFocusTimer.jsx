@@ -419,7 +419,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', minHeight: '100dvh', padding: '14px 14px calc(100px + env(safe-area-inset-bottom, 0px))',
+        alignItems: 'center', minHeight: '100dvh', padding: '12px 14px calc(140px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* LT-1 — cue level, adjustable mid-round without pausing. */}
@@ -439,7 +439,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         </div>
 
         {/* Status chips (design 13a) */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 7 }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#facc15', border: '1px solid rgba(253,224,71,0.5)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
             ROUND {roundIdx + 1}/{cfg.rounds}
           </span>
@@ -452,13 +452,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         </div>
 
         {/* 1.4 — live motion strike counter */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 26 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, minHeight: 22 }}>
           <StrikeHud supported={strike.supported} permission={strike.permission} count={strike.count} onOpen={() => setStrikeSheetOpen(true)}/>
         </div>
 
         {/* Ring Timer with dimmed art background — responsive so it never clips on
             narrow screens; the SVG viewBox keeps all ring coordinates valid. */}
-        <div style={{ position: 'relative', width: 'min(86vw, 380px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 10px' }}>
+        <div style={{ position: 'relative', width: 'min(62vw, 250px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 8px' }}>
           {/* Dimmed ring art behind */}
           <img
             src="/static/ring-fight.png"
@@ -511,7 +511,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               {phase === 'rest' ? '☕ REST' : rush ? '⚡ RUSH' : '🔔 WORK'}
             </div>
             <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56,
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 46,
               color: '#fff', lineHeight: 1, letterSpacing: '0.02em',
               textShadow: `0 0 20px ${ringColor}`,
               transition: 'text-shadow 0.8s ease',
@@ -542,12 +542,12 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         </div>
 
         {/* Elapsed / rounds-left line (design 13a) */}
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.05em', marginBottom: 12, textAlign: 'center' }}>
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.05em', marginBottom: 7, textAlign: 'center' }}>
           ⏱ {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED · {roundsLeft} ROUND{roundsLeft === 1 ? '' : 'S'} LEFT{cfg.rushMode ? ` · ⚡ ${rushPatternLabel(cfg.rushPattern)}` : ''}
         </div>
 
         {/* Round indicator dots */}
-        <div style={{ display: 'flex', gap: cfg.rounds > 6 ? 4 : 6, justifyContent: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: cfg.rounds > 6 ? 4 : 6, justifyContent: 'center', marginBottom: 7, flexWrap: 'wrap' }}>
           {Array.from({ length: cfg.rounds }, (_, i) => {
             const isCompleted = i < roundIdx;
             const isCurrent = i === roundIdx;
@@ -569,7 +569,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         </div>
 
         {/* Up next chip (design 13a) */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 7 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(79,140,255,0.1)', border: '1px solid rgba(79,140,255,0.35)', borderRadius: 99, padding: '7px 15px' }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#7fb0ff', letterSpacing: '0.08em' }}>UP NEXT</span>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 800, color: '#fff' }}>
@@ -585,7 +585,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         {/* Focus command card */}
         {cur && phase === 'round' && countdown === null && (
           <div className="anim-fade-up" style={{
-            textAlign: 'center', marginBottom: 10, padding: '10px 16px', borderRadius: 10,
+            textAlign: 'center', marginBottom: 6, padding: '8px 16px', borderRadius: 10,
             background: 'rgba(10,0,20,0.7)', border: `1px solid ${ringColor}33`,
             width: '100%', maxWidth: 340,
           }}>

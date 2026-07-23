@@ -14,8 +14,8 @@ import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, 
 const TEAL = '#2dd4bf';
 const GREEN = '#22c55e';
 const BLUE = '#4f8cff';
-const RING_SIZE = 300;
-const RING_R = 128;
+const RING_SIZE = 264;
+const RING_R = 113;
 const RING_STROKE = 12;
 
 export default function CampFitRunner({ cfg, onEnd }) {
@@ -175,7 +175,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
             ) : (
               <>
                 <div style={{ font: "700 11px 'Press Start 2P',monospace", color: resting ? BLUE : TEAL, letterSpacing: '0.1em', marginBottom: 8 }}>{resting ? '☕ REST' : '🔥 WORK'}</div>
-                <div style={{ font: "900 56px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{mins}:{String(secs).padStart(2, '0')}</div>
+                <div style={{ font: "900 46px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{mins}:{String(secs).padStart(2, '0')}</div>
                 <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>OF {Math.floor(maxTime / 60)}:{String(maxTime % 60).padStart(2, '0')}</div>
               </>
             )}
@@ -197,7 +197,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
         </div>
 
         {/* Controls */}
-        <div style={{ marginTop: 'auto', width: '100%', maxWidth: 360, paddingBottom: 14 }}>
+        <div style={{ marginTop: 'auto', width: '100%', maxWidth: 360, paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
           <button onClick={handlePause} style={{ width: '100%', height: 46, borderRadius: 12, border: paused ? 'none' : `1px solid ${TEAL}55`, background: paused ? `linear-gradient(135deg,${TEAL},${GREEN})` : 'rgba(45,212,191,0.14)', color: paused ? '#04140f' : TEAL, font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>
             {paused ? '▶ RESUME' : '❚❚ PAUSE'}
           </button>
