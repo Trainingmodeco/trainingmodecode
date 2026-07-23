@@ -6,6 +6,17 @@ const DIFFICULTY_INFO = {
   standard: { label: 'STANDARD', desc: 'Original stage reps, normal rest & cadence', color: '#3b82f6' },
   heroic: { label: 'HEROIC', desc: '125-150% reps, shorter rest, fast cadence', color: '#f59e0b' },
   boss: { label: 'BOSS', desc: 'Hardest variations, minimal rest, max XP', color: '#ef4444' },
+  // 2.10 — campaign difficulties
+  easy: { label: 'EASY', desc: 'Lower volume, longer rest', color: '#22c55e' },
+  normal: { label: 'NORMAL', desc: 'Standard volume & pace', color: '#3b82f6' },
+  hard: { label: 'HARD', desc: 'High output, short rest', color: '#ef4444' },
+};
+
+// 2.10 — path selector for the v2 campaigns (FIT / FIGHT / FULL ARC).
+const MODE_INFO = {
+  fit: { label: 'FIT', desc: 'Strength & conditioning', color: '#2dd4bf' },
+  fight: { label: 'FIGHT', desc: 'Rounds & skill work', color: '#fde047' },
+  both: { label: 'FULL ARC', desc: 'Fit + fight, one arc', color: '#a855f7' },
 };
 
 const CADENCE_INFO = {
@@ -59,8 +70,9 @@ function OptionRow({ label, options, selected, onSelect, infoMap }) {
 export default function ArcadeDifficultySelector({ series, settings, onSettingsChange }) {
   if (!series || !settings) return null;
 
-  const { difficulty, cadence, rest, sound } = settings;
+  const { difficulty, cadence, rest, sound, mode } = settings;
 
+  const hasMode = series.modeOptions?.length > 0;
   const hasDifficulty = series.difficultyOptions?.length > 0;
   const hasCadence = series.cadenceOptions?.length > 0;
   const hasRest = series.restOptions?.length > 0;
@@ -75,6 +87,16 @@ export default function ArcadeDifficultySelector({ series, settings, onSettingsC
         fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 900,
         color: C.yellow, letterSpacing: '0.12em', display: 'block', marginBottom: 14,
       }}>SESSION OPTIONS</span>
+
+      {hasMode && (
+        <OptionRow
+          label="PATH"
+          options={series.modeOptions}
+          selected={mode}
+          onSelect={(v) => onSettingsChange({ ...settings, mode: v })}
+          infoMap={MODE_INFO}
+        />
+      )}
 
       {hasDifficulty && (
         <OptionRow

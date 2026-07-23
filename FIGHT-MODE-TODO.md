@@ -604,6 +604,26 @@ HOW MUCH TO MAKE (guidance):
       VISIBLE_ARCADE_SERIES; intercept ArcadeSeriesDetail onStartStage for v2 series
       → goArcadeV2Start (camp engine). Verified: old carousel restored, renders,
       console clean, build mrxsxu4u.
+      CAMPAIGNS WIRED INTO THE OLD UI — SHIPPED (Jul 23): data/arcadeCampaignSeries.js
+      adapts each campaign into the ORIGINAL series shape; trainingArcadeData folds
+      them into TRAINING_ARCADE_SERIES (real data replaces the dark-knight /
+      ultra-instinct / ultra-ego "coming soon" placeholders — same id keeps poster
+      + slot — and appends baki-grappler + berserk-struggler), all added to
+      VISIBLE_SERIES_IDS. Each series is tagged v2Campaign. FULL MAPPING via the
+      EXISTING selectors: ArcadeDifficultySelector gains a PATH row (FIT/FIGHT/FULL
+      ARC = fit/fight/both) + easy/normal/hard difficulty; ArcadeSeriesIntroPage
+      seeds settings.mode; ArcadeSeriesDetail startMode = arcadeSettings.mode.
+      App.goArcadeSession intercepts v2Campaign series → builds arcadeCfg → runs on
+      the CAMP engine (fit→conditioning slot s2, fight→skill timer, full arc→
+      camp_full), completion via the campCtx.arcade branch (arcade progress + 2.8
+      XP + 1.6 gate). Verified in-browser end-to-end (pane recovered): carousel now
+      shows 9 sagas incl. the campaigns; Dark Knight → intro shows PATH + DIFFICULTY
+      rows; constellation + zig-zag ladder render all 12 real stages; ENTER STAGE →
+      camp WARM UP · SKILL → FIGHT FOCUS 6-round timer; console clean; build
+      mrxtgpwp. REMAINING: FULL ARC currently always one-sitting (split toggle not
+      yet surfaced); arcade completion still shows the camp "LEVEL/STAGE" label;
+      original IP-safe banners for Baki/Berserk (using fallback cards now);
+      achievements (2.12).
       SLICE 3 POLISH (remaining): the shared camp_complete screen shows "LEVEL N"
       not "STAGE N" for arcade + records sessions as 'Training Camp' — relabel for
       arcade; add readiness+gear before an arcade START (currently straight to

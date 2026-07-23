@@ -1,4 +1,5 @@
 import { CARDIO_METHODS } from './cardioProtocolData';
+import { CAMPAIGN_SERIES, CAMPAIGN_SERIES_BY_ID } from './arcadeCampaignSeries';
 
 const DEMON_BACK_STAGES = [
   {
@@ -913,14 +914,28 @@ export function isSeriesPlayable(series) {
   );
 }
 
+// 2.10 — fold the 5 v2 campaigns into the base list: real data replaces the
+// matching "coming soon" placeholders (same id → keeps poster + carousel slot);
+// the two brand-new campaigns are appended. Done in place so the exports +
+// VISIBLE filter below pick them up.
+for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
+  const cs = CAMPAIGN_SERIES_BY_ID[TRAINING_ARCADE_SERIES[i].id];
+  if (cs) TRAINING_ARCADE_SERIES[i] = cs;
+}
+CAMPAIGN_SERIES.forEach((cs) => {
+  if (!TRAINING_ARCADE_SERIES.some((s) => s.id === cs.id)) TRAINING_ARCADE_SERIES.push(cs);
+});
+
 const VISIBLE_SERIES_IDS = [
   'one-punch-protocol',
-  'hyperbolic-time-chamber',
-  'blue-blur-speed-protocol',
+  'baki-grappler',
   'dark-knight-protocol',
-  'demon-back-protocol',
+  'berserk-struggler',
   'ultra-instinct-protocol',
   'ultra-ego-style',
+  'demon-back-protocol',
+  'hyperbolic-time-chamber',
+  'blue-blur-speed-protocol',
 ];
 
 export const VISIBLE_ARCADE_SERIES = TRAINING_ARCADE_SERIES.filter(

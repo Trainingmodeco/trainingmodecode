@@ -203,7 +203,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   // Play the fit block by default (every series here has one); the stage's own
   // fight block is a future toggle.
-  const startMode = series.availableModes?.includes('fit') ? 'fit' : (series.availableModes?.[0] || 'fit');
+  // 2.10 — v2 campaigns carry a chosen PATH (mode) from the intro selector.
+  const startMode = arcadeSettings?.mode || (series.availableModes?.includes('fit') ? 'fit' : (series.availableModes?.[0] || 'fit'));
 
   function handleStart() {
     if (!selected || !canEnter) return;

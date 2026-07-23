@@ -42,8 +42,11 @@ export default function ArcadeSeriesIntroPage({ series, onHome, onBack, onContin
     const diffOpts = safeSeries.difficultyOptions || [];
     const restOpts = safeSeries.restOptions || [];
     const soundOpts = safeSeries.soundOptions || [];
+    const modeOpts = safeSeries.modeOptions || [];
     return {
-      difficulty: diffOpts.includes('standard') ? 'standard' : (diffOpts[0] || 'standard'),
+      // 2.10 — v2 campaigns add a PATH (mode) selector; default to fight if present.
+      mode: modeOpts.includes('fight') ? 'fight' : (modeOpts[0] || undefined),
+      difficulty: diffOpts.includes('normal') ? 'normal' : diffOpts.includes('standard') ? 'standard' : (diffOpts[0] || 'standard'),
       cadence: cadenceOpts.includes('moderate') ? 'moderate' : cadenceOpts.includes('normal') ? 'normal' : (cadenceOpts[0] || 'normal'),
       rest: restOpts.includes('normal') ? 'normal' : (restOpts[0] || 'normal'),
       sound: soundOpts.includes('on') ? 'on' : (soundOpts[0] || 'on'),

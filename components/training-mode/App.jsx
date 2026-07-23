@@ -6,7 +6,7 @@ import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
-import { arcadeCfg, arcadeStage as arcadeStageOf, getCampaign as getArcadeCampaign } from './protocol/campaigns';
+import { arcadeCfg } from './protocol/campaigns';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
@@ -322,34 +322,33 @@ export default function App() {
     },
     goCombatCondSetup: () => setScreen('cc_setup'),
     // 2.10 — arcade keeps its original carousel + ladder UI; the 5 campaigns are
-    // adapted into it as extra series (see data/trainingArcadeData). START on a
-    // campaign stage routes to the camp engine via goArcadeV2Start.
+    // adapted into it as extra series (data/arcadeCampaignSeries). START on a
+    // campaign stage routes to the camp engine from goArcadeSession (below).
     goTrainingArcade: () => setScreen('arcade'),
-    // 2.10 — launch a v2 campaign stage over the camp engine. A fit path runs
-    // the conditioning runner (slot s2), fight the skill timer, full arc both.
-    // Marked `arcade` so the shared camp completion updates arcade progress.
-    goArcadeV2Start: (ctx) => {
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
-      const stage = arcadeStageOf(ctx.campaignId, ctx.stageId);
-      const stageNumber = stage?.stage_number || 1;
-      const campaignName = (getArcadeCampaign(ctx.campaignId)?.name || '').split('—')[0].trim();
-      const arcade = { campaignId: ctx.campaignId, stageId: ctx.stageId, stageNumber, campaignName };
-      if (ctx.path === 'full_arc') {
-        const cfgSkill = arcadeCfg(ctx.campaignId, ctx.stageId, 'fight', ctx.fightDifficulty);
-        const cfgFit = arcadeCfg(ctx.campaignId, ctx.stageId, 'fit', ctx.fitDifficulty);
-        const cc = { discipline: 'Boxing', level: stageNumber, difficulty: ctx.fightDifficulty, format: 'full', cfgSkill, cfgFit, arcade };
-        setCampCtx(cc); setCfg(cfgSkill); setScreen('camp_full');
-      } else {
-        const diff = ctx.path === 'fit' ? ctx.fitDifficulty : ctx.fightDifficulty;
-        const cfg = arcadeCfg(ctx.campaignId, ctx.stageId, ctx.path, diff);
-        const cc = { discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: ctx.path === 'fit', slot: ctx.path === 'fit' ? 's2' : 's1', arcade };
-        setCampCtx(cc); setCfg(cfg); setScreen('camp_session');
-      }
-    },
     goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen(['one-punch-protocol', 'demon-back-protocol'].includes(series?.id) ? 'arcade_series' : 'arcade_intro'); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
+      // old player). PATH → fit/fight/full arc; difficulty → easy/normal/hard.
+      if (series?.v2Campaign) {
+        const campaignId = series.v2Campaign;
+        const path = mode === 'both' ? 'full_arc' : (mode === 'fit' ? 'fit' : 'fight');
+        const diff = ['easy', 'normal', 'hard'].includes(settings?.difficulty) ? settings.difficulty : 'normal';
+        const stageNumber = stage?.stageNumber || 1;
+        const arcade = { campaignId, stageId: stage.id, stageNumber, campaignName: series.title };
+        if (path === 'full_arc') {
+          const cfgSkill = arcadeCfg(campaignId, stage.id, 'fight', diff);
+          const cfgFit = arcadeCfg(campaignId, stage.id, 'fit', diff);
+          setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, format: 'full', cfgSkill, cfgFit, arcade });
+          setCfg(cfgSkill); setScreen('camp_full');
+        } else {
+          const cfg = arcadeCfg(campaignId, stage.id, path, diff);
+          setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: path === 'fit', slot: path === 'fit' ? 's2' : 's1', arcade });
+          setCfg(cfg); setScreen('camp_session');
+        }
+        return;
+      }
       setArcadeSeries(series); setArcadeStage(stage); setArcadeMode(mode); setArcadeOrder(order);
       setArcadeSettings(settings || arcadeSettings || null);
       setScreen('arcade_session');
