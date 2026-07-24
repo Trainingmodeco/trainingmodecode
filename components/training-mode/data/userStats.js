@@ -200,6 +200,15 @@ export function addDailyMissionBonus() {
   return XP_DAILY_MISSION_BONUS;
 }
 
+// Spec 23 — combo-milestone bonus XP (reminders/streak). XP only: no session
+// row is pushed, so weekly counts and history stay honest.
+export function addComboBonus(xpAward) {
+  const stats = loadStats();
+  stats.xp += xpAward;
+  saveStats(stats);
+  return xpAward;
+}
+
 const XP_CARDIO_BASE = 20;
 const XP_CARDIO_PER_MINUTE = 5;
 

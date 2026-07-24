@@ -1,0 +1,134 @@
+{
+  "notes": "Lightweight workout-reminder + streak feature. DATA + CONTRACT for the app/engine team; pure logic lives in ../engine/reminders-engine.ts. Grounded in ../research/reminders-research-report.md (106-agent deep research, adversarially verified). Design goal: capture most of the adherence benefit with the SMALLEST feature set — never make the app heavy or naggy. Game/anime framing (streak = COMBO, XP, ranks) is light flavor over real, evidence-based reminders. Everything below is either EVIDENCE-BACKED (flagged) or product CONVENTION (flagged); nothing promises fast habits (the '21-day' figure is a myth).",
+
+  "reminder_model": {
+    "description": "A reminder is stored as an IMPLEMENTATION INTENTION — the single best-supported technique (if-then plan: train [activity] at [time] on [days]). Optional coping line for barriers. EVIDENCE: implementation intentions d=0.31 durable (Belanger-Gravel 2013); plain scheduled reminders d=0.38 (Smith 2019).",
+    "fields": {
+      "id": "string",
+      "enabled": "boolean",
+      "activity": "string — what they'll do, user-chosen (e.g. 'Combo Coach', 'a Training Arcade stage', 'shadowbox 3 rounds')",
+      "days": "array of weekday keys ['mon'..'sun'] — user-chosen",
+      "time_local": "HH:mm — user-chosen cue time (self-selected beats prescribed; morning is optional, never forced — chronotype varies)",
+      "if_then_text": "auto-composed: 'If it's {time} on {day}, then I train {activity}.'",
+      "coping_plan": "optional string — 'If {barrier}, then {backup}.' (barrier planning improves if-then plans — Belanger-Gravel 2013)",
+      "reminder_style": "gentle | standard — tone of the nudge (both positive; no guilt option exists)"
+    },
+    "defaults": { "reminder_style": "standard", "enabled": true }
+  },
+
+  "nudge_policy": {
+    "description": "ONE well-timed daily nudge by default. CONVENTION (frequency ceiling not proven by evidence): cap at 1 scheduled nudge/day + at most 1 optional streak-safety nudge; quiet hours respected; snooze available. Over-notifying is a known product risk, so v1 stays minimal.",
+    "max_scheduled_per_day": 1,
+    "streak_safety_nudge": {
+      "enabled_default": true,
+      "description": "At most ONE optional 'keep your combo' nudge later in the day IF a scheduled training day has no logged workout yet and the user opted in. Positive framing only — never guilt.",
+      "max_per_day": 1
+    },
+    "quiet_hours_default": { "start": "21:30", "end": "07:00" },
+    "snooze_options_min": [10, 30, 60],
+    "user_can_disable_all": true
+  },
+
+  "streak_model": {
+    "description": "The streak is framed as a COMBO. EVIDENCE-CRITICAL: a single missed day does NOT derail habit formation (Lally 2010), so the combo is FORGIVING — planned rest days never break it, and a small number of freeze tokens absorb an isolated miss. Punitive one-miss resets are AVOIDED (all-or-nothing dropout risk). Grace tolerates ISOLATED misses, not chronic ones (consecutive misses still break the combo).",
+    "unit": "training day (a day with at least one completed/verified workout, OR a planned rest day, OR a freeze-covered day)",
+    "planned_rest_days_per_week": {
+      "default": 2,
+      "user_configurable": true,
+      "note": "Rest days are chosen by the user and DO NOT break the combo — recovery is part of training (fighter framing). This is the primary grace mechanic."
+    },
+    "freeze_tokens": {
+      "name_in_app": "GUARD",
+      "description": "A freeze token ('GUARD') automatically covers ONE unplanned missed training day so the combo survives. Framed as blocking a hit, not a failure.",
+      "max_held": 2,
+      "earn_rule": "earn 1 GUARD per 7-day combo milestone, up to max_held",
+      "auto_apply": true
+    },
+    "break_rule": "The combo only breaks after TWO consecutive unplanned missed training days with no GUARD available (isolated misses are absorbed; chronic misses are not).",
+    "on_break": {
+      "reset_to": 0,
+      "keep_longest": true,
+      "copy_tone": "encouraging_restart",
+      "note": "No guilt copy. Surface the longest combo and a one-tap restart. CONVENTION: guilt copy is avoided on best-practice grounds (not proven harmful, but low-risk to avoid)."
+    },
+    "fields": { "current_combo": "int", "longest_combo": "int", "guards_held": "int", "last_trained_date": "YYYY-MM-DD", "history": "array of {date, status}" }
+  },
+
+  "xp_and_ranks": {
+    "description": "Gamification adds real but SMALL durable value (Mazeas 2022 g=0.23 vs active controls) — so XP/ranks ENHANCE the reminder core, they aren't the whole thing. Kept minimal.",
+    "xp_rules": [
+      { "event": "completed_scheduled_workout", "xp": 100 },
+      { "event": "completed_any_workout", "xp": 60 },
+      { "event": "kept_combo_through_rest_day", "xp": 10 },
+      { "event": "combo_milestone", "xp": 150 }
+    ],
+    "combo_milestones": [
+      { "days": 3,  "rank": "Warm-Up",     "badge": "BADGE_COMBO_3",  "flavor": "Three in a row — the combo's live." },
+      { "days": 7,  "rank": "First Blood",  "badge": "BADGE_COMBO_7",  "flavor": "A full week. +1 GUARD earned." },
+      { "days": 14, "rank": "Contender",    "badge": "BADGE_COMBO_14", "flavor": "Two weeks — this is becoming who you are." },
+      { "days": 30, "rank": "Ranked",       "badge": "BADGE_COMBO_30", "flavor": "A month deep. Real momentum." },
+      { "days": 66, "rank": "Second Nature","badge": "BADGE_COMBO_66", "flavor": "~66 days — where habits actually take root. Not a myth, real science." },
+      { "days": 100,"rank": "Champion",     "badge": "BADGE_COMBO_100","flavor": "One hundred. Champion territory." }
+    ],
+    "milestone_note": "The 66-day milestone is a deliberate nod to the real habit-formation science (median ~66 days — Lally 2010), replacing the '21-day' myth."
+  },
+
+  "copy_packs": {
+    "description": "Notification copy. Light video-game / anime flavor over a real fitness reminder. TONE: encouraging, coach/sensei-like, action-oriented — NEVER guilt, shame, or fake social pressure. Light personalization only (name, chosen activity/time) — elaborate tailoring not justified (Smith 2019). Variants rotate to fight habituation (convention).",
+    "scheduled_reminder": [
+      "{name}, it's training time — {activity}. Guard up.",
+      "Your arc continues. {activity} is waiting.",
+      "Time to train: {activity}. Let's get the reps in.",
+      "{time} — you said this was the moment. {activity}, go."
+    ],
+    "streak_safety": [
+      "Your combo's at {combo}. One session keeps it alive — no pressure, just a nudge.",
+      "Don't let the combo drop — a quick {activity} does it. GUARDs left: {guards}.",
+      "Still time today to keep the {combo}-combo going."
+    ],
+    "rest_day": [
+      "Rest day — recovery is training too. Combo's safe. 🛡",
+      "Today's a planned rest. Champions recover on purpose. Combo intact."
+    ],
+    "guard_used": [
+      "A GUARD blocked yesterday's miss — combo survived at {combo}. 🛡",
+      "Took a hit, blocked it. Combo's still {combo}. Back at it today?"
+    ],
+    "combo_break": [
+      "Combo reset — but your best was {longest}. Every fighter restarts. Tap to begin a new run.",
+      "The combo dropped. No shame in the game — start a fresh one now?"
+    ],
+    "milestone": [
+      "{rank} unlocked — {flavor}",
+      "Combo milestone: {days} days. {flavor}"
+    ],
+    "forbidden_tone": ["guilt", "shame", "you failed / you're lazy", "fake social pressure ('everyone else trained')", "streak-loss threats framed as punishment"]
+  },
+
+  "personalization": {
+    "description": "LIGHT only (evidence for heavy tailoring is weak — Smith 2019). Use: first name, chosen activity, chosen time, current combo, guards held. Do NOT build an adaptive tailoring engine for v1.",
+    "tokens": ["{name}", "{activity}", "{time}", "{day}", "{combo}", "{longest}", "{guards}", "{rank}", "{flavor}", "{days}"]
+  },
+
+  "metrics": {
+    "description": "SEPARATE engagement from behavior — a reminder that opens the app is NOT the same as one that produces a workout (Martin 2018). Track both, judge success on the second.",
+    "track": ["reminder_delivered", "reminder_opened", "reminder_snoozed", "reminder_dismissed", "workout_completed_after_reminder", "combo_current", "combo_longest", "opt_out"]
+  },
+
+  "explicitly_deferred": {
+    "description": "LEFT OUT of v1 to keep the app light (see roadmap/game-plan-scheduler.md for the heavy adaptive version). None of these is worth the weight for a first version.",
+    "items": [
+      "Adaptive / AI 'breakpoint' notification scheduling (cuts response time ~50% but is complexity v1 doesn't need)",
+      "Multiple daily notifications / aggressive nudging",
+      "Social leaderboards / rival pressure as a default",
+      "Elaborate per-user tailoring engine",
+      "Heavy multi-screen onboarding"
+    ]
+  },
+
+  "evidence_flags": {
+    "backed_by_peer_reviewed_evidence": ["implementation intentions (if-then plans)", "barrier/coping planning", "plain scheduled reminders raise activity", "self-selected cue time/activity", "single missed day doesn't derail habits (grace mechanics)", "gamification adds small durable value", "reminders raise engagement != behavior", "66-day median habit formation (21-day is a myth)"],
+    "product_convention_not_proven": ["exact daily nudge cap of 1", "quiet hours", "positive-only tone / avoiding guilt copy", "copy variant rotation to fight habituation", "GUARD token counts and rest-day defaults"],
+    "myth_rejected": ["'21 days to form a habit' — automaticity is a median ~66 days with range 4-335; never promise fast habits"]
+  }
+}

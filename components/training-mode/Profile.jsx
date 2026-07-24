@@ -15,6 +15,7 @@ import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userSta
 import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
+import { planText } from './data/comboStreak';
 import { PRIVACY_URL, openExternalUrl } from './data/links';
 
 
@@ -597,6 +598,51 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
 
             {reminderSettings.enabled && (
               <>
+                {/* Spec 23 — the if-then plan (implementation intention): what,
+                    which days, what time, optional backup plan. The composed
+                    sentence is the plan the nudges will echo. */}
+                <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Your If-Then Plan</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
+                    {['Combo Coach', 'Fight Focus', 'Quick Mission', 'Arcade stage'].map(a => (
+                      <button key={a} onClick={() => updateReminder('activity', a)} style={{
+                        padding: '4px 9px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                        fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 10,
+                        background: reminderSettings.activity === a ? C.neon : 'rgba(255,255,255,0.06)',
+                        color: reminderSettings.activity === a ? '#0a0014' : C.muted,
+                      }}>{a}</button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                    {[['mon', 'M'], ['tue', 'T'], ['wed', 'W'], ['thu', 'T'], ['fri', 'F'], ['sat', 'S'], ['sun', 'S']].map(([key, lbl]) => {
+                      const on = Array.isArray(reminderSettings.days) && reminderSettings.days.includes(key);
+                      return (
+                        <button key={key} onClick={() => {
+                          const cur = Array.isArray(reminderSettings.days) ? reminderSettings.days : [];
+                          updateReminder('days', on ? cur.filter(d => d !== key) : [...cur, key]);
+                        }} style={{
+                          flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9,
+                          background: on ? C.neon : 'rgba(255,255,255,0.06)', color: on ? '#0a0014' : C.muted,
+                        }}>{lbl}</button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: C.muted }}>Cue time</span>
+                    <input type="time" value={reminderSettings.time || '09:00'} onChange={(e) => updateReminder('time', e.target.value || '09:00')}
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: '#fff', fontFamily: "'Rajdhani',sans-serif", fontSize: 11, padding: '3px 6px' }} />
+                  </div>
+                  <input type="text" placeholder="Backup plan (optional): If I'm exhausted, then I do 1 round." value={reminderSettings.copingPlan || ''}
+                    onChange={(e) => updateReminder('copingPlan', e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, color: '#e7ddf7', fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, padding: '6px 8px', marginBottom: 8 }} />
+                  {planText() && (
+                    <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: '#8fe8ac', lineHeight: 1.35 }}>
+                      📋 {planText()}
+                    </div>
+                  )}
+                </div>
+
                 {/* Reminder Style */}
                 <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Reminder Style</span>

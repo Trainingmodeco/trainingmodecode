@@ -5,7 +5,8 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
-import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getStreak, getWeekDayCompletion, WEEKLY_GOAL } from './data/userStats';
+import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getWeekDayCompletion, WEEKLY_GOAL } from './data/userStats';
+import { syncCombo, consumeComboFlash, getComboNudge, snoozeNudge, dismissNudgeToday } from './data/comboStreak';
 import { getSeriesProgress, getActiveChallenge as getStoredActiveChallenge } from './data/arcadeProgress';
 import { TRAINING_ARCADE_SERIES } from './data/trainingArcadeData';
 import { getFightMiniSuggestion } from './data/recommendations';
@@ -54,10 +55,19 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
     }
   }, []);
 
+  // Spec 23 — one-shot combo outcome flash (milestone/guard/break copy) + the
+  // daily if-then nudge (only on scheduled days, after the cue time, never
+  // after training, snooze/dismiss respected).
+  const [comboFlash, setComboFlash] = useState(() => consumeComboFlash());
+  const [comboNudge, setComboNudge] = useState(null);
+  useEffect(() => { setComboNudge(getComboNudge(profile?.name)); }, [profile?.name]);
+
   const level = getLevel(stats.xp);
   const { current: levelXp, needed: levelNeeded } = getLevelProgress(stats.xp);
   const xpPercent = Math.round((levelXp / levelNeeded) * 100);
-  const streak = getStreak(stats);
+  // Spec 23 — the forgiving COMBO streak (replays elapsed days on render; cheap
+  // once caught up). Guards = freeze tokens that absorb an isolated miss.
+  const combo = syncCombo();
   const WEEK = getWeekDayCompletion(stats);
   const weeklyCount = getWeeklySessions(stats).length;
   const suggestion = getFightMiniSuggestion({ profile: profile || {}, stats, dailyMission: null });
@@ -124,8 +134,26 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
             </div>
             <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}><div style={{ width: `${Math.max(3, xpPercent)}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
           </div>
-          <span style={{ font: "900 12px 'Orbitron',sans-serif", color: '#ff8a3a', flexShrink: 0 }}>🔥{streak}</span>
+          <span style={{ font: "900 12px 'Orbitron',sans-serif", color: '#ff8a3a', flexShrink: 0 }}>
+            🔥{combo.combo}{combo.guards > 0 && <span style={{ font: "800 9px 'Rajdhani',sans-serif", color: '#8fe8ac' }}> 🛡{combo.guards}</span>}
+          </span>
         </div>
+
+        {/* Spec 23 — combo outcome flash (milestone / guard used / break) or the daily nudge */}
+        {(comboFlash || comboNudge) && (
+          <div style={{ background: 'rgba(8,2,18,0.9)', border: `1px solid ${comboFlash?.kind === 'broken' ? 'rgba(255,138,58,0.4)' : 'rgba(143,232,172,0.35)'}`, borderRadius: 11, padding: '8px 11px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, flexShrink: 0 }}>{comboFlash ? (comboFlash.kind === 'milestone' ? '🏅' : comboFlash.kind === 'guarded' ? '🛡' : '🔁') : '⏰'}</span>
+            <span style={{ flex: 1, font: "600 10.5px 'Rajdhani',sans-serif", color: '#e7ddf7', lineHeight: 1.3 }}>{comboFlash ? comboFlash.text : comboNudge.text}</span>
+            {comboFlash ? (
+              <button onClick={() => setComboFlash(null)} style={{ background: 'none', border: 'none', color: '#9a90b8', cursor: 'pointer', font: "800 10px 'Orbitron',sans-serif", padding: 2 }}>✕</button>
+            ) : (
+              <>
+                <button onClick={() => { dismissNudgeToday(); setComboNudge(null); onTrain?.(); }} style={{ background: 'rgba(253,224,71,0.14)', border: '1px solid rgba(253,224,71,0.5)', borderRadius: 7, color: '#fde047', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '5px 8px' }}>GO</button>
+                <button onClick={() => { snoozeNudge(30); setComboNudge(null); }} style={{ background: 'none', border: 'none', color: '#9a90b8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", padding: 2 }}>LATER</button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Weekly progress */}
         <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '8px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

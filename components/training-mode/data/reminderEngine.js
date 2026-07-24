@@ -13,6 +13,13 @@ const DEFAULT_SETTINGS = {
   preferredTime: 9,
   programReminders: true,
   streakReminders: true,
+  // Spec 23 — the if-then plan (implementation intention): what to train, on
+  // which days, at what cue time, plus an optional barrier/backup line. The
+  // COMBO streak treats `days` as the scheduled training days.
+  activity: 'Combo Coach',
+  days: ['mon', 'wed', 'fri'],
+  time: '09:00',
+  copingPlan: '',
 };
 
 export function loadReminderSettings() {
