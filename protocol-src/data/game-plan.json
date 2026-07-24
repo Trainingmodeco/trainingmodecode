@@ -1,0 +1,96 @@
+{
+  "notes": "GAME PLAN — the adaptive workout scheduler. Cross-cutting layer that learns the user's schedule and free time, then routes them to a session that FITS the gap they actually have. Addresses the #1 reason people quit: TIME, not motivation. Roadmap: roadmap/game-plan-scheduler.md. Spec: specs/26-game-plan-scheduler.md. Pure logic: engine/game-plan-engine.ts. Grounded in the reminders research (implementation intentions, forgiving streaks, engagement != behavior, one well-timed nudge). NOT a 4th mode — it sits ABOVE the modes and powers the existing 'Today's Bout' card + smart notifications.",
+
+  "tiers": {
+    "free": {
+      "name": "Manual Game Plan",
+      "unlocks": ["questionnaire", "manual weekly plan (you pick days/times)", "scheduled reminders (specs/23)", "combo streak", "time->session matching for the block you tell it you have"],
+      "no_calendar": true
+    },
+    "pro": {
+      "name": "Adaptive Game Plan",
+      "unlocks": ["everything in free", "opt-in device-calendar FREE/BUSY read", "auto weekly plan around your real availability", "opportunistic 'a gap just appeared' nudges", "adaptive session routing (busy week -> short formats; open week -> Arcade/Camp)"],
+      "monetization_note": "Natural Pro feature. Free = manual reminders; Pro = calendar-aware auto-plan + adaptive routing."
+    }
+  },
+
+  "questionnaire": {
+    "description": "Short setup (onboarding or Profile). Reuses the existing equipment profile + readiness system.",
+    "questions": [
+      { "id": "hurdle", "q": "What's your biggest hurdle to training?", "options": ["time", "equipment", "motivation", "dont_know_what_to_do"], "drives": "time -> lead with fit-the-gap; equipment -> reuse equipment profile filtering; motivation -> lean on combo streak + nudges; dont_know -> lead with guided Missions" },
+      { "id": "days_per_week", "q": "Days per week you want to train?", "type": "int", "min": 2, "max": 7 },
+      { "id": "session_minutes", "q": "Time per session you can usually give?", "options": [10, 20, 30, 45], "note": "45 = 45+" },
+      { "id": "week_shape", "q": "Rough weekly shape?", "options": ["tell_us_busy_days", "connect_calendar_pro"], "note": "Manual busy-day picker on free; calendar connect on Pro." },
+      { "id": "preferred_time", "q": "When do you usually prefer to train?", "options": ["morning", "midday", "evening", "varies"], "note": "Self-selected cue time beats prescribed (reminders research). Used as the default reminder time." }
+    ]
+  },
+
+  "session_catalog": {
+    "description": "The session types Game Plan can route to, with the time band each fits. min_min/max_min are used by the gap->session matcher. All reference existing modes — Game Plan never invents a workout, it picks one that fits.",
+    "sessions": [
+      { "id": "combo_coach",         "label": "Combo Coach",          "mode": "fight", "min_min": 8,  "max_min": 20, "tier": "free" },
+      { "id": "fight_focus",         "label": "Fight Focus",          "mode": "fight", "min_min": 10, "max_min": 20, "tier": "free" },
+      { "id": "quick_mission",       "label": "Quick Mission",        "mode": "fit",   "min_min": 8,  "max_min": 20, "tier": "free" },
+      { "id": "reaction_mode",       "label": "Reaction Mode",        "mode": "fight_fit", "min_min": 6, "max_min": 15, "tier": "free" },
+      { "id": "combat_conditioning", "label": "Combat Conditioning",  "mode": "fight_fit", "min_min": 20, "max_min": 40, "tier": "free" },
+      { "id": "camp_session",        "label": "Training Camp session","mode": "camp",  "min_min": 20, "max_min": 60, "tier": "free" },
+      { "id": "arcade_stage",        "label": "Training Arcade stage","mode": "arcade","min_min": 40, "max_min": 60, "tier": "free" }
+    ]
+  },
+
+  "time_to_session": {
+    "description": "Gap (minutes of free time) -> which session tier fits. The matcher returns eligible sessions from session_catalog whose [min_min,max_min] overlaps the gap AND whose mode the user has enabled AND whose equipment the user has.",
+    "bands": [
+      { "max_gap_min": 19, "label": "Short",  "prefer": ["combo_coach", "fight_focus", "quick_mission", "reaction_mode"] },
+      { "max_gap_min": 40, "label": "Medium", "prefer": ["combat_conditioning", "camp_session"] },
+      { "max_gap_min": 999, "label": "Long",  "prefer": ["arcade_stage", "camp_session"] }
+    ],
+    "rule": "Pick the richest session that FITS — never one that overruns the gap. If nothing fits (gap < shortest session), suggest the shortest available and note it may run slightly over, or offer a rest/mobility micro-session."
+  },
+
+  "weekly_plan": {
+    "description": "Generated from days_per_week + session_minutes + rest days + readiness. Distributes training days across the week, spaces hard days, and honors planned rest.",
+    "rules": [
+      "Assign exactly days_per_week training slots across the 7 days.",
+      "Space training days out (avoid clustering all at the start) and avoid scheduling two HARD sessions back-to-back (ties into readiness + the plyo/sprint recovery caps in the campaigns).",
+      "Non-training days are planned REST days — they never break the combo (specs/23).",
+      "Busy week (few free blocks) -> lean short-format sessions; open week -> unlock Arcade/Camp.",
+      "Respect the readiness gate before every session: 'halt' -> reschedule/rest; 'suggest_easy_or_recovery' -> offer the Easy variant or a recovery session (completing it keeps the combo)."
+    ]
+  },
+
+  "todays_bout": {
+    "description": "Game Plan POWERS the EXISTING 'Today's Bout' home card — it does not add a screen. It upgrades the card from 'here's a session' to 'here's a session that fits your free 2-3pm'.",
+    "logic": "If a plan exists and today is a training day and the user hasn't trained yet: pick the best session for today's largest known free block (Pro: from calendar free/busy; Free: from the user's stated availability). Show the block + the session + one-tap start. If already trained: show a recovery/streak-safe state, never push a second hard session."
+  },
+
+  "notifications": {
+    "description": "Opportunistic and never naggy. Reuses the reminders nudge policy (specs/23): one scheduled nudge/day baseline; Pro adds ONE opportunistic 'a gap appeared' nudge.",
+    "opportunistic_rule": "Fire BECAUSE a real free gap appears that fits a session ('Free hour at 2 — 20-min Quick Mission?'). Only when: today is a training day, the user hasn't trained yet, it's outside quiet hours, and it's been >= the cooldown since the last nudge.",
+    "back_off": "If the user already trained today, or dismissed the last opportunistic nudge, do not fire again today.",
+    "quiet_hours_default": { "start": "21:30", "end": "07:00" },
+    "cooldown_hours_default": 5,
+    "tone": "Positive/coach — celebrates consistency (ties into the combo streak). Never guilt (reminders research)."
+  },
+
+  "calendar": {
+    "description": "The trust make-or-break. PRO + fully opt-in. Must also work WITHOUT calendar.",
+    "read": "FREE/BUSY ONLY — never event titles or details. 'free 2-3pm', not 'therapy at 2'. This distinction IS the trust story.",
+    "source": "DEVICE calendar (iOS EventKit / Android Calendar Provider) — already aggregates Google + Apple + Outlook, so one integration covers everyone with no per-provider OAuth.",
+    "fallback": "Without calendar, the questionnaire's stated busy days/preferred time drive the plan. Calendar is the upgrade, not the requirement."
+  },
+
+  "privacy": {
+    "opt_in": "Calendar and notifications are opt-in.",
+    "data": "Free/busy only; device-calendar (no cloud calendar scraping); no location; schedule data is never sold or shared.",
+    "state_it_plainly": "Surface this in the connect flow — the feature lives or dies on trust."
+  },
+
+  "reuses": ["equipment profile (equipment.json)", "readiness system (readiness.json)", "combo streak + reminders (specs/23, engine/reminders-engine.ts)", "all mode session types", "the existing Today's Bout card"],
+
+  "evidence_and_honesty": {
+    "backed": ["self-selected training time (implementation intentions)", "forgiving streak / rest days don't break it", "one well-timed nudge, engagement != behavior — from reminders research"],
+    "convention_not_proven": ["the exact gap->session minute bands", "weekly-plan spacing heuristics", "cooldown/quiet-hours defaults — standard product practice, tune with real usage data"],
+    "scope_note": "Adaptive calendar routing is powerful but complexity; the recommended FIRST version is questionnaire + manual availability + smart notifications (NO calendar), with calendar as the Pro v2 upgrade."
+  }
+}
