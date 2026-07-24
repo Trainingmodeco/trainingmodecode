@@ -82,16 +82,21 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
 
   // Tooltip below the spotlight, or above when the target sits low; centered
   // card for the intro step.
-  const below = hole ? hole.top + hole.height + TIP_EST_H + 24 < vh - 70 : true;
-  const tipTop = hole ? (below ? hole.top + hole.height + 14 : undefined) : undefined;
-  const tipBottom = hole && !below ? vh - hole.top + 14 : undefined;
+  // Room above / below the spotlight (70px reserved for the footer nav).
+  const NEED = TIP_EST_H + 24;
+  const roomBelow = hole ? (vh - 70) - (hole.top + hole.height) : Infinity;
+  const roomAbove = hole ? hole.top : Infinity;
+  const below = roomBelow >= NEED;
+  // A target too tall to fit a card above OR below → centre the card over it so
+  // it never clips off-screen (e.g. the full-height arcade carousel / ladder).
+  const forceCenter = hole ? (!below && roomAbove < NEED) : false;
+  const centered = cfg.center != null ? cfg.center : (centerTip || !cfg.target || forceCenter);
   const holeCx = hole ? hole.left + hole.width / 2 : vw / 2;
   const tipLeft = Math.min(Math.max(holeCx - TIP_W / 2, 12), vw - TIP_W - 12);
   const notchX = Math.min(Math.max(holeCx - tipLeft - 6, 18), TIP_W - 30);
+  const tipTop = (hole && !centered && below) ? hole.top + hole.height + 14 : undefined;
+  const tipBottom = (hole && !centered && !below) ? vh - hole.top + 14 : undefined;
   const isLast = step === steps.length - 1;
-  // Centre the card when the step asks for it, else when there's no target or
-  // the caller forces centring globally.
-  const centered = cfg.center != null ? cfg.center : (centerTip || !cfg.target);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500 }} onClick={e => e.stopPropagation()}>

@@ -1138,6 +1138,20 @@ CAMPAIGN_SERIES.forEach((cs) => {
   if (!TRAINING_ARCADE_SERIES.some((s) => s.id === cs.id)) TRAINING_ARCADE_SERIES.push(cs);
 });
 
+// TEMP (stages under review 2026-07-24): lock every saga except One Punch as
+// "under construction" so only it is playable. To re-open a saga as its stages
+// are finalized, remove its id from this set (or clear the set entirely).
+const UNDER_CONSTRUCTION = new Set([
+  'berserk-struggler', 'baki-grappler', 'demon-back-protocol', 'dark-knight-protocol',
+  'hyperbolic-time-chamber', 'blue-blur-speed-protocol', 'ultra-instinct-protocol', 'ultra-ego-style',
+]);
+for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
+  const s = TRAINING_ARCADE_SERIES[i];
+  if (UNDER_CONSTRUCTION.has(s.id)) {
+    TRAINING_ARCADE_SERIES[i] = { ...s, isActive: false, status: 'comingSoon', construction: true };
+  }
+}
+
 // Carousel order (this list is the single source of order — see below).
 const VISIBLE_SERIES_IDS = [
   'one-punch-protocol',

@@ -256,7 +256,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
                       ) : (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                           <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: 'rgba(210,185,255,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.subtitle}</span>
-                          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: '#c9a6ff', letterSpacing: '0.14em', flexShrink: 0 }}>COMING SOON</span>
+                          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: s.construction ? '#fca5a5' : '#c9a6ff', letterSpacing: '0.1em', flexShrink: 0 }}>{s.construction ? '🚧 UNDER CONSTRUCTION' : 'COMING SOON'}</span>
                         </div>
                       )}
                     </div>

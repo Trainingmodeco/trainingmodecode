@@ -132,7 +132,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
             const accent = m.gold ? GOLD : VIOLET;
             const Icon = m.Icon;
             return (
-              <button key={m.key} data-guide={m.key === 'training_camp' ? 'fh-camp' : m.key === 'fight_focus' ? 'fh-fight-focus' : m.key === 'combo_coach' ? 'fh-combo' : 'fh-practice'} onClick={() => goMode(m.key)} style={{
+              <button key={m.key} data-tour={m.key === 'training_camp' ? 'mode-camp' : undefined} data-guide={m.key === 'training_camp' ? 'fh-camp' : m.key === 'fight_focus' ? 'fh-fight-focus' : m.key === 'combo_coach' ? 'fh-combo' : 'fh-practice'} onClick={() => goMode(m.key)} style={{
                 display: 'flex', alignItems: 'center', gap: 11, borderRadius: 12, padding: '9px 13px', cursor: 'pointer', textAlign: 'left',
                 background: 'rgba(16,4,30,0.82)',
                 border: `1px solid ${m.gold ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.4)'}`,

@@ -30,6 +30,25 @@ export const TOUR_STEPS = [
     ),
   },
   {
+    screen: 'training_hub',
+    targets: ['mode-arcade'],
+    title: '🕹 TRAINING ARCADE — WORKOUTS AS A GAME',
+    body: (
+      <>Pick a <b style={{ color: '#8fe8ac' }}>saga</b> and climb its ladder of stages — each stage is a real
+        workout with a themed coach and a boss to beat. Full campaigns for{' '}
+        <b style={{ color: '#c084fc' }}>Fit</b>, <b style={{ color: '#f87171' }}>Fight</b>, or both.</>
+    ),
+  },
+  {
+    screen: 'fight_hub',
+    targets: ['mode-camp'],
+    title: '⛺ TRAINING CAMP — YOUR FIGHT CAMP',
+    body: (
+      <>Inside <b style={{ color: '#f87171' }}>Fight</b> Mode: a <b style={{ color: GOLD }}>12-level</b> periodized
+        camp that builds you toward a title fight, with readiness &amp; safety checks each session.</>
+    ),
+  },
+  {
     screen: 'progress',
     targets: ['rank-card'],
     title: '📈 EVERY REP LEVELS YOU UP',
