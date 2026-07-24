@@ -49,6 +49,11 @@ function StarRow({ count = 0, size = 11 }) {
 
 export default function TrainingArcade({ onBack, onSelectSeries }) {
   const series = VISIBLE_ARCADE_SERIES;
+  const n = series.length;
+  // Infinite loop: render 3 copies and silently recenter to the middle copy once
+  // the scroll settles, so a swipe past either end wraps seamlessly. `active` is a
+  // DISPLAY index (0..3n-1); the real saga is `slides[active]` / `active % n`.
+  const slides = useMemo(() => (n ? [...series, ...series, ...series] : []), [series, n]);
   const [helpOpen, setHelpOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [padInline, setPadInline] = useState(40);
@@ -56,6 +61,8 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
   const scrollerRef = useRef(null);
   const slideRefs = useRef([]);
   const rafRef = useRef(0);
+  const idleRef = useRef(0);
+  const didInitRef = useRef(false);
 
   useEffect(() => {
     const s = loadStats();
@@ -85,42 +92,68 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
 
   useEffect(() => {
     measure();
-    const id = requestAnimationFrame(measure);
+    const id = requestAnimationFrame(() => {
+      measure();
+      // Start centred on the middle copy so there's a full loop of runway each way.
+      if (!didInitRef.current && n) {
+        const c = scrollerRef.current, el = slideRefs.current[n];
+        if (c && el) { c.scrollLeft = el.offsetLeft - (c.clientWidth - el.clientWidth) / 2; setActive(n); didInitRef.current = true; }
+      }
+    });
     window.addEventListener('resize', measure);
-    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); };
-  }, [measure]);
+    return () => { cancelAnimationFrame(id); clearTimeout(idleRef.current); window.removeEventListener('resize', measure); };
+  }, [measure, n]);
+
+  // Index of the slide nearest the viewport centre (0..3n-1), or -1.
+  const nearestSlide = useCallback(() => {
+    const c = scrollerRef.current;
+    if (!c) return -1;
+    const center = c.scrollLeft + c.clientWidth / 2;
+    let best = -1, bestD = Infinity;
+    slideRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const mid = el.offsetLeft + el.clientWidth / 2;
+      const d = Math.abs(mid - center);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return best;
+  }, []);
+
+  // Once scrolling settles, jump (no animation) to the same saga in the MIDDLE
+  // copy so a full loop of runway is always available in both directions. The
+  // target slide is visually identical, so there's no flicker.
+  const recenter = useCallback(() => {
+    const c = scrollerRef.current;
+    if (!c || !n) return;
+    const best = nearestSlide();
+    if (best < 0) return;
+    const target = n + (best % n);
+    if (target === best) return;
+    const from = slideRefs.current[best], to = slideRefs.current[target];
+    if (from && to) { c.scrollLeft += (to.offsetLeft - from.offsetLeft); setActive(target); }
+  }, [n, nearestSlide]);
 
   const handleScroll = useCallback(() => {
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
-      const c = scrollerRef.current;
-      if (!c) return;
-      const center = c.scrollLeft + c.clientWidth / 2;
-      let best = 0, bestD = Infinity;
-      slideRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const mid = el.offsetLeft + el.clientWidth / 2;
-        const d = Math.abs(mid - center);
-        if (d < bestD) { bestD = d; best = i; }
-      });
-      setActive(best);
+      const best = nearestSlide();
+      if (best >= 0) setActive(best);
+      clearTimeout(idleRef.current);
+      idleRef.current = setTimeout(recenter, 160);
     });
-  }, []);
+  }, [nearestSlide, recenter]);
 
-  const scrollToIndex = useCallback((i) => {
+  // Smooth-scroll to a DISPLAY index (0..3n-1).
+  const scrollToDisplay = useCallback((i) => {
     const c = scrollerRef.current;
     const el = slideRefs.current[i];
     if (!c || !el) return;
     c.scrollTo({ left: el.offsetLeft - (c.clientWidth - el.clientWidth) / 2, behavior: 'smooth' });
   }, []);
 
-  // Rotate the carousel: prev from the first wraps to the last and vice-versa.
-  const rotate = useCallback((dir) => {
-    const n = series.length;
-    if (!n) return;
-    scrollToIndex(((active + dir) % n + n) % n);
-  }, [active, series.length, scrollToIndex]);
+  // Arrows: step one slide; the loop keeps runway on both sides so this wraps.
+  const rotate = useCallback((dir) => { scrollToDisplay(active + dir); }, [active, scrollToDisplay]);
 
   const enter = useCallback((s) => { if (isSeriesPlayable(s)) onSelectSeries?.(s); }, [onSelectSeries]);
 
@@ -171,7 +204,7 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
               paddingLeft: padInline, paddingRight: padInline, paddingTop: 12, paddingBottom: 12,
             }}
           >
-            {series.map((s, i) => {
+            {slides.map((s, i) => {
               const playable = isSeriesPlayable(s);
               const isActive = i === active;
               const poster = POSTER_MAP[s.id];
@@ -183,10 +216,10 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
 
               return (
                 <button
-                  key={s.id}
+                  key={i}
                   ref={el => { slideRefs.current[i] = el; }}
                   className="saga-slide"
-                  onClick={() => (isActive ? enter(s) : scrollToIndex(i))}
+                  onClick={() => (isActive ? enter(s) : scrollToDisplay(i))}
                   style={{
                     flex: '0 0 auto', height: '100%', maxHeight: 424, aspectRatio: '0.6',
                     padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
@@ -280,8 +313,8 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
         {/* Dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '10px 0 6px' }}>
           {series.map((s, i) => (
-            <button key={s.id} aria-label={`Go to ${s.title}`} onClick={() => scrollToIndex(i)}
-              style={{ width: i === active ? 18 : 6, height: 6, borderRadius: 99, padding: 0, border: 'none', cursor: 'pointer', background: i === active ? C.gold : 'rgba(255,255,255,0.25)', transition: 'width .25s ease, background .25s ease' }} />
+            <button key={s.id} aria-label={`Go to ${s.title}`} onClick={() => scrollToDisplay(n + i)}
+              style={{ width: i === active % n ? 18 : 6, height: 6, borderRadius: 99, padding: 0, border: 'none', cursor: 'pointer', background: i === active % n ? C.gold : 'rgba(255,255,255,0.25)', transition: 'width .25s ease, background .25s ease' }} />
           ))}
         </div>
 
