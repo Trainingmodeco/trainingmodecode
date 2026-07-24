@@ -12,6 +12,7 @@ import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeDat
 import { canAccessStage, GATES } from './data/entitlements';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
 import ScreenGuide from './shared/ScreenGuide';
+import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 
 const GOLD = C.yellow;
@@ -113,7 +114,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const [intro, setIntro] = useState(null);
   // 2.10 — the ⓘ / "?" how-to: a stepped spotlight walkthrough of the whole page
   // (description → ladder → stage → path/difficulty → timer → controls → volume → back).
+  // guideScreen swaps in a non-interactive replica of the screen a step points at
+  // ('select' = path/difficulty modal, 'timer' = the round timer), then clears back
+  // to the ladder when the walkthrough ends.
   const [howTo, setHowTo] = useState(false);
+  const [guideScreen, setGuideScreen] = useState(null);
   const [shakeIdx, setShakeIdx] = useState(null);
   const [toast, setToast] = useState(null);
   const [boxH, setBoxH] = useState(0);
@@ -278,20 +283,27 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   };
 
   // 2.10 — the how-to walkthrough (same spotlight engine as Training Camp's ⓘ).
-  // The campaign description sits centred first, then each function of the page
-  // lights up on its own: the ladder and a stage node get spotlighted in place;
-  // the timer / controls / volume live on the next screen so they show as their
-  // own centred cards. Available on every campaign that reaches the ladder.
+  // The campaign description sits centred first, then each function lights up on
+  // its own: the ladder and a stage node are spotlighted in place, then the guide
+  // CHANGES SCREEN — it shows the real path/difficulty modal, then the timer page
+  // (timer, volume, controls, back) via a non-interactive replica — and returns to
+  // the ladder when done. `screen` tells onGuideStep which replica to swap in.
   const howToSteps = [
     { target: null, title: series.title.toUpperCase(), body: series.description },
-    { target: 'arc-ladder', title: '🪜 THE LADDER', body: 'Climb the campaign stage by stage. Clear a stage to unlock the next one up the ladder.' },
+    { target: 'arc-ladder', center: true, title: '🪜 THE LADDER', body: 'Climb the campaign stage by stage. Clear a stage to unlock the next one up the ladder.' },
     { target: 'arc-stage', title: '📋 STAGE', body: 'Tap a stage node to open its mission briefing, then ENTER STAGE to set it up.' },
-    ...(series.v2Campaign ? [{ target: null, title: '⚙ PATH & DIFFICULTY', body: 'Pick your path — FIT, FIGHT or FULL ARC — and EASY / NORMAL / HARD, then START.' }] : []),
-    { target: null, title: '⏱ THE TIMER', body: 'Work and rest rounds with live coach calls. WORK = train hard · REST = breathe and reset.' },
-    { target: null, title: '🎛 CONTROLS', body: 'PAUSE / RESUME · SKIP ROUND to advance · ⟲ REWIND 10s · END to leave the session.' },
-    { target: null, title: '🔊 VOLUME', body: 'Tap the speaker at the top-right of the timer to raise or lower the coach cues mid-round.' },
-    { target: 'arc-back', title: '‹ BACK', body: 'The back chevron (top-left) returns you to the saga select carousel any time.' },
+    ...(series.v2Campaign ? [{ target: 'ht-select', screen: 'select', title: '⚙ PATH & DIFFICULTY', body: 'Now pick your PATH — FIT, FIGHT or FULL ARC — and your DIFFICULTY (EASY / NORMAL / HARD), then START.' }] : []),
+    { target: 'ht-timer', screen: 'timer', title: '⏱ THE TIMER', body: 'This is the training page. Work and rest rounds run here with live coach calls — WORK = push, REST = breathe.' },
+    { target: 'ht-volume', screen: 'timer', title: '🔊 VOLUME', body: 'Tap the speaker (top-right) to raise or lower the coach cues mid-round.' },
+    { target: 'ht-controls', screen: 'timer', title: '🎛 CONTROLS', body: 'PAUSE / RESUME · SKIP to jump a round · END to stop the session early.' },
+    { target: 'ht-back', screen: 'timer', title: '‹ BACK', body: 'The back chevron leaves the session and returns you here to the ladder any time.' },
   ];
+
+  // Drive the walkthrough: swap in the replica the current step points at (or
+  // clear it, so the ladder steps show the real ladder underneath).
+  const onGuideStep = (_i, stepCfg) => setGuideScreen(stepCfg?.screen || null);
+  const closeHowTo = () => { setHowTo(false); setGuideScreen(null); };
+  const guideStage = nodes[currentStageIdx()] || stages[0];
 
   // ── Modal content data ──
   const objectives = selected ? getStageObjectives(selected) : [];
@@ -612,8 +624,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
       </div>
 
       {/* 2.10 — how-to walkthrough (the ⓘ button): spotlights each function in turn,
-          with the explainer card kept centred so the tall ladder stays readable */}
-      {howTo && <ScreenGuide steps={howToSteps} centerTip onClose={() => setHowTo(false)} />}
+          swapping in the path/difficulty modal and timer replicas as it goes, then
+          returning to the ladder. GuidePreview sits beneath the guide's dim/spotlight. */}
+      {howTo && <GuidePreview screen={guideScreen} series={series} stageTitle={guideStage?.title} stageNumber={guideStage?.stageNumber} />}
+      {howTo && <ScreenGuide steps={howToSteps} onStep={onGuideStep} onClose={closeHowTo} />}
     </PhoneFrame>
   );
 }

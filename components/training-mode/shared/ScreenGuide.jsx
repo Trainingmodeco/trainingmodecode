@@ -25,9 +25,14 @@ const TIP_EST_H = 150;
 // centerTip: keep the spotlight on the target but always park the tooltip card
 // in the middle of the screen (readable even when the highlighted element is
 // tall enough to push an adjacent card off-screen — e.g. the arcade ladder).
-export default function ScreenGuide({ steps, onClose, centerTip = false }) {
+// A step may override per-step with `center: true|false`.
+// onStep(index, step): fired on mount and each advance, so the host can swap in
+// the screen a step points at (e.g. open a modal / show the timer preview).
+export default function ScreenGuide({ steps, onClose, centerTip = false, onStep }) {
   const [step, setStep] = useState(0);
   const cfg = steps[step];
+
+  useEffect(() => { onStep?.(step, steps[step]); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   const [rect, setRect] = useState(null);
   const scrolledRef = useRef(false);
 
@@ -84,8 +89,9 @@ export default function ScreenGuide({ steps, onClose, centerTip = false }) {
   const tipLeft = Math.min(Math.max(holeCx - TIP_W / 2, 12), vw - TIP_W - 12);
   const notchX = Math.min(Math.max(holeCx - tipLeft - 6, 18), TIP_W - 30);
   const isLast = step === steps.length - 1;
-  // Centre the card when there's no target, or when the caller forces it.
-  const centered = centerTip || !cfg.target;
+  // Centre the card when the step asks for it, else when there's no target or
+  // the caller forces centring globally.
+  const centered = cfg.center != null ? cfg.center : (centerTip || !cfg.target);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500 }} onClick={e => e.stopPropagation()}>
