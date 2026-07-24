@@ -1,0 +1,158 @@
+{
+  "campaign_id": "ARC_GAROU",
+  "name": "THE HERO HUNTER — MARTIAL EVOLUTION PROTOCOL",
+  "type": "fit_fight",
+  "stage_count": 10,
+  "paths_available": ["fit", "fight", "full"],
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Learn every style, get faster with each fight. Build like a fighter-sprinter — lean, explosive, quick hands — and 'evolve' the way a martial artist really does: through repetition, speed, and conditioning, not a monster transformation.",
+  "tagline": "Learn. Adapt. Get faster.",
+  "core_rule": "Speed and explosiveness are trained fresh and capped — never chase a 'one-punch' knockout or train through pain.",
+  "core_rule_enforcement": "Every session starts with a warm-up (shoulders and wrists included for striking). Explosive work is quality-capped (plyometric foot-contacts, sprint volume) with full recovery and no back-to-back plyo days. Striking is speed-and-combination focused, not max-force chasing. Bag work uses wraps/gloves and progressive contact. The honest goal is a lean, fast, well-conditioned striker — not cartoon power.",
+  "mechanic": "DUAL PATH (FIT / FIGHT / BOTH) + MARTIAL EVOLUTION. Each of the 10 stages can be run as FIT-only (the fighter-sprinter build), FIGHT-only (fast explosive striking), or BOTH combined. The FIGHT path 'learns a new style' each stage (boxing -> Dutch kickboxing -> Wing Chun -> med-ball power -> conditioning -> contrast -> integration), building speed and combinations. The FIT path builds the lean, explosive engine that actually drives fast striking: jump rope / plyometrics, explosive legs, med-ball throws, shoulder resilience, and sprint conditioning. Cardio stages fold in shadowboxing + plyometrics; striking stages fold in explosive bodyweight (burpees, tuck jumps, side lunges).",
+  "sourcing_note": "Grounded in the deep-research report (protocol-src/research/garou-research-report.md — 107-agent multi-source deep research, adversarially verified, 21 confirmed / 4 refuted). WHAT IS REAL AND USED: (1) plyometrics/jump-rope/ballistic lower-body work transfers to faster punch speed, punch reaction time, and rate of force development — jump rope is a viable minimal-equipment plyometric substitute; (2) LOWER-body strength (not upper-body) is the trainable driver of punch force — program explosive legs; (3) upper-body plyometrics and medicine-ball throws add ballistic/throwing power (a striking proxy); (4) contrast/complex (variable-resistance) training improves punch speed/force/power — but it is an ADVANCED method, not for beginners; (5) safe plyo dosing ~50-200 foot-contacts/session (beginner 60-100), 48h moderate / 72h high recovery, no back-to-back plyo days. HONESTY / FANTASY FLAGS (from the research): plyometrics reliably improves punch SPEED, rate of force development, and power-ENDURANCE but does NOT reliably raise raw single-shot 'one-punch' max force — so anime 'one-punch power', mid-fight 'evolving', and monster transformation are FANTASY (flavor only), while fast, explosive, conditioned striking is genuinely trainable. Spot reduction is a MYTH: ab work builds the muscle but does not reveal it; visible abs come from whole-body fat loss driven by energy balance/nutrition (moderate aerobic = Grade A fat loss, moderate-high resistance training = Grade A lean-mass preservation) — you cannot out-train a poor diet. NOT ESTABLISHED BY THE VERIFIED RESEARCH (built from standard coaching convention and flagged as such): the striking-TECHNIQUE content itself (boxing/Dutch-kickboxing/Wing-Chun fundamentals, chain punching, trapping, centerline), reaction/reflex drills, shoulder/rotator-cuff injury-resilience protocols, and hand/wrist protection for bag work — these follow conventional safe coaching practice, not graded evidence. Two research sources (boxingfitness.com, performancepurpose.ca) were security-flagged during the run for probing the agent proxy status endpoint and were EXCLUDED from synthesis.",
+  "fit_focus": [
+    "Lean, defined physique (via whole-body fat loss + muscle preservation, NOT spot reduction)",
+    "Explosive legs (the driver of punch power)", "Jump-rope / plyometric power",
+    "Medicine-ball / upper-body ballistic power", "Shoulder strength and injury-resilience",
+    "Dense-arm bodyweight work", "Sprint + light-cardio conditioning", "Core strength"
+  ],
+  "fight_focus": [
+    "Fast, relaxed hands", "Boxing fundamentals (jab/cross/hook, footwork)",
+    "Dutch kickboxing (boxing-forward combos + low kicks)", "Wing Chun (centerline, chain punching, trapping)",
+    "Explosive combination striking", "Punch speed and power-endurance",
+    "Solo shadowbox + bag work (no partner required)"
+  ],
+  "difficulty_scaling": {
+    "easy": {
+      "label": "STUDENT",
+      "plyo_foot_contact_cap": 60,
+      "plyo_set_reps": [5, 8],
+      "sprint_session": { "reps": 3, "distance_m": 40 },
+      "striking_rounds": 3,
+      "round_len_sec": 120,
+      "medball_throws_cap": 30,
+      "rest": "longest, full recovery"
+    },
+    "normal": {
+      "label": "HERO HUNTER",
+      "plyo_foot_contact_cap": 80,
+      "plyo_set_reps": [6, 10],
+      "sprint_session": { "reps": 3, "distance_m": 50 },
+      "striking_rounds": 4,
+      "round_len_sec": 150,
+      "medball_throws_cap": 40,
+      "rest": "moderate, full recovery preserved for max efforts"
+    },
+    "hard": {
+      "label": "AWAKENED",
+      "plyo_foot_contact_cap": 100,
+      "plyo_set_reps": [8, 10],
+      "sprint_session": { "reps": 4, "distance_m": 60 },
+      "striking_rounds": 5,
+      "round_len_sec": 180,
+      "medball_throws_cap": 50,
+      "rest": "shorter between accessory work; full recovery for max sprints/plyo is never traded away",
+      "note": "Beginner plyo band is 60-100 foot-contacts (research). Hard sits at the TOP of the beginner band, never above. Contrast/complex training is unlocked only at the advanced stage (Stage 8)."
+    },
+    "hard_never_requires": [
+      "Plyometric foot-contacts above the beginner cap (100)",
+      "Back-to-back plyometric days (48h moderate / 72h high recovery minimum)",
+      "Chasing a maximal 'one-punch' knockout force",
+      "Skipping the warm-up (incl. shoulders/wrists for striking)",
+      "Bare-knuckle / unwrapped heavy-bag contact",
+      "Striking or jumping through wrist, shoulder, or joint pain",
+      "Advanced contrast/complex training before Stage 8"
+    ]
+  },
+  "style_progression": {
+    "boxing": "Stages 1-3 — stance, guard, jab/cross/hook, footwork, relaxed speed.",
+    "dutch_kickboxing": "Stage 4 — boxing-forward combinations into low kicks and teeps.",
+    "wing_chun": "Stage 5 — centerline, chain punching, trapping (solo drills; conventional, not research-graded).",
+    "power_and_conditioning": "Stages 6-7 — med-ball power, power-endurance rounds, sprint + shadowbox conditioning.",
+    "advanced": "Stage 8 — contrast/complex striking (advanced only).",
+    "integration": "Stages 9-10 — deload, then the Hero Hunter finale tying every style together."
+  },
+  "safety_scaffolding": {
+    "why": "The real risks here are overuse from explosive volume (plyo/sprint), and wrist/hand and shoulder injury from bag work. The research supports explosive training for speed but caps volume and recovery; the striking-safety specifics follow conventional coaching practice.",
+    "rules": [
+      "WARM UP FIRST, ALWAYS — including shoulder (scapular / rotator-cuff) and wrist prep before any striking. High-intensity work waits until the warm-up is done.",
+      "PLYO CAPS + RECOVERY: ~50-200 foot-contacts/session (beginner 60-100), 48h between moderate plyo sessions and 72h between high-intensity ones, and NO back-to-back plyometric days.",
+      "SPRINT QUALITY, FULL RECOVERY: max-effort sprints are low-volume/high-quality with full recovery between reps.",
+      "STRIKE FOR SPEED, NOT MAX FORCE: train fast, relaxed combinations and power-endurance; do NOT chase a maximal 'one-punch' knockout (not trainable — see honesty note).",
+      "PROTECT HANDS + SHOULDERS: wrap hands and use gloves for bag work, progress contact gradually, keep the wrist aligned; never bare-knuckle a heavy bag.",
+      "CONTRAST TRAINING IS ADVANCED: variable-resistance/complex work only from Stage 8, after the base is built.",
+      "HONESTY ON LEANNESS: a lean, visible-abs look comes from whole-body fat loss (energy balance + nutrition) plus preserved muscle — NOT from ab exercises or spot reduction. You cannot out-train a poor diet.",
+      "RECOVERY = FUNDAMENTALS: sleep, nutrition, hydration."
+    ],
+    "user_facing_stop_criteria": [
+      "Wrist, hand, or knuckle pain during bag work (stop, check wrap/alignment)",
+      "Shoulder pain or impingement during pressing/striking",
+      "Sharp or localized joint pain (ankle, knee, elbow)",
+      "Shin pain building during running / sprint work",
+      "Dizziness, lightheadedness, chest pain, or shortness of breath"
+    ],
+    "stop_action": "Any stop criterion halts the session immediately with a plain-language caution (stop, rest/ice; persistent joint or tendon pain = seek medical advice) and applies no XP penalty.",
+    "screening_note": "Beginners start at STUDENT difficulty, keep to the low end of every cap, wrap hands for all bag work, and add volume slowly — surface this on first entry.",
+    "fantasy_flags": [
+      "'One-punch' knockout power — NOT trainable (max single-shot force barely moves); flavor only.",
+      "'Evolving' or transforming mid-fight, monster form — pure fiction; the real 'evolution' is skill + speed + conditioning over time.",
+      "Superhuman speed/strength — flavor only."
+    ]
+  },
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_STRIKING": ["HAND_WRAPS", "GLOVES", "HEAVY_BAG"],
+    "C_POWER": ["JUMP_ROPE", "MEDICINE_BALL", "LIGHT_WEIGHTS", "PULLUP_BAR", "BAND"],
+    "D_RUNNING": ["RUN_SPACE"],
+    "rule": "Fully doable with open space + a timer: bag work has a shadow route, jump rope substitutes for plyo, and sprints have an on-the-spot fallback. Wraps/gloves are strongly recommended whenever a heavy bag is used. No heavy barbell equipment required."
+  },
+  "voice_guidance": {
+    "enabled": true,
+    "no_read_required": true,
+    "engine": "tts",
+    "policy": "The timer SPEAKS the workout so the user never has to read the screen. Every movement is announced by name as it begins, with a short form/coach cue, a spoken countdown into work and rest, round start/end calls, rep or time counts, a halfway call, a final-10-seconds call, and the module's key safety cue. Combinations (FIGHT path) are called out loud ('jab, cross, hook — go').",
+    "announce": {
+      "stage_intro": true, "next_up": true, "exercise_name": true, "exercise_cue": true,
+      "combination_callouts": true, "round_start": true, "round_end": true,
+      "countdown_into_work": true, "countdown_into_rest": true, "rep_or_time_count": true,
+      "halfway_call": true, "final_10s_call": true, "safety_cue": true, "completion_call": true
+    },
+    "source_fields": "Spoken lines are generated from each module's title, exercises[]/drills[], coach_note, rounds[].goal/length, and the campaign safety cues — no on-screen reading required.",
+    "settings": { "user_toggle": true, "duck_background_music": true, "language": "en", "voice_pack_default": "coach" },
+    "note": "Shared voice-guidance contract (see specs/22-voice-guidance.md) — embedded in every campaign so the timer is fully audio-guided."
+  },
+  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_CLEAR", "FINAL_CLEAR"],
+  "achievements": [
+    { "id": "ACH_GA_STUDENT",  "name": "The Student",       "trigger": "Complete Stage 1 (fundamentals)" },
+    { "id": "ACH_GA_FASTHANDS","name": "Fast Hands",         "trigger": "Complete Stage 2 (speed + jump-rope/plyo)" },
+    { "id": "ACH_GA_LEGS",     "name": "Legs Drive the Punch","trigger": "Complete Stage 3 (explosive legs + sprints)" },
+    { "id": "ACH_GA_DUTCH",    "name": "Dutch Rhythm",        "trigger": "Complete Stage 4 (Dutch kickboxing)" },
+    { "id": "ACH_GA_CENTERLINE","name": "Centerline",         "trigger": "Complete Stage 5 (Wing Chun)" },
+    { "id": "ACH_GA_POWER",    "name": "Ballistic Power",     "trigger": "Complete Stage 6 (med-ball / upper-body power)" },
+    { "id": "ACH_GA_ENGINE",   "name": "The Hunter's Engine", "trigger": "Complete Stage 7 (conditioning)" },
+    { "id": "ACH_GA_CONTRAST", "name": "Contrast",            "trigger": "Complete Stage 8 (advanced contrast training)" },
+    { "id": "ACH_GA_ADAPT",    "name": "Real Evolution",      "trigger": "Complete the Stage 9 deload / recovery" },
+    { "id": "ACH_GA_HUNTER",   "name": "The Hero Hunter",     "trigger": "Complete Stage 10 (finale)" },
+    { "id": "ACH_GA_MASTER",   "name": "Every Style",         "trigger": "Clear all 10 stages" },
+    { "id": "ACH_GA_BOTH",     "name": "Fighter-Sprinter",    "trigger": "Clear a stage as BOTH (fit + fight combined)" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Warm-up skipped", "Explosive work taken past the cap / to exhaustion", "Form breaks down", "Any stop criterion reported"],
+      "response": ["Re-warm-up before explosive work", "Respect the foot-contact/sprint caps", "Recommend one difficulty lower (STUDENT)", "Quality over volume — full recovery between max efforts"]
+    },
+    "fight": {
+      "causes": ["Warm-up (incl. shoulders/wrists) skipped", "Chasing max force instead of speed", "Wrist/shoulder pain during bag work", "Combinations fall apart under fatigue"],
+      "response": ["Re-warm-up shoulders/wrists; check wraps and wrist alignment", "Reset to relaxed speed and clean combinations", "Reduce rounds or round length", "Never strike through wrist/shoulder pain"]
+    },
+    "safety_stop": ["Wrist/hand/knuckle pain", "Shoulder pain/impingement", "Sharp joint pain", "Shin pain during running", "Dizziness / chest pain / shortness of breath"]
+  },
+  "final_stage": {
+    "stage_id": "ARC_GAROU_STG10",
+    "name": "The Hero Hunter",
+    "rule": "The finale ties every style together — warm-up, fast-hands boxing combinations, a Dutch combo into kicks, a Wing Chun chain-punch burst, explosive legs, a capped plyo/med-ball finisher, and conditioning rounds. Fast, clean, quality-capped — NEVER to exhaustion or max-force chasing. Enter rested (Stage 9 was the deload).",
+    "outcome": "FINAL CLEAR -> victory screen + The Hero Hunter / Every Style achievements (and Fighter-Sprinter if run as BOTH)."
+  },
+  "art": { "banner": "/assets/series/garou.png", "stage_badges": "reuse /assets/stages/s1-s10", "art_note": "Placeholder — an original hero-hunter / martial-evolution banner (silhouette, speed lines) would suit; avoid trademarked One Punch Man / Garou character art." }
+}

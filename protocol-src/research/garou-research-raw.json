@@ -1,0 +1,279 @@
+{
+  "generated_by": "deep-research (107 agents, adversarially verified)",
+  "stats": {
+    "angles": 5,
+    "sourcesFetched": 25,
+    "claimsExtracted": 57,
+    "claimsVerified": 25,
+    "confirmed": 21,
+    "killed": 4,
+    "unverified": 0,
+    "afterSynthesis": 8,
+    "urlDupes": 0,
+    "budgetDropped": 5,
+    "agentCalls": 107
+  },
+  "question": "Research for a Garou / \"Hero Hunter\" (One Punch Man martial-artist) inspired training campaign in a workout app. It is a DUAL-PATH, 10-stage campaign: users can run each stage as FIT-only, FIGHT-only, or BOTH combined. The character fantasy is a lean, explosive, fast-evolving martial artist who \"learns\" and adapts — build like a fighter/sprinter, not a bodybuilder. Research question: what real-world, evidence-based training methods best deliver (A) the target PHYSIQUE and athleticism — lean/visible abs, strong resilient shoulders, dense/defined arms, lean powerful legs, and whole-body EXPLOSIVENESS (a fighter-sprinter build) — for a general/beginner user training mostly at home/solo with minimal equipment; and (B) FAST, EXPLOSIVE STRIKING skill rooted in boxing, Dutch kickboxing, and Wing Chun, emphasizing speed and quick combination striking (the \"Bruce Lee / Jet Li\" fast-hands archetype). Specifically cover: (1) How to build lean, defined musculature and low-body-fat athletic composition — the roles of resistance/calisthenics training vs conditioning vs nutrition/energy-balance for \"lean abs / dense arms / lean legs,\" and honestly whether you can \"spot-reduce\" or target abs (myth-check). (2) Shoulder strength AND injury-resilience for a striker (rotator cuff / scapular work), dense arm development with bodyweight+minimal gear, and lean explosive leg training. (3) Explosive-power development for striking and sprinting — plyometrics (with beginner foot-contact caps, sets/reps/rest, recovery between sessions), medicine-ball throws, and how power transfers to punch/kick speed; is there evidence that plyometric/ballistic training increases punching or striking speed/power? (4) Striking fundamentals and SAFE solo practice for boxing (jab/cross/hook, footwork), Dutch kickboxing (boxing-forward combos + low kicks, on a bag or shadow), and Wing Chun (centerline, chain punching, trapping) — what is evidence-based vs traditional-claim, and what can be trained solo without a partner (shadowboxing, bag work, focus on speed and combinations). (5) Speed/quickness of hands and reaction — how to actually train faster strikes (technique, relaxation, submaximal speed reps, contrast training) and whether \"reactive\"/reflex drills work. (6) Conditioning: sprint-interval cardio vs light/aerobic cardio for a lean fighter, and how to combine cardio with shadowboxing, and striking sessions with explosive bodyweight movements (burpees, tuck jumps, side lunges) SAFELY. (7) SAFETY and programming: warm-up requirements, wrist/hand and shoulder protection for bag work, plyometric and sprint volume caps, overtraining/recovery, and how to periodize a 10-stage beginner→advanced campaign with a deload. For every pillar give concrete beginner→advanced progressions with sets/reps/times/work:rest usable directly as workout-module content, PLUS explicit safety caps, and explicitly FLAG anything that is anime/cartoon fantasy (superhuman speed/strength, \"evolving\" mid-fight, one-punch power) vs. a real trainable method. Note which striking-speed and traditional-martial-art claims are well-supported by evidence vs. gym-lore.",
+  "summary": "The evidence base cleanly separates the real-world trainable methods behind the Garou/Hero-Hunter fantasy from the anime fiction. Visible abs and a lean fighter-sprinter physique come almost entirely from energy balance and nutrition, not from ab-targeting: a 2021 meta-analysis (13 studies, ~1,158 people) and multiple RCTs confirm spot reduction is a myth, exercise-alone yields only ~2-3 kg weight loss, moderate-intensity aerobic work best reduces total/visceral fat (Grade A), and moderate-to-high-intensity resistance training preserves the lean muscle that makes abs and dense arms visible during a deficit (Grade A). For the 'fast hands / explosive striker,' plyometric, jump-rope, medicine-ball, and contrast/variable-resistance training have direct evidence of transferring to faster punch velocity, quicker punch reaction time, and greater punch power and power-endurance — with lower-body strength (CMJ/IMTP force), not upper-body strength, being the trainable driver of punch force. A crucial honesty flag: short-term plyometrics reliably improves punch SPEED, rate of force development, and power-endurance but does NOT reliably increase raw single-shot 'one-punch' force, so anime one-punch power is fantasy while fast, explosive, well-conditioned striking is genuinely trainable. Jump rope is an evidence-backed minimal-equipment substitute for formal plyometrics, and safe programming means ~50-200 foot contacts/session with 48-72 h recovery between plyometric sessions.",
+  "findings": [
+    {
+      "claim": "Spot reduction is a myth: you cannot target fat loss over a specific muscle group such as the abs, regardless of population or program. Localized muscle training (ab work, unilateral limb work) has no effect on localized fat deposits.",
+      "confidence": "high",
+      "vote": "3-0 across 5 merged claims (2 primary sources, corroborated by secondary)",
+      "evidence": "Merged from claims 0, 1, 16, 17, 18. Anchor: 2021 systematic review + meta-analysis (Ramirez-Campillo/Gentil et al., Human Movement) of 13 unilateral-limb-training studies, 1,158 participants: pooled effect size -0.03 (95% CI -0.10 to 0.05, p=0.508), essentially zero; high quality (PEDro 6-8), low heterogeneity (I2=24.3%), no publication bias. Corroborated by a randomized 12-week RCT (Kordi 2015) showing abdominal resistance training added to diet produced no greater belly-fat loss than diet alone, and by a University of Sydney research summary. One contrary outlier (PMC10680576) was down-voted 1-2 and cannot overturn the meta-analysis. App implication: ab exercises build the muscle but do NOT reveal it; visible abs require whole-body fat loss. Flag explicitly as a myth in campaign copy.",
+      "sources": [
+        "https://www.researchgate.net/publication/355379614_A_proposed_model_to_test_the_hypothesis_of_exercise-induced_localized_fat_reduction_spot_reduction_including_a_systematic_review_with_meta-analysis",
+        "https://www.sydney.edu.au/news-opinion/news/2023/11/07/spot-reduction--why-targeting-weight-loss-to-a-specific-area-is-.html"
+      ]
+    },
+    {
+      "claim": "A lean, visible-abs physique comes from energy balance and nutrition, not exercise alone. Exercise-alone weight loss averages only ~2-3 kg; moderate-intensity aerobic exercise is the Grade A modality for reducing total/visceral/intra-hepatic fat; and moderate-to-high-intensity resistance training is the Grade A modality for sparing the lean muscle that makes abs, arms, and legs defined during a deficit.",
+      "confidence": "high",
+      "vote": "3-0 across 4 merged claims (multiple primary sources)",
+      "evidence": "Merged from claims 2, 3, 4, 5. EASO Physical Activity position statement (Oppert et al. 2021, PMC8365734, synthesizing 7 systematic reviews) gives moderate aerobic exercise Grade A for fat loss and moderate-to-high resistance training Grade A for lean-mass preservation, and states exercise-alone weight loss is 'not more than 2 to 3 kg' (corroborated by Thorogood 2011, ~1.6-1.7 kg). PMC9012799 confirms resistance training during caloric restriction spares lean mass (mediated by training experience, RT volume >=10 weekly sets/muscle, deficit size). App implication: the 'lean fighter' look is a nutrition/energy-balance outcome; strength/calisthenics builds and preserves muscle, conditioning aids the deficit, but you cannot out-train a poor diet. Flag 'shredded abs from ab workouts' as the myth.",
+      "sources": [
+        "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8365734/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9012799/"
+      ]
+    },
+    {
+      "claim": "Plyometric, jump-rope, and other ballistic lower-body training transfer measurably to faster striking: improved jab velocity, punch reaction time, rear-leg ground reaction force, and rate of force development. Jump rope gives improvements comparable to formal plyometrics, making it a viable minimal-equipment home substitute.",
+      "confidence": "high",
+      "vote": "3-0 (claim 6); claim 8 confirmed with medium-quality generalization caveats",
+      "evidence": "Merged from claims 6 and 8. RCT-style study of 24 junior amateur boxers (Chen et al. 2022, PMC9171322): 8 weeks, 3x/week, 30 min of plyometric OR jump-rope training both improved CMJ rate of force development, punch reaction time, rear-leg peak ground reaction force during the jab, and jab velocity, with no between-group difference ('similar impact on improving lower extremity strength and punching performance'). Validates building 'fast hands' via lower-body explosive work and jump rope as an accessible substitute. CAVEATS: subjects were experienced junior boxers (3-5 yrs), not beginners; small n (12/group); no non-exercise control, so adolescent maturation cannot be fully excluded. Frame jump rope as a reasonable minimal-equipment plyometric alternative, not a beginner-proven result.",
+      "sources": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9171322/"
+      ]
+    },
+    {
+      "claim": "Lower-body strength — not upper-body strength — is the trainable driver of punch force. In highly trained amateur boxers, peak forces in the countermovement jump and isometric mid-thigh pull correlated moderately-to-strongly with peak punch force.",
+      "confidence": "high",
+      "vote": "3-0",
+      "evidence": "Claim 9, from PMID 32218063 (JSCR), n=28 highly trained male amateur boxers: 'lower-body strength but not RFD had a moderate to strong positive and significant correlation to peak punch force production' (CMJ and IMTP forces, p<0.05); no upper-body parameter correlated. Cross-sectional, so 'key trainable driver' is a mild causal gloss. NOTE: the companion assertion that upper-body strength does NOT determine punch force was only weakly supported (down-voted 1-2), so state the positive (legs drive the punch) rather than the strong negative. App implication: program lean, explosive leg work (jumps, squats, sprints) as a punch-power driver, consistent with the fighter-sprinter fantasy.",
+      "sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/32218063/"
+      ]
+    },
+    {
+      "claim": "Plyometric/ballistic training reliably improves punch SPEED, rate of force development, and punching power-ENDURANCE, but does NOT reliably increase raw single-shot ('one-punch') maximum force in the short term. Protocol design determines which qualities improve.",
+      "confidence": "high",
+      "vote": "3-0 across claims 7, 10, 12, 13",
+      "evidence": "Merged from claims 7, 12, 13, 10. In junior boxers (PMC9171322) neither 8-week program significantly increased raw punch force while both improved speed/RFD/reaction. In experienced amateur boxers (Cheraghi et al., ResearchGate 308121038), 4 weeks of plyometrics-with-weights did NOT significantly change single/max punch force or frequency (only exception: rear-hand low punch) but DID improve power-endurance (summative force/energy over 3 s, 8 s, and eight 8-s series). A 2025 MDPI trial (app15126532) showed horizontal-emphasis stair-jump plyometrics beat reaction-box-jump plyometrics on rear-arm punch velocity, bench 1RM, Yo-Yo distance, and VO2max — protocol design matters. FANTASY FLAG: anime 'one-punch power' and mid-fight 'evolving' are not trainable; what IS trainable is faster, more explosive, better-conditioned repeated striking. (A separate MDPI ~25% punch-force-gain claim was refuted 0-3, reinforcing that max one-shot force is hardest to move.)",
+      "sources": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC9171322/",
+        "https://www.researchgate.net/publication/308121038_Effects_of_plyometric_exercise_training_with_external_weights_on_punching_ability_of_experienced_amateur_boxers",
+        "https://www.mdpi.com/2076-3417/15/12/6532"
+      ]
+    },
+    {
+      "claim": "Upper-body plyometrics and medicine-ball throwing transfer ballistic power to throwing (a proxy for striking): moderate improvement in medicine-ball throw performance (ES 0.64) and small improvement in sport-specific throwing (ES 0.55) versus controls.",
+      "confidence": "high",
+      "vote": "3-0",
+      "evidence": "Claim 11, from a 2023 Sports Medicine-Open systematic review + meta-analysis (PMC10575843, 35 studies, 1,412 participants, 4-16 wk): upper-body plyometric training improved maximal strength (ES 0.39), medicine-ball throw (ES 0.64, moderate), and sport-specific throwing (ES 0.55, small), all significant. Throwing is used explicitly as a striking proxy, not proven direct striking transfer; GRADE certainty rated low/very-low by authors. Supports including medicine-ball throws (chest pass, rotational/scoop throws) as home-friendly upper-body power/striking-proxy work.",
+      "sources": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10575843/"
+      ]
+    },
+    {
+      "claim": "Contrast/complex training with variable resistance (heavy resistance paired with explosive movement) transfers to punch performance: it significantly increased single-punch speed, force, and power, plus upper/lower-limb max strength and vertical jump, in elite amateur boxers over 6 weeks.",
+      "confidence": "high",
+      "vote": "3-0 across claims 14, 15",
+      "evidence": "Merged from claims 14 and 15, from Frontiers in Physiology 2024 (PMC11532089), 24 elite female boxers (China National team), 6-week VRT-within-complex-training intervention: single-punch speed, force, and power all increased significantly in the experimental group (ES 1.17-1.79); authors conclude VRT 'may improve maximum muscle strength in both upper and lower limbs, vertical jump and punch performance.' CAVEATS: small, elite, female-only sample; both VRT and conventional-resistance arms improved (no true no-training control); limited generalization to home/beginner users. Position contrast training as an advanced-stage method for the campaign, not beginner.",
+      "sources": [
+        "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11532089/"
+      ]
+    },
+    {
+      "claim": "Safe plyometric programming for a beginner-to-advanced campaign: roughly 50-200 foot contacts per session (progressed systematically, not arbitrarily), with a minimum 48 h recovery between moderate-intensity sessions and 72 h between high-intensity sessions; avoid back-to-back plyometric days to limit overuse injury risk.",
+      "confidence": "medium",
+      "vote": "3-0 (blog-quality source, corroborated by NSCA/NASM textbook consensus)",
+      "evidence": "Merged from claims 19 and 20 (True Sports Physical Therapy blog, corroborated by NSCA CSCS/NASM certification guidance and a 2025 Frontiers in Physiology RCT). Standard S&C ranges: beginners ~60-100 ground contacts/session, intermediate ~80-120, advanced ~120-198; 50-200 brackets the full progression. Recovery 48 h (moderate) / 72 h (high) is grounded in eccentric muscle-tendon loading, DOMS, and transient neuromuscular decrement; the 2025 RCT found 3x/week caused transient strength impairment and more DOMS than 2x/week (no actual injuries short-term, so 'increased injury risk' from back-to-back days is prudent extrapolation). Directly usable as safety caps and deload logic for the 10-stage structure. Confidence medium because the direct source is a PT blog (403 on fetch), though numbers match authoritative certification texts.",
+      "sources": [
+        "https://www.truesportsphysicaltherapy.com/blogs/plyometric-training-that-builds-power-without-breaking-down-your-body"
+      ]
+    }
+  ],
+  "refuted": [
+    {
+      "claim": "In this 10-week RCT, trunk fat mass decreased significantly more in the group doing abdominal endurance exercise plus running than in the running-only control group, which the authors interpret as evidence that spot reduction exists in adult males.",
+      "vote": "1-2",
+      "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10680576/"
+    },
+    {
+      "claim": "The authors' conclusion is that adding local muscular work caused the working region to use more of its own fat than aerobic running alone.",
+      "vote": "1-2",
+      "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10680576/"
+    },
+    {
+      "claim": "Upper-body strength and power did NOT correlate with punch impact force and did not distinguish harder from softer punchers — challenging the gym-lore idea that arm/upper-body strength is the main determinant of punch force.",
+      "vote": "1-2",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/32218063/"
+    },
+    {
+      "claim": "An 8-week plyometric training program increased straight-punch impact force by approximately 25% in trained male boxers, versus roughly 5% in controls — direct evidence that plyometric/ballistic lower-body training transfers to punching power.",
+      "vote": "0-3",
+      "source": "https://www.mdpi.com/2076-3417/15/12/6532"
+    }
+  ],
+  "unverified": [],
+  "caveats": "Population transfer is the biggest limitation: nearly all striking-performance studies used trained/elite/junior BOXERS (small samples, n=8-28, some female-only, several with no non-exercise control), not the home/beginner general users the app targets — transfer is plausible but not directly tested in beginners. Effect-size and 'equivalence' claims from small underpowered studies (especially jump-rope equivalence and the 6-week VRT elite-female study) should be read as directional, not definitive. Several key safety numbers (foot-contact caps, 48-72 h recovery) rest on a PT blog echoing NSCA/NASM certification consensus rather than a primary trial, so they are medium-confidence best-practice, not RCT-derived. The evidence directly covers plyometrics, jump rope, medicine-ball throws, contrast training, lower-body strength, spot-reduction, and energy-balance/nutrition; it does NOT provide graded evidence for the striking-TECHNIQUE and traditional-martial-art elements of the research question (boxing/Dutch-kickboxing/Wing Chun technique efficacy, chain punching, trapping, reaction/reflex drills, shoulder/rotator-cuff injury-resilience, hand/wrist protection) — those were not among the surviving claims and remain unsourced here. Physiology topics (spot reduction, energy balance) are slow-moving and stable; the striking-transfer literature is recent (2020-2025) and still accumulating. One plausible-sounding claim (8-week plyometrics = ~25% punch-force gain) was refuted 0-3, so treat single dramatic punch-force numbers with caution.",
+  "openQuestions": [
+    "What is the evidence base for the striking-TECHNIQUE pillars specifically requested — boxing/Dutch-kickboxing/Wing Chun fundamentals, chain punching, trapping, centerline theory, and which traditional claims are supported vs. gym-lore — since none survived verification here?",
+    "What evidence-based protocols exist for shoulder/rotator-cuff and scapular injury-resilience for strikers, and for hand/wrist/knuckle protection during solo bag work (warm-up, wrapping, contact progression)?",
+    "Do reaction/reflex and 'reactive' quickness drills (reaction-box jumps, reflex-ball, cue-response shadowboxing) actually improve striking reaction time in beginners, beyond the general plyometric reaction-time gains shown in trained boxers?",
+    "How well do these boxer-derived speed/power findings transfer to true beginners training solo at home, and what starting volumes/intensities are validated for that population rather than extrapolated from trained-athlete studies?"
+  ],
+  "sources": [
+    {
+      "url": "https://www.sydney.edu.au/news-opinion/news/2023/11/07/spot-reduction--why-targeting-weight-loss-to-a-specific-area-is-.html",
+      "quality": "secondary",
+      "angle": "broad/primary — body composition & lean-athletic training",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.researchgate.net/publication/355379614_A_proposed_model_to_test_the_hypothesis_of_exercise-induced_localized_fat_reduction_spot_reduction_including_a_systematic_review_with_meta-analysis",
+      "quality": "primary",
+      "angle": "broad/primary — body composition & lean-athletic training",
+      "claimCount": 3
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9012799/",
+      "quality": "primary",
+      "angle": "broad/primary — body composition & lean-athletic training",
+      "claimCount": 5
+    },
+    {
+      "url": "https://calisthenicsassociation.org/blog/calisthenics-muscle-hypertrophy-science",
+      "quality": "unreliable",
+      "angle": "broad/primary — body composition & lean-athletic training",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8365734/",
+      "quality": "primary",
+      "angle": "broad/primary — body composition & lean-athletic training",
+      "claimCount": 4
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10680576/",
+      "quality": "primary",
+      "angle": "broad/primary — body composition & lean-athletic training",
+      "claimCount": 4
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9171322/",
+      "quality": "primary",
+      "angle": "academic/technical — plyometric & ballistic power transfer to striking",
+      "claimCount": 5
+    },
+    {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32218063/",
+      "quality": "primary",
+      "angle": "academic/technical — plyometric & ballistic power transfer to striking",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.mdpi.com/2076-3417/15/12/6532",
+      "quality": "primary",
+      "angle": "academic/technical — plyometric & ballistic power transfer to striking",
+      "claimCount": 4
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10575843/",
+      "quality": "primary",
+      "angle": "academic/technical — plyometric & ballistic power transfer to striking",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.diva-portal.org/smash/get/diva2:1603670/FULLTEXT01.pdf",
+      "quality": "unreliable",
+      "angle": "academic/technical — plyometric & ballistic power transfer to striking",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.researchgate.net/publication/308121038_Effects_of_plyometric_exercise_training_with_external_weights_on_punching_ability_of_experienced_amateur_boxers",
+      "quality": "primary",
+      "angle": "academic/technical — plyometric & ballistic power transfer to striking",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.muay-thai-guy.com/blog/training-style-breakdown-muay-thai-dutch-kickboxing-western-style",
+      "quality": "unreliable",
+      "angle": "practitioner/implementation — solo striking fundamentals & shadowboxing/bag work",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.muaythaitechnician.com/endless-flow-drill-dutch-style-kickboxing-solo-bag-drill/",
+      "quality": "unreliable",
+      "angle": "practitioner/implementation — solo striking fundamentals & shadowboxing/bag work",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.boxingfitness.com/the-ultimate-guide-to-shadow-boxing-for-beginners",
+      "quality": "unreliable",
+      "angle": "practitioner/implementation — solo striking fundamentals & shadowboxing/bag work",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.legendsboxing.com/post/beginners-boxing-bag-workout",
+      "quality": "unreliable",
+      "angle": "practitioner/implementation — solo striking fundamentals & shadowboxing/bag work",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.wingchunhalesowen.co.uk/practicing-wing-chun-at-home-solo-tips/",
+      "quality": "unreliable",
+      "angle": "practitioner/implementation — solo striking fundamentals & shadowboxing/bag work",
+      "claimCount": 0
+    },
+    {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/36031611/",
+      "quality": "unreliable",
+      "angle": "technical — hand speed, reaction & contrast/speed training",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11532089/",
+      "quality": "primary",
+      "angle": "technical — hand speed, reaction & contrast/speed training",
+      "claimCount": 5
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9445110/",
+      "quality": "primary",
+      "angle": "technical — hand speed, reaction & contrast/speed training",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.truesportsphysicaltherapy.com/blogs/plyometric-training-that-builds-power-without-breaking-down-your-body",
+      "quality": "blog",
+      "angle": "safety/programming — plyo & sprint volume, injury-proofing, periodization",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.ptpioneer.com/personal-training/certifications/nsca-cscs/cscs-chapter-18/",
+      "quality": "unreliable",
+      "angle": "safety/programming — plyo & sprint volume, injury-proofing, periodization",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.trifectatherapeutics.com/blog/overhead-athletes-essential-exercises-for-shoulder-stability-and-performance",
+      "quality": "unreliable",
+      "angle": "safety/programming — plyo & sprint volume, injury-proofing, periodization",
+      "claimCount": 0
+    },
+    {
+      "url": "https://blog.nasm.org/fitness/preventing-shoulder-and-rotator-cuff-injuries-through-corrective-exercise-programming-part-2",
+      "quality": "unreliable",
+      "angle": "safety/programming — plyo & sprint volume, injury-proofing, periodization",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.performancepurpose.ca/article/deload-week-and-the-science-behind-it",
+      "quality": "unreliable",
+      "angle": "safety/programming — plyo & sprint volume, injury-proofing, periodization",
+      "claimCount": 0
+    }
+  ],
+  "security_note": "Sources boxingfitness.com and performancepurpose.ca were security-flagged during the run for probing the agent proxy status endpoint and EXCLUDED from synthesis."
+}

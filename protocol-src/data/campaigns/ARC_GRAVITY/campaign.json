@@ -70,6 +70,21 @@
     "rule": "Fully bodyweight. Light dumbbells are optional and never required; a wall (for wall-sits) is environmental. NO heavy load."
   },
   "completion_states": ["FIT_CLEAR", "FINAL_CLEAR"],
+  "voice_guidance": {
+    "enabled": true,
+    "no_read_required": true,
+    "engine": "tts",
+    "policy": "The timer SPEAKS the workout so the user never has to read the screen. Every movement is announced by name as it begins, with a short form/coach cue, a spoken countdown into work and rest, round start/end calls, rep or time counts, a halfway call, a final-10-seconds call, and the module key safety cue. Striking combinations are called out loud in rhythm.",
+    "announce": {
+      "stage_intro": true, "next_up": true, "exercise_name": true, "exercise_cue": true,
+      "combination_callouts": true, "round_start": true, "round_end": true,
+      "countdown_into_work": true, "countdown_into_rest": true, "rep_or_time_count": true,
+      "halfway_call": true, "final_10s_call": true, "safety_cue": true, "completion_call": true
+    },
+    "source_fields": "Spoken lines are generated from each module title, exercises[]/drills[], coach_note, rounds[].goal/length, and the campaign safety cues — no on-screen reading required.",
+    "settings": { "user_toggle": true, "duck_background_music": true, "language": "en", "voice_pack_default": "coach" },
+    "note": "Shared voice-guidance contract (see specs/22-voice-guidance.md) — embedded in every campaign so the timer is fully audio-guided. Where a campaign defines its own cadence/count (e.g. Gravity voice_count_mode), voice guidance defers to it for counting and layers the rest."
+  },
   "achievements": [
     { "id": "ACH_GC_BASELINE",  "name": "Baseline Set",      "trigger": "Complete Stage 1 (find your reps, no count)" },
     { "id": "ACH_GC_CADENCE",   "name": "In the Cadence",    "trigger": "Complete Stage 3 with the voice cadence" },
