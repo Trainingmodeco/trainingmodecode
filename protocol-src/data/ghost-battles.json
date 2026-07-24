@@ -72,6 +72,22 @@
     "format_rule": "A ghost battle inherits the ghost's rounds_config — you fight its format so the comparison is fair. Show it read-only on setup."
   },
 
+  "mode_wiring": {
+    "description": "Which modes offer ghost battles and how each is decided. See specs/24-ghost-battles-wiring.md. v1 scope = Fight-Mode-first (combo_coach, fight_focus, camp); fit-only arcade ghosts are deferred and safety-gated.",
+    "modes": {
+      "combo_coach": { "win_metric": "strikes", "entry": "ghost_icon", "v1": true, "note": "Primary home. Open striking session, most strikes wins." },
+      "fight_focus": { "win_metric": "strikes", "entry": "ghost_icon", "v1": true, "note": "Native strikes race, same as Combo Coach." },
+      "camp":        { "win_metric": "time", "round_option": "strikes", "entry": "race_a_ghost_button", "v1": true, "note": "Stage TIME race (beat-the-clock); a single round may race on strikes." },
+      "arcade_fight": { "win_metric": "time", "round_option": "strikes", "entry": "race_a_ghost_button", "v1": true, "note": "Fight/both arcade stages wire exactly like camp." },
+      "arcade_fit_only": { "win_metric": "time", "entry": "race_a_ghost_button", "v1": false, "deferred": true, "note": "No strikes to replay — pure time/pace race. Extra weight; ship after the fight-first version. Per-campaign OPT-IN and safety-gated." }
+    },
+    "fit_only_safety_gate": {
+      "rule": "A ghost TIME race must never turn a safety-capped stage into a 'beat the clock' incentive that undermines its caps.",
+      "opt_out_campaigns": ["ARC_GRAVITY", "ARC_SONIC"],
+      "opt_out_reason": "Gravity is controlled tempo/hold work and Sonic's max-velocity sprints require full recovery — racing on time would push users to violate the built-in caps. These campaigns opt OUT of fit-only ghosts; prefer 'completed it' over 'how fast'."
+    }
+  },
+
   "surfacing": {
     "combo_coach_icon": {
       "where": "A small ghost icon (👻) on the Combo Coach setup screen, present from the start (per user request; visuals per designer).",
