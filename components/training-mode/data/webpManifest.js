@@ -122,6 +122,8 @@ export const WEBP_FILES = [
   '/static/series/dark-knight.webp',
   '/static/series/demon-back.webp',
   '/static/series/one-punch.webp',
+  '/static/series/posters/baki-grappler.webp',
+  '/static/series/posters/berserk-struggler.webp',
   '/static/series/posters/blue-blur.webp',
   '/static/series/posters/dark-knight.webp',
   '/static/series/posters/demon-back.webp',

@@ -20,6 +20,8 @@ const POSTER_MAP = {
   'demon-back-protocol': '/static/series/posters/demon-back.png',
   'ultra-instinct-protocol': '/static/series/posters/ultra-instinct.png',
   'ultra-ego-style': '/static/series/posters/ultra-ego.png',
+  'baki-grappler': '/static/series/posters/baki-grappler.png',
+  'berserk-struggler': '/static/series/posters/berserk-struggler.png',
 };
 
 const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'ELITE', 'CHAMPION'];
