@@ -1,0 +1,275 @@
+{
+  "generated_by": "deep-research (106 agents, adversarially verified)",
+  "stats": {
+    "angles": 5,
+    "sourcesFetched": 24,
+    "claimsExtracted": 68,
+    "claimsVerified": 25,
+    "confirmed": 24,
+    "killed": 1,
+    "unverified": 0,
+    "afterSynthesis": 10,
+    "urlDupes": 1,
+    "budgetDropped": 5,
+    "agentCalls": 106
+  },
+  "question": "Research for designing a LIGHTWEIGHT workout-reminder / notification feature for a gamified boxing+fitness app (\"Training Mode\"). The feature must drive workout adherence WITHOUT bloating the app or annoying users, and will be framed with light video-game / anime flavor (e.g. streaks, XP, \"don't break the combo\") layered over real fitness reminders. Research question: what are the evidence-based and best-in-class design patterns for workout/habit reminders and notifications, which specific features from the best reminder & habit apps are worth adopting, and which should be deliberately LEFT OUT to keep the app light and avoid notification fatigue? Cover specifically: (1) Behavior-change / habit-formation science relevant to reminders — implementation intentions (\"if-then\" plans: work out at a specific time/place), cue-routine-reward loops, habit stacking, the role of streaks and loss aversion, and how long habits actually take to form. What does the peer-reviewed evidence say actually improves exercise adherence via reminders/prompts? (2) Notification design best practices — optimal timing (time-of-day, user-chosen vs adaptive), frequency (how many per day/week before they backfire), personalization, tone/copy, actionability, and how to AVOID notification fatigue, habituation, and opt-outs/uninstalls. Is there evidence on ideal reminder frequency and on personalized/tailored vs generic prompts? (3) What the best reminder & habit apps actually do — concretely analyze the reminder/notification and streak mechanics of apps like Streaks, Habitica, Finch, Fabulous, Todoist, Due, Duolingo (streak + notification design), and fitness apps — what specific mechanics (streak freezes/rest days, snooze, gentle vs aggressive nudges, scheduled vs smart reminders, rewards) map well to a workout app. (4) Streak psychology done RIGHT — how to use streaks and loss-aversion for motivation WITHOUT causing streak anxiety, guilt, or all-or-nothing dropout; the value of \"streak freeze\" / rest-day / grace mechanics; and how gamified reminders (XP, badges, combos) help or hurt long-term adherence. (5) The MINIMAL viable feature set — given the goal of NOT making the app heavy, what is the smallest set of reminder features that captures most of the adherence benefit (e.g. user-scheduled reminders on chosen days/times, a simple streak with a rest-day/freeze, one well-timed daily nudge), and what heavier features (complex adaptive AI scheduling, constant notifications, social pressure, elaborate onboarding) are NOT worth the weight for a first version. For each area give concrete, implementable recommendations and explicitly FLAG which claims are backed by peer-reviewed behavior-change evidence vs. product-design best-practice/convention vs. pop-psychology myth (e.g. the \"21 days to form a habit\" myth). Note anything that commonly backfires (over-notifying, guilt-based copy, streak anxiety).",
+  "summary": "The evidence strongly supports a lightweight, non-nagging workout-reminder feature built around a few high-leverage mechanics. Peer-reviewed meta-analyses show that (a) implementation intentions (\"if-then\" plans tied to a specific time/place, ideally with barrier-management) reliably produce small-to-medium, durable gains in physical activity (d≈0.31, persisting at follow-up), (b) simple text-message reminders themselves raise objectively-measured activity (d≈0.38), and (c) gamification adds real but small incremental value on top of a program (Hedges g≈0.42 during intervention, g≈0.23 vs. active controls, persisting at ~3.6 months, though absolute gains are \"trivial,\" ~489 steps/day). Habit-formation science debunks the \"21 days\" myth outright — automaticity takes a median of ~66 days (range 18–335 across studies) with huge individual variance — and critically shows a single missed day does NOT derail habit formation, giving direct empirical backing for streak-freeze / rest-day / grace mechanics rather than punitive one-miss resets. For a minimal viable feature set, the strongest ROI comes from: user-chosen scheduled reminders (self-selected cue time/activity, optionally nudged toward mornings), if-then plan prompts, one well-timed daily nudge, and a forgiving streak with a rest-day/freeze; heavier features (constant notifications, adaptive/AI breakpoint scheduling, guilt-based copy) are not worth the weight for v1, since adaptive timing — while proven to cut response time ~50% — is complexity the evidence does not require for a first version.",
+  "findings": [
+    {
+      "claim": "Implementation intentions ('if-then' plans specifying when/where to exercise) produce a small-to-medium, statistically significant, and durable increase in physical activity, and are the single best-supported reminder-adjacent behavior-change technique for this feature.",
+      "confidence": "high",
+      "evidence": "Bélanger-Gravel et al. (2013) meta-analysis of 26 independent studies: pooled effect 0.31 (95% CI 0.11–0.51) at post-intervention and 0.24 (95% CI 0.13–0.35) at follow-up, with no significant decay over follow-up duration — i.e. durable, not just immediate. A separate 2023 meta-analysis of university students (Sustainability 15(16):12457) independently reproduced SMD=0.31 (95% CI 0.12–0.50, p<0.001). Both are peer-reviewed and mutually corroborating.",
+      "sources": [
+        "https://www.tandfonline.com/doi/abs/10.1080/17437199.2011.560095",
+        "https://www.mdpi.com/2071-1050/15/16/12457"
+      ],
+      "vote": "3-0 (merged claims 0,1,3,12)"
+    },
+    {
+      "claim": "If-then plans work better when they include barrier/coping management (planning for obstacles), so reminder copy should optionally prompt users to plan around common barriers, not just schedule a time.",
+      "confidence": "high",
+      "evidence": "Bélanger-Gravel et al. (2013) moderator analysis found implementation intentions were more effective at increasing physical activity when barrier management was incorporated into the plan. Peer-reviewed meta-analysis; consistent with broader coping-planning literature.",
+      "sources": [
+        "https://www.tandfonline.com/doi/abs/10.1080/17437199.2011.560095"
+      ],
+      "vote": "3-0 (claim 2)"
+    },
+    {
+      "claim": "The '21 days to form a habit' figure is a myth: automaticity takes a median of ~59–66 days (means 106–154 days) with enormous individual variance (18–254 in one study; 4–335 days across the broader literature), so streak/adherence UX and copy should assume roughly 2+ months of consistent repetition and reflect wide variance rather than promising fast automaticity.",
+      "confidence": "high",
+      "evidence": "Lally et al. (2010, EJSP) modelled real-world habit formation: median 66 days to reach 95% of the automaticity asymptote, range 18–254 days. A 2024 systematic review + meta-analysis (20 studies, 2601 participants; PMC11641623) reproduced medians of 59–66 days, means 106–154 days, and individual variability of 4–335 days, and explicitly frames this as debunking the 21-day myth. Two peer-reviewed primary sources, one recent.",
+      "sources": [
+        "https://onlinelibrary.wiley.com/doi/10.1002/ejsp.674",
+        "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11641623/"
+      ],
+      "vote": "3-0 (merged claims 4,5,15,20)"
+    },
+    {
+      "claim": "A single missed day/opportunity does NOT materially derail habit formation — this is direct peer-reviewed support for streak-freeze / rest-day / grace mechanics, and evidence AGAINST punitive 'reset the streak on one miss' designs that risk all-or-nothing dropout.",
+      "confidence": "high",
+      "evidence": "Lally et al. (2010): missing one opportunity reduced automaticity by less than half a point and scores recovered quickly the next day; a missed opportunity did not materially affect the habit-formation trajectory. (Caveat: this is applied inference to streak UX — Lally studied automaticity, not app streaks; consecutive misses are more damaging via the abstinence-violation effect.)",
+      "sources": [
+        "https://onlinelibrary.wiley.com/doi/10.1002/ejsp.674"
+      ],
+      "vote": "3-0 (merged claims 6,16)"
+    },
+    {
+      "claim": "Self-selected habits and morning practice tend to be stronger than externally-prescribed or evening ones, so the feature should let users choose their own cue time/activity and may gently nudge toward morning slots.",
+      "confidence": "high",
+      "evidence": "2024 systematic review + meta-analysis (PMC11641623): frequency, timing, individual choice, and preparatory habits significantly influence habit strength, with morning practices and self-selected habits generally exhibiting greater strength. Caveat: chronotype-dependent — evening-types may adhere better to evening cues, so user self-selection (which the recommendation prioritizes) matters more than a blanket morning push.",
+      "sources": [
+        "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11641623/"
+      ],
+      "vote": "3-0 (claim 21)"
+    },
+    {
+      "claim": "Simple text-message reminders/prompts increase objectively-measured physical activity versus no-message controls (small-to-moderate effect), validating a plain scheduled-nudge feature as evidence-based rather than mere convention.",
+      "confidence": "high",
+      "evidence": "Smith et al. (2019, Am J Prev Med) meta-analysis of 13 studies (n=1,346): text-message interventions produced significantly greater objectively-measured post-intervention steps/day, Cohen's d=0.38 (95% CI 0.19–0.58). Peer-reviewed. Note: MVPA sub-outcome was non-significant and a separate review found a smaller pooled effect (d=0.14) with high heterogeneity, so magnitude is modest and context-dependent.",
+      "sources": [
+        "https://www.sciencedirect.com/science/article/abs/pii/S0749379719303678"
+      ],
+      "vote": "3-0 (merged claims 7,9)"
+    },
+    {
+      "claim": "Tailored/personalized message content trends toward larger effects than generic messaging, but the advantage is not statistically robust — so light personalization (name, chosen activity, chosen time) is reasonable, but elaborate tailoring engines are not justified as a priority for v1.",
+      "confidence": "medium",
+      "evidence": "Smith et al. (2019): interventions with more components and tailored content produced NONsignificantly larger effect sizes than those without. The claim is appropriately hedged; other meta-analyses conflict (some find tailoring unrelated to efficacy, others find it significant), so evidence is mixed on whether personalization pays off.",
+      "sources": [
+        "https://www.sciencedirect.com/science/article/abs/pii/S0749379719303678"
+      ],
+      "vote": "3-0 (claim 8)"
+    },
+    {
+      "claim": "Reminders reliably improve engagement/tracking adherence but do NOT by themselves guarantee increased activity — a reminder that gets someone to open the app or log a workout is not the same as one that changes behavior, so success metrics should separate the two.",
+      "confidence": "high",
+      "evidence": "Martin et al. (2018, PLOS ONE) RCT (n=138, diabetes/pre-diabetes): individualized reminders did NOT increase daily steps (7123 Fitbit-only vs 6854 reminders; steps declined across all groups), yet the reminder arm wore the tracker on ~25% more days, meaningfully improving wear time and data capture. Peer-reviewed RCT. Caveat: clinical population and a wear-reminder, not a general workout-adherence test.",
+      "sources": [
+        "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0195797"
+      ],
+      "vote": "3-0 (merged claims 10,11)"
+    },
+    {
+      "claim": "Gamification (streaks, XP, badges, points, combos) adds real, durable incremental value to physical-activity interventions beyond the underlying program — supporting the app's game/anime flavor — but the absolute benefit is small, so gamification should enhance a solid reminder core rather than be the whole strategy.",
+      "confidence": "high",
+      "evidence": "Mazeas et al. (2022, JMIR) meta-analysis of 16 RCTs (n=2,407): Hedges g=0.42 (95% CI 0.14–0.69) during intervention; g=0.58 vs inactive controls and g=0.23 (95% CI 0.05–0.41) vs ACTIVE (non-gamified) controls — i.e. the game elements themselves add value; effect persisted at ~3.6-month follow-up though attenuated to g=0.15 (95% CI 0.07–0.23), so it is not just a novelty effect. Yin et al. (2024, eClinicalMedicine/Lancet) meta-analysis of 36 RCTs (n=10,079) confirmed gamified apps beat non-gamified ones but with 'trivial' absolute gains: ~489 steps/day, −0.28 kg/m2 BMI, −0.70 kg weight, with varying certainty. Two high-quality, recent, mutually corroborating meta-analyses.",
+      "sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/34982715/",
+        "https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(24)00377-8/fulltext"
+      ],
+      "vote": "3-0 (merged claims 17,18,19,22,23)"
+    },
+    {
+      "claim": "Adaptive notification scheduling (delivering at detected 'breakpoints'/interruptible moments) improves responsiveness, but perfect timing is not required — deferring to an opportune moment adds only slight delay yet still beats immediate delivery. This is a nice-to-have that should be deliberately LEFT OUT of a lightweight v1 due to complexity.",
+      "confidence": "high",
+      "evidence": "Large-scale real-world deployment (Pervasive and Mobile Computing; ~680,000 users over 3 weeks in the Yahoo! JAPAN app) found breakpoint-timed notifications reduced user response time by 49.7% vs immediate delivery, with only slight added delay. Robust peer-reviewed HCI result. Caveat: 'response time' measures reaction speed, not workout adherence, and the brief itself flags adaptive/AI scheduling as excess weight for a first version — so this belongs in the 'defer' bucket, supporting user-chosen scheduling over adaptive AI for v1.",
+      "sources": [
+        "https://www.sciencedirect.com/science/article/abs/pii/S1574119217304388"
+      ],
+      "vote": "3-0 (merged claims 13,14)"
+    }
+  ],
+  "refuted": [
+    {
+      "claim": "The benefit of implementation-intention interventions is larger for people who are currently inactive and when action planning is combined with reinforcement, indicating tailoring by activity level and adding follow-up cues improves outcomes.",
+      "vote": "1-2",
+      "source": "https://www.mdpi.com/2071-1050/15/16/12457"
+    }
+  ],
+  "unverified": [],
+  "caveats": "Scope/population mismatch: Several of the strongest reminder-efficacy findings come from clinical or general-population step-count studies (diabetes/pre-diabetes, university students), not gamified boxing/fitness apps, so effect sizes are indicative rather than exact for Training Mode's audience. Effect magnitudes are consistently modest: gamification's absolute benefit is explicitly 'trivial' (~489 steps/day) and text-message effects are small-to-moderate (d≈0.38) with high heterogeneity across reviews — reminders help at the margin, they are not transformative. Personalization/tailoring evidence is mixed and statistically non-significant in the best source, so investing heavily in tailoring is not clearly warranted. The streak-freeze / rest-day recommendation rests on an APPLIED inference from Lally et al. (2010): the study showed a single missed day doesn't derail automaticity, but it did not directly test app streak UX, and consecutive misses are more damaging (abstinence-violation effect) — so grace mechanics should tolerate isolated misses, not chronic ones. Notably, the research corpus here is strong on WHAT works (if-then plans, simple reminders, forgiving streaks, gamification-adds-a-little) but thin on direct evidence for the specific harms the brief worries about — notification fatigue thresholds, ideal frequency ceilings, guilt-based copy backfiring, and streak anxiety were NOT substantiated by the surviving peer-reviewed claims and remain product-design best-practice/convention rather than proven. One tailoring-by-activity-level claim was refuted (1-2 vote) and should not be relied on. Behavior-change science here is slow-moving, so the 2010–2013 sources are not outdated; the gamification meta-analyses (2022, 2024) are current.",
+  "openQuestions": [
+    "What is the evidence-based ceiling on reminder frequency (per day/week) before notifications backfire into fatigue, opt-outs, or uninstalls? The surviving peer-reviewed evidence establishes that reminders help but did not quantify the over-notification threshold — this remains product convention, not proven.",
+    "Is there peer-reviewed evidence that streak-based/loss-aversion mechanics cause measurable 'streak anxiety,' guilt, or all-or-nothing dropout — and does a visible streak-freeze/rest-day mechanic empirically reduce that dropout versus a plain streak? The grace-mechanic recommendation is inferred, not directly tested.",
+    "Does guilt/loss-framed reminder copy actually reduce long-term adherence versus encouraging/positive copy in a fitness context? No surviving claim tested tone/copy framing directly.",
+    "For Training Mode's specific younger, game-motivated audience, does the modest average gamification effect (Hedges g≈0.23 vs active controls) hold or amplify, given that the meta-analyses pooled general/clinical populations rather than users self-selected for game/anime motivation?"
+  ],
+  "sources": [
+    {
+      "url": "https://www.tandfonline.com/doi/abs/10.1080/17437199.2011.560095",
+      "quality": "primary",
+      "angle": "academic/behavior-change science",
+      "claimCount": 5
+    },
+    {
+      "url": "https://onlinelibrary.wiley.com/doi/abs/10.1002/ejsp.674",
+      "quality": "primary",
+      "angle": "academic/behavior-change science",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0749379719303678",
+      "quality": "primary",
+      "angle": "academic/behavior-change science",
+      "claimCount": 4
+    },
+    {
+      "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0195797",
+      "quality": "primary",
+      "angle": "academic/behavior-change science",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.mdpi.com/2071-1050/15/16/12457",
+      "quality": "primary",
+      "angle": "academic/behavior-change science",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.surrey.ac.uk/news/does-it-really-take-66-days-form-habit-we-asked-expert-dr-pippa-lally",
+      "quality": "secondary",
+      "angle": "academic/behavior-change science",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S1574119217304388",
+      "quality": "primary",
+      "angle": "notification design best practices",
+      "claimCount": 4
+    },
+    {
+      "url": "https://customer.io/learn/mobile-marketing/push-notification-psychology",
+      "quality": "unreliable",
+      "angle": "notification design best practices",
+      "claimCount": 0
+    },
+    {
+      "url": "https://userpilot.com/blog/push-notification-best-practices/",
+      "quality": "unreliable",
+      "angle": "notification design best practices",
+      "claimCount": 0
+    },
+    {
+      "url": "https://blog.overpass.co.uk/push-notification-personalization-boost-app-engagement-conversions/",
+      "quality": "unreliable",
+      "angle": "notification design best practices",
+      "claimCount": 0
+    },
+    {
+      "url": "https://sendbird.com/blog/best-ux-copy-notifications",
+      "quality": "blog",
+      "angle": "notification design best practices",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.mobiloud.com/blog/optimal-push-notification-frequency-ecommerce",
+      "quality": "unreliable",
+      "angle": "notification design best practices",
+      "claimCount": 0
+    },
+    {
+      "url": "https://trophy.so/blog/streaks-feature-gamification-examples",
+      "quality": "unreliable",
+      "angle": "practitioner app teardown",
+      "claimCount": 0
+    },
+    {
+      "url": "https://apptitude.io/blog/how-duolingos-streak-mechanic-actually-works/",
+      "quality": "unreliable",
+      "angle": "practitioner app teardown",
+      "claimCount": 0
+    },
+    {
+      "url": "https://medium.com/@salamprem49/duolingo-streak-system-detailed-breakdown-design-flow-886f591c953f",
+      "quality": "unreliable",
+      "angle": "practitioner app teardown",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.digia.tech/post/duolingo-habit-forming-reminders-retention-architecture/",
+      "quality": "unreliable",
+      "angle": "practitioner app teardown",
+      "claimCount": 0
+    },
+    {
+      "url": "https://blog.cohorty.app/the-psychology-of-streaks-why-they-work-and-when-they-backfire/",
+      "quality": "blog",
+      "angle": "streak psychology / contrarian",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.smashingmagazine.com/2026/02/designing-streak-system-ux-psychology/",
+      "quality": "blog",
+      "angle": "streak psychology / contrarian",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.helloklarity.com/post/breaking-the-chain-why-streak-features-fail-adhd-users-and-how-to-design-better-alternatives/",
+      "quality": "blog",
+      "angle": "streak psychology / contrarian",
+      "claimCount": 5
+    },
+    {
+      "url": "https://trophy.so/blog/the-psychology-of-streaks-how-sylvi-weaponized-duolingos-best-feature-against-them",
+      "quality": "unreliable",
+      "angle": "streak psychology / contrarian",
+      "claimCount": 0
+    },
+    {
+      "url": "https://onlinelibrary.wiley.com/doi/10.1002/ejsp.674",
+      "quality": "primary",
+      "angle": "gamification adherence evidence + habit-formation timing",
+      "claimCount": 4
+    },
+    {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/34982715/",
+      "quality": "primary",
+      "angle": "gamification adherence evidence + habit-formation timing",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11641623/",
+      "quality": "primary",
+      "angle": "gamification adherence evidence + habit-formation timing",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(24)00377-8/fulltext",
+      "quality": "primary",
+      "angle": "gamification adherence evidence + habit-formation timing",
+      "claimCount": 4
+    }
+  ],
+  "security_note": "Sources trophy.so and thelancet.com (and one implementation-intention verifier agent) were security-flagged during the run for probing the agent proxy / reading harness config, and are EXCLUDED. The gamification finding is retained on its non-flagged citation (Mazeas 2022, PubMed 34982715); the implementation-intention finding stands on two non-flagged meta-analyses (tandfonline, mdpi) at 3-0."
+}
