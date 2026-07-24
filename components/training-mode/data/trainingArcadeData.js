@@ -126,7 +126,154 @@ const DEMON_BACK_STAGES = [
     rewards: { xp: 100 },
   },
   {
-    id: 'db-final', stageNumber: 6, title: 'Final Round',
+    id: 'db-s6', stageNumber: 6, title: 'Iron Lats',
+    focus: 'Explosive pulling power, back thickness, and power striking',
+    isFinalRound: false,
+    fitBlock: {
+      mode: 'fit',
+      tasks: [
+        { id: 'db6-f1', type: 'sets', title: 'Explosive Pull-ups', instructions: 'Pull fast — drive the chest to the bar. Control the drop.', reps: 5, sets: 5, restSeconds: 75, equipment: 'Pull-up bar' },
+        { id: 'db6-f2', type: 'sets', title: 'Wide-Grip Pull-ups', instructions: 'Wide grip. Feel the lats stretch and load.', reps: 6, sets: 4, restSeconds: 60, equipment: 'Pull-up bar' },
+        { id: 'db6-f3', type: 'sets', title: 'Dumbbell Rows (Heavy)', instructions: 'Heavy weight. Row to the hip, squeeze hard.', reps: 8, sets: 4, restSeconds: 60, equipment: 'Dumbbell' },
+        { id: 'db6-f4', type: 'timer', title: 'Farmer Carries', instructions: 'Heavy dumbbells. Tall posture, tight grip.', durationSeconds: 50, sets: 3, restSeconds: 45, equipment: 'Dumbbells' },
+        { id: 'db6-f5', type: 'sets', title: 'Superman Holds', instructions: 'Lift arms and legs. Hold 3 seconds each rep.', reps: 12, sets: 4, restSeconds: 30, equipment: 'None' },
+        { id: 'db6-f6', type: 'sets', title: 'Explosive Push-ups', instructions: 'Drive off the floor. Hands leave the ground if you can.', reps: 10, sets: 4, restSeconds: 30, equipment: 'None' },
+      ],
+    },
+    fightBlock: {
+      mode: 'fight',
+      tasks: [
+        { id: 'db6-g1', type: 'rounds', title: 'Power Cross Round', instructions: 'Load the hips. Drive every cross from the ground up.', rounds: 3, durationSeconds: 60, restSeconds: 30, equipment: 'None' },
+        { id: 'db6-g2', type: 'rounds', title: 'Shadowboxing - Level Changes', instructions: 'Change levels between combos. Dig to the body.', rounds: 2, durationSeconds: 90, restSeconds: 30, equipment: 'None' },
+        { id: 'db6-g3', type: 'rounds', title: 'Bag Power Round', instructions: 'If bag available: heavy power shots. Sit down on each one.', rounds: 2, durationSeconds: 60, restSeconds: 30, equipment: 'Bag optional' },
+      ],
+    },
+    rewards: { xp: 100 },
+  },
+  {
+    id: 'db-s7', stageNumber: 7, title: 'Endless Cage',
+    focus: 'Pulling endurance ladders and high-volume boxing output',
+    isFinalRound: false,
+    fitBlock: {
+      mode: 'fit',
+      tasks: [
+        { id: 'db7-f1', type: 'sets', title: 'Pull-up Endurance Sets', instructions: 'Same reps every set. Short rest. Do not fail early.', reps: 5, sets: 6, restSeconds: 45, equipment: 'Pull-up bar' },
+        { id: 'db7-f2', type: 'sets', title: 'Inverted Rows', instructions: 'Feet elevated. Chest to the bar every rep.', reps: 15, sets: 4, restSeconds: 40, equipment: 'Bar or table' },
+        { id: 'db7-f3', type: 'timer', title: 'Dead Hang', instructions: 'Overhand grip. Breathe. Beat the last stage.', durationSeconds: 45, sets: 4, restSeconds: 30, equipment: 'Pull-up bar' },
+        { id: 'db7-f4', type: 'sets', title: 'Renegade Rows', instructions: 'Plank position. Row one arm at a time, no hip twist.', reps: 10, sets: 3, restSeconds: 45, equipment: 'Dumbbells' },
+        { id: 'db7-f5', type: 'sets', title: 'Bodyweight Squats', instructions: 'Full depth. Steady, unbroken pace.', reps: 20, sets: 3, restSeconds: 30, equipment: 'None' },
+      ],
+    },
+    fightBlock: {
+      mode: 'fight',
+      tasks: [
+        { id: 'db7-g1', type: 'rounds', title: 'Jab-Cross Volume Marathon', instructions: 'Non-stop 1-2s at a pace you can hold the whole round.', rounds: 4, durationSeconds: 90, restSeconds: 30, equipment: 'None' },
+        { id: 'db7-g2', type: 'rounds', title: 'Boxing Guard Endurance', instructions: 'Hold a tight guard. Fire a 1-2 every 10 seconds.', rounds: 3, durationSeconds: 60, restSeconds: 20, equipment: 'None' },
+        { id: 'db7-g3', type: 'rounds', title: 'Continuous Movement Round', instructions: 'Footwork only. Never stop moving. Cut angles.', rounds: 2, durationSeconds: 60, restSeconds: 20, equipment: 'None' },
+      ],
+    },
+    rewards: { xp: 100 },
+  },
+  {
+    id: 'db-s8', stageNumber: 8, title: 'Titan Grip',
+    focus: 'Grip strength, loaded carries, clinch and guard durability',
+    isFinalRound: false,
+    fitBlock: {
+      mode: 'fit',
+      tasks: [
+        { id: 'db8-f1', type: 'sets', title: 'Weighted Pull-ups or Max Reps', instructions: 'Add weight if you can, otherwise push to max reps.', reps: 5, sets: 5, restSeconds: 90, equipment: 'Pull-up bar' },
+        { id: 'db8-f2', type: 'timer', title: 'Farmer Carry Gauntlet', instructions: 'Heavy. Walk until the grip is ready to fail.', durationSeconds: 60, sets: 4, restSeconds: 45, equipment: 'Dumbbells' },
+        { id: 'db8-f3', type: 'timer', title: 'Dead Hang Challenge', instructions: 'One long hold per set. Do not drop early.', durationSeconds: 60, sets: 3, restSeconds: 45, equipment: 'Pull-up bar' },
+        { id: 'db8-f4', type: 'sets', title: 'Towel-Grip Dumbbell Rows', instructions: 'Loop a towel over the handle for grip. Row heavy.', reps: 8, sets: 4, restSeconds: 60, equipment: 'Dumbbell + towel' },
+        { id: 'db8-f5', type: 'timer', title: 'Hollow Body Hold', instructions: 'Lower back pinned. Arms overhead. Stay rigid.', durationSeconds: 30, sets: 4, restSeconds: 20, equipment: 'None' },
+      ],
+    },
+    fightBlock: {
+      mode: 'fight',
+      tasks: [
+        { id: 'db8-g1', type: 'rounds', title: 'Clinch Knee Round', instructions: 'Frame up an imaginary clinch. Drive alternating knees.', rounds: 3, durationSeconds: 60, restSeconds: 30, equipment: 'None' },
+        { id: 'db8-g2', type: 'rounds', title: 'Guard Endurance + Counters', instructions: 'High guard. Absorb, then fire a sharp counter 1-2.', rounds: 3, durationSeconds: 60, restSeconds: 30, equipment: 'None' },
+        { id: 'db8-g3', type: 'rounds', title: 'Sprawl to Stance Reset', instructions: 'Sprawl, pop up, reset stance. Explosive every rep.', rounds: 2, durationSeconds: 45, restSeconds: 20, equipment: 'None' },
+      ],
+    },
+    rewards: { xp: 100 },
+  },
+  {
+    id: 'db-s9', stageNumber: 9, title: 'Storm Pressure',
+    focus: 'Hybrid conditioning and relentless pressure boxing',
+    isFinalRound: false,
+    fitBlock: {
+      mode: 'fit',
+      tasks: [
+        { id: 'db9-f1', type: 'sets', title: 'Pull-ups', instructions: 'Strict form even as fatigue builds.', reps: 6, sets: 5, restSeconds: 60, equipment: 'Pull-up bar' },
+        { id: 'db9-f2', type: 'sets', title: 'Burpee to Pull-up', instructions: 'Burpee, jump to the bar, one pull-up. That is one rep.', reps: 8, sets: 4, restSeconds: 45, equipment: 'Pull-up bar' },
+        { id: 'db9-f3', type: 'sets', title: 'Dumbbell Rows', instructions: 'Keep the pace up. Squeeze at the top.', reps: 10, sets: 4, restSeconds: 45, equipment: 'Dumbbell' },
+        { id: 'db9-f4', type: 'sets', title: 'Mountain Climbers', instructions: 'Fast knees to chest. Hips down, core tight.', reps: 30, sets: 4, restSeconds: 20, equipment: 'None' },
+        { id: 'db9-f5', type: 'sets', title: 'Push-ups', instructions: 'Full range. Break only when you must.', reps: 15, sets: 4, restSeconds: 30, equipment: 'None' },
+      ],
+    },
+    fightBlock: {
+      mode: 'fight',
+      tasks: [
+        { id: 'db9-g1', type: 'rounds', title: 'Fight Focus Pressure Round', instructions: 'March forward. Constant output. No backing up.', rounds: 3, durationSeconds: 90, restSeconds: 30, equipment: 'None' },
+        { id: 'db9-g2', type: 'rounds', title: 'Combo Coach Sequence', instructions: 'Follow the combo prompts. No breaks between calls.', rounds: 3, durationSeconds: 90, restSeconds: 30, equipment: 'None' },
+        { id: 'db9-g3', type: 'rounds', title: 'Defensive Movement Round', instructions: 'Slip, roll, pivot off the pressure. Stay composed.', rounds: 2, durationSeconds: 60, restSeconds: 20, equipment: 'None' },
+      ],
+    },
+    rewards: { xp: 100 },
+  },
+  {
+    id: 'db-s10', stageNumber: 10, title: 'Unbreakable',
+    focus: 'Max-effort pulling and defensive mastery',
+    isFinalRound: false,
+    fitBlock: {
+      mode: 'fit',
+      tasks: [
+        { id: 'db10-f1', type: 'sets', title: 'Weighted Pull-ups (Heavy)', instructions: 'Heaviest you can move for the reps. Full range.', reps: 4, sets: 6, restSeconds: 90, equipment: 'Pull-up bar' },
+        { id: 'db10-f2', type: 'sets', title: 'Dumbbell Rows (Heavy)', instructions: 'Go heavy. Strict — no momentum.', reps: 6, sets: 5, restSeconds: 60, equipment: 'Dumbbell' },
+        { id: 'db10-f3', type: 'timer', title: 'Dead Hang Challenge', instructions: 'Two long holds. Max time each. Do not let go.', durationSeconds: 75, sets: 2, restSeconds: 60, equipment: 'Pull-up bar' },
+        { id: 'db10-f4', type: 'timer', title: 'Farmer Carries (Heavy)', instructions: 'Heaviest available. Walk until failure.', durationSeconds: 70, sets: 3, restSeconds: 60, equipment: 'Dumbbells' },
+        { id: 'db10-f5', type: 'sets', title: 'Superman Holds', instructions: 'Hold 5 seconds at the top of each rep.', reps: 15, sets: 4, restSeconds: 30, equipment: 'None' },
+        { id: 'db10-f6', type: 'timer', title: 'Hollow Body Hold', instructions: 'Full extension. Longest hold yet.', durationSeconds: 40, sets: 3, restSeconds: 20, equipment: 'None' },
+      ],
+    },
+    fightBlock: {
+      mode: 'fight',
+      tasks: [
+        { id: 'db10-g1', type: 'rounds', title: 'Shadowboxing Advanced', instructions: 'Full arsenal. Feints, level changes, sharp exits.', rounds: 3, durationSeconds: 120, restSeconds: 30, equipment: 'None' },
+        { id: 'db10-g2', type: 'rounds', title: 'Slip-Roll-Counter Mastery', instructions: 'Slip, roll, then counter. Smooth and precise.', rounds: 3, durationSeconds: 60, restSeconds: 20, equipment: 'None' },
+        { id: 'db10-g3', type: 'rounds', title: 'Sprawl and Strike', instructions: 'Sprawl, get up, throw a 3-piece. Repeat.', rounds: 2, durationSeconds: 60, restSeconds: 30, equipment: 'None' },
+      ],
+    },
+    rewards: { xp: 100 },
+  },
+  {
+    id: 'db-s11', stageNumber: 11, title: 'Demon Awakening',
+    focus: 'Peak pre-boss conditioning at championship pace',
+    isFinalRound: false,
+    fitBlock: {
+      mode: 'fit',
+      tasks: [
+        { id: 'db11-f1', type: 'sets', title: 'Pull-ups to Failure', instructions: 'Max reps every set. Rest 90 seconds. Empty the tank.', reps: 0, sets: 5, restSeconds: 90, equipment: 'Pull-up bar' },
+        { id: 'db11-f2', type: 'sets', title: 'Inverted Rows (Max)', instructions: 'Feet elevated. Go to failure each set.', reps: 0, sets: 4, restSeconds: 60, equipment: 'Bar or table' },
+        { id: 'db11-f3', type: 'timer', title: 'Farmer Carry Gauntlet', instructions: 'Heavy carries. Walk until you physically cannot.', durationSeconds: 80, sets: 3, restSeconds: 45, equipment: 'Dumbbells' },
+        { id: 'db11-f4', type: 'timer', title: 'Dead Hang Challenge', instructions: 'Beat your record. Two attempts.', durationSeconds: 80, sets: 2, restSeconds: 60, equipment: 'Pull-up bar' },
+        { id: 'db11-f5', type: 'sets', title: 'Push-ups (Close Grip)', instructions: 'Elbows tight. Full depth. Do not cheat range.', reps: 18, sets: 4, restSeconds: 30, equipment: 'None' },
+        { id: 'db11-f6', type: 'sets', title: 'Bodyweight Squats', instructions: 'Deep and explosive. Unbroken sets.', reps: 25, sets: 3, restSeconds: 30, equipment: 'None' },
+      ],
+    },
+    fightBlock: {
+      mode: 'fight',
+      tasks: [
+        { id: 'db11-g1', type: 'rounds', title: 'Championship Shadowboxing', instructions: 'Long rounds. Fight like the belt is on the line.', rounds: 3, durationSeconds: 150, restSeconds: 30, equipment: 'None' },
+        { id: 'db11-g2', type: 'rounds', title: 'Sprawl and Strike Gauntlet', instructions: 'Sprawl, up, 5-piece combo. Non-stop the whole round.', rounds: 3, durationSeconds: 75, restSeconds: 30, equipment: 'None' },
+        { id: 'db11-g3', type: 'rounds', title: 'Fight Focus Final Push', instructions: 'Max output. This is the dress rehearsal for the boss.', rounds: 2, durationSeconds: 90, restSeconds: 20, equipment: 'None' },
+      ],
+    },
+    rewards: { xp: 100 },
+  },
+  {
+    id: 'db-final', stageNumber: 12, title: 'Final Round',
     focus: 'Extreme back endurance, grip, core, and hybrid fight conditioning',
     isFinalRound: true,
     fitBlock: {
