@@ -49,7 +49,18 @@ function SelectReplica({ series, stageTitle, stageNumber }) {
   );
 }
 
-function TimerReplica() {
+// Fight campaigns run the FIGHT FOCUS round timer (red, "ROUND"); fit campaigns
+// run the CONDITIONING timer (teal, "WORK"). The variant follows the campaign's
+// default path — the same one the select replica highlights first.
+const RED = '#f5405e';
+
+function TimerReplica({ variant }) {
+  const fight = variant === 'fight';
+  const ac = fight ? RED : TEAL;
+  const acDim = fight ? 'rgba(245,64,94,' : 'rgba(45,212,191,';
+  const header = fight ? 'FIGHT FOCUS' : 'CONDITIONING';
+  const ringLabel = fight ? 'ROUND 1' : 'WORK';
+  const time = fight ? '03:00' : '02:00';
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
       {/* Top bar — back + title + volume */}
@@ -57,8 +68,8 @@ function TimerReplica() {
         <div data-guide="ht-back" style={{ width: 34, height: 34, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e7ddf7' }}>
           <ChevronLeft size={22} />
         </div>
-        <div style={{ font: "900 13px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.1em' }}>CONDITIONING</div>
-        <div data-guide="ht-volume" style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(45,212,191,0.14)', border: `1px solid ${TEAL}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TEAL }}>
+        <div style={{ font: "900 13px 'Orbitron',sans-serif", color: ac, letterSpacing: '0.1em' }}>{header}</div>
+        <div data-guide="ht-volume" style={{ width: 40, height: 40, borderRadius: '50%', background: `${acDim}0.14)`, border: `1px solid ${ac}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}>
           <Volume2 size={20} />
         </div>
       </div>
@@ -66,21 +77,21 @@ function TimerReplica() {
       {/* Round chips */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 6 }}>
         {[1, 2, 3, 4].map(n => (
-          <div key={n} style={{ width: 22, height: 22, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', font: "800 9px 'Orbitron',sans-serif", color: n === 1 ? '#041210' : '#c4a4d8', background: n === 1 ? TEAL : 'rgba(45,212,191,0.1)', border: `1px solid ${TEAL}44` }}>{n}</div>
+          <div key={n} style={{ width: 22, height: 22, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', font: "800 9px 'Orbitron',sans-serif", color: n === 1 ? '#0a0014' : '#c4a4d8', background: n === 1 ? ac : `${acDim}0.1)`, border: `1px solid ${ac}44` }}>{n}</div>
         ))}
       </div>
 
       {/* Ring / timer */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div data-guide="ht-timer" style={{ width: 230, height: 230, borderRadius: '50%', border: `4px solid ${TEAL}`, boxShadow: `0 0 40px ${TEAL}44, inset 0 0 30px ${TEAL}22`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ font: "700 11px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.18em', marginBottom: 4 }}>WORK</div>
-          <div style={{ font: "900 46px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>02:00</div>
+        <div data-guide="ht-timer" style={{ width: 230, height: 230, borderRadius: '50%', border: `4px solid ${ac}`, boxShadow: `0 0 40px ${acDim}0.27), inset 0 0 30px ${acDim}0.13)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ font: "700 11px 'Orbitron',sans-serif", color: ac, letterSpacing: '0.18em', marginBottom: 4 }}>{ringLabel}</div>
+          <div style={{ font: "900 46px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{time}</div>
         </div>
       </div>
 
       {/* Controls */}
       <div data-guide="ht-controls" style={{ padding: '0 16px calc(24px + env(safe-area-inset-bottom,0px))' }}>
-        <div style={{ width: '100%', height: 48, borderRadius: 12, background: 'rgba(45,212,191,0.12)', border: `1px solid ${TEAL}66`, color: TEAL, font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>❚❚ PAUSE</div>
+        <div style={{ width: '100%', height: 48, borderRadius: 12, background: `${acDim}0.12)`, border: `1px solid ${ac}66`, color: ac, font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>❚❚ PAUSE</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <div style={{ flex: 1, height: 44, borderRadius: 11, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)', color: '#c9a6ff', font: "800 11px 'Orbitron',sans-serif", letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▷ SKIP</div>
           <div style={{ flex: 1, height: 44, borderRadius: 11, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.45)', color: '#fca5a5', font: "800 11px 'Orbitron',sans-serif", letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>☐ END</div>
@@ -90,6 +101,13 @@ function TimerReplica() {
   );
 }
 
+// Pick the timer flavor from the campaign's default path (modeOptions[0], or the
+// legacy series' availableModes). fit → conditioning; fight/full-arc → fight.
+function timerVariant(series) {
+  const modes = series?.modeOptions || series?.availableModes || [];
+  return modes[0] === 'fit' ? 'fit' : 'fight';
+}
+
 export default function GuidePreview({ screen, series, stageTitle, stageNumber }) {
   if (!screen) return null;
   return (
@@ -97,7 +115,7 @@ export default function GuidePreview({ screen, series, stageTitle, stageNumber }
       <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100%', margin: '0 auto' }}>
         {screen === 'select'
           ? <SelectReplica series={series} stageTitle={stageTitle} stageNumber={stageNumber} />
-          : <TimerReplica />}
+          : <TimerReplica variant={timerVariant(series)} />}
       </div>
     </div>
   );
