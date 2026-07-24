@@ -92,4 +92,22 @@ component reads it and drives TTS accordingly. It is identical across campaigns
 behavior is consistent everywhere and every future campaign inherits it by
 including the same block.
 
+--- VOICE PACKS (persona flavor over the same contract) ---
+
+`data/voice-packs.json` defines a library of coach personas. A pack changes only
+the coach's TONE and greeting/hype/transition phrasing — NEVER the movement name,
+the count, or any safety cue (those stay literal and clear). Packs are
+TTS-provider-agnostic: `tts_hints` (rate/pitch/energy/style) are advisory and the
+app maps them to its voice engine.
+
+- Each campaign's `voice_guidance.settings.voice_pack_default` names its pack;
+  `voice-packs.json > campaign_assignments` is the single source of truth
+  (currently: Baki→underground, Berserk→warrior, Dark Knight→vigilante,
+  Garou→sensei, Gravity→chamber, Sonic→hype, Ultra Ego→destroyer, Ultra
+  Instinct→serene; Camp / Combo Coach / Fight Focus → coach).
+- ACCESSIBILITY: `coach` is the neutral default; the user can override any
+  campaign to `coach`, pick another pack, or mute voice entirely. If a pack is
+  unavailable in the current engine/language, fall back to `coach`.
+- Intelligibility and safety win over flavor — always.
+
 --- END ---

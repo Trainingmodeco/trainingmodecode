@@ -1,0 +1,71 @@
+{
+  "notes": "Reaction Mode config + data model. A fast reflex game: the app throws CUES, the user RESPONDS with a real movement (strike/defend/move/tap), scored on reaction time + accuracy. Spec: specs/25-reaction-mode.md. Uses the shared voice-guidance timer (specs/22) and can feed Ghost Battles (specs/24). HONESTY: this is task-specific response practice + conditioning + engagement — NOT a proven general-reflex booster (transfer is debated in our striking/speed research). Copy never promises 'faster reflexes everywhere' or anime auto-dodge.",
+
+  "cue_types": {
+    "VOICE_CALL": "Coach voice calls a strike/combo/number ('jab-cross!', 'TWO'). Uses voice-guidance TTS + the campaign voice pack.",
+    "SCREEN_SIGNAL": "A colour / number / arrow flashes (visual reaction).",
+    "ATTACK_CUE": "A slip/roll/block prompt — an incoming attack to defend ('SLIP LEFT').",
+    "GO_NO_GO": "Respond only to VALID cues, hold on invalid ones (strike on GREEN, freeze on RED) — decision/inhibition.",
+    "CHOICE": "Different cues map to different responses (1->jab, 2->cross, 3->slip) — choice reaction (harder)."
+  },
+
+  "response_types": {
+    "STRIKE": "Throw the called strike/combo (shadow or bag). Detect via device-motion strike detection or a timed self-report tap.",
+    "DEFEND": "Slip / roll / block the called attack.",
+    "MOVE": "Touch a target, change direction, drop to a squat, lateral shuffle (agility/footwork; fit-friendly, no striking).",
+    "TAP": "Screen/pad tap — minimal fallback when no space/bag."
+  },
+
+  "difficulty_scaling": {
+    "easy":   { "label": "ROOKIE",  "inter_cue_ms": [1600, 2600], "response_window_ms": 1400, "cue_complexity": "simple",   "cues_per_round": 12, "rounds": 3 },
+    "normal": { "label": "SHARP",   "inter_cue_ms": [1000, 2000], "response_window_ms": 1000, "cue_complexity": "go_no_go", "cues_per_round": 16, "rounds": 3 },
+    "hard":   { "label": "UNTOUCHABLE", "inter_cue_ms": [700, 1500], "response_window_ms": 750, "cue_complexity": "choice", "cues_per_round": 20, "rounds": 4,
+      "note": "Faster and more decisions — NEVER removes the warm-up or the form/joint safety caps." },
+    "safety_rides_alongside": "Warm-up required, form-over-speed, wrist/shoulder protection for bag work, no explosive reaction under heavy fatigue — these do NOT scale away with difficulty."
+  },
+
+  "scoring": {
+    "metrics": ["mean_reaction_ms", "accuracy_pct", "best_streak", "false_starts", "reflex_score"],
+    "false_start_rule": "Reacting BEFORE the response window opens = a miss (keeps it honest reaction, not anticipation).",
+    "reflex_score": "Composite of speed (mean_reaction_ms) and accuracy_pct, penalized by false_starts. Task-specific only — no transfer claim.",
+    "xp": "Normal session XP for completing; bonus XP for a new best reflex_score. A miss/slow round never punishes showing up.",
+    "ranks": [
+      { "id": "REACT_ROOKIE",     "name": "Rookie" },
+      { "id": "REACT_QUICK",      "name": "Quick" },
+      { "id": "REACT_SHARP",      "name": "Sharp" },
+      { "id": "REACT_LIGHTNING",  "name": "Lightning" },
+      { "id": "REACT_UNTOUCHABLE","name": "Untouchable" }
+    ],
+    "rank_note": "Ranks reflect performance at THIS task only — never framed as general/real-life reflex ability."
+  },
+
+  "surfaces": {
+    "fight": { "responses": ["STRIKE", "DEFEND"], "framing": "React to the phantom — Combo Coach / Fight Focus companion. Garou/Ultra Instinct 'sense the attack' skin.", "voice_pack": "inherits the fight discipline / campaign pack" },
+    "fit":   { "responses": ["MOVE", "TAP"], "framing": "Quick feet — agility & footwork quickness (Sonic speed pillars). No striking required.", "voice_pack": "hype or coach" },
+    "session_length": "Short by default (it's intense): a few 60-120s rounds."
+  },
+
+  "integrations": {
+    "voice_guidance": "Cues + counts + safety spoken by the shared audio-guided timer (specs/22); the active voice pack skins the calls.",
+    "combo_streak": "Completing a Reaction session counts toward the COMBO streak (specs/23).",
+    "ghost_battles": "Can produce a reaction-time GHOST — a race against your own best reaction_score (specs/24, win by faster mean_reaction_ms). Fight-mode-first, like other ghosts."
+  },
+
+  "safety_scaffolding": {
+    "rules": [
+      "WARM-UP FIRST — shoulders/wrists for striking, ankles for footwork/dodge; explosive reactions never start cold.",
+      "FORM OVER SPEED — a fast but sloppy or through-pain response scores WORSE, not better; the quality gate stays on.",
+      "PROTECT HANDS/SHOULDERS — wrap + gloves for any bag striking; never bare-knuckle.",
+      "CONTROLLED DEFENSE — dodge/roll responses reuse the ankle-first / soft-landing safety (no flips, controlled only).",
+      "NO REACTION UNDER HEAVY FATIGUE — stop while responses are still clean."
+    ],
+    "user_facing_stop_criteria": ["Wrist/hand/shoulder pain", "Sharp joint pain (ankle/knee)", "Dizziness or lightheadedness"],
+    "stop_action": "Any stop criterion halts the session with a plain caution and no XP penalty."
+  },
+
+  "honesty_flags": {
+    "trainable_real": ["Task-specific response practice (throwing/defending the called action)", "Conditioning + engagement", "Simple/choice reaction time improves AT the trained task with practice"],
+    "not_established": ["That it makes your reflexes faster in general life or other sports (transfer is debated — not among supported claims in the Sonic/Garou research)"],
+    "fantasy_flavor_only": ["'Dodge bullets'", "Ultra-Instinct auto-dodge", "Seeing in slow-motion", "Superhuman reflexes"]
+  }
+}

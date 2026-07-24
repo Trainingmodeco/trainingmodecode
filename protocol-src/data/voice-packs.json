@@ -1,0 +1,68 @@
+{
+  "notes": "Voice packs for the fully audio-guided timer (see specs/22-voice-guidance.md). A voice pack is FLAVOR only — it changes the coach's persona/tone/cadence, NOT what gets spoken (the announce contract is identical everywhere). Packs are TTS-provider-agnostic: tts_hints are advisory (rate/pitch/style) and the app maps them to whatever voice engine it uses. ACCESSIBILITY: 'coach' is the neutral default and the user can always override any campaign's pack back to 'coach' (or mute). Intelligibility and SAFETY come first — safety cues and counts are ALWAYS spoken plainly and clearly regardless of persona; flavor never obscures the instruction.",
+
+  "rules": {
+    "flavor_only": "A pack may change greeting/hype/transition phrasing and vocal tone. It must NOT change the movement name, the count, or any safety cue wording — those stay literal and clear.",
+    "user_override": "Users can set any campaign to the neutral 'coach' pack, pick a different pack, or mute voice entirely.",
+    "fallback": "If a campaign's assigned pack is unavailable in the current TTS engine/language, fall back to 'coach'.",
+    "language": "Packs are persona/tone definitions; localization uses the same pack ids with language-specific voices."
+  },
+
+  "tts_hint_fields": {
+    "rate": "slow | measured | normal | brisk | fast (advisory speaking rate)",
+    "pitch": "low | mid | high",
+    "energy": "calm | steady | intense | hype",
+    "style": "free-text persona style hint for the voice engine"
+  },
+
+  "packs": [
+    { "id": "coach", "name": "Coach (Neutral)", "persona": "A clear, encouraging personal trainer.", "default": true,
+      "tts_hints": { "rate": "normal", "pitch": "mid", "energy": "steady", "style": "clear, friendly, motivating" },
+      "sample_lines": { "start": "Let's get to work.", "hype": "Nice — keep that form.", "rest": "Rest. Breathe.", "done": "Session complete. Well done." } },
+
+    { "id": "underground", "name": "Underground Announcer", "persona": "A gritty pit-fight announcer — raw, intense, hyped.",
+      "tts_hints": { "rate": "brisk", "pitch": "mid", "energy": "intense", "style": "gravelly, hyped fight-announcer" },
+      "sample_lines": { "start": "Into the arena. Let's go.", "hype": "That's power — again!", "rest": "Corner time. Breathe.", "done": "Winner. That's the strongest you." } },
+
+    { "id": "warrior", "name": "Grim Warrior", "persona": "A battle-hardened swordsman — grim, steady, relentless.",
+      "tts_hints": { "rate": "measured", "pitch": "low", "energy": "intense", "style": "low, weathered, resolute" },
+      "sample_lines": { "start": "Pick up your blade. We march.", "hype": "Endure. Again.", "rest": "Hold. Recover.", "done": "You held the line. It's done." } },
+
+    { "id": "vigilante", "name": "The Vigilante", "persona": "A disciplined night-vigilante — stern, controlled, exacting.",
+      "tts_hints": { "rate": "measured", "pitch": "low", "energy": "steady", "style": "gravelly, controlled, disciplined" },
+      "sample_lines": { "start": "Discipline. Begin.", "hype": "Precise. Hold that standard.", "rest": "Reset. Controlled breathing.", "done": "Standard met. Finished." } },
+
+    { "id": "sensei", "name": "The Sensei", "persona": "A sharp martial-arts master — precise, calm authority, quick to correct.",
+      "tts_hints": { "rate": "measured", "pitch": "mid", "energy": "steady", "style": "crisp, authoritative, martial" },
+      "sample_lines": { "start": "Stance ready. We train.", "hype": "Fast hands — stay relaxed.", "rest": "Rest. Then again, cleaner.", "done": "You have learned. Session complete." } },
+
+    { "id": "chamber", "name": "Chamber (Calm)", "persona": "A calm, measured guide focused on tension and breath.",
+      "tts_hints": { "rate": "slow", "pitch": "mid", "energy": "calm", "style": "calm, deliberate, breathing-focused" },
+      "sample_lines": { "start": "Settle in. Control the tension.", "hype": "Slow. Breathe through it.", "rest": "Release. Breathe.", "done": "Controlled to the end. Complete." } },
+
+    { "id": "hype", "name": "Speed Hype", "persona": "A fast, upbeat announcer — high energy, quick, fun.",
+      "tts_hints": { "rate": "fast", "pitch": "high", "energy": "hype", "style": "fast, bright, upbeat announcer" },
+      "sample_lines": { "start": "Let's GO — gotta go fast!", "hype": "Quick feet — yes!", "rest": "Catch your breath, speedster.", "done": "Zone cleared! Nice pace." } },
+
+    { "id": "destroyer", "name": "The Destroyer", "persona": "A powerful, cocky-confident presence — big energy, commanding.",
+      "tts_hints": { "rate": "normal", "pitch": "low", "energy": "intense", "style": "booming, confident, commanding" },
+      "sample_lines": { "start": "Show me power. Begin.", "hype": "Overwhelming — keep going!", "rest": "Recover. You've earned it.", "done": "Total domination. Done." } },
+
+    { "id": "serene", "name": "Flow State", "persona": "A calm, ultra-composed guide — unhurried, in the zone.",
+      "tts_hints": { "rate": "measured", "pitch": "mid", "energy": "calm", "style": "serene, smooth, unhurried" },
+      "sample_lines": { "start": "Empty your mind. Move.", "hype": "Effortless. Let it flow.", "rest": "Still. Breathe.", "done": "Perfectly composed. Complete." } }
+  ],
+
+  "campaign_assignments": {
+    "ARC_BAKI": "underground",
+    "ARC_BERSERK": "warrior",
+    "ARC_DARKKNIGHT": "vigilante",
+    "ARC_GAROU": "sensei",
+    "ARC_GRAVITY": "chamber",
+    "ARC_SONIC": "hype",
+    "ARC_ULTRAEGO": "destroyer",
+    "ARC_ULTRAINSTINCT": "serene",
+    "_default": "coach",
+    "_note": "Training Camp and Combo Coach / Fight Focus use 'coach' unless a discipline pack is chosen. Each campaign's voice_guidance.settings.voice_pack_default carries the same value; this map is the single source of truth."
+  }
+}

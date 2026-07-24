@@ -7,7 +7,10 @@
     "stage_id": { "type": "string" },
     "campaign_id": { "type": "string" },
     "title": { "type": "string" },
-    "phase": { "enum": ["foundation", "development", "hard_camp", "taper", "final_boss"] },
+    "phase": {
+      "description": "Structural map phase. The 5 canonical phases are shared with the camp engine (training-engine.ts Phase). Some campaigns add a THEMATIC hard-tier phase (a renamed hard_camp) for flavor — currently peak (Baki), eclipse (Berserk), integration (Dark Knight). Treat these as hard-tier equivalents for any phase-based grouping.",
+      "enum": ["foundation", "development", "hard_camp", "peak", "eclipse", "integration", "taper", "final_boss"]
+    },
     "fit_available": { "type": "boolean" },
     "fight_available": { "type": "boolean" },
     "full_arc_available": { "type": "boolean" },

@@ -72,7 +72,7 @@
       "halfway_call": true, "final_10s_call": true, "safety_cue": true, "completion_call": true
     },
     "source_fields": "Spoken lines are generated from each module title, exercises[]/drills[], coach_note, rounds[].goal/length, and the campaign safety cues — no on-screen reading required.",
-    "settings": { "user_toggle": true, "duck_background_music": true, "language": "en", "voice_pack_default": "coach" },
+    "settings": { "user_toggle": true, "duck_background_music": true, "language": "en", "voice_pack_default": "destroyer" },
     "note": "Shared voice-guidance contract (see specs/22-voice-guidance.md) — embedded in every campaign so the timer is fully audio-guided. Where a campaign defines its own cadence/count (e.g. Gravity voice_count_mode), voice guidance defers to it for counting and layers the rest."
   },
   "achievements": [
