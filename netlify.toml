@@ -13,6 +13,16 @@
   # Expo/Metro can be memory-hungry on CI.
   NODE_OPTIONS = "--max-old-space-size=4096"
 
+# Bundle files must 404 when missing — NEVER fall through to the SPA rewrite.
+# Serving index.html (200) for a chunk that a newer deploy replaced feeds HTML
+# to the module loader and mixes builds ("Requiring unknown module N"). A clean
+# 404 makes the import reject so the app can self-heal by reloading. Real files
+# still win (non-forced redirects only apply when the path doesn't exist).
+[[redirects]]
+  from = "/_expo/*"
+  to = "/404.html"
+  status = 404
+
 # Single-page app: everything renders from index.html. Netlify serves real
 # files first, so this only catches paths that aren't actual assets (e.g. a
 # refresh on a deep link) instead of 404ing.

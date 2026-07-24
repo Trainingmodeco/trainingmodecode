@@ -9,9 +9,15 @@
 const BUILD_ID = '__TM_BUILD_ID__'; // literal in dev; replaced per build
 const CACHE = 'tm-cache-' + (BUILD_ID.indexOf('__') === 0 ? 'dev' : BUILD_ID);
 const SHELL = ['/', '/index.html', '/manifest.json'];
+// Every JS/CSS chunk of THIS build, stamped in at build time. Precached
+// atomically at install so a running session can always lazy-load its own
+// chunks from its own cache — even after a newer deploy replaced the files
+// on the server. This is what prevents mixed-build "Requiring unknown
+// module N" crashes. (Placeholder is a literal in dev; filtered out.)
+const PRECACHE = ['__TM_PRECACHE__'].filter((p) => p.indexOf('__') === -1 && p.indexOf('/_') === 0);
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.concat(PRECACHE))));
 });
 
 self.addEventListener('activate', (event) => {
@@ -43,11 +49,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Hashed bundle assets: cache-first (immutable).
+  // Hashed bundle assets: cache-first (immutable). Never cache an HTML
+  // response under a bundle URL — that's the SPA fallback for a missing
+  // chunk from an older deploy, and storing it would poison the cache.
   if (isImmutable(url)) {
     event.respondWith(
       caches.match(req).then((cached) => cached || fetch(req).then((res) => {
-        if (res && res.ok && res.type === 'basic') {
+        const type = (res && res.headers.get('content-type')) || '';
+        if (res && res.ok && res.type === 'basic' && type.indexOf('text/html') === -1) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(req, copy));
         }

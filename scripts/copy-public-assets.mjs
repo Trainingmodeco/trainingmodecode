@@ -33,15 +33,36 @@ for (const entry of entries) {
 
 console.log(`[copy-public-assets] Done. Copied ${copied} top-level entr${copied === 1 ? 'y' : 'ies'} from public/ into dist/ (including public/static).`);
 
+// Collect every generated bundle file so sw.js can precache the WHOLE build
+// atomically at install. A running session then always lazy-loads its own
+// chunks from its own cache, even after a newer deploy replaced the files on
+// the server — this is the fix for mixed-build "Requiring unknown module N".
+function walk(dir, base = '') {
+  const out = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const rel = base ? `${base}/${e.name}` : e.name;
+    if (e.isDirectory()) out.push(...walk(join(dir, e.name), rel));
+    else out.push(rel);
+  }
+  return out;
+}
+const expoDir = join(distDir, '_expo');
+const precache = existsSync(expoDir)
+  ? walk(expoDir).filter((p) => /\.(js|css)$/i.test(p)).map((p) => `/_expo/${p}`)
+  : [];
+
 // Stamp a per-build id into dist/sw.js so every deploy ships a byte-new
 // worker: the browser installs it, it WAITS (no mid-session takeover), and
 // the update activates with a fresh cache on the next app launch.
 const swPath = join(distDir, 'sw.js');
 if (existsSync(swPath)) {
   const buildId = Date.now().toString(36);
-  const sw = readFileSync(swPath, 'utf8').replace('__TM_BUILD_ID__', buildId);
+  let sw = readFileSync(swPath, 'utf8').replace('__TM_BUILD_ID__', buildId);
+  if (precache.length) {
+    sw = sw.replace("'__TM_PRECACHE__'", precache.map((p) => JSON.stringify(p)).join(','));
+  }
   writeFileSync(swPath, sw);
-  console.log(`[copy-public-assets] Stamped sw.js build id: ${buildId}`);
+  console.log(`[copy-public-assets] Stamped sw.js build id ${buildId} + ${precache.length} precache bundle file(s).`);
 }
 
 // PWA: inject the manifest link, theme-color, and service-worker registration
@@ -52,6 +73,15 @@ if (existsSync(indexPath)) {
   if (!html.includes('rel="manifest"')) {
     const headTags = '<link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#080012" /><link rel="apple-touch-icon" href="/static/brand/icon-192.png" />';
     html = html.replace('</head>', `${headTags}</head>`);
+  }
+  if (!html.includes('tm-self-heal')) {
+    // Last-resort recovery for a client that still hits a stale-chunk /
+    // mixed-build error ("Requiring unknown module", failed dynamic import):
+    // purge caches and reload ONCE per session, which pulls a fresh,
+    // self-consistent build. Registered in <head> so it's armed before the
+    // bundle runs; the one-shot flag auto-clears after 15s of healthy runtime.
+    const healScript = '<script id="tm-self-heal">(function(){var K="tm-self-healed";function heal(m){if(!/Requiring unknown module|Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|ChunkLoadError/i.test(String(m||"")))return;try{if(sessionStorage.getItem(K))return;sessionStorage.setItem(K,"1")}catch(e){}var r=function(){location.reload()};if(window.caches&&caches.keys){caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).then(r,r)}else{r()}}addEventListener("error",function(e){heal(e&&e.message)},true);addEventListener("unhandledrejection",function(e){var x=e&&e.reason;heal(x&&(x.message||x))});addEventListener("load",function(){setTimeout(function(){try{sessionStorage.removeItem(K)}catch(e){}},15000)});})();</script>';
+    html = html.replace('</head>', `${healScript}</head>`);
   }
   if (!html.includes('serviceWorker.register')) {
     // updateViaCache:'none' + an explicit update() make installed PWAs check
