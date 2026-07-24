@@ -8,6 +8,7 @@ import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
 import { completeStage as completeArcadeStage } from './data/arcadeProgress';
 import { arcadeCfg } from './protocol/campaigns';
+import { packIdForCampaign } from './data/voicePacks';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
@@ -346,13 +347,15 @@ export default function App() {
         const diff = ['easy', 'normal', 'hard'].includes(settings?.difficulty) ? settings.difficulty : 'normal';
         const stageNumber = stage?.stageNumber || 1;
         const arcade = { campaignId, seriesId: series.id, stageId: stage.id, stageNumber, campaignName: series.title };
+        // Spec 22 — each campaign speaks with its assigned voice pack.
+        const voicePack = packIdForCampaign(campaignId);
         if (path === 'full_arc') {
-          const cfgSkill = arcadeCfg(campaignId, stage.id, 'fight', diff);
-          const cfgFit = arcadeCfg(campaignId, stage.id, 'fit', diff);
+          const cfgSkill = { ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack };
+          const cfgFit = { ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack };
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, format: 'full', cfgSkill, cfgFit, arcade });
           setCfg(cfgSkill); setScreen('camp_full');
         } else {
-          const cfg = arcadeCfg(campaignId, stage.id, path, diff);
+          const cfg = { ...arcadeCfg(campaignId, stage.id, path, diff), voicePack };
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: path === 'fit', slot: path === 'fit' ? 's2' : 's1', arcade });
           setCfg(cfg); setScreen('camp_session');
         }

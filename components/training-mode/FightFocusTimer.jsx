@@ -7,6 +7,7 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
+import { packOpts, packLine } from './data/voicePacks';
 import VoiceMixer from './shared/VoiceMixer';
 import useStrikeCounter from './hooks/useStrikeCounter';
 import StrikeHud from './shared/StrikeHud';
@@ -106,6 +107,14 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     }
   }, [phase, roundIdx, remaining, onStateChange]);
 
+  // Spec 22 — voice pack (per campaign via cfg.voicePack): flavors tone +
+  // greeting/rest/done phrasing. 'coach' keeps the original neutral lines;
+  // counts, movement names, and safety wording stay literal regardless.
+  const packId = cfg.voicePack || 'coach';
+  const vOpts = useMemo(() => packOpts(packId), [packId]);
+  const flavored = packId !== 'coach';
+  const halfwayRef = useRef(null);
+
   const runIntro = useCallback(async (rIdx) => {
     cancelSpeech();
     const version = ++roundVersion.current;
@@ -118,15 +127,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     setCountdownSub(`ROUND ${rIdx + 1}`);
 
     setCountdown('3');
-    await speakOrDelay('3', 1000, { voice });
+    await speakOrDelay('3', 1000, { voice, ...vOpts });
     if (aborted()) return;
 
     setCountdown('2');
-    await speakOrDelay('2', 1000, { voice });
+    await speakOrDelay('2', 1000, { voice, ...vOpts });
     if (aborted()) return;
 
     setCountdown('1');
-    await speakOrDelay('1', 1000, { voice });
+    await speakOrDelay('1', 1000, { voice, ...vOpts });
     if (aborted()) return;
 
     playBell(1);
@@ -136,17 +145,18 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
     setCountdown(`ROUND ${rIdx + 1}`);
     setCountdownSub(focus);
-    await speakOrDelay(`Round ${rIdx + 1}. ${focus}.`, 1200, { voice });
+    const startLine = rIdx === 0 && flavored ? packLine(packId, 'start') : null;
+    await speakOrDelay(`${startLine ? `${startLine} ` : ''}Round ${rIdx + 1}. ${focus}.${cur?.coach_prompt ? ` ${cur.coach_prompt}` : ''}`, 1200, { voice, ...vOpts });
     if (aborted()) return;
 
     setCountdown('GO');
     setCountdownSub('');
-    await speakOrDelay('Go!', 600, { voice });
+    await speakOrDelay('Go!', 600, { voice, ...vOpts });
     if (aborted()) return;
 
     setCountdown(null);
     setCountdownSub('');
-  }, [rounds, cfg.voiceOn]);
+  }, [rounds, cfg.voiceOn, packId, vOpts, flavored]);
 
   useEffect(() => {
     rushSpoken.current = false;
@@ -255,6 +265,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         lastRushCountdownSecond.current = remaining;
         speakAsync(String(remaining));
       }
+      // Spec 22 — halfway call on longer rounds (skipped in rush countdowns).
+      if (
+        phaseRef.current === 'round' && cfg.voiceOn && roundSec >= 90 &&
+        remaining === Math.ceil(roundSec / 2) && !rushRef.current &&
+        halfwayRef.current !== roundIdxRef.current
+      ) {
+        halfwayRef.current = roundIdxRef.current;
+        speakAsync('Halfway.', vOpts);
+      }
       if (
         phaseRef.current === 'round' &&
         remaining >= 1 && remaining <= 3 &&
@@ -277,7 +296,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         setDone(true);
         const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
         setTimeout(() => {
-          if (cfg.voiceOn) speakAsync(getCoachCopy('fightComplete'));
+          if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), vOpts);
         }, 400);
         setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, 1500);
       } else {
@@ -287,7 +306,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         }
         setPhase('rest');
         setRemaining(cfg.restSec);
-        setTimeout(() => { if (cfg.voiceOn) speakAsync('Rest.'); }, 400);
+        // Rest + next-up (spec 22): name the coming round so nothing needs reading.
+        const nxt = rounds[roundIdxRef.current + 1];
+        setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, vOpts); }, 400);
       }
     } else {
       setPhase('round');

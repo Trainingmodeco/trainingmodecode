@@ -5,6 +5,7 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
+import { packOpts, packLine } from './data/voicePacks';
 
 // Phase 2 · 2.4b — CONDITIONING runner for the camp's S2 (PM) block. Same round
 // engine shape as Fight Focus (drives cfg.blockRounds, produces the identical
@@ -32,6 +33,16 @@ export default function CampFitRunner({ cfg, onEnd }) {
 
   const integrity = useIntegritySession('combatConditioning', total);
   const startedRef = useRef(false);
+
+  // Spec 22 — voice guidance: the timer speaks the workout (round titles, cues,
+  // next-up, halfway, completion) so the session is usable eyes-free. The pack
+  // (cfg.voicePack, per campaign) flavors greeting/rest/done phrasing + tone;
+  // 'coach' keeps the original neutral lines.
+  const packId = cfg.voicePack || 'coach';
+  const vOpts = packOpts(packId);
+  const flavored = packId !== 'coach';
+  const halfwayRef = useRef(null);
+  const say = (text) => { if (cfg.voiceOn && text) speakAsync(text, vOpts); };
 
   const [phase, setPhase] = useState('work');       // 'work' | 'rest'
   const [roundIdx, setRoundIdx] = useState(0);
@@ -68,6 +79,11 @@ export default function CampFitRunner({ cfg, onEnd }) {
       await delay(500);
       if (cancelled) return;
       setCountdown(null);
+      // Speak the opening block by name + cue (eyes-free contract).
+      const first = rounds[0] || {};
+      const intro = [flavored ? packLine(packId, 'start') : null, first.round_title ? `${first.round_title}.` : null, first.coach_prompt || null]
+        .filter(Boolean).join(' ');
+      say(intro);
     })();
     return () => { cancelled = true; cancelSpeech(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,6 +100,12 @@ export default function CampFitRunner({ cfg, onEnd }) {
   useEffect(() => {
     if (countdown !== null || paused || doneRef.current) return;
     if (remaining > 0) {
+      // Spec 22 — halfway call on longer work blocks.
+      if (phaseRef.current === 'work' && cfg.voiceOn && roundSec >= 90 &&
+          remaining === Math.ceil(roundSec / 2) && halfwayRef.current !== roundIdxRef.current) {
+        halfwayRef.current = roundIdxRef.current;
+        speakAsync('Halfway.', vOpts);
+      }
       if (remaining <= 3 && beepRef.current !== remaining) { beepRef.current = remaining; playBeep(); }
       return;
     }
@@ -93,13 +115,15 @@ export default function CampFitRunner({ cfg, onEnd }) {
         if (!bellEndRef.current) { bellEndRef.current = true; playBell(3); }
         setDone(true);
         const ir = integrity.finalize({});
-        setTimeout(() => { if (cfg.voiceOn) speakAsync('Work done. Recover well.'); }, 300);
+        setTimeout(() => say(flavored ? packLine(packId, 'done') : 'Work done. Recover well.'), 300);
         setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, total, ir); }, 1300);
       } else {
         playBell(2);
         setPhase('rest');
         setRemaining(restSec);
-        if (cfg.voiceOn) setTimeout(() => speakAsync('Rest.'), 300);
+        // Rest + next-up: name the coming block so nothing needs reading.
+        const nxt = rounds[roundIdxRef.current + 1];
+        setTimeout(() => say(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`), 300);
       }
     } else {
       setPhase('work');
@@ -108,6 +132,10 @@ export default function CampFitRunner({ cfg, onEnd }) {
       setRemaining(roundSec);
       beepRef.current = null;
       playBell(1);
+      // Announce the new block by name + cue as it begins.
+      const idx = roundIdxRef.current + 1;
+      const r = rounds[idx];
+      if (r) setTimeout(() => say([`Round ${idx + 1}. ${r.round_title || ''}.`, r.coach_prompt || null].filter(Boolean).join(' ')), 350);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
