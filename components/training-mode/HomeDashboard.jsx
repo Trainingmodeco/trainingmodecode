@@ -7,6 +7,7 @@ import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getWeekDayCompletion, WEEKLY_GOAL } from './data/userStats';
 import { syncCombo, consumeComboFlash, getComboNudge, snoozeNudge, dismissNudgeToday } from './data/comboStreak';
+import { getTodayBout } from './data/gamePlan';
 import { getSeriesProgress, getActiveChallenge as getStoredActiveChallenge } from './data/arcadeProgress';
 import { TRAINING_ARCADE_SERIES } from './data/trainingArcadeData';
 import { getFightMiniSuggestion } from './data/recommendations';
@@ -71,6 +72,10 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
   const WEEK = getWeekDayCompletion(stats);
   const weeklyCount = getWeeklySessions(stats).length;
   const suggestion = getFightMiniSuggestion({ profile: profile || {}, stats, dailyMission: null });
+  // Spec 26 — when the Game Plan questionnaire is set up, its engine powers the
+  // bout card ("a session that fits your window"); otherwise the classic
+  // suggestion drives it unchanged.
+  const bout = getTodayBout();
 
   const name = (profile?.name || 'FIGHTER').toUpperCase();
 
@@ -83,11 +88,10 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
   const arCur = arSeries?.stages?.[arCurIdx];
   const arNext = arSeries?.stages?.[arCurIdx + 1];
 
-  const handleBoutStart = () => {
-    if (!suggestion) { onTrain?.(); return; }
-    switch (suggestion.actionType) {
-      case 'fightFocus': onFightFocus?.(suggestion.actionPayload || 'Boxing'); break;
-      case 'comboCoach': onComboCoach?.(suggestion.actionPayload || 'Boxing'); break;
+  const routeAction = (actionType, payload) => {
+    switch (actionType) {
+      case 'fightFocus': onFightFocus?.(payload || 'Boxing'); break;
+      case 'comboCoach': onComboCoach?.(payload || 'Boxing'); break;
       case 'quickMission': onQuickMission?.(); break;
       case 'fitMode': onFitSetup?.(); break;
       case 'combatConditioning': onCombatConditioning?.(); break;
@@ -96,6 +100,32 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
       default: onTrain?.(); break;
     }
   };
+
+  const handleBoutStart = () => {
+    if (bout?.kind === 'train') { routeAction(bout.actionType); return; }
+    if (bout?.kind === 'recovery') { onQuickMission?.(); return; }
+    // rest_day / already_trained taps (TRAIN ANYWAY / BONUS ROUND) and the
+    // no-plan default all fall through to the classic suggestion.
+    if (!suggestion) { onTrain?.(); return; }
+    routeAction(suggestion.actionType, suggestion.actionPayload);
+  };
+
+  // Bout card copy per Game Plan state (falls back to the classic suggestion).
+  const boutTitle = bout
+    ? (bout.kind === 'train' ? bout.session.label
+      : bout.kind === 'rest_day' ? 'Planned Rest Day'
+      : bout.kind === 'already_trained' ? 'Trained — Nice Work'
+      : 'Recovery Round')
+    : (suggestion?.title || 'Fight Focus');
+  const boutSubtitle = bout
+    ? (bout.kind === 'train' ? `Fits your ~${bout.gapMin} min window` : bout.reason)
+    : (suggestion?.subtitle || 'Timed rounds with coaching');
+  const boutCta = bout
+    ? (bout.kind === 'train' ? '▶ START'
+      : bout.kind === 'rest_day' ? '▶ TRAIN ANYWAY'
+      : bout.kind === 'already_trained' ? '▶ BONUS ROUND'
+      : '▶ QUICK MISSION')
+    : '▶ START';
 
   return (
     <PhoneFrame useBrandBg>
@@ -186,9 +216,9 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,0,16,0.24)' }}/>
           <div style={{ position: 'absolute', left: 15, right: 15, top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
             <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>⚔ TODAY&apos;S BOUT</div>
-            <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.12, letterSpacing: '0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.7)', maxWidth: '72%' }}>{(suggestion?.title || 'Fight Focus').toUpperCase()}</div>
-            <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 4, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{suggestion?.subtitle || 'Timed rounds with coaching'}</div>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', background: 'linear-gradient(135deg,#fde047,#f59e0b)', borderRadius: 8, padding: '9px 14px', marginTop: 11, boxShadow: '0 0 14px rgba(253,224,71,0.4)' }}>▶ START</span>
+            <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.12, letterSpacing: '0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.7)', maxWidth: '72%' }}>{boutTitle.toUpperCase()}</div>
+            <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 4, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{boutSubtitle}</div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', background: 'linear-gradient(135deg,#fde047,#f59e0b)', borderRadius: 8, padding: '9px 14px', marginTop: 11, boxShadow: '0 0 14px rgba(253,224,71,0.4)' }}>{boutCta}</span>
           </div>
         </button>
 

@@ -16,6 +16,7 @@ import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
 import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 import { planText } from './data/comboStreak';
+import { loadGamePlan, saveGamePlan } from './data/gamePlan';
 import { PRIVACY_URL, openExternalUrl } from './data/links';
 
 
@@ -216,6 +217,10 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     const next = { ...audioSettings, [key]: val };
     setAudioSettingsState(next);
     saveAudioSettings(next);
+  };
+  const [gamePlan, setGamePlanState] = useState(loadGamePlan);
+  const updateGamePlan = (key, val) => {
+    setGamePlanState(saveGamePlan({ [key]: val }));
   };
   const updateReminder = (key, val) => {
     const next = { ...reminderSettings, [key]: val };
@@ -723,6 +728,64 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                    'Push notification permission not yet granted'}
                 </div>
               </>
+            )}
+          </div>
+        </div>
+
+        {/* Spec 26 — Game Plan questionnaire (free tier): stated schedule +
+            window drive the Today's Bout pick. Answers save instantly. */}
+        <div style={{ marginTop: 16, padding: '14px', borderRadius: 12, background: 'rgba(12,2,24,0.85)', border: '1px solid rgba(45,212,191,0.18)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 12 }}>🗓</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', fontWeight: 600 }}>GAME PLAN</span>
+          </div>
+          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.muted, marginBottom: 10 }}>
+            Tell it the time you actually have — Today&apos;s Bout picks a session that fits.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Days per week</span>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {[2, 3, 4, 5, 6, 7].map(n => (
+                  <button key={n} onClick={() => updateGamePlan('daysPerWeek', n)} style={{
+                    flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10,
+                    background: gamePlan.daysPerWeek === n ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
+                    color: gamePlan.daysPerWeek === n ? '#041210' : C.muted,
+                  }}>{n}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Minutes you can usually give</span>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {[10, 20, 30, 45].map(n => (
+                  <button key={n} onClick={() => updateGamePlan('sessionMinutes', n)} style={{
+                    flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10,
+                    background: gamePlan.sessionMinutes === n ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
+                    color: gamePlan.sessionMinutes === n ? '#041210' : C.muted,
+                  }}>{n === 45 ? '45+' : n}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Preferred time (seeds your reminder cue)</span>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {[['morning', 'AM'], ['midday', 'MIDDAY'], ['evening', 'PM'], ['varies', 'VARIES']].map(([k, lbl]) => (
+                  <button key={k} onClick={() => updateGamePlan('preferredTime', k)} style={{
+                    flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5,
+                    background: gamePlan.preferredTime === k ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
+                    color: gamePlan.preferredTime === k ? '#041210' : C.muted,
+                  }}>{lbl}</button>
+                ))}
+              </div>
+            </div>
+            {gamePlan.setup && (
+              <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: '#8fe8ac', lineHeight: 1.35 }}>
+                ✓ Game Plan active — {gamePlan.daysPerWeek} days/week, ~{gamePlan.sessionMinutes} min sessions. Rest days never break your combo.
+              </div>
             )}
           </div>
         </div>
