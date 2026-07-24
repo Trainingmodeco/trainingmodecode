@@ -1,0 +1,280 @@
+{
+  "generated_by": "deep-research (105 agents, adversarially verified)",
+  "stats": {
+    "angles": 5,
+    "sourcesFetched": 23,
+    "claimsExtracted": 34,
+    "claimsVerified": 25,
+    "confirmed": 24,
+    "killed": 1,
+    "unverified": 0,
+    "afterSynthesis": 11,
+    "urlDupes": 2,
+    "budgetDropped": 5,
+    "agentCalls": 105
+  },
+  "question": "Research for a Sonic the Hedgehog / \"Blue Blur\" inspired FITNESS-ONLY training campaign in a workout app (12-stage structure, FIT-ONLY — no combat/fight pillar; the whole theme is SPEED, \"gotta go fast\"). Core pillars: cardio/endurance running, sprint training, agility/footwork, plyometrics, parkour/free-running, and bodyweight (calisthenics) work — all aimed at building SPEED, quickness, and explosiveness. Research question: What real-world, evidence-based training methods best build running speed, sprint acceleration, agility, and explosive power for a general/beginner fitness user training mostly at home/solo with minimal equipment, and how should a 12-stage speed-themed campaign progress them SAFELY? Specifically: (1) Sprint / acceleration training fundamentals — sprint mechanics, acceleration vs top-speed work, sprint-interval / HIIT protocols, hill sprints, and how a beginner should progress running volume safely; give concrete session structures (work:rest ratios, rep counts, distances/times). (2) Plyometrics for speed and explosiveness — beginner-to-advanced progression (low-amplitude first: pogo hops, ankle hops, line hops → jump squats, broad jumps → box jumps, bounds, depth jumps), landing mechanics, and evidence-based foot-contact caps per session, surface, and recovery time between plyo sessions. (3) Agility, footwork and quickness drills trainable solo with minimal gear — ladder drills, cone drills (5-10-5, T-drill), reaction / change-of-direction work, short-shuttle work. (4) Parkour / free-running speed fundamentals trainable safely and solo (efficient running, precision jumps, safety rolls, vaults) with beginner safety scaffolding (start low, cleared landings, roll from a squat, no flips). (5) Safety and programming: how to build running/plyo volume WITHOUT overuse injuries (shin splints, Achilles/patellar tendinopathy, stress fractures), dynamic warmups and hip/ankle mobility for sprinting, rest/recovery between high-intensity sessions, and how to periodize a beginner speed program (e.g. a deload). Output should give per-pillar exercise/drill lists and clear beginner→advanced progressions with concrete sets/reps/times/work:rest usable directly as workout-module content, PLUS explicit safety caps (plyometric foot-contacts per session, sprint-volume progression rate, warmup requirements) and flag anything that is cartoon fantasy vs. real trainable method.",
+  "summary": "For a beginner, home/solo, minimal-equipment speed campaign, the evidence converges on a clear, safe program: build explosiveness with progressive plyometrics (start with low-intensity skips/squat jumps, capped at ~60-100 foot contacts per beginner session, done in sets of 5-10 reps with >=1 min rest and 48h+/2-3 days between plyo sessions), develop sprint speed with low-volume, high-quality max-velocity work (40-60 m sprints, 3-4 reps, ~120-240 m per session), and always precede high-intensity work with a mandatory structured neuromuscular/dynamic warm-up (FIFA 11+ style, ~15 min), which independently lowers lower-extremity injury risk while improving sprint, jump, and balance. Injury prevention is anchored by managed load progression plus dedicated strength/conditioning (eccentric hamstring work), because both training-load spikes AND lack of conditioning independently raise injury risk. For the parkour pillar, ankle stability and safe landing/rolling mechanics (absorb impact with bent knees, never \"stick\" the landing) are the top priority since the ankle is the highest-risk joint, and beginners must master landing and rolling before any advanced jumps or tricks. Recovery between hard sessions should lean on individualized fundamentals — sleep, nutrition, hydration — rather than gadgets, since modality evidence is heterogeneous. All of these are real, trainable methods; the only \"cartoon fantasy\" elements (superhuman top speed, flips) should be explicitly excluded, and one popular but unsupported prescription — doing ~100 landings before each height increment — was refuted and should not be used as literal content.",
+  "findings": [
+    {
+      "claim": "Plyometric volume for beginners should be capped at roughly 60-100 foot contacts per session, scaling up with experience (intermediate ~100-120, advanced ~120-140, with an overall programming envelope of 50-200), and starting volume set to the individual's current capacity.",
+      "confidence": "high",
+      "vote": "merged [6],[7],[8],[12],[23]",
+      "evidence": "Two secondary S&C sources give beginner 60 contacts and 80-120 intermediate (Trainer Academy CPT), and a PT blog plus a second PT blog give the widely-cited NSCA tiers (beginner 80-100, intermediate 100-120, advanced 120-140) and a 50-200 envelope. Numbers are the standard NSCA CSCS Ch.18 guidelines, independently confirmed. 60 is the conservative floor appropriate for a safety-first beginner app; treat 60-100 as the beginner cap.",
+      "sources": [
+        "https://traineracademy.org/cpt-textbook/principles-of-plyometric-training/",
+        "https://www.truesportsphysicaltherapy.com/blogs/plyometric-training-that-builds-power-without-breaking-down-your-body",
+        "https://www.mendcolorado.com/physical-therapy-blog/2022/1/24/how-do-i-start-a-plyometric-program/"
+      ]
+    },
+    {
+      "claim": "Plyometric sessions should be programmed in sets of 5-10 reps with at least 1 minute of rest between sets; progress by intensity (beginner: skipping, squat jumps, split squat jumps → intermediate: lateral jumps, tuck jumps → advanced: box jumps, depth jumps, depth-to-box). Bilateral (two-leg) jumps must precede single-leg jumps.",
+      "confidence": "high",
+      "vote": "merged [14],[15],[12]",
+      "evidence": "PT-clinic blogs relaying NSCA CSCS Ch.18 consensus: sets of 5-10 reps, >=1 min rest, intensity-based progression, and bilateral-before-unilateral sequencing. Independently corroborated by NSCA/NASM materials and PMC4637913 'Current Concepts of Plyometric Exercise'. Standard, non-extraordinary programming heuristics.",
+      "sources": [
+        "https://www.mendcolorado.com/physical-therapy-blog/2022/1/24/how-do-i-start-a-plyometric-program/"
+      ]
+    },
+    {
+      "claim": "At least 48 hours (2-3 days) of recovery should be allowed between plyometric sessions; if pain occurs, cut total foot contacts by 50% and ensure soft, bent-knee landings rather than stiff legs.",
+      "confidence": "high",
+      "vote": "merged [9],[13],[10]",
+      "evidence": "A PT blog states 'at least 48 hours between plyometric sessions' and a second states '2-3 days'; both match NSCA/NASM consensus (48-72h; low-intensity work may need only ~24h). The 50%-volume-cut-on-pain and soft-landing guidance is standard conservative load management and uncontroversial landing biomechanics.",
+      "sources": [
+        "https://www.truesportsphysicaltherapy.com/blogs/plyometric-training-that-builds-power-without-breaking-down-your-body",
+        "https://www.mendcolorado.com/physical-therapy-blog/2022/1/24/how-do-i-start-a-plyometric-program/"
+      ]
+    },
+    {
+      "claim": "A maximum-velocity sprint session should be low-volume/high-quality: 40-60 m sprints (last 10-30 m timed), 3-4 reps, roughly 120-240 m of high-intensity sprint volume per session, with full recovery between reps.",
+      "confidence": "medium",
+      "vote": "3-0 [11]",
+      "evidence": "SimpliFaster (reputable S&C coaching publication, blog-tier) specifies 40-60 m sprints, last 10-30 m timed, 3-4 reps. Arithmetic (120-240 m total) is correct and corroborated by broader practitioner consensus that max-velocity work is low-volume with full recovery. Single coaching source, hence medium confidence.",
+      "sources": [
+        "https://simplifaster.com/articles/dosage-debate-sprint-training/"
+      ]
+    },
+    {
+      "claim": "A mandatory structured neuromuscular/dynamic warm-up (e.g. FIFA 11+, ~15 min for parkour, including joint mobility, low-intensity movement patterns, and progressive intensity) reduces lower-extremity injury risk AND acutely improves sprint, jump, and balance performance.",
+      "confidence": "high",
+      "vote": "merged [3],[4],[5],[20]",
+      "evidence": "A 2026 PRISMA systematic review of 40 studies (MDPI Sports 14(5):187) links neuromuscular warm-ups (FIFA 11+), eccentric hamstring training, and dynamic stretching to reduced injury risk plus sprint/jump/balance gains; multiple independent RCTs/meta-analyses confirm ~30-46% injury reductions and measurable sprint/jump improvements. The parkour survey (n=180, primary) reports a mean ~15-min warm-up (joint mobility, conditioning, small parkour movements) with skipped warm-ups associated with significantly higher injury counts.",
+      "sources": [
+        "https://www.mdpi.com/2075-4663/14/5/187",
+        "https://www.mov-sport-sciences.org/articles/sm/full_html/2022/01/sm210045/sm210045.html"
+      ]
+    },
+    {
+      "claim": "Eccentric hamstring strengthening (e.g. Nordic curls) reduces reported hamstring injury rates and increases eccentric strength and fascicle length; a combined package of neuromuscular warm-up + eccentric strengthening + dynamic stretching + progressive load/recovery improves performance and lowers injury risk when properly implemented.",
+      "confidence": "high",
+      "vote": "merged [4],[5],[21]",
+      "evidence": "2026 systematic review of 40 studies (PRISMA, structured qualitative synthesis) states these interventions support performance and injury-risk reduction; independent meta-analyses confirm Nordic hamstring exercise raises eccentric strength (10-26%) and biceps femoris fascicle length and cuts hamstring injuries up to ~51% with high adherence. Evidence-based, not anecdotal.",
+      "sources": [
+        "https://www.mdpi.com/2075-4663/14/5/187"
+      ]
+    },
+    {
+      "claim": "Injury risk rises both with training-load spikes AND, independently, with lack of physical (strength/conditioning) preparation — so a safe beginner speed program must combine managed volume progression with dedicated conditioning. Experienced practitioners themselves supplement skill work: ~76% stretch and ~75.6% do physical conditioning (weightlifting/functional exercises), training ~2.2 h/session, 1-7x/week.",
+      "confidence": "high",
+      "vote": "merged [2],[19]",
+      "evidence": "The parkour survey (n=180, peer-reviewed primary, 2022) reports injury count positively correlated with training load AND lack of physical conditioning as an additional injury factor, plus the supplementation and training-frequency descriptive stats. Retrospective self-report (correlation, not causation), but the applied recommendation is mainstream consensus.",
+      "sources": [
+        "https://www.mov-sport-sciences.org/articles/sm/full_html/2022/01/sm210045/sm210045.html"
+      ]
+    },
+    {
+      "claim": "The ankle is the highest-risk joint in parkour (2.3 per 1000 h vs knee 1.1 per 1000 h; overall low ~1.7/1000 h, mostly ankle sprains and knee contusions), so ankle stability and landing mechanics deserve top priority in beginner safety scaffolding.",
+      "confidence": "high",
+      "vote": "merged [0],[1]",
+      "evidence": "Peer-reviewed primary survey (n=180, 2022): ankle 2.3±3.4/1000h significantly higher than knee 1.1±3.3/1000h (p<0.001), overall 1.7/1000h. High SDs but authors report significance. Note other studies report higher overall rates (e.g. 5.5/1000h) due to differing injury definitions.",
+      "sources": [
+        "https://www.mov-sport-sciences.org/articles/sm/full_html/2022/01/sm210045/sm210045.html"
+      ]
+    },
+    {
+      "claim": "Beginner parkour must start with safe landing and roll technique — actively decelerating and absorbing impact with bent knees (never landing stiff/'sticking it') to protect the knees — before ANY advanced jumps or tricks. A concrete beginner move set is: Landing, Two-Handed Vault, Muscle-Up (wall climb-up), and Precision Jump.",
+      "confidence": "high",
+      "vote": "merged [16],[17],[18]",
+      "evidence": "Nerd Fitness (blog) names the four foundational moves and states advanced jumps/tricks before landing/rolling competency is 'setting yourself up for disaster'; American Parkour (blog) describes absorbing impact with muscle rather than sticking landings. Both are consensus-level safety guidance corroborated by biomechanics literature (soft flexed-knee landings reduce knee force; PMC8151821, PMC3867085). Exclude flips.",
+      "sources": [
+        "https://www.nerdfitness.com/blog/the-definitive-guide-to-parkour-for-beginners/",
+        "https://americanparkour.com/articles/safety-in-parkour-chad-zwadlo/"
+      ]
+    },
+    {
+      "claim": "Recovery between high-intensity sessions should rely on individualized fundamentals — sleep, nutrition, hydration — rather than specific recovery gadgets/modalities, because modality evidence is heterogeneous.",
+      "confidence": "high",
+      "vote": "3-0 [22]",
+      "evidence": "2026 systematic review (MDPI Sports 14(5):187) states recovery-modality evidence is heterogeneous, supporting cautious individualized emphasis on sleep, nutrition, hydration — the mainstream 'recovery pyramid' consensus corroborated by independent reviews (Nutrients 13(4):1330; PMC8072992).",
+      "sources": [
+        "https://www.mdpi.com/2075-4663/14/5/187"
+      ]
+    },
+    {
+      "claim": "REFUTED / do not use as literal content: the prescription to do ~100 flat-ground landings before jumping off a 1-foot object, then ~100 more before progressing to 2 feet.",
+      "confidence": "low",
+      "vote": "1-2 refuted",
+      "evidence": "This specific rep-count-per-height-increment scheme (American Parkour blog) failed verification. The underlying principle — progress landing height gradually and master landings before height — is sound, but the exact '100 landings per increment' numbers are not evidence-based and should be presented as 'many quality reps / master before progressing,' not a hard number.",
+      "sources": [
+        "https://americanparkour.com/articles/safety-in-parkour-chad-zwadlo/"
+      ]
+    }
+  ],
+  "refuted": [
+    {
+      "claim": "Beginners should progress in very small height increments, doing roughly 100 proper landings on flat ground before jumping off anything 1 foot tall, then ~100 off the 1-foot object before progressing to 2 feet.",
+      "vote": "1-2",
+      "source": "https://americanparkour.com/articles/safety-in-parkour-chad-zwadlo/"
+    }
+  ],
+  "unverified": [],
+  "caveats": "Source quality is mixed by pillar. The injury-prevention/warm-up and parkour-epidemiology findings rest on strong primary sources (a 2026 PRISMA systematic review of 40 studies and a 2022 peer-reviewed survey of 180 practitioners), so those are high-confidence. The plyometric volume/recovery/progression numbers come from secondary trainer-cert texts and PT-clinic blogs, but they faithfully relay the authoritative NSCA CSCS Ch.18 guidelines and are independently corroborated, so they are reliable despite the source tier. The sprint-session structure rests on a single reputable coaching publication (SimpliFaster, blog-tier) — hence medium confidence; it is one representative protocol, not a universal prescription. Foot-contact numbers vary across the literature (some sources say beginner 60, others 80-100); use the conservative low end (60-80) as a beginner cap for a safety-first app. '48h between plyo sessions' applies to higher-intensity plyometrics; genuine low-amplitude work (pogo/ankle/line hops) can tolerate ~24h. Several primary URLs returned HTTP 403 to direct fetch and were verified via search snippets of the same articles. MDPI journals draw general rigor criticism, though this specific review's design (n=40, PRISMA) checks out. Time-sensitivity is low — these are stable, established S&C guidelines. Note the research question's 'gotta go fast' theme should keep cartoon elements (superhuman speed, flips/tricks) as flavor only; all trainable content above is real evidence-based method.",
+  "openQuestions": [
+    "What concrete beginner running-VOLUME progression rate is safe (e.g. weekly mileage increase, session frequency) to avoid shin splints/stress fractures? The evidence covered sprint session structure and general 'managed load' but no source gave a specific beginner volume-ramp rate (e.g. the ~10%/week heuristic) or a concrete return-to-run/deload cadence.",
+    "How should the 12-stage campaign specifically periodize a deload (timing, magnitude, frequency)? Sources support 'progressive load and recovery strategies' in principle but none prescribed a beginner deload schedule (e.g. every 4th stage/week at reduced volume).",
+    "What are the concrete agility/footwork drill parameters (ladder drills, 5-10-5 pro-agility, T-drill, short shuttles) — sets/reps/rest and beginner progressions? No surviving claim supplied evidence-based prescriptions for the agility/change-of-direction pillar, so this pillar's module content is currently unsupported by the verified research.",
+    "What sprint-acceleration-specific work (short 10-20 m accelerations, sled/resisted starts, mechanics cues) and hill-sprint protocols suit beginners? Verified evidence covered max-velocity sessions but not acceleration-phase training structure or hill-sprint dosing."
+  ],
+  "sources": [
+    {
+      "url": "https://marathonhandbook.com/the-6-best-sprint-workouts-for-beginners/",
+      "quality": "unreliable",
+      "angle": "sprint/acceleration fundamentals (primary, prescriptive)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.healthline.com/health/fitness/sprint-interval-training-guide",
+      "quality": "unreliable",
+      "angle": "sprint/acceleration fundamentals (primary, prescriptive)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://marathonhandbook.com/hill-sprint-workout/",
+      "quality": "unreliable",
+      "angle": "sprint/acceleration fundamentals (primary, prescriptive)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://coachathletics.com.au/sprints-sessions",
+      "quality": "unreliable",
+      "angle": "sprint/acceleration fundamentals (primary, prescriptive)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://simplifaster.com/articles/dosage-debate-sprint-training/",
+      "quality": "blog",
+      "angle": "sprint/acceleration fundamentals (primary, prescriptive)",
+      "claimCount": 3
+    },
+    {
+      "url": "https://www.nsca.com/education/articles/kinetic-select/sprinting-mechanics-and-technique/",
+      "quality": "unreliable",
+      "angle": "sprint/acceleration fundamentals (primary, prescriptive)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4637913/",
+      "quality": "unreliable",
+      "angle": "plyometrics progression + foot-contact caps (technical/sports-science)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://traineracademy.org/cpt-textbook/principles-of-plyometric-training/",
+      "quality": "secondary",
+      "angle": "plyometrics progression + foot-contact caps (technical/sports-science)",
+      "claimCount": 5
+    },
+    {
+      "url": "https://www.truesportsphysicaltherapy.com/blogs/plyometric-training-that-builds-power-without-breaking-down-your-body",
+      "quality": "secondary",
+      "angle": "plyometrics progression + foot-contact caps (technical/sports-science)",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.mendcolorado.com/physical-therapy-blog/2022/1/24/how-do-i-start-a-plyometric-program/",
+      "quality": "blog",
+      "angle": "plyometrics progression + foot-contact caps (technical/sports-science)",
+      "claimCount": 4
+    },
+    {
+      "url": "https://www.ptpioneer.com/personal-training/certifications/nsca-cscs/cscs-chapter-18/",
+      "quality": "unreliable",
+      "angle": "plyometrics progression + foot-contact caps (technical/sports-science)",
+      "claimCount": 0
+    },
+    {
+      "url": "http://billnordt.com/EXERCISEINTERVENTIONPROGRAMS/PLYOMETRICS/nsca%20plyometrics%20article.pdf",
+      "quality": "unreliable",
+      "angle": "plyometrics progression + foot-contact caps (technical/sports-science)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.nsca.com/education/articles/kinetic-select/7-line-drills-to-improve-agility/",
+      "quality": "unreliable",
+      "angle": "agility, change-of-direction and footwork drills solo (practitioner/implementation)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.bodyspec.com/blog/post/agility_training_sciencebacked_drills_programs",
+      "quality": "unreliable",
+      "angle": "agility, change-of-direction and footwork drills solo (practitioner/implementation)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.tmisportsmed.com/pdf/tmi-agilty-drills-2-12-13.pdf",
+      "quality": "unreliable",
+      "angle": "agility, change-of-direction and footwork drills solo (practitioner/implementation)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.garagegymreviews.com/agility-exercises",
+      "quality": "unreliable",
+      "angle": "agility, change-of-direction and footwork drills solo (practitioner/implementation)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.nerdfitness.com/blog/the-definitive-guide-to-parkour-for-beginners/",
+      "quality": "blog",
+      "angle": "parkour/free-running beginner fundamentals and safety (skeptical/safety)",
+      "claimCount": 4
+    },
+    {
+      "url": "https://wfpf.com/how-to-learn-parkour-where-to-start/",
+      "quality": "unreliable",
+      "angle": "parkour/free-running beginner fundamentals and safety (skeptical/safety)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://americanparkour.com/articles/safety-in-parkour-chad-zwadlo/",
+      "quality": "blog",
+      "angle": "parkour/free-running beginner fundamentals and safety (skeptical/safety)",
+      "claimCount": 4
+    },
+    {
+      "url": "https://medium.com/parkouredu/parkour-strength-training-for-beginners-949e961129b9",
+      "quality": "unreliable",
+      "angle": "parkour/free-running beginner fundamentals and safety (skeptical/safety)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.mov-sport-sciences.org/articles/sm/full_html/2022/01/sm210045/sm210045.html",
+      "quality": "primary",
+      "angle": "parkour/free-running beginner fundamentals and safety (skeptical/safety)",
+      "claimCount": 5
+    },
+    {
+      "url": "https://aafp.org/pubs/afp/issues/2018/0415/p510.html",
+      "quality": "unreliable",
+      "angle": "injury prevention, warmup and periodization for speed (authoritative refs)",
+      "claimCount": 0
+    },
+    {
+      "url": "https://www.mdpi.com/2075-4663/14/5/187",
+      "quality": "primary",
+      "angle": "injury prevention, warmup and periodization for speed (authoritative refs)",
+      "claimCount": 5
+    }
+  ],
+  "security_note": "Source garagegymreviews.com was security-flagged during the run for probing the agent proxy status endpoint and EXCLUDED from synthesis."
+}
