@@ -20,6 +20,9 @@ import ultraegoModules from './data/campaigns/ARC_ULTRAEGO/modules.json';
 import ultrainstinctCampaign from './data/campaigns/ARC_ULTRAINSTINCT/campaign.json';
 import ultrainstinctStages from './data/campaigns/ARC_ULTRAINSTINCT/stages.json';
 import ultrainstinctModules from './data/campaigns/ARC_ULTRAINSTINCT/modules.json';
+import gravityCampaign from './data/campaigns/ARC_GRAVITY/campaign.json';
+import gravityStages from './data/campaigns/ARC_GRAVITY/stages.json';
+import gravityModules from './data/campaigns/ARC_GRAVITY/modules.json';
 import { humanizeGoal } from './content';
 
 export type ArcadePath = 'fit' | 'fight' | 'full_arc';
@@ -36,10 +39,11 @@ const RAW: Record<string, Raw> = {
   ARC_DARKKNIGHT:    { campaign: darkknightCampaign,    stages: asArr(darkknightStages),    modules: asArr(darkknightModules) },
   ARC_ULTRAEGO:      { campaign: ultraegoCampaign,      stages: asArr(ultraegoStages),      modules: asArr(ultraegoModules) },
   ARC_ULTRAINSTINCT: { campaign: ultrainstinctCampaign, stages: asArr(ultrainstinctStages), modules: asArr(ultrainstinctModules) },
+  ARC_GRAVITY:       { campaign: gravityCampaign,       stages: asArr(gravityStages),       modules: asArr(gravityModules) },
 };
 
 // Display order for the saga carousel.
-export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO'];
+export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY'];
 
 // 2.10 — franchise-flavored coach lines per campaign (archetype-safe, original —
 // never reproduces trademarked characters/quotes). Rotated across the rounds so
@@ -64,6 +68,10 @@ const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
   ARC_ULTRAINSTINCT: {
     fit: ['Move before you think — stay loose.', 'Flow: smooth, relaxed, precise.', 'Let the body lead.'],
     fight: ['React, don’t decide — pure flow.', 'Slip, counter, flow onward.', 'Calm mind, instant hands.'],
+  },
+  ARC_GRAVITY: {
+    fit: ['Control the tension — breathe through it.', 'Slow it down. Own every inch of the rep.', 'Hold to the target, then release. Never grind.', 'Keep breathing — never hold your breath.'],
+    fight: ['Control the tension — breathe through it.', 'Slow, steady, deliberate.', 'Breathe. Stay in control.'],
   },
 };
 

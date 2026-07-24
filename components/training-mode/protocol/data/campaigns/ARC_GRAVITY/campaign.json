@@ -1,0 +1,97 @@
+{
+  "campaign_id": "ARC_GRAVITY",
+  "name": "HYPERBOLIC GRAVITY CHAMBER — TEMPO PROTOCOL",
+  "type": "fit_only",
+  "stage_count": 10,
+  "paths_available": ["fit"],
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Step into the chamber where every rep fights the weight of worlds. Move slow, hold the tension, breathe through it — control is the whole game.",
+  "tagline": "Control the tension. Breathe through it.",
+  "core_rule": "Tension is the challenge — breath is the release.",
+  "core_rule_enforcement": "Breathe continuously on every rep and hold — NEVER hold your breath or bear down (Valsalva), which spikes blood pressure dangerously. Holds run to a TARGET time, never to failure or 'unlimited'. Load stays light — the difficulty is tempo, not weight. Reckless grinding is not rewarded.",
+  "mechanic": "TEMPO + VOICE-COUNT CADENCE. Bodyweight (or light-dumbbell) reps performed at a controlled tempo — slow eccentric, brief hold, controlled concentric — plus isometric holds. A voice coach counts the cadence ('down 1...2...3... hold... up 1...2...3... hold'). Each stage is themed as a rising 'gravity multiplier' (motivational only — see sourcing_note). Stages change the VOICE-COUNT MODE and the TEMPO, not the load.",
+  "sourcing_note": "Grounded in the deep-research report (protocol-src/research/gravity-research-report.md). HONESTY NOTE from the research: 2025-2026 meta-analyses show slow tempo does NOT build more muscle/strength than normal tempo — 'slower = more gains' is NOT supported. So this campaign is framed as a SAFE, CONTROLLED tension / strength-endurance / focus method (eccentric work IS a real strength stimulus), NOT as superior muscle growth. The 'gravity multiplier' and slow-tempo theming are motivational packaging, flagged as fantasy, never a real training variable. Refuted (not claimed): that eccentric is superior to concentric. Safety findings (breathe-don't-Valsalva BP spikes, novel-eccentric DOMS/rhabdo risk even at low intensity, repeated-bout ramping, target hold times, light load, reps under ~10s) are peer-reviewed and encoded as hard rules below.",
+  "fit_focus": [
+    "Time-under-tension control", "Slow eccentric (lowering) control", "Isometric hold strength",
+    "Mind-muscle focus and breathing", "Strength-endurance", "Movement quality under fatigue",
+    "Discipline and patience"
+  ],
+  "difficulty_scaling": {
+    "easy": {
+      "label": "LOW GRAVITY",
+      "tempo": { "eccentric_sec": 2, "pause_bottom_sec": 0, "concentric_sec": 2, "pause_top_sec": 0 },
+      "working_sets": [2, 3], "hold_target_sec": { "plank": 20, "wall_sit": 20, "horse_stance": 20, "squat_hold": 10 },
+      "rest": "longer"
+    },
+    "normal": {
+      "label": "HYPER GRAVITY",
+      "tempo": { "eccentric_sec": 3, "pause_bottom_sec": 1, "concentric_sec": 3, "pause_top_sec": 0 },
+      "working_sets": [3, 3], "hold_target_sec": { "plank": 40, "wall_sit": 30, "horse_stance": 30, "squat_hold": 20 },
+      "rest": "moderate"
+    },
+    "hard": {
+      "label": "MAX GRAVITY",
+      "tempo": { "eccentric_sec": 4, "pause_bottom_sec": 1, "concentric_sec": 3, "pause_top_sec": 0 },
+      "working_sets": [3, 4], "hold_target_sec": { "plank": 60, "wall_sit": 45, "horse_stance": 45, "squat_hold": 30 },
+      "rest": "shorter (but never to failure)",
+      "note": "Total time per rep stays UNDER ~10s — research shows reps over 10s/rep are actually inferior. Never exceed it."
+    },
+    "hard_never_requires": [
+      "Holding the breath or bearing down (Valsalva)", "Isometric holds to failure or 'unlimited'",
+      "Heavy load", "Reps slower than ~10s total", "Grinding to collapse", "Ignoring DOMS or pain"
+    ]
+  },
+  "voice_count_modes": {
+    "none": "No count — the athlete finds their own reps (used to set a baseline).",
+    "reps": "Coach counts completed reps out loud ('one... two... three...').",
+    "cadence": "Coach paces the tempo on the way down AND up with the hold: 'down 1...2...3... hold... up 1...2...3... hold'. This is the signature mode."
+  },
+  "safety_scaffolding": {
+    "why": "Slow-tempo + isometric bodyweight work is a real trainable method, but novel eccentric/high-TUT loading reliably causes DOMS, can trigger rhabdomyolysis even after LOW-intensity exercise, and breath-holding during holds/grinding reps spikes blood pressure severely.",
+    "rules": [
+      "BREATHE, NEVER VALSALVA: continuous breathing on every rep and hold — exhale on exertion, never bear down. The coach cues breathing; a persistent breath-hold flag stops the set.",
+      "TARGET HOLDS, NOT FAILURE: every isometric hold runs to a predetermined target time, then stop — never 'unlimited' or to failure.",
+      "GRADUAL RAMP (repeated-bout effect): gravity stages increase tempo/hold difficulty gradually; Stage 9 is a deliberate back-off so novel eccentric volume never spikes. Do not skip ahead.",
+      "LIGHT LOAD ONLY: bodyweight or light dumbbells; heavy load is never prescribed. Difficulty comes from tempo, not weight.",
+      "REPS UNDER ~10s: total time per rep capped under 10 seconds (past that is inferior and riskier)."
+    ],
+    "user_facing_stop_criteria": [
+      "Dizziness, lightheadedness, or feeling faint (especially on standing after holds)",
+      "Headache or vision changes during a hold (blood-pressure warning)",
+      "Severe or unusual muscle pain, swelling, or dark cola-colored urine (rhabdomyolysis signs)",
+      "Chest pain or shortness of breath"
+    ],
+    "stop_action": "Any stop criterion halts the session immediately with a plain-language caution (breathe/rest; dark urine or severe swelling = seek medical advice), and applies no XP penalty.",
+    "screening_note": "People with high blood pressure or cardiovascular conditions should keep holds short, load light, and breathe freely — surface this on first entry."
+  },
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_OPTIONAL": ["LIGHT_WEIGHTS", "MAT"],
+    "rule": "Fully bodyweight. Light dumbbells are optional and never required; a wall (for wall-sits) is environmental. NO heavy load."
+  },
+  "completion_states": ["FIT_CLEAR", "FINAL_CLEAR"],
+  "achievements": [
+    { "id": "ACH_GC_BASELINE",  "name": "Baseline Set",      "trigger": "Complete Stage 1 (find your reps, no count)" },
+    { "id": "ACH_GC_CADENCE",   "name": "In the Cadence",    "trigger": "Complete Stage 3 with the voice cadence" },
+    { "id": "ACH_GC_BREATH",    "name": "Never Break Breath", "trigger": "Complete a full stage with zero breath-hold flags" },
+    { "id": "ACH_GC_IRON_HOLD", "name": "Iron Hold",         "trigger": "Hit every isometric hold target in a stage" },
+    { "id": "ACH_GC_SLOW",      "name": "The Weight of Worlds", "trigger": "Complete a very-slow stage (6 or 8)" },
+    { "id": "ACH_GC_ADAPT",     "name": "Adaptation",        "trigger": "Complete the Stage 9 back-off / recovery day" },
+    { "id": "ACH_GC_1000",      "name": "1000x Gravity",     "trigger": "Complete Stage 10" },
+    { "id": "ACH_GC_MASTER",    "name": "Chamber Master",    "trigger": "Clear all 10 stages" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Prescribed work not completed", "Tempo/form breaks down (rushing the count)", "Breath-holding flagged repeatedly", "Effort far above target", "Any stop criterion reported"],
+      "response": ["Slow down and re-cue breathing", "Reduce sets/reps or shorten hold targets", "Recommend one difficulty lower (LOW GRAVITY)", "Never push a broken tempo — quality over count"]
+    },
+    "safety_stop": ["Dizziness / faintness", "Headache or vision change during a hold", "Severe/unusual muscle pain", "Muscle swelling", "Dark cola-colored urine", "Chest pain", "Shortness of breath"]
+  },
+  "final_stage": {
+    "stage_id": "ARC_GRAVITY_STG10",
+    "name": "The Chamber's Limit — 1000x Gravity",
+    "rule": "A target-based tempo gauntlet through the campaign's movements — hit the targets with clean tempo and steady breathing. NEVER to failure. Enter rested (Stage 9 was the back-off).",
+    "outcome": "FINAL CLEAR → victory screen + 1000x Gravity / Chamber Master achievements."
+  },
+  "art": { "banner": "/assets/series/ultra-instinct.png", "stage_badges": "reuse /assets/stages/s1-s10", "art_note": "Placeholder — a gravity-chamber-themed banner (domed chamber, red-tinted) would suit; swap before launch." }
+}

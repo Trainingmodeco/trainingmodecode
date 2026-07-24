@@ -13,9 +13,10 @@ const MAP = {
   ARC_ULTRAEGO:      { id: 'ultra-ego-style',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid' },
   ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid' },
   ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Black Swordsman Protocol', stars: 5, type: 'Hybrid' },
+  ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit' },
 };
 // Display order in the carousel.
-const ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO'];
+const ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY'];
 
 const shortName = (name) => String(name || '').split('—')[0].trim();
 
