@@ -23,6 +23,9 @@ import ultrainstinctModules from './data/campaigns/ARC_ULTRAINSTINCT/modules.jso
 import gravityCampaign from './data/campaigns/ARC_GRAVITY/campaign.json';
 import gravityStages from './data/campaigns/ARC_GRAVITY/stages.json';
 import gravityModules from './data/campaigns/ARC_GRAVITY/modules.json';
+import sonicCampaign from './data/campaigns/ARC_SONIC/campaign.json';
+import sonicStages from './data/campaigns/ARC_SONIC/stages.json';
+import sonicModules from './data/campaigns/ARC_SONIC/modules.json';
 import { humanizeGoal } from './content';
 
 export type ArcadePath = 'fit' | 'fight' | 'full_arc';
@@ -40,10 +43,11 @@ const RAW: Record<string, Raw> = {
   ARC_ULTRAEGO:      { campaign: ultraegoCampaign,      stages: asArr(ultraegoStages),      modules: asArr(ultraegoModules) },
   ARC_ULTRAINSTINCT: { campaign: ultrainstinctCampaign, stages: asArr(ultrainstinctStages), modules: asArr(ultrainstinctModules) },
   ARC_GRAVITY:       { campaign: gravityCampaign,       stages: asArr(gravityStages),       modules: asArr(gravityModules) },
+  ARC_SONIC:         { campaign: sonicCampaign,         stages: asArr(sonicStages),         modules: asArr(sonicModules) },
 };
 
 // Display order for the saga carousel.
-export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY'];
+export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY', 'ARC_SONIC'];
 
 // 2.10 — franchise-flavored coach lines per campaign (archetype-safe, original —
 // never reproduces trademarked characters/quotes). Rotated across the rounds so
@@ -72,6 +76,10 @@ const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
   ARC_GRAVITY: {
     fit: ['Control the tension — breathe through it.', 'Slow it down. Own every inch of the rep.', 'Hold to the target, then release. Never grind.', 'Keep breathing — never hold your breath.'],
     fight: ['Control the tension — breathe through it.', 'Slow, steady, deliberate.', 'Breathe. Stay in control.'],
+  },
+  ARC_SONIC: {
+    fit: ['Gotta go fast — but keep your form.', 'Quick feet, light on the ground.', 'Explode, then recover. Repeat.', 'Speed is earned rep by rep.'],
+    fight: ['Fast hands, faster feet.', 'Blitz the round — then reset.', 'Explosive and precise.'],
   },
 };
 

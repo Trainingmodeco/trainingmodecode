@@ -1,0 +1,125 @@
+{
+  "campaign_id": "ARC_SONIC",
+  "name": "SONIC — SPEED PROTOCOL: THE BLUE BLUR",
+  "type": "fit_only",
+  "stage_count": 12,
+  "paths_available": ["fit"],
+  "difficulties": ["easy", "normal", "hard"],
+  "fantasy": "Gotta go fast. Build real, usable speed the way athletes actually do it — quick feet, explosive hops, clean sprint form, and the sense to warm up and recover so you never break down. The zones get faster; you get faster with them.",
+  "tagline": "Gotta go fast — safely.",
+  "core_rule": "Speed is a quality, not a grind — warm up first, go max, then fully recover.",
+  "core_rule_enforcement": "Every stage starts with a MANDATORY ~15-min neuromuscular / dynamic warm-up — high-intensity speed work stays locked until it's done. Sprint and jump work is QUALITY-capped (foot-contact caps on plyometrics, low sprint volume with full recovery between reps) and never taken to exhaustion or through pain. You go fast when you're fresh; junk volume is not rewarded.",
+  "mechanic": "SPEED GATE + QUALITY-CAPPED EFFORT. Six speed pillars — running/endurance, sprint/acceleration, agility/footwork, plyometrics, parkour fundamentals, and speed-focused bodyweight. Each session is gated behind a mandatory dynamic warm-up (the research shows it BOTH cuts injury AND improves sprint/jump performance). Max-effort work is then capped for quality: plyometric foot-contacts per session, sprint reps/distance, and enforced full recovery between reps. Stages are themed as Sonic zones with a rising 'speed' — motivational packaging only (see sourcing_note); the training variable that actually rises is skill and controlled volume, never recklessness.",
+  "sourcing_note": "Grounded in the deep-research report (protocol-src/research/sonic-research-report.md — 105-agent multi-source deep research, adversarially verified, 24 confirmed / 1 refuted). What is REAL and used: the mandatory neuromuscular warm-up (FIFA 11+ style, ~15 min) reduces lower-extremity injury AND improves sprint/jump/balance; plyometric foot-contact caps (beginner ~60-80/session, sets of 5-10 reps, >=1 min rest, 48h between plyo sessions, 24h ok for low-amplitude), intensity-based progression (skips/squat jumps -> lateral/tuck jumps -> box/depth jumps), bilateral before unilateral, cut foot-contacts 50% on pain, soft bent-knee landings; low-volume/high-quality max-velocity sprints (40-60m x 3-4 reps, ~120-240m, full recovery); eccentric hamstring work (Nordic curls) cuts hamstring injury; ankle is the highest-risk parkour joint so ankle stability + safe landing/rolling come FIRST, master before advanced jumps; recovery rests on sleep/nutrition/hydration, not gadgets. FANTASY (flavor only, never trainable content): superhuman top speed and flips/tricks. REFUTED (not used as literal content): the '~100 landings before each height increment' scheme — the principle 'master landings before adding height' is sound, the exact rep-count is not evidence-based, so copy says 'master before progressing,' never a hard number. CONSERVATIVE CONVENTION (flagged, not from a verified source): the exact per-stage rep/distance/rest numbers, the ~10%/week running-volume ramp, agility-drill parameters, and the deload cadence — built from standard programming practice, since the verified research did not prescribe them.",
+  "fit_focus": [
+    "Running form and aerobic base", "Sprint acceleration and top speed",
+    "Agility, footwork and change of direction", "Explosive power (plyometrics)",
+    "Parkour fundamentals (landing, rolling, vaulting)", "Reactive quickness",
+    "Ankle/hamstring resilience", "Warm-up and recovery discipline"
+  ],
+  "difficulty_scaling": {
+    "easy": {
+      "label": "JOG PACE",
+      "plyo_foot_contact_cap": 40,
+      "plyo_set_reps": [5, 8],
+      "sprint_session": { "reps": 3, "distance_m": 40 },
+      "accel_reps": 4,
+      "agility_rounds": 2,
+      "run_volume_note": "shortest intervals, longest recovery",
+      "rest": "longest, full recovery between all hard efforts"
+    },
+    "normal": {
+      "label": "GOTTA GO FAST",
+      "plyo_foot_contact_cap": 60,
+      "plyo_set_reps": [6, 10],
+      "sprint_session": { "reps": 3, "distance_m": 50 },
+      "accel_reps": 5,
+      "agility_rounds": 3,
+      "run_volume_note": "moderate intervals, full recovery",
+      "rest": "moderate, but full recovery is preserved for max-effort reps"
+    },
+    "hard": {
+      "label": "SUPERSONIC",
+      "plyo_foot_contact_cap": 80,
+      "plyo_set_reps": [8, 10],
+      "sprint_session": { "reps": 4, "distance_m": 60 },
+      "accel_reps": 6,
+      "agility_rounds": 4,
+      "run_volume_note": "highest quality volume, still capped",
+      "rest": "shorter between accessory work, but max-velocity sprints ALWAYS keep full recovery",
+      "note": "Beginner plyo cap is 60-80 foot-contacts (research). Hard sits at the top of that beginner band, NOT above it. Full recovery between max sprints is never traded away for density."
+    },
+    "hard_never_requires": [
+      "Skipping the mandatory warm-up",
+      "Plyometric foot-contacts above the beginner cap (80)",
+      "Cutting recovery short between max-velocity sprints",
+      "Sprinting or jumping through pain",
+      "Flips, tricks, or advanced jumps before landing/rolling is mastered",
+      "Adding running volume faster than about 10% per week",
+      "Training a hard pillar two days in a row without recovery"
+    ]
+  },
+  "speed_pillars": {
+    "running": "Aerobic base + interval running, conversational vs hard pace, volume ramped gradually.",
+    "sprint": "Acceleration (short 10-20m starts, mechanics) and max-velocity (40-60m, full recovery).",
+    "agility": "Ladder, cone drills (5-10-5 pro-agility, T-drill), short shuttles, reactive change of direction.",
+    "plyometrics": "Intensity-progressed: skips/pogos/squat jumps -> lateral/tuck jumps/broad jumps -> box/low depth jumps. Foot-contact capped.",
+    "parkour": "Landing, safety roll, precision jump (low), two-handed vault, wall climb-up. Ankle-first, no flips.",
+    "bodyweight": "Speed-supporting strength — single-leg work, calf/ankle, eccentric hamstring (Nordic curls), core."
+  },
+  "safety_scaffolding": {
+    "why": "Speed training's real risks are overuse (shin splints, Achilles/patellar tendinopathy, stress fractures) and acute injury (ankle sprains, hamstring strains). The research shows both training-load spikes AND lack of conditioning independently raise injury risk, the ankle is the highest-risk parkour joint, and a structured warm-up meaningfully lowers injury while improving performance.",
+    "rules": [
+      "MANDATORY WARM-UP GATE: every session begins with a ~15-min neuromuscular / dynamic warm-up (joint mobility, low-intensity movement, progressive build). It is not optional and high-intensity work is locked until it is complete — it both reduces injury and improves sprint/jump performance.",
+      "PLYO FOOT-CONTACT CAPS: beginner cap ~60-80 foot-contacts per session, in sets of 5-10 reps with >=1 min rest, at least 48h between plyometric sessions (24h acceptable only for low-amplitude pogo/ankle/line hops). Progress by intensity, bilateral before unilateral. If pain occurs, cut total foot-contacts by 50% and land soft with bent knees.",
+      "SPRINT QUALITY, FULL RECOVERY: max-velocity work is low-volume/high-quality (40-60m x 3-4 reps, ~120-240m total) with FULL recovery between reps. Never sprint through fatigue or pain.",
+      "GRADUAL RUN-VOLUME RAMP: increase running volume gradually (about 10% per week as a conservative convention) with a built-in deload (Stage 11) before the finale.",
+      "PARKOUR ANKLE-FIRST: learn safe landing (absorb with bent knees, never 'stick' a stiff landing) and the safety roll BEFORE any jumps; ankle stability is the top priority. Start low with cleared landings, master before progressing height, and NEVER attempt flips or tricks.",
+      "CONDITION THE VULNERABLE LINKS: include eccentric hamstring work (Nordic curls) and ankle/calf work — lack of conditioning is an independent injury factor.",
+      "RECOVERY = FUNDAMENTALS: recovery leans on sleep, nutrition, and hydration, not gadgets or modalities."
+    ],
+    "user_facing_stop_criteria": [
+      "Sharp or localized joint pain — especially ankle, knee, or shin",
+      "Shin pain that builds during running (possible shin splints / stress reaction)",
+      "Achilles or kneecap-tendon pain (tendinopathy warning)",
+      "Sudden sharp pain in the back of the thigh (possible hamstring strain)",
+      "Dizziness, lightheadedness, chest pain, or shortness of breath"
+    ],
+    "stop_action": "Any stop criterion halts the session immediately with a plain-language caution (stop, ice/rest; sharp joint or tendon pain that persists = seek medical advice) and applies no XP penalty.",
+    "screening_note": "Beginners and anyone returning from a lower-limb injury should start at JOG PACE, keep to the low end of every cap, and add volume slowly — surface this on first entry."
+  },
+  "equipment_profiles": {
+    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+    "B_RUNNING": ["RUN_SPACE"],
+    "C_OPTIONAL": ["AGILITY_LADDER", "CONES", "JUMP_ROPE", "LOW_STEP", "MAT"],
+    "rule": "Fully doable with open space + a timer. A ~60m run space (park path, quiet street, track, or treadmill) unlocks the outdoor sprint variants; ladder/cones/low-step enrich agility, plyo, and parkour drills but every stage has a minimum-viable route (floor lines, on-the-spot shuttles). No heavy equipment."
+  },
+  "completion_states": ["FIT_CLEAR", "FINAL_CLEAR"],
+  "achievements": [
+    { "id": "ACH_SN_WARMUP",  "name": "Warm-Up Complete",  "trigger": "Complete the mandatory warm-up gate for the first time (Stage 1)" },
+    { "id": "ACH_SN_LANDING", "name": "Soft Landing",       "trigger": "Complete Stage 2 (landing + ankle foundations)" },
+    { "id": "ACH_SN_BASE",    "name": "Aerobic Base",        "trigger": "Complete Stage 3 (running base)" },
+    { "id": "ACH_SN_HOPS",    "name": "First Hops",          "trigger": "Complete Stage 4 (plyometric foundations)" },
+    { "id": "ACH_SN_AGILE",   "name": "Quick Feet",          "trigger": "Complete Stage 6 (agility + footwork)" },
+    { "id": "ACH_SN_MAXV",    "name": "Top Speed",           "trigger": "Complete Stage 8 (max-velocity sprints)" },
+    { "id": "ACH_SN_PARKOUR", "name": "Free Runner",         "trigger": "Complete Stage 9 (parkour fundamentals) — landings mastered, no flips" },
+    { "id": "ACH_SN_NOSKIP",  "name": "Never Skip the Warm-Up", "trigger": "Complete a full stage with the warm-up gate done and zero pain flags" },
+    { "id": "ACH_SN_DELOAD",  "name": "Rest Is Speed",       "trigger": "Complete the Stage 11 deload / recovery zone" },
+    { "id": "ACH_SN_BLUR",    "name": "The Blue Blur",       "trigger": "Complete Stage 12" },
+    { "id": "ACH_SN_MASTER",  "name": "Sonic Speed",         "trigger": "Clear all 12 stages" }
+  ],
+  "failure_logic": {
+    "fit": {
+      "causes": ["Warm-up gate skipped or rushed", "Prescribed quality work not completed", "Form breaks down (sloppy landings, reaching sprints)", "Effort taken to exhaustion instead of stopping at the cap", "Any stop criterion reported"],
+      "response": ["Re-run the warm-up before any speed work", "Reduce reps/distance or foot-contacts, keep the quality high", "Recommend one difficulty lower (JOG PACE)", "Enforce full recovery — never chase junk volume", "Quality over quantity: speed is only trained when fresh"]
+    },
+    "safety_stop": ["Sharp ankle/knee/shin pain", "Shin pain building during running", "Achilles or patellar tendon pain", "Sharp posterior-thigh (hamstring) pain", "Dizziness / chest pain / shortness of breath"]
+  },
+  "final_stage": {
+    "stage_id": "ARC_SONIC_STG12",
+    "name": "Final Zone — The Blue Blur",
+    "rule": "The finale — a quality speed gauntlet: full warm-up gate, then acceleration -> one capped max-velocity sprint set (full recovery) -> an agility circuit -> a small capped plyo finisher. Hit clean, fast reps and STOP at the cap. Never to exhaustion or failure. Enter rested (Stage 11 was the deload).",
+    "outcome": "FINAL CLEAR -> victory screen + The Blue Blur / Sonic Speed achievements."
+  },
+  "art": { "banner": "/assets/series/sonic.png", "stage_badges": "reuse /assets/stages/s1-s12", "art_note": "Placeholder — a blue-blur / speed-lines / Green-Hill-inspired banner would suit; swap before launch. Keep original theming (avoid trademarked Sonic character art)." }
+}

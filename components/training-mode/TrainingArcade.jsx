@@ -115,6 +115,13 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
     c.scrollTo({ left: el.offsetLeft - (c.clientWidth - el.clientWidth) / 2, behavior: 'smooth' });
   }, []);
 
+  // Rotate the carousel: prev from the first wraps to the last and vice-versa.
+  const rotate = useCallback((dir) => {
+    const n = series.length;
+    if (!n) return;
+    scrollToIndex(((active + dir) % n + n) % n);
+  }, [active, series.length, scrollToIndex]);
+
   const enter = useCallback((s) => { if (isSeriesPlayable(s)) onSelectSeries?.(s); }, [onSelectSeries]);
 
   return (
@@ -202,7 +209,13 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
                       <SafeImage src={poster} alt={s.title} loading="lazy" decoding="async"
                         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 28%', filter: playable ? 'none' : 'grayscale(0.65) brightness(0.5)' }} />
                     ) : (
-                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(ellipse at 50% 40%, rgba(60,20,90,0.6), rgba(8,1,18,0.96) 72%)' }} />
+                      <>
+                        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 40%, rgba(60,20,90,0.6), rgba(8,1,18,0.96) 72%)' }} />
+                        {/* No banner yet: render the title so the card still reads. */}
+                        <div style={{ position: 'absolute', left: 0, right: 0, top: '19%', padding: '0 18px', textAlign: 'center' }}>
+                          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 25, lineHeight: 1.08, color: 'rgba(232,216,255,0.92)', letterSpacing: '0.03em', textShadow: '0 2px 18px rgba(168,85,247,0.55)' }}>{(s.title || '').toUpperCase()}</span>
+                        </div>
+                      </>
                     )}
 
                     {/* Status pill */}
@@ -254,12 +267,12 @@ export default function TrainingArcade({ onBack, onSelectSeries }) {
           </div>
 
           {/* Arrows */}
-          <button className="saga-arrow" aria-label="Previous saga" onClick={() => scrollToIndex(Math.max(0, active - 1))}
-            style={{ position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(8,1,18,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, opacity: active === 0 ? 0.22 : 1, pointerEvents: active === 0 ? 'none' : 'auto' }}>
+          <button className="saga-arrow" aria-label="Previous saga" onClick={() => rotate(-1)}
+            style={{ position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(8,1,18,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5 }}>
             <ChevronLeft size={18} color="#e6d4ff" />
           </button>
-          <button className="saga-arrow" aria-label="Next saga" onClick={() => scrollToIndex(Math.min(series.length - 1, active + 1))}
-            style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(8,1,18,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, opacity: active === series.length - 1 ? 0.22 : 1, pointerEvents: active === series.length - 1 ? 'none' : 'auto' }}>
+          <button className="saga-arrow" aria-label="Next saga" onClick={() => rotate(1)}
+            style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(8,1,18,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5 }}>
             <ChevronRight size={18} color="#e6d4ff" />
           </button>
         </div>

@@ -14,9 +14,10 @@ const MAP = {
   ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid' },
   ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Black Swordsman Protocol', stars: 5, type: 'Hybrid' },
   ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit' },
+  ARC_SONIC:         { id: 'blue-blur-speed-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
 };
 // Display order in the carousel.
-const ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY'];
+const ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY', 'ARC_SONIC'];
 
 const shortName = (name) => String(name || '').split('—')[0].trim();
 
@@ -47,7 +48,7 @@ function campaignToSeries(campaignId) {
   return {
     id: meta.id,
     v2Campaign: campaignId,
-    title: shortName(c.name),
+    title: meta.title || shortName(c.name),
     subtitle: meta.subtitle,
     description: c.fantasy || c.tagline || '',
     status: 'active',

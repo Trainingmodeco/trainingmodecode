@@ -1045,6 +1045,71 @@ export const TRAINING_ARCADE_SERIES = [
     rewards: { badge: 'Blue Blur Badge', title: 'Speed Demon', statBoost: 'Speed + Agility' },
     stages: [],
   },
+  // Coming-soon placeholders (archetype-safe originals). Fallback text cards
+  // until banners land; no content yet, so they stay locked/comingSoon.
+  {
+    id: 'the-contender',
+    title: 'The Contender',
+    subtitle: 'Sweet Science Protocol',
+    description: 'Original boxing-inspired series — footwork, guard, head movement, and heavy-bag conditioning built on the underdog grind.',
+    status: 'comingSoon',
+    isActive: false,
+    isImported: false,
+    type: 'Fight',
+    difficultyStars: 4,
+    equipment: 'None',
+    durationType: 'Stage-based series',
+    availableModes: ['fight'],
+    bannerImage: null,
+    qrSlug: 'the-contender',
+    sourceWorkout: null,
+    phases: [],
+    statRewards: { speed: 3, power: 3, endurance: 3 },
+    rewards: { badge: 'Contender Badge', title: 'Ring General', statBoost: 'Power + Endurance' },
+    stages: [],
+  },
+  {
+    id: 'the-wall-crawler',
+    title: 'The Wall-Crawler',
+    subtitle: 'Reflex & Agility Protocol',
+    description: 'Original agility-inspired series — calisthenics, plyometrics, reaction drills, and bodyweight control for a fast, springy athlete.',
+    status: 'comingSoon',
+    isActive: false,
+    isImported: false,
+    type: 'Fit / Hybrid',
+    difficultyStars: 4,
+    equipment: 'None',
+    durationType: 'Stage-based series',
+    availableModes: ['fit'],
+    bannerImage: null,
+    qrSlug: 'the-wall-crawler',
+    sourceWorkout: null,
+    phases: [],
+    statRewards: { agility: 4, speed: 3, endurance: 3 },
+    rewards: { badge: 'Wall-Crawler Badge', title: 'Reflex Master', statBoost: 'Agility + Speed' },
+    stages: [],
+  },
+  {
+    id: 'the-dragon',
+    title: 'The Dragon',
+    subtitle: 'Formless Water Protocol',
+    description: 'Original martial-arts-inspired series — explosive speed, flow, mobility, and striking power. Be formless; be fast.',
+    status: 'comingSoon',
+    isActive: false,
+    isImported: false,
+    type: 'Fight / Hybrid',
+    difficultyStars: 5,
+    equipment: 'None',
+    durationType: 'Stage-based series',
+    availableModes: ['fight', 'both'],
+    bannerImage: null,
+    qrSlug: 'the-dragon',
+    sourceWorkout: null,
+    phases: [],
+    statRewards: { speed: 4, power: 4, agility: 3 },
+    rewards: { badge: 'Dragon Badge', title: 'Formless Master', statBoost: 'Speed + Power' },
+    stages: [],
+  },
 ];
 
 export function getSeriesById(id) {
@@ -1073,21 +1138,28 @@ CAMPAIGN_SERIES.forEach((cs) => {
   if (!TRAINING_ARCADE_SERIES.some((s) => s.id === cs.id)) TRAINING_ARCADE_SERIES.push(cs);
 });
 
+// Carousel order (this list is the single source of order — see below).
 const VISIBLE_SERIES_IDS = [
   'one-punch-protocol',
-  'baki-grappler',
+  'berserk-struggler',       // The Struggler
+  'baki-grappler',           // The Grappler
+  'demon-back-protocol',
   'dark-knight-protocol',
-  'berserk-struggler',
+  'hyperbolic-time-chamber', // Gravity Chamber
+  'blue-blur-speed-protocol', // Blue Blur (Sonic) — now active
   'ultra-instinct-protocol',
   'ultra-ego-style',
-  'demon-back-protocol',
-  'hyperbolic-time-chamber',
-  'blue-blur-speed-protocol',
+  // Coming soon
+  'the-contender',
+  'the-wall-crawler',
+  'the-dragon',
 ];
 
-export const VISIBLE_ARCADE_SERIES = TRAINING_ARCADE_SERIES.filter(
-  s => VISIBLE_SERIES_IDS.includes(s.id)
-);
+// Preserve VISIBLE_SERIES_IDS order (not the base-array order) so the carousel
+// follows the list above exactly.
+export const VISIBLE_ARCADE_SERIES = VISIBLE_SERIES_IDS
+  .map(id => TRAINING_ARCADE_SERIES.find(s => s.id === id))
+  .filter(Boolean);
 
 // --- Star ratings -----------------------------------------------------------
 
