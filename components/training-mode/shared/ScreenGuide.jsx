@@ -22,7 +22,10 @@ const GUIDE_STYLES = `
 const TIP_W = 300;
 const TIP_EST_H = 150;
 
-export default function ScreenGuide({ steps, onClose }) {
+// centerTip: keep the spotlight on the target but always park the tooltip card
+// in the middle of the screen (readable even when the highlighted element is
+// tall enough to push an adjacent card off-screen — e.g. the arcade ladder).
+export default function ScreenGuide({ steps, onClose, centerTip = false }) {
   const [step, setStep] = useState(0);
   const cfg = steps[step];
   const [rect, setRect] = useState(null);
@@ -81,6 +84,8 @@ export default function ScreenGuide({ steps, onClose }) {
   const tipLeft = Math.min(Math.max(holeCx - TIP_W / 2, 12), vw - TIP_W - 12);
   const notchX = Math.min(Math.max(holeCx - tipLeft - 6, 18), TIP_W - 30);
   const isLast = step === steps.length - 1;
+  // Centre the card when there's no target, or when the caller forces it.
+  const centered = centerTip || !cfg.target;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500 }} onClick={e => e.stopPropagation()}>
@@ -110,17 +115,17 @@ export default function ScreenGuide({ steps, onClose }) {
 
       {/* Tooltip / intro card */}
       <div style={{
-        position: 'fixed', left: cfg.target ? tipLeft : '50%', width: TIP_W,
-        ...(cfg.target
-          ? { ...(tipTop !== undefined ? { top: tipTop } : {}), ...(tipBottom !== undefined ? { bottom: tipBottom } : {}) }
-          : { top: '50%', transform: 'translate(-50%, -50%)' }),
+        position: 'fixed', left: centered ? '50%' : tipLeft, width: TIP_W,
+        ...(centered
+          ? { top: '50%', transform: 'translate(-50%, -50%)' }
+          : { ...(tipTop !== undefined ? { top: tipTop } : {}), ...(tipBottom !== undefined ? { bottom: tipBottom } : {}) }),
         background: 'rgba(16,9,31,0.94)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         border: '1.5px solid rgba(253,224,71,0.5)', borderRadius: 14,
         boxShadow: '0 14px 34px rgba(0,0,0,0.55)',
         padding: '13px 14px 11px',
         animation: 'sg-tip-in 0.28s ease',
       }}>
-        {hole && (
+        {hole && !centered && (
           <div style={{
             position: 'absolute', left: notchX, width: 12, height: 12,
             background: 'rgba(16,9,31,0.96)', transform: 'rotate(45deg)',

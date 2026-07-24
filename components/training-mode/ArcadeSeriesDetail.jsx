@@ -12,6 +12,7 @@ import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeDat
 import { canAccessStage, GATES } from './data/entitlements';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
 import ScreenGuide from './shared/ScreenGuide';
+import { HelpButton } from './shared/WorkoutHelpPanel';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -338,7 +339,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           backGuide="arc-back"
           rightSlot={(
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <button onClick={() => setHowTo(true)} aria-label="How this page works" style={{ width: 26, height: 26, borderRadius: 7, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.12)', color: '#c9a6ff', font: "900 12px 'Orbitron',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+              <HelpButton onClick={() => setHowTo(true)} size={16} style={{ width: 26, height: 26, borderRadius: 7 }} />
               <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
                 {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
               </span>
@@ -610,8 +611,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
         <div style={{ height: '5dvh', flexShrink: 0 }} />
       </div>
 
-      {/* 2.10 — how-to walkthrough (the ? button): spotlights each function in turn */}
-      {howTo && <ScreenGuide steps={howToSteps} onClose={() => setHowTo(false)} />}
+      {/* 2.10 — how-to walkthrough (the ⓘ button): spotlights each function in turn,
+          with the explainer card kept centred so the tall ladder stays readable */}
+      {howTo && <ScreenGuide steps={howToSteps} centerTip onClose={() => setHowTo(false)} />}
     </PhoneFrame>
   );
 }
