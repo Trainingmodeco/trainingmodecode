@@ -6,6 +6,7 @@ import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
+import { completeStage as completeArcadeStage } from './data/arcadeProgress';
 import { arcadeCfg } from './protocol/campaigns';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
@@ -15,6 +16,12 @@ import { trackEvent } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
 import { preloadCriticalArt } from './shared/preloadImages';
+
+// 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
+// by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
+// doing both blocks. Recorded via completeArcadeStage so the ladder (which reads
+// arcadeProgress) unlocks the next stage and lights up the ★.
+const STAR_BY_DIFF = { easy: 1, normal: 2, hard: 3 };
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
   const _imgPaths = [
@@ -338,7 +345,7 @@ export default function App() {
         const path = mode === 'both' ? 'full_arc' : (mode === 'fit' ? 'fit' : 'fight');
         const diff = ['easy', 'normal', 'hard'].includes(settings?.difficulty) ? settings.difficulty : 'normal';
         const stageNumber = stage?.stageNumber || 1;
-        const arcade = { campaignId, stageId: stage.id, stageNumber, campaignName: series.title };
+        const arcade = { campaignId, seriesId: series.id, stageId: stage.id, stageNumber, campaignName: series.title };
         if (path === 'full_arc') {
           const cfgSkill = arcadeCfg(campaignId, stage.id, 'fight', diff);
           const cfgFit = arcadeCfg(campaignId, stage.id, 'fit', diff);
@@ -417,8 +424,12 @@ export default function App() {
         const diffA = c?.difficulty || campCtx?.difficulty || 'normal';
         const xpA = awardedA ? addCampSession(a.stageNumber, done, total, campSessionXp({ difficulty: diffA, roundMin: c?.roundMin ?? 2, doneRounds: done, totalRounds: total, valid: true })) : 0;
         const nextStage = validA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
+        // Record the clear + ★ in arcadeProgress (the store the ladder reads) so
+        // the stage unlocks the next node and earns stars. Stars = difficulty.
+        const starsA = STAR_BY_DIFF[diffA] || 2;
+        if (validA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber });
-        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA });
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, stars: validA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA });
         routeAfterXp(beforeLevel, 'camp_complete');
         return;
       }
@@ -470,8 +481,11 @@ export default function App() {
         xpA += addCampSession(a.stageNumber, s.done, s.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: s.valid, fullArc: bothValidA }));
         xpA += addCampSession(a.stageNumber, f.done, f.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: f.valid, fullArc: bothValidA }));
         const nextStage = bothValidA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
+        // FULL ARC does both blocks → completion-quality bonus of +1 star (cap 3).
+        const starsA = Math.min(3, (STAR_BY_DIFF[diffA] || 2) + 1);
+        if (bothValidA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber, format: 'full' });
-        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA });
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, stars: bothValidA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA });
         routeAfterXp(beforeLevel, 'camp_complete');
         return;
       }

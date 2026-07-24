@@ -320,7 +320,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     ?? selected?.scoringTiers?.find(t => Number.isFinite(t.maxMinutes))?.maxMinutes ?? null;
   const starGoals = starTierList
     ? [...starTierList].sort((a, b) => a.stars - b.stars).map(t => ({ n: t.stars, label: `< ${t.maxMinutes}:00` }))
-    : [{ n: 1, label: `CLEAR +${baseXp}` }, { n: 2, label: `+${Math.round(baseXp * 1.5)}` }, { n: 3, label: `+${baseXp * 2}` }];
+    // v2 campaigns earn ★ by difficulty (clear on EASY / NORMAL / HARD; FULL ARC +1).
+    : series.v2Campaign
+      ? [{ n: 1, label: 'EASY' }, { n: 2, label: 'NORMAL' }, { n: 3, label: 'HARD' }]
+      : [{ n: 1, label: `CLEAR +${baseXp}` }, { n: 2, label: `+${Math.round(baseXp * 1.5)}` }, { n: 3, label: `+${baseXp * 2}` }];
   const earnedStars = compData?.stars || (isCleared ? 1 : 0);
 
   // Modal horizontal placement per side.
