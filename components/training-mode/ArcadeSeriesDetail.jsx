@@ -11,6 +11,7 @@ import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
 import { canAccessStage, GATES } from './data/entitlements';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
+import ScreenGuide from './shared/ScreenGuide';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -107,8 +108,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const [selectFor, setSelectFor] = useState(null);
   const [selMode, setSelMode] = useState('fight');
   const [selDiff, setSelDiff] = useState('normal');
-  // 2.10 — first-time campaign intro (big description/rewards). null | 'first' | 'help'.
+  // 2.10 — first-time campaign intro (big description/rewards). null | 'first'.
   const [intro, setIntro] = useState(null);
+  // 2.10 — the ⓘ / "?" how-to: a stepped spotlight walkthrough of the whole page
+  // (description → ladder → stage → path/difficulty → timer → controls → volume → back).
+  const [howTo, setHowTo] = useState(false);
   const [shakeIdx, setShakeIdx] = useState(null);
   const [toast, setToast] = useState(null);
   const [boxH, setBoxH] = useState(0);
@@ -272,6 +276,22 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     if (wasFirst) setTimeout(() => openStageCentered(currentStageIdx()), 140);
   };
 
+  // 2.10 — the how-to walkthrough (same spotlight engine as Training Camp's ⓘ).
+  // The campaign description sits centred first, then each function of the page
+  // lights up on its own: the ladder and a stage node get spotlighted in place;
+  // the timer / controls / volume live on the next screen so they show as their
+  // own centred cards. Available on every campaign that reaches the ladder.
+  const howToSteps = [
+    { target: null, title: series.title.toUpperCase(), body: series.description },
+    { target: 'arc-ladder', title: '🪜 THE LADDER', body: 'Climb the campaign stage by stage. Clear a stage to unlock the next one up the ladder.' },
+    { target: 'arc-stage', title: '📋 STAGE', body: 'Tap a stage node to open its mission briefing, then ENTER STAGE to set it up.' },
+    ...(series.v2Campaign ? [{ target: null, title: '⚙ PATH & DIFFICULTY', body: 'Pick your path — FIT, FIGHT or FULL ARC — and EASY / NORMAL / HARD, then START.' }] : []),
+    { target: null, title: '⏱ THE TIMER', body: 'Work and rest rounds with live coach calls. WORK = train hard · REST = breathe and reset.' },
+    { target: null, title: '🎛 CONTROLS', body: 'PAUSE / RESUME · SKIP ROUND to advance · ⟲ REWIND 10s · END to leave the session.' },
+    { target: null, title: '🔊 VOLUME', body: 'Tap the speaker at the top-right of the timer to raise or lower the coach cues mid-round.' },
+    { target: 'arc-back', title: '‹ BACK', body: 'The back chevron (top-left) returns you to the saga select carousel any time.' },
+  ];
+
   // ── Modal content data ──
   const objectives = selected ? getStageObjectives(selected) : [];
   const difficulty = selected ? Math.min(5, Math.max(1, Math.ceil((selected.stageNumber || 1) / 2))) : 1;
@@ -315,11 +335,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           onHome={onHome}
           showBack
           onBack={onBack}
+          backGuide="arc-back"
           rightSlot={(
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {series.v2Campaign && (
-                <button onClick={() => setIntro('help')} aria-label="Campaign info" style={{ width: 26, height: 26, borderRadius: 7, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.12)', color: '#c9a6ff', font: "900 12px 'Orbitron',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
-              )}
+              <button onClick={() => setHowTo(true)} aria-label="How this page works" style={{ width: 26, height: 26, borderRadius: 7, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.12)', color: '#c9a6ff', font: "900 12px 'Orbitron',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
               <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
                 {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
               </span>
@@ -329,7 +348,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
         <div style={{ height: 6, flexShrink: 0 }} />
 
         {/* Ladder box — compact, no scroll */}
-        <div ref={boxRef} style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div ref={boxRef} data-guide="arc-ladder" style={{ flex: 1, minHeight: 0, position: 'relative' }}>
           {/* Everything dimmable lives in this layer */}
           <div className={`ladder-layer${openInfo ? ' ladder-dim' : ''}`} style={{ position: 'absolute', inset: 0 }}>
             {/* Centre spine: gold → violet, green over the cleared lower section */}
@@ -378,6 +397,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                   )}
                   <button
                     className="ladder-node"
+                    data-guide={st === 'current' ? 'arc-stage' : undefined}
                     onClick={(e) => onNodeTap(e, idx)}
                     aria-label={isMythic ? 'Elite boss' : isBoss ? 'Boss stage' : `Stage ${stage.stageNumber || idx + 1}`}
                     style={{
@@ -571,26 +591,6 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{series.title}</div>
                 {series.subtitle && <div style={{ font: "700 9px 'Rajdhani',sans-serif", color: GOLD, letterSpacing: '0.03em', margin: '3px 0 11px' }}>{series.subtitle}</div>}
                 <div style={{ font: "600 11.5px 'Rajdhani',sans-serif", color: '#e6d9ff', lineHeight: 1.45, marginBottom: 14 }}>{series.description}</div>
-                {/* 2.10 — the ? button also explains how the whole page works. */}
-                {intro === 'help' && (
-                  <div style={{ background: 'rgba(8,2,18,0.5)', border: '1px solid rgba(168,85,247,0.28)', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
-                    <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.12em', marginBottom: 7 }}>HOW THIS PAGE WORKS</div>
-                    {[
-                      ['🪜 THE LADDER', 'Climb the campaign stage by stage — clear one to unlock the next. Tap a stage node to open it.'],
-                      ['📋 STAGE MODAL', 'Shows the stage’s mission — tap ENTER STAGE to set it up.'],
-                      ['⚙ PATH & DIFFICULTY', 'Pick FIT, FIGHT or FULL ARC, and EASY / NORMAL / HARD, then START.'],
-                      ['⏱ THE TIMER', 'Work and rest rounds with coach calls. WORK = train, REST = breathe.'],
-                      ['🎛 CONTROLS', 'PAUSE/RESUME · SKIP ROUND (next) · ⟲ REWIND 10s · END (exit the session).'],
-                      ['🔊 VOLUME', 'Tap the speaker (top-right of the timer) to adjust cues mid-round.'],
-                      ['‹ BACK', 'The chevron / BACK returns you to the saga select.'],
-                    ].map(([h, d]) => (
-                      <div key={h} style={{ marginBottom: 7 }}>
-                        <div style={{ font: "800 9px 'Orbitron',sans-serif", color: '#e6d9ff', letterSpacing: '0.02em' }}>{h}</div>
-                        <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#9fb0d8', lineHeight: 1.3 }}>{d}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
                 {intro === 'first' && series.rewards && (
                   <div style={{ background: 'rgba(8,2,18,0.5)', border: '1px solid rgba(168,85,247,0.28)', borderRadius: 10, padding: '9px 12px', marginBottom: 16 }}>
                     <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.12em', marginBottom: 6 }}>REWARDS</div>
@@ -600,7 +600,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                     </div>
                   </div>
                 )}
-                <button onClick={dismissIntro} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{intro === 'first' ? '▶ START THE CLIMB' : 'GOT IT'}</button>
+                <button onClick={dismissIntro} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>▶ START THE CLIMB</button>
               </div>
             </div>
           )}
@@ -609,6 +609,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
         {/* A little breathing room above the footer tabs */}
         <div style={{ height: '5dvh', flexShrink: 0 }} />
       </div>
+
+      {/* 2.10 — how-to walkthrough (the ? button): spotlights each function in turn */}
+      {howTo && <ScreenGuide steps={howToSteps} onClose={() => setHowTo(false)} />}
     </PhoneFrame>
   );
 }

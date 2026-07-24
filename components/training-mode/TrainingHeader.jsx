@@ -2,7 +2,7 @@ import IntroLogo from './IntroLogo';
 import { ChevronLeft } from 'lucide-react';
 import { C } from './Styles';
 
-export default function TrainingHeader({ title = 'TRAINING MODE', subtitle = 'Fight. Fit. Evolve.', onHome, showBack = false, onBack, rightSlot }) {
+export default function TrainingHeader({ title = 'TRAINING MODE', subtitle = 'Fight. Fit. Evolve.', onHome, showBack = false, onBack, rightSlot, backGuide }) {
   return (
     <div style={{
       position: 'sticky',
@@ -19,7 +19,7 @@ export default function TrainingHeader({ title = 'TRAINING MODE', subtitle = 'Fi
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {showBack && onBack && (
-          <button onClick={onBack} style={{
+          <button onClick={onBack} data-guide={backGuide} style={{
             background: 'transparent', border: 'none', padding: 4,
             color: C.text, display: 'flex', alignItems: 'center', cursor: 'pointer',
           }}>
