@@ -1,0 +1,571 @@
+[
+  {
+    "stage_id": "ARC_GRAVITY_STG01",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "10x Gravity — Baseline",
+    "stage_number": 1,
+    "gravity": "10x",
+    "voice_count_mode": "none",
+    "tempo_mode": "normal",
+    "purpose": "Find your reps at a normal, controlled tempo — no count. This sets your baseline strength.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S01_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Move with control and find your honest rep count — no rushing, breathe on every rep.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_BASELINE"
+    ],
+    "video_ids": [
+      "VID_GC_S01_OVERVIEW"
+    ],
+    "phase": "foundation"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG02",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "25x Gravity — Count Your Reps",
+    "stage_number": 2,
+    "gravity": "25x",
+    "voice_count_mode": "reps",
+    "tempo_mode": "normal",
+    "purpose": "Same controlled tempo, now the coach counts your reps out loud — push to your target rep-out.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S02_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Hit your rep targets with clean control — the count keeps you honest.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [],
+    "video_ids": [
+      "VID_GC_S02_OVERVIEW"
+    ],
+    "phase": "foundation"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG03",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "50x Gravity — Find the Cadence",
+    "stage_number": 3,
+    "gravity": "50x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "normal",
+    "purpose": "The signature cadence: the coach paces you down and up with a hold — 'down 1..2..3.. hold.. up 1..2..3.. hold'.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S03_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Move exactly to the coach's cadence — never ahead of the count, breathe through the hold.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_CADENCE"
+    ],
+    "video_ids": [
+      "VID_GC_S03_OVERVIEW"
+    ],
+    "phase": "foundation"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG04",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "100x Gravity — Under Tension",
+    "stage_number": 4,
+    "gravity": "100x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "normal",
+    "purpose": "Cadence reps plus the first isometric holds (plank, wall-sit, squat-hold) to a TARGET time — never to failure.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S04_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Hold to the target and stop — steady breathing the whole time, never a breath-hold.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_IRON_HOLD"
+    ],
+    "video_ids": [
+      "VID_GC_S04_OVERVIEW"
+    ],
+    "phase": "development"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG05",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "200x Gravity — Slow Descent",
+    "stage_number": 5,
+    "gravity": "200x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "slow",
+    "purpose": "Slow the eccentric (lowering) phase — a longer descent under the cadence. Ramp is gradual on purpose.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S05_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Control the whole way down — no dropping, no bouncing, breathe.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [],
+    "video_ids": [
+      "VID_GC_S05_OVERVIEW"
+    ],
+    "phase": "development"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG06",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "300x Gravity — The Weight of Worlds",
+    "stage_number": 6,
+    "gravity": "300x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "very_slow",
+    "purpose": "Very slow tempo and longer isometric holds (still to target). Peak time-under-tension.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S06_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Own every second of tension — targets, not failure; breathe through all of it.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_SLOW"
+    ],
+    "video_ids": [
+      "VID_GC_S06_OVERVIEW"
+    ],
+    "phase": "development"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG07",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "400x Gravity — Break the Rhythm",
+    "stage_number": 7,
+    "gravity": "400x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "mixed",
+    "purpose": "Mixed cadence — very slow lowering, then a controlled faster press. The tempo changes mid-set.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S07_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Follow the changing count exactly — control the slow, own the fast, keep breathing.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [],
+    "video_ids": [
+      "VID_GC_S07_OVERVIEW"
+    ],
+    "phase": "development"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG08",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "500x Gravity — Crushing Pressure",
+    "stage_number": 8,
+    "gravity": "500x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "very_slow",
+    "purpose": "The hardest tension stage — very slow tempo with dense isometric holds, all to target.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S08_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Stay in control under the heaviest tension of the chamber — breathe, hit targets, stop clean.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_SLOW"
+    ],
+    "video_ids": [
+      "VID_GC_S08_OVERVIEW"
+    ],
+    "phase": "development"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG09",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "750x Gravity — Adaptation",
+    "stage_number": 9,
+    "gravity": "750x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "recovery",
+    "purpose": "A deliberate BACK-OFF (deload): lighter, easy tempo, mobility and breathing. This is how the body adapts safely before the finale (repeated-bout effect).",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "deload": true,
+    "purpose_note": "Counter-intuitive in a 'rising gravity' arc, but the back-off is what makes Stage 10 safe. Completing it is rewarded, not penalized.",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S09_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "mission_target": "Recover on purpose — easy tempo, full breathing, loosen up. Rest is training too.",
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_ADAPT"
+    ],
+    "video_ids": [
+      "VID_GC_S09_OVERVIEW"
+    ],
+    "phase": "taper"
+  },
+  {
+    "stage_id": "ARC_GRAVITY_STG10",
+    "campaign_id": "ARC_GRAVITY",
+    "title": "1000x Gravity — The Chamber's Limit",
+    "stage_number": 10,
+    "gravity": "1000x",
+    "voice_count_mode": "cadence",
+    "tempo_mode": "gauntlet",
+    "final": true,
+    "purpose": "The finale — a target-based tempo gauntlet through the chamber's movements. Hit the targets with clean tempo and steady breath. Never to failure.",
+    "fit_available": true,
+    "fight_available": false,
+    "full_arc_available": false,
+    "split_available": false,
+    "default_format": "single",
+    "mission_target": "One thousand times gravity. Clean tempo, full breath, every target hit — then stop, in control.",
+    "paths": {
+      "fit": {
+        "module_ids": [
+          "MOD_GC_S10_FIT"
+        ],
+        "difficulty": [
+          "easy",
+          "normal",
+          "hard"
+        ]
+      }
+    },
+    "equipment": {
+      "required": [
+        "OPEN_SPACE",
+        "TIMER_PHONE",
+        "WATER"
+      ],
+      "recommended": [
+        "MAT"
+      ],
+      "alternatives": {
+        "MAT": [
+          "FLOOR_SPACE"
+        ]
+      }
+    },
+    "readiness_checks": [
+      "sleep",
+      "fatigue",
+      "soreness",
+      "stress",
+      "pain_flag"
+    ],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": [
+      "ACH_GC_1000",
+      "ACH_GC_MASTER"
+    ],
+    "video_ids": [
+      "VID_GC_S10_OVERVIEW"
+    ],
+    "phase": "final_boss"
+  }
+]
