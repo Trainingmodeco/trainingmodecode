@@ -1,4 +1,4 @@
-import { getEffectiveVoiceVolume, duckAppAudio } from './data/audioEngine';
+import { getEffectiveVoiceVolume, duckAppAudio, releaseExternalAudio } from './data/audioEngine';
 
 let voicesReady = false;
 let voicesPromise = null;
@@ -192,6 +192,8 @@ export function cancelSpeech() {
 export function stopVoiceSession() {
   cancelSpeech();
   stopResumeKeepAlive();
+  // Session over — un-duck the athlete's music right away.
+  releaseExternalAudio();
 }
 
 // TTS voices misread hyphenated / title-cased words — "Push-Ups" gets split at

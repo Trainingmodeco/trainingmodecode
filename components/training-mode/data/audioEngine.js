@@ -1,9 +1,15 @@
 const STORAGE_KEY = 'tm_audio_settings';
 
-// Cue-boost. A web PWA can't duck the phone's own music player or push the
-// browser's TTS past 1.0, so the only levers we have are making our own cues
-// as loud as the platform allows and defaulting the voice above 100% (the
-// boost tier + external ducking activate in the native wrapper).
+// Cue-boost + EXTERNAL DUCKING. The athlete trains with their own music running
+// (phone music player, Spotify, podcasts, any 3rd-party app) and our voice cues
+// have to cut through it. Two levers:
+//   1. Audio Session (below) — tells the OS to DUCK that other audio while a cue
+//      plays, then restore it. This is the real fix for "turn their music down".
+//   2. Cue boost — our own Web Audio cues run hot through a limiter, and the
+//      voice defaults above 100% (browser TTS itself is capped at 1.0).
+// voiceVolume is 0..VOICE_MAX (2.0); default 1.5. SETTINGS_VERSION bumps so
+// existing athletes pick up the new louder default; anything they set after
+// that is theirs and sticks.
 // voiceVolume is 0..VOICE_MAX (2.0); default 1.5. SETTINGS_VERSION bumps so
 // existing athletes pick up the new louder default; anything they set after
 // that is theirs and sticks.
@@ -54,6 +60,69 @@ let bellLoading = false;
 let bellLoadQueue = [];
 let masterLimiter = null;
 let limiterCtx = null;
+let externalRestoreTimeout = null;
+
+// ── External audio session (the athlete's OWN music) ────────────────────────
+// W3C Audio Session API (navigator.audioSession) — the standard way for a web
+// app to tell the OS how it should mix with whatever else is playing:
+//   'ambient'   → our audio plays ALONGSIDE their music (their music keeps going)
+//   'transient' → our audio DUCKS their music while it plays, then it restores
+// So we sit in 'ambient' during a session and flip to 'transient' around every
+// cue: the phone's music player / Spotify / a podcast dips, the cue lands on
+// top, then their audio comes back up. Progressive enhancement — where the API
+// isn't implemented yet this is a no-op and nothing regresses (the native
+// wrapper applies the same categories through the platform audio session).
+const SESSION_IDLE = 'ambient';
+const SESSION_DUCK = 'transient';
+
+function audioSession() {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.audioSession) return navigator.audioSession;
+  } catch { /* access can throw in locked-down webviews */ }
+  return null;
+}
+
+export function audioSessionSupported() {
+  return !!audioSession();
+}
+
+function setAudioSessionType(type) {
+  const s = audioSession();
+  if (!s) return false;
+  try {
+    if (s.type !== type) s.type = type;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Sit alongside the athlete's music instead of stopping it. Called on unlock so
+// starting a session never kills what they're already listening to.
+export function initExternalAudioSession() {
+  return setAudioSessionType(SESSION_IDLE);
+}
+
+// Hand the athlete's music straight back (session ended / speech cancelled) so
+// it doesn't sit ducked after the last cue.
+export function releaseExternalAudio() {
+  if (externalRestoreTimeout) {
+    clearTimeout(externalRestoreTimeout);
+    externalRestoreTimeout = null;
+  }
+  setAudioSessionType(SESSION_IDLE);
+}
+
+// Duck their music for ~durationMs, then hand it back. Overlapping cues just
+// push the restore out rather than restoring early mid-sentence.
+function duckExternalAudio(durationMs, profile) {
+  if (!setAudioSessionType(SESSION_DUCK)) return;
+  if (externalRestoreTimeout) clearTimeout(externalRestoreTimeout);
+  externalRestoreTimeout = setTimeout(() => {
+    setAudioSessionType(SESSION_IDLE);
+    externalRestoreTimeout = null;
+  }, durationMs + profile.releaseMs);
+}
 
 // Shared brick-wall-ish limiter for the boosted cues: lets us push cue gain to
 // 300% for loudness while catching peaks so nothing hard-clips into distortion.
@@ -166,6 +235,9 @@ function getCtx() {
 }
 
 export function unlockAudio() {
+  // Claim the session as 'ambient' before the context starts, so beginning a
+  // workout mixes with the athlete's music instead of interrupting it.
+  initExternalAudioSession();
   const ctx = getCtx();
   if (!ctx) return;
   if (ctx.state === 'suspended') {
@@ -204,9 +276,17 @@ function fadeGain(node, targetValue, durationMs) {
 
 export function duckAppAudio(durationMs = 1500) {
   const s = getSettings();
-  if (!s.duckingEnabled || !internalMusicNode) return;
+  if (!s.duckingEnabled) return;
 
   const profile = DUCK_PROFILES[s.duckingStrength] || DUCK_PROFILES.normal;
+
+  // Duck the athlete's OWN music (phone player / Spotify / podcast) first. This
+  // runs whether or not in-app music exists — it's the case that actually
+  // matters today, since people train to their own playlist.
+  duckExternalAudio(durationMs, profile);
+
+  // In-app music (a Pro perk, not shipped yet) ducks through its gain node.
+  if (!internalMusicNode) return;
 
   if (duckRestoreTimeout) {
     clearTimeout(duckRestoreTimeout);
