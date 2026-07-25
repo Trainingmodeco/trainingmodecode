@@ -408,7 +408,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'fit_workout' && fitCfg) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <FitBuilderWorkout cfg={fitCfg} profile={profile} onPaywall={goPaywall} onDone={(done, total) => goFitComplete(fitCfg, done, total)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <FitBuilderWorkout cfg={fitCfg} profile={profile} onPaywall={goPaywall} onBack={goFitSetup} onHome={goHome} onDone={(done, total) => goFitComplete(fitCfg, done, total)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

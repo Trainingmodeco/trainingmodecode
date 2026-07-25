@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Play, Pause, SkipForward, Check } from 'lucide-react';
+import { Play, Pause, SkipForward, Check, Square, ChevronsRight } from 'lucide-react';
 import { C } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
@@ -45,7 +45,7 @@ function classify(ex) {
   return { kind: 'weighted', reps, windowSec };
 }
 
-export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onComplete, onBack, voiceOn = true }) {
+export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onComplete, onBack, onStop, onSkipExercise, voiceOn = true }) {
   const ex = exercises[exerciseIdx];
   const plan = useMemo(() => classify(ex), [ex]);
   const totalSets = ex?.sets || 3;
@@ -58,6 +58,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   const [announcer, setAnnouncer] = useState('Get ready…');
   const [paused, setPaused] = useState(false);
   const [cadenceSec, setCadenceSec] = useState(2);
+  const [confirmEnd, setConfirmEnd] = useState(false); // STOP → shared confirm modal
 
   // Rest-time weight logger (design 38a) — weighted exercises only.
   const exId = ex?.id || ex?.name || 'exercise';
@@ -288,6 +289,25 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     onBack();
   };
 
+  // SKIP the whole exercise → next one, WITHOUT completing it (never counts as
+  // done). Voice announces the skip target.
+  const handleSkipExercise = () => {
+    versionRef.current++;
+    cancelSpeech();
+    if (voiceOn) speakAsync(nextExercise ? `Skipping to ${nextExercise.name}.` : 'Skipping.');
+    onSkipExercise?.();
+  };
+
+  // STOP → shared "End session?" confirm (matches FightFocusTimer /
+  // CampFitSetRunner). Confirm ends the whole workout to the summary; cancel
+  // closes and the session keeps running.
+  const handleStopConfirm = () => {
+    versionRef.current++;
+    cancelSpeech();
+    setConfirmEnd(false);
+    onStop?.();
+  };
+
   // Design 39 — START — LIFT dismisses the get-ready gate.
   const handleStartLift = () => {
     const s = startLiftRef.current;
@@ -301,19 +321,30 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     : `${plan.seconds}s HOLD`;
 
   const controls = (
-    <div style={{ flexShrink: 0, display: 'flex', gap: 8, width: '100%', maxWidth: 360 }}>
-      <button onClick={handlePauseToggle} aria-label={paused ? 'Resume' : 'Pause'} style={{ width: 52, height: 48, borderRadius: 11, cursor: 'pointer', background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {paused ? <Play size={18} color={GOLD}/> : <Pause size={18} color="#e6d4ff"/>}
-      </button>
-      {(plan.kind !== 'reps' && phase === 'active') ? (
-        <button onClick={handleDoneEarly} style={{ flex: 1, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
-          <Check size={16} strokeWidth={3}/> SET DONE
+    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 360 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={handlePauseToggle} aria-label={paused ? 'Resume' : 'Pause'} style={{ width: 52, height: 48, borderRadius: 11, cursor: 'pointer', background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {paused ? <Play size={18} color={GOLD}/> : <Pause size={18} color="#e6d4ff"/>}
         </button>
-      ) : (
-        <button onClick={handleSkipSet} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: 'rgba(16,4,30,0.85)', border: '1px solid rgba(168,85,247,0.35)', color: '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-          <SkipForward size={15} color={VIOLET}/> {phase === 'rest' ? 'SKIP REST' : 'SKIP SET'}
+        {(plan.kind !== 'reps' && phase === 'active') ? (
+          <button onClick={handleDoneEarly} style={{ flex: 1, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
+            <Check size={16} strokeWidth={3}/> SET DONE
+          </button>
+        ) : (
+          <button onClick={handleSkipSet} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: 'rgba(16,4,30,0.85)', border: '1px solid rgba(168,85,247,0.35)', color: '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+            <SkipForward size={15} color={VIOLET}/> {phase === 'rest' ? 'SKIP REST' : 'SKIP SET'}
+          </button>
+        )}
+      </div>
+      {/* Item 3 SKIP EXERCISE (never completes it) · Item 2 STOP (confirm → end) */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={handleSkipExercise} style={{ flex: 1, height: 40, borderRadius: 11, cursor: 'pointer', background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.3)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <ChevronsRight size={15} color={VIOLET}/> SKIP EXERCISE
         </button>
-      )}
+        <button onClick={() => setConfirmEnd(true)} style={{ flex: 1, height: 40, borderRadius: 11, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.4)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <Square size={12}/> STOP
+        </button>
+      </div>
     </div>
   );
 
@@ -446,6 +477,20 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
           )}
         </div>
       </div>
+
+      {/* Item 2 — shared END-session confirm (matches FightFocusTimer / CampFitSetRunner) */}
+      {confirmEnd && (
+        <div onClick={() => setConfirmEnd(false)} style={{ position: 'absolute', inset: 0, zIndex: 200, background: 'rgba(4,0,10,0.72)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 290, background: 'rgba(16,7,32,0.96)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 15, padding: 18, textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#fff', letterSpacing: '0.06em', marginBottom: 6 }}>END SESSION?</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#c4a4d8', marginBottom: 14 }}>You&apos;ll get credit for the exercises you finished.</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setConfirmEnd(false)} style={{ flex: 1, height: 40, borderRadius: 10, border: '1px solid rgba(168,85,247,0.35)', background: 'transparent', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, cursor: 'pointer' }}>KEEP GOING</button>
+              <button onClick={handleStopConfirm} style={{ flex: 1, height: 40, borderRadius: 10, border: 'none', background: '#ef4444', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, cursor: 'pointer' }}>END</button>
+            </div>
+          </div>
+        </div>
+      )}
     </PhoneFrame>
   );
 }

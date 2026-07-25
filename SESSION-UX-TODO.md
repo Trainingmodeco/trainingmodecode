@@ -13,14 +13,14 @@ time, in order** — check items off (`[x]`) as they ship.
 
 ## Workout Builder (FitBuilderSetup / FitBuilderWorkout / FitBuilderGuidedPlayer)
 
-- [ ] **1. Back button** — on the builder workout screen, a clear back control
+- [x] **1. Back button** — on the builder workout screen, a clear back control
   that returns to the workouts list (FitBuilderSetup ↔ FitBuilderWorkout
   navigation). Never dead-ends the user.
-- [ ] **2. Stop button + confirm modal** — during a guided builder session, a
+- [x] **2. Stop button + confirm modal** — during a guided builder session, a
   STOP control that opens the same "End session? Are you sure?" confirm modal
   used by the other features (match FightFocusTimer / CampFitSetRunner's
   confirmEnd pattern). Confirm → end + summary; cancel → resume.
-- [ ] **3. Skip workout** — during a guided builder session, a SKIP control
+- [x] **3. Skip workout** — during a guided builder session, a SKIP control
   that advances past the current exercise/workout to the next one (voice
   announces the skip target; skipped items count as not-completed, never as
   done — completion/XP integrity unchanged).

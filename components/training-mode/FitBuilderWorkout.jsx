@@ -259,7 +259,7 @@ function applyScheme(list, scheme) {
   );
 }
 
-export default function FitBuilderWorkout({ cfg, onDone, profile, onPaywall, initialPaused, onStateChange, initialResumeData }) {
+export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile, onPaywall, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   // A saved routine loads its exact (possibly hand-tuned) exercise list.
   const [exercises, setExercises] = useState(() => cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
@@ -340,6 +340,12 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, onPaywall, ini
         exerciseIdx={activeIdx}
         voiceOn
         onBack={() => setActiveIdx(null)}
+        onStop={() => onDone(doneCount, exercises.length)}
+        onSkipExercise={() => {
+          // Advance to the next exercise WITHOUT marking this one complete.
+          if (activeIdx < exercises.length - 1) setActiveIdx(activeIdx + 1);
+          else setActiveIdx(null);
+        }}
         onComplete={() => {
           setCompleted(prev => ({ ...prev, [activeIdx]: true }));
           if (activeIdx < exercises.length - 1) {
@@ -361,8 +367,8 @@ export default function FitBuilderWorkout({ cfg, onDone, profile, onPaywall, ini
         title={title}
         subtitle={`${cfg.difficulty} \u00B7 ${cfg.equipment}`}
         showBack
-        onBack={() => onDone(doneCount, exercises.length)}
-        onHome={() => onDone(doneCount, exercises.length)}
+        onBack={onBack || (() => onDone(doneCount, exercises.length))}
+        onHome={onHome || (() => onDone(doneCount, exercises.length))}
       />
 
       <div style={{
