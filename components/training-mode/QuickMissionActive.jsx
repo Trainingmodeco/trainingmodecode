@@ -560,8 +560,16 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     });
   };
 
+  // The ring is drawn in a fixed 380-unit SVG coordinate space but RENDERED
+  // responsively (same pattern as FightFocusTimer) so it never eats the screen
+  // on a phone — it used to render at a hard 380px, which pushed the exercise
+  // card and controls off the bottom.
   const ringSize = 380;
   const ringR = (ringSize - 20) / 2;
+  const ringBox = {
+    position: 'relative', width: 'min(54vw, 208px)', maxWidth: '100%',
+    aspectRatio: '1 / 1', marginBottom: 14,
+  };
   const maxTime = phase === 'rest' ? (currentEx?.rest || 60) : (currentEx?.work || 30);
   const pct = maxTime > 0 ? remaining / maxTime : 0;
   const ringColor = phase === 'rest' ? '#4f8cff' : GOLD;
@@ -575,7 +583,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       {/* Themed background art */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1, opacity: 0.1,
-        backgroundImage: 'url(/assets/ring-conditioning.png)',
+        backgroundImage: 'url(/static/ring-conditioning.png)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         filter: 'blur(2px) saturate(0.6)',
         pointerEvents: 'none',
@@ -586,7 +594,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh',
-        padding: '20px 16px calc(160px + env(safe-area-inset-bottom, 0px))',
+        // ~22% of the viewport kept clear under the controls (over the tab bar).
+        padding: '16px 16px calc(max(150px, 22dvh) + env(safe-area-inset-bottom, 0px))',
         overflowX: 'hidden',
       }}>
 
@@ -628,8 +637,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
         {/* Timer ring / Cadence display / Reps display */}
         {(phase === 'work' && currentEx.mode === 'timed') || phase === 'rest' ? (
-          <div style={{ position: 'relative', width: ringSize, height: ringSize, marginBottom: 18 }}>
-            <svg width={ringSize} height={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`}>
+          <div style={ringBox}>
+            {/* The ring's own art, dimmed behind the arc (matches Fight Focus) */}
+            <img src="/static/ring-conditioning.png" alt="" style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%',
+              objectFit: 'cover', borderRadius: '50%', opacity: 0.2, pointerEvents: 'none',
+            }}/>
+            <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} style={{ display: 'block' }}>
               <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={12}/>
               <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none"
                 stroke={ringColor} strokeWidth={12} strokeLinecap="round"
@@ -641,53 +655,53 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             </svg>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56,
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 36,
                 color: '#fff', textShadow: `0 0 20px ${ringColor}`,
               }}>{formatTime(remaining)}</div>
               <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700,
-                color: ringColor, letterSpacing: '0.2em', marginTop: 8,
+                fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
+                color: ringColor, letterSpacing: '0.2em', marginTop: 6,
               }}>{phase === 'rest' ? 'REST' : 'WORK'}</div>
             </div>
           </div>
         ) : phase === 'work' && cadenceActive ? (
           <div style={{
-            width: ringSize, height: ringSize, marginBottom: 18,
+            ...ringBox,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}55`,
             background: 'rgba(10,0,20,0.4)',
             boxShadow: '0 0 30px rgba(253,224,71,0.15)',
           }}>
             <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 64,
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 44,
               color: GOLD, textShadow: '0 0 20px rgba(253,224,71,0.5)',
             }}>{cadenceRep}</div>
             <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700,
-              color: C.muted, letterSpacing: '0.15em', marginTop: 8,
+              fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
+              color: C.muted, letterSpacing: '0.15em', marginTop: 6,
             }}>REP {cadenceRep} / {currentEx.reps}</div>
           </div>
         ) : (
           <div style={{
-            width: ringSize, height: ringSize, marginBottom: 18,
+            ...ringBox,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}33`,
             background: 'rgba(10,0,20,0.4)',
           }}>
             {phase === 'intro' ? (
               <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22,
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15,
                 color: GOLD, letterSpacing: '0.1em',
               }}>PREPARING...</div>
             ) : (
               <>
                 <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 52,
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40,
                   color: GOLD,
                 }}>{currentEx.reps}</div>
                 <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 700,
-                  color: C.muted, letterSpacing: '0.15em', marginTop: 8,
+                  fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
+                  color: C.muted, letterSpacing: '0.15em', marginTop: 6,
                 }}>REPS</div>
               </>
             )}

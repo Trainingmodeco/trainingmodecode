@@ -239,11 +239,10 @@ export default function CardioProtocolPlayer({
   const totalTarget = segments.reduce((sum, s) => sum + s.seconds, 0);
 
   // Auto-pause on backgrounding — same as tapping PAUSE, so returning shows
-  // RESUME. Deliberately NOT applied to a live GPS distance run: people lock
-  // the phone or switch apps mid-run, and silently pausing their tracking
-  // would wreck the workout. Timed / interval cardio pauses honestly.
-  const gpsRunActive = useGps && distanceMode;
-  useAutoPauseOnHidden(running && !done && !gpsRunActive, () => setRunning(false));
+  // RESUME. Applies to every cardio mode INCLUDING live GPS runs (per playtest
+  // call): leaving the app pauses the run rather than banking distance the
+  // athlete didn't knowingly train. RESUME picks the run straight back up.
+  useAutoPauseOnHidden(running && !done, () => setRunning(false));
 
   useEffect(() => {
     if (!running || done || showManual) { clearInterval(tickRef.current); return; }
