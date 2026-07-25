@@ -4,11 +4,11 @@ import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
 import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
-import { campSessionXp, humanizeGoal } from './protocol/content';
+import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
 import { completeStage as completeArcadeStage } from './data/arcadeProgress';
 import { arcadeCfg } from './protocol/campaigns';
-import { resolveFitPrescription, announcerLine, stageFinishers, resolveFightRounds } from './data/arcadeSession';
+import { resolveFitPrescription, announcerLine, stageFinishers } from './data/arcadeSession';
 import { packIdForCampaign } from './data/voicePacks';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
@@ -386,27 +386,18 @@ export default function App() {
           base.finishers = stageFinishers(campaignId, stage.id, 'fit', diff);
           return base;
         };
-        const withFight = (base) => {
-          const fr = resolveFightRounds(campaignId, stage.id, diff);
-          if (fr?.rounds?.length) {
-            base.fightRounds = fr.rounds;
-            base.blockRounds = fr.rounds.map((r) => ({
-              round_title: humanizeGoal(r.goal || 'free_round'),
-              coach_prompt: r.kind === 'combo' ? (r.combos || []).filter(Boolean).join('  ·  ') : (r.cues || []).join(' · '),
-            }));
-          }
-          base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff);
-          return base;
-        };
+        // FIGHT round content (combos + cues) is surfaced by campaigns.ts
+        // (arcadeBlockRounds) and voiced on a cadence by FightFocusTimer, so the
+        // fight cfg uses arcadeCfg directly — no player-side override here.
         if (path === 'full_arc') {
-          const cfgSkill = withFight({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
+          const cfgSkill = { ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack };
           const cfgFit = withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack });
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, format: 'full', cfgSkill, cfgFit, arcade });
           setCfg(cfgSkill); setScreen('camp_full');
         } else {
           const cfg = path === 'fit'
             ? withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack })
-            : withFight({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
+            : { ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack };
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: path === 'fit', slot: path === 'fit' ? 's2' : 's1', arcade });
           setCfg(cfg); setScreen('camp_session');
         }
