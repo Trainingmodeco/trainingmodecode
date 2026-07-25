@@ -46,19 +46,6 @@ export const HELP_CONTENT = {
     modifications: 'Shorten the duration or lower difficulty anytime. You can also switch to Cardio Only for pure conditioning.',
     completion: 'Finish the timed mission to complete it and log your effort.',
   },
-  quick_mission_active: {
-    title: 'QUICK MISSION',
-    purpose: 'Follow the guided flow. The timer and coach move you from one movement to the next.',
-    cues: [
-      'Keep moving through work intervals and breathe on the rest.',
-      'Quality reps count more than fast reps.',
-      'Pace yourself so you can finish strong.',
-    ],
-    howHard: 'You should feel worked but in control. Back off the pace if your form slips.',
-    safety: 'Stop and reset if you feel dizzy or sharp pain. Hydrate on the rest breaks.',
-    modifications: 'March in place instead of jumping, or slow the tempo to stay safe.',
-    completion: 'The mission ends when the timer runs out. Your session logs automatically.',
-  },
   combat_conditioning_setup: {
     title: 'COMBAT CONDITIONING',
     purpose: 'Ring-ready circuits that build your fight gas tank with explosive, athletic conditioning.',
@@ -71,19 +58,6 @@ export const HELP_CONTENT = {
     safety: 'Warm up your shoulders and hips. Land softly on jumps and keep your wrists straight on strikes.',
     modifications: 'Cut the duration, drop a difficulty, or switch to Cardio Only for a steadier session.',
     completion: 'Complete every round in the circuit to finish. Effort logs even if you cut it short.',
-  },
-  combat_conditioning_active: {
-    title: 'COMBAT CIRCUIT',
-    purpose: 'Work each round at fight pace. Recover on the rest and reset for the next drill.',
-    cues: [
-      'Snap your movements. Explosive intent builds power.',
-      'Reset your stance and guard between reps.',
-      'Breathe out on every strike or effort.',
-    ],
-    howHard: 'Push the work intervals, then actively recover. You should be breathing hard by the end.',
-    safety: 'Keep joints soft on landings. Ease off immediately on any sharp pain.',
-    modifications: 'Shadow the movement without power, or slow the pace while keeping the pattern.',
-    completion: 'Finish all rounds to complete the circuit. Your session logs your effort.',
   },
   train_hub: {
     title: 'THE TRAIN TAB',

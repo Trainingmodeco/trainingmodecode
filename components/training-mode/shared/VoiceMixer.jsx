@@ -38,7 +38,7 @@ function Slider({ icon, label, pct, max, warn, onChange }) {
   );
 }
 
-export default function VoiceMixer({ top = 12, right = 12 }) {
+export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
   const [open, setOpen] = useState(false);
   const [voice, setVoice] = useState(() => Math.round((getVoiceVolume() ?? 1.5) * 100));
   const [music, setMusic] = useState(() => Math.round((getAudioSettings().musicVolume ?? 0.6) * 100));
@@ -57,7 +57,7 @@ export default function VoiceMixer({ top = 12, right = 12 }) {
   const muted = voice <= 0;
 
   return (
-    <div style={{ position: 'absolute', top, right, zIndex: 60, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+    <div data-guide={dataGuide} style={{ position: 'absolute', top, right, zIndex: 60, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
       {open && (
         <div
           onPointerDown={scheduleHide}

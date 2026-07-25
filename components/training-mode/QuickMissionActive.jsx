@@ -12,7 +12,9 @@ import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { generateQuickMission } from './fit-mode/quickMissionGenerator';
 import { getCoachCopy } from './data/coachCopy';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 
 const GOLD = C.yellow;
 
@@ -591,7 +593,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       <CornerHUD color="rgba(253,224,71,0.3)" size={20} inset={10}/>
       {/* Universal layout: How-to (O) sits top-right in the header row below;
           Volume sits directly under it so the two never overlap. */}
-      <VoiceMixer top={58} right={14}/>
+      <VoiceMixer top={58} right={14} dataGuide="qma-volume"/>
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
@@ -603,10 +605,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
-          <button onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: C.text, padding: 4 }}>
+          <button data-guide="qma-back" onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: C.text, padding: 4 }}>
             <ChevronLeft size={24}/>
           </button>
-          <div style={{
+          <div data-guide="qma-title" style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
             color: GOLD, letterSpacing: '0.15em',
             textShadow: '0 0 12px rgba(253,224,71,0.4)',
@@ -621,7 +623,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         }}>{mission.title}</div>
 
         {/* Status strip */}
-        <div style={{
+        <div data-guide="qma-status" style={{
           display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 16,
           padding: '7px 16px', borderRadius: 8,
           background: 'rgba(15,5,30,0.7)', border: '1px solid rgba(253,224,71,0.15)',
@@ -639,7 +641,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
         {/* Timer ring / Cadence display / Reps display */}
         {(phase === 'work' && currentEx.mode === 'timed') || phase === 'rest' ? (
-          <div style={ringBox}>
+          <div data-guide="qma-ring" style={ringBox}>
             {/* The ring's own art, dimmed behind the arc (matches Fight Focus) */}
             <img src="/static/ring-conditioning.png" alt="" style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
@@ -667,7 +669,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             </div>
           </div>
         ) : phase === 'work' && cadenceActive ? (
-          <div style={{
+          <div data-guide="qma-ring" style={{
             ...ringBox,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}55`,
@@ -684,7 +686,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             }}>REP {cadenceRep} / {currentEx.reps}</div>
           </div>
         ) : (
-          <div style={{
+          <div data-guide="qma-ring" style={{
             ...ringBox,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}33`,
@@ -712,7 +714,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
         {/* Current exercise / Up Next card */}
         {phase !== 'intro' && (
-          <div style={{
+          <div data-guide="qma-exercisecard" style={{
             width: '100%', maxWidth: 360, padding: '16px 18px', borderRadius: 12,
             background: 'rgba(10,0,20,0.8)', border: `1px solid ${ringColor}33`,
             textAlign: 'center', marginBottom: 14,
@@ -798,7 +800,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             </button>
           )}
           {/* 3b — REWIND: back to the previous exercise (symmetric to SKIP) */}
-          <button onClick={rewindExercise} aria-label="Previous exercise" style={{
+          <button data-guide="qma-rewind" onClick={rewindExercise} aria-label="Previous exercise" style={{
             width: 56, height: 56, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
@@ -806,7 +808,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           }}>
             <RotateCcw size={22}/>
           </button>
-          <button onClick={handlePauseToggle} style={{
+          <button data-guide="qma-pause" onClick={handlePauseToggle} style={{
             width: 70, height: 70, borderRadius: 18,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: paused ? 'rgba(253,224,71,0.12)' : 'linear-gradient(135deg, rgba(253,224,71,0.3), rgba(253,224,71,0.15))',
@@ -816,7 +818,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           }}>
             {paused ? <Play size={28}/> : <Pause size={28}/>}
           </button>
-          <button onClick={handleSkip} style={{
+          <button data-guide="qma-skip" onClick={handleSkip} style={{
             width: 56, height: 56, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
@@ -824,7 +826,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           }}>
             <SkipForward size={22}/>
           </button>
-          <button onClick={() => setConfirmEnd(true)} style={{
+          <button data-guide="qma-stop" onClick={() => setConfirmEnd(true)} style={{
             width: 56, height: 56, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)',
@@ -905,7 +907,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           </div>
         </div>
       )}
-      <WorkoutHelpPanel contentKey="quick_mission_active" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.quick_mission_active} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

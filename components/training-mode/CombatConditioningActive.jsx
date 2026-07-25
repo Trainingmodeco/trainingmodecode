@@ -8,7 +8,9 @@ import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
 import VoiceMixer from './shared/VoiceMixer';
-import WorkoutHelpPanel, { HelpButton } from './shared/WorkoutHelpPanel';
+import { HelpButton } from './shared/WorkoutHelpPanel';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
 
 const GOLD = C.yellow;
 const COMBAT_RED = '#ef4444';
@@ -458,14 +460,14 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
         {/* Universal layout: How-to (O) sits top-right in the header row below;
             Volume sits directly under it so the two never overlap. */}
-        <VoiceMixer top={58} right={12}/>
+        <VoiceMixer top={58} right={12} dataGuide="cca-volume"/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
-          <button onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: C.text, padding: 4 }}>
+          <button data-guide="cca-back" onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: C.text, padding: 4 }}>
             <ChevronLeft size={24}/>
           </button>
-          <div style={{
+          <div data-guide="cca-title" style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
             color: GOLD, letterSpacing: '0.12em',
             textShadow: '0 0 12px rgba(253,224,71,0.4), 0 0 20px rgba(239,68,68,0.15)',
@@ -480,7 +482,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         }}>{missionName}</div>
 
         {/* Status strip */}
-        <div style={{
+        <div data-guide="cca-status" style={{
           display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 16,
           padding: '7px 14px', borderRadius: 8, flexWrap: 'wrap',
           background: 'rgba(15,0,0,0.7)', border: '1px solid rgba(239,68,68,0.15)',
@@ -508,7 +510,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         </div>
 
         {/* Main display area — 17c conditioning ring (dimmed) + live progress + content */}
-        <div style={{ position: 'relative', width: ringBox, height: ringBox, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div data-guide="cca-ring" style={{ position: 'relative', width: ringBox, height: ringBox, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {/* Design 17c decorative conditioning ring, dimmed down */}
           <img
             src="/static/ring-conditioning.png"
@@ -558,7 +560,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
         {/* Current drill / Up Next card */}
         {phase !== 'ready' && phase !== 'complete' && (
-          <div style={{
+          <div data-guide="cca-drillcard" style={{
             width: '100%', maxWidth: 360, padding: '16px 18px', borderRadius: 12,
             background: 'rgba(15,0,0,0.8)', border: `1px solid ${ringColor}33`,
             textAlign: 'center', marginBottom: 10,
@@ -635,7 +637,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
             )}
 
             {/* REWIND — previous drill (symmetric to SKIP), same as the other players */}
-            <button onClick={handleRewind} aria-label="Previous drill" style={{
+            <button data-guide="cca-rewind" onClick={handleRewind} aria-label="Previous drill" style={{
               width: 56, height: 56, borderRadius: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
@@ -644,7 +646,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
               <RotateCcw size={22}/>
             </button>
 
-            <button onClick={handlePauseToggle} style={{
+            <button data-guide="cca-pause" onClick={handlePauseToggle} style={{
               width: 70, height: 70, borderRadius: 18,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: paused ? 'linear-gradient(180deg,#ffe574,#eaa62a)' : 'linear-gradient(180deg,#d8bcff,#a855f7)',
@@ -655,7 +657,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
               {paused ? <Play size={28} fill="#2a1400"/> : <Pause size={28} fill="#2a0a45"/>}
             </button>
 
-            <button onClick={handleSkip} style={{
+            <button data-guide="cca-skip" onClick={handleSkip} style={{
               width: 56, height: 56, borderRadius: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
@@ -664,7 +666,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
               <SkipForward size={22}/>
             </button>
 
-            <button onClick={() => setConfirmEnd(true)} style={{
+            <button data-guide="cca-stop" onClick={() => setConfirmEnd(true)} style={{
               width: 56, height: 56, borderRadius: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)',
@@ -746,7 +748,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           </div>
         </div>
       )}
-      <WorkoutHelpPanel contentKey="combat_conditioning_active" open={helpOpen} onClose={() => setHelpOpen(false)}/>
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.combat_conditioning_active} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

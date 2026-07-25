@@ -123,4 +123,32 @@ export const SCREEN_GUIDES = {
     { target: 'cm-goal', title: 'YOUR GOAL', body: 'Set a distance or time target — AUTO PACE calculates the pace to hold for your level.' },
     { target: 'cm-start', title: 'START CARDIO', body: 'Tap here and the timer, pace coaching, and logging handle the rest.' },
   ],
+
+  combat_conditioning_active: [
+    { target: null, title: '🔥 COMBAT CONDITIONING', body: 'This is your live circuit — fight-pace rounds with a coach calling every drill. Here is what everything on this screen does.' },
+    { target: 'cca-title', title: 'SESSION TITLE', body: 'Shows COMBAT CONDITIONING plus your mission name below it, so you always know which circuit you are running.' },
+    { target: 'cca-status', title: 'STYLE, DISCIPLINE & ROUND', body: 'Your circuit style and difficulty pills, plus ROUND X / Y — how far you are through the full session.' },
+    { target: 'cca-volume', title: '🔊 SOUND', body: 'Tap to open the volume mixer — separate VOICE and MUSIC sliders, adjustable mid-round without pausing.' },
+    { target: 'cca-ring', title: 'THE TIMER', body: 'The ring counts down your work or rest time, or tracks your rep count on cadence drills. It runs blue on REST, red on WORK.' },
+    { target: 'cca-drillcard', title: 'DRILL CARD', body: 'Shows the current drill and its coaching cue — and in red, any safety note for that movement. Read it before the drill starts.' },
+    { target: 'cca-rewind', title: '⟲ REWIND', body: 'Step back to redo the drill before this one — useful if you got cut off or want another attempt.' },
+    { target: 'cca-pause', title: '⏸ PLAY / PAUSE', body: 'Pause anytime — the timer and coach hold until you resume. Stepping away from the app auto-pauses too.' },
+    { target: 'cca-skip', title: '⏭ SKIP', body: 'Jump straight to the next drill or round if you need to move on early.' },
+    { target: 'cca-stop', title: '■ STOP', body: 'Ends the session — asks you to confirm first. Only the drills you completed before stopping count toward your stats.' },
+    { target: 'cca-back', title: '‹ BACK BUTTON', body: 'The top-left arrow does the same thing as STOP — it asks you to confirm before ending, so a stray tap never wipes your progress.' },
+  ],
+
+  quick_mission_active: [
+    { target: null, title: '⏱ QUICK MISSION', body: 'This is your guided workout — the timer and coach move you through every exercise. Here is what everything on this screen does.' },
+    { target: 'qma-title', title: 'MISSION TITLE', body: 'Shows QUICK MISSION plus your generated mission name below it, so you always know which session you are running.' },
+    { target: 'qma-status', title: 'ROUND, TYPE & DIFFICULTY', body: 'Your round count, workout type (Bodyweight, Weighted, or Hybrid), and difficulty — set back on the setup screen.' },
+    { target: 'qma-volume', title: '🔊 SOUND', body: 'Tap to open the volume mixer — separate VOICE and MUSIC sliders, adjustable mid-round without pausing.' },
+    { target: 'qma-ring', title: 'THE TIMER', body: 'Counts down your work or rest time, or tracks reps on cadence-counted exercises. Gold on WORK, blue on REST.' },
+    { target: 'qma-exercisecard', title: 'EXERCISE CARD', body: 'Shows your current exercise (or the next one, during rest), and flags a FINISHER move when one comes up.' },
+    { target: 'qma-rewind', title: '⟲ REWIND', body: 'Step back to redo the exercise before this one — useful if you got cut off or want another attempt.' },
+    { target: 'qma-pause', title: '⏸ PLAY / PAUSE', body: 'Pause anytime — the timer and coach hold until you resume. Stepping away from the app auto-pauses too.' },
+    { target: 'qma-skip', title: '⏭ SKIP', body: 'Jump straight to the next exercise or round if you need to move on early.' },
+    { target: 'qma-stop', title: '■ STOP', body: 'Ends the mission — asks you to confirm first. Only the exercises you completed before stopping count toward your stats.' },
+    { target: 'qma-back', title: '‹ BACK BUTTON', body: 'The top-left arrow does the same thing as STOP — it asks you to confirm before ending, so a stray tap never wipes your progress.' },
+  ],
 };
