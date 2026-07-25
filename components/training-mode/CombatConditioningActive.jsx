@@ -449,16 +449,6 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
   return (
     <PhoneFrame useBrandBg>
-      {/* Themed art background — same treatment as Quick Mission: the clean
-          brand backdrop with the mode's ring art dimmed over it, instead of the
-          heavy full-bleed photo that muddied the timer and text. */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 1, opacity: 0.1,
-        backgroundImage: 'url(/static/ring-combat.png)',
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        filter: 'blur(2px) saturate(0.6)',
-        pointerEvents: 'none',
-      }}/>
       <CornerHUD color="rgba(239,68,68,0.25)" size={20} inset={10}/>
 
       <div style={{
