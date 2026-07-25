@@ -138,8 +138,8 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
                 boxShadow: on ? '0 0 14px rgba(253,224,71,0.35)' : 'none',
               }}>
                 <SafeImage src={discImg(d.key, variant)} alt={d.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter: on ? 'none' : 'brightness(0.62)' }}/>
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '14px 3px 5px', background: 'linear-gradient(to top, rgba(5,0,12,0.92), transparent)' }}>
-                  <div style={{ font: "900 8px 'Orbitron',sans-serif", color: on ? GOLD : '#d9d1ef', letterSpacing: '0.04em', textAlign: 'center' }}>{d.label}</div>
+                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '16px 2px 6px', background: 'linear-gradient(to top, rgba(5,0,12,0.94), transparent)' }}>
+                  <div style={{ font: "900 12px 'Orbitron',sans-serif", color: on ? GOLD : '#fff', letterSpacing: '0.02em', textAlign: 'center', textShadow: on ? '0 0 10px rgba(253,224,71,0.45)' : '0 1px 4px rgba(0,0,0,0.85)' }}>{d.label}</div>
                 </div>
                 {on && <span style={{ position: 'absolute', top: 4, right: 4, width: 15, height: 15, borderRadius: '50%', background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={10} color="#0a0014" strokeWidth={3.5}/></span>}
               </button>
