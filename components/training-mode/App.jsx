@@ -388,16 +388,19 @@ export default function App() {
         };
         // FIGHT round content (combos + cues) is surfaced by campaigns.ts
         // (arcadeBlockRounds) and voiced on a cadence by FightFocusTimer, so the
-        // fight cfg uses arcadeCfg directly — no player-side override here.
+        // fight cfg uses arcadeCfg directly for rounds — but we still attach the
+        // difficulty-scaled finishers so FightFocusTimer can run them at the end
+        // (blockRounds is NOT touched — that stays arcadeBlockRounds' combos).
+        const withFightFinishers = (base) => { base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff); return base; };
         if (path === 'full_arc') {
-          const cfgSkill = { ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack };
+          const cfgSkill = withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
           const cfgFit = withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack });
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, format: 'full', cfgSkill, cfgFit, arcade });
           setCfg(cfgSkill); setScreen('camp_full');
         } else {
           const cfg = path === 'fit'
             ? withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack })
-            : { ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack };
+            : withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: path === 'fit', slot: path === 'fit' ? 's2' : 's1', arcade });
           setCfg(cfg); setScreen('camp_session');
         }

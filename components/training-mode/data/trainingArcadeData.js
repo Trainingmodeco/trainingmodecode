@@ -1138,12 +1138,13 @@ CAMPAIGN_SERIES.forEach((cs) => {
   if (!TRAINING_ARCADE_SERIES.some((s) => s.id === cs.id)) TRAINING_ARCADE_SERIES.push(cs);
 });
 
-// Sagas still gated as "under construction". The 7 v2 campaigns passed the
-// data + engine diagnostic (2026-07-25: all prescription doses resolve across
-// easy/normal/hard, fight combos generate, posters present) and are now open.
-// Demon Back stays locked — it's a legacy saga and not part of Season 1.
+// Sagas still gated as "under construction". Per playtest review (2026-07-25),
+// only ONE PUNCH and THE GRAPPLER (ARC_BAKI, the approved reference) are open;
+// every other saga is re-locked until it's individually playtested & signed off.
+// Remove an id here as its stages are reviewed.
 const UNDER_CONSTRUCTION = new Set([
-  'demon-back-protocol',
+  'berserk-struggler', 'dark-knight-protocol', 'demon-back-protocol',
+  'hyperbolic-time-chamber', 'blue-blur-speed-protocol', 'ultra-instinct-protocol', 'ultra-ego-style',
 ]);
 for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
   const s = TRAINING_ARCADE_SERIES[i];

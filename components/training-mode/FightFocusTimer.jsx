@@ -136,6 +136,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const perRoundStrikesRef = useRef([]);
   const [ghostVerdict, setGhostVerdict] = useState(null);
 
+  // Spec 27 B2 — bodyweight FINISHER at session end (cfg.finishers, difficulty-
+  // scaled from the fight module). After the final bell, run each capped burst
+  // (movement + work_sec) with voice, then hand off to the normal end sequence.
+  const [finisher, setFinisher] = useState(null); // { idx, remaining } | null
+  const endArgsRef = useRef(null);
+  const finishers = cfg.finishers || [];
+
   const runIntro = useCallback(async (rIdx) => {
     cancelSpeech();
     const version = ++roundVersion.current;
@@ -178,6 +185,25 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     setCountdown(null);
     setCountdownSub('');
   }, [rounds, cfg.voiceOn, packId, vOpts, flavored]);
+
+  // Close out the session: resolve a ghost battle (if racing), speak the closing
+  // line, then hand back to the host via onEnd. Called either straight after the
+  // final bell, or after the end-of-session finisher (spec 27 B2) completes.
+  const endNow = useCallback((integrityResult) => {
+    let ghostDelay = 1500;
+    if (ghost) {
+      const { result, headline } = finishGhostBattle(ghost, {
+        totalStrikes: thrownRef.current,
+        bestRound: Math.max(0, ...perRoundStrikesRef.current),
+        completionSec: workElapsedRef.current,
+      });
+      setGhostVerdict({ outcome: result.outcome, headline });
+      ghostDelay = 3600;
+      if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', vOpts), 1400);
+    }
+    setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), vOpts); }, 400);
+    setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, ghostDelay);
+  }, [ghost, cfg, vOpts, flavored, packId, rounds, onEnd]);
 
   useEffect(() => {
     rushSpoken.current = false;
@@ -356,21 +382,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           perRoundStrikes: perRoundStrikesRef.current, completionSec: workElapsedRef.current,
           verified: ghostVerified,
         });
-        let ghostDelay = 1500;
-        if (ghost) {
-          const { result, headline } = finishGhostBattle(ghost, {
-            totalStrikes: thrownRef.current,
-            bestRound: Math.max(0, ...perRoundStrikesRef.current),
-            completionSec: workElapsedRef.current,
-          });
-          setGhostVerdict({ outcome: result.outcome, headline });
-          ghostDelay = 3600;
-          if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', vOpts), 1400);
+        // Spec 27 B2 — run the bodyweight finisher (if any) before the close.
+        if (finishers.length) {
+          endArgsRef.current = integrityResult;
+          const f0 = finishers[0];
+          setFinisher({ idx: 0, remaining: f0.work_sec });
+          if (cfg.voiceOn) setTimeout(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, vOpts), 300);
+        } else {
+          endNow(integrityResult);
         }
-        setTimeout(() => {
-          if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), vOpts);
-        }, 400);
-        setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, ghostDelay);
       } else {
         if (!roundEndBellPlayedRef.current) {
           roundEndBellPlayedRef.current = true;
@@ -392,6 +412,30 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
+
+  // Spec 27 B2 — finisher countdown: each burst runs its work_sec, then advances
+  // to the next finisher or closes the session via endNow.
+  useEffect(() => {
+    if (!finisher || paused) return;
+    if (finisher.remaining <= 0) {
+      const next = finisher.idx + 1;
+      if (next < finishers.length) {
+        const fn = finishers[next];
+        playBell(1);
+        setFinisher({ idx: next, remaining: fn.work_sec });
+        if (cfg.voiceOn) speakAsync(`${fn.movement}. ${fn.work_sec} seconds. Go!`, vOpts);
+      } else {
+        playBell(2);
+        setFinisher(null);
+        endNow(endArgsRef.current);
+      }
+      return;
+    }
+    if (finisher.remaining <= 3) playBeep();
+    const id = setTimeout(() => setFinisher(f => (f ? { ...f, remaining: f.remaining - 1 } : f)), 1000);
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finisher, paused]);
 
   const handleRewind = () => {
     cancelSpeech();
@@ -428,8 +472,18 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       integrity.startUnit('rounds');
       setRoundIdx(i => i + 1);
     } else {
+      // FINISH on the last round: still run the end-of-session finisher (spec 27
+      // B2) before closing, so tapping FINISH doesn't skip it.
+      setDone(true);
       const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
-      onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
+      if (finishers.length) {
+        endArgsRef.current = integrityResult;
+        const f0 = finishers[0];
+        setFinisher({ idx: 0, remaining: f0.work_sec });
+        if (cfg.voiceOn) setTimeout(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, vOpts), 300);
+      } else {
+        endNow(integrityResult);
+      }
     }
   };
 
@@ -498,6 +552,16 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               opacity: 0.85,
             }}>{countdownSub}</div>
           )}
+        </div>
+      )}
+
+      {/* Spec 27 B2 — end-of-session finisher overlay */}
+      {finisher && finishers[finisher.idx] && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 130, background: 'rgba(10,0,20,0.94)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
+          <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 10, color: '#f59e0b', letterSpacing: '0.1em', marginBottom: 16 }}>🔥 FINISHER {finisher.idx + 1}/{finishers.length}</div>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 24, color: '#fff', textAlign: 'center', marginBottom: 12, letterSpacing: '0.04em' }}>{String(finishers[finisher.idx].movement).toUpperCase()}</div>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 76, color: '#f59e0b', lineHeight: 1, textShadow: '0 0 34px rgba(245,158,11,0.7)' }}>{finisher.remaining}</div>
+          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 700, color: '#c4a4d8', letterSpacing: '0.14em', marginTop: 10 }}>SECONDS · GO!</div>
         </div>
       )}
 
