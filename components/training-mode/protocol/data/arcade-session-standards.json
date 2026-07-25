@@ -1,0 +1,184 @@
+{
+  "notes": "Shared session STANDARDS for all Training Arcade campaigns — how FIT and FIGHT sessions are prescribed, counted, voiced, and (for weights) set up. Applies across every campaign's modules. Spec: specs/27-arcade-session-standards.md. This file is the single source of truth for the volume ladder, the weighted-workout builder flow, the announcer scripts, and the fight-round rules. VALUES MARKED 'proposed' ARE PENDING SIGN-OFF (some are placeholders for the app team to tune + test).",
+
+  "fit_prescription": {
+    "rule": "EVERY bodyweight exercise in a FIT module carries an explicit prescription: sets, reps, and a count_mode — no more un-quantified 'do push-ups'. Reps are COUNTED so the user can follow along (voice + on-screen counter).",
+    "exercise_shape": {
+      "name": "string — the movement",
+      "category": "pull | push | squat_legs | core | explosive | hold | carry",
+      "sets": "int",
+      "reps": "int — per set (for hold/carry use seconds via 'duration_sec' instead)",
+      "duration_sec": "int — for holds/carries instead of reps",
+      "count_mode": "reps | cadence | time | none — how the voice counts it (default reps)",
+      "load_type": "bodyweight | weighted | either",
+      "rest_sec": "int — rest after each set"
+    },
+    "count_mode_default": "reps",
+    "count_toggle": "Rep counting (voice) is ON by default and follows every counted set; it is suppressed when the announcer/voice is toggled OFF (see voice-guidance). On-screen counter still runs.",
+    "pull_up_note": "Pull/muscle-up movements scale on their OWN lower curve (you can't rep 50 pull-ups) — see volume_ladder.by_category.pull."
+  },
+
+  "volume_ladder": {
+    "rule": "Reps/sets START basic and climb PER STAGE. Volume scales by (a) the campaign's stage TIER and (b) the movement CATEGORY (a pull-up ≠ a squat) and (c) difficulty (easy/normal/hard). These are PROPOSED, safety-passed numbers — the user's brainstorm ('1 set of 250', '10 sets of 20') is interpreted as high-volume EASY movements only, capped; hard/loaded movements stay in sane ranges.",
+    "status": "confirmed — CALIBRATED with the user as the elite HARD/peak ceiling, the average person mapped down to easy/normal. Explicit sets x reps per difficulty per tier (no multiplier). Reps are COUNTED.",
+    "calibration_note": "User (a strong athlete) reference points used as the HARD-peak ceiling: 5x10 pull-ups easy for them / 5x30 challenging; 5x100 abs; 5x50 squats not-too-hard / 5x100 hard; 4x2min holds challenging. So HARD@peak targets their 'challenging' level; NORMAL and EASY are scaled down for average/committed users. Their most extreme feats (5x100 squats/abs, 4x2min) live in the signature_challenge, not the base ladder.",
+    "tiers": {
+      "T1_foundation": "early stages (roughly first ~25%)",
+      "T2_development": "middle stages",
+      "T3_hard": "late stages",
+      "T4_peak": "peak/finale stages (top of the ladder)"
+    },
+    "format": "each cell is { sets, reps } (or { sets, sec } for holds), per difficulty. Peak targets: pull 30+, push 50, squat 50-60, core 50-75, hold 2-3min (all HARD).",
+    "by_category": {
+      "pull": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 3 },  "normal": { "sets": 3, "reps": 5 },  "hard": { "sets": 3, "reps": 8 } },
+        "T2": { "easy": { "sets": 3, "reps": 5 },  "normal": { "sets": 4, "reps": 8 },  "hard": { "sets": 4, "reps": 12 } },
+        "T3": { "easy": { "sets": 4, "reps": 6 },  "normal": { "sets": 4, "reps": 10 }, "hard": { "sets": 5, "reps": 15 } },
+        "T4": { "easy": { "sets": 4, "reps": 8 },  "normal": { "sets": 5, "reps": 15 }, "hard": { "sets": 5, "reps": 30 } },
+        "note": "pull-ups/muscle-ups. HARD peak 5x30 is an ELITE ceiling (user-calibrated) — most users won't reach it; band-assist, negatives, or fewer reps scale it. NEVER hit the number with kipping or partial reps."
+      },
+      "push": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 8 },  "normal": { "sets": 3, "reps": 12 }, "hard": { "sets": 3, "reps": 20 } },
+        "T2": { "easy": { "sets": 3, "reps": 15 }, "normal": { "sets": 4, "reps": 20 }, "hard": { "sets": 4, "reps": 30 } },
+        "T3": { "easy": { "sets": 4, "reps": 20 }, "normal": { "sets": 4, "reps": 30 }, "hard": { "sets": 5, "reps": 40 } },
+        "T4": { "easy": { "sets": 4, "reps": 25 }, "normal": { "sets": 5, "reps": 40 }, "hard": { "sets": 5, "reps": 50 } }
+      },
+      "squat_legs": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 12 }, "normal": { "sets": 3, "reps": 20 }, "hard": { "sets": 3, "reps": 30 } },
+        "T2": { "easy": { "sets": 3, "reps": 20 }, "normal": { "sets": 4, "reps": 30 }, "hard": { "sets": 4, "reps": 40 } },
+        "T3": { "easy": { "sets": 4, "reps": 25 }, "normal": { "sets": 5, "reps": 40 }, "hard": { "sets": 5, "reps": 50 } },
+        "T4": { "easy": { "sets": 4, "reps": 30 }, "normal": { "sets": 5, "reps": 50 }, "hard": { "sets": 5, "reps": 60 } }
+      },
+      "core": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 12 }, "normal": { "sets": 3, "reps": 20 }, "hard": { "sets": 3, "reps": 30 } },
+        "T2": { "easy": { "sets": 3, "reps": 20 }, "normal": { "sets": 4, "reps": 30 }, "hard": { "sets": 4, "reps": 40 } },
+        "T3": { "easy": { "sets": 4, "reps": 25 }, "normal": { "sets": 4, "reps": 40 }, "hard": { "sets": 5, "reps": 50 } },
+        "T4": { "easy": { "sets": 4, "reps": 30 }, "normal": { "sets": 5, "reps": 50 }, "hard": { "sets": 5, "reps": 75 } },
+        "note": "abs tolerate high volume; the user's 5x100 lives in signature_challenge."
+      },
+      "hold": {
+        "unit": "seconds",
+        "T1": { "easy": { "sets": 3, "sec": 20 }, "normal": { "sets": 3, "sec": 30 }, "hard": { "sets": 3, "sec": 45 } },
+        "T2": { "easy": { "sets": 3, "sec": 30 }, "normal": { "sets": 3, "sec": 45 }, "hard": { "sets": 4, "sec": 60 } },
+        "T3": { "easy": { "sets": 3, "sec": 45 }, "normal": { "sets": 4, "sec": 60 }, "hard": { "sets": 4, "sec": 90 } },
+        "T4": { "easy": { "sets": 4, "sec": 60 }, "normal": { "sets": 4, "sec": 90 }, "hard": { "sets": 4, "sec": 120 } },
+        "note": "planks/wall-sits, count_mode 'time'. HARD peak 4x2min = user's 'challenging'; a 3-min hold is the signature finale challenge."
+      },
+      "explosive": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 8 },  "normal": { "sets": 3, "reps": 10 }, "hard": { "sets": 3, "reps": 12 } },
+        "T2": { "easy": { "sets": 3, "reps": 10 }, "normal": { "sets": 3, "reps": 12 }, "hard": { "sets": 4, "reps": 12 } },
+        "T3": { "easy": { "sets": 4, "reps": 10 }, "normal": { "sets": 4, "reps": 12 }, "hard": { "sets": 4, "reps": 15 } },
+        "T4": { "easy": { "sets": 4, "reps": 12 }, "normal": { "sets": 4, "reps": 15 }, "hard": { "sets": 5, "reps": 15 } },
+        "note": "jumps/plyo — total foot-contacts ALWAYS respect the campaign's plyo foot-contact cap; never exceed it to hit a rep number."
+      }
+    },
+    "signature_challenge": {
+      "rule": "A campaign's finale MAY carry ONE high-volume 'signature' challenge for the anime feel — ONLY on a safe low-skill category (squats, abs, calf raises, holds), spread across sets, difficulty-scaled, never a grinding single set of a hard movement.",
+      "presets": {
+        "squat_century": { "easy": { "sets": 5, "reps": 12 }, "normal": { "sets": 5, "reps": 20 }, "hard": { "sets": 5, "reps": 24 }, "label": "The Century — 100+ squats" },
+        "abs_hundred":   { "easy": { "sets": 5, "reps": 20 }, "normal": { "sets": 5, "reps": 40 }, "hard": { "sets": 5, "reps": 100 }, "label": "Iron Core — up to the user's 5x100" },
+        "three_min_hold":{ "easy": { "sets": 1, "sec": 90 }, "normal": { "sets": 1, "sec": 150 }, "hard": { "sets": 1, "sec": 180 }, "label": "Immovable — 3-minute hold" }
+      }
+    },
+    "safety_caps": {
+      "pull_reps_per_set_max": 30,
+      "pull_note": "30 is the HARD-peak ceiling only; band-assist / negatives / fewer reps scale it. No kipping or partial reps to reach it.",
+      "explosive_bound": "campaign plyo foot-contact cap (never exceeded)",
+      "form_over_count": true,
+      "never": ["sets to failure", "grinding a hard movement (pull/push) for extreme reps", "exceeding the plyo cap via jumps", "counting through joint pain", "sacrificing form to hit the number"]
+    }
+  },
+
+  "weighted_flow": {
+    "rule": "When a movement needs/allows WEIGHT, the FIT session works partly like Workout Builder + Quick Mission: a review-and-approve setup, then a generated session.",
+    "setup_screen": {
+      "announcer": "States the STAGE + TITLE, then 'review your workouts and get ready' — giving the user time to set up.",
+      "per_exercise_actions": [
+        "APPROVE — a check mark confirms the exercise as-is",
+        "SWAP — swap for a similar weighted movement (same category/target)",
+        "MAKE BODYWEIGHT — convert a weighted movement to a bodyweight equivalent, which RE-RANGES it to a very high rep count equivalent to the weighted work (e.g. weighted row -> high-rep inverted rows)",
+        "MAKE WEIGHTED — convert a bodyweight movement to a weighted equivalent (user enters load), which re-ranges it to a lower, heavier rep band"
+      ],
+      "generate_button": "Stays inactive until ALL exercises are approved/adjusted; then it ACTIVATES and GLOWS. User taps -> the session is generated."
+    },
+    "bodyweight_to_weighted_reranging": {
+      "rule": "Converting bodyweight<->weighted swaps the rep band: bodyweight = high reps (endurance/volume), weighted = lower reps at load. Keep total stimulus roughly equivalent.",
+      "bands": { "bodyweight_heavy_equivalent": "high reps (e.g. 20-50 by category)", "weighted": "6-12 reps at a user-entered load" }
+    },
+    "announcer_go_script": "On generate + countdown: '3, 2, 1. Stage {n}: {persona/title}. {exerciseCount} workout(s). {exerciseName}, {setIndex} of {setCount} sets, {reps} reps! Ready — go!'  (e.g. 'Stage 5: Jack Hanma. 1 workout, Muscle-ups, 1 of 5 sets, 20 reps! Ready go!')"
+  },
+
+  "session_timing_behaviors": {
+    "bodyweight_counted": {
+      "rule": "Bodyweight sets are REP-COUNTED — the voice + counter count each rep so the user follows along. Counting is suppressed only if the announcer/voice is toggled OFF (on-screen counter still shows).",
+      "status": "need to add + test"
+    },
+    "weighted_timed": {
+      "rule": "For WEIGHTED work, after the announcer says 'go', a TIMER counts how long the round/set takes to complete. The user presses COMPLETE -> a bell rings -> rest begins.",
+      "adaptive_rest": {
+        "rule": "Rest length is computed from how long the set took AND the load entered — heavier + longer sets earn more rest. (Formula TBD; see engine placeholder.)",
+        "inputs": ["time_to_complete_sec", "load", "reps", "category"],
+        "status": "need to add + test"
+      },
+      "status": "need to add + test"
+    }
+  },
+
+  "fight_standard": {
+    "rule": "FIGHT sessions are FIGHT-FOCUS rounds (or COMBO-COACH based). Rounds may be NAMED for a franchise specialty, but every strike MUST resolve to one of the 4 canonical disciplines — pick the move equivalent.",
+    "canonical_disciplines": ["boxing", "kickboxing", "muay_thai", "mma"],
+    "franchise_move_equivalents": {
+      "rule": "A franchise-flavored move maps to a real canonical strike. The NAME can be thematic; the executed technique is canonical.",
+      "examples": [
+        { "flavor": "hard karate straight punch", "discipline": "boxing", "canonical": "hard cross" },
+        { "flavor": "kung-fu chain punch", "discipline": "boxing", "canonical": "rapid straight-punch combination" },
+        { "flavor": "one-punch finish", "discipline": "boxing", "canonical": "committed power cross (speed, not max-force chase)" },
+        { "flavor": "Muay Boran elbow", "discipline": "muay_thai", "canonical": "horizontal/​diagonal elbow" },
+        { "flavor": "low-kick sweep", "discipline": "kickboxing", "canonical": "low roundhouse kick" },
+        { "flavor": "clinch takedown setup", "discipline": "mma", "canonical": "clinch entry + off-balance (shadow/bag)" }
+      ]
+    },
+    "round_sources": ["fight_focus", "combo_coach"],
+    "combo_generation": {
+      "rule": "Arcade fight rounds route through the SAME combo generator as Combo Coach / Fight Focus — combos are GENERATED live and called by voice, never hardcoded into campaign data. Each fight round carries a `combo_spec` that seeds the generator.",
+      "combo_spec_shape": {
+        "generate_combos": "bool — true: numbered combos generated + voiced (Combo Coach style); false: technique/movement cues called instead (grappling, stance, footwork rounds)",
+        "focus": "string — the round's seed theme (e.g. hooks_body, jab_cross, chain_punches, counter)",
+        "allowed_strikes": "string[] — the strike vocabulary the generator may draw from this round",
+        "allowed_defense": "string[] — optional defensive calls mixed in (slip-left, slip-right, roll)",
+        "complexity": "single | intro | basic | standard | advanced | burst — base combo length band (engine scales by difficulty)",
+        "phantom": "bool — shadow-fight an imagined opponent (attack cue -> your response)",
+        "technique_cues": "string[] — the cue script when generate_combos is false (or mixed rounds)",
+        "emphasis": "string — one coaching emphasis the voice repeats",
+        "capped": "bool — output-capped round (targets, never max)"
+      },
+      "strike_vocabulary": {
+        "numbered": { "1": "jab", "2": "cross", "3": "lead hook", "4": "rear hook", "5": "lead uppercut", "6": "rear uppercut" },
+        "modifiers": { "b": "body (suffix — e.g. 2b = cross to body)", "oh": "overhand" },
+        "kicks_thai": { "lk": "low kick", "rk": "roundhouse", "tp": "teep", "kn": "knee", "el": "elbow" },
+        "defense": ["slip-left", "slip-right", "roll", "check"],
+        "note": "Same numbering as Combo Coach / Training Camp — one vocabulary app-wide. Kick/knee/elbow tokens only in kickboxing/muay_thai/mma rounds."
+      },
+      "complexity_bands": { "single": [1, 1], "intro": [1, 2], "basic": [2, 3], "standard": [2, 4], "advanced": [3, 5], "burst": [3, 6], "note": "combo length (strikes per call); difficulty shifts the max (easy -1, hard +1) via arcade-session-engine resolveComboParams" }
+    },
+    "finishers": {
+      "rule": "Random explosive BODYWEIGHT finishers may be inserted BETWEEN rounds or at the END as a finisher. Capped, voiced, and (jumps) counted toward the plyo cap.",
+      "pool": ["burpees", "tuck jumps", "jumping lunges", "mountain climbers", "sprawls", "squat jumps", "high knees"],
+      "placement": ["between_rounds", "end_of_session"],
+      "dosing": "short, capped bursts (e.g. 20-40s or a small rep count); never to failure; jumps count toward the campaign plyo foot-contact cap"
+    },
+    "guided_and_voiced": "All rounds, combinations, and finishers are guided and called out by the voice (voice-guidance contract, specs/22) with the campaign's voice pack."
+  },
+
+  "integrations": {
+    "voice_guidance": "Rep counts, cadence, combination callouts, announcer scripts, and finisher cues all run through the shared audio-guided timer (specs/22).",
+    "workout_builder_and_quick_mission": "The weighted setup flow reuses Workout Builder's swap/approve UX and Quick Mission's generate-and-go pattern.",
+    "difficulty_scaling": "Volume ladder + rep bands multiply by the campaign's easy/normal/hard difficulty.",
+    "plyo_caps": "Explosive reps + jump finishers always respect the campaign's plyo foot-contact cap."
+  }
+}

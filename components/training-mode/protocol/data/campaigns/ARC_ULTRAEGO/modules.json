@@ -1,292 +1,3509 @@
 {
-  "notes": "24 modules: fit + fight per stage. 'difficulty' is the normal baseline; 'difficulty_variants' override sets/rounds/rest per the campaign difficulty_scaling. Fight round counts/lengths resolve from campaign.difficulty_scaling.fight unless a module overrides (Stage 12 boss does). Taper stages 10-11 additionally apply campaign.stage_load_multiplier to volume.",
+  "notes": "24 modules: fit + fight per stage. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). FIT modules now carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry `round_source`, a `canonical_map` (thematic drill -> canonical discipline + move), and a `finishers` block (explosive bodyweight between/after rounds, capped, counting toward the plyo cap). Tier map: T1 stages 1-3, T2 4-6, T3 7-9, T4 10-12. 'difficulty' is the normal baseline; 'difficulty_variants' override sets/rounds/rest per the campaign difficulty_scaling. Fight round counts/lengths resolve from campaign.difficulty_scaling.fight unless a module overrides (Stage 12 boss does). Taper stages 10-11 additionally apply campaign.stage_load_multiplier to volume and stay DELOAD-light (tier ladder not applied). SAFETY: power without control is failure — never reward reckless technique, intentionally absorbing strikes, or poor form used to complete a higher difficulty; jumping strikes are excluded on easy; neck work stays gentle and controlled. Split stages 4-11 are SKILL-FIRST (fight = morning, fit = evening).",
+  "both_rules": {
+    "description": "When a stage is run as BOTH (fit + fight combined).",
+    "sequencing": "Skill/fight first while fresh, then fit. Stages 4-11 are already skill-first split (fight = AM, fit = PM); stages 1-3 and 12 are single-session, so BOTH runs fight -> fit back-to-back.",
+    "shared_plyo_cap": "The campaign plyo foot-contact cap is counted ACROSS the whole session — fight finishers + fit explosive share it; if combined would exceed it, the fit explosive block trims first.",
+    "volume_sanity": "In a single-session BOTH (stages 1-3, 12), fit accessory volume may drop one notch so two full high-volume blocks aren't stacked.",
+    "readiness": "A BOTH day is a HARD day: readiness gate applies before starting, and it won't schedule back-to-back with another hard day.",
+    "announcer": "States the combined plan up front (e.g. 'Stage 4: Immovable Force. Fight — Grounded Power, 6 rounds. Then Fit — Grounding and Bracing, 6 workouts.')."
+  },
   "modules": [
-
-    { "module_id": "MOD_UE_S01_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 25,
+    {
+      "module_id": "MOD_UE_S01_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 25,
       "title": "Foundation Prep",
-      "exercises": ["Neck activation", "Y-W-T shoulder sequence", "Incline or standard push-ups", "Bodyweight squats", "Front plank", "Hip and ankle mobility"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [4, 6],
-      "rounds": [{ "index": 1, "length_sec": 1320, "rest_sec": 0, "goal": "guided_circuit" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "BAND": "bodyweight_only", "MAT": "floor_space" } },
-
-    { "module_id": "MOD_UE_S01_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "single", "duration_min": 20,
+      "tier": "T1",
+      "prescription": [
+        {
+          "name": "Neck activation",
+          "category": "mobility",
+          "sets": 2,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 30,
+          "note": "gentle, controlled — never loaded or forced"
+        },
+        {
+          "name": "Y-W-T shoulder sequence",
+          "category": "mobility",
+          "sets": 2,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 30
+        },
+        {
+          "name": "Incline or standard push-ups",
+          "category": "push",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Bodyweight squats",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Front plank",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Hip and ankle mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        4,
+        6
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1320,
+          "rest_sec": 0,
+          "goal": "guided_circuit"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "BAND": "bodyweight_only",
+        "MAT": "floor_space"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S01_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 20,
       "title": "Stance and Guard",
-      "drills": ["Fighting stance", "High guard", "Grounded posture", "Forward and backward movement", "Jab-cross", "Basic rear knee", "Guard recovery after every strike"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [4, 6],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "stance_guard_posture" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "forward_backward_movement" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "jab_cross_guard_recovery" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "rear_knee_basics" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "free_round_no_rushing" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Fighting stance",
+        "High guard",
+        "Grounded posture",
+        "Forward and backward movement",
+        "Jab-cross",
+        "Basic rear knee",
+        "Guard recovery after every strike"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": {} },
-
-    { "module_id": "MOD_UE_S02_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 30,
+      "canonical_map": [
+        {
+          "drill": "Fighting stance",
+          "discipline": "muay_thai",
+          "canonical": "square muay thai stance"
+        },
+        {
+          "drill": "High guard",
+          "discipline": "muay_thai",
+          "canonical": "high guard"
+        },
+        {
+          "drill": "Grounded posture",
+          "discipline": "muay_thai",
+          "canonical": "grounded posture / weight distribution"
+        },
+        {
+          "drill": "Forward and backward movement",
+          "discipline": "muay_thai",
+          "canonical": "advance/retreat footwork"
+        },
+        {
+          "drill": "Jab-cross",
+          "discipline": "boxing",
+          "canonical": "jab, cross"
+        },
+        {
+          "drill": "Basic rear knee",
+          "discipline": "muay_thai",
+          "canonical": "rear straight knee"
+        },
+        {
+          "drill": "Guard recovery after every strike",
+          "discipline": "muay_thai",
+          "canonical": "strike-recover to guard"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "squat jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        4,
+        6
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "stance_guard_posture",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "stance_guard",
+            "technique_cues": [
+              "stance set",
+              "guard up",
+              "chin down",
+              "stay grounded"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "forward_backward_movement",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "footwork",
+            "technique_cues": [
+              "advance",
+              "retreat",
+              "small steps",
+              "never cross the feet"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "jab_cross_guard_recovery",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_cross",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "recover the guard after every strike"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "rear_knee_basics",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "rear_knee",
+            "allowed_strikes": [
+              "kn"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "drive the hips, land balanced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "free_round_no_rushing",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "freestyle",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "kn"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "no rushing"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {}
+    },
+    {
+      "module_id": "MOD_UE_S02_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 30,
       "title": "Frame Builder",
-      "exercises": ["Pull-up or band-assisted pull-up", "Inverted row", "Hanging shrug or band shrug", "Typewriter push-up progression", "Farmer hold or towel-grip hold", "Dead-bug core drill"],
-      "warmup": ["dynamic_stretch_3min", "band_pullapart_2min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "guided_strength_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "PULLUP_BAR": "doorway_row_or_towel_isometric", "LIGHT_WEIGHTS": "bodyweight_shoulder_work" } },
-
-    { "module_id": "MOD_UE_S02_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "single", "duration_min": 22,
+      "tier": "T1",
+      "prescription": [
+        {
+          "name": "Pull-up or band-assisted pull-up",
+          "category": "pull",
+          "sets": 3,
+          "reps": 5,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90
+        },
+        {
+          "name": "Inverted row",
+          "category": "pull",
+          "sets": 3,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "rows scale easier than the pull-up ladder — tuned up slightly, still conservative"
+        },
+        {
+          "name": "Hanging shrug or band shrug",
+          "category": "pull",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 45,
+          "note": "scapular accessory — off-ladder small dose"
+        },
+        {
+          "name": "Typewriter push-up progression",
+          "category": "push",
+          "sets": 3,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "harder push variant — tuned below the push-up ladder"
+        },
+        {
+          "name": "Farmer hold or towel-grip hold",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60
+        },
+        {
+          "name": "Dead-bug core drill",
+          "category": "core",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "band_pullapart_2min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "guided_strength_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "PULLUP_BAR": "doorway_row_or_towel_isometric",
+        "LIGHT_WEIGHTS": "bodyweight_shoulder_work"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S02_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 22,
       "title": "Controlled Aggression",
-      "drills": ["Aggressive but controlled shadowboxing", "Jab-cross-hook", "Jab-cross-rear knee", "Forward pressure step", "Combination followed by guard reset", "Breathing during combinations"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [5, 7],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "jab_cross_hook" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "jab_cross_rear_knee" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "pressure_step_combo_reset" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "breathing_through_combos" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "controlled_aggression_free" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Aggressive but controlled shadowboxing",
+        "Jab-cross-hook",
+        "Jab-cross-rear knee",
+        "Forward pressure step",
+        "Combination followed by guard reset",
+        "Breathing during combinations"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": {} },
-
-    { "module_id": "MOD_UE_S03_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 30,
+      "canonical_map": [
+        {
+          "drill": "Aggressive but controlled shadowboxing",
+          "discipline": "muay_thai",
+          "canonical": "controlled-pressure shadowboxing"
+        },
+        {
+          "drill": "Jab-cross-hook",
+          "discipline": "boxing",
+          "canonical": "jab, cross, lead hook"
+        },
+        {
+          "drill": "Jab-cross-rear knee",
+          "discipline": "muay_thai",
+          "canonical": "jab, cross, rear knee"
+        },
+        {
+          "drill": "Forward pressure step",
+          "discipline": "muay_thai",
+          "canonical": "pressure step (forward march)"
+        },
+        {
+          "drill": "Combination followed by guard reset",
+          "discipline": "muay_thai",
+          "canonical": "combination + guard reset"
+        },
+        {
+          "drill": "Breathing during combinations",
+          "discipline": "muay_thai",
+          "canonical": "breath control while striking"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "high knees"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "jab_cross_hook",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_cross_hook",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "intro",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "jab_cross_rear_knee",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_to_knee",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "kn"
+            ],
+            "complexity": "intro",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "pressure_step_combo_reset",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "pressure_reset",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "step forward, strike, reset the guard"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "breathing_through_combos",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "breath_control",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "exhale on every strike"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "controlled_aggression_free",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "freestyle",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "kn"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "aggressive but controlled"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {}
+    },
+    {
+      "module_id": "MOD_UE_S03_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 30,
       "title": "Lower-Body Base",
-      "exercises": ["Heel-elevated goblet squat", "Bodyweight squat stance sequence", "Reverse lunge", "Calf raise", "Kettlebell swing progression", "V-up or bent-knee core variation"],
-      "warmup": ["dynamic_stretch_3min", "ankle_hip_mobility_2min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "guided_leg_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "KETTLEBELL": "light_dumbbell_or_bodyweight" } },
-
-    { "module_id": "MOD_UE_S03_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "single", "duration_min": 22,
+      "tier": "T1",
+      "prescription": [
+        {
+          "name": "Heel-elevated goblet squat",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "loaded squat variant — tuned below the air-squat ladder"
+        },
+        {
+          "name": "Bodyweight squat stance sequence",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Reverse lunge",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 16,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "8/side, unilateral — tuned below the air-squat ladder"
+        },
+        {
+          "name": "Calf raise",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Kettlebell swing progression",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "swing/hinge rep band — tuned below the air-squat ladder"
+        },
+        {
+          "name": "V-up or bent-knee core variation",
+          "category": "core",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "ankle_hip_mobility_2min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "guided_leg_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "KETTLEBELL": "light_dumbbell_or_bodyweight"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S03_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 22,
       "title": "Grounded Kicks",
-      "drills": ["Pressure footwork", "Jab-low kick", "Cross-lead hook-low kick", "Rear knee from a grounded stance", "Basic kick recovery", "Step-in and step-out drills"],
-      "warmup": ["shadowbox_3min", "leg_swings_2min"], "target_rpe": [5, 7],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "pressure_footwork" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "jab_low_kick" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "cross_hook_low_kick" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "rear_knee_balance_recovery" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "step_in_step_out" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Pressure footwork",
+        "Jab-low kick",
+        "Cross-lead hook-low kick",
+        "Rear knee from a grounded stance",
+        "Basic kick recovery",
+        "Step-in and step-out drills"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "controlled_shadow_kicks" } },
-
-    { "module_id": "MOD_UE_S04_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 32,
+      "canonical_map": [
+        {
+          "drill": "Pressure footwork",
+          "discipline": "muay_thai",
+          "canonical": "forward-pressure footwork"
+        },
+        {
+          "drill": "Jab-low kick",
+          "discipline": "muay_thai",
+          "canonical": "jab + rear low kick"
+        },
+        {
+          "drill": "Cross-lead hook-low kick",
+          "discipline": "muay_thai",
+          "canonical": "cross, lead hook, low kick"
+        },
+        {
+          "drill": "Rear knee from a grounded stance",
+          "discipline": "muay_thai",
+          "canonical": "rear knee from grounded stance"
+        },
+        {
+          "drill": "Basic kick recovery",
+          "discipline": "muay_thai",
+          "canonical": "kick recovery to stance"
+        },
+        {
+          "drill": "Step-in and step-out drills",
+          "discipline": "muay_thai",
+          "canonical": "step-in / step-out range control"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "squat jumps",
+          "mountain climbers"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "leg_swings_2min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "pressure_footwork",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "pressure_footwork",
+            "technique_cues": [
+              "small forward steps",
+              "stay grounded",
+              "guard up",
+              "cut the angle"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "jab_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_low_kick",
+            "allowed_strikes": [
+              "1",
+              "lk"
+            ],
+            "complexity": "intro",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "cross_hook_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_kick_chain",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "rear_knee_balance_recovery",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "rear_knee",
+            "allowed_strikes": [
+              "kn"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "finish every knee in a balanced stance"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "step_in_step_out",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "range_control",
+            "technique_cues": [
+              "step in",
+              "strike range",
+              "step out",
+              "reset stance"
+            ],
+            "callout": "voiced"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "controlled_shadow_kicks"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S04_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 32,
       "title": "Grounding and Bracing",
-      "exercises": ["Stability plank", "Medicine-ball chest throw", "Sumo deadlift or kettlebell deadlift", "Pallof press", "Loaded carry", "Neck isometric series"],
-      "warmup": ["dynamic_stretch_3min", "bracing_drill_2min"], "target_rpe": [6, 7],
-      "rounds": [{ "index": 1, "length_sec": 1800, "rest_sec": 0, "goal": "guided_bracing_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "MEDICINE_BALL": "band_press", "KETTLEBELL": "light_weights_or_band" } },
-
-    { "module_id": "MOD_UE_S04_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
+      "tier": "T2",
+      "weighted_flow": true,
+      "prescription": [
+        {
+          "name": "Stability plank",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Medicine-ball chest throw",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 75
+        },
+        {
+          "name": "Sumo deadlift or kettlebell deadlift",
+          "category": "squat_legs",
+          "sets": 4,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120,
+          "note": "heavy hinge — 5-8 rep band, NOT to failure"
+        },
+        {
+          "name": "Pallof press",
+          "category": "core",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 45,
+          "note": "per side"
+        },
+        {
+          "name": "Loaded carry",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 90
+        },
+        {
+          "name": "Neck isometric series",
+          "category": "mobility",
+          "sets": 2,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 30,
+          "note": "gentle isometrics — hands-only resistance, never loaded"
+        }
+      ],
+      "rules": [
+        "Predetermined targets — no ego-load, no grinding to collapse",
+        "WEIGHTED FLOW: review/approve/swap -> Generate -> timed sets + adaptive rest (specs/27)"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "bracing_drill_2min"
+      ],
+      "target_rpe": [
+        6,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1800,
+          "rest_sec": 0,
+          "goal": "guided_bracing_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "MEDICINE_BALL": "band_press",
+        "KETTLEBELL": "light_weights_or_band"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S04_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
       "title": "Grounded Power",
-      "drills": ["Power jab-cross", "Lead hook-rear low kick", "Cross-hook-rear knee", "Heavy single-strike bag work", "Combination followed by defensive brace", "Controlled power rounds"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [6, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "power_jab_cross" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "hook_rear_low_kick" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "cross_hook_rear_knee" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "heavy_single_strikes" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "combo_defensive_brace" },
-        { "index": 6, "length_sec": 120, "rest_sec": 60, "goal": "controlled_power_round" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Power jab-cross",
+        "Lead hook-rear low kick",
+        "Cross-hook-rear knee",
+        "Heavy single-strike bag work",
+        "Combination followed by defensive brace",
+        "Controlled power rounds"
       ],
-      "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "power_shadowboxing_controlled" } },
-
-    { "module_id": "MOD_UE_S05_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 30,
+      "canonical_map": [
+        {
+          "drill": "Power jab-cross",
+          "discipline": "boxing",
+          "canonical": "power jab + cross"
+        },
+        {
+          "drill": "Lead hook-rear low kick",
+          "discipline": "muay_thai",
+          "canonical": "lead hook + rear low kick"
+        },
+        {
+          "drill": "Cross-hook-rear knee",
+          "discipline": "muay_thai",
+          "canonical": "cross, lead hook, rear knee"
+        },
+        {
+          "drill": "Heavy single-strike bag work",
+          "discipline": "muay_thai",
+          "canonical": "committed single power strike"
+        },
+        {
+          "drill": "Combination followed by defensive brace",
+          "discipline": "muay_thai",
+          "canonical": "combination + guard brace"
+        },
+        {
+          "drill": "Controlled power rounds",
+          "discipline": "muay_thai",
+          "canonical": "controlled power output"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "jumping lunges"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "power_jab_cross",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_cross_power",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "power from the floor"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "hook_rear_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "hook_low_kick",
+            "allowed_strikes": [
+              "3",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "power"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "cross_hook_rear_knee",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_to_knee",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "kn"
+            ],
+            "complexity": "basic",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "heavy_single_strikes",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "heavy_single",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "rk"
+            ],
+            "complexity": "single",
+            "callout": "voiced",
+            "emphasis": "full commitment, then reset"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "combo_defensive_brace",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "combo_brace",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "check"
+            ],
+            "emphasis": "brace the guard after every combination"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "controlled_power_round",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "power_control",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk",
+              "kn"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "power under control"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 5,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "power_shadowboxing_controlled"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S05_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 30,
       "title": "Aerobic Engine",
-      "exercises": ["Easy roadwork, bike, or walk-jog", "Jump rope", "Push-ups", "Squats", "Pull-up or row variation", "Core circuit"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "engine_building_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "JUMP_ROPE": "invisible_rope", "PULLUP_BAR": "band_row" } },
-
-    { "module_id": "MOD_UE_S05_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
+      "tier": "T2",
+      "prescription": [
+        {
+          "name": "Easy roadwork, bike, or walk-jog",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 480,
+          "count_mode": "time",
+          "rest_sec": 60
+        },
+        {
+          "name": "Jump rope",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "low bounce, land soft — light foot-contact work"
+        },
+        {
+          "name": "Push-ups",
+          "category": "push",
+          "sets": 4,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Squats",
+          "category": "squat_legs",
+          "sets": 4,
+          "reps": 30,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Pull-up or row variation",
+          "category": "pull",
+          "sets": 4,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90
+        },
+        {
+          "name": "Core circuit",
+          "category": "core",
+          "sets": 4,
+          "reps": 30,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "engine_building_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "JUMP_ROPE": "invisible_rope",
+        "PULLUP_BAR": "band_row"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S05_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
       "title": "Pressure Combinations",
-      "drills": ["Double jab-cross", "Jab-cross-hook-low kick", "Cross-hook-cross-rear knee", "Forward combination and angle exit", "Bag-pressure rounds", "Controlled output surges"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [6, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "double_jab_cross" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "jab_cross_hook_low_kick" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "cross_hook_cross_rear_knee" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "forward_combo_angle_exit" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "bag_pressure_round" },
-        { "index": 6, "length_sec": 120, "rest_sec": 45, "goal": "controlled_output_surges" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Double jab-cross",
+        "Jab-cross-hook-low kick",
+        "Cross-hook-cross-rear knee",
+        "Forward combination and angle exit",
+        "Bag-pressure rounds",
+        "Controlled output surges"
       ],
-      "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "shadowboxing", "JUMP_ROPE": "invisible_rope" } },
-
-    { "module_id": "MOD_UE_S06_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28,
+      "canonical_map": [
+        {
+          "drill": "Double jab-cross",
+          "discipline": "boxing",
+          "canonical": "double jab + cross"
+        },
+        {
+          "drill": "Jab-cross-hook-low kick",
+          "discipline": "muay_thai",
+          "canonical": "jab, cross, lead hook, low kick"
+        },
+        {
+          "drill": "Cross-hook-cross-rear knee",
+          "discipline": "muay_thai",
+          "canonical": "cross, hook, cross, rear knee"
+        },
+        {
+          "drill": "Forward combination and angle exit",
+          "discipline": "muay_thai",
+          "canonical": "forward combination + angle-off"
+        },
+        {
+          "drill": "Bag-pressure rounds",
+          "discipline": "muay_thai",
+          "canonical": "sustained-pressure bag work"
+        },
+        {
+          "drill": "Controlled output surges",
+          "discipline": "muay_thai",
+          "canonical": "output surge (controlled)"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "burpees"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "double_jab_cross",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "double_jab",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "double up the jab"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "jab_cross_hook_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_kick_chain",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "cross_hook_cross_rear_knee",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_to_knee",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "kn"
+            ],
+            "complexity": "standard",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "forward_combo_angle_exit",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "combo_exit",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "angle off after every combination"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "bag_pressure_round",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "pressure",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "constant forward pressure"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "controlled_output_surges",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "surge",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "surge, then compose"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 5,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "shadowboxing",
+        "JUMP_ROPE": "invisible_rope"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S06_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 28,
       "title": "Defensive Structure",
-      "exercises": ["Neck mobility and isometrics", "Shoulder stability", "Plank shoulder taps", "Rotational core work", "Light roadwork", "Mobility sequence"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1500, "rest_sec": 0, "goal": "defensive_structure_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": {} },
-
-    { "module_id": "MOD_UE_S06_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
+      "tier": "T2",
+      "prescription": [
+        {
+          "name": "Neck mobility and isometrics",
+          "category": "mobility",
+          "sets": 2,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 30,
+          "note": "gentle isometrics — hands-only resistance"
+        },
+        {
+          "name": "Shoulder stability",
+          "category": "mobility",
+          "sets": 2,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 45
+        },
+        {
+          "name": "Plank shoulder taps",
+          "category": "core",
+          "sets": 4,
+          "reps": 30,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45,
+          "note": "15/side"
+        },
+        {
+          "name": "Rotational core work",
+          "category": "core",
+          "sets": 4,
+          "reps": 30,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Light roadwork",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 480,
+          "count_mode": "time",
+          "rest_sec": 0
+        },
+        {
+          "name": "Mobility sequence",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 180,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1500,
+          "rest_sec": 0,
+          "goal": "defensive_structure_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {}
+    },
+    {
+      "module_id": "MOD_UE_S06_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
       "title": "Head Movement and Counters",
-      "drills": ["Slip-cross", "Roll-hook", "Roll-cross-hook", "Block-return", "Parry-cross-low kick", "Defensive movement around the bag"],
-      "warmup": ["shadowbox_3min", "slip_line_2min"], "target_rpe": [6, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "slip_cross" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "roll_hook" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "roll_cross_hook" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "block_return" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "parry_cross_low_kick" },
-        { "index": 6, "length_sec": 120, "rest_sec": 45, "goal": "defensive_movement_free" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Slip-cross",
+        "Roll-hook",
+        "Roll-cross-hook",
+        "Block-return",
+        "Parry-cross-low kick",
+        "Defensive movement around the bag"
       ],
-      "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "SLIP_LINE": "wall_marker_or_shadow_defense", "HEAVY_BAG": "shadowboxing" } },
-
-    { "module_id": "MOD_UE_S07_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 36,
+      "canonical_map": [
+        {
+          "drill": "Slip-cross",
+          "discipline": "boxing",
+          "canonical": "slip + counter cross"
+        },
+        {
+          "drill": "Roll-hook",
+          "discipline": "boxing",
+          "canonical": "roll + lead hook"
+        },
+        {
+          "drill": "Roll-cross-hook",
+          "discipline": "boxing",
+          "canonical": "roll + cross + lead hook"
+        },
+        {
+          "drill": "Block-return",
+          "discipline": "muay_thai",
+          "canonical": "block (check/guard) + return combination"
+        },
+        {
+          "drill": "Parry-cross-low kick",
+          "discipline": "muay_thai",
+          "canonical": "parry + cross + low kick"
+        },
+        {
+          "drill": "Defensive movement around the bag",
+          "discipline": "muay_thai",
+          "canonical": "defensive ring movement"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "mountain climbers"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "slip_line_2min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "slip_cross",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "slip_counter",
+            "allowed_strikes": [
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right"
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "roll_hook",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "roll_counter",
+            "allowed_strikes": [
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "roll"
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "roll_cross_hook",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "roll_counter",
+            "allowed_strikes": [
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "roll"
+            ]
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "block_return",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "block_return",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "check"
+            ],
+            "emphasis": "block first, then return"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "parry_cross_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "parry_counter",
+            "allowed_strikes": [
+              "2",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "check"
+            ],
+            "emphasis": "parry, then cross into the low kick"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "defensive_movement_free",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "defensive_freestyle",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll"
+            ],
+            "emphasis": "move first, counter second"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 5,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SLIP_LINE": "wall_marker_or_shadow_defense",
+        "HEAVY_BAG": "shadowboxing"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S07_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 36,
       "title": "Strength Endurance",
-      "exercises": ["Military press", "Shrug variation", "Pull-up or pulldown", "Bent-over row", "Goblet or front squat", "Loaded carry", "High-repetition bodyweight finisher"],
-      "warmup": ["dynamic_stretch_3min", "band_activation_2min"], "target_rpe": [7, 8],
-      "rounds": [{ "index": 1, "length_sec": 2040, "rest_sec": 0, "goal": "strength_endurance_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "LIGHT_WEIGHTS": "bands_backpack_bodyweight", "PULLUP_BAR": "band_pulldown" } },
-
-    { "module_id": "MOD_UE_S07_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 28,
+      "tier": "T3",
+      "weighted_flow": true,
+      "prescription": [
+        {
+          "name": "Military press",
+          "category": "push",
+          "sets": 4,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Shrug variation",
+          "category": "pull",
+          "sets": 4,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Pull-up or pulldown",
+          "category": "pull",
+          "sets": 4,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120,
+          "note": "weighted or hardest strict progression"
+        },
+        {
+          "name": "Bent-over row",
+          "category": "pull",
+          "sets": 4,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Goblet or front squat",
+          "category": "squat_legs",
+          "sets": 4,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Loaded carry",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 90
+        },
+        {
+          "name": "High-repetition bodyweight finisher",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "time",
+          "rest_sec": 0,
+          "note": "capped target, not AMRAP"
+        }
+      ],
+      "rules": [
+        "Predetermined targets — no ego-load, no grinding to collapse",
+        "WEIGHTED FLOW: review/approve/swap -> Generate -> timed sets + adaptive rest (specs/27)"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "band_activation_2min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 2040,
+          "rest_sec": 0,
+          "goal": "strength_endurance_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "LIGHT_WEIGHTS": "bands_backpack_bodyweight",
+        "PULLUP_BAR": "band_pulldown"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S07_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 28,
       "title": "Power Pressure",
-      "drills": ["Punch combination into low kick", "Body-head combination", "Rear knee after boxing entry", "Clinch-position knees on the bag", "Power rounds", "Short output bursts followed by composed movement"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [7, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "punch_combo_low_kick" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "body_head_combo" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "boxing_entry_rear_knee" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "clinch_knees_on_bag" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "power_round" },
-        { "index": 6, "length_sec": 120, "rest_sec": 60, "goal": "burst_then_composure" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Punch combination into low kick",
+        "Body-head combination",
+        "Rear knee after boxing entry",
+        "Clinch-position knees on the bag",
+        "Power rounds",
+        "Short output bursts followed by composed movement"
       ],
-      "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "power_shadowboxing" } },
-
-    { "module_id": "MOD_UE_S08_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28,
+      "canonical_map": [
+        {
+          "drill": "Punch combination into low kick",
+          "discipline": "muay_thai",
+          "canonical": "punch combination + low kick"
+        },
+        {
+          "drill": "Body-head combination",
+          "discipline": "boxing",
+          "canonical": "body-head combination (2b/3b to head)"
+        },
+        {
+          "drill": "Rear knee after boxing entry",
+          "discipline": "muay_thai",
+          "canonical": "boxing entry + rear knee"
+        },
+        {
+          "drill": "Clinch-position knees on the bag",
+          "discipline": "muay_thai",
+          "canonical": "clinch knees (bag)",
+          "type": "clinch"
+        },
+        {
+          "drill": "Power rounds",
+          "discipline": "muay_thai",
+          "canonical": "power combination output"
+        },
+        {
+          "drill": "Short output bursts followed by composed movement",
+          "discipline": "muay_thai",
+          "canonical": "output burst + composed movement"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "burpees",
+          "tuck jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 30,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "punch_combo_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_kick_chain",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "power"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "body_head_combo",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "body_head",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "2b",
+              "3b"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "body first, head second"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "boxing_entry_rear_knee",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "entry_knee",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "kn"
+            ],
+            "complexity": "standard",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "clinch_knees_on_bag",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "clinch_knees",
+            "technique_cues": [
+              "clinch frame",
+              "posture tall",
+              "snap the knee",
+              "re-clinch"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "power_round",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "power_combo",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "4",
+              "rk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "power"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "burst_then_composure",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "burst_composure",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "burst, then composed movement"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 5,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "power_shadowboxing"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S08_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 28,
       "title": "Speed and Agility",
-      "exercises": ["Jump rope", "Ladder or line drills", "Cone-direction changes", "Short sprint intervals", "Low-volume jump training", "Medicine-ball rotational throw"],
-      "warmup": ["dynamic_stretch_3min", "fast_feet_2min"], "target_rpe": [6, 8],
-      "rounds": [{ "index": 1, "length_sec": 1500, "rest_sec": 0, "goal": "speed_agility_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "CONES": "floor_lines", "MEDICINE_BALL": "bodyweight_rotational_jumps", "JUMP_ROPE": "invisible_rope" } },
-
-    { "module_id": "MOD_UE_S08_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 26,
+      "tier": "T3",
+      "prescription": [
+        {
+          "name": "Jump rope",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "low bounce, land soft"
+        },
+        {
+          "name": "Ladder or line drills",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Cone-direction changes",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Short sprint intervals",
+          "category": "conditioning",
+          "sets": 4,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 60
+        },
+        {
+          "name": "Low-volume jump training",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "plyo_counted": true,
+          "note": "kept low-volume — tuned below the explosive ladder, respects the plyo cap"
+        },
+        {
+          "name": "Medicine-ball rotational throw",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "fast_feet_2min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1500,
+          "rest_sec": 0,
+          "goal": "speed_agility_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "CONES": "floor_lines",
+        "MEDICINE_BALL": "bodyweight_rotational_jumps",
+        "JUMP_ROPE": "invisible_rope"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S08_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
       "title": "Explosive Attack",
-      "drills": ["Fast-entry jab-cross", "Punch-kick burst combinations", "Jumping knee progression", "Step-through knee", "Angle change into power combination", "Aggressive shadowboxing rounds"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [7, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "fast_entry_jab_cross" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "punch_kick_bursts" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "jumping_knee_progression" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "step_through_knee" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "angle_change_power_combo" },
-        { "index": 6, "length_sec": 120, "rest_sec": 60, "goal": "aggressive_shadow_round" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Fast-entry jab-cross",
+        "Punch-kick burst combinations",
+        "Jumping knee progression",
+        "Step-through knee",
+        "Angle change into power combination",
+        "Aggressive shadowboxing rounds"
       ],
-      "completion_rules": { "min_rounds_completed": 5, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "shadow_knees" },
-      "difficulty_notes": { "easy": "no jumping strikes — replace jumping knee with rear knee" } },
-
-    { "module_id": "MOD_UE_S09_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 38,
+      "canonical_map": [
+        {
+          "drill": "Fast-entry jab-cross",
+          "discipline": "boxing",
+          "canonical": "fast-entry jab + cross"
+        },
+        {
+          "drill": "Punch-kick burst combinations",
+          "discipline": "muay_thai",
+          "canonical": "punch-kick burst combination"
+        },
+        {
+          "drill": "Jumping knee progression",
+          "discipline": "muay_thai",
+          "canonical": "jumping knee (progression; easy = rear knee)"
+        },
+        {
+          "drill": "Step-through knee",
+          "discipline": "muay_thai",
+          "canonical": "step-through knee"
+        },
+        {
+          "drill": "Angle change into power combination",
+          "discipline": "muay_thai",
+          "canonical": "angle change + power combination"
+        },
+        {
+          "drill": "Aggressive shadowboxing rounds",
+          "discipline": "muay_thai",
+          "canonical": "aggressive shadowboxing (controlled)"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "tuck jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "fast_entry_jab_cross",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "fast_entry",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "explode in, recover to stance"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "punch_kick_bursts",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_kick_burst",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "lk",
+              "rk"
+            ],
+            "complexity": "burst",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "jumping_knee_progression",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jumping_knee",
+            "allowed_strikes": [
+              "kn"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "progress to the jump only if stable — land balanced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "step_through_knee",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "step_through_knee",
+            "allowed_strikes": [
+              "kn"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "step through into the knee"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "angle_change_power_combo",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "angle_power",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "rk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "change the angle, then power"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "aggressive_shadow_round",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "aggressive_freestyle",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "lk",
+              "kn"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "aggressive but controlled"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 5,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "shadow_knees"
+      },
+      "difficulty_notes": {
+        "easy": "no jumping strikes — replace jumping knee with rear knee"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S09_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 38,
       "title": "Destroyer Circuit",
-      "exercises": ["Dive-bomber push-ups", "Tiptoe jumping squats", "Archer pull-up progression", "Tiger-rock push-ups", "V-ups", "Loaded carries", "Neck isometrics", "Short conditioning intervals"],
-      "warmup": ["dynamic_stretch_3min", "activation_3min"], "target_rpe": [7, 9],
-      "rounds": [{ "index": 1, "length_sec": 2160, "rest_sec": 0, "goal": "destroyer_circuit" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "PULLUP_BAR": "band_row", "LIGHT_WEIGHTS": "bodyweight_only" } },
-
-    { "module_id": "MOD_UE_S09_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 30,
+      "tier": "T3",
+      "prescription": [
+        {
+          "name": "Dive-bomber push-ups",
+          "category": "push",
+          "sets": 4,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "harder push variant — tuned below the push-up ladder"
+        },
+        {
+          "name": "Tiptoe jumping squats",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "plyo_counted": true
+        },
+        {
+          "name": "Archer pull-up progression",
+          "category": "pull",
+          "sets": 4,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90,
+          "note": "3/side, unilateral progression — tuned below the pull-up ladder"
+        },
+        {
+          "name": "Tiger-rock push-ups",
+          "category": "push",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "flow push variant — tuned below the push-up ladder"
+        },
+        {
+          "name": "V-ups",
+          "category": "core",
+          "sets": 4,
+          "reps": 40,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Loaded carries",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 90
+        },
+        {
+          "name": "Neck isometrics",
+          "category": "mobility",
+          "sets": 2,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 30,
+          "note": "gentle isometrics — hands-only resistance"
+        },
+        {
+          "name": "Short conditioning intervals",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 60
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "activation_3min"
+      ],
+      "target_rpe": [
+        7,
+        9
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 2160,
+          "rest_sec": 0,
+          "goal": "destroyer_circuit"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "PULLUP_BAR": "band_row",
+        "LIGHT_WEIGHTS": "bodyweight_only"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S09_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 30,
       "title": "Pressure Test",
-      "drills": ["Forward-pressure bag rounds", "Body-to-head combinations", "Low-kick accumulation", "Knee and clinch-pressure rounds", "Defense-to-counter rounds", "High-output finishing intervals", "Tactical opponent simulation"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [7, 9],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "forward_pressure" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "body_to_head_combos" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "low_kick_accumulation" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "knee_clinch_pressure" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "defense_to_counter" },
-        { "index": 6, "length_sec": 120, "rest_sec": 45, "goal": "high_output_finish" },
-        { "index": 7, "length_sec": 120, "rest_sec": 45, "goal": "tactical_opponent_simulation" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Forward-pressure bag rounds",
+        "Body-to-head combinations",
+        "Low-kick accumulation",
+        "Knee and clinch-pressure rounds",
+        "Defense-to-counter rounds",
+        "High-output finishing intervals",
+        "Tactical opponent simulation"
       ],
-      "completion_rules": { "min_rounds_completed": 6, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "full_shadowboxing" } },
-
-    { "module_id": "MOD_UE_S10_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 24,
+      "canonical_map": [
+        {
+          "drill": "Forward-pressure bag rounds",
+          "discipline": "muay_thai",
+          "canonical": "forward-pressure combination work"
+        },
+        {
+          "drill": "Body-to-head combinations",
+          "discipline": "boxing",
+          "canonical": "body-to-head combination"
+        },
+        {
+          "drill": "Low-kick accumulation",
+          "discipline": "muay_thai",
+          "canonical": "repeated rear low kick (accumulation)"
+        },
+        {
+          "drill": "Knee and clinch-pressure rounds",
+          "discipline": "muay_thai",
+          "canonical": "clinch pressure + knees",
+          "type": "clinch"
+        },
+        {
+          "drill": "Defense-to-counter rounds",
+          "discipline": "boxing",
+          "canonical": "slip/roll + counter"
+        },
+        {
+          "drill": "High-output finishing intervals",
+          "discipline": "muay_thai",
+          "canonical": "high-output combination interval (capped)"
+        },
+        {
+          "drill": "Tactical opponent simulation",
+          "discipline": "muay_thai",
+          "canonical": "phantom opponent simulation (capped)"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "burpees",
+          "squat jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 30,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        9
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "forward_pressure",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "pressure",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "walk him down"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "body_to_head_combos",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "body_head",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "2b",
+              "3b"
+            ],
+            "complexity": "standard",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "low_kick_accumulation",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "low_kick",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "chop the base — same target"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "knee_clinch_pressure",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "clinch_pressure",
+            "technique_cues": [
+              "clinch frame",
+              "posture tall",
+              "drive the knee",
+              "never stop pressuring"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "defense_to_counter",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "counter",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll"
+            ]
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "high_output_finish",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "burst",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "lk"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 7,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "tactical_opponent_simulation",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "opponent_simulation",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk",
+              "kn"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "phantom": true,
+            "capped": true,
+            "emphasis": "solve him — dangerous, never reckless"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 6,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "full_shadowboxing"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S10_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 24,
       "title": "Sharpening",
-      "exercises": ["Easy roadwork", "Light jump rope", "Mobility", "Core stability", "Short low-volume power activation"],
-      "rules": ["No heavy training to failure"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [4, 6],
-      "rounds": [{ "index": 1, "length_sec": 1260, "rest_sec": 0, "goal": "taper_activation_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "JUMP_ROPE": "invisible_rope" } },
-
-    { "module_id": "MOD_UE_S10_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 22,
+      "tier": "T4",
+      "prescription": [
+        {
+          "name": "Easy roadwork",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 600,
+          "count_mode": "time",
+          "rest_sec": 60,
+          "note": "deload — kept light"
+        },
+        {
+          "name": "Light jump rope",
+          "category": "conditioning",
+          "sets": 2,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "deload — kept light"
+        },
+        {
+          "name": "Mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 180,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Core stability",
+          "category": "hold",
+          "sets": 2,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "deload — kept light"
+        },
+        {
+          "name": "Short low-volume power activation",
+          "category": "explosive",
+          "sets": 2,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "plyo_counted": true,
+          "note": "deload — kept light; tier ladder not applied"
+        }
+      ],
+      "rules": [
+        "No heavy training to failure"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        4,
+        6
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1260,
+          "rest_sec": 0,
+          "goal": "taper_activation_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "JUMP_ROPE": "invisible_rope"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S10_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 22,
       "title": "Controlled Destruction",
-      "drills": ["Accuracy shadowboxing", "Clean power combinations", "Light-to-moderate bag work", "Defensive counters", "Footwork and pressure control", "Short speed bursts with full recovery"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [5, 7],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "accuracy_shadowboxing" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "clean_power_combos" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "defensive_counters" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "footwork_pressure_control" },
-        { "index": 5, "length_sec": 60,  "rest_sec": 90, "goal": "speed_burst_full_recovery" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Accuracy shadowboxing",
+        "Clean power combinations",
+        "Light-to-moderate bag work",
+        "Defensive counters",
+        "Footwork and pressure control",
+        "Short speed bursts with full recovery"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "shadowboxing" } },
-
-    { "module_id": "MOD_UE_S11_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 20,
+      "canonical_map": [
+        {
+          "drill": "Accuracy shadowboxing",
+          "discipline": "boxing",
+          "canonical": "accuracy shadowboxing"
+        },
+        {
+          "drill": "Clean power combinations",
+          "discipline": "muay_thai",
+          "canonical": "clean power combination (sharp, not forced)"
+        },
+        {
+          "drill": "Light-to-moderate bag work",
+          "discipline": "muay_thai",
+          "canonical": "light-to-moderate bag work"
+        },
+        {
+          "drill": "Defensive counters",
+          "discipline": "boxing",
+          "canonical": "slip/roll + counter"
+        },
+        {
+          "drill": "Footwork and pressure control",
+          "discipline": "muay_thai",
+          "canonical": "pressure footwork control"
+        },
+        {
+          "drill": "Short speed bursts with full recovery",
+          "discipline": "boxing",
+          "canonical": "speed burst (full recovery)"
+        }
+      ],
+      "finishers": {
+        "movements": [],
+        "placement": "none",
+        "note": "Taper — no finisher; keep the session sharp and light."
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "accuracy_shadowboxing",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "accuracy",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "precision over power"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "clean_power_combos",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "clean_power",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "sharp, never forced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "defensive_counters",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "counter",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll"
+            ]
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "footwork_pressure_control",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "pressure_footwork",
+            "technique_cues": [
+              "small steps",
+              "control the range",
+              "pressure without rushing",
+              "stay balanced"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 60,
+          "rest_sec": 90,
+          "goal": "speed_burst_full_recovery",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "speed_burst",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "short burst, full recovery"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "shadowboxing"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S11_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 20,
       "title": "Final Preparation",
-      "exercises": ["Walk, light jog, or easy bike", "Mobility", "Light core activation", "Breathing drills", "Neck and shoulder mobility", "Optional very light calisthenics"],
-      "warmup": [], "target_rpe": [3, 5],
-      "rounds": [{ "index": 1, "length_sec": 1200, "rest_sec": 0, "goal": "recovery_prep_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 3, "pain_flag_stop": true },
-      "substitutions": {} },
-
-    { "module_id": "MOD_UE_S11_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "morning", "duration_min": 20,
-      "title": "Calm Before Destruction",
-      "drills": ["Relaxed shadowboxing", "Primary-combination review", "Defensive review", "Pressure-footwork rehearsal", "Light bag touches", "Tactical visualization", "Controlled final speed bursts"],
-      "warmup": ["shadowbox_2min"], "target_rpe": [4, 6],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "relaxed_shadowboxing" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "primary_combo_review" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "defensive_review" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "pressure_footwork_rehearsal" },
-        { "index": 5, "length_sec": 60,  "rest_sec": 60, "goal": "controlled_final_speed_burst" }
+      "tier": "T4",
+      "prescription": [
+        {
+          "name": "Walk, light jog, or easy bike",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 600,
+          "count_mode": "time",
+          "rest_sec": 0,
+          "note": "deload — kept light"
+        },
+        {
+          "name": "Mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 180,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Light core activation",
+          "category": "core",
+          "sets": 2,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 30,
+          "note": "deload — kept light; tier ladder not applied"
+        },
+        {
+          "name": "Breathing drills",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Neck and shoulder mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Optional very light calisthenics",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "time",
+          "rest_sec": 0,
+          "note": "optional; deload — kept light"
+        }
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "shadowboxing" },
-      "mission_note": "Finish feeling faster and more confident than at the start." },
-
-    { "module_id": "MOD_UE_S12_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 30,
+      "warmup": [],
+      "target_rpe": [
+        3,
+        5
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1200,
+          "rest_sec": 0,
+          "goal": "recovery_prep_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 3,
+        "pain_flag_stop": true
+      },
+      "substitutions": {}
+    },
+    {
+      "module_id": "MOD_UE_S11_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 20,
+      "title": "Calm Before Destruction",
+      "round_source": "fight_focus",
+      "drills": [
+        "Relaxed shadowboxing",
+        "Primary-combination review",
+        "Defensive review",
+        "Pressure-footwork rehearsal",
+        "Light bag touches",
+        "Tactical visualization",
+        "Controlled final speed bursts"
+      ],
+      "canonical_map": [
+        {
+          "drill": "Relaxed shadowboxing",
+          "discipline": "boxing",
+          "canonical": "relaxed shadowboxing"
+        },
+        {
+          "drill": "Primary-combination review",
+          "discipline": "muay_thai",
+          "canonical": "primary combination review"
+        },
+        {
+          "drill": "Defensive review",
+          "discipline": "boxing",
+          "canonical": "slip/roll/block review"
+        },
+        {
+          "drill": "Pressure-footwork rehearsal",
+          "discipline": "muay_thai",
+          "canonical": "pressure-footwork rehearsal"
+        },
+        {
+          "drill": "Light bag touches",
+          "discipline": "muay_thai",
+          "canonical": "light bag touches"
+        },
+        {
+          "drill": "Tactical visualization",
+          "discipline": "mma",
+          "canonical": "tactical visualization (mental rehearsal)"
+        },
+        {
+          "drill": "Controlled final speed bursts",
+          "discipline": "boxing",
+          "canonical": "speed burst (controlled)"
+        }
+      ],
+      "finishers": {
+        "movements": [],
+        "placement": "none",
+        "note": "Taper — no finisher; enter the boss fresh."
+      },
+      "warmup": [
+        "shadowbox_2min"
+      ],
+      "target_rpe": [
+        4,
+        6
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "relaxed_shadowboxing",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "relaxed_flow",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "relaxed and smooth"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "primary_combo_review",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "combo_review",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk",
+              "kn"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "review, don't grind"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "defensive_review",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "defense_review",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll",
+              "check"
+            ]
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "pressure_footwork_rehearsal",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "pressure_footwork",
+            "technique_cues": [
+              "small steps",
+              "cut the ring",
+              "stay grounded",
+              "visualize the opponent"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 60,
+          "rest_sec": 60,
+          "goal": "controlled_final_speed_burst",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "speed_burst",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "fast, controlled, confident"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "shadowboxing"
+      },
+      "mission_note": "Finish feeling faster and more confident than at the start."
+    },
+    {
+      "module_id": "MOD_UE_S12_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 30,
       "title": "Fit Final Test",
-      "exercises": ["Push-up variation test", "Squat variation test", "Pull-up or row test", "Loaded or bodyweight carry", "Core hold", "Controlled neck-strength exercise", "Final endurance circuit"],
-      "rules": ["Predetermined targets only — never uncontrolled maximum-until-collapse work"],
-      "warmup": ["dynamic_stretch_3min", "activation_3min"], "target_rpe": [7, 8],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "final_test_battery" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "PULLUP_BAR": "row_variation", "LIGHT_WEIGHTS": "bodyweight_carry" } },
-
-    { "module_id": "MOD_UE_S12_FIGHT", "module_type": "fight", "discipline": "muay_thai", "difficulty": "normal", "format": "single", "duration_min": 30,
+      "tier": "T4",
+      "prescription": [
+        {
+          "name": "Push-up variation test",
+          "category": "push",
+          "sets": 5,
+          "reps": 40,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Squat variation test",
+          "category": "squat_legs",
+          "sets": 5,
+          "reps": 50,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Pull-up or row test",
+          "category": "pull",
+          "sets": 5,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90
+        },
+        {
+          "name": "Loaded or bodyweight carry",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 90
+        },
+        {
+          "name": "Core hold",
+          "category": "hold",
+          "sets": 4,
+          "duration_sec": 90,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Controlled neck-strength exercise",
+          "category": "mobility",
+          "sets": 2,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 30,
+          "note": "gentle, controlled — hands-only resistance"
+        },
+        {
+          "name": "Final endurance circuit",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "time",
+          "rest_sec": 0,
+          "note": "capped target, not AMRAP"
+        }
+      ],
+      "signature_challenge": {
+        "preset": "squat_century",
+        "label": "Destroyer's Century",
+        "easy": {
+          "sets": 5,
+          "reps": 12
+        },
+        "normal": {
+          "sets": 5,
+          "reps": 20
+        },
+        "hard": {
+          "sets": 5,
+          "reps": 24
+        },
+        "category": "squat_legs",
+        "note": "The destroyer finish — 100+ squats for the legs that ground the power, spread across sets, difficulty-scaled, safe category."
+      },
+      "rules": [
+        "Predetermined targets only — never uncontrolled maximum-until-collapse work"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "activation_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "final_test_battery"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "PULLUP_BAR": "row_variation",
+        "LIGHT_WEIGHTS": "bodyweight_carry"
+      }
+    },
+    {
+      "module_id": "MOD_UE_S12_FIGHT",
+      "module_type": "fight",
+      "discipline": "muay_thai",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 30,
       "title": "Twelve-Round Destruction Trial",
       "boss": true,
-      "round_override_by_difficulty": {
-        "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45 },
-        "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30 },
-        "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30 }
-      },
-      "warmup": ["shadowbox_3min", "mobility_2min"], "target_rpe": [7, 9],
-      "rounds": [
-        { "index": 1,  "length_sec": 120, "rest_sec": 30, "goal": "stance_guard_breathing" },
-        { "index": 2,  "length_sec": 120, "rest_sec": 30, "goal": "jab_forward_pressure" },
-        { "index": 3,  "length_sec": 120, "rest_sec": 30, "goal": "boxing_combo_into_low_kick" },
-        { "index": 4,  "length_sec": 120, "rest_sec": 30, "goal": "body_attack" },
-        { "index": 5,  "length_sec": 120, "rest_sec": 30, "goal": "rear_knee_clinch_entry" },
-        { "index": 6,  "length_sec": 120, "rest_sec": 30, "goal": "defense_and_counter" },
-        { "index": 7,  "length_sec": 120, "rest_sec": 30, "goal": "head_movement_and_return" },
-        { "index": 8,  "length_sec": 120, "rest_sec": 30, "goal": "pressure_vs_retreating_opponent" },
-        { "index": 9,  "length_sec": 120, "rest_sec": 30, "goal": "power_strike_control" },
-        { "index": 10, "length_sec": 120, "rest_sec": 30, "goal": "high_output_combination" },
-        { "index": 11, "length_sec": 120, "rest_sec": 30, "goal": "adversity_and_composure" },
-        { "index": 12, "length_sec": 120, "rest_sec": 30, "goal": "championship_finish" }
+      "round_source": "fight_focus",
+      "canonical_map": [
+        {
+          "round": 1,
+          "discipline": "muay_thai",
+          "canonical": "stance, guard + breathing"
+        },
+        {
+          "round": 2,
+          "discipline": "boxing",
+          "canonical": "the jab + forward pressure"
+        },
+        {
+          "round": 3,
+          "discipline": "muay_thai",
+          "canonical": "boxing combination + low kick"
+        },
+        {
+          "round": 4,
+          "discipline": "boxing",
+          "canonical": "body attack (hooks/crosses to body)"
+        },
+        {
+          "round": 5,
+          "discipline": "muay_thai",
+          "canonical": "rear knee + clinch entry",
+          "type": "clinch"
+        },
+        {
+          "round": 6,
+          "discipline": "boxing",
+          "canonical": "defense + counter"
+        },
+        {
+          "round": 7,
+          "discipline": "boxing",
+          "canonical": "head movement + return"
+        },
+        {
+          "round": 8,
+          "discipline": "muay_thai",
+          "canonical": "pressure vs retreating opponent (phantom)"
+        },
+        {
+          "round": 9,
+          "discipline": "muay_thai",
+          "canonical": "controlled power strike"
+        },
+        {
+          "round": 10,
+          "discipline": "muay_thai",
+          "canonical": "high-output combination (capped)"
+        },
+        {
+          "round": 11,
+          "discipline": "muay_thai",
+          "canonical": "composure under adversity (capped)"
+        },
+        {
+          "round": 12,
+          "discipline": "muay_thai",
+          "canonical": "championship finish — in control"
+        }
       ],
-      "completion_rules": { "min_rounds_completed": 12, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "HEAVY_BAG": "full_shadowboxing" } }
+      "finishers": {
+        "movements": [],
+        "placement": "none",
+        "note": "Boss trial — the output lives in rounds 10-12; no extra finisher."
+      },
+      "round_override_by_difficulty": {
+        "easy": {
+          "rounds": 12,
+          "round_sec": 60,
+          "rest_sec": 45
+        },
+        "normal": {
+          "rounds": 12,
+          "round_sec": 120,
+          "rest_sec": 30
+        },
+        "hard": {
+          "rounds": 12,
+          "round_sec": 180,
+          "rest_sec": 30
+        }
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "mobility_2min"
+      ],
+      "target_rpe": [
+        7,
+        9
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "stance_guard_breathing",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "composure",
+            "technique_cues": [
+              "stance set",
+              "guard up",
+              "breathe slow",
+              "eyes forward"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "jab_forward_pressure",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_pressure",
+            "allowed_strikes": [
+              "1"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "jab and walk forward"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "boxing_combo_into_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_kick_chain",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "body_attack",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "body_attack",
+            "allowed_strikes": [
+              "2b",
+              "3b",
+              "1"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "dig to the body"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "rear_knee_clinch_entry",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "knee_clinch",
+            "allowed_strikes": [
+              "kn"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "technique_cues": [
+              "clinch frame",
+              "posture tall"
+            ],
+            "emphasis": "knee, then close the clinch"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "defense_and_counter",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "counter",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll"
+            ]
+          }
+        },
+        {
+          "index": 7,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "head_movement_and_return",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "move_return",
+            "allowed_strikes": [
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll"
+            ],
+            "emphasis": "move first, then return"
+          }
+        },
+        {
+          "index": 8,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "pressure_vs_retreating_opponent",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "pressure",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "phantom": true,
+            "emphasis": "cut him off — don't chase"
+          }
+        },
+        {
+          "index": 9,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "power_strike_control",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "power_control",
+            "allowed_strikes": [
+              "2",
+              "rk"
+            ],
+            "complexity": "single",
+            "callout": "voiced",
+            "emphasis": "power under control"
+          }
+        },
+        {
+          "index": 10,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "high_output_combination",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "burst",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "lk"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 11,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "adversity_and_composure",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "composure_pressure",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "lk"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "phantom": true,
+            "capped": true,
+            "emphasis": "stay composed under fire"
+          }
+        },
+        {
+          "index": 12,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "championship_finish",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "championship_finish",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "kn"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "capped": true,
+            "emphasis": "finish like a champion — in control"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 12,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "full_shadowboxing"
+      }
+    }
   ]
 }

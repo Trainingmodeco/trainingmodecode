@@ -26,6 +26,9 @@ import gravityModules from './data/campaigns/ARC_GRAVITY/modules.json';
 import sonicCampaign from './data/campaigns/ARC_SONIC/campaign.json';
 import sonicStages from './data/campaigns/ARC_SONIC/stages.json';
 import sonicModules from './data/campaigns/ARC_SONIC/modules.json';
+import garouCampaign from './data/campaigns/ARC_GAROU/campaign.json';
+import garouStages from './data/campaigns/ARC_GAROU/stages.json';
+import garouModules from './data/campaigns/ARC_GAROU/modules.json';
 import { humanizeGoal } from './content';
 
 export type ArcadePath = 'fit' | 'fight' | 'full_arc';
@@ -44,10 +47,11 @@ const RAW: Record<string, Raw> = {
   ARC_ULTRAINSTINCT: { campaign: ultrainstinctCampaign, stages: asArr(ultrainstinctStages), modules: asArr(ultrainstinctModules) },
   ARC_GRAVITY:       { campaign: gravityCampaign,       stages: asArr(gravityStages),       modules: asArr(gravityModules) },
   ARC_SONIC:         { campaign: sonicCampaign,         stages: asArr(sonicStages),         modules: asArr(sonicModules) },
+  ARC_GAROU:         { campaign: garouCampaign,         stages: asArr(garouStages),         modules: asArr(garouModules) },
 };
 
 // Display order for the saga carousel.
-export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY', 'ARC_SONIC'];
+export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GAROU', 'ARC_GRAVITY', 'ARC_SONIC'];
 
 // 2.10 — franchise-flavored coach lines per campaign (archetype-safe, original —
 // never reproduces trademarked characters/quotes). Rotated across the rounds so
@@ -80,6 +84,10 @@ const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
   ARC_SONIC: {
     fit: ['Gotta go fast — but keep your form.', 'Quick feet, light on the ground.', 'Explode, then recover. Repeat.', 'Speed is earned rep by rep.'],
     fight: ['Fast hands, faster feet.', 'Blitz the round — then reset.', 'Explosive and precise.'],
+  },
+  ARC_GAROU: {
+    fit: ['Build the engine — legs drive the punch.', 'Lean, fast, relentless.', 'Evolve rep by rep — no shortcuts.'],
+    fight: ['Learn the style. Steal its speed.', 'Fast hands — stay loose, stay sharp.', 'Every round, a new lesson.'],
   },
 };
 
@@ -182,7 +190,17 @@ export function resolveArcadeRounds(campaignId: string, stageId: string, path: '
   // conditioning session cycles real named drills instead of one long generic
   // circuit. Per-exercise work time is the block duration split across the
   // exercises, clamped to a sane 2–4 min; rest scales with difficulty.
-  const ex = (mod.exercises || []).filter(Boolean);
+  // Arcade session standard (specs/27): fit modules carry a counted
+  // `prescription` (sets x reps/sec per movement) instead of a plain exercises
+  // list. Surface each prescribed movement with its dose as the round title;
+  // legacy modules (Gravity/Sonic keep their own models) still use exercises.
+  const rx = Array.isArray(mod.prescription) ? mod.prescription : [];
+  const ex = rx.length
+    ? rx.map((p: any) => {
+        const dose = p.duration_sec != null ? `${p.sets}×${p.duration_sec}s` : `${p.sets}×${p.reps}`;
+        return p.name ? `${p.name} — ${dose}` : '';
+      }).filter(Boolean)
+    : (mod.exercises || []).filter(Boolean);
   if (ex.length > 1) {
     const totalSec = (mod.duration_min ? mod.duration_min * 60 : (modRounds[0]?.length_sec || 1500));
     let roundSec = Math.round((totalSec / ex.length) / 5) * 5;

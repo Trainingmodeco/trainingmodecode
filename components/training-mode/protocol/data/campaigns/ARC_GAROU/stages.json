@@ -1,0 +1,285 @@
+[
+  {
+    "stage_id": "ARC_GAROU_STG01",
+    "campaign_id": "ARC_GAROU",
+    "title": "The Student",
+    "phase": "foundation",
+    "stage_number": 1,
+    "persona": "The Dojo",
+    "purpose": "Fundamentals. FIT builds the lean calisthenics base + core; FIGHT learns the boxing stance, guard, and the jab/cross. Warm-up (incl. shoulders/wrists) becomes the habit.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S01_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S01_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Own the basics — clean reps, a braced core, a tight guard, and a warm-up you never skip.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["MAT", "HAND_WRAPS", "PULLUP_BAR"],
+      "alternatives": { "PULLUP_BAR": ["DOORWAY_ROW", "BAND"], "MAT": ["FLOOR_SPACE"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_STUDENT"],
+    "video_ids": ["VID_GA_S01_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG02",
+    "campaign_id": "ARC_GAROU",
+    "title": "Fast Hands",
+    "phase": "foundation",
+    "stage_number": 2,
+    "persona": "The Dojo",
+    "purpose": "Speed. FIT builds the explosive engine with jump rope + low-intensity plyometrics (the evidence-backed driver of fast hands); FIGHT trains relaxed boxing combinations for speed. Cardio folds in shadowboxing + plyo.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S02_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S02_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Stay relaxed and fast — count your plyo contacts, land soft, and let the combinations flow.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["JUMP_ROPE", "HAND_WRAPS", "HEAVY_BAG", "MAT"],
+      "alternatives": { "JUMP_ROPE": ["Fast feet", "Invisible rope"], "HEAVY_BAG": ["Shadowboxing"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_FASTHANDS"],
+    "video_ids": ["VID_GA_S02_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG03",
+    "campaign_id": "ARC_GAROU",
+    "title": "Legs Drive the Punch",
+    "phase": "development",
+    "stage_number": 3,
+    "persona": "The Sprinter",
+    "purpose": "Power from the ground up. FIT trains explosive legs + sprint intervals (lower-body force is the real driver of punch power); FIGHT connects hip/leg drive into the rear-hand power shot. Sprint cardio.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S03_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S03_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Drive from the legs — explosive jumps and sprints, then feel that same drive in the power shot.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["RUN_SPACE", "HAND_WRAPS", "HEAVY_BAG", "MAT"],
+      "alternatives": { "RUN_SPACE": ["Park path", "Treadmill", "On-the-spot"], "HEAVY_BAG": ["Shadowboxing"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_LEGS"],
+    "video_ids": ["VID_GA_S03_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG04",
+    "campaign_id": "ARC_GAROU",
+    "title": "Dutch Rhythm",
+    "phase": "development",
+    "stage_number": 4,
+    "persona": "The Kickboxer",
+    "purpose": "Dutch kickboxing. FIT is an explosive bodyweight circuit (burpees, tuck jumps, side lunges) that supports striking; FIGHT learns boxing-forward combinations flowing into low kicks and teeps.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S04_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S04_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Punches into kicks, one rhythm — explosive on the bodyweight, smooth on the combinations.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["HAND_WRAPS", "HEAVY_BAG", "MAT"],
+      "alternatives": { "HEAVY_BAG": ["Shadow kicks + combos"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_DUTCH"],
+    "video_ids": ["VID_GA_S04_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG05",
+    "campaign_id": "ARC_GAROU",
+    "title": "Centerline",
+    "phase": "development",
+    "stage_number": 5,
+    "persona": "The Wing Chun Master",
+    "purpose": "Wing Chun + striker's shoulders. FIT builds shoulder resilience (scapular/rotator-cuff) and dense-arm bodyweight work; FIGHT learns centerline theory, chain punching, and solo trapping drills (fast straight blast).",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S05_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S05_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Guard the centerline, chain the punches — and build shoulders that can throw them all day.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["BAND", "HAND_WRAPS", "HEAVY_BAG", "MAT"],
+      "alternatives": { "BAND": ["Bodyweight scapular work"], "HEAVY_BAG": ["Shadow chain-punching"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_CENTERLINE"],
+    "video_ids": ["VID_GA_S05_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG06",
+    "campaign_id": "ARC_GAROU",
+    "title": "Ballistic Power",
+    "phase": "development",
+    "stage_number": 6,
+    "persona": "The Sprinter",
+    "purpose": "Explosive upper-body power. FIT trains medicine-ball throws + upper-body plyometrics (a striking-proxy power builder); FIGHT trains explosive combinations and punch power-ENDURANCE (3s bursts), speed held under fatigue.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S06_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S06_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Throw explosively, punch explosively — hold the speed as the bursts pile up.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["MEDICINE_BALL", "HAND_WRAPS", "HEAVY_BAG", "MAT"],
+      "alternatives": { "MEDICINE_BALL": ["Explosive push-ups", "Band throws"], "HEAVY_BAG": ["Shadow power bursts"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_POWER"],
+    "video_ids": ["VID_GA_S06_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG07",
+    "campaign_id": "ARC_GAROU",
+    "title": "The Hunter's Engine",
+    "phase": "development",
+    "stage_number": 7,
+    "persona": "The Sprinter",
+    "purpose": "Conditioning. FIT blends sprint intervals + shadowbox rounds + light aerobic work; FIGHT runs high-output combination rounds — fast hands held together under a real gas tank.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S07_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S07_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Build the engine — keep the hands fast and the combinations clean when you're breathing hard.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+      "recommended": ["RUN_SPACE", "HAND_WRAPS", "HEAVY_BAG"],
+      "alternatives": { "RUN_SPACE": ["Treadmill", "On-the-spot intervals"], "HEAVY_BAG": ["Shadowboxing"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_ENGINE"],
+    "video_ids": ["VID_GA_S07_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG08",
+    "campaign_id": "ARC_GAROU",
+    "title": "Contrast",
+    "phase": "hard_camp",
+    "stage_number": 8,
+    "persona": "The Awakened",
+    "purpose": "Advanced power — contrast/complex training (a heavy/loaded effort paired with an explosive one). FIT pairs strength with plyometrics; FIGHT pairs loaded shadow/resisted strikes with explosive free strikes. UNLOCKED here, not before.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S08_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S08_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Heavy then explosive — the hardest, sharpest block. Quality reps, full rest, never grind to failure.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["LIGHT_WEIGHTS", "BAND", "MEDICINE_BALL", "HAND_WRAPS", "HEAVY_BAG", "MAT"],
+      "alternatives": { "LIGHT_WEIGHTS": ["Loaded backpack", "Bands"], "HEAVY_BAG": ["Resisted shadow"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_CONTRAST"],
+    "video_ids": ["VID_GA_S08_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG09",
+    "campaign_id": "ARC_GAROU",
+    "title": "Real Evolution",
+    "phase": "taper",
+    "stage_number": 9,
+    "persona": "The Awakened",
+    "deload": true,
+    "purpose_note": "The honest 'evolution' isn't a monster transformation — it's recovery and adaptation. This deload is what makes the finale sharp. Completing it is rewarded, not penalized.",
+    "purpose": "A deliberate deload. FIT is easy movement, mobility, and shoulder/wrist care; FIGHT is light technical work — refine form, no max output. Recover on purpose.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S09_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S09_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "mission_target": "Recover on purpose — loosen up, care for shoulders and wrists, sharpen technique lightly. Rest is the real evolution.",
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE"],
+      "recommended": ["BAND", "MAT"],
+      "alternatives": { "BAND": ["Bodyweight mobility"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_ADAPT"],
+    "video_ids": ["VID_GA_S09_OVERVIEW"]
+  },
+  {
+    "stage_id": "ARC_GAROU_STG10",
+    "campaign_id": "ARC_GAROU",
+    "title": "The Hero Hunter",
+    "phase": "final_boss",
+    "stage_number": 10,
+    "persona": "The Hero Hunter",
+    "final": true,
+    "purpose": "The finale — every style in one session. FIT: warm-up, explosive legs, a capped plyo/med-ball finisher, conditioning. FIGHT: boxing combos -> Dutch combo into kicks -> Wing Chun chain-punch burst -> power-endurance rounds. Fast, capped, controlled — never to exhaustion.",
+    "fit_available": true,
+    "fight_available": true,
+    "full_arc_available": true,
+    "split_available": false,
+    "default_format": "full",
+    "mission_target": "Everything you learned, at speed and under control. Fast, clean, capped — then stop, still sharp.",
+    "paths": {
+      "fit":   { "module_ids": ["MOD_GA_S10_FIT"],   "difficulty": ["easy", "normal", "hard"] },
+      "fight": { "module_ids": ["MOD_GA_S10_FIGHT"], "difficulty": ["easy", "normal", "hard"] }
+    },
+    "equipment": {
+      "required": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
+      "recommended": ["HAND_WRAPS", "HEAVY_BAG", "JUMP_ROPE", "MEDICINE_BALL", "RUN_SPACE", "MAT"],
+      "alternatives": { "HEAVY_BAG": ["Shadowboxing"], "RUN_SPACE": ["On-the-spot intervals"] }
+    },
+    "readiness_checks": ["sleep", "fatigue", "soreness", "stress", "pain_flag"],
+    "xp_rule_id": "XP_STANDARD",
+    "achievement_rule_ids": ["ACH_GA_HUNTER", "ACH_GA_MASTER"],
+    "video_ids": ["VID_GA_S10_OVERVIEW"]
+  }
+]
