@@ -10,6 +10,7 @@ import {
   countPolicy, adaptiveRest, initWeightedSetup, canGenerate, generateSession,
   toBodyweight, toWeighted, doseLabel,
 } from './data/arcadeSession';
+import VoiceMixer from './shared/VoiceMixer';
 
 // Spec 27 — the COUNTED-SETS fit runner for prescribed Arcade sessions. Each
 // movement runs its sets: rep movements auto-count (voice + on-screen counter)
@@ -241,6 +242,7 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
 
   return (
     <PhoneFrame useBrandBg>
+      <VoiceMixer top={10} right={10}/>
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 16px 0' }}>
         <div style={{ font: "900 17px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.08em', textShadow: `0 0 14px ${TEAL}66` }}>{inFinisher ? 'FINISHER' : 'COUNTED SETS'}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>

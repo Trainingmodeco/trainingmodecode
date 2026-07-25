@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
+import VoiceMixer from './shared/VoiceMixer';
 import IntroLogo from './IntroLogo';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
@@ -235,6 +236,7 @@ export default function CardioMode({ onBack }) {
     return (
       <PhoneFrame useBrandBg>
         <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={8}/>
+        <VoiceMixer top={10} right={10}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
           <div style={{ padding: '12px 16px' }}>
             <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>

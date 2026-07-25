@@ -39,7 +39,7 @@ time, in order** — check items off (`[x]`) as they ship.
 ## CampFitSetRunner, FitBuilderGuidedPlayer, ComboCoachActive, QuickMission,
 ## CombatConditioning, Cardio, Arcade players)
 
-- [ ] **4. Volume control on top** — surface the existing shared
+- [x] **4. Volume control on top** — surface the existing shared
   `shared/VoiceMixer.jsx` (or a compact volume popover built on it) in the TOP
   bar of EVERY feature's session screen. One consistent placement + icon
   everywhere. Controls the voice/cue volume live mid-session.

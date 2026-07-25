@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import StageChrome from './shared/StageChrome';
+import VoiceMixer from './shared/VoiceMixer';
 import { StageClearFlash } from './shared/BattleHUD';
 import { Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
 import { C } from './Styles';
@@ -493,6 +494,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
       bgImage={stageBg}
       scroll
     >
+      <VoiceMixer top={10} right={44}/>
       {/* Rapid action warning */}
       {rapidWarning && (
         <div style={{

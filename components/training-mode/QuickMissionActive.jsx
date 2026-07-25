@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import CornerHUD from './CornerHUD';
+import VoiceMixer from './shared/VoiceMixer';
 import { ChevronLeft, Pause, Play, SkipForward, Square } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
@@ -545,6 +546,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         pointerEvents: 'none',
       }}/>
       <CornerHUD color="rgba(253,224,71,0.3)" size={20} inset={10}/>
+      <VoiceMixer top={10} right={10}/>
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',

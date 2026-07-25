@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
+import VoiceMixer from './shared/VoiceMixer';
 import CardioProtocolPlayer from './CardioProtocolPlayer';
 import { HeartPulse, SkipForward } from 'lucide-react';
 import { C } from './Styles';
@@ -66,6 +67,7 @@ export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, on
     <PhoneFrame useBrandBg>
       <Embers count={4}/>
       <CornerHUD color="rgba(176,106,255,0.3)" size={22} inset={10}/>
+      <VoiceMixer top={10} right={10}/>
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',

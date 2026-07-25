@@ -8,6 +8,7 @@ import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
 import { loadProfile } from './data/userProfile';
+import VoiceMixer from './shared/VoiceMixer';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -351,6 +352,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   return (
     <PhoneFrame useBrandBg>
       <Embers count={2}/>
+      <VoiceMixer top={10} right={10}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
         {/* Training Mode logo header — back arrow returns to the list */}
         <TrainingHeader

@@ -6,6 +6,7 @@ import useIntegritySession from './hooks/useIntegritySession';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts, packLine } from './data/voicePacks';
+import VoiceMixer from './shared/VoiceMixer';
 
 // Phase 2 · 2.4b — CONDITIONING runner for the camp's S2 (PM) block. Same round
 // engine shape as Fight Focus (drives cfg.blockRounds, produces the identical
@@ -181,6 +182,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
 
   return (
     <PhoneFrame useBrandBg>
+      <VoiceMixer top={10} right={10}/>
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 16px 0' }}>
         {/* Header */}
         <div style={{ font: "900 17px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.08em', textShadow: `0 0 14px ${TEAL}66` }}>CONDITIONING</div>
