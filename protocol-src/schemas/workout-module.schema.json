@@ -37,7 +37,7 @@
         "required": ["name", "category", "sets"],
         "properties": {
           "name": { "type": "string" },
-          "category": { "enum": ["pull", "push", "squat_legs", "core", "explosive", "hold", "carry"] },
+          "category": { "enum": ["pull", "push", "squat_legs", "core", "explosive", "hold", "carry", "conditioning", "mobility"] },
           "sets": { "type": "integer", "minimum": 1 },
           "reps": { "type": "integer", "minimum": 1 },
           "duration_sec": { "type": "integer", "minimum": 1 },
