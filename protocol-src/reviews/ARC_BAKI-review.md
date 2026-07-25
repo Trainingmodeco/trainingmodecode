@@ -9,12 +9,17 @@ runtime from the volume ladder in `arcade-session-standards.json` by
 tier + category, so `3x5` pull-ups on Stage 1 normal becomes a lighter easy set
 and a heavier hard set automatically.
 
-**Fight round totals:** 67 rounds — **44 generated** (carry a `combo_spec` with
+**Fight round totals:** 67 rounds — **46 generated** (carry a `combo_spec` with
 `allowed_strikes`, so the Combo Coach generator writes the combos live) and
-**23 cue-based** (grappling / stance / footwork rounds where numbered punch
+**21 cue-based** (grappling / stance / footwork rounds where numbered punch
 combos don't apply; still fully voiced, just coached rather than combo-called).
+Two of the generated rounds are **mixed** (`mixed_with_cue`): they interleave
+generated strike entries with the grappling technique cues.
 
 Playtested and passed by the user: **Stage 1, Stage 2.**
+
+**Review status: PASSED.** All three flags raised in the first review have been
+fixed — see "Applied fixes" at the bottom.
 
 ---
 
@@ -119,18 +124,17 @@ Finisher: burpees + tuck jumps — 2 × 30s.
 | R | Goal | Combo seed |
 |---|---|---|
 | 1 | karate_straight_structure | `2` · single |
-| 2 | reverse_punch_power | `2` · intro |
-| 3 | power_step_in | `2` · intro |
+| 2 | reverse_punch_power (setup) | `1, 2, 2b` · intro |
+| 3 | power_step_in (setup) | `1, 2, 2b` · basic |
 | 4 | single_perfect_strike_reset | `2` · single |
-| 5 | phantom_one_punch_finish | `2` · single |
+| 5 | phantom_one_punch_finish (setup) | `1, 2, 2b` · basic |
 
 Finisher: jumping lunges — 3 × 20s.
 
-> ⚠️ **FLAG 1 — five straight rounds of nothing but the cross.** Every round is
-> `["2"]`, and three of them are `complexity: single`, which is *exempt* from
-> the 60/40 variety rule you asked for. So Stage 4 is ~24 minutes of one punch.
-> It is thematically correct (Katsumi = the one perfect straight) but it's the
-> same monotony you flagged on the jab-cross rounds. Fix option below.
+> ✅ **FLAG 1 fixed.** R1 and R4 stay pure `single` — that is the whole point of
+> the Katsumi stage, the one perfect straight. R2, R3, and R5 now open to
+> `1, 2, 2b` so the generator sets the straight up (jab → cross, jab → body →
+> cross) instead of repeating it for five rounds.
 
 ---
 
@@ -175,8 +179,15 @@ Finisher: tuck jumps — 2 × 30s.
 | Wrist curls and reverse curls | 3 × 15 | mobility | 45s |
 | Forearm and hand mobility | 1 × 120s (uncounted) | mobility | — |
 
-**FIGHT — Grip and Clinch** · 24 min · 5 × 2min / 45s — **all 5 cue-based**
-clinch entries · grip fight · pummel · off-balance drag · hold under fatigue.
+**FIGHT — Grip and Clinch** · 24 min · 5 × 2min / 45s
+| R | Goal | Combo seed |
+|---|---|---|
+| 1 | strike_entry_into_clinch | **mixed** — `1, 2, 3` · basic, interleaved with the clinch cues |
+| 2 | grip_fight_control | *cue-based* |
+| 3 | pummel_inside_position | *cue-based* |
+| 4 | off_balance_drag | *cue-based* |
+| 5 | hold_position_fatigue | *cue-based* |
+
 Finisher: sprawls — 2 × 30s.
 
 ---
@@ -195,13 +206,21 @@ Finisher: sprawls — 2 × 30s.
 | Loaded carries | 3 × 40s | carry (weighted) | 60s |
 | Mobility flow | 1 × 180s (uncounted) | mobility | — |
 
-**FIGHT — Solo Grappling Flow** · 26 min · 5 × 2min / 45s — **all 5 cue-based**
-shrimping · technical stand-up + sit-out · bridge & roll · guard retention ·
-submission-chain shadow flow. Finisher: sprawls + mountain climbers — 2 × 30s.
+**FIGHT — Solo Grappling Flow** · 26 min · 5 × 2min / 45s
+| R | Goal | Combo seed |
+|---|---|---|
+| 1 | shrimping_movement | *cue-based* |
+| 2 | technical_standup_sitout | *cue-based* |
+| 3 | bridge_and_roll | *cue-based* |
+| 4 | guard_retention_legs | *cue-based* |
+| 5 | strike_entry_into_submission_chain | **mixed** — `1, 2, 3` · basic, interleaved with the submission cues |
 
-> ⚠️ **FLAG 2 — S06 + S07 back-to-back = 10 consecutive fight rounds with zero
-> striking.** Correct for a grappler campaign, but if someone runs FIGHT-only
-> they get ~50 minutes across two stages with no combos called. Fix option below.
+Finisher: sprawls + mountain climbers — 2 × 30s.
+
+> ✅ **FLAG 2 fixed.** S06 R1 and S07 R5 are now mixed rounds, so a FIGHT-only
+> player never goes two full stages without a combo called. The other eight
+> rounds stay honestly cue-based — grip and ground work doesn't map to numbered
+> punch combos.
 
 ---
 
@@ -345,30 +364,32 @@ No separate finisher — explosive work folds into rounds 8 and 11.
 
 ---
 
-# Verdict
+# Verdict — PASSED
 
-The campaign is **structurally sound and ready to pass** — the volume ladder
-climbs correctly T1 → T4, every FIT exercise carries counted sets × reps with a
-category (so the pacing fix applies), the weighted stage (S08) is correctly the
+The campaign is structurally sound: the volume ladder climbs correctly
+T1 → T4, every FIT exercise carries counted sets × reps with a category (so the
+category-based rep pacing applies), the weighted stage (S08) is correctly the
 only timed/adaptive-rest one, and finishers are capped and share the plyo budget.
 
-Three things worth a decision before it's "perfect":
+## Applied fixes
 
-**FLAG 1 — Stage 4 is five rounds of one punch.** Every round is `["2"]` and
-three are `complexity: single`, which the 60/40 variety rule deliberately
-exempts. *Recommended fix:* keep R1 and R4 as pure `single` (that's the whole
-point of the Katsumi stage — the one perfect straight), but open R2, R3, and R5
-to `["1","2","2b"]` at `intro`/`basic` so the generator can set the straight up
-instead of only repeating it.
+**1 · Stage 4 no longer runs five rounds of one punch.** R1 and R4 stay pure
+`single` (the Katsumi one-perfect-straight drill); R2, R3, R5 open to
+`["1","2","2b"]` at intro/basic so the generator sets the straight up. Canonical
+map updated to match ("jab setup into rear straight", "jab into step-in cross",
+"setup into committed power cross").
 
-**FLAG 2 — Stages 6 and 7 are 10 straight cue-based rounds with no combos.**
-Honest for grip and ground work. *Recommended fix:* convert one round in each
-(S06 R1 clinch entries, S07 R5 submission chain) into a mixed round that enters
-with `["1","2","3"]` before the grappling cue, so a FIGHT-only player never goes
-two full stages without a combo called.
+**2 · The S06 + S07 combo drought is closed.** S06 R1 (`strike_entry_into_clinch`)
+and S07 R5 (`strike_entry_into_submission_chain`) are now **mixed rounds**: a new
+`mixed_with_cue: true` flag on the combo_spec means the round generates combos
+from `["1","2","3"]` *and* keeps its technique cues. `resolveComboParams` returns
+`mixedWithCue` (mode stays `"generate"`, so nothing downstream breaks) and
+`buildComboCalls` interleaves — two generated calls, then a technique cue,
+repeating. Their `canonical_map` entries are now `type: "mixed"`.
 
-**FLAG 3 — cosmetic.** FIGHT modules have no `tier` field (only FIT does).
-Finishers scale off `difficulty_scaled` instead, so nothing is broken, but
-adding `tier` to the 12 fight modules would make the two halves symmetrical.
+**3 · All 12 FIGHT modules now carry a `tier`** (T1 S1–3, T2 S4–6, T3 S7–9,
+T4 S10–12), matching the FIT modules.
 
-Stages 1, 2, 3, 5, 8, 9, 10, 11, 12 need no changes.
+Totals after the fixes: **46 generated / 21 cue-based** rounds (2 of the 46 are
+mixed). Validator: 8/8 campaigns valid. Stages 1, 2, 3, 5, 8, 9, 10, 11, 12
+were unchanged.
