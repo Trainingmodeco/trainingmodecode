@@ -15,6 +15,7 @@ import SessionSummary from './SessionSummary';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
+import CampFitSetRunner from './CampFitSetRunner';
 import CampFullSession from './CampFullSession';
 import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
@@ -93,9 +94,10 @@ function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit }) 
   if (!running) return <CampTransitionCard label={label} sub={sub} detail={detail} onDone={() => setRunning(true)} />;
   // S2 (PM conditioning) runs the dedicated fit runner; skill blocks use the
   // shared striking ring timer. Both produce the same onEnd shape.
-  return fit
-    ? <CampFitRunner cfg={cfg} onEnd={onEnd} />
-    : <FightFocusTimer discipline={discipline} cfg={cfg} onEnd={onEnd} initialPaused={false} />;
+  // Spec 27 — a prescribed Arcade fit stage runs the COUNTED-SETS runner (reps
+  // counted, weighted review, finishers); legacy timed circuits keep CampFitRunner.
+  if (fit) return cfg.prescription?.length ? <CampFitSetRunner cfg={cfg} onEnd={onEnd} /> : <CampFitRunner cfg={cfg} onEnd={onEnd} />;
+  return <FightFocusTimer discipline={discipline} cfg={cfg} onEnd={onEnd} initialPaused={false} />;
 }
 
 function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, lock = false }) {

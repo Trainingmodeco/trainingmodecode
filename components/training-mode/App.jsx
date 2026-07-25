@@ -4,10 +4,11 @@ import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
 import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
-import { campSessionXp } from './protocol/content';
+import { campSessionXp, humanizeGoal } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
 import { completeStage as completeArcadeStage } from './data/arcadeProgress';
 import { arcadeCfg } from './protocol/campaigns';
+import { resolveFitPrescription, announcerLine, stageFinishers, resolveFightRounds } from './data/arcadeSession';
 import { packIdForCampaign } from './data/voicePacks';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
@@ -371,13 +372,41 @@ export default function App() {
         const arcade = { campaignId, seriesId: series.id, stageId: stage.id, stageNumber, campaignName: series.title };
         // Spec 22 — each campaign speaks with its assigned voice pack.
         const voicePack = packIdForCampaign(campaignId);
+        // Spec 27 — layer the Arcade session standard onto the cfg: a FIT stage
+        // gets its counted prescription (+ weighted review + announcer); a FIGHT
+        // stage gets per-round combos/cues (combo_spec → Combo Coach); both get
+        // difficulty-scaled finishers.
+        const withFit = (base) => {
+          const plan = resolveFitPrescription(campaignId, stage.id, diff);
+          if (plan?.exercises?.length) {
+            base.prescription = plan.exercises;
+            base.weighted = plan.weighted;
+            base.announcer = announcerLine(campaignId, stage.id, diff, plan.exercises);
+          }
+          base.finishers = stageFinishers(campaignId, stage.id, 'fit', diff);
+          return base;
+        };
+        const withFight = (base) => {
+          const fr = resolveFightRounds(campaignId, stage.id, diff);
+          if (fr?.rounds?.length) {
+            base.fightRounds = fr.rounds;
+            base.blockRounds = fr.rounds.map((r) => ({
+              round_title: humanizeGoal(r.goal || 'free_round'),
+              coach_prompt: r.kind === 'combo' ? (r.combos || []).filter(Boolean).join('  ·  ') : (r.cues || []).join(' · '),
+            }));
+          }
+          base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff);
+          return base;
+        };
         if (path === 'full_arc') {
-          const cfgSkill = { ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack };
-          const cfgFit = { ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack };
+          const cfgSkill = withFight({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
+          const cfgFit = withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack });
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, format: 'full', cfgSkill, cfgFit, arcade });
           setCfg(cfgSkill); setScreen('camp_full');
         } else {
-          const cfg = { ...arcadeCfg(campaignId, stage.id, path, diff), voicePack };
+          const cfg = path === 'fit'
+            ? withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack })
+            : withFight({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: path === 'fit', slot: path === 'fit' ? 's2' : 's1', arcade });
           setCfg(cfg); setScreen('camp_session');
         }
