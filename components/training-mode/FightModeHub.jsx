@@ -6,8 +6,6 @@ import { Check } from 'lucide-react';
 import TrainingHeader from './TrainingHeader';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile, saveProfile } from './data/userProfile';
-import { loadStats } from './data/userStats';
-import { getCurrentTier, tierImage } from './data/tiers';
 import { loadCampProgress } from './data/campProgress';
 import { totalMoveCount } from './data/customCombos';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
@@ -81,8 +79,6 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
   const campStage = Math.min(loadCampProgress(), 12);
   const moves = totalMoveCount();
-  const sex = String(profile?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
-  const tier = getCurrentTier(loadStats());
 
   const goMode = async (key) => {
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
@@ -119,14 +115,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
             onHome={onHome}
             showBack
             onBack={onBack}
-            rightSlot={(
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${VIOLET}` }}>
-                  <SafeImage src={tierImage(tier?.id || 'rookie', sex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 12%' }}/>
-                </div>
-                <HelpButton onClick={() => setHelpOpen(true)}/>
-              </div>
-            )}
+            rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
           />
         </div>
 
@@ -183,14 +172,14 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
         {/* Two-up utility row — secondary: MOVE LAB (gold) + CONDITIONING (red, cross-listed from Fit) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexShrink: 0 }}>
-          <button data-tour="mode-movelab" onClick={() => goMode('move_lab')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(30,20,4,0.55)', border: '1px solid rgba(253,224,71,0.4)' }}>
+          <button data-tour="mode-movelab" data-guide="fh-movelab" onClick={() => goMode('move_lab')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(30,20,4,0.55)', border: '1px solid rgba(253,224,71,0.4)' }}>
             <span style={{ fontSize: 13 }}>⚡</span>
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', font: "900 9.5px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.05em' }}>MOVE LAB</span>
               <span style={{ display: 'block', font: "600 8px 'Rajdhani',sans-serif", color: '#b9a8d6' }}>Custom combos · 🎮 {moves} moves</span>
             </span>
           </button>
-          <button onClick={() => goMode('conditioning')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(34,6,10,0.55)', border: '1px solid rgba(239,68,68,0.45)' }}>
+          <button data-guide="fh-conditioning" onClick={() => goMode('conditioning')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(34,6,10,0.55)', border: '1px solid rgba(239,68,68,0.45)' }}>
             <span style={{ fontSize: 13 }}>🔥</span>
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', font: "900 9.5px 'Orbitron',sans-serif", color: RED, letterSpacing: '0.05em' }}>CONDITIONING</span>

@@ -44,6 +44,8 @@ export const SCREEN_GUIDES = {
     { target: 'fh-fight-focus', title: 'FIGHT FOCUS', body: 'Voice-coached rounds like a real session — a round timer with a coach calling the work. Choose Fight Focus.' },
     { target: 'fh-combo', title: 'COMBO COACH', body: 'The coach calls strike combinations and you throw them — builds speed, rhythm, and reaction. Choose Combo Coach.' },
     { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense, and footwork step by step. Choose Practice Mode.' },
+    { target: 'fh-movelab', title: 'MOVE LAB', body: 'Build your own combos and signature moves — tap strikes into a sequence or type your own call. Saved moves join Combo Coach’s rotation, and game-ready ones sync to your fighter later. Choose Move Lab.' },
+    { target: 'fh-conditioning', title: 'CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work. Choose Conditioning.' },
   ],
 
   training_camp: [
