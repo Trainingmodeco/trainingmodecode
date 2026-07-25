@@ -41,6 +41,16 @@ export const TOUR_STEPS = [
     ),
   },
   {
+    screen: 'arcade',
+    targets: ['challenge-code'],
+    title: '⚔ CHALLENGE A FRIEND',
+    body: (
+      <>Any stage can be a <b style={{ color: '#c9a6ff' }}>challenge</b>: share its QR or code and a friend races
+        your <b style={{ color: GOLD }}>exact</b> stage, path &amp; difficulty. Got one? Tap here to{' '}
+        <b style={{ color: GOLD }}>scan or paste it</b> and jump straight in.</>
+    ),
+  },
+  {
     screen: 'fight_hub',
     targets: ['mode-camp'],
     title: '⛺ TRAINING CAMP — YOUR FIGHT CAMP',
