@@ -14,6 +14,7 @@ import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
 import ScreenGuide from './shared/ScreenGuide';
 import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
+import ChallengeShareModal from './shared/ChallengeShareModal';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -105,6 +106,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   // Modal state: { idx, top, side ('L'|'R'|'C'), notchY, notch ('side'|'top'|'bottom') }
   const [openInfo, setOpenInfo] = useState(null);
+  // Challenge-a-friend share overlay for the currently-selected stage.
+  const [challengeStage, setChallengeStage] = useState(null);
   // 2.10 — v2 campaigns: ENTER STAGE opens a per-stage selection modal (path +
   // difficulty) before the timer, instead of starting straight away.
   const [selectFor, setSelectFor] = useState(null);
@@ -594,8 +597,14 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 </div>
 
                 <button onClick={startSelected} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>▶ START</button>
+                <button onClick={() => setChallengeStage({ stage: selectFor, mode: selMode, difficulty: selDiff })} style={{ width: '100%', height: 38, marginTop: 8, borderRadius: 10, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.1)', color: '#c9a6ff', font: "800 9.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer' }}>⚔ CHALLENGE A FRIEND</button>
               </div>
             </div>
+          )}
+
+          {/* Challenge-a-friend: scannable QR + copyable code/link for this stage */}
+          {challengeStage && (
+            <ChallengeShareModal series={series} stage={challengeStage.stage} mode={challengeStage.mode} difficulty={challengeStage.difficulty} onClose={() => setChallengeStage(null)} />
           )}
 
           {/* 2.10 — first-time campaign intro (description + rewards, no banner).

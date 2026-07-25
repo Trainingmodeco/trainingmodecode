@@ -17,6 +17,8 @@ import { trackEvent } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
 import { preloadCriticalArt } from './shared/preloadImages';
+import { challengeFromLocation, resolveChallenge, clearChallengeFromURL } from './data/challengeCodes';
+import ChallengeInboundModal from './shared/ChallengeInboundModal';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -143,6 +145,7 @@ export default function App() {
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
   const [tourStep, setTourStep] = useState(null); // design 33 feature tour (null = off)
+  const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
   // more XP after the main block) can still detect a level-up against it.
@@ -258,6 +261,22 @@ export default function App() {
   // once, at idle priority, so screens open with images already loaded.
   useEffect(() => { preloadCriticalArt(); }, []);
 
+  // Challenge deep link (?ch=<code>): a friend's scan-to-start link. Resolve it
+  // to a real series+stage and offer to jump in; strip the param so a reload
+  // doesn't re-fire. Invalid/unknown codes are ignored silently.
+  useEffect(() => {
+    const decoded = challengeFromLocation();
+    if (!decoded) return;
+    // Consume each code once per session so a persisted ?ch= (or a reload) can't
+    // re-fire the prompt, even if the URL isn't cleared by the environment.
+    const key = `${decoded.seriesId}|${decoded.stageId}|${decoded.mode}|${decoded.difficulty}`;
+    try { if (sessionStorage.getItem('tm_challenge_seen') === key) { clearChallengeFromURL(); return; } } catch { /* noop */ }
+    const resolved = resolveChallenge(decoded);
+    try { sessionStorage.setItem('tm_challenge_seen', key); } catch { /* noop */ }
+    clearChallengeFromURL();
+    if (resolved) { setPendingChallenge(resolved); trackEvent('challenge_opened', { series: resolved.series.id, mode: resolved.mode }); }
+  }, []);
+
   // Returning from Stripe checkout (?checkout=success): re-sync the Pro
   // entitlement from Supabase and clean the query string. Purely additive —
   // does nothing on a normal load.
@@ -329,6 +348,9 @@ export default function App() {
       }
     },
     goCombatCondSetup: () => setScreen('cc_setup'),
+    // A pasted/scanned challenge code resolved to a real series+stage — surface
+    // the same accept-and-start modal the deep link uses.
+    startChallenge: (resolved) => setPendingChallenge(resolved),
     // 2.10 — arcade keeps its original carousel + ladder UI; the 5 campaigns are
     // adapted into it as extra series (data/arcadeCampaignSeries). START on a
     // campaign stage routes to the camp engine from goArcadeSession (below).
@@ -701,6 +723,13 @@ export default function App() {
         </Suspense>
         {tourStep != null && (
           <FeatureTour step={tourStep} onNext={advanceTour} onSkip={skipTour} />
+        )}
+        {pendingChallenge && screen !== 'start' && screen !== 'onboarding' && (
+          <ChallengeInboundModal
+            resolved={pendingChallenge}
+            onStart={() => { const c = pendingChallenge; setPendingChallenge(null); actions.goArcadeSession(c.series, c.stage, c.mode, null, { difficulty: c.difficulty, voiceCoach: true, sound: 'on' }); }}
+            onDismiss={() => setPendingChallenge(null)}
+          />
         )}
       </div>
     </>
