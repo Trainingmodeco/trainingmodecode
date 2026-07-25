@@ -29,6 +29,25 @@
       "type": "array", "items": { "type": "number", "minimum": 1, "maximum": 10 },
       "minItems": 2, "maxItems": 2
     },
+    "prescription": {
+      "description": "Structured, counted exercise prescription (Arcade session standard — specs/27). Replaces/augments the plain exercises[] string list for FIT modules: every bodyweight movement gets sets + reps (or duration) + a count mode. See data/arcade-session-standards.json.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "category", "sets"],
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "enum": ["pull", "push", "squat_legs", "core", "explosive", "hold", "carry"] },
+          "sets": { "type": "integer", "minimum": 1 },
+          "reps": { "type": "integer", "minimum": 1 },
+          "duration_sec": { "type": "integer", "minimum": 1 },
+          "count_mode": { "enum": ["reps", "cadence", "time", "none"] },
+          "load_type": { "enum": ["bodyweight", "weighted", "either"] },
+          "load": { "type": "string" },
+          "rest_sec": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
     "completion_rules": {
       "type": "object",
       "properties": {
