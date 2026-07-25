@@ -9,6 +9,7 @@ import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
 import { loadProfile } from './data/userProfile';
 import VoiceMixer from './shared/VoiceMixer';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -259,6 +260,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
       return next;
     });
   };
+
+  // Auto-pause when the app is backgrounded (honest pause). No integrity session
+  // in the builder, so nothing to un-flag.
+  useAutoPauseOnHidden(!paused, () => { if (!paused) handlePauseToggle(); });
 
   const handleDoneEarly = () => {
     // Weighted / hold sets can be finished before the window runs out —

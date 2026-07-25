@@ -3,6 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import { Square, SkipForward } from 'lucide-react';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts, packLine } from './data/voicePacks';
@@ -145,6 +146,9 @@ export default function CampFitRunner({ cfg, onEnd }) {
     if (!paused) { cancelSpeech(); integrity.pause(); } else { integrity.resume(); }
     setPaused((p) => !p);
   };
+
+  // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
+  useAutoPauseOnHidden(!paused && !done && countdown === null, handlePause, integrity);
 
   const handleSkip = () => {
     cancelSpeech();

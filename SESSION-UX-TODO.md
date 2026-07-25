@@ -43,7 +43,7 @@ time, in order** — check items off (`[x]`) as they ship.
   `shared/VoiceMixer.jsx` (or a compact volume popover built on it) in the TOP
   bar of EVERY feature's session screen. One consistent placement + icon
   everywhere. Controls the voice/cue volume live mid-session.
-- [ ] **5. Auto-pause on leaving the app** — when the app is backgrounded or
+- [x] **5. Auto-pause on leaving the app** — when the app is backgrounded or
   the tab loses visibility (`visibilitychange` → `document.hidden`), every
   running session AUTO-PAUSES (same state as pressing PAUSE: timer halts,
   speech cancels, wake lock releases). On return, show the normal paused state

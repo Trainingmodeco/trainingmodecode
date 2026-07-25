@@ -37,6 +37,11 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
     sessionRef.current?.resumeSession();
   }, []);
 
+  // Backgrounding handled as an honest auto-pause → don't tally it as a flag.
+  const noteHonestPause = useCallback(() => {
+    sessionRef.current?.noteHonestPause();
+  }, []);
+
   const recordAction = useCallback((actionType) => {
     return sessionRef.current?.recordAction(actionType) || { suspicious: false };
   }, []);
@@ -68,6 +73,7 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
     skipUnit,
     pause,
     resume,
+    noteHonestPause,
     recordAction,
     checkIdle,
     finalize,

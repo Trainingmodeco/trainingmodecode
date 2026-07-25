@@ -179,6 +179,14 @@ export class IntegritySession {
     this.lastUserActionAt = Date.now();
   }
 
+  // Coordination for useAutoPauseOnHidden: when a backgrounding was handled as
+  // an HONEST auto-pause (timer halted, speech cancelled — the behavior we
+  // want), undo the background tally the visibility listener just recorded so it
+  // is never treated as a cheat/flag. Backgrounding + pausing is not evasion.
+  noteHonestPause() {
+    if (this.backgroundedCount > 0) this.backgroundedCount--;
+  }
+
   recordAction(actionType) {
     const now = Date.now();
     this.lastUserActionAt = now;

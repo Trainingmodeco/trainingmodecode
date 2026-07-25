@@ -6,6 +6,7 @@ import { ChevronLeft, Pause, Play, SkipForward, Square } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay, setVoiceGender } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { generateQuickMission } from './fit-mode/quickMissionGenerator';
@@ -485,6 +486,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       handlePause();
     }
   };
+
+  // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
+  useAutoPauseOnHidden(!paused && !done, handlePauseToggle, integrity);
 
   const finishMission = (finalRounds) => {
     stopCadence();

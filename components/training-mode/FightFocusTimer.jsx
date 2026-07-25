@@ -5,6 +5,7 @@ import { generateFightFocusSession } from './data/sessionGenerator';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { packOpts, packLine } from './data/voicePacks';
@@ -496,6 +497,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     }
     setPaused(p => !p);
   };
+
+  // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
+  useAutoPauseOnHidden(!paused && !done && countdown === null && !finisher, handlePause, integrity);
 
   const handleEndConfirm = () => {
     stopVoiceSession();

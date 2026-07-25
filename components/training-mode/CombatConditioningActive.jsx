@@ -5,6 +5,7 @@ import { ChevronLeft, Pause, Play, SkipForward, Square } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
 import VoiceMixer from './shared/VoiceMixer';
@@ -355,6 +356,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       integrity.pause();
     }
   };
+
+  // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
+  useAutoPauseOnHidden(!paused && !done, handlePauseToggle, integrity);
 
   const finishMission = (finalRounds, finalDrills) => {
     cadenceVersionRef.current++;

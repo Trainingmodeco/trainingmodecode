@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import StageChrome from './shared/StageChrome';
 import VoiceMixer from './shared/VoiceMixer';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { StageClearFlash } from './shared/BattleHUD';
 import { Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
 import { C } from './Styles';
@@ -164,6 +165,15 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const [rapidWarning, setRapidWarning] = useState(null);
   const [benchmarkTimer, setBenchmarkTimer] = useState(0);
   const [benchmarkActive, setBenchmarkActive] = useState(false);
+
+  // Auto-pause a running timer/benchmark task when the app is backgrounded — the
+  // user returns to the paused Play button. Un-flag it with the integrity
+  // session so an honest pause isn't a cheat signal.
+  useAutoPauseOnHidden(
+    timerActive || benchmarkActive,
+    () => { setTimerActive(false); setBenchmarkActive(false); },
+    { noteHonestPause: () => integrityRef.current?.noteHonestPause?.() },
+  );
   const [sessionPhase, setSessionPhase] = useState(() => {
     if (initialPaused || initialResumeData) return 'active';
     // All stages (benchmark included) open with the shared briefing intro.
