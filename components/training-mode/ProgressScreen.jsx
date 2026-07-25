@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
+import { fightTrophyStates } from './data/fightTrophies';
 import Embers from './Embers';
 import { ChevronLeft } from 'lucide-react';
 import EmptyState from './EmptyState';
@@ -291,6 +292,27 @@ export default function ProgressScreen({ onHome, profile }) {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Fight Mode trophies (design 40f) — spec triggers + educated
+                  extras, evaluated live from real stats. */}
+              <div style={{ marginBottom: 13 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>FIGHT TROPHIES</span>
+                  <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{fightTrophyStates().filter(t => t.earned).length}/{fightTrophyStates().length}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
+                  {fightTrophyStates().map(t => (
+                    <div key={t.id} title={t.desc} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: `1.5px solid ${t.earned ? 'rgba(253,224,71,0.7)' : 'rgba(255,255,255,0.1)'}`, background: 'rgba(8,2,18,0.8)', opacity: t.earned ? 1 : 0.5 }}>
+                      <SafeImage src={t.art} alt={t.label} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'contain', display: 'block', padding: 4, boxSizing: 'border-box', filter: t.earned ? 'none' : 'grayscale(1)' }}/>
+                      {!t.earned && <span style={{ position: 'absolute', top: 3, right: 3, fontSize: 10 }}>🔒</span>}
+                      <div style={{ padding: '3px 2px 4px', textAlign: 'center', background: 'rgba(8,2,18,0.92)' }}>
+                        <div style={{ font: "800 6.5px 'Orbitron',sans-serif", color: t.earned ? '#fde047' : '#9a90b8' }}>{t.label.toUpperCase()}</div>
+                        <div style={{ font: "600 6.5px 'Rajdhani',sans-serif", color: '#8b83a8', marginTop: 1 }}>{t.progressText}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Trophy grid by mode (design 23b) */}

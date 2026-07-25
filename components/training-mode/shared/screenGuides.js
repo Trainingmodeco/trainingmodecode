@@ -12,10 +12,15 @@ export const SCREEN_GUIDES = {
   ],
 
   profile: [
-    { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, and app settings all live here.' },
+    { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, account, and every app setting. Here is what each button does.' },
     { target: 'pr-avatar', title: 'YOUR FIGHTER', body: 'Your avatar and rank. It evolves as you level up — Rookie to Champion… and there are secret tiers beyond.' },
     { target: 'pr-stats', title: 'YOUR STATS', body: 'Your body profile — avatar style, age, height, weight, experience. Tap any row to edit.' },
-    { target: 'pr-menu', title: 'SETTINGS & MORE', body: 'Game Link, audio settings, notifications — and REPLAY INTRO GUIDE any time you want the tour again.' },
+    { target: 'pr-google', title: '🔐 GOOGLE SIGN-IN', body: 'Continue with Google to attach your progress to your account. Optional — everything trains fine without it; signing in backs up your fighter identity.' },
+    { target: 'pr-pro', title: '👑 GO PRO', body: 'Opens the Training Mode Pro page — plans, pricing, and everything Pro unlocks (full Camp levels, all Arcade stages, and more). Browsing never charges you; you always confirm first.' },
+    { target: 'pr-gamelink', title: '🎮 GAME LINK — TRAIN HERE, WIN THERE', body: 'Training Mode connects to the upcoming companion FIGHTING GAME. The Game Link page explains it: your real training — rank, XP, unlocked tiers — will sync INTO the game and level up your in-game fighter. Tap to open the page and join the free launch list.' },
+    { target: 'pr-settings', title: '⚙ SETTINGS', body: 'The full settings page: audio mixer and voice options, units, manage your subscription and billing, and the privacy policy. Anything adjustable lives in here.' },
+    { target: 'pr-notifs', title: '🔔 NOTIFICATIONS', body: 'Workout reminders and alerts: your if-then training plan (what, which days, what time), quiet hours, streak-safety nudges, and browser push permission.' },
+    { target: 'pr-replay', title: '🔁 REPLAY INTRO GUIDE', body: 'Runs the first-run feature tour again — the spotlight walkthrough of Home, the Train tab, Arcade, Camp, Progress, and Game Link. Replay it any time.' },
   ],
 
   train_hub: [

@@ -274,7 +274,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     return (
       <PhoneFrame useBrandBg>
         <CornerHUD color="rgba(168,85,247,0.35)" size={22} inset={10}/>
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom,0px))' }}>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(max(120px, 15dvh) + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
             <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROFILE</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><HelpButton onClick={() => setHelpOpen(true)}/><button onClick={() => setProfileView('audio')} aria-label="Settings" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', fontSize: 15 }}>⚙</button></div>
@@ -321,7 +321,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             {/* Links */}
             <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <AccountCard/>
+              <div data-guide="pr-google"><AccountCard/></div>
               {/* Training Mode PRO — prominent upsell / member entry */}
               {onPaywall && (
                 <button data-guide="pr-pro" onClick={onPaywall} style={{
@@ -339,19 +339,19 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                 </button>
               )}
               {onGameLink && (
-                <button data-tour="game-link" onClick={onGameLink} style={{ display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', boxShadow: '0 0 16px -6px rgba(176,106,255,.5)', cursor: 'pointer', textAlign: 'left' }}>
+                <button data-tour="game-link" data-guide="pr-gamelink" onClick={onGameLink} style={{ display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', boxShadow: '0 0 16px -6px rgba(176,106,255,.5)', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: 16 }}>🎮</span>
                   <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#c9a6ff' }}>GAME LINK</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#facc15' }}>Level up your in-game avatar · reserve now</div></div>
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
                 </button>
               )}
-              <button onClick={() => setProfileView('audio')} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
+              <button data-guide="pr-settings" onClick={() => setProfileView('audio')} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
                 <span style={{ fontSize: 14 }}>⚙</span>
                 <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>SETTINGS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Audio · units · subscription · privacy</div></div>
                 <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
               </button>
               {onNotifications && (
-                <button onClick={onNotifications} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
+                <button data-guide="pr-notifs" onClick={onNotifications} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: 14 }}>🔔</span>
                   <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>NOTIFICATIONS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Streak reminders &amp; alerts</div></div>
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
@@ -360,7 +360,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               {/* Replay the first-run feature tour (design 33) — lives under
                   Notifications on the profile overview. */}
               {onReplayTour && (
-                <button onClick={onReplayTour} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
+                <button data-guide="pr-replay" onClick={onReplayTour} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: 14 }}>🔁</span>
                   <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>REPLAY INTRO GUIDE</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Take the 4-step feature tour again</div></div>
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>

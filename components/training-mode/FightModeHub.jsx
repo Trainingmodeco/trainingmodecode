@@ -24,6 +24,14 @@ const DISCIPLINES = [
 ];
 const discImg = (key, variant) => `/discipline-cards/${key}_${variant}.webp`;
 
+// New fight-hub banner art (2026-07 drop) — keyed by mode.
+const HUB_ART = {
+  training_camp: '/static/fight-hub/training-camp.webp',
+  fight_focus: '/static/fight-hub/fight-focus.webp',
+  combo_coach: '/static/fight-hub/combo-coach.webp',
+  practice: '/static/fight-hub/practice.webp',
+};
+
 const MODES = [
   { key: 'training_camp', Icon: Tent,      title: 'TRAINING CAMP', desc: '12-level fight camp — periodized to a title fight',        badge: 'NEW',     gold: true },
   { key: 'fight_focus',   Icon: Crosshair, title: 'FIGHT FOCUS',   desc: 'Round timer with voice coaching',                          badge: 'REC',     gold: true },
@@ -131,22 +139,32 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
           {MODES.map(m => {
             const accent = m.gold ? GOLD : VIOLET;
             const Icon = m.Icon;
+            // New hub banner art (2026-07): each mode card carries its banner
+            // behind the existing text; the icon fallback shows if art fails.
+            const art = HUB_ART[m.key];
             return (
               <button key={m.key} data-tour={m.key === 'training_camp' ? 'mode-camp' : undefined} data-guide={m.key === 'training_camp' ? 'fh-camp' : m.key === 'fight_focus' ? 'fh-fight-focus' : m.key === 'combo_coach' ? 'fh-combo' : 'fh-practice'} onClick={() => goMode(m.key)} style={{
-                display: 'flex', alignItems: 'center', gap: 11, borderRadius: 12, padding: '9px 13px', cursor: 'pointer', textAlign: 'left',
+                position: 'relative', overflow: 'hidden',
+                display: 'flex', alignItems: 'center', gap: 11, borderRadius: 12, padding: '13px 13px', cursor: 'pointer', textAlign: 'left',
                 background: 'rgba(16,4,30,0.82)',
                 border: `1px solid ${m.gold ? 'rgba(253,224,71,0.45)' : 'rgba(168,85,247,0.4)'}`,
                 boxShadow: m.gold ? '0 0 16px rgba(253,224,71,0.14)' : '0 0 14px rgba(168,85,247,0.12)',
               }}>
-                <div style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0, background: m.gold ? 'rgba(253,224,71,0.1)' : 'rgba(168,85,247,0.1)', border: `1px solid ${m.gold ? 'rgba(253,224,71,0.3)' : 'rgba(168,85,247,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {art && (
+                  <>
+                    <SafeImage src={art} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center', zIndex: 0 }}/>
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(90deg, rgba(10,1,22,0.92) 0%, rgba(10,1,22,0.72) 45%, rgba(10,1,22,0.18) 100%)' }}/>
+                  </>
+                )}
+                <div style={{ position: 'relative', zIndex: 1, width: 36, height: 36, borderRadius: 9, flexShrink: 0, background: m.gold ? 'rgba(253,224,71,0.12)' : 'rgba(168,85,247,0.14)', border: `1px solid ${m.gold ? 'rgba(253,224,71,0.3)' : 'rgba(168,85,247,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(2px)' }}>
                   <Icon size={17} color={accent}/>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ font: "900 14px 'Orbitron',sans-serif", color: accent, letterSpacing: '0.06em' }}>{m.title}</span>
-                    {m.badge && <span style={{ font: "700 7px 'Orbitron',sans-serif", color: GOLD, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 4, padding: '2px 6px' }}>{m.badge}</span>}
+                    <span style={{ font: "900 14px 'Orbitron',sans-serif", color: accent, letterSpacing: '0.06em', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{m.title}</span>
+                    {m.badge && <span style={{ font: "700 7px 'Orbitron',sans-serif", color: GOLD, background: 'rgba(253,224,71,0.14)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 4, padding: '2px 6px' }}>{m.badge}</span>}
                   </div>
-                  <div style={{ font: "500 10.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, lineHeight: 1.25 }}>{m.desc}</div>
+                  <div style={{ font: "500 10.5px 'Rajdhani',sans-serif", color: '#d8c8ee', marginTop: 2, lineHeight: 1.25, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{m.desc}</div>
                 </div>
               </button>
             );
