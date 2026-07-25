@@ -89,3 +89,28 @@ branch in `bolt-rebuild-kit/prompts/05e-fight-mode-design-prompts.md`):
 - `timing-tables.json` levels 10–11 are resolved from the level-9 band with
   the taper reduction applied to round count — round length is preserved,
   matching taper best practice.
+
+## Feature engines (pure logic — wire into the app revamp)
+
+Framework-free TypeScript engines added for the Arcade/Fight Mode feature set.
+Each is pure (caller supplies now/indices — no clock/RNG), typechecks clean, and
+is behavior-tested. Drop into `src/engine/` alongside `training-engine.ts`.
+
+- `engine/ghost-engine.ts` — Ghost Battles: make/resolve a ghost, live lead,
+  suggested-ghost + VS-prompt gating. Config: `data/ghost-battles.json`
+  (+ per-mode wiring, `specs/24`). Spec: `specs/18`.
+- `engine/reminders-engine.ts` — Workout reminders + forgiving COMBO streak
+  (if-then plans, rest-day/GUARD grace, next-reminder, copy fill). Data:
+  `data/workout-reminders.json`. Spec: `specs/23`.
+- `engine/game-plan-engine.ts` — Game Plan adaptive scheduler (gap→session,
+  weekly plan, Today's Bout, opportunistic nudge). Data: `data/game-plan.json`.
+  Spec: `specs/26`.
+- `engine/arcade-session-engine.ts` — Arcade session standard: resolve a counted
+  prescription from the volume ladder, bodyweight↔weighted re-ranging, the
+  weighted setup/Generate flow, the announcer script, adaptive rest, count
+  policy, fight canonical + finisher, and the BOTH shared plyo budget. Data:
+  `data/arcade-session-standards.json`. Spec: `specs/27`.
+
+Cross-cutting data: `data/voice-packs.json` (`specs/22` voice guidance) and
+`data/reaction-mode.json` (`specs/25`). Validate all campaigns with
+`node scripts/validate-campaigns.mjs`.

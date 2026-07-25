@@ -121,6 +121,27 @@ A weighted swap of the same slot: {
   "sets": 4, "reps": 10, "count_mode": "reps", "rest_sec": 90, "load": "user_entered"
 }
 
+--- ENGINE (the features, programmed) ---
+
+The behaviours above are implemented as pure functions in
+`engine/arcade-session-engine.ts` (framework-free; drop into the app):
+- `resolvePrescription(ex, tier, difficulty, ladder)` — concrete sets×reps/sec
+  from the volume ladder (ladder categories) or gently scaled (tuned/other).
+- `toBodyweight(ex)` / `toWeighted(ex)` — the bodyweight↔weighted re-ranging.
+- Weighted setup flow: `initSetup`, `approveSlot`, `swapSlot`,
+  `makeSlotBodyweight`, `makeSlotWeighted`, `canGenerate` (Generate glows only
+  when every slot is resolved), `generateSession`.
+- `announcerScript({stageNumber, persona, exercises})` — the "3,2,1. Stage 5:
+  Jack Hanma. 1 workout. Muscle-ups, 1 of 5 sets, 20 reps! Ready — go!" line.
+- `countPolicy(ex, voiceEnabled)` — bodyweight = rep-counted (voice unless off,
+  counter always); weighted = timed completion.
+- `adaptiveRest({timeToCompleteSec, loadKg, category})` — weighted rest calc.
+- `resolveCanonical(map, drillOrRound)` + `pickFinisher(spec, difficulty, i)` —
+  fight canonical lookup + difficulty-scaled bodyweight finisher.
+- `sharedPlyoBudget({cap, fightFinisherContacts, fitExplosiveContacts})` — the
+  BOTH shared plyo foot-contact budget.
+All typecheck clean and are behavior-tested.
+
 --- ROLLOUT NOTE ---
 
 This standard is defined in data + spec. Applying the rep/set prescriptions to
