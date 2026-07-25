@@ -456,8 +456,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         overflowX: 'hidden',
       }}>
 
-        {/* LT-1 — cue level, adjustable mid-round without pausing. */}
-        <VoiceMixer top={14} right={12}/>
+        {/* Universal layout: How-to (O) sits top-right in the header row below;
+            Volume sits directly under it so the two never overlap. */}
+        <VoiceMixer top={58} right={12}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>

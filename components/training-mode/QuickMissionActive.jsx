@@ -589,7 +589,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         pointerEvents: 'none',
       }}/>
       <CornerHUD color="rgba(253,224,71,0.3)" size={20} inset={10}/>
-      <VoiceMixer top={10} right={10}/>
+      {/* Universal layout: How-to (O) sits top-right in the header row below;
+          Volume sits directly under it so the two never overlap. */}
+      <VoiceMixer top={58} right={14}/>
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',

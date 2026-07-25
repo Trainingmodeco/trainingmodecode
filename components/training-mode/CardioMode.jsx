@@ -236,7 +236,6 @@ export default function CardioMode({ onBack }) {
     return (
       <PhoneFrame useBrandBg>
         <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={8}/>
-        <VoiceMixer top={10} right={10}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
           <div style={{ padding: '12px 16px' }}>
             <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>
@@ -255,6 +254,9 @@ export default function CardioMode({ onBack }) {
       <PhoneFrame useBrandBg>
         <Embers count={2}/>
         <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={8}/>
+        {/* Item 4 fix: this is the actual active cardio player — the previous
+            VoiceMixer placement was on the GPS-permission fallback screen. */}
+        <VoiceMixer top={10} right={10}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '12px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
