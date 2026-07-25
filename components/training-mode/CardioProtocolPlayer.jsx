@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { ARCADE } from './ArcadeUI';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
@@ -236,6 +237,13 @@ export default function CardioProtocolPlayer({
   const seg = segments[segIndex];
   const isInterval = format === 'interval' || format === 'tabata';
   const totalTarget = segments.reduce((sum, s) => sum + s.seconds, 0);
+
+  // Auto-pause on backgrounding — same as tapping PAUSE, so returning shows
+  // RESUME. Deliberately NOT applied to a live GPS distance run: people lock
+  // the phone or switch apps mid-run, and silently pausing their tracking
+  // would wreck the workout. Timed / interval cardio pauses honestly.
+  const gpsRunActive = useGps && distanceMode;
+  useAutoPauseOnHidden(running && !done && !gpsRunActive, () => setRunning(false));
 
   useEffect(() => {
     if (!running || done || showManual) { clearInterval(tickRef.current); return; }

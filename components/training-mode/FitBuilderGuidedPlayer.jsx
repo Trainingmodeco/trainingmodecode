@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Play, Pause, SkipForward, Check, Square, ChevronsRight } from 'lucide-react';
+import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw } from 'lucide-react';
 import { C } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
@@ -47,7 +47,7 @@ function classify(ex) {
   return { kind: 'weighted', reps, windowSec };
 }
 
-export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onComplete, onBack, onStop, onSkipExercise, voiceOn = true }) {
+export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onComplete, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true }) {
   const ex = exercises[exerciseIdx];
   const plan = useMemo(() => classify(ex), [ex]);
   const totalSets = ex?.sets || 3;
@@ -304,6 +304,23 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
     onSkipExercise?.();
   };
 
+  // 3b REWIND — mirror of SKIP: step BACK. Within an exercise it replays the
+  // previous SET; on set 1 it goes back to the previous EXERCISE (re-announced
+  // on arrival). A rewound exercise that's then finished still counts normally.
+  const handleRewind = () => {
+    versionRef.current++;
+    cancelSpeech();
+    if (set > 1) {
+      setSet(s => s - 1);
+      setPhase('intro');
+      setDisplay(0);
+      return;
+    }
+    const prev = exercises[exerciseIdx - 1];
+    if (voiceOn && prev) speakAsync(`Back to ${prev.name}.`);
+    onRewindExercise?.();
+  };
+
   // STOP → shared "End session?" confirm (matches FightFocusTimer /
   // CampFitSetRunner). Confirm ends the whole workout to the summary; cancel
   // closes and the session keeps running.
@@ -329,6 +346,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   const controls = (
     <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 360 }}>
       <div style={{ display: 'flex', gap: 8 }}>
+        {/* 3b — REWIND: previous set, or previous exercise from set 1 */}
+        <button onClick={handleRewind} disabled={set === 1 && exerciseIdx === 0} aria-label="Previous" style={{ width: 52, height: 48, borderRadius: 11, cursor: (set === 1 && exerciseIdx === 0) ? 'not-allowed' : 'pointer', background: 'rgba(16,4,30,0.85)', border: '1.5px solid rgba(168,85,247,0.4)', opacity: (set === 1 && exerciseIdx === 0) ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <RotateCcw size={17} color={VIOLET}/>
+        </button>
         <button onClick={handlePauseToggle} aria-label={paused ? 'Resume' : 'Pause'} style={{ width: 52, height: 48, borderRadius: 11, cursor: 'pointer', background: paused ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${paused ? GOLD : 'rgba(168,85,247,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {paused ? <Play size={18} color={GOLD}/> : <Pause size={18} color="#e6d4ff"/>}
         </button>

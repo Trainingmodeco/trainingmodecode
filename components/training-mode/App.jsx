@@ -322,8 +322,10 @@ export default function App() {
     goProgress:    () => { pauseCurrentSession(); setScreen('progress'); },
     goTrainingHub: () => { pauseCurrentSession(); setScreen('training_hub'); },
     goFightHub:    () => setScreen('fight_hub'),
-    goFitHub:      () => setScreen('fit_hub'),
-    goFitSetup:    () => setScreen('fit_setup'),
+    // 3c — backing out of a live builder/quick-mission session PAUSES it (the
+    // app's normal resume flow picks it up) instead of silently abandoning it.
+    goFitHub:      () => { pauseCurrentSession(); setScreen('fit_hub'); },
+    goFitSetup:    () => { pauseCurrentSession(); setScreen('fit_setup'); },
     goCardioMode:  () => setScreen('cardio_mode'),
     goWorkoutCodec: () => setScreen('workout_codec'),
     goQuickMissionSetup: () => setScreen('qm_setup'),

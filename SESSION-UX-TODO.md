@@ -24,12 +24,12 @@ time, in order** — check items off (`[x]`) as they ship.
   that advances past the current exercise/workout to the next one (voice
   announces the skip target; skipped items count as not-completed, never as
   done — completion/XP integrity unchanged).
-- [ ] **3b. Rewind / previous** — the mirror of SKIP: a REWIND control that
+- [x] **3b. Rewind / previous** — the mirror of SKIP: a REWIND control that
   goes BACK to the previous exercise/workout (playtest: "accidentally skipped
   forward and couldn't go back"). Re-announces the exercise on return; a
   rewound-then-completed exercise counts normally. Place it symmetric to SKIP
   (prev | pause | skip).
-- [ ] **3c. Header bar with back-out** — the guided builder session needs a
+- [x] **3c. Header bar with back-out** — the guided builder session needs a
   header on top (like the other session screens) so the user can leave the
   page. Backing out mid-session PAUSES the session (same paused-session
   resume flow the app already has — savePausedSession) rather than silently

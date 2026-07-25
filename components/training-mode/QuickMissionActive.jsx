@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import CornerHUD from './CornerHUD';
 import VoiceMixer from './shared/VoiceMixer';
-import { ChevronLeft, Pause, Play, SkipForward, Square } from 'lucide-react';
+import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
@@ -265,6 +265,37 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       setExIdx(nextIdx);
       startRestWithUpNext(restDur, currentRound, false, nextIdx);
     }
+  };
+
+  // 3b REWIND — the mirror of SKIP: step BACK to the previous exercise (or the
+  // last exercise of the previous round) and run it again, re-announced. The
+  // completion counter steps back with it so a rewound-then-completed exercise
+  // counts once, never twice.
+  const rewindExercise = () => {
+    cancelSpeech();
+    stopCadence();
+    restWarningRef.current = false;
+    integrity.recordAction('rewind');
+
+    const idx = exIdxRef.current;
+    const currentRound = roundRef.current;
+
+    if (idx > 0) {
+      const prev = idx - 1;
+      exIdxRef.current = prev;
+      setExIdx(prev);
+    } else if (currentRound > 1) {
+      const last = allExercises.length - 1;
+      roundRef.current = currentRound - 1;
+      exIdxRef.current = last;
+      setRound(currentRound - 1);
+      setExIdx(last);
+      setRoundsCompleted(c => Math.max(0, c - 1));
+    }
+    // else: already on the very first exercise — just restart it.
+
+    setExercisesCompleted(c => Math.max(0, c - 1));
+    moveToNextRef.current?.();
   };
 
   // Keep action refs fresh (Fix 1)
@@ -750,6 +781,15 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
               DONE
             </button>
           )}
+          {/* 3b — REWIND: back to the previous exercise (symmetric to SKIP) */}
+          <button onClick={rewindExercise} aria-label="Previous exercise" style={{
+            width: 56, height: 56, borderRadius: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
+            color: C.neon, cursor: 'pointer',
+          }}>
+            <RotateCcw size={22}/>
+          </button>
           <button onClick={handlePauseToggle} style={{
             width: 70, height: 70, borderRadius: 18,
             display: 'flex', alignItems: 'center', justifyContent: 'center',

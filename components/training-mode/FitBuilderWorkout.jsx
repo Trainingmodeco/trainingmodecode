@@ -346,6 +346,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           if (activeIdx < exercises.length - 1) setActiveIdx(activeIdx + 1);
           else setActiveIdx(null);
         }}
+        onRewindExercise={() => {
+          // 3b — step back to the previous exercise and clear its completed
+          // mark, so redoing it counts once (never leaves a stale ✓).
+          if (activeIdx > 0) {
+            const prev = activeIdx - 1;
+            setCompleted(c => { const next = { ...c }; delete next[prev]; return next; });
+            setActiveIdx(prev);
+          }
+        }}
         onComplete={() => {
           setCompleted(prev => ({ ...prev, [activeIdx]: true }));
           if (activeIdx < exercises.length - 1) {
