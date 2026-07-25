@@ -20,30 +20,77 @@
 
   "volume_ladder": {
     "rule": "Reps/sets START basic and climb PER STAGE. Volume scales by (a) the campaign's stage TIER and (b) the movement CATEGORY (a pull-up ≠ a squat) and (c) difficulty (easy/normal/hard). These are PROPOSED, safety-passed numbers — the user's brainstorm ('1 set of 250', '10 sets of 20') is interpreted as high-volume EASY movements only, capped; hard/loaded movements stay in sane ranges.",
-    "status": "proposed — confirm before rolling to all live modules",
+    "status": "confirmed — CALIBRATED with the user as the elite HARD/peak ceiling, the average person mapped down to easy/normal. Explicit sets x reps per difficulty per tier (no multiplier). Reps are COUNTED.",
+    "calibration_note": "User (a strong athlete) reference points used as the HARD-peak ceiling: 5x10 pull-ups easy for them / 5x30 challenging; 5x100 abs; 5x50 squats not-too-hard / 5x100 hard; 4x2min holds challenging. So HARD@peak targets their 'challenging' level; NORMAL and EASY are scaled down for average/committed users. Their most extreme feats (5x100 squats/abs, 4x2min) live in the signature_challenge, not the base ladder.",
     "tiers": {
       "T1_foundation": "early stages (roughly first ~25%)",
       "T2_development": "middle stages",
       "T3_hard": "late stages",
-      "T4_peak": "peak/finale stages"
+      "T4_peak": "peak/finale stages (top of the ladder)"
     },
+    "format": "each cell is { sets, reps } (or { sets, sec } for holds), per difficulty. Peak targets: pull 30+, push 50, squat 50-60, core 50-75, hold 2-3min (all HARD).",
     "by_category": {
-      "pull":       { "T1": { "sets": 3, "reps": 8 },  "T2": { "sets": 4, "reps": 10 }, "T3": { "sets": 5, "reps": 10 }, "T4": { "sets": 5, "reps": 12 }, "note": "pull-ups/muscle-ups; band-assist scales it, never inflate reps" },
-      "push":       { "T1": { "sets": 3, "reps": 12 }, "T2": { "sets": 4, "reps": 20 }, "T3": { "sets": 5, "reps": 30 }, "T4": { "sets": 5, "reps": 40 } },
-      "squat_legs": { "T1": { "sets": 3, "reps": 15 }, "T2": { "sets": 4, "reps": 30 }, "T3": { "sets": 5, "reps": 40 }, "T4": { "sets": 5, "reps": 50 } },
-      "core":       { "T1": { "sets": 3, "reps": 12 }, "T2": { "sets": 4, "reps": 20 }, "T3": { "sets": 4, "reps": 25 }, "T4": { "sets": 5, "reps": 30 } },
-      "hold":       { "T1": { "sets": 3, "duration_sec": 30 }, "T2": { "sets": 3, "duration_sec": 45 }, "T3": { "sets": 4, "duration_sec": 60 }, "T4": { "sets": 4, "duration_sec": 60 }, "note": "planks/wall-sits use time, count_mode 'time'" },
-      "explosive":  { "T1": { "sets": 3, "reps": 10 }, "T2": { "sets": 3, "reps": 12 }, "T3": { "sets": 4, "reps": 12 }, "T4": { "sets": 4, "reps": 15 }, "note": "jumps count toward the campaign's plyo foot-contact cap — never exceed it" }
+      "pull": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 3 },  "normal": { "sets": 3, "reps": 5 },  "hard": { "sets": 3, "reps": 8 } },
+        "T2": { "easy": { "sets": 3, "reps": 5 },  "normal": { "sets": 4, "reps": 8 },  "hard": { "sets": 4, "reps": 12 } },
+        "T3": { "easy": { "sets": 4, "reps": 6 },  "normal": { "sets": 4, "reps": 10 }, "hard": { "sets": 5, "reps": 15 } },
+        "T4": { "easy": { "sets": 4, "reps": 8 },  "normal": { "sets": 5, "reps": 15 }, "hard": { "sets": 5, "reps": 30 } },
+        "note": "pull-ups/muscle-ups. HARD peak 5x30 is an ELITE ceiling (user-calibrated) — most users won't reach it; band-assist, negatives, or fewer reps scale it. NEVER hit the number with kipping or partial reps."
+      },
+      "push": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 8 },  "normal": { "sets": 3, "reps": 12 }, "hard": { "sets": 3, "reps": 20 } },
+        "T2": { "easy": { "sets": 3, "reps": 15 }, "normal": { "sets": 4, "reps": 20 }, "hard": { "sets": 4, "reps": 30 } },
+        "T3": { "easy": { "sets": 4, "reps": 20 }, "normal": { "sets": 4, "reps": 30 }, "hard": { "sets": 5, "reps": 40 } },
+        "T4": { "easy": { "sets": 4, "reps": 25 }, "normal": { "sets": 5, "reps": 40 }, "hard": { "sets": 5, "reps": 50 } }
+      },
+      "squat_legs": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 12 }, "normal": { "sets": 3, "reps": 20 }, "hard": { "sets": 3, "reps": 30 } },
+        "T2": { "easy": { "sets": 3, "reps": 20 }, "normal": { "sets": 4, "reps": 30 }, "hard": { "sets": 4, "reps": 40 } },
+        "T3": { "easy": { "sets": 4, "reps": 25 }, "normal": { "sets": 5, "reps": 40 }, "hard": { "sets": 5, "reps": 50 } },
+        "T4": { "easy": { "sets": 4, "reps": 30 }, "normal": { "sets": 5, "reps": 50 }, "hard": { "sets": 5, "reps": 60 } }
+      },
+      "core": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 12 }, "normal": { "sets": 3, "reps": 20 }, "hard": { "sets": 3, "reps": 30 } },
+        "T2": { "easy": { "sets": 3, "reps": 20 }, "normal": { "sets": 4, "reps": 30 }, "hard": { "sets": 4, "reps": 40 } },
+        "T3": { "easy": { "sets": 4, "reps": 25 }, "normal": { "sets": 4, "reps": 40 }, "hard": { "sets": 5, "reps": 50 } },
+        "T4": { "easy": { "sets": 4, "reps": 30 }, "normal": { "sets": 5, "reps": 50 }, "hard": { "sets": 5, "reps": 75 } },
+        "note": "abs tolerate high volume; the user's 5x100 lives in signature_challenge."
+      },
+      "hold": {
+        "unit": "seconds",
+        "T1": { "easy": { "sets": 3, "sec": 20 }, "normal": { "sets": 3, "sec": 30 }, "hard": { "sets": 3, "sec": 45 } },
+        "T2": { "easy": { "sets": 3, "sec": 30 }, "normal": { "sets": 3, "sec": 45 }, "hard": { "sets": 4, "sec": 60 } },
+        "T3": { "easy": { "sets": 3, "sec": 45 }, "normal": { "sets": 4, "sec": 60 }, "hard": { "sets": 4, "sec": 90 } },
+        "T4": { "easy": { "sets": 4, "sec": 60 }, "normal": { "sets": 4, "sec": 90 }, "hard": { "sets": 4, "sec": 120 } },
+        "note": "planks/wall-sits, count_mode 'time'. HARD peak 4x2min = user's 'challenging'; a 3-min hold is the signature finale challenge."
+      },
+      "explosive": {
+        "unit": "reps",
+        "T1": { "easy": { "sets": 3, "reps": 8 },  "normal": { "sets": 3, "reps": 10 }, "hard": { "sets": 3, "reps": 12 } },
+        "T2": { "easy": { "sets": 3, "reps": 10 }, "normal": { "sets": 3, "reps": 12 }, "hard": { "sets": 4, "reps": 12 } },
+        "T3": { "easy": { "sets": 4, "reps": 10 }, "normal": { "sets": 4, "reps": 12 }, "hard": { "sets": 4, "reps": 15 } },
+        "T4": { "easy": { "sets": 4, "reps": 12 }, "normal": { "sets": 4, "reps": 15 }, "hard": { "sets": 5, "reps": 15 } },
+        "note": "jumps/plyo — total foot-contacts ALWAYS respect the campaign's plyo foot-contact cap; never exceed it to hit a rep number."
+      }
     },
-    "difficulty_multiplier": { "easy": 0.7, "normal": 1.0, "hard": 1.25, "rule": "Round to sane whole reps; NEVER push a category above its safety cap or a campaign's plyo cap. Easy trims sets first, then reps." },
     "signature_challenge": {
-      "rule": "A campaign's finale MAY carry ONE 'signature' high-volume challenge for the anime feel — but ONLY on a safe, low-skill category (squats, calf raises, easy core), spread across sets, difficulty-scaled, never a single grinding set of a hard movement.",
-      "example": "Finale 'Century': 100 bodyweight squats as 5x20 (easy 3x15 / hard 5x25). A '250' challenge = 250 TOTAL easy reps across the session, capped — never 250 in one set."
+      "rule": "A campaign's finale MAY carry ONE high-volume 'signature' challenge for the anime feel — ONLY on a safe low-skill category (squats, abs, calf raises, holds), spread across sets, difficulty-scaled, never a grinding single set of a hard movement.",
+      "presets": {
+        "squat_century": { "easy": { "sets": 5, "reps": 12 }, "normal": { "sets": 5, "reps": 20 }, "hard": { "sets": 5, "reps": 24 }, "label": "The Century — 100+ squats" },
+        "abs_hundred":   { "easy": { "sets": 5, "reps": 20 }, "normal": { "sets": 5, "reps": 40 }, "hard": { "sets": 5, "reps": 100 }, "label": "Iron Core — up to the user's 5x100" },
+        "three_min_hold":{ "easy": { "sets": 1, "sec": 90 }, "normal": { "sets": 1, "sec": 150 }, "hard": { "sets": 1, "sec": 180 }, "label": "Immovable — 3-minute hold" }
+      }
     },
     "safety_caps": {
-      "pull_reps_per_set_max": 15,
-      "explosive_bound": "campaign plyo foot-contact cap",
-      "never": ["sets to failure", "grinding a hard movement for extreme reps", "exceeding the plyo cap via jumps", "counting through joint pain"]
+      "pull_reps_per_set_max": 30,
+      "pull_note": "30 is the HARD-peak ceiling only; band-assist / negatives / fewer reps scale it. No kipping or partial reps to reach it.",
+      "explosive_bound": "campaign plyo foot-contact cap (never exceeded)",
+      "form_over_count": true,
+      "never": ["sets to failure", "grinding a hard movement (pull/push) for extreme reps", "exceeding the plyo cap via jumps", "counting through joint pain", "sacrificing form to hit the number"]
     }
   },
 

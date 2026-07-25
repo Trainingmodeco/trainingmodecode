@@ -25,19 +25,32 @@ voice is toggled OFF (the on-screen counter still shows). Baseline start: ~3×10
 
 --- PROMPT A2: The volume ladder — start basic, climb per stage ---
 
-Reps/sets START basic and rise PER STAGE. Volume scales by three things
-(`arcade-session-standards.json > volume_ladder`):
+Reps/sets START basic and rise PER STAGE. The ladder is CALIBRATED (with the user
+as the elite HARD/peak ceiling; the average person mapped down to easy/normal)
+and defined EXPLICITLY per difficulty per tier per category in
+`arcade-session-standards.json > volume_ladder.by_category` (sets × reps, or sets
+× seconds for holds). Volume scales by three things:
 1. Stage TIER (foundation → development → hard → peak).
-2. Movement CATEGORY — a pull-up is NOT a squat. pull scales low (3×8 → 5×12);
-   push/squat scale high (up to 5×40-50); holds use time; explosive reps count
-   toward the plyo cap.
-3. DIFFICULTY — easy ×0.7 (trims sets first), normal ×1.0, hard ×1.25, always
-   rounded to sane whole reps and never above a category's safety cap.
-SIGNATURE CHALLENGE: a finale MAY carry ONE high-volume "century"-style challenge
-for the anime feel — but only on a SAFE low-skill category (squats, calf raises,
-easy core), spread across sets, difficulty-scaled. The user's brainstorm ("1 set
-of 250", "10 sets of 20") is interpreted as high-volume EASY movements, capped —
-never 250 in one set of a hard movement, never sets to failure.
+2. Movement CATEGORY — a pull-up is NOT a squat.
+3. DIFFICULTY — easy / normal / hard (each has its own explicit numbers).
+
+Reference (NORMAL · HARD, per set × sets):
+| Category | Foundation | Development | Hard tier | Peak |
+|---|---|---|---|---|
+| **Pull** | 3×5 · 3×8 | 4×8 · 4×12 | 4×10 · 5×15 | 5×15 · **5×30** |
+| **Push** | 3×12 · 3×20 | 4×20 · 4×30 | 4×30 · 5×40 | 5×40 · **5×50** |
+| **Squat** | 3×20 · 3×30 | 4×30 · 4×40 | 5×40 · 5×50 | 5×50 · **5×60** |
+| **Core** | 3×20 · 3×30 | 4×30 · 4×40 | 4×40 · 5×50 | 5×50 · **5×75** |
+| **Hold** | 3×30s · 3×45s | 3×45s · 4×60s | 4×60s · 4×90s | 4×90s · **4×2min** |
+
+HARD peak = the user's own "challenging" level (pull 5×30, push 5×50, squat 5×60,
+core 5×75, hold 4×2min); it's an ELITE ceiling — band-assist/negatives/fewer reps
+scale hard movements, never kipping/partials. EASY/NORMAL are for average/committed
+users. Explosive reps always respect the campaign plyo foot-contact cap.
+SIGNATURE CHALLENGE (finale, optional): ONE high-volume feat on a SAFE category —
+`squat_century` (100+ squats), `abs_hundred` (up to the user's 5×100), or a
+`three_min_hold` — difficulty-scaled, spread across sets, never a grind set of a
+hard movement, never to failure. Form over count, always.
 
 --- PROMPT A3: The WEIGHTED path — a review-and-generate flow ---
 
