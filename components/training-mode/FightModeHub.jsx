@@ -111,7 +111,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
       <Embers count={3}/>
 
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden', padding: '36px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
 
         {/* Header — red FIGHT MODE + active discipline */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginBottom: 8 }}>
@@ -126,8 +126,8 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         </div>
 
         {/* SELECT DISCIPLINE — 4-across, selection persists */}
-        <div style={{ textAlign: 'center', font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.28em', marginBottom: 6, flexShrink: 0 }}>‹ SELECT DISCIPLINE ›</div>
-        <div data-guide="fh-disciplines" style={{ display: 'flex', gap: 6, flexShrink: 0, marginBottom: 10 }}>
+        <div style={{ textAlign: 'center', font: "700 12px 'Orbitron',sans-serif", color: '#d9cdf0', letterSpacing: '0.3em', marginBottom: 8, flexShrink: 0 }}>‹ SELECT DISCIPLINE ›</div>
+        <div data-guide="fh-disciplines" style={{ display: 'flex', gap: 6, flexShrink: 0, marginBottom: 44 }}>
           {DISCIPLINES.map(d => {
             const on = d.id === disc;
             return (
@@ -148,7 +148,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
         </div>
 
         {/* SELECT MODE — the banner stack */}
-        <div style={{ textAlign: 'center', font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.28em', marginBottom: 6, flexShrink: 0 }}>‹ SELECT MODE ›</div>
+        <div style={{ textAlign: 'center', font: "700 12px 'Orbitron',sans-serif", color: '#d9cdf0', letterSpacing: '0.3em', marginBottom: 8, flexShrink: 0 }}>‹ SELECT MODE ›</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
           {BANNERS.map(b => (
             <button key={b.key} className="fm-banner" data-tour={b.tour} data-guide={b.guide} onClick={() => goMode(b.key)} style={{

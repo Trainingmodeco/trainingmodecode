@@ -443,7 +443,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'cc_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
-        <CombatConditioningSetup onBack={goFitHub} onStart={goCombatCondActive} onCardioOnly={goCardioMode} profile={profile}/>
+        <CombatConditioningSetup onBack={goTrainingHub} onStart={goCombatCondActive} onCardioOnly={goCardioMode} profile={profile}/>
       </WithNav>
     );
   }
