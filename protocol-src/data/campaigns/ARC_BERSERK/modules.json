@@ -1,292 +1,3248 @@
 {
-  "notes": "24 modules: fit + fight per stage. Exercise/drill vocabulary grounded in the deep-research report (The Bioneer strongman club/mace/carry work, SuperheroJacked rep bands, HEMA guard/footwork for Casca/Griffith, sledgehammer vs steel-mace mechanics). Eclipse stages 9-11 + boss 12 carry 'eclipse_safety': true — targets are PREDETERMINED and volume-capped; never 'max until collapse'. Split stages 4-11 are SKILL-FIRST (fight = morning, fit = evening). Fight round counts/lengths resolve from campaign.difficulty_scaling.fight unless a module overrides (boss does).",
+  "notes": "24 modules: fit + fight per stage. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). FIT modules now carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry `round_source`, a `canonical_map` (thematic sword/implement drill -> canonical discipline or conditioning equivalent), per-round `combo_spec` (implement-swing rounds are cue-based; fencing thrust rounds generate numbered straights), and a `finishers` block (explosive bodyweight, capped, counting toward the plyo cap). Tier map: T1 stages 1-3, T2 4-6, T3 7-9, T4 10-12. Exercise/drill vocabulary grounded in the deep-research report (The Bioneer strongman club/mace/carry work, SuperheroJacked rep bands, HEMA guard/footwork for Casca/Griffith, sledgehammer vs steel-mace mechanics). SAFETY: Eclipse stages 9-11 + boss 12 carry 'eclipse_safety': true — targets are PREDETERMINED and volume-capped; never 'max until collapse'. Split stages 4-11 are SKILL-FIRST (fight = morning, fit = evening). Fight round counts/lengths resolve from campaign.difficulty_scaling.fight unless a module overrides (boss does).",
+  "both_rules": {
+    "description": "When a stage is run as BOTH (fit + fight combined).",
+    "sequencing": "Skill/fight first while fresh, then fit. Stages 4-11 are already skill-first split (fight = AM, fit = PM); stages 1-3 and 12 are single-session, so BOTH runs fight -> fit back-to-back.",
+    "shared_plyo_cap": "The campaign plyo foot-contact cap is counted ACROSS the whole session — fight finishers + fit explosive share it; if combined would exceed it, the fit explosive block trims first.",
+    "volume_sanity": "In a single-session BOTH (stages 1-3, 12), fit accessory volume may drop one notch so two full high-volume blocks aren't stacked. On eclipse stages (9-11) the eclipse volume caps already bound the combined session.",
+    "readiness": "A BOTH day is a HARD day: readiness gate applies before starting, and it won't schedule back-to-back with another hard day. Eclipse stages (9-11) and the boss additionally run the enhanced readiness checks (heat, recent illness, hydration).",
+    "announcer": "States the combined plan up front (e.g. 'Stage 7: Dragonslayer. Fight — 5 rounds. Then Fit — Carry the Great Sword, 5 workouts.')."
+  },
   "modules": [
-
-    { "module_id": "MOD_BK_S01_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 24,
+    {
+      "module_id": "MOD_BK_S01_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 24,
       "title": "Grow Into It",
-      "exercises": ["Hip-hinge and brace drill", "Goblet squat (light implement)", "Push-up", "Bent row or band row", "Farmer hold for grip", "Dead-bug core"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [4, 6],
-      "rounds": [{ "index": 1, "length_sec": 1260, "rest_sec": 0, "goal": "guided_foundation_circuit" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "SANDBAG": "loaded_backpack_or_bodyweight" } },
-
-    { "module_id": "MOD_BK_S01_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 20,
+      "tier": "T1",
+      "prescription": [
+        {
+          "name": "Hip-hinge and brace drill",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "hinge-pattern skill drill — tuned light"
+        },
+        {
+          "name": "Goblet squat (light implement)",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "light implement — tuned below the air-squat ladder"
+        },
+        {
+          "name": "Push-up",
+          "category": "push",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Bent row or band row",
+          "category": "pull",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "rows — tuned above the pull-up ladder (rows are easier)"
+        },
+        {
+          "name": "Farmer hold for grip",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60
+        },
+        {
+          "name": "Dead-bug core",
+          "category": "core",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        4,
+        6
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1260,
+          "rest_sec": 0,
+          "goal": "guided_foundation_circuit"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SANDBAG": "loaded_backpack_or_bodyweight"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S01_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 20,
       "title": "First Swings",
-      "drills": ["Braced stance with a light implement (shadow greatsword)", "Overhead swing pattern, slow and controlled", "Diagonal swing left and right", "Reset to guard after every swing", "Breathing through the swing"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [4, 6],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "braced_stance_hold" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "overhead_swing_slow" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "diagonal_swings" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "swing_reset_to_guard" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "controlled_free_round" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Braced stance with a light implement (shadow greatsword)",
+        "Overhead swing pattern, slow and controlled",
+        "Diagonal swing left and right",
+        "Reset to guard after every swing",
+        "Breathing through the swing"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "SANDBAG": "shadow_swing_broomstick" } },
-
-    { "module_id": "MOD_BK_S02_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 30,
+      "canonical_map": [
+        {
+          "drill": "Braced stance with a light implement",
+          "discipline": "mma",
+          "canonical": "braced athletic stance (isometric conditioning)",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Overhead swing pattern, slow and controlled",
+          "discipline": "mma",
+          "canonical": "overhead swing conditioning (sledgehammer pattern)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Diagonal swing left and right",
+          "discipline": "mma",
+          "canonical": "diagonal swing conditioning (chopping pattern)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Reset to guard after every swing",
+          "discipline": "boxing",
+          "canonical": "strike-recover to guard"
+        },
+        {
+          "drill": "Breathing through the swing",
+          "discipline": "mma",
+          "canonical": "breath-paced swing conditioning",
+          "type": "conditioning"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "squat jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        4,
+        6
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "braced_stance_hold",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "braced_stance",
+            "technique_cues": [
+              "brace the core",
+              "grip set",
+              "shoulders down",
+              "breathe"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "overhead_swing_slow",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "overhead_swing",
+            "technique_cues": [
+              "high cut — slow",
+              "control the descent",
+              "reset — breathe"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "diagonal_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "diagonal_swings",
+            "technique_cues": [
+              "diagonal cut left",
+              "diagonal cut right",
+              "hips drive",
+              "reset"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "swing_reset_to_guard",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_reset",
+            "technique_cues": [
+              "swing",
+              "reset to guard",
+              "guard up before the next"
+            ],
+            "callout": "voiced",
+            "emphasis": "reset to guard after every swing"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "controlled_free_round",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "free_swings",
+            "technique_cues": [
+              "high cut",
+              "diagonal cut",
+              "reset — breathe"
+            ],
+            "callout": "voiced",
+            "emphasis": "control over speed"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SANDBAG": "shadow_swing_broomstick"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S02_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 30,
       "title": "Survival Base",
-      "exercises": ["Kettlebell or backpack swing", "Push-up variations", "Squat volume", "Inverted or band row", "Plank and side plank", "Loaded march in place"],
-      "warmup": ["dynamic_stretch_3min", "activation_2min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "full_body_conditioning" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "KETTLEBELL": "loaded_backpack", "PULLUP_BAR": "band_row" } },
-
-    { "module_id": "MOD_BK_S02_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 22,
+      "tier": "T1",
+      "prescription": [
+        {
+          "name": "Kettlebell or backpack swing",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "hip-drive swing — themed implement work, tuned"
+        },
+        {
+          "name": "Push-up variations",
+          "category": "push",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Squat volume",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Inverted or band row",
+          "category": "pull",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "rows — tuned above the pull-up ladder"
+        },
+        {
+          "name": "Plank and side plank",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Loaded march in place",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "activation_2min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "full_body_conditioning"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "KETTLEBELL": "loaded_backpack",
+        "PULLUP_BAR": "band_row"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S02_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 22,
       "title": "Mercenary Drills",
-      "drills": ["Overhead and diagonal swing combinations", "Step-through swing (advance with the strike)", "Swing to defensive brace", "Two-swing combination then reset", "Sustained controlled swings"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [5, 7],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "swing_combinations" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "step_through_swing" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "swing_to_brace" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "two_swing_combo_reset" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "sustained_controlled_swings" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Overhead and diagonal swing combinations",
+        "Step-through swing (advance with the strike)",
+        "Swing to defensive brace",
+        "Two-swing combination then reset",
+        "Sustained controlled swings"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "SANDBAG": "shadow_swings" } },
-
-    { "module_id": "MOD_BK_S03_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 26,
+      "canonical_map": [
+        {
+          "drill": "Overhead and diagonal swing combinations",
+          "discipline": "mma",
+          "canonical": "overhead + diagonal swing conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Step-through swing (advance with the strike)",
+          "discipline": "mma",
+          "canonical": "step-through swing (advance with the strike)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Swing to defensive brace",
+          "discipline": "mma",
+          "canonical": "swing into defensive brace",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Two-swing combination then reset",
+          "discipline": "mma",
+          "canonical": "two-swing combination + reset",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Sustained controlled swings",
+          "discipline": "mma",
+          "canonical": "sustained swing conditioning (paced)",
+          "type": "conditioning-strike"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "mountain climbers"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "swing_combinations",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_combinations",
+            "technique_cues": [
+              "high cut",
+              "diagonal cut left",
+              "diagonal cut right",
+              "reset"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "step_through_swing",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "step_through_swing",
+            "technique_cues": [
+              "step through",
+              "swing with the step",
+              "land braced"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "swing_to_brace",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_to_brace",
+            "technique_cues": [
+              "swing",
+              "brace",
+              "hold — breathe"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "two_swing_combo_reset",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "two_swing_combo",
+            "technique_cues": [
+              "high cut — diagonal cut",
+              "reset to guard",
+              "breathe"
+            ],
+            "callout": "voiced",
+            "emphasis": "two swings, then a full reset"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "sustained_controlled_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "sustained_swings",
+            "technique_cues": [
+              "steady pace",
+              "hips drive",
+              "form locked"
+            ],
+            "callout": "voiced",
+            "emphasis": "sustain — don't sprint"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SANDBAG": "shadow_swings"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S03_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 26,
       "title": "Speed and Precision Base",
-      "exercises": ["Agility ladder rhythm drills", "Cone lateral shuffles", "Single-leg balance holds", "Light mace 360 or single-DB offset swing", "Rotational core (Pallof or band twist)", "Wrist and forearm mobility"],
-      "warmup": ["dynamic_stretch_3min", "fast_feet_2min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1380, "rest_sec": 0, "goal": "speed_precision_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "AGILITY_LADDER": "floor_lines", "STEEL_MACE": "single_dumbbell_or_broomstick" } },
-
-    { "module_id": "MOD_BK_S03_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 24,
+      "tier": "T1",
+      "prescription": [
+        {
+          "name": "Agility ladder rhythm drills",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Cone lateral shuffles",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Single-leg balance holds",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 30,
+          "note": "per leg — balance, tuned"
+        },
+        {
+          "name": "Light mace 360 or single-DB offset swing",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "5/side — themed implement work, tuned; choke grip to scale"
+        },
+        {
+          "name": "Rotational core (Pallof or band twist)",
+          "category": "core",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "per side"
+        },
+        {
+          "name": "Wrist and forearm mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "fast_feet_2min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1380,
+          "rest_sec": 0,
+          "goal": "speed_precision_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "AGILITY_LADDER": "floor_lines",
+        "STEEL_MACE": "single_dumbbell_or_broomstick"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S03_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 24,
       "title": "The Falcon's Guards",
-      "drills": ["High guard to low guard transitions (Fool's / Ox / Plow style positions)", "Cut from high guard, recover to guard", "Catch-and-cut drill (deflect then strike)", "Footwork: advance, retreat, step-off to the side", "Precision target touches — accuracy over power"],
-      "warmup": ["shadowbox_3min", "footwork_2min"], "target_rpe": [5, 7],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "guard_transitions" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "cut_and_recover" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "catch_and_cut" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "footwork_step_off" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "precision_target_touches" }
+      "round_source": "fight_focus",
+      "drills": [
+        "High guard to low guard transitions (Fool's / Ox / Plow style positions)",
+        "Cut from high guard, recover to guard",
+        "Catch-and-cut drill (deflect then strike)",
+        "Footwork: advance, retreat, step-off to the side",
+        "Precision target touches — accuracy over power"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "STEEL_MACE": "broomstick_or_shadow", "CONES": "floor_markers" } },
-
-    { "module_id": "MOD_BK_S04_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 24,
+      "canonical_map": [
+        {
+          "drill": "High guard to low guard transitions",
+          "discipline": "mma",
+          "canonical": "guard-position transitions (isometric conditioning)",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Cut from high guard, recover to guard",
+          "discipline": "mma",
+          "canonical": "overhead cut + recover (swing conditioning)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Catch-and-cut drill (deflect then strike)",
+          "discipline": "mma",
+          "canonical": "deflect-then-cut (parry + counter pattern)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Footwork: advance, retreat, step-off",
+          "discipline": "boxing",
+          "canonical": "advance/retreat/step-off footwork"
+        },
+        {
+          "drill": "Precision target touches",
+          "discipline": "mma",
+          "canonical": "precision swing touches (accuracy over power)",
+          "type": "conditioning-strike"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "high knees"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "footwork_2min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "guard_transitions",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "guard_transitions",
+            "technique_cues": [
+              "high guard",
+              "low guard",
+              "ox — plow",
+              "smooth transitions"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "cut_and_recover",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "cut_and_recover",
+            "technique_cues": [
+              "cut from high",
+              "recover to guard",
+              "never drop the blade"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "catch_and_cut",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "catch_and_cut",
+            "technique_cues": [
+              "catch",
+              "cut",
+              "reset"
+            ],
+            "callout": "voiced",
+            "emphasis": "deflect first, then strike"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "footwork_step_off",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "footwork",
+            "technique_cues": [
+              "advance",
+              "retreat",
+              "step off left",
+              "step off right"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "precision_target_touches",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "precision_touches",
+            "technique_cues": [
+              "touch the mark",
+              "light and exact",
+              "accuracy over power"
+            ],
+            "callout": "voiced",
+            "emphasis": "precision over power"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "STEEL_MACE": "broomstick_or_shadow",
+        "CONES": "floor_markers"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S04_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 24,
       "title": "The Hawk's Point",
-      "drills": ["Fencing stance and en-garde", "Lunge with point control (thrust drill)", "Advance-lunge combination", "Recover to guard in balance", "Feint-then-thrust — leverage and timing, not force"],
-      "warmup": ["shadowbox_3min", "leg_swings_2min"], "target_rpe": [6, 7],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "en_garde_and_thrust" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "lunge_point_control" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "advance_lunge_combo" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "recover_in_balance" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "feint_then_thrust" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Fencing stance and en-garde",
+        "Lunge with point control (thrust drill)",
+        "Advance-lunge combination",
+        "Recover to guard in balance",
+        "Feint-then-thrust — leverage and timing, not force"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": {} },
-
-    { "module_id": "MOD_BK_S04_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28,
+      "canonical_map": [
+        {
+          "drill": "Fencing stance and en-garde",
+          "discipline": "boxing",
+          "canonical": "stance + high guard (en garde)"
+        },
+        {
+          "drill": "Lunge with point control (thrust drill)",
+          "discipline": "boxing",
+          "canonical": "step-in jab (thrust equivalent)"
+        },
+        {
+          "drill": "Advance-lunge combination",
+          "discipline": "boxing",
+          "canonical": "advance + step-in jab-cross"
+        },
+        {
+          "drill": "Recover to guard in balance",
+          "discipline": "boxing",
+          "canonical": "strike-recover to guard"
+        },
+        {
+          "drill": "Feint-then-thrust",
+          "discipline": "boxing",
+          "canonical": "feint + straight (jab/cross)"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "jumping lunges"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "leg_swings_2min"
+      ],
+      "target_rpe": [
+        6,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "en_garde_and_thrust",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "en_garde",
+            "technique_cues": [
+              "en garde",
+              "point forward",
+              "slow thrust",
+              "recover"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "lunge_point_control",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "step_in_jab",
+            "allowed_strikes": [
+              "1"
+            ],
+            "complexity": "single",
+            "callout": "voiced",
+            "emphasis": "lunge — point control, in balance"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "advance_lunge_combo",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "advance_lunge",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "advance, then lunge"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "recover_in_balance",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "recover_balance",
+            "technique_cues": [
+              "strike",
+              "recover to guard",
+              "balanced base"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "feint_then_thrust",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "feint_thrust",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "feint first — timing, not force"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {}
+    },
+    {
+      "module_id": "MOD_BK_S04_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 28,
       "title": "The Commander's Frame",
-      "exercises": ["Split squats (lunge strength)", "Single-leg RDL for balance", "Push-up tempo work", "Anti-rotation core (Pallof press)", "Calf and ankle strength", "Light overhead press"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [5, 7],
-      "rounds": [{ "index": 1, "length_sec": 1500, "rest_sec": 0, "goal": "precision_strength_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "LIGHT_WEIGHTS": "bodyweight_or_band" } },
-
-    { "module_id": "MOD_BK_S05_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 24,
+      "tier": "T2",
+      "prescription": [
+        {
+          "name": "Split squats (lunge strength)",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 16,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "8/side, unilateral — tuned below the air-squat ladder"
+        },
+        {
+          "name": "Single-leg RDL for balance",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "6/side, unilateral hinge — tuned"
+        },
+        {
+          "name": "Push-up tempo work",
+          "category": "push",
+          "sets": 4,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "tempo — slow eccentric, full range"
+        },
+        {
+          "name": "Anti-rotation core (Pallof press)",
+          "category": "core",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "per side"
+        },
+        {
+          "name": "Calf and ankle strength",
+          "category": "mobility",
+          "sets": 3,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 45
+        },
+        {
+          "name": "Light overhead press",
+          "category": "push",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "light load — tuned"
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        5,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1500,
+          "rest_sec": 0,
+          "goal": "precision_strength_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "LIGHT_WEIGHTS": "bodyweight_or_band"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S05_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 24,
       "title": "Tempo of the Hawk",
-      "drills": ["Lunge and redouble (double lunge)", "Jump-forward lunge", "Advance / appel-lunge tempo combinations", "Direction-change footwork under a call", "Precision thrust on the beat"],
-      "warmup": ["shadowbox_3min", "fast_feet_2min"], "target_rpe": [6, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 45, "goal": "lunge_and_redouble" },
-        { "index": 2, "length_sec": 120, "rest_sec": 45, "goal": "jump_forward_lunge" },
-        { "index": 3, "length_sec": 120, "rest_sec": 45, "goal": "appel_lunge_tempo" },
-        { "index": 4, "length_sec": 120, "rest_sec": 45, "goal": "direction_change_footwork" },
-        { "index": 5, "length_sec": 120, "rest_sec": 45, "goal": "precision_on_the_beat" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Lunge and redouble (double lunge)",
+        "Jump-forward lunge",
+        "Advance / appel-lunge tempo combinations",
+        "Direction-change footwork under a call",
+        "Precision thrust on the beat"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "CONES": "floor_markers" } },
-
-    { "module_id": "MOD_BK_S05_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28,
+      "canonical_map": [
+        {
+          "drill": "Lunge and redouble (double lunge)",
+          "discipline": "boxing",
+          "canonical": "double step-in jab (redouble footwork)"
+        },
+        {
+          "drill": "Jump-forward lunge",
+          "discipline": "mma",
+          "canonical": "explosive forward-lunge conditioning",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Advance / appel-lunge tempo combinations",
+          "discipline": "boxing",
+          "canonical": "rhythm-step + jab tempo combination"
+        },
+        {
+          "drill": "Direction-change footwork under a call",
+          "discipline": "boxing",
+          "canonical": "called direction-change footwork"
+        },
+        {
+          "drill": "Precision thrust on the beat",
+          "discipline": "boxing",
+          "canonical": "jab on the beat (precision)"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "jumping lunges",
+          "high knees"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "fast_feet_2min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "lunge_and_redouble",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "lunge_redouble",
+            "technique_cues": [
+              "lunge",
+              "redouble",
+              "recover in balance"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "jump_forward_lunge",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "jump_lunge",
+            "technique_cues": [
+              "load",
+              "jump-forward lunge",
+              "stick the landing"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "appel_lunge_tempo",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "tempo_jab",
+            "allowed_strikes": [
+              "1"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "technique_cues": [
+              "appel",
+              "lunge"
+            ],
+            "emphasis": "strike on the tempo call"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "direction_change_footwork",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "direction_change",
+            "technique_cues": [
+              "advance",
+              "retreat",
+              "left",
+              "right",
+              "react to the call"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "precision_on_the_beat",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "beat_thrust",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "strike exactly on the beat"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "CONES": "floor_markers"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S05_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 28,
       "title": "Agile Engine",
-      "exercises": ["Jump rope intervals", "Lateral bounds", "Ladder speed drills", "Reverse lunge to knee drive", "Plank shoulder taps", "Light continuous circuit"],
-      "warmup": ["dynamic_stretch_3min", "fast_feet_2min"], "target_rpe": [6, 7],
-      "rounds": [{ "index": 1, "length_sec": 1500, "rest_sec": 0, "goal": "agility_engine_session" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 2, "pain_flag_stop": true },
-      "substitutions": { "AGILITY_LADDER": "floor_lines", "JUMP_ROPE": "invisible_rope" } },
-
-    { "module_id": "MOD_BK_S06_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 26,
+      "tier": "T2",
+      "prescription": [
+        {
+          "name": "Jump rope intervals",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Lateral bounds",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "plyo_counted": true
+        },
+        {
+          "name": "Ladder speed drills",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Reverse lunge to knee drive",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 16,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "8/side, unilateral — tuned below the air-squat ladder"
+        },
+        {
+          "name": "Plank shoulder taps",
+          "category": "core",
+          "sets": 4,
+          "reps": 30,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Light continuous circuit",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 180,
+          "count_mode": "time",
+          "rest_sec": 0
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "fast_feet_2min"
+      ],
+      "target_rpe": [
+        6,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1500,
+          "rest_sec": 0,
+          "goal": "agility_engine_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 2,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "AGILITY_LADDER": "floor_lines",
+        "JUMP_ROPE": "invisible_rope"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S06_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
       "title": "Club and Mace Swings",
-      "drills": ["Steel mace / club 360 swings", "Mace 10-to-2 (front pendulum)", "Diagonal power swings from the hips", "Swing to overhead brace", "Rotational combination swings"],
-      "warmup": ["shadowbox_3min", "shoulder_mobility_2min"], "target_rpe": [6, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "mace_360_swings" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "mace_10_to_2" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "diagonal_power_swings" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "swing_to_overhead_brace" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "rotational_combo_swings" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Steel mace / club 360 swings",
+        "Mace 10-to-2 (front pendulum)",
+        "Diagonal power swings from the hips",
+        "Swing to overhead brace",
+        "Rotational combination swings"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "STEEL_MACE": "single_dumbbell_offset_or_band_360", "HEAVY_BAG": "shadow_swings" },
-      "notes": "Steel mace's long lever loads grip and forearms; choke grip toward the head to reduce difficulty." },
-
-    { "module_id": "MOD_BK_S06_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 32,
+      "canonical_map": [
+        {
+          "drill": "Steel mace / club 360 swings",
+          "discipline": "mma",
+          "canonical": "mace 360 swing conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Mace 10-to-2 (front pendulum)",
+          "discipline": "mma",
+          "canonical": "mace 10-to-2 pendulum conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Diagonal power swings from the hips",
+          "discipline": "mma",
+          "canonical": "diagonal power swing (hip drive)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Swing to overhead brace",
+          "discipline": "mma",
+          "canonical": "swing into overhead brace (isometric)",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Rotational combination swings",
+          "discipline": "mma",
+          "canonical": "rotational swing combinations",
+          "type": "conditioning-strike"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "squat jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "shoulder_mobility_2min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "mace_360_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "mace_360",
+            "technique_cues": [
+              "360 left",
+              "360 right",
+              "shoulders packed",
+              "choke grip to scale"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "mace_10_to_2",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "mace_10_to_2",
+            "technique_cues": [
+              "10 to 2",
+              "pendulum rhythm",
+              "core braced"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "diagonal_power_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "diagonal_power",
+            "technique_cues": [
+              "diagonal cut left",
+              "diagonal cut right",
+              "power from the hips"
+            ],
+            "callout": "voiced",
+            "emphasis": "hips drive the swing, not the arms"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "swing_to_overhead_brace",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "overhead_brace",
+            "technique_cues": [
+              "swing",
+              "overhead brace",
+              "hold — breathe"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "rotational_combo_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "rotational_combos",
+            "technique_cues": [
+              "rotate and swing",
+              "chain the swings",
+              "reset"
+            ],
+            "callout": "voiced"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "STEEL_MACE": "single_dumbbell_offset_or_band_360",
+        "HEAVY_BAG": "shadow_swings"
+      },
+      "notes": "Steel mace's long lever loads grip and forearms; choke grip toward the head to reduce difficulty."
+    },
+    {
+      "module_id": "MOD_BK_S06_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 32,
       "title": "Old-Time Strongman",
-      "exercises": ["Kettlebell swings (high rep, power-endurance)", "Club or mace circles for grip", "Rotational medicine-ball or band throws", "Bent row volume", "Suitcase carry (offset core)", "Thick-grip or towel hold"],
-      "warmup": ["dynamic_stretch_3min", "activation_2min"], "target_rpe": [6, 8],
-      "rounds": [{ "index": 1, "length_sec": 1800, "rest_sec": 0, "goal": "strongman_power_endurance" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "KETTLEBELL": "loaded_backpack", "STEEL_MACE": "single_dumbbell" },
-      "notes": "Bioneer strongman profile: grip, core, rotational power; high rep ranges between cardio and resistance." },
-
-    { "module_id": "MOD_BK_S07_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 28,
+      "tier": "T2",
+      "prescription": [
+        {
+          "name": "Kettlebell swings (high rep, power-endurance)",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "high-rep hip-drive swing — themed implement work, tuned"
+        },
+        {
+          "name": "Club or mace circles for grip",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "mace/club circles — themed implement work, tuned; choke grip to scale"
+        },
+        {
+          "name": "Rotational medicine-ball or band throws",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60
+        },
+        {
+          "name": "Bent row volume",
+          "category": "pull",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "row volume — tuned above the pull-up ladder (rows are easier)"
+        },
+        {
+          "name": "Suitcase carry (offset core)",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60
+        },
+        {
+          "name": "Thick-grip or towel hold",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 60
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "activation_2min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1800,
+          "rest_sec": 0,
+          "goal": "strongman_power_endurance"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "KETTLEBELL": "loaded_backpack",
+        "STEEL_MACE": "single_dumbbell"
+      },
+      "notes": "Bioneer strongman profile: grip, core, rotational power; high rep ranges between cardio and resistance."
+    },
+    {
+      "module_id": "MOD_BK_S07_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 28,
       "title": "Dragonslayer Swings",
-      "drills": ["Sledgehammer tire strikes (overhead power, chopping-wood pattern)", "Alternating-side hammer strikes", "Two-handed greatsword power swings", "Swing then loaded step (carry between strikes)", "Power round: sustained heavy swings, form locked"],
-      "warmup": ["shadowbox_3min", "hip_hinge_2min"], "target_rpe": [7, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "sledgehammer_tire_strikes" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "alternating_hammer_strikes" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "two_handed_power_swings" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "swing_then_loaded_step" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "sustained_heavy_swings" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Sledgehammer tire strikes (overhead power, chopping-wood pattern)",
+        "Alternating-side hammer strikes",
+        "Two-handed greatsword power swings",
+        "Swing then loaded step (carry between strikes)",
+        "Power round: sustained heavy swings, form locked"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "SLEDGEHAMMER": "shadow_greatsword_or_weighted_overhead" },
-      "notes": "Sledgehammer = thin handle, two-handed overhead power swing on a tire; mimics chopping wood." },
-
-    { "module_id": "MOD_BK_S07_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 34,
+      "canonical_map": [
+        {
+          "drill": "Sledgehammer tire strikes",
+          "discipline": "mma",
+          "canonical": "overhead swing conditioning (sledgehammer on tire)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Alternating-side hammer strikes",
+          "discipline": "mma",
+          "canonical": "alternating-side hammer strike conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Two-handed greatsword power swings",
+          "discipline": "mma",
+          "canonical": "two-handed overhead power swing conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Swing then loaded step",
+          "discipline": "mma",
+          "canonical": "swing + loaded carry interval",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Sustained heavy swings, form locked",
+          "discipline": "mma",
+          "canonical": "sustained heavy swing output (form-gated)",
+          "type": "conditioning-strike"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "burpees"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "hip_hinge_2min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "sledgehammer_tire_strikes",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "tire_strikes",
+            "technique_cues": [
+              "hinge and swing",
+              "strike the tire",
+              "let it rebound",
+              "reset"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "alternating_hammer_strikes",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "alternating_strikes",
+            "technique_cues": [
+              "strike left",
+              "strike right",
+              "smooth grip switch"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "two_handed_power_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "power_swings",
+            "technique_cues": [
+              "high cut",
+              "full commitment",
+              "reset — breathe"
+            ],
+            "callout": "voiced",
+            "emphasis": "power from the ground up"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "swing_then_loaded_step",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_carry",
+            "technique_cues": [
+              "swing",
+              "pick up and step",
+              "set down — swing again"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "sustained_heavy_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "sustained_heavy",
+            "technique_cues": [
+              "steady heavy pace",
+              "form locked",
+              "breathe"
+            ],
+            "callout": "voiced",
+            "emphasis": "form stays locked"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SLEDGEHAMMER": "shadow_greatsword_or_weighted_overhead"
+      },
+      "notes": "Sledgehammer = thin handle, two-handed overhead power swing on a tire; mimics chopping wood."
+    },
+    {
+      "module_id": "MOD_BK_S07_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 34,
       "title": "Carry the Great Sword",
-      "exercises": ["Loaded carry for distance (~1 mile equivalent, kettlebell/club/sandbag)", "Rack carry and suitcase carry variations", "Farmer holds for grip endurance", "Trap and upper-back work (shrugs, rows)", "Core anti-flexion holds", "Rest only when needed — distance over speed"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [6, 8],
-      "rounds": [{ "index": 1, "length_sec": 2040, "rest_sec": 0, "goal": "loaded_carry_endurance" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "SANDBAG": "heavy_backpack", "KETTLEBELL": "water_jugs" },
-      "notes": "Bioneer 'loaded carries for time/distance' — carry ~a mile, rest only when needed; traps/core/grip." },
-
-    { "module_id": "MOD_BK_S08_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 26,
+      "tier": "T3",
+      "prescription": [
+        {
+          "name": "Loaded carry for distance",
+          "category": "carry",
+          "sets": 4,
+          "duration_sec": 90,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60,
+          "note": "long intervals toward ~1 mile equivalent — distance over speed, rest only when needed"
+        },
+        {
+          "name": "Rack carry and suitcase carry variations",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60
+        },
+        {
+          "name": "Farmer holds for grip endurance",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 60
+        },
+        {
+          "name": "Trap and upper-back work (shrugs, rows)",
+          "category": "pull",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "shrugs/rows — tuned above the pull-up ladder"
+        },
+        {
+          "name": "Core anti-flexion holds",
+          "category": "hold",
+          "sets": 4,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 45
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 2040,
+          "rest_sec": 0,
+          "goal": "loaded_carry_endurance"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SANDBAG": "heavy_backpack",
+        "KETTLEBELL": "water_jugs"
+      },
+      "notes": "Bioneer 'loaded carries for time/distance' — carry ~a mile, rest only when needed; traps/core/grip."
+    },
+    {
+      "module_id": "MOD_BK_S08_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
       "title": "The Immortal's Power",
-      "drills": ["Max controlled power swing — hit a predetermined target, not to failure", "Heavy single strikes with full reset", "Explosive swing then absolute stop (control test)", "Power carry burst", "Form-gated output round — quality over quantity"],
-      "warmup": ["shadowbox_3min", "activation_2min"], "target_rpe": [7, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "controlled_power_swing_target" },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "heavy_single_strikes" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "explosive_swing_absolute_stop" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "power_carry_burst" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "form_gated_output" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Max controlled power swing — hit a predetermined target, not to failure",
+        "Heavy single strikes with full reset",
+        "Explosive swing then absolute stop (control test)",
+        "Power carry burst",
+        "Form-gated output round — quality over quantity"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "SLEDGEHAMMER": "shadow_swings", "STEEL_MACE": "band_360" } },
-
-    { "module_id": "MOD_BK_S08_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 32,
+      "canonical_map": [
+        {
+          "drill": "Max controlled power swing to a predetermined target",
+          "discipline": "mma",
+          "canonical": "controlled max-power swing to target",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Heavy single strikes with full reset",
+          "discipline": "mma",
+          "canonical": "heavy single swing + full reset",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Explosive swing then absolute stop",
+          "discipline": "mma",
+          "canonical": "explosive swing + dead stop (control test)",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Power carry burst",
+          "discipline": "mma",
+          "canonical": "power carry interval",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Form-gated output round",
+          "discipline": "mma",
+          "canonical": "form-gated swing output",
+          "type": "conditioning-strike"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "burpees",
+          "squat jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min",
+        "activation_2min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "controlled_power_swing_target",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "power_swing_target",
+            "technique_cues": [
+              "one powerful cut",
+              "hit the target count",
+              "stop — reset"
+            ],
+            "callout": "voiced",
+            "capped": true,
+            "emphasis": "predetermined target, never to failure"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "heavy_single_strikes",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "heavy_single",
+            "technique_cues": [
+              "single heavy cut",
+              "full reset",
+              "again"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "explosive_swing_absolute_stop",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_dead_stop",
+            "technique_cues": [
+              "explode",
+              "absolute stop",
+              "own the swing"
+            ],
+            "callout": "voiced",
+            "emphasis": "the swing never swings you"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "power_carry_burst",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "power_carry",
+            "technique_cues": [
+              "pick up",
+              "drive fast",
+              "set down in control"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "form_gated_output",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "form_gated_output",
+            "technique_cues": [
+              "output up",
+              "form locked",
+              "quality over quantity"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "SLEDGEHAMMER": "shadow_swings",
+        "STEEL_MACE": "band_360"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S08_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 32,
       "title": "Strength Benchmark",
-      "exercises": ["Heavy compound to a target (squat/deadlift/press, 5-8 reps, NOT to failure)", "Weighted or strict pull-ups to target", "Loaded carry heavy-and-short", "Core brace under load", "Grip max-hold for time"],
-      "rules": ["Predetermined targets — never ego-load or grind to collapse"],
-      "warmup": ["dynamic_stretch_3min", "ramp_up_sets_3min"], "target_rpe": [7, 8],
-      "rounds": [{ "index": 1, "length_sec": 1800, "rest_sec": 0, "goal": "strength_benchmark_targets" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true },
-      "substitutions": { "LIGHT_WEIGHTS": "hardest_bodyweight_progression", "PULLUP_BAR": "band_row" } },
-
-    { "module_id": "MOD_BK_S09_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 24, "eclipse_safety": true,
+      "tier": "T3",
+      "weighted_flow": true,
+      "prescription": [
+        {
+          "name": "Squat pattern to a target",
+          "category": "squat_legs",
+          "sets": 4,
+          "reps": 7,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120,
+          "note": "5-8 reps, NOT to failure"
+        },
+        {
+          "name": "Deadlift or hip-hinge to target",
+          "category": "squat_legs",
+          "sets": 4,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Overhead or floor press to target",
+          "category": "push",
+          "sets": 4,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Weighted or strict pull-ups to target",
+          "category": "pull",
+          "sets": 4,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
+        },
+        {
+          "name": "Loaded carry heavy-and-short",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 90
+        },
+        {
+          "name": "Core brace under load",
+          "category": "core",
+          "sets": 3,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 60
+        },
+        {
+          "name": "Grip max-hold for time",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "hold to target, never to failure"
+        }
+      ],
+      "rules": [
+        "Predetermined targets — never ego-load or grind to collapse",
+        "WEIGHTED FLOW: review/approve/swap -> Generate -> timed sets + adaptive rest (specs/27)"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "ramp_up_sets_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1800,
+          "rest_sec": 0,
+          "goal": "strength_benchmark_targets"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "LIGHT_WEIGHTS": "hardest_bodyweight_progression",
+        "PULLUP_BAR": "band_row"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S09_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 24,
+      "eclipse_safety": true,
       "title": "The Brand — Survival Rounds",
-      "drills": ["Capped high-output swing intervals (hit the target rep count, then STOP)", "Swing / carry / brace rotation", "Sustained pace, not sprint-to-failure", "Defensive brace under fatigue", "Hold form as fatigue rises — quality gate stays on"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [7, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "capped_output_swings", "target_capped": true },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "swing_carry_brace_rotation" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "sustained_pace" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "brace_under_fatigue" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "hold_form_capped" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Capped high-output swing intervals (hit the target rep count, then STOP)",
+        "Swing / carry / brace rotation",
+        "Sustained pace, not sprint-to-failure",
+        "Defensive brace under fatigue",
+        "Hold form as fatigue rises — quality gate stays on"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true },
-      "substitutions": { "SANDBAG": "loaded_backpack" },
-      "notes": "ECLIPSE SAFETY: predetermined targets, arm-volume capped, enhanced readiness gate, extra rest floor even on Hard." },
-
-    { "module_id": "MOD_BK_S09_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 26, "eclipse_safety": true,
+      "canonical_map": [
+        {
+          "drill": "Capped high-output swing intervals",
+          "discipline": "mma",
+          "canonical": "capped high-output swing intervals",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Swing / carry / brace rotation",
+          "discipline": "mma",
+          "canonical": "swing / carry / brace rotation",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Sustained pace, not sprint-to-failure",
+          "discipline": "mma",
+          "canonical": "sustained-pace swing conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Defensive brace under fatigue",
+          "discipline": "mma",
+          "canonical": "defensive brace under fatigue (isometric)",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Hold form as fatigue rises",
+          "discipline": "mma",
+          "canonical": "form-gated swing output under fatigue",
+          "type": "conditioning-strike"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "mountain climbers"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true,
+        "capped": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "capped_output_swings",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "capped_swings",
+            "technique_cues": [
+              "swing to the target",
+              "then stop",
+              "rest means rest"
+            ],
+            "callout": "voiced",
+            "capped": true,
+            "emphasis": "hit the number, then STOP"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "swing_carry_brace_rotation",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_carry_brace",
+            "technique_cues": [
+              "swing",
+              "carry",
+              "brace",
+              "rotate"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "sustained_pace",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "sustained_pace",
+            "technique_cues": [
+              "steady pace",
+              "no sprinting",
+              "breathe"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "brace_under_fatigue",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "brace_fatigue",
+            "technique_cues": [
+              "brace",
+              "hold",
+              "shoulders down",
+              "breathe through it"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "hold_form_capped",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "form_gate",
+            "technique_cues": [
+              "form first",
+              "quality gate on",
+              "stop at the target"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true
+      },
+      "substitutions": {
+        "SANDBAG": "loaded_backpack"
+      },
+      "notes": "ECLIPSE SAFETY: predetermined targets, arm-volume capped, enhanced readiness gate, extra rest floor even on Hard."
+    },
+    {
+      "module_id": "MOD_BK_S09_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 26,
+      "eclipse_safety": true,
       "title": "The Brand — Capped Circuit",
-      "exercises": ["Full-body circuit to a TARGET rep count (squats, swings, carries — capped)", "Rotate muscle groups to avoid arm overload", "Mandatory rest floors between rounds", "Steady breathing, sustainable pace", "No AMRAP arm work"],
-      "rules": ["Predetermined targets only", "No unbounded high-rep push-ups/pull-ups (upper-body/arms are the top rhabdo risk)"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [6, 8],
-      "rounds": [{ "index": 1, "length_sec": 1500, "rest_sec": 0, "goal": "capped_survival_circuit" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true },
-      "substitutions": { "SANDBAG": "loaded_backpack" } },
-
-    { "module_id": "MOD_BK_S10_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 26, "eclipse_safety": true,
+      "tier": "T3",
+      "prescription": [
+        {
+          "name": "Squats to a predetermined target",
+          "category": "squat_legs",
+          "sets": 5,
+          "reps": 40,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "capped target — stop at the number"
+        },
+        {
+          "name": "Sandbag or backpack swings to target",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "themed implement work — tuned; capped target"
+        },
+        {
+          "name": "Loaded carries (load rotated off the arms)",
+          "category": "carry",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 75
+        },
+        {
+          "name": "Steady-breathing cooldown",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
+      "rules": [
+        "Predetermined targets only",
+        "No unbounded high-rep push-ups/pull-ups (upper-body/arms are the top rhabdo risk)",
+        "Rotate muscle groups to avoid arm overload",
+        "Mandatory rest floors between rounds"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1500,
+          "rest_sec": 0,
+          "goal": "capped_survival_circuit"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true
+      },
+      "substitutions": {
+        "SANDBAG": "loaded_backpack"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S10_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
+      "eclipse_safety": true,
       "title": "A Thousand Apostles — Wave Rounds",
-      "drills": ["Wave intervals: capped output, full rest floor, repeat", "Alternate swing and footwork rounds to spread load", "Hold pace to the target — the wave never ends by collapse", "Brace and reset between waves", "Controlled finish, not a sprint"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [7, 8],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 60, "goal": "capped_wave_swings", "target_capped": true },
-        { "index": 2, "length_sec": 120, "rest_sec": 60, "goal": "footwork_wave" },
-        { "index": 3, "length_sec": 120, "rest_sec": 60, "goal": "swing_wave_hold_pace" },
-        { "index": 4, "length_sec": 120, "rest_sec": 60, "goal": "brace_reset" },
-        { "index": 5, "length_sec": 120, "rest_sec": 60, "goal": "controlled_finish" }
+      "round_source": "fight_focus",
+      "drills": [
+        "Wave intervals: capped output, full rest floor, repeat",
+        "Alternate swing and footwork rounds to spread load",
+        "Hold pace to the target — the wave never ends by collapse",
+        "Brace and reset between waves",
+        "Controlled finish, not a sprint"
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true },
-      "substitutions": { "STEEL_MACE": "band_360", "SANDBAG": "loaded_backpack" } },
-
-    { "module_id": "MOD_BK_S10_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28, "eclipse_safety": true,
+      "canonical_map": [
+        {
+          "drill": "Wave intervals: capped output, full rest floor",
+          "discipline": "mma",
+          "canonical": "capped wave-interval swing output",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Alternate swing and footwork rounds",
+          "discipline": "boxing",
+          "canonical": "footwork rounds interleaved with swing conditioning"
+        },
+        {
+          "drill": "Hold pace to the target",
+          "discipline": "mma",
+          "canonical": "paced swing output to target",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Brace and reset between waves",
+          "discipline": "mma",
+          "canonical": "brace + reset (isometric recovery)",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Controlled finish, not a sprint",
+          "discipline": "mma",
+          "canonical": "controlled finish",
+          "type": "conditioning"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "high knees"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true,
+        "capped": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "capped_wave_swings",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "wave_swings",
+            "technique_cues": [
+              "wave on — swing",
+              "hit the target",
+              "wave off — full rest"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "footwork_wave",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "footwork_wave",
+            "technique_cues": [
+              "advance",
+              "retreat",
+              "step off",
+              "light feet"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "swing_wave_hold_pace",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "hold_pace",
+            "technique_cues": [
+              "hold the pace",
+              "target, not collapse",
+              "breathe"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "brace_reset",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "brace_reset",
+            "technique_cues": [
+              "brace",
+              "reset",
+              "shoulders down"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "controlled_finish",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "controlled_finish",
+            "technique_cues": [
+              "ease the pace",
+              "finish in control",
+              "done at the number"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true
+      },
+      "substitutions": {
+        "STEEL_MACE": "band_360",
+        "SANDBAG": "loaded_backpack"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S10_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 28,
+      "eclipse_safety": true,
       "title": "A Thousand Apostles — Endurance Wave",
-      "exercises": ["Lower-body-led circuit to target (carries, swings, squats)", "Interval waves with enforced rest floors", "Rotate load away from arms", "Sustainable output — respect the cap", "Cooldown breathing"],
-      "rules": ["Predetermined targets", "Rest floors enforced even on Hard", "Arm volume capped"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [7, 8],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "capped_endurance_wave" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true },
-      "substitutions": { "SANDBAG": "loaded_backpack", "KETTLEBELL": "water_jug" } },
-
-    { "module_id": "MOD_BK_S11_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "morning", "duration_min": 28, "eclipse_safety": true,
-      "title": "Sacrifice — Peak Survival",
-      "drills": ["The campaign's hardest capped output rounds — target, then STOP", "Swing / carry / brace under heavy fatigue, form gate ON", "Longer rest floors than any other stage", "Endure to the target and stop — never grind to failure", "Finish with control intact"],
-      "warmup": ["shadowbox_3min"], "target_rpe": [7, 9],
-      "rounds": [
-        { "index": 1, "length_sec": 120, "rest_sec": 75, "goal": "peak_capped_output", "target_capped": true },
-        { "index": 2, "length_sec": 120, "rest_sec": 75, "goal": "swing_carry_brace_heavy_fatigue" },
-        { "index": 3, "length_sec": 120, "rest_sec": 75, "goal": "form_gate_under_fatigue" },
-        { "index": 4, "length_sec": 120, "rest_sec": 75, "goal": "endure_to_target" },
-        { "index": 5, "length_sec": 120, "rest_sec": 75, "goal": "finish_in_control" }
+      "tier": "T4",
+      "prescription": [
+        {
+          "name": "Squat volume to target",
+          "category": "squat_legs",
+          "sets": 5,
+          "reps": 50,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "predetermined target — capped"
+        },
+        {
+          "name": "Kettlebell or sandbag swing waves",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 75,
+          "note": "themed implement work — tuned; capped"
+        },
+        {
+          "name": "Loaded carries",
+          "category": "carry",
+          "sets": 4,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 75
+        },
+        {
+          "name": "Wave conditioning intervals",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 75,
+          "note": "enforced rest floors between waves"
+        },
+        {
+          "name": "Cooldown breathing",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
       ],
-      "completion_rules": { "min_rounds_completed": 4, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true, "extended_rest_floor": true },
-      "substitutions": { "SLEDGEHAMMER": "shadow_swings", "SANDBAG": "loaded_backpack" } },
-
-    { "module_id": "MOD_BK_S11_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "evening", "duration_min": 28, "eclipse_safety": true,
+      "rules": [
+        "Predetermined targets",
+        "Rest floors enforced even on Hard",
+        "Arm volume capped",
+        "Rotate load away from arms"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "capped_endurance_wave"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true
+      },
+      "substitutions": {
+        "SANDBAG": "loaded_backpack",
+        "KETTLEBELL": "water_jug"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S11_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 28,
+      "eclipse_safety": true,
+      "title": "Sacrifice — Peak Survival",
+      "round_source": "fight_focus",
+      "drills": [
+        "The campaign's hardest capped output rounds — target, then STOP",
+        "Swing / carry / brace under heavy fatigue, form gate ON",
+        "Longer rest floors than any other stage",
+        "Endure to the target and stop — never grind to failure",
+        "Finish with control intact"
+      ],
+      "canonical_map": [
+        {
+          "drill": "Hardest capped output rounds",
+          "discipline": "mma",
+          "canonical": "peak capped swing output",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Swing / carry / brace under heavy fatigue",
+          "discipline": "mma",
+          "canonical": "swing / carry / brace under fatigue (form-gated)",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Longer rest floors than any other stage",
+          "discipline": "mma",
+          "canonical": "enforced rest-floor recovery",
+          "type": "conditioning"
+        },
+        {
+          "drill": "Endure to the target and stop",
+          "discipline": "mma",
+          "canonical": "endure-to-target swing output",
+          "type": "conditioning-strike"
+        },
+        {
+          "drill": "Finish with control intact",
+          "discipline": "mma",
+          "canonical": "controlled finish",
+          "type": "conditioning"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "sprawls"
+        ],
+        "placement": "end_of_session",
+        "sets": 3,
+        "work_sec": 20,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true,
+        "capped": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        9
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 75,
+          "goal": "peak_capped_output",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "peak_output",
+            "technique_cues": [
+              "hardest wave",
+              "hit the target",
+              "STOP at the number"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 75,
+          "goal": "swing_carry_brace_heavy_fatigue",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "swing_carry_brace",
+            "technique_cues": [
+              "swing",
+              "carry",
+              "brace",
+              "form gate on"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 75,
+          "goal": "form_gate_under_fatigue",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "form_gate",
+            "technique_cues": [
+              "form first",
+              "slow it if it breaks",
+              "quality gate on"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 75,
+          "goal": "endure_to_target",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "endure_to_target",
+            "technique_cues": [
+              "endure",
+              "target in sight",
+              "never to failure"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 75,
+          "goal": "finish_in_control",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "controlled_finish",
+            "technique_cues": [
+              "last wave",
+              "control intact",
+              "finish and breathe"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true,
+        "extended_rest_floor": true
+      },
+      "substitutions": {
+        "SLEDGEHAMMER": "shadow_swings",
+        "SANDBAG": "loaded_backpack"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S11_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 28,
+      "eclipse_safety": true,
       "title": "Sacrifice — The Last Circuit",
-      "exercises": ["Hardest capped full-body circuit of the campaign (targets, not AMRAP)", "Heavily rotated load, arms protected", "Longest rest floors of any stage", "Endure to target and stop", "Full cooldown + hydration prompt"],
-      "rules": ["Predetermined targets ONLY", "Extended rest floors", "Hard arm-volume cap", "Stop at any warning sign"],
-      "warmup": ["dynamic_stretch_3min"], "target_rpe": [7, 9],
-      "rounds": [{ "index": 1, "length_sec": 1620, "rest_sec": 0, "goal": "peak_capped_circuit" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true, "extended_rest_floor": true },
-      "substitutions": { "SANDBAG": "loaded_backpack" } },
-
-    { "module_id": "MOD_BK_S12_FIT", "module_type": "fit", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 28, "eclipse_safety": true,
+      "tier": "T4",
+      "prescription": [
+        {
+          "name": "Squats to peak target",
+          "category": "squat_legs",
+          "sets": 5,
+          "reps": 50,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "note": "peak capped target — stop at the number"
+        },
+        {
+          "name": "Sandbag swings to target",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 75,
+          "note": "themed implement work — tuned; capped"
+        },
+        {
+          "name": "Loaded carry",
+          "category": "carry",
+          "sets": 4,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 90,
+          "note": "longest rest floors of the campaign"
+        },
+        {
+          "name": "Core to target",
+          "category": "core",
+          "sets": 5,
+          "reps": 50,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Full cooldown + hydration",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 180,
+          "count_mode": "none",
+          "rest_sec": 0,
+          "note": "full cooldown — hydration prompt"
+        }
+      ],
+      "rules": [
+        "Predetermined targets ONLY",
+        "Extended rest floors",
+        "Hard arm-volume cap",
+        "Stop at any warning sign"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min"
+      ],
+      "target_rpe": [
+        7,
+        9
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "peak_capped_circuit"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true,
+        "extended_rest_floor": true
+      },
+      "substitutions": {
+        "SANDBAG": "loaded_backpack"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S12_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 28,
+      "eclipse_safety": true,
       "title": "Berserk Armor — Fit Final Test",
-      "exercises": ["Sledgehammer or shadow-swing power target", "Loaded-carry distance target", "Grip max-hold for time", "Core-brace hold", "Capped high-rep endurance finisher (targets, not collapse)", "Controlled full-body finisher"],
-      "rules": ["Predetermined targets only — Eclipse safety caps apply", "Stop at any warning sign"],
-      "warmup": ["dynamic_stretch_3min", "activation_3min"], "target_rpe": [7, 8],
-      "rounds": [{ "index": 1, "length_sec": 1560, "rest_sec": 0, "goal": "berserk_fit_test_battery" }],
-      "completion_rules": { "min_rounds_completed": 1, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true },
-      "substitutions": { "SLEDGEHAMMER": "shadow_swings", "SANDBAG": "loaded_backpack" } },
-
-    { "module_id": "MOD_BK_S12_FIGHT", "module_type": "fight", "discipline": "multi", "difficulty": "normal", "format": "single", "duration_min": 32, "eclipse_safety": true,
+      "tier": "T4",
+      "prescription": [
+        {
+          "name": "Sledgehammer or shadow-swing power target",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 75,
+          "note": "themed implement work — tuned; predetermined power target"
+        },
+        {
+          "name": "Loaded-carry distance target",
+          "category": "carry",
+          "sets": 4,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "weighted",
+          "rest_sec": 75
+        },
+        {
+          "name": "Grip max-hold for time",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "hold to target"
+        },
+        {
+          "name": "Core-brace hold",
+          "category": "hold",
+          "sets": 4,
+          "duration_sec": 90,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Capped high-rep endurance finisher",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 60,
+          "note": "targets, not collapse"
+        },
+        {
+          "name": "Controlled full-body finisher",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "time",
+          "rest_sec": 0
+        }
+      ],
+      "signature_challenge": {
+        "preset": "three_min_hold",
+        "label": "Don the Armor — The Immovable Hold",
+        "easy": {
+          "sets": 1,
+          "sec": 90
+        },
+        "normal": {
+          "sets": 1,
+          "sec": 150
+        },
+        "hard": {
+          "sets": 1,
+          "sec": 180
+        },
+        "category": "hold",
+        "note": "The finale feat — hold the brace like the armor holds you: up to a 3-minute hold, difficulty-scaled, safe category, form-gated."
+      },
+      "rules": [
+        "Predetermined targets only — Eclipse safety caps apply",
+        "Stop at any warning sign"
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "activation_3min"
+      ],
+      "target_rpe": [
+        7,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1560,
+          "rest_sec": 0,
+          "goal": "berserk_fit_test_battery"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true
+      },
+      "substitutions": {
+        "SLEDGEHAMMER": "shadow_swings",
+        "SANDBAG": "loaded_backpack"
+      }
+    },
+    {
+      "module_id": "MOD_BK_S12_FIGHT",
+      "module_type": "fight",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "single",
+      "duration_min": 32,
+      "eclipse_safety": true,
       "title": "Trial of the Berserk Armor",
+      "round_source": "fight_focus",
       "boss": true,
       "control_mechanic": "Output is rewarded only while form holds. Each round tracks technique-breakdown flags; exceeding the limit = the Beast takes over = round fails. Win by staying in control.",
-      "round_override_by_difficulty": {
-        "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45 },
-        "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30 },
-        "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30 }
-      },
-      "warmup": ["brace_and_breathe_3min", "shadowbox_3min"], "target_rpe": [7, 9],
-      "rounds": [
-        { "index": 1,  "length_sec": 120, "rest_sec": 30, "goal": "don_the_armor_brace" },
-        { "index": 2,  "length_sec": 120, "rest_sec": 30, "goal": "clean_overhead_power" },
-        { "index": 3,  "length_sec": 120, "rest_sec": 30, "goal": "diagonal_combination_swings" },
-        { "index": 4,  "length_sec": 120, "rest_sec": 30, "goal": "sustained_output_hold_form" },
-        { "index": 5,  "length_sec": 120, "rest_sec": 30, "goal": "defensive_brace_recover" },
-        { "index": 6,  "length_sec": 120, "rest_sec": 30, "goal": "power_carry_interval" },
-        { "index": 7,  "length_sec": 120, "rest_sec": 30, "goal": "tire_strikes_mace_360s" },
-        { "index": 8,  "length_sec": 120, "rest_sec": 30, "goal": "the_beast_stirs_keep_form" },
-        { "index": 9,  "length_sec": 120, "rest_sec": 30, "goal": "survival_round_capped", "target_capped": true },
-        { "index": 10, "length_sec": 120, "rest_sec": 30, "goal": "controlled_fury_form_gate" },
-        { "index": 11, "length_sec": 120, "rest_sec": 30, "goal": "hold_the_line_do_not_break" },
-        { "index": 12, "length_sec": 120, "rest_sec": 30, "goal": "master_the_armor_finish_in_control" }
+      "canonical_map": [
+        {
+          "round": 1,
+          "discipline": "mma",
+          "canonical": "braced stance + composure (isometric)",
+          "type": "conditioning"
+        },
+        {
+          "round": 2,
+          "discipline": "mma",
+          "canonical": "clean overhead power swing conditioning",
+          "type": "conditioning-strike"
+        },
+        {
+          "round": 3,
+          "discipline": "mma",
+          "canonical": "diagonal swing combinations",
+          "type": "conditioning-strike"
+        },
+        {
+          "round": 4,
+          "discipline": "mma",
+          "canonical": "sustained swing output (form-gated)",
+          "type": "conditioning-strike"
+        },
+        {
+          "round": 5,
+          "discipline": "mma",
+          "canonical": "defensive brace + recover",
+          "type": "conditioning"
+        },
+        {
+          "round": 6,
+          "discipline": "mma",
+          "canonical": "power carry interval",
+          "type": "conditioning"
+        },
+        {
+          "round": 7,
+          "discipline": "mma",
+          "canonical": "tire strikes + mace 360s",
+          "type": "conditioning-strike"
+        },
+        {
+          "round": 8,
+          "discipline": "mma",
+          "canonical": "high-output swings, form gate on",
+          "type": "conditioning-strike"
+        },
+        {
+          "round": 9,
+          "discipline": "mma",
+          "canonical": "capped survival output",
+          "type": "conditioning"
+        },
+        {
+          "round": 10,
+          "discipline": "mma",
+          "canonical": "controlled-fury swing output (form-gated)",
+          "type": "conditioning-strike"
+        },
+        {
+          "round": 11,
+          "discipline": "mma",
+          "canonical": "brace-and-hold under fatigue",
+          "type": "conditioning"
+        },
+        {
+          "round": 12,
+          "discipline": "mma",
+          "canonical": "controlled finish",
+          "type": "conditioning"
+        }
       ],
-      "completion_rules": { "min_rounds_completed": 12, "technique_breakdown_limit": 1, "pain_flag_stop": true, "volume_capped": true, "form_gate": true },
-      "substitutions": { "SLEDGEHAMMER": "shadow_greatsword_swings", "STEEL_MACE": "band_360" } }
+      "finishers": {
+        "movements": [],
+        "placement": "none",
+        "note": "Boss trial — output is folded into the twelve form-gated rounds; no extra finisher."
+      },
+      "round_override_by_difficulty": {
+        "easy": {
+          "rounds": 12,
+          "round_sec": 60,
+          "rest_sec": 45
+        },
+        "normal": {
+          "rounds": 12,
+          "round_sec": 120,
+          "rest_sec": 30
+        },
+        "hard": {
+          "rounds": 12,
+          "round_sec": 180,
+          "rest_sec": 30
+        }
+      },
+      "warmup": [
+        "brace_and_breathe_3min",
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        7,
+        9
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "don_the_armor_brace",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "don_the_armor",
+            "technique_cues": [
+              "don the armor",
+              "brace",
+              "breathe",
+              "in control"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "clean_overhead_power",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "overhead_power",
+            "technique_cues": [
+              "clean high cut",
+              "full power, full form",
+              "reset"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "diagonal_combination_swings",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "diagonal_combos",
+            "technique_cues": [
+              "diagonal left",
+              "diagonal right",
+              "chain them",
+              "reset"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "sustained_output_hold_form",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "sustained_output",
+            "technique_cues": [
+              "output up",
+              "form holds",
+              "the armor obeys you"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "defensive_brace_recover",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "brace_recover",
+            "technique_cues": [
+              "brace",
+              "recover",
+              "shoulders down",
+              "breathe"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "power_carry_interval",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "power_carry",
+            "technique_cues": [
+              "pick up",
+              "power carry",
+              "set down in control"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 7,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "tire_strikes_mace_360s",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "tire_mace",
+            "technique_cues": [
+              "strike the tire",
+              "mace 360",
+              "switch clean"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 8,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "the_beast_stirs_keep_form",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "beast_stirs",
+            "technique_cues": [
+              "the beast stirs",
+              "keep form",
+              "you are in control"
+            ],
+            "callout": "voiced",
+            "capped": true,
+            "emphasis": "form is the leash"
+          }
+        },
+        {
+          "index": 9,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "survival_round_capped",
+          "target_capped": true,
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "survival",
+            "technique_cues": [
+              "survive to the target",
+              "then stop",
+              "never to collapse"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 10,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "controlled_fury_form_gate",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "controlled_fury",
+            "technique_cues": [
+              "fury up",
+              "form gate on",
+              "controlled fury"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 11,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "hold_the_line_do_not_break",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "hold_the_line",
+            "technique_cues": [
+              "hold the line",
+              "do not break",
+              "breathe through it"
+            ],
+            "callout": "voiced",
+            "capped": true
+          }
+        },
+        {
+          "index": 12,
+          "length_sec": 120,
+          "rest_sec": 30,
+          "goal": "master_the_armor_finish_in_control",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "master_the_armor",
+            "technique_cues": [
+              "last round",
+              "master the armor",
+              "finish in control"
+            ],
+            "callout": "voiced"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 12,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true,
+        "volume_capped": true,
+        "form_gate": true
+      },
+      "substitutions": {
+        "SLEDGEHAMMER": "shadow_greatsword_swings",
+        "STEEL_MACE": "band_360"
+      }
+    }
   ]
 }
