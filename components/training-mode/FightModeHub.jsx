@@ -2,10 +2,12 @@ import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
-import { ChevronLeft, Check } from 'lucide-react';
-import IntroLogo from './IntroLogo';
+import { Check } from 'lucide-react';
+import TrainingHeader from './TrainingHeader';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile, saveProfile } from './data/userProfile';
+import { loadStats } from './data/userStats';
+import { getCurrentTier, tierImage } from './data/tiers';
 import { loadCampProgress } from './data/campProgress';
 import { totalMoveCount } from './data/customCombos';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
@@ -79,6 +81,8 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
   const campStage = Math.min(loadCampProgress(), 12);
   const moves = totalMoveCount();
+  const sex = String(profile?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
+  const tier = getCurrentTier(loadStats());
 
   const goMode = async (key) => {
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
@@ -105,24 +109,28 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
       <Embers count={3}/>
 
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden', padding: '36px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
 
-        {/* Header — old TT-logo header, centred red FIGHT MODE title, O help button */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flexShrink: 0, marginBottom: 8, minHeight: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, zIndex: 2 }}>
-            <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 4, color: '#e7ddf7', display: 'flex', cursor: 'pointer' }}>
-              <ChevronLeft size={20}/>
-            </button>
-            <button onClick={onHome} aria-label="Home" style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <IntroLogo size={26}/>
-            </button>
-          </div>
-          <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
-            <div style={{ font: "900 20px 'Orbitron',sans-serif", color: RED, letterSpacing: '0.06em', textShadow: '0 0 16px rgba(239,68,68,0.55)' }}>FIGHT MODE</div>
-            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>Skill · rounds · combos · {disc}</div>
-          </div>
-          <div style={{ marginLeft: 'auto', zIndex: 2 }}><HelpButton onClick={() => setHelpOpen(true)}/></div>
+        {/* Standard app header (TT logo + title/subtitle left · avatar + ⓘ right) */}
+        <div style={{ flexShrink: 0 }}>
+          <TrainingHeader
+            title="FIGHT MODE"
+            subtitle={`${disc} · skill, rounds & combos`}
+            onHome={onHome}
+            showBack
+            onBack={onBack}
+            rightSlot={(
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${VIOLET}` }}>
+                  <SafeImage src={tierImage(tier?.id || 'rookie', sex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 12%' }}/>
+                </div>
+                <HelpButton onClick={() => setHelpOpen(true)}/>
+              </div>
+            )}
+          />
         </div>
+
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '14px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
 
         {/* SELECT DISCIPLINE — 4-across, selection persists */}
         <div style={{ textAlign: 'center', font: "700 12px 'Orbitron',sans-serif", color: '#d9cdf0', letterSpacing: '0.3em', marginBottom: 8, flexShrink: 0 }}>‹ SELECT DISCIPLINE ›</div>
@@ -189,6 +197,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
               <span style={{ display: 'block', font: "600 8px 'Rajdhani',sans-serif", color: '#b9a8d6' }}>Fit × fight blend</span>
             </span>
           </button>
+        </div>
         </div>
       </div>
 
