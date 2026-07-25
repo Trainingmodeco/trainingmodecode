@@ -144,6 +144,28 @@
       ]
     },
     "round_sources": ["fight_focus", "combo_coach"],
+    "combo_generation": {
+      "rule": "Arcade fight rounds route through the SAME combo generator as Combo Coach / Fight Focus — combos are GENERATED live and called by voice, never hardcoded into campaign data. Each fight round carries a `combo_spec` that seeds the generator.",
+      "combo_spec_shape": {
+        "generate_combos": "bool — true: numbered combos generated + voiced (Combo Coach style); false: technique/movement cues called instead (grappling, stance, footwork rounds)",
+        "focus": "string — the round's seed theme (e.g. hooks_body, jab_cross, chain_punches, counter)",
+        "allowed_strikes": "string[] — the strike vocabulary the generator may draw from this round",
+        "allowed_defense": "string[] — optional defensive calls mixed in (slip-left, slip-right, roll)",
+        "complexity": "single | intro | basic | standard | advanced | burst — base combo length band (engine scales by difficulty)",
+        "phantom": "bool — shadow-fight an imagined opponent (attack cue -> your response)",
+        "technique_cues": "string[] — the cue script when generate_combos is false (or mixed rounds)",
+        "emphasis": "string — one coaching emphasis the voice repeats",
+        "capped": "bool — output-capped round (targets, never max)"
+      },
+      "strike_vocabulary": {
+        "numbered": { "1": "jab", "2": "cross", "3": "lead hook", "4": "rear hook", "5": "lead uppercut", "6": "rear uppercut" },
+        "modifiers": { "b": "body (suffix — e.g. 2b = cross to body)", "oh": "overhand" },
+        "kicks_thai": { "lk": "low kick", "rk": "roundhouse", "tp": "teep", "kn": "knee", "el": "elbow" },
+        "defense": ["slip-left", "slip-right", "roll", "check"],
+        "note": "Same numbering as Combo Coach / Training Camp — one vocabulary app-wide. Kick/knee/elbow tokens only in kickboxing/muay_thai/mma rounds."
+      },
+      "complexity_bands": { "single": [1, 1], "intro": [1, 2], "basic": [2, 3], "standard": [2, 4], "advanced": [3, 5], "burst": [3, 6], "note": "combo length (strikes per call); difficulty shifts the max (easy -1, hard +1) via arcade-session-engine resolveComboParams" }
+    },
     "finishers": {
       "rule": "Random explosive BODYWEIGHT finishers may be inserted BETWEEN rounds or at the END as a finisher. Capped, voiced, and (jumps) counted toward the plyo cap.",
       "pool": ["burpees", "tuck jumps", "jumping lunges", "mountain climbers", "sprawls", "squat jumps", "high knees"],

@@ -93,6 +93,27 @@ The NAME is thematic; the executed technique is canonical
 e.g. "hard karate straight" → hard cross (boxing); "kung-fu chain punch" → rapid
 straight-punch combination; "low-kick sweep" → low roundhouse (kickboxing).
 
+--- PROMPT B1.5: combo_spec — combos are GENERATED, like Combo Coach ---
+
+Combos are NEVER hardcoded into campaign data. Every fight round carries a
+`combo_spec` (see `arcade-session-standards.json > fight_standard.
+combo_generation`) that SEEDS the app's existing Combo Coach / Fight Focus
+generator, so arcade fight rounds generate live, voiced, numbered combos exactly
+like those modes:
+- `generate_combos: true` → the generator draws combos from the round's
+  `allowed_strikes` (shared numbered vocabulary: 1 jab · 2 cross · 3 lead hook ·
+  4 rear hook · 5/6 uppercuts · b = body · oh = overhand · lk/rk/tp/kn/el for
+  kick disciplines) at the round's `complexity` band (single 1 · intro 1-2 ·
+  basic 2-3 · standard 2-4 · advanced 3-5 · burst 3-6), with optional
+  `allowed_defense` calls (slip-left/right, roll) mixed in. Difficulty shifts
+  the max length (easy -1, hard +1); "single" never grows.
+- `generate_combos: false` → a technique/movement round (grappling, stance,
+  footwork): the voice calls the round's `technique_cues` instead.
+- `phantom: true` → shadow-fight framing (attack cue → your response).
+Engine: `resolveComboParams(spec, difficulty)` in `arcade-session-engine.ts`
+returns the exact generator parameters. Reference implementation: every ARC_BAKI
+fight round (67 rounds) now carries a combo_spec.
+
 --- PROMPT B2: Bodyweight finishers between/after rounds ---
 
 Random explosive BODYWEIGHT movements (burpees, tuck jumps, jumping lunges,

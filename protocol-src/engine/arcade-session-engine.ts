@@ -292,6 +292,73 @@ export function pickFinisher(spec: FinisherSpec, difficulty: Difficulty, index =
   };
 }
 
+// ── Fight: combo_spec -> generator parameters ──────────────────────────────
+
+export type ComboComplexity = "single" | "intro" | "basic" | "standard" | "advanced" | "burst";
+
+/** The per-round seed the campaign data carries (rounds[].combo_spec). */
+export interface ComboSpec {
+  generate_combos: boolean;
+  focus: string;
+  allowed_strikes?: string[];
+  allowed_defense?: string[];
+  complexity?: ComboComplexity;
+  phantom?: boolean;
+  technique_cues?: string[];
+  emphasis?: string;
+  capped?: boolean;
+}
+
+/** What the app's Combo Coach / Fight Focus generator consumes. */
+export interface ComboParams {
+  mode: "generate" | "cues";
+  minLen: number;            // strikes per generated combo
+  maxLen: number;
+  allowedStrikes: string[];
+  allowedDefense: string[];
+  phantom: boolean;
+  cues: string[];            // technique cues (mode "cues", or mixed rounds)
+  emphasis?: string;
+  capped: boolean;
+}
+
+const COMPLEXITY_BANDS: Record<ComboComplexity, [number, number]> = {
+  single: [1, 1], intro: [1, 2], basic: [2, 3], standard: [2, 4], advanced: [3, 5], burst: [3, 6],
+};
+
+/** Default boxing vocabulary when a round doesn't restrict it. */
+const DEFAULT_STRIKES = ["1", "2", "3", "4", "5", "6", "2b", "3b"];
+
+/**
+ * Resolve a round's combo_spec + difficulty into generator parameters — the
+ * seed the app's EXISTING Combo Coach / Fight Focus generator consumes, so
+ * arcade fight rounds generate combos exactly like those modes. Difficulty
+ * shifts the max combo length (easy -1, hard +1), never below the min and
+ * capped at 8; "single" stays a single strike at every difficulty.
+ */
+export function resolveComboParams(spec: ComboSpec, difficulty: Difficulty): ComboParams {
+  if (!spec.generate_combos) {
+    return {
+      mode: "cues", minLen: 0, maxLen: 0,
+      allowedStrikes: [], allowedDefense: [],
+      phantom: spec.phantom === true,
+      cues: spec.technique_cues ?? [],
+      emphasis: spec.emphasis, capped: spec.capped === true,
+    };
+  }
+  const [min, baseMax] = COMPLEXITY_BANDS[spec.complexity ?? "standard"];
+  const shift = difficulty === "easy" ? -1 : difficulty === "hard" ? 1 : 0;
+  const maxLen = spec.complexity === "single" ? 1 : clamp(baseMax + shift, min, 8);
+  return {
+    mode: "generate", minLen: min, maxLen,
+    allowedStrikes: spec.allowed_strikes?.length ? spec.allowed_strikes : DEFAULT_STRIKES,
+    allowedDefense: spec.allowed_defense ?? [],
+    phantom: spec.phantom === true,
+    cues: spec.technique_cues ?? [],
+    emphasis: spec.emphasis, capped: spec.capped === true,
+  };
+}
+
 // ── BOTH: shared plyo foot-contact budget ──────────────────────────────────
 
 /**
