@@ -13,9 +13,10 @@ export const TOUR_STEPS = [
     targets: ['todays-bout'],
     title: "⚔ TODAY'S BOUT — YOUR DAILY MISSION",
     body: (
-      <>A workout picked for you every day from your discipline &amp; level. Tap{' '}
-        <b style={{ color: GOLD }}>ENTER</b> to jump straight in — finishing it keeps your{' '}
-        <b style={{ color: '#ff8a4a' }}>🔥 streak</b> and earns <b style={{ color: '#c9a6ff' }}>XP</b>.</>
+      <>A workout picked for you every day from your discipline &amp; level — shaped by your{' '}
+        <b style={{ color: GOLD }}>Game Plan</b>. Tap <b style={{ color: GOLD }}>ENTER</b> to jump straight in —
+        finishing it keeps your <b style={{ color: '#ff8a4a' }}>🔥 streak</b> and earns{' '}
+        <b style={{ color: '#c9a6ff' }}>XP</b>.</>
     ),
   },
   {
@@ -46,6 +47,25 @@ export const TOUR_STEPS = [
     body: (
       <>Inside <b style={{ color: '#f87171' }}>Fight</b> Mode: a <b style={{ color: GOLD }}>12-level</b> periodized
         camp that builds you toward a title fight, with readiness &amp; safety checks each session.</>
+    ),
+  },
+  {
+    screen: 'fight_hub',
+    targets: ['mode-movelab'],
+    title: '⚡ MOVE LAB — BUILD YOUR OWN COMBOS',
+    body: (
+      <>Craft named combos and signature moves — <b style={{ color: GOLD }}>tap strikes into a sequence</b> or
+        type your own call. They join <b style={{ color: '#f87171' }}>Combo Coach</b>&apos;s rotation, and{' '}
+        <b style={{ color: '#8fe8ac' }}>🎮 game-ready</b> moves sync to your fighter later.</>
+    ),
+  },
+  {
+    screen: 'setup',
+    targets: ['ghost-battle'],
+    title: '👻 GHOST BATTLES — RACE YOUR BEST',
+    body: (
+      <>Finish a Fight Focus session to save a <b style={{ color: '#c9a6ff' }}>ghost</b>, then race its replay —
+        or paste a friend&apos;s <b style={{ color: GOLD }}>challenge code</b>. Most verified strikes wins.</>
     ),
   },
   {

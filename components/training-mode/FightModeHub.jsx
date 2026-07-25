@@ -183,7 +183,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
         {/* Two-up utility row — secondary: MOVE LAB (gold) + CONDITIONING (red, cross-listed from Fit) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexShrink: 0 }}>
-          <button onClick={() => goMode('move_lab')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(30,20,4,0.55)', border: '1px solid rgba(253,224,71,0.4)' }}>
+          <button data-tour="mode-movelab" onClick={() => goMode('move_lab')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(30,20,4,0.55)', border: '1px solid rgba(253,224,71,0.4)' }}>
             <span style={{ fontSize: 13 }}>⚡</span>
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', font: "900 9.5px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.05em' }}>MOVE LAB</span>

@@ -137,7 +137,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
         {/* Ghost Battles (specs 18/24) — race the replay of a verified past
             session. MY BEST is always available once one exists; a friend's
             challenge code pastes in. The battle inherits this session's format. */}
-        <div style={{ marginBottom: 9, borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
+        <div data-tour="ghost-battle" style={{ marginBottom: 9, borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <span style={{ fontSize: 15 }}>👻</span>
             <div style={{ flex: 1, minWidth: 0 }}>
