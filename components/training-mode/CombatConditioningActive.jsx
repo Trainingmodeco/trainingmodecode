@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
-import CornerHUD from './CornerHUD';
 import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
@@ -449,8 +448,6 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
   return (
     <PhoneFrame useBrandBg>
-      <CornerHUD color="rgba(239,68,68,0.25)" size={20} inset={10}/>
-
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh',
