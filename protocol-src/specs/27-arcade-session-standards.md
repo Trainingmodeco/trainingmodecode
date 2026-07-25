@@ -107,6 +107,11 @@ like those modes:
   basic 2-3 · standard 2-4 · advanced 3-5 · burst 3-6), with optional
   `allowed_defense` calls (slip-left/right, roll) mixed in. Difficulty shifts
   the max length (easy -1, hard +1); "single" never grows.
+- FOCUS SATURATION (Baki playtest): ~60% of calls draw purely from the round's
+  focus; ~40% are mixed calls that lead with a focus strike then fold in the
+  discipline's other strikes (hooks/uppercuts/body — kicks in kick disciplines)
+  plus occasional head movement (slip/roll). `single` complexity stays 100%
+  focus. See `combo_generation.focus_saturation` in the data.
 - `generate_combos: false` → a technique/movement round (grappling, stance,
   footwork): the voice calls the round's `technique_cues` instead.
 - `phantom: true` → shadow-fight framing (attack cue → your response).

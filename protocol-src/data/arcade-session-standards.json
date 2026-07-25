@@ -116,7 +116,14 @@
   "session_timing_behaviors": {
     "bodyweight_counted": {
       "rule": "Bodyweight sets are REP-COUNTED — the voice + counter count each rep so the user follows along. Counting is suppressed only if the announcer/voice is toggled OFF (on-screen counter still shows).",
-      "status": "need to add + test"
+      "per_set_rounds": "Every movement runs SET BY SET — 'Set 1 of 3' -> rest -> 'Set 2 of 3' -> rest -> 'Set 3' — never one long undivided block (Baki playtest fix).",
+      "count_pace_by_category": {
+        "rule": "The counting cadence matches the movement: pull-ups count SLOW, squats moderate, push-ups brisk. Weighted movements are timed, never counted.",
+        "factors_on_difficulty_base": { "pull": 1.55, "squat_legs": 1.1, "core": 1.0, "push": 0.85, "explosive": 0.8, "carry": 1.0 },
+        "difficulty_base_ms": { "easy": 1900, "normal": 1450, "hard": 1150 },
+        "example": "normal difficulty: pull ~2.2s/rep, squat ~1.6s/rep, push ~1.2s/rep"
+      },
+      "status": "implemented (CampFitSetRunner)"
     },
     "weighted_timed": {
       "rule": "For WEIGHTED work, after the announcer says 'go', a TIMER counts how long the round/set takes to complete. The user presses COMPLETE -> a bell rings -> rest begins.",
@@ -164,7 +171,14 @@
         "defense": ["slip-left", "slip-right", "roll", "check"],
         "note": "Same numbering as Combo Coach / Training Camp — one vocabulary app-wide. Kick/knee/elbow tokens only in kickboxing/muay_thai/mma rounds."
       },
-      "complexity_bands": { "single": [1, 1], "intro": [1, 2], "basic": [2, 3], "standard": [2, 4], "advanced": [3, 5], "burst": [3, 6], "note": "combo length (strikes per call); difficulty shifts the max (easy -1, hard +1) via arcade-session-engine resolveComboParams" }
+      "complexity_bands": { "single": [1, 1], "intro": [1, 2], "basic": [2, 3], "standard": [2, 4], "advanced": [3, 5], "burst": [3, 6], "note": "combo length (strikes per call); difficulty shifts the max (easy -1, hard +1) via arcade-session-engine resolveComboParams" },
+      "focus_saturation": {
+        "rule": "A focused round is SATURATED with its focus but never monotonous: ~60% of generated calls draw purely from the round's allowed_strikes; ~40% are MIXED calls that lead with a focus strike then draw from the discipline's wider pool (hooks, uppercuts, body shots — kicks/knees/elbows in kick disciplines) plus occasional head movement (slip/roll). From the Baki playtest: a jab-cross round should still sprinkle a lead hook, an uppercut, a double jab, head movement — here and there, not intensely.",
+        "focus_share": 0.6,
+        "secondary_pools": { "boxing": ["3", "4", "5", "6", "2b", "3b"], "mma": ["3", "4", "5", "6", "2b", "3b"], "kickboxing": ["3", "4", "5", "6", "2b", "lk", "rk"], "muay_thai": ["3", "4", "5", "6", "lk", "kn", "el"] },
+        "head_movement_default": ["slip-left", "slip-right", "roll"],
+        "exempt": "complexity 'single' (one-perfect-strike drills, e.g. the karate cross) stays 100% focus; cue-based rounds unchanged"
+      }
     },
     "finishers": {
       "rule": "Random explosive BODYWEIGHT finishers may be inserted BETWEEN rounds or at the END as a finisher. Capped, voiced, and (jumps) counted toward the plyo cap.",

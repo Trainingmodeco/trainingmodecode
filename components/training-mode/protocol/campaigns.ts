@@ -234,21 +234,45 @@ const DEFENSE_NAMES: Record<string, string> = {
 const strikeName = (t: string) =>
   STRIKE_NAMES[t] || (t.endsWith('b') && STRIKE_NAMES[t.slice(0, -1)] ? `Body ${STRIKE_NAMES[t.slice(0, -1)]}` : t);
 
-function buildComboCalls(spec: any, difficulty: ArcadeDifficulty, roundSeed: number, count = 10): string[] {
+// Focus saturation (Baki playtest feedback): ~60% of calls drill the round's
+// focus purely; ~40% mix in other strikes of the discipline (hooks, uppercuts,
+// body shots — kicks in kick disciplines) plus occasional head movement, so a
+// jab-cross round stays a jab-cross round without becoming monotonous.
+// "single" complexity (one-perfect-strike drills) stays 100% focus.
+const SECONDARY_STRIKES: Record<string, string[]> = {
+  boxing: ['3', '4', '5', '6', '2b', '3b'],
+  mma: ['3', '4', '5', '6', '2b', '3b'],
+  kickboxing: ['3', '4', '5', '6', '2b', 'lk', 'rk'],
+  muay_thai: ['3', '4', '5', '6', 'lk', 'kn', 'el'],
+};
+const HEAD_MOVEMENT = ['slip-left', 'slip-right', 'roll'];
+
+function buildComboCalls(spec: any, difficulty: ArcadeDifficulty, roundSeed: number, discipline = 'boxing', count = 10): string[] {
   const p = resolveComboParams(spec, difficulty === 'easy' ? 'easy' : difficulty === 'hard' ? 'hard' : 'normal');
   if (p.mode === 'cues') return p.cues || [];
-  const strikes = p.allowedStrikes;
-  if (!strikes.length) return [];
+  const focus = p.allowedStrikes;
+  if (!focus.length) return [];
+  const single = spec?.complexity === 'single';
+  const secondaries = (SECONDARY_STRIKES[discipline] || SECONDARY_STRIKES.boxing).filter((s) => !focus.includes(s));
+  const mixedPool = focus.concat(secondaries);
   const span = Math.max(1, p.maxLen - p.minLen + 1);
   const out: string[] = [];
   for (let i = 0; i < count; i++) {
+    // 2 of every 5 calls are "mixed" (~40%) — never on single-strike drills.
+    const mixed = !single && secondaries.length > 0 && (i % 5 === 2 || i % 5 === 4);
     const len = p.minLen + ((i + roundSeed) % span);
     const parts: string[] = [];
     for (let j = 0; j < len; j++) {
-      parts.push(strikeName(strikes[(roundSeed * 3 + i * 2 + j * (1 + (i % 3))) % strikes.length]));
+      // Mixed calls still LEAD with a focus strike, then draw from the wider pool.
+      const src = mixed && j > 0 ? mixedPool : focus;
+      parts.push(strikeName(src[(roundSeed * 3 + i * 2 + j * (1 + (i % 3))) % src.length]));
     }
+    // Head movement sprinkled in: explicit defense rounds keep their cadence;
+    // otherwise some mixed calls open with a slip/roll.
     if (p.allowedDefense.length && i % 3 === 2) {
       parts.unshift(DEFENSE_NAMES[p.allowedDefense[(i + roundSeed) % p.allowedDefense.length]] || 'Slip');
+    } else if (mixed && i % 5 === 4 && !single) {
+      parts.unshift(DEFENSE_NAMES[HEAD_MOVEMENT[(i + roundSeed) % HEAD_MOVEMENT.length]]);
     }
     out.push(parts.join(', '));
   }
@@ -273,7 +297,7 @@ export function arcadeBlockRounds(campaignId: string, stageId: string, path: 'fi
     };
     const spec = modRounds.length ? modRounds[i % modRounds.length]?.combo_spec : null;
     if (spec) {
-      const calls = buildComboCalls(spec, difficulty, i);
+      const calls = buildComboCalls(spec, difficulty, i, mod?.discipline || 'boxing');
       if (calls.length) entry.combos = calls;
       if (spec.emphasis) entry.coach_prompt = spec.emphasis;
     }

@@ -24,7 +24,14 @@ const BLUE = '#4f8cff';
 const GOLD = '#fde047';
 const RING = 264, R = 113, STROKE = 12;
 
-const repCadenceMs = (d) => (d === 'hard' ? 1150 : d === 'easy' ? 1900 : 1450);
+// Rep-count pace = difficulty base × movement-category factor (Baki playtest
+// feedback): pull-ups count SLOW (~2.2s/rep at normal), squats moderate
+// (~1.6s), push-ups brisk (~1.2s). Weighted movements are never counted.
+const CAT_PACE = { pull: 1.55, squat_legs: 1.1, core: 1.0, push: 0.85, explosive: 0.8, carry: 1.0 };
+const repCadenceMs = (d, category) => {
+  const base = d === 'hard' ? 1150 : d === 'easy' ? 1900 : 1450;
+  return Math.round(base * (CAT_PACE[category] || 1));
+};
 
 export default function CampFitSetRunner({ cfg, onEnd }) {
   useWakeLock(true);
@@ -108,7 +115,7 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
     if (pol.timedCompletion) return; // weighted: user taps COMPLETE
     const isHold = cur.duration_sec != null;
     const target = isHold ? cur.duration_sec : cur.reps;
-    const stepMs = isHold ? 1000 : repCadenceMs(difficulty);
+    const stepMs = isHold ? 1000 : repCadenceMs(difficulty, cur.category);
     const id = setInterval(() => {
       setReps((n) => {
         const next = n + 1;
