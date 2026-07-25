@@ -11,6 +11,58 @@ SecondaryButton / Card); no new design system.
 
 ---
 
+## PROMPT 0 — pull the Grappler (Baki) content update into the revamp
+
+> Pull the latest `app` branch. The Grappler campaign (`ARC_BAKI`) has been
+> reviewed stage-by-stage and three content fixes landed. Everything is already
+> in the app mirror at `components/training-mode/protocol/` — you do not need to
+> author content, just make sure the player renders it correctly.
+>
+> **What changed (commit "Grappler review fixes")**
+>
+> 1. **Stage 4 (One-Punch Power)** was five rounds of nothing but the cross.
+>    R1 and R4 stay pure `complexity: "single"` (the one-perfect-straight drill).
+>    R2, R3 and R5 now carry `allowed_strikes: ["1","2","2b"]` at intro/basic, so
+>    the generator sets the straight up — jab → cross, jab → body → cross —
+>    instead of repeating a single punch for 24 minutes.
+> 2. **Stages 6 and 7** ran ten consecutive fight rounds with no combos called
+>    (pure grappling cues). Two of those rounds are now **mixed rounds**:
+>    `MOD_BH_S06_FIGHT` R1 (`strike_entry_into_clinch`) and `MOD_BH_S07_FIGHT`
+>    R5 (`strike_entry_into_submission_chain`). Their `combo_spec` sets a new
+>    flag `mixed_with_cue: true` alongside `generate_combos: true`, so the round
+>    generates combos from `["1","2","3"]` **and** keeps its `technique_cues`.
+> 3. All 12 fight modules now carry a `tier` (T1 S1–3, T2 S4–6, T3 S7–9,
+>    T4 S10–12), matching the fit modules.
+>
+> **Code already updated for you (verify, don't rewrite)**
+> - `protocol/engine/arcade-session-engine.ts` — `ComboSpec.mixed_with_cue`,
+>   `ComboParams.mixedWithCue`. `mode` is still `"generate"` for mixed rounds,
+>   so no existing consumer changes behaviour.
+> - `protocol/campaigns.ts` — `buildComboCalls` interleaves when
+>   `p.mixedWithCue`: two generated calls, then one technique cue, repeating.
+>
+> **What to verify in the running app**
+> - Stage 4 FIGHT: R1 and R4 still call one strike and nothing else; R2, R3, R5
+>   now call short setups. The 60/40 variety rule already exempts `single`, so
+>   R1/R4 must NOT gain secondary strikes.
+> - Stage 6 FIGHT R1 and Stage 7 FIGHT R5: the voice alternates generated combos
+>   with the grappling cue ("Jab, cross, lead hook" … "Collar tie" …). All other
+>   rounds in those stages stay cue-only — that is intentional, grip and ground
+>   work does not map to numbered punch combos.
+> - Every fight module now has a `tier`; nothing should read it yet, so nothing
+>   should change visually.
+> - Rerun the Baki stage list and confirm 46 generated / 21 cue-based rounds.
+>
+> Full stage-by-stage detail, including every FIT prescription, is in
+> `protocol-src/reviews/ARC_BAKI-review.md`. The campaign validator
+> (`node protocol-src/scripts/validate-campaigns.mjs`) passes 8/8 — run it after
+> any content edit.
+>
+> Do not change the volume ladder, `pass-rules.json`, or the counted-set pacing.
+> Those are already calibrated and playtested.
+
+---
+
 ## PROMPT 9 — Universal outcome screens (pass / partial / fail / validation-fail)
 
 > Training Mode already has four beautiful outcome screens, but only Training
