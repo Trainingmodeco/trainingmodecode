@@ -30,6 +30,7 @@ import garouCampaign from './data/campaigns/ARC_GAROU/campaign.json';
 import garouStages from './data/campaigns/ARC_GAROU/stages.json';
 import garouModules from './data/campaigns/ARC_GAROU/modules.json';
 import { humanizeGoal } from './content';
+import { resolveComboParams } from './engine/arcade-session-engine';
 
 export type ArcadePath = 'fit' | 'fight' | 'full_arc';
 export type ArcadeDifficulty = 'easy' | 'normal' | 'hard';
@@ -216,6 +217,44 @@ export function resolveArcadeRounds(campaignId: string, stageId: string, path: '
   return { rounds, roundSec, restSec, goals: fitGoals.length ? fitGoals : ['conditioning_round'], durationMin: mod.duration_min };
 }
 
+// ── Arcade combo calling (specs/27 · PROMPT B1.5) ───────────────────────────
+// Each fight round's combo_spec seeds the SAME numbered vocabulary Combo Coach
+// uses; here we pre-render a deterministic call list per round so the fight
+// timer voices real combos ("Jab, Cross… Slip Left, Cross, Body Hook") during
+// the round instead of only announcing the focus. Cue-based rounds (grappling /
+// stance / footwork) call their technique cues on the same cadence.
+const STRIKE_NAMES: Record<string, string> = {
+  '1': 'Jab', '2': 'Cross', '3': 'Lead Hook', '4': 'Rear Hook',
+  '5': 'Lead Uppercut', '6': 'Rear Uppercut', 'oh': 'Overhand',
+  'lk': 'Low Kick', 'rk': 'Roundhouse Kick', 'tp': 'Teep', 'kn': 'Knee', 'el': 'Elbow',
+};
+const DEFENSE_NAMES: Record<string, string> = {
+  'slip-left': 'Slip Left', 'slip-right': 'Slip Right', 'roll': 'Roll', 'check': 'Check',
+};
+const strikeName = (t: string) =>
+  STRIKE_NAMES[t] || (t.endsWith('b') && STRIKE_NAMES[t.slice(0, -1)] ? `Body ${STRIKE_NAMES[t.slice(0, -1)]}` : t);
+
+function buildComboCalls(spec: any, difficulty: ArcadeDifficulty, roundSeed: number, count = 10): string[] {
+  const p = resolveComboParams(spec, difficulty === 'easy' ? 'easy' : difficulty === 'hard' ? 'hard' : 'normal');
+  if (p.mode === 'cues') return p.cues || [];
+  const strikes = p.allowedStrikes;
+  if (!strikes.length) return [];
+  const span = Math.max(1, p.maxLen - p.minLen + 1);
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const len = p.minLen + ((i + roundSeed) % span);
+    const parts: string[] = [];
+    for (let j = 0; j < len; j++) {
+      parts.push(strikeName(strikes[(roundSeed * 3 + i * 2 + j * (1 + (i % 3))) % strikes.length]));
+    }
+    if (p.allowedDefense.length && i % 3 === 2) {
+      parts.unshift(DEFENSE_NAMES[p.allowedDefense[(i + roundSeed) % p.allowedDefense.length]] || 'Slip');
+    }
+    out.push(parts.join(', '));
+  }
+  return out;
+}
+
 // ── Runner cfg — the camp timers consume this shape (slice 3 handoff) ────────
 // Turns a stage+path+difficulty into the same cfg FightFocusTimer / CampFitRunner
 // read (rounds, roundMin, restSec, blockRounds), so arcade reuses the camp engine.
@@ -225,10 +264,21 @@ export function arcadeBlockRounds(campaignId: string, stageId: string, path: 'fi
   const goals = plan.goals.length ? plan.goals : [path === 'fit' ? 'conditioning_round' : 'free_round'];
   const fallback = path === 'fit' ? ['Move with intent. Control your breathing.'] : ['Sharp technique. Reset your stance.'];
   const cues = CAMPAIGN_COACH[campaignId]?.[path === 'fit' ? 'fit' : 'fight'] || fallback;
-  return Array.from({ length: Math.max(1, plan.rounds) }, (_, i) => ({
-    round_title: humanizeGoal(goals[i % goals.length]),
-    coach_prompt: cues[i % cues.length],
-  }));
+  const mod = path === 'fight' ? stageModule(campaignId, stageId, 'fight') : null;
+  const modRounds = Array.isArray(mod?.rounds) ? mod.rounds : [];
+  return Array.from({ length: Math.max(1, plan.rounds) }, (_, i) => {
+    const entry: any = {
+      round_title: humanizeGoal(goals[i % goals.length]),
+      coach_prompt: cues[i % cues.length],
+    };
+    const spec = modRounds.length ? modRounds[i % modRounds.length]?.combo_spec : null;
+    if (spec) {
+      const calls = buildComboCalls(spec, difficulty, i);
+      if (calls.length) entry.combos = calls;
+      if (spec.emphasis) entry.coach_prompt = spec.emphasis;
+    }
+    return entry;
+  });
 }
 
 export function arcadeCfg(campaignId: string, stageId: string, path: 'fit' | 'fight', difficulty: ArcadeDifficulty) {

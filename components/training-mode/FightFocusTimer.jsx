@@ -116,6 +116,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const flavored = packId !== 'coach';
   const halfwayRef = useRef(null);
 
+  // Specs/27 B1.5 — arcade combo calling. When a round entry carries
+  // pre-rendered combo calls (cfg.blockRounds[i].combos, seeded from the
+  // stage's combo_spec), voice them on a cadence during the round — Combo
+  // Coach style. Normal Fight Focus rounds (no combos field) are untouched.
+  const [curCombo, setCurCombo] = useState(null);
+  const comboIdxRef = useRef(0);
+  const comboRoundRef = useRef(-1);
+  const lastComboAtRef = useRef(-999);
+
   // Ghost Battles — record this session's pace (strike timestamps in WORK
   // seconds + per-round totals) so a verified run becomes a ghost; when
   // cfg.ghost is set, race its replay live and resolve at the final bell.
@@ -292,6 +301,28 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       ) {
         halfwayRef.current = roundIdxRef.current;
         speakAsync('Halfway.', vOpts);
+      }
+      // Specs/27 B1.5 — cadence-called combos while an arcade round runs.
+      if (phaseRef.current === 'round' && countdown === null) {
+        const curR = rounds[roundIdxRef.current];
+        if (curR?.combos?.length) {
+          if (comboRoundRef.current !== roundIdxRef.current) {
+            comboRoundRef.current = roundIdxRef.current;
+            comboIdxRef.current = 0;
+            lastComboAtRef.current = -999;
+            setCurCombo(null);
+          }
+          const comboElapsed = roundSec - remaining;
+          const gap = cfg.difficulty === 'hard' ? 7 : cfg.difficulty === 'easy' ? 11 : 9;
+          if (comboElapsed >= 2 && remaining > 6 && !rushRef.current &&
+              comboElapsed - lastComboAtRef.current >= gap) {
+            lastComboAtRef.current = comboElapsed;
+            const call = curR.combos[comboIdxRef.current % curR.combos.length];
+            comboIdxRef.current += 1;
+            setCurCombo(call);
+            if (cfg.voiceOn) speakAsync(call, vOpts);
+          }
+        }
       }
       if (
         phaseRef.current === 'round' &&
@@ -689,6 +720,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500, color: C.faint, marginTop: 4 }}>
               {cur.coach_prompt}
             </div>
+            {curCombo && (
+              <div className="anim-fade-up" style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, color: '#ffd75e', fontSize: 14, marginTop: 6, letterSpacing: '0.06em' }}>
+                {curCombo.toUpperCase()}
+              </div>
+            )}
           </div>
         )}
 
