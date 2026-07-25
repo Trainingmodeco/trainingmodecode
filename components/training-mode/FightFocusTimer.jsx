@@ -8,6 +8,7 @@ import useIntegritySession from './hooks/useIntegritySession';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { packOpts, packLine } from './data/voicePacks';
+import { recordGhostFromSession, finishGhostBattle, ghostCountAtTime } from './data/ghostBattles';
 import VoiceMixer from './shared/VoiceMixer';
 import useStrikeCounter from './hooks/useStrikeCounter';
 import StrikeHud from './shared/StrikeHud';
@@ -115,6 +116,17 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const flavored = packId !== 'coach';
   const halfwayRef = useRef(null);
 
+  // Ghost Battles — record this session's pace (strike timestamps in WORK
+  // seconds + per-round totals) so a verified run becomes a ghost; when
+  // cfg.ghost is set, race its replay live and resolve at the final bell.
+  const ghost = cfg.ghost || null;
+  const workElapsedRef = useRef(0);
+  const strikeTimesRef = useRef([]);
+  const lastThrownAtTickRef = useRef(0);
+  const roundStartThrownRef = useRef(0);
+  const perRoundStrikesRef = useRef([]);
+  const [ghostVerdict, setGhostVerdict] = useState(null);
+
   const runIntro = useCallback(async (rIdx) => {
     cancelSpeech();
     const version = ++roundVersion.current;
@@ -217,6 +229,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   useEffect(() => {
     if (doneRef.current || remaining > 0) {
+      // Ghost recording tick: advance the WORK clock and timestamp new strikes.
+      if (phaseRef.current === 'round' && !doneRef.current) {
+        workElapsedRef.current += 1;
+        const delta = thrownRef.current - lastThrownAtTickRef.current;
+        if (delta > 0) for (let i = 0; i < delta; i++) strikeTimesRef.current.push(workElapsedRef.current);
+        lastThrownAtTickRef.current = thrownRef.current;
+      }
       if (phaseRef.current === 'round' && cfg.rushMode) {
         const elapsed = roundSec - remaining;
         const wantRush = isRushAt(cfg.rushPattern || 'endRound', elapsed, remaining, roundSec, roundIdxRef.current);
@@ -295,15 +314,40 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         }
         setDone(true);
         const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
+        // Ghost Battles — close the last round, save this run as a ghost when
+        // it's verified, and (if racing) resolve the battle at the final bell.
+        perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
+        const ghostVerified = (!integrityResult || integrityResult.isFullyValid) && thrownRef.current > 0;
+        recordGhostFromSession({
+          mode: 'fight_focus', discipline, difficulty: String(cfg.difficulty || 'normal').toLowerCase(),
+          roundsConfig: { rounds: cfg.rounds, roundSec, restSec: cfg.restSec },
+          strikeTimesSec: strikeTimesRef.current, totalSec: Math.max(1, workElapsedRef.current),
+          perRoundStrikes: perRoundStrikesRef.current, completionSec: workElapsedRef.current,
+          verified: ghostVerified,
+        });
+        let ghostDelay = 1500;
+        if (ghost) {
+          const { result, headline } = finishGhostBattle(ghost, {
+            totalStrikes: thrownRef.current,
+            bestRound: Math.max(0, ...perRoundStrikesRef.current),
+            completionSec: workElapsedRef.current,
+          });
+          setGhostVerdict({ outcome: result.outcome, headline });
+          ghostDelay = 3600;
+          if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', vOpts), 1400);
+        }
         setTimeout(() => {
           if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), vOpts);
         }, 400);
-        setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, 1500);
+        setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, ghostDelay);
       } else {
         if (!roundEndBellPlayedRef.current) {
           roundEndBellPlayedRef.current = true;
           playBell(2);
         }
+        // Ghost recording — bank this round's strikes before the rest phase.
+        perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
+        roundStartThrownRef.current = thrownRef.current;
         setPhase('rest');
         setRemaining(cfg.restSec);
         // Rest + next-up (spec 22): name the coming round so nothing needs reading.
@@ -442,6 +486,35 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh', padding: '12px 14px calc(140px + env(safe-area-inset-bottom, 0px))',
       }}>
+
+        {/* Ghost Battles — live VS strip: you vs the ghost's replay at the same
+            point in WORK time. Green when you lead, red when the ghost does. */}
+        {ghost && !ghostVerdict && (() => {
+          const gCount = Math.round(ghostCountAtTime(ghost, workElapsedRef.current));
+          const lead = thrownRef.current - gCount;
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, padding: '6px 12px', marginBottom: 6, background: 'rgba(20,6,40,0.85)', border: '1px solid rgba(176,106,255,0.5)' }}>
+              <span style={{ font: "900 10px 'Orbitron',sans-serif", color: '#fff' }}>YOU {thrownRef.current}</span>
+              <span style={{ font: "800 8px 'Orbitron',sans-serif", color: '#9a90b8' }}>VS</span>
+              <span style={{ font: "900 10px 'Orbitron',sans-serif", color: '#c9a6ff' }}>👻 {gCount}</span>
+              <span style={{ marginLeft: 'auto', font: "900 9px 'Orbitron',sans-serif", color: lead >= 0 ? '#22c55e' : '#ef4444' }}>{lead >= 0 ? `▲ +${lead}` : `▼ ${lead}`}</span>
+            </div>
+          );
+        })()}
+
+        {/* Ghost verdict — the final-bell beat before the summary screen */}
+        {ghostVerdict && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(6,0,14,0.82)' }}>
+            <div style={{ textAlign: 'center', padding: '22px 26px', borderRadius: 16, border: `1.5px solid ${ghostVerdict.outcome === 'victory' ? 'rgba(34,197,94,0.7)' : ghostVerdict.outcome === 'defeat' ? 'rgba(239,68,68,0.7)' : 'rgba(253,224,71,0.6)'}`, background: 'rgba(14,4,28,0.96)', boxShadow: '0 18px 50px rgba(0,0,0,0.7)' }}>
+              <div style={{ fontSize: 34, marginBottom: 6 }}>{ghostVerdict.outcome === 'victory' ? '🏆' : ghostVerdict.outcome === 'defeat' ? '👻' : '🤝'}</div>
+              <div style={{ font: "900 15px 'Orbitron',sans-serif", color: ghostVerdict.outcome === 'victory' ? '#22c55e' : ghostVerdict.outcome === 'defeat' ? '#fca5a5' : '#fde047', letterSpacing: '0.06em' }}>
+                {ghostVerdict.outcome === 'victory' ? 'GHOST DEFEATED' : ghostVerdict.outcome === 'defeat' ? 'GHOST WINS' : 'DEAD HEAT'}
+              </div>
+              <div style={{ font: "700 10px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 6 }}>{ghostVerdict.headline}</div>
+              {ghostVerdict.outcome === 'victory' && <div style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fde047', marginTop: 8 }}>+75 BONUS XP</div>}
+            </div>
+          </div>
+        )}
 
         {/* LT-1 — cue level, adjustable mid-round without pausing. */}
         <VoiceMixer top={10} right={10}/>

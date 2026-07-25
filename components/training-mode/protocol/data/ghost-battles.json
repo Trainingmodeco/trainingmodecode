@@ -1,0 +1,119 @@
+{
+  "notes": "Ghost Battles config + data model. A 'ghost' is the recorded output of a completed, VERIFIED Fight Mode session. You race against its replay: no live multiplayer, just a saved-numbers playback (like a racing-game ghost lap). Engine: protocol-src/engine/ghost-engine.ts. Designer visuals: share card design 40e (1080x1080); Fight Mode trophies design 40f (512x512).",
+
+  "win_metric": {
+    "description": "How a battle is decided depends on the session type.",
+    "strikes": "Open sessions (Combo Coach, Fight Focus) — more verified strikes wins. No fixed end.",
+    "time": "Stage-based runs (Arcade, Camp) — FASTER completion wins (beat-the-clock, like the existing Arcade target-time model). This is what card 40e shows: 'Stage 3 · 4:12 vs 4:38 · ▲ 26s FASTER · GHOST DEFEATED'.",
+    "rule": "Each ghost stores its win_metric. The share card and outcome copy adapt: time delta ('26s FASTER') for time, strike delta ('+12 STRIKES') for strikes."
+  },
+
+  "ghost_record": {
+    "description": "What every ghost stores. Small — just enough to replay pace and show identity.",
+    "shape": {
+      "ghost_id": "string",
+      "owner_id": "string",
+      "owner_name": "string",
+      "avatar_tier": "string (tiers/{tier}-{gender})",
+      "gender": "male | female",
+      "source": {
+        "mode": "combo_coach | fight_focus | arcade | camp",
+        "discipline_or_campaign": "string",
+        "difficulty": "easy | normal | hard",
+        "rounds_config": { "rounds": "int", "round_sec": "int", "rest_sec": "int" }
+      },
+      "win_metric": "strikes | time — how this battle is decided (see win_metric section)",
+      "bucket_sec": 10,
+      "buckets": "number[] — strikes per 10-second interval across the whole session (drives the live replay counter in BOTH metrics; rest buckets are 0)",
+      "total_strikes": "int",
+      "best_round": "int — highest single-round strike count (strikes tiebreak)",
+      "completion_sec": "int — total time to finish (required for win_metric 'time')",
+      "stage_label": "string — e.g. 'Stage 3', shown on the 40e card",
+      "streak": "int — streak at run time, secondary stat on the 40e card",
+      "verified": "bool — ONLY sessions that passed the anti-cheat integrity check can become ghosts",
+      "created_at": "timestamp (stamped by app, not the engine)"
+    },
+    "rule": "Only verified sessions become ghosts. Unverified sessions are never offered as a challenge — this is the 'no fake scores' guarantee and a marketing point."
+  },
+
+  "battle_result": {
+    "win_rule": "Per win_metric: strikes → higher total_strikes wins; time → lower completion_sec (faster) wins.",
+    "tiebreak": "strikes: higher best_round; time: more strikes; still tied → draw.",
+    "xp": "Victory grants bonus XP; a loss still grants the normal session XP (never punish showing up).",
+    "outcomes": ["victory", "defeat", "tie"],
+    "headline_examples": ["▲ 26s FASTER · GHOST DEFEATED (time)", "▲ +12 STRIKES · GHOST DEFEATED (strikes)", "DEAD HEAT · DRAW"]
+  },
+
+  "share_card_40e": {
+    "size": "1080x1080",
+    "layout": "gold/violet diagonal split with a lightning seam. Header 'GHOST BATTLE' + subtitle ('you vs your last camp run'). Two avatar frames: TODAY (gold, full color) vs GHOST · LAST RUN (violet, ghosted/faded), 'VS' between them. Per-side stat line: '{stage_label} · {time} · {streak} streak'. Green headline strip ('▲ 26s FASTER · GHOST DEFEATED') from battleHeadline(). Hex socket = VERIFIED badge. Avatars composited in-app. Export 1080x1080.",
+    "engine": "Headline via battleHeadline(result); avatars/stats from the two ghost records."
+  },
+
+  "fight_trophies_40f": {
+    "size": "512x512 each",
+    "trophies": [
+      { "id": "CAMP_CHAMPION",  "art": "belt + gem" },
+      { "id": "COMBO_MACHINE",  "art": "3 fists + trails" },
+      { "id": "SWEET_SCIENCE",  "art": "tome + glove" },
+      { "id": "IRON_ROUNDS",    "art": "bell + hammer" }
+    ],
+    "note": "These are the four Fight Mode trophies specced earlier (05b Prompt 5) — now designed. Wire to their real trigger events."
+  },
+
+  "matchmaking": {
+    "always_available": ["MY_BEST — the user's own best verified ghost for the chosen mode/discipline"],
+    "sources": [
+      "RECENT_GHOSTS — ghosts the user downloaded via challenge code/link",
+      "CHALLENGE_CODE — a shared code/link a friend sent",
+      "SUGGESTED — a ghost near the user's level (see selection)"
+    ],
+    "selection_for_suggested": "Prefer a ghost whose total_strikes is within ~15% of the user's own best for that mode — a beatable-but-challenging race. Fall back to MY_BEST if none.",
+    "format_rule": "A ghost battle inherits the ghost's rounds_config — you fight its format so the comparison is fair. Show it read-only on setup."
+  },
+
+  "mode_wiring": {
+    "description": "Which modes offer ghost battles and how each is decided. See specs/24-ghost-battles-wiring.md. v1 scope = Fight-Mode-first (combo_coach, fight_focus, camp); fit-only arcade ghosts are deferred and safety-gated.",
+    "modes": {
+      "combo_coach": { "win_metric": "strikes", "entry": "ghost_icon", "v1": true, "note": "Primary home. Open striking session, most strikes wins." },
+      "fight_focus": { "win_metric": "strikes", "entry": "ghost_icon", "v1": true, "note": "Native strikes race, same as Combo Coach." },
+      "camp":        { "win_metric": "time", "round_option": "strikes", "entry": "race_a_ghost_button", "v1": true, "note": "Stage TIME race (beat-the-clock); a single round may race on strikes." },
+      "arcade_fight": { "win_metric": "time", "round_option": "strikes", "entry": "race_a_ghost_button", "v1": true, "note": "Fight/both arcade stages wire exactly like camp." },
+      "arcade_fit_only": { "win_metric": "time", "entry": "race_a_ghost_button", "v1": false, "deferred": true, "note": "No strikes to replay — pure time/pace race. Extra weight; ship after the fight-first version. Per-campaign OPT-IN and safety-gated." }
+    },
+    "fit_only_safety_gate": {
+      "rule": "A ghost TIME race must never turn a safety-capped stage into a 'beat the clock' incentive that undermines its caps.",
+      "opt_out_campaigns": ["ARC_GRAVITY", "ARC_SONIC"],
+      "opt_out_reason": "Gravity is controlled tempo/hold work and Sonic's max-velocity sprints require full recovery — racing on time would push users to violate the built-in caps. These campaigns opt OUT of fit-only ghosts; prefer 'completed it' over 'how fast'."
+    }
+  },
+
+  "surfacing": {
+    "combo_coach_icon": {
+      "where": "A small ghost icon (👻) on the Combo Coach setup screen, present from the start (per user request; visuals per designer).",
+      "tap": "Opens the ghost opponent picker (MY BEST / recent / enter code) → starts a ghost battle using Combo Coach as the session.",
+      "empty_state": "If the user has no ghost yet, the icon still shows and explains: 'Finish a session to create your first ghost, then race it.'"
+    },
+    "vs_popup": {
+      "where": "An occasional VS-mode pop-up (framed like a fighting-game 'VS' screen).",
+      "when": "Fires at most once every ~2-3 days, and ONLY when there is something real to react to: a newly downloaded friend ghost, or 'someone beat your challenge' (a friend's session beat a ghost you set).",
+      "cadence_rules": {
+        "min_days_between": 2,
+        "requires_fresh_event": true,
+        "never_interrupt_active_session": true,
+        "dismissible": "Always dismissible; dismissing does not re-prompt the same event."
+      },
+      "content": "Both avatars faced off, the challenge (e.g. 'RYAN threw 214 — beat it') and a gold 'ACCEPT · VS' CTA that starts the matching session; a 'later' option."
+    },
+    "set_as_challenge": {
+      "where": "On every VERIFIED Fight Mode Mission Complete / outcome screen.",
+      "action": "Generates a short challenge code / share link; the recipient enters it to download the ghost and race it. Only verified sessions can be set as a challenge."
+    }
+  },
+
+  "privacy": {
+    "opt_in": "Sharing a ghost is user-initiated (SET AS CHALLENGE) — sessions are never auto-published.",
+    "data_shared": "Only the ghost_record fields above (pace buckets + display identity). No location, no health data.",
+    "friend_ghosts_are_read_only": "Downloaded ghosts replay locally; they are recordings, not live connections."
+  }
+}

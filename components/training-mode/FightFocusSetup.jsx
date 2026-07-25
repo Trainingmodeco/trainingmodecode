@@ -4,6 +4,7 @@ import TrainingHeader from './TrainingHeader';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
+import { getMyBestGhost, importGhostCode, exportGhostCode } from './data/ghostBattles';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
@@ -63,6 +64,9 @@ function Segmented({ label, options, value, onChange, accent }) {
 
 export default function FightFocusSetup({ discipline, onBack, onStart, profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  // Ghost Battles — the chosen opponent (null = plain session).
+  const [ghost, setGhost] = useState(null);
+  const myBest = getMyBestGhost('fight_focus', discipline);
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Technical', rounds: 3,
     roundMin: 3, restSec: 60, voiceOn: true,
@@ -130,6 +134,43 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
         </div>
 
+        {/* Ghost Battles (specs 18/24) — race the replay of a verified past
+            session. MY BEST is always available once one exists; a friend's
+            challenge code pastes in. The battle inherits this session's format. */}
+        <div style={{ marginBottom: 9, borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <span style={{ fontSize: 15 }}>👻</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.06em' }}>
+                {ghost ? `VS ${ghost.ownerName} · ${ghost.totalStrikes} STRIKES` : 'GHOST BATTLE'}
+              </div>
+              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>
+                {ghost ? 'Race is on — most verified strikes wins.' : myBest ? 'Race your best verified run — or paste a friend’s code.' : 'Finish a session to create your first ghost, then race it.'}
+              </div>
+            </div>
+            {ghost ? (
+              <button onClick={() => setGhost(null)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 7, color: '#9a90b8', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px' }}>CLEAR</button>
+            ) : (
+              <>
+                {myBest && <button onClick={() => setGhost(myBest)} style={{ background: 'rgba(176,106,255,0.16)', border: '1px solid rgba(176,106,255,0.5)', borderRadius: 7, color: '#c9a6ff', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px' }}>MY BEST</button>}
+                <button onClick={() => {
+                  const code = typeof window !== 'undefined' ? window.prompt('Paste a ghost challenge code:') : null;
+                  if (!code) return;
+                  const g = importGhostCode(code);
+                  if (g) setGhost(g); else if (typeof window !== 'undefined') window.alert('That code didn’t scan — check it and try again.');
+                }} style={{ background: 'none', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 7, color: '#9a90b8', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px' }}>CODE</button>
+              </>
+            )}
+          </div>
+          {myBest && !ghost && (
+            <button onClick={() => {
+              const code = exportGhostCode(myBest);
+              if (code && typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(code).catch(() => {}); }
+              if (typeof window !== 'undefined') window.alert('Challenge code copied — send it to a friend so they can race YOUR ghost.');
+            }} style={{ marginTop: 7, width: '100%', background: 'none', border: '1px dashed rgba(176,106,255,0.35)', borderRadius: 8, color: '#8b83a8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '6px 0' }}>⚔ SET MY BEST AS A CHALLENGE (COPY CODE)</button>
+          )}
+        </div>
+
         {/* Start — inline, right under Rush Mode so it's never hidden */}
         <div data-guide="ff-start">
         <TrainingCTA
@@ -144,6 +185,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
               rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
               encouragement: cfg.encouragement,
               warmupMin: cfg.warmupMin,
+              ghost,
             });
           }}
         />
