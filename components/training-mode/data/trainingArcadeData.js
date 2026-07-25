@@ -1138,12 +1138,12 @@ CAMPAIGN_SERIES.forEach((cs) => {
   if (!TRAINING_ARCADE_SERIES.some((s) => s.id === cs.id)) TRAINING_ARCADE_SERIES.push(cs);
 });
 
-// TEMP (stages under review 2026-07-24): lock every saga except One Punch as
-// "under construction" so only it is playable. To re-open a saga as its stages
-// are finalized, remove its id from this set (or clear the set entirely).
+// Sagas still gated as "under construction". The 7 v2 campaigns passed the
+// data + engine diagnostic (2026-07-25: all prescription doses resolve across
+// easy/normal/hard, fight combos generate, posters present) and are now open.
+// Demon Back stays locked — it's a legacy saga and not part of Season 1.
 const UNDER_CONSTRUCTION = new Set([
-  'berserk-struggler', 'baki-grappler', 'demon-back-protocol', 'dark-knight-protocol',
-  'hyperbolic-time-chamber', 'blue-blur-speed-protocol', 'ultra-instinct-protocol', 'ultra-ego-style',
+  'demon-back-protocol',
 ]);
 for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
   const s = TRAINING_ARCADE_SERIES[i];
