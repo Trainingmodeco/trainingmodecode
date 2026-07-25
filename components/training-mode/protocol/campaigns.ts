@@ -276,6 +276,12 @@ function buildComboCalls(spec: any, difficulty: ArcadeDifficulty, roundSeed: num
     }
     out.push(parts.join(', '));
   }
+  // Mixed rounds (strike entry into clinch/ground work) alternate a generated
+  // combo with the round's technique cue, so a grappling round still gets
+  // combos called instead of running cue-only.
+  if (p.mixedWithCue && p.cues.length) {
+    return out.map((call, i) => (i % 3 === 2 ? p.cues[Math.floor(i / 3) % p.cues.length] : call));
+  }
   return out;
 }
 

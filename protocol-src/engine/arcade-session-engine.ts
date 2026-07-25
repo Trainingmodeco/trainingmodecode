@@ -307,6 +307,13 @@ export interface ComboSpec {
   technique_cues?: string[];
   emphasis?: string;
   capped?: boolean;
+  /**
+   * A grappling/stance round that still opens with real strikes: the round
+   * generates combos AND keeps its technique cues, so the player alternates a
+   * strike entry with the cue instead of running a whole round with no combos
+   * called.
+   */
+  mixed_with_cue?: boolean;
 }
 
 /** What the app's Combo Coach / Fight Focus generator consumes. */
@@ -320,6 +327,8 @@ export interface ComboParams {
   cues: string[];            // technique cues (mode "cues", or mixed rounds)
   emphasis?: string;
   capped: boolean;
+  /** Generate combos, but interleave them with the round's technique cues. */
+  mixedWithCue: boolean;
 }
 
 const COMPLEXITY_BANDS: Record<ComboComplexity, [number, number]> = {
@@ -344,6 +353,7 @@ export function resolveComboParams(spec: ComboSpec, difficulty: Difficulty): Com
       phantom: spec.phantom === true,
       cues: spec.technique_cues ?? [],
       emphasis: spec.emphasis, capped: spec.capped === true,
+      mixedWithCue: false,
     };
   }
   const [min, baseMax] = COMPLEXITY_BANDS[spec.complexity ?? "standard"];
@@ -356,6 +366,7 @@ export function resolveComboParams(spec: ComboSpec, difficulty: Difficulty): Com
     phantom: spec.phantom === true,
     cues: spec.technique_cues ?? [],
     emphasis: spec.emphasis, capped: spec.capped === true,
+    mixedWithCue: spec.mixed_with_cue === true,
   };
 }
 

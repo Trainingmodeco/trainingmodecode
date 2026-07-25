@@ -103,6 +103,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 20,
+      "tier": "T1",
       "title": "First Strikes",
       "round_source": "fight_focus",
       "drills": [
@@ -348,6 +349,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 22,
+      "tier": "T1",
       "title": "The Phantom",
       "round_source": "fight_focus",
       "drills": [
@@ -597,6 +599,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 24,
+      "tier": "T1",
       "title": "Underground Boxing",
       "round_source": "fight_focus",
       "drills": [
@@ -764,6 +767,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T2",
       "title": "The Straight (Karate Power)",
       "round_source": "fight_focus",
       "drills": [
@@ -782,12 +786,12 @@
         {
           "drill": "Reverse punch (gyaku-zuki)",
           "discipline": "boxing",
-          "canonical": "rear straight (cross)"
+          "canonical": "jab setup into rear straight (cross)"
         },
         {
           "drill": "Power step-in strike",
           "discipline": "boxing",
-          "canonical": "step-in cross"
+          "canonical": "jab into step-in cross"
         },
         {
           "drill": "Single perfect strike, full reset",
@@ -797,7 +801,7 @@
         {
           "drill": "Phantom one-punch finish",
           "discipline": "boxing",
-          "canonical": "committed power cross (shadow)"
+          "canonical": "setup into committed power cross (shadow)"
         }
       ],
       "finishers": {
@@ -842,9 +846,11 @@
           "goal": "reverse_punch_power",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "rear_straight",
+            "focus": "setup_rear_straight",
             "allowed_strikes": [
-              "2"
+              "1",
+              "2",
+              "2b"
             ],
             "complexity": "intro",
             "callout": "voiced",
@@ -858,11 +864,13 @@
           "goal": "power_step_in",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "step_in_cross",
+            "focus": "step_in_cross_setup",
             "allowed_strikes": [
-              "2"
+              "1",
+              "2",
+              "2b"
             ],
-            "complexity": "intro",
+            "complexity": "basic",
             "callout": "voiced",
             "emphasis": "step in with the strike"
           }
@@ -890,11 +898,13 @@
           "goal": "phantom_one_punch_finish",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "one_punch_finish",
+            "focus": "setup_one_punch_finish",
             "allowed_strikes": [
-              "2"
+              "1",
+              "2",
+              "2b"
             ],
-            "complexity": "single",
+            "complexity": "basic",
             "callout": "voiced",
             "phantom": true,
             "emphasis": "committed, composed"
@@ -1010,6 +1020,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T2",
       "title": "Kenpo — Root and Strike",
       "round_source": "fight_focus",
       "drills": [
@@ -1250,6 +1261,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T2",
       "title": "Grip and Clinch",
       "round_source": "fight_focus",
       "movement_type": "grappling",
@@ -1264,8 +1276,8 @@
         {
           "drill": "Collar-and-elbow clinch entries",
           "discipline": "mma",
-          "canonical": "clinch entry (grappling)",
-          "type": "grappling"
+          "canonical": "strike entry (jab/cross/hook) into collar-and-elbow clinch",
+          "type": "mixed"
         },
         {
           "drill": "Grip-fight drills",
@@ -1315,17 +1327,24 @@
           "index": 1,
           "length_sec": 120,
           "rest_sec": 45,
-          "goal": "clinch_entries",
+          "goal": "strike_entry_into_clinch",
           "combo_spec": {
-            "generate_combos": false,
-            "focus": "clinch_entries",
+            "generate_combos": true,
+            "focus": "strike_into_clinch",
             "technique_cues": [
               "level change",
               "collar tie",
               "elbow inside",
               "head position"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         },
         {
@@ -1498,6 +1517,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T3",
       "title": "Solo Grappling Flow",
       "round_source": "fight_focus",
       "movement_type": "grappling",
@@ -1536,8 +1556,8 @@
         {
           "drill": "Solo submission-chain shadow flow",
           "discipline": "mma",
-          "canonical": "armbar/triangle/back-take motion (shadow grappling)",
-          "type": "grappling"
+          "canonical": "strike entry into armbar/triangle/back-take motion (shadow grappling)",
+          "type": "mixed"
         }
       ],
       "finishers": {
@@ -1627,17 +1647,24 @@
           "index": 5,
           "length_sec": 120,
           "rest_sec": 45,
-          "goal": "submission_chain_flow",
+          "goal": "strike_entry_into_submission_chain",
           "combo_spec": {
-            "generate_combos": false,
-            "focus": "submission_chain",
+            "generate_combos": true,
+            "focus": "strike_into_ground_chain",
             "technique_cues": [
               "armbar motion",
               "triangle motion",
               "back-take motion",
               "flow"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         }
       ],
@@ -1747,6 +1774,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T3",
       "title": "Brute Force (Controlled)",
       "round_source": "fight_focus",
       "drills": [
@@ -2010,6 +2038,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T3",
       "title": "Primal Combat",
       "round_source": "fight_focus",
       "drills": [
@@ -2267,6 +2296,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 28,
+      "tier": "T4",
       "title": "All-Around — Every Tool",
       "round_source": "fight_focus",
       "drills": [
@@ -2536,6 +2566,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 28,
+      "tier": "T4",
       "title": "The Strongest — Peak Rounds",
       "round_source": "fight_focus",
       "drills": [
@@ -2910,6 +2941,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 32,
+      "tier": "T4",
       "title": "The Ogre — Father-Son Trial",
       "round_source": "fight_focus",
       "boss": true,
