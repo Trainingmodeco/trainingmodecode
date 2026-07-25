@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
 import { generateComboCoachSession } from './data/sessionGenerator';
+import { moveLabCallStrings } from './data/customCombos';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
@@ -96,17 +97,28 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const integrity = useIntegritySession('comboCoach', totalRounds);
   const integrityStartedRef = useRef(false);
   const [rapidWarning, setRapidWarning] = useState(null);
-  const pool = useMemo(() => generateComboCoachSession({
-    discipline,
-    difficulty: cfg.difficulty,
-    speed: cfg.speed,
-    rounds: totalRounds,
-    roundDuration: cfg.roundMin,
-    mode: cfg.mode,
-    arsenalOnly: cfg.arsenalOnly,
-    arsenal: cfg.arsenal,
-    customCombos: cfg.customCombos,
-  }), [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal, cfg.customCombos]);
+  const pool = useMemo(() => {
+    const base = generateComboCoachSession({
+      discipline,
+      difficulty: cfg.difficulty,
+      speed: cfg.speed,
+      rounds: totalRounds,
+      roundDuration: cfg.roundMin,
+      mode: cfg.mode,
+      arsenalOnly: cfg.arsenalOnly,
+      arsenal: cfg.arsenal,
+      customCombos: cfg.customCombos,
+    });
+    // Move Lab (43a): the athlete's rotation-flagged moves join the call pool
+    // alongside stock combos. Signature specials are spoken by name. Skipped
+    // when the athlete explicitly chose a fixed custom set.
+    if (Array.isArray(cfg.customCombos) && cfg.customCombos.length) return base;
+    const rot = moveLabCallStrings(discipline);
+    if (!rot.length) return base;
+    const out = [...base];
+    rot.forEach((s, i) => out.splice(Math.min(out.length, (i + 1) * 5), 0, s));
+    return out.length ? out : rot;
+  }, [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal, cfg.customCombos]);
   const comboIndexRef = useRef(0);
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? 'round');

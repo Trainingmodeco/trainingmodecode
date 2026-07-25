@@ -400,6 +400,7 @@ export default function App() {
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
+    goMoveLab: (d) => { if (d) setDisc(d); setScreen('move_lab'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;

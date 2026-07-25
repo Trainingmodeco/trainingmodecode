@@ -3,9 +3,11 @@ import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
 import { ChevronLeft, Check } from 'lucide-react';
+import IntroLogo from './IntroLogo';
 import { hasCompletedFirstLesson } from './data/recommendations';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { loadCampProgress } from './data/campProgress';
+import { totalMoveCount } from './data/customCombos';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import FightRingBackdrop from './shared/FightRingBackdrop';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -48,13 +50,6 @@ const getVariant = (p) => {
   return s === 'female' ? 'female' : 'male';
 };
 
-function customMoveCount() {
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('tm_custom_combos') : null;
-    const p = raw ? JSON.parse(raw) : null;
-    return Array.isArray(p) ? p.length : 0;
-  } catch { return 0; }
-}
 
 const hubCSS = `
 .fm-banner { transition: filter .18s ease, border-color .18s ease, box-shadow .18s ease, transform .12s ease; }
@@ -65,8 +60,7 @@ const hubCSS = `
 .fm-tile:active { transform: scale(0.96); }
 `;
 
-export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp }) {
-  void onHome;
+export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp, onMoveLab }) {
   const profile = loadProfile();
   const variant = getVariant(profile);
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
@@ -84,12 +78,12 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
   const [toast, setToast] = useState(false);
 
   const campStage = Math.min(loadCampProgress(), 12);
-  const moves = customMoveCount();
+  const moves = totalMoveCount();
 
   const goMode = async (key) => {
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
     if (key === 'conditioning') { onCombatConditioning?.(); return; }
-    if (key === 'move_lab') { setToast('MOVE LAB — custom combos are coming back soon.'); setTimeout(() => setToast(false), 2200); return; }
+    if (key === 'move_lab') { onMoveLab?.(disc); return; }
     if (key === 'practice') {
       if (onPractice) onPractice(disc);
       else { setToast('Practice Mode preview — coming soon.'); setTimeout(() => setToast(false), 2200); }
@@ -113,16 +107,21 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
 
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden', padding: '36px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
 
-        {/* Header — red FIGHT MODE + active discipline */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginBottom: 8 }}>
-          <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 4, color: '#e7ddf7', display: 'flex', cursor: 'pointer' }}>
-            <ChevronLeft size={20}/>
-          </button>
-          <div style={{ flex: 1 }}>
-            <div style={{ font: "900 20px 'Orbitron',sans-serif", color: RED, letterSpacing: '0.06em', textShadow: '0 0 16px rgba(239,68,68,0.55)' }}>FIGHT MODE</div>
-            <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>Skill · rounds · combos · {disc}</div>
+        {/* Header — old TT-logo header, centred red FIGHT MODE title, O help button */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flexShrink: 0, marginBottom: 8, minHeight: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, zIndex: 2 }}>
+            <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 4, color: '#e7ddf7', display: 'flex', cursor: 'pointer' }}>
+              <ChevronLeft size={20}/>
+            </button>
+            <button onClick={onHome} aria-label="Home" style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <IntroLogo size={26}/>
+            </button>
           </div>
-          <HelpButton onClick={() => setHelpOpen(true)}/>
+          <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+            <div style={{ font: "900 20px 'Orbitron',sans-serif", color: RED, letterSpacing: '0.06em', textShadow: '0 0 16px rgba(239,68,68,0.55)' }}>FIGHT MODE</div>
+            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>Skill · rounds · combos · {disc}</div>
+          </div>
+          <div style={{ marginLeft: 'auto', zIndex: 2 }}><HelpButton onClick={() => setHelpOpen(true)}/></div>
         </div>
 
         {/* SELECT DISCIPLINE — 4-across, selection persists */}

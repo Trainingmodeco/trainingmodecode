@@ -11,6 +11,12 @@ export const SCREEN_GUIDES = {
     { target: 'home-favorites', title: 'FAVORITES', body: 'One-tap shortcuts to your go-to modes. Quick, HIIT, Fight, or Build — no menus needed.' },
   ],
 
+  move_lab: [
+    { target: null, title: '🥊 MOVE LAB', body: 'Your fighting-game command list — build your own moves and signature specials. They join the Combo Coach call rotation.' },
+    { target: 'ml-create', title: '+ CREATE A MOVE', body: 'Name it, then BUILD IT (chain real strikes) or TYPE IT (a spoken special like “Hadouken”). Signature specials collect in the ★ tier.' },
+    { target: null, title: 'ROTATION & GAME-READY', body: 'Toggle a move into the Combo Coach rotation so the coach calls it. Moves built from real strikes get a 🎮 GAME-READY tag — those sync to your in-game fighter when Game Link launches.' },
+  ],
+
   profile: [
     { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, account, and every app setting. Here is what each button does.' },
     { target: 'pr-avatar', title: 'YOUR FIGHTER', body: 'Your avatar and rank. It evolves as you level up — Rookie to Champion… and there are secret tiers beyond.' },

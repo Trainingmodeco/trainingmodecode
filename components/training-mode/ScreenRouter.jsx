@@ -8,6 +8,7 @@ import Notifications from './Notifications';
 import HomeDashboard from './HomeDashboard';
 import TrainingHub from './TrainingHub';
 import FightModeHub from './FightModeHub';
+import MoveLab from './MoveLab';
 import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
@@ -143,7 +144,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
 }
 
 export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete, goMoveLab } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -177,7 +178,14 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'fight_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} lock>
-        <FightModeHub onHome={goHome} onBack={goTrainingHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onQuickFight={goTimer} onQuickCombo={goComboActive} onTrainingCamp={goTrainingCamp}/>
+        <FightModeHub onHome={goHome} onBack={goTrainingHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onQuickFight={goTimer} onQuickCombo={goComboActive} onTrainingCamp={goTrainingCamp} onMoveLab={goMoveLab}/>
+      </WithNav>
+    );
+  }
+  if (screen === 'move_lab') {
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
+        <MoveLab discipline={disc} onBack={goFightHub} onHome={goHome}/>
       </WithNav>
     );
   }
