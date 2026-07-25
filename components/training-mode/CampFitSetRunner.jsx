@@ -258,7 +258,7 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.3)', borderRadius: 5, padding: '3px 8px' }}>{String(difficulty).toUpperCase()}</span>
         </div>
 
-        <div style={{ position: 'relative', width: RING, height: RING, marginTop: 12, maxWidth: '100%' }}>
+        <div style={{ position: 'relative', width: 'min(56vw, 216px)', aspectRatio: '1 / 1', marginTop: 12, maxWidth: '100%' }}>
           <svg width="100%" height="100%" viewBox={`0 0 ${RING} ${RING}`}>
             <circle cx={cx} cy={cx} r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={STROKE} />
             <circle cx={cx} cy={cx} r={R} fill="none" stroke={ringColor} strokeWidth={STROKE} strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} transform={`rotate(-90 ${cx} ${cx})`} style={{ transition: 'stroke-dashoffset .3s linear, stroke .3s', filter: `drop-shadow(0 0 10px ${ringColor}88)` }} />
@@ -269,7 +269,7 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
             ) : (
               <>
                 <div style={{ font: "700 10px 'Press Start 2P',monospace", color: ringColor, letterSpacing: '0.06em', marginBottom: 8, textAlign: 'center' }}>{sub}</div>
-                <div style={{ font: "900 62px 'Orbitron',sans-serif", color: '#fff' }}>{shown}{isHold || phase === 'rest' || inFinisher ? 's' : ''}</div>
+                <div style={{ font: "900 48px 'Orbitron',sans-serif", color: '#fff' }}>{shown}{isHold || phase === 'rest' || inFinisher ? 's' : ''}</div>
                 <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 2 }}>{phase === 'rest' ? 'REST' : `OF ${target}${isHold ? 's' : ' REPS'}`}</div>
               </>
             )}
@@ -281,7 +281,7 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
           {ex?.canonical && <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#9fd8ce', marginTop: 3 }}>{ex.canonical}</div>}
         </div>
 
-        <div style={{ marginTop: 'auto', width: '100%', maxWidth: 360, paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ marginTop: 'auto', width: '100%', maxWidth: 360, paddingBottom: 'calc(max(140px, 20dvh) + env(safe-area-inset-bottom, 0px))' }}>
           {pol.timedCompletion && phase === 'work' && !inFinisher && countdown === null ? (
             <button onClick={completeSet} style={{ width: '100%', height: 46, borderRadius: 12, border: 'none', background: `linear-gradient(135deg,${GOLD},#f59e0b)`, color: '#0a0014', font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>✓ SET COMPLETE</button>
           ) : (

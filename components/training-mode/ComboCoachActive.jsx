@@ -593,7 +593,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', minHeight: '100dvh', padding: '14px 14px calc(100px + env(safe-area-inset-bottom, 0px))',
+        alignItems: 'center', minHeight: '100dvh', padding: '14px 14px calc(max(140px, 20dvh) + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* LT-1 — cue level, adjustable mid-round without pausing. */}
@@ -626,7 +626,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
         {/* Pulsing beat-orb (design 13b) — responsive so it never clips on narrow
             screens; the SVG viewBox keeps ring coordinates valid. */}
-        <div style={{ position: 'relative', width: 'min(86vw, 380px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 8px' }}>
+        <div style={{ position: 'relative', width: 'min(58vw, 224px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 8px' }}>
           {/* Dimmed art background */}
           <img
             src="/static/ring-combo.webp"
@@ -715,7 +715,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             ) : phase === 'rest' ? (
               <>
                 <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 48,
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 38,
                   color: '#fff', lineHeight: 1,
                   textShadow: '0 0 20px #4f8cff',
                 }}>

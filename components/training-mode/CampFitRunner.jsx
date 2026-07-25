@@ -196,7 +196,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
         </div>
 
         {/* Ring */}
-        <div style={{ position: 'relative', width: RING_SIZE, height: RING_SIZE, marginTop: 10, maxWidth: '100%' }}>
+        <div style={{ position: 'relative', width: 'min(56vw, 216px)', aspectRatio: '1 / 1', marginTop: 10, maxWidth: '100%' }}>
           <svg width="100%" height="100%" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
             <circle cx={cx} cy={cy} r={RING_R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={RING_STROKE} />
             <circle cx={cx} cy={cy} r={RING_R} fill="none" stroke={ringColor} strokeWidth={RING_STROKE} strokeLinecap="round"
@@ -209,7 +209,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
             ) : (
               <>
                 <div style={{ font: "700 11px 'Press Start 2P',monospace", color: resting ? BLUE : TEAL, letterSpacing: '0.1em', marginBottom: 8 }}>{resting ? '☕ REST' : '🔥 WORK'}</div>
-                <div style={{ font: "900 46px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{mins}:{String(secs).padStart(2, '0')}</div>
+                <div style={{ font: "900 38px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{mins}:{String(secs).padStart(2, '0')}</div>
                 <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>OF {Math.floor(maxTime / 60)}:{String(maxTime % 60).padStart(2, '0')}</div>
               </>
             )}
@@ -231,7 +231,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
         </div>
 
         {/* Controls */}
-        <div style={{ marginTop: 'auto', width: '100%', maxWidth: 360, paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ marginTop: 'auto', width: '100%', maxWidth: 360, paddingBottom: 'calc(max(140px, 20dvh) + env(safe-area-inset-bottom, 0px))' }}>
           <button onClick={handlePause} style={{ width: '100%', height: 46, borderRadius: 12, border: paused ? 'none' : `1px solid ${TEAL}55`, background: paused ? `linear-gradient(135deg,${TEAL},${GREEN})` : 'rgba(45,212,191,0.14)', color: paused ? '#04140f' : TEAL, font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>
             {paused ? '▶ RESUME' : '❚❚ PAUSE'}
           </button>

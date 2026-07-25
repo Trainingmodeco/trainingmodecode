@@ -389,7 +389,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
           onHome={handleBack}
         />
 
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '8px 16px calc(78px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '8px 16px calc(max(120px, 18dvh) + env(safe-area-inset-bottom, 0px))' }}>
           {/* Progress */}
           <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>

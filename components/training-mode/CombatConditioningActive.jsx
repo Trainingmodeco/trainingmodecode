@@ -401,7 +401,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   const ringSize = 394; // SVG viewBox coordinate system (kept fixed)
   // Radius tuned so the progress arc sits on the outer edge of the ring-conditioning.png band.
   const ringR = ringSize * 0.395;
-  const ringBox = 'min(74vw, 288px)'; // responsive rendered size so it fits + leaves room for the text/timer
+  const ringBox = 'min(58vw, 224px)'; // responsive rendered size so it fits + leaves room for the text/timer
   const maxTime = phase === 'resting'
     ? (currentDrill?.restSeconds || 30)
     : (currentDrill?.workSeconds || 30);
@@ -518,17 +518,17 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: GOLD, letterSpacing: '0.12em', textShadow: '0 0 20px rgba(253,224,71,0.4)' }}>COMPLETE</div>
             ) : (phase === 'working' && isTimed) || phase === 'resting' ? (
               <>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 56, color: '#fff', textShadow: `0 0 20px ${ringColor}` }}>{formatTime(remaining)}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40, color: '#fff', textShadow: `0 0 20px ${ringColor}` }}>{formatTime(remaining)}</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700, color: ringColor, letterSpacing: '0.2em', marginTop: 8 }}>{phase === 'resting' ? 'REST' : 'WORK'}</div>
               </>
             ) : phase === 'working' && isReps && cadenceEnabled(currentDrill) ? (
               <>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 64, color: COMBAT_RED, textShadow: '0 0 20px rgba(239,68,68,0.5)' }}>{repCount}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 46, color: COMBAT_RED, textShadow: '0 0 20px rgba(239,68,68,0.5)' }}>{repCount}</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: '0.15em', marginTop: 8 }}>REP {repCount} / {currentDrill.reps || '?'}</div>
               </>
             ) : (
               <>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 52, color: COMBAT_RED }}>{currentDrill.reps || '--'}</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40, color: COMBAT_RED }}>{currentDrill.reps || '--'}</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 700, color: C.muted, letterSpacing: '0.15em', marginTop: 8 }}>REPS</div>
               </>
             )}
