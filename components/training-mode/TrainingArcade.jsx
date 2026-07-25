@@ -11,6 +11,7 @@ import { VISIBLE_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeDa
 import { getSeriesProgress } from './data/arcadeProgress';
 import { loadStats, getLevel } from './data/userStats';
 import { decodeChallenge, resolveChallenge } from './data/challengeCodes';
+import CodeEntryModal from './shared/CodeEntryModal';
 
 // Full-bleed saga poster art (918x1713), one per visible series.
 const POSTER_MAP = {
@@ -53,12 +54,13 @@ function StarRow({ count = 0, size = 11 }) {
 
 export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode }) {
   // Paste a friend's challenge code to jump into the exact stage they set.
-  const enterChallengeCode = () => {
-    const raw = typeof window !== 'undefined' ? window.prompt('Paste a challenge code:') : null;
-    if (!raw) return;
+  // (window.prompt is unsupported on RN Web — use an in-app modal.)
+  const [codeOpen, setCodeOpen] = useState(false);
+  const submitChallengeCode = (raw) => {
     const resolved = resolveChallenge(decodeChallenge(raw));
-    if (resolved) onChallengeCode?.(resolved);
-    else if (typeof window !== 'undefined') window.alert('That code didn’t scan — check it and try again.');
+    if (!resolved) return false;
+    onChallengeCode?.(resolved);
+    return true;
   };
   const series = VISIBLE_ARCADE_SERIES;
   const n = series.length;
@@ -187,7 +189,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
           <HelpButton onClick={() => setHelpOpen(true)} style={{ position: 'absolute', right: 12, top: 12 }}/>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, letterSpacing: '0.06em', background: 'linear-gradient(90deg,#5eead4,#2dd4bf)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', textShadow: '0 0 18px rgba(45,212,191,0.35)' }}>TRAINING ARCADE</div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: 'rgba(94,234,212,0.75)', letterSpacing: '0.24em', marginTop: 4 }}>‹ SWIPE TO CHOOSE YOUR SAGA ›</div>
-          <button data-tour="challenge-code" onClick={enterChallengeCode} style={{ marginTop: 7, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 8, color: '#c9a6ff', font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.08em', padding: '6px 12px', cursor: 'pointer' }}>⚔ ENTER A CHALLENGE CODE</button>
+          <button data-tour="challenge-code" onClick={() => setCodeOpen(true)} style={{ marginTop: 7, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 8, color: '#c9a6ff', font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.08em', padding: '6px 12px', cursor: 'pointer' }}>⚔ ENTER A CHALLENGE CODE</button>
         </div>
 
         {/* Player bar */}
@@ -336,6 +338,15 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
         </div>
       </div>
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.arcade_saga_select} onClose={() => setHelpOpen(false)}/>}
+      {codeOpen && (
+        <CodeEntryModal
+          title="⚔ ENTER A CHALLENGE CODE"
+          label="Paste a friend's challenge code to jump into their exact stage."
+          submitLabel="▶ START CHALLENGE"
+          onSubmit={submitChallengeCode}
+          onClose={() => setCodeOpen(false)}
+        />
+      )}
     </PhoneFrame>
   );
 }

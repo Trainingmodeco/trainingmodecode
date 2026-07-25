@@ -3,6 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
+import CodeEntryModal from './shared/CodeEntryModal';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { getMyBestGhost, importGhostCode, exportGhostCode } from './data/ghostBattles';
 import Embers from './Embers';
@@ -66,6 +67,8 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
   const [helpOpen, setHelpOpen] = useState(false);
   // Ghost Battles — the chosen opponent (null = plain session).
   const [ghost, setGhost] = useState(null);
+  const [ghostCodeOpen, setGhostCodeOpen] = useState(false); // in-app code entry (RN Web has no prompt)
+  const [ghostToast, setGhostToast] = useState('');
   const myBest = getMyBestGhost('fight_focus', discipline);
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Technical', rounds: 3,
@@ -153,12 +156,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
             ) : (
               <>
                 {myBest && <button onClick={() => setGhost(myBest)} style={{ background: 'rgba(176,106,255,0.16)', border: '1px solid rgba(176,106,255,0.5)', borderRadius: 7, color: '#c9a6ff', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px' }}>MY BEST</button>}
-                <button onClick={() => {
-                  const code = typeof window !== 'undefined' ? window.prompt('Paste a ghost challenge code:') : null;
-                  if (!code) return;
-                  const g = importGhostCode(code);
-                  if (g) setGhost(g); else if (typeof window !== 'undefined') window.alert('That code didn’t scan — check it and try again.');
-                }} style={{ background: 'none', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 7, color: '#9a90b8', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px' }}>CODE</button>
+                <button onClick={() => setGhostCodeOpen(true)} style={{ background: 'none', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 7, color: '#9a90b8', cursor: 'pointer', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px' }}>CODE</button>
               </>
             )}
           </div>
@@ -166,9 +164,11 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
             <button onClick={() => {
               const code = exportGhostCode(myBest);
               if (code && typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(code).catch(() => {}); }
-              if (typeof window !== 'undefined') window.alert('Challenge code copied — send it to a friend so they can race YOUR ghost.');
+              setGhostToast(code ? 'Challenge code copied — send it to a friend so they can race YOUR ghost.' : 'Couldn’t copy the code.');
+              setTimeout(() => setGhostToast(''), 3200);
             }} style={{ marginTop: 7, width: '100%', background: 'none', border: '1px dashed rgba(176,106,255,0.35)', borderRadius: 8, color: '#8b83a8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '6px 0' }}>⚔ SET MY BEST AS A CHALLENGE (COPY CODE)</button>
           )}
+          {ghostToast && <div style={{ marginTop: 7, font: "600 9px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{ghostToast}</div>}
         </div>
 
         {/* Start — inline, right under Rush Mode so it's never hidden */}
@@ -193,6 +193,15 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
       </div>
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fight_focus_setup} onClose={() => setHelpOpen(false)}/>}
+      {ghostCodeOpen && (
+        <CodeEntryModal
+          title="👻 PASTE A GHOST CODE"
+          label="Paste a friend's ghost challenge code to race their run."
+          submitLabel="LOAD GHOST"
+          onSubmit={(code) => { const g = importGhostCode(code); if (!g) return false; setGhost(g); return true; }}
+          onClose={() => setGhostCodeOpen(false)}
+        />
+      )}
     </PhoneFrame>
   );
 }
