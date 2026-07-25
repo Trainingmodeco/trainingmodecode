@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import CornerHUD from './CornerHUD';
-import { ChevronLeft, Pause, Play, SkipForward, Square } from 'lucide-react';
+import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
@@ -32,7 +32,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   useWakeLock(true);
   const {
     missionName, style, difficulty, totalRounds, drills,
-    voiceOn, formPreviewOn,
+    voiceOn,
   } = mission;
   const cadenceCount = mission.cadenceCount !== false;
 
@@ -340,6 +340,38 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     }
   };
 
+  // REWIND — mirror of SKIP (same control set as Quick Mission / the Builder):
+  // step BACK to the previous drill, or the last drill of the previous round,
+  // and run it again. The completed counter steps back with it so a rewound-
+  // then-finished drill counts once, never twice.
+  const handleRewind = () => {
+    stopCadence();
+    cancelSpeech();
+    integrity.recordAction('rewind');
+
+    const idx = drillIdxRef.current;
+    if (idx > 0) {
+      const prev = idx - 1;
+      setDrillIdx(prev);
+      drillIdxRef.current = prev;
+    } else if (roundRef.current > 1) {
+      const last = drills.length - 1;
+      setRound(r => r - 1);
+      roundRef.current = roundRef.current - 1;
+      setDrillIdx(last);
+      drillIdxRef.current = last;
+      const rc = Math.max(0, roundsCompletedRef.current - 1);
+      setRoundsCompleted(rc);
+      roundsCompletedRef.current = rc;
+    }
+    // else: already on the very first drill — just restart it.
+
+    const dc = Math.max(0, drillsCompletedRef.current - 1);
+    setDrillsCompleted(dc);
+    drillsCompletedRef.current = dc;
+    startDrill(false);
+  };
+
   const handlePauseToggle = () => {
     if (paused) {
       setPaused(false);
@@ -416,15 +448,15 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     : '#22c55e';
 
   return (
-    <PhoneFrame usePhoto>
-      {/* Darken the photo so the timer + text are the focus */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'radial-gradient(ellipse at 50% 42%, rgba(8,1,15,0.35), rgba(6,0,12,0.78) 78%)', pointerEvents: 'none' }}/>
-      {/* Dimmed themed art background */}
+    <PhoneFrame useBrandBg>
+      {/* Themed art background — same treatment as Quick Mission: the clean
+          brand backdrop with the mode's ring art dimmed over it, instead of the
+          heavy full-bleed photo that muddied the timer and text. */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 1, opacity: 0.08,
+        position: 'absolute', inset: 0, zIndex: 1, opacity: 0.1,
         backgroundImage: 'url(/static/ring-combat.png)',
         backgroundSize: 'cover', backgroundPosition: 'center',
-        filter: 'blur(2px) saturate(0.5)',
+        filter: 'blur(2px) saturate(0.6)',
         pointerEvents: 'none',
       }}/>
       <CornerHUD color="rgba(239,68,68,0.25)" size={20} inset={10}/>
@@ -432,7 +464,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh',
-        padding: '20px 16px calc(160px + env(safe-area-inset-bottom, 0px))',
+        // ~22% of the viewport kept clear under the controls (matches Quick Mission).
+        padding: '16px 16px calc(max(150px, 22dvh) + env(safe-area-inset-bottom, 0px))',
         overflowX: 'hidden',
       }}>
 
@@ -598,32 +631,6 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           </div>
         )}
 
-        {/* Form Preview box */}
-        {formPreviewOn && phase === 'working' && (
-          <div style={{
-            width: '100%', maxWidth: 360, padding: '10px 14px', borderRadius: 10,
-            background: 'rgba(15,0,0,0.6)', border: '1px solid rgba(168,85,247,0.15)',
-            textAlign: 'center', marginBottom: 12,
-          }}>
-            <div style={{
-              fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: C.neon,
-              letterSpacing: '0.15em', marginBottom: 4,
-            }}>FORM PREVIEW</div>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700,
-              color: C.text, letterSpacing: '0.06em', marginBottom: 4,
-            }}>{currentDrill.name}</div>
-            <div style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 500,
-              color: C.muted, letterSpacing: '0.04em',
-            }}>GIF / VIDEO COMING SOON</div>
-            <div style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 9, fontWeight: 400,
-              color: 'rgba(255,255,255,0.3)', marginTop: 2,
-            }}>Exercise demo will appear here.</div>
-          </div>
-        )}
-
         {/* Controls */}
         {phase !== 'complete' && (
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 4 }}>
@@ -638,6 +645,16 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
                 DONE
               </button>
             )}
+
+            {/* REWIND — previous drill (symmetric to SKIP), same as the other players */}
+            <button onClick={handleRewind} aria-label="Previous drill" style={{
+              width: 56, height: 56, borderRadius: 14,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
+              color: C.neon, cursor: 'pointer',
+            }}>
+              <RotateCcw size={22}/>
+            </button>
 
             <button onClick={handlePauseToggle} style={{
               width: 70, height: 70, borderRadius: 18,
