@@ -62,6 +62,11 @@ const MIX_SEGMENTS = [
 function RushModal({ sel, setSel, mixSel, setMixSel, discipline, onCancel, onActivate }) {
   const moveCount = explosivePoolFor(discipline).length;
   const discLabel = String(discipline || 'Boxing');
+  const mixDescriptions = {
+    explosive: <><b style={{ color: '#22c55e' }}>Explosive</b> = bodyweight only, random from {moveCount} moves.</>,
+    strikes: <><b style={{ color: '#f97316' }}>Strikes</b> = your discipline ({discLabel}), half freestyle.</>,
+    both: <><b style={{ color: '#fde047' }}>Both</b> = random across both strikes and explosive workouts.</>,
+  };
   return createPortal(
     <div onClick={onCancel} style={{
       position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -103,10 +108,8 @@ function RushModal({ sel, setSel, mixSel, setMixSel, discipline, onCancel, onAct
             );
           })}
         </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: '#b9a8d6', lineHeight: 1.5, marginBottom: 13 }}>
-          <b style={{ color: '#22c55e' }}>Explosive</b> = bodyweight only, random from {moveCount} moves.{' '}
-          <b style={{ color: '#f97316' }}>Strikes</b> = your discipline ({discLabel}), half freestyle.{' '}
-          <b style={{ color: '#fde047' }}>Both</b> = random across both.
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11.5, fontWeight: 600, color: '#b9a8d6', lineHeight: 1.5, marginBottom: 13, minHeight: 32 }}>
+          {mixDescriptions[mixSel]}
         </div>
 
         {/* Surge timing — the four pattern rows. No cadence control (46b). */}
