@@ -464,3 +464,96 @@ SecondaryButton / Card); no new design system.
 > `CAMPAIGN_COACH`. Editing an existing campaign needs none of that.
 >
 > Then commit and push to `app`.
+
+
+---
+
+## PROMPT D — diagnose the build: did everything land, and what is broken?
+
+> Nine items were implemented directly in this repo rather than pasted in as
+> prompts, so nothing is "waiting to be built" — but nothing has been seen on a
+> screen either. Every item below was verified with a logic harness only. Your
+> job is to confirm it is all wired, then find what a test harness could not.
+>
+> **Step 1 — confirm the files are there.** All of these should exist:
+> ```
+> components/training-mode/shared/sessionOutcome.js        # item 9
+> components/training-mode/data/achievements.js            # item 10
+> components/training-mode/data/achievementTriggers.js     # item 10
+> components/training-mode/shared/AchievementToast.jsx     # item 10
+> components/training-mode/shared/GhostVsScreen.jsx        # item 11
+> components/training-mode/shared/GhostResultScreen.jsx    # item 11
+> components/training-mode/shared/ArchetypePicker.jsx      # item 14
+> components/training-mode/data/campArchetype.js           # item 14
+> protocol-src/scripts/review-campaign.mjs                 # tooling
+> ```
+> Then: `npm install && npx tsc --noEmit && npm run lint && npm run build:web`.
+> Report every error — the logic harnesses ran the engines in isolation and
+> never type-checked or rendered the JSX.
+>
+> **Step 2 — content, which IS verifiable by script.**
+> ```
+> node protocol-src/scripts/validate-campaigns.mjs     # expect 8/8 valid
+> node protocol-src/scripts/review-campaign.mjs --all  # expect 0 flags on all 8
+> ```
+> Expected shape: every campaign is exactly **10 stages**. Fight rounds
+> gen/cue — Ultra Ego 60/6, Ultra Instinct 48/17, Garou 45/5, Dark Knight 43/17,
+> Baki 41/19, Berserk 23/35; Sonic and Gravity are fit-only and fully
+> prescribed. Then confirm `protocol-src/data/campaigns/` and
+> `components/training-mode/protocol/data/campaigns/` are byte-identical —
+> the app reads the mirror.
+>
+> **Step 3 — run each flow and check the specific things I could not.**
+>
+> *Item 9 (outcome screens).* `shared/sessionOutcome.js` → `resolveOutcome()`
+> is now the only judge of pass/partial/fail/validation_failed, and
+> `MissionComplete` gained `fail` and `validation_failed` variants.
+> - Inside `MissionComplete`, `partial` is now true for BOTH failure variants —
+>   it drives the muted layout (no rays, no pulse). Check nothing else keyed off
+>   that variable in a way that now misfires.
+> - In `SessionSummary`, `stoppedEarly` now means "not a pass", so a
+>   validation-failed session shows a RETRY label. Confirm that reads right.
+> - Finish a session at ~80% and at ~30% completion. 80% should be PARTIAL, 30%
+>   should be MISSION FAILED. Confirm a failed session shows "NO XP AWARDED" and
+>   that XP actually banked matches.
+>
+> *Item 10 (achievements).* Clear Baki stage 1 then stage 2 — the Young Baki
+> achievement names stages 1-2 and must fire on **stage 2, not stage 1**. Replay
+> stage 2: the toast must NOT fire again. Check the Progress tab grid renders
+> 80 achievements in 9 groups without overflowing on a small phone.
+> `ProgressScreen` remounts the section via `key={tick}` on every unlock event —
+> confirm that is not visibly janky.
+>
+> *Item 11 (ghost battles).* Load a ghost, start a session: the VS screen shows
+> before the timer, with art matching the profile gender. Finish it: the result
+> screen shows the same pose (the VS screen advances the rotation, the result
+> screen reads it). Check the VS and result screens render OUTSIDE `WithNav` —
+> full-screen with no tab bar — and that BACK and DONE both escape cleanly.
+> Check `👻 BEAT THIS RUN` appears on a normal session summary once a verified
+> ghost exists.
+>
+> *Item 13 (title fight).* Camp L12 must now run **twelve rounds** with an
+> objective per round, not one long block. Confirm the round length lands in the
+> difficulty's band (~2 min easy/normal, 3 min hard) and the last three rounds
+> read as championship rounds. Win it: the outcome must say TITLE FIGHT WON /
+> CAMP COMPLETE, not "LEVEL 12 CLEAR", with no CONTINUE button, and the camp map
+> header must switch to CAMP COMPLETE. MMA keeps 4-5 rounds of 4-5 minutes.
+>
+> *Item 14 (archetype picker).* Open a camp level: the picker sits under the
+> difficulty row and each card shows the blurb for the difficulty **currently
+> selected**. Switch easy→hard and confirm every card's text changes. The picker
+> adds 3 cards inside the level modal — check it does not push the START button
+> off a small screen.
+>
+> **Step 4 — the migration hazard.** Every campaign was renumbered from 12
+> stages to 10. Stage ids and module ids changed (`ARC_BAKI_STG12` →
+> `ARC_BAKI_STG10`, `MOD_BH_S12_*` → `MOD_BH_S10_*`). Saved arcade progress from
+> before this will not line up. Decide whether to migrate or clear
+> `tm_arcade_v2`, and check `highestCleared()` — it still clamps to 12, which is
+> now above the real maximum.
+>
+> **Step 5 — report.** For each item: wired correctly / wired but buggy / not
+> wired. Fix what is clearly broken; for anything ambiguous, describe it and
+> ask rather than guessing. Do not change the volume ladder, `pass-rules.json`,
+> `xp-rules.json`, or the counted-set pacing — those are calibrated and
+> playtested.

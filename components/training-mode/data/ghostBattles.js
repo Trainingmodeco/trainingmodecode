@@ -104,7 +104,17 @@ export function getLastBattle() {
 }
 
 // Item 11a — which of the three VS art poses to show next. Rotates 1→2→3→1 and
-// persists, so the same pose never lands two battles running.
+// persists, so the same pose never lands two battles running. The result screen
+// reads currentVsVariant() instead of advancing again, so a single battle shows
+// the same pose before and after.
+export function currentVsVariant() {
+  try {
+    if (typeof localStorage === 'undefined') return 1;
+    const n = Number(localStorage.getItem(VS_VARIANT_KEY));
+    return n >= 1 && n <= 3 ? n : 1;
+  } catch { return 1; }
+}
+
 export function nextVsVariant() {
   let prev = 0;
   try { if (typeof localStorage !== 'undefined') prev = Number(localStorage.getItem(VS_VARIANT_KEY)) || 0; } catch { /* noop */ }

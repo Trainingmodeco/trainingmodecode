@@ -2,7 +2,7 @@ import { useState } from 'react';
 import SafeImage from '../SafeImage';
 import ShareCardSheet from '../ShareCardSheet';
 import { loadProfile } from '../data/userProfile';
-import { getLastBattle, exportGhostCode, getMyBestGhost, nextVsVariant } from '../data/ghostBattles';
+import { getLastBattle, exportGhostCode, getMyBestGhost, currentVsVariant } from '../data/ghostBattles';
 import { loadStats, getLevel, getStreak } from '../data/userStats';
 import { getCurrentTier, tierImage } from '../data/tiers';
 
@@ -37,7 +37,8 @@ const fmtTime = (s) => (s == null || !Number.isFinite(s) ? '—' : `${Math.floor
 export default function GhostResultScreen({ battle, onRematch, onDone }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [toast, setToast] = useState('');
-  const [variant] = useState(() => nextVsVariant());
+  // Same pose the VS screen showed — reading, not advancing the rotation.
+  const [variant] = useState(() => currentVsVariant());
 
   const b = battle || getLastBattle();
   if (!b?.result) return null;
