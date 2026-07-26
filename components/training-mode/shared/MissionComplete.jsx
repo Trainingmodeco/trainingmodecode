@@ -213,8 +213,11 @@ export default function MissionComplete({
           </div>
 
           {/* Share your win — sits right under YOUR PROGRESS (LT-5) so the
-              athlete sees it without scrolling past the CTAs. */}
-          {shareData && (
+              athlete sees it without scrolling past the CTAs. Never on a
+              failure: a failed session still banks a little XP (the ruleset's
+              0.15), which is enough for the share prompt to think it has a win
+              to offer. It does not. */}
+          {shareData && !failed && (
             <div style={{ marginBottom: 6 }}>
               <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, level }}/>
             </div>
