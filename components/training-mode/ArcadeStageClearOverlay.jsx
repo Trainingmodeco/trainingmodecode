@@ -4,6 +4,7 @@ import { C } from './Styles';
 import { ArcadePrimaryButton, ArcadeSecondaryButton } from './ArcadeUI';
 import { RotateCcw, Play, Share2, ChevronLeft, Star } from 'lucide-react';
 import { resolveOutcome } from './shared/sessionOutcome';
+import AchievementToast from './shared/AchievementToast';
 
 const OVERLAY_STYLES = `
 @keyframes ov-fade-in {
@@ -570,42 +571,48 @@ export default function ArcadeStageClearOverlay({
   const isHardFail = result?.hardFail === true || result?.missionFailed === true
     || verdict?.outcome === 'fail';
 
+  // Item 10b — anything unlocked by this clear rides on top of whichever
+  // outcome screen shows. App.jsx puts it on the result; award() already
+  // guaranteed these are first-time unlocks.
+  const unlocked = Array.isArray(result?.achievements) ? result.achievements : [];
+  const toast = unlocked.length ? <AchievementToast unlocked={unlocked}/> : null;
+
   if (isInvalid) {
     return (
-      <ValidationFailedScreen
+      <>{toast}<ValidationFailedScreen
         stage={stage}
         result={result}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
-      />
+      /></>
     );
   }
 
   if (isHardFail) {
     return (
-      <MissionFailedScreen
+      <>{toast}<MissionFailedScreen
         stage={stage}
         result={result}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
-      />
+      /></>
     );
   }
 
   if (isPartial) {
     return (
-      <PartialCompletionScreen
+      <>{toast}<PartialCompletionScreen
         stage={stage}
         result={result}
         xpEarned={xpEarned}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
-      />
+      /></>
     );
   }
 
   return (
-    <StageClearedScreen
+    <>{toast}<StageClearedScreen
       series={series}
       stage={stage}
       result={result}
@@ -617,6 +624,6 @@ export default function ArcadeStageClearOverlay({
       onNextStage={onNextStage}
       onReturnToArcade={onReturnToArcade}
       onShare={onShare}
-    />
+    /></>
   );
 }

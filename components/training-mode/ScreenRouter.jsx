@@ -12,6 +12,7 @@ import MoveLab from './MoveLab';
 import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
+import { resolveOutcome } from './shared/sessionOutcome';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
@@ -269,13 +270,20 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       const aEyebrow = r.cleared ? 'STAGE CLEARED' : 'STAGE STOPPED';
       const aTitle = r.cleared ? `STAGE ${r.stageNumber || r.level} CLEAR` : 'GOOD EFFORT';
       const aSub = `TRAINING ARCADE · ${r.campaignName || 'Arcade'} · ${r.difficulty}`;
+      // Item 9 — the outcome comes from the engine, so an arcade stage can end
+      // on fail / validation_failed here too, not just cleared / stopped.
+      const aVerdict = resolveOutcome({
+        completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
+      });
       return (
         <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
           <MissionComplete
-            variant={r.cleared ? 'success' : 'partial'}
+            variant={r.cleared ? 'success' : aVerdict.preset.variant}
             eyebrow={aEyebrow}
             title={aTitle}
             subtitle={aSub}
+            failReason={r.cleared ? null : aVerdict.response}
+            achievements={r.achievements || []}
             xp={r.xpEarned}
             heroImage="/static/trophies/mission-complete-fight.webp"
             partialBadge="/static/trophies/good-effort.png"
@@ -301,13 +309,18 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const subtitle = missionDone && slotNum === 1
       ? `TRAINING CAMP · ${r.discipline} · S2 tonight — leave 4–8 h`
       : `TRAINING CAMP · ${r.discipline} · ${r.difficulty}`;
+    const cVerdict = resolveOutcome({
+      completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
+    });
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
         <MissionComplete
-          variant={r.cleared || missionDone ? 'success' : 'partial'}
+          variant={r.cleared || missionDone ? 'success' : cVerdict.preset.variant}
           eyebrow={eyebrow}
           title={title}
           subtitle={subtitle}
+          failReason={r.cleared || missionDone ? null : cVerdict.response}
+          achievements={r.achievements || []}
           xp={r.xpEarned}
           heroImage="/static/trophies/mission-complete-fight.webp"
           partialBadge="/static/trophies/good-effort.png"

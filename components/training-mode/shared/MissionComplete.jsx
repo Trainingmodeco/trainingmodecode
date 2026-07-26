@@ -10,6 +10,7 @@ import { loadStats, getStreak, getLevel, getLevelProgress, getWeeklySessions } f
 import { getCurrentTier, tierImage } from '../data/tiers';
 import { loadProfile } from '../data/userProfile';
 import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
+import AchievementToast from './AchievementToast';
 
 // Design 24f — shared Mission Complete screen for every mode. A celebratory
 // medal hero with an animated XP count-up, a mode-tinted headline, a stat
@@ -94,6 +95,7 @@ export default function MissionComplete({
   partialBadge,             // badge art for a stopped/partial (GOOD EFFORT) session
   onHero,                   // optional: tap the badge to leave (e.g. arcade → saga select)
   failReason,               // engine's guidance line, shown on fail / validation_failed
+  achievements = [],        // item 10b — newly unlocked, shown as a toast on top
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
   const v = VARIANT[variant] || VARIANT.success;
@@ -130,6 +132,7 @@ export default function MissionComplete({
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: mcCSS }}/>
+      {achievements.length > 0 && <AchievementToast unlocked={achievements}/>}
       <Embers count={5}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column' }}>
         {/* LT-5 — no scroll container of our own: ScreenRouter already scrolls

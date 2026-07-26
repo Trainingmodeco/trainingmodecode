@@ -6,6 +6,7 @@ import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
+import { onStageClear, onSessionComplete } from './data/achievementTriggers';
 import { completeStage as completeArcadeStage, recordBossAttempt, getBossRecord } from './data/arcadeProgress';
 import { arcadeCfg, isFinalBoss } from './protocol/campaigns';
 import { resolveFitPrescription, announcerLine, stageFinishers } from './data/arcadeSession';
@@ -490,6 +491,11 @@ export default function App() {
         const bossMultA = isFinalBoss(a.campaignId, a.stageId) ? 2 : 1;
         const xpA = awardedA ? addCampSession(a.stageNumber, done, total, campSessionXp({ difficulty: diffA, roundMin: c?.roundMin ?? 2, doneRounds: done, totalRounds: total, valid: true }) * bossMultA) : 0;
         const nextStage = validA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
+        // Item 10b — achievements ride the clear that just happened. award() is
+        // idempotent, so replaying a stage never re-fires the unlock toast.
+        const unlockedA = validA
+          ? onStageClear({ campaignId: a.campaignId, stageNumber: a.stageNumber, path: a.path || campCtx?.path, outcome: 'pass' })
+          : [];
         // Record the clear + ★ in arcadeProgress (the store the ladder reads) so
         // the stage unlocks the next node and earns stars. Stars = difficulty.
         const starsA = STAR_BY_DIFF[diffA] || 2;
@@ -498,7 +504,7 @@ export default function App() {
         // for its record pill, so a failed attempt has to leave a mark too.
         if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: validA, roundsDone: done, roundsTotal: total });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber });
-        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, stars: validA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA });
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, stars: validA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA, achievements: unlockedA });
         routeAfterXp(beforeLevel, 'camp_complete');
         return;
       }
@@ -552,12 +558,15 @@ export default function App() {
         xpA += addCampSession(a.stageNumber, s.done, s.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: s.valid, fullArc: bothValidA }) * bossMultA);
         xpA += addCampSession(a.stageNumber, f.done, f.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: f.valid, fullArc: bothValidA }) * bossMultA);
         const nextStage = bothValidA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
+        const unlockedA = bothValidA
+          ? onStageClear({ campaignId: a.campaignId, stageNumber: a.stageNumber, path: 'full_arc', outcome: 'pass' })
+          : [];
         // FULL ARC does both blocks → completion-quality bonus of +1 star (cap 3).
         const starsA = Math.min(3, (STAR_BY_DIFF[diffA] || 2) + 1);
         if (bothValidA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
         if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: bothValidA, roundsDone: s.done + f.done, roundsTotal: s.total + f.total });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber, format: 'full' });
-        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, stars: bothValidA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA });
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, stars: bothValidA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA, achievements: unlockedA });
         routeAfterXp(beforeLevel, 'camp_complete');
         return;
       }
@@ -574,7 +583,8 @@ export default function App() {
       const cleared = !!(st.s1 && st.s2);
       const unlockedTo = cleared ? completeCampLevel(level) : null;
       trackEvent('session_complete', { mode: 'trainingCamp', level, format: 'full' });
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid });
+      const unlockedC = onSessionComplete({ outcome: cleared ? 'pass' : 'partial', path: 'full_arc' });
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
