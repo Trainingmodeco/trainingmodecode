@@ -1,4 +1,4 @@
-# Paste-ready build prompts — items 9, 10, 11 (Ghost Battle), 14
+# Paste-ready build prompts
 
 One prompt per item. Paste the whole block into the Training Mode revamp code
 agent. Each prompt is self-contained: it names the real files, the real
@@ -14,25 +14,38 @@ SecondaryButton / Card); no new design system.
 ## PROMPT 0 — pull the Grappler (Baki) content update into the revamp
 
 > Pull the latest `app` branch. The Grappler campaign (`ARC_BAKI`) has been
-> reviewed stage-by-stage and three content fixes landed. Everything is already
-> in the app mirror at `components/training-mode/protocol/` — you do not need to
-> author content, just make sure the player renders it correctly.
+> reviewed stage-by-stage, fixed, and **restructured from 12 stages to 10**.
+> Everything is already in the app mirror at `components/training-mode/protocol/`
+> — you do not need to author content, just make sure the player renders it.
 >
-> **What changed (commit "Grappler review fixes")**
+> **What changed**
 >
-> 1. **Stage 4 (One-Punch Power)** was five rounds of nothing but the cross.
->    R1 and R4 stay pure `complexity: "single"` (the one-perfect-straight drill).
->    R2, R3 and R5 now carry `allowed_strikes: ["1","2","2b"]` at intro/basic, so
->    the generator sets the straight up — jab → cross, jab → body → cross —
->    instead of repeating a single punch for 24 minutes.
-> 2. **Stages 6 and 7** ran ten consecutive fight rounds with no combos called
->    (pure grappling cues). Two of those rounds are now **mixed rounds**:
->    `MOD_BH_S06_FIGHT` R1 (`strike_entry_into_clinch`) and `MOD_BH_S07_FIGHT`
->    R5 (`strike_entry_into_submission_chain`). Their `combo_spec` sets a new
->    flag `mixed_with_cue: true` alongside `generate_combos: true`, so the round
->    generates combos from `["1","2","3"]` **and** keeps its `technique_cues`.
-> 3. All 12 fight modules now carry a `tier` (T1 S1–3, T2 S4–6, T3 S7–9,
->    T4 S10–12), matching the fit modules.
+> 1. **Baki is now a 10-stage campaign.** The Arcade caps campaigns at 10
+>    (`ARCADE_MAX_STAGES` in `data/arcadeCampaignSeries.js`) and was silently
+>    dropping the old S10 and S11 — which were the two T4 ramp stages — so the
+>    curve went from T3 straight into the boss and two authored stages were
+>    unreachable. The old S10 "Arena's Strongest" folded into **S08 (Jack)**,
+>    the old S11 "Strongest Teen" folded into **S09 (Pickle)**, and the Ogre
+>    moved from S12 to **S10**. `capToArcadeLength` now passes Baki through
+>    untouched. Module ids `MOD_BH_S12_*` are now `MOD_BH_S10_*`; stage id
+>    `ARC_BAKI_STG12` is now `ARC_BAKI_STG10`. **Saved Baki progress from
+>    before this change will not line up — clear it or migrate it.**
+> 2. **Tier ladder re-cut** to T1 S1–3, T2 S4–5, T3 S6–7, T4 S8–10, so the back
+>    half carries the T4 volume. `stage_count`, `split_stages`,
+>    `double_training_stages`, `peak_stage`, `final_boss.stage_id`, the persona
+>    progression and the achievement triggers all follow.
+> 3. **Stage 4 (One-Punch Power)** was five rounds of nothing but the cross.
+>    R1 and R4 stay pure `complexity: "single"` (the one-perfect-straight drill);
+>    R2, R3 and R5 now carry `allowed_strikes: ["1","2","2b"]` at intro/basic so
+>    the generator sets the straight up instead of repeating it.
+> 4. **Mixed rounds.** A grappling round can now set `mixed_with_cue: true`
+>    alongside `generate_combos: true` — it generates combos AND keeps its
+>    `technique_cues`. Three rounds use it: S06 R1 (`strike_entry_into_clinch`),
+>    S07 R5 (`strike_entry_into_submission_chain`), S08 R6
+>    (`all_around_every_tool`). Before this, S06 and S07 ran ten consecutive
+>    rounds with no combos called at all.
+> 5. **Every fight module now carries a `tier`**, matching the fit modules —
+>    across all campaigns, not just Baki.
 >
 > **Code already updated for you (verify, don't rewrite)**
 > - `protocol/engine/arcade-session-engine.ts` — `ComboSpec.mixed_with_cue`,
@@ -42,24 +55,65 @@ SecondaryButton / Card); no new design system.
 >   `p.mixedWithCue`: two generated calls, then one technique cue, repeating.
 >
 > **What to verify in the running app**
-> - Stage 4 FIGHT: R1 and R4 still call one strike and nothing else; R2, R3, R5
->   now call short setups. The 60/40 variety rule already exempts `single`, so
->   R1/R4 must NOT gain secondary strikes.
-> - Stage 6 FIGHT R1 and Stage 7 FIGHT R5: the voice alternates generated combos
->   with the grappling cue ("Jab, cross, lead hook" … "Collar tie" …). All other
->   rounds in those stages stay cue-only — that is intentional, grip and ground
->   work does not map to numbered punch combos.
-> - Every fight module now has a `tier`; nothing should read it yet, so nothing
->   should change visually.
-> - Rerun the Baki stage list and confirm 46 generated / 21 cue-based rounds.
+> - Baki shows **10 stages**, the Ogre sits at position 10, and the map no
+>   longer truncates. 20 modules, 41 generated / 19 cue-based fight rounds.
+> - S08 and S09 read as peak stages: S08 keeps the weighted compounds (timed
+>   with adaptive rest) and gains a dips block plus a 6th "every tool" mixed
+>   round; S09 is 8 exercises and 7 rounds.
+> - Stage 4 FIGHT: R1 and R4 still call one strike and nothing else. The 60/40
+>   variety rule exempts `single`, so they must NOT gain secondary strikes.
+> - S06 R1, S07 R5, S08 R6: the voice alternates generated combos with the
+>   grappling cue. The other rounds in those stages stay cue-only — intentional,
+>   grip and ground work does not map to numbered punch combos.
 >
-> Full stage-by-stage detail, including every FIT prescription, is in
-> `protocol-src/reviews/ARC_BAKI-review.md`. The campaign validator
-> (`node protocol-src/scripts/validate-campaigns.mjs`) passes 8/8 — run it after
-> any content edit.
+> Full stage-by-stage detail is in `protocol-src/reviews/ARC_BAKI-review.md`.
+> Run `node protocol-src/scripts/validate-campaigns.mjs` (8/8) after any content
+> edit. Do not change the volume ladder, `pass-rules.json`, or the counted-set
+> pacing — those are calibrated and playtested.
+
+---
+
+## PROMPT R — review + make a campaign ready (run this per campaign)
+
+> Bring one Training Arcade campaign up to the standard `ARC_BAKI` now meets.
+> Replace `<CAMPAIGN_ID>` below with the campaign you're working (start with
+> `ARC_ULTRAEGO` — it's the cleanest of the remaining seven).
 >
-> Do not change the volume ladder, `pass-rules.json`, or the counted-set pacing.
-> Those are already calibrated and playtested.
+> **Step 1 — generate the review sheet**
+> ```
+> node protocol-src/scripts/review-campaign.mjs <CAMPAIGN_ID>
+> ```
+> Writes `protocol-src/reviews/<CAMPAIGN_ID>-review.md`: every FIT prescription,
+> every FIGHT round with its combo seed, and an auto-flag section. Read the
+> flags first, then the stage tables.
+>
+> **Step 2 — fix what the flags found.** These are the same five problems found
+> in the Baki review, and each has a settled fix:
+>
+> | Flag | Fix |
+> |---|---|
+> | Campaign is 12 stages, Arcade caps at 10 | Fold the two dropped stages' content forward into the last two pre-boss stages, renumber the boss, re-cut the tier ladder back-loaded. Follow the ARC_BAKI restructure exactly. |
+> | Module has no counted `prescription` | Author one per the volume ladder in `arcade-session-standards.json`: sets × reps/sec + `category` + `count_mode` + `load_type` + `rest_sec`, at the module's tier. |
+> | Module has zero generated rounds | Convert at least one round to `mixed_with_cue: true` (keeps its `technique_cues`, adds `allowed_strikes`) so the stage still calls combos. |
+> | Single-strike monotony | Keep the one or two rounds where a single strike IS the drill; open the rest to a 3-strike pool at intro/basic so the generator can set the strike up. |
+> | Single long round instead of short rounds | Split into 5–6 rounds of 120s with 45–60s rest, each with its own `goal` and `combo_spec`. |
+>
+> **Step 3 — hold these invariants.** Every strike must map to one of the four
+> disciplines. Combos are never hardcoded — a round carries a `combo_spec` that
+> seeds the generator. Cue-based rounds are legitimate when the work genuinely
+> isn't punch combos (grappling, stance, implement work); the goal is no
+> *consecutive stages* running dry, not zero cue rounds. Fight modules get the
+> same `tier` as the fit module for their stage.
+>
+> **Step 4 — verify and sync.**
+> ```
+> node protocol-src/scripts/validate-campaigns.mjs        # must stay 8/8
+> node protocol-src/scripts/review-campaign.mjs <CAMPAIGN_ID>   # flags should be gone
+> ```
+> Mirror every edited file from `protocol-src/data/` into
+> `components/training-mode/protocol/data/` — the app reads the mirror, not
+> `protocol-src`. Then present the regenerated review sheet for sign-off before
+> moving to the next campaign.
 
 ---
 
