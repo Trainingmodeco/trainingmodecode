@@ -95,6 +95,7 @@ export const WEBP_FILES = [
   '/static/fight-hub/practice.webp',
   '/static/fight-hub/training-camp.webp',
   '/static/fight-ring-bg.webp',
+  '/static/fight/boss-eyes.webp',
   '/static/fitmode/cardio-finisher-sub-banner.webp',
   '/static/fitmode/cardio-mode-banner.webp',
   '/static/fitmode/cardio-mode.webp',

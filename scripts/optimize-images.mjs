@@ -16,7 +16,7 @@
  * Usage: npm run optimize:images
  */
 
-import { readdirSync, statSync, existsSync, renameSync, unlinkSync, writeFileSync } from 'fs';
+import { readdirSync, statSync, existsSync, renameSync, unlinkSync, writeFileSync, readFileSync } from 'fs';
 import { join, extname, basename } from 'path';
 import sharp from 'sharp';
 
@@ -42,13 +42,19 @@ const DIR_TARGETS = {
   'static/series': 760,
   'static/series/posters': 760,
   'static/series/stages': 320,
+  // Full-bleed backdrop behind an arcade session (one on screen at a time).
+  'static/series/stage-bg': 880,
+  'static/fight': 640,
+  'static/ghost': 700,
   'static/tiers': 520,
   'static/trophies': 520,
   'static/hub': 880,
   'static/practice': 800,
   'static/brand': 760,
   'static/fitmode': 800,
-  'static/arcade': 640,
+  // Holds both small result overlays AND the two full-bleed arena backdrops,
+  // so this has to be sized for the backdrops (a 640 box was squashing them).
+  'static/arcade': 880,
   'static/stages': 320,
   // Folders added in the July 2026 sweep — previously had no WebP coverage.
   'social': 1200,
@@ -60,6 +66,7 @@ const DIR_TARGETS = {
 
 const QUALITY = 82;
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg']);
+const IMAGE_EXTENSIONS_ARR = [...IMAGE_EXTENSIONS];
 
 function fmt(bytes) {
   return (bytes / 1024).toFixed(0) + ' KB';
@@ -128,6 +135,43 @@ async function processDir(dir, box) {
     } catch (err) {
       if (existsSync(tmp)) unlinkSync(tmp);
       console.error(`  [FAIL png] ${file}: ${err.message}`);
+    }
+  }
+
+  // 3. WebP files that were delivered WITHOUT a .png/.jpg source.
+  // The pass above only ever reads png/jpg, so a webp-only asset was invisible
+  // to this script and shipped at whatever size it arrived — that's how the
+  // arcade ladder ended up serving 971px art into 62px nodes. Resize those in
+  // place, and only keep the result when it's actually smaller.
+  for (const file of readdirSync(fullDir)) {
+    if (extname(file).toLowerCase() !== '.webp') continue;
+    const base = basename(file, '.webp');
+    if (IMAGE_EXTENSIONS_ARR.some(e => existsSync(join(fullDir, base + e)))) continue; // handled above
+
+    const input = join(fullDir, file);
+    const stat = statSync(input);
+    if (!stat.isFile() || stat.size === 0) continue;
+
+    try {
+      // Read the bytes ONCE and hand sharp a Buffer. Opening the same path
+      // twice (metadata, then encode) and writing back over it trips Windows
+      // file locking — sharp/libvips keeps path-opened inputs mapped.
+      const inputBuf = readFileSync(input);
+      const meta = await sharp(inputBuf).metadata();
+      if (Math.max(meta.width || 0, meta.height || 0) <= box) continue; // already small enough
+
+      const out = await sharp(inputBuf)
+        .resize({ width: box, height: box, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: QUALITY })
+        .toBuffer();
+      if (out.length < stat.size) {
+        const before = stat.size;
+        writeFileSync(input, out);
+        savedBytes += before - out.length;
+        console.log(`  [WEBP*] ${file}  ${meta.width}x${meta.height} ${fmt(before)} -> ${fmt(out.length)} (${Math.round((1 - out.length / before) * 100)}% smaller)`);
+      }
+    } catch (err) {
+      console.error(`  [FAIL webp-only] ${file}: ${err.message}`);
     }
   }
 }
