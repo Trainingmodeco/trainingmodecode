@@ -8,7 +8,7 @@ import { ChevronLeft, Award } from 'lucide-react';
 import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
 import { VISIBLE_TIERS, getCurrentTier } from './data/tiers';
-import { groupedAchievements, overallProgress, ACHIEVEMENTS_UPDATED } from './data/achievements';
+import { groupedAchievements, progressByKind, ACHIEVEMENTS_UPDATED } from './data/achievements';
 
 // Progress · Overview — pixel match of design 23a:
 // PROGRESS header + OVERVIEW/TROPHIES toggle · rank card · XP-this-month trend ·
@@ -150,10 +150,55 @@ function Card({ children, style, ...rest }) {
 }
 
 
-// Item 10c — achievements on the Progress tab. Nine universal families plus
-// every campaign's own list, grouped, earned in gold and locked as a dimmed
-// silhouette with the unlock condition spelled out. No badge art ships yet, so
-// each tile renders a themed glyph rather than blocking on assets.
+// Item 10c — the reward systems on the Progress tab, kept visibly separate.
+//
+// There are three, and lumping them together is what made them confusing:
+//   FIGHT TROPHIES  — the 9 owner-designed trophies with art, rendered above
+//                     this component from data/fightTrophies.js.
+//   MILESTONES      — 9 cross-cutting protocol goals (Fit Clear, No-Drop Run…).
+//   CAMPAIGN BADGES — 71, one group per campaign.
+// Only the last two live here. Earned reads gold, locked reads as a dimmed row
+// with its unlock condition spelled out. No badge art exists for these yet, so
+// each tile uses a themed glyph rather than blocking on assets.
+function AchievementRow({ a }) {
+  const on = !!a.earnedAt;
+  return (
+    <div title={a.trigger} style={{
+      display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px', borderRadius: 9,
+      background: on ? 'rgba(253,224,71,0.06)' : 'rgba(8,2,18,0.8)',
+      border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(255,255,255,0.09)'}`,
+      opacity: on ? 1 : 0.55,
+    }}>
+      <div style={{
+        flexShrink: 0, width: 22, height: 22, borderRadius: 6,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: on ? 'rgba(253,224,71,0.14)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${on ? 'rgba(253,224,71,0.5)' : 'rgba(255,255,255,0.1)'}`,
+      }}>
+        <Award size={12} color={on ? '#fde047' : '#6d5a8f'} strokeWidth={2}/>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ font: "800 8px 'Orbitron',sans-serif", color: on ? '#fde047' : '#9a90b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {a.name.toUpperCase()}
+        </div>
+        <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#8b83a8', lineHeight: 1.25, marginTop: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {on ? 'Unlocked' : a.trigger}
+        </div>
+      </div>
+      {!on && <span style={{ flexShrink: 0, fontSize: 9 }}>🔒</span>}
+    </div>
+  );
+}
+
+function SectionHead({ title, earned, total }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+      <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>{title}</span>
+      <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{earned}/{total}</span>
+    </div>
+  );
+}
+
 function AchievementsSection() {
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -164,55 +209,40 @@ function AchievementsSection() {
   }, []);
 
   const groups = groupedAchievements();
-  const overall = overallProgress();
-  if (!overall.total) return null;
+  const byKind = progressByKind();
+  const milestones = groups.filter(g => g.kind === 'milestone');
+  const campaigns = groups.filter(g => g.kind === 'campaign');
+  if (!byKind.milestone.total && !byKind.campaign.total) return null;
 
   return (
-    <div style={{ marginBottom: 13 }} key={tick}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>ACHIEVEMENTS</span>
-        <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{overall.earned}/{overall.total}</span>
-      </div>
-
-      {groups.map(g => (
-        <div key={g.key} style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.16em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
-            <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#6d5a8f', flexShrink: 0, marginLeft: 8 }}>{g.earned}/{g.total}</span>
-          </div>
+    <div key={tick}>
+      {/* Milestones — cross-cutting goals, not tied to any one campaign. */}
+      {byKind.milestone.total > 0 && (
+        <div style={{ marginBottom: 13 }}>
+          <SectionHead title="MILESTONES" earned={byKind.milestone.earned} total={byKind.milestone.total}/>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
-            {g.items.map(a => {
-              const on = !!a.earnedAt;
-              return (
-                <div key={a.id} title={a.trigger} style={{
-                  display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px', borderRadius: 9,
-                  background: on ? 'rgba(253,224,71,0.06)' : 'rgba(8,2,18,0.8)',
-                  border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(255,255,255,0.09)'}`,
-                  opacity: on ? 1 : 0.55,
-                }}>
-                  <div style={{
-                    flexShrink: 0, width: 22, height: 22, borderRadius: 6,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: on ? 'rgba(253,224,71,0.14)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${on ? 'rgba(253,224,71,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  }}>
-                    <Award size={12} color={on ? '#fde047' : '#6d5a8f'} strokeWidth={2}/>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ font: "800 8px 'Orbitron',sans-serif", color: on ? '#fde047' : '#9a90b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {a.name.toUpperCase()}
-                    </div>
-                    <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#8b83a8', lineHeight: 1.25, marginTop: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {on ? 'Unlocked' : a.trigger}
-                    </div>
-                  </div>
-                  {!on && <span style={{ flexShrink: 0, fontSize: 9 }}>🔒</span>}
-                </div>
-              );
-            })}
+            {milestones.flatMap(g => g.items).map(a => <AchievementRow key={a.id} a={a}/>)}
           </div>
         </div>
-      ))}
+      )}
+
+      {/* Campaign badges — one group per campaign. */}
+      {byKind.campaign.total > 0 && (
+        <div style={{ marginBottom: 13 }}>
+          <SectionHead title="CAMPAIGN BADGES" earned={byKind.campaign.earned} total={byKind.campaign.total}/>
+          {campaigns.map(g => (
+            <div key={g.key} style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.16em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
+                <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#6d5a8f', flexShrink: 0, marginLeft: 8 }}>{g.earned}/{g.total}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+                {g.items.map(a => <AchievementRow key={a.id} a={a}/>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

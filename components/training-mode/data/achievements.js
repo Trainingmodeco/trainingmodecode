@@ -1,9 +1,19 @@
 // Item 10 — the achievements store.
 //
-// The content has existed since Phase 2 and nothing read it: 9 universal
-// families in protocol/data/achievements.json plus 71 campaign-specific ones
-// spread across the 8 campaign.json files. This module loads both, remembers
-// what has been earned, and exposes the award() call the rest of the app fires.
+// THREE reward systems exist in this app. Keeping them straight matters:
+//
+//   1. FIGHT TROPHIES (9) — data/fightTrophies.js. The owner-designed set,
+//      each with its own art, evaluated live from userStats. Camp Champion,
+//      Combo Machine, Sweet Science, Iron Rounds, Knockout King, Power Surge,
+//      Rhythm Breaker, Ring General, Shadow Striker. NOT managed here; they
+//      have no earned-state to persist because they derive from stats.
+//   2. MILESTONES (9) — protocol/data/achievements.json. Cross-cutting
+//      protocol goals (Fit Clear, No-Drop Run, Consistency Streak...).
+//   3. CAMPAIGN BADGES (71) — each campaign.json's own achievements[].
+//      One per stage or campaign milestone, 8-12 per campaign.
+//
+// This module owns 2 and 3 — the ones with earned state to remember. It does
+// not touch the trophies.
 //
 // Persistence follows data/userStats.js exactly: one localStorage key, a
 // parsed cache invalidated on write and on cross-tab storage events, and a
@@ -131,26 +141,39 @@ export function overallProgress() {
 }
 
 /**
- * The whole catalogue grouped for display: universal families first, then one
- * group per campaign, each with its earned/total counts.
+ * The catalogue grouped for display, split by KIND so the Progress tab can
+ * label the two systems separately instead of piling them into one
+ * "achievements" list that competes with the Fight Trophies above it.
+ *
+ * kind 'milestone' → the 9 cross-cutting protocol goals.
+ * kind 'campaign'  → one group per campaign, its own badges.
  */
 export function groupedAchievements() {
   const map = load();
   const decorate = (a) => ({ ...a, earnedAt: map[a.id] || null });
-  const universal = allAchievements().filter((a) => !a.campaignId).map(decorate);
+  const all = allAchievements();
+  const milestones = all.filter((a) => !a.campaignId).map(decorate);
   const groups = [{
-    key: 'universal', title: 'TRAINING MODE', items: universal,
-    earned: universal.filter((a) => a.earnedAt).length, total: universal.length,
+    key: 'milestones', kind: 'milestone', title: 'MILESTONES', items: milestones,
+    earned: milestones.filter((a) => a.earnedAt).length, total: milestones.length,
   }];
   for (const meta of arcadeCampaigns || []) {
-    const items = allAchievements().filter((a) => a.campaignId === meta.id).map(decorate);
+    const items = all.filter((a) => a.campaignId === meta.id).map(decorate);
     if (!items.length) continue;
     groups.push({
-      key: meta.id, title: (meta.name || meta.id).toUpperCase(), items,
+      key: meta.id, kind: 'campaign', title: (meta.name || meta.id).toUpperCase(), items,
       earned: items.filter((a) => a.earnedAt).length, total: items.length,
     });
   }
   return groups;
+}
+
+/** Counts per kind, for the two section headers. */
+export function progressByKind() {
+  const groups = groupedAchievements();
+  const sum = (kind) => groups.filter((g) => g.kind === kind)
+    .reduce((acc, g) => ({ earned: acc.earned + g.earned, total: acc.total + g.total }), { earned: 0, total: 0 });
+  return { milestone: sum('milestone'), campaign: sum('campaign') };
 }
 
 /** Test/settings helper — wipe earned state. */
