@@ -9,7 +9,7 @@ tier + category.
 
 **Fight round totals:** 0 rounds — **0 generated** (carry a `combo_spec` with `allowed_strikes`, so the generator writes the combos live) and **0 cue-based** (coached rather than combo-called).
 
-**Review status: 10 FLAGS** — see the bottom of this sheet.
+**Review status: no automatic flags.** Ready for playtest.
 
 ---
 
@@ -18,9 +18,14 @@ tier + category.
 > Learn the mandatory warm-up gate and clean running form. The ~15-min neuromuscular / dynamic warm-up both prevents injury and makes you faster — it runs before every stage from here on.
 
 **FIT — Warm-Up Gate & Running Form** · 24 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Running-form drills: A-marches | 3 × 20 | conditioning | 45s |
+| A-skips | 3 × 20 | conditioning | 45s |
+| Wall drives (light) | 3 × 10 | conditioning | 45s |
+| Easy strides — build to ~70%, never max | 4 × 20s | conditioning | 90s |
+| Cooldown walk + light stretch | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -29,9 +34,14 @@ tier + category.
 > Master a soft, bent-knee landing and the safety roll, and build the aerobic base underneath it with easy conversational running.
 
 **FIT — Land, Stabilize and Build** · 24 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Soft landings from a low step — absorb, never stick | 3 × 8 | explosive | 60s |
+| Safety roll from a squat (both sides) | 3 × 6 | mobility | 45s |
+| Single-leg balance (eyes open, then closed) | 3 × 30s | hold | 30s |
+| Calf raises with slow eccentric lowers | 3 × 15 | squat_legs | 45s |
+| Short mobility cooldown | 1 × 180s (uncounted) | mobility | — |
 
 ---
 
@@ -40,9 +50,14 @@ tier + category.
 > Low-intensity plyometrics: pogos, ankle hops, line hops, squat jumps. Foot-contacts are capped and counted, done in sets of 5-10 with full rest. This is where explosive power starts — carefully.
 
 **FIT — First Hops (Low-Intensity Plyo)** · 26 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Pogo hops (stiff-ankle, low) | 2 × 10 | explosive | 60s |
+| Ankle hops | 2 × 8 | explosive | 60s |
+| Line hops (forward/back, side/side) | 2 × 6 | explosive | 60s |
+| Squat jumps (soft landing) | 2 × 6 | explosive | 60s |
+| Cooldown + calf/ankle mobility | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -51,9 +66,14 @@ tier + category.
 > Acceleration mechanics: short 10-20m starts, wall drives, falling starts, A-skips. Learn to explode off the line with clean form before chasing top speed.
 
 **FIT — Off the Line (Acceleration)** · 28 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Wall drives (posture + knee drive) | 3 × 10 | conditioning | 45s |
+| A-skips / dribble drills | 3 × 20 | conditioning | 45s |
+| Falling starts into a 10-20m acceleration | 5 × 1 | explosive | 150s |
+| Short accelerations — build to max over the distance | 3 × 1 | explosive | 150s |
+| Cooldown + hip mobility | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -62,9 +82,14 @@ tier + category.
 > Agility and footwork: ladder drills, cone work (5-10-5 pro-agility, T-drill), short shuttles and reactive change-of-direction. Sharpen the ability to start, stop, and cut.
 
 **FIT — Quick Feet (Agility & Footwork)** · 28 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Ladder footwork series | 4 × 30s | conditioning | 45s |
+| 5-10-5 pro-agility (both directions) | 4 × 1 | explosive | 90s |
+| T-drill | 3 × 1 | explosive | 90s |
+| Short shuttles + reactive starts | 4 × 1 | explosive | 75s |
+| Cooldown + ankle mobility | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -73,9 +98,14 @@ tier + category.
 > Intermediate plyometrics: lateral jumps, tuck jumps, broad jumps — bilateral before unilateral. Intensity steps up; foot-contact caps and 48h recovery still hold.
 
 **FIT — Spring Loaded (Plyo Progression)** · 28 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Lateral jumps (bilateral) | 3 × 6 | explosive | 60s |
+| Tuck jumps (controlled) | 3 × 6 | explosive | 60s |
+| Broad jumps — stick the landing soft, reset each rep | 3 × 5 | explosive | 75s |
+| Single-leg hops (only once bilateral is clean) | 1 × 8 | explosive | 75s |
+| Cooldown + mobility | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -84,9 +114,12 @@ tier + category.
 > Max-velocity sprints: 40-60m efforts, 3-4 reps, FULL recovery between every rep (~120-240m of quality sprinting). This is the fastest you'll run — and it only works fresh.
 
 **FIT — Top Speed (Max-Velocity Sprints)** · 30 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Warm-up gate + build-up strides | 1 × 1020s (uncounted) | mobility | — |
+| Max-velocity sprint, 40-60m — top speed on the last portion | 4 × 1 | explosive | 240s |
+| Full recovery walk-back and reset between every rep | 1 × 120s (uncounted) | mobility | — |
+| Thorough cooldown + hamstring/hip stretch | 1 × 300s (uncounted) | mobility | — |
 
 ---
 
@@ -95,9 +128,14 @@ tier + category.
 > Parkour fundamentals done safely, then brought together: acceleration, agility and a capped plyo finisher in one controlled circuit.
 
 **FIT — Free Runner + Speed Combine** · 28 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Neuromuscular warm-up gate (FIFA 11+ style) | 1 × 900s (uncounted) | mobility | — |
+| Landing refresh (soft, bent-knee) + safety roll | 3 × 6 | explosive | 60s |
+| Low precision jumps — land exactly, only at a height you can nail | 3 × 6 | explosive | 75s |
+| Two-handed vault over a low obstacle | 3 × 6 | explosive | 75s |
+| Wall climb-up (muscle-up) progression | 3 × 4 | pull | 90s |
+| Cooldown + ankle care | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -106,9 +144,13 @@ tier + category.
 > A deliberate deload: easy jog, mobility, light technique and ankle/hamstring care at reduced volume. This back-off is what makes the finale safe and fast.
 
 **FIT — Recovery Zone (Deload)** · 22 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Gentle warm-up / mobility | 1 × 600s (uncounted) | mobility | — |
+| Easy conversational jog or brisk walk | 1 × 600s | conditioning | 60s |
+| Full mobility flow (hips, ankles, hamstrings) | 1 × 300s (uncounted) | mobility | — |
+| Ankle stability + light eccentric hamstring | 2 × 8 | squat_legs | 60s |
+| Down-regulation breathing + stretch | 1 × 240s (uncounted) | mobility | — |
 
 ---
 
@@ -117,33 +159,22 @@ tier + category.
 > The finale — a quality speed gauntlet: full warm-up gate, then acceleration, one capped max-velocity sprint set (full recovery), an agility circuit, and a small capped plyo finisher. Fast, clean, capped — never to exhaustion.
 
 **FIT — The Blue Blur (Final Gauntlet)** · 34 min
-
-> ⚠️ No counted `prescription` — this module has not had the arcade
-> session standard applied.
+| Exercise | Sets × Reps | Category | Rest |
+|---|---|---|---|
+| Warm-up gate + build-up strides | 1 × 1020s (uncounted) | mobility | — |
+| Acceleration starts (full recovery) | 3 × 1 | explosive | 150s |
+| Max-velocity sprint set, 40-60m — FULL recovery, capped volume | 3 × 1 | explosive | 240s |
+| Agility circuit | 3 × 40s | conditioning | 75s |
+| Small capped plyo finisher (soft landings) | 2 × 8 | explosive | 60s |
+| Thorough cooldown + stretch | 1 × 300s (uncounted) | mobility | — |
 
 ---
 
 # Flags
 
-**1.** **MOD_S01_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**2.** **MOD_S02_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**3.** **MOD_S03_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**4.** **MOD_S04_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**5.** **MOD_S05_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**6.** **MOD_S06_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**7.** **MOD_S07_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**8.** **MOD_S08_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**9.** **MOD_S09_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
-
-**10.** **MOD_S10_FIT** has no counted `prescription` — the volume ladder and counted-set runner can't drive it.
+None. Every fight module generates combos, every fit module carries a counted
+prescription, tiers are present on both halves, and the campaign fits the
+Arcade ladder.
 
 > Automatic flags only catch the patterns found in the ARC_BAKI review
 > (missing prescriptions, missing tiers, combo droughts, single-strike

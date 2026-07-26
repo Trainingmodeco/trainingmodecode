@@ -240,7 +240,7 @@
           "rest_sec": 45,
           "goal": "controlled_free_round",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "free_swings",
             "technique_cues": [
               "high cut",
@@ -248,7 +248,13 @@
               "reset — breathe"
             ],
             "callout": "voiced",
-            "emphasis": "control over speed"
+            "emphasis": "blade or bare hands — keep the same control",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         }
       ],
@@ -443,14 +449,21 @@
           "rest_sec": 45,
           "goal": "step_through_swing",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "step_through_swing",
             "technique_cues": [
               "step through",
               "swing with the step",
               "land braced"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "mixed_with_cue": true,
+            "emphasis": "step through and strike — the step is the power"
           }
         },
         {
@@ -492,7 +505,7 @@
           "rest_sec": 45,
           "goal": "sustained_controlled_swings",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "sustained_swings",
             "technique_cues": [
               "steady pace",
@@ -500,7 +513,13 @@
               "form locked"
             ],
             "callout": "voiced",
-            "emphasis": "sustain — don't sprint"
+            "emphasis": "steady output, hands or steel",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         }
       ],
@@ -708,7 +727,7 @@
           "rest_sec": 45,
           "goal": "catch_and_cut",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "catch_and_cut",
             "technique_cues": [
               "catch",
@@ -716,7 +735,14 @@
               "reset"
             ],
             "callout": "voiced",
-            "emphasis": "deflect first, then strike"
+            "emphasis": "catch it, then answer — blade or fist",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         },
         {
@@ -742,7 +768,7 @@
           "rest_sec": 45,
           "goal": "precision_target_touches",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "precision_touches",
             "technique_cues": [
               "touch the mark",
@@ -750,7 +776,13 @@
               "accuracy over power"
             ],
             "callout": "voiced",
-            "emphasis": "precision over power"
+            "emphasis": "light and exact — accuracy over power",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "mixed_with_cue": true
           }
         }
       ],
@@ -1254,7 +1286,7 @@
           "rest_sec": 60,
           "goal": "diagonal_power_swings",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "diagonal_power",
             "technique_cues": [
               "diagonal cut left",
@@ -1262,7 +1294,13 @@
               "power from the hips"
             ],
             "callout": "voiced",
-            "emphasis": "hips drive the swing, not the arms"
+            "emphasis": "the diagonal cut and the hook are the same path",
+            "allowed_strikes": [
+              "3",
+              "4"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         },
         {
@@ -1287,14 +1325,21 @@
           "rest_sec": 60,
           "goal": "rotational_combo_swings",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "rotational_combos",
             "technique_cues": [
               "rotate and swing",
               "chain the swings",
               "reset"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "rotation is the power — chain it"
           }
         }
       ],
@@ -1483,14 +1528,21 @@
           "rest_sec": 60,
           "goal": "alternating_hammer_strikes",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "alternating_strikes",
             "technique_cues": [
               "strike left",
               "strike right",
               "smooth grip switch"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "mixed_with_cue": true,
+            "emphasis": "left, right, left — hammer or hand"
           }
         },
         {
@@ -1758,14 +1810,21 @@
           "rest_sec": 60,
           "goal": "heavy_single_strikes",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "heavy_single",
             "technique_cues": [
               "single heavy cut",
               "full reset",
               "again"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "2",
+              "3"
+            ],
+            "complexity": "single",
+            "mixed_with_cue": true,
+            "emphasis": "one committed blow, then a full reset"
           }
         },
         {
@@ -1807,7 +1866,7 @@
           "rest_sec": 60,
           "goal": "form_gated_output",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "form_gated_output",
             "technique_cues": [
               "output up",
@@ -1815,7 +1874,15 @@
               "quality over quantity"
             ],
             "callout": "voiced",
-            "capped": true
+            "capped": true,
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "output up, form locked — quality is the gate"
           }
         }
       ],
@@ -2029,7 +2096,7 @@
           "rest_sec": 60,
           "goal": "footwork_wave",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "footwork_wave",
             "technique_cues": [
               "advance",
@@ -2038,7 +2105,14 @@
               "light feet"
             ],
             "callout": "voiced",
-            "capped": true
+            "capped": true,
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "mixed_with_cue": true,
+            "emphasis": "light feet, then strike off the step"
           }
         },
         {
@@ -2065,7 +2139,7 @@
           "rest_sec": 60,
           "goal": "controlled_finish",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "controlled_finish",
             "technique_cues": [
               "ease the pace",
@@ -2073,7 +2147,14 @@
               "done at the number"
             ],
             "callout": "voiced",
-            "capped": true
+            "capped": true,
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "ease the pace and finish in control"
           }
         }
       ],
@@ -2291,7 +2372,7 @@
           "rest_sec": 75,
           "goal": "form_gate_under_fatigue",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "form_gate",
             "technique_cues": [
               "form first",
@@ -2299,7 +2380,15 @@
               "quality gate on"
             ],
             "callout": "voiced",
-            "capped": true
+            "capped": true,
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "form first — slow it the moment it breaks"
           }
         },
         {
@@ -2325,7 +2414,7 @@
           "rest_sec": 75,
           "goal": "finish_in_control",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "controlled_finish",
             "technique_cues": [
               "last wave",
@@ -2333,7 +2422,14 @@
               "finish and breathe"
             ],
             "callout": "voiced",
-            "capped": true
+            "capped": true,
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "last wave, control intact"
           }
         }
       ],
@@ -2621,7 +2717,7 @@
           "rest_sec": 30,
           "goal": "diagonal_combination_swings",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "diagonal_combos",
             "technique_cues": [
               "diagonal left",
@@ -2629,7 +2725,14 @@
               "chain them",
               "reset"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "3",
+              "4"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "diagonals — chain them"
           }
         },
         {
@@ -2655,7 +2758,7 @@
           "rest_sec": 30,
           "goal": "defensive_brace_recover",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "brace_recover",
             "technique_cues": [
               "brace",
@@ -2663,7 +2766,14 @@
               "shoulders down",
               "breathe"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "mixed_with_cue": true,
+            "emphasis": "brace, recover, answer"
           }
         },
         {
@@ -2704,7 +2814,7 @@
           "rest_sec": 30,
           "goal": "the_beast_stirs_keep_form",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "beast_stirs",
             "technique_cues": [
               "the beast stirs",
@@ -2713,7 +2823,14 @@
             ],
             "callout": "voiced",
             "capped": true,
-            "emphasis": "form is the leash"
+            "emphasis": "the beast stirs — you stay in control",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true
           }
         },
         {
@@ -2740,7 +2857,7 @@
           "rest_sec": 30,
           "goal": "controlled_fury_form_gate",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "controlled_fury",
             "technique_cues": [
               "fury up",
@@ -2748,7 +2865,16 @@
               "controlled fury"
             ],
             "callout": "voiced",
-            "capped": true
+            "capped": true,
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "complexity": "standard",
+            "mixed_with_cue": true,
+            "emphasis": "fury up, form gate on"
           }
         },
         {
@@ -2774,14 +2900,21 @@
           "rest_sec": 30,
           "goal": "master_the_armor_finish_in_control",
           "combo_spec": {
-            "generate_combos": false,
+            "generate_combos": true,
             "focus": "master_the_armor",
             "technique_cues": [
               "last round",
               "master the armor",
               "finish in control"
             ],
-            "callout": "voiced"
+            "callout": "voiced",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "mixed_with_cue": true,
+            "emphasis": "master the armor — finish in control"
           }
         }
       ],

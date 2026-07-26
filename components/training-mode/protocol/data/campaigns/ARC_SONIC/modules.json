@@ -17,6 +17,59 @@
         "Easy strides (build to ~70%, never max)",
         "Cooldown walk + light stretch"
       ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Running-form drills: A-marches",
+          "category": "conditioning",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "A-skips",
+          "category": "conditioning",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Wall drives (light)",
+          "category": "conditioning",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Easy strides — build to ~70%, never max",
+          "category": "conditioning",
+          "sets": 4,
+          "duration_sec": 20,
+          "count_mode": "time",
+          "rest_sec": 90
+        },
+        {
+          "name": "Cooldown walk + light stretch",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
       "target_rpe": [
         3,
         6
@@ -58,6 +111,59 @@
         "Single-leg balance + ankle stability (eyes open -> eyes closed)",
         "Calf raises + eccentric lowers",
         "Short mobility cooldown"
+      ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Soft landings from a low step — absorb, never stick",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Safety roll from a squat (both sides)",
+          "category": "mobility",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Single-leg balance (eyes open, then closed)",
+          "category": "hold",
+          "sets": 3,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 30
+        },
+        {
+          "name": "Calf raises with slow eccentric lowers",
+          "category": "squat_legs",
+          "sets": 3,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Short mobility cooldown",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 180,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
       ],
       "target_rpe": [
         3,
@@ -113,6 +219,60 @@
         "Squat jumps (soft landing)",
         "Cooldown + calf/ankle mobility"
       ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Pogo hops (stiff-ankle, low)",
+          "category": "explosive",
+          "sets": 2,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Ankle hops",
+          "category": "explosive",
+          "sets": 2,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Line hops (forward/back, side/side)",
+          "category": "explosive",
+          "sets": 2,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Squat jumps (soft landing)",
+          "category": "explosive",
+          "sets": 2,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Cooldown + calf/ankle mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
       "target_rpe": [
         5,
         7
@@ -162,6 +322,60 @@
         "A-skips / dribble drills",
         "Short accelerations (build to max over the distance)",
         "Cooldown + hip mobility"
+      ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Wall drives (posture + knee drive)",
+          "category": "conditioning",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "A-skips / dribble drills",
+          "category": "conditioning",
+          "sets": 3,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
+        },
+        {
+          "name": "Falling starts into a 10-20m acceleration",
+          "category": "explosive",
+          "sets": 5,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 150
+        },
+        {
+          "name": "Short accelerations — build to max over the distance",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 150
+        },
+        {
+          "name": "Cooldown + hip mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
       ],
       "target_rpe": [
         6,
@@ -218,6 +432,59 @@
         "Short shuttles + reactive starts",
         "Cooldown + ankle mobility"
       ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Ladder footwork series",
+          "category": "conditioning",
+          "sets": 4,
+          "duration_sec": 30,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "5-10-5 pro-agility (both directions)",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90
+        },
+        {
+          "name": "T-drill",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90
+        },
+        {
+          "name": "Short shuttles + reactive starts",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75
+        },
+        {
+          "name": "Cooldown + ankle mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
       "target_rpe": [
         6,
         8
@@ -272,6 +539,60 @@
         "Optional: single-leg hops (only once bilateral is clean)",
         "Cooldown + mobility"
       ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Lateral jumps (bilateral)",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Tuck jumps (controlled)",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Broad jumps — stick the landing soft, reset each rep",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 5,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75
+        },
+        {
+          "name": "Single-leg hops (only once bilateral is clean)",
+          "category": "explosive",
+          "sets": 1,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75
+        },
+        {
+          "name": "Cooldown + mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
       "target_rpe": [
         6,
         8
@@ -321,6 +642,41 @@
         "Max-velocity sprints: 40-60m, last portion at top speed",
         "Full recovery walk-back + reset between every rep",
         "Thorough cooldown + hamstring/hip stretch"
+      ],
+      "prescription": [
+        {
+          "name": "Warm-up gate + build-up strides",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 1020,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Max-velocity sprint, 40-60m — top speed on the last portion",
+          "category": "explosive",
+          "sets": 4,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 240
+        },
+        {
+          "name": "Full recovery walk-back and reset between every rep",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 120,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Thorough cooldown + hamstring/hip stretch",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 300,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
       ],
       "target_rpe": [
         8,
@@ -383,6 +739,60 @@
         "Wall climb-up (muscle-up) progression",
         "Cooldown + ankle care"
       ],
+      "prescription": [
+        {
+          "name": "Neuromuscular warm-up gate (FIFA 11+ style)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 900,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Landing refresh (soft, bent-knee) + safety roll",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Low precision jumps — land exactly, only at a height you can nail",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75
+        },
+        {
+          "name": "Two-handed vault over a low obstacle",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75
+        },
+        {
+          "name": "Wall climb-up (muscle-up) progression",
+          "category": "pull",
+          "sets": 3,
+          "reps": 4,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90
+        },
+        {
+          "name": "Cooldown + ankle care",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
+      ],
       "target_rpe": [
         6,
         8
@@ -429,6 +839,49 @@
         "Full mobility flow (hips, ankles, hamstrings)",
         "Ankle stability + light eccentric hamstring (low reps)",
         "Down-regulation breathing + stretch"
+      ],
+      "prescription": [
+        {
+          "name": "Gentle warm-up / mobility",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 600,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Easy conversational jog or brisk walk",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 600,
+          "count_mode": "time",
+          "rest_sec": 60
+        },
+        {
+          "name": "Full mobility flow (hips, ankles, hamstrings)",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 300,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Ankle stability + light eccentric hamstring",
+          "category": "squat_legs",
+          "sets": 2,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Down-regulation breathing + stretch",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 240,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
       ],
       "target_rpe": [
         3,
@@ -492,6 +945,59 @@
         "Agility circuit",
         "Small capped plyo finisher (soft landings)",
         "Thorough cooldown + stretch"
+      ],
+      "prescription": [
+        {
+          "name": "Warm-up gate + build-up strides",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 1020,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Acceleration starts (full recovery)",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 150
+        },
+        {
+          "name": "Max-velocity sprint set, 40-60m — FULL recovery, capped volume",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 1,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 240
+        },
+        {
+          "name": "Agility circuit",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "rest_sec": 75
+        },
+        {
+          "name": "Small capped plyo finisher (soft landings)",
+          "category": "explosive",
+          "sets": 2,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Thorough cooldown + stretch",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 300,
+          "count_mode": "none",
+          "rest_sec": 0
+        }
       ],
       "rules": [
         "Quality-capped and warm-up gated — hit fast, clean reps and STOP at the cap.",
