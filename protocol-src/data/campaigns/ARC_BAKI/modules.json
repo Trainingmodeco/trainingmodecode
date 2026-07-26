@@ -1,10 +1,10 @@
 {
-  "notes": "24 modules: fit + fight per stage. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). FIT modules now carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry `round_source`, a `canonical_map` (thematic drill -> canonical discipline + move), and a `finishers` block (explosive bodyweight between/after rounds, capped, counting toward the plyo cap). Tier map: T1 stages 1-3, T2 4-6, T3 7-9, T4 10-12. Vocabulary grounded in the deep-research report. SAFETY: karate/kung-fu striking uses a bag with proper alignment, never bare-knuckle makiwara boards; the Jack stage is normal heavy strength (no PEDs); fantasy feats are lore only. Split stages 4-11 are SKILL-FIRST (fight = morning, fit = evening).",
+  "notes": "20 modules: fit + fight per stage across 10 stages. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). Restructured from 12 stages to 10 so the campaign completes inside the Arcade 10-stage ladder: the old S10 \"Arena’s Strongest\" folded into S08 (Jack) and the old S11 \"Strongest Teen\" folded into S09 (Pickle); the Ogre moved from S12 to S10. Tier map: T1 stages 1-3, T2 4-5, T3 6-7, T4 8-10 — back-loaded so the peak stages carry the T4 volume. FIT modules carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry a `canonical_map` (thematic drill -> canonical discipline + move) and a `finishers` block (explosive bodyweight between/after rounds, capped, counting toward the plyo cap). SAFETY: karate/kung-fu striking uses a bag with proper alignment, never bare-knuckle makiwara boards; the Jack stage is normal heavy strength (no PEDs); fantasy feats are lore only. Split stages 4-9 are SKILL-FIRST.",
   "both_rules": {
     "description": "When a stage is run as BOTH (fit + fight combined).",
-    "sequencing": "Skill/fight first while fresh, then fit. Stages 4-11 are already skill-first split (fight = AM, fit = PM); stages 1-3 and 12 are single-session, so BOTH runs fight -> fit back-to-back.",
+    "sequencing": "Skill/fight first while fresh, then fit. Stages 4-9 are already skill-first split (fight = AM, fit = PM); stages 1-3 and 10 are single-session, so BOTH runs fight -> fit back-to-back.",
     "shared_plyo_cap": "The campaign plyo foot-contact cap is counted ACROSS the whole session — fight finishers + fit explosive share it; if combined would exceed it, the fit explosive block trims first.",
-    "volume_sanity": "In a single-session BOTH (stages 1-3, 12), fit accessory volume may drop one notch so two full high-volume blocks aren't stacked.",
+    "volume_sanity": "In a single-session BOTH (stages 1-3, 10), fit accessory volume may drop one notch so two full high-volume blocks aren’t stacked.",
     "readiness": "A BOTH day is a HARD day: readiness gate applies before starting, and it won't schedule back-to-back with another hard day.",
     "announcer": "States the combined plan up front (e.g. 'Stage 4: Katsumi. Fight — 5 rounds. Then Fit — Power Base, 4 workouts.')."
   },
@@ -1261,7 +1261,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
-      "tier": "T2",
+      "tier": "T3",
       "title": "Grip and Clinch",
       "round_source": "fight_focus",
       "movement_type": "grappling",
@@ -1429,7 +1429,7 @@
       "format": "evening",
       "duration_min": 28,
       "title": "Iron Grip",
-      "tier": "T2",
+      "tier": "T3",
       "prescription": [
         {
           "name": "Dead hangs and towel hangs",
@@ -1773,9 +1773,9 @@
       "discipline": "mma",
       "difficulty": "normal",
       "format": "morning",
-      "duration_min": 24,
-      "tier": "T3",
-      "title": "Brute Force (Controlled)",
+      "duration_min": 28,
+      "tier": "T4",
+      "title": "Brute Force — Every Tool",
       "round_source": "fight_focus",
       "drills": [
         "Heavy single strikes on the bag",
@@ -1809,11 +1809,18 @@
           "drill": "Phantom power round",
           "discipline": "boxing",
           "canonical": "power shadowboxing (composed)"
+        },
+        {
+          "drill": "All-around round — every tool",
+          "discipline": "mma",
+          "canonical": "combination boxing into clinch / ground transition",
+          "type": "mixed"
         }
       ],
       "finishers": {
         "movements": [
-          "burpees"
+          "burpees",
+          "tuck jumps"
         ],
         "placement": "end_of_session",
         "sets": 3,
@@ -1918,6 +1925,34 @@
             "phantom": true,
             "emphasis": "brutal but composed"
           }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "all_around_every_tool",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "all_around_every_tool",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "2b",
+              "3b"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "technique_cues": [
+              "clinch entry",
+              "ground transition",
+              "scramble up",
+              "reset to guard"
+            ],
+            "mixed_with_cue": true,
+            "emphasis": "chain the tools — never drop form"
+          }
         }
       ],
       "completion_rules": {
@@ -1935,31 +1970,28 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 32,
-      "title": "Heavy Compound Strength",
-      "tier": "T3",
+      "duration_min": 34,
+      "title": "Heavy Compound + Integrated Peak",
+      "tier": "T4",
       "weighted_flow": true,
       "prescription": [
         {
           "name": "Squat pattern to a target",
           "category": "squat_legs",
-          "sets": 4,
-          "reps": 7,
+          "sets": 5,
+          "reps": 6,
           "count_mode": "reps",
           "load_type": "weighted",
-          "load": "user_entered",
-          "rest_sec": 120,
-          "note": "5-8 reps, NOT to failure"
+          "rest_sec": 150
         },
         {
           "name": "Deadlift or hip-hinge to target",
           "category": "squat_legs",
           "sets": 4,
-          "reps": 6,
+          "reps": 5,
           "count_mode": "reps",
           "load_type": "weighted",
-          "load": "user_entered",
-          "rest_sec": 120
+          "rest_sec": 150
         },
         {
           "name": "Overhead or floor press",
@@ -1968,32 +2000,39 @@
           "reps": 8,
           "count_mode": "reps",
           "load_type": "weighted",
-          "load": "user_entered",
           "rest_sec": 120
         },
         {
           "name": "Weighted or hard-progression pull-ups",
           "category": "pull",
-          "sets": 4,
+          "sets": 5,
           "reps": 6,
           "count_mode": "reps",
           "load_type": "weighted",
-          "load": "user_entered",
           "rest_sec": 120
+        },
+        {
+          "name": "Dips — integrated bodyweight block",
+          "category": "push",
+          "sets": 4,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
         },
         {
           "name": "Loaded carry",
           "category": "carry",
           "sets": 3,
-          "duration_sec": 40,
+          "duration_sec": 45,
           "count_mode": "time",
           "load_type": "weighted",
           "rest_sec": 90
         },
         {
-          "name": "Core brace under load",
+          "name": "Core circuit under load",
           "category": "core",
-          "sets": 3,
+          "sets": 4,
           "duration_sec": 45,
           "count_mode": "time",
           "load_type": "either",
@@ -2018,7 +2057,7 @@
           "index": 1,
           "length_sec": 1800,
           "rest_sec": 0,
-          "goal": "heavy_compound_targets"
+          "goal": "heavy_compound_then_integrated"
         }
       ],
       "completion_rules": {
@@ -2037,9 +2076,9 @@
       "discipline": "mma",
       "difficulty": "normal",
       "format": "morning",
-      "duration_min": 26,
-      "tier": "T3",
-      "title": "Primal Combat",
+      "duration_min": 32,
+      "tier": "T4",
+      "title": "Primal Combat — Peak Rounds",
       "round_source": "fight_focus",
       "drills": [
         "Raw, committed strikes with full-body drive",
@@ -2072,9 +2111,19 @@
           "type": "grappling"
         },
         {
+          "drill": "Hold form under fatigue",
+          "discipline": "mma",
+          "canonical": "quality-gated output"
+        },
+        {
           "drill": "Phantom survival round",
           "discipline": "mma",
           "canonical": "mixed shadow (controlled)"
+        },
+        {
+          "drill": "Finish to target",
+          "discipline": "mma",
+          "canonical": "controlled finish"
         }
       ],
       "finishers": {
@@ -2086,7 +2135,8 @@
         "sets": 3,
         "work_sec": 30,
         "difficulty_scaled": true,
-        "counts_toward_plyo_cap": true
+        "counts_toward_plyo_cap": true,
+        "capped": true
       },
       "warmup": [
         "shadowbox_3min",
@@ -2167,6 +2217,24 @@
           "index": 5,
           "length_sec": 120,
           "rest_sec": 60,
+          "goal": "hold_form_under_fatigue",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "form_under_fatigue",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "output only counts while technique holds"
+          }
+        },
+        {
+          "index": 6,
+          "length_sec": 120,
+          "rest_sec": 60,
           "goal": "phantom_survival_controlled",
           "target_capped": true,
           "combo_spec": {
@@ -2183,6 +2251,23 @@
             "phantom": true,
             "capped": true,
             "emphasis": "relentless but in control"
+          }
+        },
+        {
+          "index": 7,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "finish_to_target_in_control",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "controlled_finish",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "finish to the target, in control"
           }
         }
       ],
@@ -2201,9 +2286,9 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 30,
-      "title": "Primal Strength Circuit",
-      "tier": "T3",
+      "duration_min": 34,
+      "title": "Primal Peak (Capped)",
+      "tier": "T4",
       "prescription": [
         {
           "name": "Sandbag or backpack clean and press",
@@ -2214,535 +2299,6 @@
           "load_type": "weighted",
           "rest_sec": 90
         },
-        {
-          "name": "Bear crawls and crawling variations",
-          "category": "conditioning",
-          "sets": 4,
-          "duration_sec": 40,
-          "count_mode": "time",
-          "rest_sec": 60
-        },
-        {
-          "name": "Heavy carries",
-          "category": "carry",
-          "sets": 3,
-          "duration_sec": 40,
-          "count_mode": "time",
-          "load_type": "weighted",
-          "rest_sec": 90
-        },
-        {
-          "name": "Explosive broad jumps",
-          "category": "explosive",
-          "sets": 4,
-          "reps": 12,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "plyo_counted": true
-        },
-        {
-          "name": "Full-body get-ups",
-          "category": "carry",
-          "sets": 3,
-          "reps": 6,
-          "count_mode": "reps",
-          "load_type": "either",
-          "rest_sec": 60,
-          "note": "3/side"
-        },
-        {
-          "name": "Crawl-carry-jump circuit to TARGET (capped)",
-          "category": "conditioning",
-          "sets": 3,
-          "duration_sec": 60,
-          "count_mode": "time",
-          "rest_sec": 60
-        }
-      ],
-      "rules": [
-        "Predetermined targets, not max-until-collapse"
-      ],
-      "warmup": [
-        "dynamic_stretch_3min",
-        "activation_2min"
-      ],
-      "target_rpe": [
-        7,
-        8
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 1620,
-          "rest_sec": 0,
-          "goal": "primal_strength_circuit"
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 1,
-        "technique_breakdown_limit": 1,
-        "pain_flag_stop": true,
-        "volume_capped": true
-      },
-      "substitutions": {
-        "SANDBAG": "loaded_backpack"
-      }
-    },
-    {
-      "module_id": "MOD_BH_S10_FIGHT",
-      "module_type": "fight",
-      "discipline": "mma",
-      "difficulty": "normal",
-      "format": "morning",
-      "duration_min": 28,
-      "tier": "T4",
-      "title": "All-Around — Every Tool",
-      "round_source": "fight_focus",
-      "drills": [
-        "Boxing combination round",
-        "Karate/kung-fu striking round",
-        "Clinch and grip round",
-        "Ground-flow round",
-        "Phantom round tying it all together"
-      ],
-      "canonical_map": [
-        {
-          "drill": "Boxing combination round",
-          "discipline": "boxing",
-          "canonical": "combination boxing"
-        },
-        {
-          "drill": "Karate/kung-fu striking round",
-          "discipline": "boxing",
-          "canonical": "straight-punch combinations (themed)"
-        },
-        {
-          "drill": "Clinch and grip round",
-          "discipline": "mma",
-          "canonical": "clinch + grip control (grappling)",
-          "type": "grappling"
-        },
-        {
-          "drill": "Ground-flow round",
-          "discipline": "mma",
-          "canonical": "solo ground flow (grappling)",
-          "type": "grappling"
-        },
-        {
-          "drill": "Phantom round tying it together",
-          "discipline": "mma",
-          "canonical": "mixed shadow"
-        }
-      ],
-      "finishers": {
-        "movements": [
-          "burpees",
-          "tuck jumps"
-        ],
-        "placement": "end_of_session",
-        "sets": 3,
-        "work_sec": 30,
-        "difficulty_scaled": true,
-        "counts_toward_plyo_cap": true
-      },
-      "warmup": [
-        "shadowbox_3min"
-      ],
-      "target_rpe": [
-        7,
-        8
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "boxing_combination",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "boxing_combo",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "4",
-              "2b",
-              "3b"
-            ],
-            "complexity": "standard",
-            "callout": "voiced"
-          }
-        },
-        {
-          "index": 2,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "karate_kungfu_striking",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "speed_straights",
-            "allowed_strikes": [
-              "1",
-              "2"
-            ],
-            "complexity": "burst",
-            "callout": "voiced",
-            "emphasis": "karate/kung-fu speed straights"
-          }
-        },
-        {
-          "index": 3,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "clinch_and_grip",
-          "combo_spec": {
-            "generate_combos": false,
-            "focus": "clinch_grip",
-            "technique_cues": [
-              "collar tie",
-              "underhook",
-              "off-balance"
-            ],
-            "callout": "voiced"
-          }
-        },
-        {
-          "index": 4,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "ground_flow",
-          "combo_spec": {
-            "generate_combos": false,
-            "focus": "ground_flow",
-            "technique_cues": [
-              "shrimp",
-              "bridge",
-              "sub-chain flow"
-            ],
-            "callout": "voiced"
-          }
-        },
-        {
-          "index": 5,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "phantom_all_around",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "freestyle",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "4"
-            ],
-            "complexity": "standard",
-            "callout": "voiced",
-            "phantom": true,
-            "emphasis": "every tool"
-          }
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 4,
-        "technique_breakdown_limit": 1,
-        "pain_flag_stop": true
-      },
-      "substitutions": {
-        "HEAVY_BAG": "shadowboxing"
-      }
-    },
-    {
-      "module_id": "MOD_BH_S10_FIT",
-      "module_type": "fit",
-      "discipline": "multi",
-      "difficulty": "normal",
-      "format": "evening",
-      "duration_min": 30,
-      "title": "Integrated Athlete",
-      "tier": "T4",
-      "prescription": [
-        {
-          "name": "Pull-ups",
-          "category": "pull",
-          "sets": 5,
-          "reps": 15,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 90
-        },
-        {
-          "name": "Dips",
-          "category": "push",
-          "sets": 4,
-          "reps": 15,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 60,
-          "note": "tuned below push-up ladder (dips harder)"
-        },
-        {
-          "name": "Pistol squats",
-          "category": "squat_legs",
-          "sets": 3,
-          "reps": 10,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 60,
-          "note": "5/side, unilateral — tuned"
-        },
-        {
-          "name": "Explosive/plyometric block",
-          "category": "explosive",
-          "sets": 4,
-          "reps": 15,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "plyo_counted": true
-        },
-        {
-          "name": "Grip and carry block",
-          "category": "carry",
-          "sets": 3,
-          "duration_sec": 40,
-          "count_mode": "time",
-          "load_type": "either",
-          "rest_sec": 60
-        },
-        {
-          "name": "Core circuit",
-          "category": "core",
-          "sets": 5,
-          "reps": 50,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 45
-        },
-        {
-          "name": "Conditioning finisher to target (capped)",
-          "category": "conditioning",
-          "sets": 1,
-          "duration_sec": 120,
-          "count_mode": "time",
-          "rest_sec": 0
-        }
-      ],
-      "rules": [
-        "Predetermined targets",
-        "Arm volume capped"
-      ],
-      "warmup": [
-        "dynamic_stretch_3min",
-        "activation_2min"
-      ],
-      "target_rpe": [
-        7,
-        8
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 1620,
-          "rest_sec": 0,
-          "goal": "integrated_athlete_session"
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 1,
-        "technique_breakdown_limit": 1,
-        "pain_flag_stop": true,
-        "volume_capped": true
-      },
-      "substitutions": {
-        "PULLUP_BAR": "band_row"
-      }
-    },
-    {
-      "module_id": "MOD_BH_S11_FIGHT",
-      "module_type": "fight",
-      "discipline": "mma",
-      "difficulty": "normal",
-      "format": "morning",
-      "duration_min": 28,
-      "tier": "T4",
-      "title": "The Strongest — Peak Rounds",
-      "round_source": "fight_focus",
-      "drills": [
-        "Hardest all-around rounds before the boss — capped output",
-        "Strike / grapple / phantom rotation under fatigue",
-        "Hold form as it gets hard — quality gate on",
-        "Longer rest floors than earlier stages",
-        "Finish to TARGET, in control"
-      ],
-      "canonical_map": [
-        {
-          "drill": "Hardest all-around rounds",
-          "discipline": "mma",
-          "canonical": "mixed high-output (capped)"
-        },
-        {
-          "drill": "Strike / grapple / phantom rotation",
-          "discipline": "mma",
-          "canonical": "boxing combos + clinch/ground flow",
-          "type": "mixed"
-        },
-        {
-          "drill": "Hold form under fatigue",
-          "discipline": "mma",
-          "canonical": "quality-gated output"
-        },
-        {
-          "drill": "Phantom peak round",
-          "discipline": "boxing",
-          "canonical": "power shadow (composed)"
-        },
-        {
-          "drill": "Finish to target",
-          "discipline": "mma",
-          "canonical": "controlled finish"
-        }
-      ],
-      "finishers": {
-        "movements": [
-          "burpees",
-          "jumping lunges"
-        ],
-        "placement": "end_of_session",
-        "sets": 3,
-        "work_sec": 30,
-        "difficulty_scaled": true,
-        "counts_toward_plyo_cap": true,
-        "capped": true
-      },
-      "warmup": [
-        "shadowbox_3min"
-      ],
-      "target_rpe": [
-        7,
-        9
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "all_around_capped",
-          "target_capped": true,
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "freestyle",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "4",
-              "2b",
-              "3b"
-            ],
-            "complexity": "standard",
-            "callout": "voiced",
-            "capped": true
-          }
-        },
-        {
-          "index": 2,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "strike_grapple_rotation",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "strike_grapple",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "technique_cues": [
-              "clinch entry",
-              "ground flow"
-            ],
-            "emphasis": "rotate strike / grapple / phantom"
-          }
-        },
-        {
-          "index": 3,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "hold_form_under_fatigue",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "form_under_fatigue",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "emphasis": "hold form as it gets hard"
-          }
-        },
-        {
-          "index": 4,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "phantom_peak_round",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "power_shadow",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "4"
-            ],
-            "complexity": "standard",
-            "callout": "voiced",
-            "phantom": true
-          }
-        },
-        {
-          "index": 5,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "finish_to_target_in_control",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "controlled_finish",
-            "allowed_strikes": [
-              "1",
-              "2"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "emphasis": "finish to target, in control"
-          }
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 4,
-        "technique_breakdown_limit": 1,
-        "pain_flag_stop": true,
-        "volume_capped": true
-      },
-      "substitutions": {
-        "HEAVY_BAG": "shadowboxing"
-      }
-    },
-    {
-      "module_id": "MOD_BH_S11_FIT",
-      "module_type": "fit",
-      "discipline": "multi",
-      "difficulty": "normal",
-      "format": "evening",
-      "duration_min": 30,
-      "title": "Peak Athlete (Capped)",
-      "tier": "T4",
-      "prescription": [
         {
           "name": "Hardest pull progression to target",
           "category": "pull",
@@ -2762,23 +2318,30 @@
           "rest_sec": 60
         },
         {
-          "name": "Explosive power block",
+          "name": "Bear crawls and crawling variations",
+          "category": "conditioning",
+          "sets": 4,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "rest_sec": 60
+        },
+        {
+          "name": "Explosive broad jumps",
           "category": "explosive",
           "sets": 5,
           "reps": 15,
           "count_mode": "reps",
           "load_type": "bodyweight",
-          "rest_sec": 75,
-          "plyo_counted": true
+          "rest_sec": 75
         },
         {
-          "name": "Grip and full-body strength",
+          "name": "Heavy carries",
           "category": "carry",
           "sets": 3,
           "duration_sec": 45,
           "count_mode": "time",
-          "load_type": "either",
-          "rest_sec": 60
+          "load_type": "weighted",
+          "rest_sec": 90
         },
         {
           "name": "Core peak circuit",
@@ -2799,9 +2362,7 @@
         }
       ],
       "rules": [
-        "Predetermined targets ONLY",
-        "Arm volume capped",
-        "Stop at any warning sign"
+        "Predetermined targets, not max-until-collapse"
       ],
       "warmup": [
         "dynamic_stretch_3min",
@@ -2809,14 +2370,14 @@
       ],
       "target_rpe": [
         7,
-        9
+        8
       ],
       "rounds": [
         {
           "index": 1,
           "length_sec": 1620,
           "rest_sec": 0,
-          "goal": "peak_athlete_capped"
+          "goal": "primal_peak_capped"
         }
       ],
       "completion_rules": {
@@ -2826,11 +2387,11 @@
         "volume_capped": true
       },
       "substitutions": {
-        "PULLUP_BAR": "band_row"
+        "SANDBAG": "loaded_backpack"
       }
     },
     {
-      "module_id": "MOD_BH_S12_FIT",
+      "module_id": "MOD_BH_S10_FIT",
       "module_type": "fit",
       "discipline": "multi",
       "difficulty": "normal",
@@ -2935,7 +2496,7 @@
       }
     },
     {
-      "module_id": "MOD_BH_S12_FIGHT",
+      "module_id": "MOD_BH_S10_FIGHT",
       "module_type": "fight",
       "discipline": "mma",
       "difficulty": "normal",

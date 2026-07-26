@@ -12,6 +12,10 @@ import MoveLab from './MoveLab';
 import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
+import { resolveOutcome } from './shared/sessionOutcome';
+import GhostVsScreen from './shared/GhostVsScreen';
+import GhostResultScreen from './shared/GhostResultScreen';
+import { getLastBattle, getMyBestGhost } from './data/ghostBattles';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
@@ -151,6 +155,14 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
 
   const isResuming = pausedSession?.screen === screen;
 
+  // Item 11 — ghost battle flow gates. `vsAccepted` clears whenever a new
+  // session config arrives so the VS screen shows once per fight; the result
+  // screen is dismissed for the rest of that summary.
+  const [vsAccepted, setVsAccepted] = useState(false);
+  const [ghostResultSeen, setGhostResultSeen] = useState(false);
+  useEffect(() => { setVsAccepted(false); }, [cfg]);
+  useEffect(() => { if (screen !== 'summary') setGhostResultSeen(false); }, [screen]);
+
   const handleNavigate = (tab) => {
     if (tab === 'home') goHome();
     else if (tab === 'train') goTrainingHub();
@@ -269,13 +281,20 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       const aEyebrow = r.cleared ? 'STAGE CLEARED' : 'STAGE STOPPED';
       const aTitle = r.cleared ? `STAGE ${r.stageNumber || r.level} CLEAR` : 'GOOD EFFORT';
       const aSub = `TRAINING ARCADE · ${r.campaignName || 'Arcade'} · ${r.difficulty}`;
+      // Item 9 — the outcome comes from the engine, so an arcade stage can end
+      // on fail / validation_failed here too, not just cleared / stopped.
+      const aVerdict = resolveOutcome({
+        completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
+      });
       return (
         <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
           <MissionComplete
-            variant={r.cleared ? 'success' : 'partial'}
+            variant={r.cleared ? 'success' : aVerdict.preset.variant}
             eyebrow={aEyebrow}
             title={aTitle}
             subtitle={aSub}
+            failReason={r.cleared ? null : aVerdict.response}
+            achievements={r.achievements || []}
             xp={r.xpEarned}
             heroImage="/static/trophies/mission-complete-fight.webp"
             partialBadge="/static/trophies/good-effort.png"
@@ -296,29 +315,48 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const missionDone = r.split && r.sessionValid && !r.cleared;
     const slotNum = r.slot === 's2' ? 2 : 1;
     const kindLbl = r.slot === 's2' ? 'CONDITIONING' : 'SKILL';
-    const eyebrow = r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
-    const title = r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
-    const subtitle = missionDone && slotNum === 1
-      ? `TRAINING CAMP · ${r.discipline} · S2 tonight — leave 4–8 h`
-      : `TRAINING CAMP · ${r.discipline} · ${r.difficulty}`;
+    // Item 13b — winning L12 is not "level 12 clear", it is the end of the camp.
+    const titleFightWon = r.level === 12 && r.cleared;
+    const eyebrow = titleFightWon ? '🏆 TITLE FIGHT WON'
+      : r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
+    const title = titleFightWon ? 'CAMP COMPLETE'
+      : r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
+    const subtitle = titleFightWon
+      ? `TRAINING CAMP · ${r.discipline} · ALL 12 LEVELS`
+      : missionDone && slotNum === 1
+        ? `TRAINING CAMP · ${r.discipline} · S2 tonight — leave 4–8 h`
+        : `TRAINING CAMP · ${r.discipline} · ${r.difficulty}`;
+    const cVerdict = resolveOutcome({
+      completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
+    });
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
         <MissionComplete
-          variant={r.cleared || missionDone ? 'success' : 'partial'}
+          variant={r.cleared || missionDone ? 'success' : cVerdict.preset.variant}
           eyebrow={eyebrow}
           title={title}
           subtitle={subtitle}
+          failReason={r.cleared || missionDone ? null : cVerdict.response}
+          achievements={r.achievements || []}
           xp={r.xpEarned}
           heroImage="/static/trophies/mission-complete-fight.webp"
           partialBadge="/static/trophies/good-effort.png"
           integrityResult={r.integrityResult}
-          stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
-          actions={[
-            r.unlockedTo
-              ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
-              : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
-            { label: 'HOME', onClick: goHome, kind: 'ghost' },
-          ]}
+          stats={titleFightWon
+            ? [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }, { value: '12', label: 'LEVELS', highlight: true }]
+            : [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
+          shareData={titleFightWon ? { mode: 'Training Camp', eyebrow: 'TITLE FIGHT WON', workoutName: 'CAMP COMPLETE', difficulty: r.difficulty } : undefined}
+          actions={titleFightWon
+            ? [
+                { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
+                { label: 'HOME', onClick: goHome, kind: 'ghost' },
+              ]
+            : [
+                r.unlockedTo
+                  ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
+                  : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
+                { label: 'HOME', onClick: goHome, kind: 'ghost' },
+              ]}
         />
       </WithNav>
     );
@@ -359,6 +397,17 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     );
   }
   if (screen === 'timer' && cfg) {
+    // Item 11a — a ghost battle opens on the VS screen. Resuming a paused
+    // session skips it: the fight was already made.
+    if (cfg.ghost && !isResuming && !vsAccepted) {
+      return (
+        <GhostVsScreen
+          ghost={cfg.ghost}
+          onAccept={() => setVsAccepted(true)}
+          onBack={() => goSetup(disc)}
+        />
+      );
+    }
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title="FIGHT FOCUS">
@@ -372,12 +421,37 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const handleRetry = isCombo
       ? () => goComboSetup(disc)
       : () => goSetup(disc);
+    // Item 11c — if this session raced a ghost, the battle result reads first.
+    // The battle is matched by session, not just "the last one ever recorded",
+    // so an old battle can't reappear on an unrelated summary.
+    const battle = session.cfg?.ghost ? getLastBattle() : null;
+    const battleIsThisSession = battle?.ghost?.ghostId
+      && battle.ghost.ghostId === session.cfg?.ghost?.ghostId
+      && !ghostResultSeen;
+    // Item 11 — second entry point: after a plain session, offer to race the
+    // run that was just banked. Only when a verified ghost exists and this
+    // session wasn't already a battle.
+    const myBest = session.cfg?.ghost ? null : getMyBestGhost('fight_focus', disc);
+    const ghostRematchAction = myBest
+      ? [{ label: '👻 BEAT THIS RUN', kind: 'secondary', onClick: () => goTimer({ ...session.cfg, ghost: myBest }) }]
+      : [];
+
+    if (battleIsThisSession) {
+      return (
+        <GhostResultScreen
+          battle={battle}
+          onRematch={() => { setGhostResultSeen(true); handleRetry(); }}
+          onDone={() => setGhostResultSeen(true)}
+        />
+      );
+    }
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
         <SessionSummary
           discipline={disc}
           rounds={session.rounds}
           cfg={session.cfg}
+          extraActions={ghostRematchAction}
           completedRounds={session.completedRounds}
           integrityResult={session.integrityResult}
           fightStats={session.fightStats}

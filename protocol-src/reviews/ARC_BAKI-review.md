@@ -1,17 +1,25 @@
 # ARC_BAKI — "The Grappler" · full campaign review sheet
 
 Generated from `protocol-src/data/campaigns/ARC_BAKI/{stages,modules}.json`.
-12 stages · 24 modules (fit + fight per stage) · tier map T1 = S1–3, T2 = S4–6,
-T3 = S7–9, T4 = S10–12.
+**10 stages · 20 modules** (fit + fight per stage) · tier map T1 = S1–3,
+T2 = S4–5, T3 = S6–7, **T4 = S8–10** — back-loaded so the peak stages carry the
+T4 volume.
+
+**Restructured from 12 stages to 10** so the whole campaign completes inside the
+Arcade's 10-stage ladder (`ARCADE_MAX_STAGES` in `data/arcadeCampaignSeries.js`
+previously dropped the old S10 and S11 outright). The old S10 "Arena's
+Strongest" folded into **S08 (Jack)**, the old S11 "Strongest Teen" folded into
+**S09 (Pickle)**, and the Ogre moved from S12 to **S10**. Nothing is unreachable
+any more.
 
 **Stored numbers are the NORMAL baseline.** The app re-resolves easy/hard at
 runtime from the volume ladder in `arcade-session-standards.json` by
 tier + category, so `3x5` pull-ups on Stage 1 normal becomes a lighter easy set
 and a heavier hard set automatically.
 
-**Fight round totals:** 67 rounds — **46 generated** (carry a `combo_spec` with
+**Fight round totals:** 60 rounds — **41 generated** (carry a `combo_spec` with
 `allowed_strikes`, so the Combo Coach generator writes the combos live) and
-**21 cue-based** (grappling / stance / footwork rounds where numbered punch
+**19 cue-based** (grappling / stance / footwork rounds where numbered punch
 combos don't apply; still fully voiced, just coached rather than combo-called).
 Two of the generated rounds are **mixed** (`mixed_with_cue`): they interleave
 generated strike entries with the grappling technique cues.
@@ -165,7 +173,7 @@ Finisher: tuck jumps — 2 × 30s.
 
 ---
 
-## S06 · Iron Grip — *hard_camp · Kaoru Hanayama* · T2
+## S06 · Iron Grip — *hard_camp · Kaoru Hanayama* · T3
 
 > Grip strength and clinch control — built safely.
 
@@ -224,21 +232,23 @@ Finisher: sprawls + mountain climbers — 2 × 30s.
 
 ---
 
-## S08 · Raw Power — *hard_camp · Jack Hanma* · T3
+## S08 · Raw Power — The Arena's Strongest — *peak · Jack Hanma / The Underground Peak* · T4
 
-> Heavy compound strength — the real way, no PEDs. This is the weighted stage.
+> Heavy compound strength, then the whole toolbox. The only weighted stage —
+> and now the stage that absorbs the old "Arena's Strongest".
 
-**FIT — Heavy Compound Strength** · 32 min · **all weighted → timed, adaptive rest**
+**FIT — Heavy Compound + Integrated Peak** · 34 min · weighted work is timed with adaptive rest
 | Exercise | Sets × Reps | Category | Rest |
 |---|---|---|---|
-| Squat pattern to a target | 4 × 7 | squat_legs (weighted) | 120s |
-| Deadlift or hip-hinge to target | 4 × 6 | squat_legs (weighted) | 120s |
+| Squat pattern to a target | 5 × 6 | squat_legs (weighted) | 150s |
+| Deadlift or hip-hinge to target | 4 × 5 | squat_legs (weighted) | 150s |
 | Overhead or floor press | 4 × 8 | push (weighted) | 120s |
-| Weighted / hard-progression pull-ups | 4 × 6 | pull (weighted) | 120s |
-| Loaded carry | 3 × 40s | carry (weighted) | 90s |
-| Core brace under load | 3 × 45s | core | 60s |
+| Weighted / hard-progression pull-ups | 5 × 6 | pull (weighted) | 120s |
+| Dips — integrated bodyweight block | 4 × 15 | push | 60s |
+| Loaded carry | 3 × 45s | carry (weighted) | 90s |
+| Core circuit under load | 4 × 45s | core | 60s |
 
-**FIGHT — Brute Force (Controlled)** · 24 min · 5 × 2min / 60s
+**FIGHT — Brute Force: Every Tool** · 28 min · 6 × 2min / 60s
 | R | Goal | Combo seed |
 |---|---|---|
 | 1 | heavy_single_strikes | `2, 3` · single |
@@ -246,92 +256,45 @@ Finisher: sprawls + mountain climbers — 2 × 30s.
 | 3 | overhand_body_rip | `oh, 3b, 2b` · basic |
 | 4 | explosive_entry_stop | `1, 2` · intro |
 | 5 | phantom_power_composed | `1, 2, 3, 4` · standard |
+| 6 | all_around_every_tool | **mixed** — `1, 2, 3, 4, 2b, 3b` · standard, interleaved with clinch/ground cues |
 
-Finisher: burpees — 3 × 30s.
+Finisher: burpees + tuck jumps — 3 × 30s.
 
 ---
 
-## S09 · The Primal Man — *peak · Pickle* · T3
+## S09 · The Primal Man — The Strongest Teen — *peak · Pickle / The Underground Peak* · T4
 
-**FIT — Primal Strength Circuit** · 30 min
+> Primal functional strength at peak volume — the hardest stage before the Ogre.
+> Capped to targets, never to collapse. Absorbs the old "Strongest Teen".
+
+**FIT — Primal Peak (Capped)** · 34 min
 | Exercise | Sets × Reps | Category | Rest |
 |---|---|---|---|
 | Sandbag/backpack clean and press | 4 × 8 | carry (weighted) | 90s |
-| Bear crawls and variations | 4 × 40s | conditioning | 60s |
-| Heavy carries | 3 × 40s | carry (weighted) | 90s |
-| Explosive broad jumps | 4 × 12 | explosive | 75s |
-| Full-body get-ups | 3 × 6 | carry | 60s |
-| Crawl-carry-jump circuit to target (capped) | 3 × 60s | conditioning | 60s |
+| Hardest pull progression to target | 5 × 15 | pull | 90s |
+| Hardest push progression to target | 5 × 40 | push | 60s |
+| Bear crawls and crawling variations | 4 × 40s | conditioning | 60s |
+| Explosive broad jumps | 5 × 15 | explosive | 75s |
+| Heavy carries | 3 × 45s | carry (weighted) | 90s |
+| Core peak circuit | 5 × 50 | core | 45s |
+| Capped conditioning finisher — targets, not AMRAP | 1 × 120s | conditioning | — |
 
-**FIGHT — Primal Combat** · 26 min · 5 × 2min / 60s
+**FIGHT — Primal Combat: Peak Rounds** · 32 min · 7 × 2min / 60s
 | R | Goal | Combo seed |
 |---|---|---|
 | 1 | raw_committed_strikes | `2, 3, 4` · basic |
 | 2 | tackle_drive_entries | *cue-based* |
 | 3 | ground_and_pound_motion | *cue-based* |
 | 4 | explosive_scramble_up | *cue-based* |
-| 5 | phantom_survival_controlled | `1, 2, 3, 4` · standard |
+| 5 | hold_form_under_fatigue | `1, 2, 3` · basic |
+| 6 | phantom_survival_controlled | `1, 2, 3, 4` · standard |
+| 7 | finish_to_target_in_control | `1, 2` · basic |
 
-Finisher: jumping lunges + burpees — 3 × 30s.
-
----
-
-## S10 · The Arena's Strongest — *peak* · T4
-
-> Everything integrated. First stage at true peak volume.
-
-**FIT — Integrated Athlete** · 30 min
-| Exercise | Sets × Reps | Category | Rest |
-|---|---|---|---|
-| Pull-ups | 5 × 15 | pull | 90s |
-| Dips | 4 × 15 | push | 60s |
-| Pistol squats | 3 × 10 | squat_legs | 60s |
-| Explosive/plyometric block | 4 × 15 | explosive | 75s |
-| Grip and carry block | 3 × 40s | carry | 60s |
-| Core circuit | 5 × 50 | core | 45s |
-| Conditioning finisher to target (capped) | 1 × 120s | conditioning | — |
-
-**FIGHT — All-Around: Every Tool** · 28 min · 5 × 2min / 45s
-| R | Goal | Combo seed |
-|---|---|---|
-| 1 | boxing_combination | `1, 2, 3, 4, 2b, 3b` · standard |
-| 2 | karate_kungfu_striking | `1, 2` · burst |
-| 3 | clinch_and_grip | *cue-based* |
-| 4 | ground_flow | *cue-based* |
-| 5 | phantom_all_around | `1, 2, 3, 4` · standard |
-
-Finisher: burpees + tuck jumps — 3 × 30s.
+Finisher: jumping lunges + burpees — 3 × 30s (capped).
 
 ---
 
-## S11 · The Strongest Teen — *peak* · T4
-
-> Hardest stage before the boss. Capped for safety — targets, never AMRAP.
-
-**FIT — Peak Athlete (Capped)** · 30 min
-| Exercise | Sets × Reps | Category | Rest |
-|---|---|---|---|
-| Hardest pull progression to target | 5 × 15 | pull | 90s |
-| Hardest push progression to target | 5 × 40 | push | 60s |
-| Explosive power block | 5 × 15 | explosive | 75s |
-| Grip and full-body strength | 3 × 45s | carry | 60s |
-| Core peak circuit | 5 × 50 | core | 45s |
-| Capped conditioning finisher | 1 × 120s | conditioning | — |
-
-**FIGHT — The Strongest: Peak Rounds** · 28 min · 5 × 2min / 60s
-| R | Goal | Combo seed |
-|---|---|---|
-| 1 | all_around_capped | `1, 2, 3, 4, 2b, 3b` · standard |
-| 2 | strike_grapple_rotation | `1, 2, 3` · basic |
-| 3 | hold_form_under_fatigue | `1, 2, 3` · basic |
-| 4 | phantom_peak_round | `1, 2, 3, 4` · standard |
-| 5 | finish_to_target_in_control | `1, 2` · basic |
-
-Finisher: burpees + jumping lunges — 3 × 30s (capped).
-
----
-
-## S12 · The Ogre — *final_boss · Yujiro Hanma* · T4
+## S10 · The Ogre — *final_boss · Yujiro Hanma* · T4
 
 > Twelve rounds cycling every skill, gated on form and composure.
 
@@ -372,6 +335,20 @@ category-based rep pacing applies), the weighted stage (S08) is correctly the
 only timed/adaptive-rest one, and finishers are capped and share the plyo budget.
 
 ## Applied fixes
+
+**0 · Restructured 12 stages → 10.** The Arcade caps campaigns at 10 stages and
+was silently dropping the old S10 and S11, which were the two T4 ramp stages —
+so the campaign jumped from T3 straight into the boss and two authored stages
+were unreachable. The old S10 folded into S08 (Jack keeps the weighted
+compounds, gains the integrated bodyweight block and the all-around "every
+tool" mixed round); the old S11 folded into S09 (Pickle gains the peak pull /
+push / core targets and the two quality-gate rounds, hold-form-under-fatigue
+and finish-to-target); the Ogre moved to S10. Tier ladder re-cut to
+T1 S1–3 · T2 S4–5 · T3 S6–7 · T4 S8–10 so the back half carries the T4 load.
+`stage_count`, `split_stages`, `double_training_stages`, `peak_stage`,
+`final_boss.stage_id`, the persona progression and the achievement triggers all
+follow. Dropped in the merge: full-body get-ups and the crawl-carry-jump circuit
+(the capped conditioning finisher replaces it).
 
 **1 · Stage 4 no longer runs five rounds of one punch.** R1 and R4 stay pure
 `single` (the Katsumi one-perfect-straight drill); R2, R3, R5 open to

@@ -1,4 +1,4 @@
-# Paste-ready build prompts — items 9, 10, 11 (Ghost Battle), 14
+# Paste-ready build prompts
 
 One prompt per item. Paste the whole block into the Training Mode revamp code
 agent. Each prompt is self-contained: it names the real files, the real
@@ -14,25 +14,38 @@ SecondaryButton / Card); no new design system.
 ## PROMPT 0 — pull the Grappler (Baki) content update into the revamp
 
 > Pull the latest `app` branch. The Grappler campaign (`ARC_BAKI`) has been
-> reviewed stage-by-stage and three content fixes landed. Everything is already
-> in the app mirror at `components/training-mode/protocol/` — you do not need to
-> author content, just make sure the player renders it correctly.
+> reviewed stage-by-stage, fixed, and **restructured from 12 stages to 10**.
+> Everything is already in the app mirror at `components/training-mode/protocol/`
+> — you do not need to author content, just make sure the player renders it.
 >
-> **What changed (commit "Grappler review fixes")**
+> **What changed**
 >
-> 1. **Stage 4 (One-Punch Power)** was five rounds of nothing but the cross.
->    R1 and R4 stay pure `complexity: "single"` (the one-perfect-straight drill).
->    R2, R3 and R5 now carry `allowed_strikes: ["1","2","2b"]` at intro/basic, so
->    the generator sets the straight up — jab → cross, jab → body → cross —
->    instead of repeating a single punch for 24 minutes.
-> 2. **Stages 6 and 7** ran ten consecutive fight rounds with no combos called
->    (pure grappling cues). Two of those rounds are now **mixed rounds**:
->    `MOD_BH_S06_FIGHT` R1 (`strike_entry_into_clinch`) and `MOD_BH_S07_FIGHT`
->    R5 (`strike_entry_into_submission_chain`). Their `combo_spec` sets a new
->    flag `mixed_with_cue: true` alongside `generate_combos: true`, so the round
->    generates combos from `["1","2","3"]` **and** keeps its `technique_cues`.
-> 3. All 12 fight modules now carry a `tier` (T1 S1–3, T2 S4–6, T3 S7–9,
->    T4 S10–12), matching the fit modules.
+> 1. **Baki is now a 10-stage campaign.** The Arcade caps campaigns at 10
+>    (`ARCADE_MAX_STAGES` in `data/arcadeCampaignSeries.js`) and was silently
+>    dropping the old S10 and S11 — which were the two T4 ramp stages — so the
+>    curve went from T3 straight into the boss and two authored stages were
+>    unreachable. The old S10 "Arena's Strongest" folded into **S08 (Jack)**,
+>    the old S11 "Strongest Teen" folded into **S09 (Pickle)**, and the Ogre
+>    moved from S12 to **S10**. `capToArcadeLength` now passes Baki through
+>    untouched. Module ids `MOD_BH_S12_*` are now `MOD_BH_S10_*`; stage id
+>    `ARC_BAKI_STG12` is now `ARC_BAKI_STG10`. **Saved Baki progress from
+>    before this change will not line up — clear it or migrate it.**
+> 2. **Tier ladder re-cut** to T1 S1–3, T2 S4–5, T3 S6–7, T4 S8–10, so the back
+>    half carries the T4 volume. `stage_count`, `split_stages`,
+>    `double_training_stages`, `peak_stage`, `final_boss.stage_id`, the persona
+>    progression and the achievement triggers all follow.
+> 3. **Stage 4 (One-Punch Power)** was five rounds of nothing but the cross.
+>    R1 and R4 stay pure `complexity: "single"` (the one-perfect-straight drill);
+>    R2, R3 and R5 now carry `allowed_strikes: ["1","2","2b"]` at intro/basic so
+>    the generator sets the straight up instead of repeating it.
+> 4. **Mixed rounds.** A grappling round can now set `mixed_with_cue: true`
+>    alongside `generate_combos: true` — it generates combos AND keeps its
+>    `technique_cues`. Three rounds use it: S06 R1 (`strike_entry_into_clinch`),
+>    S07 R5 (`strike_entry_into_submission_chain`), S08 R6
+>    (`all_around_every_tool`). Before this, S06 and S07 ran ten consecutive
+>    rounds with no combos called at all.
+> 5. **Every fight module now carries a `tier`**, matching the fit modules —
+>    across all campaigns, not just Baki.
 >
 > **Code already updated for you (verify, don't rewrite)**
 > - `protocol/engine/arcade-session-engine.ts` — `ComboSpec.mixed_with_cue`,
@@ -42,24 +55,65 @@ SecondaryButton / Card); no new design system.
 >   `p.mixedWithCue`: two generated calls, then one technique cue, repeating.
 >
 > **What to verify in the running app**
-> - Stage 4 FIGHT: R1 and R4 still call one strike and nothing else; R2, R3, R5
->   now call short setups. The 60/40 variety rule already exempts `single`, so
->   R1/R4 must NOT gain secondary strikes.
-> - Stage 6 FIGHT R1 and Stage 7 FIGHT R5: the voice alternates generated combos
->   with the grappling cue ("Jab, cross, lead hook" … "Collar tie" …). All other
->   rounds in those stages stay cue-only — that is intentional, grip and ground
->   work does not map to numbered punch combos.
-> - Every fight module now has a `tier`; nothing should read it yet, so nothing
->   should change visually.
-> - Rerun the Baki stage list and confirm 46 generated / 21 cue-based rounds.
+> - Baki shows **10 stages**, the Ogre sits at position 10, and the map no
+>   longer truncates. 20 modules, 41 generated / 19 cue-based fight rounds.
+> - S08 and S09 read as peak stages: S08 keeps the weighted compounds (timed
+>   with adaptive rest) and gains a dips block plus a 6th "every tool" mixed
+>   round; S09 is 8 exercises and 7 rounds.
+> - Stage 4 FIGHT: R1 and R4 still call one strike and nothing else. The 60/40
+>   variety rule exempts `single`, so they must NOT gain secondary strikes.
+> - S06 R1, S07 R5, S08 R6: the voice alternates generated combos with the
+>   grappling cue. The other rounds in those stages stay cue-only — intentional,
+>   grip and ground work does not map to numbered punch combos.
 >
-> Full stage-by-stage detail, including every FIT prescription, is in
-> `protocol-src/reviews/ARC_BAKI-review.md`. The campaign validator
-> (`node protocol-src/scripts/validate-campaigns.mjs`) passes 8/8 — run it after
-> any content edit.
+> Full stage-by-stage detail is in `protocol-src/reviews/ARC_BAKI-review.md`.
+> Run `node protocol-src/scripts/validate-campaigns.mjs` (8/8) after any content
+> edit. Do not change the volume ladder, `pass-rules.json`, or the counted-set
+> pacing — those are calibrated and playtested.
+
+---
+
+## PROMPT R — review + make a campaign ready (run this per campaign)
+
+> Bring one Training Arcade campaign up to the standard `ARC_BAKI` now meets.
+> Replace `<CAMPAIGN_ID>` below with the campaign you're working (start with
+> `ARC_ULTRAEGO` — it's the cleanest of the remaining seven).
 >
-> Do not change the volume ladder, `pass-rules.json`, or the counted-set pacing.
-> Those are already calibrated and playtested.
+> **Step 1 — generate the review sheet**
+> ```
+> node protocol-src/scripts/review-campaign.mjs <CAMPAIGN_ID>
+> ```
+> Writes `protocol-src/reviews/<CAMPAIGN_ID>-review.md`: every FIT prescription,
+> every FIGHT round with its combo seed, and an auto-flag section. Read the
+> flags first, then the stage tables.
+>
+> **Step 2 — fix what the flags found.** These are the same five problems found
+> in the Baki review, and each has a settled fix:
+>
+> | Flag | Fix |
+> |---|---|
+> | Campaign is 12 stages, Arcade caps at 10 | Fold the two dropped stages' content forward into the last two pre-boss stages, renumber the boss, re-cut the tier ladder back-loaded. Follow the ARC_BAKI restructure exactly. |
+> | Module has no counted `prescription` | Author one per the volume ladder in `arcade-session-standards.json`: sets × reps/sec + `category` + `count_mode` + `load_type` + `rest_sec`, at the module's tier. |
+> | Module has zero generated rounds | Convert at least one round to `mixed_with_cue: true` (keeps its `technique_cues`, adds `allowed_strikes`) so the stage still calls combos. |
+> | Single-strike monotony | Keep the one or two rounds where a single strike IS the drill; open the rest to a 3-strike pool at intro/basic so the generator can set the strike up. |
+> | Single long round instead of short rounds | Split into 5–6 rounds of 120s with 45–60s rest, each with its own `goal` and `combo_spec`. |
+>
+> **Step 3 — hold these invariants.** Every strike must map to one of the four
+> disciplines. Combos are never hardcoded — a round carries a `combo_spec` that
+> seeds the generator. Cue-based rounds are legitimate when the work genuinely
+> isn't punch combos (grappling, stance, implement work); the goal is no
+> *consecutive stages* running dry, not zero cue rounds. Fight modules get the
+> same `tier` as the fit module for their stage.
+>
+> **Step 4 — verify and sync.**
+> ```
+> node protocol-src/scripts/validate-campaigns.mjs        # must stay 8/8
+> node protocol-src/scripts/review-campaign.mjs <CAMPAIGN_ID>   # flags should be gone
+> ```
+> Mirror every edited file from `protocol-src/data/` into
+> `components/training-mode/protocol/data/` — the app reads the mirror, not
+> `protocol-src`. Then present the regenerated review sheet for sign-off before
+> moving to the next campaign.
 
 ---
 
@@ -125,8 +179,11 @@ SecondaryButton / Card); no new design system.
 > - `components/training-mode/protocol/data/achievements.json` — 9 achievement
 >   families.
 > - Every Arcade campaign JSON has its own `campaign.achievements[]` with an id,
->   name, and trigger text (Baki has 8, Garou 12) under
->   `components/training-mode/protocol/campaigns/`.
+>   name, and trigger text — **71 across the 8 campaigns** (Garou 12, Sonic 11,
+>   the rest 8 each) — in
+>   `components/training-mode/protocol/data/campaigns/<ID>/campaign.json`.
+>   Trigger text references stage numbers, and every campaign was just
+>   renumbered to 10 stages, so read the triggers as they are now.
 > - `ProgressScreen.jsx` exists but has no achievements section.
 > - `data/userStats.js` is the established localStorage persistence pattern —
 >   follow it exactly.
@@ -204,7 +261,7 @@ SecondaryButton / Card); no new design system.
 
 ---
 
-## PROMPT 14 — Camp setup flow: archetype picker
+## PROMPT 14 — Camp setup flow: archetype picker (difficulty first)
 
 > Training Camp has 12 fighter archetypes in the content layer that the user can
 > never choose. Build the picker.
@@ -218,20 +275,285 @@ SecondaryButton / Card); no new design system.
 >   `components/training-mode/protocol/content.ts`.
 > - The only mention of "archetype" in the app is a label inside
 >   `TrainingCampMap.jsx`. There is no picker.
-> - Discipline art and the difficulty selector already exist
->   (`ArcadeDifficultySelector.jsx` is the styling reference).
+> - `shared/Stepper.jsx` and `ArcadeDifficultySelector.jsx` are the styling
+>   references. Discipline art already exists.
 >
-> **14a. DISCIPLINE → ARCHETYPE → DIFFICULTY flow**
+> **14a. DISCIPLINE → DIFFICULTY → ARCHETYPE flow**
 > A three-step setup before a camp level starts, using the existing
 > `shared/Stepper.jsx`:
-> 1. **Discipline** — existing discipline cards + art.
-> 2. **Archetype** — cards from `archetypesFor(discipline)`: name, tagline, and
->    the blurb for the currently-selected difficulty (or normal before one is
->    picked). Selected card gets the gold border treatment.
-> 3. **Difficulty** — easy / normal / hard; each option shows that archetype's
->    `variants[difficulty]` string so the choice is concrete.
 >
-> Persist the choice per camp level (same pattern as `campProgress.js`) and
-> pass it into the existing camp engine — this is a selection screen over
-> content that already exists, so **no new workout content and no engine
-> changes**. Back navigation between steps must never dead-end.
+> 1. **Discipline** — existing discipline cards + art.
+> 2. **Difficulty** — easy / normal / hard, styled like
+>    `ArcadeDifficultySelector.jsx`.
+> 3. **Archetype** — cards from `archetypesFor(discipline)`, filtered to the
+>    chosen discipline. **Each card shows the name, the tagline, and the
+>    `variants[difficulty]` string for the difficulty already chosen in step 2**
+>    — never a generic blurb, never the "normal" text as a placeholder. So on
+>    hard, Pressure Dog reads "High-output pressure, body attack volume,
+>    late-round surges", and on easy the same card reads "Basic jab-cross-hook
+>    pressure, short rounds, longer rest". Selected card gets the gold border.
+>
+> Difficulty comes **before** archetype on purpose: the archetype description is
+> only meaningful once the intensity is known, and it lets the user compare all
+> 12 styles at the exact intensity they're about to train.
+>
+> Going back to step 2 and changing difficulty must **re-render every archetype
+> card's blurb** for the new difficulty, keeping the current archetype selected
+> if it's still valid. Back navigation must never dead-end.
+>
+> Persist the choice per camp level (same pattern as `campProgress.js`) and pass
+> it into the existing camp engine — this is a selection screen over content
+> that already exists, so **no new workout content and no engine changes**.
+
+
+---
+
+## PROMPT G — Garou: split the single long blocks into real rounds
+
+> `ARC_GAROU` is 10 stages and fully prescribed on the FIT side, but every one
+> of its 10 fight modules holds **one 18–30 minute round** instead of the short
+> rounds every other campaign uses. So `10 generated / 0 cue` is one long block
+> per stage, not ten good rounds. Fix all 10.
+>
+> **The data is already there — you are reshaping, not authoring.** Each module
+> (e.g. `MOD_GA_S04_FIGHT`, "Dutch Rhythm") already carries:
+> - `exercises[]` — the drill list, in order, one line per intended round
+> - `canonical_map[]` — the same drills mapped to discipline + canonical move
+> - `striking_rounds` and `round_len_sec` — the intended round count and length
+> - a single `rounds[0]` with one `combo_spec` covering the whole block
+>
+> **For each fight module:**
+> 1. Build one round per entry in `canonical_map[]` (5–6 rounds; the first
+>    `exercises[]` line is the warm-up, not a round). Use the module's own
+>    `round_len_sec` for `length_sec` (150s where present, else 120s) and
+>    45–75s `rest_sec` — shorter rest on the speed/burst stages, longer on the
+>    power ones, matching how `ARC_BAKI` does it.
+> 2. Give each round its own `goal` (snake_case, derived from the drill name)
+>    and its own `combo_spec`, seeded from that round's canonical move — not a
+>    copy of the block-level spec. Narrow `allowed_strikes` to what the drill
+>    actually is: a teep round is `["tp"]` plus a setup, a low-kick round is
+>    `["1","2","lk"]`, a hands-only speed round is `["1","2","3"]`.
+> 3. Set `complexity` to match the drill — `single` only where one strike IS
+>    the drill, `intro`/`basic` for setups, `standard` for flow rounds, `burst`
+>    for speed rounds. Do not leave every round at `standard`.
+> 4. Keep `finishers`, `canonical_map`, `tier`, `warmup` and `duration_min` as
+>    they are. Only `rounds[]` changes.
+>
+> Garou's disciplines are boxing, Dutch kickboxing and Wing Chun — every strike
+> must map to one of the four disciplines in
+> `data/arcade-session-standards.json`. Chain-punch / trapping rounds that don't
+> map to numbered strikes should be `mixed_with_cue: true` (generate combos AND
+> keep technique cues) rather than pure cue.
+>
+> Verify: `node protocol-src/scripts/review-campaign.mjs ARC_GAROU` should drop
+> to 0 flags and report roughly 50 rounds instead of 10. Then
+> `node protocol-src/scripts/validate-campaigns.mjs` (8/8) and mirror
+> `protocol-src/data/campaigns/ARC_GAROU/` into
+> `components/training-mode/protocol/data/campaigns/ARC_GAROU/`.
+
+---
+
+## PROMPT S — Sonic + Gravity: add counted prescriptions
+
+> `ARC_SONIC` and `ARC_GRAVITY` are fit-only (10 stages, 10 modules each) and
+> are the only two campaigns that never received the arcade session standard.
+> Every module has **zero counted `prescription`**, so the volume ladder and the
+> counted-set runner cannot drive them — they play as one undifferentiated
+> block. 20 modules to convert.
+>
+> **The content exists as prose.** Each module has an `exercises[]` array of
+> strings (e.g. Sonic S04: "Wall drives (posture + knee drive)", "Falling starts
+> into a 10-20m acceleration", "A-skips / dribble drills"). Convert each line
+> into a `prescription` entry:
+>
+> ```json
+> { "name": "...", "category": "...", "sets": 3, "reps": 12,
+>   "count_mode": "reps", "load_type": "bodyweight", "rest_sec": 60 }
+> ```
+> - `category` ∈ pull · push · squat_legs · core · hold · carry · explosive ·
+>   conditioning · mobility — the same set the volume ladder keys on.
+> - `count_mode`: `"reps"` for counted movements, `"time"` with `duration_sec`
+>   for holds and intervals, `"none"` with `duration_sec` for warm-ups,
+>   mobility flows and cooldowns (they play but aren't counted).
+> - Stored numbers are the **NORMAL baseline** at the module's `tier` — the app
+>   re-resolves easy/hard from `data/arcade-session-standards.json`. Read the
+>   ladder before picking numbers; do not invent a second scale.
+>
+> **Campaign-specific rules that must survive the conversion:**
+> - **Sonic** — the mandatory warm-up gate stays (`warmup_gate: true`, and the
+>   warm-up line becomes a `count_mode: "none"` entry, never a counted set).
+>   Sprint work keeps full recovery between reps: the `accel` / max-velocity
+>   blocks are low-rep, long-rest quality work (e.g. `sets: 4, reps: 1,
+>   rest_sec: 180`), never conditioning circuits. Respect the plyo foot-contact
+>   caps (40/60/80 by tier) — the explosive entries must sum under the cap.
+>   Stage 9 is the deload; keep it light.
+> - **Gravity** — the signature is tempo/cadence, not volume. Each module has a
+>   `tempo` block (`eccentric_sec`, `pause_bottom_sec`, `concentric_sec`) and
+>   `voice_count_mode: "cadence"`. Prescriptions must keep rep counts LOW because
+>   each rep is 6–7 seconds long: a tempo push-up set is `3 × 8`, not `3 × 40`.
+>   Do not let the volume ladder push cadence work to peak rep counts.
+>
+> Neither campaign has a fight side, so there is nothing to do on combos.
+>
+> Verify per campaign with
+> `node protocol-src/scripts/review-campaign.mjs ARC_SONIC` (and `ARC_GRAVITY`)
+> — both should go from 10 flags to 0. Then the validator (8/8) and mirror both
+> campaign folders into `components/training-mode/protocol/data/campaigns/`.
+
+---
+
+## PROMPT B — Berserk: give the swordsman campaign its combos back
+
+> `ARC_BERSERK` runs **4 generated / 54 cue-based** rounds. Nine of its ten
+> fight modules have **zero** generated rounds, including the 12-round boss
+> (`MOD_BK_S10_FIGHT`), and there are two long dry stretches: stages 1–3 and
+> stages 5–10. A fight-only player goes six consecutive stages without a single
+> combo called.
+>
+> **This one needs a decision, not just a script.** Berserk's fight side is
+> greatsword, club, mace and sledgehammer work — implement swings that
+> genuinely do not map to numbered punch combos. That is why it was authored
+> cue-only, and that judgement was correct. The problem is the *amount*, not the
+> existence, of cue rounds.
+>
+> **The fix — one mixed round per stage, minimum:**
+> 1. In every fight module with zero generated rounds, convert **at least one**
+>    round to `mixed_with_cue: true` — it keeps its `technique_cues` AND gains
+>    `allowed_strikes`, so the app interleaves two generated calls with one cue.
+>    Pick the round where an unarmed strike honestly fits: a guard/close-quarters
+>    round, a "drop the weapon and fight" round, a footwork-into-strike round.
+>    Do not bolt punches onto a two-handed swing round where they make no sense.
+> 2. **The boss (`MOD_BK_S10_FIGHT`, 12 rounds) needs more than one.** Aim for
+>    4–5 generated or mixed rounds across the twelve, so the finale has real
+>    combo variety. Its round objectives already include
+>    `defensive_brace_recover`, `the_beast_stirs_keep_form` and
+>    `controlled_fury_form_gate` — those are the natural candidates.
+> 3. Target: **no two consecutive stages with zero combos**, and the campaign
+>    lands somewhere near 25–30 generated of ~60 rounds. It will stay the most
+>    cue-heavy campaign in the game and that is correct — it is a greatsword
+>    campaign, not a boxing one.
+>
+> Every strike still has to map to one of the four disciplines. Keep the
+> implement-safety notes, the capped output rules and the Eclipse-phase framing
+> exactly as authored.
+>
+> Verify: `node protocol-src/scripts/review-campaign.mjs ARC_BERSERK` — the
+> "zero generated rounds" and "consecutive stages" flags should be gone. Then
+> the validator (8/8) and mirror the folder.
+
+---
+
+## PROMPT A — after any content prompt: get it into the app
+
+> Content lives in `protocol-src/data/`. **The app reads
+> `components/training-mode/protocol/data/` — a mirror.** Nothing you author in
+> `protocol-src` reaches the app until it is copied across. Every campaign
+> folder must be byte-identical between the two trees.
+>
+> ```
+> node protocol-src/scripts/validate-campaigns.mjs          # 8/8
+> node protocol-src/scripts/review-campaign.mjs --all       # flag counts
+> for c in protocol-src/data/campaigns/*/; do
+>   diff -rq "$c" "components/training-mode/protocol/data/campaigns/$(basename $c)"
+> done                                                      # must print nothing
+> ```
+>
+> A new campaign additionally needs registering in
+> `components/training-mode/protocol/campaigns.ts` — import its three JSON
+> files, add it to `RAW`, add it to `CAMPAIGN_ORDER`, and add its coach lines to
+> `CAMPAIGN_COACH`. Editing an existing campaign needs none of that.
+>
+> Then commit and push to `app`.
+
+
+---
+
+## PROMPT D — diagnose the build: did everything land, and what is broken?
+
+> Nine items were implemented directly in this repo rather than pasted in as
+> prompts, so nothing is "waiting to be built" — but nothing has been seen on a
+> screen either. Every item below was verified with a logic harness only. Your
+> job is to confirm it is all wired, then find what a test harness could not.
+>
+> **Step 1 — confirm the files are there.** All of these should exist:
+> ```
+> components/training-mode/shared/sessionOutcome.js        # item 9
+> components/training-mode/data/achievements.js            # item 10
+> components/training-mode/data/achievementTriggers.js     # item 10
+> components/training-mode/shared/AchievementToast.jsx     # item 10
+> components/training-mode/shared/GhostVsScreen.jsx        # item 11
+> components/training-mode/shared/GhostResultScreen.jsx    # item 11
+> components/training-mode/shared/ArchetypePicker.jsx      # item 14
+> components/training-mode/data/campArchetype.js           # item 14
+> protocol-src/scripts/review-campaign.mjs                 # tooling
+> ```
+> Then: `npm install && npx tsc --noEmit && npm run lint && npm run build:web`.
+> Report every error — the logic harnesses ran the engines in isolation and
+> never type-checked or rendered the JSX.
+>
+> **Step 2 — content, which IS verifiable by script.**
+> ```
+> node protocol-src/scripts/validate-campaigns.mjs     # expect 8/8 valid
+> node protocol-src/scripts/review-campaign.mjs --all  # expect 0 flags on all 8
+> ```
+> Expected shape: every campaign is exactly **10 stages**. Fight rounds
+> gen/cue — Ultra Ego 60/6, Ultra Instinct 48/17, Garou 45/5, Dark Knight 43/17,
+> Baki 41/19, Berserk 23/35; Sonic and Gravity are fit-only and fully
+> prescribed. Then confirm `protocol-src/data/campaigns/` and
+> `components/training-mode/protocol/data/campaigns/` are byte-identical —
+> the app reads the mirror.
+>
+> **Step 3 — run each flow and check the specific things I could not.**
+>
+> *Item 9 (outcome screens).* `shared/sessionOutcome.js` → `resolveOutcome()`
+> is now the only judge of pass/partial/fail/validation_failed, and
+> `MissionComplete` gained `fail` and `validation_failed` variants.
+> - Inside `MissionComplete`, `partial` is now true for BOTH failure variants —
+>   it drives the muted layout (no rays, no pulse). Check nothing else keyed off
+>   that variable in a way that now misfires.
+> - In `SessionSummary`, `stoppedEarly` now means "not a pass", so a
+>   validation-failed session shows a RETRY label. Confirm that reads right.
+> - Finish a session at ~80% and at ~30% completion. 80% should be PARTIAL, 30%
+>   should be MISSION FAILED. Confirm a failed session shows "NO XP AWARDED" and
+>   that XP actually banked matches.
+>
+> *Item 10 (achievements).* Clear Baki stage 1 then stage 2 — the Young Baki
+> achievement names stages 1-2 and must fire on **stage 2, not stage 1**. Replay
+> stage 2: the toast must NOT fire again. Check the Progress tab grid renders
+> 80 achievements in 9 groups without overflowing on a small phone.
+> `ProgressScreen` remounts the section via `key={tick}` on every unlock event —
+> confirm that is not visibly janky.
+>
+> *Item 11 (ghost battles).* Load a ghost, start a session: the VS screen shows
+> before the timer, with art matching the profile gender. Finish it: the result
+> screen shows the same pose (the VS screen advances the rotation, the result
+> screen reads it). Check the VS and result screens render OUTSIDE `WithNav` —
+> full-screen with no tab bar — and that BACK and DONE both escape cleanly.
+> Check `👻 BEAT THIS RUN` appears on a normal session summary once a verified
+> ghost exists.
+>
+> *Item 13 (title fight).* Camp L12 must now run **twelve rounds** with an
+> objective per round, not one long block. Confirm the round length lands in the
+> difficulty's band (~2 min easy/normal, 3 min hard) and the last three rounds
+> read as championship rounds. Win it: the outcome must say TITLE FIGHT WON /
+> CAMP COMPLETE, not "LEVEL 12 CLEAR", with no CONTINUE button, and the camp map
+> header must switch to CAMP COMPLETE. MMA keeps 4-5 rounds of 4-5 minutes.
+>
+> *Item 14 (archetype picker).* Open a camp level: the picker sits under the
+> difficulty row and each card shows the blurb for the difficulty **currently
+> selected**. Switch easy→hard and confirm every card's text changes. The picker
+> adds 3 cards inside the level modal — check it does not push the START button
+> off a small screen.
+>
+> **Step 4 — the migration hazard.** Every campaign was renumbered from 12
+> stages to 10. Stage ids and module ids changed (`ARC_BAKI_STG12` →
+> `ARC_BAKI_STG10`, `MOD_BH_S12_*` → `MOD_BH_S10_*`). Saved arcade progress from
+> before this will not line up. Decide whether to migrate or clear
+> `tm_arcade_v2`, and check `highestCleared()` — it still clamps to 12, which is
+> now above the real maximum.
+>
+> **Step 5 — report.** For each item: wired correctly / wired but buggy / not
+> wired. Fix what is clearly broken; for anything ambiguous, describe it and
+> ask rather than guessing. Do not change the volume ladder, `pass-rules.json`,
+> `xp-rules.json`, or the counted-set pacing — those are calibrated and
+> playtested.

@@ -23,6 +23,33 @@ export function completeCampLevel(level) {
   return cur;
 }
 
+// Item 13b — clearing L12 is the end of the camp, and the cursor alone cannot
+// say so: it stops at 12 whether the title fight was won or is still ahead.
+// This is the separate flag that makes the whole 12-level camp read as finished.
+const DONE_KEY = 'tm_camp_complete';
+
+export function isCampComplete() {
+  try { return localStorage.getItem(DONE_KEY) === '1'; } catch { return false; }
+}
+
+export function campCompletedAt() {
+  try { return localStorage.getItem(DONE_KEY + '_at') || null; } catch { return null; }
+}
+
+/** Win the title fight. Idempotent — returns true only on the first win. */
+export function markCampComplete() {
+  if (isCampComplete()) return false;
+  try {
+    localStorage.setItem(DONE_KEY, '1');
+    localStorage.setItem(DONE_KEY + '_at', new Date().toISOString());
+  } catch { /* quota */ }
+  return true;
+}
+
 export function resetCampProgress() {
-  try { localStorage.removeItem(KEY); } catch { /* noop */ }
+  try {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(DONE_KEY);
+    localStorage.removeItem(DONE_KEY + '_at');
+  } catch { /* noop */ }
 }

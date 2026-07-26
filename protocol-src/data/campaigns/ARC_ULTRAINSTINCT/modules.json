@@ -271,8 +271,8 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "single",
-      "duration_min": 32,
-      "title": "Foundational Strength",
+      "duration_min": 36,
+      "title": "Repetition and Rhythm",
       "tier": "T1",
       "prescription": [
         {
@@ -313,6 +313,33 @@
           "load_type": "bodyweight",
           "rest_sec": 45,
           "note": "counted through the series"
+        },
+        {
+          "name": "Jump rope",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Ladder drills: high knees, side steps, Ickey shuffle, Ali shuffle",
+          "category": "conditioning",
+          "sets": 3,
+          "duration_sec": 40,
+          "count_mode": "time",
+          "rest_sec": 45
+        },
+        {
+          "name": "Light depth jumps (landing control)",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "note": "depth jumps tuned low — landing quality over count",
+          "plyo_counted": true
         }
       ],
       "warmup": [
@@ -347,9 +374,9 @@
       "discipline": "kickboxing",
       "difficulty": "normal",
       "format": "single",
-      "duration_min": 24,
+      "duration_min": 28,
       "tier": "T1",
-      "title": "Repetition — One Technique, a Thousand Times",
+      "title": "A Thousand Fists on Moving Feet",
       "round_source": "fight_focus",
       "drills": [
         "Pick 3 major strikes (jab / hook / roundhouse) and spam each",
@@ -453,6 +480,23 @@
           "index": 4,
           "length_sec": 120,
           "rest_sec": 45,
+          "goal": "l_step_and_pivot",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "l_step_pivot",
+            "technique_cues": [
+              "L-step",
+              "pivot left",
+              "pivot right",
+              "reset stance"
+            ],
+            "callout": "voiced"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
           "goal": "combo_repetition",
           "combo_spec": {
             "generate_combos": true,
@@ -467,28 +511,24 @@
           }
         },
         {
-          "index": 5,
+          "index": 6,
           "length_sec": 120,
           "rest_sec": 45,
-          "goal": "combo_repetition_2",
+          "goal": "freestyle_movement_with_strikes",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "combo_repetition",
+            "focus": "strike_on_move",
             "allowed_strikes": [
               "1",
-              "2",
-              "2b",
-              "3",
-              "lk",
-              "rk"
+              "2"
             ],
-            "complexity": "standard",
+            "complexity": "basic",
             "callout": "voiced",
-            "emphasis": "longer chain — keep every rep identical"
+            "emphasis": "strike while moving — feet never flat"
           }
         },
         {
-          "index": 6,
+          "index": 7,
           "length_sec": 120,
           "rest_sec": 45,
           "goal": "combo_max_speed_no_thought",
@@ -519,398 +559,10 @@
       "module_type": "fit",
       "discipline": "multi",
       "difficulty": "normal",
-      "format": "single",
-      "duration_min": 28,
-      "title": "Agility Foundations",
-      "tier": "T1",
-      "prescription": [
-        {
-          "name": "Jump rope",
-          "category": "conditioning",
-          "sets": 3,
-          "duration_sec": 60,
-          "count_mode": "time",
-          "rest_sec": 45
-        },
-        {
-          "name": "Ladder drills: high knees, side steps, Ickey shuffle, Ali shuffle",
-          "category": "conditioning",
-          "sets": 3,
-          "duration_sec": 40,
-          "count_mode": "time",
-          "rest_sec": 45
-        },
-        {
-          "name": "Cone sprints",
-          "category": "conditioning",
-          "sets": 3,
-          "duration_sec": 60,
-          "count_mode": "time",
-          "rest_sec": 60
-        },
-        {
-          "name": "Cone forward and backward jumps",
-          "category": "explosive",
-          "sets": 3,
-          "duration_sec": 30,
-          "count_mode": "time",
-          "rest_sec": 60,
-          "note": "tuned to 30s bouts — jump contacts stay under the plyo cap",
-          "plyo_counted": true
-        },
-        {
-          "name": "Light depth jumps (landing control)",
-          "category": "explosive",
-          "sets": 3,
-          "reps": 6,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "note": "depth jumps tuned low — landing quality over count",
-          "plyo_counted": true
-        }
-      ],
-      "warmup": [
-        "dynamic_stretch_3min",
-        "fast_feet_2min"
-      ],
-      "target_rpe": [
-        5,
-        7
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 1500,
-          "rest_sec": 0,
-          "goal": "agility_foundation_session"
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 1,
-        "technique_breakdown_limit": 2,
-        "pain_flag_stop": true
-      },
-      "substitutions": {
-        "AGILITY_LADDER": "floor_lines",
-        "CONES": "floor_markers",
-        "JUMP_ROPE": "invisible_rope"
-      }
-    },
-    {
-      "module_id": "MOD_UI_S03_FIGHT",
-      "module_type": "fight",
-      "discipline": "kickboxing",
-      "difficulty": "normal",
-      "format": "single",
-      "duration_min": 24,
-      "tier": "T1",
-      "title": "Move Like Ali",
-      "round_source": "fight_focus",
-      "drills": [
-        "Footwork drills: leadfoot in-and-outs, lead foot to rear shuffle, sidle-to-side shuffle",
-        "L-step and pivot practice",
-        "1-min transversal movement in fighting stance",
-        "Freestyle movement with strikes — engage and exit"
-      ],
-      "canonical_map": [
-        {
-          "drill": "Leadfoot in-and-outs and shuffles",
-          "discipline": "boxing",
-          "canonical": "in-and-out + shuffle footwork"
-        },
-        {
-          "drill": "L-step and pivot practice",
-          "discipline": "boxing",
-          "canonical": "L-step + pivot"
-        },
-        {
-          "drill": "Transversal movement in stance",
-          "discipline": "boxing",
-          "canonical": "lateral movement in stance"
-        },
-        {
-          "drill": "Freestyle movement with strikes",
-          "discipline": "boxing",
-          "canonical": "strike on the move + angle exit"
-        }
-      ],
-      "finishers": {
-        "movements": [
-          "jumping lunges"
-        ],
-        "placement": "end_of_session",
-        "sets": 2,
-        "work_sec": 20,
-        "difficulty_scaled": true,
-        "counts_toward_plyo_cap": true
-      },
-      "warmup": [
-        "shadowbox_3min",
-        "jump_rope_2min"
-      ],
-      "target_rpe": [
-        5,
-        7
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "leadfoot_in_and_outs",
-          "combo_spec": {
-            "generate_combos": false,
-            "focus": "footwork",
-            "technique_cues": [
-              "in and out",
-              "lead-to-rear shuffle",
-              "side shuffle",
-              "never cross the feet"
-            ],
-            "callout": "voiced"
-          }
-        },
-        {
-          "index": 2,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "l_step_and_pivot",
-          "combo_spec": {
-            "generate_combos": false,
-            "focus": "l_step_pivot",
-            "technique_cues": [
-              "L-step",
-              "pivot left",
-              "pivot right",
-              "reset stance"
-            ],
-            "callout": "voiced"
-          }
-        },
-        {
-          "index": 3,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "transversal_stance_movement",
-          "combo_spec": {
-            "generate_combos": false,
-            "focus": "lateral_movement",
-            "technique_cues": [
-              "side to side",
-              "stay in stance",
-              "level steady",
-              "light feet"
-            ],
-            "callout": "voiced"
-          }
-        },
-        {
-          "index": 4,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "freestyle_movement_with_strikes",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "strike_on_move",
-            "allowed_strikes": [
-              "1",
-              "2"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "emphasis": "strike while moving — feet never flat"
-          }
-        },
-        {
-          "index": 5,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "engage_and_exit_free_round",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "engage_exit",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "emphasis": "engage, strike, exit on an angle"
-          }
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 4,
-        "technique_breakdown_limit": 2,
-        "pain_flag_stop": true
-      },
-      "substitutions": {
-        "CONES": "floor_markers"
-      }
-    },
-    {
-      "module_id": "MOD_UI_S04_FIGHT",
-      "module_type": "fight",
-      "discipline": "kickboxing",
-      "difficulty": "normal",
-      "format": "morning",
-      "duration_min": 26,
-      "tier": "T2",
-      "title": "Single-Strike Bag Repetition",
-      "round_source": "fight_focus",
-      "drills": [
-        "Round on ONE upper-body strike (jab, cross, or hook) — whole round, build muscle memory",
-        "Round on ONE lower-body strike (roundhouse, side kick, or switch kick)",
-        "Perfect the simple before the spectacular — no spinning strikes until the basics are clean",
-        "Closing combo rounds mixing the two drilled strikes"
-      ],
-      "canonical_map": [
-        {
-          "drill": "Round on ONE upper-body strike",
-          "discipline": "boxing",
-          "canonical": "jab / cross / lead hook repetition"
-        },
-        {
-          "drill": "Round on ONE lower-body strike",
-          "discipline": "kickboxing",
-          "canonical": "roundhouse / low kick repetition (side & switch kicks resolve to the roundhouse family)"
-        },
-        {
-          "drill": "Perfect the simple before the spectacular",
-          "discipline": "kickboxing",
-          "canonical": "clean basics — no spinning techniques"
-        },
-        {
-          "drill": "Closing combo rounds mixing the two strikes",
-          "discipline": "kickboxing",
-          "canonical": "punch + kick combination"
-        }
-      ],
-      "finishers": {
-        "movements": [
-          "tuck jumps"
-        ],
-        "placement": "end_of_session",
-        "sets": 2,
-        "work_sec": 25,
-        "difficulty_scaled": true,
-        "counts_toward_plyo_cap": true
-      },
-      "warmup": [
-        "shadowbox_3min"
-      ],
-      "target_rpe": [
-        6,
-        7
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "single_upper_strike_repetition",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "single_upper",
-            "allowed_strikes": [
-              "1"
-            ],
-            "complexity": "single",
-            "callout": "voiced",
-            "emphasis": "one strike, whole round — build muscle memory"
-          }
-        },
-        {
-          "index": 2,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "single_upper_strike_repetition_2",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "single_upper",
-            "allowed_strikes": [
-              "2",
-              "3"
-            ],
-            "complexity": "single",
-            "callout": "voiced",
-            "emphasis": "pick one — every rep clean"
-          }
-        },
-        {
-          "index": 3,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "single_lower_strike_repetition",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "single_lower",
-            "allowed_strikes": [
-              "rk"
-            ],
-            "complexity": "single",
-            "callout": "voiced",
-            "emphasis": "one kick, whole round — balance on the return"
-          }
-        },
-        {
-          "index": 4,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "single_lower_strike_repetition_2",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "single_lower",
-            "allowed_strikes": [
-              "lk",
-              "rk"
-            ],
-            "complexity": "single",
-            "callout": "voiced",
-            "emphasis": "perfect the simple before the spectacular"
-          }
-        },
-        {
-          "index": 5,
-          "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "combine_the_two_strikes",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "punch_kick_combo",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "lk",
-              "rk"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "emphasis": "mix the two drilled strikes"
-          }
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 4,
-        "technique_breakdown_limit": 1,
-        "pain_flag_stop": true
-      },
-      "substitutions": {
-        "HEAVY_BAG": "shadowboxing_with_full_extension"
-      }
-    },
-    {
-      "module_id": "MOD_UI_S04_FIT",
-      "module_type": "fit",
-      "discipline": "multi",
-      "difficulty": "normal",
       "format": "evening",
       "duration_min": 30,
       "title": "Lean Muscle Calisthenics",
-      "tier": "T2",
+      "tier": "T1",
       "prescription": [
         {
           "name": "High-rep push-ups (half to full)",
@@ -995,7 +647,247 @@
       }
     },
     {
-      "module_id": "MOD_UI_S05_FIGHT",
+      "module_id": "MOD_UI_S03_FIGHT",
+      "module_type": "fight",
+      "discipline": "kickboxing",
+      "difficulty": "normal",
+      "format": "morning",
+      "duration_min": 26,
+      "tier": "T1",
+      "title": "Single-Strike Bag Repetition",
+      "round_source": "fight_focus",
+      "drills": [
+        "Round on ONE upper-body strike (jab, cross, or hook) — whole round, build muscle memory",
+        "Round on ONE lower-body strike (roundhouse, side kick, or switch kick)",
+        "Perfect the simple before the spectacular — no spinning strikes until the basics are clean",
+        "Closing combo rounds mixing the two drilled strikes"
+      ],
+      "canonical_map": [
+        {
+          "drill": "Round on ONE upper-body strike",
+          "discipline": "boxing",
+          "canonical": "jab / cross / lead hook repetition"
+        },
+        {
+          "drill": "Round on ONE lower-body strike",
+          "discipline": "kickboxing",
+          "canonical": "roundhouse / low kick repetition (side & switch kicks resolve to the roundhouse family)"
+        },
+        {
+          "drill": "Perfect the simple before the spectacular",
+          "discipline": "kickboxing",
+          "canonical": "clean basics — no spinning techniques"
+        },
+        {
+          "drill": "Closing combo rounds mixing the two strikes",
+          "discipline": "kickboxing",
+          "canonical": "punch + kick combination"
+        }
+      ],
+      "finishers": {
+        "movements": [
+          "tuck jumps"
+        ],
+        "placement": "end_of_session",
+        "sets": 2,
+        "work_sec": 25,
+        "difficulty_scaled": true,
+        "counts_toward_plyo_cap": true
+      },
+      "warmup": [
+        "shadowbox_3min"
+      ],
+      "target_rpe": [
+        6,
+        7
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "single_upper_strike_repetition",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "single_upper",
+            "allowed_strikes": [
+              "1"
+            ],
+            "complexity": "single",
+            "callout": "voiced",
+            "emphasis": "one strike, whole round — build muscle memory"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "setup_into_upper_strike",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "setup_into_upper_strike",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "pick one — every rep clean"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "single_lower_strike_repetition",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "single_lower",
+            "allowed_strikes": [
+              "rk"
+            ],
+            "complexity": "single",
+            "callout": "voiced",
+            "emphasis": "one kick, whole round — balance on the return"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "setup_into_lower_strike",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "setup_into_lower_strike",
+            "allowed_strikes": [
+              "1",
+              "lk",
+              "rk"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "perfect the simple before the spectacular"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 45,
+          "goal": "combine_the_two_strikes",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_kick_combo",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk",
+              "rk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "mix the two drilled strikes"
+          }
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 4,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "HEAVY_BAG": "shadowboxing_with_full_extension"
+      }
+    },
+    {
+      "module_id": "MOD_UI_S04_FIT",
+      "module_type": "fit",
+      "discipline": "multi",
+      "difficulty": "normal",
+      "format": "evening",
+      "duration_min": 30,
+      "title": "Explosive Power (Plyometrics)",
+      "tier": "T2",
+      "prescription": [
+        {
+          "name": "Burpees with high jumps",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "plyo_counted": true
+        },
+        {
+          "name": "Explosive push-ups off an uneven platform",
+          "category": "push",
+          "sets": 4,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Ball throws to squat",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60
+        },
+        {
+          "name": "Single-arm wall ball throw to sprawl",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "5/side, unilateral throw + sprawl — tuned below the ladder",
+          "plyo_counted": true
+        },
+        {
+          "name": "Jump squats / lunge to single-leg jump",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 10,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "note": "single-leg jumps — tuned; contacts budgeted under the plyo cap",
+          "plyo_counted": true
+        }
+      ],
+      "warmup": [
+        "dynamic_stretch_3min",
+        "activation_2min"
+      ],
+      "target_rpe": [
+        6,
+        8
+      ],
+      "rounds": [
+        {
+          "index": 1,
+          "length_sec": 1620,
+          "rest_sec": 0,
+          "goal": "plyometric_power_session"
+        }
+      ],
+      "completion_rules": {
+        "min_rounds_completed": 1,
+        "technique_breakdown_limit": 1,
+        "pain_flag_stop": true
+      },
+      "substitutions": {
+        "MEDICINE_BALL": "bodyweight_jump_variations"
+      }
+    },
+    {
+      "module_id": "MOD_UI_S04_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",
@@ -1164,88 +1056,85 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 30,
-      "title": "Explosive Power (Plyometrics)",
+      "duration_min": 28,
+      "title": "Reactive Speed",
       "tier": "T2",
       "prescription": [
         {
-          "name": "Burpees with high jumps",
-          "category": "explosive",
+          "name": "Cone sprints",
+          "category": "conditioning",
           "sets": 3,
-          "reps": 12,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "plyo_counted": true
-        },
-        {
-          "name": "Explosive push-ups off an uneven platform",
-          "category": "push",
-          "sets": 4,
-          "reps": 20,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
+          "duration_sec": 60,
+          "count_mode": "time",
           "rest_sec": 60
         },
         {
-          "name": "Ball throws to squat",
+          "name": "Cone side jumps to sprawl",
           "category": "explosive",
           "sets": 3,
-          "reps": 12,
-          "count_mode": "reps",
-          "load_type": "either",
-          "rest_sec": 60
-        },
-        {
-          "name": "Single-arm wall ball throw to sprawl",
-          "category": "explosive",
-          "sets": 3,
-          "reps": 10,
-          "count_mode": "reps",
-          "load_type": "either",
+          "duration_sec": 30,
+          "count_mode": "time",
           "rest_sec": 60,
-          "note": "5/side, unilateral throw + sprawl — tuned below the ladder",
+          "note": "tuned to 30s bouts — jump contacts stay under the plyo cap",
           "plyo_counted": true
         },
         {
-          "name": "Jump squats / lunge to single-leg jump",
+          "name": "Depth jumps: normal, to 180",
           "category": "explosive",
           "sets": 3,
-          "reps": 10,
+          "reps": 8,
           "count_mode": "reps",
           "load_type": "bodyweight",
           "rest_sec": 75,
-          "note": "single-leg jumps — tuned; contacts budgeted under the plyo cap",
+          "note": "depth jumps kept low — landing quality over count",
           "plyo_counted": true
+        },
+        {
+          "name": "Light roadwork or jump rope",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 300,
+          "count_mode": "time",
+          "rest_sec": 0
+        },
+        {
+          "name": "Rotational core work",
+          "category": "core",
+          "sets": 4,
+          "reps": 30,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45
         }
       ],
       "warmup": [
         "dynamic_stretch_3min",
-        "activation_2min"
+        "fast_feet_2min"
       ],
       "target_rpe": [
         6,
-        8
+        7
       ],
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1620,
+          "length_sec": 1500,
           "rest_sec": 0,
-          "goal": "plyometric_power_session"
+          "goal": "reactive_speed_session"
         }
       ],
       "completion_rules": {
         "min_rounds_completed": 1,
-        "technique_breakdown_limit": 1,
+        "technique_breakdown_limit": 2,
         "pain_flag_stop": true
       },
       "substitutions": {
-        "MEDICINE_BALL": "bodyweight_jump_variations"
+        "CONES": "floor_markers",
+        "JUMP_ROPE": "invisible_rope"
       }
     },
     {
-      "module_id": "MOD_UI_S06_FIGHT",
+      "module_id": "MOD_UI_S05_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",
@@ -1431,85 +1320,127 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 28,
-      "title": "Reactive Speed",
-      "tier": "T2",
+      "duration_min": 36,
+      "title": "The Hundreds (High-Volume Endurance)",
+      "tier": "T3",
       "prescription": [
         {
-          "name": "Cone sprints",
-          "category": "conditioning",
-          "sets": 3,
-          "duration_sec": 60,
-          "count_mode": "time",
+          "name": "High-rep squats",
+          "category": "squat_legs",
+          "sets": 5,
+          "reps": 40,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
           "rest_sec": 60
         },
         {
-          "name": "Cone side jumps to sprawl",
-          "category": "explosive",
-          "sets": 3,
-          "duration_sec": 30,
-          "count_mode": "time",
-          "rest_sec": 60,
-          "note": "tuned to 30s bouts — jump contacts stay under the plyo cap",
-          "plyo_counted": true
-        },
-        {
-          "name": "Depth jumps: normal, to 180",
-          "category": "explosive",
-          "sets": 3,
-          "reps": 8,
+          "name": "Crunches",
+          "category": "core",
+          "sets": 4,
+          "reps": 40,
           "count_mode": "reps",
           "load_type": "bodyweight",
-          "rest_sec": 75,
-          "note": "depth jumps kept low — landing quality over count",
-          "plyo_counted": true
+          "rest_sec": 45
         },
         {
-          "name": "Light roadwork or jump rope",
-          "category": "conditioning",
-          "sets": 1,
-          "duration_sec": 300,
-          "count_mode": "time",
-          "rest_sec": 0
-        },
-        {
-          "name": "Rotational core work",
-          "category": "core",
+          "name": "Half-to-full push-ups",
+          "category": "push",
           "sets": 4,
           "reps": 30,
           "count_mode": "reps",
           "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Tuck-ins",
+          "category": "core",
+          "sets": 4,
+          "reps": 40,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
           "rest_sec": 45
+        },
+        {
+          "name": "Single-arm inverted rows",
+          "category": "pull",
+          "sets": 4,
+          "reps": 12,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90,
+          "note": "6/side, unilateral rows — tuned vs the pull-up ladder"
+        },
+        {
+          "name": "Pike-ups",
+          "category": "core",
+          "sets": 3,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45,
+          "note": "harder core movement — tuned below the core ladder"
+        },
+        {
+          "name": "Russian twists",
+          "category": "core",
+          "sets": 4,
+          "reps": 40,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45,
+          "note": "counted total, alternating sides"
+        },
+        {
+          "name": "Dips",
+          "category": "push",
+          "sets": 4,
+          "reps": 15,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 60,
+          "note": "dips harder than the push-up ladder — tuned down"
+        },
+        {
+          "name": "V-up variations",
+          "category": "core",
+          "sets": 4,
+          "reps": 20,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 45,
+          "note": "harder core variation — tuned below the core ladder"
         }
       ],
       "warmup": [
-        "dynamic_stretch_3min",
-        "fast_feet_2min"
+        "dynamic_stretch_3min"
       ],
       "target_rpe": [
-        6,
-        7
+        7,
+        8
       ],
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1500,
+          "length_sec": 2040,
           "rest_sec": 0,
-          "goal": "reactive_speed_session"
+          "goal": "hundreds_endurance_session"
         }
       ],
       "completion_rules": {
         "min_rounds_completed": 1,
-        "technique_breakdown_limit": 2,
+        "technique_breakdown_limit": 1,
         "pain_flag_stop": true
       },
       "substitutions": {
-        "CONES": "floor_markers",
-        "JUMP_ROPE": "invisible_rope"
+        "PULLUP_BAR": "band_row"
+      },
+      "difficulty_notes": {
+        "easy": "bottom of every rep band, generous rest",
+        "hard": "top of the rep bands, shorter rest"
       }
     },
     {
-      "module_id": "MOD_UI_S07_FIGHT",
+      "module_id": "MOD_UI_S06_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",
@@ -1695,48 +1626,23 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 36,
-      "title": "The Hundreds (High-Volume Endurance)",
+      "duration_min": 32,
+      "title": "Functional Integration",
       "tier": "T3",
+      "weighted_flow": true,
       "prescription": [
         {
-          "name": "High-rep squats",
+          "name": "Single-leg Bulgarian lunges",
           "category": "squat_legs",
-          "sets": 5,
-          "reps": 40,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 60
-        },
-        {
-          "name": "Crunches",
-          "category": "core",
           "sets": 4,
-          "reps": 40,
+          "reps": 16,
           "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 45
+          "load_type": "either",
+          "rest_sec": 60,
+          "note": "8/side, unilateral — tuned below the air-squat ladder"
         },
         {
-          "name": "Half-to-full push-ups",
-          "category": "push",
-          "sets": 4,
-          "reps": 30,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 60
-        },
-        {
-          "name": "Tuck-ins",
-          "category": "core",
-          "sets": 4,
-          "reps": 40,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 45
-        },
-        {
-          "name": "Single-arm inverted rows",
+          "name": "Single-arm inverted rows with arm reach",
           "category": "pull",
           "sets": 4,
           "reps": 12,
@@ -1746,59 +1652,65 @@
           "note": "6/side, unilateral rows — tuned vs the pull-up ladder"
         },
         {
-          "name": "Pike-ups",
-          "category": "core",
+          "name": "Shoulder plate rotations",
+          "category": "mobility",
           "sets": 3,
           "reps": 15,
           "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 45,
-          "note": "harder core movement — tuned below the core ladder"
+          "load_type": "either",
+          "rest_sec": 45
         },
         {
-          "name": "Russian twists",
-          "category": "core",
-          "sets": 4,
-          "reps": 40,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 45,
-          "note": "counted total, alternating sides"
-        },
-        {
-          "name": "Dips",
+          "name": "Barbell push-outs to shoulder press",
           "category": "push",
           "sets": 4,
-          "reps": 15,
+          "reps": 8,
           "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 60,
-          "note": "dips harder than the push-up ladder — tuned down"
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120
         },
         {
-          "name": "V-up variations",
-          "category": "core",
+          "name": "Kettlebell around-the-world to high catch",
+          "category": "explosive",
           "sets": 4,
-          "reps": 20,
+          "reps": 10,
           "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 45,
-          "note": "harder core variation — tuned below the core ladder"
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120,
+          "note": "light bell — control the catch"
+        },
+        {
+          "name": "Weighted Turkish get-ups",
+          "category": "carry",
+          "sets": 4,
+          "reps": 6,
+          "count_mode": "reps",
+          "load_type": "weighted",
+          "load": "user_entered",
+          "rest_sec": 120,
+          "note": "3/side, slow and controlled"
         }
       ],
+      "rules": [
+        "Light-to-moderate loads — control and integration, not maxing",
+        "WEIGHTED FLOW: review/approve/swap -> Generate -> timed sets + adaptive rest (specs/27)"
+      ],
       "warmup": [
-        "dynamic_stretch_3min"
+        "dynamic_stretch_3min",
+        "activation_2min"
       ],
       "target_rpe": [
-        7,
+        6,
         8
       ],
       "rounds": [
         {
           "index": 1,
-          "length_sec": 2040,
+          "length_sec": 1800,
           "rest_sec": 0,
-          "goal": "hundreds_endurance_session"
+          "goal": "functional_integration_session"
         }
       ],
       "completion_rules": {
@@ -1807,15 +1719,12 @@
         "pain_flag_stop": true
       },
       "substitutions": {
-        "PULLUP_BAR": "band_row"
-      },
-      "difficulty_notes": {
-        "easy": "bottom of every rep band, generous rest",
-        "hard": "top of the rep bands, shorter rest"
+        "KETTLEBELL": "light_dumbbell",
+        "LIGHT_WEIGHTS": "band_or_backpack"
       }
     },
     {
-      "module_id": "MOD_UI_S08_FIGHT",
+      "module_id": "MOD_UI_S07_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",
@@ -2031,91 +1940,105 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 32,
-      "title": "Functional Integration",
-      "tier": "T3",
-      "weighted_flow": true,
+      "duration_min": 36,
+      "title": "Instinct Circuit",
+      "tier": "T4",
       "prescription": [
         {
-          "name": "Single-leg Bulgarian lunges",
-          "category": "squat_legs",
-          "sets": 4,
-          "reps": 16,
-          "count_mode": "reps",
-          "load_type": "either",
-          "rest_sec": 60,
-          "note": "8/side, unilateral — tuned below the air-squat ladder"
-        },
-        {
-          "name": "Single-arm inverted rows with arm reach",
-          "category": "pull",
+          "name": "Plyometric push-up ladder: plyo, fly-cross, superman, tornado",
+          "category": "push",
           "sets": 4,
           "reps": 12,
           "count_mode": "reps",
           "load_type": "bodyweight",
-          "rest_sec": 90,
-          "note": "6/side, unilateral rows — tuned vs the pull-up ladder"
+          "rest_sec": 75,
+          "note": "advanced plyo push-up variants — tuned well below the push-up ladder"
         },
         {
-          "name": "Shoulder plate rotations",
-          "category": "mobility",
-          "sets": 3,
-          "reps": 15,
-          "count_mode": "reps",
-          "load_type": "either",
-          "rest_sec": 45
-        },
-        {
-          "name": "Barbell push-outs to shoulder press",
-          "category": "push",
-          "sets": 4,
-          "reps": 8,
-          "count_mode": "reps",
-          "load_type": "weighted",
-          "load": "user_entered",
-          "rest_sec": 120
-        },
-        {
-          "name": "Kettlebell around-the-world to high catch",
+          "name": "Push-up to jump squat",
           "category": "explosive",
           "sets": 4,
           "reps": 10,
           "count_mode": "reps",
-          "load_type": "weighted",
-          "load": "user_entered",
-          "rest_sec": 120,
-          "note": "light bell — control the catch"
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "note": "jump contacts budgeted under the plyo cap",
+          "plyo_counted": true
         },
         {
-          "name": "Weighted Turkish get-ups",
-          "category": "carry",
-          "sets": 4,
-          "reps": 6,
+          "name": "Joystick angle squats",
+          "category": "squat_legs",
+          "sets": 5,
+          "reps": 40,
           "count_mode": "reps",
-          "load_type": "weighted",
-          "load": "user_entered",
-          "rest_sec": 120,
-          "note": "3/side, slow and controlled"
+          "load_type": "bodyweight",
+          "rest_sec": 60
+        },
+        {
+          "name": "Lunge to single-leg jump",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 8,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 75,
+          "note": "4/side, single-leg jumps — tuned low",
+          "plyo_counted": true
+        },
+        {
+          "name": "Push-ups in 1 minute (to target)",
+          "category": "push",
+          "sets": 1,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 90,
+          "note": "1-min test to a predetermined target — stop before form breaks"
+        },
+        {
+          "name": "Alternating push-ups off the medicine ball (1 minute, to target)",
+          "category": "push",
+          "sets": 1,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 90,
+          "note": "form gate on — stop before breakdown"
+        },
+        {
+          "name": "Power sets (slow eccentric, fast concentric): squats, single-arm rows, pull-ups, alternating kettlebell swings",
+          "category": "conditioning",
+          "sets": 4,
+          "duration_sec": 45,
+          "count_mode": "time",
+          "load_type": "either",
+          "rest_sec": 75,
+          "note": "circuit flow — slow down, explode up"
+        },
+        {
+          "name": "Depth jump finisher: depth jump to high jump to burpee to sprint",
+          "category": "explosive",
+          "sets": 3,
+          "reps": 5,
+          "count_mode": "reps",
+          "load_type": "bodyweight",
+          "rest_sec": 90,
+          "note": "chain kept low — shared plyo cap",
+          "plyo_counted": true
         }
-      ],
-      "rules": [
-        "Light-to-moderate loads — control and integration, not maxing",
-        "WEIGHTED FLOW: review/approve/swap -> Generate -> timed sets + adaptive rest (specs/27)"
       ],
       "warmup": [
         "dynamic_stretch_3min",
-        "activation_2min"
+        "activation_3min"
       ],
       "target_rpe": [
-        6,
-        8
+        7,
+        9
       ],
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1800,
+          "length_sec": 2100,
           "rest_sec": 0,
-          "goal": "functional_integration_session"
+          "goal": "instinct_circuit"
         }
       ],
       "completion_rules": {
@@ -2124,18 +2047,22 @@
         "pain_flag_stop": true
       },
       "substitutions": {
+        "MEDICINE_BALL": "floor_push_up_variations",
         "KETTLEBELL": "light_dumbbell",
-        "LIGHT_WEIGHTS": "band_or_backpack"
+        "PULLUP_BAR": "band_row"
+      },
+      "difficulty_notes": {
+        "easy": "standard push-ups and jumps only — no advanced plyo variants"
       }
     },
     {
-      "module_id": "MOD_UI_S09_FIGHT",
+      "module_id": "MOD_UI_S08_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 32,
-      "tier": "T3",
+      "tier": "T4",
       "title": "Flow-State Pressure Test",
       "round_source": "fight_focus",
       "drills": [
@@ -2376,130 +2303,103 @@
       "discipline": "multi",
       "difficulty": "normal",
       "format": "evening",
-      "duration_min": 36,
-      "title": "Instinct Circuit",
-      "tier": "T3",
+      "duration_min": 26,
+      "tier": "T2",
+      "title": "Sharpen and Breathe",
       "prescription": [
         {
-          "name": "Plyometric push-up ladder: plyo, fly-cross, superman, tornado",
-          "category": "push",
-          "sets": 4,
-          "reps": 12,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "note": "advanced plyo push-up variants — tuned well below the push-up ladder"
+          "name": "Walk, light jog, or easy bike",
+          "category": "conditioning",
+          "sets": 1,
+          "duration_sec": 600,
+          "count_mode": "time",
+          "rest_sec": 0,
+          "note": "deload — kept light"
         },
         {
-          "name": "Push-up to jump squat",
-          "category": "explosive",
-          "sets": 4,
+          "name": "Light jump rope",
+          "category": "conditioning",
+          "sets": 2,
+          "duration_sec": 60,
+          "count_mode": "time",
+          "rest_sec": 45,
+          "note": "deload — kept light"
+        },
+        {
+          "name": "Full mobility sequence",
+          "category": "mobility",
+          "sets": 1,
+          "duration_sec": 300,
+          "count_mode": "none",
+          "rest_sec": 0
+        },
+        {
+          "name": "Light core activation",
+          "category": "core",
+          "sets": 2,
           "reps": 10,
           "count_mode": "reps",
           "load_type": "bodyweight",
-          "rest_sec": 75,
-          "note": "jump contacts budgeted under the plyo cap",
-          "plyo_counted": true
+          "rest_sec": 30,
+          "note": "deload — kept light"
         },
         {
-          "name": "Joystick angle squats",
-          "category": "squat_legs",
-          "sets": 5,
-          "reps": 40,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 60
-        },
-        {
-          "name": "Lunge to single-leg jump",
-          "category": "explosive",
-          "sets": 3,
-          "reps": 8,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "note": "4/side, single-leg jumps — tuned low",
-          "plyo_counted": true
-        },
-        {
-          "name": "Push-ups in 1 minute (to target)",
-          "category": "push",
+          "name": "Breathing drills",
+          "category": "mobility",
           "sets": 1,
-          "duration_sec": 60,
-          "count_mode": "time",
-          "rest_sec": 90,
-          "note": "1-min test to a predetermined target — stop before form breaks"
+          "duration_sec": 180,
+          "count_mode": "none",
+          "rest_sec": 0,
+          "note": "breathing — uncounted"
         },
         {
-          "name": "Alternating push-ups off the medicine ball (1 minute, to target)",
-          "category": "push",
-          "sets": 1,
-          "duration_sec": 60,
-          "count_mode": "time",
-          "rest_sec": 90,
-          "note": "form gate on — stop before breakdown"
-        },
-        {
-          "name": "Power sets (slow eccentric, fast concentric): squats, single-arm rows, pull-ups, alternating kettlebell swings",
-          "category": "conditioning",
-          "sets": 4,
-          "duration_sec": 45,
-          "count_mode": "time",
-          "load_type": "either",
-          "rest_sec": 75,
-          "note": "circuit flow — slow down, explode up"
-        },
-        {
-          "name": "Depth jump finisher: depth jump to high jump to burpee to sprint",
+          "name": "Short low-volume power activation (a few clean jumps)",
           "category": "explosive",
-          "sets": 3,
+          "sets": 2,
           "reps": 5,
           "count_mode": "reps",
           "load_type": "bodyweight",
-          "rest_sec": 90,
-          "note": "chain kept low — shared plyo cap",
+          "rest_sec": 75,
+          "note": "deload — kept light; a few clean jumps only",
           "plyo_counted": true
         }
       ],
+      "rules": [
+        "No heavy training to failure"
+      ],
       "warmup": [
-        "dynamic_stretch_3min",
-        "activation_3min"
+        "dynamic_stretch_3min"
       ],
       "target_rpe": [
-        7,
-        9
+        4,
+        6
       ],
       "rounds": [
         {
           "index": 1,
-          "length_sec": 2100,
+          "length_sec": 1140,
           "rest_sec": 0,
-          "goal": "instinct_circuit"
+          "goal": "taper_activation_session"
         }
       ],
       "completion_rules": {
         "min_rounds_completed": 1,
-        "technique_breakdown_limit": 1,
+        "technique_breakdown_limit": 2,
         "pain_flag_stop": true
       },
       "substitutions": {
-        "MEDICINE_BALL": "floor_push_up_variations",
-        "KETTLEBELL": "light_dumbbell",
-        "PULLUP_BAR": "band_row"
-      },
-      "difficulty_notes": {
-        "easy": "standard push-ups and jumps only — no advanced plyo variants"
+        "JUMP_ROPE": "invisible_rope"
       }
     },
     {
-      "module_id": "MOD_UI_S10_FIGHT",
+      "module_id": "MOD_UI_S09_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",
       "format": "morning",
-      "duration_min": 22,
-      "tier": "T4",
-      "title": "Effortless Motion",
+      "duration_min": 26,
+      "tier": "T2",
+      "title": "Effortless Motion — Taper Rounds",
       "round_source": "fight_focus",
       "drills": [
         "Accuracy shadowboxing — every strike lands where intended",
@@ -2550,255 +2450,6 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "accuracy_shadowboxing",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "accuracy",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3"
-            ],
-            "complexity": "basic",
-            "callout": "voiced",
-            "emphasis": "every strike lands where intended"
-          }
-        },
-        {
-          "index": 2,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "flow_bag_30_40_percent",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "flow",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "rk"
-            ],
-            "complexity": "standard",
-            "callout": "voiced",
-            "emphasis": "form perfect, effort low"
-          }
-        },
-        {
-          "index": 3,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "clean_combos_angle_exits",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "combo_angle_off",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "4"
-            ],
-            "complexity": "standard",
-            "callout": "voiced",
-            "emphasis": "angle exit after every clean combination"
-          }
-        },
-        {
-          "index": 4,
-          "length_sec": 120,
-          "rest_sec": 60,
-          "goal": "flow_round",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "flow",
-            "allowed_strikes": [
-              "1",
-              "2",
-              "3",
-              "4",
-              "lk",
-              "rk"
-            ],
-            "complexity": "standard",
-            "callout": "voiced",
-            "emphasis": "speed feels free, not forced"
-          }
-        },
-        {
-          "index": 5,
-          "length_sec": 60,
-          "rest_sec": 90,
-          "goal": "speed_burst_full_recovery",
-          "combo_spec": {
-            "generate_combos": true,
-            "focus": "speed_burst",
-            "allowed_strikes": [
-              "1",
-              "2"
-            ],
-            "complexity": "burst",
-            "callout": "voiced",
-            "emphasis": "short burst, then full recovery"
-          }
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 4,
-        "technique_breakdown_limit": 1,
-        "pain_flag_stop": true
-      },
-      "substitutions": {
-        "HEAVY_BAG": "shadowboxing"
-      }
-    },
-    {
-      "module_id": "MOD_UI_S10_FIT",
-      "module_type": "fit",
-      "discipline": "multi",
-      "difficulty": "normal",
-      "format": "evening",
-      "duration_min": 22,
-      "tier": "T4",
-      "title": "Sharpen, Don't Grind",
-      "prescription": [
-        {
-          "name": "Easy roadwork or bike",
-          "category": "conditioning",
-          "sets": 1,
-          "duration_sec": 360,
-          "count_mode": "time",
-          "rest_sec": 60,
-          "note": "deload — kept light"
-        },
-        {
-          "name": "Light jump rope",
-          "category": "conditioning",
-          "sets": 2,
-          "duration_sec": 60,
-          "count_mode": "time",
-          "rest_sec": 45,
-          "note": "deload — kept light"
-        },
-        {
-          "name": "Mobility sequence",
-          "category": "mobility",
-          "sets": 1,
-          "duration_sec": 240,
-          "count_mode": "none",
-          "rest_sec": 0
-        },
-        {
-          "name": "Core stability holds",
-          "category": "hold",
-          "sets": 2,
-          "duration_sec": 30,
-          "count_mode": "time",
-          "rest_sec": 45,
-          "note": "deload — kept light"
-        },
-        {
-          "name": "Short low-volume power activation (a few clean jumps)",
-          "category": "explosive",
-          "sets": 2,
-          "reps": 5,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 75,
-          "note": "deload — kept light; a few clean jumps only",
-          "plyo_counted": true
-        }
-      ],
-      "rules": [
-        "No heavy training to failure"
-      ],
-      "warmup": [
-        "dynamic_stretch_3min"
-      ],
-      "target_rpe": [
-        4,
-        6
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 1140,
-          "rest_sec": 0,
-          "goal": "taper_activation_session"
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 1,
-        "technique_breakdown_limit": 2,
-        "pain_flag_stop": true
-      },
-      "substitutions": {
-        "JUMP_ROPE": "invisible_rope"
-      }
-    },
-    {
-      "module_id": "MOD_UI_S11_FIGHT",
-      "module_type": "fight",
-      "discipline": "kickboxing",
-      "difficulty": "normal",
-      "format": "single",
-      "duration_min": 22,
-      "tier": "T4",
-      "title": "Still Mind",
-      "round_source": "fight_focus",
-      "drills": [
-        "Opening meditation round: visualize the trial, every strike and maneuver (completion-only)",
-        "Relaxed flow shadowboxing",
-        "Primary-combination review at low effort",
-        "Defensive review — slips, rolls, angles",
-        "Controlled final speed bursts",
-        "Closing meditation: breathe, mind-body sync (completion-only)"
-      ],
-      "canonical_map": [
-        {
-          "drill": "Opening meditation round",
-          "discipline": "mma",
-          "canonical": "visualization (completion-only)"
-        },
-        {
-          "drill": "Relaxed flow shadowboxing",
-          "discipline": "boxing",
-          "canonical": "relaxed shadowboxing"
-        },
-        {
-          "drill": "Primary-combination review",
-          "discipline": "kickboxing",
-          "canonical": "combination review at low effort"
-        },
-        {
-          "drill": "Defensive review — slips, rolls, angles",
-          "discipline": "boxing",
-          "canonical": "slip / roll / angle-out review"
-        },
-        {
-          "drill": "Controlled final speed bursts",
-          "discipline": "boxing",
-          "canonical": "controlled speed burst"
-        },
-        {
-          "drill": "Closing meditation",
-          "discipline": "mma",
-          "canonical": "breathing + mind-body sync (completion-only)"
-        }
-      ],
-      "finishers": {
-        "movements": [],
-        "placement": "none",
-        "note": "Taper stage — no finisher; leave feeling fresher than you started."
-      },
-      "warmup": [],
-      "target_rpe": [
-        4,
-        6
-      ],
-      "rounds": [
-        {
-          "index": 1,
           "length_sec": 180,
           "rest_sec": 30,
           "goal": "meditation_visualization",
@@ -2835,37 +2486,39 @@
         {
           "index": 3,
           "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "primary_combo_review",
+          "rest_sec": 60,
+          "goal": "flow_bag_30_40_percent",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "combo_review",
+            "focus": "flow",
             "allowed_strikes": [
               "1",
               "2",
               "3",
               "rk"
             ],
-            "complexity": "basic",
+            "complexity": "standard",
             "callout": "voiced",
-            "emphasis": "low effort — review your primary combinations"
+            "emphasis": "form perfect, effort low"
           }
         },
         {
           "index": 4,
           "length_sec": 120,
-          "rest_sec": 45,
-          "goal": "defensive_review",
+          "rest_sec": 60,
+          "goal": "clean_combos_angle_exits",
           "combo_spec": {
-            "generate_combos": false,
-            "focus": "defense_review",
-            "technique_cues": [
-              "slip-left",
-              "slip-right",
-              "roll",
-              "angle out"
+            "generate_combos": true,
+            "focus": "combo_angle_off",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4"
             ],
-            "callout": "voiced"
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "angle exit after every clean combination"
           }
         },
         {
@@ -2904,89 +2557,15 @@
       ],
       "completion_rules": {
         "min_rounds_completed": 4,
-        "technique_breakdown_limit": 2,
+        "technique_breakdown_limit": 1,
         "pain_flag_stop": true
       },
-      "substitutions": {},
-      "mission_note": "Finish feeling faster, calmer, and more confident than at the start."
+      "substitutions": {
+        "HEAVY_BAG": "shadowboxing"
+      }
     },
     {
-      "module_id": "MOD_UI_S11_FIT",
-      "module_type": "fit",
-      "discipline": "multi",
-      "difficulty": "normal",
-      "format": "single",
-      "duration_min": 18,
-      "tier": "T4",
-      "title": "Recovery and Breath",
-      "prescription": [
-        {
-          "name": "Walk, light jog, or easy bike",
-          "category": "conditioning",
-          "sets": 1,
-          "duration_sec": 600,
-          "count_mode": "time",
-          "rest_sec": 0,
-          "note": "deload — kept light"
-        },
-        {
-          "name": "Full mobility sequence",
-          "category": "mobility",
-          "sets": 1,
-          "duration_sec": 300,
-          "count_mode": "none",
-          "rest_sec": 0
-        },
-        {
-          "name": "Light core activation",
-          "category": "core",
-          "sets": 2,
-          "reps": 10,
-          "count_mode": "reps",
-          "load_type": "bodyweight",
-          "rest_sec": 30,
-          "note": "deload — kept light"
-        },
-        {
-          "name": "Breathing drills",
-          "category": "mobility",
-          "sets": 1,
-          "duration_sec": 180,
-          "count_mode": "none",
-          "rest_sec": 0,
-          "note": "breathing — uncounted"
-        },
-        {
-          "name": "Neck and shoulder mobility",
-          "category": "mobility",
-          "sets": 1,
-          "duration_sec": 120,
-          "count_mode": "none",
-          "rest_sec": 0
-        }
-      ],
-      "warmup": [],
-      "target_rpe": [
-        3,
-        5
-      ],
-      "rounds": [
-        {
-          "index": 1,
-          "length_sec": 1080,
-          "rest_sec": 0,
-          "goal": "recovery_prep_session"
-        }
-      ],
-      "completion_rules": {
-        "min_rounds_completed": 1,
-        "technique_breakdown_limit": 3,
-        "pain_flag_stop": true
-      },
-      "substitutions": {}
-    },
-    {
-      "module_id": "MOD_UI_S12_FIT",
+      "module_id": "MOD_UI_S10_FIT",
       "module_type": "fit",
       "discipline": "multi",
       "difficulty": "normal",
@@ -3106,7 +2685,7 @@
       }
     },
     {
-      "module_id": "MOD_UI_S12_FIGHT",
+      "module_id": "MOD_UI_S10_FIGHT",
       "module_type": "fight",
       "discipline": "kickboxing",
       "difficulty": "normal",

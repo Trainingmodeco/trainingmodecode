@@ -4,10 +4,11 @@ import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import { fightTrophyStates } from './data/fightTrophies';
 import Embers from './Embers';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Award } from 'lucide-react';
 import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
 import { VISIBLE_TIERS, getCurrentTier } from './data/tiers';
+import { groupedAchievements, overallProgress, ACHIEVEMENTS_UPDATED } from './data/achievements';
 
 // Progress · Overview — pixel match of design 23a:
 // PROGRESS header + OVERVIEW/TROPHIES toggle · rank card · XP-this-month trend ·
@@ -146,6 +147,74 @@ function ProgressDetail({ stats, rankName, level, onClose }) {
 
 function Card({ children, style, ...rest }) {
   return <div {...rest} style={{ background: 'rgba(8,2,18,0.85)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 11, ...style }}>{children}</div>;
+}
+
+
+// Item 10c — achievements on the Progress tab. Nine universal families plus
+// every campaign's own list, grouped, earned in gold and locked as a dimmed
+// silhouette with the unlock condition spelled out. No badge art ships yet, so
+// each tile renders a themed glyph rather than blocking on assets.
+function AchievementsSection() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setTick(t => t + 1);
+    window.addEventListener(ACHIEVEMENTS_UPDATED, bump);
+    window.addEventListener('storage', bump);
+    return () => { window.removeEventListener(ACHIEVEMENTS_UPDATED, bump); window.removeEventListener('storage', bump); };
+  }, []);
+
+  const groups = groupedAchievements();
+  const overall = overallProgress();
+  if (!overall.total) return null;
+
+  return (
+    <div style={{ marginBottom: 13 }} key={tick}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>ACHIEVEMENTS</span>
+        <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{overall.earned}/{overall.total}</span>
+      </div>
+
+      {groups.map(g => (
+        <div key={g.key} style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.16em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
+            <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#6d5a8f', flexShrink: 0, marginLeft: 8 }}>{g.earned}/{g.total}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+            {g.items.map(a => {
+              const on = !!a.earnedAt;
+              return (
+                <div key={a.id} title={a.trigger} style={{
+                  display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px', borderRadius: 9,
+                  background: on ? 'rgba(253,224,71,0.06)' : 'rgba(8,2,18,0.8)',
+                  border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(255,255,255,0.09)'}`,
+                  opacity: on ? 1 : 0.55,
+                }}>
+                  <div style={{
+                    flexShrink: 0, width: 22, height: 22, borderRadius: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: on ? 'rgba(253,224,71,0.14)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${on ? 'rgba(253,224,71,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                  }}>
+                    <Award size={12} color={on ? '#fde047' : '#6d5a8f'} strokeWidth={2}/>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ font: "800 8px 'Orbitron',sans-serif", color: on ? '#fde047' : '#9a90b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {a.name.toUpperCase()}
+                    </div>
+                    <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#8b83a8', lineHeight: 1.25, marginTop: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {on ? 'Unlocked' : a.trigger}
+                    </div>
+                  </div>
+                  {!on && <span style={{ flexShrink: 0, fontSize: 9 }}>🔒</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function ProgressScreen({ onHome, profile }) {
@@ -314,6 +383,8 @@ export default function ProgressScreen({ onHome, profile }) {
                   ))}
                 </div>
               </div>
+
+              <AchievementsSection/>
 
               {/* Trophy grid by mode (design 23b) */}
               {TROPHY_GROUPS.map(g => {

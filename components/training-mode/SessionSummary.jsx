@@ -1,22 +1,29 @@
 import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
 import { calculatePartialXp } from './utils/missionIntegrity';
+import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
 const GOLD = '#fde047';
 
-export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome }) {
+export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [] }) {
   const completed = typeof completedRounds === 'number' ? completedRounds : rounds.length;
   const totalPlanned = cfg.rounds || rounds.length;
-  const stoppedEarly = completed < totalPlanned;
+  // Item 9 — the engine decides how this ended, not a round count. A session
+  // can now come back fail or validation_failed, not just success/partial.
+  const verdict = resolveOutcome({
+    completed, total: totalPlanned, difficulty: cfg.difficulty, integrityResult,
+  });
+  const stoppedEarly = verdict.outcome !== 'pass';
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);
 
   const baseXp = completed * 20 + (completed === totalPlanned ? 50 : 0);
-  const xp = integrityResult?.awardXp
+  const rawXp = integrityResult?.awardXp
     ? calculatePartialXp(baseXp, integrityResult.validCompletedUnits, integrityResult.totalRequiredUnits)
     : (integrityResult ? 0 : baseXp);
+  const xp = xpForOutcome(verdict.outcome, rawXp);
   const isCombo = cfg.mode === 'Combo Coach';
   const modeName = isCombo ? 'Combo Coach' : 'Fight Focus';
 
@@ -73,10 +80,10 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
 
   return (
     <MissionComplete
-      variant={stoppedEarly ? 'partial' : 'success'}
-      eyebrow={stoppedEarly ? 'SESSION STOPPED' : 'SESSION COMPLETE'}
-      title={stoppedEarly ? 'GOOD EFFORT' : 'GOOD WORK'}
-      subtitle={`${discipline} · ${cfg.difficulty} · ${modeName}`}
+      variant={verdict.preset.variant}
+      eyebrow={verdict.preset.eyebrow}
+      title={verdict.preset.title}
+      subtitle={`${discipline} · ${cfg.difficulty} · ${cfg.archetypeName || modeName}`}
       accent={GOLD}
       xp={xp}
       heroImage="/static/trophies/mission-complete-fight.webp"
@@ -84,9 +91,11 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       integrityResult={integrityResult}
       stats={statRow}
       extra={recap}
+      failReason={verdict.response}
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
       actions={[
         { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary' },
+        ...extraActions,
         { label: 'CHANGE DISCIPLINE', onClick: onBack, kind: 'secondary' },
         { label: 'BACK TO START', onClick: onHome, kind: 'ghost' },
       ]}

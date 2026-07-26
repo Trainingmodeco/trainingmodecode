@@ -10,6 +10,7 @@ import { trackEvent } from './analytics';
 
 const KEY = 'tm_ghosts_v1';
 const LAST_KEY = 'tm_ghost_last_battle';
+const VS_VARIANT_KEY = 'tm_ghost_vs_variant';
 const VICTORY_XP = 75; // bonus on a win; a loss still keeps normal session XP
 
 function load() {
@@ -100,6 +101,26 @@ export function finishGhostBattle(ghost, you) {
 
 export function getLastBattle() {
   try { const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(LAST_KEY) : null; return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+
+// Item 11a — which of the three VS art poses to show next. Rotates 1→2→3→1 and
+// persists, so the same pose never lands two battles running. The result screen
+// reads currentVsVariant() instead of advancing again, so a single battle shows
+// the same pose before and after.
+export function currentVsVariant() {
+  try {
+    if (typeof localStorage === 'undefined') return 1;
+    const n = Number(localStorage.getItem(VS_VARIANT_KEY));
+    return n >= 1 && n <= 3 ? n : 1;
+  } catch { return 1; }
+}
+
+export function nextVsVariant() {
+  let prev = 0;
+  try { if (typeof localStorage !== 'undefined') prev = Number(localStorage.getItem(VS_VARIANT_KEY)) || 0; } catch { /* noop */ }
+  const next = (prev % 3) + 1;
+  try { if (typeof localStorage !== 'undefined') localStorage.setItem(VS_VARIANT_KEY, String(next)); } catch { /* quota */ }
+  return next;
 }
 
 // Re-export the live replay counter for the timer HUD.

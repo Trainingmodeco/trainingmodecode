@@ -10,6 +10,7 @@ import { loadStats, getStreak, getLevel, getLevelProgress, getWeeklySessions } f
 import { getCurrentTier, tierImage } from '../data/tiers';
 import { loadProfile } from '../data/userProfile';
 import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
+import AchievementToast from './AchievementToast';
 
 // Design 24f — shared Mission Complete screen for every mode. A celebratory
 // medal hero with an animated XP count-up, a mode-tinted headline, a stat
@@ -68,8 +69,18 @@ function useCountUp(target, ms = 900) {
   return n;
 }
 
+// Item 9 — the four outcomes every mode can now end on. `fail` and
+// `validation_failed` use the same colour language as the Arcade overlay
+// (red / amber) so an outcome reads the same wherever it appears.
+const VARIANT = {
+  success:           { label: 'MISSION COMPLETE',  accent: '#fde047', eyebrowColor: '#facc15', glow: 'rgba(253,224,71,0.45)', pulse: true  },
+  partial:           { label: 'GOOD EFFORT',       accent: '#a855f7', eyebrowColor: '#c9a6ff', glow: 'rgba(168,85,247,0.40)', pulse: false },
+  fail:              { label: 'MISSION FAILED',    accent: '#ef4444', eyebrowColor: '#fca5a5', glow: 'rgba(239,68,68,0.40)',  pulse: false },
+  validation_failed: { label: 'VALIDATION FAILED', accent: '#f59e0b', eyebrowColor: '#fcd34d', glow: 'rgba(245,158,11,0.40)', pulse: false },
+};
+
 export default function MissionComplete({
-  variant = 'success',      // 'success' | 'partial'
+  variant = 'success',      // 'success' | 'partial' | 'fail' | 'validation_failed'
   eyebrow,                  // optional override for the ◈ … ◈ line
   title,
   subtitle,
@@ -83,13 +94,25 @@ export default function MissionComplete({
   heroImage,                // badge art for a completed session
   partialBadge,             // badge art for a stopped/partial (GOOD EFFORT) session
   onHero,                   // optional: tap the badge to leave (e.g. arcade → saga select)
+  failReason,               // engine's guidance line, shown on fail / validation_failed
+  achievements = [],        // item 10b — newly unlocked, shown as a toast on top
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
 }) {
-  const partial = variant === 'partial';
-  const label = eyebrow || (partial ? 'GOOD EFFORT' : 'MISSION COMPLETE');
+  const v = VARIANT[variant] || VARIANT.success;
+  const failed = variant === 'fail' || variant === 'validation_failed';
+  // `partial` still drives the muted layout (no rays, no pulse, ribbon badge);
+  // the two failure variants share that quieter treatment.
+  const partial = variant === 'partial' || failed;
+  const label = eyebrow || v.label;
+  // A win uses the accent it was handed (modes have their own gold/violet); the
+  // failure variants force their own so red always reads as red.
+  const tone = failed ? v.accent : (accent || v.accent);
   // Each variant shows its own emblem: the MISSION COMPLETE badge on a win, the
-  // GOOD EFFORT badge on a stopped session. No art → the violet medal.
-  const badge = partial ? partialBadge : heroImage;
+  // GOOD EFFORT badge on a stopped session. Failure reuses the Arcade art the
+  // app already ships. No art → the medal.
+  const badge = variant === 'fail' ? '/static/arcade/mission-failure.webp'
+    : variant === 'validation_failed' ? '/static/arcade/validation-fail.webp'
+    : partial ? partialBadge : heroImage;
   const displayXp = useCountUp(xp);
 
   const [stats0] = useState(() => loadStats());
@@ -103,12 +126,13 @@ export default function MissionComplete({
   const weekModes = new Set(weekSess.map(s => s.type)).size;
   const pct = lp.needed ? Math.round((lp.current / lp.needed) * 100) : 100;
 
-  const glowA = partial ? 'rgba(168,85,247,0.4)' : hexA(accent, 0.5);
-  const glowB = partial ? 'rgba(168,85,247,0.18)' : hexA(accent, 0.22);
+  const glowA = failed ? v.glow : partial ? 'rgba(168,85,247,0.4)' : hexA(tone, 0.5);
+  const glowB = failed ? hexA(tone, 0.18) : partial ? 'rgba(168,85,247,0.18)' : hexA(tone, 0.22);
 
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: mcCSS }}/>
+      {achievements.length > 0 && <AchievementToast unlocked={achievements}/>}
       <Embers count={5}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column' }}>
         {/* LT-5 — no scroll container of our own: ScreenRouter already scrolls
@@ -129,28 +153,31 @@ export default function MissionComplete({
                 {/* maxWidth keeps wide emblems (GOOD EFFORT ribbon) in the same
                     visual footprint as the square badges — every trophy renders
                     at a similar size. */}
-                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 210, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(accent, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
+                <SafeImage src={badge} alt="" style={{ height: '100%', width: 'auto', maxWidth: 210, objectFit: 'contain', filter: `drop-shadow(0 0 16px ${hexA(tone, 0.45)}) drop-shadow(0 4px 10px rgba(0,0,0,0.5))` }}/>
               </div>
             ) : (
             <div style={{ position: 'relative', width: 76, height: 76, marginBottom: 6 }}>
               {!partial && (
-                <div aria-hidden style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: `conic-gradient(from 0deg, transparent 0deg, ${hexA(accent, 0.28)} 20deg, transparent 40deg, transparent 180deg, ${hexA(accent, 0.28)} 200deg, transparent 220deg)`, animation: 'mc-rays-spin 9s linear infinite', filter: 'blur(1px)' }}/>
+                <div aria-hidden style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: `conic-gradient(from 0deg, transparent 0deg, ${hexA(tone, 0.28)} 20deg, transparent 40deg, transparent 180deg, ${hexA(tone, 0.28)} 200deg, transparent 220deg)`, animation: 'mc-rays-spin 9s linear infinite', filter: 'blur(1px)' }}/>
               )}
               <div style={{
                 position: 'relative', width: 76, height: 76, borderRadius: '50%',
                 background: 'radial-gradient(circle at 50% 35%, rgba(30,10,50,0.95), rgba(8,2,18,0.95))',
-                border: `2px solid ${partial ? 'rgba(168,85,247,0.5)' : accent}`,
+                border: `2px solid ${failed ? tone : partial ? 'rgba(168,85,247,0.5)' : tone}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 ['--mc-glow-a']: glowA, ['--mc-glow-b']: glowB,
                 animation: partial ? 'none' : 'mc-medal-pulse 2.5s ease-in-out infinite',
               }}>
-                <Trophy size={36} color={partial ? '#b06aff' : accent} strokeWidth={1.6}/>
+                <Trophy size={36} color={failed ? tone : partial ? '#b06aff' : tone} strokeWidth={1.6}/>
               </div>
             </div>
             )}
-            <div style={{ font: "700 7px 'Press Start 2P',monospace", color: partial ? '#c9a6ff' : '#facc15', letterSpacing: '0.16em', marginBottom: 4 }}>◈ {label} ◈</div>
+            <div style={{ font: "700 7px 'Press Start 2P',monospace", color: v.eyebrowColor, letterSpacing: '0.16em', marginBottom: 4 }}>◈ {label} ◈</div>
             <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.08 }}>{title}</div>
             {subtitle && <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, textAlign: 'center' }}>{subtitle}</div>}
+            {failed && failReason && (
+              <div style={{ font: "500 10px 'Rajdhani',sans-serif", color: hexA(tone, 0.85), marginTop: 5, textAlign: 'center', maxWidth: 260, lineHeight: 1.45 }}>{failReason}</div>
+            )}
           </div>
 
           {integrityResult && <div style={{ marginBottom: 6 }}><MissionIntegrityBanner integrityResult={integrityResult}/></div>}
@@ -159,9 +186,9 @@ export default function MissionComplete({
               above the stat grid saying much the same thing; merged, it costs a
               third of the height. */}
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
-            <div style={{ borderRadius: 10, border: `1px solid ${hexA(accent, 0.45)}`, background: `linear-gradient(135deg, ${hexA(accent, 0.14)}, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
-              <div style={{ font: "900 17px 'Orbitron',sans-serif", color: accent, textShadow: `0 0 14px ${hexA(accent, 0.5)}` }}>+{displayXp}</div>
-              <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.08em', marginTop: 1 }}>XP EARNED</div>
+            <div style={{ borderRadius: 10, border: `1px solid ${hexA(tone, 0.45)}`, background: `linear-gradient(135deg, ${hexA(tone, 0.14)}, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
+              <div style={{ font: "900 17px 'Orbitron',sans-serif", color: tone, textShadow: `0 0 14px ${hexA(tone, 0.5)}` }}>{failed ? '0' : `+${displayXp}`}</div>
+              <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: v.eyebrowColor, letterSpacing: '0.08em', marginTop: 1 }}>{failed ? 'NO XP AWARDED' : 'XP EARNED'}</div>
             </div>
             {stats.map((s, i) => <Stat key={i} {...s}/>)}
           </div>
@@ -186,8 +213,11 @@ export default function MissionComplete({
           </div>
 
           {/* Share your win — sits right under YOUR PROGRESS (LT-5) so the
-              athlete sees it without scrolling past the CTAs. */}
-          {shareData && (
+              athlete sees it without scrolling past the CTAs. Never on a
+              failure: a failed session still banks a little XP (the ruleset's
+              0.15), which is enough for the share prompt to think it has a win
+              to offer. It does not. */}
+          {shareData && !failed && (
             <div style={{ marginBottom: 6 }}>
               <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, level }}/>
             </div>

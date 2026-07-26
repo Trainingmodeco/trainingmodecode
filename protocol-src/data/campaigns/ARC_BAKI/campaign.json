@@ -3,9 +3,17 @@
   "name": "THE GRAPPLER — STRONGEST TEEN PROTOCOL",
   "type": "fit_fight",
   "combat_style": "All-around striker-grappler — calisthenics mastery + boxing power + karate/kung-fu striking + grappling + grip",
-  "stage_count": 12,
-  "paths_available": ["fit", "fight", "full_arc"],
-  "difficulties": ["easy", "normal", "hard"],
+  "stage_count": 10,
+  "paths_available": [
+    "fit",
+    "fight",
+    "full_arc"
+  ],
+  "difficulties": [
+    "easy",
+    "normal",
+    "hard"
+  ],
   "fantasy": "Chase the monsters of the underground arena — build absurd bodyweight strength, an iron core, and a fighter's whole toolbox, all through real, safe training.",
   "tagline": "Fight the phantom. Chase the ogre.",
   "core_rule": "Chase the monster, train like a human.",
@@ -13,52 +21,204 @@
   "sourcing_note": "Grounded in the deep-research report (saved at protocol-src/research/baki-research-report.md). Fan/creator structure from SuperheroJacked's Baki calisthenics program (Upper/Lower/Full-Body split + HIIT + dedicated core + shadow-boxing for the 'phantom' theme) and its per-character library (Katsumi karate, Retsu kung fu, Hanayama grip). Canon character facts from the Baki wiki. NO claims were refuted, but the research explicitly FLAGGED as non-trainable fantasy: Jack's PEDs/titanium teeth/30-hr training, Yujiro's genetic Demon Back, and all superhuman feats — these are handled as lore only. Makiwara/knuckle 'conditioning' safety was NOT well-sourced, so this campaign replaces bare-knuckle board conditioning with safe heavy-bag work + wrist/structure alignment and flags makiwara as traditional-but-injury-risky.",
   "phantom_motif": "Baki's signature imaginary-opponent 'phantom' fighting maps to shadow-boxing/visualization. Fight rounds flagged with a 'phantom' goal are shadow-fights against an imagined opponent (react, counter, flow) and double as mental training. Completing every phantom round across the campaign earns THE PHANTOM achievement.",
   "persona_progression": [
-    { "persona": "Young Baki",               "stages": [1, 2],  "theme": "Calisthenics base and the iron core — bodyweight mastery, first phantom rounds" },
-    { "persona": "Underground Arena",        "stages": [3],     "theme": "Striking base — boxing power and explosiveness" },
-    { "persona": "Katsumi Orochi (Karate)",  "stages": [4],     "theme": "One-punch power — karate striking (SAFE bag conditioning, not bare knuckles)" },
-    { "persona": "Retsu Kaioh (Kung Fu)",    "stages": [5],     "theme": "Chinese kenpo — stances, forms, speed" },
-    { "persona": "Kaoru Hanayama (Grip)",    "stages": [6],     "theme": "Iron grip and clinch — grip strength, carries, grappling control" },
-    { "persona": "Izou Motobe (Jiu-Jitsu)",  "stages": [7],     "theme": "Ground flow — solo grappling and submission drills" },
-    { "persona": "Jack Hanma (Size/Power)",  "stages": [8],     "theme": "Raw size and power — heavy compound strength. FANTASY-FLAGGED: no PEDs, no extreme bulk, no 30-hr training" },
-    { "persona": "Pickle (Primal Strength)", "stages": [9],     "theme": "Primal functional strength — the hardest block begins" },
-    { "persona": "The Underground Peak",     "stages": [10, 11], "theme": "Everything integrated — the strongest of the arena, escalating survival" },
-    { "persona": "Yujiro Hanma — The Ogre",  "stages": [12],    "theme": "The father-son boss — all-around mastery + mental dominance, form/control gate" }
+    {
+      "persona": "Young Baki",
+      "stages": [
+        1,
+        2
+      ],
+      "theme": "Calisthenics base and the iron core — bodyweight mastery, first phantom rounds"
+    },
+    {
+      "persona": "Underground Arena",
+      "stages": [
+        3
+      ],
+      "theme": "Striking base — boxing power and explosiveness"
+    },
+    {
+      "persona": "Katsumi Orochi (Karate)",
+      "stages": [
+        4
+      ],
+      "theme": "One-punch power — karate striking (SAFE bag conditioning, not bare knuckles)"
+    },
+    {
+      "persona": "Retsu Kaioh (Kung Fu)",
+      "stages": [
+        5
+      ],
+      "theme": "Chinese kenpo — stances, forms, speed"
+    },
+    {
+      "persona": "Kaoru Hanayama (Grip)",
+      "stages": [
+        6
+      ],
+      "theme": "Iron grip and clinch — grip strength, carries, grappling control"
+    },
+    {
+      "persona": "Izou Motobe (Jiu-Jitsu)",
+      "stages": [
+        7
+      ],
+      "theme": "Ground flow — solo grappling and submission drills"
+    },
+    {
+      "persona": "Jack Hanma / The Underground Peak",
+      "stages": [
+        8
+      ],
+      "theme": "Raw size and power — heavy compound strength, then the integrated toolbox. FANTASY-FLAGGED: no PEDs, no extreme bulk, no 30-hr training"
+    },
+    {
+      "persona": "Pickle / The Underground Peak",
+      "stages": [
+        9
+      ],
+      "theme": "Primal functional strength at peak volume — the hardest stage before the boss"
+    },
+    {
+      "persona": "Yujiro Hanma — The Ogre",
+      "stages": [
+        10
+      ],
+      "theme": "The father-son boss — all-around mastery + mental dominance, form/control gate"
+    }
   ],
   "fit_focus": [
-    "High-rep, high-speed calisthenics (pull-ups, push-ups)", "Extreme core and abs", "Bodyweight mastery",
-    "Explosive power", "Grip and forearm strength", "Heavy compound strength (size/power stage)",
-    "Primal functional strength", "HIIT conditioning", "Mobility for grappling"
+    "High-rep, high-speed calisthenics (pull-ups, push-ups)",
+    "Extreme core and abs",
+    "Bodyweight mastery",
+    "Explosive power",
+    "Grip and forearm strength",
+    "Heavy compound strength (size/power stage)",
+    "Primal functional strength",
+    "HIIT conditioning",
+    "Mobility for grappling"
   ],
   "fight_focus": [
-    "Shadow-fighting the phantom (imagined opponent)", "Boxing power and the jab", "Karate one-punch power",
-    "Kung-fu stances, forms and speed", "Grip-based clinch and control", "Solo grappling and submission flow",
-    "All-around striker-grappler combinations", "Counter and flow under pressure", "Mental dominance / visualization"
+    "Shadow-fighting the phantom (imagined opponent)",
+    "Boxing power and the jab",
+    "Karate one-punch power",
+    "Kung-fu stances, forms and speed",
+    "Grip-based clinch and control",
+    "Solo grappling and submission flow",
+    "All-around striker-grappler combinations",
+    "Counter and flow under pressure",
+    "Mental dominance / visualization"
   ],
-  "split_stages": [4, 11],
-  "double_training_stages": [4, 11],
-  "peak_stage": 11,
+  "split_stages": [
+    4,
+    9
+  ],
+  "double_training_stages": [
+    4,
+    9
+  ],
+  "peak_stage": 9,
   "difficulty_scaling": {
     "easy": {
       "label": "CHALLENGER",
-      "fit": { "working_sets": [2, 3], "resistance": "bodyweight or light", "rep_band": [10, 15], "rest": "longer" },
-      "fight": { "rounds": [4, 5], "round_sec": 60, "rest_sec": [60, 75], "requirements": "basic strikes, stance work, solo drills; no maximal loads" },
-      "target_rpe": [4, 6]
+      "fit": {
+        "working_sets": [
+          2,
+          3
+        ],
+        "resistance": "bodyweight or light",
+        "rep_band": [
+          10,
+          15
+        ],
+        "rest": "longer"
+      },
+      "fight": {
+        "rounds": [
+          4,
+          5
+        ],
+        "round_sec": 60,
+        "rest_sec": [
+          60,
+          75
+        ],
+        "requirements": "basic strikes, stance work, solo drills; no maximal loads"
+      },
+      "target_rpe": [
+        4,
+        6
+      ]
     },
     "normal": {
       "label": "GRAPPLER",
-      "fit": { "working_sets": [3, 4], "resistance": "moderate / harder calisthenics progressions", "rep_band": [8, 12], "rest": "moderate" },
-      "fight": { "rounds": [5, 6], "round_sec": 120, "rest_sec": [45, 60], "requirements": "combinations, phantom rounds, grip/grappling flow; bag recommended" },
-      "target_rpe": [6, 8]
+      "fit": {
+        "working_sets": [
+          3,
+          4
+        ],
+        "resistance": "moderate / harder calisthenics progressions",
+        "rep_band": [
+          8,
+          12
+        ],
+        "rest": "moderate"
+      },
+      "fight": {
+        "rounds": [
+          5,
+          6
+        ],
+        "round_sec": 120,
+        "rest_sec": [
+          45,
+          60
+        ],
+        "requirements": "combinations, phantom rounds, grip/grappling flow; bag recommended"
+      },
+      "target_rpe": [
+        6,
+        8
+      ]
     },
     "hard": {
       "label": "STRONGEST",
-      "fit": { "working_sets": [4, 5], "resistance": "advanced calisthenics or heavy compound", "rep_band": [5, 8], "rest": "shorter (never to failure)" },
-      "fight": { "rounds": [6, 8], "round_sec": 180, "rest_sec": [30, 45], "requirements": "high-output combinations, sustained phantom flow, advanced grappling; experienced athletes" },
-      "target_rpe": [7, 9]
+      "fit": {
+        "working_sets": [
+          4,
+          5
+        ],
+        "resistance": "advanced calisthenics or heavy compound",
+        "rep_band": [
+          5,
+          8
+        ],
+        "rest": "shorter (never to failure)"
+      },
+      "fight": {
+        "rounds": [
+          6,
+          8
+        ],
+        "round_sec": 180,
+        "rest_sec": [
+          30,
+          45
+        ],
+        "requirements": "high-output combinations, sustained phantom flow, advanced grappling; experienced athletes"
+      },
+      "target_rpe": [
+        7,
+        9
+      ]
     },
     "hard_never_requires": [
-      "Bare-knuckle / makiwara board conditioning", "PEDs or extreme bulk protocols", "Training beyond sane daily volume",
-      "Deliberately taking hits", "Unsupervised hard sparring", "Training through sharp pain", "Sets to failure"
+      "Bare-knuckle / makiwara board conditioning",
+      "PEDs or extreme bulk protocols",
+      "Training beyond sane daily volume",
+      "Deliberately taking hits",
+      "Unsupervised hard sparring",
+      "Training through sharp pain",
+      "Sets to failure"
     ]
   },
   "safety_notes": {
@@ -68,51 +228,156 @@
     "overtraining": "High-volume calisthenics and HIIT stages cap total volume, keep predetermined targets, and never prescribe max-until-collapse."
   },
   "equipment_profiles": {
-    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
-    "B_MINIMAL": ["PULLUP_BAR", "MAT", "BAND", "GRIP_TRAINER"],
-    "C_FIGHT_TRAINING": ["HEAVY_BAG", "GLOVES", "PULLUP_BAR", "MAT"],
-    "D_FULL_GRAPPLER": ["PULLUP_BAR", "HEAVY_BAG", "GLOVES", "GRIP_TRAINER", "KETTLEBELL", "LIGHT_WEIGHTS", "SANDBAG", "MAT"],
+    "A_NO_EQUIPMENT": [
+      "OPEN_SPACE",
+      "TIMER_PHONE",
+      "WATER"
+    ],
+    "B_MINIMAL": [
+      "PULLUP_BAR",
+      "MAT",
+      "BAND",
+      "GRIP_TRAINER"
+    ],
+    "C_FIGHT_TRAINING": [
+      "HEAVY_BAG",
+      "GLOVES",
+      "PULLUP_BAR",
+      "MAT"
+    ],
+    "D_FULL_GRAPPLER": [
+      "PULLUP_BAR",
+      "HEAVY_BAG",
+      "GLOVES",
+      "GRIP_TRAINER",
+      "KETTLEBELL",
+      "LIGHT_WEIGHTS",
+      "SANDBAG",
+      "MAT"
+    ],
     "rule": "Every stage must support at least the MINIMAL version. Calisthenics-first means most stages run on a pull-up bar + floor; grappling stages need only a mat/floor and solo drills (partner always optional)."
   },
-  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_ARC_CLEAR", "FINAL_BOSS_CLEAR"],
+  "completion_states": [
+    "FIT_CLEAR",
+    "FIGHT_CLEAR",
+    "FULL_ARC_CLEAR",
+    "FINAL_BOSS_CLEAR"
+  ],
   "voice_guidance": {
     "enabled": true,
     "no_read_required": true,
     "engine": "tts",
     "policy": "The timer SPEAKS the workout so the user never has to read the screen. Every movement is announced by name as it begins, with a short form/coach cue, a spoken countdown into work and rest, round start/end calls, rep or time counts, a halfway call, a final-10-seconds call, and the module key safety cue. Striking combinations are called out loud in rhythm.",
     "announce": {
-      "stage_intro": true, "next_up": true, "exercise_name": true, "exercise_cue": true,
-      "combination_callouts": true, "round_start": true, "round_end": true,
-      "countdown_into_work": true, "countdown_into_rest": true, "rep_or_time_count": true,
-      "halfway_call": true, "final_10s_call": true, "safety_cue": true, "completion_call": true
+      "stage_intro": true,
+      "next_up": true,
+      "exercise_name": true,
+      "exercise_cue": true,
+      "combination_callouts": true,
+      "round_start": true,
+      "round_end": true,
+      "countdown_into_work": true,
+      "countdown_into_rest": true,
+      "rep_or_time_count": true,
+      "halfway_call": true,
+      "final_10s_call": true,
+      "safety_cue": true,
+      "completion_call": true
     },
     "source_fields": "Spoken lines are generated from each module title, exercises[]/drills[], coach_note, rounds[].goal/length, and the campaign safety cues — no on-screen reading required.",
-    "settings": { "user_toggle": true, "duck_background_music": true, "language": "en", "voice_pack_default": "underground" },
+    "settings": {
+      "user_toggle": true,
+      "duck_background_music": true,
+      "language": "en",
+      "voice_pack_default": "underground"
+    },
     "note": "Shared voice-guidance contract (see specs/22-voice-guidance.md) — embedded in every campaign so the timer is fully audio-guided. Where a campaign defines its own cadence/count (e.g. Gravity voice_count_mode), voice guidance defers to it for counting and layers the rest."
   },
   "achievements": [
-    { "id": "ACH_BH_IRON_CORE",  "name": "Iron Core",       "trigger": "Clear both Young Baki stages (1-2)" },
-    { "id": "ACH_BH_PHANTOM",    "name": "The Phantom",     "trigger": "Complete every phantom (shadow-fighting) round across the campaign" },
-    { "id": "ACH_BH_ONE_PUNCH",  "name": "One-Punch Power", "trigger": "Clear the Katsumi karate stage (4) with form intact" },
-    { "id": "ACH_BH_KENPO",      "name": "Sea King",        "trigger": "Clear the Retsu kung-fu stage (5) within target precision" },
-    { "id": "ACH_BH_IRON_GRIP",  "name": "Iron Grip",       "trigger": "Hit the Hanayama grip-hold target (6)" },
-    { "id": "ACH_BH_GROUND_FLOW","name": "Ground Flow",     "trigger": "Clear the Izou jiu-jitsu stage (7) cleanly" },
-    { "id": "ACH_BH_THE_OGRE",   "name": "Beat the Ogre",   "trigger": "Defeat Stage 12 (Yujiro) without a control-breakdown fail" },
-    { "id": "ACH_BH_STRONGEST",  "name": "Strongest Teen",  "trigger": "Clear Fit and Fight for all 12 stages" }
+    {
+      "id": "ACH_BH_IRON_CORE",
+      "name": "Iron Core",
+      "trigger": "Clear both Young Baki stages (1-2)"
+    },
+    {
+      "id": "ACH_BH_PHANTOM",
+      "name": "The Phantom",
+      "trigger": "Complete every phantom (shadow-fighting) round across the campaign"
+    },
+    {
+      "id": "ACH_BH_ONE_PUNCH",
+      "name": "One-Punch Power",
+      "trigger": "Clear the Katsumi karate stage (4) with form intact"
+    },
+    {
+      "id": "ACH_BH_KENPO",
+      "name": "Sea King",
+      "trigger": "Clear the Retsu kung-fu stage (5) within target precision"
+    },
+    {
+      "id": "ACH_BH_IRON_GRIP",
+      "name": "Iron Grip",
+      "trigger": "Hit the Hanayama grip-hold target (6)"
+    },
+    {
+      "id": "ACH_BH_GROUND_FLOW",
+      "name": "Ground Flow",
+      "trigger": "Clear the Izou jiu-jitsu stage (7) cleanly"
+    },
+    {
+      "id": "ACH_BH_THE_OGRE",
+      "name": "Beat the Ogre",
+      "trigger": "Defeat Stage 10 (Yujiro) without a control-breakdown fail"
+    },
+    {
+      "id": "ACH_BH_STRONGEST",
+      "name": "Strongest Teen",
+      "trigger": "Clear Fit and Fight for all 10 stages"
+    }
   ],
   "failure_logic": {
     "fit": {
-      "causes": ["Prescribed work not completed", "Form breaks down", "Effort far above target", "Recovery inadequate"],
-      "response": ["Reduce reps or use an easier progression", "Recommend one difficulty lower", "Preserve the Fight difficulty where appropriate"]
+      "causes": [
+        "Prescribed work not completed",
+        "Form breaks down",
+        "Effort far above target",
+        "Recovery inadequate"
+      ],
+      "response": [
+        "Reduce reps or use an easier progression",
+        "Recommend one difficulty lower",
+        "Preserve the Fight difficulty where appropriate"
+      ]
     },
     "fight": {
-      "causes": ["Combination/technique collapses", "Guard or control repeatedly lost", "Cannot complete the rounds", "Objective ignored", "Unsafe symptoms reported"],
-      "response": ["Recommend Practice Mode", "Shorten round length", "Increase rest", "Drop Fight difficulty by one level", "Do NOT automatically lower the Fit path"]
+      "causes": [
+        "Combination/technique collapses",
+        "Guard or control repeatedly lost",
+        "Cannot complete the rounds",
+        "Objective ignored",
+        "Unsafe symptoms reported"
+      ],
+      "response": [
+        "Recommend Practice Mode",
+        "Shorten round length",
+        "Increase rest",
+        "Drop Fight difficulty by one level",
+        "Do NOT automatically lower the Fit path"
+      ]
     },
-    "safety_stop": ["Sharp pain", "Chest pain", "Dizziness", "Faintness", "New concussion symptoms", "Severe breathing difficulty", "Acute injury", "Hand/knuckle pain from striking (stop bag work)"]
+    "safety_stop": [
+      "Sharp pain",
+      "Chest pain",
+      "Dizziness",
+      "Faintness",
+      "New concussion symptoms",
+      "Severe breathing difficulty",
+      "Acute injury",
+      "Hand/knuckle pain from striking (stop bag work)"
+    ]
   },
   "final_boss": {
-    "stage_id": "ARC_BAKI_STG12",
+    "stage_id": "ARC_BAKI_STG10",
     "no_hard_morning_workout": true,
     "fight_trial_name": "The Ogre — Father-Son Trial",
     "control_mechanic": "The all-around test: twelve rounds cycling every skill of the campaign (strike, grapple, grip, phantom, power). Form/control is gated — output scores only while technique holds. Yujiro's edge is mental as much as physical, so composure counts: rushing and flailing fails the round.",
@@ -131,15 +396,46 @@
       "Master yourself — finish in control"
     ],
     "timing": {
-      "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45, "approx_total_min": 20 },
-      "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30, "approx_total_min": 30 },
-      "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30, "approx_total_min": 42 }
+      "easy": {
+        "rounds": 12,
+        "round_sec": 60,
+        "rest_sec": 45,
+        "approx_total_min": 20
+      },
+      "normal": {
+        "rounds": 12,
+        "round_sec": 120,
+        "rest_sec": 30,
+        "approx_total_min": 30
+      },
+      "hard": {
+        "rounds": 12,
+        "round_sec": 180,
+        "rest_sec": 30,
+        "approx_total_min": 42
+      }
     },
     "fit_final_test": {
-      "categories": ["High-rep pull-up target", "High-rep push-up target (capped)", "Core hold for time", "Grip max-hold", "Explosive jump target", "Controlled full-body finisher"],
+      "categories": [
+        "High-rep pull-up target",
+        "High-rep push-up target (capped)",
+        "Core hold for time",
+        "Grip max-hold",
+        "Explosive jump target",
+        "Controlled full-body finisher"
+      ],
       "rule": "Predetermined targets only — never max-until-collapse. Calisthenic arm volume capped."
     },
-    "full_arc_flow": ["Composure and breath activation", "Transition period", "The Ogre — 12-round father-son trial", "Cooldown and readiness report"]
+    "full_arc_flow": [
+      "Composure and breath activation",
+      "Transition period",
+      "The Ogre — 12-round father-son trial",
+      "Cooldown and readiness report"
+    ]
   },
-  "art": { "banner": "/assets/series/one-punch.png", "stage_badges": "reuse /assets/stages/s1-s10 + boss badge", "art_note": "Placeholder banner reuse — swap for an original Baki-inspired asset before launch (IP)." }
+  "art": {
+    "banner": "/assets/series/one-punch.png",
+    "stage_badges": "reuse /assets/stages/s1-s9 + boss badge",
+    "art_note": "Placeholder banner reuse — swap for an original Baki-inspired asset before launch (IP)."
+  }
 }

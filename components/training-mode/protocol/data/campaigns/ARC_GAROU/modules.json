@@ -154,7 +154,7 @@
         "dynamic_stretch_2min",
         "shoulder_wrist_prep_2min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         4,
@@ -163,26 +163,90 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1320,
+          "length_sec": 150,
           "rest_sec": 60,
-          "goal": "boxing_fundamentals",
+          "goal": "stance_and_guard",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "stance_and_guard",
+            "callout": "voiced",
+            "technique_cues": [
+              "stance check",
+              "guard up",
+              "elbows in",
+              "weight centred"
+            ],
+            "emphasis": "find the stance before anything else"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "jab_then_cross",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "boxing_fundamentals",
+            "focus": "jab_then_cross",
             "allowed_strikes": [
               "1",
               "2"
             ],
             "complexity": "intro",
             "callout": "voiced",
+            "emphasis": "clean mechanics — reset to guard after every combo"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "footwork_advance_retreat_pivot",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "footwork_advance_retreat_pivot",
+            "callout": "voiced",
             "technique_cues": [
-              "stance check",
-              "guard up",
               "advance",
               "retreat",
-              "pivot"
+              "pivot",
+              "stay balanced"
             ],
-            "emphasis": "clean mechanics — reset to guard after every combo"
+            "emphasis": "move without crossing your feet"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "strike_reset_guard",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "strike_reset_guard",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "hands back the instant the shot lands"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "relaxed_free_round",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "relaxed_free_round",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "loose and light — this is not a war"
           }
         }
       ],
@@ -357,7 +421,7 @@
         "dynamic_stretch_2min",
         "shoulder_wrist_prep_2min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         5,
@@ -366,16 +430,50 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1440,
+          "length_sec": 150,
           "rest_sec": 60,
-          "goal": "speed_combinations",
+          "goal": "double_jab_jab_cross",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "speed_combinations",
+            "focus": "double_jab_jab_cross",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "snap the jab, do not push it"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "jab_cross_hook",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_cross_hook",
             "allowed_strikes": [
               "1",
               "2",
               "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "the classic one-two-three"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "slip_then_counter",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "slip_then_counter",
+            "allowed_strikes": [
+              "1",
+              "2"
             ],
             "allowed_defense": [
               "slip-left",
@@ -383,7 +481,43 @@
             ],
             "complexity": "basic",
             "callout": "voiced",
-            "emphasis": "snap and relax — speed, not force"
+            "emphasis": "move the head, then answer"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "speed_round_light",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "speed_round_light",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "speed, not force"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "combination_footwork_exit",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "combination_footwork_exit",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "hit, then get off the line"
           }
         }
       ],
@@ -554,7 +688,7 @@
         "dynamic_stretch_2min",
         "shoulder_wrist_prep_2min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         6,
@@ -563,21 +697,88 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1440,
+          "length_sec": 150,
           "rest_sec": 75,
-          "goal": "power_from_legs",
+          "goal": "rear_hand_cross_leg_drive",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "power_from_legs",
+            "focus": "rear_hand_cross_leg_drive",
+            "allowed_strikes": [
+              "2"
+            ],
+            "complexity": "single",
+            "callout": "voiced",
+            "emphasis": "drive from the back foot — one shot, full intent"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "step_in_cross",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "step_in_cross",
             "allowed_strikes": [
               "1",
-              "2",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "carry the leg drive forward with you"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "jab_cross_full_rotation",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "jab_cross_full_rotation",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "turn the hip all the way through"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "body_shot_power",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "body_shot_power",
+            "allowed_strikes": [
+              "1",
               "3b",
               "2b"
             ],
             "complexity": "basic",
             "callout": "voiced",
-            "emphasis": "drive from the floor — power, then reset"
+            "emphasis": "bend the knees — do not reach down with the arm"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "power_then_reset",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "power_then_reset",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3b"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "power, then reset. never head-hunt"
           }
         }
       ],
@@ -750,7 +951,7 @@
         "dynamic_stretch_3min",
         "hip_ankle_prep_2min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         6,
@@ -759,12 +960,82 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1560,
+          "length_sec": 150,
           "rest_sec": 75,
-          "goal": "dutch_combinations",
+          "goal": "boxing_combo_into_low_kick",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "dutch_combinations",
+            "focus": "boxing_combo_into_low_kick",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "hands set the kick up"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "teep_for_range",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "teep_for_range",
+            "allowed_strikes": [
+              "tp",
+              "1"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "the teep is a door, not a weapon"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "roundhouse_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "roundhouse_low_kick",
+            "allowed_strikes": [
+              "lk",
+              "rk"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "chamber and turn the hip — shin, not foot"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "cross_hook_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "cross_hook_low_kick",
+            "allowed_strikes": [
+              "2",
+              "3",
+              "lk"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "the Dutch chain — hands high, kick low"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "punches_into_kicks_flow",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punches_into_kicks_flow",
             "allowed_strikes": [
               "1",
               "2",
@@ -945,7 +1216,7 @@
         "dynamic_stretch_2min",
         "shoulder_wrist_prep_2min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         5,
@@ -954,24 +1225,95 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1440,
+          "length_sec": 150,
           "rest_sec": 60,
-          "goal": "chain_punching",
+          "goal": "centerline_stance_guard",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "centerline_stance_guard",
+            "callout": "voiced",
+            "technique_cues": [
+              "centerline guard",
+              "elbows in",
+              "chin down",
+              "relaxed shoulders"
+            ],
+            "emphasis": "own the centre before you punch down it"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "straight_chain_punches",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "chain_punches",
+            "focus": "straight_chain_punches",
             "allowed_strikes": [
               "1",
               "2"
             ],
             "complexity": "burst",
             "callout": "voiced",
-            "technique_cues": [
-              "centerline guard",
-              "pak-lap trap motion",
-              "elbows in"
+            "emphasis": "chain punches — relaxed speed, straight down the middle"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "trapping_motion_solo",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "trapping_motion_solo",
+            "allowed_strikes": [
+              "1",
+              "2"
             ],
-            "emphasis": "chain punches — relaxed speed"
+            "complexity": "intro",
+            "callout": "voiced",
+            "technique_cues": [
+              "pak — slap the hand down",
+              "lap — pull it across",
+              "straight down the centre"
+            ],
+            "mixed_with_cue": true,
+            "emphasis": "clear the hand, then punch — never both at once"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "straight_blast",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "straight_blast",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "rapid-fire down the centreline"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "guarded_chain_flow",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "guarded_chain_flow",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "guard the centre, chain the punches"
           }
         }
       ],
@@ -1160,7 +1502,7 @@
         "dynamic_stretch_2min",
         "shoulder_wrist_prep_2min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         7,
@@ -1169,12 +1511,30 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1440,
+          "length_sec": 150,
           "rest_sec": 75,
-          "goal": "power_endurance_bursts",
+          "goal": "three_second_burst",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "power_endurance",
+            "focus": "three_second_burst",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "three seconds flat out, then relax completely"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "repeat_bursts",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "repeat_bursts",
             "allowed_strikes": [
               "1",
               "2",
@@ -1183,7 +1543,61 @@
             ],
             "complexity": "burst",
             "callout": "voiced",
-            "emphasis": "3-second bursts"
+            "emphasis": "same speed every burst — that is the whole test"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "combination_explosive_exit",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "combination_explosive_exit",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "finish the combination and explode off the angle"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "hold_speed_under_fatigue",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "hold_speed_under_fatigue",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "slow is fine. sloppy is not"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 75,
+          "goal": "composed_finish",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "composed_finish",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "finish in control, breathing through the nose"
           }
         }
       ],
@@ -1350,12 +1764,31 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1560,
+          "length_sec": 150,
           "rest_sec": 60,
-          "goal": "combination_conditioning",
+          "goal": "continuous_combinations",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "combination_conditioning",
+            "focus": "continuous_combinations",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "steady output — do not blow the first round"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "punch_out_finish",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "punch_out_finish",
             "allowed_strikes": [
               "1",
               "2",
@@ -1364,9 +1797,61 @@
               "2b",
               "3b"
             ],
-            "complexity": "standard",
+            "complexity": "burst",
             "callout": "voiced",
-            "emphasis": "clean and fast when tired"
+            "emphasis": "last fifteen seconds: everything you have left"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "footwork_between_combinations",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "footwork_between_combinations",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "never stand still between combinations"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "hold_form_under_fatigue",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "hold_form_under_fatigue",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "clean and fast when tired — quality is the gate"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 60,
+          "goal": "composed_cooldown",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "composed_cooldown",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "wind it down, do not stop dead"
           }
         }
       ],
@@ -1562,7 +2047,7 @@
         "shoulder_wrist_prep_2min",
         "activation_1min"
       ],
-      "striking_rounds": 4,
+      "striking_rounds": 5,
       "round_len_sec": 150,
       "target_rpe": [
         7,
@@ -1571,22 +2056,99 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1560,
+          "length_sec": 150,
           "rest_sec": 90,
-          "goal": "contrast_striking",
+          "goal": "resisted_shadow_loaded",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "contrast_striking",
+            "focus": "resisted_shadow_loaded",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "technique_cues": [
+              "band around the back",
+              "light load only",
+              "full range"
+            ],
+            "capped": true,
+            "emphasis": "loaded and slow — twenty seconds"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 150,
+          "rest_sec": 90,
+          "goal": "explosive_free_bursts",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "explosive_free_bursts",
             "allowed_strikes": [
               "1",
               "2",
               "3",
               "4"
             ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "capped": true,
+            "emphasis": "band off — now everything is fast"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 150,
+          "rest_sec": 90,
+          "goal": "contrast_set_rotation",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "contrast_set_rotation",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
             "complexity": "standard",
             "callout": "voiced",
             "capped": true,
-            "emphasis": "loaded, then explosive — full rest between contrast sets"
+            "emphasis": "loaded, then explosive, then FULL rest"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 150,
+          "rest_sec": 90,
+          "goal": "speed_check_clean",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "speed_check_clean",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3"
+            ],
+            "complexity": "basic",
+            "callout": "voiced",
+            "emphasis": "is it still clean? if not, stop the contrast work"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 150,
+          "rest_sec": 90,
+          "goal": "composed_cooldown",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "composed_cooldown",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "controlled wind-down"
           }
         }
       ],
@@ -1746,7 +2308,7 @@
         "dynamic_stretch_2min",
         "shoulder_wrist_prep_2min"
       ],
-      "striking_rounds": 3,
+      "striking_rounds": 5,
       "round_len_sec": 120,
       "target_rpe": [
         3,
@@ -1755,12 +2317,47 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1080,
+          "length_sec": 120,
           "rest_sec": 60,
-          "goal": "technical_deload",
+          "goal": "slow_form_shadowboxing",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "technical_deload",
+            "focus": "slow_form_shadowboxing",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "fifty percent speed, one hundred percent form"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "footwork_patterns",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "footwork_patterns",
+            "callout": "voiced",
+            "technique_cues": [
+              "step and slide",
+              "pivot",
+              "L-step",
+              "stay light"
+            ],
+            "emphasis": "unloaded — just move well"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "combination_rehearsal_half_speed",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "combination_rehearsal_half_speed",
             "allowed_strikes": [
               "1",
               "2",
@@ -1768,7 +2365,46 @@
             ],
             "complexity": "intro",
             "callout": "voiced",
-            "emphasis": "50% speed, perfect form"
+            "emphasis": "rehearse the shapes, do not chase power"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "guard_and_defensive_movement",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "guard_and_defensive_movement",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "allowed_defense": [
+              "slip-left",
+              "slip-right",
+              "roll"
+            ],
+            "complexity": "intro",
+            "callout": "voiced",
+            "emphasis": "defence is the deload work today"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 120,
+          "rest_sec": 60,
+          "goal": "breathing_cooldown",
+          "combo_spec": {
+            "generate_combos": false,
+            "focus": "breathing_cooldown",
+            "callout": "voiced",
+            "technique_cues": [
+              "long exhale",
+              "shoulders down",
+              "unclench the jaw"
+            ],
+            "emphasis": "down-regulate — this stage is recovery"
           }
         }
       ],
@@ -1999,12 +2635,88 @@
       "rounds": [
         {
           "index": 1,
-          "length_sec": 1800,
+          "length_sec": 180,
           "rest_sec": 75,
-          "goal": "every_style_finale",
+          "goal": "boxing_fast_hands",
           "combo_spec": {
             "generate_combos": true,
-            "focus": "every_style_finale",
+            "focus": "boxing_fast_hands",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "round one — hands"
+          }
+        },
+        {
+          "index": 2,
+          "length_sec": 180,
+          "rest_sec": 75,
+          "goal": "dutch_combo_low_kick",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "dutch_combo_low_kick",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "lk",
+              "tp"
+            ],
+            "complexity": "standard",
+            "callout": "voiced",
+            "emphasis": "round two — Dutch rhythm"
+          }
+        },
+        {
+          "index": 3,
+          "length_sec": 180,
+          "rest_sec": 75,
+          "goal": "wing_chun_chain_burst",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "wing_chun_chain_burst",
+            "allowed_strikes": [
+              "1",
+              "2"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "emphasis": "round three — centreline chain"
+          }
+        },
+        {
+          "index": 4,
+          "length_sec": 180,
+          "rest_sec": 75,
+          "goal": "power_endurance_bursts_capped",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "power_endurance_bursts_capped",
+            "allowed_strikes": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "complexity": "burst",
+            "callout": "voiced",
+            "capped": true,
+            "emphasis": "round four — bursts, capped"
+          }
+        },
+        {
+          "index": 5,
+          "length_sec": 180,
+          "rest_sec": 75,
+          "goal": "free_flow_every_style",
+          "combo_spec": {
+            "generate_combos": true,
+            "focus": "free_flow_every_style",
             "allowed_strikes": [
               "1",
               "2",
@@ -2015,8 +2727,7 @@
             ],
             "complexity": "standard",
             "callout": "voiced",
-            "capped": true,
-            "emphasis": "every style — fast, clean, capped"
+            "emphasis": "round five — call your own. every style you have learned"
           }
         }
       ],

@@ -18,6 +18,7 @@ import workoutModulesData from './data/workout-modules.json';
 import {
   resolveRoundTemplate,
   evaluateSession,
+  resolveTitleFight,
   calcXp,
   assessReadiness,
   getArchetypes,
@@ -67,6 +68,11 @@ export function campLevel(level: number): CampLevel {
 }
 export function isSplitAvailable(level: number): boolean {
   return splitAvailable(campLevels, level);
+}
+// Item 13 — camp L12 is a title fight, not a normal session. Bound here so the
+// map can build the twelve-round plan without touching the timing tables.
+export function titleFight(discipline: Discipline, difficulty: Difficulty) {
+  return resolveTitleFight(discipline, difficulty, timingTables);
 }
 export function evaluate(result: SessionResult, difficulty: Difficulty): Evaluation {
   return evaluateSession(result, difficulty, passRules);

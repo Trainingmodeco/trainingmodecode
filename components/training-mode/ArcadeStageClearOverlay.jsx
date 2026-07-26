@@ -3,6 +3,8 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { ArcadePrimaryButton, ArcadeSecondaryButton } from './ArcadeUI';
 import { RotateCcw, Play, Share2, ChevronLeft, Star } from 'lucide-react';
+import { resolveOutcome } from './shared/sessionOutcome';
+import AchievementToast from './shared/AchievementToast';
 
 const OVERLAY_STYLES = `
 @keyframes ov-fade-in {
@@ -549,46 +551,68 @@ export default function ArcadeStageClearOverlay({
   series, stage, result, pointsEarned, xpEarned, statRewards,
   totalArcadeXpBefore, completedStageIds, onContinue, onRetry, onReturnToArcade, onNextStage, onShare,
 }) {
-  const isInvalid = result?.invalid === true;
-  const isPartial = result?.partial === true;
-  const isHardFail = result?.hardFail === true || result?.missionFailed === true;
+  // Item 9 — the four Arcade screens keep their own look, but the VERDICT now
+  // comes from the same engine call every other mode uses (shared/sessionOutcome
+  // → evaluateSession against pass-rules.json). A player's flags still win: a
+  // stage that explicitly reports invalid/partial/hardFail is honoured as-is,
+  // and the engine only decides when the runner didn't say.
+  const flagged = result?.invalid === true || result?.partial === true
+    || result?.hardFail === true || result?.missionFailed === true;
+  const verdict = flagged ? null : resolveOutcome({
+    completed: result?.completedTasks ?? result?.completedRounds,
+    total: result?.totalTasks ?? result?.totalRounds,
+    difficulty: result?.difficulty,
+    integrityResult: result?.integrityResult,
+    safetyFlag: result?.safetyFlag,
+  });
+
+  const isInvalid = result?.invalid === true || verdict?.outcome === 'validation_failed';
+  const isPartial = result?.partial === true || verdict?.outcome === 'partial';
+  const isHardFail = result?.hardFail === true || result?.missionFailed === true
+    || verdict?.outcome === 'fail';
+
+  // Item 10b — anything unlocked by this clear rides on top of whichever
+  // outcome screen shows. App.jsx puts it on the result; award() already
+  // guaranteed these are first-time unlocks.
+  const unlocked = Array.isArray(result?.achievements) ? result.achievements : [];
+  const toast = unlocked.length ? <AchievementToast unlocked={unlocked}/> : null;
 
   if (isInvalid) {
     return (
-      <ValidationFailedScreen
+      <>{toast}<ValidationFailedScreen
         stage={stage}
         result={result}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
-      />
+      /></>
     );
   }
 
   if (isHardFail) {
     return (
-      <MissionFailedScreen
+      <>{toast}<MissionFailedScreen
         stage={stage}
         result={result}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
-      />
+      /></>
     );
   }
 
   if (isPartial) {
     return (
-      <PartialCompletionScreen
+      <>{toast}<PartialCompletionScreen
         stage={stage}
         result={result}
         xpEarned={xpEarned}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
-      />
+      /></>
     );
   }
 
   return (
-    <StageClearedScreen
+    <>{toast}<StageClearedScreen
       series={series}
       stage={stage}
       result={result}
@@ -600,6 +624,6 @@ export default function ArcadeStageClearOverlay({
       onNextStage={onNextStage}
       onReturnToArcade={onReturnToArcade}
       onShare={onShare}
-    />
+    /></>
   );
 }
