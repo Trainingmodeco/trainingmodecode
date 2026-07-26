@@ -30,7 +30,6 @@ import QuickMissionComplete from './QuickMissionComplete';
 import CombatConditioningSetup from './CombatConditioningSetup';
 import CombatConditioningActive from './CombatConditioningActive';
 import WithWarmup from './shared/WithWarmup';
-import { BossGate } from './shared/BossFinale';
 import CombatConditioningComplete from './CombatConditioningComplete';
 import CardioFinisherPlayer from './CardioFinisherPlayer';
 import Profile from './Profile';
@@ -210,27 +209,17 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const mmss = `${Math.floor(roundSec / 60)}:${String(roundSec % 60).padStart(2, '0')}`;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        {/* Boss finale — the splash gate holds the whole session (warm-up
-            included) until the athlete taps to answer the bell. */}
-        <BossGate
-          active={!!cfg.bossFinale} bossName={cfg.bossName} campaignName={campCtx?.arcade?.campaignName}
-          rounds={cfg.rounds} stageNumber={campCtx?.arcade?.stageNumber}
-          fit={!!campCtx?.split && campCtx?.slot === 's2'}
-          roundSec={Math.round((cfg.roundMin || 1) * 60)} restSec={cfg.restSec} difficulty={cfg.difficulty}
-          onExit={goArcadeComplete}
-        >
-          {/* 2.4 — a warm-up phase leads into every camp session (skippable). */}
-          <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
-            <CampSessionRunner
-              discipline={disc} cfg={cfg}
-              fit={!!campCtx?.split && campCtx?.slot === 's2'}
-              label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
-              sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
-              detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
-              onEnd={goCampComplete}
-            />
-          </WithWarmup>
-        </BossGate>
+        {/* 2.4 — a warm-up phase leads into every camp session (skippable). */}
+        <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
+          <CampSessionRunner
+            discipline={disc} cfg={cfg}
+            fit={!!campCtx?.split && campCtx?.slot === 's2'}
+            label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
+            sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
+            detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
+            onEnd={goCampComplete}
+          />
+        </WithWarmup>
       </WithNav>
     );
   }
@@ -238,16 +227,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // FULL CAMP — warm-up, then skill block → transition → conditioning block.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <BossGate
-          active={!!campCtx.cfgSkill.bossFinale} bossName={campCtx.cfgSkill.bossName} campaignName={campCtx?.arcade?.campaignName}
-          rounds={campCtx.cfgSkill.rounds} stageNumber={campCtx?.arcade?.stageNumber} fit={false}
-          roundSec={Math.round((campCtx.cfgSkill.roundMin || 1) * 60)} restSec={campCtx.cfgSkill.restSec} difficulty={campCtx.cfgSkill.difficulty}
-          onExit={goArcadeComplete}
-        >
-          <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
-            <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />
-          </WithWarmup>
-        </BossGate>
+        <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
+          <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />
+        </WithWarmup>
       </WithNav>
     );
   }

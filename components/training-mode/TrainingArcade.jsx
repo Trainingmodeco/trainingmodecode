@@ -39,6 +39,12 @@ const arcadeStyles = `
 .saga-arrow { transition: opacity .2s ease, transform .12s ease; }
 .saga-arrow:active { transform: translateY(-50%) scale(0.9); }
 @keyframes saga-hint { 0%,100%{opacity:0.55} 50%{opacity:1} }
+@keyframes saga-shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+}
+@keyframes saga-toast-in { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 `;
 
 function StarRow({ count = 0, size = 11 }) {
@@ -77,6 +83,12 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
   const rafRef = useRef(0);
   const idleRef = useRef(0);
   const didInitRef = useRef(false);
+  // Locked saga feedback: the tapped card shakes and a COMING SOON toast pops.
+  const [shakeIdx, setShakeIdx] = useState(null);
+  const [toast, setToast] = useState(null);
+  const shakeTimer = useRef(0);
+  const toastTimer = useRef(0);
+  useEffect(() => () => { clearTimeout(shakeTimer.current); clearTimeout(toastTimer.current); }, []);
 
   useEffect(() => {
     const s = loadStats();
@@ -169,11 +181,21 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
   // Arrows: step one slide; the loop keeps runway on both sides so this wraps.
   const rotate = useCallback((dir) => { scrollToDisplay(active + dir); }, [active, scrollToDisplay]);
 
-  const enter = useCallback((s) => { if (isSeriesPlayable(s)) onSelectSeries?.(s); }, [onSelectSeries]);
+  // Playable → open the saga. Locked → shake the card + toast why, so a tap
+  // never reads as the app ignoring you.
+  const enter = useCallback((s, i) => {
+    if (isSeriesPlayable(s)) { onSelectSeries?.(s); return; }
+    setShakeIdx(i);
+    setToast(s.construction ? '🚧 UNDER CONSTRUCTION' : 'COMING SOON');
+    clearTimeout(shakeTimer.current); clearTimeout(toastTimer.current);
+    shakeTimer.current = setTimeout(() => setShakeIdx(null), 500);
+    toastTimer.current = setTimeout(() => setToast(null), 1800);
+  }, [onSelectSeries]);
 
   return (
     <PhoneFrame>
-      <ArcadeBackdrop />
+      {/* Saga select — arena bg3 (tournament bracket hall) at 40%, sparks kept. */}
+      <ArcadeBackdrop image="/static/arcade/arcade-bg-saga.png" imageOpacity={0.4} />
       <style dangerouslySetInnerHTML={{ __html: arcadeStyles }} />
 
       <div style={{
@@ -234,12 +256,13 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
                   key={i}
                   ref={el => { slideRefs.current[i] = el; }}
                   className="saga-slide"
-                  onClick={() => (isActive ? enter(s) : scrollToDisplay(i))}
+                  onClick={() => (isActive ? enter(s, i) : scrollToDisplay(i))}
                   style={{
                     flex: '0 0 auto', height: '100%', maxHeight: 424, aspectRatio: '0.6',
                     padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
                     transform: isActive ? 'scale(1)' : 'scale(0.82)',
                     opacity: isActive ? 1 : 0.42,
+                    animation: shakeIdx === i ? 'saga-shake 0.5s ease' : 'none',
                   }}
                 >
                   <div style={{
@@ -323,6 +346,21 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
             style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(8,1,18,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5 }}>
             <ChevronRight size={18} color="#e6d4ff" />
           </button>
+
+          {/* Locked-saga toast */}
+          {toast && (
+            <div style={{
+              position: 'absolute', left: '50%', bottom: 18, transform: 'translateX(-50%)', zIndex: 8,
+              padding: '8px 16px', borderRadius: 9, whiteSpace: 'nowrap', pointerEvents: 'none',
+              background: 'rgba(16,4,30,0.95)', border: '1px solid rgba(168,85,247,0.5)',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.6)',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9,
+              color: '#e6d4ff', letterSpacing: '0.12em',
+              animation: 'saga-toast-in 0.2s ease',
+            }}>
+              {toast}
+            </div>
+          )}
         </div>
 
         {/* Dots */}

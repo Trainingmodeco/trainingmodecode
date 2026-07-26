@@ -73,6 +73,8 @@ function NodeCircle({ level, state, boss }) {
   );
 }
 
+// S1 / S2 session pips. Double-width horizontally (min-width + wider padding)
+// so they read as real tap targets next to the level node, not tiny chips.
 function Pip({ label, tone }) {
   const map = {
     done:  { c: '#22c55e', bg: 'rgba(34,197,94,0.16)', b: 'rgba(34,197,94,0.55)' },
@@ -82,7 +84,9 @@ function Pip({ label, tone }) {
   return (
     <span style={{
       font: "800 9px 'Orbitron',sans-serif", color: map.c, letterSpacing: '0.02em',
-      background: map.bg, border: `1px solid ${map.b}`, borderRadius: 5, padding: '3px 7px', whiteSpace: 'nowrap',
+      background: map.bg, border: `1px solid ${map.b}`, borderRadius: 5,
+      padding: '3px 7px', whiteSpace: 'nowrap',
+      minWidth: 56, textAlign: 'center', display: 'inline-block',
     }}>{label}</span>
   );
 }
@@ -203,10 +207,12 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         'radial-gradient(120% 55% at 50% 0%, rgba(239,68,68,0.28), transparent 55%),' +
         'radial-gradient(90% 40% at 50% 100%, rgba(45,212,191,0.16), transparent 60%),' +
         'linear-gradient(180deg, #1a0a2e 0%, #10061f 45%, #0a0416 100%)' }} />
+      {/* Tower art dimmed right down — it sets the mood, the ladder has to be
+          the thing you actually read. */}
       <img src={BG_SRC} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.28 }} />
       <div style={{ position: 'absolute', inset: 0, background:
-        'linear-gradient(180deg, rgba(4,0,10,0.5) 0%, rgba(4,0,10,0.3) 30%, rgba(4,0,10,0.5) 100%)' }} />
+        'linear-gradient(180deg, rgba(4,0,10,0.78) 0%, rgba(4,0,10,0.62) 30%, rgba(4,0,10,0.78) 100%)' }} />
 
       {/* Header + ladder, bounded above the nav footer. */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_RESERVE, zIndex: 5, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

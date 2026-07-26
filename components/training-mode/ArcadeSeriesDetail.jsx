@@ -145,7 +145,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   // Optional mythic / elite boss sits above the required stages (unlocks once
   // every required stage is cleared; not required for series completion).
-  const mythic = series.mythicBoss || null;
+  // TIMED OUT for now at the product owner's call — with no elite node the
+  // layout's single-node branch runs and the BOSS sits centred on the spine.
+  // Flip ELITE_ENABLED back to true to restore it; nothing else changes.
+  const ELITE_ENABLED = false;
+  const mythic = (ELITE_ENABLED && series.mythicBoss) || null;
   const nodes = useMemo(() => (mythic ? [...stages, mythic] : stages), [stages, mythic]);
   const mythicIdx = mythic ? stages.length : -1;
 
@@ -340,7 +344,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   return (
     <PhoneFrame useBrandBg>
-      <ArcadeBackdrop />
+      {/* Stage ladder — arena bg1 (trophy podium hall) at 20%, sparks kept. */}
+      <ArcadeBackdrop image="/static/arcade/arcade-bg-ladder.png" imageOpacity={0.2} />
       <style dangerouslySetInnerHTML={{ __html: detailStyles }} />
       <Embers count={3} />
 
