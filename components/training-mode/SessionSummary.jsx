@@ -7,7 +7,7 @@ import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
 // design-24f screen, with a round-by-round recap as the extra card.
 const GOLD = '#fde047';
 
-export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome }) {
+export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [] }) {
   const completed = typeof completedRounds === 'number' ? completedRounds : rounds.length;
   const totalPlanned = cfg.rounds || rounds.length;
   // Item 9 — the engine decides how this ended, not a round count. A session
@@ -83,7 +83,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       variant={verdict.preset.variant}
       eyebrow={verdict.preset.eyebrow}
       title={verdict.preset.title}
-      subtitle={`${discipline} · ${cfg.difficulty} · ${modeName}`}
+      subtitle={`${discipline} · ${cfg.difficulty} · ${cfg.archetypeName || modeName}`}
       accent={GOLD}
       xp={xp}
       heroImage="/static/trophies/mission-complete-fight.webp"
@@ -95,6 +95,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
       actions={[
         { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary' },
+        ...extraActions,
         { label: 'CHANGE DISCIPLINE', onClick: onBack, kind: 'secondary' },
         { label: 'BACK TO START', onClick: onHome, kind: 'ghost' },
       ]}

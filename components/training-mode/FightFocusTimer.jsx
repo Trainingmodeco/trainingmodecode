@@ -220,6 +220,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         totalStrikes: thrownRef.current,
         bestRound: Math.max(0, ...perRoundStrikesRef.current),
         completionSec: workElapsedRef.current,
+        // Item 11c — the result screen shows your round breakdown, so bank it
+        // with the battle. The ghost has no per-round data (GhostRecord keeps
+        // 10s buckets, not rounds), which is why the screen compares totals and
+        // best round rather than inventing a round-for-round matchup.
+        perRoundStrikes: [...perRoundStrikesRef.current],
       });
       setGhostVerdict({ outcome: result.outcome, headline });
       ghostDelay = 3600;

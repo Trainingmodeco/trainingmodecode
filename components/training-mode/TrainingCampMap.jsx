@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, humanizeGoal } from './protocol/content';
+import ArchetypePicker from './shared/ArchetypePicker';
+import { getArchetypeId, setArchetypeId } from './data/campArchetype';
 import { loadCampProgress } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
 import { loadParq, saveParq } from './data/parq';
@@ -126,7 +128,13 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [current] = useState(loadCampProgress);
   const [sessAll] = useState(() => loadCampSessions());     // 2.4b — per-level S1/S2 state
 
-  const archetype = archetypesFor(discKey)[0];   // 2.2 will make this a picker
+  // Item 14 — the athlete picks their archetype (was hardcoded to [0]). Stored
+  // per discipline, so a boxer's choice survives leaving and coming back.
+  const [archetypeId, setArchId] = useState(() => getArchetypeId(discKey));
+  useEffect(() => { setArchId(getArchetypeId(discKey)); }, [discKey]);
+  const chooseArchetype = (id) => { setArchId(id); setArchetypeId(discKey, id); };
+  const archetype = (archetypesFor(discKey) || []).find((a) => a.id === archetypeId)
+    || archetypesFor(discKey)[0];
   const curPhase = campLevels.find((l) => l.level === current) || campLevels[0];
   const topDown = [...campLevels].sort((a, b) => b.level - a.level);
 
@@ -156,13 +164,16 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
     const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
     // 2.4b — real per-round goals (skill or conditioning) drive the timer.
     const blockRounds = blockRoundsFor(discKey, level, diff, kind, rounds);
-    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 3, blockRounds };
+    // The archetype rides along on the cfg so the session and its summary can
+    // name the style being trained. The round engine is unchanged — this is a
+    // label, not a new input.
+    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 3, blockRounds, archetypeId: archetype?.id, archetypeName: archetype?.name };
   };
   const launch = (level, diff, slot) => {
     const split = isSplitAvailable(level);
     // Split S2 is the conditioning (fit) block; everything else is skill (fight).
     const kind = (split && slot === 's2') ? 'fit' : 'fight';
-    onStartSession?.({ discipline, level, difficulty: diff, cfg: buildCfg(level, diff, kind), split, slot: split ? slot : 's1' });
+    onStartSession?.({ discipline, level, difficulty: diff, archetypeId: archetype?.id, archetypeName: archetype?.name, cfg: buildCfg(level, diff, kind), split, slot: split ? slot : 's1' });
   };
   // 2.4b — on split levels the next mission is S1 until it's ✓, then S2.
   const openSess = open ? (sessAll[open.level] || {}) : {};
@@ -189,7 +200,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // After a gear check, actually launch (split mission or full camp).
   const doLaunch = (ctx) => {
     if (ctx.full) {
-      onStartSession?.({ discipline, level: ctx.level, difficulty: ctx.difficulty, format: 'full', cfgSkill: buildCfg(ctx.level, ctx.difficulty, 'fight'), cfgFit: buildCfg(ctx.level, ctx.difficulty, 'fit') });
+      onStartSession?.({ discipline, level: ctx.level, difficulty: ctx.difficulty, archetypeId: archetype?.id, archetypeName: archetype?.name, format: 'full', cfgSkill: buildCfg(ctx.level, ctx.difficulty, 'fight'), cfgFit: buildCfg(ctx.level, ctx.difficulty, 'fit') });
     } else {
       launch(ctx.level, ctx.difficulty, ctx.slot);
     }
@@ -309,6 +320,18 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                   }}>{DIFF_LABEL[d]}</button>
                 );
               })}
+            </div>
+
+            {/* Item 14 — archetype AFTER difficulty: each card shows the blurb
+                for the difficulty just picked, so the choice is concrete. */}
+            <div style={{ marginBottom: 9 }}>
+              <ArchetypePicker
+                discipline={discKey}
+                difficulty={difficulty}
+                value={archetypeId}
+                onChange={chooseArchetype}
+                compact
+              />
             </div>
 
             <div style={{ background: 'rgba(8,2,18,0.45)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 8, padding: '7px 10px', textAlign: 'center', marginBottom: 9 }}>

@@ -13,6 +13,9 @@ import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
 import { resolveOutcome } from './shared/sessionOutcome';
+import GhostVsScreen from './shared/GhostVsScreen';
+import GhostResultScreen from './shared/GhostResultScreen';
+import { getLastBattle, getMyBestGhost } from './data/ghostBattles';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
@@ -151,6 +154,14 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete, goMoveLab } = actions;
 
   const isResuming = pausedSession?.screen === screen;
+
+  // Item 11 — ghost battle flow gates. `vsAccepted` clears whenever a new
+  // session config arrives so the VS screen shows once per fight; the result
+  // screen is dismissed for the rest of that summary.
+  const [vsAccepted, setVsAccepted] = useState(false);
+  const [ghostResultSeen, setGhostResultSeen] = useState(false);
+  useEffect(() => { setVsAccepted(false); }, [cfg]);
+  useEffect(() => { if (screen !== 'summary') setGhostResultSeen(false); }, [screen]);
 
   const handleNavigate = (tab) => {
     if (tab === 'home') goHome();
@@ -372,6 +383,17 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     );
   }
   if (screen === 'timer' && cfg) {
+    // Item 11a — a ghost battle opens on the VS screen. Resuming a paused
+    // session skips it: the fight was already made.
+    if (cfg.ghost && !isResuming && !vsAccepted) {
+      return (
+        <GhostVsScreen
+          ghost={cfg.ghost}
+          onAccept={() => setVsAccepted(true)}
+          onBack={() => goSetup(disc)}
+        />
+      );
+    }
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title="FIGHT FOCUS">
@@ -385,12 +407,37 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const handleRetry = isCombo
       ? () => goComboSetup(disc)
       : () => goSetup(disc);
+    // Item 11c — if this session raced a ghost, the battle result reads first.
+    // The battle is matched by session, not just "the last one ever recorded",
+    // so an old battle can't reappear on an unrelated summary.
+    const battle = session.cfg?.ghost ? getLastBattle() : null;
+    const battleIsThisSession = battle?.ghost?.ghostId
+      && battle.ghost.ghostId === session.cfg?.ghost?.ghostId
+      && !ghostResultSeen;
+    // Item 11 — second entry point: after a plain session, offer to race the
+    // run that was just banked. Only when a verified ghost exists and this
+    // session wasn't already a battle.
+    const myBest = session.cfg?.ghost ? null : getMyBestGhost('fight_focus', disc);
+    const ghostRematchAction = myBest
+      ? [{ label: '👻 BEAT THIS RUN', kind: 'secondary', onClick: () => goTimer({ ...session.cfg, ghost: myBest }) }]
+      : [];
+
+    if (battleIsThisSession) {
+      return (
+        <GhostResultScreen
+          battle={battle}
+          onRematch={() => { setGhostResultSeen(true); handleRetry(); }}
+          onDone={() => setGhostResultSeen(true)}
+        />
+      );
+    }
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
         <SessionSummary
           discipline={disc}
           rounds={session.rounds}
           cfg={session.cfg}
+          extraActions={ghostRematchAction}
           completedRounds={session.completedRounds}
           integrityResult={session.integrityResult}
           fightStats={session.fightStats}
