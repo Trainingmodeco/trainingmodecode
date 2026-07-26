@@ -1144,8 +1144,10 @@ CAMPAIGN_SERIES.forEach((cs) => {
 // Remove an id here as its stages are reviewed.
 const UNDER_CONSTRUCTION = new Set([
   'berserk-struggler', 'dark-knight-protocol', 'demon-back-protocol',
-  'hyperbolic-time-chamber', 'blue-blur-speed-protocol', 'ultra-instinct-protocol', 'ultra-ego-style',
+  'blue-blur-speed-protocol',
 ]);
+// Signed off and opened: THE GRAPPLER (Baki), GRAVITY CHAMBER, ULTRA EGO,
+// ULTRA INSTINCT. All four are 10 stages, fully prescribed, 0 review flags.
 for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
   const s = TRAINING_ARCADE_SERIES[i];
   if (UNDER_CONSTRUCTION.has(s.id)) {
