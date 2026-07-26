@@ -315,11 +315,17 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const missionDone = r.split && r.sessionValid && !r.cleared;
     const slotNum = r.slot === 's2' ? 2 : 1;
     const kindLbl = r.slot === 's2' ? 'CONDITIONING' : 'SKILL';
-    const eyebrow = r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
-    const title = r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
-    const subtitle = missionDone && slotNum === 1
-      ? `TRAINING CAMP · ${r.discipline} · S2 tonight — leave 4–8 h`
-      : `TRAINING CAMP · ${r.discipline} · ${r.difficulty}`;
+    // Item 13b — winning L12 is not "level 12 clear", it is the end of the camp.
+    const titleFightWon = r.level === 12 && r.cleared;
+    const eyebrow = titleFightWon ? '🏆 TITLE FIGHT WON'
+      : r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
+    const title = titleFightWon ? 'CAMP COMPLETE'
+      : r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
+    const subtitle = titleFightWon
+      ? `TRAINING CAMP · ${r.discipline} · ALL 12 LEVELS`
+      : missionDone && slotNum === 1
+        ? `TRAINING CAMP · ${r.discipline} · S2 tonight — leave 4–8 h`
+        : `TRAINING CAMP · ${r.discipline} · ${r.difficulty}`;
     const cVerdict = resolveOutcome({
       completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
     });
@@ -336,13 +342,21 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
           heroImage="/static/trophies/mission-complete-fight.webp"
           partialBadge="/static/trophies/good-effort.png"
           integrityResult={r.integrityResult}
-          stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
-          actions={[
-            r.unlockedTo
-              ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
-              : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
-            { label: 'HOME', onClick: goHome, kind: 'ghost' },
-          ]}
+          stats={titleFightWon
+            ? [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }, { value: '12', label: 'LEVELS', highlight: true }]
+            : [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
+          shareData={titleFightWon ? { mode: 'Training Camp', eyebrow: 'TITLE FIGHT WON', workoutName: 'CAMP COMPLETE', difficulty: r.difficulty } : undefined}
+          actions={titleFightWon
+            ? [
+                { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
+                { label: 'HOME', onClick: goHome, kind: 'ghost' },
+              ]
+            : [
+                r.unlockedTo
+                  ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
+                  : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
+                { label: 'HOME', onClick: goHome, kind: 'ghost' },
+              ]}
         />
       </WithNav>
     );

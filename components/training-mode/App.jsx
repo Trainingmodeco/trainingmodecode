@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
-import { completeCampLevel } from './data/campProgress';
+import { completeCampLevel, markCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
@@ -535,8 +535,10 @@ export default function App() {
         cleared = sessionValid;
       }
       const unlockedTo = (cleared && level != null) ? completeCampLevel(level) : null;
+      // Item 13b — clearing L12 wins the title fight and finishes the camp.
+      const titleWon = cleared && level === 12 && markCampComplete();
       trackEvent('session_complete', { mode: 'trainingCamp', level, slot: split ? slot : undefined, rounds: done });
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned, integrityResult, cleared, unlockedTo, split, slot, sessionValid });
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goCampMap: () => setScreen('training_camp'),
@@ -582,9 +584,10 @@ export default function App() {
       const st = level != null ? campSessionState(level) : {};
       const cleared = !!(st.s1 && st.s2);
       const unlockedTo = cleared ? completeCampLevel(level) : null;
+      const titleWon = cleared && level === 12 && markCampComplete();
       trackEvent('session_complete', { mode: 'trainingCamp', level, format: 'full' });
       const unlockedC = onSessionComplete({ outcome: cleared ? 'pass' : 'partial', path: 'full_arc' });
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC });
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },

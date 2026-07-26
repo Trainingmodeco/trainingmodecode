@@ -211,6 +211,110 @@ export function evaluateSession(
   return { outcome: "pass" };
 }
 
+// ---------- Title Fight (camp L12) ----------
+
+export interface TitleFightRound {
+  index: number;
+  objective: string;      // what this round is scored on
+  coachPrompt: string;
+  championship: boolean;  // the last three — the rounds that decide it
+}
+
+export interface TitleFightPlan {
+  rounds: number;
+  roundSec: number;
+  restSec: number;
+  activeMinutes: number;
+  formGated: boolean;         // technique breakdown ends the fight, not just the round
+  requiresReadinessPass: boolean;
+  requiresCleanHistory: boolean;
+  roundPlan: TitleFightRound[];
+}
+
+// A title fight is twelve rounds. The striking table gives L12 an
+// active-minutes target and calls for "structured objective rounds", but
+// nothing built them — the camp resolved rounds: 0 and the app ran ONE
+// 27-minute block. These are the objectives, cycling the whole camp's work and
+// ending on the three championship rounds.
+const TITLE_FIGHT_OBJECTIVES = [
+  "feel him out — range and guard",
+  "establish the jab",
+  "work the body",
+  "counter off his lead",
+  "take the centre",
+  "hold your output as it gets hard",
+  "defence only — make him miss",
+  "answer every exchange",
+  "cut the angles",
+  "championship round — dig in",
+  "championship round — do not break",
+  "championship round — finish in control",
+];
+
+const MMA_OBJECTIVES = [
+  "feel him out — range and level",
+  "strike into the takedown",
+  "control and pass",
+  "scramble and reset",
+  "championship round — finish in control",
+];
+
+/**
+ * Resolve camp Level 12 into a real title fight rather than one long block.
+ *
+ * Striking runs twelve rounds, the round length chosen so the total sits
+ * inside the difficulty's active-minutes band. MMA keeps the championship
+ * shape the timing table already specifies (4-5 rounds of 4-5 minutes).
+ * Either way the fight is FORM-GATED: this is the one camp session where
+ * technique breaking down ends it.
+ */
+export function resolveTitleFight(
+  discipline: Discipline,
+  difficulty: Difficulty,
+  tables: TimingTables
+): TitleFightPlan {
+  if (discipline === "mma") {
+    const fb = tables.final_boss.mma[difficulty];
+    const rounds = fb.rounds ?? 5;
+    const roundSec = fb.round_sec ?? 300;
+    return {
+      rounds, roundSec, restSec: fb.rest_sec ?? 60,
+      activeMinutes: Math.round((rounds * roundSec) / 60),
+      formGated: true,
+      requiresReadinessPass: false,
+      requiresCleanHistory: fb.requires_clean_history ?? false,
+      roundPlan: Array.from({ length: rounds }, (_, i) => ({
+        index: i + 1,
+        objective: MMA_OBJECTIVES[Math.min(i, MMA_OBJECTIVES.length - 1)],
+        coachPrompt: "Championship rounds. Control decides this.",
+        championship: i >= rounds - 1,
+      })),
+    };
+  }
+
+  const fb = tables.final_boss.striking[difficulty];
+  const target = fb.active_minutes ? mid(fb.active_minutes) : 25;
+  const rounds = 12;
+  // Round length lands the twelve rounds on the difficulty's own target:
+  // ~2 min at easy/normal, ~3 min at hard. Clamped so no round is under 90s.
+  const roundSec = Math.max(90, Math.round(((target * 60) / rounds) / 30) * 30);
+  return {
+    rounds, roundSec, restSec: 60,
+    activeMinutes: Math.round((rounds * roundSec) / 60),
+    formGated: true,
+    requiresReadinessPass: fb.requires_readiness_pass ?? false,
+    requiresCleanHistory: false,
+    roundPlan: Array.from({ length: rounds }, (_, i) => ({
+      index: i + 1,
+      objective: TITLE_FIGHT_OBJECTIVES[i],
+      coachPrompt: i >= rounds - 3
+        ? "Championship round. This is where the fight is won."
+        : "Hit the objective. Form holds or the fight stops.",
+      championship: i >= rounds - 3,
+    })),
+  };
+}
+
 // ---------- XP ----------
 
 /**
