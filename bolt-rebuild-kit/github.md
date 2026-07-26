@@ -3,6 +3,14 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-07-25 · 09-answer-the-bell.md (designs 49a / 49b / 49c)** — mandatory
+  Answer the Bell gate before any **Training Arcade** final-boss session
+  (black, breathing vignette + scanlines, eyes-only art, name slam, stat line,
+  win/loss record pill, one tap target, no back button, bell + haptic, folded
+  device-placement check), plus the once-per-session 2-second boss slam that
+  **pauses the round clock**, fires on the reveal round's first work call, and
+  is tap-to-skip for athletes who have cleared the boss before. Boss art added
+  at `/static/fight/boss-eyes.webp`. Training Camp is unaffected.
 - **2026-07-25 · Boss finale (design 47a "Boss reveal — round 10 / 12")** —
   universal final-boss experience for Training Arcade: "answer the bell"
   splash gate before the session, persisting boss HP bar that chips per
