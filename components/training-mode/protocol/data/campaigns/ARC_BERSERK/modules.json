@@ -108,6 +108,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 20,
+      "tier": "T1",
       "title": "First Swings",
       "round_source": "fight_focus",
       "drills": [
@@ -359,6 +360,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 22,
+      "tier": "T1",
       "title": "Mercenary Drills",
       "round_source": "fight_focus",
       "drills": [
@@ -607,6 +609,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 24,
+      "tier": "T1",
       "title": "The Falcon's Guards",
       "round_source": "fight_focus",
       "drills": [
@@ -768,6 +771,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T2",
       "title": "The Hawk's Point",
       "round_source": "fight_focus",
       "drills": [
@@ -1014,6 +1018,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T2",
       "title": "Tempo of the Hawk",
       "round_source": "fight_focus",
       "drills": [
@@ -1265,6 +1270,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T2",
       "title": "Club and Mace Swings",
       "round_source": "fight_focus",
       "drills": [
@@ -1521,6 +1527,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 28,
+      "tier": "T3",
       "title": "Dragonslayer Swings",
       "round_source": "fight_focus",
       "drills": [
@@ -1765,6 +1772,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T3",
       "title": "The Immortal's Power",
       "round_source": "fight_focus",
       "drills": [
@@ -2039,6 +2047,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 24,
+      "tier": "T3",
       "eclipse_safety": true,
       "title": "The Brand — Survival Rounds",
       "round_source": "fight_focus",
@@ -2288,6 +2297,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T4",
       "eclipse_safety": true,
       "title": "A Thousand Apostles — Wave Rounds",
       "round_source": "fight_focus",
@@ -2544,6 +2554,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 28,
+      "tier": "T4",
       "eclipse_safety": true,
       "title": "Sacrifice — Peak Survival",
       "round_source": "fight_focus",
@@ -2919,6 +2930,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 32,
+      "tier": "T4",
       "eclipse_safety": true,
       "title": "Trial of the Berserk Armor",
       "round_source": "fight_focus",

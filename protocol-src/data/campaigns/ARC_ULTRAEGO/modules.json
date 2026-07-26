@@ -105,6 +105,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 20,
+      "tier": "T1",
       "title": "Stance and Guard",
       "round_source": "fight_focus",
       "drills": [
@@ -365,6 +366,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 22,
+      "tier": "T1",
       "title": "Controlled Aggression",
       "round_source": "fight_focus",
       "drills": [
@@ -621,6 +623,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 22,
+      "tier": "T1",
       "title": "Grounded Kicks",
       "round_source": "fight_focus",
       "drills": [
@@ -881,6 +884,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T2",
       "title": "Grounded Power",
       "round_source": "fight_focus",
       "drills": [
@@ -1157,6 +1161,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T2",
       "title": "Pressure Combinations",
       "round_source": "fight_focus",
       "drills": [
@@ -1430,6 +1435,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T2",
       "title": "Head Movement and Counters",
       "round_source": "fight_focus",
       "drills": [
@@ -1740,6 +1746,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 28,
+      "tier": "T3",
       "title": "Power Pressure",
       "round_source": "fight_focus",
       "drills": [
@@ -2020,6 +2027,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 26,
+      "tier": "T3",
       "title": "Explosive Attack",
       "round_source": "fight_focus",
       "drills": [
@@ -2319,6 +2327,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 30,
+      "tier": "T3",
       "title": "Pressure Test",
       "round_source": "fight_focus",
       "drills": [
@@ -2626,6 +2635,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 22,
+      "tier": "T4",
       "title": "Controlled Destruction",
       "round_source": "fight_focus",
       "drills": [
@@ -2873,6 +2883,7 @@
       "difficulty": "normal",
       "format": "morning",
       "duration_min": 20,
+      "tier": "T4",
       "title": "Calm Before Destruction",
       "round_source": "fight_focus",
       "drills": [
@@ -3166,6 +3177,7 @@
       "difficulty": "normal",
       "format": "single",
       "duration_min": 30,
+      "tier": "T4",
       "title": "Twelve-Round Destruction Trial",
       "boss": true,
       "round_source": "fight_focus",
