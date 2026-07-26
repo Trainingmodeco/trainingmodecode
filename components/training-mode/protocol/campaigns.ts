@@ -429,8 +429,9 @@ export function arcadeCfg(campaignId: string, stageId: string, path: 'fit' | 'fi
     rushMode: false,
     // Boss finale: the script drives per-round rush; surges call movements AND
     // strikes. The flag also tells App.jsx to skip the prescription/finisher
-    // layers — the finale is already the whole test.
-    ...(boss ? { bossFinale: true, rushMix: 'both' } : {}),
+    // layers — the finale is already the whole test. bossName feeds the
+    // splash gate, the persisting HP bar, and the 47a late-fight reveal.
+    ...(boss ? { bossFinale: true, rushMix: 'both', bossName: arcadeStage(campaignId, stageId)?.title || 'Final Boss' } : {}),
     warmupMin: 3,
     blockRounds: arcadeBlockRounds(campaignId, stageId, path, difficulty),
   };

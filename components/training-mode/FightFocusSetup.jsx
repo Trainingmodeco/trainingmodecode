@@ -134,7 +134,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
 
         {/* Rush mode (opens the flame popup) */}
         <div style={{ marginBottom: 9 }}>
-          <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
+          <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
         </div>
 
         {/* Ghost Battles (specs 18/24) — race the replay of a verified past

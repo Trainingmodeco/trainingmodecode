@@ -4,7 +4,7 @@ import { Flame, X } from 'lucide-react';
 import { C } from '../Styles';
 import TrainingCTA from './TrainingCTA';
 import { RUSH_PATTERNS, rushPatternLabel } from './rushSchedule';
-import { RUSH_MIXES, rushMixLabel } from '../data/rushMoves';
+import { rushMixLabel, explosivePoolFor } from '../data/rushMoves';
 
 // Rush Mode control (46b): a toggle row that opens a modal with two sections —
 // CALL MIX first (Explosive → Strikes → Both: what the coach calls during a
@@ -51,7 +51,17 @@ function SectionLabel({ children }) {
   );
 }
 
-function RushModal({ sel, setSel, mixSel, setMixSel, onCancel, onActivate }) {
+// CALL MIX segments — each option keeps its own signature color (mock 46b):
+// Explosive green, Strikes ember, Both gold. Selected = filled, dark text.
+const MIX_SEGMENTS = [
+  { id: 'explosive', label: 'EXPLOSIVE', color: '#22c55e' },
+  { id: 'strikes', label: 'STRIKES', color: '#f97316' },
+  { id: 'both', label: 'BOTH', color: '#fde047' },
+];
+
+function RushModal({ sel, setSel, mixSel, setMixSel, discipline, onCancel, onActivate }) {
+  const moveCount = explosivePoolFor(discipline).length;
+  const discLabel = String(discipline || 'Boxing');
   return createPortal(
     <div onClick={onCancel} style={{
       position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -64,19 +74,39 @@ function RushModal({ sel, setSel, mixSel, setMixSel, onCancel, onActivate }) {
         boxShadow: '0 0 40px rgba(239,68,68,0.3), 0 20px 50px rgba(0,0,0,0.55)',
         padding: '15px 16px 16px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#ff9a5c', letterSpacing: '0.08em' }}>
             <Flame size={15} style={{ color: '#f97316' }}/> RUSH MODE
           </div>
           <button onClick={onCancel} style={{ background: 'transparent', border: 'none', color: C.muted, cursor: 'pointer', padding: 4 }}><X size={18}/></button>
         </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#c4a4d8', marginBottom: 12 }}>
+          Explosive surges — pick the mix and timing.
+        </div>
 
-        {/* 46b — CALL MIX first: what the coach calls during a surge. */}
+        {/* 46b — CALL MIX first: a three-way segmented pick. */}
         <SectionLabel>CALL MIX</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 13 }}>
-          {RUSH_MIXES.map(m => (
-            <OptionRow key={m.id} active={m.id === mixSel} label={m.label} sub={m.sub} onClick={() => setMixSel(m.id)}/>
-          ))}
+        <div style={{ display: 'flex', gap: 7, marginBottom: 9 }}>
+          {MIX_SEGMENTS.map(m => {
+            const active = m.id === mixSel;
+            return (
+              <button key={m.id} onClick={() => setMixSel(m.id)} style={{
+                flex: 1, padding: '11px 0', borderRadius: 10, cursor: 'pointer',
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, letterSpacing: '0.05em',
+                background: active ? m.color : 'rgba(16,4,30,0.7)',
+                color: active ? '#140a00' : m.color,
+                border: `1.5px solid ${active ? m.color : `${m.color}55`}`,
+                boxShadow: active ? `0 0 14px ${m.color}66` : 'none',
+              }}>
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: '#b9a8d6', lineHeight: 1.5, marginBottom: 13 }}>
+          <b style={{ color: '#22c55e' }}>Explosive</b> = bodyweight only, random from {moveCount} moves.{' '}
+          <b style={{ color: '#f97316' }}>Strikes</b> = your discipline ({discLabel}), half freestyle.{' '}
+          <b style={{ color: '#fde047' }}>Both</b> = random across both.
         </div>
 
         {/* Surge timing — the four pattern rows. No cadence control (46b). */}
@@ -99,7 +129,7 @@ function RushModal({ sel, setSel, mixSel, setMixSel, onCancel, onActivate }) {
   );
 }
 
-export default function RushModeRow({ rush, onChange }) {
+export default function RushModeRow({ rush, onChange, discipline }) {
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState(rush?.pattern || 'endRound');
   const [mixSel, setMixSel] = useState(rush?.mix || 'explosive');
@@ -139,6 +169,7 @@ export default function RushModeRow({ rush, onChange }) {
           setSel={setSel}
           mixSel={mixSel}
           setMixSel={setMixSel}
+          discipline={discipline}
           onCancel={() => setOpen(false)}
           onActivate={() => { onChange({ on: true, pattern: sel, mix: mixSel }); setOpen(false); }}
         />

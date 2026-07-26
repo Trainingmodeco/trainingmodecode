@@ -167,7 +167,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
         {/* Rush mode (opens the flame popup) */}
         <div style={{ marginBottom: 9 }}>
-          <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)}/>
+          <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
         </div>
 
         {/* Start */}

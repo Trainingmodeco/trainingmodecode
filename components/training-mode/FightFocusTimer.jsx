@@ -9,6 +9,7 @@ import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { createRushCaller } from './data/rushMoves';
+import { BossHpBar, BossReveal } from './shared/BossFinale';
 import { packOpts, packLine } from './data/voicePacks';
 import { recordGhostFromSession, finishGhostBattle, ghostCountAtTime } from './data/ghostBattles';
 import VoiceMixer from './shared/VoiceMixer';
@@ -73,6 +74,10 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const [countdown, setCountdown] = useState(initialPaused ? null : '3');
   const [countdownSub, setCountdownSub] = useState('');
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // 47a — late-fight boss reveal: fires once, entering the reveal round
+  // (round 10 on a 12-round finale; the final round on shorter gauntlets).
+  const [bossRevealDone, setBossRevealDone] = useState(false);
+  const bossRevealIdx = cfg.rounds >= 12 ? 9 : cfg.rounds - 1;
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
   // 1.4 — motion-verified thrown strikes, counted only during a live work round.
@@ -590,6 +595,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
       <RushPersistentEffects active={rush} remaining={remaining} />
       {showRushOverlay && <RushOverlay onDone={() => setShowRushOverlay(false)} />}
+      {!!cfg.bossFinale && !bossRevealDone && phase === 'round' && countdown === null && roundIdx === bossRevealIdx && (
+        <BossReveal bossName={cfg.bossName} round={bossRevealIdx + 1} total={cfg.rounds} onDone={() => setBossRevealDone(true)}/>
+      )}
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
@@ -640,6 +648,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           }}>FIGHT FOCUS</div>
           <div style={{ width: 30 }}/>
         </div>
+
+        {/* Boss finale — the persisting boss HP bar; every cleared round chips it. */}
+        {cfg.bossFinale && (
+          <div style={{ width: '100%', marginBottom: 7 }}>
+            <BossHpBar bossName={cfg.bossName} total={cfg.rounds} cleared={done ? cfg.rounds : roundIdx + (phase === 'rest' ? 1 : 0)}/>
+          </div>
+        )}
 
         {/* Status chips (design 13a) */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 7 }}>

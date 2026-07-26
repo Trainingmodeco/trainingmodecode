@@ -8,6 +8,7 @@ import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts, packLine } from './data/voicePacks';
 import VoiceMixer from './shared/VoiceMixer';
+import { BossHpBar, BossReveal } from './shared/BossFinale';
 
 // Phase 2 · 2.4b — CONDITIONING runner for the camp's S2 (PM) block. Same round
 // engine shape as Fight Focus (drives cfg.blockRounds, produces the identical
@@ -53,6 +54,9 @@ export default function CampFitRunner({ cfg, onEnd }) {
   const [phase, setPhase] = useState('work');       // 'work' | 'rest'
   const [roundIdx, setRoundIdx] = useState(0);
   const [remaining, setRemaining] = useState(roundSecFor(0));
+  // 47a — late-fight boss reveal (round 10 on the 12-round finale).
+  const [bossRevealDone, setBossRevealDone] = useState(false);
+  const bossRevealIdx = total >= 12 ? 9 : total - 1;
   const [paused, setPaused] = useState(false);
   const [countdown, setCountdown] = useState('3');
   const [done, setDone] = useState(false);
@@ -195,6 +199,10 @@ export default function CampFitRunner({ cfg, onEnd }) {
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 16px 0' }}>
         {/* Header */}
         <div style={{ font: "900 17px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.08em', textShadow: `0 0 14px ${TEAL}66` }}>CONDITIONING</div>
+        {/* Boss finale — the persisting boss HP bar; every cleared round chips it. */}
+        {cfg.bossFinale && (
+          <BossHpBar bossName={cfg.bossName} total={total} cleared={done ? total : roundIdx + (phase === 'rest' ? 1 : 0)}/>
+        )}
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#0a1a17', background: TEAL, borderRadius: 5, padding: '3px 8px', letterSpacing: '0.05em' }}>ROUND {Math.min(roundIdx + 1, total)}/{total}</span>
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#bfe9e1', background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.3)', borderRadius: 5, padding: '3px 8px', letterSpacing: '0.05em' }}>{String(cfg.difficulty || '').toUpperCase()}</span>
@@ -246,6 +254,10 @@ export default function CampFitRunner({ cfg, onEnd }) {
           </div>
         </div>
       </div>
+
+      {!!cfg.bossFinale && !bossRevealDone && phase === 'work' && countdown === null && roundIdx === bossRevealIdx && (
+        <BossReveal bossName={cfg.bossName} round={bossRevealIdx + 1} total={total} onDone={() => setBossRevealDone(true)}/>
+      )}
 
       {confirmEnd && (
         <div onClick={() => setConfirmEnd(false)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
