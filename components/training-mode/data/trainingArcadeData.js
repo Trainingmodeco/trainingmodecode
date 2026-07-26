@@ -1144,10 +1144,12 @@ CAMPAIGN_SERIES.forEach((cs) => {
 // Remove an id here as its stages are reviewed.
 const UNDER_CONSTRUCTION = new Set([
   'berserk-struggler', 'dark-knight-protocol', 'demon-back-protocol',
-  'blue-blur-speed-protocol',
+  'blue-blur-speed-protocol', 'ultra-instinct-protocol',
 ]);
-// Signed off and opened: THE GRAPPLER (Baki), GRAVITY CHAMBER, ULTRA EGO,
-// ULTRA INSTINCT. All four are 10 stages, fully prescribed, 0 review flags.
+// Signed off and OPEN, in carousel order: ONE PUNCH · GRAVITY CHAMBER ·
+// HERO HUNTER (Garou) · ULTRA EGO · THE GRAPPLER (Baki). Each is 10 stages,
+// fully prescribed, 0 review flags. Remove an id above as its stages are
+// reviewed; hidden/bonus levels can be added past 10 later.
 for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
   const s = TRAINING_ARCADE_SERIES[i];
   if (UNDER_CONSTRUCTION.has(s.id)) {
@@ -1157,15 +1159,18 @@ for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
 
 // Carousel order (this list is the single source of order — see below).
 const VISIBLE_SERIES_IDS = [
+  // Active — the owner's order.
   'one-punch-protocol',
-  'berserk-struggler',       // The Struggler
-  'baki-grappler',           // The Grappler
-  'demon-back-protocol',
-  'dark-knight-protocol',
   'hyperbolic-time-chamber', // Gravity Chamber
-  'blue-blur-speed-protocol', // Blue Blur (Sonic) — now active
+  'hero-hunter-protocol',    // Hero Hunter (Garou)
+  'ultra-ego-style',         // Destroyer
+  'baki-grappler',           // The Grappler
+  // Locked, pending playtest sign-off.
+  'berserk-struggler',
+  'dark-knight-protocol',
   'ultra-instinct-protocol',
-  'ultra-ego-style',
+  'blue-blur-speed-protocol',
+  'demon-back-protocol',
   // Coming soon
   'the-contender',
   'the-wall-crawler',

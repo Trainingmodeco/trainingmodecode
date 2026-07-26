@@ -15,9 +15,16 @@ const MAP = {
   ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Black Swordsman Protocol', stars: 5, type: 'Hybrid' },
   ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit' },
   ARC_SONIC:         { id: 'blue-blur-speed-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
+  // Garou had no series entry at all, so a finished 10-stage campaign was
+  // unreachable from the carousel. New id — no placeholder existed for it.
+  ARC_GAROU:         { id: 'hero-hunter-protocol',     subtitle: 'Hero Hunter Protocol',    stars: 4, type: 'Fit / Fight', title: 'Hero Hunter' },
 };
-// Display order in the carousel.
-const ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GRAVITY', 'ARC_SONIC'];
+// Display order in the carousel. Active sagas lead, in the owner's chosen
+// order; the still-locked ones follow.
+const ORDER = [
+  'ARC_GRAVITY', 'ARC_GAROU', 'ARC_ULTRAEGO', 'ARC_BAKI',        // active
+  'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_SONIC',  // locked
+];
 
 const shortName = (name) => String(name || '').split('—')[0].trim();
 
@@ -91,4 +98,4 @@ function campaignToSeries(campaignId) {
 export const CAMPAIGN_SERIES = ORDER.map(campaignToSeries).filter(Boolean);
 export const CAMPAIGN_SERIES_BY_ID = Object.fromEntries(CAMPAIGN_SERIES.map((s) => [s.id, s]));
 // New series ids that aren't already placeholders in the base list.
-export const NEW_CAMPAIGN_SERIES_IDS = ['baki-grappler', 'berserk-struggler'];
+export const NEW_CAMPAIGN_SERIES_IDS = ['baki-grappler', 'berserk-struggler', 'hero-hunter-protocol'];
