@@ -207,10 +207,11 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         'radial-gradient(120% 55% at 50% 0%, rgba(239,68,68,0.28), transparent 55%),' +
         'radial-gradient(90% 40% at 50% 100%, rgba(45,212,191,0.16), transparent 60%),' +
         'linear-gradient(180deg, #1a0a2e 0%, #10061f 45%, #0a0416 100%)' }} />
-      {/* Tower art dimmed right down — it sets the mood, the ladder has to be
-          the thing you actually read. */}
+      {/* Tower art dimmed down — it sets the mood, the ladder has to be the
+          thing you actually read. 0.325 is the first pass' 0.28 brought back
+          up 16% after that read too dark. */}
       <img src={BG_SRC} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.28 }} />
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.325 }} />
       <div style={{ position: 'absolute', inset: 0, background:
         'linear-gradient(180deg, rgba(4,0,10,0.78) 0%, rgba(4,0,10,0.62) 30%, rgba(4,0,10,0.78) 100%)' }} />
 

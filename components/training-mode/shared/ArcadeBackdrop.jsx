@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import SafeImage from '../SafeImage';
 
 // Training Arcade's own backdrop — previously every arcade screen reused
 // FightRingBackdrop (the boxer-in-ring photo also used across Fight Mode),
@@ -56,16 +57,16 @@ export default function ArcadeBackdrop({ opacity = 1, image, imageOpacity = 0.4 
           'linear-gradient(180deg, #0a0316 0%, #0d0420 42%, #150626 68%, #0a0316 100%)',
       }}/>
 
-      {image && (
+      {image && photoOk && (
         // Photo arena: the drawn grid/horizon below would fight it, so while
-        // the photo is up only the sparks stay layered over it.
-        <img
-          src={image} alt=""
-          onError={() => setPhotoOk(false)}
+        // the photo is up only the sparks stay layered over it. SafeImage
+        // serves the ~60KB WebP and keeps the PNG as the fallback; if both
+        // fail, onFail drops us back to the drawn grid.
+        <SafeImage
+          src={image} alt="" loading="eager" onFail={() => setPhotoOk(false)}
           style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%',
             objectFit: 'cover', objectPosition: 'center', opacity: imageOpacity,
-            display: photoOk ? 'block' : 'none',
           }}
         />
       )}
