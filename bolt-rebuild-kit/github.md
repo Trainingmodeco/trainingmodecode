@@ -3,6 +3,12 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-07-25 · Boss finale (design 47a "Boss reveal — round 10 / 12")** —
+  universal final-boss experience for Training Arcade: "answer the bell"
+  splash gate before the session, persisting boss HP bar that chips per
+  cleared round, and the 47a late-fight reveal (round 10/12 on the fit
+  burnout, final circuit on the fight gauntlet). `shared/BossFinale.jsx`,
+  gated in `ScreenRouter`, driven by `bossFinale`/`bossName` on the arcade cfg.
 - **2026-07-25 · 07-rush-mode.md (design 46b, 46a reference)** — Rush Mode
   redesign: surges now CALL work instead of hype-only. New CALL MIX in the Rush
   modal ordered Explosive → Strikes → Both above the four surge-timing rows,
