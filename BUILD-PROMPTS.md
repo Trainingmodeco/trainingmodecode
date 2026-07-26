@@ -179,8 +179,11 @@ SecondaryButton / Card); no new design system.
 > - `components/training-mode/protocol/data/achievements.json` — 9 achievement
 >   families.
 > - Every Arcade campaign JSON has its own `campaign.achievements[]` with an id,
->   name, and trigger text (Baki has 8, Garou 12) under
->   `components/training-mode/protocol/campaigns/`.
+>   name, and trigger text — **71 across the 8 campaigns** (Garou 12, Sonic 11,
+>   the rest 8 each) — in
+>   `components/training-mode/protocol/data/campaigns/<ID>/campaign.json`.
+>   Trigger text references stage numbers, and every campaign was just
+>   renumbered to 10 stages, so read the triggers as they are now.
 > - `ProgressScreen.jsx` exists but has no achievements section.
 > - `data/userStats.js` is the established localStorage persistence pattern —
 >   follow it exactly.
