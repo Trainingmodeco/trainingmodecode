@@ -301,3 +301,163 @@ SecondaryButton / Card); no new design system.
 > Persist the choice per camp level (same pattern as `campProgress.js`) and pass
 > it into the existing camp engine — this is a selection screen over content
 > that already exists, so **no new workout content and no engine changes**.
+
+
+---
+
+## PROMPT G — Garou: split the single long blocks into real rounds
+
+> `ARC_GAROU` is 10 stages and fully prescribed on the FIT side, but every one
+> of its 10 fight modules holds **one 18–30 minute round** instead of the short
+> rounds every other campaign uses. So `10 generated / 0 cue` is one long block
+> per stage, not ten good rounds. Fix all 10.
+>
+> **The data is already there — you are reshaping, not authoring.** Each module
+> (e.g. `MOD_GA_S04_FIGHT`, "Dutch Rhythm") already carries:
+> - `exercises[]` — the drill list, in order, one line per intended round
+> - `canonical_map[]` — the same drills mapped to discipline + canonical move
+> - `striking_rounds` and `round_len_sec` — the intended round count and length
+> - a single `rounds[0]` with one `combo_spec` covering the whole block
+>
+> **For each fight module:**
+> 1. Build one round per entry in `canonical_map[]` (5–6 rounds; the first
+>    `exercises[]` line is the warm-up, not a round). Use the module's own
+>    `round_len_sec` for `length_sec` (150s where present, else 120s) and
+>    45–75s `rest_sec` — shorter rest on the speed/burst stages, longer on the
+>    power ones, matching how `ARC_BAKI` does it.
+> 2. Give each round its own `goal` (snake_case, derived from the drill name)
+>    and its own `combo_spec`, seeded from that round's canonical move — not a
+>    copy of the block-level spec. Narrow `allowed_strikes` to what the drill
+>    actually is: a teep round is `["tp"]` plus a setup, a low-kick round is
+>    `["1","2","lk"]`, a hands-only speed round is `["1","2","3"]`.
+> 3. Set `complexity` to match the drill — `single` only where one strike IS
+>    the drill, `intro`/`basic` for setups, `standard` for flow rounds, `burst`
+>    for speed rounds. Do not leave every round at `standard`.
+> 4. Keep `finishers`, `canonical_map`, `tier`, `warmup` and `duration_min` as
+>    they are. Only `rounds[]` changes.
+>
+> Garou's disciplines are boxing, Dutch kickboxing and Wing Chun — every strike
+> must map to one of the four disciplines in
+> `data/arcade-session-standards.json`. Chain-punch / trapping rounds that don't
+> map to numbered strikes should be `mixed_with_cue: true` (generate combos AND
+> keep technique cues) rather than pure cue.
+>
+> Verify: `node protocol-src/scripts/review-campaign.mjs ARC_GAROU` should drop
+> to 0 flags and report roughly 50 rounds instead of 10. Then
+> `node protocol-src/scripts/validate-campaigns.mjs` (8/8) and mirror
+> `protocol-src/data/campaigns/ARC_GAROU/` into
+> `components/training-mode/protocol/data/campaigns/ARC_GAROU/`.
+
+---
+
+## PROMPT S — Sonic + Gravity: add counted prescriptions
+
+> `ARC_SONIC` and `ARC_GRAVITY` are fit-only (10 stages, 10 modules each) and
+> are the only two campaigns that never received the arcade session standard.
+> Every module has **zero counted `prescription`**, so the volume ladder and the
+> counted-set runner cannot drive them — they play as one undifferentiated
+> block. 20 modules to convert.
+>
+> **The content exists as prose.** Each module has an `exercises[]` array of
+> strings (e.g. Sonic S04: "Wall drives (posture + knee drive)", "Falling starts
+> into a 10-20m acceleration", "A-skips / dribble drills"). Convert each line
+> into a `prescription` entry:
+>
+> ```json
+> { "name": "...", "category": "...", "sets": 3, "reps": 12,
+>   "count_mode": "reps", "load_type": "bodyweight", "rest_sec": 60 }
+> ```
+> - `category` ∈ pull · push · squat_legs · core · hold · carry · explosive ·
+>   conditioning · mobility — the same set the volume ladder keys on.
+> - `count_mode`: `"reps"` for counted movements, `"time"` with `duration_sec`
+>   for holds and intervals, `"none"` with `duration_sec` for warm-ups,
+>   mobility flows and cooldowns (they play but aren't counted).
+> - Stored numbers are the **NORMAL baseline** at the module's `tier` — the app
+>   re-resolves easy/hard from `data/arcade-session-standards.json`. Read the
+>   ladder before picking numbers; do not invent a second scale.
+>
+> **Campaign-specific rules that must survive the conversion:**
+> - **Sonic** — the mandatory warm-up gate stays (`warmup_gate: true`, and the
+>   warm-up line becomes a `count_mode: "none"` entry, never a counted set).
+>   Sprint work keeps full recovery between reps: the `accel` / max-velocity
+>   blocks are low-rep, long-rest quality work (e.g. `sets: 4, reps: 1,
+>   rest_sec: 180`), never conditioning circuits. Respect the plyo foot-contact
+>   caps (40/60/80 by tier) — the explosive entries must sum under the cap.
+>   Stage 9 is the deload; keep it light.
+> - **Gravity** — the signature is tempo/cadence, not volume. Each module has a
+>   `tempo` block (`eccentric_sec`, `pause_bottom_sec`, `concentric_sec`) and
+>   `voice_count_mode: "cadence"`. Prescriptions must keep rep counts LOW because
+>   each rep is 6–7 seconds long: a tempo push-up set is `3 × 8`, not `3 × 40`.
+>   Do not let the volume ladder push cadence work to peak rep counts.
+>
+> Neither campaign has a fight side, so there is nothing to do on combos.
+>
+> Verify per campaign with
+> `node protocol-src/scripts/review-campaign.mjs ARC_SONIC` (and `ARC_GRAVITY`)
+> — both should go from 10 flags to 0. Then the validator (8/8) and mirror both
+> campaign folders into `components/training-mode/protocol/data/campaigns/`.
+
+---
+
+## PROMPT B — Berserk: give the swordsman campaign its combos back
+
+> `ARC_BERSERK` runs **4 generated / 54 cue-based** rounds. Nine of its ten
+> fight modules have **zero** generated rounds, including the 12-round boss
+> (`MOD_BK_S10_FIGHT`), and there are two long dry stretches: stages 1–3 and
+> stages 5–10. A fight-only player goes six consecutive stages without a single
+> combo called.
+>
+> **This one needs a decision, not just a script.** Berserk's fight side is
+> greatsword, club, mace and sledgehammer work — implement swings that
+> genuinely do not map to numbered punch combos. That is why it was authored
+> cue-only, and that judgement was correct. The problem is the *amount*, not the
+> existence, of cue rounds.
+>
+> **The fix — one mixed round per stage, minimum:**
+> 1. In every fight module with zero generated rounds, convert **at least one**
+>    round to `mixed_with_cue: true` — it keeps its `technique_cues` AND gains
+>    `allowed_strikes`, so the app interleaves two generated calls with one cue.
+>    Pick the round where an unarmed strike honestly fits: a guard/close-quarters
+>    round, a "drop the weapon and fight" round, a footwork-into-strike round.
+>    Do not bolt punches onto a two-handed swing round where they make no sense.
+> 2. **The boss (`MOD_BK_S10_FIGHT`, 12 rounds) needs more than one.** Aim for
+>    4–5 generated or mixed rounds across the twelve, so the finale has real
+>    combo variety. Its round objectives already include
+>    `defensive_brace_recover`, `the_beast_stirs_keep_form` and
+>    `controlled_fury_form_gate` — those are the natural candidates.
+> 3. Target: **no two consecutive stages with zero combos**, and the campaign
+>    lands somewhere near 25–30 generated of ~60 rounds. It will stay the most
+>    cue-heavy campaign in the game and that is correct — it is a greatsword
+>    campaign, not a boxing one.
+>
+> Every strike still has to map to one of the four disciplines. Keep the
+> implement-safety notes, the capped output rules and the Eclipse-phase framing
+> exactly as authored.
+>
+> Verify: `node protocol-src/scripts/review-campaign.mjs ARC_BERSERK` — the
+> "zero generated rounds" and "consecutive stages" flags should be gone. Then
+> the validator (8/8) and mirror the folder.
+
+---
+
+## PROMPT A — after any content prompt: get it into the app
+
+> Content lives in `protocol-src/data/`. **The app reads
+> `components/training-mode/protocol/data/` — a mirror.** Nothing you author in
+> `protocol-src` reaches the app until it is copied across. Every campaign
+> folder must be byte-identical between the two trees.
+>
+> ```
+> node protocol-src/scripts/validate-campaigns.mjs          # 8/8
+> node protocol-src/scripts/review-campaign.mjs --all       # flag counts
+> for c in protocol-src/data/campaigns/*/; do
+>   diff -rq "$c" "components/training-mode/protocol/data/campaigns/$(basename $c)"
+> done                                                      # must print nothing
+> ```
+>
+> A new campaign additionally needs registering in
+> `components/training-mode/protocol/campaigns.ts` — import its three JSON
+> files, add it to `RAW`, add it to `CAMPAIGN_ORDER`, and add its coach lines to
+> `CAMPAIGN_COACH`. Editing an existing campaign needs none of that.
+>
+> Then commit and push to `app`.
