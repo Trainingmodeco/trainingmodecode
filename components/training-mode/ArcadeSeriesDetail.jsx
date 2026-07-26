@@ -15,7 +15,6 @@ import ScreenGuide from './shared/ScreenGuide';
 import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ChallengeShareModal from './shared/ChallengeShareModal';
-import { BossEyes } from './shared/BossFinale';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -346,7 +345,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     <PhoneFrame useBrandBg>
       {/* Stage ladder — the bracket-hall arena. Kept a shade quieter than the
           saga select: the ladder's nodes and branch lines sit right on it. */}
-      <ArcadeBackdrop image="/static/arcade/arcade-bg-ladder.png" imageOpacity={0.5} />
+      <ArcadeBackdrop image="/static/arcade/arcade-bg-ladder.png" imageOpacity={0.45} />
       <style dangerouslySetInnerHTML={{ __html: detailStyles }} />
       <Embers count={3} />
 
@@ -451,23 +450,25 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                       }}
                     >
                       {isBoss ? (
-                        // 47c — boss node: eyes-only art (no character ever shown),
-                        // three states: LOCKED / unlocked-not-defeated / DEFEATED.
+                        // 47c — boss node: the stage's own vertical banner under a
+                        // red wash, with the eyes riding OVER the top edge (added
+                        // outside this clipped box, below). Three states:
+                        // LOCKED / unlocked-not-defeated / DEFEATED.
                         <>
+                          <SafeImage src={src} alt="" style={{
+                            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+                            filter: st === 'locked' ? 'grayscale(1) brightness(0.4)' : 'saturate(1.15)',
+                          }}/>
                           <div style={{
                             position: 'absolute', inset: 0,
                             background: st === 'complete'
-                              ? 'radial-gradient(ellipse at 50% 32%, rgba(120,90,10,0.5), rgba(10,5,0,0.96) 75%)'
+                              ? 'linear-gradient(to top, rgba(20,12,0,0.9), rgba(120,90,10,0.28) 55%, rgba(90,70,0,0.15))'
                               : st === 'locked'
-                                ? 'radial-gradient(ellipse at 50% 32%, rgba(50,20,70,0.4), rgba(8,2,16,0.96) 75%)'
-                                : 'radial-gradient(ellipse at 50% 32%, rgba(110,10,10,0.55), rgba(10,0,4,0.96) 75%)',
+                                ? 'linear-gradient(to top, rgba(6,0,14,0.86), rgba(8,2,16,0.6))'
+                                : 'linear-gradient(to top, rgba(20,0,4,0.9), rgba(150,16,16,0.34) 55%, rgba(190,20,20,0.2))',
                           }}/>
-                          {st === 'locked' ? (
-                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, opacity: 0.55 }}>🔒</div>
-                          ) : (
-                            <div style={{ position: 'absolute', inset: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <BossEyes size={Math.max(28, Math.min(w, h) * 0.6)} animated={st === 'current'}/>
-                            </div>
+                          {st === 'locked' && (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, opacity: 0.6 }}>🔒</div>
                           )}
                           <div style={{
                             position: 'absolute', top: 3, left: 0, right: 0, textAlign: 'center',
@@ -523,6 +524,22 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                         </>
                       )}
                     </div>
+                    {/* 47c — the eyes ride OVER the boss card's top edge. They sit
+                        outside .ladder-node-inner because that box clips its
+                        children, and the whole point is that they break the frame. */}
+                    {isBoss && st !== 'locked' && (
+                      <SafeImage
+                        src="/static/fight/boss-eyes.png" alt=""
+                        style={{
+                          position: 'absolute', left: '50%', top: -Math.round(w * 0.16),
+                          width: Math.round(w * 1.5), transform: 'translateX(-50%)',
+                          pointerEvents: 'none', zIndex: 3,
+                          filter: st === 'complete'
+                            ? 'grayscale(0.55) brightness(0.85) drop-shadow(0 0 10px rgba(253,224,71,0.5))'
+                            : 'drop-shadow(0 0 12px rgba(239,68,68,0.9))',
+                        }}
+                      />
+                    )}
                   </button>
                 </div>
               );

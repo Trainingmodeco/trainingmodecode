@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import SafeImage from '../SafeImage';
 import { playBell } from '../data/audioEngine';
 import { getBossRecord } from '../data/arcadeProgress';
+import MobilityBlock from './MobilityBlock';
 
 // Designs 49a / 49b / 49c — the Answer the Bell gate and the mid-session slam.
 // Training Arcade boss stages only; Training Camp is untouched.
@@ -197,18 +198,23 @@ export function AnswerTheBellGate({
           fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5,
           color: MUTED, marginTop: 7, letterSpacing: '0.02em',
         }}>
-          Nothing starts until you do. No warm-up, no countdown.
+          Nothing starts until you do. 90s to loosen up, then round 1.
         </div>
       </div>
     </div>
   );
 }
 
-// Router-level gate: holds the whole session until the bell is answered.
+// Router-level gate: holds the whole session until the bell is answered, then
+// runs a short guided mobility block before round 1. The gate drops the normal
+// 3-minute warm-up by design, but going into a max-effort gauntlet stone cold
+// is a real injury risk — 90 seconds of called-out joint prep is the
+// compromise, and it stays skippable.
 export function AnswerTheBellHost({ active, children, ...gateProps }) {
-  const [answered, setAnswered] = useState(!active);
-  useEffect(() => { if (!active) setAnswered(true); }, [active]);
-  if (!answered) return <AnswerTheBellGate {...gateProps} onAnswer={() => setAnswered(true)} />;
+  const [stage, setStage] = useState(active ? 'gate' : 'session');
+  useEffect(() => { if (!active) setStage('session'); }, [active]);
+  if (stage === 'gate') return <AnswerTheBellGate {...gateProps} onAnswer={() => setStage('mobility')} />;
+  if (stage === 'mobility') return <MobilityBlock onDone={() => setStage('session')} />;
   return children;
 }
 
