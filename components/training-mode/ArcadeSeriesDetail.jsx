@@ -3,7 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
-import FightRingBackdrop from './shared/FightRingBackdrop';
+import ArcadeBackdrop from './shared/ArcadeBackdrop';
 import TrainingCTA from './shared/TrainingCTA';
 import { Lock, Check, X } from 'lucide-react';
 import { C } from './Styles';
@@ -15,6 +15,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ChallengeShareModal from './shared/ChallengeShareModal';
+import { BossEyes } from './shared/BossFinale';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -26,6 +27,7 @@ const detailStyles = `
 .ladder-dim { filter: brightness(0.45); }
 .ladder-layer { transition: filter .2s ease; }
 @keyframes node-pulse { 0%,100% { box-shadow: 0 0 10px rgba(253,224,71,0.45); } 50% { box-shadow: 0 0 24px rgba(253,224,71,0.85); } }
+@keyframes boss-node-pulse { 0%,100% { box-shadow: 0 0 12px rgba(239,68,68,0.55); } 50% { box-shadow: 0 0 26px rgba(239,68,68,0.95); } }
 @keyframes node-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
 .stage-modal { animation: modal-pop .22s cubic-bezier(.2,.8,.25,1) forwards; }
 @keyframes modal-pop { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
@@ -338,7 +340,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   return (
     <PhoneFrame useBrandBg>
-      <FightRingBackdrop opacity={0.12} />
+      <ArcadeBackdrop />
       <style dangerouslySetInnerHTML={{ __html: detailStyles }} />
       <Embers count={3} />
 
@@ -398,11 +400,13 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
               const idealW = isMythic || isBoss ? BOSS_W : st === 'current' ? CUR_W : NODE_W;
               const h = Math.min(Math.round(idealW * ART_AR), Math.max(52, Math.round(unitPx * 1.45)));
               const w = Math.round(h / ART_AR);
+              // 47c — boss node states: LOCKED (dim purple, same as any locked
+              // node), BOSS unlocked-not-defeated (pulsing red), DEFEATED (gold).
               const border = isOpen ? '2px solid #fff'
                 : isMythic ? '2px solid #d946ef'
+                : isBoss ? (st === 'complete' ? '2px solid #fde047' : st === 'locked' ? '1.5px solid rgba(168,85,247,0.28)' : '2px solid #ef4444')
                 : st === 'current' ? '2px solid #fde047'
                 : st === 'complete' ? '1.5px solid rgba(34,197,94,0.8)'
-                : isBoss ? '1.5px solid rgba(253,224,71,0.55)'
                 : '1.5px solid rgba(168,85,247,0.28)';
               return (
                 <div key={stage.id}>
@@ -430,33 +434,87 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                       className="ladder-node-inner"
                       style={{
                         width: w, height: h, background: '#0a0014', border,
-                        boxShadow: isOpen ? '0 0 18px rgba(255,255,255,0.5)' : isMythic ? '0 0 16px rgba(217,70,239,0.5)' : isBoss ? '0 0 14px rgba(253,224,71,0.3)' : '0 3px 10px rgba(0,0,0,0.5)',
-                        animation: shakeIdx === idx ? 'node-shake 0.45s ease' : (st === 'current' || (isMythic && accessible(idx))) ? 'node-pulse 2.2s ease-in-out infinite' : 'none',
+                        boxShadow: isOpen ? '0 0 18px rgba(255,255,255,0.5)'
+                          : isMythic ? '0 0 16px rgba(217,70,239,0.5)'
+                          : isBoss ? (st === 'complete' ? '0 0 16px rgba(253,224,71,0.5)' : st === 'locked' ? '0 3px 10px rgba(0,0,0,0.5)' : '0 0 16px rgba(239,68,68,0.55)')
+                          : '0 3px 10px rgba(0,0,0,0.5)',
+                        animation: shakeIdx === idx ? 'node-shake 0.45s ease'
+                          : (isBoss && st === 'current') ? 'boss-node-pulse 1.8s ease-in-out infinite'
+                          : (st === 'current' || (isMythic && accessible(idx))) ? 'node-pulse 2.2s ease-in-out infinite'
+                          : 'none',
                       }}
                     >
-                      <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(1) brightness(0.45)' : isMythic ? 'hue-rotate(35deg) saturate(1.3)' : 'none' }} />
-                      <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.4)' : isMythic ? 'linear-gradient(to top, rgba(30,2,30,0.78), rgba(80,10,90,0.25) 60%)' : 'linear-gradient(to top, rgba(5,0,12,0.75), transparent 60%)' }} />
-                      <div style={{ position: 'absolute', top: 2, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isMythic || isBoss ? 7.5 : 10, color: isMythic ? '#f0abfc' : isBoss ? GOLD : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0.04em' }}>
-                        {isMythic ? 'ELITE' : isBoss ? 'BOSS' : stage.stageNumber || idx + 1}
-                      </div>
-                      {st === 'complete' && (
-                        <div style={{ position: 'absolute', top: 2, right: 2, width: 13, height: 13, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Check size={9} color="#04140c" strokeWidth={3} />
-                        </div>
-                      )}
-                      {/* Earned stars under cleared stages (boss/mythic keep their crown/skull) */}
-                      {st === 'complete' && !isBoss && !isMythic && (
-                        <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 1, lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,0.95)' }}>
-                          {[1, 2, 3].map(n => (
-                            <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.3)' }}>★</span>
-                          ))}
-                        </div>
-                      )}
-                      {st === 'locked' && (
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>🔒</div>
-                      )}
-                      {(isBoss || isMythic) && (
-                        <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', fontSize: 11 }}>{isMythic ? '💀' : '👑'}</div>
+                      {isBoss ? (
+                        // 47c — boss node: eyes-only art (no character ever shown),
+                        // three states: LOCKED / unlocked-not-defeated / DEFEATED.
+                        <>
+                          <div style={{
+                            position: 'absolute', inset: 0,
+                            background: st === 'complete'
+                              ? 'radial-gradient(ellipse at 50% 32%, rgba(120,90,10,0.5), rgba(10,5,0,0.96) 75%)'
+                              : st === 'locked'
+                                ? 'radial-gradient(ellipse at 50% 32%, rgba(50,20,70,0.4), rgba(8,2,16,0.96) 75%)'
+                                : 'radial-gradient(ellipse at 50% 32%, rgba(110,10,10,0.55), rgba(10,0,4,0.96) 75%)',
+                          }}/>
+                          {st === 'locked' ? (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, opacity: 0.55 }}>🔒</div>
+                          ) : (
+                            <div style={{ position: 'absolute', inset: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <BossEyes size={Math.max(28, Math.min(w, h) * 0.6)} animated={st === 'current'}/>
+                            </div>
+                          )}
+                          <div style={{
+                            position: 'absolute', top: 3, left: 0, right: 0, textAlign: 'center',
+                            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 7,
+                            letterSpacing: '0.1em', textShadow: '0 1px 4px rgba(0,0,0,0.9)',
+                            color: st === 'complete' ? GOLD : st === 'locked' ? 'rgba(200,180,220,0.45)' : '#ff8a8a',
+                          }}>
+                            BOSS
+                          </div>
+                          {st === 'complete' ? (
+                            <div style={{ position: 'absolute', bottom: 2, left: 0, right: 0, display: 'flex', gap: 1, justifyContent: 'center', textShadow: '0 1px 3px rgba(0,0,0,0.95)' }}>
+                              {[1, 2, 3].map(n => (
+                                <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.3)' }}>★</span>
+                              ))}
+                            </div>
+                          ) : st === 'locked' ? (
+                            <div style={{ position: 'absolute', bottom: 2, left: 0, right: 0, textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 5.5, color: 'rgba(200,180,220,0.55)', letterSpacing: '0.02em' }}>
+                              CLEAR {Math.max(1, (stage.stageNumber || idx + 1) - 1)}
+                            </div>
+                          ) : null}
+                          {st === 'complete' && (
+                            <div style={{ position: 'absolute', top: 2, right: 2, width: 13, height: 13, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Check size={9} color="#04140c" strokeWidth={3} />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(1) brightness(0.45)' : isMythic ? 'hue-rotate(35deg) saturate(1.3)' : 'none' }} />
+                          <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.4)' : isMythic ? 'linear-gradient(to top, rgba(30,2,30,0.78), rgba(80,10,90,0.25) 60%)' : 'linear-gradient(to top, rgba(5,0,12,0.75), transparent 60%)' }} />
+                          <div style={{ position: 'absolute', top: 2, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isMythic ? 7.5 : 10, color: isMythic ? '#f0abfc' : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0.04em' }}>
+                            {isMythic ? 'ELITE' : stage.stageNumber || idx + 1}
+                          </div>
+                          {st === 'complete' && (
+                            <div style={{ position: 'absolute', top: 2, right: 2, width: 13, height: 13, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Check size={9} color="#04140c" strokeWidth={3} />
+                            </div>
+                          )}
+                          {/* Earned stars under cleared stages (mythic keeps its skull) */}
+                          {st === 'complete' && !isMythic && (
+                            <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 1, lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,0.95)' }}>
+                              {[1, 2, 3].map(n => (
+                                <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.3)' }}>★</span>
+                              ))}
+                            </div>
+                          )}
+                          {st === 'locked' && (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>🔒</div>
+                          )}
+                          {isMythic && (
+                            <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', fontSize: 11 }}>💀</div>
+                          )}
+                        </>
                       )}
                     </div>
                   </button>

@@ -4,7 +4,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
-import FightRingBackdrop from './shared/FightRingBackdrop';
+import ArcadeBackdrop from './shared/ArcadeBackdrop';
 import { Star, Lock, ChevronLeft, ChevronRight, Gamepad2 } from 'lucide-react';
 import { C } from './Styles';
 import { VISIBLE_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
@@ -173,7 +173,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
 
   return (
     <PhoneFrame>
-      <FightRingBackdrop opacity={0.1} />
+      <ArcadeBackdrop />
       <style dangerouslySetInnerHTML={{ __html: arcadeStyles }} />
 
       <div style={{

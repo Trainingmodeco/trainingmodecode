@@ -212,7 +212,13 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         {/* Boss finale — the splash gate holds the whole session (warm-up
             included) until the athlete taps to answer the bell. */}
-        <BossGate active={!!cfg.bossFinale} bossName={cfg.bossName} campaignName={campCtx?.arcade?.campaignName} rounds={cfg.rounds} fit={!!campCtx?.split && campCtx?.slot === 's2'}>
+        <BossGate
+          active={!!cfg.bossFinale} bossName={cfg.bossName} campaignName={campCtx?.arcade?.campaignName}
+          rounds={cfg.rounds} stageNumber={campCtx?.arcade?.stageNumber}
+          fit={!!campCtx?.split && campCtx?.slot === 's2'}
+          roundSec={Math.round((cfg.roundMin || 1) * 60)} restSec={cfg.restSec} difficulty={cfg.difficulty}
+          onExit={goArcadeComplete}
+        >
           {/* 2.4 — a warm-up phase leads into every camp session (skippable). */}
           <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
             <CampSessionRunner
@@ -232,7 +238,12 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // FULL CAMP — warm-up, then skill block → transition → conditioning block.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <BossGate active={!!campCtx.cfgSkill.bossFinale} bossName={campCtx.cfgSkill.bossName} campaignName={campCtx?.arcade?.campaignName} rounds={campCtx.cfgSkill.rounds} fit={false}>
+        <BossGate
+          active={!!campCtx.cfgSkill.bossFinale} bossName={campCtx.cfgSkill.bossName} campaignName={campCtx?.arcade?.campaignName}
+          rounds={campCtx.cfgSkill.rounds} stageNumber={campCtx?.arcade?.stageNumber} fit={false}
+          roundSec={Math.round((campCtx.cfgSkill.roundMin || 1) * 60)} restSec={campCtx.cfgSkill.restSec} difficulty={campCtx.cfgSkill.difficulty}
+          onExit={goArcadeComplete}
+        >
           <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
             <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />
           </WithWarmup>

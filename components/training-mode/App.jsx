@@ -7,7 +7,7 @@ import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
 import { completeStage as completeArcadeStage } from './data/arcadeProgress';
-import { arcadeCfg } from './protocol/campaigns';
+import { arcadeCfg, isFinalBoss } from './protocol/campaigns';
 import { resolveFitPrescription, announcerLine, stageFinishers } from './data/arcadeSession';
 import { packIdForCampaign } from './data/voicePacks';
 import { recordFightSession } from './data/fightStats';
@@ -480,7 +480,9 @@ export default function App() {
         const awardedA = !irA || irA.awardXp !== false;
         const validA = done >= total && awardedA && (!irA || irA.isFullyValid);
         const diffA = c?.difficulty || campCtx?.difficulty || 'normal';
-        const xpA = awardedA ? addCampSession(a.stageNumber, done, total, campSessionXp({ difficulty: diffA, roundMin: c?.roundMin ?? 2, doneRounds: done, totalRounds: total, valid: true })) : 0;
+        // Boss finale — double XP (47c "×2 XP MULT").
+        const bossMultA = isFinalBoss(a.campaignId, a.stageId) ? 2 : 1;
+        const xpA = awardedA ? addCampSession(a.stageNumber, done, total, campSessionXp({ difficulty: diffA, roundMin: c?.roundMin ?? 2, doneRounds: done, totalRounds: total, valid: true }) * bossMultA) : 0;
         const nextStage = validA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
         // Record the clear + ★ in arcadeProgress (the store the ladder reads) so
         // the stage unlocks the next node and earns stars. Stars = difficulty.
@@ -535,9 +537,11 @@ export default function App() {
         const a = campCtx.arcade;
         const diffA = campCtx?.difficulty || 'normal';
         const bothValidA = s.valid && f.valid;
+        // Boss finale — double XP (47c "×2 XP MULT").
+        const bossMultA = isFinalBoss(a.campaignId, a.stageId) ? 2 : 1;
         let xpA = 0;
-        xpA += addCampSession(a.stageNumber, s.done, s.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: s.valid, fullArc: bothValidA }));
-        xpA += addCampSession(a.stageNumber, f.done, f.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: f.valid, fullArc: bothValidA }));
+        xpA += addCampSession(a.stageNumber, s.done, s.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: s.valid, fullArc: bothValidA }) * bossMultA);
+        xpA += addCampSession(a.stageNumber, f.done, f.total, campSessionXp({ difficulty: diffA, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: f.valid, fullArc: bothValidA }) * bossMultA);
         const nextStage = bothValidA ? clearArcadeStage(a.campaignId, a.stageNumber) : null;
         // FULL ARC does both blocks → completion-quality bonus of +1 star (cap 3).
         const starsA = Math.min(3, (STAR_BY_DIFF[diffA] || 2) + 1);

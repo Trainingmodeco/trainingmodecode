@@ -21,6 +21,22 @@ const ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT',
 
 const shortName = (name) => String(name || '').split('—')[0].trim();
 
+// Every Arcade saga caps at 10 stages so the boss always lands at position 10
+// (Training Camp keeps its own separate 12-level ladder, unaffected — this
+// only reshapes the v2-campaign presentation, never the authored JSON).
+// Campaigns authored with 12 stages keep 1-9 as written and jump straight to
+// the final-boss stage (originally S12) at position 10; the old positions
+// 10-11 don't play in Arcade. Campaigns already authored at <=10 stages
+// (e.g. Garou) pass through unchanged.
+const ARCADE_MAX_STAGES = 10;
+
+function capToArcadeLength(rawStages) {
+  if (rawStages.length <= ARCADE_MAX_STAGES) return rawStages;
+  const bossStage = rawStages.find((s) => s.phase === 'final_boss') || rawStages[rawStages.length - 1];
+  const nonBoss = rawStages.filter((s) => s !== bossStage);
+  return [...nonBoss.slice(0, ARCADE_MAX_STAGES - 1), bossStage];
+}
+
 function modeOptionsFromPaths(paths = []) {
   const m = [];
   if (paths.includes('fit')) m.push('fit');
@@ -35,11 +51,16 @@ function campaignToSeries(campaignId) {
   const meta = MAP[campaignId];
   const paths = c.paths_available || ['fit', 'fight', 'full_arc'];
   const modes = modeOptionsFromPaths(paths);
-  const stages = campaignStages(campaignId).map((s) => ({
+  const stages = capToArcadeLength(campaignStages(campaignId)).map((s, i) => ({
     id: s.stage_id,
-    stageNumber: s.stage_number,
+    stageNumber: i + 1,
     title: s.title,
     phase: s.phase,
+    // isFinalRound is the field the whole arcade UI (ladder node, stage-clear
+    // overlay, constellation map, stage-intro overlay) already checks for
+    // boss presentation — v2 campaigns need it set or their boss stage just
+    // renders as a plain numbered node like every other stage.
+    isFinalRound: s.phase === 'final_boss',
     isBoss: s.phase === 'final_boss',
     persona: s.persona,
     mission: s.mission_target || s.purpose || '',
