@@ -3,103 +3,312 @@
   "name": "ULTRA INSTINCT STYLE — FLOW STATE PROTOCOL",
   "type": "fit_fight",
   "combat_style": "Counter-striking / hybrid striking (boxing movement + kicks)",
-  "stage_count": 12,
-  "paths_available": ["fit", "fight", "full_arc"],
-  "difficulties": ["easy", "normal", "hard"],
+  "stage_count": 10,
+  "paths_available": [
+    "fit",
+    "fight",
+    "full_arc"
+  ],
+  "difficulties": [
+    "easy",
+    "normal",
+    "hard"
+  ],
   "fantasy": "Build a lean, exceptionally responsive physique and learn to move, dodge, and counter without conscious thought — the flow state.",
   "tagline": "Train it a thousand times. Then stop thinking.",
   "core_rule": "Flow is earned, not rushed.",
   "core_rule_enforcement": "Never reward sloppy speed, tension, or flailing. Effortless precision comes from thousands of clean repetitions — rushing with broken form scores nothing.",
   "identity": [
-    "Lean, responsive physique", "Reaction independent of thought", "Perfect timing and precision",
-    "Elusive footwork and angles", "Precognitive dodging", "Reflexes before recognition",
-    "Counter-striking accuracy", "Mental clarity and calm", "High-repetition mastery", "Flow state under fire"
+    "Lean, responsive physique",
+    "Reaction independent of thought",
+    "Perfect timing and precision",
+    "Elusive footwork and angles",
+    "Precognitive dodging",
+    "Reflexes before recognition",
+    "Counter-striking accuracy",
+    "Mental clarity and calm",
+    "High-repetition mastery",
+    "Flow state under fire"
   ],
   "fit_focus": [
-    "Explosive power (plyometrics)", "Agility and directional change", "Foundational multi-muscle strength",
-    "High-rep muscular endurance", "Functional multi-group integration", "Lean muscle, low tension",
-    "Reactive jump/landing control", "Core control (L-sits, V-ups)", "Speed of movement"
+    "Explosive power (plyometrics)",
+    "Agility and directional change",
+    "Foundational multi-muscle strength",
+    "High-rep muscular endurance",
+    "Functional multi-group integration",
+    "Lean muscle, low tension",
+    "Reactive jump/landing control",
+    "Core control (L-sits, V-ups)",
+    "Speed of movement"
   ],
   "fight_focus": [
-    "Repetition (one technique, a thousand times)", "Angles (L-step, pivot, shift, Cuban cross turn)",
-    "Head movement and dodging", "Reflex training (tennis ball, random cues)", "Counter-striking",
-    "Footwork like Ali", "Flow-state shadowboxing", "Flow-state bag work at 30-40% effort", "Meditation and visualization"
+    "Repetition (one technique, a thousand times)",
+    "Angles (L-step, pivot, shift, Cuban cross turn)",
+    "Head movement and dodging",
+    "Reflex training (tennis ball, random cues)",
+    "Counter-striking",
+    "Footwork like Ali",
+    "Flow-state shadowboxing",
+    "Flow-state bag work at 30-40% effort",
+    "Meditation and visualization"
   ],
-  "split_stages": [4, 11],
-  "double_training_stages": [4, 9],
-  "peak_stage": 9,
-  "stage_load_multiplier": { "10": 0.75, "11": 0.55 },
+  "split_stages": [
+    3
+  ],
+  "double_training_stages": [
+    3,
+    8
+  ],
+  "peak_stage": 8,
+  "stage_load_multiplier": {
+    "10": 0.75,
+    "11": 0.55
+  },
   "difficulty_scaling": {
     "easy": {
       "label": "SIGN",
-      "fit": { "working_sets": [2, 3], "resistance": "bodyweight or light", "rest": "longer" },
-      "fight": { "rounds": [4, 5], "round_sec": 60, "rest_sec": [60, 75], "requirements": "basic strikes and combos (jab-roundhouse); no jumping or spinning strikes; no partner drills" },
-      "target_rpe": [4, 6]
+      "fit": {
+        "working_sets": [
+          2,
+          3
+        ],
+        "resistance": "bodyweight or light",
+        "rest": "longer"
+      },
+      "fight": {
+        "rounds": [
+          4,
+          5
+        ],
+        "round_sec": 60,
+        "rest_sec": [
+          60,
+          75
+        ],
+        "requirements": "basic strikes and combos (jab-roundhouse); no jumping or spinning strikes; no partner drills"
+      },
+      "target_rpe": [
+        4,
+        6
+      ]
     },
     "normal": {
       "label": "INSTINCT",
-      "fit": { "working_sets": [3, 4], "resistance": "moderate", "rest": "moderate" },
-      "fight": { "rounds": [5, 6], "round_sec": 120, "rest_sec": [45, 60], "requirements": "longer combos, angle exits after combos, head-movement requirements, reflex drills; bag recommended" },
-      "target_rpe": [6, 8]
+      "fit": {
+        "working_sets": [
+          3,
+          4
+        ],
+        "resistance": "moderate",
+        "rest": "moderate"
+      },
+      "fight": {
+        "rounds": [
+          5,
+          6
+        ],
+        "round_sec": 120,
+        "rest_sec": [
+          45,
+          60
+        ],
+        "requirements": "longer combos, angle exits after combos, head-movement requirements, reflex drills; bag recommended"
+      },
+      "target_rpe": [
+        6,
+        8
+      ]
     },
     "hard": {
       "label": "MASTERED",
-      "fit": { "working_sets": [4, 5], "resistance": "advanced bodyweight progressions (muscle-ups, archer work) or loaded", "rest": "shorter" },
-      "fight": { "rounds": [6, 8], "round_sec": 180, "rest_sec": [30, 45], "requirements": "Tekken-style long combos (jab, cross to body, low switch kick, cross, lead shovel, high roundhouse), spinning strikes, counter-strike windows, flow rounds at pace; intended for experienced athletes" },
-      "target_rpe": [7, 9]
+      "fit": {
+        "working_sets": [
+          4,
+          5
+        ],
+        "resistance": "advanced bodyweight progressions (muscle-ups, archer work) or loaded",
+        "rest": "shorter"
+      },
+      "fight": {
+        "rounds": [
+          6,
+          8
+        ],
+        "round_sec": 180,
+        "rest_sec": [
+          30,
+          45
+        ],
+        "requirements": "Tekken-style long combos (jab, cross to body, low switch kick, cross, lead shovel, high roundhouse), spinning strikes, counter-strike windows, flow rounds at pace; intended for experienced athletes"
+      },
+      "target_rpe": [
+        7,
+        9
+      ]
     },
     "hard_never_requires": [
-      "Deliberately taking punches", "Unsupervised hard sparring", "Training through sharp pain",
-      "Extreme dehydration", "Every set taken to failure"
+      "Deliberately taking punches",
+      "Unsupervised hard sparring",
+      "Training through sharp pain",
+      "Extreme dehydration",
+      "Every set taken to failure"
     ]
   },
   "meditation_rule": "Meditation blocks appear across the campaign (pre-session visualization round, evening meditation). They are completion-only: no difficulty, no failure state, and skipping them never blocks a stage — but completing every one earns the Calm Mind achievement.",
   "equipment_profiles": {
-    "A_NO_EQUIPMENT": ["OPEN_SPACE", "TIMER_PHONE", "WATER"],
-    "B_MINIMAL": ["JUMP_ROPE", "BAND", "MAT", "TENNIS_BALL", "CONES"],
-    "C_FIGHT_TRAINING": ["HEAVY_BAG", "GLOVES", "HAND_WRAPS", "JUMP_ROPE", "SLIP_LINE"],
-    "D_FULL_INSTINCT": ["HEAVY_BAG", "LIGHT_WEIGHTS", "PULLUP_BAR", "MEDICINE_BALL", "KETTLEBELL", "AGILITY_LADDER", "CONES", "TENNIS_BALL", "MAT"],
+    "A_NO_EQUIPMENT": [
+      "OPEN_SPACE",
+      "TIMER_PHONE",
+      "WATER"
+    ],
+    "B_MINIMAL": [
+      "JUMP_ROPE",
+      "BAND",
+      "MAT",
+      "TENNIS_BALL",
+      "CONES"
+    ],
+    "C_FIGHT_TRAINING": [
+      "HEAVY_BAG",
+      "GLOVES",
+      "HAND_WRAPS",
+      "JUMP_ROPE",
+      "SLIP_LINE"
+    ],
+    "D_FULL_INSTINCT": [
+      "HEAVY_BAG",
+      "LIGHT_WEIGHTS",
+      "PULLUP_BAR",
+      "MEDICINE_BALL",
+      "KETTLEBELL",
+      "AGILITY_LADDER",
+      "CONES",
+      "TENNIS_BALL",
+      "MAT"
+    ],
     "rule": "Every stage must support at least the MINIMAL version. Partner drills (tennis-ball dodgeball, gladiator stick, pad work) are always optional — solo alternatives are provided."
   },
-  "completion_states": ["FIT_CLEAR", "FIGHT_CLEAR", "FULL_ARC_CLEAR", "FINAL_BOSS_CLEAR"],
+  "completion_states": [
+    "FIT_CLEAR",
+    "FIGHT_CLEAR",
+    "FULL_ARC_CLEAR",
+    "FINAL_BOSS_CLEAR"
+  ],
   "voice_guidance": {
     "enabled": true,
     "no_read_required": true,
     "engine": "tts",
     "policy": "The timer SPEAKS the workout so the user never has to read the screen. Every movement is announced by name as it begins, with a short form/coach cue, a spoken countdown into work and rest, round start/end calls, rep or time counts, a halfway call, a final-10-seconds call, and the module key safety cue. Striking combinations are called out loud in rhythm.",
     "announce": {
-      "stage_intro": true, "next_up": true, "exercise_name": true, "exercise_cue": true,
-      "combination_callouts": true, "round_start": true, "round_end": true,
-      "countdown_into_work": true, "countdown_into_rest": true, "rep_or_time_count": true,
-      "halfway_call": true, "final_10s_call": true, "safety_cue": true, "completion_call": true
+      "stage_intro": true,
+      "next_up": true,
+      "exercise_name": true,
+      "exercise_cue": true,
+      "combination_callouts": true,
+      "round_start": true,
+      "round_end": true,
+      "countdown_into_work": true,
+      "countdown_into_rest": true,
+      "rep_or_time_count": true,
+      "halfway_call": true,
+      "final_10s_call": true,
+      "safety_cue": true,
+      "completion_call": true
     },
     "source_fields": "Spoken lines are generated from each module title, exercises[]/drills[], coach_note, rounds[].goal/length, and the campaign safety cues — no on-screen reading required.",
-    "settings": { "user_toggle": true, "duck_background_music": true, "language": "en", "voice_pack_default": "serene" },
+    "settings": {
+      "user_toggle": true,
+      "duck_background_music": true,
+      "language": "en",
+      "voice_pack_default": "serene"
+    },
     "note": "Shared voice-guidance contract (see specs/22-voice-guidance.md) — embedded in every campaign so the timer is fully audio-guided. Where a campaign defines its own cadence/count (e.g. Gravity voice_count_mode), voice guidance defers to it for counting and layers the rest."
   },
   "achievements": [
-    { "id": "ACH_UI_THOUSAND_FISTS",  "name": "A Thousand Fists",   "trigger": "Complete every repetition round in Stage 2" },
-    { "id": "ACH_UI_PERFECT_ANGLES",  "name": "Perfect Angles",     "trigger": "Clear Stage 5 cone rounds without standing in the pocket" },
-    { "id": "ACH_UI_UNTOUCHABLE",     "name": "Untouchable",        "trigger": "Complete all Stage 6 dodging drills cleanly" },
-    { "id": "ACH_UI_SHARP_REFLEXES",  "name": "Sharp Reflexes",     "trigger": "Complete every reflex-training block in the campaign" },
-    { "id": "ACH_UI_CALM_MIND",       "name": "Calm Mind",          "trigger": "Complete every meditation block in the campaign" },
-    { "id": "ACH_UI_FLOW_STATE",      "name": "Flow State",         "trigger": "Finish Stage 9 with technique intact" },
-    { "id": "ACH_UI_INSTINCT_CLEAR",  "name": "Instinct Clear",     "trigger": "Defeat Stage 12" },
-    { "id": "ACH_UI_MASTERED",        "name": "Mastered Instinct",  "trigger": "Clear Fit and Fight for all 12 stages" }
+    {
+      "id": "ACH_UI_THOUSAND_FISTS",
+      "name": "A Thousand Fists",
+      "trigger": "Complete every repetition round in Stage 2"
+    },
+    {
+      "id": "ACH_UI_PERFECT_ANGLES",
+      "name": "Perfect Angles",
+      "trigger": "Clear Stage 4 cone rounds without standing in the pocket"
+    },
+    {
+      "id": "ACH_UI_UNTOUCHABLE",
+      "name": "Untouchable",
+      "trigger": "Complete all Stage 5 dodging drills cleanly"
+    },
+    {
+      "id": "ACH_UI_SHARP_REFLEXES",
+      "name": "Sharp Reflexes",
+      "trigger": "Complete every reflex-training block in the campaign"
+    },
+    {
+      "id": "ACH_UI_CALM_MIND",
+      "name": "Calm Mind",
+      "trigger": "Complete every meditation block in the campaign"
+    },
+    {
+      "id": "ACH_UI_FLOW_STATE",
+      "name": "Flow State",
+      "trigger": "Finish Stage 8 with technique intact"
+    },
+    {
+      "id": "ACH_UI_INSTINCT_CLEAR",
+      "name": "Instinct Clear",
+      "trigger": "Defeat Stage 10"
+    },
+    {
+      "id": "ACH_UI_MASTERED",
+      "name": "Mastered Instinct",
+      "trigger": "Clear Fit and Fight for all 10 stages"
+    }
   ],
   "failure_logic": {
     "fit": {
-      "causes": ["Prescribed work not completed", "Technique or landing control breaks down", "Reported effort far above target", "Recovery inadequate"],
-      "response": ["Reduce reps or resistance", "Recommend one difficulty lower", "Preserve the Fight difficulty where appropriate"]
+      "causes": [
+        "Prescribed work not completed",
+        "Technique or landing control breaks down",
+        "Reported effort far above target",
+        "Recovery inadequate"
+      ],
+      "response": [
+        "Reduce reps or resistance",
+        "Recommend one difficulty lower",
+        "Preserve the Fight difficulty where appropriate"
+      ]
     },
     "fight": {
-      "causes": ["Rushing and flailing instead of flowing", "Guard or head movement repeatedly abandoned", "Cannot complete the rounds", "Defensive or reflex objective ignored", "Unsafe symptoms reported"],
-      "response": ["Recommend slowing down — flow before speed", "Recommend Practice Mode", "Shorten round length", "Increase rest", "Drop Fight difficulty by one level", "Do NOT automatically lower the Fit path"]
+      "causes": [
+        "Rushing and flailing instead of flowing",
+        "Guard or head movement repeatedly abandoned",
+        "Cannot complete the rounds",
+        "Defensive or reflex objective ignored",
+        "Unsafe symptoms reported"
+      ],
+      "response": [
+        "Recommend slowing down — flow before speed",
+        "Recommend Practice Mode",
+        "Shorten round length",
+        "Increase rest",
+        "Drop Fight difficulty by one level",
+        "Do NOT automatically lower the Fit path"
+      ]
     },
-    "safety_stop": ["Sharp pain", "Chest pain", "Dizziness", "Faintness", "New concussion symptoms", "Severe breathing difficulty", "Acute injury"]
+    "safety_stop": [
+      "Sharp pain",
+      "Chest pain",
+      "Dizziness",
+      "Faintness",
+      "New concussion symptoms",
+      "Severe breathing difficulty",
+      "Acute injury"
+    ]
   },
   "final_boss": {
-    "stage_id": "ARC_ULTRAINSTINCT_STG12",
+    "stage_id": "ARC_ULTRAINSTINCT_STG10",
     "no_hard_morning_workout": true,
     "fight_trial_name": "Twelve-Round Trial of Instinct",
     "round_objectives": [
@@ -117,15 +326,47 @@
       "Mastered instinct — effortless freestyle finish"
     ],
     "timing": {
-      "easy":   { "rounds": 12, "round_sec": 60,  "rest_sec": 45, "approx_total_min": 20 },
-      "normal": { "rounds": 12, "round_sec": 120, "rest_sec": 30, "approx_total_min": 30 },
-      "hard":   { "rounds": 12, "round_sec": 180, "rest_sec": 30, "approx_total_min": 42 }
+      "easy": {
+        "rounds": 12,
+        "round_sec": 60,
+        "rest_sec": 45,
+        "approx_total_min": 20
+      },
+      "normal": {
+        "rounds": 12,
+        "round_sec": 120,
+        "rest_sec": 30,
+        "approx_total_min": 30
+      },
+      "hard": {
+        "rounds": 12,
+        "round_sec": 180,
+        "rest_sec": 30,
+        "approx_total_min": 42
+      }
     },
     "fit_final_test": {
-      "categories": ["Max push-ups in 1 minute", "High-rep squat target", "L-sit or core-hold time", "Cone agility circuit for time", "Depth-jump landing control", "Muscle-up or pull-up/row target", "Final endurance circuit"],
+      "categories": [
+        "Max push-ups in 1 minute",
+        "High-rep squat target",
+        "L-sit or core-hold time",
+        "Cone agility circuit for time",
+        "Depth-jump landing control",
+        "Muscle-up or pull-up/row target",
+        "Final endurance circuit"
+      ],
       "rule": "Predetermined targets only — never uncontrolled maximum-until-collapse work."
     },
-    "full_arc_flow": ["Pre-trial meditation round (visualization)", "Short activation circuit", "Transition period", "Twelve-round trial of instinct", "Cooldown and final readiness report"]
+    "full_arc_flow": [
+      "Pre-trial meditation round (visualization)",
+      "Short activation circuit",
+      "Transition period",
+      "Twelve-round trial of instinct",
+      "Cooldown and final readiness report"
+    ]
   },
-  "art": { "banner": "/assets/series/ultra-instinct.png", "stage_badges": "reuse /assets/stages/s1-s10 + boss badge" }
+  "art": {
+    "banner": "/assets/series/ultra-instinct.png",
+    "stage_badges": "reuse /assets/stages/s1-s10 + boss badge"
+  }
 }

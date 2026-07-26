@@ -258,7 +258,7 @@ SecondaryButton / Card); no new design system.
 
 ---
 
-## PROMPT 14 — Camp setup flow: archetype picker
+## PROMPT 14 — Camp setup flow: archetype picker (difficulty first)
 
 > Training Camp has 12 fighter archetypes in the content layer that the user can
 > never choose. Build the picker.
@@ -272,20 +272,32 @@ SecondaryButton / Card); no new design system.
 >   `components/training-mode/protocol/content.ts`.
 > - The only mention of "archetype" in the app is a label inside
 >   `TrainingCampMap.jsx`. There is no picker.
-> - Discipline art and the difficulty selector already exist
->   (`ArcadeDifficultySelector.jsx` is the styling reference).
+> - `shared/Stepper.jsx` and `ArcadeDifficultySelector.jsx` are the styling
+>   references. Discipline art already exists.
 >
-> **14a. DISCIPLINE → ARCHETYPE → DIFFICULTY flow**
+> **14a. DISCIPLINE → DIFFICULTY → ARCHETYPE flow**
 > A three-step setup before a camp level starts, using the existing
 > `shared/Stepper.jsx`:
-> 1. **Discipline** — existing discipline cards + art.
-> 2. **Archetype** — cards from `archetypesFor(discipline)`: name, tagline, and
->    the blurb for the currently-selected difficulty (or normal before one is
->    picked). Selected card gets the gold border treatment.
-> 3. **Difficulty** — easy / normal / hard; each option shows that archetype's
->    `variants[difficulty]` string so the choice is concrete.
 >
-> Persist the choice per camp level (same pattern as `campProgress.js`) and
-> pass it into the existing camp engine — this is a selection screen over
-> content that already exists, so **no new workout content and no engine
-> changes**. Back navigation between steps must never dead-end.
+> 1. **Discipline** — existing discipline cards + art.
+> 2. **Difficulty** — easy / normal / hard, styled like
+>    `ArcadeDifficultySelector.jsx`.
+> 3. **Archetype** — cards from `archetypesFor(discipline)`, filtered to the
+>    chosen discipline. **Each card shows the name, the tagline, and the
+>    `variants[difficulty]` string for the difficulty already chosen in step 2**
+>    — never a generic blurb, never the "normal" text as a placeholder. So on
+>    hard, Pressure Dog reads "High-output pressure, body attack volume,
+>    late-round surges", and on easy the same card reads "Basic jab-cross-hook
+>    pressure, short rounds, longer rest". Selected card gets the gold border.
+>
+> Difficulty comes **before** archetype on purpose: the archetype description is
+> only meaningful once the intensity is known, and it lets the user compare all
+> 12 styles at the exact intensity they're about to train.
+>
+> Going back to step 2 and changing difficulty must **re-render every archetype
+> card's blurb** for the new difficulty, keeping the current archetype selected
+> if it's still valid. Back navigation must never dead-end.
+>
+> Persist the choice per camp level (same pattern as `campProgress.js`) and pass
+> it into the existing camp engine — this is a selection screen over content
+> that already exists, so **no new workout content and no engine changes**.
