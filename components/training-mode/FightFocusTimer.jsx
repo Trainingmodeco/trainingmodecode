@@ -9,7 +9,8 @@ import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { createRushCaller } from './data/rushMoves';
-import { BossHpBar, BossReveal } from './shared/BossFinale';
+import { BossHpBar } from './shared/BossFinale';
+import { BossSlam } from './shared/AnswerTheBell';
 import { packOpts, packLine } from './data/voicePacks';
 import { recordGhostFromSession, finishGhostBattle, ghostCountAtTime } from './data/ghostBattles';
 import VoiceMixer from './shared/VoiceMixer';
@@ -74,10 +75,20 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const [countdown, setCountdown] = useState(initialPaused ? null : '3');
   const [countdownSub, setCountdownSub] = useState('');
   const [confirmEnd, setConfirmEnd] = useState(false);
-  // 47a — late-fight boss reveal: fires once, entering the reveal round
-  // (round 10 on a 12-round finale; the final round on shorter gauntlets).
+  // 49c — the boss slam. Fires ONCE per session on the reveal round's first
+  // WORK call (round 10 on a 12-round finale; the final circuit on the
+  // 9-round gauntlet) and HOLDS THE ROUND CLOCK while it plays, so the
+  // cutscene never costs the athlete reps.
   const [bossRevealDone, setBossRevealDone] = useState(false);
+  const [slamOpen, setSlamOpen] = useState(false);
   const bossRevealIdx = cfg.rounds >= 12 ? 9 : cfg.rounds - 1;
+  useEffect(() => {
+    if (!cfg.bossFinale || bossRevealDone) return;
+    if (phase !== 'round' || countdown !== null) return;   // never mid-rest
+    if (roundIdx !== bossRevealIdx) return;
+    setBossRevealDone(true);
+    setSlamOpen(true);
+  }, [cfg.bossFinale, bossRevealDone, phase, countdown, roundIdx, bossRevealIdx]);
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
   // 1.4 — motion-verified thrown strikes, counted only during a live work round.
@@ -250,10 +261,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   }, [roundIdx]);
 
   useEffect(() => {
-    if (paused || done || countdown !== null) return;
+    // slamOpen holds the clock: the 49c cutscene must not burn round time.
+    if (paused || done || countdown !== null || slamOpen) return;
     const id = setInterval(() => setRemaining(r => Math.max(0, r - 1)), 1000);
     return () => clearInterval(id);
-  }, [paused, done, countdown]);
+  }, [paused, done, countdown, slamOpen]);
 
   useEffect(() => {
     if (phase !== 'round' || paused || done || countdown !== null) return;
@@ -595,8 +607,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
       <RushPersistentEffects active={rush} remaining={remaining} />
       {showRushOverlay && <RushOverlay onDone={() => setShowRushOverlay(false)} />}
-      {!!cfg.bossFinale && !bossRevealDone && phase === 'round' && countdown === null && roundIdx === bossRevealIdx && (
-        <BossReveal bossName={cfg.bossName} round={bossRevealIdx + 1} total={cfg.rounds} onDone={() => setBossRevealDone(true)}/>
+      {slamOpen && (
+        <BossSlam
+          bossName={cfg.bossName} round={bossRevealIdx + 1} total={cfg.rounds}
+          skippable={!!cfg.bossCleared} onDone={() => setSlamOpen(false)}
+        />
       )}
 
       <div style={{

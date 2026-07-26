@@ -6,7 +6,7 @@ import { completeCampLevel } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
-import { completeStage as completeArcadeStage } from './data/arcadeProgress';
+import { completeStage as completeArcadeStage, recordBossAttempt, getBossRecord } from './data/arcadeProgress';
 import { arcadeCfg, isFinalBoss } from './protocol/campaigns';
 import { resolveFitPrescription, announcerLine, stageFinishers } from './data/arcadeSession';
 import { packIdForCampaign } from './data/voicePacks';
@@ -401,15 +401,21 @@ export default function App() {
           if (!base.bossFinale) base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff);
           return base;
         };
+        // 49c — a veteran who has already put this boss down can tap the slam
+        // away; a first-timer watches it.
+        const markBossSeen = (base) => {
+          if (base?.bossFinale) base.bossCleared = getBossRecord(series.id, stage.id).wins > 0;
+          return base;
+        };
         if (path === 'full_arc') {
-          const cfgSkill = withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
-          const cfgFit = withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack });
+          const cfgSkill = markBossSeen(withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack }));
+          const cfgFit = markBossSeen(withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack }));
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, format: 'full', cfgSkill, cfgFit, arcade });
           setCfg(cfgSkill); setScreen('camp_full');
         } else {
-          const cfg = path === 'fit'
+          const cfg = markBossSeen(path === 'fit'
             ? withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack })
-            : withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
+            : withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack }));
           setCampCtx({ discipline: 'Boxing', level: stageNumber, difficulty: diff, cfg, split: path === 'fit', slot: path === 'fit' ? 's2' : 's1', arcade });
           setCfg(cfg); setScreen('camp_session');
         }
@@ -488,6 +494,9 @@ export default function App() {
         // the stage unlocks the next node and earns stars. Stars = difficulty.
         const starsA = STAR_BY_DIFF[diffA] || 2;
         if (validA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
+        // Boss runs record win OR loss — the Answer-the-Bell gate reads this
+        // for its record pill, so a failed attempt has to leave a mark too.
+        if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: validA, roundsDone: done, roundsTotal: total });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber });
         setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, stars: validA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA });
         routeAfterXp(beforeLevel, 'camp_complete');
@@ -546,6 +555,7 @@ export default function App() {
         // FULL ARC does both blocks → completion-quality bonus of +1 star (cap 3).
         const starsA = Math.min(3, (STAR_BY_DIFF[diffA] || 2) + 1);
         if (bothValidA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
+        if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: bothValidA, roundsDone: s.done + f.done, roundsTotal: s.total + f.total });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber, format: 'full' });
         setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, stars: bothValidA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA });
         routeAfterXp(beforeLevel, 'camp_complete');

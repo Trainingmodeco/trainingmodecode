@@ -8,7 +8,8 @@ import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts, packLine } from './data/voicePacks';
 import VoiceMixer from './shared/VoiceMixer';
-import { BossHpBar, BossReveal } from './shared/BossFinale';
+import { BossHpBar } from './shared/BossFinale';
+import { BossSlam } from './shared/AnswerTheBell';
 
 // Phase 2 · 2.4b — CONDITIONING runner for the camp's S2 (PM) block. Same round
 // engine shape as Fight Focus (drives cfg.blockRounds, produces the identical
@@ -54,8 +55,10 @@ export default function CampFitRunner({ cfg, onEnd }) {
   const [phase, setPhase] = useState('work');       // 'work' | 'rest'
   const [roundIdx, setRoundIdx] = useState(0);
   const [remaining, setRemaining] = useState(roundSecFor(0));
-  // 47a — late-fight boss reveal (round 10 on the 12-round finale).
+  // 49c — the boss slam: once per session, on the reveal round's WORK phase
+  // (round 10 of the 12-round burnout), holding the clock while it plays.
   const [bossRevealDone, setBossRevealDone] = useState(false);
+  const [slamOpen, setSlamOpen] = useState(false);
   const bossRevealIdx = total >= 12 ? 9 : total - 1;
   const [paused, setPaused] = useState(false);
   const [countdown, setCountdown] = useState('3');
@@ -99,12 +102,21 @@ export default function CampFitRunner({ cfg, onEnd }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Per-second tick.
+  // 49c — fire the slam entering the reveal round's WORK phase, never mid-rest.
   useEffect(() => {
-    if (paused || done || countdown !== null) return;
+    if (!cfg.bossFinale || bossRevealDone) return;
+    if (phase !== 'work' || countdown !== null) return;
+    if (roundIdx !== bossRevealIdx) return;
+    setBossRevealDone(true);
+    setSlamOpen(true);
+  }, [cfg.bossFinale, bossRevealDone, phase, countdown, roundIdx, bossRevealIdx]);
+
+  // Per-second tick. slamOpen holds the clock so the cutscene costs no reps.
+  useEffect(() => {
+    if (paused || done || countdown !== null || slamOpen) return;
     const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(id);
-  }, [paused, done, countdown]);
+  }, [paused, done, countdown, slamOpen]);
 
   // Phase transitions.
   useEffect(() => {
@@ -255,8 +267,11 @@ export default function CampFitRunner({ cfg, onEnd }) {
         </div>
       </div>
 
-      {!!cfg.bossFinale && !bossRevealDone && phase === 'work' && countdown === null && roundIdx === bossRevealIdx && (
-        <BossReveal bossName={cfg.bossName} round={bossRevealIdx + 1} total={total} onDone={() => setBossRevealDone(true)}/>
+      {slamOpen && (
+        <BossSlam
+          bossName={cfg.bossName} round={bossRevealIdx + 1} total={total}
+          skippable={!!cfg.bossCleared} onDone={() => setSlamOpen(false)}
+        />
       )}
 
       {confirmEnd && (

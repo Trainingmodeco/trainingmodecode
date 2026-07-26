@@ -212,7 +212,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
           and nav sit there) and opens up through the middle where the art
           actually shows. */}
       <img src={BG_SRC} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.55 }} />
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.65 }} />
       <div style={{ position: 'absolute', inset: 0, background:
         'linear-gradient(180deg, rgba(4,0,10,0.72) 0%, rgba(4,0,10,0.42) 30%, rgba(4,0,10,0.72) 100%)' }} />
 

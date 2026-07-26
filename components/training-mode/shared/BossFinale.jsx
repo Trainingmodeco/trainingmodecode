@@ -1,39 +1,14 @@
-import { useState, useEffect } from 'react';
-
-// Boss finale presentation (47c "boss node" spec + the eyes-only reveal art):
-//  · BossEyes — the boss's only art: a pair of glowing angular eyes with a
-//    blood-drip accent. "The boss is never fully shown" (47c) — no character
-//    art anywhere, just the eyes, reused for the reveal and the ladder's
-//    boss node.
+// Boss ladder presentation (47c "boss node" spec):
+//  · BossEyes — the boss's only art on the LADDER: a pair of glowing angular
+//    eyes drawn as inline SVG, so it stays crisp at a 22px node badge.
+//    (The in-session gate and slam use the real boss-eyes.webp art instead —
+//    see shared/AnswerTheBell.jsx.)
 //  · BossHpBar — a persisting boss HP strip during the session; every cleared
 //    round chips it, so the arcade HP-bar mental model carries into the finale.
-//  · BossReveal — design 47a: late in the fight (round 10 / 12 on the fit
-//    burnout, the final circuit on the fight gauntlet) the boss "shows
-//    himself" — a short auto-dismissing slam with the round counter.
-// (A pre-session "answer the bell" splash gate lived here too; pulled at the
-// product owner's call — a boss stage now starts like any other stage.)
 
 const BOSS_CSS = `
-@keyframes boss-slam {
-  0%   { transform: scale(2.4) translateY(12px); opacity: 0; filter: blur(10px); }
-  45%  { transform: scale(1.04) translateY(0); opacity: 1; filter: blur(0); }
-  60%  { transform: scale(1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes boss-sub-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: none; } }
-@keyframes boss-pulse { 0%, 100% { opacity: 0.65; } 50% { opacity: 1; } }
-@keyframes boss-vignette { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.85; } }
-@keyframes boss-flash { 0% { opacity: 0.65; } 100% { opacity: 0; } }
-@keyframes boss-shake {
-  0%,100% { transform: translate(0,0); }
-  20% { transform: translate(-2px,1px); } 40% { transform: translate(2px,-1px); }
-  60% { transform: translate(-1px,2px); } 80% { transform: translate(1px,-1px); }
-}
-@keyframes boss-eyes-in { 0% { opacity: 0; transform: scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
 @keyframes boss-eyes-glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(239,68,68,0.65)); } 50% { filter: drop-shadow(0 0 20px rgba(239,68,68,0.95)); } }
 `;
-
-const RED = '#ef4444';
 
 // ── BossEyes — the boss's only art (47c: "the boss is never fully shown") ──
 // One eye path, mirrored for the pair. Angular, jagged, glowing red iris,
@@ -63,6 +38,10 @@ export function BossEyes({ size = 64, animated = true, style }) {
       style={{ animation: animated ? 'boss-eyes-glow 2.4s ease-in-out infinite' : undefined, ...style }}
     >
       <defs>
+        {/* The glow keyframe rides with the component — it used to be injected
+            by the gate/reveal that lived in this file, so pulling those out
+            would have left the animation referencing nothing. */}
+        <style>{BOSS_CSS}</style>
         <radialGradient id="bossIris" cx="35%" cy="35%" r="75%">
           <stop offset="0%" stopColor="#ffd8a8" />
           <stop offset="35%" stopColor="#ff5b3d" />
@@ -99,46 +78,6 @@ export function BossHpBar({ bossName, total, cleared }) {
           boxShadow: '0 0 10px rgba(239,68,68,0.7)',
           transition: 'width 0.8s ease',
         }}/>
-      </div>
-    </div>
-  );
-}
-
-// 47a — the late-fight boss reveal, with the round counter front and center.
-export function BossReveal({ bossName, round, total, onDone }) {
-  const [show, setShow] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => { setShow(false); onDone?.(); }, 2400);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  if (!show) return null;
-  return (
-    <div style={{
-      position: 'absolute', inset: 0, zIndex: 160, pointerEvents: 'none',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(5,0,8,0.88)', textAlign: 'center', padding: '0 24px',
-    }}>
-      <style dangerouslySetInnerHTML={{ __html: BOSS_CSS }}/>
-      <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 80px rgba(239,68,68,0.4)', animation: 'boss-vignette 1.6s ease-in-out infinite' }}/>
-      <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 12, color: '#ffb4b4', letterSpacing: '0.16em', marginBottom: 14, animation: 'boss-sub-in 0.4s ease-out both' }}>
-        ROUND {round} / {total}
-      </div>
-      <div style={{ animation: 'boss-eyes-in 0.4s 0.05s ease-out both', marginBottom: 12 }}>
-        <BossEyes size={58}/>
-      </div>
-      <div style={{
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
-        fontSize: 'clamp(26px, 9vw, 42px)', letterSpacing: '0.06em', lineHeight: 1.1,
-        background: `linear-gradient(160deg, #fff 0%, ${RED} 50%, #7f1d1d 100%)`,
-        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-        filter: 'drop-shadow(0 0 24px rgba(239,68,68,0.75))',
-        animation: 'boss-slam 0.6s cubic-bezier(0.22,1,0.36,1) both',
-      }}>
-        {(bossName || 'THE BOSS').toUpperCase()}
-      </div>
-      <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: '#ffd6ad', letterSpacing: '0.16em', marginTop: 14, animation: 'boss-sub-in 0.5s 0.4s ease-out both' }}>
-        SHOWS HIMSELF — FINISH IT
       </div>
     </div>
   );

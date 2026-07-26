@@ -134,6 +134,30 @@ export function recordInvalidAttempt(seriesId, stageId, reason) {
   saveAll(all);
 }
 
+// ── Boss record (49a/49b) ───────────────────────────────────────────────────
+// The Answer-the-Bell gate shows "YOUR RECORD 0 — 2 · best 6 of 9 rounds", so
+// a boss LOSS has to be recorded too. completeStage only ever fires on a clear,
+// which is why losses need their own entry: stage attempts are stamped with how
+// far the athlete actually got.
+export function recordBossAttempt(seriesId, stageId, { cleared, roundsDone = 0, roundsTotal = 0 } = {}) {
+  const all = loadAll();
+  if (!all[seriesId]) all[seriesId] = defaultProgress();
+  if (!all[seriesId].attempts) all[seriesId].attempts = [];
+  all[seriesId].attempts.push({ stageId, boss: true, cleared: !!cleared, roundsDone, roundsTotal, at: Date.now() });
+  if (all[seriesId].attempts.length > 100) all[seriesId].attempts.splice(0, all[seriesId].attempts.length - 100);
+  saveAll(all);
+}
+
+export function getBossRecord(seriesId, stageId) {
+  const progress = getSeriesProgress(seriesId);
+  const runs = (progress.attempts || []).filter(a => a.boss && a.stageId === stageId);
+  const wins = runs.filter(a => a.cleared).length;
+  const losses = runs.length - wins;
+  const bestRounds = runs.reduce((m, a) => Math.max(m, a.roundsDone || 0), 0);
+  const totalRounds = runs.reduce((m, a) => Math.max(m, a.roundsTotal || 0), 0);
+  return { wins, losses, bestRounds, totalRounds, attempts: runs.length };
+}
+
 export function getHighestUnlockedStage(seriesId) {
   const progress = getSeriesProgress(seriesId);
   return progress.currentStage || 1;

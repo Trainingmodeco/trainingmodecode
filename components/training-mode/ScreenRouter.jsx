@@ -30,6 +30,7 @@ import QuickMissionComplete from './QuickMissionComplete';
 import CombatConditioningSetup from './CombatConditioningSetup';
 import CombatConditioningActive from './CombatConditioningActive';
 import WithWarmup from './shared/WithWarmup';
+import { AnswerTheBellHost } from './shared/AnswerTheBell';
 import CombatConditioningComplete from './CombatConditioningComplete';
 import CardioFinisherPlayer from './CardioFinisherPlayer';
 import Profile from './Profile';
@@ -207,29 +208,55 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const kind = campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL';
     const roundSec = Math.round((cfg.roundMin || 1) * 60);
     const mmss = `${Math.floor(roundSec / 60)}:${String(roundSec % 60).padStart(2, '0')}`;
+    // 49a/49b — the Answer the Bell gate fronts ARCADE boss stages only
+    // (Training Camp keeps its normal warm-up flow). Per the design the bell
+    // goes straight into round 1, so the warm-up is skipped on a boss run.
+    const isFitSlot = !!campCtx?.split && campCtx?.slot === 's2';
+    const bossBell = !!cfg.bossFinale && !!campCtx?.arcade;
+    const runner = (
+      <CampSessionRunner
+        discipline={disc} cfg={cfg}
+        fit={isFitSlot}
+        label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
+        sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
+        detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
+        onEnd={goCampComplete}
+      />
+    );
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        {/* 2.4 — a warm-up phase leads into every camp session (skippable). */}
-        <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
-          <CampSessionRunner
-            discipline={disc} cfg={cfg}
-            fit={!!campCtx?.split && campCtx?.slot === 's2'}
-            label={campCtx?.split ? `S${slotNum} · ${kind}` : `LEVEL ${campCtx?.level ?? ''}`}
-            sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
-            detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
-            onEnd={goCampComplete}
-          />
-        </WithWarmup>
+        <AnswerTheBellHost
+          active={bossBell} bossName={cfg.bossName} campaignName={campCtx?.arcade?.campaignName}
+          fit={isFitSlot} rounds={cfg.rounds}
+          seriesId={campCtx?.arcade?.seriesId} stageId={campCtx?.arcade?.stageId}
+        >
+          {bossBell ? runner : (
+            /* 2.4 — a warm-up phase leads into every camp session (skippable). */
+            <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
+              {runner}
+            </WithWarmup>
+          )}
+        </AnswerTheBellHost>
       </WithNav>
     );
   }
   if (screen === 'camp_full' && campCtx?.cfgSkill && campCtx?.cfgFit) {
     // FULL CAMP — warm-up, then skill block → transition → conditioning block.
+    const bossBellFull = !!campCtx.cfgSkill.bossFinale && !!campCtx?.arcade;
+    const fullSession = <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
-          <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />
-        </WithWarmup>
+        <AnswerTheBellHost
+          active={bossBellFull} bossName={campCtx.cfgSkill.bossName} campaignName={campCtx?.arcade?.campaignName}
+          fit={false} rounds={campCtx.cfgSkill.rounds}
+          seriesId={campCtx?.arcade?.seriesId} stageId={campCtx?.arcade?.stageId}
+        >
+          {bossBellFull ? fullSession : (
+            <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
+              {fullSession}
+            </WithWarmup>
+          )}
+        </AnswerTheBellHost>
       </WithNav>
     );
   }
