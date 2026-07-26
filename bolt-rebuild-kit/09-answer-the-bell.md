@@ -33,14 +33,26 @@ Centred stack, top → bottom:
 | 6 | Record pill — `YOUR RECORD 0 — 2 · best 6 of 9 rounds`; first-timers get `FIRST ATTEMPT · nobody clears this cold` |
 
 Footer: `🔔 TAP TO ANSWER THE BELL` in red Orbitron with a glow in/out, and the
-sub-line "Nothing starts until you do. No warm-up, no countdown."
+sub-line "Nothing starts until you do. 90s to loosen up, then round 1."
 
 **Interaction.** The whole screen is the tap target. No back button, no
 cancel — swipe-down is the only escape. The tap fires a real ring-bell sample
-plus a heavy haptic, then goes straight into round 1. The device-placement
-check (hand / pocket / watch) folds into this tap rather than living on its
-own screen, because boss rounds are motion-verified and the tap is the user
-gesture iOS needs for the DeviceMotion prompt.
+plus a heavy haptic. The device-placement check (hand / pocket / watch) folds
+into this tap rather than living on its own screen, because boss rounds are
+motion-verified and the tap is the user gesture iOS needs for the DeviceMotion
+prompt.
+
+### The mobility block
+
+The bell drops the normal 3-minute warm-up, but going into a 39-minute
+max-effort gauntlet stone cold is a real injury risk. The compromise is a
+**90-second guided mobility block** between the bell and round 1 — six named
+moves at 15s each (shoulder rolls, arm swings, hip openers, leg swings, torso
+twists, bounce + shadow), each called out loud, auto-advancing, with a
+`SKIP → ROUND 1` out for anyone who warmed up already. Black/blood-red so it
+reads as part of the boss ceremony rather than a detour out of it.
+
+Flow: **gate → 90s mobility → round 1.**
 
 ## 2 · The 2-second slam (49c)
 
@@ -93,14 +105,14 @@ before — respect the veteran without cheapening the first run.
 | Piece | File |
 |---|---|
 | Gate + slam | `components/training-mode/shared/AnswerTheBell.jsx` |
+| 90s guided mobility block | `components/training-mode/shared/MobilityBlock.jsx` |
 | Gate mounting (arcade boss only, warm-up skipped) | `components/training-mode/ScreenRouter.jsx` |
 | Slam trigger + clock hold — fight | `components/training-mode/FightFocusTimer.jsx` |
 | Slam trigger + clock hold — fit | `components/training-mode/CampFitRunner.jsx` |
 | Win/loss record | `data/arcadeProgress.js` (`recordBossAttempt`, `getBossRecord`), written from `App.jsx` |
 | Boss art | `public/static/fight/boss-eyes.webp` |
 
-### Open item
-The gate skips the warm-up because the design says the bell goes "straight
-into round 1". For a 39-minute max-effort gauntlet that is a real injury-risk
-trade — worth revisiting whether the boss run should still get a short
-mobility block before the bell.
+### Resolved
+The first cut sent the bell straight into round 1 with no prep at all, which
+was a real injury-risk trade on a 39-minute max-effort gauntlet. Closed with
+the 90-second guided mobility block above.
