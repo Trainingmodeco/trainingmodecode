@@ -182,7 +182,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
             onStart({
               difficulty: cfg.difficulty, mode: cfg.mode, rounds: cfg.rounds,
               roundMin: cfg.roundMin, restSec: cfg.restSec, voiceOn: true,
-              rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern,
+              rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern, rushMix: cfg.rush.mix || 'explosive',
               encouragement: cfg.encouragement,
               warmupMin: cfg.warmupMin,
               ghost,

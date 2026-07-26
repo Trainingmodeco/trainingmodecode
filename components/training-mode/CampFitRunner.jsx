@@ -24,14 +24,18 @@ const RING_STROKE = 12;
 export default function CampFitRunner({ cfg, onEnd }) {
   useWakeLock(true);
   const total = cfg.rounds || (cfg.blockRounds ? cfg.blockRounds.length : 1);
-  const roundSec = Math.round((cfg.roundMin || 1) * 60);
-  const restSec = cfg.restSec ?? 45;
+  const baseRoundSec = Math.round((cfg.roundMin || 1) * 60);
+  const baseRestSec = cfg.restSec ?? 45;
   const rounds = useMemo(
     () => (cfg.blockRounds && cfg.blockRounds.length
       ? cfg.blockRounds
       : Array.from({ length: total }, (_, i) => ({ round_title: `Interval ${i + 1}`, coach_prompt: '' }))),
     [cfg.blockRounds, total],
   );
+  // Boss finale — block rounds may carry their own work length and a rest
+  // scaled to the movement's severity; everything reads per-round.
+  const roundSecFor = (i) => rounds[Math.min(i, rounds.length - 1)]?.length_sec || baseRoundSec;
+  const restSecFor = (i) => rounds[Math.min(i, rounds.length - 1)]?.rest_sec ?? baseRestSec;
 
   const integrity = useIntegritySession('combatConditioning', total);
   const startedRef = useRef(false);
@@ -48,7 +52,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
 
   const [phase, setPhase] = useState('work');       // 'work' | 'rest'
   const [roundIdx, setRoundIdx] = useState(0);
-  const [remaining, setRemaining] = useState(roundSec);
+  const [remaining, setRemaining] = useState(roundSecFor(0));
   const [paused, setPaused] = useState(false);
   const [countdown, setCountdown] = useState('3');
   const [done, setDone] = useState(false);
@@ -103,8 +107,9 @@ export default function CampFitRunner({ cfg, onEnd }) {
     if (countdown !== null || paused || doneRef.current) return;
     if (remaining > 0) {
       // Spec 22 — halfway call on longer work blocks.
-      if (phaseRef.current === 'work' && cfg.voiceOn && roundSec >= 90 &&
-          remaining === Math.ceil(roundSec / 2) && halfwayRef.current !== roundIdxRef.current) {
+      const curRoundSec = roundSecFor(roundIdxRef.current);
+      if (phaseRef.current === 'work' && cfg.voiceOn && curRoundSec >= 90 &&
+          remaining === Math.ceil(curRoundSec / 2) && halfwayRef.current !== roundIdxRef.current) {
         halfwayRef.current = roundIdxRef.current;
         speakAsync('Halfway.', vOpts);
       }
@@ -122,7 +127,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
       } else {
         playBell(2);
         setPhase('rest');
-        setRemaining(restSec);
+        setRemaining(restSecFor(roundIdxRef.current));
         // Rest + next-up: name the coming block so nothing needs reading.
         const nxt = rounds[roundIdxRef.current + 1];
         setTimeout(() => say(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`), 300);
@@ -131,7 +136,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
       setPhase('work');
       integrity.startUnit('circuit');
       setRoundIdx((i) => i + 1);
-      setRemaining(roundSec);
+      setRemaining(roundSecFor(roundIdxRef.current + 1));
       beepRef.current = null;
       playBell(1);
       // Announce the new block by name + cue as it begins.
@@ -158,7 +163,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
       integrity.startUnit('circuit');
       setPhase('work');
       setRoundIdx((i) => i + 1);
-      setRemaining(roundSec);
+      setRemaining(roundSecFor(roundIdx + 1));
     } else {
       const ir = integrity.finalize({});
       stopVoiceSession();
@@ -173,7 +178,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
     onEnd(rounds, cfg, completed, ir);
   };
 
-  const maxTime = phase === 'rest' ? restSec : roundSec;
+  const maxTime = phase === 'rest' ? restSecFor(roundIdx) : roundSecFor(roundIdx);
   const pct = countdown !== null ? 100 : (remaining / maxTime) * 100;
   const mins = Math.floor(remaining / 60);
   const secs = remaining % 60;

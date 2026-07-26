@@ -8,7 +8,8 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
-import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
+import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
+import { createRushCaller } from './data/rushMoves';
 import VoiceMixer from './shared/VoiceMixer';
 import useStrikeCounter from './hooks/useStrikeCounter';
 import StrikeHud from './shared/StrikeHud';
@@ -143,8 +144,10 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
   const rushSpoken = useRef(false);
-  // LT-2 — shuffled push-cue pool + a per-second countdown to the next one.
-  const rushVoice = useRef(createRushVoice());
+  // 46b — the surge caller: explosive movements / strikes / both per the
+  // athlete's CALL MIX. The session's own combo pool feeds the
+  // discipline-specific half so rush calls match what's being drilled.
+  const rushVoice = useRef(createRushCaller({ mix: cfg.rushMix, discipline, strikePool: pool }));
   const rushCueIn = useRef(0);
   const lastRushCountdownSecond = useRef(null);
   const lastBeepSecondRef = useRef(null);

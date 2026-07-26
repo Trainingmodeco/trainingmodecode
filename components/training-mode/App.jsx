@@ -379,6 +379,9 @@ export default function App() {
         // stage gets per-round combos/cues (combo_spec → Combo Coach); both get
         // difficulty-scaled finishers.
         const withFit = (base) => {
+          // Boss finale: the scripted 12-round burnout IS the session — no
+          // prescription layer, no bolted-on finisher.
+          if (base.bossFinale) return base;
           const plan = resolveFitPrescription(campaignId, stage.id, diff);
           if (plan?.exercises?.length) {
             base.prescription = plan.exercises;
@@ -393,7 +396,11 @@ export default function App() {
         // fight cfg uses arcadeCfg directly for rounds — but we still attach the
         // difficulty-scaled finishers so FightFocusTimer can run them at the end
         // (blockRounds is NOT touched — that stays arcadeBlockRounds' combos).
-        const withFightFinishers = (base) => { base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff); return base; };
+        const withFightFinishers = (base) => {
+          // Boss finale: round 9 IS the finisher (5 minutes of hell) — skip the layer.
+          if (!base.bossFinale) base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff);
+          return base;
+        };
         if (path === 'full_arc') {
           const cfgSkill = withFightFinishers({ ...arcadeCfg(campaignId, stage.id, 'fight', diff), voicePack });
           const cfgFit = withFit({ ...arcadeCfg(campaignId, stage.id, 'fit', diff), voicePack });

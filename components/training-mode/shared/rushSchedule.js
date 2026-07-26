@@ -35,7 +35,9 @@ function windowsFor(roundSec, roundIndex) {
   return cache.get(key);
 }
 
-// pattern: 'random' | 'perMin10' | 'perMin5' | 'endRound'
+// pattern: 'random' | 'perMin10' | 'perMin5' | 'endRound' | 'end<N>'
+// ('end10'/'end20'/'end30'… = an exact N-second surge at the end of the round —
+// the boss finale scripts per-round surge lengths with these.)
 export function isRushAt(pattern, elapsedSec, remainingSec, roundSec, roundIndex = 0) {
   if (elapsedSec < 1) return false;
   // Rush the last N seconds of every minute — e.g. a 3-min round surges at
@@ -46,6 +48,8 @@ export function isRushAt(pattern, elapsedSec, remainingSec, roundSec, roundIndex
     const e = Math.floor(elapsedSec);
     return windowsFor(roundSec, roundIndex).some(([s, en]) => e >= s && e < en);
   }
+  const endN = /^end(\d+)$/.exec(String(pattern));
+  if (endN) return remainingSec > 0 && remainingSec <= Number(endN[1]);
   // endRound (default): 20–30s all-out push at the end.
   return remainingSec > 0 && remainingSec <= 25;
 }

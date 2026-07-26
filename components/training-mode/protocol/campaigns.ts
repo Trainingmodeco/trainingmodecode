@@ -158,6 +158,95 @@ export function stageFormats(campaignId: string, stageId: string) {
   };
 }
 
+// ── Boss finale — the universal final-stage experience ──────────────────────
+// Every campaign's final boss runs the same scripted finale REGARDLESS of the
+// authored module rounds (which the campaign-wide difficulty_scaling used to
+// truncate anyway): FIGHT is a 9-round gauntlet (fight focus → combo coach →
+// MMA rounds → a closing circuit) with per-round disciplines, lengths, and
+// rush surges; FIT is a 12-round full-body burnout (~30 min) with rest scaled
+// to each movement's severity. Round entries carry `length_sec` / `rest_sec` /
+// `rush` overrides the camp runners honor per-round.
+export function isFinalBoss(campaignId: string, stageId: string): boolean {
+  const s = arcadeStage(campaignId, stageId);
+  return !!s && (s.boss === true || s.phase === 'final_boss');
+}
+
+const BOSS_POOLS: Record<string, string[]> = {
+  boxing: ['Jab', 'Cross', 'Lead hook', 'Rear hook', 'Lead uppercut', 'Rear uppercut', 'Body jab', 'Body cross'],
+  kickboxing: ['Jab', 'Cross', 'Lead hook', 'Low kick', 'Head kick', 'Switch kick', 'Front kick', 'Rear hook'],
+  muay_thai: ['Jab', 'Cross', 'Elbow', 'Rear elbow', 'Knee', 'Switch knee', 'Teep', 'Low kick', 'Head kick'],
+  // Dutch style — boxing combinations that end in kicks.
+  dutch: ['Jab', 'Cross', 'Lead hook', 'Rear hook', 'Body hook', 'Low kick', 'Head kick'],
+  mma: ['Jab', 'Cross', 'Level change', 'Sprawl', 'Elbow', 'Knee', 'Overhand', 'Low kick'],
+};
+
+// Deterministic per (seed, i) like buildComboCalls, so re-renders never
+// reshuffle. `pShare` = share of calls drawn from the primary pool (the rest
+// come from `secondary` — the MMA-specific pool on the mixed rounds).
+function bossCalls(primary: string[], secondary: string[] | null, pShare: number, seed: number, count = 12): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const pool = !secondary || ((seed * 7 + i * 13) % 10) < pShare * 10 ? primary : secondary;
+    const len = 2 + ((i + seed) % 3);
+    const parts: string[] = [];
+    for (let j = 0; j < len; j++) parts.push(pool[(seed * 5 + i * 3 + j * (2 + (i % 2))) % pool.length]);
+    out.push(parts.join(', '));
+  }
+  return out;
+}
+
+// The 5-minutes-of-hell closer: called on the same cadence as combos, each
+// call is the next movement to grind.
+const BOSS_CIRCUIT_CALLS = [
+  'Burpees — go', 'Mountain climbers — go', 'Jump squats — go', 'Sprawls — go',
+  'Tuck jumps — go', 'Push-ups — max reps', 'Jumping lunges — go', 'High knees — sprint',
+  'Plank jacks — go', 'Squat hold — breathe',
+];
+
+export function bossFightBlockRounds(): any[] {
+  return [
+    { round_title: 'Fight Focus · Boxing', coach_prompt: 'Sharp boxing. The surge hits at the end — empty it.', length_sec: 180, rest_sec: 30, rush: { pattern: 'end10' }, combos: bossCalls(BOSS_POOLS.boxing, null, 1, 1) },
+    { round_title: 'Fight Focus · Kickboxing', coach_prompt: 'Add the legs. Twenty-second surge to close.', length_sec: 180, rest_sec: 30, rush: { pattern: 'end20' }, combos: bossCalls(BOSS_POOLS.kickboxing, null, 1, 2) },
+    { round_title: 'Fight Focus · Muay Thai', coach_prompt: 'Elbows and knees. Thirty seconds of hell at the bell.', length_sec: 180, rest_sec: 30, rush: { pattern: 'end30' }, combos: bossCalls(BOSS_POOLS.muay_thai, null, 1, 3) },
+    { round_title: 'Combo Coach · Boxing', coach_prompt: 'React to every call. Surge to finish.', length_sec: 180, rest_sec: 30, rush: { pattern: 'end20' }, combos: bossCalls(BOSS_POOLS.boxing, null, 1, 4, 14) },
+    { round_title: 'Combo Coach · Kickboxing', coach_prompt: 'Every minute ends in a ten-second rush. Stay ready.', length_sec: 180, rest_sec: 30, rush: { pattern: 'perMin10' }, combos: bossCalls(BOSS_POOLS.kickboxing, null, 1, 5, 14) },
+    { round_title: 'MMA Round 1 · Muay Thai Edge', coach_prompt: 'Five minutes. Clinch weapons lead — surges come at random.', length_sec: 300, rest_sec: 30, rush: { pattern: 'random' }, combos: bossCalls(BOSS_POOLS.muay_thai, BOSS_POOLS.mma, 0.6, 6, 16) },
+    { round_title: 'MMA Round 2 · Boxing Edge', coach_prompt: 'Hands lead this one. Random surges — answer every alarm.', length_sec: 300, rest_sec: 30, rush: { pattern: 'random' }, combos: bossCalls(BOSS_POOLS.boxing, BOSS_POOLS.mma, 0.6, 7, 16) },
+    { round_title: 'MMA Round 3 · Dutch Edge', coach_prompt: 'Dutch pace — combinations into kicks. Random surges to the end.', length_sec: 300, rest_sec: 30, rush: { pattern: 'random' }, combos: bossCalls(BOSS_POOLS.dutch, BOSS_POOLS.mma, 0.6, 8, 16) },
+    { round_title: 'Final Circuit · 5 Minutes of Hell', coach_prompt: 'No strikes left. Bodyweight to the final bell.', length_sec: 300, rest_sec: 0, combos: BOSS_CIRCUIT_CALLS },
+  ];
+}
+
+// FIT finale — 12 energy-zapping full-body rounds. Rest scales with each
+// movement's severity (heavy 45s · moderate 35s · light 25s); work scales
+// with difficulty. ~30 minutes at normal.
+const BOSS_FIT_MOVES: { title: string; cue: string; severity: 'heavy' | 'moderate' | 'light' }[] = [
+  { title: 'Burpee Tuck Jumps', cue: 'Chest to floor, explode to the tuck. To burnout.', severity: 'heavy' },
+  { title: 'Mountain Climbers', cue: 'Sprint the floor. Hips low, knees driving.', severity: 'moderate' },
+  { title: 'Jump Squats', cue: 'Land soft, load, explode again.', severity: 'moderate' },
+  { title: 'Push-Up Burnout', cue: 'Max clean reps. Drop to knees before form breaks.', severity: 'heavy' },
+  { title: 'Jumping Lunges', cue: 'Switch in the air. Knees track the toes.', severity: 'moderate' },
+  { title: 'Sprawls', cue: 'Hips down hard, spring back to your feet.', severity: 'moderate' },
+  { title: 'High-Rep Squat Burnout', cue: 'Full depth, no lockout rest. Keep moving.', severity: 'heavy' },
+  { title: 'Plank Jacks', cue: 'Core braced — feet fly, hips stay quiet.', severity: 'light' },
+  { title: 'Skater Bounds', cue: 'Stick each landing before the next bound.', severity: 'moderate' },
+  { title: 'Star Jumps', cue: 'Full extension every rep.', severity: 'light' },
+  { title: 'Up-Downs', cue: 'Chest down, drive up. Grind it out.', severity: 'moderate' },
+  { title: 'Final Burnout · Burpees to the Bell', cue: 'Everything you have left. See you at the bell.', severity: 'heavy' },
+];
+const BOSS_REST: Record<string, number> = { heavy: 45, moderate: 35, light: 25 };
+
+export function bossFitBlockRounds(difficulty: ArcadeDifficulty): any[] {
+  const workSec = difficulty === 'easy' ? 95 : difficulty === 'hard' ? 125 : 110;
+  return BOSS_FIT_MOVES.map((m, i) => ({
+    round_title: m.title,
+    coach_prompt: m.cue,
+    length_sec: workSec,
+    // The last round ends the session — no trailing rest.
+    rest_sec: i === BOSS_FIT_MOVES.length - 1 ? 0 : BOSS_REST[m.severity],
+  }));
+}
+
 // ── Runner bridge — round plan for a stage's path at a difficulty ────────────
 // Reuses the campaign's difficulty_scaling for timing (fight rounds/length/rest;
 // fit keeps its circuit rounds) and the module's per-round goals for titles. The
@@ -172,6 +261,16 @@ export interface ArcadeRoundPlan {
 }
 
 export function resolveArcadeRounds(campaignId: string, stageId: string, path: 'fit' | 'fight', difficulty: ArcadeDifficulty): ArcadeRoundPlan | null {
+  // Final boss — the universal scripted finale replaces the module plan (the
+  // campaign-wide scaling used to flatten the boss to 5–7 generic rounds).
+  if (isFinalBoss(campaignId, stageId)) {
+    if (path === 'fight') {
+      const script = bossFightBlockRounds();
+      return { rounds: script.length, roundSec: 180, restSec: 30, goals: script.map((r) => r.round_title), durationMin: 39 };
+    }
+    const script = bossFitBlockRounds(difficulty);
+    return { rounds: script.length, roundSec: script[0].length_sec, restSec: 35, goals: script.map((r) => r.round_title), durationMin: 30 };
+  }
   const mod = stageModule(campaignId, stageId, path);
   if (!mod) return null;
   const camp = getCampaign(campaignId);
@@ -289,6 +388,11 @@ function buildComboCalls(spec: any, difficulty: ArcadeDifficulty, roundSeed: num
 // Turns a stage+path+difficulty into the same cfg FightFocusTimer / CampFitRunner
 // read (rounds, roundMin, restSec, blockRounds), so arcade reuses the camp engine.
 export function arcadeBlockRounds(campaignId: string, stageId: string, path: 'fit' | 'fight', difficulty: ArcadeDifficulty) {
+  // Final boss — hand the runners the scripted finale directly (per-round
+  // length_sec / rest_sec / rush overrides included).
+  if (isFinalBoss(campaignId, stageId)) {
+    return path === 'fight' ? bossFightBlockRounds() : bossFitBlockRounds(difficulty);
+  }
   const plan = resolveArcadeRounds(campaignId, stageId, path, difficulty);
   if (!plan) return [];
   const goals = plan.goals.length ? plan.goals : [path === 'fit' ? 'conditioning_round' : 'free_round'];
@@ -314,6 +418,7 @@ export function arcadeBlockRounds(campaignId: string, stageId: string, path: 'fi
 export function arcadeCfg(campaignId: string, stageId: string, path: 'fit' | 'fight', difficulty: ArcadeDifficulty) {
   const plan = resolveArcadeRounds(campaignId, stageId, path, difficulty);
   if (!plan) return null;
+  const boss = isFinalBoss(campaignId, stageId);
   return {
     difficulty,
     rounds: plan.rounds,
@@ -322,6 +427,10 @@ export function arcadeCfg(campaignId: string, stageId: string, path: 'fit' | 'fi
     voiceOn: true,
     encouragement: 'normal',
     rushMode: false,
+    // Boss finale: the script drives per-round rush; surges call movements AND
+    // strikes. The flag also tells App.jsx to skip the prescription/finisher
+    // layers — the finale is already the whole test.
+    ...(boss ? { bossFinale: true, rushMix: 'both' } : {}),
     warmupMin: 3,
     blockRounds: arcadeBlockRounds(campaignId, stageId, path, difficulty),
   };

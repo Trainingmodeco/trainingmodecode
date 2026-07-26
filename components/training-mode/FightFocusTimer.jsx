@@ -7,7 +7,8 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
-import { createRushVoice, nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
+import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
+import { createRushCaller } from './data/rushMoves';
 import { packOpts, packLine } from './data/voicePacks';
 import { recordGhostFromSession, finishGhostBattle, ghostCountAtTime } from './data/ghostBattles';
 import VoiceMixer from './shared/VoiceMixer';
@@ -52,7 +53,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       : generateFightFocusSession({ discipline, difficulty: cfg.difficulty, rounds: cfg.rounds })),
     [discipline, cfg.difficulty, cfg.rounds, cfg.blockRounds],
   );
-  const roundSec = cfg.roundMin * 60;
+  const baseRoundSec = cfg.roundMin * 60;
 
   const integrity = useIntegritySession('fightFocus', cfg.rounds);
   const integrityStartedRef = useRef(false);
@@ -60,6 +61,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? 'round');
   const [roundIdx, setRoundIdx] = useState(initialResumeData?.roundIdx ?? 0);
+  // Boss finale — a block round may carry its own length (3-min fight-focus
+  // rounds into 5-min MMA rounds); everything downstream reads THIS round's
+  // length, so mixed-length sessions just work.
+  const roundSec = rounds[Math.min(roundIdx, rounds.length - 1)]?.length_sec || baseRoundSec;
+  const restSecOf = (i) => rounds[Math.min(i, rounds.length - 1)]?.rest_sec ?? cfg.restSec;
   const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? roundSec);
   const [paused, setPaused] = useState(!!initialPaused);
   const [rush, setRush] = useState(false);
@@ -72,8 +78,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   // 1.4 — motion-verified thrown strikes, counted only during a live work round.
   const [strikeSheetOpen, setStrikeSheetOpen] = useState(false);
   const rushSpoken = useRef(false);
-  // LT-2 — shuffled push-cue pool + a per-second countdown to the next one.
-  const rushVoice = useRef(createRushVoice());
+  // 46b — the surge caller: explosive movements / strikes / both per the
+  // athlete's CALL MIX, with a hype line every third call.
+  const rushVoice = useRef(createRushCaller({ mix: cfg.rushMix, discipline }));
   const rushCueIn = useRef(0);
   const lastRushCountdownSecond = useRef(null);
   const lastBeepSecondRef = useRef(null);
@@ -272,9 +279,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         if (delta > 0) for (let i = 0; i < delta; i++) strikeTimesRef.current.push(workElapsedRef.current);
         lastThrownAtTickRef.current = thrownRef.current;
       }
-      if (phaseRef.current === 'round' && cfg.rushMode) {
+      // Boss finale — a block round can carry its own rush spec; it activates
+      // the surge even when the athlete didn't toggle Rush Mode on.
+      const roundRush = rounds[roundIdxRef.current]?.rush;
+      const rushPatternNow = roundRush?.pattern || cfg.rushPattern || 'endRound';
+      if (phaseRef.current === 'round' && (cfg.rushMode || roundRush)) {
         const elapsed = roundSec - remaining;
-        const wantRush = isRushAt(cfg.rushPattern || 'endRound', elapsed, remaining, roundSec, roundIdxRef.current);
+        const wantRush = isRushAt(rushPatternNow, elapsed, remaining, roundSec, roundIdxRef.current);
         if (wantRush && !rushRef.current) {
           setRush(true);
           setShowRushOverlay(true);
@@ -299,8 +310,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         // final-10s number countdown.
         if (rushRef.current && cfg.voiceOn) {
           rushCueIn.current -= 1;
-          const inFinalCountdown =
-            (cfg.rushPattern || 'endRound') === 'endRound' && remaining <= 10;
+          const inFinalCountdown = rushPatternNow.startsWith('end') && remaining <= 10;
           if (rushCueIn.current <= 0) {
             if (!inFinalCountdown && remaining > 3) {
               speakAsync(rushVoice.current.nextLine());
@@ -312,8 +322,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         }
       }
       if (
-        phaseRef.current === 'round' && cfg.rushMode && rushRef.current &&
-        (cfg.rushPattern || 'endRound') === 'endRound' &&
+        phaseRef.current === 'round' && (cfg.rushMode || roundRush) && rushRef.current &&
+        rushPatternNow.startsWith('end') &&
         remaining >= 1 && remaining <= 10 &&
         cfg.voiceOn && lastRushCountdownSecond.current !== remaining
       ) {
@@ -401,7 +411,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
         roundStartThrownRef.current = thrownRef.current;
         setPhase('rest');
-        setRemaining(cfg.restSec);
+        setRemaining(restSecOf(roundIdxRef.current));
         // Rest + next-up (spec 22): name the coming round so nothing needs reading.
         const nxt = rounds[roundIdxRef.current + 1];
         setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, vOpts); }, 400);
@@ -510,7 +520,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   };
 
   const isFinalRound = roundIdx + 1 >= cfg.rounds;
-  const maxTime = phase === 'rest' ? cfg.restSec : roundSec;
+  const maxTime = phase === 'rest' ? restSecOf(roundIdx) : roundSec;
   const pct = (remaining / maxTime) * 100;
   const mins = Math.floor(remaining / 60);
   const secs = remaining % 60;
