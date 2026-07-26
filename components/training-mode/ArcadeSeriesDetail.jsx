@@ -344,8 +344,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   return (
     <PhoneFrame useBrandBg>
-      {/* Stage ladder — arena bg1 (trophy podium hall) at 20%, sparks kept. */}
-      <ArcadeBackdrop image="/static/arcade/arcade-bg-ladder.png" imageOpacity={0.2} />
+      {/* Stage ladder — the bracket-hall arena. Kept a shade quieter than the
+          saga select: the ladder's nodes and branch lines sit right on it. */}
+      <ArcadeBackdrop image="/static/arcade/arcade-bg-ladder.png" imageOpacity={0.5} />
       <style dangerouslySetInnerHTML={{ __html: detailStyles }} />
       <Embers count={3} />
 

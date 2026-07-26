@@ -97,8 +97,9 @@ export default function ArcadeBackdrop({ opacity = 1, image, imageOpacity = 0.4 
 
       {/* Sparks ride over the photo too — the FX stay either way. */}
       <ArcadeSparks/>
-      {/* Top-to-bottom scrim keeps headers and stage cards legible */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(6,1,14,0.78) 0%, rgba(6,1,14,0.2) 30%, rgba(6,1,14,0.3) 62%, rgba(6,1,14,0.85) 100%)' }}/>
+      {/* Scrim stays heavy under the header and the nav footer and opens up
+          through the middle, so the arena reads without fighting the cards. */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(6,1,14,0.7) 0%, rgba(6,1,14,0.12) 30%, rgba(6,1,14,0.2) 62%, rgba(6,1,14,0.8) 100%)' }}/>
     </div>
   );
 }

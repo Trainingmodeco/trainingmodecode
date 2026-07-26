@@ -194,8 +194,8 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
 
   return (
     <PhoneFrame>
-      {/* Saga select — arena bg3 (tournament bracket hall) at 40%, sparks kept. */}
-      <ArcadeBackdrop image="/static/arcade/arcade-bg-saga.png" imageOpacity={0.4} />
+      {/* Saga select — the trophy-podium arena, sparks kept over it. */}
+      <ArcadeBackdrop image="/static/arcade/arcade-bg-saga.png" imageOpacity={0.62} />
       <style dangerouslySetInnerHTML={{ __html: arcadeStyles }} />
 
       <div style={{
