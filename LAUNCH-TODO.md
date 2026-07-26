@@ -1,110 +1,99 @@
-# Launch path — remaining build items (post Session-UX)
+# Launch path — status
 
-Session UX (SESSION-UX-TODO.md) is **complete** — all 7 items shipped. This is
-what remains on the path to "2 Training Arcade campaigns perfect, then
-marketing." One item at a time, in order. Check off (`[x]`) as they ship.
+Updated at the end of the build session that closed items 9–14. Everything
+below is on branch `app`. Build is green: `tsc` 0 errors, `expo lint` clean,
+`build:web` exits 0, validator 8/8, review script 0 flags on all 8 campaigns.
 
-Goal order: **Baki perfect → Garou perfect → marketing.**
-
----
-
-## 9. UNIVERSAL OUTCOME SCREENS (pass / partial / fail / validation-fail)
-
-STATUS: **Arcade = built. Camp = not wired. Make it universal.**
-
-Already built in `ArcadeStageClearOverlay.jsx` with art:
-| Screen | Component | Art |
-|---|---|---|
-| Cleared | `StageClearedScreen` | `/static/arcade/stage-complete.webp` |
-| Partial (24d) | `PartialCompletionScreen` | `/static/arcade/partial-complete.webp` |
-| Failed | `MissionFailedScreen` | `/static/arcade/mission-failure.webp` |
-| Validation failed | `ValidationFailedScreen` | `/static/arcade/validation-fail.webp` |
-
-Training Camp instead uses `shared/MissionComplete.jsx`, which only has
-`success | partial` — no fail, no validation-fail, and it does NOT route
-through the engine's `evaluateSession`.
-
-- [ ] **9a. Extract the 4 Arcade outcome screens into a shared component**
-  (e.g. `shared/SessionOutcome.jsx`) taking a mode-agnostic props contract:
-  `{ outcome, title, subtitle, stats[], xpEarned, stars?, onRetry, onExit }`.
-  Keep the existing art; do not restyle. Arcade keeps working unchanged.
-- [ ] **9b. Route TRAINING CAMP through it** — wire the engine's
-  `evaluateSession(result, difficulty, passRules)` (already exported from
-  `protocol/content.ts`) so a camp session resolves to
-  pass / partial / fail / validation_failed and renders the shared screen.
-  `pass-rules.json` already holds the thresholds + the 4 fail types.
-- [ ] **9c. (optional) Route Quick Mission / Combat Conditioning through it**
-  so every mode ends the same way.
-
-## 10. ACHIEVEMENTS → PROGRESS TAB
-
-STATUS: **not built.** `protocol/data/achievements.json` holds the 9 families;
-nothing in the app reads them. `ProgressScreen.jsx` exists but has no
-achievements section, and there is no unlock/earn tracking anywhere.
-
-- [ ] **10a. Achievement store** — `data/achievements.js`: load the families,
-  persist earned IDs (localStorage, same pattern as `userStats`), expose
-  `earned()`, `award(id)`, `progressFor(family)`.
-- [ ] **10b. Trigger wiring** — award on the real events already firing:
-  session complete, stage clear, streak milestones, ghost victory, campaign
-  clear. Campaign-specific achievements already live in each campaign JSON
-  (`campaign.achievements[]` with trigger text) — Baki has 8, Garou 12.
-- [ ] **10c. Progress tab section** — grid of earned/locked badges with the
-  family name + unlock condition. Locked = silhouette, earned = full art.
-
-## 11. GHOST BATTLES — the VS experience (design 40e)
-
-STATUS: **engine + data + art DONE. The screens are missing.**
-
-- Data layer complete: `data/ghostBattles.js` (record, export/import challenge
-  code, `finishGhostBattle`, `getMyBestGhost`, `getRecentGhosts`).
-- Recording already live inside `FightFocusTimer` (strike timestamps, per-round
-  totals, `ghostCountAtTime` live race math).
-- **Art already delivered:** `/static/ghost/vs-{male,female}-{1,2,3}.webp` —
-  the gender + rotating variants.
-- Missing: every actual ghost SCREEN. `GhostButton.jsx` is a generic button,
-  not ghost UI.
-
-- [ ] **11a. VS pre-fight screen** — uses the 6 art variants (pick by the
-  user's gender + rotate the 1/2/3 variant per battle). Shows YOU vs GHOST,
-  the ghost's stats (strikes / time / stage), and ACCEPT · VS.
-- [ ] **11b. Live race HUD** — during the round, a split bar of you vs the
-  ghost's replayed pace (`ghostCountAtTime` already returns the number).
-- [ ] **11c. Result screen** — victory / defeat / draw with the delta headline
-  (`battleHeadline` in the engine already produces "▲ 26s FASTER · GHOST
-  DEFEATED").
-- [ ] **11d. Share card (40e)** — render the result as an image using the
-  existing share infra (`CompletedWorkoutShareCard` / `ShareActions`).
-
-## 13. TITLE FIGHT (Camp L12)
-
-STATUS: **map-only.** `TrainingCampMap.jsx` already shows the boss node,
-"🏆 TITLE FIGHT" label, and a locked state — but there is no special session
-behavior and no win outcome.
-
-- [ ] **13a. Title-fight session** — L12 runs a distinct final structure
-  (longer/boss rounds, form-gated like the Baki Ogre trial) rather than a
-  normal camp session.
-- [ ] **13b. "TITLE FIGHT WON" outcome** — a distinct celebration on top of
-  the shared outcome screen (item 9), plus camp-completion state so the whole
-  12-level camp reads as finished.
-
-## 14. CAMP SETUP FLOW — archetype picker
-
-STATUS: **not built.** 12 archetypes exist in
-`protocol/data/archetypes.json` (pressure_dog, slick_counter_boxer,
-twelve_round_finisher, …) each with easy/normal/hard variants, but the only
-mention of "archetype" in the app is inside `TrainingCampMap.jsx` — there is
-no picker screen.
-
-- [ ] **14a. DISCIPLINE → ARCHETYPE → DIFFICULTY setup flow** before starting
-  a camp: pick discipline (existing art), then one of the 12 archetypes
-  (name + one-line style description + the difficulty variant blurb from the
-  JSON), then difficulty. Feeds the existing camp engine — no new content.
+Goal order was **Baki perfect → Garou perfect → marketing.** Baki is perfect
+and confirmed running in the built app; all eight campaigns are now content-
+complete.
 
 ---
 
-## Not on the launch path (defer past marketing)
+## ✅ Built
+
+### Session UX (items 1–8)
+Back button · STOP + confirm modal · skip · rewind · header with resumable
+back-out · VoiceMixer in every session top bar · auto-pause on backgrounding
+without double-penalising integrity.
+
+### 9. Universal outcome screens
+`shared/sessionOutcome.js` → `resolveOutcome()` is the single judge of
+pass / partial / fail / validation_failed, running the engine's
+`evaluateSession` against `pass-rules.json`. `MissionComplete` gained the two
+missing variants (red / amber, matching the Arcade overlay) plus a `failReason`
+line. Fight Focus, Combo Coach, Quick Mission, Combat Conditioning and the
+Arcade all take the verdict from the same call.
+
+XP note: pass and partial keep each mode's own figure — those already count
+completed units, so applying the ruleset's completion multiplier on top would
+penalise a partial session twice. Fail and validation_failed take the authored
+multipliers (0.15 and 0).
+
+### 10. Achievements
+`data/achievements.js` (store) + `data/achievementTriggers.js` (award points) +
+`shared/AchievementToast.jsx` + a grouped grid on the Progress tab. 80
+achievements: 9 universal families and 71 across the campaigns. `award()` is
+idempotent, so a replayed stage never re-fires the toast. Stage triggers parse
+every stage number a trigger names and require all of them cleared, so
+"stages (1-2)" waits for stage 2.
+
+### 11. Ghost battles
+`GhostVsScreen` (pre-fight, six art variants, pose rotated and persisted) and
+`GhostResultScreen` (headline, head-to-head, best round, your round breakdown,
+rematch, challenge code, share card). The live VS strip was already in
+`FightFocusTimer`. Entry points: the Fight Focus setup card, and
+`👻 BEAT THIS RUN` on a session summary.
+
+### 13. Title Fight (camp L12)
+`resolveTitleFight()` — twelve rounds with an objective each, round length
+chosen so they land in the difficulty's active-minutes band, last three flagged
+as championship rounds, and form-gated. MMA keeps its 4-5 × 4-5 min shape.
+Winning it sets a separate camp-completion flag and shows
+TITLE FIGHT WON / CAMP COMPLETE instead of "LEVEL 12 CLEAR".
+
+### 14. Archetype picker
+DISCIPLINE → DIFFICULTY → ARCHETYPE. Each card shows the
+`variants[difficulty]` blurb for the difficulty already chosen. Persists per
+discipline. The round engine takes no archetype input, so it is a label there.
+
+### Campaign content — all 8 flag-free, all 10 stages
+| Campaign | Fight rounds gen/cue |
+|---|---|
+| Ultra Ego | 60 / 6 |
+| Ultra Instinct | 48 / 17 |
+| Garou | 45 / 5 |
+| Dark Knight | 43 / 17 |
+| Baki | 41 / 19 |
+| Berserk | 23 / 35 |
+| Sonic · Gravity | fit-only, fully prescribed |
+
+Every 12-stage campaign was fused to 10 so nothing is dropped by the Arcade
+cap. Garou's single long blocks became real rounds. Sonic and Gravity got
+counted prescriptions. Berserk got mixed rounds so no stage runs dry.
+
+### Tooling
+`protocol-src/scripts/review-campaign.mjs` — generates a stage-by-stage review
+sheet per campaign and auto-flags the six known problems.
+`BUILD-PROMPTS.md` — PROMPT R (per-campaign readiness), PROMPT D (diagnose).
+
+---
+
+## ⚠️ Needs a human
+
+- [ ] **Sign off each campaign to unlock it.** Six sagas are still gated in
+  `data/trainingArcadeData.js` → `UNDER_CONSTRUCTION`. The content is complete
+  and validated; the gate is deliberate ("re-locked until individually
+  playtested & signed off"). Unlocking one = deleting its id from that set.
+- [ ] **Playtest.** Baki stages 3–10, and all of Garou / Ultra Ego / Dark
+  Knight / Ultra Instinct / Berserk / Sonic / Gravity, have never been trained.
+- [ ] **Look at the screens.** Items 9, 10, 11, 13, 14 are verified by logic
+  harness and a driven browser session, not by eye. Specific layout risks: the
+  archetype picker adds 3 cards inside the level modal; the achievements grid
+  is 80 items across 9 groups; the ghost VS art crop.
+- [ ] **Badge art for achievements.** Tiles render a themed glyph placeholder.
+
+## Not on the launch path (deferred)
 
 Reaction Mode (3.1) · camera pose verification (3.0) · camera motion tracking
-roadmap · music player + Pro gating · custom combo builder (on hold).
+roadmap · music player + Pro gating · custom combo builder.
