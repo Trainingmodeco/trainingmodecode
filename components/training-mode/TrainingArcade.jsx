@@ -23,6 +23,7 @@ const POSTER_MAP = {
   'ultra-instinct-protocol': '/static/series/posters/ultra-instinct.png',
   'ultra-ego-style': '/static/series/posters/ultra-ego.png',
   'baki-grappler': '/static/series/posters/baki-grappler.png',
+  'hero-hunter-protocol': '/static/series/posters/hero-hunter.png',
   'berserk-struggler': '/static/series/posters/berserk-struggler.png',
   'the-contender': '/static/series/posters/the-contender.png',
   'the-wall-crawler': '/static/series/posters/the-wall-crawler.png',
