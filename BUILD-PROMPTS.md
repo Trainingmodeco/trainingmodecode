@@ -557,3 +557,73 @@ SecondaryButton / Card); no new design system.
 > ask rather than guessing. Do not change the volume ladder, `pass-rules.json`,
 > `xp-rules.json`, or the counted-set pacing — those are calibrated and
 > playtested.
+
+
+---
+
+## PROMPT V — "I opened the app and none of it is there": verify what is actually live
+
+> Everything below was written into this repo on branch `app` on 2026-07-26 and
+> 2026-07-27 and pushed. If the running app does not show it, the code is not
+> the suspect — the delivery path is. Work these in order and STOP at the first
+> one that explains it.
+>
+> ### Step 1 — which branch is the app actually built from?
+> `origin/app` is the real app: 817 files, `netlify.toml`, the whole
+> `components/training-mode/` tree. `origin/main` is **not** — it is 127 files,
+> its tip commit is "initial setup", it contains only `bolt-rebuild-kit/`, and
+> it has no `netlify.toml`. It sits **294 commits behind `app`**.
+>
+> Confirm the deploy (Netlify site settings → Build & deploy → Branch to
+> deploy) is pointed at **`app`**. If it says `main`, that alone explains
+> everything and nothing else in this list matters.
+>
+> ### Step 2 — did the deploy actually run and succeed?
+> Check the deploy log for a build newer than commit `a4e5714`. Netlify builds
+> with `npm run build:web` → `dist`. If the last successful deploy predates
+> 2026-07-26, the code is on GitHub but was never shipped.
+>
+> ### Step 3 — service worker cache (the most likely culprit for a PWA)
+> This app registers a service worker that precaches the bundle.
+> `public/sw.js` stamps a fresh `BUILD_ID` each build, and `netlify.toml`
+> carries an explicit warning about clients getting stuck on an old worker.
+> If the app was opened as an installed PWA or a returning tab, it can serve a
+> months-old bundle with no visible sign.
+>
+> To rule it out: DevTools → Application → Service Workers → **Unregister**,
+> then Application → Storage → **Clear site data**, then hard reload. On a
+> phone: fully close the PWA, or reinstall it. Do this BEFORE concluding a
+> feature is missing.
+>
+> ### Step 4 — know where each thing actually surfaces
+> Several of these have no presence on the home screen. "Not visible" is
+> expected until you go to the exact place:
+>
+> | What | Where it appears | How to see it |
+> |---|---|---|
+> | 10-stage campaigns | Arcade → any open saga | Ladder reads "0 of 10", boss at 10 gated on CLEAR 9 |
+> | Saga order + Hero Hunter | Arcade carousel | One Punch · Gravity Chamber · Hero Hunter · Ultra Ego · The Grappler, then locked |
+> | Counted sets | Arcade → stage → FIT → past the warm-up | "COUNTED SETS · MOVE 1/6", "SET 1/3 · 5 REPS" |
+> | 60/40 combo variety | Arcade → stage → FIGHT → round 2+ | A jab-cross round also calls lead hook / body shots |
+> | Outcome screens (9) | End of ANY session | Four variants incl. MISSION FAILED and VALIDATION FAILED |
+> | Achievements (10) | Progress tab, scroll down | Three sections: FIGHT TROPHIES · MILESTONES · CAMPAIGN BADGES |
+> | Archetype picker (14) | Training Camp → tap a level | Under the difficulty row, blurbs change with difficulty |
+> | Ghost VS + result (11) | Fight Focus → load a ghost → START | VS screen before the timer; result screen after |
+> | Title Fight (13) | Training Camp Level 12 | Twelve objective rounds; win reads TITLE FIGHT WON |
+>
+> Note four of these only exist deep in a flow: the outcome screens need a
+> finished session, ghost screens need a recorded ghost, the Title Fight needs
+> 11 camp levels cleared, and the archetype picker is inside the level modal.
+>
+> ### Step 5 — stale local progress
+> Every campaign was renumbered from 12 stages to 10, so stage and module ids
+> changed. `highestCleared()` now clamps to the campaign's real length, but if
+> the ladder looks wrong, clear `tm_arcade_v2` in localStorage.
+>
+> ### Step 6 — only if 1–5 all check out
+> Then and only then treat it as a code problem. Run
+> `npx tsc --noEmit && npm run lint && npm run build:web` (all three passed
+> here), then `node protocol-src/scripts/validate-campaigns.mjs` (8/8) and
+> `node protocol-src/scripts/review-campaign.mjs --all` (0 flags on all 8).
+> Report which specific item is missing and what the console says — do not
+> rebuild anything that is already in the tree.
