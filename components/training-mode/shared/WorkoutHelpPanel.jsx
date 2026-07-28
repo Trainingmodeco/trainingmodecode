@@ -1,5 +1,6 @@
 import { Circle as HelpCircle, X, Target, Sparkles, Gauge, ShieldCheck, Repeat, Flag } from 'lucide-react';
 import { C } from '../Styles';
+import OverlayPortal, { OVERLAY_Z } from './OverlayPortal';
 
 const GOLD = C.yellow;
 
@@ -195,10 +196,14 @@ export default function WorkoutHelpPanel({ contentKey, content, open, onClose })
   if (!open || !data) return null;
 
   return (
+    // Portalled + nav-clearing: this panel is a bottom sheet used on 17
+    // screens, most of them showing the tab bar. Declared inside PhoneFrame its
+    // z-index was trapped, so the bar covered its last ~58px of content.
+    <OverlayPortal>
     <div
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 400,
+        position: 'fixed', inset: 0, zIndex: OVERLAY_Z,
         background: 'rgba(4,0,10,0.78)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         animation: 'tm-help-fade 0.2s ease forwards',
@@ -251,5 +256,6 @@ export default function WorkoutHelpPanel({ contentKey, content, open, onClose })
         <Section icon={Flag} label="WHEN YOU'RE DONE">{data.completion}</Section>
       </div>
     </div>
+    </OverlayPortal>
   );
 }

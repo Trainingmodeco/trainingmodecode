@@ -627,3 +627,91 @@ SecondaryButton / Card); no new design system.
 > `node protocol-src/scripts/review-campaign.mjs --all` (0 flags on all 8).
 > Report which specific item is missing and what the console says — do not
 > rebuild anything that is already in the tree.
+
+---
+
+## PROMPT T — reachability audit: no gold or violet action button may be buried
+
+> **The bug this exists to prevent.** In the Workout Builder, the EDIT sheet's
+> gold **APPLY** button rendered correctly, sat in the DOM, and was completely
+> untappable. Editing sets/reps/rest therefore looked like it silently did
+> nothing — the only way out of the sheet was the ✕, which discards. It was
+> reported as "the edit doesn't activate or update."
+>
+> **The mechanism, because it will recur.** `PhoneFrame` sets
+> `isolation: isolate`, which opens a new stacking context. Every `z-index`
+> inside it is therefore ranked *within the frame only* — `z-index: 9999` on a
+> sheet does not beat anything outside. `ScreenRouter`'s `BottomNav` wrapper is
+> a **sibling** of that frame at `z-index: 100`, so the tab bar paints over any
+> sheet, always. The bar is ~58px tall plus
+> `env(safe-area-inset-bottom)` — and a bottom-anchored sheet puts its primary
+> action in exactly that band.
+>
+> ### The rule
+>
+> **Any bottom-anchored overlay must use `components/training-mode/shared/BottomSheet.jsx`.**
+> It portals to `document.body`, so it escapes the frame's stacking context and
+> genuinely overlays the nav; it caps its own height and scrolls its body; and
+> it takes the action button as a `footer` prop, pinned so it never scrolls out
+> of reach. Do not hand-roll `position: fixed; inset: 0; z-index: 9999` again —
+> that is the exact shape of the bug.
+>
+> Two more rules that follow from the same geometry:
+> - A **fixed** bottom CTA in normal screen chrome must offset the bar:
+>   `bottom: calc(70px + env(safe-area-inset-bottom, 0px))`, as
+>   `FitBuilderWorkout`'s START button already does.
+> - A CTA in **normal flow** relies on `WithNav`'s
+>   `paddingBottom: calc(110px + env(safe-area-inset-bottom, 0px))`. Screens
+>   rendered with `lock` get `paddingBottom: 0` instead, so a locked screen must
+>   reserve its own clearance.
+>
+> ### The task
+>
+> 1. Run the audit against a real build:
+>    ```
+>    npm run build:web
+>    npx serve -s dist -l 4599      # or: python3 -m http.server 4599 -d dist
+>    npm i --no-save playwright-core
+>    npm run audit:tap -- --depth 3 --budget 420 --shots /tmp/tap-audit
+>    ```
+>    It crawls the app breadth-first across a 375×667 and a 412×883 viewport
+>    and, for every clickable element in every state it reaches, runs
+>    `document.elementFromPoint()` at that element's centre — the same hit test
+>    a real finger triggers. Anything the browser says is covered by something
+>    else, or is off-screen with nothing able to scroll it into view, is
+>    reported. It probes at both ends of the scroll and only reports a control
+>    that is unreachable in **both**, so "you just need to scroll" is not
+>    counted as a defect. It exits non-zero when an ACTION control (APPLY,
+>    START, SAVE, EXECUTE, GENERATE, CONFIRM, COMPLETE, CONTINUE…) is buried.
+>
+> 2. Fix every ✗ ACTION finding. Prefer moving the offender onto `BottomSheet`
+>    over nudging a magic number — a hard-coded offset breaks again on the next
+>    device with a different safe-area inset.
+>
+> 3. Re-run until `0 ACTION control(s) unreachable`, then confirm by hand on the
+>    real screen: open it, tap the button, verify the value it commits actually
+>    changed in the list behind the sheet. A button that is reachable but wired
+>    to nothing passes the audit and still fails the athlete.
+>
+> ### What the first run found (all fixed — this is the shape to expect)
+>
+> | Control | Where | Why it was buried |
+> |---|---|---|
+> | **APPLY** | Workout Builder → edit a row | sheet's z-index trapped in `PhoneFrame` |
+> | **APPLY & BACK** | Workout Builder → WORKOUT PROGRAMS | same, and on *every* phone size, not just small ones |
+> | **GENERATE WORKOUT** | Workout Builder setup | screen rendered with `lock`, content taller than a 375x667 viewport, nothing could scroll |
+> | **START CIRCUIT** | Combat Conditioning setup | same `lock` cause |
+>
+> The two `lock` cases were fixed once, in `WithNav`: `lock` is now a
+> preference rather than a cage — if the content overflows anyway, the
+> container scrolls and takes the standard nav clearance. That fixes every
+> locked screen at once instead of one screen at a time.
+>
+> ### What the audit does NOT cover
+>
+> It cannot reach states behind a live workout (it will not run a timed session
+> to completion), behind a paywall, or behind a code-entry field. Outcome
+> screens — CLEARED / PARTIAL / MISSION FAILED / VALIDATION FAILED — the Title
+> Fight, the Ghost result screen and the boss finale therefore still need one
+> human pass each on a small phone. Those are the screens where a buried
+> CONTINUE would strand an athlete who just finished the work.
