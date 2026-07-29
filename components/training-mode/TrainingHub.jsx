@@ -48,7 +48,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         onHome={onHome}
         showBack
         onBack={onHome}
-        rightSlot={<HelpButton dataTour="screen-info" onClick={() => setHelpOpen(true)}/>}
+        rightSlot={<HelpButton dataTour="screen-info" dataGuide="help-icon" onClick={() => setHelpOpen(true)}/>}
       />
 
       <div style={{

@@ -19,8 +19,14 @@ const GUIDE_STYLES = `
 }
 `;
 
-const TIP_W = 300;
-const TIP_EST_H = 150;
+// The app renders in a centred column (PhoneFrame maxWidth 440). Bubbles must
+// be clamped to THAT, not to the window — clamping to window.innerWidth let
+// them hang outside the frame border on any screen wider than the column.
+const APP_COL_W = 440;
+const TIP_MAX_W = 300;
+const EDGE = 12;
+const NAV_RESERVE = 70;   // fixed bottom nav
+const TIP_EST_H = 150;    // first-paint estimate; replaced by a real measurement
 
 // centerTip: keep the spotlight on the target but always park the tooltip card
 // in the middle of the screen (readable even when the highlighted element is
@@ -35,6 +41,19 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
   useEffect(() => { onStep?.(step, steps[step]); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   const [rect, setRect] = useState(null);
   const scrolledRef = useRef(false);
+  // Real rendered height of the bubble. The old fixed 150px estimate was wrong
+  // the moment a step's copy ran long, which pushed tall cards off-screen.
+  const tipRef = useRef(null);
+  const [tipH, setTipH] = useState(TIP_EST_H);
+  useEffect(() => {
+    const el = tipRef.current;
+    if (!el) return undefined;
+    const read = () => setTipH(el.getBoundingClientRect().height || TIP_EST_H);
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [step]);
 
   useEffect(() => {
     setRect(null);
@@ -80,11 +99,17 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
     width: rect.width + PAD * 2, height: rect.height + PAD * 2,
   } : null;
 
+  // The centred app column — every bubble is clamped inside this, never to the
+  // raw window, so it can't spill past the phone frame's border.
+  const colW = Math.min(vw, APP_COL_W);
+  const colLeft = (vw - colW) / 2;
+  const TIP_W = Math.min(TIP_MAX_W, colW - EDGE * 2);
+
   // Tooltip below the spotlight, or above when the target sits low; centered
-  // card for the intro step.
-  // Room above / below the spotlight (70px reserved for the footer nav).
-  const NEED = TIP_EST_H + 24;
-  const roomBelow = hole ? (vh - 70) - (hole.top + hole.height) : Infinity;
+  // card for the intro step. Uses the MEASURED height, so long copy is placed
+  // as accurately as short copy.
+  const NEED = tipH + 24;
+  const roomBelow = hole ? (vh - NAV_RESERVE) - (hole.top + hole.height) : Infinity;
   const roomAbove = hole ? hole.top : Infinity;
   const below = roomBelow >= NEED;
   // A target too tall to fit a card above OR below → centre the card over it so
@@ -92,10 +117,18 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
   const forceCenter = hole ? (!below && roomAbove < NEED) : false;
   const centered = cfg.center != null ? cfg.center : (centerTip || !cfg.target || forceCenter);
   const holeCx = hole ? hole.left + hole.width / 2 : vw / 2;
-  const tipLeft = Math.min(Math.max(holeCx - TIP_W / 2, 12), vw - TIP_W - 12);
+  const tipLeft = Math.min(
+    Math.max(holeCx - TIP_W / 2, colLeft + EDGE),
+    colLeft + colW - TIP_W - EDGE,
+  );
   const notchX = Math.min(Math.max(holeCx - tipLeft - 6, 18), TIP_W - 30);
-  const tipTop = (hole && !centered && below) ? hole.top + hole.height + 14 : undefined;
-  const tipBottom = (hole && !centered && !below) ? vh - hole.top + 14 : undefined;
+  // Vertical clamp too: keep the whole card between the top edge and the nav.
+  const rawTop = hole ? hole.top + hole.height + 14 : 0;
+  const maxTop = Math.max(EDGE, vh - NAV_RESERVE - tipH);
+  const tipTop = (hole && !centered && below) ? Math.min(rawTop, maxTop) : undefined;
+  const rawBottom = hole ? vh - hole.top + 14 : 0;
+  const maxBottom = Math.max(EDGE, vh - EDGE - tipH);
+  const tipBottom = (hole && !centered && !below) ? Math.min(rawBottom, maxBottom) : undefined;
   const isLast = step === steps.length - 1;
 
   return (
@@ -125,10 +158,13 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
       )}
 
       {/* Tooltip / intro card */}
-      <div style={{
-        position: 'fixed', left: centered ? '50%' : tipLeft, width: TIP_W,
+      <div ref={tipRef} style={{
+        position: 'fixed', width: TIP_W,
+        // Centred cards centre on the APP COLUMN, not the window, so they line
+        // up with the frame on desktop instead of drifting off it.
+        left: centered ? colLeft + (colW - TIP_W) / 2 : tipLeft,
         ...(centered
-          ? { top: '50%', transform: 'translate(-50%, -50%)' }
+          ? { top: Math.max(EDGE, (vh - tipH) / 2) }
           : { ...(tipTop !== undefined ? { top: tipTop } : {}), ...(tipBottom !== undefined ? { bottom: tipBottom } : {}) }),
         background: 'rgba(16,9,31,0.94)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         border: '1.5px solid rgba(253,224,71,0.5)', borderRadius: 14,

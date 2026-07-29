@@ -143,7 +143,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           <span style={{ font: "800 11px 'Orbitron',sans-serif", color: '#f5e9ff', letterSpacing: '0.06em' }}>TRAINING MODE</span>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <HelpButton onClick={() => setHelpOpen(true)}/>
+        <HelpButton dataGuide="help-icon" onClick={() => setHelpOpen(true)}/>
         <button onClick={onProfile} style={{ display: 'flex', alignItems: 'center', gap: 5, border: '1px solid rgba(168,85,247,0.3)', borderRadius: 18, padding: '4px 10px', background: 'none', cursor: 'pointer' }}>
           <span style={{ fontSize: 11 }}>👤</span>
           <span style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', letterSpacing: '0.04em', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>

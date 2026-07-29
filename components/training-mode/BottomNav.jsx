@@ -10,7 +10,7 @@ const TABS = [
 
 export default function BottomNav({ active, onNavigate }) {
   return (
-    <div style={{
+    <div data-guide="nav-tabs" style={{
       background: 'rgba(6,1,14,0.95)',
       borderTop: '1px solid rgba(168,85,247,0.28)',
       padding: '8px 6px calc(10px + env(safe-area-inset-bottom, 0px))',

@@ -171,22 +171,43 @@ function Section({ icon: Icon, label, children }) {
   );
 }
 
-export function HelpButton({ onClick, size = 20, dataTour, style }) {
+// The help button. It used to render lucide's `Circle` — a featureless "O"
+// that read as decoration, not as help. It's now a glowing violet "?" so it
+// reads as "tap me if you're lost" at a glance.
+const HELP_BTN_CSS = `
+@keyframes tm-help-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(176,106,255,0.45), inset 0 0 6px rgba(176,106,255,0.10); }
+  50%      { box-shadow: 0 0 18px rgba(176,106,255,0.95), inset 0 0 10px rgba(176,106,255,0.22); }
+}
+`;
+
+export function HelpButton({ onClick, size = 20, dataTour, dataGuide, style }) {
   return (
-    <button
-      onClick={onClick}
-      aria-label="Workout help"
-      data-tour={dataTour}
-      style={{
-        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-        background: 'rgba(8,0,18,0.86)', border: '1px solid rgba(253,224,71,0.25)',
-        color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', padding: 0,
-        ...style,
-      }}
-    >
-      <HelpCircle size={size}/>
-    </button>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: HELP_BTN_CSS }}/>
+      <button
+        onClick={onClick}
+        aria-label="How this screen works"
+        data-tour={dataTour}
+        data-guide={dataGuide}
+        style={{
+          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+          background: 'radial-gradient(circle at 50% 35%, rgba(60,20,110,0.95), rgba(10,2,24,0.95))',
+          border: '1.5px solid rgba(176,106,255,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', padding: 0,
+          animation: 'tm-help-glow 2.2s ease-in-out infinite',
+          ...style,
+        }}
+      >
+        <span style={{
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
+          fontSize: Math.max(13, Math.round(size * 0.82)), lineHeight: 1,
+          color: '#e9d5ff',
+          textShadow: '0 0 8px rgba(176,106,255,0.95), 0 0 16px rgba(168,85,247,0.7)',
+        }}>?</span>
+      </button>
+    </>
   );
 }
 

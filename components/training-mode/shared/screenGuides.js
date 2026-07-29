@@ -4,11 +4,13 @@
 
 export const SCREEN_GUIDES = {
   home: [
-    { target: null, title: '🏠 HOME', body: 'This is Home — your daily command center. Everything you need for today lives on this screen.' },
-    { target: 'home-level', title: 'YOUR LEVEL & STREAK', body: 'Your level, XP bar, and 🔥 streak. Every workout you finish feeds this — keep the streak alive.' },
-    { target: 'todays-bout', title: "TODAY'S BOUT", body: 'A daily mission picked for you from your discipline and level. Tap START to jump straight into training.' },
-    { target: 'home-arcade', title: 'YOUR ARCADE CHALLENGE', body: 'Your active Training Arcade saga — continue the climb right from here.' },
-    { target: 'home-favorites', title: 'FAVORITES', body: 'One-tap shortcuts to your go-to modes. Quick, HIIT, Fight, or Build — no menus needed.' },
+    { target: null, title: '🏠 HOME', body: 'Your daily command center. If you only ever tap one thing, tap TODAY\'S BOUT — everything else on this screen is a shortcut.' },
+    { target: 'home-level', title: 'LEVEL · XP · STREAK', body: 'Every finished workout adds XP and fills the bar. Fill it and you level up. The 🔥 number is how many days in a row you\'ve trained — miss a day and it resets.' },
+    { target: 'todays-bout', title: "TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds.' },
+    { target: 'home-arcade', title: 'CONTINUE CHALLENGE', body: 'Training Arcade turns workouts into a game — sagas with stages and a boss at the end. This card is a bookmark: it shows the stage you\'re on and drops you straight back in. It only appears once you\'ve started a saga.' },
+    { target: 'home-favorites', title: 'FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want and don\'t want to hunt through menus.' },
+    { target: 'nav-tabs', title: 'THE FOUR TABS', body: 'HOME is here. TRAIN is every workout in the app. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
+    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
   ],
 
   move_lab: [
@@ -30,11 +32,14 @@ export const SCREEN_GUIDES = {
   ],
 
   train_hub: [
-    { target: null, title: '🥊 THE TRAIN TAB', body: 'This is your mission select. Every training path in Training Mode starts from this screen — tap a banner to enter.' },
-    { target: 'hub-fight', title: 'FIGHT MODE', body: 'For striking skill — voice-coached rounds, strike combos, and technique lessons. Choose Fight Mode.' },
-    { target: 'hub-fit', title: 'FIT MODE', body: 'For building the body — custom strength workouts, fast circuits, and cardio. Choose Fit Mode.' },
-    { target: 'hub-combat', title: 'COMBAT CONDITIONING', body: 'Fit + Fight blended into ring-pace circuits that build your fight gas tank. Choose Combat Conditioning.' },
-    { target: 'hub-arcade', title: 'TRAINING ARCADE', body: 'Workouts as a retro video game — sagas, stages, bosses, and star ranks. Every rep hits the stage HP bar. Choose Training Arcade.' },
+    { target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like.' },
+    { target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill. Inside: TRAINING CAMP (a 12-level camp to a Title Fight), FIGHT FOCUS (coached rounds), COMBO COACH (combos called out to throw), PRACTICE MODE (learn strikes step by step), MOVE LAB (build your own moves) and CONDITIONING.' },
+    { target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Inside: WORKOUT BUILDER (a workout around the muscles you pick), QUICK MISSION (instant workout when you\'re short on time), CARDIO MODE (runs, intervals, Tabata) and WORKOUT CODEX, coming soon.' },
+    { target: 'hub-combat', title: 'COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Pick this when you want to be exhausted and sharp at the same time.' },
+    { target: 'hub-arcade', title: 'TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Each saga is 10 stages with a boss at the end. Every rep you complete damages the stage, and clearing one unlocks the next.' },
+    { target: null, title: '⚡ XP, LEVELS & REWARDS', body: 'Every finished session earns XP, and XP raises your fighter level and rank. Beat arcade stages fast enough for ★ ratings, train days in a row to grow your 🔥 streak, and unlock trophies and badges as you go. Bosses pay double XP.' },
+    { target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
+    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
   ],
 
   fight_hub: [
