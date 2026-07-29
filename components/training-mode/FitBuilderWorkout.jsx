@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, X, ChevronRight, Minus, Plus, Bookmark } from 'lucide-react';
+import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Minus, Plus, Bookmark } from 'lucide-react';
 import { C } from './Styles';
+import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitBuilderGuidedPlayer from './FitBuilderGuidedPlayer';
@@ -86,57 +87,37 @@ function getAlternates(exercise, cfg) {
 
 function SwapSheet({ exercise, alternates, onSelect, onClose }) {
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-    }}>
-      <div onClick={onClose} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
-      <div style={{
-        background: '#0a0014', borderRadius: '16px 16px 0 0',
-        padding: '16px 14px calc(20px + env(safe-area-inset-bottom, 0px))',
-        border: '1px solid rgba(168,85,247,0.3)', borderBottom: 'none',
-        maxHeight: '60vh', overflowY: 'auto',
-        animation: 'fadeSlideUp 0.2s ease',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: C.violet, letterSpacing: '0.08em' }}>
-            SWAP: {exercise.name.toUpperCase()}
-          </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
-            <X size={18} color={C.muted}/>
-          </button>
+    <BottomSheet title={`SWAP: ${exercise.name.toUpperCase()}`} accent={C.violet} onClose={onClose} maxHeight="70dvh">
+      {alternates.length === 0 ? (
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.faint, textAlign: 'center', padding: 20 }}>
+          No alternates available for this muscle/equipment.
         </div>
-        {alternates.length === 0 ? (
-          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.faint, textAlign: 'center', padding: 20 }}>
-            No alternates available for this muscle/equipment.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {alternates.map(alt => (
-              <button key={alt.id} className="wo-swap-item" onClick={() => onSelect(alt)} style={{
-                width: '100%', padding: '10px 12px', borderRadius: 8, textAlign: 'left',
-                background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(168,85,247,0.12)',
-                display: 'flex', alignItems: 'center', gap: 10,
-              }}>
-                <div style={{
-                  width: 6, height: 6, borderRadius: 3,
-                  background: MUSCLE_COLORS[alt.primaryMuscle] || C.violet, flexShrink: 0,
-                }}/>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: '#fff', letterSpacing: '0.03em' }}>
-                    {alt.name}
-                  </div>
-                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.faint, marginTop: 1 }}>
-                    {alt.sets}x{alt.reps} &middot; {alt.equipment}
-                  </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {alternates.map(alt => (
+            <button key={alt.id} className="wo-swap-item" onClick={() => onSelect(alt)} style={{
+              width: '100%', padding: '10px 12px', borderRadius: 8, textAlign: 'left',
+              background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(168,85,247,0.12)',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <div style={{
+                width: 6, height: 6, borderRadius: 3,
+                background: MUSCLE_COLORS[alt.primaryMuscle] || C.violet, flexShrink: 0,
+              }}/>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: '#fff', letterSpacing: '0.03em' }}>
+                  {alt.name}
                 </div>
-                <ChevronRight size={12} color={C.faint}/>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.faint, marginTop: 1 }}>
+                  {alt.sets}x{alt.reps} &middot; {alt.equipment}
+                </div>
+              </div>
+              <ChevronRight size={12} color={C.faint}/>
+            </button>
+          ))}
+        </div>
+      )}
+    </BottomSheet>
   );
 }
 
@@ -183,31 +164,30 @@ function EditSheet({ exercise, onSave, onClose }) {
   });
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
-      <div style={{
-        background: '#0a0014', borderRadius: '16px 16px 0 0',
-        padding: '16px 16px calc(20px + env(safe-area-inset-bottom, 0px))',
-        border: '1px solid rgba(168,85,247,0.3)', borderBottom: 'none',
-        animation: 'fadeSlideUp 0.2s ease',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: GOLD, letterSpacing: '0.08em' }}>
-            EDIT: {exercise.name.toUpperCase()}
-          </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
-            <X size={18} color={C.muted}/>
-          </button>
-        </div>
-        <Stepper label="SETS" value={sets} onDec={() => setSets(s => clamp(s - 1, 1, 8))} onInc={() => setSets(s => clamp(s + 1, 1, 8))}/>
-        <Stepper label={isHold ? 'HOLD TIME' : 'REPS'} value={reps} display={isHold ? `${reps}s` : reps}
-          onDec={() => setReps(r => clamp(r - (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}
-          onInc={() => setReps(r => clamp(r + (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}/>
-        <Stepper label="REST" value={rest} display={`${rest}s`}
-          onDec={() => setRest(r => clamp(r - 15, 15, 300))} onInc={() => setRest(r => clamp(r + 15, 15, 300))}/>
+    <BottomSheet
+      title={`EDIT: ${exercise.name.toUpperCase()}`}
+      accent={GOLD}
+      onClose={onClose}
+      footer={(
+        <button className="wo-cta" onClick={save} style={{
+          width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
+          background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014',
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+        }}>
+          <Check size={15} strokeWidth={3}/> APPLY
+        </button>
+      )}
+    >
+      <Stepper label="SETS" value={sets} onDec={() => setSets(s => clamp(s - 1, 1, 8))} onInc={() => setSets(s => clamp(s + 1, 1, 8))}/>
+      <Stepper label={isHold ? 'HOLD TIME' : 'REPS'} value={reps} display={isHold ? `${reps}s` : reps}
+        onDec={() => setReps(r => clamp(r - (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}
+        onInc={() => setReps(r => clamp(r + (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}/>
+      <Stepper label="REST" value={rest} display={`${rest}s`}
+        onDec={() => setRest(r => clamp(r - 15, 15, 300))} onInc={() => setRest(r => clamp(r + 15, 15, 300))}/>
 
-        {/* Design 39 — WORKING WEIGHT (optional, weighted lifts only) */}
-        {isWeighted && (
+      {/* Design 39 — WORKING WEIGHT (optional, weighted lifts only) */}
+      {isWeighted && (
           <div style={{ marginTop: 10, borderRadius: 12, border: '1px solid rgba(253,224,71,0.55)', background: 'rgba(253,224,71,0.05)', boxShadow: '0 0 14px rgba(253,224,71,0.14)', padding: '10px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: hasWeight ? 8 : 0 }}>
               <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: GOLD, letterSpacing: '0.1em' }}>WORKING WEIGHT</span>
@@ -232,18 +212,8 @@ function EditSheet({ exercise, onSave, onClose }) {
               </div>
             )}
           </div>
-        )}
-
-        <button className="wo-cta" onClick={save} style={{
-          width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer', marginTop: 10,
-          background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014',
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-        }}>
-          <Check size={15} strokeWidth={3}/> APPLY
-        </button>
-      </div>
-    </div>
+      )}
+    </BottomSheet>
   );
 }
 
@@ -575,32 +545,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
       {/* Save-routine sheet */}
       {saveOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div onClick={() => setSaveOpen(false)} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
-          <div style={{
-            background: '#0a0014', borderRadius: '16px 16px 0 0',
-            padding: '16px 16px calc(20px + env(safe-area-inset-bottom, 0px))',
-            border: '1px solid rgba(253,224,71,0.3)', borderBottom: 'none',
-            animation: 'fadeSlideUp 0.2s ease',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: GOLD, letterSpacing: '0.08em' }}>SAVE ROUTINE</div>
-              <button onClick={() => setSaveOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
-                <X size={18} color={C.muted}/>
-              </button>
-            </div>
-            <input
-              value={routineName}
-              onChange={e => setRoutineName(e.target.value)}
-              placeholder={buildTitle(cfg)}
-              maxLength={40}
-              style={{
-                width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: 9,
-                background: 'rgba(20,8,38,0.9)', border: '1px solid rgba(168,85,247,0.35)',
-                color: '#fff', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 14,
-                outline: 'none', marginBottom: 10,
-              }}
-            />
+        <BottomSheet
+          title="SAVE ROUTINE"
+          accent={GOLD}
+          onClose={() => setSaveOpen(false)}
+          footer={(
             <button className="wo-cta" onClick={handleSaveRoutine} style={{
               width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
               background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014',
@@ -609,8 +558,21 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             }}>
               <Bookmark size={15}/> SAVE
             </button>
-          </div>
-        </div>
+          )}
+        >
+          <input
+            value={routineName}
+            onChange={e => setRoutineName(e.target.value)}
+            placeholder={buildTitle(cfg)}
+            maxLength={40}
+            style={{
+              width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: 9,
+              background: 'rgba(20,8,38,0.9)', border: '1px solid rgba(168,85,247,0.35)',
+              color: '#fff', fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 14,
+              outline: 'none',
+            }}
+          />
+        </BottomSheet>
       )}
     </PhoneFrame>
   );

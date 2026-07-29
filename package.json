@@ -10,7 +10,8 @@
     "optimize:images": "node scripts/optimize-images.mjs",
     "check:assets": "node scripts/check-public-assets.mjs",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit:tap": "node scripts/audit-tap-targets.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

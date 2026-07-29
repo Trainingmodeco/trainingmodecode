@@ -109,6 +109,42 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
   const containerRef = useRef(null);
   const showScroll = useScrollIndicator(containerRef, children);
 
+  // `lock` means "this screen sizes itself, don't scroll it" — right for a
+  // fixed-layout session screen, wrong the moment the content genuinely does
+  // not fit. On a 375x667 phone the Workout Builder and Combat Conditioning
+  // setups ran taller than the viewport, and because a locked container is
+  // `overflow: hidden` with no bottom padding, their gold CTAs (GENERATE
+  // WORKOUT / START CIRCUIT) sat under the tab bar with nothing able to scroll
+  // them clear. Each screen's own paddingBottom could not help: padding only
+  // buys clearance if something can scroll.
+  //
+  // So lock is a preference, not a cage. If the content overflows anyway, the
+  // container scrolls and takes the standard nav clearance. This settles in one
+  // pass rather than oscillating: adding the padding only makes the content
+  // taller, so an overflowing screen stays overflowing.
+  const [overflowing, setOverflowing] = useState(false);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !lock) { setOverflowing(false); return undefined; }
+    const check = () => setOverflowing(el.scrollHeight > el.clientHeight + 4);
+    check();
+    let ro;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(check);
+      ro.observe(el);
+      if (el.firstElementChild) ro.observe(el.firstElementChild);
+    }
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', check);
+      window.removeEventListener('orientationchange', check);
+    };
+  }, [lock, children]);
+
+  const scrolls = !lock || overflowing;
+
   return (
     <div style={{
       position: 'relative',
@@ -124,16 +160,16 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
         className="no-scrollbar"
         style={{
           height: '100dvh',
-          overflowY: lock ? 'hidden' : 'auto',
+          overflowY: scrolls ? 'auto' : 'hidden',
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
-          paddingBottom: lock ? 0 : 'calc(110px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: scrolls ? 'calc(110px + env(safe-area-inset-bottom, 0px))' : 0,
         }}
       >
         {children}
       </div>
-      <ScrollDownIndicator visible={showScroll && !lock} />
+      <ScrollDownIndicator visible={showScroll && scrolls} />
       <FloatingResumeButton pausedSession={pausedSession} onResume={onResume} />
       <div style={{
         position: 'fixed',

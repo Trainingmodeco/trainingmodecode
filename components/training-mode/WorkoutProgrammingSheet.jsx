@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SlidersHorizontal, ArrowLeft } from 'lucide-react';
 import { C } from './Styles';
 import TrainingCTA from './shared/TrainingCTA';
+import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import {
   SET_SCHEMES, PROGRAMS, DURATIONS, programDayIndex, advanceProgramDay, resolveScheme,
 } from './data/workoutPrograms';
@@ -55,9 +56,14 @@ export default function WorkoutProgrammingSheet({ initial, onApply, onClose }) {
     </div>
   );
 
+  // Portalled: declared inside PhoneFrame, this sheet's z-index was trapped in
+  // the frame's stacking context and the bottom tab bar painted over its
+  // APPLY & BACK footer on every phone size — the programming choices could be
+  // made but never committed.
   return (
+    <OverlayPortal>
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 300, display: 'flex', justifyContent: 'center',
+      position: 'fixed', inset: 0, zIndex: OVERLAY_Z, display: 'flex', justifyContent: 'center',
       background: 'radial-gradient(120% 80% at 50% 0%, #1a0336 0%, #0a0014 60%, #05000c 100%)',
     }}>
       <div style={{
@@ -190,5 +196,6 @@ export default function WorkoutProgrammingSheet({ initial, onApply, onClose }) {
         </div>
       </div>
     </div>
+    </OverlayPortal>
   );
 }
