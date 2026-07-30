@@ -732,3 +732,131 @@ SecondaryButton / Card); no new design system.
 > Fight, the Ghost result screen and the boss finale therefore still need one
 > human pass each on a small phone. Those are the screens where a buried
 > CONTINUE would strand an athlete who just finished the work.
+
+---
+
+## PROMPT W — walk the app: update it, then diagnose it end to end
+
+> Paste this whole block. Work it in order and report as specified at the end.
+> Do not skip the automated gates — they are cheap and they catch the boring
+> half. Do not skip the manual walk — the automated gates provably cannot catch
+> the expensive half (see § D).
+>
+> ### A · Get current before diagnosing anything
+>
+> 1. `git fetch origin app && git status` — the real app lives on **`app`**, not
+>    `main` (`main` is ~300 commits behind and has no `netlify.toml`). If you are
+>    not on `app` or a branch rebased onto it, stop and fix that first.
+> 2. Confirm the deploy branch is `app` (Netlify → Build & deploy → Branch to
+>    deploy). If it says `main`, nothing else in this list matters.
+> 3. **Clear the service worker before judging anything as missing.** This is a
+>    PWA that precaches its bundle; a returning tab or installed app can serve a
+>    stale build with no visible sign. DevTools → Application → Service Workers →
+>    Unregister, then Storage → Clear site data, then hard reload. On a phone:
+>    fully close and reopen the PWA, or reinstall it. Note the build id stamped
+>    into `dist/sw.js` and check the running app reports the same one.
+>
+> ### B · Automated gates (all must be clean)
+>
+> ```
+> npm run lint          # expect 0
+> npm run typecheck     # expect 0
+> npm run build:web     # expect exit 0
+> node protocol-src/scripts/validate-campaigns.mjs         # expect 8/8
+> node protocol-src/scripts/review-campaign.mjs --all      # expect 0 flags
+>
+> npx serve -s dist -l 4599     # or: python3 -m http.server 4599 -d dist
+> npm i --no-save playwright-core
+> npm run audit:tap -- --depth 3 --budget 420 --shots /tmp/tap-audit
+> ```
+>
+> `audit:tap` crawls the app across a 375×667 and a 412×883 viewport and runs
+> `document.elementFromPoint()` at the centre of every clickable element — the
+> same hit test a real touch performs. It exits non-zero if any ACTION control
+> (APPLY / START / SAVE / GENERATE / CONFIRM / CONTINUE…) is buried or
+> off-screen-and-unscrollable. Expect **0 unreachable on both viewports**.
+>
+> If `package-lock.json` shows as modified after any npm command, revert it:
+> `git checkout HEAD -- package-lock.json`.
+>
+> ### C · Grep for the two bug classes that already bit us
+>
+> These are cheap to check and both were total blockers in shipped code.
+>
+> **C1 — a pause that does not pause.** Never gate a wait on a wall-clock
+> deadline. `Date.now()` keeps advancing while the athlete is paused, so the
+> deadline expires mid-pause and the rep is counted, beeped and spoken anyway.
+>
+> ```
+> grep -rn "Date.now() - .* <" components/training-mode --include=*.jsx
+> grep -rn "await delay(cadence" components/training-mode --include=*.jsx
+> ```
+>
+> Every hit must either accumulate unpaused time via
+> `shared/pausableWait.js` (`waitUnpaused` + `awaitResume`) or have no pause
+> concept at all. Already routed through it: the Workout Builder guided player,
+> Quick Mission, Combat Conditioning, and both Arcade rep players.
+>
+> **C2 — display casing leaking into logic.** Fight Focus and Combo Coach store
+> `difficulty: 'Normal'` (capitalised, for the UI). `resolveOutcome` compared
+> `=== 'normal'`, the compare failed, the tactical default fell to `'attempted'`
+> while the tier still resolved to `normal` (which demands `'completed'`) — so
+> **every** session returned fail / `failType: tactical` with 0 XP, on fully
+> completed verified work.
+>
+> ```
+> grep -rn "=== 'normal'\|=== 'hard'\|=== 'easy'" components/training-mode | grep -v toLowerCase
+> ```
+>
+> Any comparison against a difficulty, discipline or mode string must lowercase
+> at the boundary first. `AddCardioSheet` and `ComboCoachActive` already do;
+> follow their shape.
+>
+> ### D · Manual walk — what the automated gates cannot reach
+>
+> The crawler cannot enter states behind a live workout, a paywall or a
+> code-entry field, and it cannot tell "button is tappable" from "button does the
+> right thing". Everything below needs a human on a **small phone (375×667)**.
+>
+> For every screen, three questions: **can I reach the action, does it commit
+> what it claims, and does the screen agree with itself?**
+>
+> | # | Walk | Pass criteria |
+> |---|---|---|
+> | 1 | Workout Builder → generate → tap a row's `4x8 · 120s` line → change sets/reps → APPLY | APPLY is fully on screen; the row behind updates to the new numbers |
+> | 2 | Same, on a **weighted** workout (Equipment: WEIGHTED) | The WORKING WEIGHT block appears and APPLY is still reachable — this is the tallest the sheet gets |
+> | 3 | Builder → WORKOUT PROGRAMS → pick a scheme → APPLY & BACK | Row changes from `AUTO` to e.g. `5×5 · 40m` |
+> | 4 | Builder → START → let reps count → **PAUSE** → wait 15s | The number **freezes**. No beeps, no spoken counts. RESUME continues from the same rep |
+> | 5 | Repeat step 4 in **Quick Mission** and **Combat Conditioning** | Same |
+> | 6 | Repeat step 4 in an **Arcade** rep stage (One Punch stage 1) | Same, and on resume the next rep waits a full cadence rather than firing instantly |
+> | 7 | **Fight Focus** → 3 short rounds → finish every round | **CLEARED / GOOD WORK**, XP > 0. Not MISSION FAILED. The integrity banner and the headline must agree |
+> | 8 | Fight Focus → stop after 1 of 3 rounds | PARTIAL or FAIL — the gate must still bite. A fully completed session passing is the fix; a half session passing is a new bug |
+> | 9 | Same as 7 for **Combo Coach**, at **each** of Easy / Normal / Hard | All three pass when completed |
+> | 10 | **Training Camp** → any level, especially a **low** one | The modal is centred and START is fully visible without scrolling the page |
+> | 11 | **Training Arcade** → open the **lowest** stage node on the ladder | ENTER STAGE fully visible, not tucked under the tab bar |
+> | 12 | **Cardio Mode** → run → finish → log it | Pause works during the run; the summary offers a share, and the share card shows the XP actually awarded |
+> | 13 | Every mode's outcome screen | CLEARED / PARTIAL / MISSION FAILED / VALIDATION FAILED each render with CONTINUE reachable. A failed session must **not** offer "share your win" |
+> | 14 | Progress tab | FIGHT TROPHIES · MILESTONES · CAMPAIGN BADGES render as three separate labelled sections |
+>
+> The five open sagas are ONE PUNCH · GRAVITY CHAMBER · HERO HUNTER · ULTRA EGO ·
+> THE GRAPPLER. Only The Grappler has been played past stage 2 — treat the other
+> four as unproven and walk at least stage 1 of each.
+>
+> ### E · Report back in this shape
+>
+> 1. **Build identity** — commit sha on `app`, `dist/sw.js` build id, whether the
+>    running app matched it.
+> 2. **Gate results** — one line each for lint / typecheck / build / validator /
+>    review / audit:tap, with the actual numbers.
+> 3. **Findings** — one row per real defect: screen, what you did, what happened,
+>    what should have happened, and which of the three classes it is
+>    (unreachable · does-nothing · disagrees-with-itself). Say plainly if a walk
+>    step could not be completed and why.
+> 4. **What you changed** — file by file, with the reasoning, and the re-run
+>    output proving it. Prefer fixing the shared cause once
+>    (`shared/pausableWait.js`, `shared/BottomSheet.jsx`,
+>    `shared/OverlayPortal.jsx`, `shared/sessionOutcome.js`) over patching each
+>    screen; a hard-coded pixel offset or a per-screen copy of the same guard
+>    will break again on the next device.
+> 5. **Still unverified** — be explicit. An unwalked screen is unknown, not
+>    passing.
