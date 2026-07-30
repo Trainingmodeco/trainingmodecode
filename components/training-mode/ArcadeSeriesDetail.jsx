@@ -88,6 +88,11 @@ const CF_SPAN = 0.85;
 const LANE_L = 0.26;
 const LANE_R = 0.74;
 const MODAL_H = 300; // approximate popup height used for clamping
+// The ladder box runs the full height of the screen, but the bottom tab bar
+// (~58px + safe area) floats over its last strip. Without this reserve, a LOW
+// stage node anchors its popup so far down that ENTER STAGE lands under the bar
+// and cannot be tapped — the same way the Training Camp modal used to.
+const NAV_CLEARANCE = 78;
 
 function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStartStage, onPaywall }) {
   const stages = useMemo(() => series.stages || [], [series]);
@@ -215,13 +220,13 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     const lane = laneOf(idx);
     let side, top, notch;
     if (lane === 0.5) {
-      if (stage.isFinalRound) { side = 'C'; notch = 'top'; top = Math.min(nodeY + btn.offsetHeight / 2 + 12, Math.max(6, boxH - MODAL_H - 6)); }
+      if (stage.isFinalRound) { side = 'C'; notch = 'top'; top = Math.min(nodeY + btn.offsetHeight / 2 + 12, Math.max(6, boxH - MODAL_H - NAV_CLEARANCE)); }
       else { side = 'C'; notch = 'bottom'; top = Math.max(6, nodeY - btn.offsetHeight / 2 - MODAL_H - 12); }
     } else {
       // Modal opens on the opposite side of the spine, aligned with the node.
       side = lane === LANE_R ? 'L' : 'R';
       notch = 'side';
-      top = Math.min(Math.max(6, nodeY - MODAL_H / 2), Math.max(6, boxH - MODAL_H - 6));
+      top = Math.min(Math.max(6, nodeY - MODAL_H / 2), Math.max(6, boxH - MODAL_H - NAV_CLEARANCE));
     }
     const notchY = Math.min(Math.max(nodeY - top - 6, 14), MODAL_H - 40);
     setOpenInfo({ idx, top, side, notchY, notch });
@@ -656,7 +661,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           {/* 2.10 — per-stage selection modal (PATH + DIFFICULTY) for v2 campaigns */}
           {selectFor && (
             <div onClick={() => setSelectFor(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-              <div onClick={(e) => e.stopPropagation()} style={{ width: '92%', maxWidth: 320, background: 'rgba(16,7,32,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(253,224,71,0.4)', borderRadius: 16, padding: '15px 16px 16px', boxShadow: '0 18px 50px rgba(0,0,0,0.65)' }}>
+              <div onClick={(e) => e.stopPropagation()} className="no-scrollbar" style={{ width: '92%', maxWidth: 320, maxHeight: '80dvh', overflowY: 'auto', background: 'rgba(16,7,32,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(253,224,71,0.4)', borderRadius: 16, padding: '15px 16px 16px', boxShadow: '0 18px 50px rgba(0,0,0,0.65)' }}>
                 <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em' }}>STAGE {selectFor.stageNumber} · {String(selectFor.phase || '').replace('_', ' ').toUpperCase()}</div>
                 <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em', marginBottom: 12 }}>{selectFor.title}</div>
 

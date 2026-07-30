@@ -10,6 +10,7 @@ import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } f
 import { loadProfile } from './data/userProfile';
 import VoiceMixer from './shared/VoiceMixer';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import { waitUnpaused, awaitResume } from './shared/pausableWait';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -164,15 +165,13 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
         if (versionRef.current !== version) return;
         setPhase('active');
         setDisplay(0);
+        const stale = () => versionRef.current !== version;
+        const isPaused = () => pausedRef.current;
         for (let i = 1; i <= plan.reps; i++) {
-          // cadence wait (pause-aware)
-          const start = Date.now();
-          while (Date.now() - start < cadenceRef.current * 1000) {
-            if (versionRef.current !== version) return;
-            if (pausedRef.current) { await delay(120); continue; }
-            await delay(60);
-          }
-          if (versionRef.current !== version) return;
+          // Counts only unpaused time — a wall-clock deadline expires during a
+          // pause and fires the rep anyway. See shared/pausableWait.js.
+          if (!await waitUnpaused(cadenceRef.current * 1000, { isPaused, isStale: stale })) return;
+          if (!await awaitResume({ isPaused, isStale: stale })) return;
           setDisplay(i);
           playBeep();
           if (voiceOn) speakAsync(String(i), { rate: 1.4 });

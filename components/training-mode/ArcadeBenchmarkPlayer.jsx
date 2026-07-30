@@ -9,6 +9,7 @@ import { getStarsForTime } from './data/trainingArcadeData';
 import { addFitModeSession } from './data/userStats';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
+import { waitUnpaused, awaitResume } from './shared/pausableWait';
 
 const GOLD = C.yellow;
 const MIN_CADENCE_MS = 750;
@@ -282,6 +283,9 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     setCurrentRep(0);
     setAnnouncerText('Begin!');
 
+    const stale = () => cadenceVersionRef.current !== version;
+    const pausedNow = () => pausedRef.current;
+
     const runLoop = async () => {
       await delay(400);
       if (cadenceVersionRef.current !== version) return;
@@ -289,31 +293,13 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
       const target = tasks[taskIdxRef.current]?.reps || 100;
 
       for (let i = 1; i <= target; i++) {
-        if (cadenceVersionRef.current !== version) return;
+        if (stale()) return;
 
-        const waitStart = Date.now();
-        const targetWait = cadenceMsRef.current;
-        while (Date.now() - waitStart < targetWait) {
-          if (cadenceVersionRef.current !== version) return;
-          if (pausedRef.current) {
-            await delay(100);
-            continue;
-          }
-          const remaining = targetWait - (Date.now() - waitStart);
-          if (remaining > 50) {
-            await delay(Math.min(50, remaining));
-          } else {
-            break;
-          }
-        }
-
-        if (cadenceVersionRef.current !== version) return;
-        if (pausedRef.current) {
-          while (pausedRef.current) {
-            if (cadenceVersionRef.current !== version) return;
-            await delay(100);
-          }
-        }
+        // Only unpaused time counts. The old wall-clock deadline kept expiring
+        // during a pause, so the next rep fired the instant the athlete
+        // resumed instead of a full cadence interval later.
+        if (!await waitUnpaused(cadenceMsRef.current, { isPaused: pausedNow, isStale: stale })) return;
+        if (!await awaitResume({ isPaused: pausedNow, isStale: stale })) return;
 
         repRef.current = i;
         setCurrentRep(i);

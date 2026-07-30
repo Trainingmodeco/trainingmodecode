@@ -7,6 +7,7 @@ import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay, setVoiceGender } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { generateQuickMission } from './fit-mode/quickMissionGenerator';
@@ -311,13 +312,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     setCadenceRep(0);
     const targetReps = exercise.reps;
 
+    const stale = () => cadenceVersionRef.current !== version;
+    const isPaused = () => pausedRef.current;
+
     const runCadenceLoop = async () => {
       for (let i = 1; i <= targetReps; i++) {
-        if (cadenceVersionRef.current !== version) return;
+        if (stale()) return;
 
-        await delay(cadenceMsRef.current);
-
-        if (cadenceVersionRef.current !== version) return;
+        // A plain delay ignores PAUSE, so reps kept being counted and spoken
+        // while the session was paused. Wait unpaused time, then hold at the
+        // gate so a rep can never fire mid-pause.
+        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         setCadenceRep(i);
         if (voiceOn) {
@@ -344,13 +350,15 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     const ex = allExercises[exIdxRef.current];
     const targetReps = ex.reps;
 
+    const stale = () => cadenceVersionRef.current !== version;
+    const isPaused = () => pausedRef.current;
+
     const runCadenceLoop = async () => {
       for (let i = startFrom + 1; i <= targetReps; i++) {
-        if (cadenceVersionRef.current !== version) return;
+        if (stale()) return;
 
-        await delay(cadenceMsRef.current);
-
-        if (cadenceVersionRef.current !== version) return;
+        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         setCadenceRep(i);
         if (voiceOn) {

@@ -707,6 +707,23 @@ SecondaryButton / Card); no new design system.
 > container scrolls and takes the standard nav clearance. That fixes every
 > locked screen at once instead of one screen at a time.
 >
+> ### The sibling bug class: things that are reachable but do nothing
+>
+> A reachability audit cannot see these. Both were found by playtest and both
+> were total blockers, so check them by hand after any timing or verdict change:
+>
+> - **PAUSE that does not pause.** Four rep players waited on a wall-clock
+>   deadline (`while (Date.now() - start < cadenceMs)`) with a `pausedRef` check
+>   inside. That reads as pause-aware but is not: the clock runs during the
+>   pause, the deadline expires, and the rep is counted anyway. Always wait
+>   *accumulated unpaused time* — use `shared/pausableWait.js`.
+> - **A verdict decided on a case-sensitive compare.** Fight Focus and Combo
+>   Coach store `difficulty: 'Normal'`; `resolveOutcome` compared against
+>   `'normal'`. The tactical default silently dropped to `'attempted'` while the
+>   threshold tier still resolved to `normal`, which demands `'completed'` — so
+>   *every* session failed on the tactical rule with 0 XP, however well it went.
+>   Normalise case at the boundary before comparing.
+>
 > ### What the audit does NOT cover
 >
 > It cannot reach states behind a live workout (it will not run a timed session

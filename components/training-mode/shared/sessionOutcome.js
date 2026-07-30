@@ -69,10 +69,20 @@ export function resolveOutcome({
     };
   }
 
+  // Difficulty arrives in whatever case the mode's UI uses — Fight Focus and
+  // Combo Coach store 'Normal', the Arcade stores 'normal'. Normalise BEFORE
+  // comparing, or the two branches below disagree: 'Normal' fails
+  // `=== 'normal'` so the tactical default drops to 'attempted', while the tier
+  // still resolves to 'normal', whose threshold demands 'completed'. Every
+  // Fight Focus and Combo Coach session then failed on the tactical rule —
+  // 3/3 rounds, all verified, MISSION FAILED, zero XP.
+  const diff = String(difficulty || 'normal').toLowerCase();
+  const tier = diff === 'easy' || diff === 'hard' ? diff : 'normal';
+
   // Modes that don't track a tactical objective shouldn't be failed on one:
   // default to "met" so the engine judges them on completion and technique.
   const tactical = tacticalObjective
-    || (difficulty === 'hard' ? 'completed_cleanly' : difficulty === 'normal' ? 'completed' : 'attempted');
+    || (tier === 'hard' ? 'completed_cleanly' : tier === 'normal' ? 'completed' : 'attempted');
 
   const ev = evaluate(
     {
@@ -82,7 +92,7 @@ export function resolveOutcome({
       safetyFlag: !!safetyFlag,
       rpeInBand: true,
     },
-    difficulty === 'easy' || difficulty === 'hard' ? difficulty : 'normal'
+    tier
   );
 
   return {

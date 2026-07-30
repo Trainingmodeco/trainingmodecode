@@ -5,6 +5,7 @@ import BattleHUD from './shared/BattleHUD';
 import { SkipForward, RotateCcw } from 'lucide-react';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
+import { waitUnpaused, awaitResume } from './shared/pausableWait';
 
 const CADENCE_STYLES = `
 @keyframes cadence-ring-pulse {
@@ -187,38 +188,21 @@ export default function ArcadeCadenceRepPlayer({
     setCurrentRep(0);
     setAnnouncerText('Begin!');
 
+    const stale = () => cadenceVersionRef.current !== version;
+    const pausedNow = () => pausedRef.current;
+
     const runLoop = async () => {
       await delay(400);
       if (cadenceVersionRef.current !== version) return;
 
       for (let i = 1; i <= targetReps; i++) {
-        if (cadenceVersionRef.current !== version) return;
+        if (stale()) return;
 
-        // Wait for cadence interval, respecting pause
-        const waitStart = Date.now();
-        const targetWait = cadenceMsRef.current;
-        while (Date.now() - waitStart < targetWait) {
-          if (cadenceVersionRef.current !== version) return;
-          if (pausedRef.current) {
-            await delay(100);
-            continue;
-          }
-          const remaining = targetWait - (Date.now() - waitStart);
-          if (remaining > 50) {
-            await delay(Math.min(50, remaining));
-          } else {
-            break;
-          }
-        }
-
-        if (cadenceVersionRef.current !== version) return;
-        if (pausedRef.current) {
-          // Wait until unpaused
-          while (pausedRef.current) {
-            if (cadenceVersionRef.current !== version) return;
-            await delay(100);
-          }
-        }
+        // Only unpaused time counts. The old wall-clock deadline kept expiring
+        // during a pause, so the next rep fired the instant the athlete
+        // resumed instead of a full cadence interval later.
+        if (!await waitUnpaused(cadenceMsRef.current, { isPaused: pausedNow, isStale: stale })) return;
+        if (!await awaitResume({ isPaused: pausedNow, isStale: stale })) return;
 
         repRef.current = i;
         setCurrentRep(i);

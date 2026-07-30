@@ -3,6 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, humanizeGoal, titleFight } from './protocol/content';
 import ArchetypePicker from './shared/ArchetypePicker';
+import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { getArchetypeId, setArchetypeId } from './data/campArchetype';
 import { loadCampProgress, isCampComplete } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
@@ -120,7 +121,6 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [showParq, setShowParq] = useState(() => !loadParq().done);
   const [difficulty, setDifficulty] = useState(() => (loadParq().anyYes ? 'easy' : 'normal'));
   const [openLevel, setOpenLevel] = useState(null);
-  const [openAtY, setOpenAtY] = useState(0);
   const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
   const [gearCtx, setGearCtx] = useState(null);             // 2.9 — gear check, after readiness
   const [format, setFormat] = useState('split');            // 2.4 — 'split' | 'full'
@@ -151,8 +151,8 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
        : `${openRt.rounds} × ${mmss(openRt.roundSec)} · ${openRt.restSec}s rest`)
     : '';
 
-  const tapLevel = (level, e) => {
-    setOpenAtY(e?.clientY ?? 0);
+  // The modal is centred, so the tap position no longer matters.
+  const tapLevel = (level) => {
     setOpenLevel(level);
   };
 
@@ -223,10 +223,6 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
       launch(ctx.level, ctx.difficulty, ctx.slot);
     }
   };
-
-  // Modal lands near the tapped node, clamped to stay fully on screen.
-  const winH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const modalTop = Math.min(Math.max(openAtY, 200), winH - 210);
 
   return (
     <PhoneFrame>
@@ -304,16 +300,26 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         </div>
       </div>
 
-      {/* Level modal (45b) — small, translucent, lands near the tapped node. */}
+      {/* Level modal (45b). Centred and height-capped rather than landing near
+          the tapped node: once the archetype picker was added the panel grew to
+          ~850px, so a node-anchored position pushed START off the bottom of the
+          screen on a low level and the camp could not be started at all. The
+          body scrolls and START is pinned, so the CTA is always on screen at
+          any level. Portalled so the tab bar cannot cover it. */}
       {open && (
-        <div onClick={() => setOpenLevel(null)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(4,0,10,0.3)' }}>
+        <OverlayPortal>
+        <div onClick={() => setOpenLevel(null)} style={{
+          position: 'fixed', inset: 0, zIndex: OVERLAY_Z, background: 'rgba(4,0,10,0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }}>
           <div onClick={(e) => e.stopPropagation()} style={{
-            position: 'absolute', left: '50%', top: modalTop, transform: 'translate(-50%, -50%)',
-            width: '86%', maxWidth: 286,
-            background: 'rgba(16,7,32,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-            border: `1px solid ${PHASE[open.phase]}66`, borderRadius: 15, padding: '12px 14px 14px',
+            width: '100%', maxWidth: 286, maxHeight: '84dvh',
+            display: 'flex', flexDirection: 'column',
+            background: 'rgba(16,7,32,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            border: `1px solid ${PHASE[open.phase]}66`, borderRadius: 15,
             boxShadow: `0 16px 44px rgba(0,0,0,0.55), 0 0 26px ${PHASE[open.phase]}22`,
           }}>
+          <div className="no-scrollbar" style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0, padding: '12px 14px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
               <NodeCircle level={open.level} state={open.level < current ? 'done' : open.level === current ? 'current' : 'locked'} boss={open.phase === 'final_boss'} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -421,6 +427,10 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               </>
             )}
 
+          </div>
+
+          {/* Pinned — never scrolls out of reach. */}
+          <div style={{ flexShrink: 0, padding: '10px 14px 14px' }}>
             {/* 2.9 (gate) — free levels 1..N; a Pro level shows the upsell note. */}
             {canStart && levelGated && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, padding: '6px 9px', borderRadius: 8, background: 'rgba(253,224,71,0.09)', border: '1px solid rgba(253,224,71,0.4)' }}>
@@ -441,7 +451,9 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               </button>
             )}
           </div>
+          </div>
         </div>
+        </OverlayPortal>
       )}
 
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.training_camp} onClose={() => setHelpOpen(false)} />}

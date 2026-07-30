@@ -3,6 +3,7 @@ import { C } from './Styles';
 import { CircleCheck as CheckCircle } from 'lucide-react';
 import { ARCADE, ArcadeHudPanel, ArcadeSectionLabel, ArcadePrimaryButton, ArcadeSecondaryButton, ArcadeStatusChip } from './ArcadeUI';
 import { createCardioSession, logCardioSession } from './data/cardioSessions';
+import SharePromptModal from './SharePromptModal';
 
 function formatClock(totalSeconds) {
   const s = Math.max(0, Math.round(totalSeconds || 0));
@@ -50,6 +51,9 @@ export default function CardioSummary({
   const [notes, setNotes] = useState('');
   const [logged, setLogged] = useState(false);
   const [saved, setSaved] = useState(null);
+  // Cardio was the one finished-session screen with no way to share it. Keep
+  // the XP the log actually awarded so the share card shows a real number.
+  const [xpEarned, setXpEarned] = useState(0);
 
   function buildTimeSeconds() {
     const m = parseInt(minutes, 10);
@@ -83,7 +87,8 @@ export default function CardioSummary({
       notes: notes.trim(),
       completed: true,
     });
-    logCardioSession(session, { awardXp });
+    const { xpEarned: earned } = logCardioSession(session, { awardXp });
+    setXpEarned(earned || 0);
     setSaved(session);
     setLogged(true);
   }
@@ -115,6 +120,23 @@ export default function CardioSummary({
           </div>
 
           <ArcadePrimaryButton onClick={onDone}>CONTINUE</ArcadePrimaryButton>
+
+          {/* Same share entry point every other mode uses; it hides itself
+              when no XP was awarded. */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+            <SharePromptModal
+              placement="inline"
+              delayMs={600}
+              shareData={{
+                eyebrow: 'CARDIO COMPLETE',
+                workoutName: methodLabel,
+                mode: 'Cardio',
+                style: saved.completedDistance || (saved.completedTimeSeconds ? formatClock(saved.completedTimeSeconds) : null),
+                xpEarned,
+                verified: true,
+              }}
+            />
+          </div>
         </ArcadeHudPanel>
       </div>
     );

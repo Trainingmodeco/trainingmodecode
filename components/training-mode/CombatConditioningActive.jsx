@@ -5,6 +5,7 @@ import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
 import VoiceMixer from './shared/VoiceMixer';
@@ -177,11 +178,15 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     cadenceRepRef.current = 0;
     const targetReps = drill.reps || 10;
 
+    const stale = () => cadenceVersionRef.current !== version;
+    const isPaused = () => pausedRef.current;
+
     (async () => {
       for (let i = 1; i <= targetReps; i++) {
-        if (cadenceVersionRef.current !== version) return;
-        await delay(cadenceMsRef.current);
-        if (cadenceVersionRef.current !== version) return;
+        if (stale()) return;
+        // A plain delay ignores PAUSE — reps kept counting while paused.
+        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         cadenceRepRef.current = i;
         setRepCount(i);
@@ -205,11 +210,14 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
     if (startFrom >= targetReps) return;
 
+    const stale = () => cadenceVersionRef.current !== version;
+    const isPaused = () => pausedRef.current;
+
     (async () => {
       for (let i = startFrom + 1; i <= targetReps; i++) {
-        if (cadenceVersionRef.current !== version) return;
-        await delay(cadenceMsRef.current);
-        if (cadenceVersionRef.current !== version) return;
+        if (stale()) return;
+        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         cadenceRepRef.current = i;
         setRepCount(i);
