@@ -11,6 +11,7 @@ import { loadProfile } from './data/userProfile';
 import VoiceMixer from './shared/VoiceMixer';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
+import { encouragementIntervalSec } from './data/coachEncouragement';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -66,6 +67,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   // Rest-time weight logger (design 38a) — weighted exercises only.
   const exId = ex?.id || ex?.name || 'exercise';
   const weightUnit = String(loadProfile()?.weightUnit || 'LBS').toUpperCase() === 'KG' ? 'KG' : 'LB';
+  // Honour the athlete's MID-ROUND ENCOURAGEMENT setting during timed holds.
+  const encourageEvery = encouragementIntervalSec(loadProfile()?.encouragement);
   const [logWeight, setLogWeight] = useState(0);
   const [logSaved, setLogSaved] = useState(false);
 
@@ -230,10 +233,14 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
         const ok = await waitSec(version, plan.seconds, (r) => {
           setDisplay(r);
           const elapsed = plan.seconds - r;
-          if (elapsed > 0 && elapsed % 30 === 0 && r > 5) {
-            // alternate a time call-out with a motivational line
-            if ((elapsed / 30) % 2 === 1) say(`${elapsed} seconds down.`);
-            else say(QUOTES[quoteIdx++ % QUOTES.length]);
+          if (elapsed <= 0 || r <= 5) return;
+          // A time call-out is information, so it always fires. Encouragement
+          // is the athlete's choice — this hold used to hard-code a line every
+          // 60s and ignore the setting completely, so OFF was never silent and
+          // EVERY 20s changed nothing here.
+          if (elapsed % 30 === 0) { say(`${elapsed} seconds down.`); return; }
+          if (encourageEvery > 0 && (elapsed + Math.round(encourageEvery / 2)) % encourageEvery === 0) {
+            say(QUOTES[quoteIdx++ % QUOTES.length]);
           }
         });
         if (!ok) return;

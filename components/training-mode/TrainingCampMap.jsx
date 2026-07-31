@@ -4,6 +4,7 @@ import { ChevronLeft, Lock, Check, X } from 'lucide-react';
 import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, humanizeGoal, titleFight } from './protocol/content';
 import ArchetypePicker from './shared/ArchetypePicker';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
+import { loadProfile } from './data/userProfile';
 import { getArchetypeId, setArchetypeId } from './data/campArchetype';
 import { loadCampProgress, isCampComplete } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
@@ -23,6 +24,11 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 // the nav with no scroll. Content is data-driven from protocol/content.ts;
 // current level is a placeholder (tm_camp_progress, default 1) until 2.4 wires
 // real session completion.
+
+// Camp used to hard-code 'normal', so MID-ROUND ENCOURAGEMENT did nothing here.
+// Read it per session so a change in settings applies to the next camp block.
+const campEncouragement = () => loadProfile()?.encouragement || 'normal';
+
 const GOLD = '#fde047';
 
 // Tower art (converted from 04_DESIGN_ASSETS/App/Banners/Training Camp).
@@ -168,7 +174,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
       const tf = titleFight(discKey, diff);
       return {
         difficulty: diff, rounds: tf.rounds, roundMin: tf.roundSec / 60, restSec: tf.restSec,
-        voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 5,
+        voiceOn: true, encouragement: campEncouragement(), rushMode: false, warmupMin: 5,
         titleFight: true, formGated: tf.formGated,
         archetypeId: archetype?.id, archetypeName: archetype?.name,
         blockRounds: tf.roundPlan.map((r) => ({
@@ -185,7 +191,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
     // The archetype rides along on the cfg so the session and its summary can
     // name the style being trained. The round engine is unchanged — this is a
     // label, not a new input.
-    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: 'normal', rushMode: false, warmupMin: 3, blockRounds, archetypeId: archetype?.id, archetypeName: archetype?.name };
+    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: campEncouragement(), rushMode: false, warmupMin: 3, blockRounds, archetypeId: archetype?.id, archetypeName: archetype?.name };
   };
   const launch = (level, diff, slot) => {
     const split = isSplitAvailable(level);

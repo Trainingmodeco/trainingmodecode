@@ -62,41 +62,88 @@ function getPhaseForTime(elapsed, total) {
   return 'final';
 }
 
-function getPromptCount(roundSec, frequency) {
-  const mult = frequency === 'high' ? 1.5 : frequency === 'low' ? 0.5 : 1;
-  if (roundSec <= 120) return Math.max(1, Math.round(1 * mult));
-  if (roundSec <= 180) return Math.max(1, Math.round(1.5 * mult));
-  return Math.max(1, Math.round(2.5 * mult));
+// Encouragement frequency is an INTERVAL, not a vague amount. "LOW / NORMAL /
+// HIGH" told you nothing about what you would actually hear; these say it
+// outright. The ids are unchanged so existing saved profiles carry over and
+// every `encouragement === 'off'` check in the players still works.
+//
+// Deliberately no 10s option: at that rate the coach talks over the work.
+export const ENCOURAGEMENT_FREQUENCIES = [
+  { id: 'off',    label: 'OFF',       seconds: 0,  blurb: 'Silence between the bells.' },
+  { id: 'low',    label: 'EVERY 60s', seconds: 60, blurb: 'A nudge once a minute.' },
+  { id: 'normal', label: 'EVERY 30s', seconds: 30, blurb: 'Steady corner talk.' },
+  { id: 'high',   label: 'EVERY 20s', seconds: 20, blurb: 'In your ear the whole round.' },
+];
+
+/** The chosen frequency, falling back to 'normal' for anything unrecognised. */
+export function encouragementFrequency(id) {
+  const key = String(id || 'normal').toLowerCase();
+  return ENCOURAGEMENT_FREQUENCIES.find((f) => f.id === key)
+    || ENCOURAGEMENT_FREQUENCIES.find((f) => f.id === 'normal');
 }
 
+/** Seconds between lines; 0 means off. */
+export function encouragementIntervalSec(id) {
+  return encouragementFrequency(id).seconds;
+}
+
+/**
+ * Plain-language preview for the settings screen — the number of lines the
+ * athlete will actually hear, so the dial is not guesswork.
+ */
+export function describeEncouragement(id, roundSec = 180) {
+  const f = encouragementFrequency(id);
+  if (!f.seconds) return f.blurb;
+  const n = scheduleEncouragements(roundSec, f.id).length;
+  const mins = Math.round((roundSec / 60) * 10) / 10;
+  return `${f.blurb} About ${n} line${n === 1 ? '' : 's'} in a ${mins}-minute round.`;
+}
+
+/**
+ * Times (seconds into the round) at which to speak a line.
+ *
+ * Spaced by the chosen interval, with the opening call and the final push left
+ * clear, plus a little jitter so it never feels metronomic.
+ */
 export function scheduleEncouragements(roundSec, frequency) {
-  if (frequency === 'off') return [];
-  const count = getPromptCount(roundSec, frequency);
-  const startAfter = Math.max(15, Math.floor(roundSec * 0.2));
-  const endBefore = Math.max(10, Math.floor(roundSec * 0.08));
-  const available = roundSec - startAfter - endBefore;
-  if (available < 30) return [Math.floor(roundSec * 0.5)];
+  const interval = encouragementIntervalSec(frequency);
+  if (!interval || !(roundSec > 0)) return [];
+
+  const startAfter = Math.min(Math.max(12, Math.round(roundSec * 0.15)), Math.max(1, roundSec - 1));
+  const endBefore = Math.max(8, Math.round(roundSec * 0.08));
+  const last = roundSec - endBefore;
+  // Too short to space anything out — one line at the midpoint, or none.
+  if (last <= startAfter) return roundSec >= 30 ? [Math.round(roundSec / 2)] : [];
 
   const times = [];
-  const spacing = Math.floor(available / (count + 1));
-  for (let i = 1; i <= count; i++) {
-    const t = startAfter + spacing * i;
-    const jitter = Math.floor((Math.random() - 0.5) * 8);
-    times.push(Math.min(roundSec - endBefore, Math.max(startAfter, t + jitter)));
+  const jitterMax = Math.min(6, Math.round(interval * 0.25));
+  for (let t = startAfter + interval; t <= last; t += interval) {
+    const jitter = Math.round((Math.random() - 0.5) * 2 * jitterMax);
+    times.push(Math.min(last, Math.max(startAfter + 1, t + jitter)));
   }
-  return times;
+  if (!times.length) times.push(Math.round((startAfter + last) / 2));
+  return [...new Set(times)].sort((a, b) => a - b);
 }
 
 export function pickEncouragement(discipline, elapsed, roundSec, usedIds) {
   const phase = getPhaseForTime(elapsed, roundSec);
-  const pool = ENCOURAGEMENT.filter(q => {
-    if (usedIds.has(q.id)) return false;
-    return q.disciplines.includes('all') || q.disciplines.includes(discipline);
-  });
+  const mine = ENCOURAGEMENT.filter(
+    (q) => q.disciplines.includes('all') || q.disciplines.includes(discipline)
+  );
+  if (!mine.length) return null;
 
-  const phaseMatches = pool.filter(q => q.phase === phase);
+  let pool = mine.filter((q) => !usedIds.has(q.id));
+  // Only ~20 lines apply to any one discipline. At EVERY 20s a three-round
+  // session asks for more than that, and the old code returned null once the
+  // pool ran dry — the coach simply went quiet for the rest of the session,
+  // which is the opposite of what a higher frequency is for. Recycle instead:
+  // a line heard twice beats a corner that stops talking.
+  if (!pool.length) {
+    usedIds.clear();
+    pool = mine;
+  }
+
+  const phaseMatches = pool.filter((q) => q.phase === phase);
   const source = phaseMatches.length > 0 ? phaseMatches : pool;
-  if (source.length === 0) return null;
-
   return source[Math.floor(Math.random() * source.length)];
 }

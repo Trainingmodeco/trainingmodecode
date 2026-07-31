@@ -8,6 +8,7 @@ import WordmarkTM from './WordmarkTM';
 import CornerHUD from './CornerHUD';
 import { ChevronLeft, MessageSquare, Bell, Volume2 } from 'lucide-react';
 import { C } from './Styles';
+import { ENCOURAGEMENT_FREQUENCIES, encouragementFrequency, describeEncouragement } from './data/coachEncouragement';
 import SafeImage from './SafeImage';
 import AccountCard from './AccountCard';
 import { hasProEntitlement } from './data/entitlements';
@@ -54,11 +55,23 @@ function PillRow({ opts, val, onPick, wrap = false }) {
 }
 
 
-function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio }) {
+function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio, persistProfile }) {
   const [saved, setSaved] = useState(false);
+
+  // Voice coach, coach style and encouragement live on the PROFILE, but this
+  // screen only ever called saveAudioSettings() — which persists the ducking
+  // block and nothing else. Every pick here was therefore thrown away the
+  // moment the screen unmounted, SAVE button or not. Persist on pick, the way
+  // the ducking and reminder rows already do, so the choice sticks whether or
+  // not the athlete taps SAVE.
+  const pick = (setter, key) => (value) => {
+    setter(value);
+    persistProfile?.({ [key]: value });
+  };
 
   const handleSaveAudio = () => {
     saveAudioSettings(audioSettings);
+    persistProfile?.({ voiceCoach, coachStyle, encouragement });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -88,19 +101,35 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
             {/* Voice Coach */}
             <div>
               <SectionLabel text="VOICE COACH"/>
-              <PillRow opts={['FEMALE', 'MALE']} val={voiceCoach} onPick={setVoiceCoach}/>
+              <PillRow opts={['FEMALE', 'MALE']} val={voiceCoach} onPick={pick(setVoiceCoach, 'voiceCoach')}/>
             </div>
 
             {/* Coach Style */}
             <div>
               <SectionLabel text="COACH STYLE"/>
-              <PillRow opts={['STANDARD', 'HYPE', 'CALM']} val={coachStyle} onPick={setCoachStyle}/>
+              <PillRow opts={['STANDARD', 'HYPE', 'CALM']} val={coachStyle} onPick={pick(setCoachStyle, 'coachStyle')}/>
             </div>
 
-            {/* Mid-Round Encouragement */}
+            {/* Mid-Round Encouragement — an explicit interval, plus a live
+                preview of what that actually sounds like in a round, so the
+                dial is not guesswork. */}
             <div>
               <SectionLabel text="MID-ROUND ENCOURAGEMENT"/>
-              <PillRow opts={['OFF', 'LOW', 'NORMAL', 'HIGH']} val={encouragement.toUpperCase()} onPick={v => setEncouragement(v.toLowerCase())} wrap/>
+              <PillRow
+                opts={ENCOURAGEMENT_FREQUENCIES.map(f => f.label)}
+                val={encouragementFrequency(encouragement).label}
+                onPick={(label) => {
+                  const picked = ENCOURAGEMENT_FREQUENCIES.find(f => f.label === label);
+                  if (picked) pick(setEncouragement, 'encouragement')(picked.id);
+                }}
+                wrap
+              />
+              <div style={{
+                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+                color: 'rgba(255,255,255,0.5)', marginTop: 2, lineHeight: 1.35,
+              }}>
+                {describeEncouragement(encouragement, 180)}
+              </div>
             </div>
 
             {/* Volume now lives only inside the timer overlay (speaker icon,
@@ -379,6 +408,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
   if (profileView === 'audio') {
     return (
       <AudioSettingsView
+        persistProfile={updateProfile}
         onBack={() => setProfileView('overview')}
         onHome={onHome}
         voiceCoach={voiceCoach}
