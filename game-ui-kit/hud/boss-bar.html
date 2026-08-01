@@ -1,0 +1,27 @@
+<!-- @dsCard group="In-Game HUD" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
+*{margin:0;box-sizing:border-box}
+body{background:linear-gradient(180deg,#0d0420,#080012);font-family:'Rajdhani',sans-serif;padding:30px 26px;color:#eee}
+.wrap{max-width:840px;margin:0 auto}
+.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px}
+.name{font-family:'Orbitron';font-weight:900;font-size:22px;letter-spacing:3px;color:#fff;text-shadow:0 0 16px rgba(239,68,68,.6)}
+.name .crown{color:#fde047}
+.title{font-size:12px;font-weight:700;letter-spacing:2px;color:#ff8181}
+.bar{height:20px;border-radius:10px;border:1px solid rgba(239,68,68,.6);background:rgba(255,255,255,.05);overflow:hidden;position:relative}
+.fill{width:64%;height:100%;background:linear-gradient(90deg,#7f1d1d,#ef4444,#ff8a8a);box-shadow:0 0 18px rgba(239,68,68,.65)}
+.ticks{position:absolute;inset:0;display:flex}
+.ticks div{flex:1;border-right:1px solid rgba(8,0,18,.55)}
+.phase{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+.pip{width:26px;height:6px;border-radius:3px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.4)}
+.pip.on{background:#a855f7;box-shadow:0 0 8px rgba(168,85,247,.8)}
+.callout{margin-top:14px;border:1px solid rgba(168,85,247,.35);border-radius:10px;background:rgba(8,2,18,.85);padding:9px 13px;font-size:13px;color:#d9c9f5}
+.callout b{color:#fde047;font-family:'Orbitron';font-size:10px;letter-spacing:2px;margin-right:8px}
+</style></head><body>
+<div class="wrap">
+  <div class="top"><div class="name"><span class="crown">👑</span> MIKE BISON</div><div class="title">"THE BARON OF BOXING" · PHASE 2/3</div></div>
+  <div class="bar"><div class="fill"></div><div class="ticks"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
+  <div class="phase"><div class="pip on"></div><div class="pip on"></div><div class="pip"></div></div>
+  <div class="callout"><b>TAUNT ▸</b> Call him a knockoff Iron Mike to trigger RAGE MODE — more damage, more openings.</div>
+</div>
+</body></html>
