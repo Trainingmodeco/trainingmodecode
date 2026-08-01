@@ -53,11 +53,13 @@ The app splits into two hubs. Both feed the same progression system.
 You pick one of **four disciplines**: **Boxing · Kickboxing · Muay Thai · MMA.**
 That choice shapes every strike the app will call.
 
-Strikes use the standard numbered vocabulary a real coach uses:
-1 = jab, 2 = cross, 3 = lead hook, 4 = rear hook, 5/6 = uppercuts, a `b`
-suffix means to the body, plus kicks (low kick, rear kick, teep), knees and
-elbows for the kicking disciplines, and defensive calls (slip left, slip right,
-roll).
+You choose how the coach calls strikes — **CALL STYLE**, three options:
+**NAMES** ("jab, cross, lead hook"), **NUMBERS** — the standard count every
+real gym uses (1 jab · 2 cross · 3 lead hook · 4 rear hook · 5/6 uppercuts ·
+7/8 overhands, and any number "to the body" is the same punch downstairs) —
+or **CALL + NAME** ("one — jab"), which teaches the count as you train.
+Kicks, knees, elbows, teeps and defensive calls (slip, roll) are always
+called by name, exactly like a real corner: "1-2, low kick."
 
 **Features inside Fight Mode:**
 

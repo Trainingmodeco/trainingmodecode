@@ -20,11 +20,25 @@ import {
   TECHNIQUES,
 } from './practiceData';
 import { addLearned } from './data/arsenal';
+import { numberForStrike, NUMBER_DRILL } from './data/strikeNumbering';
 
 const GOLD = C.yellow;
 const NEON = C.neon;
 
 // ─── Basics (fundamentals path) data per discipline ─────────────────────────────
+// PROMPT N — the numbers lesson, appended to every discipline's basics.
+// Steps come from the canonical map so this can never drift from the caller.
+const NUMBERS_LESSON = {
+  id: 'know_your_numbers',
+  title: 'Know Your Numbers',
+  subtitle: 'The 1\u20138 count every gym uses.',
+  steps: [
+    ...NUMBER_DRILL.map((n) => `${n.num} is your ${n.name.toUpperCase()}. Throw five slow.`),
+    'Any number \u201Cto the body\u201D is the same punch downstairs \u2014 3 to the body is a lead hook to the ribs.',
+    'Coach calls: 1-2. Then 1-2-3. Then 1-2, 3 to the body. Answer with your hands.',
+  ],
+};
+
 const START_HERE_LESSONS = {
   Boxing: [
     { id: 'boxing_stance', title: 'Boxing Stance', subtitle: 'Learn your base, guard, and foot position.', steps: ['Stand with feet shoulder-width apart.','Step lead foot forward (left if right-handed).','Keep knees slightly bent — stay light.','Hands up to protect your chin.','Tuck elbows close to ribs.','Chin down, eyes forward.','Move forward and back for 30 seconds.'] },
@@ -309,6 +323,15 @@ function TechniqueCard({ technique, onTap }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2, flexWrap: 'wrap' }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#fff', letterSpacing: '0.03em' }}>{technique.name}</span>
+          {/* PROMPT N — numbered punches wear their count. */}
+          {numberForStrike(technique.name) && (
+            <span style={{
+              minWidth: 18, height: 18, borderRadius: 9, padding: '0 4px', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(253,224,71,0.14)', border: '1px solid rgba(253,224,71,0.55)',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, color: '#fde047',
+            }}>{numberForStrike(technique.name)}</span>
+          )}
           <LevelBadge level={technique.level}/>
         </div>
         <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#9a90b8', lineHeight: 1.3 }}>
@@ -653,7 +676,7 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
     if (gained.length) { setLearned(gained); setTimeout(() => setLearned(null), 2600); }
   }, [discipline]);
 
-  const basics = useMemo(() => START_HERE_LESSONS[discipline] || [], [discipline]);
+  const basics = useMemo(() => [...(START_HERE_LESSONS[discipline] || []), NUMBERS_LESSON], [discipline]);
   const techniques = getTechniquesFor(discipline, category);
 
   const showToast = useCallback(() => {

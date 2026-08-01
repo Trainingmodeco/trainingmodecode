@@ -22,6 +22,8 @@ import { scheduleEncouragements, pickEncouragement } from './data/coachEncourage
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
 import { disciplineSlug, countStrikes } from './data/arsenal';
+import { formatCall, callStyleOf } from './data/strikeNumbering';
+import { loadProfile } from './data/userProfile';
 
 // 1.3 — defense calls mixed between combos (shown in violet). Check is a
 // kick-sport defense; Sprawl is MMA's takedown answer.
@@ -131,7 +133,10 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const [done, setDone] = useState(false);
   const [countdown, setCountdown] = useState(initialPaused ? null : '3');
   const [countdownSub, setCountdownSub] = useState('');
-  const [currentCombo, setCurrentCombo] = useState(pool[0]);
+  // PROMPT N — CALL STYLE: stored combos stay words; conversion happens here
+  // at display/speech time. currentCombo holds formatCall() output.
+  const callStyle = callStyleOf(loadProfile()?.callStyle).id;
+  const [currentCombo, setCurrentCombo] = useState(() => formatCall(pool[0], callStyle));
   const [comboStreak, setComboStreak] = useState(0);
   // 1.3 — defense-call state: violet display + a countdown of combos until the
   // next call. Cadence comes from mode+difficulty (null = no standalone calls).
@@ -417,7 +422,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           const call = defensePool[Math.floor(Math.random() * defensePool.length)];
           defenseInRef.current = rollCadence(defenseCadence);
           setIsDefense(true);
-          setCurrentCombo(`${call.toUpperCase()}!`);
+          setCurrentCombo({ display: `${call.toUpperCase()}!`, speech: call, segments: null });
           setCallTick(t => t + 1);
           await delay(300);
           if (!active || pausedRef.current) break;
@@ -436,8 +441,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         comboIndexRef.current++;
         defenseInRef.current--;
         const next = pool[idx];
+        const styled = formatCall(next, callStyle);
         setIsDefense(false);
-        setCurrentCombo(next);
+        setCurrentCombo(styled);
         setCallTick(t => t + 1);
         streakRef.current++;
         peakStreakRef.current = Math.max(peakStreakRef.current, streakRef.current);
@@ -447,7 +453,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         if (!active || pausedRef.current) break;
         if (cfg.voiceOn !== false && remainingRef.current > 3 && !(rushRef.current && remainingRef.current <= 10)) {
           isSpeakingCombo.current = true;
-          await speakAsync(next, { rate: voiceRate });
+          await speakAsync(styled.speech, { rate: voiceRate });
           isSpeakingCombo.current = false;
         }
         if (!active || pausedRef.current) break;
@@ -694,12 +700,28 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
                 {/* Current call — combos gold, defense calls violet (1.3) */}
                 <div className="anim-fade-up" key={callTick} style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
-                  fontSize: isDefense ? 34 : currentCombo && currentCombo.length > 20 ? 22 : 28,
+                  fontSize: isDefense ? 34 : (currentCombo?.display || '').length > 20 ? 22 : 28,
                   color: isDefense ? '#a855f7' : '#fde047', lineHeight: 1.2, textAlign: 'center',
                   textShadow: isDefense ? '0 0 22px rgba(168,85,247,0.65)' : '0 0 18px rgba(253,224,71,0.4)',
                   maxWidth: 280,
                 }}>
-                  {currentCombo}
+                  {/* Two-tone in numbers/teach: numbered punches gold, named
+                      strikes violet — the split IS the teaching signal. */}
+                  {callStyle !== 'names' && !isDefense && currentCombo?.segments ? (
+                    currentCombo.segments.map((seg, i, arr) => {
+                      const sep = i === 0 ? '' : seg.kind === 'num' && arr[i - 1].kind === 'num' ? ' - ' : ' · ';
+                      return (
+                        <span key={i}>
+                          <span style={{ color: '#8b83a8' }}>{sep}</span>
+                          <span style={seg.kind === 'num' ? undefined : { color: '#c9a6ff', fontSize: '0.72em' }}>
+                            {seg.kind === 'num' ? seg.num : seg.text.toUpperCase()}
+                          </span>
+                        </span>
+                      );
+                    })
+                  ) : (
+                    currentCombo?.display
+                  )}
                 </div>
                 {/* Timer below combo */}
                 <div style={{

@@ -9,6 +9,7 @@ import CornerHUD from './CornerHUD';
 import { ChevronLeft, MessageSquare, Bell, Volume2 } from 'lucide-react';
 import { C } from './Styles';
 import { ENCOURAGEMENT_FREQUENCIES, encouragementFrequency, describeEncouragement } from './data/coachEncouragement';
+import { CALL_STYLES, callStyleOf, formatCall } from './data/strikeNumbering';
 import SafeImage from './SafeImage';
 import AccountCard from './AccountCard';
 import { hasProEntitlement } from './data/entitlements';
@@ -55,7 +56,7 @@ function PillRow({ opts, val, onPick, wrap = false }) {
 }
 
 
-function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, audioSettings, updateAudio, persistProfile }) {
+function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, callStyle, setCallStyle, audioSettings, updateAudio, persistProfile }) {
   const [saved, setSaved] = useState(false);
 
   // Voice coach, coach style and encouragement live on the PROFILE, but this
@@ -71,7 +72,7 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
 
   const handleSaveAudio = () => {
     saveAudioSettings(audioSettings);
-    persistProfile?.({ voiceCoach, coachStyle, encouragement });
+    persistProfile?.({ voiceCoach, coachStyle, encouragement, callStyle });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -108,6 +109,27 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
             <div>
               <SectionLabel text="COACH STYLE"/>
               <PillRow opts={['STANDARD', 'HYPE', 'CALM']} val={coachStyle} onPick={pick(setCoachStyle, 'coachStyle')}/>
+            </div>
+
+            {/* Call Style — how strikes are called (PROMPT N). Preview shows
+                what the same combo sounds like in the picked style. */}
+            <div>
+              <SectionLabel text="CALL STYLE"/>
+              <PillRow
+                opts={CALL_STYLES.map(cs => cs.label)}
+                val={callStyleOf(callStyle).label}
+                onPick={(label) => {
+                  const picked = CALL_STYLES.find(cs => cs.label === label);
+                  if (picked) pick(setCallStyle, 'callStyle')(picked.id);
+                }}
+                wrap
+              />
+              <div style={{
+                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+                color: 'rgba(255,255,255,0.5)', marginTop: 2, lineHeight: 1.35,
+              }}>
+                {'“'}{formatCall('Jab Cross Body Hook', callStyle).speech}{'”'}
+              </div>
             </div>
 
             {/* Mid-Round Encouragement — an explicit interval, plus a live
@@ -239,6 +261,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     return saved === 'DRILL' ? 'STANDARD' : saved;
   });
   const [encouragement, setEncouragement] = useState(p.encouragement ?? 'normal');
+  const [callStyle, setCallStyle] = useState(p.callStyle ?? 'names');
 
   const [audioSettings, setAudioSettingsState] = useState(getAudioSettings);
   const [reminderSettings, setReminderSettingsState] = useState(loadReminderSettings);
@@ -279,6 +302,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
       voiceCoach,
       coachStyle,
       encouragement,
+      callStyle,
     });
     onSave();
   };
@@ -416,6 +440,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         coachStyle={coachStyle}
         setCoachStyle={setCoachStyle}
         encouragement={encouragement}
+        callStyle={callStyle}
+        setCallStyle={setCallStyle}
         setEncouragement={setEncouragement}
         audioSettings={audioSettings}
         updateAudio={updateAudio}

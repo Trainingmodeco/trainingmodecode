@@ -15,7 +15,8 @@ import { StepperRow, TotalRow } from './shared/Stepper';
 import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
-import { isBeginnerLearner } from './data/userProfile';
+import { isBeginnerLearner, saveProfile, loadProfile } from './data/userProfile';
+import { CALL_STYLES, callStyleOf } from './data/strikeNumbering';
 
 const GOLD = C.gold;
 const VIOLET = C.violet;
@@ -89,6 +90,14 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
 
+  // PROMPT N — CALL STYLE lives on the profile (shared with Camp/Arcade), so
+  // picking here persists immediately, same as the Audio Settings row.
+  const [callStyle, setCallStyle] = useState(profile?.callStyle || loadProfile()?.callStyle || 'names');
+  const pickCallStyle = (id) => {
+    setCallStyle(id);
+    saveProfile({ ...loadProfile(), callStyle: id });
+  };
+
   const totalEst = Math.round((cfg.rounds * (cfg.roundMin * 60 + cfg.restSec)) / 60);
 
   return (
@@ -129,6 +138,26 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
         </div>
         <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 8, minHeight: 20 }}>
           <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
+        </div>
+
+        {/* PROMPT N — call style pills (compact; the Audio Settings row has
+            the preview). Persisted on pick, shared app-wide. */}
+        <div style={{ marginBottom: 9 }}>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 5 }}>CALL STYLE</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {CALL_STYLES.map((cs) => {
+              const on = callStyleOf(callStyle).id === cs.id;
+              return (
+                <button key={cs.id} onClick={() => pickCallStyle(cs.id)} style={{
+                  flex: 1, padding: '7px 0', borderRadius: 8, cursor: 'pointer',
+                  background: on ? 'rgba(253,224,71,0.13)' : 'rgba(10,0,20,0.55)',
+                  border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.28)'}`,
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5,
+                  letterSpacing: '0.05em', color: on ? GOLD : '#c4a4d8',
+                }}>{cs.label}</button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mode + explanation */}

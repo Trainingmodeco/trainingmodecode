@@ -22,6 +22,8 @@ import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
 import { isRushAt, rushPatternLabel } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
+import { formatCall } from './data/strikeNumbering';
+import { loadProfile as loadUserProfile } from './data/userProfile';
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
 
@@ -378,8 +380,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             lastComboAtRef.current = comboElapsed;
             const call = curR.combos[comboIdxRef.current % curR.combos.length];
             comboIdxRef.current += 1;
-            setCurCombo(call);
-            if (cfg.voiceOn) speakAsync(call, vOpts);
+            // PROMPT N — campaign combos stay words in the data; the athlete's
+            // CALL STYLE converts them here (covers Arcade AND Camp).
+            const styled = formatCall(call, loadUserProfile()?.callStyle);
+            setCurCombo(styled.display);
+            if (cfg.voiceOn) speakAsync(styled.speech, vOpts);
           }
         }
       }
