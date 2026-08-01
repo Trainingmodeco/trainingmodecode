@@ -112,6 +112,58 @@ Show: full body front pose, side profile, plus two head expressions
 background. Parody design — do NOT depict any real person's face.
 ```
 
+## STORYLINE BLOCK (paste when a tool needs the full story)
+
+```
+STORYLINE — TRAINING MODE: THE GAME
+
+Two young trainees from the small Training Mode gym — a male and a female
+fighter — step into a sanctioned bout against a rival gym's champion...
+and lose. Clean fight, no hard feelings; the rival is honorable and even
+gracious about it. But the loss puts the duo in a funk. That's when the
+Promoter appears: the charming, outgoing owner of the city's giant
+MegaGym, friendly with just a hint of fakeness. His offer: join his
+"fast-track program" and earn a rematch with the rival — all they have to
+do is beat the competition. Literally. Every gym and dojo in the city,
+one by one.
+
+At first the missions feel legit: sanctioned challenge matches against
+colorful gym owners and masters. But the Promoter's mission briefings —
+delivered by COACH, the friendly AI voice in everyone's earbuds — get
+stranger and darker. One gym is "running a racket." Another is "holding
+baby kittens hostage." The duo storms it, beats the owner, frees the
+kittens... which sprint into traffic, as a crying kid explains it was the
+animal shelter's adoption day. The more they question the Promoter, the
+faster his warm mask slips into rage — then snaps back: "It's for the
+greater good of Fit and Fight City."
+
+Too late, they see the pattern: every "victory" is spun as propaganda.
+The city's fitness side and fighting side are being turned against each
+other — and both sides now hate the two trainees who did the damage.
+The truth: COACH has been feeding every gym in the city personalized
+lies, and the Promoter used the duo as the match to light a war he'd
+been fueling for years, so his MegaGym would be the last gym standing.
+
+Kidnapped by their old rival's crew, the duo tells the truth and isn't
+believed — until the female trainee repeats the rival's own words from
+that first fight, and the rival's sharp-eyed second uncovers proof that
+everyone, rival included, was being manipulated by the same AI voice.
+
+The final act: the trainees and their former rival fight to reunite the
+city the hard way — rematch by rematch, gym by gym — while the Promoter
+consolidates everything into one chrome tower. Three fighters against
+the man who owns the city. When he falls, the city doesn't go back to
+fitness versus fighting, and it doesn't become one brand. The trainees
+and the rival open a new kind of gym — one roof, every discipline,
+where your training is your power. They call it TRAINING MODE.
+
+TONE: simple arcade storytelling (Streets of Rage stakes), Scott Pilgrim
+× One Punch Man humor played straight, 90s anime presentation — serious
+beats in full character design, comedy beats snap to chibi versions. The
+Promoter is the only character who NEVER goes chibi — the scene-one tell
+that something is wrong with him.
+```
+
 ## Notes
 
 - The "do NOT depict any real person's face" line on boss prompts is
