@@ -884,12 +884,12 @@ SecondaryButton / Card); no new design system.
 >
 > | # | Strike | Body version | Tier |
 > |---|---|---|---|
-> | 1 | Jab | 1b | universal |
-> | 2 | Cross | 2b | universal |
-> | 3 | Lead Hook | 3b | universal |
-> | 4 | Rear Hook | 4b | universal |
-> | 5 | Lead Uppercut | — | universal |
-> | 6 | Rear Uppercut | — | universal |
+> | 1 | Jab | 1 to the body | universal |
+> | 2 | Cross | 2 to the body | universal |
+> | 3 | Lead Hook | 3 to the body | universal |
+> | 4 | Rear Hook | 4 to the body | universal |
+> | 5 | Lead Uppercut | 5 to the body | universal |
+> | 6 | Rear Uppercut | 6 to the body | universal |
 > | 7 | Lead Overhand | — | common extension |
 > | 8 | Rear Overhand | — | common extension |
 >
@@ -897,12 +897,18 @@ SecondaryButton / Card); no new design system.
 > 7–8 = overhands is a recognized common extension (some gyms use 7–8
 > differently, so the teach layer must state ours explicitly).
 >
+> **Body shots**: the SAME number sent downstairs — every number 1–6 has a
+> body version. Speech is always "<number> to the body" ("One to the body,
+> two to the body"), never "one b". Display uses the compact `1B` badge form
+> (`1 - 2 - 3B`), and the teach layer says both: "Three to the body — lead
+> hook downstairs."
+>
 > Ambiguity rule for existing combo text: unqualified `Hook` → 3, `Body Hook`
-> → 3b, unqualified `Uppercut` → 6, unqualified `Overhand` → 8. Named
+> → 3B, unqualified `Uppercut` → 6, unqualified `Overhand` → 8, `Body Jab`
+> → 1B, `Body Cross` → 2B. Named
 > technique punches (`Check Hook`, `Shovel Hook`, `Superman Punch`,
-> `Bolo Punch`) stay as words — they are techniques, not numbers. `Body Jab`
-> → 1b, `Body Cross` → 2b. Defense calls (Slip/Roll/Check/Pivot/Sprawl) are
-> never numbered.
+> `Bolo Punch`) stay as words — they are techniques, not numbers. Defense
+> calls (Slip/Roll/Check/Pivot/Sprawl) are never numbered.
 >
 > ### The setting — CALL STYLE
 >
@@ -911,9 +917,9 @@ SecondaryButton / Card); no new design system.
 >
 > - `names` — today's behaviour. DEFAULT, so nothing changes for anyone
 >   until they opt in.
-> - `numbers` — display shows `1 - 2 - 3b · LOW KICK`; speech says
->   "One, two, three body, low kick". Speech must use number WORDS, never
->   digits, so TTS cannot read "1-2" as "one minus two".
+> - `numbers` — display shows `1 - 2 - 3B · LOW KICK`; speech says
+>   "One, two, three to the body, low kick". Speech must use number WORDS,
+>   never digits, so TTS cannot read "1-2" as "one minus two".
 > - `teach` — CALL + NAME: speech says "One — jab. Two — cross." Slower
 >   cadence tolerated; this is the learning bridge.
 >
@@ -978,7 +984,7 @@ SecondaryButton / Card); no new design system.
 >
 > - Harness: the 120-combo sweep above, plus spot checks:
 >   `'Jab Cross Hook'` → display `1 - 2 - 3`, speech "One, two, three";
->   `'Jab Body Cross'` → `1 - 2b` / "One, two body";
+>   `'Jab Body Cross'` → `1 - 2B` / "One, two to the body";
 >   `'Jab Cross Switch Kick'` → `1 - 2 · SWITCH KICK`;
 >   `'Overhand Clinch Knee'` → `8 · CLINCH · KNEE`.
 > - Browser: set `numbers`, run a Combo Coach round, confirm the big display
@@ -986,3 +992,60 @@ SecondaryButton / Card); no new design system.
 >   run an Arcade fight stage and confirm seeded combos convert too.
 > - `npm run lint` 0 · `npm run typecheck` 0 · `npm run audit:tap` 0
 >   unreachable (the new pill rows must not bury anything).
+
+---
+
+## PROMPT N-D — Designer brief: the CALL STYLE (strike numbering) surfaces
+
+> Paste this into the design tool. It describes only the VISUAL surfaces for
+> the strike-numbering feature; the logic spec lives in PROMPT N.
+>
+> ### Brand rules (match the existing app exactly)
+>
+> Deep violet/black background (#080012–#0a0014), gold accent #fde047 for
+> primary actions and numbers, violet #a855f7 for secondary chrome, Orbitron
+> for display/headers, Rajdhani for body text, arcade-cabinet framing, mobile
+> 412×883 with a bottom tab bar (HOME · TRAIN · PROGRESS · PROFILE) that any
+> sheet must clear. Pill selectors look like the existing MID-ROUND
+> ENCOURAGEMENT row: rounded pills, violet glow on the active one.
+>
+> ### The numbering being visualised
+>
+> 1 jab · 2 cross · 3 lead hook · 4 rear hook · 5 lead uppercut · 6 rear
+> uppercut · 7 lead overhand · 8 rear overhand. Any number 1–6 "to the body"
+> is the same punch downstairs — shown compact as 1B…6B, spoken "one to the
+> body". Kicks, knees, elbows, teeps and defense are always words, never
+> numbers.
+>
+> ### Screens to design (5)
+>
+> 1. **CALL STYLE row — Audio Settings.** A labelled section "CALL STYLE"
+>    under COACH STYLE with three pills: NAMES · NUMBERS · CALL + NAME.
+>    Under the pills, one small live-preview line that changes with the pick:
+>    - NAMES → `"Jab, cross, lead hook."`
+>    - NUMBERS → `"One, two, three to the body."`
+>    - CALL + NAME → `"One — jab. Two — cross."`
+> 2. **Combo Coach setup card version.** Same three pills, compact, sitting
+>    with the existing difficulty/rounds controls. No preview line — space is
+>    tight; the pills alone.
+> 3. **In-round call display (NUMBERS style).** The big mid-round call panel:
+>    huge gold Orbitron numbers `1 - 2 - 3B`, then any word strikes on a
+>    second line in smaller violet caps `· LOW KICK`. Must stay readable from
+>    six feet away — this is glanced at mid-combo, phone on the floor.
+> 4. **Practice Mode technique card with number badge.** The existing lesson
+>    card (name, description, cues) plus a gold circular badge with the
+>    number: Jab card carries "1", Cross "2", body variants show "1B" etc.
+>    Badge reads as a rank/level medallion, arcade style.
+> 5. **KNOW YOUR NUMBERS drill card + one drill screen.** A Start Here tile
+>    ("KNOW YOUR NUMBERS — learn the 1–8 count") and one in-drill frame:
+>    the current number huge in gold, the strike name under it in white
+>    Orbitron, a 1→8 progress dots row, coach caption line at the bottom
+>    ("Three — lead hook").
+>
+> ### Rules
+>
+> - Never place a primary action in the bottom ~90px band (tab bar + safe
+>   area) unless the design is an overlay that covers the tab bar entirely.
+> - NUMBERS is gold, words stay violet — the two-tone split is the visual
+>   language for "numbered punch vs named strike".
+> - No new fonts, no new colours; reuse the app's existing tokens.
