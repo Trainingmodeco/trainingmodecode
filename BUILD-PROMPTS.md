@@ -860,3 +860,129 @@ SecondaryButton / Card); no new design system.
 >    will break again on the next device.
 > 5. **Still unverified** — be explicit. An unwalked screen is unknown, not
 >    passing.
+
+---
+
+## PROMPT N — strike numbering: numbers option for Combo Coach, Practice, Camp & Arcade
+
+> ### Context — what exists today (verified against this repo)
+>
+> The app has NO numbering system anywhere. Combo Coach speaks word combos
+> (`data/comboCoachData.js`, 120 entries like `'Jab Cross Hook'`), Practice
+> Mode teaches strikes by name, and `data/arsenal.js` stores learned strikes as
+> word tokens. There is no `callStyle` setting, hidden or otherwise. The owner's
+> old custom systems (K1–K4 for kicks, E1–E8 for elbows) are deliberately
+> DROPPED — research confirmed no such standard exists, and inventing one
+> confuses athletes who train at real gyms.
+>
+> ### The system to build (research-backed, nothing custom)
+>
+> Punches numbered 1–8, identical across all four disciplines. Kicks, knees,
+> elbows, teeps and defense stay as WORDS in every style — that is how real
+> gyms call it ("1-2, low kick"), and kick numbering genuinely varies gym to
+> gym, so we do not invent one.
+>
+> | # | Strike | Body version | Tier |
+> |---|---|---|---|
+> | 1 | Jab | 1b | universal |
+> | 2 | Cross | 2b | universal |
+> | 3 | Lead Hook | 3b | universal |
+> | 4 | Rear Hook | 4b | universal |
+> | 5 | Lead Uppercut | — | universal |
+> | 6 | Rear Uppercut | — | universal |
+> | 7 | Lead Overhand | — | common extension |
+> | 8 | Rear Overhand | — | common extension |
+>
+> Odd = lead hand, even = rear hand. 1–6 is the universal boxing standard;
+> 7–8 = overhands is a recognized common extension (some gyms use 7–8
+> differently, so the teach layer must state ours explicitly).
+>
+> Ambiguity rule for existing combo text: unqualified `Hook` → 3, `Body Hook`
+> → 3b, unqualified `Uppercut` → 6, unqualified `Overhand` → 8. Named
+> technique punches (`Check Hook`, `Shovel Hook`, `Superman Punch`,
+> `Bolo Punch`) stay as words — they are techniques, not numbers. `Body Jab`
+> → 1b, `Body Cross` → 2b. Defense calls (Slip/Roll/Check/Pivot/Sprawl) are
+> never numbered.
+>
+> ### The setting — CALL STYLE
+>
+> `callStyle` on the profile (`data/userProfile.js` DEFAULT_PROFILE), three
+> values:
+>
+> - `names` — today's behaviour. DEFAULT, so nothing changes for anyone
+>   until they opt in.
+> - `numbers` — display shows `1 - 2 - 3b · LOW KICK`; speech says
+>   "One, two, three body, low kick". Speech must use number WORDS, never
+>   digits, so TTS cannot read "1-2" as "one minus two".
+> - `teach` — CALL + NAME: speech says "One — jab. Two — cross." Slower
+>   cadence tolerated; this is the learning bridge.
+>
+> Surface the picker in TWO places, both persisting via the profile:
+> 1. Profile → Audio Settings, under COACH STYLE — persist ON PICK via the
+>    `persistProfile` callback (the pattern the encouragement row now uses;
+>    do NOT rely on the SAVE button alone).
+> 2. Combo Coach setup card — a compact 3-pill row, same ids.
+>
+> ### Where the code goes — the seam is two files
+>
+> Build ONE formatter and use it everywhere:
+>
+> **New `data/strikeNumbering.js`**
+> - the canonical map above, plus per-token `{ display, speech }`
+> - `formatCall(comboText, style)` → `{ display, speech }`. Tokenise with the
+>   longest-first token approach `data/arsenal.js` already uses (import or
+>   mirror its STRIKE_TOKENS ordering so `Low Kick` never splits into
+>   `Low` + `Kick`).
+> - Pure data + pure functions, no React, so it can be harness-tested.
+>
+> **Call sites (ALL combo speech in the app flows through these two files):**
+> 1. `ComboCoachActive.jsx` — the combo call (`setCurrentCombo(next)` +
+>    `speakAsync(next, …)`) and nothing else; defense calls stay words.
+> 2. `FightFocusTimer.jsx` — the arcade round caller
+>    (`curR.combos[…]` cadence calls). This ONE change covers Training Arcade
+>    fight rounds AND Training Camp skill blocks, because camp runs its skill
+>    sessions through FightFocusTimer.
+>
+> Do NOT rewrite `comboCoachData.js` or any campaign JSON — words stay the
+> stored format; numbering is a render/speech transform only. That keeps all
+> 8 campaigns and 120 combos untouched and lets athletes switch styles freely.
+>
+> ### Practice Mode — the teaching layer
+>
+> 1. Strike lessons for numbered punches show and speak their number:
+>    "Jab — this is your ONE." Add the number as a badge on the technique
+>    card. Numbers come from the same `strikeNumbering.js` map — no second
+>    copy of the table.
+> 2. Add ONE new Start Here drill: "KNOW YOUR NUMBERS" — walks 1 through 8
+>    with the coach calling number + name, then a short called-by-number-only
+>    sequence. Completing it can use the existing `addStartHereLesson` stat
+>    (feeds the Sweet Science trophy path).
+> 3. When the arsenal banks a strike (`data/arsenal.js`), nothing changes —
+>    tokens stay words. The number is presentation.
+>
+> ### Order of work
+>
+> 1. `strikeNumbering.js` + harness test: run every one of the 120 combos in
+>    `comboCoachData.js` through `formatCall` in all three styles; assert no
+>    output ever contains an unconverted token in `numbers` mode that should
+>    have converted, and that kicks/knees/elbows/defense are NEVER numbered.
+> 2. Setting + the two pickers (profile default `names`).
+> 3. Combo Coach wiring.
+> 4. FightFocusTimer wiring (covers Camp + Arcade).
+> 5. Practice Mode badges + KNOW YOUR NUMBERS drill.
+> 6. Fix the false line in `TRAINING-MODE-BRIEF.md` — it currently claims the
+>    app already uses numbered vocabulary. After this ships it will be true;
+>    update the wording to describe the three call styles.
+>
+> ### Verify before calling it done
+>
+> - Harness: the 120-combo sweep above, plus spot checks:
+>   `'Jab Cross Hook'` → display `1 - 2 - 3`, speech "One, two, three";
+>   `'Jab Body Cross'` → `1 - 2b` / "One, two body";
+>   `'Jab Cross Switch Kick'` → `1 - 2 · SWITCH KICK`;
+>   `'Overhand Clinch Knee'` → `8 · CLINCH · KNEE`.
+> - Browser: set `numbers`, run a Combo Coach round, confirm the big display
+>   and the spoken call agree; set `names`, confirm zero change from today;
+>   run an Arcade fight stage and confirm seeded combos convert too.
+> - `npm run lint` 0 · `npm run typecheck` 0 · `npm run audit:tap` 0
+>   unreachable (the new pill rows must not bury anything).
