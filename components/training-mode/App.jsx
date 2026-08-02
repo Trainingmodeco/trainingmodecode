@@ -311,6 +311,15 @@ export default function App() {
       setTourStep(next);
     }
   };
+  // Mirror of advanceTour. Each tour step declares the screen it lives on, so
+  // stepping back has to move the app back to that screen too — otherwise the
+  // spotlight would hunt for a target that is no longer rendered.
+  const retreatTour = () => {
+    const prev = (tourStep ?? 0) - 1;
+    if (prev < 0) return;
+    setScreen(TOUR_STEPS[prev].screen);
+    setTourStep(prev);
+  };
   const skipTour = () => {
     markTourDone();
     setTourStep(null);
@@ -781,7 +790,7 @@ export default function App() {
           />
         </Suspense>
         {tourStep != null && (
-          <FeatureTour step={tourStep} onNext={advanceTour} onSkip={skipTour} />
+          <FeatureTour step={tourStep} onNext={advanceTour} onBack={retreatTour} onSkip={skipTour} />
         )}
         {pendingChallenge && screen !== 'start' && screen !== 'onboarding' && (
           <ChallengeInboundModal

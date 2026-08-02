@@ -37,6 +37,15 @@ const TIP_EST_H = 150;    // first-paint estimate; replaced by a real measuremen
 export default function ScreenGuide({ steps, onClose, centerTip = false, onStep }) {
   const [step, setStep] = useState(0);
   const cfg = steps[step];
+  // Which way the athlete is travelling. The missing-target fallback below
+  // skips in THIS direction: without it, stepping BACK onto a step whose
+  // target isn't on screen would auto-advance forward again, and BACK would
+  // look broken exactly where it is most needed.
+  const dirRef = useRef(1);
+  const go = (d) => {
+    dirRef.current = d;
+    setStep((s) => Math.min(steps.length - 1, Math.max(0, s + d)));
+  };
 
   useEffect(() => { onStep?.(step, steps[step]); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   const [rect, setRect] = useState(null);
@@ -67,7 +76,7 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
       const el = document.querySelector(`[data-guide="${cfg.target}"]`);
       if (!el) {
         tries++;
-        if (tries > 20) { setStep(s => Math.min(s + 1, steps.length - 1)); return; }
+        if (tries > 20) { setStep(s => Math.min(steps.length - 1, Math.max(0, s + dirRef.current))); return; }
         setTimeout(measure, 100);
         return;
       }
@@ -189,11 +198,21 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
           {cfg.body}
         </div>
 
-        {/* Footer: close · dots · next */}
+        {/* Footer: close · back · dots · next */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 2px', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: 'rgba(200,170,255,0.55)', letterSpacing: '0.1em' }}>
             CLOSE
           </button>
+
+          {/* Re-read the previous step without losing the guide. Hidden on the
+              first step, where there is nothing behind it. */}
+          {step > 0 && (
+            <button onClick={() => go(-1)} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '6px 2px',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
+              color: GOLD, opacity: 0.9, letterSpacing: '0.1em',
+            }}>‹ BACK</button>
+          )}
 
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 5 }}>
             {steps.map((_, i) => (
@@ -213,7 +232,7 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
               boxShadow: '0 0 16px rgba(253,224,71,0.4)',
             }}>GOT IT ✓</button>
           ) : (
-            <button onClick={() => setStep(s => s + 1)} style={{
+            <button onClick={() => go(1)} style={{
               background: 'rgba(253,224,71,0.12)', border: `1px solid ${GOLD}`, cursor: 'pointer',
               borderRadius: 9, padding: '8px 14px',
               fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, color: GOLD, letterSpacing: '0.1em',

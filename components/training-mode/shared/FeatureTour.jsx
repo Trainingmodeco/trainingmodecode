@@ -121,7 +121,7 @@ const TOUR_STYLES = `
 const TIP_W = 312;
 const TIP_EST_H = 178; // estimate for above/below placement
 
-export default function FeatureTour({ step, onNext, onSkip }) {
+export default function FeatureTour({ step, onNext, onSkip, onBack }) {
   const cfg = TOUR_STEPS[step];
   const [rects, setRects] = useState(null);
   const scrolledRef = useRef(false);
@@ -254,6 +254,16 @@ export default function FeatureTour({ step, onNext, onSkip }) {
               SKIP TOUR
             </button>
           ) : <span style={{ width: 54 }} />}
+
+          {/* Re-read the previous step. Hidden on the first, where there is
+              nothing behind it. */}
+          {step > 0 && onBack && (
+            <button onClick={onBack} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '6px 2px',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
+              color: GOLD, opacity: 0.9, letterSpacing: '0.1em',
+            }}>‹ BACK</button>
+          )}
 
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 5 }}>
             {TOUR_STEPS.map((_, i) => (
