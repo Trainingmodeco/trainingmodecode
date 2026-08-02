@@ -31,12 +31,17 @@ export const SCREEN_GUIDES = {
     { target: 'pr-replay', title: '🔁 REPLAY INTRO GUIDE', body: 'Runs the first-run feature tour again — the spotlight walkthrough of Home, the Train tab, Arcade, Camp, Progress, and Game Link. Replay it any time.' },
   ],
 
-  // The full tour, and the only guide that crosses screens. A step naming a
-  // `screen` drives the app there first, so each feature is spotlighted on its
-  // REAL button instead of being described from a distance. That means this one
-  // must be hosted by App.jsx, not by TrainingHub — a guide rendered inside a
-  // screen unmounts the instant it navigates away.
-  train_hub: [
+  // The FULL walkthrough — runs after the questionnaire and from Profile →
+  // "Replay intro guide", and nowhere else. It crosses screens: a step naming
+  // a `screen` drives the app there first, so each feature is spotlighted on
+  // its REAL button. Hosted by App.jsx — a guide rendered inside one screen
+  // would unmount the instant it navigates away.
+  full_intro: [
+    { screen: 'home', target: 'todays-bout', title: "⚔ TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
+    { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE — YOUR CHALLENGE', body: 'This card is your arcade bookmark. START CHALLENGE begins a saga — a 10-stage campaign with a boss at the end — and once you\'re climbing, it drops you straight back onto the stage you\'re on.' },
+    { screen: 'home', target: 'home-level', title: '⚡ XP & LEVEL', body: 'Every finished workout adds XP and fills this bar. Fill it and you level up. The 🔥 number is your streak — days trained in a row; miss a day and it resets.' },
+    { screen: 'home', target: 'home-favorites', title: '❤ FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want.' },
+
     { screen: 'training_hub', target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like. This guide walks you into each one.' },
 
     { screen: 'training_hub', target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
@@ -63,6 +68,18 @@ export const SCREEN_GUIDES = {
     { screen: 'training_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
   ],
 
+  // The everyday "?" on Choose Your Path — compact and single-screen. The
+  // full cross-screen walkthrough above only runs after the questionnaire or
+  // from Profile → Replay intro guide.
+  train_hub: [
+    { target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like.' },
+    { target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill. Inside: TRAINING CAMP (a 12-level camp to a Title Fight), FIGHT FOCUS (coached rounds), COMBO COACH (combos called out to throw), PRACTICE MODE (learn strikes step by step), COMBO CREATOR (build your own moves) and CONDITIONING.' },
+    { target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Inside: WORKOUT BUILDER (a workout around the muscles you pick), QUICK MISSION (instant workout when you\'re short on time), CARDIO MODE (runs, intervals, Tabata) and WORKOUT CODEX, coming soon.' },
+    { target: 'hub-combat', title: '🔥 COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Pick this when you want to be exhausted and sharp at the same time.' },
+    { target: 'hub-arcade', title: '🕹 TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Each saga is 10 stages with a boss at the end. Every rep you complete damages the stage, and clearing one unlocks the next.' },
+    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+  ],
+
   fight_hub: [
     { target: null, title: '🥊 FIGHT MODE', body: 'This is the Fight Mode hub — the striking-skill side of Training Mode. Pick a discipline first, then choose how to train it.' },
     { target: 'fh-disciplines', title: 'SELECT DISCIPLINE', body: 'Boxing, Kickboxing, Muay Thai, or MMA — your session is built around the one you pick.' },
@@ -74,14 +91,17 @@ export const SCREEN_GUIDES = {
     { target: 'fh-conditioning', title: 'CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work. Choose Conditioning.' },
   ],
 
+  // `campModal: true` steps open the current level's card so the guide can
+  // highlight the REAL controls inside it (TrainingCampMap drives this from
+  // onStep); the modal closes again on any step without the flag.
   training_camp: [
     { target: null, title: '🏕 TRAINING CAMP', body: 'This is your fight camp — 12 levels that build you to a Title Fight the way real camps do. Train it in order: clear the level you are on to unlock the next.' },
     { target: 'tc-current', title: 'THE RAMP — 5 PHASES', body: 'The camp ramps up like a real fight camp. FOUNDATION (1–3) drills the basics → DEVELOPMENT (4–6) builds volume and combinations → HARD CAMP (7–9) is your peak, highest-load block → TAPER (10–11) sharpens you while cutting volume so you arrive fresh → Level 12 is the TITLE FIGHT. The gold ring highlighted here is where you are now.' },
-    { target: 'tc-pips', title: 'SESSION 1 vs SESSION 2', body: 'From Level 4 up, each level is a real two-a-day — the pips here show both. SESSION 1 · SKILL is your combat work (bag, pads, footwork, sparring drills), done FIRST while you are fresh so technique stays sharp. SESSION 2 · CONDITIONING is the physical side (roadwork, intervals, strength) done later.' },
-    { target: 'tc-pips', title: 'WHY SPLIT THEM?', body: 'Skill degrades when you are tired, so combat work goes first; conditioning handles fatigue fine, so it goes second. Leave 4–8 hours between the two. The level only clears — and the next one unlocks — once BOTH sessions are done ✓✓.' },
-    { target: null, title: 'PICK YOUR DIFFICULTY', body: 'Every session runs at EASY, NORMAL, or HARD — you choose in the level card. Higher difficulty adds rounds, volume, and complexity. Important: a clean EASY session always beats a sloppy HARD one, so pick the level you can actually finish with good form.' },
-    { target: null, title: 'READINESS & SAFETY', body: 'Before every session a quick gut-check appears — sleep, energy, soreness, stress, mood. Feeling rough? It offers an EASIER session that still counts and keeps your streak. Flag a danger symptom (dizziness, chest, sharp pain, concussion signs) and the camp tells you to REST — no penalty, no streak lost, ever.' },
-    { target: null, title: 'EARN THE BELT', body: 'Every session you finish earns XP toward your fighter level. Clear all 12 levels — Foundation through the Title Fight — and the belt is yours.' },
+    { target: 'tc-pips4', title: 'SESSION 1 vs SESSION 2', body: 'From Level 4 up, each level is a real two-a-day — the S1 and S2 boxes highlighted here show both. SESSION 1 · SKILL is your combat work (bag, pads, footwork, sparring drills), done FIRST while you are fresh so technique stays sharp. SESSION 2 · CONDITIONING is the physical side (roadwork, intervals, strength) done later.' },
+    { target: 'tc-pips4', title: 'WHY SPLIT THEM?', body: 'Skill degrades when you are tired, so combat work goes first; conditioning handles fatigue fine, so it goes second. Leave 4–8 hours between the two. The level only clears — and the next one unlocks — once BOTH sessions are done ✓✓.' },
+    { target: 'tc-difficulty', campModal: true, title: 'PICK YOUR DIFFICULTY', body: 'This is your level card — every session runs at EASY, NORMAL, or HARD, and you choose right here. Higher difficulty adds rounds, volume, and complexity. Important: a clean EASY session always beats a sloppy HARD one, so pick the level you can actually finish with good form.' },
+    { target: 'tc-ready', campModal: true, title: 'READINESS & SAFETY', body: 'When you tap START, a quick gut-check appears first — sleep, energy, soreness, stress, mood. Feeling rough? It offers an EASIER session that still counts and keeps your streak. Flag a danger symptom (dizziness, chest, sharp pain, concussion signs) and the camp tells you to REST — no penalty, no streak lost, ever.' },
+    { target: 'tc-belt', title: 'EARN THE BELT', body: 'Every session you finish earns XP toward your fighter level. Clear all 12 levels — Foundation through this TITLE FIGHT at the top — and the belt is yours.' },
   ],
 
   fit_hub: [
@@ -92,13 +112,16 @@ export const SCREEN_GUIDES = {
     { target: 'fit-codex', title: 'WORKOUT CODEX', body: 'Have your own workout? Training Mode will turn it into a follow-along routine — Workout Codex. Coming soon.' },
   ],
 
+  // Crosses into the stage ladder for the last three steps (hosted by
+  // App.jsx like full_intro); closing it lands back on the saga page.
   arcade_saga_select: [
-    { target: null, title: '🕹 TRAINING ARCADE', body: 'This is the Training Arcade — workouts as a retro game. Each saga is a training storyline with stages to climb and a boss to beat.' },
-    { target: 'ar-carousel', title: 'CHOOSE YOUR SAGA', body: 'Swipe left and right to browse sagas. Tap a card to open its stage ladder and start climbing.' },
-    { target: 'ar-player', title: 'YOUR PLAYER BAR', body: 'Your arcade progress lives here — XP, badges, and your active challenge carry across sagas.' },
-    { target: null, title: 'HOW A STAGE WORKS', body: 'Every stage is a real workout with an HP bar — each rep you finish chips it down. Clear the stage to unlock the next one on the ladder.' },
-    { target: null, title: '★ STAR RANKS', body: 'Beat a stage fast enough to earn stars — ★, ★★, or ★★★. Your best time is saved on the stage, and an elite MYTHIC tier waits above three stars for the fastest fighters.' },
-    { target: null, title: '👑 THE BOSS', body: 'The final stage of every saga is the boss — the hardest session of the storyline. Beat it to finish the saga and claim its trophy.' },
+    { screen: 'arcade', target: null, title: '🕹 TRAINING ARCADE', body: 'This is the Training Arcade — workouts as a retro game. Each saga is a training storyline with stages to climb and a boss to beat.' },
+    { screen: 'arcade', target: 'ar-carousel', title: 'CHOOSE YOUR SAGA', body: 'Swipe left and right to browse sagas. Tap a card to open its stage ladder and start climbing.' },
+    { screen: 'arcade', target: 'ar-player', title: 'YOUR PLAYER BAR', body: 'Your arcade progress lives here — XP, badges, and your active challenge carry across sagas.' },
+    { screen: 'arcade', target: null, title: 'HOW A STAGE WORKS', body: 'Every stage is a real workout with an HP bar — each rep you finish chips it down. Clear the stage to unlock the next one on the ladder. Let\'s look at a real ladder.' },
+    { screen: 'arcade_series', target: 'arc-stage', title: '▶ ENTER A STAGE', body: 'Tap a stage node like this one to open its mission card — you\'ll see the workout, your best time and ★ goals. ENTER STAGE starts it, and then the timer takes over.' },
+    { screen: 'arcade_series', target: 'arc-stars', title: '★ STAR RANKS', body: 'Beat a stage fast enough to earn stars — ★, ★★, or ★★★. Your best time is saved on the stage, this counter tracks your clears, and an elite MYTHIC tier waits above three stars for the fastest fighters.' },
+    { screen: 'arcade_series', target: 'arc-boss', title: '👑 THE BOSS', body: 'The final stage of every saga is the boss — those eyes at the top of the ladder. It\'s the hardest session of the storyline: answer the bell, survive it, and the saga\'s trophy and DOUBLE XP are yours.' },
   ],
 
   fight_focus_setup: [

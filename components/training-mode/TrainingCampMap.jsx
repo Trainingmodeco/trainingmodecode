@@ -293,10 +293,11 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                     {boss && <div style={{ font: "600 7.5px 'Rajdhani',sans-serif", color: '#c9a6ff', marginTop: 1 }}>final test · the belt</div>}
                     {state === 'current' && <div style={{ font: "700 7px 'Press Start 2P',monospace", color: GOLD, marginTop: 3 }}>you are here</div>}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <div {...(boss ? { 'data-guide': 'tc-belt' } : {})} style={{ display: 'flex', justifyContent: 'center' }}>
                     <NodeCircle level={lv.level} state={state} boss={boss} />
                   </div>
-                  <div {...(state === 'current' ? { 'data-guide': 'tc-pips' } : {})} style={{ paddingLeft: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  {/* Level 4 is the first two-a-day, so it anchors the S1/S2 guide steps. */}
+                  <div {...(lv.level === 4 ? { 'data-guide': 'tc-pips4' } : {})} style={{ paddingLeft: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <NodePips level={lv.level} state={state} sess={sessAll[lv.level]} />
                   </div>
                 </button>
@@ -338,7 +339,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               <button onClick={() => setOpenLevel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><X size={15} color="#9a90b8" /></button>
             </div>
 
-            <div style={{ display: 'flex', gap: 5, marginBottom: 9 }}>
+            <div data-guide="tc-difficulty" style={{ display: 'flex', gap: 5, marginBottom: 9 }}>
               {DIFFS.map((d) => {
                 const on = d === difficulty;
                 return (
@@ -436,7 +437,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
           </div>
 
           {/* Pinned — never scrolls out of reach. */}
-          <div style={{ flexShrink: 0, padding: '10px 14px 14px' }}>
+          <div data-guide="tc-ready" style={{ flexShrink: 0, padding: '10px 14px 14px' }}>
             {/* 2.9 (gate) — free levels 1..N; a Pro level shows the upsell note. */}
             {canStart && levelGated && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, padding: '6px 9px', borderRadius: 8, background: 'rgba(253,224,71,0.09)', border: '1px solid rgba(253,224,71,0.4)' }}>
@@ -462,7 +463,15 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         </OverlayPortal>
       )}
 
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.training_camp} onClose={() => setHelpOpen(false)} />}
+      {/* `campModal` steps open the current level's card so the guide can
+          spotlight the real difficulty chips and START button inside it. */}
+      {helpOpen && (
+        <ScreenGuide
+          steps={SCREEN_GUIDES.training_camp}
+          onStep={(_i, cfg) => setOpenLevel(cfg?.campModal ? Math.min(current, 12) : null)}
+          onClose={() => { setHelpOpen(false); setOpenLevel(null); }}
+        />
+      )}
 
       {/* 2.6 — readiness gate. On 'go' it hands off to the gear check (2.9),
           which then launches. Easy variant carries through as the difficulty. */}

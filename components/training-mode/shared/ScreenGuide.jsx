@@ -143,8 +143,10 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
   const tipBottom = (hole && !centered && !below) ? Math.min(rawBottom, maxBottom) : undefined;
   const isLast = step === steps.length - 1;
 
+  // z 1200 sits above OVERLAY_Z (1000): guides can open portalled modals (the
+  // camp level card) and must dim + spotlight ON TOP of them.
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 500 }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1200 }} onClick={e => e.stopPropagation()}>
       <style dangerouslySetInnerHTML={{ __html: GUIDE_STYLES }} />
 
       {/* Dim layer (with a spotlight hole when a target is highlighted) */}
@@ -194,41 +196,52 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
           }} />
         )}
 
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.08em', lineHeight: 1.4 }}>
+        {/* Red ✕ exit — top-right corner of the card. */}
+        <button aria-label="Close guide" onClick={() => onClose?.(isLast)} style={{
+          position: 'absolute', top: 6, right: 6, width: 22, height: 22,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(239,68,68,0.14)', border: '1px solid rgba(239,68,68,0.55)',
+          borderRadius: 7, cursor: 'pointer', padding: 0,
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
+          color: '#ef4444', lineHeight: 1,
+        }}>✕</button>
+
+        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.08em', lineHeight: 1.4, paddingRight: 24 }}>
           {cfg.title}
         </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: '#e7ddf7', lineHeight: 1.45, margin: '6px 0 12px' }}>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12, color: '#e7ddf7', lineHeight: 1.45, margin: '6px 0 10px' }}>
           {cfg.body}
         </div>
 
-        {/* Footer: close · back · dots · next */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 2px', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: 'rgba(200,170,255,0.55)', letterSpacing: '0.1em' }}>
-            CLOSE
-          </button>
-
-          {/* Re-read the previous step without losing the guide. Hidden on the
-              first step, where there is nothing behind it. */}
-          {step > 0 && (
-            <button onClick={() => go(-1)} style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '6px 2px',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
-              color: GOLD, opacity: 0.9, letterSpacing: '0.1em',
-            }}>‹ BACK</button>
-          )}
-
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 5 }}>
-            {steps.map((_, i) => (
+        {/* Dots on their own row, then BACK / NEXT below them so the buttons
+            never crowd the dots. Long tours get smaller dots so the row fits. */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: steps.length > 10 ? 3 : 5, marginBottom: 8 }}>
+          {steps.map((_, i) => {
+            const d = steps.length > 10 ? 4 : 5;
+            return (
               <span key={i} style={{
-                width: i === step ? 14 : 5, height: 5, borderRadius: 99,
+                width: i === step ? d + 8 : d, height: d, borderRadius: 99,
                 background: i === step ? GOLD : 'rgba(255,255,255,0.28)',
                 transition: 'width 0.25s ease',
               }} />
-            ))}
-          </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          {/* Re-read the previous step without losing the guide. Hidden on the
+              first step, where there is nothing behind it. */}
+          {step > 0 ? (
+            <button onClick={() => go(-1)} style={{
+              background: 'none', border: `1px solid rgba(253,224,71,0.45)`, cursor: 'pointer',
+              borderRadius: 9, padding: '8px 12px',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9,
+              color: GOLD, opacity: 0.9, letterSpacing: '0.1em',
+            }}>‹ BACK</button>
+          ) : <span />}
 
           {isLast ? (
-            <button onClick={onClose} style={{
+            <button onClick={() => onClose?.(true)} style={{
               background: 'linear-gradient(135deg,#fde047,#f59e0b)', border: 'none', cursor: 'pointer',
               borderRadius: 9, padding: '9px 14px',
               fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, color: '#0a0014', letterSpacing: '0.1em',

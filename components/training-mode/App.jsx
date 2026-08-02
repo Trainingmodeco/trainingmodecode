@@ -17,7 +17,6 @@ import { generateCombatConditioningMission } from './data/combatConditioningGene
 import { stopVoiceSession } from './voiceCoach';
 import { trackEvent } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
-import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 // Already in the main bundle via HomeDashboard's Continue Challenge card, so
@@ -151,11 +150,13 @@ export default function App() {
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
-  const [tourStep, setTourStep] = useState(null); // design 33 feature tour (null = off)
-  // The Choose Your Path walkthrough. Lives up here rather than inside
-  // TrainingHub because its steps navigate between screens, and a guide
-  // rendered inside a screen dies the moment that screen unmounts.
-  const [pathTour, setPathTour] = useState(false);
+  // Which app-level guide is running: 'full_intro' (first-run + replay),
+  // 'train_hub' (the ? on Choose Your Path), 'arcade_saga_select' (the ? on
+  // the arcade), or null. Lives up here rather than inside a screen because
+  // cross-screen guides navigate, and a guide rendered inside a screen dies
+  // the moment that screen unmounts.
+  const [pathTour, setPathTour] = useState(null);
+  const pathTourLastRef = useRef(false); // reached the final step?
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -303,36 +304,25 @@ export default function App() {
     }
   }, []);
 
-  // ── Design 33: first-run feature tour (spotlight coach marks) ──
-  // The overlay lives at app level; each step declares which screen it runs on.
+  // ── First-run intro + cross-screen guides (spotlight coach marks) ──
+  // One ScreenGuide host at app level, keyed by which guide is running.
+  // 'full_intro' replaces the old FeatureTour: it fires after the
+  // questionnaire and from Profile → Replay intro guide, and nowhere else.
   const markTourDone = () => {
     if (typeof localStorage !== 'undefined') localStorage.setItem(TOUR_KEY, 'true');
   };
-  const advanceTour = () => {
-    const next = (tourStep ?? 0) + 1;
-    if (next >= TOUR_STEPS.length) {
+  const startFullIntro = () => { setScreen('home'); setPathTour('full_intro'); };
+  const closePathTour = (finished) => {
+    const key = pathTour;
+    setPathTour(null);
+    if (key === 'full_intro') {
       markTourDone();
-      setTourStep(null);
+      trackEvent(finished ? 'feature_tour_complete' : 'feature_tour_skipped');
       setScreen('home');
-      trackEvent('feature_tour_complete');
-    } else {
-      setScreen(TOUR_STEPS[next].screen);
-      setTourStep(next);
+    } else if (key === 'arcade_saga_select') {
+      // Per spec: however the arcade guide ends, land back on the saga page.
+      setScreen('arcade');
     }
-  };
-  // Mirror of advanceTour. Each tour step declares the screen it lives on, so
-  // stepping back has to move the app back to that screen too — otherwise the
-  // spotlight would hunt for a target that is no longer rendered.
-  const retreatTour = () => {
-    const prev = (tourStep ?? 0) - 1;
-    if (prev < 0) return;
-    setScreen(TOUR_STEPS[prev].screen);
-    setTourStep(prev);
-  };
-  const skipTour = () => {
-    markTourDone();
-    setTourStep(null);
-    trackEvent('feature_tour_skipped', { step: tourStep });
   };
 
   const actions = {
@@ -340,7 +330,8 @@ export default function App() {
     goHome:        () => { pauseCurrentSession(); setScreen('home'); },
     goProgress:    () => { pauseCurrentSession(); setScreen('progress'); },
     goTrainingHub: () => { pauseCurrentSession(); setScreen('training_hub'); },
-    startPathTour: () => { setScreen('training_hub'); setPathTour(true); },
+    startPathTour: () => { setScreen('training_hub'); setPathTour('train_hub'); },
+    startArcadeGuide: () => setPathTour('arcade_saga_select'),
     goFightHub:    () => setScreen('fight_hub'),
     // 3c — backing out of a live builder/quick-mission session PAUSES it (the
     // app's normal resume flow picks it up) instead of silently abandoning it.
@@ -751,26 +742,23 @@ export default function App() {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
       updateProfile(onboardingProfile || { goal, experience });
       trackEvent('onboarding_complete', { goal, experience });
-      // Design 33: land on the REAL Home and run the one-time interactive
-      // feature tour (replaces the static 27a guide). Never auto-show again.
-      setScreen('home');
+      // Land on the REAL Home and run the one-time full walkthrough.
+      // Never auto-show again.
       const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-      if (!tourDone) setTourStep(0);
+      if (!tourDone) startFullIntro(); else setScreen('home');
     },
     startFeatureTour: () => {
       // Settings → "Replay intro guide".
-      setScreen('home');
-      setTourStep(0);
       trackEvent('feature_tour_replay');
+      startFullIntro();
     },
     skipOnboardingToHome: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
       updateProfile(onboardingProfile || { goal, experience });
-      // The feature tour runs right after the questionnaire no matter how it
-      // ended — skipping the wizard doesn't skip the tour.
-      setScreen('home');
+      // The full walkthrough runs right after the questionnaire no matter how
+      // it ended — skipping the wizard doesn't skip the intro.
       const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-      if (!tourDone) setTourStep(0);
+      if (!tourDone) startFullIntro(); else setScreen('home');
     },
   };
 
@@ -799,16 +787,14 @@ export default function App() {
             actions={actions}
           />
         </Suspense>
-        {tourStep != null && (
-          <FeatureTour step={tourStep} onNext={advanceTour} onBack={retreatTour} onSkip={skipTour} />
-        )}
         {pathTour && (
           <ScreenGuide
-            steps={SCREEN_GUIDES.train_hub}
-            onClose={() => setPathTour(false)}
-            onStep={(_i, cfg) => {
+            steps={SCREEN_GUIDES[pathTour]}
+            onClose={(finished) => closePathTour(finished || pathTourLastRef.current)}
+            onStep={(i, cfg) => {
+              pathTourLastRef.current = i === SCREEN_GUIDES[pathTour].length - 1;
               if (!cfg?.screen) return;
-              // The ladder step needs a saga loaded before the screen can
+              // Ladder steps need a saga loaded before the screen can
               // render — walk into the first playable one.
               if (cfg.screen === 'arcade_series') {
                 const s = TRAINING_ARCADE_SERIES.find(isSeriesPlayable);

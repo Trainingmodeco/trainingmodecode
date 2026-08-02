@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { HelpButton } from './shared/WorkoutHelpPanel';
-import ScreenGuide from './shared/ScreenGuide';
-import { SCREEN_GUIDES } from './shared/screenGuides';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import ArcadeBackdrop from './shared/ArcadeBackdrop';
@@ -59,7 +57,7 @@ function StarRow({ count = 0, size = 11 }) {
   );
 }
 
-export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode }) {
+export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode, onStartGuide }) {
   // Paste a friend's challenge code to jump into the exact stage they set.
   // (window.prompt is unsupported on RN Web — use an in-app modal.)
   const [codeOpen, setCodeOpen] = useState(false);
@@ -75,7 +73,6 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
   // the scroll settles, so a swipe past either end wraps seamlessly. `active` is a
   // DISPLAY index (0..3n-1); the real saga is `slides[active]` / `active % n`.
   const slides = useMemo(() => (n ? [...series, ...series, ...series] : []), [series, n]);
-  const [helpOpen, setHelpOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [padInline, setPadInline] = useState(40);
   const [stats, setStats] = useState(null);
@@ -209,7 +206,8 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
           <button aria-label="Back" onClick={onBack} style={{ position: 'absolute', left: 12, top: 12, width: 32, height: 32, borderRadius: 9, border: '1px solid rgba(94,234,212,0.3)', background: 'rgba(8,20,20,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ChevronLeft size={18} color={TEAL} />
           </button>
-          <HelpButton onClick={() => setHelpOpen(true)} style={{ position: 'absolute', right: 12, top: 12 }}/>
+          {/* The arcade guide crosses into the stage ladder, so App hosts it. */}
+          <HelpButton onClick={onStartGuide} style={{ position: 'absolute', right: 12, top: 12 }}/>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, letterSpacing: '0.06em', background: 'linear-gradient(90deg,#5eead4,#2dd4bf)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', textShadow: '0 0 18px rgba(45,212,191,0.35)' }}>TRAINING ARCADE</div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: 'rgba(94,234,212,0.75)', letterSpacing: '0.24em', marginTop: 4 }}>‹ SWIPE TO CHOOSE YOUR SAGA ›</div>
           <button data-tour="challenge-code" onClick={() => setCodeOpen(true)} style={{ marginTop: 7, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 8, color: '#c9a6ff', font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.08em', padding: '6px 12px', cursor: 'pointer' }}>⚔ ENTER A CHALLENGE CODE</button>
@@ -376,7 +374,6 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
           TAP CARD TO ENTER SAGA
         </div>
       </div>
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.arcade_saga_select} onClose={() => setHelpOpen(false)}/>}
       {codeOpen && (
         <CodeEntryModal
           title="⚔ ENTER A CHALLENGE CODE"

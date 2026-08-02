@@ -370,7 +370,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           rightSlot={(
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <HelpButton onClick={() => setHowTo(true)} size={16} style={{ width: 26, height: 26, borderRadius: 7 }} />
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
+              <span data-guide="arc-stars" style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
                 {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
               </span>
             </div>
@@ -430,7 +430,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                   )}
                   <button
                     className="ladder-node"
-                    data-guide={st === 'current' ? 'arc-stage' : undefined}
+                    data-guide={isBoss ? 'arc-boss' : st === 'current' ? 'arc-stage' : undefined}
                     onClick={(e) => onNodeTap(e, idx)}
                     aria-label={isMythic ? 'Elite boss' : isBoss ? 'Boss stage' : `Stage ${stage.stageNumber || idx + 1}`}
                     style={{
