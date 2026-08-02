@@ -59,6 +59,12 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   );
   const baseRoundSec = cfg.roundMin * 60;
 
+  // The setup screen stores display casing ('Easy' | 'Normal' | 'Hard'), so any
+  // comparison has to lowercase at the boundary. Derived once here because the
+  // combo-gap test below silently matched nothing when it compared 'hard'
+  // against 'Hard' — Easy and Hard both fell through to the Normal spacing.
+  const diff = String(cfg.difficulty || 'normal').toLowerCase();
+
   const integrity = useIntegritySession('fightFocus', cfg.rounds);
   const integrityStartedRef = useRef(false);
   const [rapidWarning, setRapidWarning] = useState(null);
@@ -374,7 +380,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             setCurCombo(null);
           }
           const comboElapsed = roundSec - remaining;
-          const gap = cfg.difficulty === 'hard' ? 7 : cfg.difficulty === 'easy' ? 11 : 9;
+          const gap = diff === 'hard' ? 7 : diff === 'easy' ? 11 : 9;
           if (comboElapsed >= 2 && remaining > 6 && !rushRef.current &&
               comboElapsed - lastComboAtRef.current >= gap) {
             lastComboAtRef.current = comboElapsed;
@@ -414,7 +420,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
         const ghostVerified = (!integrityResult || integrityResult.isFullyValid) && thrownRef.current > 0;
         recordGhostFromSession({
-          mode: 'fight_focus', discipline, difficulty: String(cfg.difficulty || 'normal').toLowerCase(),
+          mode: 'fight_focus', discipline, difficulty: diff,
           roundsConfig: { rounds: cfg.rounds, roundSec, restSec: cfg.restSec },
           strikeTimesSec: strikeTimesRef.current, totalSec: Math.max(1, workElapsedRef.current),
           perRoundStrikes: perRoundStrikesRef.current, completionSec: workElapsedRef.current,

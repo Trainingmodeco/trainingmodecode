@@ -277,22 +277,30 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
     setCountdownVal(3);
   }
 
-  const startCadenceLoop = useCallback(() => {
+  // ONE cadence loop, shared by the initial start and the post-rewind resume.
+  // These were two near-identical copies, and the pause fix landed on the start
+  // copy only — so rewinding mid-exercise installed a loop that counted, beeped
+  // and spoke reps straight through a pause. A single body prevents that.
+  const runCadenceFrom = useCallback((startFrom, { intro }) => {
     const version = ++cadenceVersionRef.current;
-    repRef.current = 0;
-    setCurrentRep(0);
-    setAnnouncerText('Begin!');
+    if (intro) {
+      repRef.current = 0;
+      setCurrentRep(0);
+      setAnnouncerText('Begin!');
+    }
 
     const stale = () => cadenceVersionRef.current !== version;
     const pausedNow = () => pausedRef.current;
 
     const runLoop = async () => {
-      await delay(400);
-      if (cadenceVersionRef.current !== version) return;
+      if (intro) {
+        await delay(400);
+        if (stale()) return;
+      }
 
       const target = tasks[taskIdxRef.current]?.reps || 100;
 
-      for (let i = 1; i <= target; i++) {
+      for (let i = startFrom + 1; i <= target; i++) {
         if (stale()) return;
 
         // Only unpaused time counts. The old wall-clock deadline kept expiring
@@ -331,61 +339,15 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalTasks]);
 
-  const resumeCadenceLoop = useCallback(() => {
-    const version = ++cadenceVersionRef.current;
-    const startFrom = repRef.current;
-    const target = tasks[taskIdxRef.current]?.reps || 100;
+  const startCadenceLoop = useCallback(
+    () => runCadenceFrom(0, { intro: true }),
+    [runCadenceFrom],
+  );
 
-    const runLoop = async () => {
-      for (let i = startFrom + 1; i <= target; i++) {
-        if (cadenceVersionRef.current !== version) return;
-
-        const waitStart = Date.now();
-        const targetWait = cadenceMsRef.current;
-        while (Date.now() - waitStart < targetWait) {
-          if (cadenceVersionRef.current !== version) return;
-          if (pausedRef.current) {
-            await delay(100);
-            continue;
-          }
-          const remaining = targetWait - (Date.now() - waitStart);
-          if (remaining > 50) {
-            await delay(Math.min(50, remaining));
-          } else {
-            break;
-          }
-        }
-
-        if (cadenceVersionRef.current !== version) return;
-
-        repRef.current = i;
-        setCurrentRep(i);
-        const countText = formatCadenceCount(i);
-        setAnnouncerText(countText);
-        playBeep();
-        if (cadenceCountEnabledRef.current && voiceEnabledRef.current) {
-          speakAsync(countText, { rate: 1.45 });
-        }
-
-        if (cadenceVersionRef.current !== version) return;
-      }
-
-      if (cadenceVersionRef.current !== version) return;
-      const taskTitle = tasks[taskIdxRef.current]?.title || 'Exercise';
-      announce(`${taskTitle} complete!`);
-      await delay(800);
-      if (cadenceVersionRef.current !== version) return;
-
-      if (taskIdxRef.current + 1 < totalTasks) {
-        setPhase('rest');
-      } else {
-        handleBenchmarkComplete();
-      }
-    };
-
-    runLoop();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalTasks]);
+  const resumeCadenceLoop = useCallback(
+    () => runCadenceFrom(repRef.current, { intro: false }),
+    [runCadenceFrom],
+  );
 
   function handleBenchmarkComplete() {
     cadenceVersionRef.current++;
