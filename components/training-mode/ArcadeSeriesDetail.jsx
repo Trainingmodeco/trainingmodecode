@@ -9,6 +9,7 @@ import { Lock, Check, X } from 'lucide-react';
 import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
+import { targetsForStage } from './data/benchmarkLog';
 import { canAccessStage, GATES } from './data/entitlements';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
 import ScreenGuide from './shared/ScreenGuide';
@@ -37,6 +38,11 @@ const detailStyles = `
 function getStageObjectives(stage) {
   const out = [];
   const fb = stage.fitBlock;
+  // OP-1 — the tester has no rep targets: it's max-out per exercise.
+  if (stage.stageType === 'benchmark' && fb?.tasks) {
+    fb.tasks.slice(0, 3).forEach(t => out.push({ label: `Max ${t.title}`, detail: 'as many as you can' }));
+    return out.slice(0, 3);
+  }
   const tr = fb?.totalReps;
   if (tr) {
     if (tr.pushUps) out.push({ label: `${tr.pushUps} Push-Ups`, detail: 'cadence-paced' });
@@ -319,12 +325,25 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const guideStage = nodes[currentStageIdx()] || stages[0];
 
   // ── Modal content data ──
-  const objectives = selected ? getStageObjectives(selected) : [];
   const difficulty = selected ? Math.min(5, Math.max(1, Math.ceil((selected.stageNumber || 1) / 2))) : 1;
   const baseXp = selected?.rewards?.xp || 100;
   const isCleared = selected ? completedSet.has(selected.id) : false;
   const compData = selected ? progress.completedStages[selected.id] : null;
   const bestSec = compData?.bestTimeSeconds ?? compData?.timeSeconds ?? compData?.durationSeconds ?? null;
+  // OP-1 — One Punch only for now (returns null elsewhere / without a baseline).
+  const baselineTargets = selected && series?.id === 'one-punch-protocol'
+    ? targetsForStage(series.id, selected)
+    : null;
+  // With a baseline, the objectives list must quote the SCALED totals — a
+  // "100 Push-Ups" row above a "40 push-ups" target would contradict itself.
+  const objectives = (selected ? getStageObjectives(selected) : []).map(o => {
+    if (!baselineTargets || !baselineTargets.scaled) return o;
+    const swap = [['Push-Ups', 'pushUps'], ['Squats', 'squats'], ['Sit-Ups', 'sitUps']]
+      .find(([name]) => o.label.endsWith(name));
+    return swap && baselineTargets[swap[1]]
+      ? { ...o, label: o.label.replace(/^\d+/, String(baselineTargets[swap[1]].target)) }
+      : o;
+  });
   const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
   // Real per-stage time cutoffs (starTiers on stages 2-9, scoring tiers on
   // the benchmark/boss); XP labels only when a stage truly has no times.
@@ -619,6 +638,26 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                   );
                 })}
               </div>
+
+              {/* OP-1 — baseline-scaled rep targets: once the stage-1 tester
+                  has logged a baseline, stages 2–9 train toward these numbers
+                  instead of the full authored volume. */}
+              {baselineTargets && baselineTargets.scaled && (
+                <div data-testid="your-target" style={{
+                  marginBottom: 8, padding: '6px 9px', borderRadius: 8,
+                  background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.3)',
+                }}>
+                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7, color: '#4ade80', letterSpacing: '0.14em' }}>YOUR TARGET</span>
+                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 11, color: '#e9fff1', marginTop: 2 }}>
+                    {[
+                      baselineTargets.pushUps && `${baselineTargets.pushUps.target} push-ups`,
+                      baselineTargets.squats && `${baselineTargets.squats.target} squats`,
+                      baselineTargets.sitUps && `${baselineTargets.sitUps.target} sit-ups`,
+                    ].filter(Boolean).join(' · ')}
+                    <span style={{ color: 'rgba(200,170,255,0.75)', fontWeight: 600 }}> — on the road to 100</span>
+                  </div>
+                </div>
+              )}
 
               {/* Star goals */}
               <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>

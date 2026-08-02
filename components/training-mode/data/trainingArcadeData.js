@@ -336,8 +336,14 @@ const BOSS_SCORING = [
 const ONE_PUNCH_STAGES = [
   {
     id: 'op-stage-1', stageNumber: 1, title: 'Hero Entry Test',
-    focus: 'Baseline benchmark: self-paced 100 push-ups, 100 squats, 100 sit-ups',
-    announcerIntro: 'Stage 1. Hero Entry Test. Complete 100 push-ups, 100 squats, and 100 sit-ups. Your pace. Get ready.',
+    // OP-1 — MAX-OUT TESTER, not a 100-rep wall. Each exercise is tested to
+    // the athlete's max and logged as their baseline (data/benchmarkLog.js);
+    // stages 2–9 then interpolate from that baseline toward 100. Completion =
+    // tested (any count ≥ 1 per exercise) — that is what
+    // requiresFullCompletionToUnlockNext means on a benchmark stage. The
+    // time-rank tiers still apply to anyone who does reach 100/100/100.
+    focus: 'Max-out tester: as many push-ups, squats and sit-ups as you can — sets your baseline',
+    announcerIntro: 'Stage 1. Hero Entry Test. Push-ups, squats, and sit-ups. As many as you can, your pace. This sets your baseline. Get ready.',
     stageType: 'benchmark',
     scoringType: 'timeRank',
     isFinalRound: false,
@@ -350,9 +356,9 @@ const ONE_PUNCH_STAGES = [
     fitBlock: {
       mode: 'fit',
       tasks: [
-        { id: 'op1-f1', type: 'benchmark', title: 'Push-Ups', instructions: 'Complete 100 push-ups. Full range of motion. Chest to floor.', reps: 100, cadenceMs: 2000, equipment: 'None', category: 'push' },
-        { id: 'op1-f2', type: 'benchmark', title: 'Squats', instructions: 'Complete 100 squats. Full depth. No partial reps.', reps: 100, cadenceMs: 2000, equipment: 'None', category: 'legs' },
-        { id: 'op1-f3', type: 'benchmark', title: 'Sit-Ups', instructions: 'Complete 100 sit-ups. Full range of motion.', reps: 100, cadenceMs: 2000, equipment: 'None', category: 'core' },
+        { id: 'op1-f1', type: 'benchmark', title: 'Push-Ups', instructions: 'As many push-ups as you can. Full range of motion. Chest to floor.', reps: 100, cadenceMs: 2000, equipment: 'None', category: 'push' },
+        { id: 'op1-f2', type: 'benchmark', title: 'Squats', instructions: 'As many squats as you can. Full depth. No partial reps.', reps: 100, cadenceMs: 2000, equipment: 'None', category: 'legs' },
+        { id: 'op1-f3', type: 'benchmark', title: 'Sit-Ups', instructions: 'As many sit-ups as you can. Full range of motion.', reps: 100, cadenceMs: 2000, equipment: 'None', category: 'core' },
       ],
     },
     fightBlock: null,

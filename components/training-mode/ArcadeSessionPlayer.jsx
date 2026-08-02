@@ -8,6 +8,7 @@ import { C } from './Styles';
 import { markBlockComplete, completeStage, getSeriesProgress } from './data/arcadeProgress';
 import { getStarsForTime } from './data/trainingArcadeData';
 import { addFitModeSession, addFightFocusSession } from './data/userStats';
+import { latestBaseline, scaleFitTasks } from './data/benchmarkLog';
 import { IntegritySession, MODE_RULES, isStageFullyValid } from './utils/missionIntegrity';
 import CardioProtocolSelector from './CardioProtocolSelector';
 import { CARDIO_METHODS } from './data/cardioProtocolData';
@@ -25,7 +26,7 @@ function formatTime(sec) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function buildTaskList(stage, blockKey, arcadeSettings) {
+function buildTaskList(stage, blockKey, arcadeSettings, series) {
   const block = blockKey === 'fit' ? stage.fitBlock : stage.fightBlock;
   if (!block) return [];
 
@@ -78,6 +79,15 @@ function buildTaskList(stage, blockKey, arcadeSettings) {
         }
       }
     }
+  }
+
+  // OP-1 — baseline-driven progression: once the athlete has run the stage-1
+  // max-out tester, stages 2–9 interpolate their rep totals from that baseline
+  // toward the campaign's 100. One Punch only until playtested; no baseline
+  // (or another saga) leaves the authored numbers untouched. Applied here —
+  // where the fit tasks resolve reps — so every player downstream just works.
+  if (blockKey === 'fit' && series?.id === 'one-punch-protocol' && stage.stageType === 'cadenceCircuit') {
+    tasks = scaleFitTasks(tasks, latestBaseline(series.id), stage.stageNumber);
   }
 
   // Add back-balance block if defined at stage level and not already integrated
@@ -236,7 +246,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     integrityRef.current = null;
   }, [firstBlock]);
 
-  const tasks = useMemo(() => buildTaskList(stage, currentBlock, arcadeSettings), [stage, currentBlock, arcadeSettings]);
+  const tasks = useMemo(() => buildTaskList(stage, currentBlock, arcadeSettings, series), [stage, currentBlock, arcadeSettings, series]);
 
   if (!integrityRef.current) {
     const totalTasks = tasks.length * (secondBlock ? 2 : 1);
