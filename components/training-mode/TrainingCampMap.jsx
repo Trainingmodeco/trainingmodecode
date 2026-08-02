@@ -355,7 +355,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
 
             {/* Item 14 — archetype AFTER difficulty: each card shows the blurb
                 for the difficulty just picked, so the choice is concrete. */}
-            <div style={{ marginBottom: 9 }}>
+            <div data-guide="tc-archetype" style={{ marginBottom: 9 }}>
               <ArchetypePicker
                 discipline={discKey}
                 difficulty={difficulty}
@@ -464,12 +464,21 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
       )}
 
       {/* `campModal` steps open the current level's card so the guide can
-          spotlight the real difficulty chips and START button inside it. */}
+          spotlight the real controls inside it (difficulty chips, archetype
+          picker); `campSheet` steps show the REAL readiness gut-check instead —
+          mirroring the live flow, where the level card closes and the sheet
+          appears alone. The guide overlay blocks interaction, so mounting the
+          sheet can't accidentally start a session. */}
       {helpOpen && (
         <ScreenGuide
           steps={SCREEN_GUIDES.training_camp}
-          onStep={(_i, cfg) => setOpenLevel(cfg?.campModal ? Math.min(current, 12) : null)}
-          onClose={() => { setHelpOpen(false); setOpenLevel(null); }}
+          onStep={(_i, cfg) => {
+            setOpenLevel(cfg?.campModal ? Math.min(current, 12) : null);
+            setReadinessCtx(cfg?.campSheet
+              ? { level: Math.min(current, 12), difficulty, slot: 's1' }
+              : null);
+          }}
+          onClose={() => { setHelpOpen(false); setOpenLevel(null); setReadinessCtx(null); }}
         />
       )}
 

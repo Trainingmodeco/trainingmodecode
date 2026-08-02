@@ -54,7 +54,7 @@ export default function ReadinessSheet({ onGo, onClose }) {
 
   const card = (children) => (
     <div onClick={onClose} style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(4,0,10,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
+      <div onClick={(e) => e.stopPropagation()} data-guide="tc-readiness" style={{
         width: '90%', maxWidth: 300, background: 'rgba(16,7,32,0.82)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid rgba(168,85,247,0.4)', borderRadius: 15, padding: '14px 15px 15px',
         boxShadow: '0 16px 44px rgba(0,0,0,0.6)',
