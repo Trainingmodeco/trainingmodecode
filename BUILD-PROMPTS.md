@@ -1049,3 +1049,64 @@ SecondaryButton / Card); no new design system.
 > - NUMBERS is gold, words stay violet — the two-tone split is the visual
 >   language for "numbered punch vs named strike".
 > - No new fonts, no new colours; reuse the app's existing tokens.
+
+---
+
+## PROMPT N-M — Designer brief: THE NUMBER MAP (visual chart of the strike numbering)
+
+> Paste into the design tool. One deliverable: a visual MAP of the strike
+> numbering system — the reference chart an athlete glances at to learn the
+> count. It must match the system that is already SHIPPED in the app, exactly
+> as written below; do not invent numbers for kicks.
+>
+> ### Brand
+>
+> Deep violet/black (#080012–#0a0014), gold #fde047, violet #a855f7,
+> Orbitron display type, Rajdhani body, arcade-cabinet framing. Gold = numbered
+> punch, violet = named strike — that two-tone rule is already the app's visual
+> language for this feature; the map must follow it.
+>
+> ### The system to map (exact, already live)
+>
+> Two columns by hand — ODD = LEAD, EVEN = REAR:
+>
+> | LEAD (odd) | REAR (even) |
+> |---|---|
+> | 1 · JAB | 2 · CROSS |
+> | 3 · LEAD HOOK | 4 · REAR HOOK |
+> | 5 · LEAD UPPERCUT | 6 · REAR UPPERCUT |
+> | 7 · LEAD OVERHAND | 8 · REAR OVERHAND |
+>
+> Plus the body rule, shown once as its own callout: **any number 1–6 “to the
+> body” is the same punch downstairs** — displayed 1B…6B, spoken “one to the
+> body”. Example: 3B = lead hook to the ribs.
+>
+> And one footnote strip in violet: kicks, knees, elbows, teeps and defense
+> are ALWAYS called by name — “1-2, LOW KICK” — never numbered.
+>
+> ### Layouts to produce (3)
+>
+> 1. **Full-screen reference map (in-app, 412×883).** Title THE NUMBER MAP.
+>    A fighter silhouette or stance figure centered; the eight numbers arranged
+>    around it in two arcs — odd numbers arcing off the lead side, even off the
+>    rear side — each as a gold medallion (the number, large) with the strike
+>    name under it in white Orbitron caps. Body-rule callout card beneath the
+>    figure; the violet kicks-stay-named strip at the bottom, clear of the
+>    ~90px tab-bar band. This screen ships inside Practice Mode next to the
+>    KNOW YOUR NUMBERS lesson.
+> 2. **Compact card (square-ish, shareable).** The same map condensed into the
+>    two-column table form above, gold numbers / white names on the dark
+>    ground, TRAINING MODE wordmark small in a corner. Built to be screenshotted
+>    and posted — this is also the content asset for filming.
+> 3. **Cheat-strip (horizontal, in-round).** One row: `1 JAB · 2 CROSS ·
+>    3 L.HOOK · 4 R.HOOK · 5 L.UPPER · 6 R.UPPER · 7 L.OVER · 8 R.OVER` —
+>    tiny, legible, designed to sit at the bottom of the Combo Coach round
+>    screen above the tab bar as an optional learning aid.
+>
+> ### Rules
+>
+> - The medallion style should match the gold number badges already on the
+>   Practice Mode technique cards (circular, gold ring, dark fill).
+> - Never show a number on a kick, knee, elbow, teep or defensive move.
+> - No new fonts or colours; the two-tone gold/violet split carries the
+>   meaning everywhere.
