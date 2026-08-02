@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import OverlayPortal from './OverlayPortal';
 
 // Screen guide — the ⓘ button's spotlight walkthrough. Same coach-mark
 // mechanics as the first-run FeatureTour, but scoped to the CURRENT screen:
@@ -42,12 +43,27 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
   // target isn't on screen would auto-advance forward again, and BACK would
   // look broken exactly where it is most needed.
   const dirRef = useRef(1);
+  // Notify the host SYNCHRONOUSLY on navigation, so a step that opens a modal
+  // (the camp level card) opens it in the same React batch as the step change.
+  // Notifying from the effect alone painted the new step first — full dim,
+  // bubble centred — and only then opened the modal, so the bubble visibly
+  // teleported onto its target a beat later. The effect stays as the fallback
+  // for the initial mount and the missing-target auto-skip; notifiedRef keeps
+  // the two paths from double-firing.
+  const notifiedRef = useRef(-1);
+  const notify = (i) => {
+    if (notifiedRef.current === i) return;
+    notifiedRef.current = i;
+    onStep?.(i, steps[i]);
+  };
   const go = (d) => {
     dirRef.current = d;
-    setStep((s) => Math.min(steps.length - 1, Math.max(0, s + d)));
+    const n = Math.min(steps.length - 1, Math.max(0, step + d));
+    notify(n);
+    setStep(n);
   };
 
-  useEffect(() => { onStep?.(step, steps[step]); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { notify(step); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   const [rect, setRect] = useState(null);
   const scrolledRef = useRef(false);
   // Real rendered height of the bubble. The old fixed 150px estimate was wrong
@@ -85,12 +101,25 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
       }
       if (!scrolledRef.current) {
         scrolledRef.current = true;
-        try { el.scrollIntoView({ block: 'center', behavior: 'instant' }); } catch { /* noop */ }
+        // Only scroll when the target is actually out of view. Unconditional
+        // block:'center' also scrolled targets INSIDE a freshly-opened modal
+        // (the camp level card), yanking its body the moment it appeared.
+        const r0 = el.getBoundingClientRect();
+        if (r0.top < 0 || r0.bottom > window.innerHeight) {
+          try { el.scrollIntoView({ block: 'center', behavior: 'instant' }); } catch { /* noop */ }
+        }
       }
       requestAnimationFrame(() => {
         if (cancelled) return;
         const r = el.getBoundingClientRect();
-        setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+        // Re-render only on real movement — the 500ms re-measure otherwise
+        // pushed a fresh rect object (and a re-render) twice a second.
+        setRect((p) => (
+          p && Math.abs(p.top - r.top) < 1 && Math.abs(p.left - r.left) < 1 &&
+          Math.abs(p.width - r.width) < 1 && Math.abs(p.height - r.height) < 1
+            ? p
+            : { top: r.top, left: r.left, width: r.width, height: r.height }
+        ));
       });
     };
 
@@ -143,9 +172,14 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
   const tipBottom = (hole && !centered && !below) ? Math.min(rawBottom, maxBottom) : undefined;
   const isLast = step === steps.length - 1;
 
-  // z 1200 sits above OVERLAY_Z (1000): guides can open portalled modals (the
-  // camp level card) and must dim + spotlight ON TOP of them.
+  // PORTALLED to document.body: PhoneFrame's `isolation: isolate` opens a
+  // stacking context, so any z-index inside the frame — however large — can
+  // never outrank a body-level portal. The camp level card portals to body at
+  // OVERLAY_Z (1000) and was painting OVER an in-frame guide, hiding the
+  // explainer behind the very modal it had just opened. From body, z 1200
+  // genuinely wins, and the dim now covers the bottom nav too.
   return (
+    <OverlayPortal>
     <div style={{ position: 'fixed', inset: 0, zIndex: 1200 }} onClick={e => e.stopPropagation()}>
       <style dangerouslySetInnerHTML={{ __html: GUIDE_STYLES }} />
 
@@ -257,5 +291,6 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
         </div>
       </div>
     </div>
+    </OverlayPortal>
   );
 }
