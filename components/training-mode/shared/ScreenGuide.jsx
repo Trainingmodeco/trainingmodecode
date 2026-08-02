@@ -76,7 +76,10 @@ export default function ScreenGuide({ steps, onClose, centerTip = false, onStep 
       const el = document.querySelector(`[data-guide="${cfg.target}"]`);
       if (!el) {
         tries++;
-        if (tries > 20) { setStep(s => Math.min(steps.length - 1, Math.max(0, s + dirRef.current))); return; }
+        // 6s before giving up: cross-screen steps land on lazy-loaded screens
+        // (Arcade, the stage ladder) that show LOADING… while their chunk
+        // fetches — a 2s budget skipped those steps on slow connections.
+        if (tries > 60) { setStep(s => Math.min(steps.length - 1, Math.max(0, s + dirRef.current))); return; }
         setTimeout(measure, 100);
         return;
       }

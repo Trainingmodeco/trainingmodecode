@@ -31,15 +31,36 @@ export const SCREEN_GUIDES = {
     { target: 'pr-replay', title: '🔁 REPLAY INTRO GUIDE', body: 'Runs the first-run feature tour again — the spotlight walkthrough of Home, the Train tab, Arcade, Camp, Progress, and Game Link. Replay it any time.' },
   ],
 
+  // The full tour, and the only guide that crosses screens. A step naming a
+  // `screen` drives the app there first, so each feature is spotlighted on its
+  // REAL button instead of being described from a distance. That means this one
+  // must be hosted by App.jsx, not by TrainingHub — a guide rendered inside a
+  // screen unmounts the instant it navigates away.
   train_hub: [
-    { target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like.' },
-    { target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill. Inside: TRAINING CAMP (a 12-level camp to a Title Fight), FIGHT FOCUS (coached rounds), COMBO COACH (combos called out to throw), PRACTICE MODE (learn strikes step by step), MOVE LAB (build your own moves) and CONDITIONING.' },
-    { target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Inside: WORKOUT BUILDER (a workout around the muscles you pick), QUICK MISSION (instant workout when you\'re short on time), CARDIO MODE (runs, intervals, Tabata) and WORKOUT CODEX, coming soon.' },
-    { target: 'hub-combat', title: 'COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Pick this when you want to be exhausted and sharp at the same time.' },
-    { target: 'hub-arcade', title: 'TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Each saga is 10 stages with a boss at the end. Every rep you complete damages the stage, and clearing one unlocks the next.' },
-    { target: null, title: '⚡ XP, LEVELS & REWARDS', body: 'Every finished session earns XP, and XP raises your fighter level and rank. Beat arcade stages fast enough for ★ ratings, train days in a row to grow your 🔥 streak, and unlock trophies and badges as you go. Bosses pay double XP.' },
-    { target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
-    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+    { screen: 'training_hub', target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like. This guide walks you into each one.' },
+
+    { screen: 'training_hub', target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
+    { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
+    { screen: 'fight_hub', target: 'fh-fight-focus', title: '⏱ FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
+    { screen: 'fight_hub', target: 'fh-combo', title: '🥊 COMBO COACH', body: 'The coach calls combinations and you throw them — "one-two, slip, hook". Builds speed, rhythm and reaction. You set how often the calls come.' },
+    { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. Strikes, defense and footwork taught one at a time, with form cues — no timer pressure.' },
+    { screen: 'fight_hub', target: 'fh-movelab', title: '⚡ COMBO CREATOR (MOVE LAB)', body: 'Build your own combos and signature moves — chain real strikes into a sequence, or type your own call. Anything you save joins Combo Coach\'s rotation.' },
+
+    { screen: 'training_hub', target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
+    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. You can swap any exercise, edit sets and reps, and save it as a routine.' },
+    { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
+    { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs, intervals, Tabata and HIIT, with pace coaching and a target you can set by distance or time.' },
+
+    { screen: 'training_hub', target: 'hub-combat', title: '🔥 COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Strike work and hard conditioning in the same round. Pick this when you want to be exhausted and sharp at the same time.' },
+
+    { screen: 'training_hub', target: 'hub-arcade', title: '🕹 TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Let\'s step inside and see how it works.' },
+    { screen: 'arcade', target: 'ar-carousel', title: 'THE CAMPAIGN SHELF', body: 'Every card is a saga — a themed campaign of 10 stages with a boss at the end. Swipe to browse them; locked ones say COMING SOON. Tap a card to open its stage ladder.' },
+    { screen: 'arcade_series', target: 'arc-ladder', title: 'THE STAGE LADDER', body: 'Inside a saga you climb bottom to top. Each node is one real workout — clear it to unlock the next, and finish fast for ★ ratings. Stage 10 is the boss: answer the bell, survive the finale, and it pays DOUBLE XP.' },
+
+    { screen: 'training_hub', target: null, title: '⚡ XP, LEVELS & REWARDS', body: 'Every finished session earns XP, and XP raises your fighter level and rank. Beat arcade stages fast enough for ★ ratings, train days in a row to grow your 🔥 streak, and unlock trophies and badges as you go. Bosses pay double XP.' },
+    { screen: 'profile', target: 'pr-gamelink', title: '🎮 LINKED TO THE UPCOMING GAME', body: 'Training Mode connects to a companion FIGHTING GAME in development. Your real training — rank, XP, unlocked tiers — will sync INTO the game and level up your in-game fighter. Tap GAME LINK any time to read more and join the free launch list.' },
+    { screen: 'training_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
+    { screen: 'training_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
   ],
 
   fight_hub: [

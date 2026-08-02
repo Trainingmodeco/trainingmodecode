@@ -187,7 +187,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
 }
 
 export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete, goMoveLab } = actions;
+  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete, goMoveLab, startPathTour } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -222,7 +222,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'training_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <TrainingHub onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onTrainingArcade={goTrainingArcade} onCombatConditioning={goCombatCondSetup} onProfile={goProfile} profile={profile}/>
+        <TrainingHub onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onTrainingArcade={goTrainingArcade} onCombatConditioning={goCombatCondSetup} onProfile={goProfile} onStartGuide={startPathTour} profile={profile}/>
       </WithNav>
     );
   }

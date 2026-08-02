@@ -1,11 +1,8 @@
-import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import TrainingHeader from './TrainingHeader';
 import { HelpButton } from './shared/WorkoutHelpPanel';
-import ScreenGuide from './shared/ScreenGuide';
-import { SCREEN_GUIDES } from './shared/screenGuides';
 import { ChevronRight } from 'lucide-react';
 import { C } from './Styles';
 import { IMG } from './data/optimizedImageMap';
@@ -30,12 +27,11 @@ const hubCSS = `
 }
 `;
 
-export default function TrainingHub({ onHome, onFightMode, onFitMode, onTrainingArcade, onCombatConditioning, onProfile, profile }) {
+export default function TrainingHub({ onHome, onFightMode, onFitMode, onTrainingArcade, onCombatConditioning, onProfile, onStartGuide, profile }) {
   const stats = loadStats();
   const level = getLevel(stats.xp);
   const rank = rankFor(level);
   const streak = getStreak(stats);
-  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
@@ -48,7 +44,7 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
         onHome={onHome}
         showBack
         onBack={onHome}
-        rightSlot={<HelpButton dataTour="screen-info" dataGuide="help-icon" onClick={() => setHelpOpen(true)}/>}
+        rightSlot={<HelpButton dataTour="screen-info" dataGuide="help-icon" onClick={onStartGuide}/>}
       />
 
       <div style={{
@@ -243,7 +239,6 @@ export default function TrainingHub({ onHome, onFightMode, onFitMode, onTraining
 
       </div>
 
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.train_hub} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

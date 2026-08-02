@@ -18,6 +18,11 @@ import { stopVoiceSession } from './voiceCoach';
 import { trackEvent } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import FeatureTour, { TOUR_STEPS } from './shared/FeatureTour';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
+// Already in the main bundle via HomeDashboard's Continue Challenge card, so
+// this import adds nothing to the entry chunk.
+import { TRAINING_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
 import { preloadCriticalArt } from './shared/preloadImages';
 import { challengeFromLocation, resolveChallenge, clearChallengeFromURL } from './data/challengeCodes';
 import ChallengeInboundModal from './shared/ChallengeInboundModal';
@@ -147,6 +152,10 @@ export default function App() {
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
   const [tourStep, setTourStep] = useState(null); // design 33 feature tour (null = off)
+  // The Choose Your Path walkthrough. Lives up here rather than inside
+  // TrainingHub because its steps navigate between screens, and a guide
+  // rendered inside a screen dies the moment that screen unmounts.
+  const [pathTour, setPathTour] = useState(false);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -331,6 +340,7 @@ export default function App() {
     goHome:        () => { pauseCurrentSession(); setScreen('home'); },
     goProgress:    () => { pauseCurrentSession(); setScreen('progress'); },
     goTrainingHub: () => { pauseCurrentSession(); setScreen('training_hub'); },
+    startPathTour: () => { setScreen('training_hub'); setPathTour(true); },
     goFightHub:    () => setScreen('fight_hub'),
     // 3c — backing out of a live builder/quick-mission session PAUSES it (the
     // app's normal resume flow picks it up) instead of silently abandoning it.
@@ -791,6 +801,24 @@ export default function App() {
         </Suspense>
         {tourStep != null && (
           <FeatureTour step={tourStep} onNext={advanceTour} onBack={retreatTour} onSkip={skipTour} />
+        )}
+        {pathTour && (
+          <ScreenGuide
+            steps={SCREEN_GUIDES.train_hub}
+            onClose={() => setPathTour(false)}
+            onStep={(_i, cfg) => {
+              if (!cfg?.screen) return;
+              // The ladder step needs a saga loaded before the screen can
+              // render — walk into the first playable one.
+              if (cfg.screen === 'arcade_series') {
+                const s = TRAINING_ARCADE_SERIES.find(isSeriesPlayable);
+                if (s) { setArcadeSeries(s); setArcadeSettings(null); }
+                setScreen(s ? 'arcade_series' : 'arcade');
+                return;
+              }
+              setScreen(cfg.screen);
+            }}
+          />
         )}
         {pendingChallenge && screen !== 'start' && screen !== 'onboarding' && (
           <ChallengeInboundModal
