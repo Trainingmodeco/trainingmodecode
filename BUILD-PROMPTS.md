@@ -1110,3 +1110,101 @@ SecondaryButton / Card); no new design system.
 > - Never show a number on a kick, knee, elbow, teep or defensive move.
 > - No new fonts or colours; the two-tone gold/violet split carries the
 >   meaning everywhere.
+
+---
+
+## PROMPT N-H — subtle number hints beside named strikes (option)
+
+> Small feature, one sitting. In NAMES call style, show the punch's number as
+> a SUBTLE hint beside the name — the athlete absorbs the count passively
+> without switching to NUMBERS mode. "JAB" gets a small faint "1" at its right
+> shoulder; "LEAD HOOK" a "3"; kicks/knees/elbows/defense get nothing.
+>
+> - Toggle: `numberHints` on the profile, default OFF, shown as a small
+>   NUMBER HINTS on/off row directly under the CALL STYLE pills in Audio
+>   Settings (persist on pick via `persistProfile`, like its neighbours).
+>   Only meaningful when callStyle is `names`; hide the row otherwise.
+> - Render: in `ComboCoachActive`'s call display (names path), tokenize with
+>   `tokenize()` from `data/strikeNumbering.js` and render each numbered
+>   punch's num as a superscript-style hint: ~0.45em, violet at ~55% opacity,
+>   raised, 2px gap — visible when you look for it, invisible when you don't.
+>   Same treatment in `FightFocusTimer`'s `curCombo` strip.
+> - Speech unchanged — hints are display-only.
+> - Verify: names + hints on → "JAB¹ CROSS² · LOW KICK" shape on screen,
+>   speech still words only; hints off → today's display byte-identical.
+>   audit:tap stays 0.
+
+---
+
+## PROMPT OP-1 — One Punch stage 1: max-out tester + baseline-driven progression
+
+> ### The problem (verified in `data/trainingArcadeData.js`)
+>
+> `op-stage-1` "Hero Entry Test" is `stageType: 'benchmark'` but demands the
+> full 100 push-ups / 100 squats / 100 sit-ups with
+> `requiresFullCompletionToUnlockNext: true`. A first-timer who can do 30
+> push-ups cannot clear stage 1 at all — the entry test is the wall it was
+> meant to prevent. This prompt turns stage 1 into a MAX-OUT TESTER and lets
+> the campaign meet the athlete where they are.
+>
+> ### Stage 1 becomes: test to max, log it, always clear
+>
+> For each of the three exercises (Push-Ups → Squats → Sit-Ups), in order:
+>
+> 1. **Choice card before the exercise** — two options:
+>    - **COUNT FOR ME** — the existing cadence count-up counts reps out loud,
+>      no target shown, counting UP from 0.
+>    - **ON MY OWN** — free timer; athlete does the set self-paced and enters
+>      the number at the end (numeric stepper, big + / −).
+> 2. **"I'M MAXED" button** ends the exercise in either mode (in COUNT FOR ME
+>    it captures the current count). No target, no fail, no shame copy —
+>    the announcer line is "As many as you can. When you're done, you're
+>    done."
+> 3. **Log the result.** New `data/benchmarkLog.js` (userStats localStorage
+>    pattern: one key `tm_benchmarks`, cache, window event):
+>    `logBenchmark({ campaignId, exercise, reps, mode, date })` and
+>    `latestBaseline(campaignId)` → `{ pushUps, squats, sitUps }`.
+> 4. **Summary screen**: "YOUR BASELINE — Push-ups 34 · Squats 41 · Sit-ups
+>    28", XP awarded, stage CLEARS with any count ≥ 1 per exercise
+>    (`requiresFullCompletionToUnlockNext` semantics change for benchmark
+>    stages: completion = tested, not 100). Re-running stage 1 later re-tests
+>    and updates the baseline — say so on the summary ("Retest anytime").
+>
+> The existing time-rank scoring stays for athletes who DO hit 100/100/100
+> (S/A/B ranks by time); anyone below that gets the baseline path with no
+> rank penalty shown.
+>
+> ### Stages 2–9: progress from the baseline toward 100
+>
+> Per exercise, the stage-k target interpolates baseline → 100:
+>
+> ```
+> target(k) = round( baseline + (100 − baseline) × (k − 1) / 9 )   // k = 2..9
+> clamped to [6, prescribed]; stage 10 (boss) is always the full 100/100/100.
+> ```
+>
+> Apply it where the stage's fit tasks resolve reps (the cadence circuit
+> tasks keep their round structure — scale the per-round reps so the stage
+> TOTAL matches target(k); round to whole reps, minimum 4 per round). If no
+> baseline exists (athlete skipped straight in), use the stage's authored
+> numbers unchanged. Show the scaled total on the stage detail modal:
+> "YOUR TARGET: 64 push-ups · on the road to 100".
+>
+> ### Explicit non-goals
+>
+> - **The run does not scale** — cardio blocks are already `choice` /
+>   optional; leave them.
+> - **One Punch only for now.** Gravity Chamber is tempo-based (a 9-second
+>   rep is the point, not volume) and Demon Back is still locked — do NOT
+>   generalise until One Punch's version is playtested. Structure
+>   `benchmarkLog` per-campaign so extending later is data, not surgery.
+>
+> ### Verify
+>
+> - Harness: target(k) table for baselines 10/30/60/100 — monotonically
+>   rising, stage 10 always 100, never below 6, never above prescribed.
+> - Browser: run stage 1 both modes (COUNT FOR ME to 7 reps then I'M MAXED;
+>   ON MY OWN entering 25); summary shows the logged numbers; stage 2 modal
+>   shows the scaled target; stage 1 marked cleared on the ladder.
+> - A fresh profile with no baseline sees stage 2 unchanged.
+> - lint 0 · tsc 0 · audit:tap 0 unreachable.
