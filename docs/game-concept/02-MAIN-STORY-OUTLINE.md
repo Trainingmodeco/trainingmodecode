@@ -138,6 +138,38 @@ Mode).
 
 ---
 
+## Between-stage storytelling (diegetic — founder brainstorm 2026-08-06)
+
+- **Phone calls as stage transitions:** between stages, the protagonists
+  get a call from the Promoter (COACH patching him through). These calls
+  ARE the story delivery: the next mission briefing (the next lie), his
+  mask slipping a little further each call, and the protags' growing
+  doubt. Presentation: split-screen call UI in the brand style — his
+  portrait warm and smiling early, degrading with the TRUST meter as acts
+  progress. (Cheap to produce, huge story value — portrait + text + VO
+  bark, no cutscene animation needed.)
+- **Gym commercials before each stage:** every gym in the city runs TV
+  ads, and each stage opens with the next gym's commercial — done in that
+  gym's authentic ad genre, not generic: a Pilates studio gets a serene
+  Pilates-style ad, the luxury gym gets an Equinox-style pretentious
+  art-film ad, the MMA gym gets a UFC-promo-style ad, etc. **The
+  escalation is the story:** early ads are passive-aggressive digs at
+  Training Mode ("Focus on your pilates — no TMs bothering YOUR workout"),
+  and as the propaganda war worsens the ads turn openly hostile ("Come to
+  Charge Gym — we'll get you in shape to beat the #$%@ out of TMs. And if
+  a TM walks in here... we'll destroy you."). By late game the whole ad
+  ecosystem is threatening the protagonists by name — the player watches
+  the city turn on them through commercials.
+  - Design notes: 10–20 seconds each, skippable after first view; parody
+    ad-genre visual grammar per gym (soft focus + whispery VO for
+    Pilates, bass drops + slow-mo for MMA); profanity bleeped with a
+    gold "T" censor tone for ratings safety and comedy; unlocked ads
+    collect in an in-game "AD ARCHIVE" gallery (replay value + shows the
+    escalation arc back-to-back).
+  - Story function: the commercials are COACH's propaganda made visible —
+    each ad doubles as evidence the player can later recognize in the
+    Act 3 reveal ("every gym got told something different about us").
+
 ## Secret / bonus content
 
 - **Ghost Battles (secret stages):** haunted-gym stages where spirits of
