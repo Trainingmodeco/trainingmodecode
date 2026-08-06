@@ -30,14 +30,12 @@ Koshiro primary interviews]
   My Money" × Busta Rhymes — "Touch It."** "Touch It" is structured
   around DJ commands ("turn it up / turn it down") — the song's structure
   IS the stage mechanic. BBHMM brings menace and strut.
-- ⚠️ Licensing: a Rihanna-derived remix plus Busta Rhymes (whose "Touch
-  It" itself samples Daft Punk's "Technologic") is a multi-label
-  clearance chain — treat as unlicensable at indie budget. **Plan:
-  commission an original track** with the same DNA: female-menace hook,
-  male command vocals, explicit turn-it-up/turn-it-down sections the game
-  hooks events onto. The founder's mashup reference is the composer
-  brief. (Research note: no verified licensing-cost data yet — open
-  question; the impracticality premise is the safe working assumption.)
+- **FOUNDER-CONFIRMED (2026-08-06): the game uses an ORIGINAL track
+  built on the CONCEPT of that mashup — not the actual songs.** No
+  licensing needed. The reference mashup is the composer brief only:
+  female-menace hook (BBHMM energy), male command vocals, explicit
+  turn-it-up/turn-it-down sections the game hooks events onto, club-rap
+  swagger over a rave-ready beat.
 
 ## 3. The Three Modes
 
@@ -161,9 +159,7 @@ static red neon bar sign in the far background. Flat parallax layers,
 
 ## 9. Open Questions (carried from research)
 
-- Confirm the exact Natsu Fuji BBHMM remix (link the YouTube video) so
-  the composer brief references the right drop structure.
-- Soundalike commission cost/vendor research (no verified data yet).
+- Original-track commission cost/vendor research (no verified data yet).
 - Verified best practices for mid-stage perspective switches (wipe
   timing, control remapping) — genre precedents are [LORE] for now;
   prototype will answer feel questions directly.
