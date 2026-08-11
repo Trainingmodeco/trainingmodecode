@@ -8,6 +8,11 @@
 
 ## 1. Signature Stage Concepts (Club-style: one gimmick each)
 
+> **Founder review (2026-08-08):** ✅ APPROVED: #1 Cycle Cult, #2
+> Supplement Lab, #4 Meat Locker, #7 (reworked — see below), #8 MegaGym
+> HQ. 🔧 #3 Content House: liked, wants revisions (TBD). 🪑 BENCHED
+> (not picked): #5 Press Conference, #6 Hot Box — kept for parts.
+
 1. **THE CYCLE CULT (spin studio).** The whole stage moves: fights on
    spin bikes, moving treadmill floors, conveyor belts. The instructor
    (mini-boss) barks cadence — when she yells "SPRINT!", the floor speeds
@@ -40,11 +45,20 @@
    nightmare, the yoga master's home turf); hold-a-pose sections restore
    stamina but leave you exposed. Gimmick: **stamina management as level
    design.**
-7. **THE MIDNIGHT SUBWAY (transit between territories).** Classic
-   beat-em-up train-car brawl, Training Mode flavored: car lights flicker
-   station to station (safe, sub-threshold flashes), enemies board at
-   each stop, fight spills onto the platform. Gimmick: **wave defense on
-   a timetable — the doors chime tells you what's coming.**
+7. **THE CITY RUN (street calisthenics tour — founder rework of the
+   subway stage).** A traveling stage across the whole city: ride the
+   train between stops, then fight and TRAIN through each neighborhood —
+   pull-up bars and dip stations at the park, push-up spots on the
+   basketball court, stair sprints, wall muscle-ups along the waterfront.
+   A bit of every workout in one stage: cardio (running sections),
+   bodyweight strength (bar work), and skill work. **Signature
+   mechanic — WORKOUT POP-UPS:** mid-fight, workout prompts appear like
+   special-move commands (a QTE input string, e.g. ↓↘→ + mash for a
+   muscle-up); nail it to GAIN XP and a brief buff, flub it to LOSE XP
+   and eat a hit. Street-workout crew NPCs judge your form from the
+   sidelines; the local bar-athlete champion is the stage boss (fights
+   hanging FROM the pull-up bar). Gimmick: **the city itself is the gym —
+   traversal, combat, and training are one continuous flow.**
 8. **MEGAGYM HQ (finale tower).** Floor-by-floor ascent: elevator brawls
    (genre classic), COACH on every screen, brainwashed elite members,
    each floor a corrupted mini-version of an earlier gym — the whole
