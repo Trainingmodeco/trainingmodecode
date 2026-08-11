@@ -77,7 +77,9 @@
 *(Already specced elsewhere: THE CLUB (06), Goggins' military base with
 PT round-ups (00).)*
 
-### Early-game stage order (founder-locked 2026-08-08)
+### Early-game stage order (founder-locked 2026-08-08; story roles
+locked 2026-08-09: Stage 1 = FITNESS tutorial, Stage 2 = FIGHTING
+tutorial + Coach debrief + the Promoter's offer — see 02 Act 1)
 
 - **STAGE 1 — THE CITY RUN.** The first real stage (after the tutorial
   loss-bout). Boss: **a FRIEND — a friendly fitness rival.** He's genuinely

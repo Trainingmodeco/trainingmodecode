@@ -36,6 +36,13 @@ Mode).
   result every time they win).
 - **The Henchwoman** — the Rival's second. Sharp, suspicious of everyone,
   the one who digs up the intel that proves the protags were gaslit.
+- **Coach** — the protags' home-gym mentor (founder addition 2026-08-09).
+  Old-school, sees through the Promoter instantly, forbids the deal, and
+  is ignored. Never says "I told you so" — he's the one who takes them
+  back in Act 3/4 and corners them for the reunification fight.
+  ⚠ NAMING COLLISION: the mentor "Coach" vs the Promoter's AI "COACH" —
+  intentional irony candidate (the fake COACH replaces the real one) or
+  rename one; decide with final names.
 - **The Boss / The Promoter** — owner of MegaGym. Outgoing, charming,
   friendly *with a hint of fakeness*. Snaps to rage the instant he's
   questioned, then instantly calms: *"It's for the greater good of Fit and
@@ -52,20 +59,37 @@ Mode).
 
 ## Act structure
 
-### ACT 1 — The Loss and the Offer
+### ACT 1 — The Loss and the Offer (founder-refined 2026-08-09)
 
-1. **Opening fight:** the protags fight the Rival's gym in a sanctioned
-   bout — and **lose**. It's clean, no hard feelings, the Rival is
-   gracious. But it puts the protags in a funk. (Tutorial stage — the game
-   teaches you to fight with a fight you're scripted to lose.)
-2. **The offer:** the Promoter from MegaGym appears — warm, flattering,
-   a hint of fake. Offer: join MegaGym's "fast-track program" and earn a
-   rematch with the Rival. The path: literally **beat the competition** —
-   every rival gym and dojo in the city, one per stage. The Rival is the
-   sub-boss at the top; the Promoter's "graduation exhibition" is the final.
-3. Early missions feel legit: sanctioned challenge matches against gym
-   owners (the celebrity-caricature bosses). XP, hype, billboards with the
-   protags' faces. It feels *great*.
+1. **Opening fight (tutorial bout):** the protags fight the Rival's gym
+   in a sanctioned bout — and **lose**. It's clean, no hard feelings, the
+   Rival is gracious. But it puts the protags in a funk. (The game
+   teaches basic controls in a fight you're scripted to lose.)
+2. **STAGE 1 — THE CITY RUN = the FITNESS tutorial.** Their home-gym
+   **Coach** (new cast member — the mentor) sends them on a city
+   training run to shake off the loss. Teaches the fitness half of the
+   game: workout pop-ups, cardio flow, stamina. Boss: the friendly
+   fitness-bro FRIEND (all muscle, no fight game — the fighter-profile
+   rule made flesh).
+3. **STAGE 2 — THE CROSS-TRAIN DOJO = the FIGHTING tutorial.** Coach
+   walks them through the four disciplines room by room, debriefing
+   **the lost fight with the Rival** as he teaches (each room's lesson
+   references a mistake from the tutorial bout). Teaches styles,
+   counters, blitz/command moves.
+4. **The offer — end of Stage 2:** the Promoter appears at the dojo,
+   warm, flattering, a hint of fake: join MegaGym's "fast-track program"
+   and earn the rematch with the Rival. **Coach FORBIDS it** — he knows
+   the Promoter's type ("nothing that man fast-tracks arrives whole").
+   But talking it over after, the **female protag makes the case: why
+   not? It's a real opportunity** — fast-track, real fights, the
+   rematch. They sign against Coach's wishes. (Story engine: Coach is
+   RIGHT, and everyone knows it by Act 3 — his "I told you so" never
+   comes; instead he's the one who takes them back in. Sets up the
+   female protag's arc too: she argued for it, so the Act 2 guilt and
+   the Act 3 convincer line land hardest on her.)
+5. Early missions feel legit: sanctioned challenge matches against gym
+   owners (the celebrity-caricature bosses). XP, hype, billboards with
+   the protags' faces. It feels *great*. Coach stops calling.
 
 ### ACT 2 — The Lies (heel slide)
 
