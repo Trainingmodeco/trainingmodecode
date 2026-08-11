@@ -65,8 +65,57 @@
    game recapped as a gauntlet before the Promoter fight. Gimmick:
    **remix reprise of every stage's signature mechanic.**
 
-*(Already specced elsewhere: Stage 1 gym tutorial, THE CLUB (06),
-Goggins' military base with PT round-ups (00).)*
+*(Already specced elsewhere: THE CLUB (06), Goggins' military base with
+PT round-ups (00).)*
+
+### Early-game stage order (founder-locked 2026-08-08)
+
+- **STAGE 1 — THE CITY RUN.** The first real stage (after the tutorial
+  loss-bout). Boss: **a FRIEND — a friendly fitness rival.** He's genuinely
+  great at fitness (all workout pop-ups, huge pecs, perfect form) but has
+  no real fighting skills — so he's the easy on-ramp boss. He's the
+  living demo of the game's core rule: fitness-only build = strong but
+  limited strikes (he IS the "workout-builder-heavy, no fight training"
+  fighter profile made flesh). Loses graciously; becomes a recurring
+  friendly face / co-op candidate later. (Distinct from THE Rival of the
+  main story, who beat us in the tutorial.)
+- **STAGE 2 — THE CROSS-TRAIN DOJO.** A four-room gym cycling through
+  the app's four disciplines — **boxing room → kickboxing room →
+  muay thai room → MMA cage** — each with its own master mid-boss using
+  that discipline's authentic style (reuse the app's discipline art
+  identities). The stage teaches the player to READ styles: each room's
+  enemies telegraph in that discipline's rhythm. Final room: the gym's
+  head coach fights by SWITCHING between all four styles — the player's
+  first taste of the style-counter idea (§1b).
+
+### 1b. Discipline switching & style counters (founder concept — scoped)
+
+- **Founder idea:** the player can change disciplines in-game, with a
+  counter triangle (e.g. MMA beats boxing; kickboxing beats MMA;
+  muay thai beats MMA — exact triangle TBD). Founder unsure if worth
+  adding.
+- **Designer assessment — the honest cost:** a full mid-fight stance
+  system multiplies the most expensive thing in the game: every
+  discipline = another full animation set for BOTH player characters
+  (4 disciplines × ~200 frames × 2 characters). That's the single
+  biggest scope risk in the whole design. It also fights the "simple,
+  punchy" tone bar.
+- **Recommended SOFT version (cheap, keeps the idea's soul):**
+  1. Discipline = loadout chosen between stages (not mid-combo): base
+     strikes shared; only special moves + 2–3 key strikes swap. ~25% of
+     the animation cost, still reads as a style change.
+  2. Style counters as a light advantage system: vs a tagged enemy
+     type, the counter discipline gets +damage and better parry windows,
+     shown with a simple advantage icon over the enemy — readable, no
+     matchup memorization required.
+  3. Which disciplines you can equip = which you've actually trained in
+     the app's Practice Mode (fighter profile already tracks this) —
+     another app-sync payoff.
+  4. The Cross-Train Dojo (Stage 2) is the tutorial for it; the head
+     coach demos switching before the player ever gets it.
+- **Decision point:** prototype the soft version in the vertical slice
+  ONLY if the base combat feels good first. Full stance-dancing is a
+  post-launch/sequel feature, not a 1.0 feature.
 
 ---
 
