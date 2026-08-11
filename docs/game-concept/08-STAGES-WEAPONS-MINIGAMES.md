@@ -113,9 +113,39 @@ PT round-ups (00).)*
      another app-sync payoff.
   4. The Cross-Train Dojo (Stage 2) is the tutorial for it; the head
      coach demos switching before the player ever gets it.
+- **Per-discipline perks (founder-locked 2026-08-08)** — each style
+  changes HOW YOU MOVE, not just damage numbers:
+
+  | Discipline | Movement perk | Offense perk |
+  |---|---|---|
+  | **BOXING** | Angle out of strikes — slip/pivot steps that step OFF the enemy's attack line | Counter system: slip timed right → auto counter window (bonus damage) |
+  | **KICKBOXING** | Flying kicks — aerial mobility strikes, jump-in mixups | High-chain combos: longest strings, kicks chain into hands and back |
+  | **MUAY THAI** | Check low strikes — leg-check stance that COUNTERS low attacks automatically when timed | Knees & elbows deal bonus damage; clinch grab into knee series |
+  | **MMA** | Shoot-in takedown — dash-in level change (Sean SF3-style shoot & punch) | Ground game: rolling-based strikes (Alex's SoR4 rolling special energy) → takedown into ground-and-pound finisher |
+
+  Design note: these four perk sets share the base movement/strike rig —
+  the perks are ADD-ON moves + modifiers, which keeps the soft-version
+  animation budget honest (each style adds ~6-10 unique animations, not
+  a full set).
+
+- **Universal BLITZ & command moves (founder-locked)** — both player
+  characters get fighting-game-grade inputs on top of beat 'em up basics:
+  - **Blitz attacks, SoR3-style:** double-tap forward (▶▶) + punch =
+    dash blitz unique per character (and per discipline flavor).
+  - **Command specials, SF Alpha shoto grammar:** quarter-circle-forward
+    + punch (projectile-class or lunge), forward-down-back + kick
+    (sweep/mobility class), dragon-punch motion (↓↘→ / →↓↘) + punch for
+    the anti-air/uppercut class. Exact move list per character TBD with
+    the move-set doc; motions must stay lenient (beat 'em up buffer, not
+    strict FGC timing).
+  - These inputs are also what the versus-stage transitions lean on —
+    the same character works in both camera modes because the command
+    vocabulary is already fighting-game shaped.
+
 - **Decision point:** prototype the soft version in the vertical slice
   ONLY if the base combat feels good first. Full stance-dancing is a
-  post-launch/sequel feature, not a 1.0 feature.
+  post-launch/sequel feature, not a 1.0 feature. Blitz + command moves
+  are CORE 1.0 (they're per-character, not per-discipline — cheap).
 
 ---
 
