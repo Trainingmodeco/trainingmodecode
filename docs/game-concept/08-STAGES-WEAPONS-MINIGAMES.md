@@ -29,11 +29,20 @@
    go viral and influencer enemies swarm to get in your shot; ring
    lights and selfie sticks are weapons. Gimmick: **style scoring made
    diegetic — the crowd IS the meter.**
-4. **THE MEAT LOCKER (Stallone montage homage).** Frozen sides of beef
-   as swinging obstacles AND punchable training props; freezing breath
-   timer pushes you forward; montage music builds verse by verse and
-   the boss gets stronger every chorus until you interrupt the montage.
-   Gimmick: **the boss's power is the soundtrack — cut the music.**
+4. **THE MEAT LOCKER (Stallone/Rocky homage — FUSED into the boxing
+   gym stage as its back section, founder rework 2026-08-08).** The
+   boxing stage's final stretch: a door behind the ring leads into the
+   gym's meat locker (why does a boxing gym have one? nobody questions
+   it — that's the joke). **Gimmick: the hanging meat is a weapon for
+   EVERYONE** — punch a frozen side of beef to swing it into enemies;
+   enemies shove them back at you; timing the swings is the combat
+   puzzle. Freezing-breath VFX, slippery floor. Background gag: a COOK
+   quietly works at the far end the whole section, unbothered by the
+   brawl. Exit gag: outside the locker, a CHEF is serving tacos to a
+   line of gym members — the meat you've been punching all stage. Eat
+   one: small heal + "PROTEIN." buff toast. (Montage-music-powered boss
+   idea from the original concept goes to the parts bin with the
+   benched stages.)
 5. **THE PRESS CONFERENCE (arena media day).** Fight through a hostile
    press scrum to the stage; the boss throws mics (sound-wave attacks),
    water bottles, and a dolly. Opens with a STAREDOWN minigame (hold
