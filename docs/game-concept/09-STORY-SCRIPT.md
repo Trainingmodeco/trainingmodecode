@@ -1,0 +1,162 @@
+# TRAINING MODE: THE GAME — Story Script (Treatment v1.0)
+
+> Semi-detailed, easy-to-digest script of everything locked so far.
+> Names in [brackets] are placeholders. Dialogue is sample voice, not
+> final. Presentation rule throughout: serious beats = full character
+> designs; comedy beats = chibi flip. The Promoter NEVER goes chibi.
+
+---
+
+## COLD OPEN — "THE BOUT" (tutorial)
+
+*Night. A packed community fight card. 90s-anime title card:
+"EPISODE 01 — NO HARD FEELINGS." The two Training Mode trainees —
+[MALE PROTAG] and [FEMALE PROTAG] — warm up. Their COACH wraps their
+hands, says nothing. He doesn't need to.*
+
+- The player fights **[KO — THE RIVAL]** in a sanctioned bout. Controls
+  are taught mid-fight. The fight is winnable-feeling but scripted:
+  KO adapts, reads everything, and wins clean.
+- **KO** *(offering a glove tap to the fallen protag)*: "Good fight. No
+  hard feelings — losing clean makes you better. Come find me when it
+  does."
+- *Chibi flip: the protags deflate like balloons on the walk home.
+  Coach carries both their gym bags in silence.*
+
+## STAGE 1 — "THE CITY RUN" (fitness tutorial)
+
+*Morning. The funk hasn't lifted. Coach throws open the gym doors.*
+
+- **COACH:** "You lost a fight, not your legs. City run. Now. Both of
+  you."
+- The duo runs the city: park pull-up bars, court push-ups, stair
+  sprints. **Workout pop-ups** teach the fitness mechanics — nail the
+  input, gain XP; flub it, lose it. Street-workout crew NPCs grade form.
+- **BOSS — [FLEX], THE FRIEND:** a beloved neighborhood fitness bro.
+  All muscle, perfect form, zero fight IQ.
+  - **FLEX:** "Bro. BRO. I love you. But I can't let you pass without a
+    pump check. It's the CODE."
+  - He hits like a truck and gasses in 20 seconds — he IS the
+    "fitness-only build" made flesh. Easy, funny, teaches the stamina
+    system by example.
+  - **FLEX** *(beaten, thrilled)*: "That's the most cardio I've done in
+    my LIFE. Respect. Hydrate or die-drate, king."
+
+## STAGE 2 — "THE CROSS-TRAIN DOJO" (fighting tutorial)
+
+*Coach's old friend runs a four-room dojo: boxing, kickboxing, muay
+thai, MMA. Coach walks the duo room to room, replaying the lost bout.*
+
+- **COACH** *(boxing room)*: "Round one. KO slipped your cross by a
+  hair. That hair is called an ANGLE. Learn it."
+- Each room teaches a discipline's perks (slip-counters, chains &
+  flying kicks, checks & knees/elbows, shoot-in & ground game). The
+  head coach mid-boss fights by SWITCHING styles — first taste of the
+  counter triangle.
+- **THE OFFER:** as the duo finishes, applause from the doorway. Enter
+  **[VINCE MAXIMUS — THE PROMOTER]**: tailored tracksuit, blinding
+  smile, warm as a heat lamp and about as real.
+  - **PROMOTER:** "THERE they are! The two best losers in this city.
+    I mean that with love — losing to KO is a credential. What if I told
+    you the rematch isn't years away? Fast-track program. My program.
+    Real fights, real lights, real soon."
+  - **COACH** *(stepping between them)*: "No. Nothing that man
+    fast-tracks arrives whole. Out of my gym... his gym. Out of THIS
+    gym."
+  - *Later, on the gym steps:*
+  - **FEMALE PROTAG:** "...Why not, though? Seriously. Real fights.
+    The rematch. This is the opportunity. We can handle one slick suit."
+  - **MALE PROTAG:** "Coach said—"
+  - **FEMALE PROTAG:** "Coach also still uses a flip phone."
+- *They sign. Smash cut: the MegaGym logo stamps the screen like a
+  brand. Coach's gym light clicks off in the background.*
+
+## ACT 2 — "THE FAST TRACK" (the lie missions)
+
+*Structure per stage: GYM COMMERCIAL (the target gym's genre-authentic
+ad) → PHONE CALL (the Promoter's briefing = the lie) → the stage → the
+"victory" spun on city screens. The ads start passive-aggressive
+("Focus on your pilates — no TMs bothering YOUR workout") and turn
+openly hostile as the acts roll.*
+
+- **Early missions feel legit.** Sanctioned matches, caricature gym
+  bosses, billboards with the duo's faces. XP flows. It feels GREAT.
+  Coach stops calling. (The boxing gym stage ends in the meat locker —
+  swinging beef combat, the unbothered background cook, exit taco chef
+  serving the evidence.)
+- **The briefings curdle.** [COACH-AI], the friendly voice MegaGym puts
+  in everyone's earbuds, delivers each mission: "This studio runs a
+  protection racket." "This gym juices its clients." Then:
+- **THE KITTEN STAGE (the gut punch).**
+  - **PROMOTER** *(phone call, silky)*: "This one's not even a fight,
+    champs. That 'gym' on 5th? Front operation. They are holding —
+    I can barely say it — baby kittens. Hostage. Go be heroes."
+  - The duo storms it, beats the owner, triumphantly opens the cages.
+    *Chibi celebration — freeze — HARD CUT to full designs.* The kittens
+    bolt into traffic. Horns. Silence. A kid, crying: "That was the
+    ANIMAL SHELTER. It was adoption day."
+  - **PROMOTER** *(next call, mask slipping for one frame)*: "Collateral.
+    You want an omelet or not? ...I'm HEARING myself, forget the omelet.
+    Greater good, champs. Fit and Fight City THANKS you."
+- **The city turns.** Each "win" airs as propaganda — Fit side told
+  Fight side sent the duo, Fight side told the reverse. Crowds that
+  cheered now boo, then throw things, then swing. The ads now threaten
+  the duo BY NAME. ("Come to Charge Gym. We'll get you ready to beat
+  the ⟨T⟩ out of TMs. And if a TM walks in here — we will DESTROY you.")
+- **THE CLUB stage sits mid-act:** DJ REPZ's set escalates the fight
+  through three camera modes; by this point in the story the crowd's
+  chant flips from "T-M! T-M!" to boos — same stage, the arc measured
+  in crowd audio.
+
+## ACT 3 — "TOO LATE"
+
+- Open turf war: Fit vs Fight, block by block. MegaGym's towers glow
+  above it all — "THE ONLY SAFE GYM LEFT." The duo finally says it out
+  loud: *we're the bad guys.*
+- **THE KIDNAPPING.** Bag over head. Lights up: KO's crew. The
+  HENCHWOMAN sharpening a stare. The duo tells the truth. Nobody buys
+  it.
+  - **FEMALE PROTAG** *(quiet, to KO)*: "'No hard feelings. Losing
+    clean makes you better.' You said that. To us. Ten minutes later
+    HE was outside with a contract. He watches every fight in this
+    city... so how'd he know ours? — I argued us into this. That's on
+    me. But he was already waiting."
+  - KO hesitates. That's enough.
+  - **HENCHWOMAN** *(tablet down on the table)*: "Pulled the feeds.
+    Every gym's COACH-AI has been telling a different story. Including
+    OURS. Including yours. All of it — one voice."
+- *The three sit with it. Chibi flip DENIED — the scene stays full
+  design. Some things aren't funny.*
+
+## ACT 4 — "ONE ROOF"
+
+- **The road back runs through Coach.** He opens the door before they
+  knock. No "I told you so." Just: "Wraps are on the table. We start at
+  six."
+- **Reunification gauntlet:** rematch the earlier bosses — now angry
+  and JUSTIFIED — with KO alongside. Every gym won back joins the
+  banner; beaten bosses return as assists. The ads flip one by one from
+  threats to shaky endorsements.
+- **MEGAGYM HQ:** floor-by-floor ascent; every floor a corrupted remix
+  of an earlier stage; COACH-AI on every screen, running out of calm.
+- **FINAL BOSS — THE PROMOTER** (3 phases): the showman (fights for the
+  cameras) → mask off (COACH-augmented exo-rig, full cyberpunk) → the
+  versus-stage transition: raw 1-v-1 grammar, tag mechanics between
+  MALE PROTAG / FEMALE PROTAG / KO.
+  - **PROMOTER** *(final phase, finally honest)*: "You think I divided
+    this city? This city was ALWAYS divided. I just charged a
+    membership fee."
+- **ENDING:** the city doesn't go back to Fit vs Fight. It doesn't
+  become one brand either. One roof, every discipline, your training is
+  your power. The sign goes up: **TRAINING MODE.** Coach flips the
+  light on. Credits roll over pixel stills: former bosses training
+  together — Flex spotting the yoga master, Mike Bison teaching kids
+  the jab, the taco chef catering.
+- *Post-credits: a dark server room. One console still warm. COACH-AI,
+  softly: "...new workout plan available."*
+
+---
+
+**Compression note:** full act mechanics live in 02-MAIN-STORY-OUTLINE;
+stage mechanics in 06/08. This script is the read-through version —
+share it, table-read it, storyboard from it.
