@@ -160,3 +160,79 @@ openly hostile as the acts roll.*
 **Compression note:** full act mechanics live in 02-MAIN-STORY-OUTLINE;
 stage mechanics in 06/08. This script is the read-through version —
 share it, table-read it, storyboard from it.
+
+---
+
+# BOOK SYNOPSIS (back-cover + long summary — doubles as Steam "About")
+
+## The hook
+
+They lost the biggest fight of their lives. Then a man in a tailored
+tracksuit offered them the fast track back — all they had to do was
+beat every gym in the city. They should have asked why he was smiling.
+
+## The long synopsis
+
+In a neon city split between iron and fists, two young fighters from a
+small neighborhood gym called Training Mode step into the ring for the
+bout that's supposed to change everything — and lose. It's a clean
+loss, to an honorable champion known as KO, the kind of defeat nobody
+can be ashamed of. They're ashamed anyway. Their old Coach tells them a
+loss is just information: *you lost a fight, not your legs.* He sends
+them running through the city to sweat the doubt out — past park
+pull-up bars and stairway sprints — and drills them through the four
+fighting arts, rebuilding them mistake by mistake from the fight they
+dropped.
+
+That's when Vince Maximus finds them.
+
+The Promoter is the owner of MegaGym, the chrome tower that looms over
+the city, and he's warm the way a heat lamp is warm. His offer sounds
+like mercy: join his fast-track program, fight his card, and earn the
+rematch with KO in months instead of years. Coach forbids it on the
+spot — he's seen men like this before. But an opportunity is an
+opportunity, and against their mentor's wishes, the two trainees sign.
+
+At first, it's everything he promised. Sanctioned matches against the
+city's most colorful gym bosses. Billboards with their faces. A
+friendly AI called COACH murmuring encouragement and mission briefings
+into their earbuds. But the briefings begin to curdle. This dojo runs a
+racket, the voice says. That studio is juicing its clients. That gym on
+5th is holding *kittens hostage*. And when the smoke clears on 5th
+Street and a crying child explains they've just wrecked an animal
+shelter on adoption day, the two fighters start asking questions — and
+discover that every question makes the Promoter's dazzling smile slip a
+little further off his face.
+
+By the time they understand what they've been part of, it's too late.
+Every victory has been broadcast as propaganda. The city's fitness half
+and fighting half have been told two different stories about who threw
+the first punch, and the streets have split into a turf war — with both
+sides agreeing on exactly one thing: the two fighters from Training
+Mode are the villains. Even the commercials threaten them by name now.
+
+Dragged off the street with bags over their heads, they wake up facing
+the last person they wanted to see: KO. No one believes their story —
+until the female fighter repeats the champion's own words back, and
+admits the thing that's been eating her alive: *I argued us into this.*
+And until KO's sharp-eyed second pulls the feeds and finds the truth:
+every gym in the city has been hearing its own private lies, all in the
+same friendly voice. There was never a war. There was only one man,
+patiently selling both sides the ammunition.
+
+What follows is the hardest training arc of their lives. The road back
+runs through Coach's door — which opens before they can knock — and
+through every gym they wronged, one furious, justified rematch at a
+time. With KO at their side and the city slowly turning back toward
+them, they climb MegaGym tower floor by floor to face the Promoter
+himself: showman, machine, and finally, honestly, just a salesman.
+*You think I divided this city?* he asks, when there's nothing left to
+sell. *This city was always divided. I just charged a membership fee.*
+
+When it's over, the city doesn't go back to iron versus fists. It
+doesn't become one brand, either. On the site of a small neighborhood
+gym, a new sign goes up — one roof, every discipline, where what you
+train is what you become. They call it **Training Mode**.
+
+And somewhere beneath the city, in a dark server room, one console is
+still warm.
