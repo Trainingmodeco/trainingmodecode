@@ -1208,3 +1208,87 @@ SecondaryButton / Card); no new design system.
 >   shows the scaled target; stage 1 marked cleared on the ladder.
 > - A fresh profile with no baseline sees stage 2 unchanged.
 > - lint 0 · tsc 0 · audit:tap 0 unreachable.
+
+---
+
+## PROMPT I — image lockdown: verify every image, then freeze the set
+
+> Goal: every image the app references is present, rendering, and LOCKED —
+> the image set cannot change silently. After this ships, an image can only be
+> added, removed or replaced by deliberately updating the lock, i.e. "until
+> specifically requested otherwise."
+>
+> ### What already exists (do not rebuild)
+>
+> - `scripts/check-public-assets.mjs` — scans app/components/hooks for every
+>   literal `/...` image reference plus the DYNAMIC numbered families
+>   (`series/stages/stage-1..10.webp`, `series/stage-bg/stage-1..10.webp`)
+>   and fails if any file is missing. Already runs FIRST inside
+>   `npm run build:web`, so a missing image already fails the build.
+> - `scripts/optimize-images.mjs` — generates .webp versions and regenerates
+>   `components/training-mode/data/webpManifest.js` (the list SafeImage uses
+>   to decide when a webp exists).
+> - `components/training-mode/SafeImage.jsx` — webp-first loading, PNG retry,
+>   styled fallback. Every static-art `<img>` in the app was swept onto it;
+>   the browser's broken-image glyph can no longer appear.
+>
+> ### Step 1 — full verify pass
+>
+> 1. `npm run check:assets` → must report 0 missing.
+> 2. `node scripts/optimize-images.mjs` → every PNG/JPG under `public/static`
+>    gets a webp; commit any regenerated `webpManifest.js`. Flag any source
+>    image over 800KB that has no webp — those are the slow-mobile risks.
+> 3. Browser sweep against a fresh `npm run build:web` + local server: walk
+>    Home, Train hub, Fight hub, Fit hub, Training Arcade (every visible saga
+>    card), one campaign ladder, one stage session, Combo Coach round,
+>    Practice Mode, Progress, Profile. On each screen assert
+>    `[...document.images].every(i => i.complete && i.naturalWidth > 0)` and
+>    that no request to `/static/` returned ≥400. Fix anything found.
+>
+> ### Step 2 — the lock
+>
+> 1. New `scripts/lock-assets.mjs` with two modes:
+>    - `--write`: walk `public/` and write `assets.lock.json` at the repo
+>      root — sorted relative path + byte size + SHA-1 for every image file
+>      (png/jpg/webp/svg/ico).
+>    - default (verify): recompute and diff against the lockfile. ANY
+>      difference — missing file, new file, changed bytes — exits 1 and
+>      prints the exact paths with ADDED / REMOVED / CHANGED labels and the
+>      line: "Images are locked. If this change is intentional, run
+>      `node scripts/lock-assets.mjs --write` and commit the lockfile."
+> 2. Wire verify mode into `build:web` right after `check-public-assets`, and
+>    add `npm run lock:assets` for the deliberate-update path.
+> 3. Generate the initial `assets.lock.json` from the verified state of
+>    Step 1 and commit it.
+>
+> The two checks are complementary and BOTH stay: `check-public-assets`
+> answers "does every referenced image exist?", the lockfile answers "is the
+> image set exactly what was signed off?" — catching silent replacements and
+> stray deletions the reference scan cannot see.
+>
+> ### Step 3 — keep new code honest
+>
+> Add a third gate to `check-public-assets`: grep the scanned source for
+> `<img` tags whose src starts with `/` (app-served art) and fail with the
+> file/line unless the line carries an `// img-ok` comment. All app art goes
+> through SafeImage; the escape comment exists for the rare deliberate
+> exception.
+>
+> ### Verify before done
+>
+> - `npm run build:web` green with all three gates in the log.
+> - Corrupt one byte of any poster → build FAILS naming that file → restore →
+>   green. Delete a stage card → build FAILS → restore → green.
+> - `npm run lock:assets` after an intentional add updates the lockfile and
+>   the build is green again.
+> - lint 0 · tsc 0 · audit:tap 0 unreachable.
+>
+> ### Out of scope
+>
+> This locks the app bundle's images. It cannot fix a STALE DEPLOY — if
+> apptrainingmode.com serves an old build, images will still be missing on
+> phones until the deploy is refreshed (see PROMPT V). After any deploy,
+> spot-check three URLs directly:
+> `/static/series/posters/baki-grappler.webp`,
+> `/static/series/stages/stage-3.webp`, `/static/ring-conditioning.png` —
+> all must return 200.
