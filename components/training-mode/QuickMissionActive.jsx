@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import CornerHUD from './CornerHUD';
 import VoiceMixer from './shared/VoiceMixer';
@@ -651,7 +652,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         {(phase === 'work' && currentEx.mode === 'timed') || phase === 'rest' ? (
           <div data-guide="qma-ring" style={ringBox}>
             {/* The ring's own art, dimmed behind the arc (matches Fight Focus) */}
-            <img src="/static/ring-conditioning.png" alt="" style={{
+            <SafeImage src="/static/ring-conditioning.png" alt="" style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
               objectFit: 'cover', borderRadius: '50%', opacity: 0.2, pointerEvents: 'none',
             }}/>

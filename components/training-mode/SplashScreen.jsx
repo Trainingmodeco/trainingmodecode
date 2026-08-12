@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SafeImage from './SafeImage';
 
 function Blink({ onDone }) {
   useEffect(() => { const t = setTimeout(onDone, 300); return () => clearTimeout(t); }, [onDone]);
@@ -127,7 +128,7 @@ export default function SplashScreen({ onStart }) {
       <style dangerouslySetInnerHTML={{ __html: splashCSS }}/>
 
       {/* Hero background */}
-      <img
+      <SafeImage
         src="/static/hero-enter.webp"
         alt=""
         style={{
@@ -162,7 +163,7 @@ export default function SplashScreen({ onStart }) {
         </div>
 
         {/* Logo mark — larger, clear of the text */}
-        <img src="/static/logo-mark.png" alt="" style={{ width: 96, height: 'auto', marginBottom: 22, filter: 'drop-shadow(0 0 18px rgba(245,179,1,0.6))' }}/>
+        <SafeImage src="/static/logo-mark.png" alt="" style={{ width: 96, height: 'auto', marginBottom: 22, filter: 'drop-shadow(0 0 18px rgba(245,179,1,0.6))' }}/>
 
         {/* Wordmark — brief glitch burst every few seconds */}
         <div style={{ font: "900 44px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', lineHeight: 1.18, textShadow: '0 0 24px rgba(168,85,247,0.55)', animation: 'wmGlitch 3.4s steps(1,end) infinite' }}>

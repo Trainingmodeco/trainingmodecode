@@ -59,8 +59,23 @@ for (const [p, locs] of refs) {
   if (!ok) missing.push({ path: p, locs });
 }
 
+// Dynamic template paths the literal scan cannot see. These families are
+// built with string interpolation (stage-${'{'}n{'}'}.webp) in the arcade screens, so a
+// deleted file would slip past the reference scan and surface as a broken
+// card on someone's phone. Enumerate them explicitly.
+const DYNAMIC_FAMILIES = [
+  { dir: 'static/series/stages', pattern: (n) => `stage-${n}.webp`, range: [1, 10], usedBy: 'ArcadeSeriesDetail stage cards' },
+  { dir: 'static/series/stage-bg', pattern: (n) => `stage-${n}.webp`, range: [1, 10], usedBy: 'Arcade session/stage backgrounds' },
+];
+for (const fam of DYNAMIC_FAMILIES) {
+  for (let n = fam.range[0]; n <= fam.range[1]; n++) {
+    const rel = `/${fam.dir}/${fam.pattern(n)}`;
+    if (!refs.has(rel)) refs.set(rel, [{ file: `(dynamic: ${fam.usedBy})`, line: 0 }]);
+  }
+}
+
 const totalRefs = refs.size;
-console.log(`[check-public-assets] Scanned ${SCAN_DIRS.join(', ')} — found ${totalRefs} unique public image reference(s).`);
+console.log(`[check-public-assets] Scanned ${SCAN_DIRS.join(', ')} — found ${totalRefs} unique public image reference(s) (incl. dynamic families).`);
 
 if (missing.length === 0) {
   console.log('[check-public-assets] OK: every referenced image exists under public/.');

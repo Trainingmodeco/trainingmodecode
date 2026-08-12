@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
 import { generateFightFocusSession } from './data/sessionGenerator';
@@ -709,7 +710,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             narrow screens; the SVG viewBox keeps all ring coordinates valid. */}
         <div style={{ position: 'relative', width: 'min(62vw, 250px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 8px' }}>
           {/* Dimmed ring art behind */}
-          <img
+          <SafeImage
             src="/static/ring-fight.png"
             alt=""
             style={{

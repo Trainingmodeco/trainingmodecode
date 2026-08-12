@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
+import SafeImage from './SafeImage';
 import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
@@ -520,7 +521,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         {/* Main display area — 17c conditioning ring (dimmed) + live progress + content */}
         <div data-guide="cca-ring" style={{ position: 'relative', width: ringBox, height: ringBox, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {/* Design 17c decorative conditioning ring, dimmed down */}
-          <img
+          <SafeImage
             src="/static/ring-conditioning.png"
             alt=""
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.28, pointerEvents: 'none' }}

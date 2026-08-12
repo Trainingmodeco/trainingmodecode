@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
 import { generateComboCoachSession } from './data/sessionGenerator';
@@ -637,7 +638,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             screens; the SVG viewBox keeps ring coordinates valid. */}
         <div style={{ position: 'relative', width: 'min(58vw, 224px)', maxWidth: '100%', aspectRatio: '1 / 1', margin: '0 auto 8px' }}>
           {/* Dimmed art background */}
-          <img
+          <SafeImage
             src="/static/ring-combo.webp"
             alt=""
             style={{
