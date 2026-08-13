@@ -238,7 +238,7 @@ export default function CardioMode({ onBack }) {
         <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={8}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
           <div style={{ padding: '12px 16px' }}>
-            <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>
+            <button onClick={() => setPhase('setup')} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
             <EmptyState preset="gps" onPrimary={startCardio} onSecondary={() => { setNoGps(true); setPhase('player'); }} style={{ width: '100%' }}/>
@@ -259,7 +259,7 @@ export default function CardioMode({ onBack }) {
         <VoiceMixer top={10} right={10}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '12px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <button onClick={() => setPhase('setup')} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
+            <button onClick={() => setPhase('setup')} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
               <ChevronLeft size={22}/>
             </button>
             <IntroLogo size={26}/>
@@ -324,7 +324,7 @@ export default function CardioMode({ onBack }) {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={onBack} style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
+            <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
               <ChevronLeft size={22}/>
             </button>
             <IntroLogo size={26}/>

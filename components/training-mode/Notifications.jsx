@@ -37,7 +37,7 @@ export default function Notifications({ onBack }) {
       <Embers count={3}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px 10px' }}>
-          <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#c4a4d8', cursor: 'pointer', display: 'flex', padding: 0 }}><ChevronLeft size={22}/></button>
+          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', color: '#c4a4d8', cursor: 'pointer', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={22}/></button>
           <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>NOTIFICATIONS</div>
         </div>
 

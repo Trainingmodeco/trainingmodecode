@@ -251,7 +251,6 @@ export default function ProgressScreen({ onHome, profile }) {
   const [stats, setStats] = useState(() => loadStats());
   const [tab, setTab] = useState('overview');
   const [detailOpen, setDetailOpen] = useState(false);
-  void onHome;
 
   useEffect(() => {
     const refresh = () => setStats(loadStats());
@@ -298,7 +297,13 @@ export default function ProgressScreen({ onHome, profile }) {
       <Embers count={4}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom,0px))' }}>
         {/* Header */}
-        <div style={{ padding: '12px 16px 8px' }}><div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROGRESS</div></div>
+        {/* Beta TM-16 — the tab roots were split: Train had a back-to-Home
+            chevron, Progress received onHome and threw it away (void onHome).
+            All tab roots now share the same affordance. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px 8px' }}>
+          <button onClick={onHome} aria-label="Back" style={{ background: 'none', border: 'none', color: '#c4a4d8', cursor: 'pointer', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={20}/></button>
+          <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROGRESS</div>
+        </div>
 
         {/* Sub-tab toggle */}
         <div style={{ display: 'flex', gap: 6, padding: '2px 16px 10px' }}>

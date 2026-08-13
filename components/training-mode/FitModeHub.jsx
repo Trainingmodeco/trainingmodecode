@@ -34,8 +34,9 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
       <Embers count={3}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom,0px))' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px' }}>
-          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><ChevronLeft size={22}/></button>
+        {/* Beta TM-16 — sticky so the back affordance never scrolls away */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px', position: 'sticky', top: 0, zIndex: 80, background: 'rgba(5,0,15,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={22}/></button>
           <div style={{ flex: 1 }}><SafeImage src="/static/title-fit.png" alt="Fit Mode" style={{ height: 30, width: 'auto', maxWidth: '100%', display: 'block' }}/></div>
           <HelpButton onClick={() => setHelpOpen(true)}/>
           <button onClick={onHome} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><Home size={18}/></button>

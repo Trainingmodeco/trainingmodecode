@@ -22,6 +22,7 @@ export default function FitWorkoutComplete({ cfg, completedCount, totalCount, ca
 
   return (
     <MissionComplete
+      onBack={onHome}
       variant={allDone ? 'success' : 'partial'}
       eyebrow={allDone ? 'WORKOUT COMPLETE' : 'SESSION ENDED'}
       title={allDone ? 'GREAT WORK' : 'GOOD EFFORT'}

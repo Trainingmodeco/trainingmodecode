@@ -32,7 +32,7 @@ export default function BetaFeedback({ onBack }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pointerEvents: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={onBack} style={{ background: 'transparent', border: 'none', padding: '6px', color: C.text, display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: '6px', color: C.text, display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
               <ChevronLeft size={22}/>
             </button>
             <IntroLogo size={26}/>

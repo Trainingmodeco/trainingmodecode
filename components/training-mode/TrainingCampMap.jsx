@@ -251,7 +251,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_RESERVE, zIndex: 5, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px 6px' }}>
-          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}>
+          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -6, display: 'flex' }}>
             <ChevronLeft size={20} color="#d7c9ee" />
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>

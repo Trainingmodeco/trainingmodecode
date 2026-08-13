@@ -5,7 +5,7 @@ import SafeImage from '../SafeImage';
 import SharePromptModal from '../SharePromptModal';
 import MissionIntegrityBanner from '../MissionIntegrityBanner';
 import CardioFinisherSummaryCard from '../CardioFinisherSummaryCard';
-import { Trophy } from 'lucide-react';
+import { Trophy, ChevronLeft } from 'lucide-react';
 import { loadStats, getStreak, getLevel, getLevelProgress, getWeeklySessions } from '../data/userStats';
 import { getCurrentTier, tierImage } from '../data/tiers';
 import { loadProfile } from '../data/userProfile';
@@ -94,6 +94,9 @@ export default function MissionComplete({
   heroImage,                // badge art for a completed session
   partialBadge,             // badge art for a stopped/partial (GOOD EFFORT) session
   onHero,                   // optional: tap the badge to leave (e.g. arcade → saga select)
+  onBack,                   // beta TM-16: optional pinned top-left back — the body CTAs
+                            // sit below the fold on short phones, so every completion
+                            // screen gets a header-level way out
   failReason,               // engine's guidance line, shown on fail / validation_failed
   achievements = [],        // item 10b — newly unlocked, shown as a toast on top
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
@@ -135,6 +138,16 @@ export default function MissionComplete({
       {achievements.length > 0 && <AchievementToast unlocked={achievements}/>}
       <Embers count={5}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column' }}>
+        {onBack && (
+          <button onClick={onBack} aria-label="Back" style={{
+            position: 'absolute', top: 10, left: 10, zIndex: 20,
+            background: 'rgba(8,2,18,0.55)', border: '1px solid rgba(168,85,247,0.3)',
+            borderRadius: 10, padding: 8, color: '#f5e9ff',
+            display: 'flex', alignItems: 'center', cursor: 'pointer',
+          }}>
+            <ChevronLeft size={20}/>
+          </button>
+        )}
         {/* LT-5 — no scroll container of our own: ScreenRouter already scrolls
             and already reserves 110px under every screen for the tab bar. The
             old minHeight:100dvh + 12dvh padding here double-counted that and

@@ -20,6 +20,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
 
   return (
     <MissionComplete
+      onBack={onFitHub}
       variant={verdict.preset.variant}
       eyebrow={verdict.preset.eyebrow}
       title={mission.title}

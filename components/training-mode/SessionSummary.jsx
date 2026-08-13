@@ -80,6 +80,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
 
   return (
     <MissionComplete
+      onBack={onBack}
       variant={verdict.preset.variant}
       eyebrow={verdict.preset.eyebrow}
       title={verdict.preset.title}

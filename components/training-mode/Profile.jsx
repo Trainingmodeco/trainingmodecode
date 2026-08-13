@@ -337,7 +337,12 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         <CornerHUD color="rgba(168,85,247,0.35)" size={22} inset={10}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(max(120px, 15dvh) + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
-            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROFILE</div>
+            {/* Beta TM-16 — tab roots share one back-to-Home affordance (Train
+                and now Progress have it; Profile's overview was the odd one out). */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={onHome} aria-label="Back" style={{ background: 'none', border: 'none', color: '#c4a4d8', cursor: 'pointer', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={20}/></button>
+              <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>PROFILE</div>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><HelpButton onClick={() => setHelpOpen(true)}/><button onClick={() => setProfileView('audio')} aria-label="Settings" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', fontSize: 15 }}>⚙</button></div>
           </div>
           <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px' }}>

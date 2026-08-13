@@ -20,6 +20,7 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
 
   return (
     <MissionComplete
+      onBack={onFitHub}
       variant={verdict.preset.variant}
       eyebrow={verdict.preset.eyebrow}
       title={mission.missionName || 'COMBAT CONDITIONING'}

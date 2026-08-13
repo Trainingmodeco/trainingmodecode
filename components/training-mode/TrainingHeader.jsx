@@ -19,8 +19,11 @@ export default function TrainingHeader({ title = 'TRAINING MODE', subtitle = 'Fi
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {showBack && onBack && (
-          <button onClick={onBack} data-guide={backGuide} style={{
-            background: 'transparent', border: 'none', padding: 4,
+          // Beta TM-16 — the app-wide back standard: labeled for screen
+          // readers, ~40px tap target (padding grows the hit area, negative
+          // margin keeps the visual layout).
+          <button onClick={onBack} aria-label="Back" data-guide={backGuide} style={{
+            background: 'transparent', border: 'none', padding: 10, margin: -6,
             color: C.text, display: 'flex', alignItems: 'center', cursor: 'pointer',
           }}>
             <ChevronLeft size={20}/>
