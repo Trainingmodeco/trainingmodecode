@@ -144,6 +144,7 @@ export const WEBP_FILES = [
   '/static/series/posters/blue-blur.webp',
   '/static/series/posters/dark-knight.webp',
   '/static/series/posters/demon-back.webp',
+  '/static/series/posters/hero-hunter.webp',
   '/static/series/posters/hyperbolic-gravity.webp',
   '/static/series/posters/one-punch.webp',
   '/static/series/posters/the-contender.webp',

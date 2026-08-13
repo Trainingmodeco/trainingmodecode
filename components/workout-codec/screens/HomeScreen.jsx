@@ -1,5 +1,6 @@
 import React from 'react';
 import { CC } from '../CodecStyles';
+import SafeImage from '../../training-mode/SafeImage';
 
 export default function HomeScreen({ onAction }) {
   return (
@@ -19,7 +20,7 @@ export default function HomeScreen({ onAction }) {
 
       {/* Logo / Title */}
       <div style={{ textAlign: 'center', width: '100%' }}>
-        <img
+        <SafeImage
           src="/banners/icons/workout-codex-icon.png"
           alt="Workout Codex"
           loading="lazy"

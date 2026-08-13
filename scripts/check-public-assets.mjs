@@ -52,17 +52,11 @@ for (const d of SCAN_DIRS) {
   }
 }
 
-const missing = [];
-for (const [p, locs] of refs) {
-  const onDisk = join(PUBLIC_DIR, p.replace(/^\//, ''));
-  const ok = existsSync(onDisk) && statSync(onDisk).isFile();
-  if (!ok) missing.push({ path: p, locs });
-}
-
 // Dynamic template paths the literal scan cannot see. These families are
 // built with string interpolation (stage-${'{'}n{'}'}.webp) in the arcade screens, so a
 // deleted file would slip past the reference scan and surface as a broken
-// card on someone's phone. Enumerate them explicitly.
+// card on someone's phone. Enumerate them explicitly — BEFORE computing
+// `missing`, so the families are actually validated.
 const DYNAMIC_FAMILIES = [
   { dir: 'static/series/stages', pattern: (n) => `stage-${n}.webp`, range: [1, 10], usedBy: 'ArcadeSeriesDetail stage cards' },
   { dir: 'static/series/stage-bg', pattern: (n) => `stage-${n}.webp`, range: [1, 10], usedBy: 'Arcade session/stage backgrounds' },
@@ -74,17 +68,53 @@ for (const fam of DYNAMIC_FAMILIES) {
   }
 }
 
+const missing = [];
+for (const [p, locs] of refs) {
+  const onDisk = join(PUBLIC_DIR, p.replace(/^\//, ''));
+  const ok = existsSync(onDisk) && statSync(onDisk).isFile();
+  if (!ok) missing.push({ path: p, locs });
+}
+
+// Third gate (PROMPT I) — keep new code honest: app-served art must go
+// through SafeImage (webp-first, PNG retry, styled fallback), never a raw
+// <img src="/…">. The rare deliberate exception marks its line // img-ok.
+const RAW_IMG_RE = /<img\b[^>]*\bsrc\s*=\s*["']\//g;
+const rawImgs = [];
+for (const d of SCAN_DIRS) {
+  for (const file of walk(join(ROOT, d))) {
+    const content = readFileSync(file, 'utf8');
+    let m;
+    RAW_IMG_RE.lastIndex = 0;
+    while ((m = RAW_IMG_RE.exec(content)) !== null) {
+      const line = lineOf(content, m.index);
+      const lines = content.split('\n');
+      // The escape marker may sit on the <img line or the line above it —
+      // JSX can't carry a // comment inside an opening tag.
+      const hereText = lines[line - 1] || '';
+      const aboveText = lines[line - 2] || '';
+      if (hereText.includes('img-ok') || aboveText.includes('img-ok')) continue;
+      rawImgs.push({ file: relative(ROOT, file), line });
+    }
+  }
+}
+
 const totalRefs = refs.size;
 console.log(`[check-public-assets] Scanned ${SCAN_DIRS.join(', ')} — found ${totalRefs} unique public image reference(s) (incl. dynamic families).`);
 
-if (missing.length === 0) {
-  console.log('[check-public-assets] OK: every referenced image exists under public/.');
+if (missing.length === 0 && rawImgs.length === 0) {
+  console.log('[check-public-assets] OK: every referenced image exists under public/, no raw <img> tags.');
   process.exit(0);
 }
 
-console.error(`[check-public-assets] MISSING ${missing.length} reference(s):`);
-for (const { path: p, locs } of missing) {
-  console.error(`  ✗ ${p}`);
-  for (const loc of locs) console.error(`      at ${loc.file}:${loc.line}`);
+if (missing.length) {
+  console.error(`[check-public-assets] MISSING ${missing.length} reference(s):`);
+  for (const { path: p, locs } of missing) {
+    console.error(`  ✗ ${p}`);
+    for (const loc of locs) console.error(`      at ${loc.file}:${loc.line}`);
+  }
+}
+if (rawImgs.length) {
+  console.error(`[check-public-assets] RAW <img> ${rawImgs.length} tag(s) bypass SafeImage (add // img-ok only for a deliberate exception):`);
+  for (const r of rawImgs) console.error(`  ✗ ${r.file}:${r.line}`);
 }
 process.exit(1);

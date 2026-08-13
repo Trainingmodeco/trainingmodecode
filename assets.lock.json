@@ -1,0 +1,1594 @@
+{
+  "Hub/Continue_Challenge_TM_Arcade.png": {
+    "size": 312322,
+    "sha1": "0003fce073b828b2e8d50db7861b83ff3d03de83"
+  },
+  "Hub/Continue_Challenge_TM_Arcade.webp": {
+    "size": 23200,
+    "sha1": "ea8763a5fd9a3e84208adff4f17495b018602dff"
+  },
+  "Hub/train-now-banner-new copy copy.png": {
+    "size": 499861,
+    "sha1": "39359bb26b3c78025b86bdc56ed591ffc458f601"
+  },
+  "Hub/train-now-banner-new copy copy.webp": {
+    "size": 55974,
+    "sha1": "5dd8436c5bc0bf5623a388c74192970a7445a48c"
+  },
+  "Hub/training-arcade-resized-new copy.png": {
+    "size": 484108,
+    "sha1": "52a0cb03f062175e9abaa5581323d7ace877d2f2"
+  },
+  "Hub/training-arcade-resized-new copy.webp": {
+    "size": 49286,
+    "sha1": "6513d4d4204267dce2427d13357830b94734e306"
+  },
+  "banners/Training-Arcade_2.png": {
+    "size": 315493,
+    "sha1": "1848930397c6ec026ac1f62fa10529c70d82dc61"
+  },
+  "banners/Training-Arcade_2.webp": {
+    "size": 47732,
+    "sha1": "e0ce7a1c8e315b3b48220fdf9c37c3e1e709edc2"
+  },
+  "banners/Training_Arcade_1.png": {
+    "size": 293458,
+    "sha1": "dd754c461fd14b9ff5d728cf2bd2a60535c7b613"
+  },
+  "banners/Training_Arcade_1.webp": {
+    "size": 41320,
+    "sha1": "304c7e263dc674e16962c4a4c43222c55d2089b3"
+  },
+  "banners/Workout-Codex.png": {
+    "size": 319887,
+    "sha1": "67a8b6c96e3099e2d80b99f79ec48a2a1bb51f6e"
+  },
+  "banners/Workout-Codex.webp": {
+    "size": 42754,
+    "sha1": "a6102ac3d8b2554fb020205f8045471279a69190"
+  },
+  "banners/Workout_Codex.png": {
+    "size": 788349,
+    "sha1": "827ecc047a847e1c17c2bb9fecea335b81567e96"
+  },
+  "banners/Workout_Codex.webp": {
+    "size": 90716,
+    "sha1": "42a5c1ae2242a2feff55c3720f1994d676b1d20f"
+  },
+  "banners/arcade/dark-knight-protocol.png": {
+    "size": 421941,
+    "sha1": "f8f183c06eb0838905403a576840e1a642f74a80"
+  },
+  "banners/arcade/dark-knight-protocol.webp": {
+    "size": 56886,
+    "sha1": "354957ae0acd1d1931c46b098457091f9bfa145e"
+  },
+  "banners/arcade/demon-back-protocol.png": {
+    "size": 434044,
+    "sha1": "e3b98e199dd7f01caa3efcb0fbd8e7ba28019eb8"
+  },
+  "banners/arcade/demon-back-protocol.webp": {
+    "size": 67744,
+    "sha1": "ef14addad0edeb050dc87d93d184810bce90a575"
+  },
+  "banners/arcade/one-punch-regiment.png": {
+    "size": 387589,
+    "sha1": "b0c8690087a5853dcca6bc440ef9decd7e84263c"
+  },
+  "banners/arcade/one-punch-regiment.webp": {
+    "size": 63648,
+    "sha1": "94f245dbb9d1b1a9ba694bc34c55ebbd424220df"
+  },
+  "banners/arcade/ultra-ego-style.png": {
+    "size": 483294,
+    "sha1": "4efea67d4608464f5ef0192ad927cd8be4cb3f62"
+  },
+  "banners/arcade/ultra-ego-style.webp": {
+    "size": 74098,
+    "sha1": "637f68d0d4aba89998939ca7dbf9692cc2ecc28c"
+  },
+  "banners/arcade/ultra-instinct-banner.png": {
+    "size": 619504,
+    "sha1": "a68f8ecc26b32f72bf4e9ce5e5913dfef62ea7a5"
+  },
+  "banners/arcade/ultra-instinct-banner.webp": {
+    "size": 88004,
+    "sha1": "3df41d2264a946bd561b58b006a2c834d6ad17d4"
+  },
+  "banners/combat-conditioning.png": {
+    "size": 332056,
+    "sha1": "00b77646d4367d52672c18cbaf45697b74372d4f"
+  },
+  "banners/combat-conditioning.webp": {
+    "size": 50478,
+    "sha1": "bbfcb0d24f997b94e1ada8d088f66ac48810568d"
+  },
+  "banners/fight-mode.png": {
+    "size": 524288,
+    "sha1": "94de0f1819a413d719fa4a364d89201ebb2fb217"
+  },
+  "banners/fight-mode.webp": {
+    "size": 238810,
+    "sha1": "e05f4ff525ea5e127d93fd6c7baacdcb32d93ecc"
+  },
+  "banners/fit-mode.png": {
+    "size": 1048576,
+    "sha1": "67621b4eb979127855261426fd123b4c6eb2c343"
+  },
+  "banners/fit-mode.webp": {
+    "size": 211398,
+    "sha1": "8f0a5b87c78b5b88ad7ee78d67a2c205c827ae41"
+  },
+  "banners/icons/workout-codex-icon.png": {
+    "size": 281172,
+    "sha1": "dcae46d38cc533d4543393c787ecd1024c85f154"
+  },
+  "banners/icons/workout-codex-icon.webp": {
+    "size": 31922,
+    "sha1": "a1ef92fb6512c6048e8a44fd7806d5091fc8ae90"
+  },
+  "banners/quick-mission.png": {
+    "size": 353843,
+    "sha1": "bdfe9bddbb52d4f5b0fbdce246656d6e065fb8b3"
+  },
+  "banners/quick-mission.webp": {
+    "size": 57010,
+    "sha1": "21c1655b3188421a2c942360ce1b916b910274be"
+  },
+  "banners/workout-builder.png": {
+    "size": 338757,
+    "sha1": "3c5f36a27698a1f9f34341045206099c49c80046"
+  },
+  "banners/workout-builder.webp": {
+    "size": 45008,
+    "sha1": "a80fc50bca0a0c83cf95255e0d3dae0e49786255"
+  },
+  "brand/brand-bg.png": {
+    "size": 479476,
+    "sha1": "2b21933bf6fa992471d6d2da58f216f1e02a208a"
+  },
+  "brand/brand-bg.webp": {
+    "size": 43614,
+    "sha1": "08028616cb4d445ca4c857c2c591572ca46974b1"
+  },
+  "brand/gold-logo.png": {
+    "size": 35947,
+    "sha1": "50145b296d1de7432bb6b9f43c353a9202349c97"
+  },
+  "brand/gold-logo.webp": {
+    "size": 7710,
+    "sha1": "72588579837ee4cb96195e3745247c8ba20697d3"
+  },
+  "brand/icon-192.png": {
+    "size": 70,
+    "sha1": "4a5eb7171b58e08a6881721e3b43d5a44419a2be"
+  },
+  "brand/icon-192.webp": {
+    "size": 98,
+    "sha1": "5405f6e5dc3f08c2dc8e34fbb9156348f19a75f7"
+  },
+  "brand/icon-512.png": {
+    "size": 70,
+    "sha1": "4a5eb7171b58e08a6881721e3b43d5a44419a2be"
+  },
+  "brand/icon-512.webp": {
+    "size": 98,
+    "sha1": "5405f6e5dc3f08c2dc8e34fbb9156348f19a75f7"
+  },
+  "brand/img1.png": {
+    "size": 263476,
+    "sha1": "4f759696282edf1ba61aa0925d7c74ec03376559"
+  },
+  "brand/img1.webp": {
+    "size": 60988,
+    "sha1": "b679ba2eef9d48bbaaffcba8c362cef5a010882b"
+  },
+  "brand/passion-logo.png": {
+    "size": 35947,
+    "sha1": "50145b296d1de7432bb6b9f43c353a9202349c97"
+  },
+  "brand/passion-logo.webp": {
+    "size": 7710,
+    "sha1": "72588579837ee4cb96195e3745247c8ba20697d3"
+  },
+  "discipline-cards/Fit-Builder.png": {
+    "size": 226183,
+    "sha1": "a0dd0d8c70c97d81f7b89bf02244407edf10211c"
+  },
+  "discipline-cards/Fit-Builder.webp": {
+    "size": 28690,
+    "sha1": "38c6b864b572e4c5a1368533c2ccb41a38475190"
+  },
+  "discipline-cards/boxing_female.webp": {
+    "size": 51048,
+    "sha1": "457451f7bd5131e220331252144da1d57880131c"
+  },
+  "discipline-cards/boxing_male.webp": {
+    "size": 42946,
+    "sha1": "6b9091fac70bdf7c2b84dae7368d7a57d08c0427"
+  },
+  "discipline-cards/kickboxing_female.webp": {
+    "size": 50532,
+    "sha1": "b44ee4ab95078405bc9b75a6c6fc6c8216858126"
+  },
+  "discipline-cards/kickboxing_male.webp": {
+    "size": 46704,
+    "sha1": "6a449ac75ab47c09be9c530d65edf6222d238b00"
+  },
+  "discipline-cards/mma_female.webp": {
+    "size": 51950,
+    "sha1": "335984ddb068292a5f0e1ea7f78b2aabe112a5b8"
+  },
+  "discipline-cards/mma_male.webp": {
+    "size": 44268,
+    "sha1": "0ac0298e6eff91ee11cb07a67c06754357b0f8ce"
+  },
+  "discipline-cards/muay_thai_female.webp": {
+    "size": 52154,
+    "sha1": "65bd944facb1d0fe7e5daa49c5ec88d6f6e42076"
+  },
+  "discipline-cards/muay_thai_male.webp": {
+    "size": 41086,
+    "sha1": "963c01fcbf741745aad1c7d10b7bd4fadf5d8fd4"
+  },
+  "fit-mode/FIT_MODE_ICON.png": {
+    "size": 220180,
+    "sha1": "17dd25bbd3d67a57c0924794748c5846db91e176"
+  },
+  "fit-mode/FIT_MODE_ICON.webp": {
+    "size": 28416,
+    "sha1": "17be16bb371d2f4f204f8fe7daa9cbc773358612"
+  },
+  "fit-mode/body-maps/female-back.png": {
+    "size": 312128,
+    "sha1": "1d30c09835ba1e22605d0086a6af83713d7823ff"
+  },
+  "fit-mode/body-maps/female-back.webp": {
+    "size": 22882,
+    "sha1": "87281746e9fb04121804b0895314c211d7d1d95a"
+  },
+  "fit-mode/body-maps/female-front.png": {
+    "size": 308277,
+    "sha1": "9d8f1e8f1dac65690cdb8f05bea4c5eda58ae9e0"
+  },
+  "fit-mode/body-maps/female-front.webp": {
+    "size": 22232,
+    "sha1": "e4ceb3d07aa4afcfb20acdb7cf99492b9dc8fe29"
+  },
+  "fit-mode/body-maps/male-back.png": {
+    "size": 301239,
+    "sha1": "8ebaed6e22fabdd3cbded3aa829106804ac86bc0"
+  },
+  "fit-mode/body-maps/male-back.webp": {
+    "size": 24502,
+    "sha1": "e455476f4a48203ab70249c030fa934933e408f8"
+  },
+  "fit-mode/body-maps/male-front.png": {
+    "size": 307514,
+    "sha1": "c6be12b9add4502722e325d8ebf02aec8f81b6d3"
+  },
+  "fit-mode/body-maps/male-front.webp": {
+    "size": 25548,
+    "sha1": "6b63f0595bb18a2f6d2de393b13e0e9926d670ea"
+  },
+  "fit-mode/female-front.png": {
+    "size": 308277,
+    "sha1": "9d8f1e8f1dac65690cdb8f05bea4c5eda58ae9e0"
+  },
+  "fit-mode/female-front.webp": {
+    "size": 22232,
+    "sha1": "e4ceb3d07aa4afcfb20acdb7cf99492b9dc8fe29"
+  },
+  "mode-icons/fight-mode-gloves.png": {
+    "size": 519907,
+    "sha1": "da6104313ed353de106357e16fa1cd5a38ab0f87"
+  },
+  "mode-icons/fight-mode-gloves.webp": {
+    "size": 45366,
+    "sha1": "040801d3d4c40f4f78fd467143aacc3a4136dcd6"
+  },
+  "mode-icons/fit-mode-dumbbell.png": {
+    "size": 220180,
+    "sha1": "17dd25bbd3d67a57c0924794748c5846db91e176"
+  },
+  "mode-icons/fit-mode-dumbbell.webp": {
+    "size": 28416,
+    "sha1": "17be16bb371d2f4f204f8fe7daa9cbc773358612"
+  },
+  "rewards/trophy-fight-mode.png": {
+    "size": 181891,
+    "sha1": "82b68667eedd35dd4eec792f168eab1aa1ec18a8"
+  },
+  "rewards/trophy-fight-mode.webp": {
+    "size": 24290,
+    "sha1": "762f8e74936a1ce259dc85f6f371a46b67b77757"
+  },
+  "rewards/trophy-fit-mode.png": {
+    "size": 177657,
+    "sha1": "5ca6bdac24132bb3f03e076b2a67425ca70b5c84"
+  },
+  "rewards/trophy-fit-mode.webp": {
+    "size": 27166,
+    "sha1": "53d90eb72a01ea742f6b057569252edc3a8dd40e"
+  },
+  "rewards/trophy-universal.png": {
+    "size": 167701,
+    "sha1": "02a5e0df773b1b73e50c234874dfae2762751554"
+  },
+  "rewards/trophy-universal.webp": {
+    "size": 22840,
+    "sha1": "a2f26c968eaa719051878aba5a7933f5d5041e7b"
+  },
+  "social/qr-code-poster.png": {
+    "size": 984417,
+    "sha1": "c84133959378a193ce205143ec21237adeb77432"
+  },
+  "social/qr-code-poster.svg": {
+    "size": 1323,
+    "sha1": "2499e123f8d1d21a3bd7527c9002dfb740d982d3"
+  },
+  "social/qr-code-poster.webp": {
+    "size": 144110,
+    "sha1": "1c7a8923655e9e021ba77942e21c6982854ff02d"
+  },
+  "social/training-mode-share-card-template.png": {
+    "size": 1189094,
+    "sha1": "f6e40354f21604f0ebb825a4a4b0bd9e7c4bebce"
+  },
+  "social/training-mode-share-card-template.webp": {
+    "size": 117470,
+    "sha1": "09e4d8ba9b638b9f4d16d8765e7cddd7f7096dfc"
+  },
+  "social/training_mode_share_post_2.webp": {
+    "size": 174236,
+    "sha1": "1684508f903a16bda5065c9297f069fe0fa37de6"
+  },
+  "social/training_mode_share_story_1.webp": {
+    "size": 142842,
+    "sha1": "b3adfd2b22340cb1dffbb4cfa08f8c5f54d41259"
+  },
+  "static/app-bg.png": {
+    "size": 670586,
+    "sha1": "85a423ef16e8ea367273a368d0e2c9b28b7c3a35"
+  },
+  "static/app-bg.webp": {
+    "size": 51468,
+    "sha1": "1e12efcb50ab4f842e9e7ad7acab8a052860cd20"
+  },
+  "static/app-icon.webp": {
+    "size": 85408,
+    "sha1": "ccfdae8cf15ce3cbc8f38556f33dc3136716fd9a"
+  },
+  "static/arcade/arcade-bg-ladder.png": {
+    "size": 944568,
+    "sha1": "c18291a4eff120e749ff8047161d2548f17e1803"
+  },
+  "static/arcade/arcade-bg-ladder.webp": {
+    "size": 63854,
+    "sha1": "c6a344cbae77ffb39691f02201682f2ddd8b31a6"
+  },
+  "static/arcade/arcade-bg-saga.png": {
+    "size": 868882,
+    "sha1": "b27f937161fea9be6314221b218f3aa751dca7b4"
+  },
+  "static/arcade/arcade-bg-saga.webp": {
+    "size": 59548,
+    "sha1": "5e66ce800e7d65348cfcc6d13cc5a72583da7dd8"
+  },
+  "static/arcade/mission-failure.webp": {
+    "size": 89650,
+    "sha1": "e99043519ae36c4362b49f4d6d3455bfbb515f77"
+  },
+  "static/arcade/partial-complete.webp": {
+    "size": 49524,
+    "sha1": "d749132daaae1bf4234bbdf2b1ef4d048c66becd"
+  },
+  "static/arcade/s1.webp": {
+    "size": 4210,
+    "sha1": "c88757c1957f358565cc4c637f88a93ab4b64465"
+  },
+  "static/arcade/s2.webp": {
+    "size": 4308,
+    "sha1": "39de82e10e5091bcaea36b7dffabac7456594bef"
+  },
+  "static/arcade/s3.webp": {
+    "size": 4380,
+    "sha1": "e2bd33313ec6f9eb5e4eba41dc409abb0913f2fb"
+  },
+  "static/arcade/s4.webp": {
+    "size": 4248,
+    "sha1": "70e191ef9b0e2e26adcf391bbb9e02e3990217eb"
+  },
+  "static/arcade/s5.webp": {
+    "size": 4328,
+    "sha1": "cada60b241d590cd33c4af06d0d9b6fb7b0ca25d"
+  },
+  "static/arcade/s6.webp": {
+    "size": 4290,
+    "sha1": "393f7a626d23fd46c8f446c67c62c6e540f8a363"
+  },
+  "static/arcade/stage-1.webp": {
+    "size": 28848,
+    "sha1": "ac3c979e03fab27d79182f6bda4f09d6a527347a"
+  },
+  "static/arcade/stage-2.webp": {
+    "size": 29100,
+    "sha1": "9c2f2361aac2d768228fed5dca0b462342392cc3"
+  },
+  "static/arcade/stage-3.webp": {
+    "size": 26658,
+    "sha1": "86ef6737bed8a4b8e1d2e3b629885e6121d5e128"
+  },
+  "static/arcade/stage-4.webp": {
+    "size": 27554,
+    "sha1": "3958fbd144a9773ca192abd6fe6bd051d8293478"
+  },
+  "static/arcade/stage-complete.webp": {
+    "size": 173618,
+    "sha1": "53d0d9e42f15d1d72bc2ad99198bfbc759ac30da"
+  },
+  "static/arcade/validation-fail.webp": {
+    "size": 70974,
+    "sha1": "912ba37c3eaf93b57dc4e8a0bacc599dec4e344e"
+  },
+  "static/banner-bg.png": {
+    "size": 101161,
+    "sha1": "1dacb18f0af3f7116de2a1f856f1c90461b44eae"
+  },
+  "static/banner-bg.webp": {
+    "size": 9368,
+    "sha1": "8d876d813bee3bc523e018c0bb6641e42754165c"
+  },
+  "static/bodymap/female-back.webp": {
+    "size": 25562,
+    "sha1": "73e325431ddfcd6b6b785a0bafc15b9a96973735"
+  },
+  "static/bodymap/female-front.webp": {
+    "size": 24480,
+    "sha1": "3f9794650566f03064224e9c58e30a5eed981e62"
+  },
+  "static/bodymap/male-back.webp": {
+    "size": 27484,
+    "sha1": "151c8895b970d6da047607a5d18c2ef708a17a6b"
+  },
+  "static/bodymap/male-front.webp": {
+    "size": 28812,
+    "sha1": "237c352f141744d6f02731108c20a09201ef8190"
+  },
+  "static/bout-bg.png": {
+    "size": 572363,
+    "sha1": "9ccfa66b5d79fd8509858c0efd3beef212ed6205"
+  },
+  "static/bout-bg.webp": {
+    "size": 47682,
+    "sha1": "614fc3dc941e590c3e6dd00e5fb627965e611ff0"
+  },
+  "static/brand/background-w-logo-alt.png": {
+    "size": 503769,
+    "sha1": "48ad9eb8d30e0c49e8bfac1314dbca49be880f41"
+  },
+  "static/brand/background-w-logo-alt.webp": {
+    "size": 40428,
+    "sha1": "df406f930ca6eac595e4440f9d3b93a2d030e096"
+  },
+  "static/brand/background-w-logo.png": {
+    "size": 503769,
+    "sha1": "48ad9eb8d30e0c49e8bfac1314dbca49be880f41"
+  },
+  "static/brand/background-w-logo.webp": {
+    "size": 40428,
+    "sha1": "df406f930ca6eac595e4440f9d3b93a2d030e096"
+  },
+  "static/brand/favicon.png": {
+    "size": 35947,
+    "sha1": "50145b296d1de7432bb6b9f43c353a9202349c97"
+  },
+  "static/brand/favicon.webp": {
+    "size": 7710,
+    "sha1": "72588579837ee4cb96195e3745247c8ba20697d3"
+  },
+  "static/brand/icon-192.png": {
+    "size": 66913,
+    "sha1": "5f727f670cdce528be0a39413b453d06c4182061"
+  },
+  "static/brand/icon-192.webp": {
+    "size": 7296,
+    "sha1": "5455cddacbf2cae6d47de892adc7bec192c01867"
+  },
+  "static/brand/icon-512.png": {
+    "size": 435886,
+    "sha1": "62d12a71286d55de25c199b6fd4b5e92231b0caa"
+  },
+  "static/brand/icon-512.webp": {
+    "size": 33802,
+    "sha1": "3d95747cc995751b701beb9ebcc6d8f68bc5b405"
+  },
+  "static/brand/icon-maskable-192.png": {
+    "size": 47246,
+    "sha1": "37bbca61c7c1d84aeff7f718e0c0821d1ec67f35"
+  },
+  "static/brand/icon-maskable-192.webp": {
+    "size": 5128,
+    "sha1": "d9e4c5bdf1b9f867e903743ef896767fdb6e2a92"
+  },
+  "static/brand/icon-maskable-512.png": {
+    "size": 303218,
+    "sha1": "3a0f5526e72cc318868ae406a4da325cda565815"
+  },
+  "static/brand/icon-maskable-512.webp": {
+    "size": 22072,
+    "sha1": "652faa42c8092bda6217e31d0aaeb0efe102e9a1"
+  },
+  "static/brand/tm-logo-gold.png": {
+    "size": 35947,
+    "sha1": "50145b296d1de7432bb6b9f43c353a9202349c97"
+  },
+  "static/brand/tm-logo-gold.webp": {
+    "size": 7710,
+    "sha1": "72588579837ee4cb96195e3745247c8ba20697d3"
+  },
+  "static/discipline/boxing.webp": {
+    "size": 7430,
+    "sha1": "ad11dea44ab229f3e613ae0a221003e2a8ad73ab"
+  },
+  "static/discipline/boxing_female.webp": {
+    "size": 8032,
+    "sha1": "0a89d41657f8574cc275b438b6ac350625aeb1ba"
+  },
+  "static/discipline/kickboxing.webp": {
+    "size": 8220,
+    "sha1": "80c9ebad5c0a4e64f17e57579b24c5ce022bf07e"
+  },
+  "static/discipline/kickboxing_female.webp": {
+    "size": 8256,
+    "sha1": "3d7dd5409eab07372adcd15a17b0582988e379f9"
+  },
+  "static/discipline/mma.webp": {
+    "size": 7294,
+    "sha1": "b8c53f6b3c9af1e8adeab6236d41a8efd83bf51d"
+  },
+  "static/discipline/mma_female.webp": {
+    "size": 8466,
+    "sha1": "647f10a23326a2f5d4fe830c79d8f125ec2589ff"
+  },
+  "static/discipline/muay_thai.webp": {
+    "size": 6970,
+    "sha1": "56f2e263fc613baae76bafe3dd8ecca022588360"
+  },
+  "static/discipline/muay_thai_female.webp": {
+    "size": 8272,
+    "sha1": "d6708e31542c77949754fb2c8d0c09c787b0e306"
+  },
+  "static/fight-hub/combo-coach.webp": {
+    "size": 14502,
+    "sha1": "402424ec24800c8edd149b7954bfa3cc7fe1fc0d"
+  },
+  "static/fight-hub/fight-focus.webp": {
+    "size": 15466,
+    "sha1": "6fe72ec2679e9307c055eb682b9a13f6cd6295d4"
+  },
+  "static/fight-hub/practice.webp": {
+    "size": 13952,
+    "sha1": "f0d5abb31fac6748355a0321daec7079e055f66f"
+  },
+  "static/fight-hub/training-camp.webp": {
+    "size": 15644,
+    "sha1": "3cef619a22c75cb763798782ef05ef8119c1f6a6"
+  },
+  "static/fight-ring-bg.png": {
+    "size": 739843,
+    "sha1": "5d5b40b9861e70fb77bbddd46cf4ba0923c27521"
+  },
+  "static/fight-ring-bg.webp": {
+    "size": 51430,
+    "sha1": "6560fee3ceadb084290477c516719383169b7570"
+  },
+  "static/fight/boss-eyes.png": {
+    "size": 74732,
+    "sha1": "a763cac274a818cc21d1f5982ec72b2a597558d1"
+  },
+  "static/fight/boss-eyes.webp": {
+    "size": 28398,
+    "sha1": "ef722e3f7f0384d070dac32bd5cd1d735cf5d31f"
+  },
+  "static/fitmode/cardio-finisher-sub-banner.png": {
+    "size": 106756,
+    "sha1": "6a596749f1256a61c0f3ce111d932d7fa7ad507d"
+  },
+  "static/fitmode/cardio-finisher-sub-banner.webp": {
+    "size": 11086,
+    "sha1": "64f4769b2a837eb1228929cec18415e6993e7016"
+  },
+  "static/fitmode/cardio-mode-banner.webp": {
+    "size": 27072,
+    "sha1": "4ba822c9f1dcf593bf5f4bb9ead173c50b25a1f4"
+  },
+  "static/fitmode/cardio-mode.webp": {
+    "size": 27072,
+    "sha1": "4ba822c9f1dcf593bf5f4bb9ead173c50b25a1f4"
+  },
+  "static/fitmode/combat-conditioning.webp": {
+    "size": 47320,
+    "sha1": "f35128ed1f3a9cbc7e5318f3157ccfdc772f609a"
+  },
+  "static/fitmode/quick-mission.webp": {
+    "size": 53412,
+    "sha1": "21fac1fb418446287ea5185f5940c7445ea27e2a"
+  },
+  "static/fitmode/workout-builder.webp": {
+    "size": 42600,
+    "sha1": "ed4d7c7a64f906232ea0c384beb6ca781aedf45c"
+  },
+  "static/fitmode/workout-codex.webp": {
+    "size": 39308,
+    "sha1": "f89cb035217413776c72c6be9165ac9ab8faf7c5"
+  },
+  "static/ghost/vs-female-1.webp": {
+    "size": 72740,
+    "sha1": "7f897c6c4e2af22ac3b3bfb6bfbae608765f285e"
+  },
+  "static/ghost/vs-female-2.webp": {
+    "size": 87084,
+    "sha1": "6d686d6030c53156cdd5a77e092ae6ac26fa4bad"
+  },
+  "static/ghost/vs-female-3.webp": {
+    "size": 72740,
+    "sha1": "7f897c6c4e2af22ac3b3bfb6bfbae608765f285e"
+  },
+  "static/ghost/vs-male-1.webp": {
+    "size": 72532,
+    "sha1": "cd9e5159235956a6dde7ab54e5b01833ad20ae4c"
+  },
+  "static/ghost/vs-male-2.webp": {
+    "size": 61912,
+    "sha1": "130b69a66134089e889f31332c243d21579cbc83"
+  },
+  "static/ghost/vs-male-3.webp": {
+    "size": 56422,
+    "sha1": "466a1d8a56aa35dc2f88bcd742c0677a2e5b04f7"
+  },
+  "static/hero-enter.webp": {
+    "size": 56038,
+    "sha1": "a3c05bf460c456ef47d9c291bb433b7352551266"
+  },
+  "static/hub/arcade-continue-bg.webp": {
+    "size": 39156,
+    "sha1": "732fc0beae761466a8a03ee90417c24f8d778da4"
+  },
+  "static/hub/arcade.png": {
+    "size": 633332,
+    "sha1": "96cde5258df31db3562ff53c2edf12cd198fd226"
+  },
+  "static/hub/arcade.webp": {
+    "size": 73378,
+    "sha1": "1823e9fa727641f6b5e4af41caf9f6d13acecae1"
+  },
+  "static/hub/combat-banner.png": {
+    "size": 220324,
+    "sha1": "969990079cb146f36cd77b408403a4216c0ca7cc"
+  },
+  "static/hub/combat-banner.webp": {
+    "size": 29192,
+    "sha1": "bdc07761d8d39e72d491d436c3b4c7348b24401c"
+  },
+  "static/hub/combat.png": {
+    "size": 399820,
+    "sha1": "95b4fa332e73e3c8f7d6b79d720dbcd5c319521e"
+  },
+  "static/hub/combat.webp": {
+    "size": 44012,
+    "sha1": "0d2229602bcbd8007b9141f53c62de77e648e536"
+  },
+  "static/hub/fight.png": {
+    "size": 434344,
+    "sha1": "1f3d61ce8cd1aef3a7afdb6d4d7fe850898140d5"
+  },
+  "static/hub/fight.webp": {
+    "size": 39058,
+    "sha1": "df41544e3a042e23f3878b9e5b4260eeebc16b83"
+  },
+  "static/hub/fit.png": {
+    "size": 456549,
+    "sha1": "5e61c54ff577e772b8779b346d68ce5a3aa929aa"
+  },
+  "static/hub/fit.webp": {
+    "size": 44708,
+    "sha1": "fdc302b0d9e8c961709f66160e30c8d936c985bd"
+  },
+  "static/logo-mark.png": {
+    "size": 36098,
+    "sha1": "d20d304383462f37fc48b8fb5289b7f90dd99329"
+  },
+  "static/logo-mark.webp": {
+    "size": 7916,
+    "sha1": "ece600766138b9f2508e172980ca0fecc07b39ab"
+  },
+  "static/logo-title-full.png": {
+    "size": 278742,
+    "sha1": "fe18372a273bf7a2ef925d589fdd7a03dab37520"
+  },
+  "static/logo-title-full.webp": {
+    "size": 24010,
+    "sha1": "f17b89bd0c58d2ae5ec1640d933a4079f6151ecf"
+  },
+  "static/logo-wordmark-full.png": {
+    "size": 13562,
+    "sha1": "fd815b08b40f3b397e32307cfb1a895d92ed35f7"
+  },
+  "static/logo-wordmark-full.webp": {
+    "size": 9050,
+    "sha1": "ea4433016b5517efa5bb31a3c6812354b3507d6b"
+  },
+  "static/logo-wordmark.png": {
+    "size": 13549,
+    "sha1": "f988da30985ee352f0c52b7fd70b9d05e951005f"
+  },
+  "static/logo-wordmark.webp": {
+    "size": 3908,
+    "sha1": "b29d274f818096cc9047c31f29a1e22054685ac8"
+  },
+  "static/practice/boxing-female.png": {
+    "size": 154226,
+    "sha1": "5f43235a03732dbbd6844c75faad7361ba84efe0"
+  },
+  "static/practice/boxing-female.webp": {
+    "size": 14644,
+    "sha1": "34c65bd99916436156180380acbc2a62ed28a2f6"
+  },
+  "static/practice/boxing-male.png": {
+    "size": 154611,
+    "sha1": "460300f55426836a889e5a71a983987b8095344f"
+  },
+  "static/practice/boxing-male.webp": {
+    "size": 14338,
+    "sha1": "712fe4e103c6261279ba10fa4daee48867866cd2"
+  },
+  "static/practice/kickbox-female.png": {
+    "size": 146947,
+    "sha1": "0725a6179366c9057c14801da2136fe54525465e"
+  },
+  "static/practice/kickbox-female.webp": {
+    "size": 13858,
+    "sha1": "0c50598a98539c83390ccfd101d0c062c42d43d4"
+  },
+  "static/practice/kickbox-male.png": {
+    "size": 162295,
+    "sha1": "fb25274493f479136b77af088371b74402bfd61e"
+  },
+  "static/practice/kickbox-male.webp": {
+    "size": 13084,
+    "sha1": "6f2297ab3ea6f63cd1a6697bee6a24754446b245"
+  },
+  "static/practice/mma-female.png": {
+    "size": 160025,
+    "sha1": "7daec87d62ae51fb5fcb02951f53e650219e23ad"
+  },
+  "static/practice/mma-female.webp": {
+    "size": 15306,
+    "sha1": "17e6a33ce0a4d506c9e93d3f8c648e98572b1b32"
+  },
+  "static/practice/mma-male.png": {
+    "size": 162903,
+    "sha1": "6ab8431e0bf103ae523c0c3990b1549f3deb3bbf"
+  },
+  "static/practice/mma-male.webp": {
+    "size": 14628,
+    "sha1": "e173ace16541749e3a6d8947c6405731bc6d7631"
+  },
+  "static/practice/muaythai-female.png": {
+    "size": 157114,
+    "sha1": "91b23615df7de5c3cd3a946fbdf43b72199a48d1"
+  },
+  "static/practice/muaythai-female.webp": {
+    "size": 14988,
+    "sha1": "2bd9ba5ad6e0225d76e44ccb97266c8ccc3fcea4"
+  },
+  "static/practice/muaythai-male.png": {
+    "size": 181532,
+    "sha1": "458dd0942584fc9f10fc7f76db72301df714cc7e"
+  },
+  "static/practice/muaythai-male.webp": {
+    "size": 15340,
+    "sha1": "7274344cb5b65d5e9ca9869bc741f5ecc05403d1"
+  },
+  "static/qr-code-poster.png": {
+    "size": 984417,
+    "sha1": "c84133959378a193ce205143ec21237adeb77432"
+  },
+  "static/qr-code-poster.webp": {
+    "size": 144110,
+    "sha1": "1c7a8923655e9e021ba77942e21c6982854ff02d"
+  },
+  "static/ring-alt2.png": {
+    "size": 287390,
+    "sha1": "8a48705ec88252cb74de82bbaff354b03186f852"
+  },
+  "static/ring-alt2.webp": {
+    "size": 40378,
+    "sha1": "57d8f940226e7538e748be3c8a90ea7d0a9e2998"
+  },
+  "static/ring-alt3.png": {
+    "size": 1158247,
+    "sha1": "188e1b29c8e46271519d3144647151bdd832a2e7"
+  },
+  "static/ring-alt3.webp": {
+    "size": 96088,
+    "sha1": "97bfaf1af68b47a388c0c636f8af9f7d79d706fd"
+  },
+  "static/ring-combat.png": {
+    "size": 743985,
+    "sha1": "2ee75ee5005d2a33dfeb277cf997b950f30bd94c"
+  },
+  "static/ring-combat.webp": {
+    "size": 101870,
+    "sha1": "049678c01450fa0258f5c7880723ac7ac9eb68f8"
+  },
+  "static/ring-combo.png": {
+    "size": 804147,
+    "sha1": "ebc4dd1866e5c4e155ae1d03c21826e0291ea702"
+  },
+  "static/ring-combo.webp": {
+    "size": 99584,
+    "sha1": "ff8eeda104d2b47f7d04c01ca0912d0d55f12c04"
+  },
+  "static/ring-conditioning.png": {
+    "size": 184234,
+    "sha1": "ace4a85e6be568e115ef115b7d344b454cfe0c3f"
+  },
+  "static/ring-conditioning.webp": {
+    "size": 33984,
+    "sha1": "522646a102e25346737056f8748c82716e807d67"
+  },
+  "static/ring-fight.png": {
+    "size": 178922,
+    "sha1": "8dc1aa977ac1d49974ac031467ce2bbb563dc4b4"
+  },
+  "static/ring-fight.webp": {
+    "size": 37462,
+    "sha1": "26b87be4c6fe4b9617759b78877fe1f9e5940c33"
+  },
+  "static/ring-workout.png": {
+    "size": 227910,
+    "sha1": "dcc0d5c92b3154af670404d9febbae15efd01f41"
+  },
+  "static/ring-workout.webp": {
+    "size": 44772,
+    "sha1": "f34ecb7522e4d2ae0fc2c342a327fa82b67d6d38"
+  },
+  "static/series/dark-knight.png": {
+    "size": 484299,
+    "sha1": "e2121e235fa16f3312a66096218e6d9a99a6ea00"
+  },
+  "static/series/dark-knight.webp": {
+    "size": 52766,
+    "sha1": "921d64129bab6758f9997c7d2fb71040dcaff70b"
+  },
+  "static/series/demon-back.png": {
+    "size": 469858,
+    "sha1": "45716c29b3f071d9a73e824126267a8c994d7e17"
+  },
+  "static/series/demon-back.webp": {
+    "size": 62230,
+    "sha1": "a551e32a3942437eee3172da80c248505b46db08"
+  },
+  "static/series/one-punch.png": {
+    "size": 442434,
+    "sha1": "b81468e7a28b0bd0ddfdf225d04828719cde0852"
+  },
+  "static/series/one-punch.webp": {
+    "size": 58624,
+    "sha1": "8b85d5e75ad8c737cd5744eb19316f75cde9ab3b"
+  },
+  "static/series/posters/baki-grappler.png": {
+    "size": 670582,
+    "sha1": "917b4332d87b4038ff10c7a1b3e30cba62f82691"
+  },
+  "static/series/posters/baki-grappler.webp": {
+    "size": 78610,
+    "sha1": "7482f4c2f3d662f5c7754b00844c95ec90bc8d39"
+  },
+  "static/series/posters/berserk-struggler.png": {
+    "size": 636052,
+    "sha1": "fae2d22a507f1ac37e2b9e9f542008e7144c8f45"
+  },
+  "static/series/posters/berserk-struggler.webp": {
+    "size": 70420,
+    "sha1": "f9344cbe68303333b2bd04b4bf0a45779a496eb4"
+  },
+  "static/series/posters/blue-blur.png": {
+    "size": 677903,
+    "sha1": "54737cece42cfb370cf50d9509a072bfa6b6ca11"
+  },
+  "static/series/posters/blue-blur.webp": {
+    "size": 105114,
+    "sha1": "ff9cd5daa91ba039396b4264b6f6082594c6e471"
+  },
+  "static/series/posters/dark-knight.png": {
+    "size": 551965,
+    "sha1": "41f98937d4c3b232649f66693ab687555fd87cc3"
+  },
+  "static/series/posters/dark-knight.webp": {
+    "size": 63796,
+    "sha1": "885483d215893d8886606c859a82b2c04298f2f1"
+  },
+  "static/series/posters/demon-back.png": {
+    "size": 636307,
+    "sha1": "579fc7d7e074873aa737a509781f37947cba6860"
+  },
+  "static/series/posters/demon-back.webp": {
+    "size": 82266,
+    "sha1": "f5a4c823f1cedf1246be46331fd8ae1a178a3d8d"
+  },
+  "static/series/posters/hero-hunter.png": {
+    "size": 232895,
+    "sha1": "71eda2bb63da7c271fa476b14ef9f1e6c9046e85"
+  },
+  "static/series/posters/hero-hunter.webp": {
+    "size": 115844,
+    "sha1": "14b6a2a32916f63cfbc0f5678ee3ba12f5fa6df4"
+  },
+  "static/series/posters/hyperbolic-gravity.png": {
+    "size": 732274,
+    "sha1": "c00e7bbaa3dd3d609e79c61366edf2850be25bba"
+  },
+  "static/series/posters/hyperbolic-gravity.webp": {
+    "size": 114330,
+    "sha1": "4d59d859b92da307b6cd1a054463a5ebedc58641"
+  },
+  "static/series/posters/one-punch.png": {
+    "size": 611105,
+    "sha1": "d2e405d2a719a88ae8c948be8895d7a24dc347d2"
+  },
+  "static/series/posters/one-punch.webp": {
+    "size": 89700,
+    "sha1": "000acd264689365670ae40c63dc37185d7e4d4d3"
+  },
+  "static/series/posters/the-contender.png": {
+    "size": 720375,
+    "sha1": "8433e88f364397929af6c39a6e0af2986e846b06"
+  },
+  "static/series/posters/the-contender.webp": {
+    "size": 116100,
+    "sha1": "c8526b4de11aa68a3add8b81aed4dcca8ae4d353"
+  },
+  "static/series/posters/the-dragon.png": {
+    "size": 719212,
+    "sha1": "b310a9a67d4c55ea458d14ba31a35600e2796584"
+  },
+  "static/series/posters/the-dragon.webp": {
+    "size": 113254,
+    "sha1": "36118077ed11cd99107a298ce8bdd1a2028eff65"
+  },
+  "static/series/posters/the-wall-crawler.png": {
+    "size": 700686,
+    "sha1": "b2c186c14e3b0c7808685851061ca6fc14e12608"
+  },
+  "static/series/posters/the-wall-crawler.webp": {
+    "size": 109220,
+    "sha1": "6cb3c98f6bb2187cc7520b6901b3251398ce4ff1"
+  },
+  "static/series/posters/ultra-ego.png": {
+    "size": 618320,
+    "sha1": "61d24fb4a6f05088b38335798967092b43acf00d"
+  },
+  "static/series/posters/ultra-ego.webp": {
+    "size": 81678,
+    "sha1": "bc126f6a63b3aeed210875dba7e33f6931e78286"
+  },
+  "static/series/posters/ultra-instinct.png": {
+    "size": 579321,
+    "sha1": "a0360d3099d239d4b8f475f40b9f7de33fa18958"
+  },
+  "static/series/posters/ultra-instinct.webp": {
+    "size": 75220,
+    "sha1": "da413bbd7181c73fa5b2bb2255518ca7c52c7111"
+  },
+  "static/series/stage-bg/stage-1.webp": {
+    "size": 40208,
+    "sha1": "5b4e48b6c95cd7bb18049f43ebf58e79c73e8e05"
+  },
+  "static/series/stage-bg/stage-10.webp": {
+    "size": 79290,
+    "sha1": "4118b8c65f7ce6b99ee18249b242cf768e4fb791"
+  },
+  "static/series/stage-bg/stage-2.webp": {
+    "size": 50508,
+    "sha1": "2aea6ae033af2af4dfa5c883263315ffbe2b647d"
+  },
+  "static/series/stage-bg/stage-3.webp": {
+    "size": 40824,
+    "sha1": "012c953769d341cde23a168f8588acd63e1f7c81"
+  },
+  "static/series/stage-bg/stage-4.webp": {
+    "size": 51066,
+    "sha1": "7c5977b91aa3d0fc7cfc03927ba3dfa6914f11ff"
+  },
+  "static/series/stage-bg/stage-5.webp": {
+    "size": 47180,
+    "sha1": "d95d538d3b631f14fe24e95d2c0a8826ed137bda"
+  },
+  "static/series/stage-bg/stage-6.webp": {
+    "size": 55648,
+    "sha1": "1e046a80b0cc1e68e666d38f8f84c3ac842e7033"
+  },
+  "static/series/stage-bg/stage-7.webp": {
+    "size": 54546,
+    "sha1": "47c7fe0068ab05b89f10795ad182558827b54871"
+  },
+  "static/series/stage-bg/stage-8.webp": {
+    "size": 79844,
+    "sha1": "bfae1d291164e824bdbf4a30639edc6121e084a5"
+  },
+  "static/series/stage-bg/stage-9.webp": {
+    "size": 61372,
+    "sha1": "262e07803e1eaf1813912a2513be18aa54125636"
+  },
+  "static/series/stages/stage-1.webp": {
+    "size": 9250,
+    "sha1": "1f11acc9ac9e0b40db5161f056a8d79586bf309d"
+  },
+  "static/series/stages/stage-10.webp": {
+    "size": 17070,
+    "sha1": "f7ef76f9f7ad7efa6ac887e5db8977e90297bca3"
+  },
+  "static/series/stages/stage-2.webp": {
+    "size": 11544,
+    "sha1": "292a49f124106595a5cc44cd28534b5af0466713"
+  },
+  "static/series/stages/stage-3.webp": {
+    "size": 9760,
+    "sha1": "d7d30468aa08258fbefc58dbe22e21d607b71a4e"
+  },
+  "static/series/stages/stage-4.webp": {
+    "size": 11486,
+    "sha1": "2e647fcf5ad8da62a6bed30f93bf64c88e17b570"
+  },
+  "static/series/stages/stage-5.webp": {
+    "size": 10870,
+    "sha1": "37a84d801338fb3fa20d13a3716e305a778d97d2"
+  },
+  "static/series/stages/stage-6.webp": {
+    "size": 12018,
+    "sha1": "7f55e08c61e67b13d8172345697487347d832455"
+  },
+  "static/series/stages/stage-7.webp": {
+    "size": 12448,
+    "sha1": "a26b52eac13aed4ee43281d66174be2dbf605fbd"
+  },
+  "static/series/stages/stage-8.webp": {
+    "size": 16986,
+    "sha1": "d4d2c6c9cc36f47f83548b9ba2ed371c109f5a56"
+  },
+  "static/series/stages/stage-9.webp": {
+    "size": 13214,
+    "sha1": "a32efb0bbb7636bb6b37d102260e0e1a13000d39"
+  },
+  "static/series/ultra-instinct.png": {
+    "size": 591905,
+    "sha1": "fc6b85c595adbc2b9de71512eb243401d2981ae7"
+  },
+  "static/series/ultra-instinct.webp": {
+    "size": 82904,
+    "sha1": "428ca03dea789971ea7445bb25ed99af73f72269"
+  },
+  "static/share-card-template.png": {
+    "size": 652933,
+    "sha1": "6c8b7673314d49e56c4448c39b723ffbb3ad2f70"
+  },
+  "static/share-card-template.webp": {
+    "size": 73890,
+    "sha1": "d5b6fe85ccf14806873a873675d69ce18ec50e10"
+  },
+  "static/stages/s1.webp": {
+    "size": 4210,
+    "sha1": "c88757c1957f358565cc4c637f88a93ab4b64465"
+  },
+  "static/stages/s10.webp": {
+    "size": 1302,
+    "sha1": "83aef6f3537396d52c7578001d84f13ee50285bb"
+  },
+  "static/stages/s2.webp": {
+    "size": 4308,
+    "sha1": "39de82e10e5091bcaea36b7dffabac7456594bef"
+  },
+  "static/stages/s3.webp": {
+    "size": 4380,
+    "sha1": "e2bd33313ec6f9eb5e4eba41dc409abb0913f2fb"
+  },
+  "static/stages/s4.webp": {
+    "size": 4248,
+    "sha1": "70e191ef9b0e2e26adcf391bbb9e02e3990217eb"
+  },
+  "static/stages/s5.webp": {
+    "size": 4328,
+    "sha1": "cada60b241d590cd33c4af06d0d9b6fb7b0ca25d"
+  },
+  "static/stages/s6.webp": {
+    "size": 4290,
+    "sha1": "393f7a626d23fd46c8f446c67c62c6e540f8a363"
+  },
+  "static/stages/s7.webp": {
+    "size": 4256,
+    "sha1": "7cc3e531e983c5bdd83466f9ca44cc0b8a617c15"
+  },
+  "static/stages/s8.webp": {
+    "size": 4372,
+    "sha1": "0a83f8830f96d28e79fcbf21c0e7a29a7671f8cb"
+  },
+  "static/stages/s9.webp": {
+    "size": 4342,
+    "sha1": "71bff1f1011edb389136d073331c38bc9ebbbb23"
+  },
+  "static/tiers/champion-female.png": {
+    "size": 404996,
+    "sha1": "131b339a73717fd032512a248b934b49123176fd"
+  },
+  "static/tiers/champion-female.webp": {
+    "size": 52406,
+    "sha1": "60907ab8b269cb0119ec78a3a8999b6b77f21836"
+  },
+  "static/tiers/champion-male.png": {
+    "size": 320971,
+    "sha1": "b8879040ac5165b083d3e7047bdcb6fa1ded7b86"
+  },
+  "static/tiers/champion-male.webp": {
+    "size": 40052,
+    "sha1": "9530203b78e20d10607a31b35dd140086c78065c"
+  },
+  "static/tiers/elite-female.png": {
+    "size": 319163,
+    "sha1": "8598881730b6cc0dd88a6b7340089bde0e63d8f4"
+  },
+  "static/tiers/elite-female.webp": {
+    "size": 28378,
+    "sha1": "6a7fa507b9729ba47bd169a10f2a5e1153321009"
+  },
+  "static/tiers/elite-male.png": {
+    "size": 297720,
+    "sha1": "cb0aecd9abcf0fffb16a91b2089eae1e2f80bde1"
+  },
+  "static/tiers/elite-male.webp": {
+    "size": 30792,
+    "sha1": "134c0a976d1e01c613c4f2b3a1e855885e574ddf"
+  },
+  "static/tiers/fight-ascendant-female.png": {
+    "size": 374274,
+    "sha1": "d5d0684a3991580942f3e59e746871c340d92aee"
+  },
+  "static/tiers/fight-ascendant-female.webp": {
+    "size": 40870,
+    "sha1": "bb1aa3ea958b3ad4237671198d762fba5cfca597"
+  },
+  "static/tiers/fight-ascendant-male.png": {
+    "size": 329826,
+    "sha1": "3ea06102a0891df94568482f279f837a97c36463"
+  },
+  "static/tiers/fight-ascendant-male.webp": {
+    "size": 36566,
+    "sha1": "54495c850953065b741e902c4bac53f710bce09f"
+  },
+  "static/tiers/final-form-female.png": {
+    "size": 399111,
+    "sha1": "2927ca9810d3593d36d86d9672d5d41807e5729c"
+  },
+  "static/tiers/final-form-female.webp": {
+    "size": 52826,
+    "sha1": "5ea87f722238666d586cf5326fe8676977fa2b4b"
+  },
+  "static/tiers/final-form-male.png": {
+    "size": 364092,
+    "sha1": "5083af4ab088ebc5310fc419f165ed964d5ed222"
+  },
+  "static/tiers/final-form-male.webp": {
+    "size": 46962,
+    "sha1": "a83c5f792021cf81430044d556972235a015d865"
+  },
+  "static/tiers/novice-female.png": {
+    "size": 300281,
+    "sha1": "119ac9831fd600323095d21941bd2f11dc90f5a9"
+  },
+  "static/tiers/novice-female.webp": {
+    "size": 26938,
+    "sha1": "20cce688160da4dafeb582310ed82cc9f6d368ad"
+  },
+  "static/tiers/novice-male.png": {
+    "size": 262391,
+    "sha1": "efa0aa69d2b2e53d5bc432e5d93c24bb84ab3896"
+  },
+  "static/tiers/novice-male.webp": {
+    "size": 25024,
+    "sha1": "60bd1823380d5444723c680e7938d661c0935bf0"
+  },
+  "static/tiers/peak-physique-female.png": {
+    "size": 377151,
+    "sha1": "fd10be7a19a72a99576532abb60247e49963961a"
+  },
+  "static/tiers/peak-physique-female.webp": {
+    "size": 45040,
+    "sha1": "c81a77ff7d5ce4b5cd405d04ea73b4dd0bcd8674"
+  },
+  "static/tiers/peak-physique-male.png": {
+    "size": 353396,
+    "sha1": "05eaa2e9281800be8ead648d4f27761c93ab66fe"
+  },
+  "static/tiers/peak-physique-male.webp": {
+    "size": 41728,
+    "sha1": "9f75fec13294667bd49fb022df2a3a478c7b5b15"
+  },
+  "static/tiers/rookie-female.png": {
+    "size": 311502,
+    "sha1": "5e8d15718e7a2a425377b217c5fd4d72d240fbec"
+  },
+  "static/tiers/rookie-female.webp": {
+    "size": 24150,
+    "sha1": "d5bbc5b33e5612cb49f82f6365a119cb725cf3f1"
+  },
+  "static/tiers/rookie-male.png": {
+    "size": 245664,
+    "sha1": "2f2dbae7aea248f60dd98a71df4e72bf85c1d558"
+  },
+  "static/tiers/rookie-male.webp": {
+    "size": 21096,
+    "sha1": "a2b75d6e93fcee2298808e91ddcc7fa0137ff00c"
+  },
+  "static/tiers/warrior-female.png": {
+    "size": 376146,
+    "sha1": "9388bbb70c9e1b927abdbc6d92d6a6c9e7abaa65"
+  },
+  "static/tiers/warrior-female.webp": {
+    "size": 38188,
+    "sha1": "0cbe400b554ade63db77b071e6a399740386c35e"
+  },
+  "static/tiers/warrior-male.png": {
+    "size": 304294,
+    "sha1": "8650146f3b2e04c6d1655a8ddc6fe5f375da2639"
+  },
+  "static/tiers/warrior-male.webp": {
+    "size": 33382,
+    "sha1": "4499b1a4692cb3620a6185644ca787d935679c19"
+  },
+  "static/timer-cardio.png": {
+    "size": 832000,
+    "sha1": "55d0c04091d49b93a9f5c7870aaa9527e01e4c6a"
+  },
+  "static/timer-cardio.webp": {
+    "size": 264924,
+    "sha1": "d813c80868290c8159f75faba1da4d3ded26e744"
+  },
+  "static/timer-quick-purple.png": {
+    "size": 225600,
+    "sha1": "f7f6e30a23d3bcb488566de0ced8e4f08c9d5ff1"
+  },
+  "static/timer-quick-purple.webp": {
+    "size": 29794,
+    "sha1": "811d155ab5e8688ee3493c495cfdd4c5c72b3e48"
+  },
+  "static/timer-quick-red.png": {
+    "size": 226141,
+    "sha1": "ff97e7b8625fdc6d34f1b2417b9e7c3cbbd3305e"
+  },
+  "static/timer-quick-red.webp": {
+    "size": 29546,
+    "sha1": "a56e7a01131908af4c9455e17a0ec5e5b2b66911"
+  },
+  "static/title-fight.png": {
+    "size": 43980,
+    "sha1": "49bf6f25bb9b5f4f059af3addec1790305483553"
+  },
+  "static/title-fight.webp": {
+    "size": 25074,
+    "sha1": "c63ac360a5f392a828fb4053cdab99dc1bde5a17"
+  },
+  "static/title-fit.png": {
+    "size": 16746,
+    "sha1": "7825fe6f31cdd8ac1f320a5c1fbd20ed70ee9bda"
+  },
+  "static/title-fit.webp": {
+    "size": 19988,
+    "sha1": "6fc46935260a8409b55029cf3d0ba414d32f28b3"
+  },
+  "static/training-camp-tower.webp": {
+    "size": 77070,
+    "sha1": "8811803a95a5f7b89449c28293c7eeb14d47a5be"
+  },
+  "static/trophies/arcade-boss-breaker.png": {
+    "size": 539923,
+    "sha1": "a8fba105e2447d36a941e527b5b34a4a1b6422c5"
+  },
+  "static/trophies/arcade-boss-breaker.webp": {
+    "size": 64934,
+    "sha1": "0cea9b95aedff95d3250a723601d08c9f42d07fc"
+  },
+  "static/trophies/arcade-combo-hunter.png": {
+    "size": 478496,
+    "sha1": "085aecc6da46144cdb708c777c4baf058b6291e8"
+  },
+  "static/trophies/arcade-combo-hunter.webp": {
+    "size": 54810,
+    "sha1": "a0850e05404564983d67fcf849aa859a57f32600"
+  },
+  "static/trophies/arcade-final-boss.png": {
+    "size": 459432,
+    "sha1": "c6a0295c7ef7db2335136cbdf201076790de5068"
+  },
+  "static/trophies/arcade-final-boss.webp": {
+    "size": 52360,
+    "sha1": "608c122dfacaf08713801348bbc48e1533da7e09"
+  },
+  "static/trophies/arcade-recruit.png": {
+    "size": 481680,
+    "sha1": "6736c277779311765ad02392e073df878cd2d5a1"
+  },
+  "static/trophies/arcade-recruit.webp": {
+    "size": 50126,
+    "sha1": "d92b93d817e8f65ef8549d632f578329ebbd86cd"
+  },
+  "static/trophies/fight-apex-champion.png": {
+    "size": 532114,
+    "sha1": "e691e5a5f17604a4feb780d4aa00e260e4a826aa"
+  },
+  "static/trophies/fight-apex-champion.webp": {
+    "size": 75478,
+    "sha1": "fea584255bb7767b9b9341121d3c5699b25ce09b"
+  },
+  "static/trophies/fight-combat-rookie.png": {
+    "size": 461997,
+    "sha1": "c0b135b08358256f2144af63970b321db06f0b28"
+  },
+  "static/trophies/fight-combat-rookie.webp": {
+    "size": 51858,
+    "sha1": "7defe28a9754550a4d53d9a480a291f203f15f46"
+  },
+  "static/trophies/fight-knockout-king.png": {
+    "size": 481906,
+    "sha1": "1ebb139eabb9998204b3527cb2f3d5f28ff8e357"
+  },
+  "static/trophies/fight-knockout-king.webp": {
+    "size": 66378,
+    "sha1": "73f66ec8f8ce99a13a727b698d50013e0d63c64f"
+  },
+  "static/trophies/fight-ring-warrior.png": {
+    "size": 481061,
+    "sha1": "23cbf19111abe3d3ec05eaff51867d59e1c7b12b"
+  },
+  "static/trophies/fight-ring-warrior.webp": {
+    "size": 59562,
+    "sha1": "2670d3695cf072e0136b82c8858f356cb3e5a209"
+  },
+  "static/trophies/fight/camp-champion.webp": {
+    "size": 52698,
+    "sha1": "d0f780787cc4a3b3ffda553df962187a1ac43685"
+  },
+  "static/trophies/fight/combo-machine.webp": {
+    "size": 61232,
+    "sha1": "d0eb4525273064bbd44e37326a181c527a8014f4"
+  },
+  "static/trophies/fight/iron-rounds.webp": {
+    "size": 54192,
+    "sha1": "2045315831a3094682d07a6411f228d2a9aa16d5"
+  },
+  "static/trophies/fight/knockout-king.webp": {
+    "size": 55326,
+    "sha1": "0094716f0468df2cbc33c349ce2d6d60d7b9c384"
+  },
+  "static/trophies/fight/power-surge.webp": {
+    "size": 57406,
+    "sha1": "18284a3e9349c7d2ce8fe8ad087a5be63393c23e"
+  },
+  "static/trophies/fight/rhythm-breaker.webp": {
+    "size": 59570,
+    "sha1": "60dc70b25d3ff7cd24b00f7e9c2f2c5e4e8401df"
+  },
+  "static/trophies/fight/ring-general.webp": {
+    "size": 54650,
+    "sha1": "a4dd8f2fa162f246f2573f2a779f3210bd97b093"
+  },
+  "static/trophies/fight/shadow-striker.webp": {
+    "size": 52680,
+    "sha1": "d491f35cf2cad059980e4b40b956555a391c4d09"
+  },
+  "static/trophies/fight/sweet-science.webp": {
+    "size": 56494,
+    "sha1": "78b70517f781fe37cabdc12c69b260fdc1118d96"
+  },
+  "static/trophies/fit-gym-warrior.png": {
+    "size": 367629,
+    "sha1": "ef3a1a389b0ea762610aa18e5aedf98806cfb670"
+  },
+  "static/trophies/fit-gym-warrior.webp": {
+    "size": 41664,
+    "sha1": "059a7270e19bf1d911975ffd7d91c27c5b52b2c3"
+  },
+  "static/trophies/fit-iron-legend.png": {
+    "size": 395528,
+    "sha1": "cdaeff14b2ea81e775017c946efc9e501534fc60"
+  },
+  "static/trophies/fit-iron-legend.webp": {
+    "size": 48314,
+    "sha1": "a82136102ce6ceb21227d089c149f8a276e35af2"
+  },
+  "static/trophies/fit-rep-master.png": {
+    "size": 390963,
+    "sha1": "518075bc182bd95047fbd6e21c135087179f4927"
+  },
+  "static/trophies/fit-rep-master.webp": {
+    "size": 46740,
+    "sha1": "9c8c7f3632a38944a27e9122976bcb929bf0ce79"
+  },
+  "static/trophies/fit-starter-build.png": {
+    "size": 352982,
+    "sha1": "4d34038a183bfcb4b8c5824b7cda34989993c9df"
+  },
+  "static/trophies/fit-starter-build.webp": {
+    "size": 36814,
+    "sha1": "b96f4128471e993655fe3968dfc99dd74c22ef25"
+  },
+  "static/trophies/good-effort.png": {
+    "size": 318469,
+    "sha1": "b7555245c0aeae3ae84b20791249689028a1c07d"
+  },
+  "static/trophies/good-effort.webp": {
+    "size": 46414,
+    "sha1": "2364c73ed4e7a05c7bee9342433b623cd28a1319"
+  },
+  "static/trophies/mission-complete-combat.webp": {
+    "size": 44958,
+    "sha1": "7539e4f30506cf23e796969b0538b58a66695562"
+  },
+  "static/trophies/mission-complete-fight.webp": {
+    "size": 54682,
+    "sha1": "705dedc1c5415192a1495c795285779311cce684"
+  },
+  "static/trophies/mission-complete-fit.webp": {
+    "size": 48164,
+    "sha1": "135d3f5dd83439be17e973e1779b11aef281398f"
+  },
+  "static/trophies/trophy-champion.webp": {
+    "size": 55636,
+    "sha1": "95764016b9433d87228e5b64ff3bdaa559bf6c34"
+  },
+  "static/trophies/trophy-founders.webp": {
+    "size": 52900,
+    "sha1": "fac58c3dc9a8301e2c7f8345316bc62171b3373a"
+  },
+  "static/trophies/trophy-unlocked.webp": {
+    "size": 50244,
+    "sha1": "174848479fd142b23b128fc15cc032cfbf877348"
+  },
+  "training-arcade/results/mission-validation-failed-red.png": {
+    "size": 208676,
+    "sha1": "005669d383405346ff06476fb6eafc20be7a02e1"
+  },
+  "training-arcade/results/mission-validation-failed-red.webp": {
+    "size": 50368,
+    "sha1": "8c91cf01f04da8f65f79a77cc30efe40ce64ca5d"
+  },
+  "training-arcade/results/mission-validation-failed-yellow.png": {
+    "size": 128818,
+    "sha1": "01152bf022a829ca0771e80c0ae635a61a986642"
+  },
+  "training-arcade/results/mission-validation-failed-yellow.webp": {
+    "size": 43388,
+    "sha1": "a4c8a5f5b7b37ec7b1b97569ad4b30a0ac5e4e49"
+  },
+  "training-arcade/results/partial-completion.png": {
+    "size": 95348,
+    "sha1": "2afc78e251aaf2d67442f55eb133703a6356d4b5"
+  },
+  "training-arcade/results/partial-completion.webp": {
+    "size": 31980,
+    "sha1": "e2be963d40855b8fa21dcd84857390aafda0444c"
+  },
+  "training-arcade/rewards/stage-clear-badge-sc.png": {
+    "size": 389289,
+    "sha1": "461a2189fd50678b94ab500da60969a67956ee2d"
+  },
+  "training-arcade/rewards/stage-clear-badge-sc.webp": {
+    "size": 59742,
+    "sha1": "ab8a61e253fa6caa6b3e18536a6c652a94f40263"
+  },
+  "training-arcade/rewards/stage-clear-burst-tt.png": {
+    "size": 359620,
+    "sha1": "ef1d82cf36bf6ba21cb258b8237efa5fa5da329a"
+  },
+  "training-arcade/rewards/stage-clear-burst-tt.webp": {
+    "size": 77414,
+    "sha1": "f8cb9af8bca66a63a94fb6537a28dcde808375f3"
+  },
+  "training-arcade/stage-banners/stage-1.png": {
+    "size": 218562,
+    "sha1": "0e33e68251d83260d028cb874af27261267593a3"
+  },
+  "training-arcade/stage-banners/stage-1.webp": {
+    "size": 27028,
+    "sha1": "54231437607006daa302fa650147f1c470453670"
+  },
+  "training-arcade/stage-banners/stage-10.png": {
+    "size": 216523,
+    "sha1": "0f5d1fe739dc6f4ee8d8c8445ffb69b11afb0ce0"
+  },
+  "training-arcade/stage-banners/stage-10.webp": {
+    "size": 25682,
+    "sha1": "4772ff4a84ec464bcce0d816788d8c7492d1ea4d"
+  },
+  "training-arcade/stage-banners/stage-2.png": {
+    "size": 214525,
+    "sha1": "17e7120d3aa1b90c0920f37060c97b5457592bb1"
+  },
+  "training-arcade/stage-banners/stage-2.webp": {
+    "size": 26306,
+    "sha1": "2c5189f4c82ef1e1ec77821180d62a9bf7fc5d83"
+  },
+  "training-arcade/stage-banners/stage-3.png": {
+    "size": 203865,
+    "sha1": "db247cda74b1e7b669a7aff4dfff93a9109522f2"
+  },
+  "training-arcade/stage-banners/stage-3.webp": {
+    "size": 23972,
+    "sha1": "2a0346cd56ba29dee4139317acd519791d0dd730"
+  },
+  "training-arcade/stage-banners/stage-4.png": {
+    "size": 212978,
+    "sha1": "6d6543ab6534f782074d2f53756aa9a6796c453c"
+  },
+  "training-arcade/stage-banners/stage-4.webp": {
+    "size": 25298,
+    "sha1": "d790e14dabc439cacf0aee6ccf9ecd65f0f32fd2"
+  },
+  "training-arcade/stage-banners/stage-5.png": {
+    "size": 220649,
+    "sha1": "8b859d472c7db39f145ff9b5ac6dcfa24bb7a754"
+  },
+  "training-arcade/stage-banners/stage-5.webp": {
+    "size": 26826,
+    "sha1": "ee6cabcc636f8bf7fa33a54f0a79a14232514fee"
+  },
+  "training-arcade/stage-banners/stage-6.png": {
+    "size": 215312,
+    "sha1": "c2cd6f111cc966d16af1737e11bf60a602e1410a"
+  },
+  "training-arcade/stage-banners/stage-6.webp": {
+    "size": 27052,
+    "sha1": "d839149bf51c6f6e79384888a5f9325e9cc3b3d5"
+  },
+  "training-arcade/stage-banners/stage-7.png": {
+    "size": 220062,
+    "sha1": "07a946a263330f5a98c25bdc1d55acff45b08cef"
+  },
+  "training-arcade/stage-banners/stage-7.webp": {
+    "size": 26410,
+    "sha1": "ed99ae7df6abf278307e9ebb5853fc9c84851758"
+  },
+  "training-arcade/stage-banners/stage-8.png": {
+    "size": 211506,
+    "sha1": "71341f808ffe0416149c2b479a09990e959ecda4"
+  },
+  "training-arcade/stage-banners/stage-8.webp": {
+    "size": 25866,
+    "sha1": "a22823558cd42cf0f30af7eeb651c628b0d9012f"
+  },
+  "training-arcade/stage-banners/stage-9.png": {
+    "size": 219713,
+    "sha1": "0ace775de710c57ade15036a87821419805a8d6d"
+  },
+  "training-arcade/stage-banners/stage-9.webp": {
+    "size": 26666,
+    "sha1": "7e366c5e7d4a5d3bc7033e9ba04a450e5232565e"
+  },
+  "ui/fight-mode-gloves.png": {
+    "size": 519907,
+    "sha1": "da6104313ed353de106357e16fa1cd5a38ab0f87"
+  },
+  "ui/fight-mode-gloves.webp": {
+    "size": 45366,
+    "sha1": "040801d3d4c40f4f78fd467143aacc3a4136dcd6"
+  },
+  "ui/fit-mode-icon.png": {
+    "size": 220180,
+    "sha1": "17dd25bbd3d67a57c0924794748c5846db91e176"
+  },
+  "ui/fit-mode-icon.webp": {
+    "size": 28416,
+    "sha1": "17be16bb371d2f4f204f8fe7daa9cbc773358612"
+  }
+}

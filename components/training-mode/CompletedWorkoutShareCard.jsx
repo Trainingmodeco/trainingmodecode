@@ -14,6 +14,7 @@ const CompletedWorkoutShareCard = forwardRef(function CompletedWorkoutShareCard(
       position: 'relative', width: '100%', aspectRatio: '9/16',
       borderRadius: 12, overflow: 'hidden', background: '#0a0014',
     }}>
+      {/* img-ok — html2canvas capture needs crossOrigin, which SafeImage does not forward */}
       <img
         src="/social/training-mode-share-card-template.png"
         alt="Training Mode Share Card"
