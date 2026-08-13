@@ -12,6 +12,7 @@ import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeDat
 import { targetsForStage } from './data/benchmarkLog';
 import { canAccessStage, GATES } from './data/entitlements';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
+import { loadParq } from './data/parq';
 import ScreenGuide from './shared/ScreenGuide';
 import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -124,7 +125,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   // difficulty) before the timer, instead of starting straight away.
   const [selectFor, setSelectFor] = useState(null);
   const [selMode, setSelMode] = useState('fight');
-  const [selDiff, setSelDiff] = useState('normal');
+  // ND-06 — a flagged PAR-Q softly steers the arcade to Easy too (same as
+  // Training Camp); nothing is locked, the athlete can change it right here.
+  const [selDiff, setSelDiff] = useState(() => (loadParq().anyYes ? 'easy' : 'normal'));
   // 2.10 — first-time campaign intro (big description/rewards). null | 'first'.
   const [intro, setIntro] = useState(null);
   // 2.10 — the ⓘ / "?" how-to: a stepped spotlight walkthrough of the whole page

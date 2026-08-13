@@ -25,7 +25,9 @@ function card(children) {
   );
 }
 
-export default function ParQSheet({ onDone }) {
+// Beta ND-06 — the sheet now guards more than the camp (onboarding + arcade),
+// so the advisory CTA label is a prop; semantics are unchanged everywhere.
+export default function ParQSheet({ onDone, ctaLabel = '▶ ENTER CAMP ON EASY' }) {
   // answers[i] = null | true | false
   const [answers, setAnswers] = useState(() => QUESTIONS.map(() => null));
   const [advisory, setAdvisory] = useState(false); // showing the "any yes" advisory
@@ -53,7 +55,7 @@ export default function ParQSheet({ onDone }) {
             Nothing is locked — you can change difficulty any time. Easy still earns XP and keeps your streak.
           </div>
         </div>
-        <button onClick={() => onDone(true)} style={{ width: '100%', height: 42, borderRadius: 11, border: 'none', background: `linear-gradient(135deg,${TEAL},#22c55e)`, color: '#04140f', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer' }}>▶ ENTER CAMP ON EASY</button>
+        <button onClick={() => onDone(true)} style={{ width: '100%', height: 42, borderRadius: 11, border: 'none', background: `linear-gradient(135deg,${TEAL},#22c55e)`, color: '#04140f', font: "900 11px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer' }}>{ctaLabel}</button>
       </div>
     );
   }

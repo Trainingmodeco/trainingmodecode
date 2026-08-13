@@ -10,6 +10,8 @@ import { getSeriesProgress } from './data/arcadeProgress';
 import { loadStats, getLevel } from './data/userStats';
 import { decodeChallenge, resolveChallenge } from './data/challengeCodes';
 import CodeEntryModal from './shared/CodeEntryModal';
+import ParQSheet from './shared/ParQSheet';
+import { loadParq, saveParq } from './data/parq';
 
 // Full-bleed saga poster art (918x1713), one per visible series.
 const POSTER_MAP = {
@@ -61,6 +63,10 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
   // Paste a friend's challenge code to jump into the exact stage they set.
   // (window.prompt is unsupported on RN Web — use an in-app modal.)
   const [codeOpen, setCodeOpen] = useState(false);
+  // Beta ND-06 — the arcade is one of the two heavy modes (with Training
+  // Camp), so it carries the PAR-Q safety net for profiles that predate the
+  // onboarding screening. One-time ever: the record is shared app-wide.
+  const [showParq, setShowParq] = useState(() => !loadParq().done);
   const submitChallengeCode = (raw) => {
     const resolved = resolveChallenge(decodeChallenge(raw));
     if (!resolved) return false;
@@ -382,6 +388,12 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
           onSubmit={submitChallengeCode}
           onClose={() => setCodeOpen(false)}
         />
+      )}
+      {showParq && (
+        <ParQSheet ctaLabel="▶ ENTER THE ARCADE ON EASY" onDone={(anyYes) => {
+          saveParq(anyYes);
+          setShowParq(false);
+        }}/>
       )}
     </PhoneFrame>
   );

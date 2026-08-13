@@ -26,6 +26,8 @@ import { TRAINING_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeD
 import { preloadCriticalArt } from './shared/preloadImages';
 import { challengeFromLocation, resolveChallenge, clearChallengeFromURL } from './data/challengeCodes';
 import ChallengeInboundModal from './shared/ChallengeInboundModal';
+import ParQSheet from './shared/ParQSheet';
+import { loadParq, saveParq } from './data/parq';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -158,6 +160,12 @@ export default function App() {
   // the moment that screen unmounts.
   const [pathTour, setPathTour] = useState(null);
   const pathTourLastRef = useRef(false); // reached the final step?
+  // Beta ND-06 — the PAR-Q now runs once at the END of onboarding (both the
+  // completed and the skipped questionnaire path), before the intro tour, so
+  // every mode is covered for new users. Camp keeps its own gate and the
+  // Arcade gains one as the safety net for pre-existing profiles.
+  const [showParqGate, setShowParqGate] = useState(false);
+  const afterParqRef = useRef(null);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -745,8 +753,13 @@ export default function App() {
       trackEvent('onboarding_complete', { goal, experience });
       // Land on the REAL Home and run the one-time full walkthrough.
       // Never auto-show again.
-      const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-      if (!tourDone) startFullIntro(); else setScreen('home');
+      const finish = () => {
+        const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
+        if (!tourDone) startFullIntro(); else setScreen('home');
+      };
+      // ND-06 — PAR-Q closes out onboarding (once ever), then the tour runs.
+      if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }
+      else finish();
     },
     startFeatureTour: () => {
       // Settings → "Replay intro guide".
@@ -757,9 +770,13 @@ export default function App() {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
       updateProfile(onboardingProfile || { goal, experience });
       // The full walkthrough runs right after the questionnaire no matter how
-      // it ended — skipping the wizard doesn't skip the intro.
-      const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-      if (!tourDone) startFullIntro(); else setScreen('home');
+      // it ended — skipping the wizard doesn't skip the intro (or the PAR-Q).
+      const finish = () => {
+        const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
+        if (!tourDone) startFullIntro(); else setScreen('home');
+      };
+      if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }
+      else finish();
     },
   };
 
@@ -767,6 +784,18 @@ export default function App() {
     <>
       <style>{STYLE}</style>
       <style>{`@keyframes tm-offline-toast{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(8px)}}`}</style>
+      {/* ND-06 — one-time PAR-Q at the end of onboarding, above everything
+          (the tour starts only after it closes, so no z-order contest). */}
+      {showParqGate && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1300 }}>
+          <ParQSheet ctaLabel="▶ CONTINUE ON EASY" onDone={(anyYes) => {
+            saveParq(anyYes);
+            setShowParqGate(false);
+            const f = afterParqRef.current; afterParqRef.current = null;
+            if (f) f();
+          }}/>
+        </div>
+      )}
       {showOffline && (
         <div style={{ position: 'fixed', ...fixedColumnLeft(12), bottom: 'calc(74px + env(safe-area-inset-bottom,0px))', zIndex: 600, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 99, background: 'rgba(20,6,38,0.95)', border: '1px solid rgba(253,224,71,0.35)', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'none', animation: 'tm-offline-toast 4s ease forwards' }}>
           <span style={{ fontSize: 11 }}>📡</span>
