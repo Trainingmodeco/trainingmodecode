@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Play } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
+import { SESSION_LABELS } from './FloatingResumeButton';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -38,7 +40,7 @@ function getActiveChallenge() {
 // Training Arcade card so the stage info + CTA stay readable.
 const ARCADE_CONTINUE_BG = '/static/hub/arcade-continue-bg.webp';
 
-export default function HomeDashboard({ onHome, onFightMode, onProfile, profile, onPractice, onFightFocus, onQuickMission, onFitSetup, onComboCoach, onStartHere, onCombatConditioning, onTrainingArcade, onTrain }) {
+export default function HomeDashboard({ onHome, onFightMode, onProfile, profile, onPractice, onFightFocus, onQuickMission, onFitSetup, onComboCoach, onStartHere, onCombatConditioning, onTrainingArcade, onTrain, pausedSession, onResume, onDiscardPaused }) {
   const [stats, setStats] = useState(() => loadStats());
   const [arcadeBgFail, setArcadeBgFail] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -207,6 +209,25 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           </div>
           <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#fde047' }}>{weeklyCount}/{WEEKLY_GOAL}</span>
         </div>
+
+        {/* Beta TM-09 — a paused session outranks a new bout. On Home the
+            floating pill is replaced by this in-flow banner: self-explaining,
+            no content overlap, no tab-bar competition. ✕ discards the paused
+            snapshot (onDiscardPaused was plumbed but unused until now). */}
+        {pausedSession && (
+          <div style={{ position: 'relative', borderRadius: 12, border: '1.5px solid rgba(168,85,247,0.65)', background: 'linear-gradient(135deg,#1c0836,#12041f)', boxShadow: '0 0 18px -4px rgba(168,85,247,0.5)', padding: '11px 34px 11px 13px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg,#b06aff,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(168,85,247,0.6)' }}>
+              <Play size={15} color="#fff" fill="#fff"/>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#c9a6ff', marginBottom: 4 }}>⏸ SESSION PAUSED</div>
+              <div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff' }}>{(SESSION_LABELS[pausedSession.screen] || 'Session').toUpperCase()}</div>
+              <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>Pick up where you left off.</div>
+            </div>
+            <button onClick={onResume} style={{ border: 'none', borderRadius: 9, background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.05em', padding: '10px 16px', cursor: 'pointer', boxShadow: '0 0 16px rgba(168,85,247,0.45)', flexShrink: 0 }}>RESUME</button>
+            <button onClick={onDiscardPaused} aria-label="Discard paused session" style={{ position: 'absolute', top: 4, right: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 12, padding: 4 }}>✕</button>
+          </div>
+        )}
 
         {/* Today's bout — hero card with the bout art behind */}
         <button data-tour="todays-bout" data-guide="todays-bout" className="home-hero-card" onClick={handleBoutStart} style={{ '--card-glow': 'rgba(253,224,71,0.45)', '--card-glow-border': 'rgba(253,224,71,0.9)', position: 'relative', height: 172, borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.65)', background: '#0a0014', boxShadow: '0 0 18px -6px rgba(253,224,71,0.35)', marginBottom: 10, padding: 0, display: 'block', cursor: 'pointer', textAlign: 'left', width: '100%' }}>

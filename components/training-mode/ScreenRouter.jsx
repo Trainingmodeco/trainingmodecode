@@ -164,7 +164,11 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, children, loc
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
-          paddingBottom: scrolls ? 'calc(110px + env(safe-area-inset-bottom, 0px))' : 0,
+          // Beta TM-09 — when the resume pill floats over this screen, buy the
+          // last rows of content enough clearance to scroll out from under it.
+          paddingBottom: scrolls
+            ? (pausedSession ? 'calc(150px + env(safe-area-inset-bottom, 0px))' : 'calc(110px + env(safe-area-inset-bottom, 0px))')
+            : 0,
         }}
       >
         {children}
@@ -213,9 +217,12 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     return <Onboarding onComplete={completeOnboarding} onHome={skipOnboardingToHome}/>;
   }
   if (screen === 'home') {
+    // Beta TM-09 — Home gets the in-flow SESSION PAUSED banner instead of the
+    // floating pill (no pausedSession into WithNav = no pill here); the pill
+    // stays the global affordance on every other tab screen.
     return (
-      <WithNav activeTab="home" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume}>
-        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitBuilder={goFitHub} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goTrainingHub}/>
+      <WithNav activeTab="home" onNavigate={handleNavigate}>
+        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitBuilder={goFitHub} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goTrainingHub} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
       </WithNav>
     );
   }

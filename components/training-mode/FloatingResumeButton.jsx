@@ -1,7 +1,7 @@
 import { Play } from 'lucide-react';
 import { C, fixedColumnRight } from './Styles';
 
-const SESSION_LABELS = {
+export const SESSION_LABELS = {
   timer: 'Fight Focus',
   combo_active: 'Combo Coach',
   qm_active: 'Quick Mission',
@@ -52,6 +52,8 @@ export default function FloatingResumeButton({ pausedSession, onResume }) {
       }}>
         <Play size={14} color="#fff" fill="#fff" />
       </div>
+      {/* Beta TM-09 — "Fit Builder" alone explained nothing to a user who
+          forgot pausing. The verb makes it an action, not a mystery chip. */}
       <span style={{
         fontFamily: "'Orbitron', sans-serif",
         fontSize: 9,
@@ -60,7 +62,7 @@ export default function FloatingResumeButton({ pausedSession, onResume }) {
         letterSpacing: '0.06em',
         whiteSpace: 'nowrap',
       }}>
-        {label}
+        <span style={{ color: '#fde047' }}>RESUME</span> · {label.toUpperCase()}
       </span>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes resumePulse {
