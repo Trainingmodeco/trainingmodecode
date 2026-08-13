@@ -74,7 +74,7 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
       <button onClick={() => setDismissed(true)} style={{
         position: 'absolute', top: 10, right: 10,
         background: 'transparent', border: 'none', cursor: 'pointer',
-        color: 'rgba(255,255,255,0.3)', padding: 4,
+        color: 'rgba(255,255,255,0.6)', padding: 4,
       }}>
         <X size={14}/>
       </button>

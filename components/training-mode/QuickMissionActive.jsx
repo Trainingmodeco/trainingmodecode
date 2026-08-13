@@ -779,7 +779,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                   {phase === 'work' && currentEx.mode === 'reps' && (
                     <span style={{
                       fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700,
-                      color: cadenceActive ? '#22c55e' : 'rgba(255,255,255,0.4)',
+                      color: cadenceActive ? '#22c55e' : 'rgba(255,255,255,0.62)',
                       letterSpacing: '0.08em',
                       padding: '2px 6px', borderRadius: 4,
                       background: cadenceActive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',

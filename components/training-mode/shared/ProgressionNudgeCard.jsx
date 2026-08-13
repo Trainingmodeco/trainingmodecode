@@ -20,7 +20,7 @@ export default function ProgressionNudgeCard({ lane, style }) {
       padding: '11px 12px',
       ...style,
     }}>
-      <button onClick={dismiss} aria-label="Dismiss" style={{ position: 'absolute', top: 6, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.45)', fontSize: 13, padding: 2 }}>✕</button>
+      <button onClick={dismiss} aria-label="Dismiss" style={{ position: 'absolute', top: 6, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.65)', fontSize: 13, padding: 2 }}>✕</button>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <span style={{ fontSize: 20, lineHeight: 1 }}>{nudge.emoji}</span>
         <div style={{ flex: 1, paddingRight: 14 }}>

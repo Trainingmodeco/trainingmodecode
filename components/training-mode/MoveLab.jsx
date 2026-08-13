@@ -155,7 +155,7 @@ export default function MoveLab({ discipline = 'Boxing', onBack, onHome }) {
               <>
                 <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.12em', marginBottom: 6 }}>YOUR SEQUENCE · tap to remove</div>
                 <div style={{ minHeight: 52, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', background: 'rgba(8,2,18,0.5)', border: '1px dashed rgba(168,85,247,0.35)', borderRadius: 10, padding: 8, marginBottom: 12 }}>
-                  {seq.length === 0 && <span style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#6d5a8f', padding: '0 4px' }}>Tap strikes below to chain them…</span>}
+                  {seq.length === 0 && <span style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', padding: '0 4px' }}>Tap strikes below to chain them…</span>}
                   {seq.map((s, i) => <Chip key={i} label={s} index={i + 1} color={chipColor(s)} onClick={() => setSeq(seq.filter((_, j) => j !== i))}/>)}
                 </div>
 
@@ -207,7 +207,7 @@ function MoveCard({ move, onToggle, onDelete, onSpeak }) {
         <span style={{ flex: 1, font: "900 12px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{move.name.toUpperCase()}</span>
         {move.gameReady && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, font: "800 7px 'Orbitron',sans-serif", color: '#8fe8ac', background: 'rgba(34,197,94,0.14)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: 5, padding: '3px 6px' }}><Gamepad2 size={9}/> GAME-READY</span>}
         {onSpeak && <button onClick={onSpeak} aria-label="Hear it" style={{ background: 'none', border: 'none', color: '#c9a6ff', cursor: 'pointer', display: 'flex', padding: 2 }}><Volume2 size={14}/></button>}
-        <button onClick={onDelete} aria-label="Delete" style={{ background: 'none', border: 'none', color: '#6d5a8f', cursor: 'pointer', display: 'flex', padding: 2 }}><Trash2 size={13}/></button>
+        <button onClick={onDelete} aria-label="Delete" style={{ background: 'none', border: 'none', color: '#9a90b8', cursor: 'pointer', display: 'flex', padding: 2 }}><Trash2 size={13}/></button>
       </div>
       {move.signature ? (
         <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#c4a4d8', marginBottom: 9 }}>🗣 Coach calls it verbatim</div>

@@ -265,12 +265,12 @@ export default function StartHere({ onBack }) {
                   <Play size={16} color="rgba(168,85,247,0.3)"/>
                   <div>
                     <div style={{
-                      fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700,
-                      color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em',
+                      fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700,
+                      color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em',
                     }}>VIDEO LESSON COMING SOON</div>
                     <div style={{
                       fontFamily: "'Rajdhani',sans-serif", fontSize: 10,
-                      color: 'rgba(255,255,255,0.18)', marginTop: 1,
+                      color: 'rgba(255,255,255,0.5)', marginTop: 1,
                     }}>Coach breakdown will appear here.</div>
                   </div>
                 </div>

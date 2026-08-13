@@ -22,7 +22,7 @@ const ALERTS = [
 function Toggle({ on }) {
   return (
     <div style={{ width: 40, height: 22, borderRadius: 99, background: on ? '#a855f7' : '#2a2140', border: `1px solid ${on ? '#fde047' : 'rgba(255,255,255,0.15)'}`, position: 'relative', transition: 'background 0.15s' }}>
-      <span style={{ position: 'absolute', top: 1, [on ? 'right' : 'left']: 1, width: 18, height: 18, borderRadius: '50%', background: on ? '#fde047' : '#6d5a8f', transition: 'all 0.15s' }}/>
+      <span style={{ position: 'absolute', top: 1, [on ? 'right' : 'left']: 1, width: 18, height: 18, borderRadius: '50%', background: on ? '#fde047' : '#9a90b8', transition: 'all 0.15s' }}/>
     </div>
   );
 }

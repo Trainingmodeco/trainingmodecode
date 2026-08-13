@@ -51,7 +51,7 @@ function StarRow({ count = 0, size = 11 }) {
     <span style={{ display: 'inline-flex', gap: 1.5, verticalAlign: 'middle' }}>
       {Array.from({ length: 5 }, (_, i) => (
         <Star key={i} size={size} fill={i < count ? C.gold : 'transparent'}
-          color={i < count ? C.gold : 'rgba(255,255,255,0.3)'} strokeWidth={1.5} />
+          color={i < count ? C.gold : 'rgba(255,255,255,0.55)'} strokeWidth={1.5} />
       ))}
     </span>
   );

@@ -87,7 +87,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
           </div>
 
           {/* FOCUS */}
-          <Label><span>FOCUS <span style={{ color: '#6d5a8f' }}>· optional</span></span></Label>
+          <Label><span>FOCUS <span style={{ color: '#9a90b8' }}>· optional</span></span></Label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
             {FOCI.map(f => {
               const active = f === focus;

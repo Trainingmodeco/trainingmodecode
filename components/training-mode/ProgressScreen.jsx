@@ -123,7 +123,7 @@ function ProgressDetail({ stats, rankName, level, onClose }) {
             {buckets.map((b, i) => (
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: '100%', height: Math.max(6, (b / maxB) * 62), borderRadius: 4, background: i === 3 ? 'linear-gradient(180deg,#fde047,#f59e0b)' : 'linear-gradient(180deg,#b06aff,#7c3aed)' }}/>
-                <span style={{ font: "600 7px 'Orbitron',sans-serif", color: i === 3 ? '#fde047' : '#6d5a8f' }}>W{i + 1}</span>
+                <span style={{ font: "600 8px 'Orbitron',sans-serif", color: i === 3 ? '#fde047' : '#9a90b8' }}>W{i + 1}</span>
               </div>
             ))}
           </div>
@@ -175,7 +175,7 @@ function AchievementRow({ a }) {
         background: on ? 'rgba(253,224,71,0.14)' : 'rgba(255,255,255,0.04)',
         border: `1px solid ${on ? 'rgba(253,224,71,0.5)' : 'rgba(255,255,255,0.1)'}`,
       }}>
-        <Award size={12} color={on ? '#fde047' : '#6d5a8f'} strokeWidth={2}/>
+        <Award size={12} color={on ? '#fde047' : '#9a90b8'} strokeWidth={2}/>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ font: "800 8px 'Orbitron',sans-serif", color: on ? '#fde047' : '#9a90b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -194,7 +194,7 @@ function SectionHead({ title, earned, total }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
       <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>{title}</span>
-      <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{earned}/{total}</span>
+      <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#9a90b8' }}>{earned}/{total}</span>
     </div>
   );
 }
@@ -234,7 +234,7 @@ function AchievementsSection() {
             <div key={g.key} style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.16em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
-                <span style={{ font: "700 7px 'Orbitron',sans-serif", color: '#6d5a8f', flexShrink: 0, marginLeft: 8 }}>{g.earned}/{g.total}</span>
+                <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#9a90b8', flexShrink: 0, marginLeft: 8 }}>{g.earned}/{g.total}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
                 {g.items.map(a => <AchievementRow key={a.id} a={a}/>)}
@@ -398,7 +398,7 @@ export default function ProgressScreen({ onHome, profile }) {
               <div style={{ marginBottom: 13 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>FIGHT TROPHIES</span>
-                  <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{fightTrophyStates().filter(t => t.earned).length}/{fightTrophyStates().length}</span>
+                  <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#9a90b8' }}>{fightTrophyStates().filter(t => t.earned).length}/{fightTrophyStates().length}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
                   {fightTrophyStates().map(t => (
@@ -424,7 +424,7 @@ export default function ProgressScreen({ onHome, profile }) {
                   <div key={g.cat} style={{ marginBottom: 13 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.2em' }}>{g.mode}</span>
-                      <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#6d5a8f' }}>{unlockedCount}/{g.items.length}</span>
+                      <span style={{ font: "700 8px 'Orbitron',sans-serif", color: '#9a90b8' }}>{unlockedCount}/{g.items.length}</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 7 }}>
                       {g.items.map(it => {

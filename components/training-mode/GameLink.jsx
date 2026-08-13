@@ -66,7 +66,7 @@ export default function GameLink({ onBack, profile }) {
         <div style={{ padding: '8px 18px 26px', flexShrink: 0 }}>
           <div style={{ textAlign: 'center', font: "700 8px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.14em', marginBottom: 10, padding: 8, border: '1px solid rgba(250,204,21,0.3)', borderRadius: 9, background: 'rgba(250,204,21,0.06)' }}>🎮 GAME LAUNCHES 2026 · RESERVE YOUR FIGHTER EARLY</div>
           <button onClick={() => setNotified(true)} style={{ width: '100%', height: 52, border: 'none', borderRadius: 13, background: notified ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 0 22px rgba(168,85,247,.45)' }}>{notified ? '✓ YOU’RE ON THE LIST' : '🔔 NOTIFY ME AT LAUNCH'}</button>
-          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#6d5a8f', marginTop: 10 }}>Linking opens when the game goes live · no code needed yet</div>
+          <div style={{ textAlign: 'center', font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 10 }}>Linking opens when the game goes live · no code needed yet</div>
         </div>
       </div>
     </div>

@@ -22,7 +22,10 @@ export default function BottomNav({ active, onNavigate }) {
       {TABS.map(tab => {
         const isActive = active === tab.id;
         const { Icon } = tab;
-        const color = isActive ? '#b06aff' : 'rgba(255,255,255,0.45)';
+        // Beta TM-17 — 0.45-alpha white was 4.44:1, just under WCAG AA (4.5).
+        // C.faint keeps the inactive tier visually quiet (violet-grey, not
+        // brighter than the active violet) at 6.7:1.
+        const color = isActive ? '#b06aff' : '#9a90b8';
         return (
           <button
             key={tab.id}
@@ -32,7 +35,7 @@ export default function BottomNav({ active, onNavigate }) {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 2,
-              padding: '6px 14px',
+              padding: '6px 8px', // narrower so PROGRESS at 9px still fits 320px
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
@@ -64,7 +67,7 @@ export default function BottomNav({ active, onNavigate }) {
             <span style={{
               fontFamily: "'Orbitron', sans-serif",
               fontWeight: isActive ? 700 : 500,
-              fontSize: 7,
+              fontSize: 9, // beta TM-18 — 7px was below any legible floor
               letterSpacing: '0.08em',
               color,
               transition: 'color 0.2s ease',

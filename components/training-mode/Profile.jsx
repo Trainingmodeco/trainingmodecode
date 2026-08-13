@@ -42,7 +42,7 @@ function PillRow({ opts, val, onPick, wrap = false }) {
             fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10,
             letterSpacing: '0.06em', transition: 'all 0.18s',
             background: active ? 'rgba(168,85,247,0.12)' : 'rgba(12,2,24,0.7)',
-            color: active ? C.neon : 'rgba(255,255,255,0.45)',
+            color: active ? C.neon : '#9a90b8',
             border: active ? '1.5px solid rgba(168,85,247,0.65)' : '1.5px solid rgba(255,255,255,0.07)',
             boxShadow: active ? '0 0 10px rgba(168,85,247,0.25)' : 'none',
             cursor: 'pointer',
@@ -911,8 +911,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
 
         {/* Legal / Safety */}
         <p style={{
-          fontFamily: "'Rajdhani',sans-serif", fontSize: 9, fontWeight: 500,
-          color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: 16,
+          fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 500,
+          color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 16,
           lineHeight: 1.5, maxWidth: 300, alignSelf: 'center',
         }}>
           Training Mode provides fitness and combat-inspired training content for educational and entertainment purposes only. Not medical advice. Train safely and consult a qualified professional before starting a new program.

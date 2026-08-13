@@ -200,7 +200,7 @@ const css = `
   border-radius: 20px;
   border: 1.5px solid rgba(168,85,247,0.2);
   background: rgba(10,0,20,0.7);
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.65);
   cursor: pointer;
   transition: all 0.18s ease;
   white-space: nowrap;
@@ -224,7 +224,7 @@ const css = `
   border-radius: 6px;
   border: 1px solid rgba(168,85,247,0.15);
   background: transparent;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.62);
   cursor: pointer;
   transition: all 0.18s ease;
 }
@@ -589,7 +589,7 @@ function ComboDrillView({ discipline, onBack }) {
                 const cur = i === strikeIdx;
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 13 : 11, color: cur ? '#fde047' : '#6d5a8f' }}>{i + 1}</span>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 13 : 11, color: cur ? '#fde047' : '#9a90b8' }}>{i + 1}</span>
                     <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 26 : 20, color: cur ? '#fde047' : '#8b83a8', textShadow: cur ? '0 0 18px rgba(253,224,71,.5)' : 'none' }}>{s}</span>
                   </div>
                 );
@@ -773,7 +773,7 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
                   }}>{done ? '✓' : idx + 1}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ font: "900 11px 'Orbitron',sans-serif", color: done ? '#fff' : isCurrent ? '#fde047' : '#c4a4d8' }}>{lesson.title.toUpperCase()}</div>
-                    <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: done ? '#9a90b8' : isCurrent ? '#facc15' : '#6d5a8f' }}>
+                    <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: done ? '#c4a4d8' : isCurrent ? '#facc15' : '#9a90b8' }}>
                       {done ? `${lesson.steps.length} key points · complete` : isCurrent ? `in progress · ${lesson.steps.length} key points` : lesson.subtitle}
                     </div>
                   </div>

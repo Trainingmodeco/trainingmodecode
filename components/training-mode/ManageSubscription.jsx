@@ -14,7 +14,7 @@ function Row({ label, value, last }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: last ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
       <span style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#f5e9ff' }}>{label}</span>
-      <span style={{ font: value && value.includes('••') ? "700 9px 'Orbitron',sans-serif" : "900 12px 'Orbitron',sans-serif", color: value && value.includes('••') ? '#c4a4d8' : '#6d5a8f' }}>{value || '›'}</span>
+      <span style={{ font: value && value.includes('••') ? "700 9px 'Orbitron',sans-serif" : "900 12px 'Orbitron',sans-serif", color: value && value.includes('••') ? '#c4a4d8' : '#9a90b8' }}>{value || '›'}</span>
     </div>
   );
 }
@@ -62,7 +62,7 @@ export default function ManageSubscription({ onBack }) {
           </div>
 
           <button style={{ width: '100%', height: 44, border: '1px solid rgba(255,90,90,0.35)', borderRadius: 11, background: 'rgba(255,90,90,0.07)', color: '#ff8a8a', font: "800 11px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer' }}>CANCEL SUBSCRIPTION</button>
-          <div style={{ textAlign: 'center', font: "600 8px 'Rajdhani',sans-serif", color: '#6d5a8f', marginTop: 9, lineHeight: 1.4 }}>You&apos;ll keep PRO until March 14, 2027. Manage billing through your App Store / Play account.</div>
+          <div style={{ textAlign: 'center', font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 9, lineHeight: 1.4 }}>You&apos;ll keep PRO until March 14, 2027. Manage billing through your App Store / Play account.</div>
         </div>
       </div>
     </div>

@@ -71,7 +71,7 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
               </button>
             ))}
           </div>
-          <div style={{ textAlign: 'center', font: "500 9px 'Rajdhani',sans-serif", color: '#6d5a8f', marginTop: 11 }}>Tap a banner to start &mdash; details on demand.</div>
+          <div style={{ textAlign: 'center', font: "500 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 11 }}>Tap a banner to start &mdash; details on demand.</div>
         </div>
       </div>
 

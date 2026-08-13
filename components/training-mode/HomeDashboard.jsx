@@ -194,7 +194,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
               const isDone = w.state === 'done' || w.state === 'today_done';
               return (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                  <span style={{ font: "700 7px 'Rajdhani',sans-serif", color: isToday ? '#fde047' : isDone ? '#fff' : 'rgba(255,255,255,0.3)' }}>{DAY_LABELS[i]}</span>
+                  <span style={{ font: "700 8px 'Rajdhani',sans-serif", color: isToday ? '#fde047' : isDone ? '#fff' : 'rgba(255,255,255,0.6)' }}>{DAY_LABELS[i]}</span>
                   <span style={{
                     width: 8, height: 8, borderRadius: '50%',
                     background: isToday ? '#fde047' : isDone ? 'rgba(253,224,71,0.25)' : 'transparent',

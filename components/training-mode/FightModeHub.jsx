@@ -160,7 +160,7 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
                 <div style={{ font: `900 ${b.featured ? 15 : 14}px 'Orbitron',sans-serif`, color: b.labelColor || (b.featured ? RED : b.accent), letterSpacing: '0.05em', textShadow: '0 1px 8px rgba(0,0,0,0.85)' }}>{b.title}</div>
                 <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#e3d8f5', marginTop: 2, textShadow: '0 1px 4px rgba(0,0,0,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.sub}</div>
                 {b.featured && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5, background: RED, color: '#fff', font: "800 8.5px 'Orbitron',sans-serif", letterSpacing: '0.08em', borderRadius: 7, padding: '4px 10px', boxShadow: '0 0 10px rgba(239,68,68,0.5)' }}>▶ CONTINUE</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5, background: '#b91c1c', color: '#fff', font: "800 9px 'Orbitron',sans-serif", letterSpacing: '0.08em', borderRadius: 7, padding: '4px 10px', boxShadow: '0 0 10px rgba(239,68,68,0.5)' }}>▶ CONTINUE</span>
                 )}
               </div>
               {b.featured && (

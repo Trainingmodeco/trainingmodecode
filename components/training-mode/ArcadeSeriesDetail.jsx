@@ -505,7 +505,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                           {st === 'complete' ? (
                             <div style={{ position: 'absolute', bottom: 2, left: 0, right: 0, display: 'flex', gap: 1, justifyContent: 'center', textShadow: '0 1px 3px rgba(0,0,0,0.95)' }}>
                               {[1, 2, 3].map(n => (
-                                <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.3)' }}>★</span>
+                                <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.55)' }}>★</span>
                               ))}
                             </div>
                           ) : st === 'locked' ? (
@@ -535,7 +535,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                           {st === 'complete' && !isMythic && (
                             <div style={{ position: 'absolute', bottom: 1, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 1, lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,0.95)' }}>
                               {[1, 2, 3].map(n => (
-                                <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.3)' }}>★</span>
+                                <span key={n} style={{ fontSize: 8, color: n <= (progress.completedStages[stage.id]?.stars || 1) ? GOLD : 'rgba(255,255,255,0.55)' }}>★</span>
                               ))}
                             </div>
                           )}

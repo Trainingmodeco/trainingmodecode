@@ -442,7 +442,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                     {wLog
                       ? <span style={{ color: GOLD }}> &middot; {wLog.weight} {unitLabel(wLog.unit)}</span>
                       : classifyType(ex) === 'weighted' && !done
-                        ? <span style={{ color: '#6d5a8f' }}> &middot; + add weight</span>
+                        ? <span style={{ color: '#9a90b8' }}> &middot; + add weight</span>
                         : null}
                   </div>
                 </div>
