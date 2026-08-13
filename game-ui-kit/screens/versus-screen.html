@@ -1,0 +1,33 @@
+<!-- @dsCard group="Screens" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
+*{margin:0;box-sizing:border-box}
+body{background:#080012;font-family:'Rajdhani',sans-serif;color:#eee;overflow:hidden}
+.stage{position:relative;width:920px;height:470px;margin:16px auto;border:1px solid rgba(168,85,247,.3);border-radius:14px;overflow:hidden;background:radial-gradient(circle at 30% 40%,#1b0b38 0%,#080012 70%)}
+.half{position:absolute;top:0;bottom:0;width:58%}
+.left{left:-6%;background:linear-gradient(115deg,rgba(253,224,71,.16),transparent 65%);clip-path:polygon(0 0,88% 0,68% 100%,0 100%)}
+.right{right:-6%;background:linear-gradient(-115deg,rgba(168,85,247,.22),transparent 65%);clip-path:polygon(32% 0,100% 0,100% 100%,12% 100%)}
+.slash{position:absolute;top:-40px;bottom:-40px;left:50%;width:10px;transform:translateX(-50%) rotate(10deg);background:linear-gradient(180deg,#fde047,#a855f7);box-shadow:0 0 30px rgba(253,224,71,.55)}
+.vs{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-6deg);font-family:'Orbitron';font-weight:900;font-size:88px;color:#fff;text-shadow:0 0 30px rgba(253,224,71,.8),6px 6px 0 #7c3aed;z-index:3}
+.fighter{position:absolute;bottom:0;top:0;display:flex;flex-direction:column;justify-content:flex-end;padding:26px;z-index:2}
+.fl{left:0;width:46%}
+.fr{right:0;width:46%;text-align:right}
+.fname{font-family:'Orbitron';font-weight:900;font-size:30px;letter-spacing:2px;color:#fde047;text-shadow:3px 3px 0 rgba(124,58,237,.8)}
+.fr .fname{color:#ff8181}
+.ftag{font-size:14px;font-weight:700;letter-spacing:2px;color:#cbb8ef;margin-top:4px}
+.rec{font-family:'Orbitron';font-size:10px;letter-spacing:2px;color:#8f80ab;margin-top:8px}
+.sil{position:absolute;bottom:0;width:230px;height:330px;border-radius:14px 14px 0 0;opacity:.9}
+.sil.l{left:52px;background:linear-gradient(180deg,#3b1d66,#12062a);box-shadow:inset 0 0 0 2px rgba(253,224,71,.4)}
+.sil.r{right:52px;background:linear-gradient(180deg,#4a1010,#12062a);box-shadow:inset 0 0 0 2px rgba(239,68,68,.4)}
+.sil span{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron';font-weight:900;font-size:56px;color:rgba(255,255,255,.18)}
+.banner{position:absolute;top:18px;left:0;right:0;text-align:center;font-family:'Orbitron';font-weight:700;font-size:12px;letter-spacing:5px;color:#c99cff;z-index:3}
+</style></head><body>
+<div class="stage">
+  <div class="half left"></div><div class="half right"></div><div class="slash"></div>
+  <div class="banner">TITLE FIGHT · STAGE 8 · VERSUS MODE ENGAGED</div>
+  <div class="sil l"><span>?</span></div><div class="sil r"><span>?</span></div>
+  <div class="vs">VS</div>
+  <div class="fighter fl"><div class="fname">TRAINEE</div><div class="ftag">TRAINING MODE GYM</div><div class="rec">LV3 VETERAN · 7-1-0</div></div>
+  <div class="fighter fr"><div class="fname">MIKE BISON</div><div class="ftag">"THE BARON OF BOXING"</div><div class="rec">UNDEFEATED* (*HE SAYS)</div></div>
+</div>
+</body></html>
