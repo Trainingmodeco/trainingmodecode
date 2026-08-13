@@ -195,6 +195,55 @@ black ponytail
 
 Chibi: prepend `chibi, big head, short body` to either prompt.
 
+### Long-form description (~2000 chars) — for the Create Character flow
+
+> Use where the description field allows a long entry
+> (pixellab.ai/create-character/new). Identity is front-loaded because
+> early text carries the most weight; detail blocks follow.
+
+```
+Muscular young Black male fighter, early twenties, athletic beat-'em-up
+hero build: broad shoulders, defined arms, narrow waist, standing tall
+and relaxed in a neutral A-pose, facing right in side-scroller side
+view, full body visible from head to sneakers.
+
+SKIN AND FACE: deep warm brown skin with subtle violet rim lighting
+along the arms and jawline. Strong angular jaw, high cheekbones, thick
+dark eyebrows, calm confident expression, mouth neutral, chin slightly
+lowered like a fighter sizing up an opponent. Eyes glow bright violet
+with a faint outward light bloom — his signature feature.
+
+HAIR: short black tightly curled hair, textured coils on top with a
+clean tapered fade at the temples and neckline, no facial hair.
+
+OUTFIT, exact, do not alter: black sleeveless hoodie, hood down, cut off
+at the shoulders showing full bare arms, a single gold emblem centered
+on the chest shaped like a stylized letter T, gold drawstring tips,
+front kangaroo pocket. Black tapered joggers with one bold gold stripe
+running down the outer side of each leg, elastic cuffs at the ankle.
+Black fingerless MMA gloves with gold knuckle detailing and wrist
+straps. Black high-top sneakers with gold soles, gold laces, and a small
+gold emblem on the side.
+
+COLOR PALETTE, strict and limited: near-black violet for the darkest
+shadows, black fabric with cool violet-tinted shading, championship gold
+for every accent, deep brown skin tones, neon violet for the eye glow
+and rim light. No other colors, no red, no blue, no white except tiny
+glints.
+
+STYLE: retro 90s anime cel-shaded pixel art, thick clean single-color
+black outline, bold readable silhouette, flat color fills with two-tone
+shading and a hard violet rim light along the back edge, crisp pixel
+clusters, no dithering noise, no blur, no gradients, transparent
+background, character only, centered, full body in frame, consistent
+proportions, game-ready sprite.
+```
+
+For the female protagonist, swap the identity line and outfit block:
+athletic young Black female fighter, long black ponytail with a violet
+band; black sports crop tank with the gold T emblem, black training
+shorts with gold trim, same gloves and sneakers.
+
 ### Settings
 
 | Setting | Value | Why |
