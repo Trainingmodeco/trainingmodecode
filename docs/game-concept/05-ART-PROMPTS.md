@@ -164,6 +164,62 @@ Promoter is the only character who NEVER goes chibi — the scene-one tell
 that something is wrong with him.
 ```
 
+## PIXELLAB SPRITE PROMPTS (pixellab.ai/create)
+
+> PixelLab ≠ GPT. It wants SHORT, comma-separated, concrete descriptions
+> (~20 words max), no background/scene words (output is transparent,
+> character-only). Settings matter more than adjectives.
+
+**CANON OUTFIT DECISION (2026-08-10):** the founder's 4-view turnaround
+(black sleeveless hoodie + gold T emblem, black joggers with gold
+stripe, black/gold sneakers, fingerless gloves, glowing violet eyes,
+short curly fade) is CANON for in-game sprites — black/gold matches the
+brand tokens and sleeveless arms read better at sprite scale. The purple
+sleeved "TRAINING MODE" hoodie version is key art / alt costume.
+
+### Prompts
+
+Male:
+```
+muscular young black male fighter, black sleeveless hoodie, gold chest
+emblem, black joggers gold stripe, fingerless gloves, glowing violet
+eyes, short curly fade
+```
+
+Female:
+```
+athletic young black female fighter, black crop tank, gold chest emblem,
+black shorts gold trim, fingerless gloves, glowing violet eyes, long
+black ponytail
+```
+
+Chibi: prepend `chibi, big head, short body` to either prompt.
+
+### Settings
+
+| Setting | Value | Why |
+|---|---|---|
+| Size | 96×96 or 128×128 | Beat 'em up scale; PixelLab is weak below ~48px |
+| View | `side` | The beat 'em up camera |
+| Direction | `east`, mirror for west | Standard sprite workflow |
+| Outline | single color black outline | Matches the founder's thick-outline art |
+| Shading | medium–detailed | Reference art is cel-shaded with rim light |
+| Detail | highly detailed | |
+| Style/init reference | **upload the turnaround front view** | Most important setting — keeps it OUR character and offsets PixelLab's lack of style-consistency enforcement |
+
+### Workflow
+
+1. Generate base side-view sprite (prompt + reference image); regenerate
+   until the silhouette reads at 100% zoom.
+2. **Rotate** from the ONE approved sprite for other directions — never
+   re-prompt per angle (character drifts).
+3. **Animate with text** for locomotion (walk, idle, run);
+   **Animate with skeleton** for signature moves (jab, cross, knockdown)
+   where pose control drives combat feel.
+4. Export → Aseprite → hand-clean every frame (palette enforcement, gold
+   T, hands). AI = first pass, never the shipped frame.
+5. Deliver walk + jab to the code chat for the prototype.
+
 ## Notes
 
 - The "do NOT depict any real person's face" line on boss prompts is
