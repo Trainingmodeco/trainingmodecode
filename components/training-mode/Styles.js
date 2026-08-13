@@ -37,6 +37,38 @@ body {
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #080012; color: #f5e9ff; font-family: 'Rajdhani', sans-serif; font-weight: 500; -webkit-font-smoothing: antialiased; line-height: 1.5; }
 
+/* ── RS-01: desktop dressing ────────────────────────────────────────────
+   Beyond ~560px the bare 440px column floated in flat black and read as
+   unfinished. The column stays the one canonical layout; the void gets
+   the brand treatment and the column gets a neon frame. Pure CSS: body
+   paints the backdrop, body::before paints the frame above everything
+   (pointer-events: none), so every screen — PhoneFrame or bare, like
+   the splash — is dressed with zero component changes. */
+@media (min-width: 560px) {
+  body {
+    background-color: #080012;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(168,85,247,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(217,70,239,0.10) 0%, transparent 60%),
+      linear-gradient(rgba(8,0,18,0.87), rgba(8,0,18,0.93)),
+      url('/static/brand/background-w-logo.png');
+    background-size: 100% 100%, 100% 100%, 100% 100%, cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+  body::before {
+    content: '';
+    position: fixed; top: 0; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 440px;
+    pointer-events: none; z-index: 99999;
+    border-left: 1px solid rgba(168,85,247,0.32);
+    border-right: 1px solid rgba(168,85,247,0.32);
+    box-shadow: 0 0 90px rgba(88,28,135,0.6), 0 0 26px rgba(168,85,247,0.3);
+  }
+}
+
 .app-bg {
   background-color: #080012;
   background-image:
