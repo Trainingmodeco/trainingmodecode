@@ -114,6 +114,46 @@ if (existsSync(indexPath)) {
     ].join('');
     html = html.replace('</head>', `${seoTags}</head>`);
   }
+  // Beta TM-24 — prerendered app shell. The SPA used to ship an EMPTY
+  // <div id="root"> : until the bundle parsed and ran, and forever if it
+  // failed (flaky network, script error, ancient browser), the user saw a
+  // blank black page. This bakes a branded static shell INTO #root:
+  //  - it paints immediately from the HTML itself (no JS, no fonts needed);
+  //  - React's createRoot().render() replaces it the instant the app mounts;
+  //  - if the app has NOT mounted after 8s, a retry note + reload button
+  //    appears (armed by a tiny inline script);
+  //  - <noscript> explains the app needs JavaScript;
+  //  - crawlers get real text content instead of an empty body.
+  if (!html.includes('tm-prerender')) {
+    const shell = [
+      '<div id="tm-prerender">',
+      '<style>',
+      '#tm-prerender{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#080012;color:#f5e9ff;font-family:system-ui,sans-serif;padding:32px 24px;box-sizing:border-box}',
+      '#tm-prerender .tag{color:#f5b301;font-size:11px;font-weight:700;letter-spacing:0.24em;margin-bottom:14px}',
+      '#tm-prerender h1{color:#fff;font-size:34px;font-weight:900;letter-spacing:0.04em;line-height:1.2;margin:14px 0 10px}',
+      '#tm-prerender p{color:#c4a4d8;font-size:15px;line-height:1.55;max-width:340px;margin:0 0 26px}',
+      '#tm-prerender .bar{width:200px;height:4px;border-radius:999px;background:rgba(168,85,247,0.25);overflow:hidden}',
+      '#tm-prerender .bar i{display:block;width:40%;height:100%;border-radius:999px;background:linear-gradient(90deg,#5b21b6,#a855f7,#c084fc);animation:tmshellbar 1.2s ease-in-out infinite}',
+      '@keyframes tmshellbar{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}',
+      '#tm-prerender-retry{display:none;margin-top:26px}',
+      '#tm-prerender-retry p{margin-bottom:14px;color:#9a90b8}',
+      '#tm-prerender-retry button{background:#a855f7;color:#fff;border:none;border-radius:10px;padding:12px 26px;font-size:14px;font-weight:700;letter-spacing:0.06em;cursor:pointer}',
+      '#tm-prerender noscript p{color:#9a90b8;margin-top:26px}',
+      '</style>',
+      '<img src="/static/logo-mark.png" alt="" width="84" height="84" style="height:auto"/>',
+      '<div class="tag">TACTICAL COMBAT FITNESS SYSTEM</div>',
+      '<h1>TRAINING&nbsp;MODE</h1>',
+      '<p>Combat and strength training, turned into a game. Build custom workouts, run Fight Mode and Fit Mode sessions, and level up with every rep.</p>',
+      '<div class="bar"><i></i></div>',
+      '<div id="tm-prerender-retry"><p>Taking longer than it should. Check your connection.</p><button onclick="location.reload()">RETRY</button></div>',
+      '<noscript><p>Training Mode needs JavaScript to run. Please enable it and reload.</p></noscript>',
+      '</div>',
+      // Armed immediately (not on load): if React has not replaced the shell
+      // within 8s, surface the retry UI. Harmless no-op once the app mounts.
+      '<script>setTimeout(function(){var r=document.getElementById("tm-prerender-retry");if(r)r.style.display="block";},8000);</script>',
+    ].join('');
+    html = html.replace('<div id="root"></div>', `<div id="root">${shell}</div>`);
+  }
   if (!html.includes('serviceWorker.register')) {
     // updateViaCache:'none' + an explicit update() make installed PWAs check
     // for a new worker on every launch; the new worker then waits until the
