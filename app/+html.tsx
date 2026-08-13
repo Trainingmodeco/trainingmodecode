@@ -12,21 +12,21 @@ export default function Root({ children }: PropsWithChildren) {
         {/* SEO */}
         <title>Training Mode — Fight & Fit Workout Trainer</title>
         <meta name="description" content="Training Mode turns combat and strength training into a game. Build custom workouts, run Fight Mode and Fit Mode sessions, and level up with every rep." />
-        <link rel="canonical" href="https://trainingmode.co/" />
+        <link rel="canonical" href="https://apptrainingmode.com/" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Training Mode" />
         <meta property="og:title" content="Training Mode — Fight & Fit Workout Trainer" />
         <meta property="og:description" content="Build custom workouts, run Fight Mode and Fit Mode sessions, and level up with every rep." />
-        <meta property="og:url" content="https://trainingmode.co/" />
-        <meta property="og:image" content="https://trainingmode.co/social/training-mode-share-card-template.png" />
+        <meta property="og:url" content="https://apptrainingmode.com/" />
+        <meta property="og:image" content="https://apptrainingmode.com/social/training-mode-share-card-template.png" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Training Mode — Fight & Fit Workout Trainer" />
         <meta name="twitter:description" content="Build custom workouts, run Fight Mode and Fit Mode sessions, and level up with every rep." />
-        <meta name="twitter:image" content="https://trainingmode.co/social/training-mode-share-card-template.png" />
+        <meta name="twitter:image" content="https://apptrainingmode.com/social/training-mode-share-card-template.png" />
 
 
         {/* PWA */}

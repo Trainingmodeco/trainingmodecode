@@ -210,7 +210,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
           <HelpButton onClick={onStartGuide} style={{ position: 'absolute', right: 12, top: 12 }}/>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, letterSpacing: '0.06em', background: 'linear-gradient(90deg,#5eead4,#2dd4bf)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', textShadow: '0 0 18px rgba(45,212,191,0.35)' }}>TRAINING ARCADE</div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: 'rgba(94,234,212,0.75)', letterSpacing: '0.24em', marginTop: 4 }}>‹ SWIPE TO CHOOSE YOUR SAGA ›</div>
-          <button data-tour="challenge-code" onClick={() => setCodeOpen(true)} style={{ marginTop: 7, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 8, color: '#c9a6ff', font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.08em', padding: '6px 12px', cursor: 'pointer' }}>⚔ ENTER A CHALLENGE CODE</button>
+          <button data-tour="challenge-code" onClick={() => setCodeOpen(true)} style={{ marginTop: 7, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 8, color: '#c9a6ff', font: "800 8px 'Orbitron',sans-serif", letterSpacing: '0.08em', padding: '6px 12px', cursor: 'pointer' }}>⚔️ ENTER A CHALLENGE CODE</button>
         </div>
 
         {/* Player bar */}
@@ -376,7 +376,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
       </div>
       {codeOpen && (
         <CodeEntryModal
-          title="⚔ ENTER A CHALLENGE CODE"
+          title="⚔️ ENTER A CHALLENGE CODE"
           label="Paste a friend's challenge code to jump into their exact stage."
           submitLabel="▶ START CHALLENGE"
           onSubmit={submitChallengeCode}

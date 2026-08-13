@@ -215,7 +215,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           {/* Slight uniform dim over the art */}
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,0,16,0.24)' }}/>
           <div style={{ position: 'absolute', left: 15, right: 15, top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
-            <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>⚔ TODAY&apos;S BOUT</div>
+            <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>⚔️ TODAY&apos;S BOUT</div>
             <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.12, letterSpacing: '0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.7)', maxWidth: '72%' }}>{boutTitle.toUpperCase()}</div>
             <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 4, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{boutSubtitle}</div>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', background: 'linear-gradient(135deg,#fde047,#f59e0b)', borderRadius: 8, padding: '9px 14px', marginTop: 11, boxShadow: '0 0 14px rgba(253,224,71,0.4)' }}>{boutCta}</span>

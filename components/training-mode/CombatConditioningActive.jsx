@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
-import SafeImage from './SafeImage';
 import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide-react';
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';

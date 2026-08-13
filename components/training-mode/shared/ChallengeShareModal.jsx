@@ -44,7 +44,7 @@ export default function ChallengeShareModal({ series, stage, mode = 'fit', diffi
       <div onClick={(e) => e.stopPropagation()} style={{ width: '92%', maxWidth: 320, background: 'rgba(16,7,32,0.96)', border: `1px solid ${GOLD}66`, borderRadius: 16, padding: '16px', boxShadow: '0 20px 55px rgba(0,0,0,0.7)', position: 'relative' }}>
         <button onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#8b83a8', padding: 4 }}><X size={16} /></button>
 
-        <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em' }}>⚔ CHALLENGE A FRIEND</div>
+        <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.14em' }}>⚔️ CHALLENGE A FRIEND</div>
         <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fff', margin: '3px 0 2px' }}>{series.title}</div>
         <div style={{ font: "700 9px 'Rajdhani',sans-serif", color: GOLD, letterSpacing: '0.03em', marginBottom: 12 }}>{label}</div>
 

@@ -141,7 +141,7 @@ export default function BattleHUD({
       {/* Pace panel */}
       <div style={{ flexShrink: 0, padding: '8px 12px 9px', borderRadius: 12, background: 'rgba(10,2,20,0.8)', border: '1px solid rgba(168,85,247,0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#fff' }}>⏱ {elapsedLabel}</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#fff' }}>⏱️ {elapsedLabel}</span>
           {targetLabel && <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: GOLD, letterSpacing: '0.08em' }}>TARGET {targetLabel}</span>}
         </div>
         <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.1)' }}>

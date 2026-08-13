@@ -316,7 +316,15 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     const tier = getCurrentTier(stats);
     const avSex = sex.toLowerCase() === 'female' ? 'female' : 'male';
     const displayName = (name && name.trim()) ? name.trim().toUpperCase() : 'TRAINEE';
-    const hw = [heightVal ? `${heightVal}` : null, weightVal ? `${weightVal}${weightUnit === 'LBS' ? 'lb' : ''}` : null].filter(Boolean).join(' · ') || '—';
+    // Beta ND-13 — "5.10" read literally is 5.1 feet (5'1"), not the 5'10"
+    // the athlete entered. Feet-and-inches gets real notation; cm gets a unit.
+    const fmtHeight = (v, unit) => {
+      if (!v) return null;
+      if (unit === 'CM') return `${v}cm`;
+      const [ft, inch] = String(v).split('.');
+      return inch != null && inch !== '' ? `${ft}'${inch}"` : `${ft}'`;
+    };
+    const hw = [fmtHeight(heightVal, heightUnit), weightVal ? `${weightVal}${weightUnit === 'LBS' ? 'lb' : 'kg'}` : null].filter(Boolean).join(' · ') || '—';
     const pctToNext = lp.needed ? Math.round((lp.current / lp.needed) * 100) : 100;
     const statRows = [
       { label: 'AVATAR', value: avSex.toUpperCase() },
@@ -344,7 +352,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <div style={{ font: "700 9px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', letterSpacing: '0.06em', marginTop: 2 }}>LVL {lvl} · {tier.label.toUpperCase()}{tier.secret ? ' ★' : ''}</div>
                   <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${pctToNext}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
                   <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>{lp.current} / {lp.needed} XP to next</div>
-                  <button onClick={() => setProfileView('main')} style={{ marginTop: 9, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 8, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 9px 'Orbitron',sans-serif", padding: '6px 12px', cursor: 'pointer' }}>⚔ CHANGE AVATAR</button>
+                  <button onClick={() => setProfileView('main')} style={{ marginTop: 9, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 8, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 9px 'Orbitron',sans-serif", padding: '6px 12px', cursor: 'pointer' }}>⚔️ CHANGE AVATAR</button>
                 </div>
               </div>
             </div>

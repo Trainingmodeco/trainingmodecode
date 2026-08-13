@@ -440,21 +440,10 @@ export default function Onboarding({ onComplete, onHome }) {
               }}>{recommendation.desc}</div>
             </div>
 
-            {/* Video Placeholder */}
-            <div style={{
-              padding: '20px 16px', borderRadius: 10,
-              background: 'rgba(10,0,20,0.7)', border: '1px dashed rgba(168,85,247,0.3)',
-              marginBottom: 22, textAlign: 'center',
-            }}>
-              <Play size={28} color="rgba(168,85,247,0.4)" style={{ marginBottom: 8 }}/>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,
-                color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', marginBottom: 4,
-              }}>VIDEO GUIDE COMING SOON</div>
-              <div style={{
-                fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.2)',
-              }}>Coach intro will appear here.</div>
-            </div>
+            {/* Beta report TM-13 — the "Video guide coming soon" placeholder
+                advertised incompleteness at the exact moment a new user decides
+                whether to trust the product. Hidden until the video exists;
+                restore a real player here when it does. */}
 
             {/* CTAs */}
             <button onClick={handleFinish} style={{

@@ -6,7 +6,7 @@ import { ChevronLeft } from 'lucide-react';
 // Companion game is not live; CTA joins a waitlist (placeholder toast).
 
 const BENEFITS = [
-  { icon: '⚔', text: 'Workout XP → in-game stat points' },
+  { icon: '⚔️', text: 'Workout XP → in-game stat points' },
   { icon: '🥋', text: 'Unlocked avatar tiers appear in-game' },
   { icon: '🏆', text: 'Exclusive skins from training streaks' },
 ];

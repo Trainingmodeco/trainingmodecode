@@ -793,7 +793,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* Elapsed / rounds-left line (design 13a) */}
         <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.05em', marginBottom: 7, textAlign: 'center' }}>
-          ⏱ {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED · {roundsLeft} ROUND{roundsLeft === 1 ? '' : 'S'} LEFT{cfg.rushMode ? ` · ⚡ ${rushPatternLabel(cfg.rushPattern)}` : ''}
+          ⏱️ {String(elapsedMins).padStart(2, '0')}:{String(elapsedSecs).padStart(2, '0')} ELAPSED · {roundsLeft} ROUND{roundsLeft === 1 ? '' : 'S'} LEFT{cfg.rushMode ? ` · ⚡ ${rushPatternLabel(cfg.rushPattern)}` : ''}
         </div>
 
         {/* Round indicator dots */}

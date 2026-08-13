@@ -83,6 +83,37 @@ if (existsSync(indexPath)) {
     const healScript = '<script id="tm-self-heal">(function(){var K="tm-self-healed";function heal(m){if(!/Requiring unknown module|Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|ChunkLoadError/i.test(String(m||"")))return;try{if(sessionStorage.getItem(K))return;sessionStorage.setItem(K,"1")}catch(e){}var r=function(){location.reload()};if(window.caches&&caches.keys){caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).then(r,r)}else{r()}}addEventListener("error",function(e){heal(e&&e.message)},true);addEventListener("unhandledrejection",function(e){var x=e&&e.reason;heal(x&&(x.message||x))});addEventListener("load",function(){setTimeout(function(){try{sessionStorage.removeItem(K)}catch(e){}},15000)});})();</script>';
     html = html.replace('</head>', `${healScript}</head>`);
   }
+  // Beta TM-26 / TM-22 / ND-12 — real title, meta description, Open Graph and
+  // Twitter cards, and a modern viewport. app/+html.tsx carries the same tags
+  // but the export provably ignores it (dist shipped a generic title and the
+  // legacy shrink-to-fit viewport), so they are injected here, in the pipeline
+  // that demonstrably reaches production.
+  if (!html.includes('property="og:title"')) {
+    const SITE = 'https://apptrainingmode.com';
+    const TITLE = 'Training Mode — Fight & Fit Workout Trainer';
+    const DESC = 'Training Mode turns combat and strength training into a game. Build custom workouts, run Fight Mode and Fit Mode sessions, and level up with every rep.';
+    const IMAGE = `${SITE}/social/training-mode-share-card-template.png`;
+    html = html.replace(/<title>[^<]*<\/title>/, `<title>${TITLE}</title>`);
+    html = html.replace(
+      /<meta name="viewport"[^>]*>/,
+      '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />',
+    );
+    const seoTags = [
+      `<meta name="description" content="${DESC}" />`,
+      `<link rel="canonical" href="${SITE}/" />`,
+      '<meta property="og:type" content="website" />',
+      '<meta property="og:site_name" content="Training Mode" />',
+      `<meta property="og:title" content="${TITLE}" />`,
+      `<meta property="og:description" content="${DESC}" />`,
+      `<meta property="og:url" content="${SITE}/" />`,
+      `<meta property="og:image" content="${IMAGE}" />`,
+      '<meta name="twitter:card" content="summary_large_image" />',
+      `<meta name="twitter:title" content="${TITLE}" />`,
+      `<meta name="twitter:description" content="${DESC}" />`,
+      `<meta name="twitter:image" content="${IMAGE}" />`,
+    ].join('');
+    html = html.replace('</head>', `${seoTags}</head>`);
+  }
   if (!html.includes('serviceWorker.register')) {
     // updateViaCache:'none' + an explicit update() make installed PWAs check
     // for a new worker on every launch; the new worker then waits until the

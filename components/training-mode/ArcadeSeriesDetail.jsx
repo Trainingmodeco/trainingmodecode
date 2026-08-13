@@ -312,7 +312,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     { target: 'arc-ladder', center: true, title: '🪜 THE LADDER', body: 'Climb the campaign stage by stage. Clear a stage to unlock the next one up the ladder.' },
     { target: 'arc-stage', title: '📋 STAGE', body: 'Tap a stage node to open its mission briefing, then ENTER STAGE to set it up.' },
     ...(series.v2Campaign ? [{ target: 'ht-select', screen: 'select', title: '⚙ PATH & DIFFICULTY', body: 'Now pick your PATH — FIT, FIGHT or FULL ARC — and your DIFFICULTY (EASY / NORMAL / HARD), then START.' }] : []),
-    { target: 'ht-timer', screen: 'timer', title: '⏱ THE TIMER', body: 'This is the training page. Work and rest rounds run here with live coach calls — WORK = push, REST = breathe.' },
+    { target: 'ht-timer', screen: 'timer', title: '⏱️ THE TIMER', body: 'This is the training page. Work and rest rounds run here with live coach calls — WORK = push, REST = breathe.' },
     { target: 'ht-volume', screen: 'timer', title: '🔊 VOLUME', body: 'Tap the speaker (top-right) to raise or lower the coach cues mid-round.' },
     { target: 'ht-controls', screen: 'timer', title: '🎛 CONTROLS', body: 'PAUSE / RESUME · SKIP to jump a round · END to stop the session early.' },
     { target: 'ht-back', screen: 'timer', title: '‹ BACK', body: 'The back chevron leaves the session and returns you here to the ladder any time.' },
@@ -625,7 +625,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                 {objectives.map((o, i) => {
                   const isLast = i === objectives.length - 1;
-                  const right = i === 0 && targetMin != null ? `${targetMin}:00 ⏱` : isLast ? `+${baseXp} XP` : (o.detail || '');
+                  const right = i === 0 && targetMin != null ? `${targetMin}:00 ⏱️` : isLast ? `+${baseXp} XP` : (o.detail || '');
                   const rightGold = isLast || (i === 0 && targetMin != null);
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px', borderRadius: 8, background: 'rgba(255,255,255,0.05)' }}>
@@ -722,7 +722,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 </div>
 
                 <button onClick={startSelected} style={{ width: '100%', height: 44, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 18px rgba(253,224,71,0.35)' }}>▶ START</button>
-                <button onClick={() => setChallengeStage({ stage: selectFor, mode: selMode, difficulty: selDiff })} style={{ width: '100%', height: 38, marginTop: 8, borderRadius: 10, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.1)', color: '#c9a6ff', font: "800 9.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer' }}>⚔ CHALLENGE A FRIEND</button>
+                <button onClick={() => setChallengeStage({ stage: selectFor, mode: selMode, difficulty: selDiff })} style={{ width: '100%', height: 38, marginTop: 8, borderRadius: 10, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(168,85,247,0.1)', color: '#c9a6ff', font: "800 9.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'pointer' }}>⚔️ CHALLENGE A FRIEND</button>
               </div>
             </div>
           )}

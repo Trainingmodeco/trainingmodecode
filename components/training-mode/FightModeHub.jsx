@@ -37,7 +37,7 @@ const discImg = (key, variant) => `/discipline-cards/${key}_${variant}.webp`;
 // Primary banner stack (heights per design: camp 72, others 64).
 const BANNERS = [
   { key: 'training_camp', title: '⛺ TRAINING CAMP', sub: 'Climb 12 stages to the Title Fight', art: '/static/fight-hub/training-camp.webp', accent: RED, h: 72, featured: true, guide: 'fh-camp', tour: 'mode-camp' },
-  { key: 'fight_focus',   title: '⏱ FIGHT FOCUS',   sub: 'Round timer — fight-paced work & rest', art: '/static/fight-hub/fight-focus.webp', accent: VIOLET, h: 64, guide: 'fh-fight-focus' },
+  { key: 'fight_focus',   title: '⏱️ FIGHT FOCUS',   sub: 'Round timer — fight-paced work & rest', art: '/static/fight-hub/fight-focus.webp', accent: VIOLET, h: 64, guide: 'fh-fight-focus' },
   { key: 'combo_coach',   title: '🥊 COMBO COACH',   sub: 'Called combos at cadence — hands up', art: '/static/fight-hub/combo-coach.webp', accent: VIOLET, labelColor: '#f87171', h: 64, guide: 'fh-combo' },
   { key: 'practice',      title: '📚 PRACTICE MODE', sub: 'Tutorials, fundamentals & form', art: '/static/fight-hub/practice.webp', accent: VIOLET, h: 64, guide: 'fh-practice' },
 ];

@@ -39,11 +39,27 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
+  // Standalone documents (privacy.html, 404.html…) are NOT the SPA. Two bugs
+  // lived here (beta ND-03): a failed fetch fell back to the cached app shell,
+  // so /privacy.html showed the SPA with no matching route — a blank page —
+  // and worse, EVERY successful navigation cached its response AS
+  // '/index.html', so visiting privacy.html could poison the shell cache.
+  // Documents now cache under their own URL and fall back to themselves.
+  const isDocument = url.pathname.endsWith('.html') && url.pathname !== '/index.html';
+
   // Navigations: network-first, fall back to the cached shell when offline.
   if (req.mode === 'navigate') {
+    if (isDocument) {
+      event.respondWith(
+        fetch(req)
+          .then((res) => { if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; })
+          .catch(() => caches.match(req)),
+      );
+      return;
+    }
     event.respondWith(
       fetch(req)
-        .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put('/index.html', copy)); return res; })
+        .then((res) => { if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put('/index.html', copy)); } return res; })
         .catch(() => caches.match('/index.html')),
     );
     return;

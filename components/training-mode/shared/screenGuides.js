@@ -37,7 +37,7 @@ export const SCREEN_GUIDES = {
   // its REAL button. Hosted by App.jsx — a guide rendered inside one screen
   // would unmount the instant it navigates away.
   full_intro: [
-    { screen: 'home', target: 'todays-bout', title: "⚔ TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
+    { screen: 'home', target: 'todays-bout', title: "⚔️ TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
     { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE — YOUR CHALLENGE', body: 'This card is your arcade bookmark. START CHALLENGE begins a saga — a 10-stage campaign with a boss at the end — and once you\'re climbing, it drops you straight back onto the stage you\'re on.' },
     { screen: 'home', target: 'home-level', title: '⚡ XP & LEVEL', body: 'Every finished workout adds XP and fills this bar. Fill it and you level up. The 🔥 number is your streak — days trained in a row; miss a day and it resets.' },
     { screen: 'home', target: 'home-favorites', title: '❤ FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want.' },
@@ -46,7 +46,7 @@ export const SCREEN_GUIDES = {
 
     { screen: 'training_hub', target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
     { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
-    { screen: 'fight_hub', target: 'fh-fight-focus', title: '⏱ FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
+    { screen: 'fight_hub', target: 'fh-fight-focus', title: '⏱️ FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
     { screen: 'fight_hub', target: 'fh-combo', title: '🥊 COMBO COACH', body: 'The coach calls combinations and you throw them — "one-two, slip, hook". Builds speed, rhythm and reaction. You set how often the calls come.' },
     { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. Strikes, defense and footwork taught one at a time, with form cues — no timer pressure.' },
     { screen: 'fight_hub', target: 'fh-movelab', title: '⚡ COMBO CREATOR (MOVE LAB)', body: 'Build your own combos and signature moves — chain real strikes into a sequence, or type your own call. Anything you save joins Combo Coach\'s rotation.' },
@@ -151,7 +151,7 @@ export const SCREEN_GUIDES = {
   ],
 
   quick_mission_setup: [
-    { target: null, title: '⏱ QUICK MISSION', body: 'No planning needed — pick a time and intensity and the app builds the whole session for you.' },
+    { target: null, title: '⏱️ QUICK MISSION', body: 'No planning needed — pick a time and intensity and the app builds the whole session for you.' },
     { target: 'qm-length', title: 'HOW LONG?', body: 'Pick your mission length — or hit SURPRISE ME and let the app roll the dice.' },
     { target: 'qm-intensity', title: 'INTENSITY', body: 'Easy, Normal, or Hard — how dense the work gets inside your time.' },
     { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission.' },
@@ -189,7 +189,7 @@ export const SCREEN_GUIDES = {
   ],
 
   quick_mission_active: [
-    { target: null, title: '⏱ QUICK MISSION', body: 'This is your guided workout — the timer and coach move you through every exercise. Here is what everything on this screen does.' },
+    { target: null, title: '⏱️ QUICK MISSION', body: 'This is your guided workout — the timer and coach move you through every exercise. Here is what everything on this screen does.' },
     { target: 'qma-title', title: 'MISSION TITLE', body: 'Shows QUICK MISSION plus your generated mission name below it, so you always know which session you are running.' },
     { target: 'qma-status', title: 'ROUND, TYPE & DIFFICULTY', body: 'Your round count, workout type (Bodyweight, Weighted, or Hybrid), and difficulty — set back on the setup screen.' },
     { target: 'qma-volume', title: '🔊 SOUND', body: 'Tap to open the volume mixer — separate VOICE and MUSIC sliders, adjustable mid-round without pausing.' },

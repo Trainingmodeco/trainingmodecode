@@ -72,7 +72,7 @@ export default function LevelUpReveal({ fromLevel = 3, toLevel = 4, sex = 'male'
 
         {/* CTAs */}
         <div className="lur-a" style={{ padding: '0 22px calc(30px + env(safe-area-inset-bottom,0px))', display: 'flex', flexDirection: 'column', gap: 10, animation: 'lur-tag .5s ease 2.5s forwards' }}>
-          <button onClick={onEquip} style={{ width: '100%', height: 52, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 24px rgba(253,224,71,0.45)' }}>⚔ EQUIP AVATAR</button>
+          <button onClick={onEquip} style={{ width: '100%', height: 52, border: 'none', borderRadius: 12, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 14px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 24px rgba(253,224,71,0.45)' }}>⚔️ EQUIP AVATAR</button>
           <button onClick={onContinue} style={{ width: '100%', height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: 'rgba(14,2,28,0.6)', color: '#c4a4d8', font: "800 12px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer' }}>CONTINUE</button>
         </div>
       </div>

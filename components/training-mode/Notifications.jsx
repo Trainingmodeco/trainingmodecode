@@ -14,7 +14,7 @@ function load() {
 
 const ALERTS = [
   { key: 'streak', label: '🔥 Streak about to break' },
-  { key: 'bout', label: "⚔ Today's bout ready" },
+  { key: 'bout', label: "⚔️ Today's bout ready" },
   { key: 'trophy', label: '🏆 New trophy / level up' },
   { key: 'arcade', label: '🕹 New arcade protocol' },
 ];

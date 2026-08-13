@@ -166,7 +166,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
               if (code && typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(code).catch(() => {}); }
               setGhostToast(code ? 'Challenge code copied — send it to a friend so they can race YOUR ghost.' : 'Couldn’t copy the code.');
               setTimeout(() => setGhostToast(''), 3200);
-            }} style={{ marginTop: 7, width: '100%', background: 'none', border: '1px dashed rgba(176,106,255,0.35)', borderRadius: 8, color: '#8b83a8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '6px 0' }}>⚔ SET MY BEST AS A CHALLENGE (COPY CODE)</button>
+            }} style={{ marginTop: 7, width: '100%', background: 'none', border: '1px dashed rgba(176,106,255,0.35)', borderRadius: 8, color: '#8b83a8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '6px 0' }}>⚔️ SET MY BEST AS A CHALLENGE (COPY CODE)</button>
           )}
           {ghostToast && <div style={{ marginTop: 7, font: "600 9px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{ghostToast}</div>}
         </div>
