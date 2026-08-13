@@ -36,13 +36,20 @@ export const SCREEN_GUIDES = {
   // a `screen` drives the app there first, so each feature is spotlighted on
   // its REAL button. Hosted by App.jsx — a guide rendered inside one screen
   // would unmount the instant it navigates away.
+  // Beta AN-03 — the mandatory pass is now a 4-step CORE (~30 seconds:
+  // Today's Bout → Choose Your Path → the tabs → the ? icon) followed by an
+  // OFFER step. NEXT on the offer continues into the full walk-every-mode
+  // tour; ✕ starts training (the close path already marks the tour done).
+  // Everything cut from the core is covered by each screen's own ? guide,
+  // and the whole tour stays available under Profile → Replay Intro Guide.
   full_intro: [
     { screen: 'home', target: 'todays-bout', title: "⚔️ TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
-    { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE — YOUR CHALLENGE', body: 'This card is your arcade bookmark. START CHALLENGE begins a saga — a 10-stage campaign with a boss at the end — and once you\'re climbing, it drops you straight back onto the stage you\'re on.' },
-    { screen: 'home', target: 'home-level', title: '⚡ XP & LEVEL', body: 'Every finished workout adds XP and fills this bar. Fill it and you level up. The 🔥 number is your streak — days trained in a row; miss a day and it resets.' },
-    { screen: 'home', target: 'home-favorites', title: '❤ FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want.' },
 
-    { screen: 'training_hub', target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like. This guide walks you into each one.' },
+    { screen: 'training_hub', target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio, COMBAT CONDITIONING blends the two, and the TRAINING ARCADE turns it all into a game. You are never locked in — mix them however you like.' },
+    { screen: 'training_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
+    { screen: 'training_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+
+    { screen: 'training_hub', target: null, title: '🎬 WANT THE GRAND TOUR?', body: 'That\'s everything you need to start training. Tap NEXT for the full walkthrough — inside every mode, the camp, the arcade and the rewards, about two minutes. Or tap ✕ to start now; you can replay all of this any time from PROFILE → Replay Intro Guide.' },
 
     { screen: 'training_hub', target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
     { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
@@ -64,8 +71,11 @@ export const SCREEN_GUIDES = {
 
     { screen: 'training_hub', target: null, title: '⚡ XP, LEVELS & REWARDS', body: 'Every finished session earns XP, and XP raises your fighter level and rank. Beat arcade stages fast enough for ★ ratings, train days in a row to grow your 🔥 streak, and unlock trophies and badges as you go. Bosses pay double XP.' },
     { screen: 'profile', target: 'pr-gamelink', title: '🎮 LINKED TO THE UPCOMING GAME', body: 'Training Mode connects to a companion FIGHTING GAME in development. Your real training — rank, XP, unlocked tiers — will sync INTO the game and level up your in-game fighter. Tap GAME LINK any time to read more and join the free launch list.' },
-    { screen: 'training_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
-    { screen: 'training_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+    // The grand tour lands back on Home — the two cards the core pass skipped,
+    // ending where the athlete actually starts training. (The tabs and ? steps
+    // live in the mandatory core now, so they don't repeat here.)
+    { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE — YOUR CHALLENGE', body: 'This card is your arcade bookmark. START CHALLENGE begins a saga — a 10-stage campaign with a boss at the end — and once you\'re climbing, it drops you straight back onto the stage you\'re on.' },
+    { screen: 'home', target: 'home-favorites', title: '❤ FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want. That\'s the tour — go train.' },
   ],
 
   // The everyday "?" on Choose Your Path — compact and single-screen. The
