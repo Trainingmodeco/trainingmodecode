@@ -19,6 +19,7 @@ import { trackEvent } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
+import FeedbackChip from './shared/FeedbackChip';
 // Already in the main bundle via HomeDashboard's Continue Challenge card, so
 // this import adds nothing to the entry chunk.
 import { TRAINING_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
@@ -787,6 +788,12 @@ export default function App() {
             actions={actions}
           />
         </Suspense>
+        {/* Beta TM-05 — global feedback, two taps from anywhere. Hidden only
+            on the entry gate and questionnaire, where there is nothing to
+            report yet and the chip would read as chrome. */}
+        {screen !== 'start' && screen !== 'onboarding' && !pathTour && (
+          <FeedbackChip screen={screen} />
+        )}
         {pathTour && (
           <ScreenGuide
             steps={SCREEN_GUIDES[pathTour]}

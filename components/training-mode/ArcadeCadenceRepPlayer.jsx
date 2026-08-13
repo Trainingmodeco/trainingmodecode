@@ -409,7 +409,7 @@ export default function ArcadeCadenceRepPlayer({
       <div style={{ padding: '0 4px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.14em' }}>CADENCE · {cadenceLabel}</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>{cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s`}</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>{cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s / rep`}</span>
         </div>
         <input type="range" min={MIN_CADENCE_MS} max={MAX_CADENCE_MS} step={CADENCE_STEP} value={cadenceMs} onChange={handleCadenceChange} disabled={cadenceLocked}
           style={{ width: '100%', height: 5, borderRadius: 999, outline: 'none', background: cadenceLocked ? 'rgba(239,68,68,0.15)' : `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`, opacity: cadenceLocked ? 0.5 : 1, cursor: cadenceLocked ? 'not-allowed' : 'pointer' }} />

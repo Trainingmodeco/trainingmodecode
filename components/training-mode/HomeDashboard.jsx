@@ -222,8 +222,12 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           </div>
         </button>
 
-        {/* Training Arcade (prominent) */}
-        {arSeries && (
+        {/* Training Arcade (prominent). Beta TM-10 — this card is a BOOKMARK,
+            not a second front door: at zero progress it competed with TODAY'S
+            BOUT as a "start here" and gave a fresh user six plausible entry
+            points. It now appears only once a saga has actually been started —
+            which is what the home guide already promised. */}
+        {arSeries && arDone > 0 && (
           <button data-guide="home-arcade" className="home-hero-card" onClick={() => onTrainingArcade?.()} style={{ '--card-glow': 'rgba(176,106,255,0.5)', '--card-glow-border': 'rgba(176,106,255,0.95)', position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,#1a1030,#241640)', boxShadow: '0 0 20px -6px rgba(176,106,255,0.4)', marginBottom: 10, padding: '12px 13px', cursor: 'pointer', textAlign: 'left', width: '100%', display: 'block' }}>
             {/* Dimmed hallway banner art (falls back to the gradient if absent) */}
             {!arcadeBgFail && (

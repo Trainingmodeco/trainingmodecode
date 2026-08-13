@@ -193,10 +193,13 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   const nextTask = taskIdx + 1 < totalTasks ? tasks[taskIdx + 1] : null;
   const stageBg = `/static/series/stage-bg/stage-${Math.min(Math.max(stage?.stageNumber || 1, 1), 10)}.webp`;
 
-  // Total elapsed timer — runs from intro completion to the summary.
+  // Total elapsed timer. Beta TM-06 — the clock must NOT tick while the
+  // athlete is still deciding (the choice card, the number-entry stepper):
+  // deliberation is not training time. It runs only through countdown /
+  // active / own-pace / rest.
   useEffect(() => {
-    if (phase === 'intro' || phase === 'summary') { clearInterval(elapsedRef.current); return; }
-    if (paused) { clearInterval(elapsedRef.current); return; }
+    const deciding = phase === 'intro' || phase === 'summary' || phase === 'choice' || phase === 'entry';
+    if (deciding || paused) { clearInterval(elapsedRef.current); return; }
     elapsedRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => clearInterval(elapsedRef.current);
   }, [phase, paused]);
@@ -957,7 +960,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.14em' }}>CADENCE · {cadenceLabel}</span>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>
-              {cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s`}
+              {cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s / rep`}
             </span>
           </div>
           <input

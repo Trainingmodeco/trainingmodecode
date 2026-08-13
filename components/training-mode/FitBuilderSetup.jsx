@@ -37,6 +37,36 @@ const DIFFICULTY = ['EASY', 'NORMAL', 'HARD'];
 
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 
+// Beta ND-09 — the anatomy panels rendered as bare dark boxes while the art
+// decoded, which read as broken. A pulsing silhouette placeholder holds the
+// space until SafeImage reports the figure has real pixels.
+function BodyMapFigure({ v, sex, spots }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(34,211,238,0.3)', background: '#050010', display: 'flex', justifyContent: 'center' }}>
+      {!loaded && (
+        <>
+          <style>{'@keyframes wb-map-pulse{0%,100%{opacity:.25}50%{opacity:.6}}'}</style>
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 6,
+            animation: 'wb-map-pulse 1.3s ease-in-out infinite',
+          }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid rgba(34,211,238,0.4)' }}/>
+            <div style={{ width: 52, height: 74, borderRadius: 12, border: '2px solid rgba(34,211,238,0.4)' }}/>
+          </div>
+        </>
+      )}
+      {/* Figure box — glows are positioned relative to the image itself */}
+      <div style={{ position: 'relative', height: 168, opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}>
+        <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} onLoaded={() => setLoaded(true)} style={{ height: 168, width: 'auto', objectFit: 'contain', display: 'block' }}/>
+        {spots.map(([x, y], i) => <MuscleGlow key={i} x={x} y={y}/>)}
+      </div>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
+    </div>
+  );
+}
+
 // Glow spots per muscle chip, as %-of-figure coordinates on the front/back
 // anatomy (the 450x600 body maps place the figure centred in-frame). Same
 // layout works for the male and female art. Bilateral muscles get two spots.
@@ -171,19 +201,9 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
           </div>
           {/* Body maps — selected muscle chips light up the anatomy */}
           <div style={{ display: 'flex', gap: 9, marginBottom: 12 }}>
-            {['front', 'back'].map(v => {
-              const spots = chips.flatMap(id => GLOW_MAP[id]?.[v] || []);
-              return (
-                <div key={v} style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(34,211,238,0.3)', background: '#050010', display: 'flex', justifyContent: 'center' }}>
-                  {/* Figure box — glows are positioned relative to the image itself */}
-                  <div style={{ position: 'relative', height: 168 }}>
-                    <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} style={{ height: 168, width: 'auto', objectFit: 'contain', display: 'block' }}/>
-                    {spots.map(([x, y], i) => <MuscleGlow key={i} x={x} y={y}/>)}
-                  </div>
-                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
-                </div>
-              );
-            })}
+            {['front', 'back'].map(v => (
+              <BodyMapFigure key={v} v={v} sex={sex} spots={chips.flatMap(id => GLOW_MAP[id]?.[v] || [])} />
+            ))}
           </div>
           </div>
 

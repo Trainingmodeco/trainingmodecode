@@ -545,7 +545,13 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
           {/* Centered content per phase */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 14%' }}>
             {phase === 'ready' ? (
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: COMBAT_RED, letterSpacing: '0.1em' }}>PREPARING...</div>
+              /* Beta ND-08 — pulse + reason, so a long coach intro never reads
+                 as a hang. */
+              <>
+                <style>{'@keyframes cc-prep{0%,100%{opacity:.4}50%{opacity:1}}'}</style>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: COMBAT_RED, letterSpacing: '0.1em', animation: 'cc-prep 1.2s ease-in-out infinite' }}>PREPARING...</div>
+                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, marginTop: 6 }}>Your coach is setting up the circuit</div>
+              </>
             ) : phase === 'complete' ? (
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: GOLD, letterSpacing: '0.12em', textShadow: '0 0 20px rgba(253,224,71,0.4)' }}>COMPLETE</div>
             ) : (phase === 'working' && isTimed) || phase === 'resting' ? (

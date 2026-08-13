@@ -372,7 +372,7 @@ export default function Onboarding({ onComplete, onHome }) {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>AGE</div>
-                <input type="number" placeholder="25" value={age} onChange={e => setAge(e.target.value)}
+                <input type="number" inputMode="numeric" placeholder="25" value={age} onChange={e => setAge(e.target.value)}
                   style={{ ...inputStyle, fontSize: 13 }}/>
               </div>
             </div>
@@ -381,7 +381,7 @@ export default function Onboarding({ onComplete, onHome }) {
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>HEIGHT</div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <input type="text" placeholder={heightUnit === 'FT/IN' ? '5\'10"' : '178'} value={heightVal}
+                <input type="text" inputMode="decimal" placeholder={heightUnit === 'FT/IN' ? '5\'10"' : '178'} value={heightVal}
                   onChange={e => setHeightVal(e.target.value)} style={{ ...inputStyle, flex: 1, fontSize: 13 }}/>
                 <UnitToggle options={['FT/IN', 'CM']} value={heightUnit} onPick={setHeightUnit}/>
               </div>
@@ -391,7 +391,7 @@ export default function Onboarding({ onComplete, onHome }) {
             <div>
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>WEIGHT</div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <input type="number" placeholder={weightUnit === 'LBS' ? '175' : '80'} value={weightVal}
+                <input type="number" inputMode="numeric" placeholder={weightUnit === 'LBS' ? '175' : '80'} value={weightVal}
                   onChange={e => setWeightVal(e.target.value)} style={{ ...inputStyle, flex: 1, fontSize: 13 }}/>
                 <UnitToggle options={['LBS', 'KG']} value={weightUnit} onPick={setWeightUnit}/>
               </div>

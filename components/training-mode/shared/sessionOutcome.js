@@ -58,7 +58,16 @@ export function resolveOutcome({
 
   // The 1.6 anti-cheat gate outranks everything: an unverifiable session is
   // validation_failed and earns nothing, however much work it claims.
-  const hardInvalid = !!integrityResult && integrityResult.awardXp === false;
+  //
+  // Beta ND-04 — but ONLY a real anti-cheat flag may trip it. The integrity
+  // layer also sets awardXp:false for a perfectly ordinary early exit below
+  // 25% completion, and that used to land here too — so quitting a mission
+  // early showed "VALIDATION FAILED / This attempt could not be verified",
+  // fraud vocabulary for something innocent the athlete did deliberately.
+  // Early exits fall through to the engine and read as what they are.
+  const CHEAT_FLAGS = ['tooFast', 'suspicious', 'expired', 'idleTimeout'];
+  const hardInvalid = !!integrityResult && integrityResult.awardXp === false
+    && CHEAT_FLAGS.includes(integrityResult.validityStatus);
   if (hardInvalid) {
     return {
       outcome: 'validation_failed',
@@ -95,12 +104,28 @@ export function resolveOutcome({
     tier
   );
 
+  // Beta ND-05 — the End dialog promises "Only completed exercises will count
+  // toward your stats", and the stats bank honours that. So an early exit
+  // WITH completed work is a partial (kept work, kept XP), never a zero-XP
+  // fail — otherwise the screen contradicts the very XP it just banked.
+  // The fail gate still bites where it should: nothing completed, or a full
+  // run that failed on its tactical/technique rules (ratio 1).
+  let outcome = ev.outcome;
+  let response = ev.response;
+  if (ev.outcome === 'fail' && completionRatio > 0 && completionRatio < 1) {
+    outcome = 'partial';
+    response = 'Ended early — the work you completed counts toward your stats.';
+  } else if (ev.outcome === 'fail' && completionRatio === 0) {
+    // Beta ND-04 — consequence language, never system language.
+    response = 'Ended early — finish a full round to earn XP.';
+  }
+
   return {
-    outcome: ev.outcome,
-    failType: ev.failType,
-    response: ev.response,
+    outcome,
+    failType: outcome === 'fail' ? ev.failType : undefined,
+    response,
     completionRatio,
-    preset: OUTCOME_PRESET[ev.outcome] || OUTCOME_PRESET.pass,
+    preset: OUTCOME_PRESET[outcome] || OUTCOME_PRESET.pass,
   };
 }
 

@@ -504,7 +504,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             <div style={{ flex: 1 }}>
               <SectionLabel text="AGE"/>
-              <input type="number" placeholder="25" value={age} onChange={e => setAge(e.target.value)}
+              <input type="number" inputMode="numeric" placeholder="25" value={age} onChange={e => setAge(e.target.value)}
                 style={{ ...inputStyle, fontSize: 12 }}/>
             </div>
           </div>
@@ -514,7 +514,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             <div style={{ flex: 1 }}>
               <SectionLabel text="HEIGHT"/>
               <div style={{ display: 'flex', gap: 4 }}>
-                <input type="text" placeholder={heightUnit === 'FT/IN' ? '5\'10"' : '178'} value={heightVal}
+                <input type="text" inputMode="decimal" placeholder={heightUnit === 'FT/IN' ? '5\'10"' : '178'} value={heightVal}
                   onChange={e => setHeightVal(e.target.value)} style={{ ...inputStyle, flex: 1, fontSize: 12, padding: '8px 10px' }}/>
                 <div style={{ display: 'flex', gap: 3 }}>
                   {['FT/IN', 'CM'].map(u => (
@@ -534,7 +534,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             <div style={{ flex: 1 }}>
               <SectionLabel text="WEIGHT"/>
               <div style={{ display: 'flex', gap: 4 }}>
-                <input type="number" placeholder={weightUnit === 'LBS' ? '175' : '80'} value={weightVal}
+                <input type="number" inputMode="numeric" placeholder={weightUnit === 'LBS' ? '175' : '80'} value={weightVal}
                   onChange={e => setWeightVal(e.target.value)} style={{ ...inputStyle, flex: 1, fontSize: 12, padding: '8px 10px' }}/>
                 <div style={{ display: 'flex', gap: 3 }}>
                   {['LBS', 'KG'].map(u => (

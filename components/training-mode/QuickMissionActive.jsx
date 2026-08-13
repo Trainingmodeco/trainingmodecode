@@ -560,11 +560,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     stopVoiceSession();
     versionRef.current++;
     const integrityResult = integrity.finalize();
+    // Beta ND-05 — ONE authoritative counter. The summary screen reports
+    // exercises, the integrity layer counts rounds, and rewinds decrement the
+    // exercise tally — so an early exit could show "1/2 ROUNDS" beside
+    // "0 EXERCISES" on the same screen. Rounds are now DERIVED from the
+    // exercise counter, so the two can never disagree again.
+    const exDone = exercisesCompletedRef.current;
     onEnd({
       completed: false,
-      roundsCompleted: roundsCompletedRef.current,
+      roundsCompleted: Math.min(mission.rounds, Math.floor(exDone / Math.max(1, allExercises.length))),
       totalRounds: mission.rounds,
-      exercisesCompleted: exercisesCompletedRef.current,
+      exercisesCompleted: exDone,
       totalExercises: allExercises.length * mission.rounds,
       mission,
       integrityResult,
@@ -702,10 +708,19 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             background: 'rgba(10,0,20,0.4)',
           }}>
             {phase === 'intro' ? (
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15,
-                color: GOLD, letterSpacing: '0.1em',
-              }}>PREPARING...</div>
+              /* Beta ND-08 — this state can hold 8s+ while the coach reads the
+                 brief; a static label read as a hang. Pulse it and say why. */
+              <>
+                <style>{'@keyframes qm-prep{0%,100%{opacity:.4}50%{opacity:1}}'}</style>
+                <div style={{
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15,
+                  color: GOLD, letterSpacing: '0.1em', animation: 'qm-prep 1.2s ease-in-out infinite',
+                }}>PREPARING...</div>
+                <div style={{
+                  fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+                  color: C.muted, marginTop: 6,
+                }}>Your coach is reading the mission brief</div>
+              </>
             ) : (
               <>
                 <div style={{

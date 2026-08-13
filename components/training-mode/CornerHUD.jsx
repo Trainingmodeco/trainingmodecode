@@ -6,7 +6,11 @@ export default function CornerHUD({ color = 'rgba(168,85,247,0.8)', size = 28, t
     { bottom: inset, right: inset, rotate: '180deg' },
   ];
   return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15 }}>
+    // Beta RS-05 — minHeight pins the bottom corners to at least the viewport
+    // edge on short screens (Audio Settings…), so the frame always encloses
+    // the full area instead of floating mid-page above empty space. Tall
+    // scrollable screens keep the old behaviour (corners at content bottom).
+    <div style={{ position: 'absolute', inset: 0, minHeight: '100dvh', pointerEvents: 'none', zIndex: 15 }}>
       {corners.map((pos, i) => (
         <div key={i} style={{ position: 'absolute', ...pos, width: size, height: size }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} overflow="visible"

@@ -118,7 +118,15 @@ export default function SplashScreen({ onStart }) {
   return (
     <div
       onClick={handleTap}
+      // Beta TM-11 (WCAG 2.1.1) — the entry gate must be keyboard-operable:
+      // it gates the whole app. Focused on mount; Enter or Space enters.
+      role="button"
+      tabIndex={0}
+      aria-label="Enter Training Mode"
+      ref={(el) => { if (el && barPhase === 'idle') el.focus({ preventScroll: true }); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTap(); } }}
       style={{
+        outline: 'none',
         position: 'relative', width: '100%', maxWidth: 440,
         minHeight: '100dvh', margin: '0 auto',
         overflow: 'hidden', cursor: barPhase === 'idle' ? 'pointer' : 'default',

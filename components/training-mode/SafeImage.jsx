@@ -24,6 +24,7 @@ export default function SafeImage({
   decoding = 'async',
   preferWebp = true,
   onFail,
+  onLoaded,
 }) {
   const webpCandidate = preferWebp ? getWebpPath(src) : null;
   const [currentSrc, setCurrentSrc] = useState(webpCandidate || src);
@@ -67,7 +68,9 @@ export default function SafeImage({
     const img = e.target;
     if (img.naturalWidth === 0 || img.naturalHeight === 0) {
       handleError();
+      return;
     }
+    onLoaded?.();
   };
 
   if (failed) {
