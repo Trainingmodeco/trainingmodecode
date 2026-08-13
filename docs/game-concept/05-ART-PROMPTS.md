@@ -256,6 +256,42 @@ shorts with gold trim, same gloves and sneakers.
 | Detail | highly detailed | |
 | Style/init reference | **upload the turnaround front view** | Most important setting — keeps it OUR character and offsets PixelLab's lack of style-consistency enforcement |
 
+### FIXING CHIBI DRIFT (founder issue 2026-08-10)
+
+Symptom: PixelLab output reads chibi instead of SF3 / adult-shonen.
+
+1. **Canvas size is the main cause.** Under ~96px a head needs 12–16px
+   to read, which caps the figure at 3–4 heads tall. Use 128×128
+   minimum (or the largest available); SF3 sprites were ~120px tall.
+   Generate large and downscale in Aseprite — never upscale to fix it.
+2. **State the head count.** Chibi = 2–3 heads, anime teen = 6,
+   adult shonen = 7.5–8. Replace the prompt's opening line with:
+
+```
+Tall lean-muscular adult man in his mid-twenties, realistic heroic
+proportions, 7.5 heads tall, small head relative to a long athletic
+body, legs are half of total height, broad shoulders roughly twice head
+width, narrow waist, defined arms, standing in a confident neutral pose,
+facing right, side view, full body head to sneakers. Adult shonen anime
+fighting-game protagonist proportions like a 90s arcade fighter sprite —
+NOT chibi, NOT super-deformed, NOT a child, no oversized head, no stubby
+limbs.
+```
+
+3. **Delete size-shrinking words.** "young" reads as *child* — use
+   "adult man, mid-twenties." Avoid cute/small/compact. Put negations
+   in a real negative field where available:
+   `chibi, super deformed, big head, short legs, child, cartoon baby`.
+4. **Raise reference-image weight.** The founder's turnaround already
+   has correct ~7.5-head proportions; the image constrains proportion
+   far better than text.
+5. **PLAN B (recommended for the two heroes):** skip generation —
+   downscale the existing turnaround side view in Aseprite to target
+   sprite height, index to the locked palette, hand-clean the outline.
+   Exact character, exact proportions, zero drift. Reserve PixelLab
+   *generation* for enemies/NPCs, and use its *animation* tools on the
+   hand-made hero base sprite.
+
 ### Workflow
 
 1. Generate base side-view sprite (prompt + reference image); regenerate
