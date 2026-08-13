@@ -129,7 +129,11 @@ export default function SplashScreen({ onStart }) {
         outline: 'none',
         position: 'relative', width: '100%', maxWidth: 440,
         minHeight: '100dvh', margin: '0 auto',
-        overflow: 'hidden', cursor: barPhase === 'idle' ? 'pointer' : 'default',
+        // Beta AN-02 — hidden overflow clipped the splash in landscape with no
+        // way to scroll ("MODE", the tap line and the footer all fell below
+        // the fold). Only HORIZONTAL overflow is clipped now (the glitch
+        // animations need it); vertical content extends and the page scrolls.
+        overflowX: 'hidden', cursor: barPhase === 'idle' ? 'pointer' : 'default',
         background: '#08010f',
       }}
     >
@@ -157,8 +161,12 @@ export default function SplashScreen({ onStart }) {
           top on ONE line, breathing room, then logo + wordmark, then the
           lower cluster spread down the page. */}
       <div style={{
+        // minHeight (not height) — AN-02: in landscape the content stack is
+        // taller than the viewport; a hard height pinned it at 100dvh so the
+        // overflow was unreachable. minHeight keeps portrait full-bleed and
+        // lets landscape grow + scroll.
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', height: '100dvh', boxSizing: 'border-box',
+        alignItems: 'center', minHeight: '100dvh', boxSizing: 'border-box',
         padding: '30px 26px 26px', textAlign: 'center',
       }}>
         {/* Upper spacer — pushes the tagline+logo+wordmark group down onto the

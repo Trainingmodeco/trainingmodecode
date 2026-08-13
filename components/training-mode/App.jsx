@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
-import { STYLE, C } from './Styles';
+import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
 import { completeCampLevel, markCampComplete } from './data/campProgress';
@@ -768,7 +768,7 @@ export default function App() {
       <style>{STYLE}</style>
       <style>{`@keyframes tm-offline-toast{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(8px)}}`}</style>
       {showOffline && (
-        <div style={{ position: 'fixed', left: 12, bottom: 'calc(74px + env(safe-area-inset-bottom,0px))', zIndex: 600, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 99, background: 'rgba(20,6,38,0.95)', border: '1px solid rgba(253,224,71,0.35)', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'none', animation: 'tm-offline-toast 4s ease forwards' }}>
+        <div style={{ position: 'fixed', ...fixedColumnLeft(12), bottom: 'calc(74px + env(safe-area-inset-bottom,0px))', zIndex: 600, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 99, background: 'rgba(20,6,38,0.95)', border: '1px solid rgba(253,224,71,0.35)', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'none', animation: 'tm-offline-toast 4s ease forwards' }}>
           <span style={{ fontSize: 11 }}>📡</span>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#fde047', letterSpacing: '0.08em' }}>OFFLINE</span>
         </div>

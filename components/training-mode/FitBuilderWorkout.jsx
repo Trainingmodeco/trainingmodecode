@@ -3,7 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Minus, Plus, Bookmark } from 'lucide-react';
-import { C } from './Styles';
+import { C, fixedColumnBar } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
@@ -486,9 +486,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         </div>
       </div>
 
-      {/* Bottom CTA */}
+      {/* Bottom CTA — clamped to the app column (beta RS-02: left/right 0 made
+          this bar span the entire browser window, a click target the width of
+          a 1920px screen while everything else stayed in the column). */}
       <div style={{
-        position: 'fixed', left: 0, right: 0,
+        position: 'fixed', ...fixedColumnBar,
         bottom: 'calc(70px + env(safe-area-inset-bottom, 0px))',
         padding: '14px 14px 16px',
         background: 'linear-gradient(to top, rgba(10,0,20,0.98) 70%, transparent)',

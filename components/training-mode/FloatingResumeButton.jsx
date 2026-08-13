@@ -1,5 +1,5 @@
 import { Play } from 'lucide-react';
-import { C } from './Styles';
+import { C, fixedColumnRight } from './Styles';
 
 const SESSION_LABELS = {
   timer: 'Fight Focus',
@@ -21,7 +21,10 @@ export default function FloatingResumeButton({ pausedSession, onResume }) {
       style={{
         position: 'fixed',
         bottom: 'calc(78px + env(safe-area-inset-bottom, 0px))',
-        right: 16,
+        // Beta RS-04 — hug the app column's edge, not the browser window's:
+        // at 1920px the pill floated ~600px from the content with no visual
+        // relationship to the app.
+        ...fixedColumnRight(16),
         zIndex: 110,
         display: 'flex',
         alignItems: 'center',

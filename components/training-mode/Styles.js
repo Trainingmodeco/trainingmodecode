@@ -475,3 +475,22 @@ input[type=range]::-webkit-slider-thumb {
   transition-duration: 0.1s;
 }
 `;
+
+// ── Container-escape guard (beta TM-03 / RS-02 / RS-03 / RS-04) ──────────────
+// The app renders in a centred column (PhoneFrame maxWidth 440). Anything with
+// position:fixed is VIEWPORT-relative and escapes that column unless clamped —
+// this is how the Workout Builder START bar spanned a 1920px window while the
+// rest of the page stayed in the column. Spread one of these into every fixed
+// element's style. BottomNav in ScreenRouter has used this pattern all along;
+// these exports make it the one shared spelling.
+export const COL_W = 440;
+// A fixed BAR spanning the column (bottom CTAs, toasts).
+export const fixedColumnBar = {
+  left: '50%',
+  transform: 'translateX(-50%)',
+  width: '100%',
+  maxWidth: COL_W,
+};
+// A fixed element hugging the column's left/right edge (pills, chips).
+export const fixedColumnLeft = (px = 12) => ({ left: `max(${px}px, calc((100vw - ${COL_W}px) / 2 + ${px}px))` });
+export const fixedColumnRight = (px = 12) => ({ right: `max(${px}px, calc((100vw - ${COL_W}px) / 2 + ${px}px))` });
