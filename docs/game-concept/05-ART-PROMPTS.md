@@ -1,0 +1,174 @@
+# TRAINING MODE: THE GAME — GPT Image Prompts (Character, Stage & Boss Art)
+
+> Ready-to-paste prompts for GPT image generation. Workflow rules:
+> **one prompt = one generation**; always upload the matching avatar image
+> from `bolt-rebuild-kit/assets/tiers/` and say "match this character
+> exactly"; start every prompt with the STYLE BLOCK; outputs are
+> *reference sheets* — final sprites are hand-pixeled in Aseprite.
+
+## STYLE BLOCK (paste first, every time)
+
+```
+Retro 90s anime style, cel shading, clean thick outlines, flat colors,
+cyberpunk fitness world. Brand palette: near-black violet background
+#080012, gold #FDE047 accents, neon violet #A855F7 energy/glow, black and
+gold athletic gear with a gold "T" logo. Characters have subtly glowing
+violet eyes. Mood: confident, action-packed, tongue-in-cheek but played
+straight — Scott Pilgrim × One Punch Man humor, Streets of Rage energy.
+No text, no watermark.
+```
+
+## GAME CONTEXT BLOCK (add for backgrounds and bosses)
+
+```
+The game: TRAINING MODE: THE GAME — a retro pixel-art beat 'em up where
+your real workouts build your fighter. Two trainees from the Training Mode
+gym lose a fair fight, get recruited by a shady mega-gym promoter, and
+fight through the city's gyms and dojos — bosses are hilarious exaggerated
+caricatures of fitness and combat-sports celebrities — before realizing
+they're being manipulated, uniting the city's fitness and fighting sides,
+and founding one gym where every discipline trains together.
+```
+
+## Character description lines
+
+- **Male:** young adult male fighter, dark brown skin, short black curly
+  hair with a fade, subtly glowing violet eyes, athletic muscular build,
+  black hoodie with gold drawstrings and gold "T" chest logo, black
+  joggers with gold side stripe, black fingerless MMA gloves.
+- **Female:** young adult female fighter, brown skin, long black ponytail
+  tied with a violet band, subtly glowing violet eyes, fit athletic build,
+  black sports crop tank with gold "T" chest logo, black training shorts
+  with gold trim, black fingerless MMA gloves.
+
+## 1 · Turnaround sheet (run once per character)
+
+```
+Character turnaround model sheet of this exact character: [CHARACTER
+LINE]. Show the SAME character 4 times in a row, same height, neutral
+A-pose: front view, 3/4 view, side profile view, back view. Flat colors,
+clean thick outlines, plain dark background, full body, consistent
+proportions across all four views.
+```
+
+## 2 · Fighting stance (per character)
+
+```
+Same character, full body, side-profile boxing fighting stance facing
+left: knees bent, hands up in guard, chin tucked, weight on back foot,
+subtle violet energy aura starting to glow around the gloves. Dynamic but
+grounded — ready to fight, not mid-attack. Flat colors, clean outlines,
+plain dark background.
+```
+
+## 3 · Strike animation strip (per character)
+
+```
+Animation reference strip: the same character throwing ONE [male: right
+cross / female: lead hook], shown as 6 sequential frames left to right in
+a single row, same scale and position: (1) guard stance, (2) hips rotate
+wind-up, (3) arm half extended, (4) full extension with small gold impact
+flash at the fist, (5) arm retracting, (6) back to guard. Side profile
+view facing left, flat colors, clean outlines, identical character in
+every frame, plain dark background.
+```
+
+## 4 · City street background
+
+```
+[STYLE + GAME CONTEXT] Wide side-scrolling background layout for a beat
+'em up stage: neon cyberpunk city street at night, near-black violet sky
+#080012, glowing gold and violet neon signs for gyms and dojos (dumbbell
+icons, boxing glove icons, no readable text), wet asphalt reflections,
+chain-link fences, parked delivery scooters, distant city skyline. Drawn
+in flat layers for parallax: foreground props, mid-ground storefronts,
+background skyline. 90s anime cel style, no characters.
+```
+
+## 5 · Gym interior background
+
+```
+[STYLE + GAME CONTEXT] Wide side-scrolling background layout for the
+first stage: old-school boxing gym interior at night — worn boxing ring
+in the center, heavy bags hanging in a row, speed bags, dumbbell racks,
+faded fight posters (no readable text), one wall with a big gold "T" logo
+mural, dramatic violet rim lighting from high windows, gold practical
+lights. Flat parallax layers, 90s anime cel style, gritty but warm, no
+characters.
+```
+
+## 6 · Boss design sheet — Mike Bison (vertical-slice boss)
+
+```
+[STYLE + GAME CONTEXT] Boss character design sheet: "MIKE BISON", a
+hilarious exaggerated parody boxer — a mountain of muscle with a comically
+thick neck, tiny championship shorts, gold heavyweight belt worn
+diagonally like a sash, face tattoo on the WRONG side of his face,
+gap-toothed cocky grin, tiny ears, red boxing gloves the size of his head.
+He's furious about being called a knockoff of a certain famous boxer and
+carries himself like royalty — crown-shaped hair cut into his flat-top.
+Show: full body front pose, side profile, plus two head expressions
+(smug grin / offended rage). Flat colors, clean outlines, plain dark
+background. Parody design — do NOT depict any real person's face.
+```
+
+## STORYLINE BLOCK (paste when a tool needs the full story)
+
+```
+STORYLINE — TRAINING MODE: THE GAME
+
+Two young trainees from the small Training Mode gym — a male and a female
+fighter — step into a sanctioned bout against a rival gym's champion...
+and lose. Clean fight, no hard feelings; the rival is honorable and even
+gracious about it. But the loss puts the duo in a funk. That's when the
+Promoter appears: the charming, outgoing owner of the city's giant
+MegaGym, friendly with just a hint of fakeness. His offer: join his
+"fast-track program" and earn a rematch with the rival — all they have to
+do is beat the competition. Literally. Every gym and dojo in the city,
+one by one.
+
+At first the missions feel legit: sanctioned challenge matches against
+colorful gym owners and masters. But the Promoter's mission briefings —
+delivered by COACH, the friendly AI voice in everyone's earbuds — get
+stranger and darker. One gym is "running a racket." Another is "holding
+baby kittens hostage." The duo storms it, beats the owner, frees the
+kittens... which sprint into traffic, as a crying kid explains it was the
+animal shelter's adoption day. The more they question the Promoter, the
+faster his warm mask slips into rage — then snaps back: "It's for the
+greater good of Fit and Fight City."
+
+Too late, they see the pattern: every "victory" is spun as propaganda.
+The city's fitness side and fighting side are being turned against each
+other — and both sides now hate the two trainees who did the damage.
+The truth: COACH has been feeding every gym in the city personalized
+lies, and the Promoter used the duo as the match to light a war he'd
+been fueling for years, so his MegaGym would be the last gym standing.
+
+Kidnapped by their old rival's crew, the duo tells the truth and isn't
+believed — until the female trainee repeats the rival's own words from
+that first fight, and the rival's sharp-eyed second uncovers proof that
+everyone, rival included, was being manipulated by the same AI voice.
+
+The final act: the trainees and their former rival fight to reunite the
+city the hard way — rematch by rematch, gym by gym — while the Promoter
+consolidates everything into one chrome tower. Three fighters against
+the man who owns the city. When he falls, the city doesn't go back to
+fitness versus fighting, and it doesn't become one brand. The trainees
+and the rival open a new kind of gym — one roof, every discipline,
+where your training is your power. They call it TRAINING MODE.
+
+TONE: simple arcade storytelling (Streets of Rage stakes), Scott Pilgrim
+× One Punch Man humor played straight, 90s anime presentation — serious
+beats in full character design, comedy beats snap to chibi versions. The
+Promoter is the only character who NEVER goes chibi — the scene-one tell
+that something is wrong with him.
+```
+
+## Notes
+
+- The "do NOT depict any real person's face" line on boss prompts is
+  deliberate legal protection — keep it on every celebrity-caricature boss.
+- 6-frame single-row strips at identical scale convert cleanest into
+  Aseprite sprite strips.
+- Chibi variants: rerun any character prompt adding "chibi version of
+  this exact character, same outfit and colors, 2-head-tall proportions".
