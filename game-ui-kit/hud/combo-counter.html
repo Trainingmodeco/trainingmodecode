@@ -1,0 +1,18 @@
+<!-- @dsCard group="In-Game HUD" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
+*{margin:0;box-sizing:border-box}
+body{background:linear-gradient(180deg,#0d0420,#080012);font-family:'Rajdhani',sans-serif;padding:34px;color:#eee;display:flex;flex-direction:column;align-items:center;gap:18px}
+.combo{text-align:center;transform:rotate(-4deg)}
+.num{font-family:'Orbitron';font-weight:900;font-size:74px;line-height:1;color:#fde047;text-shadow:0 0 26px rgba(253,224,71,.6),4px 4px 0 #7c3aed}
+.hits{font-family:'Orbitron';font-weight:700;font-size:18px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #7c3aed}
+.grade{margin-top:6px;font-family:'Orbitron';font-weight:900;font-size:15px;letter-spacing:3px;color:#c99cff}
+.xp{display:flex;gap:8px}
+.pop{font-family:'Orbitron';font-weight:700;font-size:12px;letter-spacing:1px;padding:5px 10px;border-radius:8px;border:1px solid rgba(168,85,247,.55);background:rgba(168,85,247,.14);color:#d8b4fe;box-shadow:0 0 12px rgba(168,85,247,.35)}
+.pop.gold{border-color:rgba(253,224,71,.55);background:rgba(253,224,71,.1);color:#fde047;box-shadow:0 0 12px rgba(253,224,71,.3)}
+.note{font-size:11px;color:#6d5f8a;letter-spacing:1px;text-align:center;max-width:360px}
+</style></head><body>
+<div class="combo"><div class="num">12</div><div class="hits">HIT COMBO</div><div class="grade">RANK S · MAXED!</div></div>
+<div class="xp"><div class="pop">+240 HIT XP ×2.1</div><div class="pop gold">COMBO DMG ×1.58</div></div>
+<div class="note">Max combo length + damage scaling come from Combo Coach usage; Hit XP multiplier from Fight Focus (app sync).</div>
+</body></html>

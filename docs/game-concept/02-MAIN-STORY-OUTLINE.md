@@ -36,6 +36,13 @@ Mode).
   result every time they win).
 - **The Henchwoman** — the Rival's second. Sharp, suspicious of everyone,
   the one who digs up the intel that proves the protags were gaslit.
+- **Coach** — the protags' home-gym mentor (founder addition 2026-08-09).
+  Old-school, sees through the Promoter instantly, forbids the deal, and
+  is ignored. Never says "I told you so" — he's the one who takes them
+  back in Act 3/4 and corners them for the reunification fight.
+  ⚠ NAMING COLLISION: the mentor "Coach" vs the Promoter's AI "COACH" —
+  intentional irony candidate (the fake COACH replaces the real one) or
+  rename one; decide with final names.
 - **The Boss / The Promoter** — owner of MegaGym. Outgoing, charming,
   friendly *with a hint of fakeness*. Snaps to rage the instant he's
   questioned, then instantly calms: *"It's for the greater good of Fit and
@@ -52,20 +59,37 @@ Mode).
 
 ## Act structure
 
-### ACT 1 — The Loss and the Offer
+### ACT 1 — The Loss and the Offer (founder-refined 2026-08-09)
 
-1. **Opening fight:** the protags fight the Rival's gym in a sanctioned
-   bout — and **lose**. It's clean, no hard feelings, the Rival is
-   gracious. But it puts the protags in a funk. (Tutorial stage — the game
-   teaches you to fight with a fight you're scripted to lose.)
-2. **The offer:** the Promoter from MegaGym appears — warm, flattering,
-   a hint of fake. Offer: join MegaGym's "fast-track program" and earn a
-   rematch with the Rival. The path: literally **beat the competition** —
-   every rival gym and dojo in the city, one per stage. The Rival is the
-   sub-boss at the top; the Promoter's "graduation exhibition" is the final.
-3. Early missions feel legit: sanctioned challenge matches against gym
-   owners (the celebrity-caricature bosses). XP, hype, billboards with the
-   protags' faces. It feels *great*.
+1. **Opening fight (tutorial bout):** the protags fight the Rival's gym
+   in a sanctioned bout — and **lose**. It's clean, no hard feelings, the
+   Rival is gracious. But it puts the protags in a funk. (The game
+   teaches basic controls in a fight you're scripted to lose.)
+2. **STAGE 1 — THE CITY RUN = the FITNESS tutorial.** Their home-gym
+   **Coach** (new cast member — the mentor) sends them on a city
+   training run to shake off the loss. Teaches the fitness half of the
+   game: workout pop-ups, cardio flow, stamina. Boss: the friendly
+   fitness-bro FRIEND (all muscle, no fight game — the fighter-profile
+   rule made flesh).
+3. **STAGE 2 — THE CROSS-TRAIN DOJO = the FIGHTING tutorial.** Coach
+   walks them through the four disciplines room by room, debriefing
+   **the lost fight with the Rival** as he teaches (each room's lesson
+   references a mistake from the tutorial bout). Teaches styles,
+   counters, blitz/command moves.
+4. **The offer — end of Stage 2:** the Promoter appears at the dojo,
+   warm, flattering, a hint of fake: join MegaGym's "fast-track program"
+   and earn the rematch with the Rival. **Coach FORBIDS it** — he knows
+   the Promoter's type ("nothing that man fast-tracks arrives whole").
+   But talking it over after, the **female protag makes the case: why
+   not? It's a real opportunity** — fast-track, real fights, the
+   rematch. They sign against Coach's wishes. (Story engine: Coach is
+   RIGHT, and everyone knows it by Act 3 — his "I told you so" never
+   comes; instead he's the one who takes them back in. Sets up the
+   female protag's arc too: she argued for it, so the Act 2 guilt and
+   the Act 3 convincer line land hardest on her.)
+5. Early missions feel legit: sanctioned challenge matches against gym
+   owners (the celebrity-caricature bosses). XP, hype, billboards with
+   the protags' faces. It feels *great*. Coach stops calling.
 
 ### ACT 2 — The Lies (heel slide)
 
@@ -137,6 +161,38 @@ Mode).
     roll over pixel stills of former bosses training together in it.)
 
 ---
+
+## Between-stage storytelling (diegetic — founder brainstorm 2026-08-06)
+
+- **Phone calls as stage transitions:** between stages, the protagonists
+  get a call from the Promoter (COACH patching him through). These calls
+  ARE the story delivery: the next mission briefing (the next lie), his
+  mask slipping a little further each call, and the protags' growing
+  doubt. Presentation: split-screen call UI in the brand style — his
+  portrait warm and smiling early, degrading with the TRUST meter as acts
+  progress. (Cheap to produce, huge story value — portrait + text + VO
+  bark, no cutscene animation needed.)
+- **Gym commercials before each stage:** every gym in the city runs TV
+  ads, and each stage opens with the next gym's commercial — done in that
+  gym's authentic ad genre, not generic: a Pilates studio gets a serene
+  Pilates-style ad, the luxury gym gets an Equinox-style pretentious
+  art-film ad, the MMA gym gets a UFC-promo-style ad, etc. **The
+  escalation is the story:** early ads are passive-aggressive digs at
+  Training Mode ("Focus on your pilates — no TMs bothering YOUR workout"),
+  and as the propaganda war worsens the ads turn openly hostile ("Come to
+  Charge Gym — we'll get you in shape to beat the #$%@ out of TMs. And if
+  a TM walks in here... we'll destroy you."). By late game the whole ad
+  ecosystem is threatening the protagonists by name — the player watches
+  the city turn on them through commercials.
+  - Design notes: 10–20 seconds each, skippable after first view; parody
+    ad-genre visual grammar per gym (soft focus + whispery VO for
+    Pilates, bass drops + slow-mo for MMA); profanity bleeped with a
+    gold "T" censor tone for ratings safety and comedy; unlocked ads
+    collect in an in-game "AD ARCHIVE" gallery (replay value + shows the
+    escalation arc back-to-back).
+  - Story function: the commercials are COACH's propaganda made visible —
+    each ad doubles as evidence the player can later recognize in the
+    Act 3 reveal ("every gym got told something different about us").
 
 ## Secret / bonus content
 
