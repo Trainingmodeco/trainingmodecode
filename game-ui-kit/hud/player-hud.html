@@ -1,0 +1,36 @@
+<!-- @dsCard group="In-Game HUD" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
+*{margin:0;box-sizing:border-box}
+body{background:linear-gradient(180deg,#0d0420,#080012);font-family:'Rajdhani',sans-serif;padding:26px;color:#eee}
+.hud{display:flex;gap:14px;align-items:flex-start;max-width:820px}
+.portrait{width:84px;height:84px;border-radius:12px;border:2px solid #fde047;background:radial-gradient(circle at 50% 35%,#3b1d66,#12062a);display:flex;align-items:center;justify-content:center;font-family:'Orbitron';font-weight:900;font-size:34px;color:#fde047;text-shadow:0 0 14px rgba(253,224,71,.5);position:relative}
+.lv{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);background:#fde047;color:#080012;font-family:'Orbitron';font-weight:900;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.bars{flex:1}
+.name{font-family:'Orbitron';font-weight:700;font-size:13px;letter-spacing:2px;color:#fff;margin-bottom:6px}
+.name span{color:#c99cff;font-size:10px;letter-spacing:1.5px;margin-left:8px}
+.bar{height:16px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(168,85,247,.35);overflow:hidden;margin-bottom:7px;position:relative}
+.fill-hp{width:78%;height:100%;background:linear-gradient(90deg,#22c55e,#a3e635);box-shadow:0 0 12px rgba(34,197,94,.5)}
+.fill-st{width:34%;height:100%;background:linear-gradient(90deg,#ff8a4a,#fde047);box-shadow:0 0 12px rgba(255,138,74,.5)}
+.lbl{position:absolute;right:8px;top:1px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.75)}
+.meter{display:flex;gap:5px;margin-top:2px}
+.seg{flex:1;height:10px;border-radius:5px;border:1px solid rgba(168,85,247,.45);background:rgba(168,85,247,.12)}
+.seg.on{background:linear-gradient(90deg,#a855f7,#d8b4fe);box-shadow:0 0 10px rgba(168,85,247,.7)}
+.chips{display:flex;gap:6px;margin-top:10px}
+.chip{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:6px;border:1px solid}
+.perk{color:#fde047;border-color:rgba(253,224,71,.5);background:rgba(253,224,71,.08)}
+.weak{color:#ff8181;border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.08)}
+.note{margin-top:16px;font-size:11px;color:#6d5f8a;letter-spacing:1px}
+</style></head><body>
+<div class="hud">
+  <div class="portrait">T<div class="lv">LV3 VETERAN</div></div>
+  <div class="bars">
+    <div class="name">TRAINEE <span>BOXING</span></div>
+    <div class="bar"><div class="fill-hp"></div><div class="lbl">HEALTH</div></div>
+    <div class="bar" style="height:12px"><div class="fill-st"></div><div class="lbl" style="top:-1px">STAMINA</div></div>
+    <div class="meter"><div class="seg on"></div><div class="seg on"></div><div class="seg on"></div><div class="seg"></div><div class="seg"></div></div>
+    <div class="chips"><div class="chip perk">★ GLASS CANNON</div><div class="chip weak">⚠ GASSES OUT</div></div>
+  </div>
+</div>
+<div class="note">Stamina + perks/weaknesses come from the app sync (game-sync/fighterProfile.js). Low stamina bar = the cardio-decliner build.</div>
+</body></html>
