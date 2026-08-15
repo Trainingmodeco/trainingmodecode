@@ -231,7 +231,7 @@ Finisher: burpees — 3 × 30s.
 
 ---
 
-## S09 · The Dark Knight Rises — Integration — *integration · —* · T4
+## S09 · The Vigilante Rises — Integration — *integration · —* · T4
 
 > Every pillar in one session at peak: gymnastic strength, calisthenic power, safe movement, conditioning and the full striking rotation. Capped for safety.
 
@@ -260,11 +260,11 @@ Finisher: burpees + tuck jumps — 3 × 30s.
 
 ---
 
-## S10 · Become the Bat — *final_boss · —* · T4
+## S10 · Become the Shadow — *final_boss · —* · T4
 
 > The peak-human trial — twelve rounds cycling every pillar, gated on control and safety.
 
-**FIT — Become the Bat — Fit Final Test** · 30 min
+**FIT — Become the Shadow — Fit Final Test** · 30 min
 | Exercise | Sets × Reps | Category | Rest |
 |---|---|---|---|
 | Handstand or ring-support hold for time (wrist-safe) | 4 × 30s | hold | 60s |
@@ -274,7 +274,7 @@ Finisher: burpees + tuck jumps — 3 × 30s.
 | Core hold for time | 4 × 90s | hold | 45s |
 | Controlled full-body finisher | 1 × 120s | conditioning | — |
 
-**FIGHT — Become the Bat — The Peak Human Trial** · 32 min · 12 × 2min / 30s
+**FIGHT — Become the Shadow — The Peak Human Trial** · 32 min · 12 × 2min / 30s
 | R | Goal | Combo seed |
 |---|---|---|
 | 1 | center_breath_control | *cue-based* |

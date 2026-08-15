@@ -28,7 +28,7 @@
   "tagline": "Become more than a man.",
   "core_rule": "The body is a tool — sharpen it, don't shatter it.",
   "core_rule_enforcement": "Six pillars at high volume is the real overtraining risk. This campaign never stacks heavy strength + high-impact parkour + gymnastics in one session, prescribes deloads, gates advanced/high-risk skills behind progressions, and enforces parkour/gymnastics safety. Discipline means recovering as hard as you train — reckless volume is failure, not virtue.",
-  "sourcing_note": "Grounded in the deep-research report (protocol-src/research/darkknight-research-report.md). VERIFIED: fan calisthenics structure (SuperheroJacked 5-day A/B + core + cardio; Darebee bodyweight circuit), the parkour beginner progression (landing / roll-from-squat / precision jumps with 1-2 ft targets and cleared landing / safety vaults; flips deferred to advanced), and peer-reviewed gymnastics wrist-injury data (~53% adolescent prevalence, up to 75% chronic in male gymnasts) mandating wrist prehab + pinch-pain screening. IMPORTANT: research confirmed NO existing program fuses six pillars and NO source covers safe six-pillar periodization — that fusion is this campaign's design, built conservatively. One research sub-source (a karate blog) was flagged for suspicious activity and EXCLUDED; martial-arts content uses the app's existing disciplines instead. The '~127 martial arts' Batman claim was not substantiated and is treated as comic lore, not a training target.",
+  "sourcing_note": "Grounded in the deep-research report (protocol-src/research/darkknight-research-report.md). VERIFIED: fan calisthenics structure (SuperheroJacked 5-day A/B + core + cardio; Darebee bodyweight circuit), the parkour beginner progression (landing / roll-from-squat / precision jumps with 1-2 ft targets and cleared landing / safety vaults; flips deferred to advanced), and peer-reviewed gymnastics wrist-injury data (~53% adolescent prevalence, up to 75% chronic in male gymnasts) mandating wrist prehab + pinch-pain screening. IMPORTANT: research confirmed NO existing program fuses six pillars and NO source covers safe six-pillar periodization — that fusion is this campaign's design, built conservatively. One research sub-source (a karate blog) was flagged for suspicious activity and EXCLUDED; martial-arts content uses the app's existing disciplines instead. The '~127 martial arts' comic claim was not substantiated and is treated as comic lore, not a training target.",
   "fit_focus_by_pillar": {
     "gymnastics": [
       "Wrist/shoulder prep (daily lacrosse-ball prehab)",
@@ -210,7 +210,7 @@
         "SKILL GATES: levers, muscle-ups and advanced ring skills unlock only after their progression is cleared — never assigned cold."
       ]
     },
-    "fantasy_flags": "Batman's '127 martial arts' and peak-human comic feats are lore only, shown with a '⚠ comic fantasy — not a training goal' tag. The real lesson is disciplined, well-rounded, safe training."
+    "fantasy_flags": "The vigilante's '127 martial arts' and peak-human comic feats are lore only, shown with a '⚠ comic fantasy — not a training goal' tag. The real lesson is disciplined, well-rounded, safe training."
   },
   "equipment_profiles": {
     "A_NO_EQUIPMENT": [
@@ -311,7 +311,7 @@
     },
     {
       "id": "ACH_DK_BECOME_BAT",
-      "name": "Become the Bat",
+      "name": "Become the Shadow",
       "trigger": "Defeat Stage 10 without a control-breakdown fail"
     },
     {
@@ -369,7 +369,7 @@
   "final_boss": {
     "stage_id": "ARC_DARKKNIGHT_STG10",
     "no_hard_morning_workout": true,
-    "fight_trial_name": "Become the Bat — The Peak Human Trial",
+    "fight_trial_name": "Become the Shadow — The Peak Human Trial",
     "control_mechanic": "The all-pillar trial: twelve rounds cycling every pillar (gymnastic control, calisthenic power, strength, conditioning, each fight discipline, movement/parkour). Form and control are gated — sloppy or unsafe execution fails the round. Mastery = all six pillars, in control, composed.",
     "round_objectives": [
       "Center yourself — breath, posture, control",
@@ -383,7 +383,7 @@
       "Movement round — landing, roll, precision (safe, low)",
       "All-around combination — strike into movement",
       "Composure under fatigue — hold quality",
-      "Become the Bat — finish in complete control"
+      "Become the Shadow — finish in complete control"
     ],
     "timing": {
       "easy": {
@@ -419,7 +419,7 @@
     "full_arc_flow": [
       "Mobility + wrist prehab activation",
       "Transition period",
-      "Become the Bat — 12-round all-pillar trial",
+      "Become the Shadow — 12-round all-pillar trial",
       "Cooldown and readiness report"
     ]
   },

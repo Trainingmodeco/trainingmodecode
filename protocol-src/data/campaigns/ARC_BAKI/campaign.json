@@ -18,11 +18,11 @@
   "tagline": "Fight the phantom. Chase the ogre.",
   "core_rule": "Chase the monster, train like a human.",
   "core_rule_enforcement": "Every prescription is real, scaled, and safe. The anime feats (Demon Back, super-steroids, titanium teeth, 30-hour training, bare-handed bear kills) are lore and imagery ONLY — they appear as flavor with a fantasy tag, never as goals, and are never reproduced as training content.",
-  "sourcing_note": "Grounded in the deep-research report (saved at protocol-src/research/baki-research-report.md). Fan/creator structure from SuperheroJacked's Baki calisthenics program (Upper/Lower/Full-Body split + HIIT + dedicated core + shadow-boxing for the 'phantom' theme) and its per-character library (Katsumi karate, Retsu kung fu, Hanayama grip). Canon character facts from the Baki wiki. NO claims were refuted, but the research explicitly FLAGGED as non-trainable fantasy: Jack's PEDs/titanium teeth/30-hr training, Yujiro's genetic Demon Back, and all superhuman feats — these are handled as lore only. Makiwara/knuckle 'conditioning' safety was NOT well-sourced, so this campaign replaces bare-knuckle board conditioning with safe heavy-bag work + wrist/structure alignment and flags makiwara as traditional-but-injury-risky.",
-  "phantom_motif": "Baki's signature imaginary-opponent 'phantom' fighting maps to shadow-boxing/visualization. Fight rounds flagged with a 'phantom' goal are shadow-fights against an imagined opponent (react, counter, flow) and double as mental training. Completing every phantom round across the campaign earns THE PHANTOM achievement.",
+  "sourcing_note": "Grounded in the deep-research report (saved at protocol-src/research/baki-research-report.md). Fan/creator structure from a published fan calisthenics program (Upper/Lower/Full-Body split + HIIT + dedicated core + shadow-boxing for the 'phantom' theme) and its per-archetype library (karate, kung fu, grip). NO claims were refuted, but the research explicitly FLAGGED as non-trainable fantasy: the Juggernaut's PED lore and 30-hr training, the Ogre's genetic Demon Back, and all superhuman feats — these are handled as lore only. Makiwara/knuckle 'conditioning' safety was NOT well-sourced, so this campaign replaces bare-knuckle board conditioning with safe heavy-bag work + wrist/structure alignment and flags makiwara as traditional-but-injury-risky.",
+  "phantom_motif": "The signature imaginary-opponent 'phantom' fighting style maps to shadow-boxing/visualization. Fight rounds flagged with a 'phantom' goal are shadow-fights against an imagined opponent (react, counter, flow) and double as mental training. Completing every phantom round across the campaign earns THE PHANTOM achievement.",
   "persona_progression": [
     {
-      "persona": "Young Baki",
+      "persona": "The Young Challenger",
       "stages": [
         1,
         2
@@ -37,49 +37,49 @@
       "theme": "Striking base — boxing power and explosiveness"
     },
     {
-      "persona": "Katsumi Orochi (Karate)",
+      "persona": "The Karate Prodigy",
       "stages": [
         4
       ],
       "theme": "One-punch power — karate striking (SAFE bag conditioning, not bare knuckles)"
     },
     {
-      "persona": "Retsu Kaioh (Kung Fu)",
+      "persona": "The Kung Fu Master",
       "stages": [
         5
       ],
       "theme": "Chinese kenpo — stances, forms, speed"
     },
     {
-      "persona": "Kaoru Hanayama (Grip)",
+      "persona": "The Grip Monster",
       "stages": [
         6
       ],
       "theme": "Iron grip and clinch — grip strength, carries, grappling control"
     },
     {
-      "persona": "Izou Motobe (Jiu-Jitsu)",
+      "persona": "The Veteran Tactician (Jiu-Jitsu)",
       "stages": [
         7
       ],
       "theme": "Ground flow — solo grappling and submission drills"
     },
     {
-      "persona": "Jack Hanma / The Underground Peak",
+      "persona": "The Juggernaut / The Underground Peak",
       "stages": [
         8
       ],
       "theme": "Raw size and power — heavy compound strength, then the integrated toolbox. FANTASY-FLAGGED: no PEDs, no extreme bulk, no 30-hr training"
     },
     {
-      "persona": "Pickle / The Underground Peak",
+      "persona": "The Primal Man / The Underground Peak",
       "stages": [
         9
       ],
       "theme": "Primal functional strength at peak volume — the hardest stage before the boss"
     },
     {
-      "persona": "Yujiro Hanma — The Ogre",
+      "persona": "The Ogre",
       "stages": [
         10
       ],
@@ -223,7 +223,7 @@
   },
   "safety_notes": {
     "striking_conditioning": "Karate/kung-fu striking uses a HEAVY BAG with proper wrist/knuckle alignment and gradual volume — NOT bare-knuckle makiwara board striking. Makiwara knuckle 'conditioning' is traditional but carries real arthritis/joint-injury risk and is unnecessary for fitness; it is flagged and never prescribed.",
-    "ped_framing": "The Jack Hanma stage is a raw size/power THEME only. Its lore (super-steroids, titanium teeth, 30-hour training) is shown with a fantasy tag and explicitly NOT reproduced. The stage prescribes normal, safe heavy-compound strength work.",
+    "ped_framing": "The Juggernaut stage is a raw size/power THEME only. Its lore (super-steroids, 30-hour training) is shown with a fantasy tag and explicitly NOT reproduced. The stage prescribes normal, safe heavy-compound strength work.",
     "fantasy_flags": "Demon Back/Demon Face (genetic), titanium-teeth Biting Path, bare-handed bear kills, and all superhuman feats are lore/imagery with a '⚠ anime fantasy — not a training goal' tag.",
     "overtraining": "High-volume calisthenics and HIIT stages cap total volume, keep predetermined targets, and never prescribe max-until-collapse."
   },
@@ -297,7 +297,7 @@
     {
       "id": "ACH_BH_IRON_CORE",
       "name": "Iron Core",
-      "trigger": "Clear both Young Baki stages (1-2)"
+      "trigger": "Clear both Young Challenger stages (1-2)"
     },
     {
       "id": "ACH_BH_PHANTOM",
@@ -307,17 +307,17 @@
     {
       "id": "ACH_BH_ONE_PUNCH",
       "name": "One-Punch Power",
-      "trigger": "Clear the Katsumi karate stage (4) with form intact"
+      "trigger": "Clear the karate stage (4) with form intact"
     },
     {
       "id": "ACH_BH_KENPO",
       "name": "Sea King",
-      "trigger": "Clear the Retsu kung-fu stage (5) within target precision"
+      "trigger": "Clear the kung-fu stage (5) within target precision"
     },
     {
       "id": "ACH_BH_IRON_GRIP",
       "name": "Iron Grip",
-      "trigger": "Hit the Hanayama grip-hold target (6)"
+      "trigger": "Hit the grip-hold target (6)"
     },
     {
       "id": "ACH_BH_GROUND_FLOW",
@@ -327,7 +327,7 @@
     {
       "id": "ACH_BH_THE_OGRE",
       "name": "Beat the Ogre",
-      "trigger": "Defeat Stage 10 (Yujiro) without a control-breakdown fail"
+      "trigger": "Defeat Stage 10 (the Ogre) without a control-breakdown fail"
     },
     {
       "id": "ACH_BH_STRONGEST",
@@ -379,8 +379,8 @@
   "final_boss": {
     "stage_id": "ARC_BAKI_STG10",
     "no_hard_morning_workout": true,
-    "fight_trial_name": "The Ogre — Father-Son Trial",
-    "control_mechanic": "The all-around test: twelve rounds cycling every skill of the campaign (strike, grapple, grip, phantom, power). Form/control is gated — output scores only while technique holds. Yujiro's edge is mental as much as physical, so composure counts: rushing and flailing fails the round.",
+    "fight_trial_name": "The Ogre — The Final Trial",
+    "control_mechanic": "The all-around test: twelve rounds cycling every skill of the campaign (strike, grapple, grip, phantom, power). Form/control is gated — output scores only while technique holds. The Ogre's edge is mental as much as physical, so composure counts: rushing and flailing fails the round.",
     "round_objectives": [
       "Face the Ogre — stance, breath, composure",
       "The jab — boxing base",
@@ -429,13 +429,13 @@
     "full_arc_flow": [
       "Composure and breath activation",
       "Transition period",
-      "The Ogre — 12-round father-son trial",
+      "The Ogre — 12-round final trial",
       "Cooldown and readiness report"
     ]
   },
   "art": {
     "banner": "/assets/series/one-punch.png",
     "stage_badges": "reuse /assets/stages/s1-s9 + boss badge",
-    "art_note": "Placeholder banner reuse — swap for an original Baki-inspired asset before launch (IP)."
+    "art_note": "Placeholder banner reuse — swap for an original asset before launch (IP)."
   }
 }

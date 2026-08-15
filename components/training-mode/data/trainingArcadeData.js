@@ -906,7 +906,7 @@ export const TRAINING_ARCADE_SERIES = [
   },
   {
     id: 'ultra-instinct-protocol',
-    title: 'Ultra Instinct Protocol',
+    title: 'Flow State Protocol',
     subtitle: 'Speed + Flow',
     description: 'Speed, mobility, reaction, shadowboxing, footwork, and flow-based conditioning. Move before you think.',
     status: 'comingSoon',
@@ -922,12 +922,12 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { speed: 4, agility: 3, reflexes: 3 },
-    rewards: { badge: 'Ultra Instinct Badge', title: 'Untouchable', statBoost: 'Speed + Reflexes' },
+    rewards: { badge: 'Flow State Badge', title: 'Untouchable', statBoost: 'Speed + Reflexes' },
     stages: [],
   },
   {
     id: 'ultra-ego-style',
-    title: 'Ultra Ego Style',
+    title: 'The Destroyer',
     subtitle: 'Power Training',
     description: 'Strength-focused power training built around heavy lifts, durability, legs, shoulders, and intensity. Embrace the damage.',
     status: 'comingSoon',
@@ -943,7 +943,7 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { power: 4, durability: 3, strength: 3 },
-    rewards: { badge: 'Ultra Ego Badge', title: 'Destruction Incarnate', statBoost: 'Power + Durability' },
+    rewards: { badge: 'Destroyer Badge', title: 'Destruction Incarnate', statBoost: 'Power + Durability' },
     stages: [],
   },
   {
@@ -1011,7 +1011,7 @@ export const TRAINING_ARCADE_SERIES = [
   },
   {
     id: 'hyperbolic-time-chamber',
-    title: 'Hyperbolic Gravity Chamber',
+    title: 'The Gravity Chamber',
     subtitle: 'Tempo-based time-under-tension training',
     description: 'Slow eccentric and controlled concentric training designed to create fatigue through time under tension.',
     status: 'comingSoon',
@@ -1027,7 +1027,7 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { endurance: 3, strength: 2, discipline: 3 },
-    rewards: { badge: 'Time Chamber Badge', title: 'Tempo Master', statBoost: 'Endurance + Discipline' },
+    rewards: { badge: 'Gravity Chamber Badge', title: 'Tempo Master', statBoost: 'Endurance + Discipline' },
     stages: [],
   },
   {
@@ -1153,7 +1153,7 @@ const UNDER_CONSTRUCTION = new Set([
   'blue-blur-speed-protocol', 'ultra-instinct-protocol',
 ]);
 // Signed off and OPEN, in carousel order: ONE PUNCH · GRAVITY CHAMBER ·
-// HERO HUNTER (Garou) · ULTRA EGO · THE GRAPPLER (Baki). Each is 10 stages,
+// MARTIAL MONSTER · THE DESTROYER · THE GRAPPLER. Each is 10 stages,
 // fully prescribed, 0 review flags. Remove an id above as its stages are
 // reviewed; hidden/bonus levels can be added past 10 later.
 for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
@@ -1168,7 +1168,7 @@ const VISIBLE_SERIES_IDS = [
   // Active — the owner's order.
   'one-punch-protocol',
   'hyperbolic-time-chamber', // Gravity Chamber
-  'hero-hunter-protocol',    // Hero Hunter (Garou)
+  'hero-hunter-protocol',    // Martial Monster
   'ultra-ego-style',         // Destroyer
   'baki-grappler',           // The Grappler
   // Locked, pending playtest sign-off.

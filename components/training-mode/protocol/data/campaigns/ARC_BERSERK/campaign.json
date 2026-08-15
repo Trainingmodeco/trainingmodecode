@@ -1,6 +1,6 @@
 {
   "campaign_id": "ARC_BERSERK",
-  "name": "THE STRUGGLER — BLACK SWORDSMAN PROTOCOL",
+  "name": "THE MERCENARY — GREATSWORD PROTOCOL",
   "type": "fit_fight",
   "combat_style": "Two-handed power weapon-work + hybrid striking (greatsword-analog: sledgehammer, steel mace, heavy swings)",
   "stage_count": 10,
@@ -19,10 +19,10 @@
   "tagline": "The bigger the sword, the stronger you grow.",
   "core_rule": "Fury without control consumes you.",
   "core_rule_enforcement": "The armor rewards output only while form holds. When technique breaks down, the Beast takes over — the session fails. Reckless volume, ego-load, and grinding to collapse are never rewarded and never required.",
-  "sourcing_note": "Fit/fight content grounded in the deep-research report (The Bioneer + SuperheroJacked Guts programs, HEMA analysis for Casca/Griffith, sledgehammer/mace mechanics, and a 2024 systematic review on HIFT rhabdomyolysis for the Eclipse safety caps). Two attractive claims were REFUTED and are NOT presented as canon: the 400 lb 'Dragon Slayer' strength benchmark and Guts using the HEMA Ox guard. The Zodd 'strength benchmark' stage and the Beast of Darkness / Berserk Armor finale are the campaign's OWN thematic invention, not documented canon.",
+  "sourcing_note": "Fit/fight content grounded in the deep-research report (The Bioneer + SuperheroJacked source programs, HEMA analysis for the guard/fencing stages, sledgehammer/mace mechanics, and a 2024 systematic review on HIFT rhabdomyolysis for the Darkest Hour safety caps). Two attractive claims were REFUTED and are NOT presented as canon: a 400 lb greatsword strength benchmark and the hero using the HEMA Ox guard. The 'strength benchmark' stage and the Inner Beast / Fury Armor finale are the campaign's OWN thematic invention, not documented canon.",
   "persona_progression": [
     {
-      "persona": "Young Guts",
+      "persona": "The Young Mercenary",
       "stages": [
         1,
         2
@@ -30,36 +30,36 @@
       "theme": "The sword bigger than himself — fundamentals and survival base"
     },
     {
-      "persona": "Casca",
+      "persona": "The War Captain",
       "stages": [
         3
       ],
-      "theme": "The Falcon's blade — speed, precision, guard transitions, footwork"
+      "theme": "The Captain's blade — speed, precision, guard transitions, footwork"
     },
     {
-      "persona": "Pre-Eclipse Griffith",
+      "persona": "The Golden General",
       "stages": [
         4
       ],
-      "theme": "The White Hawk — elegant fencing precision, lunges, point control, calm"
+      "theme": "The Golden General — elegant fencing precision, lunges, point control, calm"
     },
     {
-      "persona": "Adult Guts",
+      "persona": "The Veteran Mercenary",
       "stages": [
         5,
         6
       ],
-      "theme": "The Black Swordsman — strongman power-endurance, club/mace swings, loaded carries"
+      "theme": "The Veteran Mercenary — strongman power-endurance, club/mace swings, loaded carries"
     },
     {
-      "persona": "Nosferatu Zodd",
+      "persona": "The Immortal Beast",
       "stages": [
         7
       ],
       "theme": "The strength benchmark (thematic invention) — controlled max-power test"
     },
     {
-      "persona": "The Eclipse",
+      "persona": "The Darkest Hour",
       "stages": [
         8,
         9
@@ -67,7 +67,7 @@
       "theme": "Survival under overwhelming odds — the hardest block, SAFETY-CAPPED"
     },
     {
-      "persona": "Beast of Darkness / Berserk Armor",
+      "persona": "The Inner Beast / The Fury Armor",
       "stages": [
         10
       ],
@@ -88,8 +88,8 @@
   "fight_focus": [
     "Oversized-weapon swing fundamentals (shadow greatsword)",
     "Overhead and diagonal power strikes",
-    "Guard transitions and footwork (Casca)",
-    "Thrust, lunge and point control (Griffith)",
+    "Guard transitions and footwork (the War Captain)",
+    "Thrust, lunge and point control (the Golden General)",
     "Two-handed combination swings",
     "Defensive brace and recovery",
     "High-output survival rounds",
@@ -106,7 +106,7 @@
   ],
   "peak_stage": 9,
   "no_taper": true,
-  "load_curve_note": "Unlike the periodized campaigns, Berserk does NOT taper — the Eclipse (9-11) escalates straight into the boss. Because there is no taper to protect the athlete, the Eclipse block is hard-capped for volume and gated by an enhanced readiness check instead.",
+  "load_curve_note": "Unlike the periodized campaigns, this arc does NOT taper — the Darkest Hour block (9-11) escalates straight into the boss. Because there is no taper to protect the athlete, the block is hard-capped for volume and gated by an enhanced readiness check instead.",
   "difficulty_scaling": {
     "easy": {
       "label": "BRANDED",
@@ -202,7 +202,7 @@
         9
       ]
     },
-    "rep_bands_source": "SuperheroJacked Guts program: Strength 5-8, Hypertrophy 10-12, Endurance 15-20.",
+    "rep_bands_source": "SuperheroJacked source program: Strength 5-8, Hypertrophy 10-12, Endurance 15-20.",
     "hard_never_requires": [
       "Deliberately taking hits",
       "Unsupervised hard sparring",
@@ -223,8 +223,8 @@
     "rules": [
       "Predetermined rep/round targets only — never 'max until collapse'.",
       "Hard cap on high-rep arm volume (push-ups/pull-ups): no unbounded AMRAP arm circuits.",
-      "Enhanced readiness gate before every Eclipse stage (adds heat, recent illness, hydration, and prior-session soreness questions).",
-      "Progression limit: an Eclipse stage cannot be attempted on Hard until the prior Eclipse stage was cleared without a safety flag.",
+      "Enhanced readiness gate before every Darkest Hour stage (adds heat, recent illness, hydration, and prior-session soreness questions).",
+      "Progression limit: a Darkest Hour stage cannot be attempted on Hard until the prior Darkest Hour stage was cleared without a safety flag.",
       "Extra rest floors enforced even on Hard for these stages."
     ],
     "user_facing_stop_criteria": [
@@ -305,21 +305,21 @@
     {
       "id": "ACH_BK_GROW_INTO_IT",
       "name": "Grow Into It",
-      "trigger": "Clear Stages 1-2 (Young Guts foundation)"
+      "trigger": "Clear Stages 1-2 (the foundation block)"
     },
     {
       "id": "ACH_BK_FALCONS_BLADE",
-      "name": "The Falcon's Blade",
+      "name": "The Captain's Blade",
       "trigger": "Clear Stage 3 guard-transition rounds cleanly"
     },
     {
       "id": "ACH_BK_WHITE_HAWK",
-      "name": "The White Hawk",
-      "trigger": "Clear both Griffith stages within target precision"
+      "name": "The Golden General",
+      "trigger": "Clear both fencing stages within target precision"
     },
     {
       "id": "ACH_BK_BLACK_SWORDSMAN",
-      "name": "Black Swordsman",
+      "name": "The Greatsword",
       "trigger": "Complete a full 1-mile-equivalent loaded carry (Stage 6)"
     },
     {
@@ -330,7 +330,7 @@
     {
       "id": "ACH_BK_SURVIVOR",
       "name": "Survivor",
-      "trigger": "Clear all three Eclipse stages with zero safety flags"
+      "trigger": "Clear all three Darkest Hour stages with zero safety flags"
     },
     {
       "id": "ACH_BK_CONTROLLED_FURY",
@@ -339,7 +339,7 @@
     },
     {
       "id": "ACH_BK_STRUGGLER",
-      "name": "The Struggler",
+      "name": "The Unbroken",
       "trigger": "Clear Fit and Fight for all 10 stages"
     }
   ],
@@ -350,7 +350,7 @@
         "Form or bracing breaks down",
         "Effort far above target",
         "Recovery inadequate",
-        "Any Eclipse safety stop criterion reported"
+        "Any Darkest Hour safety stop criterion reported"
       ],
       "response": [
         "Reduce load or reps",
@@ -391,7 +391,7 @@
   "final_boss": {
     "stage_id": "ARC_BERSERK_STG10",
     "no_hard_morning_workout": true,
-    "fight_trial_name": "Trial of the Berserk Armor",
+    "fight_trial_name": "Trial of the Fury Armor",
     "control_mechanic": "This is a controlled-fury test: output is rewarded ONLY while form holds. Each round tracks technique-breakdown flags; exceeding the breakdown limit = the Beast takes over = round fails. Winning means maximal output WITHOUT losing control.",
     "round_objectives": [
       "Don the armor — brace, breathe, controlled stance",
@@ -436,12 +436,12 @@
         "Capped high-rep endurance circuit",
         "Controlled full-body finisher"
       ],
-      "rule": "Predetermined targets only — never uncontrolled maximum-until-collapse work. Eclipse safety caps apply."
+      "rule": "Predetermined targets only — never uncontrolled maximum-until-collapse work. Darkest Hour safety caps apply."
     },
     "full_arc_flow": [
       "Brace and breathe activation",
       "Transition period",
-      "Trial of the Berserk Armor (12 controlled-fury rounds)",
+      "Trial of the Fury Armor (12 controlled-fury rounds)",
       "Cooldown and readiness report (includes rhabdo stop-criteria reminder)"
     ]
   },

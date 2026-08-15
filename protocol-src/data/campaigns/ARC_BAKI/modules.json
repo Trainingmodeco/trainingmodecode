@@ -1,12 +1,12 @@
 {
-  "notes": "20 modules: fit + fight per stage across 10 stages. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). Restructured from 12 stages to 10 so the campaign completes inside the Arcade 10-stage ladder: the old S10 \"Arena’s Strongest\" folded into S08 (Jack) and the old S11 \"Strongest Teen\" folded into S09 (Pickle); the Ogre moved from S12 to S10. Tier map: T1 stages 1-3, T2 4-5, T3 6-7, T4 8-10 — back-loaded so the peak stages carry the T4 volume. FIT modules carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry a `canonical_map` (thematic drill -> canonical discipline + move) and a `finishers` block (explosive bodyweight between/after rounds, capped, counting toward the plyo cap). SAFETY: karate/kung-fu striking uses a bag with proper alignment, never bare-knuckle makiwara boards; the Jack stage is normal heavy strength (no PEDs); fantasy feats are lore only. Split stages 4-9 are SKILL-FIRST.",
+  "notes": "20 modules: fit + fight per stage across 10 stages. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). Restructured from 12 stages to 10 so the campaign completes inside the Arcade 10-stage ladder: the old S10 \"Arena’s Strongest\" folded into S08 (the Juggernaut) and the old S11 \"Strongest Teen\" folded into S09 (the Primal Man); the Ogre moved from S12 to S10. Tier map: T1 stages 1-3, T2 4-5, T3 6-7, T4 8-10 — back-loaded so the peak stages carry the T4 volume. FIT modules carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry a `canonical_map` (thematic drill -> canonical discipline + move) and a `finishers` block (explosive bodyweight between/after rounds, capped, counting toward the plyo cap). SAFETY: karate/kung-fu striking uses a bag with proper alignment, never bare-knuckle makiwara boards; the Juggernaut stage is normal heavy strength (no PEDs); fantasy feats are lore only. Split stages 4-9 are SKILL-FIRST.",
   "both_rules": {
     "description": "When a stage is run as BOTH (fit + fight combined).",
     "sequencing": "Skill/fight first while fresh, then fit. Stages 4-9 are already skill-first split (fight = AM, fit = PM); stages 1-3 and 10 are single-session, so BOTH runs fight -> fit back-to-back.",
     "shared_plyo_cap": "The campaign plyo foot-contact cap is counted ACROSS the whole session — fight finishers + fit explosive share it; if combined would exceed it, the fit explosive block trims first.",
     "volume_sanity": "In a single-session BOTH (stages 1-3, 10), fit accessory volume may drop one notch so two full high-volume blocks aren’t stacked.",
     "readiness": "A BOTH day is a HARD day: readiness gate applies before starting, and it won't schedule back-to-back with another hard day.",
-    "announcer": "States the combined plan up front (e.g. 'Stage 4: Katsumi. Fight — 5 rounds. Then Fit — Power Base, 4 workouts.')."
+    "announcer": "States the combined plan up front (e.g. 'Stage 4: The Karate Prodigy. Fight — 5 rounds. Then Fit — Power Base, 4 workouts.')."
   },
   "modules": [
     {
@@ -2041,7 +2041,7 @@
       ],
       "rules": [
         "Predetermined targets — no ego-load, no grinding to collapse",
-        "No PEDs, no extreme-bulk protocol (Jack's size is fantasy)",
+        "No PEDs, no extreme-bulk protocol (the Juggernaut's size is fantasy)",
         "WEIGHTED FLOW: review/approve/swap -> Generate -> timed sets + adaptive rest (specs/27)"
       ],
       "warmup": [
@@ -2503,10 +2503,10 @@
       "format": "single",
       "duration_min": 32,
       "tier": "T4",
-      "title": "The Ogre — Father-Son Trial",
+      "title": "The Ogre — The Final Trial",
       "round_source": "fight_focus",
       "boss": true,
-      "control_mechanic": "Twelve rounds cycling every campaign skill. Output scores only while form and composure hold; exceeding the round's breakdown limit fails that round. Yujiro's edge is mental — rushing/flailing loses.",
+      "control_mechanic": "Twelve rounds cycling every campaign skill. Output scores only while form and composure hold; exceeding the round's breakdown limit fails that round. The Ogre's edge is mental — rushing/flailing loses.",
       "canonical_map": [
         {
           "round": 1,

@@ -187,7 +187,7 @@ export function generateSession(s: WeightedSetup): Prescription[] {
 
 /**
  * Build the countdown announcer line, e.g.
- * "3, 2, 1. Stage 5: Jack Hanma. 1 workout. Muscle-ups, 1 of 5 sets, 20 reps! Ready — go!"
+ * "3, 2, 1. Stage 5: The Juggernaut. 1 workout. Muscle-ups, 1 of 5 sets, 20 reps! Ready — go!"
  */
 export function announcerScript(args: {
   stageNumber: number;

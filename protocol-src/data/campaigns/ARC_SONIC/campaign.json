@@ -1,6 +1,6 @@
 {
   "campaign_id": "ARC_SONIC",
-  "name": "SONIC — SPEED PROTOCOL: THE BLUE BLUR",
+  "name": "THE BLUE BLUR — SPEED PROTOCOL",
   "type": "fit_only",
   "stage_count": 10,
   "paths_available": [
@@ -11,11 +11,11 @@
     "normal",
     "hard"
   ],
-  "fantasy": "Gotta go fast. Build real, usable speed the way athletes actually do it — quick feet, explosive hops, clean sprint form, and the sense to warm up and recover so you never break down. The zones get faster; you get faster with them.",
-  "tagline": "Gotta go fast — safely.",
+  "fantasy": "Speed is the goal. Build real, usable speed the way athletes actually do it — quick feet, explosive hops, clean sprint form, and the sense to warm up and recover so you never break down. The zones get faster; you get faster with them.",
+  "tagline": "Get fast — safely.",
   "core_rule": "Speed is a quality, not a grind — warm up first, go max, then fully recover.",
   "core_rule_enforcement": "Every stage starts with a MANDATORY ~15-min neuromuscular / dynamic warm-up — high-intensity speed work stays locked until it's done. Sprint and jump work is QUALITY-capped (foot-contact caps on plyometrics, low sprint volume with full recovery between reps) and never taken to exhaustion or through pain. You go fast when you're fresh; junk volume is not rewarded.",
-  "mechanic": "SPEED GATE + QUALITY-CAPPED EFFORT. Six speed pillars — running/endurance, sprint/acceleration, agility/footwork, plyometrics, parkour fundamentals, and speed-focused bodyweight. Each session is gated behind a mandatory dynamic warm-up (the research shows it BOTH cuts injury AND improves sprint/jump performance). Max-effort work is then capped for quality: plyometric foot-contacts per session, sprint reps/distance, and enforced full recovery between reps. Stages are themed as Sonic zones with a rising 'speed' — motivational packaging only (see sourcing_note); the training variable that actually rises is skill and controlled volume, never recklessness.",
+  "mechanic": "SPEED GATE + QUALITY-CAPPED EFFORT. Six speed pillars — running/endurance, sprint/acceleration, agility/footwork, plyometrics, parkour fundamentals, and speed-focused bodyweight. Each session is gated behind a mandatory dynamic warm-up (the research shows it BOTH cuts injury AND improves sprint/jump performance). Max-effort work is then capped for quality: plyometric foot-contacts per session, sprint reps/distance, and enforced full recovery between reps. Stages are themed as speed zones with a rising 'speed' — motivational packaging only (see sourcing_note); the training variable that actually rises is skill and controlled volume, never recklessness.",
   "sourcing_note": "Grounded in the deep-research report (protocol-src/research/sonic-research-report.md — 105-agent multi-source deep research, adversarially verified, 24 confirmed / 1 refuted). What is REAL and used: the mandatory neuromuscular warm-up (FIFA 11+ style, ~15 min) reduces lower-extremity injury AND improves sprint/jump/balance; plyometric foot-contact caps (beginner ~60-80/session, sets of 5-10 reps, >=1 min rest, 48h between plyo sessions, 24h ok for low-amplitude), intensity-based progression (skips/squat jumps -> lateral/tuck jumps -> box/depth jumps), bilateral before unilateral, cut foot-contacts 50% on pain, soft bent-knee landings; low-volume/high-quality max-velocity sprints (40-60m x 3-4 reps, ~120-240m, full recovery); eccentric hamstring work (Nordic curls) cuts hamstring injury; ankle is the highest-risk parkour joint so ankle stability + safe landing/rolling come FIRST, master before advanced jumps; recovery rests on sleep/nutrition/hydration, not gadgets. FANTASY (flavor only, never trainable content): superhuman top speed and flips/tricks. REFUTED (not used as literal content): the '~100 landings before each height increment' scheme — the principle 'master landings before adding height' is sound, the exact rep-count is not evidence-based, so copy says 'master before progressing,' never a hard number. CONSERVATIVE CONVENTION (flagged, not from a verified source): the exact per-stage rep/distance/rest numbers, the ~10%/week running-volume ramp, agility-drill parameters, and the deload cadence — built from standard programming practice, since the verified research did not prescribe them.",
   "fit_focus": [
     "Running form and aerobic base",
@@ -45,7 +45,7 @@
       "rest": "longest, full recovery between all hard efforts"
     },
     "normal": {
-      "label": "GOTTA GO FAST",
+      "label": "FULL SPEED",
       "plyo_foot_contact_cap": 60,
       "plyo_set_reps": [
         6,
@@ -221,7 +221,7 @@
     },
     {
       "id": "ACH_SN_MASTER",
-      "name": "Sonic Speed",
+      "name": "Supersonic",
       "trigger": "Clear all 10 stages"
     }
   ],
@@ -254,11 +254,11 @@
     "stage_id": "ARC_SONIC_STG12",
     "name": "Final Zone — The Blue Blur",
     "rule": "The finale — a quality speed gauntlet: full warm-up gate, then acceleration -> one capped max-velocity sprint set (full recovery) -> an agility circuit -> a small capped plyo finisher. Hit clean, fast reps and STOP at the cap. Never to exhaustion or failure. Enter rested (Stage 11 was the deload).",
-    "outcome": "FINAL CLEAR -> victory screen + The Blue Blur / Sonic Speed achievements."
+    "outcome": "FINAL CLEAR -> victory screen + The Blue Blur / Supersonic achievements."
   },
   "art": {
     "banner": "/assets/series/sonic.png",
     "stage_badges": "reuse /assets/stages/s1-s12",
-    "art_note": "Placeholder — a blue-blur / speed-lines / Green-Hill-inspired banner would suit; swap before launch. Keep original theming (avoid trademarked Sonic character art)."
+    "art_note": "Placeholder — a blue-blur / speed-lines banner would suit; swap before launch. Keep original theming (avoid trademarked character art)."
   }
 }

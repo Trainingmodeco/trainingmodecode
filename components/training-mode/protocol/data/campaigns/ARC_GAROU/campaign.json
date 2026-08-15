@@ -1,6 +1,6 @@
 {
   "campaign_id": "ARC_GAROU",
-  "name": "THE HERO HUNTER — MARTIAL EVOLUTION PROTOCOL",
+  "name": "THE MARTIAL MONSTER — EVOLUTION PROTOCOL",
   "type": "fit_fight",
   "stage_count": 10,
   "paths_available": ["fit", "fight", "full"],
@@ -35,7 +35,7 @@
       "rest": "longest, full recovery"
     },
     "normal": {
-      "label": "HERO HUNTER",
+      "label": "MARTIAL MONSTER",
       "plyo_foot_contact_cap": 80,
       "plyo_set_reps": [6, 10],
       "sprint_session": { "reps": 3, "distance_m": 50 },
@@ -71,7 +71,7 @@
     "wing_chun": "Stage 5 — centerline, chain punching, trapping (solo drills; conventional, not research-graded).",
     "power_and_conditioning": "Stages 6-7 — med-ball power, power-endurance rounds, sprint + shadowbox conditioning.",
     "advanced": "Stage 8 — contrast/complex striking (advanced only).",
-    "integration": "Stages 9-10 — deload, then the Hero Hunter finale tying every style together."
+    "integration": "Stages 9-10 — deload, then the Martial Monster finale tying every style together."
   },
   "safety_scaffolding": {
     "why": "The real risks here are overuse from explosive volume (plyo/sprint), and wrist/hand and shoulder injury from bag work. The research supports explosive training for speed but caps volume and recovery; the striking-safety specifics follow conventional coaching practice.",
@@ -133,7 +133,7 @@
     { "id": "ACH_GA_ENGINE",   "name": "The Hunter's Engine", "trigger": "Complete Stage 7 (conditioning)" },
     { "id": "ACH_GA_CONTRAST", "name": "Contrast",            "trigger": "Complete Stage 8 (advanced contrast training)" },
     { "id": "ACH_GA_ADAPT",    "name": "Real Evolution",      "trigger": "Complete the Stage 9 deload / recovery" },
-    { "id": "ACH_GA_HUNTER",   "name": "The Hero Hunter",     "trigger": "Complete Stage 10 (finale)" },
+    { "id": "ACH_GA_HUNTER",   "name": "The Martial Monster",     "trigger": "Complete Stage 10 (finale)" },
     { "id": "ACH_GA_MASTER",   "name": "Every Style",         "trigger": "Clear all 10 stages" },
     { "id": "ACH_GA_BOTH",     "name": "Fighter-Sprinter",    "trigger": "Clear a stage as BOTH (fit + fight combined)" }
   ],
@@ -150,9 +150,9 @@
   },
   "final_stage": {
     "stage_id": "ARC_GAROU_STG10",
-    "name": "The Hero Hunter",
+    "name": "The Martial Monster",
     "rule": "The finale ties every style together — warm-up, fast-hands boxing combinations, a Dutch combo into kicks, a Wing Chun chain-punch burst, explosive legs, a capped plyo/med-ball finisher, and conditioning rounds. Fast, clean, quality-capped — NEVER to exhaustion or max-force chasing. Enter rested (Stage 9 was the deload).",
-    "outcome": "FINAL CLEAR -> victory screen + The Hero Hunter / Every Style achievements (and Fighter-Sprinter if run as BOTH)."
+    "outcome": "FINAL CLEAR -> victory screen + The Martial Monster / Every Style achievements (and Fighter-Sprinter if run as BOTH)."
   },
-  "art": { "banner": "/assets/series/garou.png", "stage_badges": "reuse /assets/stages/s1-s10", "art_note": "Placeholder — an original hero-hunter / martial-evolution banner (silhouette, speed lines) would suit; avoid trademarked One Punch Man / Garou character art." }
+  "art": { "banner": "/assets/series/garou.png", "stage_badges": "reuse /assets/stages/s1-s10", "art_note": "Placeholder — an original martial-evolution banner (silhouette, speed lines) would suit; avoid trademarked character art." }
 }

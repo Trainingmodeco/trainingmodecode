@@ -83,7 +83,7 @@ const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
     fight: ['Control the tension — breathe through it.', 'Slow, steady, deliberate.', 'Breathe. Stay in control.'],
   },
   ARC_SONIC: {
-    fit: ['Gotta go fast — but keep your form.', 'Quick feet, light on the ground.', 'Explode, then recover. Repeat.', 'Speed is earned rep by rep.'],
+    fit: ['Go fast — but keep your form.', 'Quick feet, light on the ground.', 'Explode, then recover. Repeat.', 'Speed is earned rep by rep.'],
     fight: ['Fast hands, faster feet.', 'Blitz the round — then reset.', 'Explosive and precise.'],
   },
   ARC_GAROU: {
