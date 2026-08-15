@@ -1,6 +1,6 @@
 {
   "campaign_id": "ARC_DARKKNIGHT",
-  "name": "THE DARK KNIGHT — PEAK HUMAN PROTOCOL",
+  "name": "THE VIGILANTE — PEAK HUMAN PROTOCOL",
   "type": "fit_fight",
   "combat_style": "Multi-discipline: boxing + Muay Thai + clinch/grappling + defensive counter — the all-rounder",
   "stage_count": 10,
@@ -131,7 +131,7 @@
       ]
     },
     "hard": {
-      "label": "DARK KNIGHT",
+      "label": "THE VIGILANTE",
       "fit": {
         "working_sets": [
           4,

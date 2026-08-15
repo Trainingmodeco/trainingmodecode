@@ -8,11 +8,11 @@ import { getCampaign, campaignStages } from '../protocol/campaigns';
 // campaignId → { series id (reuses the existing placeholder id where one exists,
 // so posters + carousel slot carry over), subtitle, difficultyStars, type }.
 const MAP = {
-  ARC_DARKKNIGHT:    { id: 'dark-knight-protocol',    subtitle: 'Peak Human Protocol',  stars: 4, type: 'Hybrid' },
+  ARC_DARKKNIGHT:    { id: 'dark-knight-protocol',    subtitle: 'Peak Human Protocol',  stars: 4, type: 'Hybrid', title: 'The Vigilante' },
   ARC_ULTRAINSTINCT: { id: 'ultra-instinct-protocol', subtitle: 'Flow State Protocol',   stars: 4, type: 'Hybrid / Fight', title: 'Flow State' },
   ARC_ULTRAEGO:      { id: 'ultra-ego-style',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid', title: 'The Destroyer' },
-  ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid' },
-  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid' },
+  ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid', title: 'The Grappler' },
+  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid', title: 'The Mercenary' },
   ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit', title: 'The Gravity Chamber' },
   ARC_SONIC:         { id: 'blue-blur-speed-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
   // This campaign had no series entry at all, so a finished 10-stage campaign
@@ -73,10 +73,14 @@ function campaignToSeries(campaignId) {
     mission: s.mission_target || s.purpose || '',
     v2: true,
   }));
+  // AN-04 — the display title is the ONE name used everywhere (title, badge):
+  // deriving badges from the raw campaign `name` is how "SONIC Badge" could
+  // have shipped. Every MAP entry now carries an explicit archetype title.
+  const displayTitle = meta.title || shortName(c.name);
   return {
     id: meta.id,
     v2Campaign: campaignId,
-    title: meta.title || shortName(c.name),
+    title: displayTitle,
     subtitle: meta.subtitle,
     description: c.fantasy || c.tagline || '',
     status: 'active',
@@ -90,7 +94,7 @@ function campaignToSeries(campaignId) {
     modeOptions: modes,                        // drives the mode row in the selector
     difficultyOptions: ['easy', 'normal', 'hard'],
     bannerImage: `/banners/arcade/${meta.id}.webp`,
-    rewards: { badge: `${shortName(c.name)} Badge`, title: c.core_rule || 'Campaign Champion', xp: 500 },
+    rewards: { badge: `${displayTitle} Badge`, title: c.core_rule || 'Campaign Champion', xp: 500 },
     stages,
   };
 }

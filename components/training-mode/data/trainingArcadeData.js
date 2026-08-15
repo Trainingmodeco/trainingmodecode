@@ -864,7 +864,7 @@ export const TRAINING_ARCADE_SERIES = [
   },
   {
     id: 'dark-knight-protocol',
-    title: 'Dark Knight Protocol',
+    title: 'The Vigilante', // AN-04 gap fix — was "Dark Knight Protocol"
     subtitle: 'Tactical Conditioning',
     description: 'Hybrid tactical conditioning with strength, mobility, combat basics, and endurance. Train like an elite vigilante.',
     status: 'comingSoon',
@@ -880,7 +880,7 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { strength: 2, agility: 3, endurance: 2 },
-    rewards: { badge: 'Dark Knight Badge', title: 'Tactical Operator', statBoost: 'Agility + Strength' },
+    rewards: { badge: 'Vigilante Badge', title: 'Tactical Operator', statBoost: 'Agility + Strength' },
     stages: [],
   },
   {
