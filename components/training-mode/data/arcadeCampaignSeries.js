@@ -12,7 +12,7 @@ const MAP = {
   ARC_ULTRAINSTINCT: { id: 'ultra-instinct-protocol', subtitle: 'Flow State Protocol',   stars: 4, type: 'Hybrid / Fight', title: 'Flow State' },
   ARC_ULTRAEGO:      { id: 'ultra-ego-style',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid', title: 'The Destroyer' },
   ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid', title: 'The Grappler' },
-  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid', title: 'The Mercenary' },
+  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid', title: 'The Struggler' },
   ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit', title: 'The Gravity Chamber' },
   ARC_SONIC:         { id: 'blue-blur-speed-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
   // This campaign had no series entry at all, so a finished 10-stage campaign

@@ -1,6 +1,6 @@
 {
   "campaign_id": "ARC_BERSERK",
-  "name": "THE MERCENARY — GREATSWORD PROTOCOL",
+  "name": "THE STRUGGLER — GREATSWORD PROTOCOL",
   "type": "fit_fight",
   "combat_style": "Two-handed power weapon-work + hybrid striking (greatsword-analog: sledgehammer, steel mace, heavy swings)",
   "stage_count": 10,
@@ -140,7 +140,7 @@
       ]
     },
     "normal": {
-      "label": "THE MERCENARY",
+      "label": "THE STRUGGLER",
       "fit": {
         "working_sets": [
           3,
