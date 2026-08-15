@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { CC } from '../CodecStyles';
 
 export default function DecodeScreen({ rawText, onComplete, onBack }) {
@@ -133,7 +134,9 @@ export default function DecodeScreen({ rawText, onComplete, onBack }) {
       )}
 
       {/* Back Button */}
-      <button onClick={onBack} style={{
+      {/* Beta TM-16 — same back idiom as the rest of the app: chevron + label,
+          with an accessible name (this was a bare "CANCEL" text button). */}
+      <button onClick={onBack} aria-label="Back" style={{
         background: 'none',
         border: 'none',
         color: CC.muted,
@@ -141,8 +144,12 @@ export default function DecodeScreen({ rawText, onComplete, onBack }) {
         fontFamily: "'Orbitron', sans-serif",
         cursor: 'pointer',
         marginTop: 12,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: 8,
       }}>
-        CANCEL
+        <ChevronLeft size={16}/> BACK
       </button>
     </div>
   );

@@ -3,6 +3,7 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { getCurrentUser, onAuthChange, signInWithGoogle, signOut, userProfile } from './data/authClient';
 import { refreshEntitlement, clearEntitlementCache } from './data/entitlements';
+import { onSyncState, syncNow } from './data/cloudSync';
 
 // Account card for the Profile screen. Signed out → "Continue with Google";
 // signed in → the athlete's Google identity + sign out. Sign-in is optional —
@@ -22,10 +23,23 @@ function GoogleG({ size = 16 }) {
   );
 }
 
+// "Backed up 2m ago" — the athlete should be able to see their progress is safe
+// without having to trust us silently.
+function agoLabel(at) {
+  if (!at) return null;
+  const s = Math.max(0, Math.round((Date.now() - at) / 1000));
+  if (s < 60) return 'just now';
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+}
+
 export default function AccountCard() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sync, setSync] = useState({ status: 'idle', at: null });
 
   useEffect(() => {
     let alive = true;
@@ -40,7 +54,8 @@ export default function AccountCard() {
     // Fail open: never leave the card stuck on its placeholder if the auth
     // client is slow or unavailable — fall back to the signed-out state.
     const t = setTimeout(() => { if (alive) setReady(true); }, 1500);
-    return () => { alive = false; clearTimeout(t); unsub(); };
+    const unsubSync = onSyncState((s) => { if (alive) setSync(s); });
+    return () => { alive = false; clearTimeout(t); unsub(); unsubSync(); };
   }, []);
 
   const p = userProfile(user);
@@ -71,6 +86,24 @@ export default function AccountCard() {
         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <div style={{ font: "800 11px 'Orbitron',sans-serif", color: C.text, letterSpacing: '0.04em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
           <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: C.muted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email || 'Signed in with Google'}</div>
+          {/* Cloud backup state — tap to force a sync. */}
+          <button
+            onClick={() => syncNow({ reason: 'manual' })}
+            aria-label="Back up progress now"
+            style={{ background: 'none', border: 'none', padding: '3px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+          >
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+              background: sync.status === 'error' ? '#f87171' : sync.status === 'syncing' ? '#fde047' : '#22c55e',
+              boxShadow: sync.status === 'syncing' ? '0 0 6px rgba(253,224,71,0.8)' : 'none',
+            }}/>
+            <span style={{ font: "600 9px 'Rajdhani',sans-serif", color: sync.status === 'error' ? '#f87171' : '#9a90b8', letterSpacing: '0.02em' }}>
+              {sync.status === 'syncing' ? 'Backing up…'
+                : sync.status === 'error' ? 'Backup failed — tap to retry'
+                : sync.status === 'offline' ? 'Offline — will back up later'
+                : sync.at ? `Progress backed up ${agoLabel(sync.at)}` : 'Tap to back up progress'}
+            </span>
+          </button>
         </div>
         <button onClick={() => signOut()} style={{ flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '7px 11px', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", color: '#f87171', letterSpacing: '0.08em' }}>SIGN OUT</button>
       </div>

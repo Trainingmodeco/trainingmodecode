@@ -28,6 +28,7 @@ import { challengeFromLocation, resolveChallenge, clearChallengeFromURL } from '
 import ChallengeInboundModal from './shared/ChallengeInboundModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
+import { startCloudSync } from './data/cloudSync';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -250,6 +251,10 @@ export default function App() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
+
+  // Cloud progress sync. No-ops entirely while signed out; once an account
+  // exists it mirrors local progress up and restores it on a fresh device.
+  useEffect(() => startCloudSync(), []);
 
   // Reset scroll to the top on every screen change so a new page never opens
   // mid-scroll carried over from the previous one.

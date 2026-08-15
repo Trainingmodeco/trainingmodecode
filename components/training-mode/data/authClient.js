@@ -11,8 +11,9 @@ import { GoTrueClient } from '@supabase/auth-js';
 // The URL and publishable ("anon") key are PUBLIC by design — safe to ship in
 // the client bundle. Env vars override them for non-prod builds if ever needed.
 // The service_role key must NEVER appear here.
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://adtxjmqshckhmyziehpv.supabase.co';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_rEpQKuZqx9u5heapE8757Q_wy7_jKGi';
+// Exported so cloudSync can talk to PostgREST with the same public config.
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://adtxjmqshckhmyziehpv.supabase.co';
+export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_rEpQKuZqx9u5heapE8757Q_wy7_jKGi';
 
 const isBrowser = typeof window !== 'undefined';
 

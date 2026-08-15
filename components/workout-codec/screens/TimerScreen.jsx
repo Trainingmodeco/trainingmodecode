@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { CC } from '../CodecStyles';
 
 export default function TimerScreen({ blocks, onComplete, onBack }) {
@@ -233,11 +234,13 @@ export default function TimerScreen({ blocks, onComplete, onBack }) {
         <button className="codec-btn-gold anim-codec-glow" onClick={handleStart} style={{ padding: '18px 48px', fontSize: 14 }}>
           START
         </button>
-        <button onClick={onBack} style={{
+        {/* Beta TM-16 — chevron + label + accessible name, matching the app. */}
+        <button onClick={onBack} aria-label="Back to review" style={{
           background: 'none', border: 'none', color: CC.muted,
           fontSize: 12, fontFamily: "'Orbitron'", cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 4, padding: 8,
         }}>
-          BACK TO REVIEW
+          <ChevronLeft size={16}/> BACK TO REVIEW
         </button>
       </div>
     );
