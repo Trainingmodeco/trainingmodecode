@@ -2445,7 +2445,7 @@
       "format": "single",
       "duration_min": 30,
       "pillar": "all",
-      "title": "Become the Bat — Fit Final Test",
+      "title": "Become the Shadow — Fit Final Test",
       "tier": "T4",
       "prescription": [
         {
@@ -2521,7 +2521,7 @@
           "sec": 180
         },
         "category": "hold",
-        "note": "The peak-human finish — immovable control, the Dark Knight's discipline made physical. Difficulty-scaled, safe category."
+        "note": "The peak-human finish — immovable control, the vigilante's discipline made physical. Difficulty-scaled, safe category."
       },
       "rules": [
         "Predetermined targets only — never max-until-collapse",
@@ -2564,7 +2564,7 @@
       "duration_min": 32,
       "tier": "T4",
       "pillar": "all",
-      "title": "Become the Bat — The Peak Human Trial",
+      "title": "Become the Shadow — The Peak Human Trial",
       "boss": true,
       "round_source": "fight_focus",
       "control_mechanic": "Twelve rounds cycling every pillar. Output scores only while form, safety, and composure hold; exceeding the round's breakdown limit fails that round. Mastery = all six pillars, in control.",

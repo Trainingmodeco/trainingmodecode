@@ -9,15 +9,15 @@ import { getCampaign, campaignStages } from '../protocol/campaigns';
 // so posters + carousel slot carry over), subtitle, difficultyStars, type }.
 const MAP = {
   ARC_DARKKNIGHT:    { id: 'dark-knight-protocol',    subtitle: 'Peak Human Protocol',  stars: 4, type: 'Hybrid' },
-  ARC_ULTRAINSTINCT: { id: 'ultra-instinct-protocol', subtitle: 'Flow State Protocol',   stars: 4, type: 'Hybrid / Fight' },
-  ARC_ULTRAEGO:      { id: 'ultra-ego-style',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid' },
+  ARC_ULTRAINSTINCT: { id: 'ultra-instinct-protocol', subtitle: 'Flow State Protocol',   stars: 4, type: 'Hybrid / Fight', title: 'Flow State' },
+  ARC_ULTRAEGO:      { id: 'ultra-ego-style',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid', title: 'The Destroyer' },
   ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid' },
-  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Black Swordsman Protocol', stars: 5, type: 'Hybrid' },
-  ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit' },
+  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid' },
+  ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit', title: 'The Gravity Chamber' },
   ARC_SONIC:         { id: 'blue-blur-speed-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
-  // Garou had no series entry at all, so a finished 10-stage campaign was
-  // unreachable from the carousel. New id — no placeholder existed for it.
-  ARC_GAROU:         { id: 'hero-hunter-protocol',     subtitle: 'Hero Hunter Protocol',    stars: 4, type: 'Fit / Fight', title: 'Hero Hunter' },
+  // This campaign had no series entry at all, so a finished 10-stage campaign
+  // was unreachable from the carousel. New id — no placeholder existed for it.
+  ARC_GAROU:         { id: 'hero-hunter-protocol',     subtitle: 'Martial Monster Protocol', stars: 4, type: 'Fit / Fight', title: 'Martial Monster' },
 };
 // Display order in the carousel. Active sagas lead, in the owner's chosen
 // order; the still-locked ones follow.
@@ -34,7 +34,7 @@ const shortName = (name) => String(name || '').split('—')[0].trim();
 // Campaigns authored with 12 stages keep 1-9 as written and jump straight to
 // the final-boss stage (originally S12) at position 10; the old positions
 // 10-11 don't play in Arcade. Campaigns already authored at <=10 stages
-// (e.g. Garou) pass through unchanged.
+// (e.g. Martial Monster) pass through unchanged.
 const ARCADE_MAX_STAGES = 10;
 
 function capToArcadeLength(rawStages) {

@@ -2,7 +2,7 @@
   {
     "stage_id": "ARC_SONIC_STG01",
     "campaign_id": "ARC_SONIC",
-    "title": "Green Hill Zone — Warm-Up & Form",
+    "title": "Rolling Hills — Warm-Up & Form",
     "stage_number": 1,
     "speed": "Ready",
     "pillar": "warmup_running_form",
@@ -122,7 +122,7 @@
   {
     "stage_id": "ARC_SONIC_STG03",
     "campaign_id": "ARC_SONIC",
-    "title": "Chemical Plant — First Hops",
+    "title": "The Factory Line — First Hops",
     "stage_number": 3,
     "speed": "Bounce",
     "pillar": "plyometrics_intro",
@@ -184,7 +184,7 @@
   {
     "stage_id": "ARC_SONIC_STG04",
     "campaign_id": "ARC_SONIC",
-    "title": "Star Light — Off the Line",
+    "title": "Night Circuit — Off the Line",
     "stage_number": 4,
     "speed": "Accelerate",
     "pillar": "acceleration",
@@ -243,7 +243,7 @@
   {
     "stage_id": "ARC_SONIC_STG05",
     "campaign_id": "ARC_SONIC",
-    "title": "Sky Sanctuary — Quick Feet",
+    "title": "Skyline Heights — Quick Feet",
     "stage_number": 5,
     "speed": "Cut",
     "pillar": "agility",
@@ -305,7 +305,7 @@
   {
     "stage_id": "ARC_SONIC_STG06",
     "campaign_id": "ARC_SONIC",
-    "title": "Hydrocity — Spring Loaded",
+    "title": "The Waterway — Spring Loaded",
     "stage_number": 6,
     "speed": "Spring",
     "pillar": "plyometrics_progression",
@@ -364,7 +364,7 @@
   {
     "stage_id": "ARC_SONIC_STG07",
     "campaign_id": "ARC_SONIC",
-    "title": "Flying Battery — Top Speed",
+    "title": "The Airship — Top Speed",
     "stage_number": 7,
     "speed": "Max Velocity",
     "pillar": "max_velocity",
@@ -427,7 +427,7 @@
   {
     "stage_id": "ARC_SONIC_STG08",
     "campaign_id": "ARC_SONIC",
-    "title": "Mystic Cave — Free Runner & Speed Combine",
+    "title": "The Caverns — Free Runner & Speed Combine",
     "stage_number": 8,
     "speed": "Flow",
     "pillar": "parkour",
@@ -489,7 +489,7 @@
   {
     "stage_id": "ARC_SONIC_STG09",
     "campaign_id": "ARC_SONIC",
-    "title": "Angel Island — Recovery Zone",
+    "title": "The Shoreline — Recovery Zone",
     "stage_number": 9,
     "speed": "Recover",
     "pillar": "deload",

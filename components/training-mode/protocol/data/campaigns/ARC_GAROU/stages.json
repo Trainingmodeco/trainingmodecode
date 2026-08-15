@@ -256,10 +256,10 @@
   {
     "stage_id": "ARC_GAROU_STG10",
     "campaign_id": "ARC_GAROU",
-    "title": "The Hero Hunter",
+    "title": "The Martial Monster",
     "phase": "final_boss",
     "stage_number": 10,
-    "persona": "The Hero Hunter",
+    "persona": "The Martial Monster",
     "final": true,
     "purpose": "The finale — every style in one session. FIT: warm-up, explosive legs, a capped plyo/med-ball finisher, conditioning. FIGHT: boxing combos -> Dutch combo into kicks -> Wing Chun chain-punch burst -> power-endurance rounds. Fast, capped, controlled — never to exhaustion.",
     "fit_available": true,

@@ -470,7 +470,7 @@
         "weighted": "6-12 reps at a user-entered load"
       }
     },
-    "announcer_go_script": "On generate + countdown: '3, 2, 1. Stage {n}: {persona/title}. {exerciseCount} workout(s). {exerciseName}, {setIndex} of {setCount} sets, {reps} reps! Ready — go!'  (e.g. 'Stage 5: Jack Hanma. 1 workout, Muscle-ups, 1 of 5 sets, 20 reps! Ready go!')"
+    "announcer_go_script": "On generate + countdown: '3, 2, 1. Stage {n}: {persona/title}. {exerciseCount} workout(s). {exerciseName}, {setIndex} of {setCount} sets, {reps} reps! Ready — go!'  (e.g. 'Stage 5: The Juggernaut. 1 workout, Muscle-ups, 1 of 5 sets, 20 reps! Ready go!')"
   },
   "session_timing_behaviors": {
     "bodyweight_counted": {

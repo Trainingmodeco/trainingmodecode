@@ -57,8 +57,8 @@ export function onStageClear({ campaignId, stageNumber, path, outcome, tacticalC
   const isFinal = stages.length > 0 && stageNumber >= stages[stages.length - 1].stage_number;
 
   // Campaign achievements whose trigger text names this stage. The triggers are
-  // prose — "Clear the Katsumi karate stage (4) with form intact", "Clear both
-  // Young Baki stages (1-2)", "Defeat Stage 10 (Yujiro)" — so pull out every
+  // prose — "Clear the karate stage (4) with form intact", "Clear both
+  // Young Challenger stages (1-2)", "Defeat Stage 10 (the Ogre)" — so pull out every
   // stage number mentioned and require ALL of them to be cleared. That stops
   // "(1-2)" firing the moment stage 1 is done, and it fires on the clear that
   // actually completes the set.

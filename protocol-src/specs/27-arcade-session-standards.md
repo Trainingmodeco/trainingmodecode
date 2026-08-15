@@ -67,7 +67,7 @@ Builder + Quick Mission (`arcade-session-standards.json > weighted_flow`):
    then ACTIVATES and GLOWS. Tap → the session is generated.
 4. Countdown announcer: "3, 2, 1. Stage {n}: {persona}. {count} workout(s).
    {exercise}, {setIndex} of {sets} sets, {reps} reps! Ready — go!"
-   (e.g. "Stage 5: Jack Hanma. 1 workout, Muscle-ups, 1 of 5 sets, 20 reps! Ready
+   (e.g. "Stage 5: The Juggernaut. 1 workout, Muscle-ups, 1 of 5 sets, 20 reps! Ready
    go!")
 
 --- PROMPT A4: Session-timing behaviours (need to add + test) ---
@@ -158,7 +158,7 @@ The behaviours above are implemented as pure functions in
   `makeSlotBodyweight`, `makeSlotWeighted`, `canGenerate` (Generate glows only
   when every slot is resolved), `generateSession`.
 - `announcerScript({stageNumber, persona, exercises})` — the "3,2,1. Stage 5:
-  Jack Hanma. 1 workout. Muscle-ups, 1 of 5 sets, 20 reps! Ready — go!" line.
+  The Juggernaut. 1 workout. Muscle-ups, 1 of 5 sets, 20 reps! Ready — go!" line.
 - `countPolicy(ex, voiceEnabled)` — bodyweight = rep-counted (voice unless off,
   counter always); weighted = timed completion.
 - `adaptiveRest({timeToCompleteSec, loadKg, category})` — weighted rest calc.

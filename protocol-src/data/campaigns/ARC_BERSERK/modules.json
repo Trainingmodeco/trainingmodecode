@@ -1,12 +1,12 @@
 {
-  "notes": "24 modules: fit + fight per stage. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). FIT modules now carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry `round_source`, a `canonical_map` (thematic sword/implement drill -> canonical discipline or conditioning equivalent), per-round `combo_spec` (implement-swing rounds are cue-based; fencing thrust rounds generate numbered straights), and a `finishers` block (explosive bodyweight, capped, counting toward the plyo cap). Tier map: T1 stages 1-3, T2 4-6, T3 7-9, T4 10-12. Exercise/drill vocabulary grounded in the deep-research report (The Bioneer strongman club/mace/carry work, SuperheroJacked rep bands, HEMA guard/footwork for Casca/Griffith, sledgehammer vs steel-mace mechanics). SAFETY: Eclipse stages 9-11 + boss 12 carry 'eclipse_safety': true — targets are PREDETERMINED and volume-capped; never 'max until collapse'. Split stages 4-11 are SKILL-FIRST (fight = morning, fit = evening). Fight round counts/lengths resolve from campaign.difficulty_scaling.fight unless a module overrides (boss does).",
+  "notes": "24 modules: fit + fight per stage. APPLIES THE ARCADE SESSION STANDARD (specs/27, data/arcade-session-standards.json). FIT modules now carry a counted `prescription` (sets x reps/sec + category + tier); stored numbers are the NORMAL baseline, the app re-resolves easy/hard from the volume ladder by tier+category. FIGHT modules carry `round_source`, a `canonical_map` (thematic sword/implement drill -> canonical discipline or conditioning equivalent), per-round `combo_spec` (implement-swing rounds are cue-based; fencing thrust rounds generate numbered straights), and a `finishers` block (explosive bodyweight, capped, counting toward the plyo cap). Tier map: T1 stages 1-3, T2 4-6, T3 7-9, T4 10-12. Exercise/drill vocabulary grounded in the deep-research report (The Bioneer strongman club/mace/carry work, SuperheroJacked rep bands, HEMA guard/footwork for the guard/fencing stages, sledgehammer vs steel-mace mechanics). SAFETY: Darkest Hour stages 9-11 + boss 12 carry 'eclipse_safety': true — targets are PREDETERMINED and volume-capped; never 'max until collapse'. Split stages 4-11 are SKILL-FIRST (fight = morning, fit = evening). Fight round counts/lengths resolve from campaign.difficulty_scaling.fight unless a module overrides (boss does).",
   "both_rules": {
     "description": "When a stage is run as BOTH (fit + fight combined).",
     "sequencing": "Skill/fight first while fresh, then fit. Stages 4-11 are already skill-first split (fight = AM, fit = PM); stages 1-3 and 12 are single-session, so BOTH runs fight -> fit back-to-back.",
     "shared_plyo_cap": "The campaign plyo foot-contact cap is counted ACROSS the whole session — fight finishers + fit explosive share it; if combined would exceed it, the fit explosive block trims first.",
-    "volume_sanity": "In a single-session BOTH (stages 1-3, 12), fit accessory volume may drop one notch so two full high-volume blocks aren't stacked. On eclipse stages (9-11) the eclipse volume caps already bound the combined session.",
-    "readiness": "A BOTH day is a HARD day: readiness gate applies before starting, and it won't schedule back-to-back with another hard day. Eclipse stages (9-11) and the boss additionally run the enhanced readiness checks (heat, recent illness, hydration).",
-    "announcer": "States the combined plan up front (e.g. 'Stage 7: Dragonslayer. Fight — 5 rounds. Then Fit — Carry the Great Sword, 5 workouts.')."
+    "volume_sanity": "In a single-session BOTH (stages 1-3, 12), fit accessory volume may drop one notch so two full high-volume blocks aren't stacked. On Darkest Hour stages (9-11) the volume caps already bound the combined session.",
+    "readiness": "A BOTH day is a HARD day: readiness gate applies before starting, and it won't schedule back-to-back with another hard day. Darkest Hour stages (9-11) and the boss additionally run the enhanced readiness checks (heat, recent illness, hydration).",
+    "announcer": "States the combined plan up front (e.g. 'Stage 7: The Colossal Blade. Fight — 5 rounds. Then Fit — Carry the Great Sword, 5 workouts.')."
   },
   "modules": [
     {
@@ -629,7 +629,7 @@
       "format": "single",
       "duration_min": 24,
       "tier": "T1",
-      "title": "The Falcon's Guards",
+      "title": "The Captain's Guards",
       "round_source": "fight_focus",
       "drills": [
         "High guard to low guard transitions (Fool's / Ox / Plow style positions)",
@@ -916,7 +916,7 @@
       "format": "morning",
       "duration_min": 28,
       "tier": "T2",
-      "title": "The Hawk's Blade — Thrust and Tempo",
+      "title": "The General's Blade — Thrust and Tempo",
       "round_source": "fight_focus",
       "drills": [
         "Fencing stance and en-garde",
@@ -1445,7 +1445,7 @@
       "format": "morning",
       "duration_min": 28,
       "tier": "T3",
-      "title": "Dragonslayer Swings",
+      "title": "Colossal Blade Swings",
       "round_source": "fight_focus",
       "drills": [
         "Sledgehammer tire strikes (overhead power, chopping-wood pattern)",
@@ -1904,7 +1904,7 @@
       "format": "evening",
       "duration_min": 32,
       "eclipse_safety": true,
-      "title": "The Brand — Endurance Waves (Capped)",
+      "title": "The Longest Night — Endurance Waves (Capped)",
       "tier": "T4",
       "prescription": [
         {
@@ -2453,7 +2453,7 @@
       "format": "single",
       "duration_min": 28,
       "eclipse_safety": true,
-      "title": "Berserk Armor — Fit Final Test",
+      "title": "Fury Armor — Fit Final Test",
       "tier": "T4",
       "prescription": [
         {
@@ -2530,7 +2530,7 @@
         "note": "The finale feat — hold the brace like the armor holds you: up to a 3-minute hold, difficulty-scaled, safe category, form-gated."
       },
       "rules": [
-        "Predetermined targets only — Eclipse safety caps apply",
+        "Predetermined targets only — Darkest Hour safety caps apply",
         "Stop at any warning sign"
       ],
       "warmup": [
@@ -2569,7 +2569,7 @@
       "duration_min": 32,
       "tier": "T4",
       "eclipse_safety": true,
-      "title": "Trial of the Berserk Armor",
+      "title": "Trial of the Fury Armor",
       "round_source": "fight_focus",
       "boss": true,
       "control_mechanic": "Output is rewarded only while form holds. Each round tracks technique-breakdown flags; exceeding the limit = the Beast takes over = round fails. Win by staying in control.",

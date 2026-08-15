@@ -566,7 +566,7 @@
   {
     "stage_id": "ARC_DARKKNIGHT_STG09",
     "campaign_id": "ARC_DARKKNIGHT",
-    "title": "The Dark Knight Rises — Integration",
+    "title": "The Vigilante Rises — Integration",
     "phase": "integration",
     "stage_number": 9,
     "pillar": "integration",
@@ -647,7 +647,7 @@
   {
     "stage_id": "ARC_DARKKNIGHT_STG10",
     "campaign_id": "ARC_DARKKNIGHT",
-    "title": "Become the Bat",
+    "title": "Become the Shadow",
     "phase": "final_boss",
     "stage_number": 10,
     "pillar": "all",
@@ -661,7 +661,7 @@
     "boss": true,
     "gymnastics_safety": true,
     "parkour_safety": true,
-    "fantasy_lore": "⚠ Batman's '127 martial arts' and comic feats are lore, not a training goal. The real trial is mastering six pillars safely and in control.",
+    "fantasy_lore": "⚠ The '127 martial arts' claim and comic feats are lore, not a training goal. The real trial is mastering six pillars safely and in control.",
     "paths": {
       "fit": {
         "module_ids": [
