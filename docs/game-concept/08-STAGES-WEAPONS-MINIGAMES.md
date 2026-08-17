@@ -225,6 +225,68 @@ tutorial + Coach debrief + the Promoter's offer — see 02 Act 1)
 
 ---
 
+## 5. Progression Systems (founder concepts 2026-08-10)
+
+### 5a. TECHNIQUE STEAL — beat a boss, learn their move (Mega Man)
+
+- Defeating a boss grants **that boss's signature technique**, added to
+  the player's special-move list (usable by both protagonists).
+- **The get-move animation is a full-screen Mega Man-style moment:**
+  hard cut to a black/violet void, the protagonist plants and raises a
+  fist, gold energy floods the sprite (palette flash), the technique
+  name slams on screen in Orbitron 900, VO barks the name. 3–4 seconds,
+  skippable after first view, always the same beat — it becomes the
+  game's reward ritual.
+- **STORY FUSION (the important part):** in Act 2 the protagonists are
+  the villains, so the animation reads as a **smash-and-grab** — the
+  beaten master's technique is *taken*, they're on the ground, the
+  violet flash is harsh, and the move enters your list flagged STOLEN.
+  In Act 4, reunifying the city, the same masters **hand the technique
+  over** — the animation re-skins warm/gold, master and protagonist
+  clasp hands, flag changes to EARNED. Same system, inverted meaning:
+  the heel-turn told through a UI animation.
+- **Track separation (non-negotiable):** boss techniques are a SEPARATE
+  progression lane from app-sync moves. App training (Practice Mode,
+  Combo Coach) earns your *discipline moveset*; bosses earn *showpiece
+  specials*. If playing the game could replace training in the app, the
+  product promise inverts — so the two lanes never overlap.
+- Loadout cap (e.g. 4 equipped specials) forces choices and gives
+  replay value; the "SPECIALS" slots already specced in the fighter
+  profile (arcade-unlocked) are the slots these fill.
+
+### 5b. GROWING MAX HEALTH — start fragile, harden per boss
+
+- The protagonists **start with a deliberately low health pool** (story
+  logic: they just lost the tutorial bout) and gain a permanent max-HP
+  increase for **every boss defeated**.
+- Design value beyond flavor: app-synced fighters vary wildly between
+  players, so a fixed, designer-controlled health curve is the lever
+  that keeps difficulty tuned regardless of a player's app data.
+- Presentation: the health bar visibly EXTENDS during the post-boss
+  screen (segment slides in, gold shimmer) — progress the player sees
+  rather than reads.
+- Interacts with the profile, doesn't replace it: app stats scale
+  damage/stamina/regen; boss clears scale the raw pool.
+
+### 5c. CODEC CALLS — the new-age comms system (Metal Gear Solid)
+
+- Upgrades the between-stage phone calls (02) into a full **codec
+  system**: dual portrait boxes, a frequency/handle readout, typed text
+  crawl with the signature beep, portraits animating on their lines.
+  "New age" skin: it's a smart-earbud video call — MegaGym-issued
+  hardware, which is exactly why COACH can listen to everything.
+- **Mandatory calls** carry the story: the Promoter's mission briefings
+  (his portrait degrading with the TRUST meter), COACH's interjections.
+- **OPTIONAL CALLS (the MGS trick worth stealing):** the player can dial
+  contacts mid-stage for chatter that is mostly useless and very funny —
+  Coach (real advice, disappointed tone), Flex (tries to sell a protein
+  shake mid-fight), the Henchwoman (post-Act-3, dry intel), the taco
+  chef (unlocked after the meat locker; only discusses tacos). Contacts
+  unlock across the game; some calls contain genuine boss hints, which
+  rewards curiosity.
+- Comedy engine + cheap production: portraits + text + short VO barks,
+  no animation budget.
+
 ## Design rules extracted (apply to all future stages)
 
 1. One signature gimmick per stage; the gimmick is mechanical, not just

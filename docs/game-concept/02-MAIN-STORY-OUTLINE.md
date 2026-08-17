@@ -164,14 +164,18 @@ Mode).
 
 ## Between-stage storytelling (diegetic — founder brainstorm 2026-08-06)
 
-- **Phone calls as stage transitions:** between stages, the protagonists
-  get a call from the Promoter (COACH patching him through). These calls
-  ARE the story delivery: the next mission briefing (the next lie), his
-  mask slipping a little further each call, and the protags' growing
-  doubt. Presentation: split-screen call UI in the brand style — his
-  portrait warm and smiling early, degrading with the TRUST meter as acts
-  progress. (Cheap to produce, huge story value — portrait + text + VO
-  bark, no cutscene animation needed.)
+- **Codec calls as stage transitions** (upgraded from plain phone calls,
+  founder 2026-08-10 — MGS-style; full spec in 08 §5c): between stages
+  the protagonists get a call from the Promoter (COACH patching him
+  through). These calls ARE the story delivery: the next mission
+  briefing (the next lie), his mask slipping a little further each call,
+  and the protags' growing doubt. Presentation: dual-portrait codec UI
+  in the brand style with frequency readout and typed text crawl — his
+  portrait warm and smiling early, degrading with the TRUST meter as
+  acts progress. Optional in-stage calls to Coach/Flex/Henchwoman add
+  comedy and hints. (Cheap to produce, huge story value — portraits +
+  text + VO barks, no cutscene animation needed.) The comms hardware is
+  MegaGym-issued, which is exactly how COACH hears everything.
 - **Gym commercials before each stage:** every gym in the city runs TV
   ads, and each stage opens with the next gym's commercial — done in that
   gym's authentic ad genre, not generic: a Pilates studio gets a serene
