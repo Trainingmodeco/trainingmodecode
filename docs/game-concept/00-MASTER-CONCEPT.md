@@ -191,6 +191,52 @@
   (see §9): e.g. the algorithm/AI coach gone rogue, or a mega-caricature
   fusing every fitness fad at once.
 
+### THE KNOCKOFF GAG — the roster's running joke (founder-locked 2026-08-11)
+
+**The core joke:** every boss is a knockoff parody of a famous fitness or
+combat-sports celebrity — and every one of them is *furious* about being
+told so. They don't deny the resemblance so much as deny being the
+*copy*, and they all reach for the same defense ("every game has one of
+me"), which the protagonists slowly notice.
+
+**Escalation arc across the campaign — the gag has four stages:**
+
+1. **Innocent observation (early bosses).** The protagonist genuinely
+   notices; the boss detonates.
+   > PROTAG: "Wait, are you supposed to be—"
+   > MASTER LI: "Do NOT finish that sentence. Everyone says that. Every
+   > game has a me. I am not a *version* of anyone."
+2. **The pattern emerges (mid game).**
+   > THE AUSTRIAN YOLK: "Oh, come ON. Everyone thinks there is a
+   > knockoff Arnold in every game—"
+   > PROTAG: "...that's what the other guy said."
+   > THE AUSTRIAN YOLK (genuinely wounded): "What other guy."
+3. **Unprompted denial (late game).** The protagonist says nothing; the
+   boss cracks first, defensive, mid-fight: "And before you say
+   ANYTHING — no."
+4. **The reversal payoff.** A late boss is offended that you DIDN'T
+   compare them to anyone: "...What? Nothing? I'm not even worth
+   knocking off?" — the punchline the chain has been building to.
+
+**Supporting rules:**
+- **Bosses reference each other:** "Did the boxer tell you he came
+  first? He tells everyone he came first." Makes the city feel like one
+  ecosystem of insecure celebrities.
+- **The gag is mechanical, not just dialogue:** calling a boss a
+  knockoff IS the taunt input — it triggers RAGE MODE (more damage
+  dealt to you, more openings for you). Risk/reward comedy.
+- **Established variants:** Mike Bison insists he came first and that
+  Iron Mike "stole his thunder"; D. Wayne Rockson denies it while his
+  film crew records the denial; Sgt. Stay Hard doesn't deny it at all —
+  he just screams that he's harder than the original.
+- **Candidate final-boss twist:** the Promoter is the only character in
+  the game who ISN'T a knockoff of anyone — genuinely original, and
+  quietly insecure about it. (Optional; pairs with him being the only
+  character who never goes chibi.)
+- ⚠️ Legal note: the meta-joke — the game openly commenting on the
+  *trope* of knockoff characters — strengthens the parody/commentary
+  posture, but does not replace counsel review (see rules below).
+
 ### Boss design rules
 
 - Every boss = **stage theme + signature gimmick + humor beat + a "call-out"
