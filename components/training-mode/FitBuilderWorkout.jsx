@@ -16,6 +16,7 @@ import { loadProfile } from './data/userProfile';
 import { classifyType, exerciseWeight, unitLabel, normUnit, stepFor, convertWeight, defaultWeight } from './data/weightLog';
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
 import BuilderWarmup from './shared/BuilderWarmup';
+import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
 
 const GOLD = C.gold;
 
@@ -280,6 +281,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // half-done workout skips it (you already warmed up).
   const [warmupOpen, setWarmupOpen] = useState(false);
   const warmupTargetRef = useRef(0);
+  // Spec 12 — tapping a row's LAST line opens that exercise's history sheet.
+  const [historyIdx, setHistoryIdx] = useState(null);
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -552,7 +555,12 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                   {!done && prog && prog.state !== 'new' && (prog.line || prog.state === 'nudge' || prog.state === 'hold') && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2, minWidth: 0 }}>
                       {prog.line && (
-                        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 8.5, fontWeight: 600, color: '#c4a4d8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prog.line}</span>
+                        /* Spec 12 — the LAST line is the door to this
+                           exercise's history sheet (dotted underline + ⟩). */
+                        <span
+                          onClick={(e) => { e.stopPropagation(); setHistoryIdx(i); }}
+                          style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 8.5, fontWeight: 600, color: '#c4a4d8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.5)', textUnderlineOffset: 2 }}
+                        >{prog.line} ⟩</span>
                       )}
                       {prog.state === 'nudge' ? (
                         <span style={{
@@ -648,6 +656,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           {allDone ? 'COMPLETE WORKOUT' : 'START'}
         </button>
       </div>
+
+      {/* Spec 12 — exercise history sheet (display-only) */}
+      {historyIdx !== null && exercises[historyIdx] && (
+        <ExerciseHistorySheet exercise={exercises[historyIdx]} onClose={() => setHistoryIdx(null)}/>
+      )}
 
       {/* 90s warm-up gate (spec: follow-along counted moves or freestyle) */}
       {warmupOpen && (

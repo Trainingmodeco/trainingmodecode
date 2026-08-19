@@ -7,8 +7,9 @@ import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, X } 
 import { C, fixedColumnBar } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
-import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
+import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor, logBodyweightSets } from './data/weightLog';
 import { rowProgression } from './data/builderProgression';
+import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
@@ -101,6 +102,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const [glowIdx, setGlowIdx] = useState(null);
   const [justDoneIdx, setJustDoneIdx] = useState(null);
   const [toast, setToast] = useState(null);           // { name, xp }
+  const [historyOpen, setHistoryOpen] = useState(false); // spec 12 — history sheet
   const wasRunningRef = useRef(false);                // resume after map close?
   const flowTimers = useRef([]);
 
@@ -200,6 +202,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     versionRef.current += 1;      // stop the runner cleanly
     setPhase('done');
     setDisplay(0);
+    // Spec 12 — bodyweight completions log too (weight 0), so the history
+    // sheet can chart a reps trend. Weighted sets already log via the rest
+    // logger; timed holds have no rep story to tell.
+    if (plan.kind === 'reps') logBodyweightSets({ exerciseId: exId, sets: totalSets, reps: plan.reps });
     onCompleteExercise?.();
     setJustDoneIdx(exerciseIdx);
     setToast({ name: ex.name, xp: XP_PER_FIT_EXERCISE });
@@ -219,7 +225,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       setTimeout(() => { setGlowIdx(target); setMapMode('complete'); setMapOpen(true); }, 1200),
       setTimeout(() => setToast(null), 2600),
     ];
-  }, [exerciseIdx, ex, exercises.length, completed, skipped, onCompleteExercise, onFinishWorkout]);
+  }, [exerciseIdx, ex, exercises.length, completed, skipped, onCompleteExercise, onFinishWorkout, plan, exId, totalSets]);
 
   const finishSet = useCallback(async (version) => {
     if (versionRef.current !== version) return;
@@ -899,14 +905,16 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                 </div>
                 {/* Spec 11 — the progression story under the number. */}
                 {prevWeight && progRef.current?.state === 'nudge' && progRef.current.suggested > prevWeight.weight ? (
-                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, marginTop: 8 }}>
+                  /* Spec 12 — the story line doubles as the door to this
+                     lift's history sheet (dotted underline + ⟩). */
+                  <div onClick={() => setHistoryOpen(true)} style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, marginTop: 8, cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.5)', textUnderlineOffset: 3 }}>
                     <span style={{ color: '#c4a4d8' }}>LAST TIME </span>
                     <span style={{ color: '#fff', fontWeight: 700 }}>{prevWeight.weight} {weightUnit}</span>
                     <span style={{ color: GOLD, fontWeight: 800 }}> → SUGGESTED {progRef.current.suggested}</span>
-                    <span style={{ color: '#9a90b8' }}> · pre-loaded above</span>
+                    <span style={{ color: '#9a90b8' }}> · pre-loaded above ⟩</span>
                   </div>
                 ) : prevWeight ? (
-                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#9a90b8', marginTop: 8 }}>last time: {prevWeight.weight} {weightUnit}</div>
+                  <div onClick={() => setHistoryOpen(true)} style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#9a90b8', marginTop: 8, cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.5)', textUnderlineOffset: 3 }}>last time: {prevWeight.weight} {weightUnit} ⟩</div>
                 ) : null}
                 {progRef.current?.isPR && (
                   <div style={{
@@ -1101,6 +1109,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Spec 12 — exercise history sheet, entered from the get-ready lines */}
+      {historyOpen && (
+        <ExerciseHistorySheet exercise={ex} onClose={() => setHistoryOpen(false)}/>
       )}
 
       {/* Item 2 — shared END-session confirm (matches FightFocusTimer / CampFitSetRunner) */}

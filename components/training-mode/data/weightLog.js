@@ -36,6 +36,23 @@ export function getWeightHistory(exerciseId) {
   return Array.isArray(list) ? list : [];
 }
 
+// Spec 12 — bodyweight exercises log too (weight 0 marks a bodyweight
+// entry), so the Exercise History sheet can chart a reps trend. Called once
+// per COMPLETED bodyweight exercise; the guided player counts every rep of a
+// completed set, so the prescription honestly is what was performed.
+export function logBodyweightSets({ exerciseId, sets, reps }) {
+  if (!exerciseId || !Number.isFinite(sets) || sets <= 0 || !Number.isFinite(reps) || reps <= 0) return;
+  const all = loadAll();
+  const list = all[exerciseId] || [];
+  const ts = Date.now();
+  for (let i = 1; i <= sets; i++) {
+    list.push({ exerciseId, setIndex: i, weight: 0, unit: 'bw', reps, timestamp: ts + i });
+  }
+  if (list.length > MAX_PER_EXERCISE) list.splice(0, list.length - MAX_PER_EXERCISE);
+  all[exerciseId] = list;
+  saveAll(all);
+}
+
 // Placeholder when an exercise has never been logged: an empty bar (LB)
 // or a starter pair of dumbbells (KG).
 export function defaultWeight(unit) {
