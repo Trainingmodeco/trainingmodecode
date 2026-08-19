@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
@@ -63,16 +63,34 @@ function buildTitle(cfg) {
   return `${focus} ${cfg.equipment.toUpperCase()}`;
 }
 
-function getAlternates(exercise, cfg) {
+// Seeded shuffle so every session deals a fresh hand of alternates. The
+// exercise DB is in a fixed order, so slicing it unshuffled surfaced the same
+// few names (Alligator Push-Ups first among them) in every single swap sheet.
+function seededShuffle(list, seed) {
+  let s = 0;
+  const str = String(seed);
+  for (let i = 0; i < str.length; i++) s = (s * 31 + str.charCodeAt(i)) >>> 0;
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function getAlternates(exercise, cfg, takenNames, seed) {
   // Generated items carry `muscle` in UPPERCASE while the exercise DB uses
   // title case in `primaryMuscle` — compare case-insensitively or the list
   // always comes back empty.
   const muscle = String(exercise.primaryMuscle || exercise.muscle || '').toLowerCase();
-  const pool = FIT_MODE_EXERCISES.filter(ex =>
+  const pool = seededShuffle(FIT_MODE_EXERCISES.filter(ex =>
     ex.active &&
     String(ex.primaryMuscle || '').toLowerCase() === muscle &&
-    ex.name !== exercise.name
-  );
+    // Never offer a movement the workout already contains (in ANY slot) —
+    // swapping to it would put the same exercise in twice.
+    !takenNames.has(String(ex.name).toLowerCase())
+  ), seed);
   const isBw = (ex) => ex.equipment === 'Bodyweight';
 
   // Weighted workouts swap to weighted work: ~80% loaded alternatives —
@@ -234,8 +252,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // A saved routine loads its exact (possibly hand-tuned) exercise list.
   const [exercises, setExercises] = useState(() => cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
   const [completed, setCompleted] = useState(initialResumeData?.completed ?? {});
+  // Exercises passed over with SKIP EXERCISE — shown as skipped (not done) in
+  // the player's workout map, cleared if the exercise is later completed.
+  const [skipped, setSkipped] = useState(initialResumeData?.skipped ?? {});
   const [activeIdx, setActiveIdx] = useState(null);
   const [swapIdx, setSwapIdx] = useState(null);
+  // One deal of swap alternates per session — reopening a sheet keeps its
+  // order, a fresh workout reshuffles (see seededShuffle above).
+  const swapSeed = useRef(Math.random().toString(36).slice(2)).current;
   const [editIdx, setEditIdx] = useState(null);
   const [saveOpen, setSaveOpen] = useState(false);
   const [routineName, setRoutineName] = useState('');
@@ -249,6 +273,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const regenerate = () => {
     setExercises(applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
     setCompleted({});
+    setSkipped({});
     setActiveIdx(null);
     setSwapIdx(null);
   };
@@ -296,9 +321,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ completed });
+      onStateChange({ completed, skipped });
     }
-  }, [completed, onStateChange]);
+  }, [completed, skipped, onStateChange]);
 
   // Voice-guided player (design 34) — cycles sets/exercises like Quick
   // Mission; BACK returns to the list mid-workout for review + swaps.
@@ -308,11 +333,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         key={`guided-${activeIdx}`}
         exercises={exercises}
         exerciseIdx={activeIdx}
+        completed={completed}
+        skipped={skipped}
         voiceOn
         onBack={() => setActiveIdx(null)}
         onStop={() => onDone(doneCount, exercises.length)}
         onSkipExercise={() => {
-          // Advance to the next exercise WITHOUT marking this one complete.
+          // Advance to the next exercise WITHOUT marking this one complete —
+          // it shows as SKIPPED in the map until it's redone.
+          setSkipped(s => ({ ...s, [activeIdx]: true }));
           if (activeIdx < exercises.length - 1) setActiveIdx(activeIdx + 1);
           else setActiveIdx(null);
         }}
@@ -322,11 +351,13 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           if (activeIdx > 0) {
             const prev = activeIdx - 1;
             setCompleted(c => { const next = { ...c }; delete next[prev]; return next; });
+            setSkipped(s => { const next = { ...s }; delete next[prev]; return next; });
             setActiveIdx(prev);
           }
         }}
         onComplete={() => {
           setCompleted(prev => ({ ...prev, [activeIdx]: true }));
+          setSkipped(s => { if (!s[activeIdx]) return s; const next = { ...s }; delete next[activeIdx]; return next; });
           if (activeIdx < exercises.length - 1) {
             setActiveIdx(activeIdx + 1);
           } else {
@@ -530,7 +561,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       {swapIdx !== null && (
         <SwapSheet
           exercise={exercises[swapIdx]}
-          alternates={getAlternates(exercises[swapIdx], cfg)}
+          alternates={getAlternates(
+            exercises[swapIdx], cfg,
+            new Set(exercises.map(e => String(e.name).toLowerCase())),
+            `${swapSeed}:${swapIdx}`
+          )}
           onSelect={handleSwapSelect}
           onClose={() => setSwapIdx(null)}
         />

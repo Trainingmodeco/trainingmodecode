@@ -45,8 +45,12 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
 
   // Inline placement lives on the outcome screen, which has to fit in one
   // viewport (LT-5) — so it runs tighter than the floating prompt.
+  // No maxWidth inline: the outcome screens' other cards (YOUR PROGRESS, the
+  // CTA stack) run the column's full width, and capping this one at 360 left
+  // it visibly short of the right edge on wider phones on EVERY summary
+  // screen. The parent column is the width authority.
   const containerStyle = isInline ? {
-    width: '100%', maxWidth: 360,
+    width: '100%', boxSizing: 'border-box',
     borderRadius: 11, padding: '9px 12px',
     background: 'rgba(12,2,24,0.97)',
     border: '1.5px solid rgba(253,224,71,0.3)',
