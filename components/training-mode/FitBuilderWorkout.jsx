@@ -8,7 +8,7 @@ import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitBuilderGuidedPlayer from './FitBuilderGuidedPlayer';
-import { saveRoutine, loadRoutines } from './data/savedRoutines';
+import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
 import { routineSlotLimit } from './data/entitlements';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
@@ -273,6 +273,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const [saveOpen, setSaveOpen] = useState(false);
   const [routineName, setRoutineName] = useState('');
   const [savedFlash, setSavedFlash] = useState(false);
+  const [saveErr, setSaveErr] = useState('');
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -304,9 +305,16 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       onPaywall?.();
       return;
     }
+    // Hard shelf cap (Pro included): 10 named routines. A full shelf keeps
+    // the sheet open with a message instead of silently dropping anything.
+    if (!isReplace && list.length >= MAX_ROUTINES) {
+      setSaveErr(`Shelf full — ${MAX_ROUTINES}/${MAX_ROUTINES} routines saved. Delete one in WORKOUT PROGRAMS to make room.`);
+      return;
+    }
     saveRoutine(name, cfg, exercises);
     setSaveOpen(false);
     setRoutineName('');
+    setSaveErr('');
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1800);
   };
@@ -620,7 +628,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         <BottomSheet
           title="SAVE ROUTINE"
           accent={GOLD}
-          onClose={() => setSaveOpen(false)}
+          onClose={() => { setSaveOpen(false); setSaveErr(''); }}
           footer={(
             <button className="wo-cta" onClick={handleSaveRoutine} style={{
               width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -644,6 +652,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
               outline: 'none',
             }}
           />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 7 }}>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: saveErr ? '#f87171' : 'transparent' }}>
+              {saveErr || '.'}
+            </span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, letterSpacing: '0.1em', color: loadRoutines().length >= MAX_ROUTINES ? '#f87171' : C.faint }}>
+              {loadRoutines().length}/{MAX_ROUTINES} SLOTS
+            </span>
+          </div>
         </BottomSheet>
       )}
     </PhoneFrame>

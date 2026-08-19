@@ -12,7 +12,6 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
-import { loadRoutines, deleteRoutine } from './data/savedRoutines';
 import { resolveScheme, programmingSummary } from './data/workoutPrograms';
 
 // Workout Builder — streamlined setup (design 11a follow-up): TARGET MUSCLES
@@ -122,7 +121,6 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
   const [difficulty, setDifficulty] = useState('NORMAL');
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
-  const [routines, setRoutines] = useState(() => loadRoutines());
   // Programming state — edited in the PROGRAMMING sub-page, summarised on the row.
   const [programmingOpen, setProgrammingOpen] = useState(false);
   const [focus, setFocus] = useState('Strength');
@@ -226,7 +224,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
             <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SlidersHorizontal size={17} color="#c9a6ff"/></div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#c9a6ff' }}>WORKOUT PROGRAMS</div>
-              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>Set scheme · programs · duration</div>
+              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>Set scheme · programs · duration · saved routines</div>
             </div>
             <span style={{ font: "800 10px 'Orbitron',sans-serif", color: progSummary === 'AUTO' ? '#9a90b8' : GOLD, flexShrink: 0, maxWidth: 118, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{progSummary}</span>
             <span style={{ font: "900 15px 'Orbitron',sans-serif", color: '#b06aff', flexShrink: 0 }}>›</span>
@@ -245,26 +243,9 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
           </button>
           </div>
 
-          {/* Saved routines — load a named workout exactly as it was saved */}
-          {routines.length > 0 && (
-            <div style={{ marginTop: 14 }}>
-              <Label>SAVED ROUTINES</Label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {routines.map(r => (
-                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(253,224,71,0.3)', background: 'rgba(16,4,30,0.8)', padding: '9px 11px' }}>
-                    <button onClick={() => onGenerate?.({ ...r.cfg, savedExercises: r.exercises })} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
-                      <div style={{ font: "800 10px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🔖 {r.name.toUpperCase()}</div>
-                      <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{r.exercises?.length || 0} exercises · {r.cfg?.equipment || ''} · {r.cfg?.difficulty || ''}</div>
-                    </button>
-                    <button onClick={() => setRoutines(list => { deleteRoutine(r.id); return list.filter(x => x.id !== r.id); })} aria-label={`Delete ${r.name}`}
-                      style={{ width: 26, height: 26, borderRadius: 6, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', font: "700 11px 'Rajdhani',sans-serif", flexShrink: 0 }}>✕</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Generate — inline, right under Add Cardio so it's never hidden */}
+          {/* Generate — inline, right under Add Cardio so it's never hidden.
+              (Saved routines moved into the WORKOUT PROGRAMS page, under
+              Duration — one door for everything pre-built.) */}
           <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{summary()}</div>
           <div data-guide="wb-generate">
           <TrainingCTA variant="gold" label="GENERATE WORKOUT" icon="⚙" height={48} onClick={generate} style={{ fontSize: 13.5, letterSpacing: '0.06em' }}/>
@@ -277,6 +258,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
           initial={{ focus, schemeId, customScheme, programId, duration }}
           onApply={applyProgramming}
           onClose={() => setProgrammingOpen(false)}
+          onLoadRoutine={(r) => onGenerate?.({ ...r.cfg, savedExercises: r.exercises })}
         />
       )}
       {cardioSheetOpen && (

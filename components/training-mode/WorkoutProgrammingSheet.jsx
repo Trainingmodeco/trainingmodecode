@@ -6,6 +6,16 @@ import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import {
   SET_SCHEMES, PROGRAMS, DURATIONS, programDayIndex, advanceProgramDay, resolveScheme,
 } from './data/workoutPrograms';
+import { loadRoutines, deleteRoutine, MAX_ROUTINES } from './data/savedRoutines';
+
+// The routines shelf shows two rows, then scrolls — with a VISIBLE thin
+// scrollbar (unlike the app's hidden ones) so a longer shelf reads as
+// scrollable instead of flooding the page.
+const routinesScrollCSS = `
+.wp-routines::-webkit-scrollbar { width: 4px; }
+.wp-routines::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
+.wp-routines::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.55); border-radius: 4px; }
+`;
 
 const GOLD = C.gold;
 const NEON = C.neon;
@@ -19,12 +29,13 @@ const STYLES = [
 // controls (design 11a follow-up). Presented as an overlay sheet like Add
 // Cardio: edit workout style, set scheme, a popular program, and duration,
 // then APPLY & BACK writes it all to the builder config.
-export default function WorkoutProgrammingSheet({ initial, onApply, onClose }) {
+export default function WorkoutProgrammingSheet({ initial, onApply, onClose, onLoadRoutine }) {
   const [focus, setFocus] = useState(initial?.focus || 'Strength');
   const [schemeId, setSchemeId] = useState(initial?.schemeId || 'auto');
   const [customScheme, setCustomScheme] = useState(initial?.customScheme || { sets: 4, reps: 10, restSeconds: 60 });
   const [programId, setProgramId] = useState(initial?.programId || null);
   const [duration, setDuration] = useState(initial?.duration || 40);
+  const [routines, setRoutines] = useState(() => loadRoutines());
   // Only re-resolve muscle targets + rotate the split if the athlete actually
   // taps a program row this time (not merely because one was picked before).
   const [pickedProgram, setPickedProgram] = useState(false);
@@ -173,7 +184,7 @@ export default function WorkoutProgrammingSheet({ initial, onApply, onClose }) {
 
           {/* DURATION */}
           <Label>DURATION</Label>
-          <div style={{ display: 'flex', gap: 7, marginBottom: 6 }}>
+          <div style={{ display: 'flex', gap: 7, marginBottom: 14 }}>
             {DURATIONS.map(d => {
               const active = d === duration;
               return (
@@ -184,6 +195,37 @@ export default function WorkoutProgrammingSheet({ initial, onApply, onClose }) {
               );
             })}
           </div>
+
+          {/* SAVED ROUTINES — the shelf lives here now (moved off the builder
+              setup screen). Two rows show, then the list scrolls behind a
+              visible thin scrollbar. Max 10 saves. */}
+          <style dangerouslySetInnerHTML={{ __html: routinesScrollCSS }}/>
+          <Label right={<span style={{ font: "800 8px 'Orbitron',sans-serif", color: routines.length >= MAX_ROUTINES ? '#f87171' : GOLD }}>{routines.length}/{MAX_ROUTINES}</span>}>SAVED ROUTINES</Label>
+          {routines.length === 0 ? (
+            <div style={{ borderRadius: 10, border: '1px dashed rgba(168,85,247,0.3)', background: 'rgba(16,4,30,0.5)', padding: '12px 11px', marginBottom: 6, font: "600 9.5px 'Rajdhani',sans-serif", color: '#9a90b8' }}>
+              No saved routines yet — generate a workout and tap SAVE ROUTINE to shelf it here.
+            </div>
+          ) : (
+            <div className="wp-routines" style={{
+              display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 6,
+              // Two full rows + a peek of the third as the scroll affordance.
+              maxHeight: routines.length > 2 ? 118 : undefined,
+              overflowY: routines.length > 2 ? 'auto' : 'visible',
+              paddingRight: routines.length > 2 ? 6 : 0,
+              scrollbarWidth: 'thin', scrollbarColor: 'rgba(168,85,247,0.55) rgba(255,255,255,0.05)',
+            }}>
+              {routines.map(r => (
+                <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(253,224,71,0.3)', background: 'rgba(16,4,30,0.8)', padding: '9px 11px', flexShrink: 0 }}>
+                  <button onClick={() => onLoadRoutine?.(r)} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                    <div style={{ font: "800 10px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🔖 {r.name.toUpperCase()}</div>
+                    <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{r.exercises?.length || 0} exercises · {r.cfg?.equipment || ''} · {r.cfg?.difficulty || ''}</div>
+                  </button>
+                  <button onClick={() => setRoutines(list => { deleteRoutine(r.id); return list.filter(x => x.id !== r.id); })} aria-label={`Delete ${r.name}`}
+                    style={{ width: 26, height: 26, borderRadius: 6, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', font: "700 11px 'Rajdhani',sans-serif", flexShrink: 0 }}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Sticky footer */}
