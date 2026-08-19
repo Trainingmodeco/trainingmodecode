@@ -3,6 +3,17 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-08-19 · 12-exercise-history-sheet.md (WB-F)** — tap an exercise's
+  last-time line (list rows + weighted get-ready) to open the EXERCISE
+  HISTORY bottom sheet: gold BEST pill, SVG trend of the last 8 sessions
+  (gold dots on a violet dot-grid, glowing PR dots, dashed BEST line,
+  first/last date labels only) and a newest-first session list with PR
+  tags. First session is always a PR; ties are neutral. Bodyweight
+  completions now log too (weight-0 entries) so the reps trend builds
+  going forward. Same day: 90s builder warm-up gate (follow-along counted
+  moves / freestyle, 5s auto-start, pixel-clock face), shake + message on
+  zero-muscle GENERATE, and the two beta-pass guards (final-set SET DONE
+  re-taps, capped LAST lines).
 - **2026-08-19 · 11-train-again-progression.md (WB-E)** — day 2 is one tap:
   TRAIN AGAIN card on the builder setup screen repeats the last workout with
   progression baked in (+1 rep bodyweight / +2.5 lb weighted when every set
