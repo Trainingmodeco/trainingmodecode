@@ -8,6 +8,7 @@ import { C, fixedColumnBar } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
+import { rowProgression } from './data/builderProgression';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
@@ -130,7 +131,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   // Design 39 — "get ready" load callout before a weighted exercise's first set.
   const prevWeight = getLastWeight(exId);   // last logged session (the "last time")
-  const [readyWeight, setReadyWeight] = useState(() => exerciseWeight(ex)?.weight || defaultWeight(weightUnit));
+  // Spec 11 — the progression suggestion PRE-LOADS the big number (acceptance:
+  // "the get-ready number equals the suggested load").
+  const progRef = useRef(plan.kind === 'weighted' ? rowProgression(ex) : null);
+  const [readyWeight, setReadyWeight] = useState(() => progRef.current?.suggested || exerciseWeight(ex)?.weight || defaultWeight(weightUnit));
   const [changeWtOpen, setChangeWtOpen] = useState(false);
   const readyWeightRef = useRef(readyWeight);
   const startLiftRef = useRef(null);
@@ -867,18 +871,36 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               </div>
             ) : phase === 'getready' ? (
               <div>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#f97316', letterSpacing: '0.22em', marginBottom: 8 }}>NEXT UP</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#c9a6ff', letterSpacing: '0.22em', marginBottom: 8 }}>NEXT UP · SET 1 OF {totalSets}</div>
                 <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 13, color: '#c4a4d8', marginBottom: 14 }}>{totalSets} sets · {plan.reps} reps</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: GOLD, letterSpacing: '0.2em', marginBottom: 2 }}>LOAD</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: changeWtOpen ? 14 : 0 }}>
-                  {changeWtOpen && <button onClick={() => bumpReady(-wStep)} aria-label="Less weight" style={{ width: 40, height: 40, borderRadius: 10, cursor: 'pointer', background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.4)', color: GOLD, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>−</button>}
+                  {changeWtOpen && <button onClick={() => bumpReady(-wStep)} aria-label="Less weight" style={{ width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', background: 'rgba(168,85,247,0.08)', border: '1.5px solid rgba(168,85,247,0.5)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>−</button>}
                   <div style={{ lineHeight: 1 }}>
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 60, color: GOLD, textShadow: '0 0 24px rgba(253,224,71,0.55)' }}>{readyWeight}</span>
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', marginLeft: 6 }}>{weightUnit}</span>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 44, color: GOLD, textShadow: '0 0 24px rgba(253,224,71,0.55)' }}>{readyWeight}</span>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 18, color: '#fff', marginLeft: 6 }}>{weightUnit}</span>
                   </div>
-                  {changeWtOpen && <button onClick={() => bumpReady(wStep)} aria-label="More weight" style={{ width: 40, height: 40, borderRadius: 10, cursor: 'pointer', background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.4)', color: GOLD, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>＋</button>}
+                  {changeWtOpen && <button onClick={() => bumpReady(wStep)} aria-label="More weight" style={{ width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', background: 'rgba(168,85,247,0.08)', border: '1.5px solid rgba(168,85,247,0.5)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>＋</button>}
                 </div>
-                {prevWeight && <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#9a90b8', marginTop: 8 }}>last time: {prevWeight.weight} {weightUnit}</div>}
+                {/* Spec 11 — the progression story under the number. */}
+                {prevWeight && progRef.current?.state === 'nudge' && progRef.current.suggested > prevWeight.weight ? (
+                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, marginTop: 8 }}>
+                    <span style={{ color: '#c4a4d8' }}>LAST TIME </span>
+                    <span style={{ color: '#fff', fontWeight: 700 }}>{prevWeight.weight} {weightUnit}</span>
+                    <span style={{ color: GOLD, fontWeight: 800 }}> → SUGGESTED {progRef.current.suggested}</span>
+                    <span style={{ color: '#9a90b8' }}> · pre-loaded above</span>
+                  </div>
+                ) : prevWeight ? (
+                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#9a90b8', marginTop: 8 }}>last time: {prevWeight.weight} {weightUnit}</div>
+                ) : null}
+                {progRef.current?.isPR && (
+                  <div style={{
+                    marginTop: 8, width: 264, maxWidth: '86vw', marginLeft: 'auto', marginRight: 'auto',
+                    borderRadius: 10, border: '1px solid rgba(253,224,71,0.55)',
+                    background: 'linear-gradient(90deg, rgba(253,224,71,0.16), rgba(245,158,11,0.12))',
+                    padding: '7px 10px', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: GOLD, letterSpacing: '0.06em',
+                  }}>🏆 PR ATTEMPT — YOUR BEST IS {progRef.current.best}</div>
+                )}
               </div>
             ) : phase === 'position' ? (
               <div>
@@ -935,8 +957,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
             {/* Controls — get-ready shows CHANGE WT + START — LIFT (design 39) */}
             {phase === 'done' ? null : phase === 'getready' ? (
               <div style={{ flexShrink: 0, display: 'flex', gap: 8, width: '100%', maxWidth: 360 }}>
-                <button onClick={() => setChangeWtOpen(o => !o)} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: changeWtOpen ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${changeWtOpen ? GOLD : 'rgba(168,85,247,0.4)'}`, color: changeWtOpen ? GOLD : '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.08em' }}>CHANGE WT</button>
-                <button onClick={handleStartLift} style={{ flex: 1.6, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
+                <button onClick={() => setChangeWtOpen(o => !o)} style={{ flex: '0 0 124px', height: 48, borderRadius: 11, cursor: 'pointer', background: changeWtOpen ? 'rgba(168,85,247,0.16)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${changeWtOpen ? '#a855f7' : 'rgba(168,85,247,0.4)'}`, color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.08em' }}>CHANGE WT</button>
+                <button onClick={handleStartLift} style={{ flex: 1, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
                   <Play size={15}/> START — LIFT
                 </button>
               </div>

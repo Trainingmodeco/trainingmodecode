@@ -13,6 +13,7 @@ import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { resolveScheme, programmingSummary } from './data/workoutPrograms';
+import { trainAgainPlan } from './data/builderProgression';
 
 // Workout Builder — streamlined setup (design 11a follow-up): TARGET MUSCLES
 // chip grid + two body maps · EQUIPMENT · DIFFICULTY · PROGRAMMING row (the
@@ -121,6 +122,9 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
   const [difficulty, setDifficulty] = useState('NORMAL');
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
+  // Spec 11 — one-tap repeat of the last workout with progression baked in.
+  // Null when there's no history (state B): the card simply doesn't exist.
+  const [trainPlan] = useState(() => trainAgainPlan());
   // Programming state — edited in the PROGRAMMING sub-page, summarised on the row.
   const [programmingOpen, setProgrammingOpen] = useState(false);
   const [focus, setFocus] = useState('Strength');
@@ -184,6 +188,52 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
 
         <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
           <ProgressionNudgeCard lane="strength"/>
+
+          {/* Spec 11 — TRAIN AGAIN: the one gold-accented element on setup.
+              Tapping goes STRAIGHT to the generated list with every nudge
+              applied, skipping all config. Hidden entirely without history. */}
+          {trainPlan && (
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={() => onGenerate?.({ ...trainPlan.cfg, savedExercises: trainPlan.exercises })}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left', cursor: 'pointer',
+                  padding: '9px 12px', borderRadius: 14,
+                  border: '1.5px solid rgba(168,85,247,0.6)',
+                  background: 'linear-gradient(100deg, rgba(168,85,247,0.18), rgba(253,224,71,0.12) 65%)',
+                  boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.2), 0 0 20px -6px rgba(168,85,247,0.5), 0 0 20px -8px rgba(253,224,71,0.4)',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ font: "800 7px 'Orbitron',sans-serif", letterSpacing: '0.16em', marginBottom: 3 }}>
+                    <span style={{ color: '#c9a6ff' }}>⚡ TRAIN AGAIN · </span>
+                    <span style={{ color: GOLD }}>PROGRESSION APPLIED</span>
+                  </div>
+                  <div style={{ font: "900 12.5px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.04em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trainPlan.title}</div>
+                  <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>
+                    <span style={{ color: trainPlan.stale ? GOLD : '#c4a4d8', fontWeight: trainPlan.stale ? 700 : 600 }}>{trainPlan.agoPhrase}</span> · {trainPlan.meta}
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                    {trainPlan.chips.map((c2, ci) => (
+                      <span key={ci} style={c2.tone === 'nudge'
+                        ? { font: "900 6.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', color: '#0a0014', background: GOLD, borderRadius: 5, padding: '2px 6px' }
+                        : { font: "700 6.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', color: '#9a90b8', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 5, padding: '2px 6px' }
+                      }>{c2.label}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{
+                  width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #c9a6ff, #fde047 45%, #f59e0b)',
+                  boxShadow: '0 0 16px rgba(253,224,71,0.45)',
+                  font: "900 11px 'Orbitron',sans-serif", color: '#0a0014', letterSpacing: '0.02em',
+                }}>▶ GO</div>
+              </button>
+              <div style={{ textAlign: 'center', font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 5 }}>or build something new below ↓</div>
+            </div>
+          )}
+
           {/* TARGET MUSCLES */}
           <div data-guide="wb-muscles">
           <Label right={<span style={{ font: "800 8px 'Orbitron',sans-serif", color: GOLD }}>{chips.length} SELECTED</span>}>TARGET MUSCLES</Label>

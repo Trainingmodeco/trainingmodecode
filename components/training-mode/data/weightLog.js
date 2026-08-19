@@ -29,6 +29,13 @@ export function getLastWeight(exerciseId) {
   return list && list.length ? list[list.length - 1] : null;
 }
 
+// Full logged history for an exercise, oldest first (spec 11 progression:
+// per-set "LAST 8·8·6" lines and the all-time best behind PR attempts).
+export function getWeightHistory(exerciseId) {
+  const list = loadAll()[exerciseId];
+  return Array.isArray(list) ? list : [];
+}
+
 // Placeholder when an exercise has never been logged: an empty bar (LB)
 // or a starter pair of dumbbells (KG).
 export function defaultWeight(unit) {

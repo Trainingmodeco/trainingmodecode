@@ -14,6 +14,7 @@ import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import { loadProfile } from './data/userProfile';
 import { classifyType, exerciseWeight, unitLabel, normUnit, stepFor, convertWeight, defaultWeight } from './data/weightLog';
+import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
 
 const GOLD = C.gold;
 
@@ -279,6 +280,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
   const allDone = doneCount === exercises.length && exercises.length > 0;
   const title = buildTitle(cfg);
+  // Spec 11 — the record as it stood BEFORE this session starts writing its
+  // own completions, so every row's last-time comparison stays stable.
+  const prevRecRef = useRef(loadLastBuilderWorkout());
 
   const regenerate = () => {
     setExercises(withUids(applyScheme(generateFitModeWorkout(cfg), cfg.setScheme)));
@@ -340,7 +344,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     if (typeof onStateChange === 'function') {
       onStateChange({ completed, skipped });
     }
-  }, [completed, skipped, onStateChange]);
+    // Spec 11 — remember this workout for TRAIN AGAIN. Skips silently until
+    // at least one exercise is completed, so an untouched generate never
+    // clobbers the last real session's progression history.
+    recordBuilderWorkout({ title, cfg, exercises, completed });
+  }, [completed, skipped, onStateChange, title, cfg, exercises]);
 
   // Spec 10 — reorder from the map. `orderOld` is the full list of OLD indices
   // in their NEW order (the player computes the weave so done/skipped rows stay
@@ -487,23 +495,26 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             const muscleColor = MUSCLE_COLORS[ex.muscle] || C.faint;
             // Design 39 — weight only shows on weighted lifts.
             const wLog = classifyType(ex) === 'weighted' ? exerciseWeight(ex) : null;
+            // Spec 11 — last-time progression verdict for this row.
+            const prog = rowProgression(ex, prevRecRef.current);
+            const isPR = !!prog?.isPR;
             return (
               <div key={`${ex.name}-${i}`} className="wo-row" style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 10px', borderRadius: 8,
-                background: done ? 'rgba(253,224,71,0.04)' : 'rgba(10,0,20,0.5)',
-                border: done ? '1px solid rgba(253,224,71,0.2)' : '1px solid rgba(255,255,255,0.04)',
+                padding: '8px 11px', borderRadius: 11,
+                background: done ? 'rgba(253,224,71,0.04)' : 'rgba(8,2,18,0.85)',
+                border: done ? '1px solid rgba(253,224,71,0.2)' : isPR ? '1px solid rgba(253,224,71,0.4)' : '1px solid rgba(168,85,247,0.22)',
               }}>
-                {/* Color initial square */}
+                {/* Color initial square (PR rows go gold-tinted) */}
                 <div style={{
-                  width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-                  background: done ? GOLD : `${muscleColor}18`,
-                  border: done ? 'none' : `1.5px solid ${muscleColor}50`,
+                  width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+                  background: done ? GOLD : isPR ? 'rgba(253,224,71,0.12)' : `${muscleColor}18`,
+                  border: done ? 'none' : isPR ? '1.5px solid rgba(253,224,71,0.5)' : `1.5px solid ${muscleColor}50`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {done
-                    ? <Check size={14} color="#0a0014" strokeWidth={3}/>
-                    : <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, color: muscleColor }}>{ex.name[0]}</span>
+                    ? <Check size={13} color="#0a0014" strokeWidth={3}/>
+                    : <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, color: isPR ? GOLD : muscleColor }}>{ex.name[0]}</span>
                   }
                 </div>
 
@@ -516,10 +527,12 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                     letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     textDecoration: done ? 'line-through' : 'none',
                     cursor: done ? 'default' : 'pointer',
-                  }}>{ex.name}</div>
+                  }}>{ex.name}{prog?.state === 'new' && !done && (
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7, color: '#6d5a8f', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px', marginLeft: 6, letterSpacing: '0.1em', verticalAlign: 'middle' }}>NEW</span>
+                  )}</div>
                   <div onClick={() => !done && setEditIdx(i)} style={{
                     fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, marginTop: 1,
-                    color: done ? C.faint : '#c9b8e8', cursor: done ? 'default' : 'pointer',
+                    color: done ? C.faint : '#9a90b8', cursor: done ? 'default' : 'pointer',
                     textDecoration: done ? 'none' : 'underline dotted rgba(168,85,247,0.5)',
                     textUnderlineOffset: 2,
                   }}>{ex.sets}x{ex.reps} &middot; {ex.rest} rest
@@ -529,6 +542,29 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                         ? <span style={{ color: '#9a90b8' }}> &middot; + add weight</span>
                         : null}
                   </div>
+                  {/* Spec 11 — the last-time line: what happened, what to try.
+                      Gold = nudge · faint = hold · never red. */}
+                  {!done && prog && prog.state !== 'new' && (prog.line || prog.state === 'nudge' || prog.state === 'hold') && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2, minWidth: 0 }}>
+                      {prog.line && (
+                        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 8.5, fontWeight: 600, color: '#c4a4d8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prog.line}</span>
+                      )}
+                      {prog.state === 'nudge' ? (
+                        <span style={{
+                          flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 6.5, letterSpacing: '0.06em',
+                          color: '#0a0014', borderRadius: 5, padding: '2px 6px',
+                          background: isPR ? `linear-gradient(135deg, ${GOLD}, #f59e0b)` : GOLD,
+                          boxShadow: isPR ? '0 0 8px rgba(253,224,71,0.45)' : 'none',
+                        }}>
+                          → TRY {prog.kind === 'weighted' ? prog.suggested : `${prog.suggestedReps} REPS`}{isPR ? ' 🏆 PR' : ''}
+                        </span>
+                      ) : (
+                        <span style={{ flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5, letterSpacing: '0.06em', color: '#9a90b8', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 5, padding: '2px 6px' }}>
+                          = HOLD{prog.kind === 'weighted' && prog.lastWeight ? ` ${prog.lastWeight}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Swap button */}
