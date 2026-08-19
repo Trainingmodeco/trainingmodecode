@@ -57,9 +57,11 @@ function BodyMapFigure({ v, sex, spots }) {
           </div>
         </>
       )}
-      {/* Figure box — glows are positioned relative to the image itself */}
-      <div style={{ position: 'relative', height: 168, opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}>
-        <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} onLoaded={() => setLoaded(true)} style={{ height: 168, width: 'auto', objectFit: 'contain', display: 'block' }}/>
+      {/* Figure box — glows are positioned relative to the image itself.
+          128px tall (was 168): the crowding pass buys the screen its bottom
+          quarter of air mostly here. */}
+      <div style={{ position: 'relative', height: 128, opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}>
+        <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} onLoaded={() => setLoaded(true)} style={{ height: 128, width: 'auto', objectFit: 'contain', display: 'block' }}/>
         {spots.map(([x, y], i) => <MuscleGlow key={i} x={x} y={y}/>)}
       </div>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
@@ -106,7 +108,7 @@ function Segmented({ options, value, onPick }) {
         const active = o === value;
         return (
           <button key={o} onClick={() => onPick(o)} style={{
-            flex: 1, textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", padding: '9px 0', borderRadius: 8, cursor: 'pointer',
+            flex: 1, textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", padding: '8px 0', borderRadius: 8, cursor: 'pointer',
             color: active ? '#0a0014' : '#d9d1ef', background: active ? GOLD : 'rgba(16,4,30,0.8)', border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
           }}>{o}</button>
         );
@@ -223,11 +225,11 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
                   </div>
                 </div>
                 <div style={{
-                  width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
+                  width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'linear-gradient(135deg, #c9a6ff, #fde047 45%, #f59e0b)',
                   boxShadow: '0 0 16px rgba(253,224,71,0.45)',
-                  font: "900 11px 'Orbitron',sans-serif", color: '#0a0014', letterSpacing: '0.02em',
+                  font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', letterSpacing: '0.02em',
                 }}>▶ GO</div>
               </button>
               <div style={{ textAlign: 'center', font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 5 }}>or build something new below ↓</div>
@@ -237,12 +239,12 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
           {/* TARGET MUSCLES */}
           <div data-guide="wb-muscles">
           <Label right={<span style={{ font: "800 8px 'Orbitron',sans-serif", color: GOLD }}>{chips.length} SELECTED</span>}>TARGET MUSCLES</Label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 12 }}>
             {CHIPS.map(c => {
               const active = chips.includes(c.id);
               return (
                 <button key={c.id} onClick={() => toggleChip(c.id)} style={{
-                  gridColumn: c.span2 ? 'span 2' : undefined, textAlign: 'center', font: "800 8px 'Orbitron',sans-serif", padding: '7px 2px', borderRadius: 7, cursor: 'pointer',
+                  gridColumn: c.span2 ? 'span 2' : undefined, textAlign: 'center', font: "800 8px 'Orbitron',sans-serif", padding: '6px 2px', borderRadius: 7, cursor: 'pointer',
                   color: active ? '#0a0014' : '#d9d1ef', background: active ? GOLD : 'rgba(16,4,30,0.8)', border: active ? 'none' : '1px solid rgba(168,85,247,0.3)', boxShadow: active ? '0 0 8px rgba(253,224,71,.4)' : 'none',
                 }}>{c.id}</button>
               );
@@ -259,46 +261,48 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
           {/* EQUIPMENT */}
           <div data-guide="wb-equipment">
           <Label>EQUIPMENT</Label>
-          <div style={{ marginBottom: 13 }}><Segmented options={EQUIPMENT} value={equipment} onPick={setEquipment}/></div>
+          <div style={{ marginBottom: 12 }}><Segmented options={EQUIPMENT} value={equipment} onPick={setEquipment}/></div>
           </div>
 
           {/* DIFFICULTY */}
           <div data-guide="wb-difficulty">
           <Label>DIFFICULTY</Label>
-          <div style={{ marginBottom: 13 }}><Segmented options={DIFFICULTY} value={difficulty} onPick={setDifficulty}/></div>
+          <div style={{ marginBottom: 12 }}><Segmented options={DIFFICULTY} value={difficulty} onPick={setDifficulty}/></div>
           </div>
 
-          {/* PROGRAMMING — single door to set scheme · programs · duration */}
+          {/* PROGRAMMING — single door to set scheme · programs · duration.
+              Compact banner (crowding pass): shorter, not crunched — the 12px
+              section rhythm stays even top to bottom. */}
           <div data-guide="wb-programming">
-          <button onClick={() => setProgrammingOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(90deg,rgba(168,85,247,0.12),rgba(253,224,71,0.05))', padding: '11px 13px', cursor: 'pointer', textAlign: 'left', marginBottom: 12 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SlidersHorizontal size={17} color="#c9a6ff"/></div>
+          <button onClick={() => setProgrammingOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(90deg,rgba(168,85,247,0.12),rgba(253,224,71,0.05))', padding: '8px 12px', cursor: 'pointer', textAlign: 'left', marginBottom: 12 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SlidersHorizontal size={14} color="#c9a6ff"/></div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#c9a6ff' }}>WORKOUT PROGRAMS</div>
-              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>Set scheme · programs · duration · saved routines</div>
+              <div style={{ font: "800 10.5px 'Orbitron',sans-serif", color: '#c9a6ff' }}>WORKOUT PROGRAMS</div>
+              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>Set scheme · programs · duration · saved routines</div>
             </div>
             <span style={{ font: "800 10px 'Orbitron',sans-serif", color: progSummary === 'AUTO' ? '#9a90b8' : GOLD, flexShrink: 0, maxWidth: 118, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{progSummary}</span>
-            <span style={{ font: "900 15px 'Orbitron',sans-serif", color: '#b06aff', flexShrink: 0 }}>›</span>
+            <span style={{ font: "900 14px 'Orbitron',sans-serif", color: '#b06aff', flexShrink: 0 }}>›</span>
           </button>
           </div>
 
           {/* ADD CARDIO */}
           <div data-guide="wb-cardio">
-          <button onClick={() => setCardioSheetOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, borderRadius: 11, border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(168,85,247,0.06))', padding: '11px 13px', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>❤</div>
+          <button onClick={() => setCardioSheetOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(168,85,247,0.06))', padding: '8px 12px', cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>❤</div>
             <div style={{ flex: 1 }}>
-              <div style={{ font: "800 11px 'Orbitron',sans-serif", color: GOLD }}>{cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO'}</div>
-              <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{cardioAddon ? summarizeCardioAddon(cardioAddon) : 'One tap — we generate the finisher for you'}</div>
+              <div style={{ font: "800 10.5px 'Orbitron',sans-serif", color: GOLD }}>{cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO'}</div>
+              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{cardioAddon ? summarizeCardioAddon(cardioAddon) : 'One tap — we generate the finisher for you'}</div>
             </div>
-            <span style={{ font: "900 15px 'Orbitron',sans-serif", color: GOLD }}>›</span>
+            <span style={{ font: "900 14px 'Orbitron',sans-serif", color: GOLD }}>›</span>
           </button>
           </div>
 
           {/* Generate — inline, right under Add Cardio so it's never hidden.
               (Saved routines moved into the WORKOUT PROGRAMS page, under
               Duration — one door for everything pre-built.) */}
-          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '18px 0 8px' }}>{summary()}</div>
+          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '12px 0 8px' }}>{summary()}</div>
           <div data-guide="wb-generate">
-          <TrainingCTA variant="gold" label="GENERATE WORKOUT" icon="⚙" height={48} onClick={generate} style={{ fontSize: 13.5, letterSpacing: '0.06em' }}/>
+          <TrainingCTA variant="gold" label="GENERATE WORKOUT" icon="⚙" height={44} onClick={generate} style={{ fontSize: 12.5, letterSpacing: '0.06em' }}/>
           </div>
         </div>
       </div>
