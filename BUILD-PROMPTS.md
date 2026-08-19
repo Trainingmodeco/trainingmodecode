@@ -1292,3 +1292,66 @@ SecondaryButton / Card); no new design system.
 > `/static/series/posters/baki-grappler.webp`,
 > `/static/series/stages/stage-3.webp`, `/static/ring-conditioning.png` —
 > all must return 200.
+
+## PROMPT WB-D — Designer brief: guided-player navigation (workout map · strip · segmented bar)
+
+> Paste this into the design tool. It describes the VISUAL surfaces for the
+> Workout Builder guided player's navigation layer, which is already built in
+> code — the design pass is to make these surfaces immaculate and give the
+> builder its flagship look. Keep every behavior exactly as described.
+>
+> ### Brand rules (match the existing app exactly)
+>
+> Deep violet/black background (#080012–#0a0014), gold accent #fde047 for
+> done/primary, violet #a855f7 for current/secondary chrome, red #ef4444
+> reserved for skipped/stop, Orbitron for display/headers, Rajdhani for body,
+> arcade-cabinet framing, mobile 412×883 with a bottom tab bar (HOME · TRAIN ·
+> PROGRESS · PROFILE) that any sheet must clear. No new fonts or colours.
+>
+> ### Context
+>
+> The guided player runs one exercise at a time (big rep counter, announcer
+> line, pause/skip/stop controls). Beta feedback: mid-workout you couldn't
+> see where you were or what was coming. Three navigation surfaces fix that —
+> a segmented progress bar, a swipeable exercise strip, and a pull-up
+> WORKOUT MAP sheet. All three read from one status model per exercise:
+> DONE (gold) · SKIPPED (red, struck) · NOW (violet, with per-set progress)
+> · QUEUED (faint), and they update live on every set completed, every skip,
+> and every exercise change.
+>
+> ### Surfaces to design (4)
+>
+> 1. **Segmented progress bar (top of player).** One segment per exercise
+>    replacing a single bar. Done = solid gold. Skipped = dim red. Queued =
+>    faint white. The CURRENT segment fills left-to-right set by set (2 of 4
+>    sets done = half full) with a violet→gold gradient and a soft violet
+>    glow. Header row above it: "EXERCISE 2/6" left, a small "≡ MAP" pill
+>    center (violet outline), "SET 1/4" right in gold. The whole bar is
+>    tappable and opens the map.
+> 2. **Exercise strip (bottom of player).** A horizontally swipeable row of
+>    compact cards, one per exercise, current card auto-centred. Card = tiny
+>    status eyebrow (● SET 1/4 in violet · ✓ DONE in gold · SKIPPED in red ·
+>    UP NEXT ▶ · #n), exercise name (ellipsized), sets×reps. Current card:
+>    violet border + tint. Done/skipped cards drop to ~72% opacity. Swiping
+>    is browse-only — it never changes the workout.
+> 3. **WORKOUT MAP pull-up sheet.** Bottom sheet over the tab bar, violet
+>    accent, title "WORKOUT MAP", X to close, scrollable list. Row = index
+>    number, name + "4×4-8 · rest 120s" subline, and a right-side status:
+>    ✓ DONE (gold) · SKIPPED (red, name struck through) · for the CURRENT row
+>    a set-pip cluster (filled gold dots for finished sets, outlined gold dot
+>    for the live set, faint outlines for the rest) plus "SET 2/4" · UP NEXT
+>    · QUEUED. Current row: violet border + tint. Design the sheet at 6 and
+>    at 10 exercises — it must scroll gracefully.
+> 4. **Share card alignment (summary screens).** The inline "SHARE YOUR WIN"
+>    card on every summary screen must run the same full column width as the
+>    cards above/below it — flush edges both sides, never narrower than its
+>    siblings. Show it in place on one summary layout.
+>
+> ### Rules
+>
+> - Status colours are the language: gold = done, violet = now, red =
+>   skipped, faint = queued. Never mix them.
+> - The big rep counter stays the hero of the screen — the three navigation
+>   surfaces support it, they never compete with it.
+> - Never place a primary action in the bottom ~90px band (tab bar + safe
+>   area) unless it's an overlay covering the tab bar entirely.
