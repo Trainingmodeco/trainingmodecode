@@ -3,6 +3,19 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-08-19 · 11-train-again-progression.md (WB-E)** — day 2 is one tap:
+  TRAIN AGAIN card on the builder setup screen repeats the last workout with
+  progression baked in (+1 rep bodyweight / +2.5 lb weighted when every set
+  landed; hold on misses or a >10-day gap; PR flag when the suggestion beats
+  the all-time best). Every generated-list row gains a last-time line
+  (`LAST 8·8·8 → TRY 9 REPS` gold, `= HOLD` faint, `🏆 PR` gradient, `NEW`
+  tag), and the weighted get-ready screen pre-loads the suggested load with
+  a `LAST TIME → SUGGESTED` story line + PR banner. New
+  `data/builderProgression.js` + `tm_last_builder_workout` record (only
+  written once ≥1 exercise is completed). Same day: saved routines moved
+  into the WORKOUT PROGRAMS page under DURATION (max 10, two rows then a
+  visible scrollbar), and the list's START button moved into the flow an
+  inch below REGENERATE / SAVE ROUTINE.
 - **2026-08-19 · 10-workout-map-free-select.md** — Workout Builder guided
   player gets its navigation layer: binder tab above the tab bar opens a
   full-height WORKOUT MAP (pauses the workout; closing auto-resumes with a
