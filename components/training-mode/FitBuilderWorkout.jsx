@@ -3,7 +3,7 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Minus, Plus, Bookmark } from 'lucide-react';
-import { C, fixedColumnBar } from './Styles';
+import { C } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
@@ -428,7 +428,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         padding: '10px 14px 0',
-        paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px))',
+        // Clears the bottom nav only — the START CTA lives in the flow now.
+        paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))',
       }}>
 
         {/* Muscle tags */}
@@ -559,18 +560,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             <Bookmark size={14}/> {savedFlash ? 'SAVED ✓' : 'SAVE ROUTINE'}
           </button>
         </div>
-      </div>
 
-      {/* Bottom CTA — clamped to the app column (beta RS-02: left/right 0 made
-          this bar span the entire browser window, a click target the width of
-          a 1920px screen while everything else stayed in the column). */}
-      <div style={{
-        position: 'fixed', ...fixedColumnBar,
-        bottom: 'calc(70px + env(safe-area-inset-bottom, 0px))',
-        padding: '14px 14px 16px',
-        background: 'linear-gradient(to top, rgba(10,0,20,0.98) 70%, transparent)',
-        zIndex: 20,
-      }}>
+        {/* START CTA — in flow, an inch below the regenerate/save row (was a
+            fixed bottom bar; the floating placement covered list rows and sat
+            detached from the content it acts on). */}
         <button
           className="wo-cta"
           onClick={async () => {
@@ -585,10 +578,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             }
           }}
           style={{
-            width: '100%', padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: allDone
-              ? `linear-gradient(135deg, ${GOLD}, #f59e0b)`
-              : `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
+            width: '100%', marginTop: 96, padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
             color: '#0a0014',
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
             letterSpacing: '0.14em',
