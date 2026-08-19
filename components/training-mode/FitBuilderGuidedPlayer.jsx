@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw } from 'lucide-react';
+import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, List } from 'lucide-react';
 import { C } from './Styles';
+import BottomSheet from './shared/BottomSheet';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
@@ -49,7 +50,7 @@ function classify(ex) {
   return { kind: 'weighted', reps, windowSec };
 }
 
-export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onComplete, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true }) {
+export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onComplete, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true }) {
   const ex = exercises[exerciseIdx];
   const plan = useMemo(() => classify(ex), [ex]);
   const totalSets = ex?.sets || 3;
@@ -63,6 +64,18 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   const [paused, setPaused] = useState(false);
   const [cadenceSec, setCadenceSec] = useState(2);
   const [confirmEnd, setConfirmEnd] = useState(false); // STOP → shared confirm modal
+  const [mapOpen, setMapOpen] = useState(false);       // WORKOUT MAP pull-up sheet
+
+  // Status of any exercise in this session, for the map + carousel + bar.
+  const statusOf = useCallback((i) => (
+    i === exerciseIdx ? 'now' : completed[i] ? 'done' : skipped[i] ? 'skipped' : 'todo'
+  ), [exerciseIdx, completed, skipped]);
+
+  // Keep the current card centred in the up-next strip as the workout moves.
+  const curCardRef = useRef(null);
+  useEffect(() => {
+    curCardRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [exerciseIdx]);
 
   // Rest-time weight logger (design 38a) — weighted exercises only.
   const exId = ex?.id || ex?.name || 'exercise';
@@ -344,7 +357,6 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
   };
   const bumpReady = (d) => { setChangeWtOpen(true); setReadyWeight(w => Math.max(wStep, w + d)); };
 
-  const progress = exerciseIdx / exercises.length;
   const kindLabel = plan.kind === 'reps' ? `${plan.reps} REPS · ON THE COUNT`
     : plan.kind === 'weighted' ? `${plan.reps} REPS · ${fmtClock(plan.windowSec)} WINDOW`
     : `${plan.seconds}s HOLD`;
@@ -396,13 +408,27 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
         />
 
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '8px 16px calc(max(120px, 18dvh) + env(safe-area-inset-bottom, 0px))' }}>
-          {/* Progress */}
-          <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          {/* Progress — one segment per exercise (✓ gold, skipped red, current
+              fills set by set), tappable to open the workout map. */}
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
+            <button onClick={() => setMapOpen(true)} aria-label="Open workout map" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.4)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, letterSpacing: '0.12em' }}>
+              <List size={10} color={VIOLET}/> MAP
+            </button>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>SET {set}/{totalSets}</span>
           </div>
-          <div style={{ flexShrink: 0, width: '100%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 12 }}>
-            <div style={{ width: `${progress * 100}%`, height: '100%', borderRadius: 2, background: `linear-gradient(90deg, ${GOLD}, ${VIOLET})`, transition: 'width 0.4s ease' }}/>
+          <div role="button" aria-label="Open workout map" onClick={() => setMapOpen(true)} style={{ flexShrink: 0, display: 'flex', gap: 3, marginBottom: 12, cursor: 'pointer', padding: '2px 0' }}>
+            {exercises.map((_, i) => {
+              const st = statusOf(i);
+              const setFill = Math.max(0.08, (set - 1 + (phase === 'rest' ? 1 : 0)) / totalSets);
+              return (
+                <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, overflow: 'hidden', background: st === 'done' ? GOLD : st === 'skipped' ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.08)', boxShadow: st === 'now' ? '0 0 8px rgba(168,85,247,0.6)' : 'none' }}>
+                  {st === 'now' && (
+                    <div style={{ width: `${setFill * 100}%`, height: '100%', background: `linear-gradient(90deg, ${VIOLET}, ${GOLD})`, transition: 'width 0.4s ease' }}/>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Centre: display + announcer + controls (kept high, no scroll) */}
@@ -502,15 +528,72 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, onCompl
             </div>
           )}
 
-          {/* Next preview */}
-          {nextExercise && (
-            <div style={{ flexShrink: 0, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '6px 11px', borderRadius: 9, background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.faint, letterSpacing: '0.12em' }}>NEXT ▶</span>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9.5, fontWeight: 700, color: C.muted, letterSpacing: '0.03em' }}>{nextExercise.name}</span>
-            </div>
-          )}
+          {/* Workout strip — every exercise as a swipeable card (browse back and
+              ahead without leaving the workout); the current one stays centred. */}
+          <div style={{ flexShrink: 0, marginTop: 8, display: 'flex', gap: 6, overflowX: 'auto', scrollSnapType: 'x proximity', WebkitOverflowScrolling: 'touch', paddingBottom: 2, scrollbarWidth: 'none' }}>
+            {exercises.map((e2, i) => {
+              const st = statusOf(i);
+              const label = st === 'now' ? `● SET ${set}/${totalSets}`
+                : st === 'done' ? '✓ DONE'
+                : st === 'skipped' ? 'SKIPPED'
+                : i === exerciseIdx + 1 ? 'UP NEXT ▶' : `#${i + 1}`;
+              return (
+                <div key={i} ref={st === 'now' ? curCardRef : null} onClick={() => setMapOpen(true)} style={{
+                  flexShrink: 0, scrollSnapAlign: 'center', width: 124, boxSizing: 'border-box', padding: '6px 9px', borderRadius: 9, cursor: 'pointer',
+                  background: st === 'now' ? 'rgba(168,85,247,0.14)' : 'rgba(10,0,20,0.6)',
+                  border: st === 'now' ? `1.5px solid ${VIOLET}` : st === 'done' ? '1px solid rgba(253,224,71,0.4)' : st === 'skipped' ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(255,255,255,0.07)',
+                  opacity: st === 'done' || st === 'skipped' ? 0.72 : 1,
+                }}>
+                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, letterSpacing: '0.12em', marginBottom: 2, color: st === 'now' ? '#c9a6ff' : st === 'done' ? GOLD : st === 'skipped' ? '#ff8a8a' : C.faint }}>{label}</div>
+                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: st === 'now' ? '#fff' : C.muted, letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2.name}</div>
+                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, fontWeight: 600, color: C.faint, marginTop: 1 }}>{e2.sets}×{e2.reps}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      {/* WORKOUT MAP — the full session as a live checklist: done ✓, skipped,
+          the current exercise with per-set pips, everything still to come. */}
+      {mapOpen && (
+        <BottomSheet title="WORKOUT MAP" accent={VIOLET} onClose={() => setMapOpen(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {exercises.map((e2, i) => {
+              const st = statusOf(i);
+              const nSets = e2.sets || 3;
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 9,
+                  background: st === 'now' ? 'rgba(168,85,247,0.13)' : 'rgba(10,0,20,0.6)',
+                  border: st === 'now' ? `1.5px solid ${VIOLET}` : '1px solid rgba(255,255,255,0.06)',
+                  opacity: st === 'done' || st === 'skipped' ? 0.78 : 1,
+                }}>
+                  <span style={{ width: 16, textAlign: 'right', fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: st === 'now' ? '#c9a6ff' : C.faint }}>{i + 1}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: st === 'now' ? '#fff' : st === 'done' ? '#e8dcc8' : C.muted, textDecoration: st === 'skipped' ? 'line-through' : 'none' }}>{e2.name}</div>
+                    <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, marginTop: 1 }}>{nSets}×{e2.reps} · rest {e2.restSeconds || parseInt(e2.rest) || 60}s</div>
+                  </div>
+                  {st === 'now' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {Array.from({ length: nSets }, (_, s2) => (
+                        <span key={s2} style={{ width: 7, height: 7, borderRadius: 4, background: s2 < set - 1 ? GOLD : 'transparent', border: `1.5px solid ${s2 === set - 1 ? GOLD : 'rgba(255,255,255,0.25)'}` }}/>
+                      ))}
+                      <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 800, color: GOLD, marginLeft: 3, letterSpacing: '0.08em' }}>SET {set}/{nSets}</span>
+                    </div>
+                  ) : st === 'done' ? (
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: GOLD, letterSpacing: '0.1em' }}>✓ DONE</span>
+                  ) : st === 'skipped' ? (
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: '#ff8a8a', letterSpacing: '0.1em' }}>SKIPPED</span>
+                  ) : (
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.faint, letterSpacing: '0.1em' }}>{i === exerciseIdx + 1 ? 'UP NEXT' : 'QUEUED'}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </BottomSheet>
+      )}
 
       {/* Item 2 — shared END-session confirm (matches FightFocusTimer / CampFitSetRunner) */}
       {confirmEnd && (
