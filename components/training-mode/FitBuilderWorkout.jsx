@@ -15,6 +15,7 @@ import useWakeLock from './hooks/useWakeLock';
 import { loadProfile } from './data/userProfile';
 import { classifyType, exerciseWeight, unitLabel, normUnit, stepFor, convertWeight, defaultWeight } from './data/weightLog';
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
+import BuilderWarmup from './shared/BuilderWarmup';
 
 const GOLD = C.gold;
 
@@ -275,6 +276,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const [routineName, setRoutineName] = useState('');
   const [savedFlash, setSavedFlash] = useState(false);
   const [saveErr, setSaveErr] = useState('');
+  // 90s warm-up gate before a FRESH session only — resuming or re-entering a
+  // half-done workout skips it (you already warmed up).
+  const [warmupOpen, setWarmupOpen] = useState(false);
+  const warmupTargetRef = useRef(0);
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -618,7 +623,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
               setVoiceGender(profile?.voiceCoach || 'FEMALE');
               await primeSpeech();
               const firstIncomplete = exercises.findIndex((_, i) => !completed[i]);
-              setActiveIdx(firstIncomplete >= 0 ? firstIncomplete : 0);
+              const target = firstIncomplete >= 0 ? firstIncomplete : 0;
+              // Fresh session → 90s warm-up gate first. Anything already done
+              // (or a resume) means the athlete is warm — go straight in.
+              if (doneCount === 0 && !initialResumeData) {
+                warmupTargetRef.current = target;
+                setWarmupOpen(true);
+              } else {
+                setActiveIdx(target);
+              }
             }
           }}
           style={{
@@ -635,6 +648,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           {allDone ? 'COMPLETE WORKOUT' : 'START'}
         </button>
       </div>
+
+      {/* 90s warm-up gate (spec: follow-along counted moves or freestyle) */}
+      {warmupOpen && (
+        <BuilderWarmup
+          muscleGroups={cfg.muscleGroups}
+          onDone={() => { setWarmupOpen(false); setActiveIdx(warmupTargetRef.current); }}
+          onSkip={() => { setWarmupOpen(false); setActiveIdx(warmupTargetRef.current); }}
+        />
+      )}
 
       {/* Swap bottom sheet */}
       {swapIdx !== null && (
