@@ -145,6 +145,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const waitForStart = (version) => new Promise(res => { startLiftRef.current = { version, res }; });
 
   const versionRef = useRef(0);
+  // True while the final set's completion sequence is in flight — blocks
+  // repeated SET DONE / SKIP taps from re-firing it (see finishSet).
+  const finishingRef = useRef(false);
   const pausedRef = useRef(false);
   const cadenceRef = useRef(cadenceSec);
   const logWeightRef = useRef(0);
@@ -220,6 +223,12 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   const finishSet = useCallback(async (version) => {
     if (versionRef.current !== version) return;
+    // Beta find: rapid SET DONE taps on the FINAL set each re-entered this
+    // path during the 900ms completion delay — every tap wrote another
+    // weight-log entry and restarted (so postponed) the completion. Once the
+    // final set's finish sequence starts, further taps are ignored.
+    if (finishingRef.current) return;
+    if (set >= totalSets) finishingRef.current = true;
     const finishedSet = set;
     // Arm the rest-time weight logger for weighted lifts: auto-fill from the
     // last logged load (this session or a previous one), else a placeholder.
@@ -260,6 +269,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   // keeping any restart silent until the 3-2-1 releases it.
   useEffect(() => {
     const version = ++versionRef.current;
+    finishingRef.current = false; // a new set/exercise re-arms SET DONE
 
     const run = async () => {
       if (pausedRef.current) {
@@ -382,16 +392,21 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const handleDoneEarly = () => {
     // Weighted / hold sets can be finished before the window runs out —
     // goes through the normal set-complete path (including the rest).
+    // Gate BEFORE the version bump: a repeat tap must be a pure no-op, or it
+    // would invalidate the in-flight completion it is impatiently waiting on.
+    if (finishingRef.current) return;
     const version = ++versionRef.current;
     cancelSpeech();
     finishSet(version);
   };
 
   const handleSkipSet = () => {
+    if (finishingRef.current) return;
     // Jump straight to the next set (also serves as SKIP REST) — no rest replay.
     // Skipping a weighted rest still banks the shown weight (fully skippable
     // means the logger never blocks — not that the number is lost).
     if (phase === 'rest' && plan.kind === 'weighted') saveLoggedWeight(set);
+    if (set >= totalSets) finishingRef.current = true;
     invalidate();
     cancelSpeech();
     if (set < totalSets) {

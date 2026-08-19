@@ -59,11 +59,13 @@ function bestWeight(key) {
 }
 
 // The most recent logged DAY for an exercise → "8·8·6" + the load used.
+// Capped at the last 6 sets: two sessions in one day (or an over-eager
+// logger) must not balloon the row into a wall of numbers.
 function lastSessionLine(key) {
   const h = getWeightHistory(key);
   if (!h.length) return null;
   const lastDay = new Date(h[h.length - 1].timestamp || 0).toDateString();
-  const day = h.filter(e => new Date(e.timestamp || 0).toDateString() === lastDay);
+  const day = h.filter(e => new Date(e.timestamp || 0).toDateString() === lastDay).slice(-6);
   const tail = day[day.length - 1];
   return {
     reps: day.map(e => e.reps || '—').join('·'),
