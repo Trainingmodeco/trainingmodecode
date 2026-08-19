@@ -247,10 +247,19 @@ function applyScheme(list, scheme) {
   );
 }
 
+// Spec 10 (free-select map) — every row carries a stable uid so the guided
+// player can key on the EXERCISE rather than its position: reordering the
+// workout mid-session must not remount the player (that would wipe the
+// current exercise's set progress). Swaps keep the uid (same slot, new move).
+let uidCounter = 0;
+function withUids(list) {
+  return list.map(ex => (ex._uid ? ex : { ...ex, _uid: `x${++uidCounter}_${Math.random().toString(36).slice(2, 7)}` }));
+}
+
 export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile, onPaywall, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   // A saved routine loads its exact (possibly hand-tuned) exercise list.
-  const [exercises, setExercises] = useState(() => cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
+  const [exercises, setExercises] = useState(() => withUids(cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme)));
   const [completed, setCompleted] = useState(initialResumeData?.completed ?? {});
   // Exercises passed over with SKIP EXERCISE — shown as skipped (not done) in
   // the player's workout map, cleared if the exercise is later completed.
@@ -271,7 +280,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const title = buildTitle(cfg);
 
   const regenerate = () => {
-    setExercises(applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
+    setExercises(withUids(applyScheme(generateFitModeWorkout(cfg), cfg.setScheme)));
     setCompleted({});
     setSkipped({});
     setActiveIdx(null);
@@ -325,12 +334,33 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     }
   }, [completed, skipped, onStateChange]);
 
-  // Voice-guided player (design 34) — cycles sets/exercises like Quick
-  // Mission; BACK returns to the list mid-workout for review + swaps.
+  // Spec 10 — reorder from the map. `orderOld` is the full list of OLD indices
+  // in their NEW order (the player computes the weave so done/skipped rows stay
+  // pinned in place). Remap the index-keyed completed/skipped maps and follow
+  // the active exercise to its new position.
+  const handleReorder = (orderOld) => {
+    if (!Array.isArray(orderOld) || orderOld.length !== exercises.length) return;
+    const newIdxOf = {};
+    orderOld.forEach((oldI, newI) => { newIdxOf[oldI] = newI; });
+    setExercises(prev => orderOld.map(o => prev[o]));
+    const remap = (m) => {
+      const next = {};
+      Object.keys(m).forEach(k => { if (m[k]) next[newIdxOf[k]] = true; });
+      return next;
+    };
+    setCompleted(remap);
+    setSkipped(remap);
+    setActiveIdx(a => (a === null ? null : newIdxOf[a]));
+  };
+
+  // Voice-guided player (design 34 + spec 10 free-select map). Keyed on the
+  // exercise's stable uid, NOT its index: a reorder moves the current exercise
+  // to a new index without remounting the player (set progress survives);
+  // jumping to a DIFFERENT exercise changes the uid and remounts fresh.
   if (activeIdx !== null) {
     return (
       <FitBuilderGuidedPlayer
-        key={`guided-${activeIdx}`}
+        key={`guided-${exercises[activeIdx]?._uid ?? activeIdx}`}
         exercises={exercises}
         exerciseIdx={activeIdx}
         completed={completed}
@@ -355,15 +385,29 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             setActiveIdx(prev);
           }
         }}
-        onComplete={() => {
+        // Spec 10 — the exercise finished its last set. Mark it done but do NOT
+        // advance: the player owns navigation now (completion map → glow → next).
+        onCompleteExercise={() => {
           setCompleted(prev => ({ ...prev, [activeIdx]: true }));
           setSkipped(s => { if (!s[activeIdx]) return s; const next = { ...s }; delete next[activeIdx]; return next; });
-          if (activeIdx < exercises.length - 1) {
-            setActiveIdx(activeIdx + 1);
-          } else {
-            setActiveIdx(null);
+        }}
+        // Free select: start ANY non-done exercise. Re-entering a skipped one
+        // clears its skip — only DONE is permanent.
+        onJumpExercise={(idx) => {
+          setSkipped(s => { if (!s[idx]) return s; const next = { ...s }; delete next[idx]; return next; });
+          setActiveIdx(idx);
+        }}
+        // Hold + swipe on a map row. Skipping the CURRENT exercise behaves like
+        // the SKIP EXERCISE button (advance); others just flip to SKIPPED.
+        onMarkSkipped={(idx) => {
+          setSkipped(s => ({ ...s, [idx]: true }));
+          if (idx === activeIdx) {
+            if (activeIdx < exercises.length - 1) setActiveIdx(activeIdx + 1);
+            else setActiveIdx(null);
           }
         }}
+        onReorder={handleReorder}
+        onFinishWorkout={() => setActiveIdx(null)}
       />
     );
   }

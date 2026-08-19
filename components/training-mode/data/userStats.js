@@ -2,7 +2,9 @@ const STORAGE_KEY = 'tm_user_stats';
 
 export const WEEKLY_GOAL = 5;
 
-const XP_PER_FIT_EXERCISE = 15;
+// Exported so the guided player's per-exercise DONE toast shows the same
+// number the summary will actually bank — never a made-up figure.
+export const XP_PER_FIT_EXERCISE = 15;
 const XP_FIT_FULL_BONUS = 30;
 const XP_PER_FIGHT_ROUND = 20;
 const XP_PER_COMBO_ROUND = 20;

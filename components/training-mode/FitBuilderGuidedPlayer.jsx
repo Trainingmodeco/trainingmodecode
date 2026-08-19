@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, List } from 'lucide-react';
-import { C } from './Styles';
-import BottomSheet from './shared/BottomSheet';
+import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, X } from 'lucide-react';
+import { C, fixedColumnBar } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor } from './data/weightLog';
 import { loadProfile } from './data/userProfile';
+import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
@@ -21,8 +22,22 @@ import { encouragementIntervalSec } from './data/coachEncouragement';
 //                        with "Get into position … Get ready. Lift." — no count.
 //   • Timed holds      → same announcer intro, then a timer with 30-second
 //                        call-outs and short motivational lines.
+//
+// Spec 10 (workout map · free select) adds the navigation layer:
+//   • a binder tab pinned above the tab bar opens the WORKOUT MAP and pauses;
+//   • the map is a full-height sheet where any non-done exercise can be
+//     started with press-and-hold (charge fill), skipped with hold+swipe,
+//     and reordered with hold+drag — one status model drives every surface;
+//   • closing the map auto-resumes with a 3-2-1 count; finishing an
+//     exercise toasts the XP and auto-opens the map with the next one glowing.
 const GOLD = C.gold;
 const VIOLET = '#a855f7';
+
+// Gesture constants (spec 8) — one hold, three outcomes.
+const HOLD_MS = 250;      // press this long to start the charge
+const CHARGE_MS = 700;    // full charge starts the exercise
+const MOVE_SLOP = 8;      // px of movement that picks an axis
+const SKIP_FRACTION = 0.4; // horizontal travel (of row width) that commits a skip
 
 const QUOTES = [
   'Stay strong. Control the breath.',
@@ -50,7 +65,21 @@ function classify(ex) {
   return { kind: 'weighted', reps, windowSec };
 }
 
-export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onComplete, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true }) {
+// Spec 7 — weave a reorder around pinned rows: done/skipped rows keep their
+// absolute positions; `from` moves to `slot` within the movable subsequence.
+// Returns the full list of OLD indices in their NEW order.
+function weaveOrder(n, isLocked, from, slot) {
+  const movable = [];
+  for (let i = 0; i < n; i++) if (!isLocked(i)) movable.push(i);
+  const seq = movable.filter(i => i !== from);
+  seq.splice(Math.max(0, Math.min(slot, seq.length)), 0, from);
+  const order = [];
+  let p = 0;
+  for (let i = 0; i < n; i++) order.push(isLocked(i) ? i : seq[p++]);
+  return order;
+}
+
+export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onCompleteExercise, onJumpExercise, onMarkSkipped, onReorder, onFinishWorkout, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true }) {
   const ex = exercises[exerciseIdx];
   const plan = useMemo(() => classify(ex), [ex]);
   const totalSets = ex?.sets || 3;
@@ -58,18 +87,32 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const nextExercise = exerciseIdx < exercises.length - 1 ? exercises[exerciseIdx + 1] : null;
 
   const [set, setSet] = useState(1);
-  const [phase, setPhase] = useState('intro'); // intro | position | active | rest
+  const [phase, setPhase] = useState('intro'); // intro | position | active | rest | getready | done
   const [display, setDisplay] = useState(0);   // rep count OR seconds remaining OR position countdown
   const [announcer, setAnnouncer] = useState('Get ready…');
   const [paused, setPaused] = useState(false);
   const [cadenceSec, setCadenceSec] = useState(2);
   const [confirmEnd, setConfirmEnd] = useState(false); // STOP → shared confirm modal
-  const [mapOpen, setMapOpen] = useState(false);       // WORKOUT MAP pull-up sheet
+  // WORKOUT MAP sheet: 'complete' mode is the auto slide-up after an exercise
+  // finishes — the just-done row flips ✓ and the next one glows.
+  const [mapOpen, setMapOpen] = useState(false);
+  const [mapMode, setMapMode] = useState('normal'); // 'normal' | 'complete'
+  const [glowIdx, setGlowIdx] = useState(null);
+  const [justDoneIdx, setJustDoneIdx] = useState(null);
+  const [toast, setToast] = useState(null);           // { name, xp }
+  const wasRunningRef = useRef(false);                // resume after map close?
+  const flowTimers = useRef([]);
 
-  // Status of any exercise in this session, for the map + carousel + bar.
+  // One status model for every surface (spec: DONE · SKIPPED · NOW · QUEUED).
+  // `done` outranks `now` so the just-finished exercise reads ✓ the moment its
+  // last set lands, even while it is still the mounted index.
   const statusOf = useCallback((i) => (
-    i === exerciseIdx ? 'now' : completed[i] ? 'done' : skipped[i] ? 'skipped' : 'todo'
-  ), [exerciseIdx, completed, skipped]);
+    completed[i] || (i === exerciseIdx && phase === 'done') ? 'done'
+      : i === exerciseIdx ? 'now'
+      : skipped[i] ? 'skipped'
+      : 'todo'
+  ), [exerciseIdx, completed, skipped, phase]);
+  const doneCount = exercises.reduce((a, _, i) => a + (statusOf(i) === 'done' ? 1 : 0), 0);
 
   // Keep the current card centred in the up-next strip as the workout moves.
   const curCardRef = useRef(null);
@@ -118,6 +161,17 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     if (voiceOn) speakAsync(text, opts);
   }, [voiceOn]);
 
+  // 3-2-1 count-in — the map closes into this before the workout resumes or a
+  // freely-selected exercise starts (spec 2 + 4).
+  const countIn = useCallback(async () => {
+    for (const n of ['3', '2', '1']) {
+      setAnnouncer(n);
+      playBeep();
+      if (voiceOn) speakAsync(n, { rate: 1.35 });
+      await delay(650);
+    }
+  }, [voiceOn]);
+
   // Wait helper that respects pause and version-cancellation.
   const waitSec = useCallback(async (version, seconds, onTick) => {
     let remaining = seconds;
@@ -131,6 +185,34 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     onTick?.(0);
     return versionRef.current === version;
   }, []);
+
+  // Spec 6 — an exercise's LAST set just landed: mark it done (no auto-advance;
+  // the map owns navigation now), toast the exact XP the summary will bank,
+  // then auto-slide the map up with the next exercise glowing.
+  const finishExercise = useCallback(() => {
+    versionRef.current += 1;      // stop the runner cleanly
+    setPhase('done');
+    setDisplay(0);
+    onCompleteExercise?.();
+    setJustDoneIdx(exerciseIdx);
+    setToast({ name: ex.name, xp: XP_PER_FIT_EXERCISE });
+    // Next glow target: first queued after this one (wrapping); if the only
+    // rows left were skipped, offer the first of those. Only DONE is permanent.
+    const n = exercises.length;
+    const doneAfter = (i) => i === exerciseIdx || completed[i];
+    let target = null;
+    for (let d = 1; d < n && target === null; d++) { const i = (exerciseIdx + d) % n; if (!doneAfter(i) && !skipped[i]) target = i; }
+    for (let d = 1; d < n && target === null; d++) { const i = (exerciseIdx + d) % n; if (!doneAfter(i)) target = i; }
+    flowTimers.current.forEach(clearTimeout);
+    if (target === null) {
+      flowTimers.current = [setTimeout(() => onFinishWorkout?.(), 1600)];
+      return;
+    }
+    flowTimers.current = [
+      setTimeout(() => { setGlowIdx(target); setMapMode('complete'); setMapOpen(true); }, 1200),
+      setTimeout(() => setToast(null), 2600),
+    ];
+  }, [exerciseIdx, ex, exercises.length, completed, skipped, onCompleteExercise, onFinishWorkout]);
 
   const finishSet = useCallback(async (version) => {
     if (versionRef.current !== version) return;
@@ -159,9 +241,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       say(`${ex.name} complete.`);
       await delay(900);
       if (versionRef.current !== version) return;
-      onComplete();
+      finishExercise();
     }
-  }, [set, totalSets, restMax, ex, plan, exId, weightUnit, onComplete, say, waitSec, saveLoggedWeight]);
+  }, [set, totalSets, restMax, ex, plan, exId, weightUnit, finishExercise, say, waitSec, saveLoggedWeight]);
 
   // Stable invalidator so effect cleanups don't read the ref directly.
   const invalidate = useCallback(() => { versionRef.current += 1; }, []);
@@ -169,10 +251,17 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   // Per-set runner — announces the intro, then drives the mode. Keyed on the
   // set/exercise only: `phase` is pure UI state, so mid-set phase changes
   // (intro → active) must NOT restart or invalidate the running loop.
+  // A reorder changes `exerciseIdx` (same exercise, new position) while the
+  // map holds the player paused — so the runner FIRST waits out the pause,
+  // keeping any restart silent until the 3-2-1 releases it.
   useEffect(() => {
     const version = ++versionRef.current;
 
     const run = async () => {
+      if (pausedRef.current) {
+        const ok = await awaitResume({ isPaused: () => pausedRef.current, isStale: () => versionRef.current !== version });
+        if (!ok) return;
+      }
       setPhase('intro');
       setDisplay(0);
       if (plan.kind === 'reps') {
@@ -271,6 +360,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [set, exerciseIdx]);
 
+  useEffect(() => () => flowTimers.current.forEach(clearTimeout), []);
+
   const handlePauseToggle = () => {
     setPaused(p => {
       const next = !p;
@@ -304,7 +395,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       setPhase('intro');
       setDisplay(0);
     } else {
-      onComplete();
+      finishExercise();
     }
   };
 
@@ -357,6 +448,226 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   };
   const bumpReady = (d) => { setChangeWtOpen(true); setReadyWeight(w => Math.max(wStep, w + d)); };
 
+  // ── WORKOUT MAP open / close (spec 2) ─────────────────────────────────────
+  const openMap = useCallback(() => {
+    if (mapOpen) return;
+    // Opening pauses the workout; remember whether it was actually running so
+    // closing only auto-resumes what the map itself paused.
+    wasRunningRef.current = !pausedRef.current && phase !== 'done';
+    if (!pausedRef.current) { cancelSpeech(); setPaused(true); }
+    setAnnouncer('Paused — map open');
+    setMapMode('normal');
+    setMapOpen(true);
+  }, [mapOpen, phase]);
+
+  const clearGesture = useCallback(() => {
+    const g = gestRef.current;
+    if (g) { clearTimeout(g.holdTimer); clearTimeout(g.chargeTimer); }
+    gestRef.current = null;
+    setGest(null);
+  }, []);
+
+  // Closing the sheet. Normal mode: auto-resume with a 3-2-1 count (spec 2).
+  // Complete mode: any close starts the glowing exercise — swipe down, ✕ or
+  // backdrop all mean "go" (spec 6).
+  const closeMap = useCallback(async () => {
+    setMapOpen(false);
+    clearGesture();
+    if (mapMode === 'complete') {
+      const target = glowIdx;
+      setMapMode('normal');
+      if (target == null) { onFinishWorkout?.(); return; }
+      await countIn();
+      onJumpExercise?.(target);
+      return;
+    }
+    if (wasRunningRef.current) {
+      wasRunningRef.current = false;
+      await countIn();
+      setPaused(false);
+      setAnnouncer('Go!');
+    }
+  }, [mapMode, glowIdx, countIn, onJumpExercise, onFinishWorkout, clearGesture]);
+
+  // Hold-to-start success (spec 4): haptic, collapse, 3-2-1, start. Holding the
+  // CURRENT row is simply "resume here".
+  const startFromRow = useCallback(async (idx) => {
+    try { navigator.vibrate?.(30); } catch { /* no haptics */ }
+    setMapOpen(false);
+    setMapMode('normal');
+    clearGesture();
+    await countIn();
+    if (idx === exerciseIdx && phase !== 'done') {
+      wasRunningRef.current = false;
+      setPaused(false);
+      setAnnouncer('Go!');
+      return;
+    }
+    onJumpExercise?.(idx);
+  }, [exerciseIdx, phase, countIn, onJumpExercise, clearGesture]);
+
+  // ── Row gesture engine (spec 8) — one hold, three outcomes ────────────────
+  // pointerdown arms a 250ms hold. Movement before it fires = native scroll.
+  // Once charging: full 700ms = start · horizontal >8px = skip-swipe ·
+  // vertical >8px = reorder drag. First axis to win owns the gesture.
+  const [gest, setGest] = useState(null); // {idx, mode, dx, dy, slot, width}
+  const gestRef = useRef(null);
+  const rowRefs = useRef({});
+  const listRef = useRef(null);
+  const dragMeta = useRef(null); // {centers:[{idx,cy}], startTop, height, from}
+
+  // Native scroll must keep working when idle, so rows stay `touch-action:
+  // pan-y` and we only block scrolling while a gesture is engaged.
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || !mapOpen) return undefined;
+    const h = (e) => { const g = gestRef.current; if (g && g.mode !== 'pending') e.preventDefault(); };
+    el.addEventListener('touchmove', h, { passive: false });
+    return () => el.removeEventListener('touchmove', h);
+  }, [mapOpen]);
+
+  const engageCharge = useCallback((idx) => {
+    const row = rowRefs.current[idx];
+    const g = gestRef.current;
+    if (!g) return;
+    g.mode = 'charge';
+    g.chargeTimer = setTimeout(() => {
+      const cur = gestRef.current;
+      if (cur && cur.idx === idx && cur.mode === 'charge') startFromRow(idx);
+    }, CHARGE_MS);
+    setGest({ idx, mode: 'charge', dx: 0, dy: 0, width: row?.offsetWidth || 300 });
+  }, [startFromRow]);
+
+  const beginDrag = useCallback((idx) => {
+    const g = gestRef.current;
+    if (!g) return;
+    clearTimeout(g.chargeTimer);
+    g.mode = 'drag';
+    const list = listRef.current;
+    const row = rowRefs.current[idx];
+    const listTop = list?.getBoundingClientRect().top || 0;
+    const r = row?.getBoundingClientRect();
+    const centers = [];
+    exercises.forEach((_, i) => {
+      const st = statusOf(i);
+      if (i !== idx && (st === 'now' || st === 'todo')) {
+        const rr = rowRefs.current[i]?.getBoundingClientRect();
+        if (rr) centers.push({ idx: i, cy: rr.top + rr.height / 2 });
+      }
+    });
+    centers.sort((a, b) => a.cy - b.cy);
+    dragMeta.current = {
+      centers,
+      startTop: (r?.top || 0) - listTop + (list?.scrollTop || 0),
+      startCenter: (r?.top || 0) + (r?.height || 52) / 2,
+      height: r?.height || 52,
+      from: idx,
+    };
+    const initSlot = centers.filter(c => c.cy < (r?.top || 0) + (r?.height || 52) / 2).length;
+    g.dy = 0; g.slot = initSlot;
+    setGest({ idx, mode: 'drag', dx: 0, dy: 0, slot: initSlot, width: row?.offsetWidth || 300 });
+  }, [exercises, statusOf]);
+
+  const rowPointerDown = useCallback((e, idx) => {
+    const st = statusOf(idx);
+    if (st === 'done') return;               // locked — no gestures at all
+    if (gestRef.current) clearGesture();
+    const g = { idx, mode: 'pending', x0: e.clientX, y0: e.clientY, pointerId: e.pointerId };
+    g.holdTimer = setTimeout(() => {
+      if (gestRef.current === g && g.mode === 'pending') engageCharge(idx);
+    }, HOLD_MS);
+    gestRef.current = g;
+  }, [statusOf, engageCharge, clearGesture]);
+
+  const rowPointerMove = useCallback((e, idx) => {
+    const g = gestRef.current;
+    if (!g || g.idx !== idx) return;
+    const dx = e.clientX - g.x0;
+    const dy = e.clientY - g.y0;
+    if (g.mode === 'pending') {
+      // Moved before the hold matured → this is a scroll, not a gesture.
+      if (Math.abs(dx) > MOVE_SLOP || Math.abs(dy) > MOVE_SLOP) { clearTimeout(g.holdTimer); gestRef.current = null; }
+      return;
+    }
+    if (g.mode === 'charge') {
+      if (Math.abs(dx) > MOVE_SLOP && Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal wins → skip-swipe (skipped rows are already skipped).
+        clearTimeout(g.chargeTimer);
+        if (statusOf(idx) === 'skipped') { clearGesture(); return; }
+        g.mode = 'swipe';
+        g.dx = dx;
+        setGest({ idx, mode: 'swipe', dx, dy: 0, width: rowRefs.current[idx]?.offsetWidth || 300 });
+      } else if (Math.abs(dy) > MOVE_SLOP) {
+        // Vertical wins → reorder drag; skipped rows are pinned (spec 7).
+        const st = statusOf(idx);
+        if (st !== 'now' && st !== 'todo') { clearTimeout(g.chargeTimer); clearGesture(); return; }
+        beginDrag(idx);
+      }
+      return;
+    }
+    if (g.mode === 'swipe') { g.dx = dx; setGest(s => (s ? { ...s, dx } : s)); return; }
+    if (g.mode === 'drag') {
+      const m = dragMeta.current;
+      if (!m) return;
+      const cy = m.startCenter + dy;
+      const slot = m.centers.filter(c => c.cy < cy).length;
+      g.dy = dy; g.slot = slot;
+      setGest(s => (s ? { ...s, dy, slot } : s));
+    }
+  }, [statusOf, beginDrag, clearGesture]);
+
+  const rowPointerUp = useCallback((idx) => {
+    const g = gestRef.current;
+    if (!g || g.idx !== idx) return;
+    if (g.mode === 'pending') { clearTimeout(g.holdTimer); gestRef.current = null; return; }
+    if (g.mode === 'charge') {
+      // Released early — the charge drains back (spec 4).
+      clearTimeout(g.chargeTimer);
+      gestRef.current = null;
+      setGest({ idx, mode: 'drain' });
+      setTimeout(() => setGest(s => (s?.mode === 'drain' ? null : s)), 260);
+      return;
+    }
+    if (g.mode === 'swipe') {
+      const width = rowRefs.current[idx]?.offsetWidth || 300;
+      // Commit reads the REF, not state — the state closure can trail the
+      // final pointermove by one event.
+      const commit = Math.abs(g.dx ?? 0) > width * SKIP_FRACTION;
+      clearGesture();
+      if (commit) {
+        try { navigator.vibrate?.(20); } catch { /* no haptics */ }
+        onMarkSkipped?.(idx);
+      }
+      return;
+    }
+    if (g.mode === 'drag') {
+      const slot = g.slot ?? 0;
+      const from = idx;
+      clearGesture();
+      const order = weaveOrder(exercises.length, (i) => { const st = statusOf(i); return st === 'done' || st === 'skipped'; }, from, slot);
+      // No-op drops don't round-trip through the parent.
+      if (order.some((o, i2) => o !== i2)) onReorder?.(order);
+    }
+  }, [statusOf, exercises.length, onMarkSkipped, onReorder, clearGesture]);
+
+  // Move/up are delegated to window while the map is open: a drag re-renders
+  // its row as the DROP placeholder, which would destroy per-row handlers
+  // mid-gesture (the drag froze exactly like that in testing). The window
+  // listeners survive any re-render; pointerId keeps them on our gesture.
+  useEffect(() => {
+    if (!mapOpen) return undefined;
+    const move = (e) => { const g = gestRef.current; if (g && e.pointerId === g.pointerId) rowPointerMove(e, g.idx); };
+    const up = (e) => { const g = gestRef.current; if (g && e.pointerId === g.pointerId) rowPointerUp(g.idx); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+  }, [mapOpen, rowPointerMove, rowPointerUp]);
+
   const kindLabel = plan.kind === 'reps' ? `${plan.reps} REPS · ON THE COUNT`
     : plan.kind === 'weighted' ? `${plan.reps} REPS · ${fmtClock(plan.windowSec)} WINDOW`
     : `${plan.seconds}s HOLD`;
@@ -393,6 +704,120 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     </div>
   );
 
+  // ── Map sheet rendering ───────────────────────────────────────────────────
+  // During a drag the list renders in the PREVIEW order with a dashed gold
+  // "DROP HERE · SLOT n" placeholder where the row will land (spec 7).
+  const dragging = gest?.mode === 'drag';
+  const previewOrder = dragging
+    ? weaveOrder(exercises.length, (i) => { const st = statusOf(i); return st === 'done' || st === 'skipped'; }, gest.idx, gest.slot ?? 0)
+    : exercises.map((_, i) => i);
+  const dropSlotNumber = dragging ? previewOrder.indexOf(gest.idx) + 1 : 0;
+
+  const mapRow = (i) => {
+    const e2 = exercises[i];
+    const st = statusOf(i);
+    const nSets = e2.sets || 3;
+    const isGlow = mapMode === 'complete' && i === glowIdx;
+    const locked = st === 'done' || st === 'skipped';
+    const g = gest && gest.idx === i ? gest : null;
+    const charging = g?.mode === 'charge';
+    const draining = g?.mode === 'drain';
+    const swiping = g?.mode === 'swipe';
+
+    // The dragged row renders as the drop placeholder in its preview slot.
+    if (dragging && i === gest.idx) {
+      return (
+        <div key={`drop-${i}`} style={{ boxSizing: 'border-box', height: 52, borderRadius: 9, border: `2px dashed ${GOLD}`, background: 'rgba(253,224,71,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 800, color: GOLD, letterSpacing: '0.14em' }}>DROP HERE · SLOT {dropSlotNumber}</span>
+        </div>
+      );
+    }
+
+    return (
+      <div key={e2._uid || i} style={{ position: 'relative', borderRadius: 9, overflow: 'hidden' }}>
+        {/* Red SKIP backing revealed by the swipe (spec 5) */}
+        {swiping && (
+          <div style={{ position: 'absolute', inset: 0, borderRadius: 9, background: 'rgba(239,68,68,0.22)', border: '1px solid rgba(239,68,68,0.5)', display: 'flex', alignItems: 'center', justifyContent: (gest.dx ?? 0) < 0 ? 'flex-end' : 'flex-start', padding: '0 14px' }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 900, color: '#ff8a8a', letterSpacing: '0.14em' }}>SKIP ⇥</span>
+          </div>
+        )}
+        <div
+          ref={(el) => { rowRefs.current[i] = el; }}
+          onPointerDown={(e) => rowPointerDown(e, i)}
+          className={isGlow ? 'wm-glow' : undefined}
+          style={{
+            position: 'relative', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 9,
+            boxSizing: 'border-box', minHeight: 52, touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none',
+            background: isGlow ? 'linear-gradient(135deg, rgba(253,224,71,0.12), rgba(168,85,247,0.08))' : st === 'now' ? 'rgba(168,85,247,0.13)' : '#1a0a2e',
+            border: isGlow ? `2px solid ${GOLD}` : st === 'now' ? `1.5px solid ${VIOLET}` : '1px solid rgba(255,255,255,0.06)',
+            opacity: dragging && locked ? 0.55 : locked && !isGlow ? 0.78 : 1,
+            transform: swiping ? `translateX(${gest.dx}px)` : 'none',
+            transition: swiping ? 'none' : 'transform 0.2s ease, opacity 0.2s ease',
+            cursor: st === 'done' ? 'default' : 'grab',
+          }}
+        >
+          {/* Charge fill — violet→gold sweep with a glowing leading edge (spec 4) */}
+          {(charging || draining) && (
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: charging ? '100%' : '0%', transition: `width ${charging ? CHARGE_MS : 220}ms linear`, background: `linear-gradient(90deg, ${VIOLET}55, ${GOLD}66)`, boxShadow: `inset -6px 0 12px ${GOLD}80`, pointerEvents: 'none' }}/>
+          )}
+          <span style={{ width: 22, textAlign: 'right', flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: st === 'now' ? '#c9a6ff' : C.faint, position: 'relative' }}>
+            {locked ? '🔒' : (st === 'now' || st === 'todo') ? '≡' : ''}{previewOrder.indexOf(i) + 1}
+          </span>
+          <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: st === 'now' || isGlow ? '#fff' : st === 'done' ? '#e8dcc8' : C.muted, textDecoration: st === 'skipped' ? 'line-through' : 'none' }}>{e2.name}</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, marginTop: 1 }}>{nSets}×{e2.reps} · rest {e2.restSeconds || parseInt(e2.rest) || 60}s</div>
+          </div>
+          <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+            {charging ? (
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: GOLD, letterSpacing: '0.1em' }}>HOLD… ⚡</span>
+            ) : isGlow ? (
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: '#0a0014', letterSpacing: '0.08em', background: GOLD, borderRadius: 6, padding: '4px 8px', boxShadow: '0 0 12px rgba(253,224,71,0.5)' }}>▶ NEXT</span>
+            ) : st === 'now' ? (
+              <>
+                {Array.from({ length: nSets }, (_, s2) => (
+                  <span key={s2} style={{ width: 7, height: 7, borderRadius: 4, background: s2 < set - 1 ? GOLD : 'transparent', border: `1.5px solid ${s2 === set - 1 ? GOLD : 'rgba(255,255,255,0.25)'}` }}/>
+                ))}
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 800, color: GOLD, marginLeft: 3, letterSpacing: '0.08em' }}>SET {set}/{nSets}</span>
+              </>
+            ) : st === 'done' ? (
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: GOLD, letterSpacing: '0.1em' }}>✓ DONE{justDoneIdx === i ? ' · just now' : ''}</span>
+            ) : st === 'skipped' ? (
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: '#ff8a8a', letterSpacing: '0.1em' }}>SKIPPED</span>
+            ) : (
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.faint, letterSpacing: '0.1em' }}>{i === exerciseIdx + 1 ? 'UP NEXT' : 'QUEUED'}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Floating copy of the dragged row (lifted look: gold border, tilt, shadow).
+  const dragFloat = dragging && dragMeta.current ? (
+    <div style={{ position: 'absolute', left: 12, right: 12, top: dragMeta.current.startTop + (gest.dy ?? 0), zIndex: 5, pointerEvents: 'none', borderRadius: 9, border: `2px solid ${GOLD}`, background: '#241640', boxShadow: '0 14px 34px rgba(0,0,0,0.7)', transform: 'rotate(1.5deg)', padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 10, minHeight: 52, boxSizing: 'border-box' }}>
+      <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: GOLD }}>≡</span>
+      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{exercises[gest.idx]?.name}</div>
+    </div>
+  ) : null;
+
+  // Sheet header swipe-down → close (grab handle region).
+  const sheetDown = useRef(null);
+  const headerPointerDown = (e) => { sheetDown.current = { y0: e.clientY }; };
+  const headerPointerMove = (e) => {
+    const s = sheetDown.current;
+    if (s && e.clientY - s.y0 > 80) { sheetDown.current = null; closeMap(); }
+  };
+  const headerPointerUp = () => { sheetDown.current = null; };
+
+  // Binder tab swipe-up → open.
+  const tabDown = useRef(null);
+  const tabPointerDown = (e) => { tabDown.current = { y0: e.clientY }; };
+  const tabPointerMove = (e) => {
+    const t = tabDown.current;
+    if (t && t.y0 - e.clientY > 18) { tabDown.current = null; openMap(); }
+  };
+  const tabPointerUp = () => { tabDown.current = null; };
+
   return (
     <PhoneFrame useBrandBg>
       <Embers count={2}/>
@@ -401,7 +826,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
         {/* Training Mode logo header — back arrow returns to the list */}
         <TrainingHeader
           title="GUIDED WORKOUT"
-          subtitle={`Exercise ${exerciseIdx + 1} of ${exercises.length} · review & swap`}
+          subtitle={`Exercise ${exerciseIdx + 1} of ${exercises.length} · any order — open the map`}
           showBack
           onBack={handleBack}
           onHome={handleBack}
@@ -412,12 +837,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               fills set by set), tappable to open the workout map. */}
           <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
-            <button onClick={() => setMapOpen(true)} aria-label="Open workout map" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.4)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, letterSpacing: '0.12em' }}>
-              <List size={10} color={VIOLET}/> MAP
-            </button>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>SET {set}/{totalSets}</span>
           </div>
-          <div role="button" aria-label="Open workout map" onClick={() => setMapOpen(true)} style={{ flexShrink: 0, display: 'flex', gap: 3, marginBottom: 12, cursor: 'pointer', padding: '2px 0' }}>
+          <div role="button" aria-label="Open workout map" onClick={openMap} style={{ flexShrink: 0, display: 'flex', gap: 3, marginBottom: 12, cursor: 'pointer', padding: '2px 0' }}>
             {exercises.map((_, i) => {
               const st = statusOf(i);
               const setFill = Math.max(0.08, (set - 1 + (phase === 'rest' ? 1 : 0)) / totalSets);
@@ -438,7 +860,12 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: VIOLET, letterSpacing: '0.14em' }}>{ex.muscle} · {kindLabel}</div>
             </div>
 
-            {phase === 'getready' ? (
+            {phase === 'done' ? (
+              <div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: GOLD, lineHeight: 1, textShadow: '0 0 24px rgba(253,224,71,0.55)' }}>✓</div>
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.18em', marginTop: 10 }}>EXERCISE COMPLETE</div>
+              </div>
+            ) : phase === 'getready' ? (
               <div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#f97316', letterSpacing: '0.22em', marginBottom: 8 }}>NEXT UP</div>
                 <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 13, color: '#c4a4d8', marginBottom: 14 }}>{totalSets} sets · {plan.reps} reps</div>
@@ -506,7 +933,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
             </div>
 
             {/* Controls — get-ready shows CHANGE WT + START — LIFT (design 39) */}
-            {phase === 'getready' ? (
+            {phase === 'done' ? null : phase === 'getready' ? (
               <div style={{ flexShrink: 0, display: 'flex', gap: 8, width: '100%', maxWidth: 360 }}>
                 <button onClick={() => setChangeWtOpen(o => !o)} style={{ flex: 1, height: 48, borderRadius: 11, cursor: 'pointer', background: changeWtOpen ? 'rgba(253,224,71,0.14)' : 'rgba(16,4,30,0.85)', border: `1.5px solid ${changeWtOpen ? GOLD : 'rgba(168,85,247,0.4)'}`, color: changeWtOpen ? GOLD : '#d9d1ef', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.08em' }}>CHANGE WT</button>
                 <button onClick={handleStartLift} style={{ flex: 1.6, height: 48, borderRadius: 11, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, boxShadow: '0 0 16px rgba(253,224,71,0.35)' }}>
@@ -517,7 +944,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           </div>
 
           {/* Cadence slider (rep-counted sets only) */}
-          {plan.kind === 'reps' && (
+          {plan.kind === 'reps' && phase !== 'done' && (
             <div style={{ flexShrink: 0, marginTop: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                 <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.faint, letterSpacing: '0.14em' }}>CADENCE</span>
@@ -538,7 +965,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                 : st === 'skipped' ? 'SKIPPED'
                 : i === exerciseIdx + 1 ? 'UP NEXT ▶' : `#${i + 1}`;
               return (
-                <div key={i} ref={st === 'now' ? curCardRef : null} onClick={() => setMapOpen(true)} style={{
+                <div key={e2._uid || i} ref={st === 'now' ? curCardRef : null} onClick={openMap} style={{
                   flexShrink: 0, scrollSnapAlign: 'center', width: 124, boxSizing: 'border-box', padding: '6px 9px', borderRadius: 9, cursor: 'pointer',
                   background: st === 'now' ? 'rgba(168,85,247,0.14)' : 'rgba(10,0,20,0.6)',
                   border: st === 'now' ? `1.5px solid ${VIOLET}` : st === 'done' ? '1px solid rgba(253,224,71,0.4)' : st === 'skipped' ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(255,255,255,0.07)',
@@ -554,45 +981,89 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
         </div>
       </div>
 
-      {/* WORKOUT MAP — the full session as a live checklist: done ✓, skipped,
-          the current exercise with per-set pips, everything still to come. */}
-      {mapOpen && (
-        <BottomSheet title="WORKOUT MAP" accent={VIOLET} onClose={() => setMapOpen(false)}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {exercises.map((e2, i) => {
-              const st = statusOf(i);
-              const nSets = e2.sets || 3;
-              return (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 9,
-                  background: st === 'now' ? 'rgba(168,85,247,0.13)' : 'rgba(10,0,20,0.6)',
-                  border: st === 'now' ? `1.5px solid ${VIOLET}` : '1px solid rgba(255,255,255,0.06)',
-                  opacity: st === 'done' || st === 'skipped' ? 0.78 : 1,
-                }}>
-                  <span style={{ width: 16, textAlign: 'right', fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: st === 'now' ? '#c9a6ff' : C.faint }}>{i + 1}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: st === 'now' ? '#fff' : st === 'done' ? '#e8dcc8' : C.muted, textDecoration: st === 'skipped' ? 'line-through' : 'none' }}>{e2.name}</div>
-                    <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, marginTop: 1 }}>{nSets}×{e2.reps} · rest {e2.restSeconds || parseInt(e2.rest) || 60}s</div>
-                  </div>
-                  {st === 'now' ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {Array.from({ length: nSets }, (_, s2) => (
-                        <span key={s2} style={{ width: 7, height: 7, borderRadius: 4, background: s2 < set - 1 ? GOLD : 'transparent', border: `1.5px solid ${s2 === set - 1 ? GOLD : 'rgba(255,255,255,0.25)'}` }}/>
-                      ))}
-                      <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 800, color: GOLD, marginLeft: 3, letterSpacing: '0.08em' }}>SET {set}/{nSets}</span>
-                    </div>
-                  ) : st === 'done' ? (
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: GOLD, letterSpacing: '0.1em' }}>✓ DONE</span>
-                  ) : st === 'skipped' ? (
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: '#ff8a8a', letterSpacing: '0.1em' }}>SKIPPED</span>
-                  ) : (
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.faint, letterSpacing: '0.1em' }}>{i === exerciseIdx + 1 ? 'UP NEXT' : 'QUEUED'}</span>
-                  )}
-                </div>
-              );
-            })}
+      {/* Spec 6 — per-exercise DONE toast with the exact XP the summary banks */}
+      {toast && (
+        <div style={{ position: 'fixed', ...fixedColumnBar, top: 66, zIndex: 130, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div style={{ borderRadius: 11, border: `1.5px solid ${GOLD}`, background: 'rgba(14,5,26,0.97)', boxShadow: '0 0 24px rgba(253,224,71,0.35)', padding: '10px 16px', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.08em' }}>
+            ✓ {toast.name.toUpperCase()} — DONE · +{toast.xp} XP
           </div>
-        </BottomSheet>
+        </div>
+      )}
+
+      {/* Spec 2 — binder tab: the map's permanent handle above the tab bar */}
+      {!mapOpen && (
+        <div
+          role="button"
+          aria-label="Open workout map"
+          onClick={openMap}
+          onPointerDown={tabPointerDown}
+          onPointerMove={tabPointerMove}
+          onPointerUp={tabPointerUp}
+          style={{
+            position: 'fixed', ...fixedColumnBar, bottom: 'calc(58px + env(safe-area-inset-bottom, 0px))', zIndex: 110,
+            height: 52, boxSizing: 'border-box', cursor: 'pointer', touchAction: 'none',
+            background: 'rgba(14,5,26,0.97)', border: `1.5px solid ${VIOLET}66`, borderBottom: 'none',
+            borderRadius: '14px 14px 0 0', boxShadow: '0 -6px 22px rgba(88,28,135,0.35)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}
+        >
+          <div style={{ width: 44, height: 4, borderRadius: 999, background: 'rgba(168,85,247,0.55)' }}/>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: '#c9a6ff', letterSpacing: '0.1em' }}>
+            ≡ WORKOUT MAP · <span style={{ color: C.faint, fontWeight: 700 }}>swipe up · pauses the workout</span> · <span style={{ color: GOLD }}>{doneCount}/{exercises.length}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Spec 3 — the WORKOUT MAP sheet. Portalled to body so it genuinely
+          covers the tab bar (PhoneFrame's isolation caps in-frame z-indexes). */}
+      {mapOpen && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes wmSlideUp { from { transform: translateY(28px); opacity: 0.4; } to { transform: translateY(0); opacity: 1; } }
+            @keyframes wmGlowPulse { 0%,100% { box-shadow: 0 0 10px rgba(253,224,71,0.35); } 50% { box-shadow: 0 0 22px rgba(253,224,71,0.7); } }
+            .wm-glow { animation: wmGlowPulse 1.6s ease-in-out infinite; }
+          ` }}/>
+          <div onClick={closeMap} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
+          <div style={{
+            width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', height: '90dvh',
+            background: 'rgba(14,5,26,0.97)', borderRadius: '16px 16px 0 0',
+            border: `1px solid ${VIOLET}66`, borderBottom: 'none',
+            display: 'flex', flexDirection: 'column', animation: 'wmSlideUp 0.28s ease',
+          }}>
+            {/* Header: grab handle (swipe down closes → resume / start-next) */}
+            <div
+              onPointerDown={headerPointerDown}
+              onPointerMove={headerPointerMove}
+              onPointerUp={headerPointerUp}
+              style={{ flexShrink: 0, padding: '8px 14px 6px', touchAction: 'none', cursor: 'grab' }}
+            >
+              <div style={{ width: 44, height: 4, borderRadius: 999, background: 'rgba(168,85,247,0.55)', margin: '0 auto 8px' }}/>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#fff', letterSpacing: '0.08em' }}>WORKOUT MAP</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: GOLD, letterSpacing: '0.08em' }}>{doneCount}/{exercises.length}</span>
+                  <button onClick={closeMap} aria-label="Close map" style={{ background: 'none', border: 'none', color: '#c9a6ff', cursor: 'pointer', display: 'flex', padding: 6, margin: -6 }}>
+                    <X size={18}/>
+                  </button>
+                </div>
+              </div>
+              <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: C.faint, marginTop: 4 }}>
+                {mapMode === 'complete'
+                  ? 'swipe down to start the glowing exercise · or hold any other row'
+                  : 'any order · hold to start · hold + swipe to skip · hold + drag ↕ to reorder · done rows lock.'}
+              </div>
+            </div>
+
+            {/* Rows — scrolls at 6 and at 10+ (spec 3) */}
+            <div ref={listRef} data-wm-gestures="delegated" className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '6px 12px calc(16px + env(safe-area-inset-bottom, 0px))', position: 'relative' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {previewOrder.map((i) => mapRow(i))}
+              </div>
+              {dragFloat}
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Item 2 — shared END-session confirm (matches FightFocusTimer / CampFitSetRunner) */}
