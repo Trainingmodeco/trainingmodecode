@@ -3,6 +3,20 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-08-19 · 10-workout-map-free-select.md** — Workout Builder guided
+  player gets its navigation layer: binder tab above the tab bar opens a
+  full-height WORKOUT MAP (pauses the workout; closing auto-resumes with a
+  3-2-1 count). Any non-done exercise starts with press-and-hold (700ms
+  violet→gold charge), hold+swipe skips, hold+drag ↕ reorders with a live
+  DROP HERE placeholder while DONE/SKIPPED rows stay pinned in place. On an
+  exercise's last set the map auto-slides up: gold `+15 XP` toast, finished
+  row locks to `✓ DONE · just now`, the next target glows with a `▶ NEXT`
+  chip, and any close starts it. Player is keyed on a stable per-row `_uid`
+  so reordering never remounts the current exercise (set progress survives).
+  Implemented in `FitBuilderGuidedPlayer.jsx` + `FitBuilderWorkout.jsx`;
+  `XP_PER_FIT_EXERCISE` exported from `data/userStats.js` so the toast shows
+  the real award. Gesture move/up delegated to `window` (per-row handlers
+  died when the drag placeholder re-rendered the row).
 - **2026-07-25 · 09-answer-the-bell.md (designs 49a / 49b / 49c)** — mandatory
   Answer the Bell gate before any **Training Arcade** final-boss session
   (black, breathing vignette + scanlines, eyes-only art, name slam, stat line,
