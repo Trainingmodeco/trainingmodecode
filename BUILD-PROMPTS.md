@@ -1355,3 +1355,96 @@ SecondaryButton / Card); no new design system.
 >   surfaces support it, they never compete with it.
 > - Never place a primary action in the bottom ~90px band (tab bar + safe
 >   area) unless it's an overlay covering the tab bar entirely.
+
+## PROMPT WB-E — Designer brief: TRAIN AGAIN card + last-time progression lines
+
+> Paste this into the design tool. Two additions to the Workout Builder that
+> make day 2 a one-tap experience and make progress visible on every row.
+> Nothing here adds a configuration step — both surfaces REMOVE decisions.
+>
+> ### Brand rules (match the existing app exactly)
+>
+> Deep violet/black background (#080012–#0a0014), gold accent #fde047 for
+> primary/progress, violet #a855f7 for secondary chrome, red #ef4444 reserved
+> for warnings, Orbitron for display/headers, Rajdhani for body, arcade-cabinet
+> framing, mobile 412×883, bottom tab bar (HOME · TRAIN · PROGRESS · PROFILE).
+> No new fonts or colours.
+>
+> ### Context
+>
+> The Workout Builder setup screen currently walks every session through
+> TARGET MUSCLES → EQUIPMENT → DIFFICULTY → GENERATE. Returning athletes
+> mostly want "same as last time, slightly harder." The app already logs the
+> weight and reps of every completed set (weight log) — it just never shows
+> them back. These two surfaces close that loop.
+>
+> **Progression logic (drives all the numbers shown):** if the athlete hit
+> the top of the rep range on every set last time → nudge up: +1 rep for
+> bodyweight moves, +2.5 lb (or +1.25 kg) for weighted. If they missed reps
+> → hold the same target. If it's a brand-new exercise → no line, the coach
+> sets the pace. If the suggested load beats their all-time best for that
+> exercise → it's a PR attempt.
+>
+> ### Surfaces to design (3)
+>
+> 1. **TRAIN AGAIN card — top of the Workout Builder setup screen, above
+>    TARGET MUSCLES.** The new hero of the screen: gold-accented card
+>    (the config sections below stay violet), full column width.
+>    Contents:
+>    - Eyebrow: `⚡ TRAIN AGAIN · PROGRESSION APPLIED` (small, gold,
+>      Orbitron).
+>    - Title: the last workout's name, e.g. `UPPER BODY BODYWEIGHT`.
+>    - Meta line (Rajdhani): `2 days ago · 6 exercises · Chest, Back ·
+>      Normal`.
+>    - Progression summary chips, max 2–3, e.g. `▲ +1 REP × 4 MOVES` and
+>      `▲ +2.5 LB ARCHER ROWS`, plus a quiet `= HOLD × 1` if some moves
+>      held. Gold ▲ for nudges. If everything holds (rough last session):
+>      one chip, `STEADY — SAME TARGETS`.
+>    - Primary CTA on the card: `▶ GO` (gold pill, right side) — the whole
+>      card is also tappable. Tapping goes STRAIGHT to the generated list
+>      with progression applied, skipping all config.
+>    - Beneath the card, a quiet one-line link: `or build something new
+>      below ↓` so the config sections read as the secondary path.
+>    - **State B — no history (first ever visit):** the card does not exist
+>      at all. Design the screen both ways; the no-history version is just
+>      today's screen.
+>    - **State C — stale history (>10 days):** same card, but the meta line
+>      leads with the gap — `12 days ago — ease back in` and the chips show
+>      `= HOLD` (no nudges after a long break).
+>
+> 2. **Last-time line on every exercise row — the generated workout list.**
+>    Current row: letter chip · name · `4x4-8 · 120s rest` · swap icon.
+>    Add a third line (small, Rajdhani):
+>    - Weighted, nudge up: `LAST 8·8·6 @ 25 LB` followed by a small gold
+>      chip `→ TRY 27.5`.
+>    - Bodyweight, nudge up: `LAST 8·8·8` + gold chip `→ TRY 9 REPS`.
+>    - Held: `LAST 6·5·5 @ 25 LB` + faint chip `= HOLD 25`.
+>    - PR attempt: the try-chip gains a tiny trophy — `→ TRY 30 🏆 PR`.
+>    - New exercise: no third line; instead a small faint `NEW` tag beside
+>      the name.
+>    Rows must not grow taller than ~64px — show a 6-row list fitting the
+>    412×883 viewport with REGENERATE / SAVE ROUTINE and the START button
+>    (START sits in the flow ~an inch below those two).
+>
+> 3. **Get-ready load callout (weighted first set, design 39).** The big
+>    gold LOAD number already exists with +/− steppers and a small
+>    `last time: 25 LB` line. Redesign that line as the progression story:
+>    `LAST TIME 25 LB → SUGGESTED 27.5` with the suggestion pre-loaded into
+>    the big number. When it's a PR attempt add a slim gold banner under the
+>    number: `🏆 PR ATTEMPT — YOUR BEST IS 27.5`. Keep START — LIFT and
+>    CHANGE WT exactly where they are.
+>
+> ### Rules
+>
+> - Gold = progress/nudge, faint = hold, violet stays chrome — never use red
+>   for a held target (holding is normal, not failure).
+> - The TRAIN AGAIN card must not push TARGET MUSCLES fully below the fold:
+>   card ≤ ~150px tall.
+> - Numbers are real data, never decoration — every weight/rep shown must be
+>   plausible against the row's `4x4-8` prescription.
+> - No new configuration inputs anywhere. If a surface needs a choice, it's
+>   designed wrong.
+> - Deliver: setup screen WITH card (state A), setup screen first-run
+>   (state B), stale-history card variant (state C), the 6-row list with
+>   last-time lines showing all four row variants, and the get-ready screen
+>   with the PR banner.
