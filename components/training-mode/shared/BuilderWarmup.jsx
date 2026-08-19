@@ -14,10 +14,9 @@ import { C } from '../Styles';
 //      out loud, rolling move to move until the 90 seconds are up.
 //   3. CUSTOM — a plain 90s clock: warm up your own way.
 //
-// The middle-top visual is a slot for a real exercise loop: it tries
-// /static/warmup/<move>.webp and falls back to an animated emoji figure, so
-// dropping the art in later (asset-lock pass) lights it up with no code
-// change. Skippable, always — a warm-up must never hold the workout hostage.
+// The middle-top visual is the app's standard pixel timer (same clock face as
+// every other block) — no exercise art. Skippable, always: a warm-up must
+// never hold the workout hostage.
 const GOLD = C.gold;
 const VIOLET = '#a855f7';
 const TOTAL_SEC = 90;
@@ -56,35 +55,9 @@ function buildSequence(muscleGroups = []) {
 }
 
 const CSS = `
-@keyframes bw-jump { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 @keyframes bw-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: none; } }
 @keyframes bw-pulse { 0%,100% { opacity: 0.65; } 50% { opacity: 1; } }
 `;
-
-// The gif slot: real loop art when it exists, bouncing emoji until then.
-function MoveVisual({ move }) {
-  const [imgOk, setImgOk] = useState(true);
-  useEffect(() => { setImgOk(true); }, [move?.id]);
-  return (
-    <div style={{
-      width: 132, height: 132, borderRadius: 16, margin: '0 auto 16px',
-      border: `1.5px solid ${VIOLET}55`, background: 'rgba(16,4,30,0.8)',
-      boxShadow: '0 0 24px rgba(168,85,247,0.25)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    }}>
-      {imgOk ? (
-        <img
-          src={`/static/warmup/${move.id}.webp`}
-          alt={move.name}
-          onError={() => setImgOk(false)}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-      ) : (
-        <span aria-hidden style={{ fontSize: 64, animation: 'bw-jump 0.7s ease-in-out infinite' }}>{move.emoji}</span>
-      )}
-    </div>
-  );
-}
 
 export default function BuilderWarmup({ muscleGroups, onDone, onSkip }) {
   useWakeLock(true);
@@ -211,8 +184,16 @@ export default function BuilderWarmup({ muscleGroups, onDone, onSkip }) {
           WARM UP · 90s
         </div>
 
-        {/* Middle-top visual — jumping jacks on the gate, the live move after */}
-        <MoveVisual move={phase === 'custom' ? LEAD : move}/>
+        {/* Middle-top: the app's standard pixel clock (static 1:30 on the
+            gate, live once the block starts) */}
+        <div style={{
+          fontFamily: "'Press Start 2P',monospace", fontSize: 34, marginBottom: 18,
+          color: phase !== 'choice' && left <= 5 ? GOLD : '#fff',
+          textShadow: '0 0 18px rgba(168,85,247,0.45)',
+          animation: phase !== 'choice' && left <= 5 ? 'bw-pulse 0.8s ease-in-out infinite' : 'none',
+        }}>
+          {String(Math.floor(left / 60))}:{String(left % 60).padStart(2, '0')}
+        </div>
 
         {phase === 'choice' ? (
           <div style={{ animation: 'bw-in 0.3s ease-out both', width: '100%' }}>
@@ -259,16 +240,6 @@ export default function BuilderWarmup({ muscleGroups, onDone, onSkip }) {
             <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 12.5, color: '#c4a4d8', marginTop: 6 }}>
               Move how you like — the bell calls the work.
             </div>
-          </div>
-        )}
-
-        {/* Big clock (hidden on the gate — the gate has its own 5s) */}
-        {phase !== 'choice' && (
-          <div style={{
-            marginTop: 16, fontFamily: "'Press Start 2P',monospace", fontSize: 30, color: left <= 5 ? GOLD : '#fff',
-            animation: left <= 5 ? 'bw-pulse 0.8s ease-in-out infinite' : 'none',
-          }}>
-            {String(Math.floor(left / 60))}:{String(left % 60).padStart(2, '0')}
           </div>
         )}
 

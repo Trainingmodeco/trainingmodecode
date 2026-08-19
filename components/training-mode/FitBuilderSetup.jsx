@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
@@ -87,6 +87,13 @@ const bodymapCSS = `
   0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.9); }
   50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.12); }
 }
+@keyframes wb-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
 `;
 
 function MuscleGlow({ x, y }) {
@@ -127,6 +134,10 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
   // Spec 11 — one-tap repeat of the last workout with progression baked in.
   // Null when there's no history (state B): the card simply doesn't exist.
   const [trainPlan] = useState(() => trainAgainPlan());
+  // GENERATE with zero muscles: shake + tell them why (never a silent no-op).
+  const [genNudge, setGenNudge] = useState(false);
+  const genNudgeTimer = useRef(0);
+  useEffect(() => () => clearTimeout(genNudgeTimer.current), []);
   // Programming state — edited in the PROGRAMMING sub-page, summarised on the row.
   const [programmingOpen, setProgrammingOpen] = useState(false);
   const [focus, setFocus] = useState('Strength');
@@ -148,7 +159,14 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
 
   const generate = () => {
     const muscleGroups = chips.flatMap(id => CHIPS.find(c => c.id === id)?.groups || []);
-    if (!muscleGroups.length) return;
+    if (!muscleGroups.length) {
+      // Beta find: this used to be a silent no-op — the button just ignored
+      // the tap, which reads as broken. Shake + say why instead.
+      setGenNudge(true);
+      clearTimeout(genNudgeTimer.current);
+      genNudgeTimer.current = setTimeout(() => setGenNudge(false), 1800);
+      return;
+    }
     onGenerate?.({ muscleGroups, equipment: cap(equipment), difficulty: cap(difficulty), focus, duration, cardioAddon, addCardio: false, setScheme: resolveScheme(schemeId, customScheme) });
   };
 
@@ -301,7 +319,12 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
               (Saved routines moved into the WORKOUT PROGRAMS page, under
               Duration — one door for everything pre-built.) */}
           <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '12px 0 8px' }}>{summary()}</div>
-          <div data-guide="wb-generate">
+          {genNudge && (
+            <div style={{ textAlign: 'center', font: "700 11px 'Rajdhani',sans-serif", color: '#f87171', marginBottom: 8 }}>
+              Pick at least one muscle group.
+            </div>
+          )}
+          <div data-guide="wb-generate" style={{ animation: genNudge ? 'wb-shake 0.45s ease' : 'none' }}>
           <TrainingCTA variant="gold" label="GENERATE WORKOUT" icon="⚙" height={44} onClick={generate} style={{ fontSize: 12.5, letterSpacing: '0.06em' }}/>
           </div>
         </div>

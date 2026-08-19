@@ -1448,3 +1448,52 @@ SecondaryButton / Card); no new design system.
 >   (state B), stale-history card variant (state C), the 6-row list with
 >   last-time lines showing all four row variants, and the get-ready screen
 >   with the PR banner.
+
+## PROMPT WB-F — Designer brief: per-exercise HISTORY sheet (trend + sessions)
+
+> Paste this into the design tool. One new surface: tap an exercise's
+> last-time line and see your whole story with that lift — trend, sessions,
+> best ever. The app already records every saved set (weight · reps · date);
+> nothing shows it back yet. This is the display layer only — no new inputs.
+>
+> ### Brand rules (match the existing app exactly)
+>
+> Deep violet/black background (#080012–#0a0014), gold #fde047 =
+> progress/PR/primary, violet #a855f7 = secondary chrome, red #ef4444
+> reserved for warnings, Orbitron display, Rajdhani body, 412×883, bottom tab
+> bar that any sheet must fully cover. No new fonts or colours.
+>
+> ### Entry points (design the touch affordance, keep it subtle)
+>
+> - The `LAST 8·8·6 @ 25 LB` line on a generated-list row.
+> - The `LAST TIME 25 LB → SUGGESTED 27.5` line on the weighted get-ready
+>   screen.
+> Both open the same sheet. Hint at tappability with a faint underline or a
+> tiny ⟩ — do not add buttons.
+>
+> ### The EXERCISE HISTORY sheet
+>
+> Bottom sheet over the tab bar, violet border, grab handle, ✕.
+> 1. **Header**: exercise name (white Orbitron, ellipsized) · muscle tag ·
+>    a gold pill `🏆 BEST 52.5 LB` (bodyweight moves: `🏆 BEST 12 REPS`).
+> 2. **Trend chart** — the hero. Last 8 sessions, one gold dot per session
+>    joined by a thin gold line on a faint violet dot-grid; Y = top working
+>    weight (bodyweight variant: top reps). PR sessions get a slightly
+>    larger dot with a soft glow. No axis clutter: just first/last date
+>    labels (8px Rajdhani) and a faint dashed line at the BEST value.
+> 3. **Session list** below, newest first, ~44px rows:
+>    `AUG 15 · 8·8·8 @ 52.5 LB` with a small gold `PR` tag on record days;
+>    faint divider between rows; list scrolls inside the sheet.
+> 4. States to deliver:
+>    - Weighted, rich history (6+ sessions, one PR in the middle).
+>    - Weighted, single session — chart area shows a quiet
+>      "one more session unlocks the trend" placeholder.
+>    - Bodyweight variant (reps trend).
+>    - Empty (never logged) — "Your first session writes the first line."
+>
+> ### Rules
+>
+> - Every number must be plausible against a 4×4-8 prescription and a
+>   2.5 lb progression step.
+> - Gold marks progress and PRs only; holding steady is neutral, never red.
+> - The chart is glanceable in one second — if it needs a legend, simplify.
