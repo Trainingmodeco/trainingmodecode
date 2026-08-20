@@ -1,0 +1,322 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remote Income Playbook</title>
+<style>
+  :root{
+    --ivory:#F6F3EB; --card:#FDFBF6; --pine:#1E3B31; --pine-soft:#2A4C40;
+    --sage:#8FA791; --gold:#B98F3E; --ink:#28302B; --muted:#5C685F;
+    --line:#DCD6C6; --chip:#EDE8DA;
+    --tier1:#2E6B4F; --tier2:#B98F3E; --tier3:#7A8B7D;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ivory:#131C17; --card:#1A2620; --pine:#DCE5DC; --pine-soft:#22362D;
+      --sage:#7E9884; --gold:#D4AE62; --ink:#E7E3D6; --muted:#A8B3A6;
+      --line:#31423A; --chip:#22362D;
+      --tier1:#6FBF97; --tier2:#D4AE62; --tier3:#93A796;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ivory:#131C17; --card:#1A2620; --pine:#DCE5DC; --pine-soft:#22362D;
+    --sage:#7E9884; --gold:#D4AE62; --ink:#E7E3D6; --muted:#A8B3A6;
+    --line:#31423A; --chip:#22362D;
+    --tier1:#6FBF97; --tier2:#D4AE62; --tier3:#93A796;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--ivory);color:var(--ink);
+    font:16px/1.65 "Avenir Next",Avenir,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:56px 24px 80px}
+  .eyebrow{
+    font:700 12px/1 "Avenir Next","Segoe UI",sans-serif;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;
+  }
+  h1{
+    font-family:Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;
+    font-size:42px;line-height:1.1;font-weight:600;color:var(--pine);
+    margin:0 0 10px;text-wrap:balance;
+  }
+  .lede{font-size:18px;color:var(--muted);max-width:62ch;margin:0}
+  h2{
+    font-family:Palatino,"Palatino Linotype",Georgia,serif;
+    font-size:27px;font-weight:600;color:var(--pine);
+    margin:56px 0 6px;text-wrap:balance;
+  }
+  h2 .num{color:var(--gold)}
+  h3{
+    font-size:16px;font-weight:700;color:var(--pine);
+    margin:34px 0 8px;letter-spacing:.02em;
+  }
+  .subtle{color:var(--muted);font-size:15px;max-width:65ch;margin:4px 0 16px}
+  p{max-width:65ch}
+  .rule{height:1px;background:var(--line);margin:22px 0 8px}
+
+  .tier{
+    display:inline-block;font:700 11px/1 "Avenir Next","Segoe UI",sans-serif;
+    letter-spacing:.12em;text-transform:uppercase;
+    padding:6px 10px;border-radius:999px;color:var(--ivory);
+  }
+  .t1{background:var(--tier1)} .t2{background:var(--tier2)} .t3{background:var(--tier3)}
+  :root[data-theme="dark"] .tier{color:#131C17}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tier{color:#131C17} }
+
+  .tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);margin:14px 0 6px}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+  th{
+    text-align:left;font:700 11.5px/1.3 "Avenir Next","Segoe UI",sans-serif;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--pine);font-weight:600}
+  td .rate{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--gold);font-weight:600}
+  a{color:var(--pine-soft);text-decoration-color:var(--sage);text-underline-offset:2px}
+  :root[data-theme="dark"] a{color:var(--sage)}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) a{color:var(--sage)} }
+
+  .callout{
+    background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);
+    border-radius:10px;padding:16px 20px;margin:18px 0;max-width:70ch;
+  }
+  .callout p{margin:6px 0}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;padding:0;list-style:none}
+  .chips li{
+    background:var(--chip);border:1px solid var(--line);border-radius:999px;
+    padding:6px 13px;font-size:13.5px;color:var(--ink);
+  }
+  ol.plan{padding-left:22px;max-width:68ch}
+  ol.plan li{margin:10px 0}
+  ol.plan b{color:var(--pine)}
+  .src{font-size:13.5px;color:var(--muted);max-width:75ch}
+  .src a{word-break:break-word}
+  footer{margin-top:64px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px;max-width:75ch}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Sunantinee “Mimi” Ewing · Prepared August 2026</p>
+  <h1>Remote Income Playbook</h1>
+  <p class="lede">
+    A skills audit of Mimi’s resume for work-from-home earning power, plus a master list
+    of the niche gig sites and marketplaces where each skill gets paid.
+  </p>
+
+  <h2><span class="num">Part 1 ·</span> The Skills Audit</h2>
+  <p class="subtle">
+    Every skill below is lifted straight from the resume and rated by how fast it can produce
+    remote income. The surprise finding: Mimi’s two most bankable remote assets aren’t
+    “nanny” at all — they’re <b>bilingual Thai–English fluency</b> and
+    <b>eleven years of sleep-training and newborn expertise</b>, both of which command
+    professional rates over Zoom.
+  </p>
+
+  <h3><span class="tier t1">Tier 1 — Can pay this week</span></h3>
+  <div class="tablebox"><table>
+    <tr><th>Resume skill</th><th>Remote service it becomes</th><th>Realistic rate</th><th>Why it pays fast</th></tr>
+    <tr>
+      <td><b>Thai (native) + English (fluent)</b></td>
+      <td>Over-the-phone / video interpreter</td>
+      <td class="rate">$25–39/hr</td>
+      <td>Interpreting companies hire continuously for Thai; work is from home, on-demand. Rarer language pairs beat English-only gig rates.</td>
+    </tr>
+    <tr>
+      <td><b>Parent-demographic life experience</b></td>
+      <td>Paid user-research participant (parenting &amp; childcare studies)</td>
+      <td class="rate">$50–250/study</td>
+      <td>Research panels actively recruit caregivers and bilingual participants; payouts land within days. Not a career — but it is literally “paid today.”</td>
+    </tr>
+    <tr>
+      <td><b>11 yrs childcare know-how</b></td>
+      <td>Online expert Q&amp;A (parenting category)</td>
+      <td class="rate">per-answer, ~$600–1,200/mo part-time</td>
+      <td>Q&amp;A platforms pay per accepted answer; childcare questions are constant.</td>
+    </tr>
+    <tr>
+      <td><b>Engaging, activity-based childcare</b></td>
+      <td>Virtual babysitting (video-call care: stories, crafts, games, homework company)</td>
+      <td class="rate">$15–28/hr</td>
+      <td>A real post-2020 category — parents book screen-time sitters for meetings and travel. Her resume is exactly the profile these platforms feature.</td>
+    </tr>
+    <tr>
+      <td><b>Thai language, again</b></td>
+      <td>Online Thai tutor (community tutor — no credential required)</td>
+      <td class="rate">$10–25/hr to start</td>
+      <td>Native speakers can list immediately on tutoring marketplaces; Thai has demand and thin supply compared to Spanish or French.</td>
+    </tr>
+  </table></div>
+
+  <h3><span class="tier t2">Tier 2 — Can pay this month</span></h3>
+  <div class="tablebox"><table>
+    <tr><th>Resume skill</th><th>Remote service it becomes</th><th>Realistic rate</th><th>What it takes</th></tr>
+    <tr>
+      <td><b>Sleep training (6 families, newborn→toddler)</b></td>
+      <td>Virtual sleep consulting — her single most valuable skill. Consults run over Zoom with a written sleep plan + follow-up texts.</td>
+      <td class="rate">$150–600/package</td>
+      <td>A simple booking page and 2–3 testimonials from her six families. Optional certification adds credibility and raises rates.</td>
+    </tr>
+    <tr>
+      <td><b>Newborn care from day 3 of life</b></td>
+      <td>Virtual newborn-prep sessions for expecting parents (feeding, routines, soothing, what to buy)</td>
+      <td class="rate">$75–150/session</td>
+      <td>Same setup as sleep consulting; bundles well with it.</td>
+    </tr>
+    <tr>
+      <td><b>Baby sign language (taught to ~7 children)</b></td>
+      <td>Live online classes for parent+baby groups</td>
+      <td class="rate">$18–21/learner-hr (~$50/hr class avg)</td>
+      <td>Kids’-class marketplaces approve new educators in weeks; no teaching credential required.</td>
+    </tr>
+    <tr>
+      <td><b>Meal prep + food-allergy safety</b></td>
+      <td>Custom family meal plans &amp; allergy-safe menu gigs; kids’ cooking classes online</td>
+      <td class="rate">$25–150/plan</td>
+      <td>Productize as fixed-price gigs; cooking classes for kids also fit the class marketplaces.</td>
+    </tr>
+    <tr>
+      <td><b>House management, scheduling, errands-by-phone</b></td>
+      <td>Virtual assistant / virtual family assistant (calendar, bookings, travel, household admin)</td>
+      <td class="rate">$18–35/hr</td>
+      <td>VA agencies hire US-based contractors on rolling basis; “household manager for busy families, now remote” is a strong pitch.</td>
+    </tr>
+  </table></div>
+
+  <h3><span class="tier t3">Tier 3 — Build over 3–6 months</span></h3>
+  <div class="tablebox"><table>
+    <tr><th>Asset</th><th>What it becomes</th><th>Upside</th></tr>
+    <tr>
+      <td><b>The whole resume</b></td>
+      <td>A parent-coaching practice: sleep + newborn + toddler routines as recurring packages, sourced from her own site and referrals</td>
+      <td>Established virtual parent coaches average ~$23/hr employed — but independent consultants with packages clear far more per hour.</td>
+    </tr>
+    <tr>
+      <td><b>Her methods</b></td>
+      <td>Digital products: a sleep-training guide, baby-sign starter deck, allergy-safe meal-plan bundles sold on her page</td>
+      <td>Passive income; each product doubles as marketing for consults.</td>
+    </tr>
+  </table></div>
+
+  <div class="callout">
+    <p><b>Coach’s bottom line:</b> the fastest dollars are interpreting, research studies, and
+    expert Q&amp;A (this week). The biggest dollars are sleep &amp; newborn consulting (this month).
+    Everything else keeps the calendar full between consults.</p>
+  </div>
+
+  <h2><span class="num">Part 2 ·</span> The Master Gig-Site List</h2>
+  <p class="subtle">
+    Organized by skill. “Verified Aug 2026” means we confirmed the platform is live and
+    hiring/paying this month; others are established platforms worth checking as you apply.
+  </p>
+
+  <h3>A · Bilingual Thai–English — interpreting &amp; translation</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://www.languageline.com">LanguageLine Solutions</a></b></td><td>Phone/video interpreting employer</td><td class="rate">$25–39/hr range</td><td>Verified Aug 2026 — actively hiring remote Thai interpreters; the largest interpreter employer in the world.</td></tr>
+    <tr><td><b><a href="https://propio-ls.com">Propio Language Services</a></b></td><td>Phone/video interpreting</td><td class="rate">per-minute/hr</td><td>Verified Aug 2026 — expanding via acquisitions; hires remote interpreters.</td></tr>
+    <tr><td><b><a href="https://www.cyracom.com">CyraCom</a></b> &amp; <b><a href="https://certifiedlanguages.com">Certified Languages Intl</a></b></td><td>Phone interpreting</td><td class="rate">per-minute</td><td>Established over-the-phone interpretation employers; apply to all — interpreters commonly stack 2–3 companies.</td></tr>
+    <tr><td><b><a href="https://www.proz.com">ProZ</a></b></td><td>Translator marketplace + job board</td><td class="rate">set your own</td><td>The industry hub for freelance translation; Thai jobs posted by agencies worldwide.</td></tr>
+    <tr><td><b><a href="https://www.translatorscafe.com">TranslatorsCafé</a></b></td><td>Translation job board</td><td class="rate">set your own</td><td>Free tier is enough to bid on Thai jobs.</td></tr>
+    <tr><td><b><a href="https://www.upwork.com">Upwork</a></b> / <b><a href="https://www.fiverr.com">Fiverr</a></b></td><td>General freelance</td><td class="rate">$15–60/hr</td><td>Search “Thai translation,” “Thai transcription,” “Thai voiceover.” Rarer pair = less competition than most languages.</td></tr>
+  </table></div>
+
+  <h3>B · Thai language — tutoring</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://www.italki.com">italki</a></b></td><td>Language marketplace</td><td class="rate">$10–25/hr, 15% fee</td><td>Verified Aug 2026 — “Community Tutor” track needs no credential, just native fluency. Fastest approval.</td></tr>
+    <tr><td><b><a href="https://preply.com">Preply</a></b></td><td>Language marketplace</td><td class="rate">$10–40/hr, 18–33% fee</td><td>Verified Aug 2026 — has an active “teach Thai” funnel; higher rates once established, but first trial lesson is unpaid.</td></tr>
+    <tr><td><b><a href="https://www.amazingtalker.com">AmazingTalker</a></b> / <b><a href="https://www.verbling.com">Verbling</a></b></td><td>Language marketplaces</td><td class="rate">set your own</td><td>Secondary listings — same profile, more surface area.</td></tr>
+  </table></div>
+
+  <h3>C · Virtual childcare &amp; babysitting</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://www.sitterstream.com">SitterStream</a></b></td><td>Virtual babysitting &amp; tutoring service</td><td class="rate">per-session</td><td>Verified Aug 2026 — books 1:1 video sitters for families and corporate benefits programs. The purest “nanny from home” gig.</td></tr>
+    <tr><td><b><a href="https://www.urbansitter.com">UrbanSitter</a></b></td><td>Sitter marketplace</td><td class="rate">$20–30/hr</td><td>List virtual sessions + local date-night work; strong reviews carry the profile.</td></tr>
+    <tr><td><b><a href="https://www.care.com">Care.com</a></b> / <b><a href="https://www.sittercity.com">Sittercity</a></b></td><td>Care marketplaces</td><td class="rate">$18–30/hr</td><td>Post “virtual sitter / homework companion / bilingual Thai care” as a specialty to stand out.</td></tr>
+    <tr><td><b><a href="https://sittertree.com">SitterTree</a></b></td><td>Sitter marketplace</td><td class="rate">$20–25+/hr</td><td>Verified Aug 2026 — flexible bookings; regional, worth a profile if her metro is covered.</td></tr>
+  </table></div>
+
+  <h3>D · Sleep training, newborn care &amp; parent coaching — the premium lane</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b>Her own booking page</b></td><td>Direct practice (Zoom + Calendly/Stripe)</td><td class="rate">$150–600/package</td><td>The industry standard for sleep consultants is direct-to-family packages marketed through parent Facebook/Instagram groups — platforms take no cut.</td></tr>
+    <tr><td><b><a href="https://www.justanswer.com/parenting/">JustAnswer</a></b></td><td>Paid expert Q&amp;A</td><td class="rate">per answer; category avgs $600–1,200+/mo</td><td>Verified Aug 2026 — parenting category live; credential check at signup, paid monthly.</td></tr>
+    <tr><td><b><a href="https://wegotyoumama.com/specialists/">We Got You Mama</a></b></td><td>Specialist marketplace for new-parent support</td><td class="rate">set your own</td><td>Verified Aug 2026 — lists newborn/sleep/postpartum specialists for virtual consults. Exactly her niche.</td></tr>
+    <tr><td><b><a href="https://www.thumbtack.com">Thumbtack</a></b> / <b><a href="https://www.bark.com">Bark</a></b></td><td>Lead-gen marketplaces</td><td class="rate">you quote per lead</td><td>Both have sleep-training / parenting-coach categories; offer virtual service to widen the radius nationwide.</td></tr>
+    <tr><td><b>Nanny agencies’ virtual arms</b> (e.g. <a href="https://householdstaffing.com">Household Staffing</a>, <a href="https://gibsonnewbornservices.com">Gibson Newborn</a>)</td><td>Agency placements</td><td class="rate">agency-set</td><td>Agencies now book virtual newborn consults and overnight-phone support; her 11-year record is agency-grade.</td></tr>
+    <tr><td><b>Optional credential:</b> <a href="https://thecradlecoachacademy.com">Cradle Coach Academy</a>, <a href="https://instituteofpediatricsleep.com">Inst. of Pediatric Sleep</a></td><td>Certification (cost, not income)</td><td class="rate">—</td><td>Not required to practice; adds a title that supports $400+ packages.</td></tr>
+  </table></div>
+
+  <h3>E · Teaching kids online — baby sign, cooking, crafts, Thai for kids</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://outschool.com">Outschool</a></b></td><td>Live kids’-class marketplace</td><td class="rate">70% of enrollments; ~$50/hr avg</td><td>Verified Aug 2026 — no teaching credential needed; class ideas straight from her resume: Baby Sign Basics (for parents), Kids Cook Thai, Toddler Music &amp; Movement.</td></tr>
+    <tr><td><b><a href="https://lessonface.com">Lessonface</a></b></td><td>Live lessons marketplace</td><td class="rate">set your own</td><td>Smaller, lower-fee alternative for 1:1 enrichment lessons.</td></tr>
+    <tr><td><b><a href="https://www.udemy.com">Udemy</a></b> / <b><a href="https://www.skillshare.com">Skillshare</a></b></td><td>Pre-recorded courses</td><td class="rate">royalties</td><td>Record the sleep-training and baby-sign material once; passive add-on, not a first move.</td></tr>
+  </table></div>
+
+  <h3>F · Household management → virtual assistant work</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://www.belaysolutions.com">Belay</a></b></td><td>US-based VA agency</td><td class="rate">to ~$35/hr</td><td>Verified Aug 2026 — hiring contractors in 48 states; her scheduling/errand/vendor experience maps directly.</td></tr>
+    <tr><td><b><a href="https://web.timeetc.com">Time etc</a></b></td><td>VA agency</td><td class="rate">$17–25/hr</td><td>Verified Aug 2026 — hires experienced assistants; household-manager background counts as PA experience.</td></tr>
+    <tr><td><b><a href="https://www.fancyhands.com">Fancy Hands</a></b></td><td>Task-based micro-VA</td><td class="rate">per task</td><td>Verified Aug 2026 — small tasks (calls, bookings, research); good filler income with zero commitment.</td></tr>
+    <tr><td><b><a href="https://boldly.com">Boldly</a></b> / <b><a href="https://www.zirtual.com">Zirtual</a></b></td><td>Premium VA staffing</td><td class="rate">$22–28/hr (W-2 at Boldly)</td><td>More formal roles once she has a few months of VA hours logged.</td></tr>
+  </table></div>
+
+  <h3>G · Meal planning &amp; allergy-safe cooking</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://www.fiverr.com">Fiverr</a></b></td><td>Productized gigs</td><td class="rate">$25–150/plan</td><td>Sell fixed-price gigs: “7-day toddler meal plan,” “allergy-safe weekly menu (nut/dairy/egg-free),” “Thai family dinners for picky eaters.”</td></tr>
+    <tr><td><b><a href="https://www.upwork.com">Upwork</a></b></td><td>Freelance contracts</td><td class="rate">hourly/fixed</td><td>Family-support and content clients hire meal planners and recipe testers.</td></tr>
+    <tr><td><b>Outschool (again)</b></td><td>Kids’ cooking classes</td><td class="rate">~$50/hr avg</td><td>The same skill, sold as a class instead of a document.</td></tr>
+  </table></div>
+
+  <h3>H · Paid today — research panels &amp; quick cash</h3>
+  <div class="tablebox"><table>
+    <tr><th>Platform</th><th>Type</th><th>Pay signal</th><th>Notes</th></tr>
+    <tr><td><b><a href="https://www.respondent.io">Respondent</a></b></td><td>Professional research studies</td><td class="rate">~$95 avg; $150–250 focus groups</td><td>Verified Aug 2026 — caregivers and bilingual adults are recruited demographics; pays in 7–10 days.</td></tr>
+    <tr><td><b><a href="https://www.userinterviews.com">User Interviews</a></b></td><td>Research studies</td><td class="rate">~$50/30 min</td><td>Verified Aug 2026 — high volume of parenting-product studies; pays within days.</td></tr>
+    <tr><td><b><a href="https://dscout.com/participate-in-research-studies">dscout</a></b></td><td>Diary-study missions</td><td class="rate">$25–150+/mission</td><td>Verified Aug 2026 — multi-day “document your routine” studies; family life is exactly what brands want to see.</td></tr>
+    <tr><td><b><a href="https://www.usertesting.com">UserTesting</a></b> / <b><a href="https://www.prolific.com">Prolific</a></b></td><td>App tests &amp; academic surveys</td><td class="rate">$4–120/test</td><td>Lower per-hour but instant availability; test parenting and childcare apps she genuinely knows.</td></tr>
+  </table></div>
+
+  <h3>I · General boards to monitor weekly</h3>
+  <ul class="chips">
+    <li><a href="https://www.flexjobs.com">FlexJobs</a> — vetted remote listings</li>
+    <li><a href="https://www.indeed.com">Indeed</a> — “remote Thai interpreter”, “virtual parent coach”</li>
+    <li><a href="https://www.ziprecruiter.com">ZipRecruiter</a> — same saved searches</li>
+    <li><a href="https://themomproject.com">The Mom Project</a> — flexible roles, caregiver-friendly employers</li>
+  </ul>
+
+  <h2><span class="num">Part 3 ·</span> First 7 Days</h2>
+  <ol class="plan">
+    <li><b>Day 1:</b> Sign up for Respondent, User Interviews, dscout, and Prolific (30 minutes total). Apply to every caregiver/parenting study — this is the “paid today” lane.</li>
+    <li><b>Day 2:</b> Apply to LanguageLine and Propio as a Thai interpreter, and create an italki Community Tutor profile. These three run on her passport skill: Thai.</li>
+    <li><b>Day 3:</b> Apply to JustAnswer (parenting) and SitterStream; refresh UrbanSitter/Care.com profiles with a “virtual sitter · bilingual Thai” headline.</li>
+    <li><b>Day 4:</b> Draft the sleep-consulting offer: one page, three packages ($150 call / $350 full plan / $600 two-week support). Text her six former families for testimonials — she has a decade of them.</li>
+    <li><b>Day 5:</b> Submit an Outschool educator application with one class: <i>Baby Sign Language for New Parents</i>.</li>
+    <li><b>Day 6:</b> List two Fiverr gigs: allergy-safe weekly meal plan; toddler meal plan. Apply to Belay and Time etc as a household-manager-turned-VA.</li>
+    <li><b>Day 7:</b> Post the sleep-consulting offer in three local-parent and Thai-community Facebook groups. First consult usually comes from there, not from any platform.</li>
+  </ol>
+
+  <div class="callout">
+    <p><b>Rate-card discipline:</b> never price below $20/hr for live work — the resume supports it.
+    Consulting is sold in packages, not hours. Platform fees (15–33%) are the cost of the first
+    ten clients; after that, referrals are free.</p>
+  </div>
+
+  <footer>
+    Rates and platform status verified via public sources, August 2026:
+    <a href="https://www.ziprecruiter.com/Jobs/Remote-Thai-Interpreter">ZipRecruiter interpreter data</a> ·
+    <a href="https://sidehustles.com/italki-become-a-teacher/">italki tutor guide</a> ·
+    <a href="https://preply.com/en/online/thai-tutoring-jobs">Preply Thai jobs</a> ·
+    <a href="https://support.outschool.com/en/articles/2382129-teacher-earnings-and-payments-policy">Outschool pay policy</a> ·
+    <a href="https://sidehusl.com/justanswer/">JustAnswer expert review</a> ·
+    <a href="https://boldly.com/blog/the-best-virtual-assistant-companies-in-the-us-ranked/">VA company rankings</a> ·
+    <a href="https://www.userintuition.ai/posts/best-paid-research-study-sites/">research-panel payouts</a> ·
+    <a href="https://sidehustles.com/best-apps-for-babysitting-jobs/">sitter app roundup</a>.
+    Earnings vary by market and profile strength; figures are published averages, not guarantees.
+  </footer>
+</div>
