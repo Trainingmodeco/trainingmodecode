@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { C } from '../Styles';
+import { C, NAV_H } from '../Styles';
 import { getWeightHistory, exerciseKey, classifyType, unitLabel, normUnit } from '../data/weightLog';
 
 // Spec 12 (WB-F) — the Exercise History sheet: tap an exercise's last-time
 // line and see your whole story with that lift. Display layer only — every
 // number comes straight out of the weight log (bodyweight sessions log with
-// weight 0). Portalled to body so it fully covers the tab bar.
+// weight 0). Portalled to body to escape PhoneFrame's stacking context, and
+// stopped at NAV_H so it rests ON the tab bar instead of covering it.
 const GOLD = C.gold;
 const VIOLET = '#a855f7';
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -76,14 +77,13 @@ export default function ExerciseHistorySheet({ exercise, onClose }) {
 
   if (typeof document === 'undefined') return null;
   return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: NAV_H, zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <div onClick={onClose} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
       <div style={{
-        width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', maxHeight: '78dvh',
+        width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', maxHeight: '100%',
         background: 'rgba(14,5,26,0.97)', borderRadius: '16px 16px 0 0',
         border: `1px solid ${VIOLET}66`, borderBottom: 'none',
         display: 'flex', flexDirection: 'column',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}>
         {/* Grab handle + header */}
         <div style={{ flexShrink: 0, padding: '8px 16px 10px' }}>

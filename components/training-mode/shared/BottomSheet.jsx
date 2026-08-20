@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { C } from '../Styles';
+import { C, NAV_H } from '../Styles';
 
 // Shared bottom sheet.
 //
@@ -12,9 +12,13 @@ import { C } from '../Styles';
 // action button lives — ends up hidden behind the tab bar and untappable.
 //
 // Portalling to document.body escapes the frame's stacking context, so the
-// sheet genuinely overlays the nav. The panel also caps its own height and
+// sheet genuinely overlays the screen. The panel also caps its own height and
 // scrolls its body, with the action button pinned as a non-scrolling footer,
 // so the action stays reachable on a short screen with a tall sheet.
+//
+// The overlay stops at NAV_H rather than running to inset:0: a sheet should
+// rest ON the tab bar, never cover it. The nav stays visible and tappable, so
+// the athlete can always leave the screen without hunting for a close button.
 
 export default function BottomSheet({
   title,
@@ -28,7 +32,7 @@ export default function BottomSheet({
 
   return createPortal(
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: NAV_H, zIndex: 1000,
       display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
     }}>
       {/* Portalled out of the screen, so it can't rely on a screen's own CSS. */}
@@ -38,7 +42,9 @@ export default function BottomSheet({
         width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box',
         background: '#0a0014', borderRadius: '16px 16px 0 0',
         border: `1px solid ${accent}4d`, borderBottom: 'none',
-        maxHeight, display: 'flex', flexDirection: 'column',
+        // min(…, 100%) so a tall sheet can never outgrow the shortened
+        // overlay (which now ends at the nav) on a small screen.
+        maxHeight: `min(${maxHeight}, 100%)`, display: 'flex', flexDirection: 'column',
         animation: 'fadeSlideUp 0.2s ease',
       }}>
         {title != null && (
@@ -59,9 +65,10 @@ export default function BottomSheet({
           {children}
         </div>
 
-        {/* The action never scrolls out of reach. */}
+        {/* The action never scrolls out of reach. No safe-area padding here —
+            the sheet now rests on the nav, which already carries that inset. */}
         <div style={{
-          flexShrink: 0, padding: footer ? '10px 16px calc(20px + env(safe-area-inset-bottom, 0px))' : '0 0 calc(20px + env(safe-area-inset-bottom, 0px))',
+          flexShrink: 0, padding: footer ? '10px 16px 16px' : '0 0 16px',
         }}>
           {footer}
         </div>

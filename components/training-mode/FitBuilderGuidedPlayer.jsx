@@ -4,7 +4,7 @@ import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, X } from 'lucide-react';
-import { C, fixedColumnBar } from './Styles';
+import { C, fixedColumnBar, NAV_H } from './Styles';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor, logBodyweightSets } from './data/weightLog';
@@ -1045,7 +1045,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           onPointerMove={tabPointerMove}
           onPointerUp={tabPointerUp}
           style={{
-            position: 'fixed', ...fixedColumnBar, bottom: 'calc(58px + env(safe-area-inset-bottom, 0px))', zIndex: 110,
+            position: 'fixed', ...fixedColumnBar, bottom: NAV_H, zIndex: 110,
             height: 52, boxSizing: 'border-box', cursor: 'pointer', touchAction: 'none',
             background: 'rgba(14,5,26,0.97)', border: `1.5px solid ${VIOLET}66`, borderBottom: 'none',
             borderRadius: '14px 14px 0 0', boxShadow: '0 -6px 22px rgba(88,28,135,0.35)',
@@ -1059,10 +1059,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
         </div>
       )}
 
-      {/* Spec 3 — the WORKOUT MAP sheet. Portalled to body so it genuinely
-          covers the tab bar (PhoneFrame's isolation caps in-frame z-indexes). */}
+      {/* Spec 3 — the WORKOUT MAP sheet. Portalled to body to escape
+          PhoneFrame's isolation (which caps in-frame z-indexes), and stopped
+          at NAV_H so it rests ON the tab bar instead of covering it. */}
       {mapOpen && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: NAV_H, zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes wmSlideUp { from { transform: translateY(28px); opacity: 0.4; } to { transform: translateY(0); opacity: 1; } }
             @keyframes wmGlowPulse { 0%,100% { box-shadow: 0 0 10px rgba(253,224,71,0.35); } 50% { box-shadow: 0 0 22px rgba(253,224,71,0.7); } }
@@ -1070,7 +1071,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           ` }}/>
           <div onClick={closeMap} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
           <div style={{
-            width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', height: '90dvh',
+            width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', height: '92%',
             background: 'rgba(14,5,26,0.97)', borderRadius: '16px 16px 0 0',
             border: `1px solid ${VIOLET}66`, borderBottom: 'none',
             display: 'flex', flexDirection: 'column', animation: 'wmSlideUp 0.28s ease',

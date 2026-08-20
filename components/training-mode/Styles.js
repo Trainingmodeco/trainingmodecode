@@ -526,3 +526,9 @@ export const fixedColumnBar = {
 // A fixed element hugging the column's left/right edge (pills, chips).
 export const fixedColumnLeft = (px = 12) => ({ left: `max(${px}px, calc((100vw - ${COL_W}px) / 2 + ${px}px))` });
 export const fixedColumnRight = (px = 12) => ({ right: `max(${px}px, calc((100vw - ${COL_W}px) / 2 + ${px}px))` });
+
+// The bottom tab bar's height (BottomNav: 8px pad + 20px icon + 2 gap + ~11px
+// label + 10px pad = 64px measured) plus the device safe area. Popup sheets
+// stop their overlay here instead of running to inset:0, so the nav stays
+// visible AND tappable underneath them rather than being covered.
+export const NAV_H = 'calc(64px + env(safe-area-inset-bottom, 0px))';
