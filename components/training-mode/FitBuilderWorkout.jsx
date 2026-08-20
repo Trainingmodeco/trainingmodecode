@@ -28,6 +28,17 @@ const LEGEND_GLYPH = {
   textShadow: '0 0 9px rgba(168,85,247,0.9)',
 };
 
+// The two action columns, declared once. The legend's ⇄/⛓ titles AND every
+// row's buttons lay out on these same widths, so each symbol in the header
+// sits directly above the button it names and the alignment can't drift.
+// ACT_GAP is also the breathing space either side of every · in the legend,
+// left and right, so both halves of it are spaced identically.
+const ACT_GAP = 7;
+const ACT_SWAP_W = 50;    // ⇄ · "swap workout"
+const ACT_SEP_W = 8;      // the · between the two
+const ACT_CHAIN_W = 70;   // ⛓ · "superset/circuit link" · "double-tap"
+const ACT_PAD_R = 12;     // a row's inner right padding (11px) + its border
+
 // −/＋ button in the working-weight stepper (design 39).
 const weightBtn = {
   width: 34, height: 34, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
@@ -655,10 +666,16 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {undoInfo.exercise.name} removed
       </span>
-      <button onClick={undoDelete} style={{
-        background: 'none', border: 'none', padding: '2px 2px', cursor: 'pointer', flexShrink: 0,
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
-      }}>UNDO</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: ACT_GAP, flexShrink: 0 }}>
+        <div style={{ width: ACT_SWAP_W, display: 'flex', justifyContent: 'center' }}>
+          <button onClick={undoDelete} style={{
+            background: 'none', border: 'none', padding: '2px 2px', cursor: 'pointer', flexShrink: 0,
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
+          }}>UNDO</button>
+        </div>
+        <div style={{ width: ACT_SEP_W }}/>
+        <div style={{ width: ACT_CHAIN_W }}/>
+      </div>
     </div>
   ) : null;
   const withUndo = (pos, node) => (undoInfo && undoInfo.index === pos ? [undoSlotNode, node] : [node]);
@@ -918,8 +935,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             gestures, and the two glyphs over their own captions — so a symbol
             you have to FIND on a row is itself the heading you read. */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto auto auto',
-          columnGap: 9, rowGap: 4, alignItems: 'center', marginBottom: 7,
+          display: 'grid',
+          gridTemplateColumns: `minmax(0,1fr) ${ACT_SWAP_W}px ${ACT_SEP_W}px ${ACT_CHAIN_W}px`,
+          columnGap: ACT_GAP, rowGap: 4, alignItems: 'center',
+          marginBottom: 7, paddingRight: ACT_PAD_R,
           fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8.5, color: C.faint, lineHeight: 1,
         }}>
           {/* titles */}
@@ -928,11 +947,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           <span/>
           <span style={{ ...LEGEND_GLYPH, justifySelf: 'center' }}>⛓</span>
 
-          {/* captions */}
-          <span style={{ justifySelf: 'start' }}>hold ↕ move&nbsp;&nbsp;·&nbsp;&nbsp;swipe ↔ remove</span>
-          <span style={{ justifySelf: 'center' }}>swap workout</span>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span style={{ justifySelf: 'center' }}>superset/circuit link</span>
+          {/* captions — the left pair is spaced on ACT_GAP too, so its · sits
+              in exactly as much air as the one on the right */}
+          <span style={{ justifySelf: 'start', display: 'flex', alignItems: 'center', gap: ACT_GAP, whiteSpace: 'nowrap' }}>
+            hold ↕ move <span style={{ opacity: 0.5 }}>·</span> swipe ↔ remove
+          </span>
+          <span style={{ justifySelf: 'center', whiteSpace: 'nowrap' }}>swap workout</span>
+          <span style={{ justifySelf: 'center', opacity: 0.5 }}>·</span>
+          <span style={{ justifySelf: 'center', whiteSpace: 'nowrap' }}>superset/circuit link</span>
 
           {/* second line of the ⛓ caption */}
           <span/><span/><span/>
@@ -1089,29 +1111,36 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                 </div>
 
                 {/* Swap (single tap) and chain (double tap) — separate hit
-                    targets, kept well apart so neither is a mis-tap. */}
+                    targets, kept well apart so neither is a mis-tap. They ride
+                    the legend's columns, so each one sits under the symbol
+                    that names it in the header. */}
                 {!done && (
-                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} style={{
-                    width: 24, height: 24, borderRadius: 5, cursor: 'pointer', flexShrink: 0,
-                    background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <ArrowRightLeft size={11} color={C.violet}/>
-                  </button>
-                )}
-                {!done && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); if (tapAllowed()) handleChainTap(i); }}
-                    aria-label="Chain to another exercise"
-                    className={isLinkAnchor ? 'wo-linking' : undefined}
-                    style={{
-                      width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0, marginLeft: 14,
-                      background: isLinkAnchor ? 'rgba(168,85,247,0.28)' : 'rgba(168,85,247,0.08)',
-                      border: `1px solid ${isLinkAnchor ? C.violet : 'rgba(168,85,247,0.3)'}`,
-                      color: isLinkAnchor ? '#fff' : '#c9a6ff', fontSize: 12, lineHeight: 1,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-                    }}
-                  >⛓</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: ACT_GAP, flexShrink: 0 }}>
+                    <div style={{ width: ACT_SWAP_W, display: 'flex', justifyContent: 'center' }}>
+                      <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} style={{
+                        width: 24, height: 24, borderRadius: 5, cursor: 'pointer', flexShrink: 0,
+                        background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <ArrowRightLeft size={11} color={C.violet}/>
+                      </button>
+                    </div>
+                    <div style={{ width: ACT_SEP_W }}/>
+                    <div style={{ width: ACT_CHAIN_W, display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); if (tapAllowed()) handleChainTap(i); }}
+                        aria-label="Chain to another exercise"
+                        className={isLinkAnchor ? 'wo-linking' : undefined}
+                        style={{
+                          width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0,
+                          background: isLinkAnchor ? 'rgba(168,85,247,0.28)' : 'rgba(168,85,247,0.08)',
+                          border: `1px solid ${isLinkAnchor ? C.violet : 'rgba(168,85,247,0.3)'}`,
+                          color: isLinkAnchor ? '#fff' : '#c9a6ff', fontSize: 12, lineHeight: 1,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                        }}
+                      >⛓</button>
+                    </div>
+                  </div>
                 )}
                 </div>
               </div>
