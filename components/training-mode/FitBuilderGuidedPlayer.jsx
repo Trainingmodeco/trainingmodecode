@@ -37,6 +37,9 @@ const GOLD = C.gold;
 const VIOLET = '#a855f7';
 
 // Gesture constants (spec 8) — one hold, three outcomes.
+// Link-position ramp — same spectrum as the builder list, so A2 is the same
+// colour in both places.
+const CHAIN_COLORS = ['#8b3dff', '#6366f1', '#3b82f6', '#22d3ee', '#14b8a6', '#22c55e', '#fde047', '#ff8a3a', '#ff5733', '#ef4444'];
 const HOLD_MS = 250;      // press this long to start the charge
 const CHARGE_MS = 700;    // full charge starts the exercise
 const MOVE_SLOP = 8;      // px of movement that picks an axis
@@ -71,21 +74,39 @@ function classify(ex) {
 // Spec 7 — weave a reorder around pinned rows: done/skipped rows keep their
 // absolute positions; `from` moves to `slot` within the movable subsequence.
 // Returns the full list of OLD indices in their NEW order.
-function weaveOrder(n, isLocked, from, slot) {
-  const movable = [];
-  for (let i = 0; i < n; i++) if (!isLocked(i)) movable.push(i);
-  const seq = movable.filter(i => i !== from);
-  seq.splice(Math.max(0, Math.min(slot, seq.length)), 0, from);
+// A chain drags as ONE unit, so the weave works on units rather than rows: a
+// chain contributes its whole member run, everything else a run of one. With
+// units kept intact a drop can never land inside a bracket and split it.
+function weaveOrder(n, isLocked, from, slot, membersOf = () => null) {
+  const units = [];
+  const taken = new Set();
+  for (let i = 0; i < n; i++) {
+    if (isLocked(i) || taken.has(i)) continue;
+    const m = membersOf(i);
+    if (m && m.length > 1) {
+      const run = m.filter(x => !isLocked(x));
+      run.forEach(x => taken.add(x));
+      if (run.length) units.push(run);
+    } else units.push([i]);
+  }
+  const fromUnit = units.findIndex(u => u.includes(from));
+  if (fromUnit < 0) return Array.from({ length: n }, (_, i) => i);
+  const seq = units.filter((_, u) => u !== fromUnit);
+  seq.splice(Math.max(0, Math.min(slot, seq.length)), 0, units[fromUnit]);
+  const flat = seq.flat();
   const order = [];
   let p = 0;
-  for (let i = 0; i < n; i++) order.push(isLocked(i) ? i : seq[p++]);
+  for (let i = 0; i < n; i++) order.push(isLocked(i) ? i : flat[p++]);
   return order;
 }
 
-export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onCompleteExercise, onJumpExercise, onMarkSkipped, onReorder, onFinishWorkout, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true }) {
+export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onCompleteExercise, onJumpExercise, onMarkSkipped, onReorder, onFinishWorkout, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true, chainCtx = null, chainRoundsMap = {}, onChainNext, onChainRound }) {
   const ex = exercises[exerciseIdx];
   const plan = useMemo(() => classify(ex), [ex]);
-  const totalSets = ex?.sets || 3;
+  // In a chain each visit runs ONE round of this move, then hands straight
+  // over to the next member — the rest belongs to the end of the round.
+  const totalSets = chainCtx ? 1 : (ex?.sets || 3);
+  const chainLast = chainCtx ? chainCtx.position === chainCtx.members.length - 1 : false;
   const restMax = ex?.restSeconds || parseInt(ex?.rest) || 60;
   const nextExercise = exerciseIdx < exercises.length - 1 ? exercises[exerciseIdx + 1] : null;
 
@@ -118,6 +139,30 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       : 'todo'
   ), [exerciseIdx, completed, skipped, phase]);
   const doneCount = exercises.reduce((a, _, i) => a + (statusOf(i) === 'done' ? 1 : 0), 0);
+
+  // On the map a chain is ONE thing: one bracket, one hold, one swipe, one
+  // drag. This resolves any member index to the run it belongs to.
+  const chainByIdx = useMemo(() => {
+    const runs = {};
+    exercises.forEach((e, i) => {
+      const cid = e?._chain;
+      if (!cid) return;
+      (runs[cid] = runs[cid] || []).push(i);
+    });
+    const out = {};
+    Object.entries(runs).forEach(([cid, members]) => {
+      if (members.length < 2) return;
+      const circuit = members.length >= 3;
+      const info = {
+        cid, members, circuit,
+        rounds: circuit ? (chainRoundsMap[cid] || 3) : (exercises[members[0]]?.sets || 3),
+      };
+      members.forEach(i => { out[i] = info; });
+    });
+    return out;
+  }, [exercises, chainRoundsMap]);
+  const chainOf = useCallback((i) => chainByIdx[i] || null, [chainByIdx]);
+  const chainMembersOf = useCallback((i) => chainByIdx[i]?.members || null, [chainByIdx]);
 
   // Keep the current card centred in the up-next strip as the workout moves.
   const curCardRef = useRef(null);
@@ -248,6 +293,35 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       setLogWeight(w); logWeightRef.current = w;
       setLogSaved(false); logSavedRef.current = false;
     }
+    // ── Chain flow ────────────────────────────────────────────────────────
+    // Mid-chain there is NO rest: the whole point is going straight in. Rest
+    // belongs to the end of a round, and a circuit loops the round.
+    if (chainCtx) {
+      if (!chainLast) {
+        const nextName = exercises[chainCtx.members[chainCtx.position + 1]]?.name;
+        setPhase('done');
+        setAnnouncer('GO STRAIGHT IN');
+        say(nextName ? `Straight into ${nextName}. No rest.` : 'Straight into the next move.');
+        await delay(1100);
+        if (versionRef.current !== version) return;
+        onChainNext?.();
+        return;
+      }
+      if (chainCtx.round < chainCtx.rounds) {
+        setPhase('rest');
+        say(`Round ${chainCtx.round} complete. Rest ${sayWindow(restMax)}.`);
+        const restOk = await waitSec(version, restMax, (r) => setDisplay(r));
+        if (!restOk) return;
+        onChainRound?.();
+        return;
+      }
+      say(`${chainCtx.circuit ? 'Circuit' : 'Superset'} complete.`);
+      await delay(900);
+      if (versionRef.current !== version) return;
+      onChainRound?.();      // last round → parent marks every member done
+      return;
+    }
+
     if (set < totalSets) {
       setPhase('rest');
       say(`Set complete. Rest ${sayWindow(restMax)}.`);
@@ -264,7 +338,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       if (versionRef.current !== version) return;
       finishExercise();
     }
-  }, [set, totalSets, restMax, ex, plan, exId, weightUnit, finishExercise, say, waitSec, saveLoggedWeight]);
+  }, [set, totalSets, restMax, ex, plan, exId, weightUnit, finishExercise, say, waitSec, saveLoggedWeight, chainCtx, chainLast, onChainNext, onChainRound, exercises]);
 
   // Stable invalidator so effect cleanups don't read the ref directly.
   const invalidate = useCallback(() => { versionRef.current += 1; }, []);
@@ -279,6 +353,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     const version = ++versionRef.current;
     finishingRef.current = false; // a new set/exercise re-arms SET DONE
 
+    // In a chain the unit of work is a ROUND of the bracket, not a set of this
+    // one move — "set 1 of 1" would sound wrong four rounds in a row.
+    const unit = chainCtx ? `Round ${chainCtx.round} of ${chainCtx.rounds}` : `Set ${set} of ${totalSets}`;
+
     const run = async () => {
       if (pausedRef.current) {
         const ok = await awaitResume({ isPaused: () => pausedRef.current, isStale: () => versionRef.current !== version });
@@ -287,7 +365,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       setPhase('intro');
       setDisplay(0);
       if (plan.kind === 'reps') {
-        say(`${ex.name}. Set ${set} of ${totalSets}. ${plan.reps} reps. On my count.`);
+        say(`${ex.name}. ${unit}. ${plan.reps} reps. On my count.`);
         await delay(2600);
         if (versionRef.current !== version) return;
         setPhase('active');
@@ -324,7 +402,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           finishSet(version);
           return;
         }
-        say(`${ex.name}. Set ${set} of ${totalSets}. ${plan.reps} reps. ${sayWindow(plan.windowSec)} to complete, with ${sayWindow(restMax)} rest. Get into position.`);
+        say(`${ex.name}. ${unit}. ${plan.reps} reps. ${sayWindow(plan.windowSec)} to complete, with ${sayWindow(restMax)} rest. Get into position.`);
         setPhase('position');
         await delay(2800);
         if (versionRef.current !== version) return;
@@ -343,7 +421,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
         if (!ok) return;
         finishSet(version);
       } else { // hold
-        say(`${ex.name}. Set ${set} of ${totalSets}. ${plan.seconds} seconds. Get into position.`);
+        say(`${ex.name}. ${unit}. ${plan.seconds} seconds. Get into position.`);
         setPhase('position');
         await delay(2400);
         if (versionRef.current !== version) return;
@@ -414,6 +492,14 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     // Skipping a weighted rest still banks the shown weight (fully skippable
     // means the logger never blocks — not that the number is lost).
     if (phase === 'rest' && plan.kind === 'weighted') saveLoggedWeight(set);
+    // Inside a chain a set is one move, so skipping it means "hand over now",
+    // not "this exercise is finished" — finishExercise would end the bracket.
+    if (chainCtx) {
+      invalidate();
+      cancelSpeech();
+      if (chainLast) onChainRound?.(); else onChainNext?.();
+      return;
+    }
     if (set >= totalSets) finishingRef.current = true;
     invalidate();
     cancelSpeech();
@@ -518,7 +604,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   // Hold-to-start success (spec 4): haptic, collapse, 3-2-1, start. Holding the
   // CURRENT row is simply "resume here".
-  const startFromRow = useCallback(async (idx) => {
+  const startFromRow = useCallback(async (rawIdx) => {
+    // Holding anywhere on a chain starts the CHAIN, from the top — unless
+    // you're already inside it, where the hold just resumes where you are.
+    const c = chainOf(rawIdx);
+    const idx = !c ? rawIdx : c.members.includes(exerciseIdx) ? exerciseIdx : c.members[0];
     try { navigator.vibrate?.(30); } catch { /* no haptics */ }
     setMapOpen(false);
     setMapMode('normal');
@@ -531,7 +621,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       return;
     }
     onJumpExercise?.(idx);
-  }, [exerciseIdx, phase, countIn, onJumpExercise, clearGesture]);
+  }, [exerciseIdx, phase, countIn, onJumpExercise, clearGesture, chainOf]);
 
   // ── Row gesture engine (spec 8) — one hold, three outcomes ────────────────
   // pointerdown arms a 250ms hold. Movement before it fires = native scroll.
@@ -573,14 +663,26 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     const list = listRef.current;
     const row = rowRefs.current[idx];
     const listTop = list?.getBoundingClientRect().top || 0;
-    const r = row?.getBoundingClientRect();
+    // Drop slots are counted per UNIT, so a chain offers one landing site
+    // rather than one per member.
+    const dragging = chainMembersOf(idx) || [idx];
+    // The grabbed thing is the whole unit: measure the run, not the finger's row.
+    const own = dragging.map(x => rowRefs.current[x]?.getBoundingClientRect()).filter(Boolean);
+    const r = own.length
+      ? { top: Math.min(...own.map(o => o.top)), height: Math.max(...own.map(o => o.bottom)) - Math.min(...own.map(o => o.top)) }
+      : row?.getBoundingClientRect();
     const centers = [];
+    const counted = new Set();
     exercises.forEach((_, i) => {
       const st = statusOf(i);
-      if (i !== idx && (st === 'now' || st === 'todo')) {
-        const rr = rowRefs.current[i]?.getBoundingClientRect();
-        if (rr) centers.push({ idx: i, cy: rr.top + rr.height / 2 });
-      }
+      if (dragging.includes(i) || counted.has(i) || (st !== 'now' && st !== 'todo')) return;
+      const unit = chainMembersOf(i) || [i];
+      unit.forEach(x => counted.add(x));
+      const rects = unit.map(x => rowRefs.current[x]?.getBoundingClientRect()).filter(Boolean);
+      if (!rects.length) return;
+      const top = Math.min(...rects.map(r2 => r2.top));
+      const bottom = Math.max(...rects.map(r2 => r2.bottom));
+      centers.push({ idx: i, cy: (top + bottom) / 2 });
     });
     centers.sort((a, b) => a.cy - b.cy);
     dragMeta.current = {
@@ -593,7 +695,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     const initSlot = centers.filter(c => c.cy < (r?.top || 0) + (r?.height || 52) / 2).length;
     g.dy = 0; g.slot = initSlot;
     setGest({ idx, mode: 'drag', dx: 0, dy: 0, slot: initSlot, width: row?.offsetWidth || 300 });
-  }, [exercises, statusOf]);
+  }, [exercises, statusOf, chainMembersOf]);
 
   const rowPointerDown = useCallback((e, idx) => {
     const st = statusOf(idx);
@@ -663,6 +765,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       clearGesture();
       if (commit) {
         try { navigator.vibrate?.(20); } catch { /* no haptics */ }
+        // Skipping any member skips the whole chain (the parent expands it) —
+        // half a superset isn't a thing you can do.
         onMarkSkipped?.(idx);
       }
       return;
@@ -671,11 +775,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       const slot = g.slot ?? 0;
       const from = idx;
       clearGesture();
-      const order = weaveOrder(exercises.length, (i) => { const st = statusOf(i); return st === 'done' || st === 'skipped'; }, from, slot);
+      const order = weaveOrder(exercises.length, (i) => { const st = statusOf(i); return st === 'done' || st === 'skipped'; }, from, slot, chainMembersOf);
       // No-op drops don't round-trip through the parent.
       if (order.some((o, i2) => o !== i2)) onReorder?.(order);
     }
-  }, [statusOf, exercises.length, onMarkSkipped, onReorder, clearGesture]);
+  }, [statusOf, exercises.length, onMarkSkipped, onReorder, clearGesture, chainMembersOf]);
 
   // Move/up are delegated to window while the map is open: a drag re-renders
   // its row as the DROP placeholder, which would destroy per-row handlers
@@ -736,15 +840,17 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   // "DROP HERE · SLOT n" placeholder where the row will land (spec 7).
   const dragging = gest?.mode === 'drag';
   const previewOrder = dragging
-    ? weaveOrder(exercises.length, (i) => { const st = statusOf(i); return st === 'done' || st === 'skipped'; }, gest.idx, gest.slot ?? 0)
+    ? weaveOrder(exercises.length, (i) => { const st = statusOf(i); return st === 'done' || st === 'skipped'; }, gest.idx, gest.slot ?? 0, chainMembersOf)
     : exercises.map((_, i) => i);
   const dropSlotNumber = dragging ? previewOrder.indexOf(gest.idx) + 1 : 0;
 
-  const mapRow = (i) => {
+  // Inside a bracket the block owns the status, so a member row drops its own
+  // badge and carries its link tag (A1/A2/…) instead.
+  const mapRow = (i, chain = null) => {
     const e2 = exercises[i];
     const st = statusOf(i);
     const nSets = e2.sets || 3;
-    const isGlow = mapMode === 'complete' && i === glowIdx;
+    const isGlow = mapMode === 'complete' && i === glowIdx && !chain;
     const locked = st === 'done' || st === 'skipped';
     const g = gest && gest.idx === i ? gest : null;
     const charging = g?.mode === 'charge';
@@ -752,7 +858,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     const swiping = g?.mode === 'swipe';
 
     // The dragged row renders as the drop placeholder in its preview slot.
-    if (dragging && i === gest.idx) {
+    // (A dragged CHAIN collapses to one placeholder, handled by mapBody.)
+    if (dragging && i === gest.idx && !chain) {
       return (
         <div key={`drop-${i}`} style={{ boxSizing: 'border-box', height: 52, borderRadius: 9, border: `2px dashed ${GOLD}`, background: 'rgba(253,224,71,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 800, color: GOLD, letterSpacing: '0.14em' }}>DROP HERE · SLOT {dropSlotNumber}</span>
@@ -773,10 +880,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           onPointerDown={(e) => rowPointerDown(e, i)}
           className={isGlow ? 'wm-glow' : undefined}
           style={{
-            position: 'relative', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 9,
-            boxSizing: 'border-box', minHeight: 52, touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none',
-            background: isGlow ? 'linear-gradient(135deg, rgba(253,224,71,0.12), rgba(168,85,247,0.08))' : st === 'now' ? 'rgba(168,85,247,0.13)' : '#1a0a2e',
-            border: isGlow ? `2px solid ${GOLD}` : st === 'now' ? `1.5px solid ${VIOLET}` : '1px solid rgba(255,255,255,0.06)',
+            position: 'relative', display: 'flex', alignItems: 'center', gap: 10, padding: chain ? '7px 10px' : '9px 11px', borderRadius: chain ? 6 : 9,
+            boxSizing: 'border-box', minHeight: chain ? 44 : 52, touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none',
+            background: isGlow ? 'linear-gradient(135deg, rgba(253,224,71,0.12), rgba(168,85,247,0.08))' : st === 'now' ? 'rgba(168,85,247,0.13)' : chain ? 'rgba(26,10,46,0.85)' : '#1a0a2e',
+            border: isGlow ? `2px solid ${GOLD}` : st === 'now' ? `1.5px solid ${VIOLET}` : `1px solid rgba(255,255,255,${chain ? 0.04 : 0.06})`,
             opacity: dragging && locked ? 0.55 : locked && !isGlow ? 0.78 : 1,
             transform: swiping ? `translateX(${gest.dx}px)` : 'none',
             transition: swiping ? 'none' : 'transform 0.2s ease, opacity 0.2s ease',
@@ -787,18 +894,27 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           {(charging || draining) && (
             <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: charging ? '100%' : '0%', transition: `width ${charging ? CHARGE_MS : 220}ms linear`, background: `linear-gradient(90deg, ${VIOLET}55, ${GOLD}66)`, boxShadow: `inset -6px 0 12px ${GOLD}80`, pointerEvents: 'none' }}/>
           )}
-          <span style={{ width: 22, textAlign: 'right', flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: st === 'now' ? '#c9a6ff' : C.faint, position: 'relative' }}>
-            {locked ? '🔒' : (st === 'now' || st === 'todo') ? '≡' : ''}{previewOrder.indexOf(i) + 1}
+          <span style={{ width: 22, textAlign: 'right', flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: chain ? CHAIN_COLORS[chain.members.indexOf(i) % CHAIN_COLORS.length] : st === 'now' ? '#c9a6ff' : C.faint, position: 'relative' }}>
+            {chain
+              ? `A${chain.members.indexOf(i) + 1}`
+              : <>{locked ? '🔒' : (st === 'now' || st === 'todo') ? '≡' : ''}{previewOrder.indexOf(i) + 1}</>}
           </span>
           <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: st === 'now' || isGlow ? '#fff' : st === 'done' ? '#e8dcc8' : C.muted, textDecoration: st === 'skipped' ? 'line-through' : 'none' }}>{e2.name}</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, marginTop: 1 }}>{nSets}×{e2.reps} · rest {e2.restSeconds || parseInt(e2.rest) || 60}s</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, marginTop: 1 }}>
+              {chain ? `${e2.reps} · straight into the next` : `${nSets}×${e2.reps} · rest ${e2.restSeconds || parseInt(e2.rest) || 60}s`}
+            </div>
           </div>
           <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
             {charging ? (
               <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: GOLD, letterSpacing: '0.1em' }}>HOLD… ⚡</span>
             ) : isGlow ? (
               <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: '#0a0014', letterSpacing: '0.08em', background: GOLD, borderRadius: 6, padding: '4px 8px', boxShadow: '0 0 12px rgba(253,224,71,0.5)' }}>▶ NEXT</span>
+            ) : chain ? (
+              // The bracket carries the status; a member only says "you're here".
+              st === 'now'
+                ? <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: GOLD, letterSpacing: '0.1em' }}>▶ HERE</span>
+                : null
             ) : st === 'now' ? (
               <>
                 {Array.from({ length: nSets }, (_, s2) => (
@@ -819,11 +935,88 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     );
   };
 
+  // A chain draws as ONE bracket: header + members inside a violet frame, one
+  // status for the lot. Hold/swipe/drag land on any member and act on all.
+  const chainBlock = (chain, run) => {
+    const sts = chain.members.map(statusOf);
+    const blockSt = sts.includes('now') ? 'now'
+      : sts.every(s => s === 'done') ? 'done'
+      : sts.every(s => s === 'done' || s === 'skipped') ? 'skipped'
+      : 'todo';
+    const glowing = mapMode === 'complete' && chain.members.includes(glowIdx);
+    const running = blockSt === 'now' && chainCtx?.id === chain.cid;
+    const rest = exercises[chain.members[0]]?.restSeconds || parseInt(exercises[chain.members[0]]?.rest) || 60;
+    const badge = glowing
+      ? <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: '#0a0014', letterSpacing: '0.08em', background: GOLD, borderRadius: 6, padding: '4px 8px', boxShadow: '0 0 12px rgba(253,224,71,0.5)' }}>▶ NEXT</span>
+      : blockSt === 'now'
+        ? <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 900, color: GOLD, letterSpacing: '0.1em' }}>{running ? `ROUND ${chainCtx.round}/${chainCtx.rounds}` : 'NOW'}</span>
+        : blockSt === 'done'
+          ? <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: GOLD, letterSpacing: '0.1em' }}>✓ DONE</span>
+          : blockSt === 'skipped'
+            ? <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: '#ff8a8a', letterSpacing: '0.1em' }}>SKIPPED</span>
+            : <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.faint, letterSpacing: '0.1em' }}>{chain.members[0] === exerciseIdx + 1 ? 'UP NEXT' : 'QUEUED'}</span>;
+
+    return (
+      <div
+        key={`chain-${chain.cid}`}
+        className={glowing ? 'wm-glow' : undefined}
+        style={{
+          borderRadius: 11, padding: 5, display: 'flex', flexDirection: 'column', gap: 4,
+          border: glowing ? `2px solid ${GOLD}` : `1.5px solid ${VIOLET}88`,
+          background: 'rgba(168,85,247,0.07)',
+          opacity: blockSt === 'done' || blockSt === 'skipped' ? 0.78 : 1,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '1px 5px 0' }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 800, color: '#c9a6ff', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>
+            ⛓ {chain.circuit ? `CIRCUIT · ${chain.members.length} MOVES × ${chain.rounds}` : `SUPERSET · ${chain.rounds} ROUNDS`}
+          </span>
+          <span style={{ flex: 1 }}/>
+          {badge}
+        </div>
+        {run.map(i => mapRow(i, chain))}
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, fontWeight: 600, color: C.faint, padding: '0 5px 1px' }}>
+          no rest inside · {rest}s at the end of each round
+        </div>
+      </div>
+    );
+  };
+
+  // Walk the preview order, folding each chain's run into one bracket. A
+  // dragged chain collapses to a single DROP HERE slot, like a dragged row.
+  const mapBody = () => {
+    const out = [];
+    let p = 0;
+    while (p < previewOrder.length) {
+      const i = previewOrder[p];
+      const chain = chainOf(i);
+      if (!chain) { out.push(mapRow(i)); p += 1; continue; }
+      const run = [];
+      while (p < previewOrder.length && chainOf(previewOrder[p])?.cid === chain.cid) { run.push(previewOrder[p]); p += 1; }
+      if (dragging && run.includes(gest.idx)) {
+        out.push(
+          <div key={`drop-${chain.cid}`} style={{ boxSizing: 'border-box', height: 52 + (run.length - 1) * 24, borderRadius: 11, border: `2px dashed ${GOLD}`, background: 'rgba(253,224,71,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 800, color: GOLD, letterSpacing: '0.14em' }}>
+              DROP CHAIN HERE · SLOT {dropSlotNumber}
+            </span>
+          </div>
+        );
+      } else {
+        out.push(chainBlock(chain, run));
+      }
+    }
+    return out;
+  };
+
   // Floating copy of the dragged row (lifted look: gold border, tilt, shadow).
   const dragFloat = dragging && dragMeta.current ? (
     <div style={{ position: 'absolute', left: 12, right: 12, top: dragMeta.current.startTop + (gest.dy ?? 0), zIndex: 5, pointerEvents: 'none', borderRadius: 9, border: `2px solid ${GOLD}`, background: '#241640', boxShadow: '0 14px 34px rgba(0,0,0,0.7)', transform: 'rotate(1.5deg)', padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 10, minHeight: 52, boxSizing: 'border-box' }}>
-      <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: GOLD }}>≡</span>
-      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{exercises[gest.idx]?.name}</div>
+      <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 800, color: GOLD }}>{chainOf(gest.idx) ? '⛓' : '≡'}</span>
+      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {chainOf(gest.idx)
+          ? `${chainOf(gest.idx).circuit ? 'CIRCUIT' : 'SUPERSET'} · ${chainOf(gest.idx).members.length} MOVES`
+          : exercises[gest.idx]?.name}
+      </div>
     </div>
   ) : null;
 
@@ -864,7 +1057,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               fills set by set), tappable to open the workout map. */}
           <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>SET {set}/{totalSets}</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>
+              {chainCtx ? `ROUND ${chainCtx.round}/${chainCtx.rounds}` : `SET ${set}/${totalSets}`}
+            </span>
           </div>
           <div role="button" aria-label="Open workout map" onClick={openMap} style={{ flexShrink: 0, display: 'flex', gap: 3, marginBottom: 12, cursor: 'pointer', padding: '2px 0' }}>
             {exercises.map((_, i) => {
@@ -883,6 +1078,27 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           {/* Centre: display + announcer + controls (kept high, no scroll) */}
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
             <div>
+              {/* Chain pill — which move of the chain, and that no rest is
+                  coming until the round is done. */}
+              {chainCtx && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 7 }}>
+                  <span style={{
+                    font: "800 7.5px 'Orbitron',sans-serif", letterSpacing: '0.12em', color: '#c9a6ff',
+                    background: 'rgba(168,85,247,0.16)', border: `1px solid ${VIOLET}66`,
+                    borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap',
+                  }}>
+                    ⛓ {chainCtx.circuit ? 'CIRCUIT' : 'SUPERSET'} · RD {chainCtx.round}/{chainCtx.rounds} · MOVE {chainCtx.position + 1} OF {chainCtx.members.length}{chainLast ? '' : ' · NO REST'}
+                  </span>
+                  <span style={{ display: 'flex', gap: 3 }}>
+                    {chainCtx.members.map((_, n) => (
+                      <span key={n} style={{
+                        width: 6, height: 6, borderRadius: 3,
+                        background: n === chainCtx.position ? VIOLET : 'rgba(255,255,255,0.2)',
+                      }}/>
+                    ))}
+                  </span>
+                </div>
+              )}
               {/* Spec 13 — the name is the door to "what IS this exercise?",
                   reachable mid-set without leaving the workout. */}
               <div
@@ -939,6 +1155,12 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               </div>
             ) : phase === 'rest' ? (
               <div>
+                {/* A circuit's rest is where the round counter lives. */}
+                {chainCtx ? (
+                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: '#c9a6ff', letterSpacing: '0.14em', marginBottom: 6 }}>
+                    ⛓ {chainCtx.circuit ? 'CIRCUIT' : 'SUPERSET'} ROUND {chainCtx.round} OF {chainCtx.rounds}
+                  </div>
+                ) : null}
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#4a7dff', letterSpacing: '0.18em', marginBottom: 6 }}>REST</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: '#fff', lineHeight: 1, textShadow: '0 0 14px rgba(74,125,255,0.4)' }}>{fmtClock(display)}</div>
 
@@ -1104,13 +1326,14 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                 {mapMode === 'complete'
                   ? 'swipe down to start the glowing exercise · or hold any other row'
                   : 'any order · hold to start · hold + swipe to skip · hold + drag ↕ to reorder · done rows lock.'}
+                {Object.keys(chainByIdx).length > 0 && ' ⛓ chains move, start and skip as one.'}
               </div>
             </div>
 
             {/* Rows — scrolls at 6 and at 10+ (spec 3) */}
             <div ref={listRef} data-wm-gestures="delegated" className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '6px 12px calc(16px + env(safe-area-inset-bottom, 0px))', position: 'relative' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {previewOrder.map((i) => mapRow(i))}
+                {mapBody()}
               </div>
               {dragFloat}
             </div>

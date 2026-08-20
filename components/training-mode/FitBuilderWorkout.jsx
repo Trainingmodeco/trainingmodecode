@@ -32,6 +32,11 @@ const workoutCSS = `
 @keyframes fadeSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .wo-row { transition: all 0.2s ease; }
 .wo-row:hover { background: rgba(253,224,71,0.04) !important; }
+@keyframes wo-link-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(168,85,247,0.55); }
+  50%     { box-shadow: 0 0 0 5px rgba(168,85,247,0); }
+}
+.wo-linking { animation: wo-link-pulse 1.2s ease-in-out infinite; }
 .wo-regen { transition: all 0.2s ease; }
 .wo-regen:hover { transform: scale(1.03); filter: brightness(1.1); }
 .wo-regen:active { transform: scale(0.95); }
@@ -306,6 +311,17 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const listRef = useRef(null);
   const tapBlockedRef = useRef(false);         // a gesture just ran — eat the click
   const [undoInfo, setUndoInfo] = useState(null); // { index, exercise, wasDone, wasSkipped }
+  // Exercise chains (supersets & circuits). A row carries `_chain` = chain id;
+  // members are kept CONTIGUOUS in the list so a chain is always one bracket.
+  // Rounds only apply to circuits (3+ moves); a 2-move superset runs the
+  // exercises' own set count.
+  const [linkingIdx, setLinkingIdx] = useState(null);   // row whose ⛓ is glowing
+  const [chainRounds, setChainRounds] = useState({});   // chainId -> rounds (2–5)
+  const chainSeq = useRef(0);
+  const lastChainTap = useRef({ idx: -1, at: 0 });
+  // Which round of the running chain we're on (a superset's rounds are the
+  // exercises' own sets; a circuit's come from the header stepper).
+  const [chainRound, setChainRound] = useState(1);
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -410,7 +426,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     // only withdrawn when a neighbouring row moves and the slot stops
     // meaning anything (see moveRow).
     setUndoInfo({ index: idx, exercise: victim, wasDone: !!completed[idx], wasSkipped: !!skipped[idx] });
-    setExercises(prev => prev.filter((_, i) => i !== idx));
+    setExercises(prev => dissolveSingletons(prev.filter((_, i) => i !== idx)));
     setCompleted(m => shiftMap(m, idx, -1));
     setSkipped(m => shiftMap(m, idx, -1));
   };
@@ -432,7 +448,16 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       const touchesSlot = (p) => p === undoInfo.index - 1 || p === undoInfo.index;
       if (touchesSlot(from) || touchesSlot(to)) setUndoInfo(null);
     }
-    setExercises(prev => { const next = [...prev]; const [row] = next.splice(from, 1); next.splice(to, 0, row); return next; });
+    setExercises(prev => {
+      const next = [...prev];
+      const [row] = next.splice(from, 1);
+      next.splice(to, 0, row);
+      // Dragged out of its bracket? Then it has left the chain.
+      const above = next[to - 1]?._chain;
+      const below = next[to + 1]?._chain;
+      if (row._chain && above !== row._chain && below !== row._chain) next[to] = { ...row, _chain: undefined };
+      return dissolveSingletons(next);
+    });
     const remap = (m) => {
       const order = exercises.map((_, i) => i);
       const [moved] = order.splice(from, 1);
@@ -443,6 +468,62 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     };
     setCompleted(remap);
     setSkipped(remap);
+  };
+
+  // ── Exercise chains ─────────────────────────────────────────────────────
+  // One hue per link index, spectrum order. Chains are violet STRUCTURE; the
+  // ramp only tints the member chips so a long circuit stays readable.
+  const CHAIN_COLORS = ['#8b3dff', '#6366f1', '#3b82f6', '#22d3ee', '#14b8a6', '#22c55e', '#fde047', '#ff8a3a', '#ff5733', '#ef4444'];
+
+  // A chain of one is not a chain — any structural edit dissolves them.
+  const dissolveSingletons = (list) => {
+    const counts = {};
+    list.forEach(e => { if (e._chain) counts[e._chain] = (counts[e._chain] || 0) + 1; });
+    return list.map(e => (e._chain && counts[e._chain] < 2 ? { ...e, _chain: undefined } : e));
+  };
+
+  // Double-tap the ⛓ to enter linking mode; tap the glowing one to leave.
+  const handleChainTap = (i) => {
+    if (linkingIdx === i) { setLinkingIdx(null); return; }
+    const now = Date.now();
+    const prev = lastChainTap.current;
+    lastChainTap.current = { idx: i, at: now };
+    if (prev.idx === i && now - prev.at < 400) {
+      setLinkingIdx(i);
+      lastChainTap.current = { idx: -1, at: 0 };
+    }
+  };
+
+  // While linking, ANY row can be tapped to join — it moves in beside the
+  // chain so the bracket is always contiguous.
+  const addToChain = (target) => {
+    if (linkingIdx === null || target === linkingIdx) return;
+    const anchor = exercises[linkingIdx];
+    if (!anchor || exercises[target]?._chain === anchor._chain && anchor._chain) return;
+    const cid = anchor._chain || `c${++chainSeq.current}`;
+    const tagged = exercises.map((e, i) => (i === linkingIdx || i === target) ? { ...e, _chain: cid } : e);
+    const others = tagged.map((e, i) => (e._chain === cid && i !== target ? i : -1)).filter(i => i >= 0);
+    const lastMember = Math.max(...others);
+    const to = target > lastMember ? lastMember + 1 : lastMember;
+    const order = tagged.map((_, i) => i);
+    const [movedIdx] = order.splice(target, 1);
+    order.splice(to, 0, movedIdx);
+    setExercises(order.map(o => tagged[o]));
+    const remap = (m) => { const out = {}; order.forEach((oldI, newI) => { if (m[oldI]) out[newI] = true; }); return out; };
+    setCompleted(remap);
+    setSkipped(remap);
+    if (others.length + 1 >= 3) setChainRounds(r => ({ ...r, [cid]: r[cid] || 3 }));
+    setUndoInfo(null);            // the list moved; the gap no longer means anything
+  };
+
+  const breakChain = (cid) => {
+    setExercises(prev => prev.map(e => (e._chain === cid ? { ...e, _chain: undefined } : e)));
+    setChainRounds(r => { const n = { ...r }; delete n[cid]; return n; });
+    setLinkingIdx(null);
+  };
+
+  const bumpRounds = (cid, delta) => {
+    setChainRounds(r => ({ ...r, [cid]: Math.max(2, Math.min(5, (r[cid] || 3) + delta)) }));
   };
 
   const clearGesture = () => {
@@ -575,6 +656,63 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   ) : null;
   const withUndo = (pos, node) => (undoInfo && undoInfo.index === pos ? [undoSlotNode, node] : [node]);
 
+  // Chain membership for a display position. Members are kept contiguous, so
+  // the "bracket" is a header strip before the first member plus a violet
+  // left edge down each member row — rows stay siblings, so every gesture
+  // (swipe, drag) keeps working on them individually.
+  const chainAt = (pos) => {
+    const i = previewOrder[pos];
+    const cid = exercises[i]?._chain;
+    if (!cid) return null;
+    const members = previewOrder.filter(x => exercises[x]?._chain === cid);
+    const prevI = pos > 0 ? previewOrder[pos - 1] : null;
+    return {
+      cid, members, count: members.length,
+      linkIndex: members.indexOf(i),
+      isFirst: prevI === null || exercises[prevI]?._chain !== cid,
+    };
+  };
+
+  const chainHeaderNode = (info) => {
+    const circuit = info.count >= 3;
+    const rounds = chainRounds[info.cid] || 3;
+    const first = exercises[info.members[0]];
+    const restLabel = first?.rest || `${first?.restSeconds || 60}s`;
+    const stepBtn = (label, delta) => (
+      <button onClick={(e) => { e.stopPropagation(); bumpRounds(info.cid, delta); }} style={{
+        width: 18, height: 18, borderRadius: 5, cursor: 'pointer', flexShrink: 0,
+        background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.4)',
+        color: '#c9a6ff', font: "900 10px 'Orbitron',sans-serif", lineHeight: 1, padding: 0,
+      }}>{label}</button>
+    );
+    return (
+      <div key={`chain-h-${info.cid}`} style={{
+        display: 'flex', alignItems: 'center', gap: 7,
+        padding: '5px 10px', borderRadius: '9px 9px 0 0',
+        borderLeft: `3px solid ${C.violet}`,
+        border: '1px solid rgba(168,85,247,0.35)', borderBottom: 'none',
+        background: 'rgba(168,85,247,0.12)', marginBottom: -4,
+      }}>
+        <span style={{ font: "800 7.5px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>
+          ⛓ {circuit ? `CIRCUIT · ${info.count} MOVES ×` : `SUPERSET · ${info.members.map((_, n) => `A${n + 1}`).join(' ')}`}
+        </span>
+        {circuit && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {stepBtn('−', -1)}
+            <span style={{ font: "900 8px 'Orbitron',sans-serif", color: '#fff', minWidth: 34, textAlign: 'center' }}>{rounds} RDS</span>
+            {stepBtn('＋', +1)}
+          </span>
+        )}
+        <span style={{ flex: 1 }}/>
+        <span style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', whiteSpace: 'nowrap' }}>rest {restLabel} at end</span>
+        <button onClick={(e) => { e.stopPropagation(); breakChain(info.cid); }} aria-label="Break chain" style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 2, margin: -2,
+          color: '#9a90b8', font: "700 11px 'Rajdhani',sans-serif", flexShrink: 0,
+        }}>✕</button>
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (typeof onStateChange === 'function') {
       onStateChange({ completed, skipped });
@@ -604,6 +742,42 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     setActiveIdx(a => (a === null ? null : newIdxOf[a]));
   };
 
+  // The chain the running exercise belongs to, if any. The player uses this
+  // to run the members back-to-back with rest only at the end of a round.
+  const activeChain = (() => {
+    if (activeIdx === null) return null;
+    const cid = exercises[activeIdx]?._chain;
+    if (!cid) return null;
+    const members = exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []);
+    if (members.length < 2) return null;
+    const circuit = members.length >= 3;
+    const rounds = circuit ? (chainRounds[cid] || 3) : (exercises[members[0]]?.sets || 3);
+    return { id: cid, members, position: members.indexOf(activeIdx), rounds, round: chainRound, circuit };
+  })();
+
+  // Move to the next member with NO rest (the whole point of a chain).
+  const chainNext = () => {
+    if (!activeChain) return;
+    const nextIdx = activeChain.members[activeChain.position + 1];
+    if (nextIdx !== undefined) setActiveIdx(nextIdx);
+  };
+
+  // A round finished. Either loop back to the first move, or the chain is
+  // done — mark every member complete and move past it.
+  const chainRoundDone = () => {
+    if (!activeChain) return;
+    if (activeChain.round < activeChain.rounds) {
+      setChainRound(r => r + 1);
+      setActiveIdx(activeChain.members[0]);
+      return;
+    }
+    setCompleted(prev => { const n = { ...prev }; activeChain.members.forEach(m => { n[m] = true; }); return n; });
+    setSkipped(prev => { const n = { ...prev }; activeChain.members.forEach(m => { delete n[m]; }); return n; });
+    setChainRound(1);
+    const after = exercises.findIndex((e, i) => i > Math.max(...activeChain.members) && !completed[i]);
+    setActiveIdx(after >= 0 ? after : null);
+  };
+
   // Voice-guided player (design 34 + spec 10 free-select map). Keyed on the
   // exercise's stable uid, NOT its index: a reorder moves the current exercise
   // to a new index without remounting the player (set progress survives);
@@ -621,10 +795,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         onStop={() => onDone(doneCount, exercises.length)}
         onSkipExercise={() => {
           // Advance to the next exercise WITHOUT marking this one complete —
-          // it shows as SKIPPED in the map until it's redone.
-          setSkipped(s => ({ ...s, [activeIdx]: true }));
-          if (activeIdx < exercises.length - 1) setActiveIdx(activeIdx + 1);
-          else setActiveIdx(null);
+          // it shows as SKIPPED in the map until it's redone. A chain bails
+          // whole: landing on the next member would be a half-superset.
+          const cid = exercises[activeIdx]?._chain;
+          const group = cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [activeIdx];
+          setSkipped(s => { const n = { ...s }; group.forEach(m => { n[m] = true; }); return n; });
+          if (cid) setChainRound(1);
+          const after = Math.max(...group) + 1;
+          setActiveIdx(after < exercises.length ? after : null);
         }}
         onRewindExercise={() => {
           // 3b — step back to the previous exercise and clear its completed
@@ -645,20 +823,34 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         // Free select: start ANY non-done exercise. Re-entering a skipped one
         // clears its skip — only DONE is permanent.
         onJumpExercise={(idx) => {
-          setSkipped(s => { if (!s[idx]) return s; const next = { ...s }; delete next[idx]; return next; });
+          // Re-entering any member un-skips the whole chain — you're running
+          // the bracket again, not one move out of it.
+          const cid = exercises[idx]?._chain;
+          const group = cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [idx];
+          setSkipped(s => { const next = { ...s }; group.forEach(m => delete next[m]); return next; });
+          if (cid) setChainRound(1);
           setActiveIdx(idx);
         }}
         // Hold + swipe on a map row. Skipping the CURRENT exercise behaves like
         // the SKIP EXERCISE button (advance); others just flip to SKIPPED.
+        // A chain skips whole: mark every member and land past the bracket,
+        // never on a member we just skipped.
         onMarkSkipped={(idx) => {
-          setSkipped(s => ({ ...s, [idx]: true }));
-          if (idx === activeIdx) {
-            if (activeIdx < exercises.length - 1) setActiveIdx(activeIdx + 1);
-            else setActiveIdx(null);
+          const cid = exercises[idx]?._chain;
+          const group = cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [idx];
+          setSkipped(s => { const n = { ...s }; group.forEach(m => { n[m] = true; }); return n; });
+          if (group.includes(activeIdx)) {
+            const after = Math.max(...group) + 1;
+            setChainRound(1);
+            setActiveIdx(after < exercises.length ? after : null);
           }
         }}
         onReorder={handleReorder}
         onFinishWorkout={() => setActiveIdx(null)}
+        chainCtx={activeChain}
+        chainRoundsMap={chainRounds}
+        onChainNext={chainNext}
+        onChainRound={chainRoundDone}
       />
     );
   }
@@ -716,10 +908,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         {/* Workout header — exercises can only be swapped, never checked off
             by hand; the guided player crosses them out itself. */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 7 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8, color: C.faint, marginTop: 1 }}>hold ↕ move · swipe ↔ remove</span>
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.25 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: C.violet, letterSpacing: '0.1em' }}>SWAP WORKOUT</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap name for info &middot; swipe to delete &middot; hold + drag to reorder</span>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8, color: C.faint, textAlign: 'right', lineHeight: 1.4 }}>
+              ⇄ tap · swap workout<br/>⛓ double-tap · superset/circuit link
+            </span>
           </div>
         </div>
 
@@ -739,6 +936,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             const swipeDx = swiping ? gest.dx : 0;
             const rowW = rowRefs.current[i]?.offsetWidth || 320;
             const willDelete = swiping && Math.abs(swipeDx) > rowW * 0.4;
+            const chain = chainAt(pos);
+            const linkColor = chain ? CHAIN_COLORS[chain.linkIndex % CHAIN_COLORS.length] : null;
+            const linking = linkingIdx !== null;
+            const isLinkAnchor = linkingIdx === i;
+            const joinable = linking && !isLinkAnchor;
 
             // The dragged row leaves a dashed slot behind and floats above.
             if (dragging && i === gest.idx) {
@@ -755,7 +957,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
               );
             }
 
-            return withUndo(pos,
+            const rowNode = (
               <div key={`${ex.name}-${i}`} style={{ position: 'relative', borderRadius: 11, overflow: 'hidden' }}>
                 {/* Red backing revealed by the swipe */}
                 {swiping && (
@@ -774,25 +976,39 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                 <div
                   ref={(el) => { rowRefs.current[i] = el; }}
                   onPointerDown={(e) => rowPointerDown(e, i)}
+                  onClick={() => { if (joinable) addToChain(i); }}
                   className="wo-row" style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 11px', borderRadius: 11,
+                  padding: '8px 11px',
+                  // Chained rows square off into the bracket and carry its
+                  // violet left edge; the last member keeps a rounded foot.
+                  borderRadius: chain ? (chain.linkIndex === chain.count - 1 ? '0 0 11px 11px' : 0) : 11,
                   position: 'relative', touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none',
                   transform: swiping ? `translateX(${swipeDx}px)` : 'none',
                   transition: swiping ? 'none' : 'transform 0.18s ease',
-                  background: done ? 'rgba(253,224,71,0.04)' : 'rgba(8,2,18,0.85)',
-                  border: done ? '1px solid rgba(253,224,71,0.2)' : isPR ? '1px solid rgba(253,224,71,0.4)' : '1px solid rgba(168,85,247,0.22)',
+                  cursor: joinable ? 'copy' : 'default',
+                  background: joinable ? 'rgba(168,85,247,0.14)'
+                    : chain ? 'rgba(168,85,247,0.07)'
+                    : done ? 'rgba(253,224,71,0.04)' : 'rgba(8,2,18,0.85)',
+                  borderLeft: chain ? `3px solid ${C.violet}` : undefined,
+                  border: chain ? '1px solid rgba(168,85,247,0.35)'
+                    : done ? '1px solid rgba(253,224,71,0.2)' : isPR ? '1px solid rgba(253,224,71,0.4)' : '1px solid rgba(168,85,247,0.22)',
+                  ...(chain ? { borderLeft: `3px solid ${C.violet}`, borderTop: 'none' } : null),
                 }}>
                 {/* Color initial square (PR rows go gold-tinted) */}
+                {/* Member chips carry the chain's colour ramp — one hue per
+                    link index, so a long circuit stays readable at a glance. */}
                 <div style={{
                   width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                  background: done ? GOLD : isPR ? 'rgba(253,224,71,0.12)' : `${muscleColor}18`,
-                  border: done ? 'none' : isPR ? '1.5px solid rgba(253,224,71,0.5)' : `1.5px solid ${muscleColor}50`,
+                  background: done ? GOLD : chain ? `${linkColor}26` : isPR ? 'rgba(253,224,71,0.12)' : `${muscleColor}18`,
+                  border: done ? 'none' : chain ? `1.5px solid ${linkColor}` : isPR ? '1.5px solid rgba(253,224,71,0.5)' : `1.5px solid ${muscleColor}50`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {done
                     ? <Check size={13} color="#0a0014" strokeWidth={3}/>
-                    : <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, color: isPR ? GOLD : muscleColor }}>{ex.name[0]}</span>
+                    : <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: chain ? 8.5 : 10, color: chain ? linkColor : isPR ? GOLD : muscleColor }}>
+                        {chain ? `A${chain.linkIndex + 1}` : ex.name[0]}
+                      </span>
                   }
                 </div>
 
@@ -853,19 +1069,41 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                   )}
                 </div>
 
-                {/* Swap button */}
+                {/* Swap (single tap) and chain (double tap) — separate hit
+                    targets, kept well apart so neither is a mis-tap. */}
                 {!done && (
-                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed()) setSwapIdx(i); }} style={{
-                    width: 24, height: 24, borderRadius: 5, cursor: 'pointer',
+                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} style={{
+                    width: 24, height: 24, borderRadius: 5, cursor: 'pointer', flexShrink: 0,
                     background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <ArrowRightLeft size={11} color={C.violet}/>
                   </button>
                 )}
+                {!done && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); if (tapAllowed()) handleChainTap(i); }}
+                    aria-label="Chain to another exercise"
+                    className={isLinkAnchor ? 'wo-linking' : undefined}
+                    style={{
+                      width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0, marginLeft: 14,
+                      background: isLinkAnchor ? 'rgba(168,85,247,0.28)' : 'rgba(168,85,247,0.08)',
+                      border: `1px solid ${isLinkAnchor ? C.violet : 'rgba(168,85,247,0.3)'}`,
+                      color: isLinkAnchor ? '#fff' : '#c9a6ff', fontSize: 12, lineHeight: 1,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                    }}
+                  >⛓</button>
+                )}
                 </div>
               </div>
             );
+            // A chain's bracket is its header strip plus the violet left edge
+            // on each member row.
+            const nodes = [];
+            if (undoInfo && undoInfo.index === pos) nodes.push(undoSlotNode);
+            if (chain?.isFirst) nodes.push(chainHeaderNode(chain));
+            nodes.push(rowNode);
+            return nodes;
           })}
 
           {/* Deleted the last row? Its slot is past the end of the list. */}
