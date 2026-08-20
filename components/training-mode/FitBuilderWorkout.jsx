@@ -21,23 +21,15 @@ import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 
 const GOLD = C.gold;
 
-// The ⇄ and ⛓ in the list legend — the only two symbols you have to go FIND
-// on a row, so they carry their own weight against the 8.5px caption text.
-const LEGEND_GLYPH = {
-  fontSize: 13, lineHeight: 1, color: '#dcc0ff',
-  textShadow: '0 0 9px rgba(168,85,247,0.9)',
-};
-
-// The two action columns, declared once. The legend's ⇄/⛓ titles AND every
-// row's buttons lay out on these same widths, so each symbol in the header
-// sits directly above the button it names and the alignment can't drift.
-// ACT_GAP is also the breathing space either side of every · in the legend,
-// left and right, so both halves of it are spaced identically.
-const ACT_GAP = 7;
-const ACT_SWAP_W = 50;    // ⇄ · "swap workout"
-const ACT_SEP_W = 8;      // the · between the two
-const ACT_CHAIN_W = 70;   // ⛓ · "superset/circuit link" · "double-tap"
-const ACT_PAD_R = 12;     // a row's inner right padding (11px) + its border
+// 58a — every gesture the list understands, in one strip. Four cells, equal
+// width, so none of them reads as the important one. This is the ONLY place
+// gestures are explained: nothing labels the buttons on the rows themselves.
+const GESTURE_LEGEND = [
+  ['↕', 'hold · move'],
+  ['↔', 'swipe · remove'],
+  ['⇄', 'tap · swap'],
+  ['⛓', '2×tap · link'],
+];
 
 // −/＋ button in the working-weight stepper (design 39).
 const weightBtn = {
@@ -666,16 +658,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {undoInfo.exercise.name} removed
       </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: ACT_GAP, flexShrink: 0 }}>
-        <div style={{ width: ACT_SWAP_W, display: 'flex', justifyContent: 'center' }}>
-          <button onClick={undoDelete} style={{
-            background: 'none', border: 'none', padding: '2px 2px', cursor: 'pointer', flexShrink: 0,
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
-          }}>UNDO</button>
-        </div>
-        <div style={{ width: ACT_SEP_W }}/>
-        <div style={{ width: ACT_CHAIN_W }}/>
-      </div>
+      <button onClick={undoDelete} style={{
+        background: 'none', border: 'none', padding: '2px 2px', cursor: 'pointer', flexShrink: 0,
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
+      }}>UNDO</button>
     </div>
   ) : null;
   const withUndo = (pos, node) => (undoInfo && undoInfo.index === pos ? [undoSlotNode, node] : [node]);
@@ -911,54 +897,44 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           ))}
         </div>
 
-        {/* Progress bar */}
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.faint }}>
-              {doneCount}/{exercises.length} exercises
-            </div>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11, color: GOLD }}>{pct}%</div>
-          </div>
-          <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}>
-            <div style={{
-              width: `${pct}%`, height: '100%', borderRadius: 2,
-              background: `linear-gradient(90deg, ${GOLD}, #f59e0b)`,
-              boxShadow: '0 0 6px rgba(253,224,71,0.3)',
-              transition: 'width 0.4s ease',
-            }}/>
-          </div>
+        {/* Progress bar — the count that used to label it now rides the
+            WORKOUT title row below, so the title and the legend strip stay
+            adjacent (58a). */}
+        <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 10 }}>
+          <div style={{
+            width: `${pct}%`, height: '100%', borderRadius: 2,
+            background: `linear-gradient(90deg, ${GOLD}, #f59e0b)`,
+            boxShadow: '0 0 6px rgba(253,224,71,0.3)',
+            transition: 'width 0.4s ease',
+          }}/>
         </div>
 
-        {/* Workout header — exercises can only be swapped, never checked off
-            by hand; the guided player crosses them out itself. */}
-        {/* Three titles, each sitting over what it explains: WORKOUT over the
-            gestures, and the two glyphs over their own captions — so a symbol
-            you have to FIND on a row is itself the heading you read. */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `minmax(0,1fr) ${ACT_SWAP_W}px ${ACT_SEP_W}px ${ACT_CHAIN_W}px`,
-          columnGap: ACT_GAP, rowGap: 4, alignItems: 'center',
-          marginBottom: 7, paddingRight: ACT_PAD_R,
-          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8.5, color: C.faint, lineHeight: 1,
-        }}>
-          {/* titles */}
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em', justifySelf: 'start' }}>WORKOUT</span>
-          <span style={{ ...LEGEND_GLYPH, justifySelf: 'center' }}>⇄</span>
-          <span/>
-          <span style={{ ...LEGEND_GLYPH, justifySelf: 'center' }}>⛓</span>
-
-          {/* captions — the left pair is spaced on ACT_GAP too, so its · sits
-              in exactly as much air as the one on the right */}
-          <span style={{ justifySelf: 'start', display: 'flex', alignItems: 'center', gap: ACT_GAP, whiteSpace: 'nowrap' }}>
-            hold ↕ move <span style={{ opacity: 0.5 }}>·</span> swipe ↔ remove
+        {/* 58a — title row: the list's name on the left, where it stands, and
+            the count it used to sit above on the right. */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 15, color: GOLD, letterSpacing: '0.08em' }}>WORKOUT</span>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: C.faint, whiteSpace: 'nowrap' }}>
+            {doneCount}/{exercises.length} exercises · <span style={{ color: GOLD, fontWeight: 700 }}>{pct}%</span>
           </span>
-          <span style={{ justifySelf: 'center', whiteSpace: 'nowrap' }}>swap workout</span>
-          <span style={{ justifySelf: 'center', opacity: 0.5 }}>·</span>
-          <span style={{ justifySelf: 'center', whiteSpace: 'nowrap' }}>superset/circuit link</span>
+        </div>
 
-          {/* second line of the ⛓ caption */}
-          <span/><span/><span/>
-          <span style={{ justifySelf: 'center' }}>double-tap</span>
+        {/* 58a — one legend strip, and the only place gestures are explained.
+            Four equal cells so no gesture reads as the important one, and it
+            is deliberately inert: the row underneath is what you touch. */}
+        <div style={{
+          display: 'flex', alignItems: 'center', minHeight: 22, boxSizing: 'border-box',
+          padding: '6px 8px', marginBottom: 11, borderRadius: 9,
+          background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)',
+        }}>
+          {GESTURE_LEGEND.map(([glyph, text], n) => (
+            <span key={glyph} style={{
+              flex: 1, minWidth: 0, textAlign: 'center', whiteSpace: 'nowrap',
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 7.5, color: '#c4a4d8', lineHeight: 1,
+              borderLeft: n ? '1px solid rgba(168,85,247,0.25)' : 'none',
+            }}>
+              <span style={{ color: '#c9a6ff' }}>{glyph}</span> {text}
+            </span>
+          ))}
         </div>
 
         {/* Exercise rows — swipe one away to delete, hold + drag to reorder */}
@@ -1110,37 +1086,31 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                   )}
                 </div>
 
-                {/* Swap (single tap) and chain (double tap) — separate hit
-                    targets, kept well apart so neither is a mis-tap. They ride
-                    the legend's columns, so each one sits under the symbol
-                    that names it in the header. */}
+                {/* Swap (single tap) and chain (double tap) — unlabeled 26px
+                    squares, 14px apart so neither is a mis-tap. What they do
+                    is the legend strip's job, not theirs (58a). */}
                 {!done && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: ACT_GAP, flexShrink: 0 }}>
-                    <div style={{ width: ACT_SWAP_W, display: 'flex', justifyContent: 'center' }}>
-                      <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} style={{
-                        width: 24, height: 24, borderRadius: 5, cursor: 'pointer', flexShrink: 0,
-                        background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <ArrowRightLeft size={11} color={C.violet}/>
-                      </button>
-                    </div>
-                    <div style={{ width: ACT_SEP_W }}/>
-                    <div style={{ width: ACT_CHAIN_W, display: 'flex', justifyContent: 'center' }}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); if (tapAllowed()) handleChainTap(i); }}
-                        aria-label="Chain to another exercise"
-                        className={isLinkAnchor ? 'wo-linking' : undefined}
-                        style={{
-                          width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0,
-                          background: isLinkAnchor ? 'rgba(168,85,247,0.28)' : 'rgba(168,85,247,0.08)',
-                          border: `1px solid ${isLinkAnchor ? C.violet : 'rgba(168,85,247,0.3)'}`,
-                          color: isLinkAnchor ? '#fff' : '#c9a6ff', fontSize: 12, lineHeight: 1,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-                        }}
-                      >⛓</button>
-                    </div>
-                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} style={{
+                    width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0,
+                    background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <ArrowRightLeft size={12} color={C.violet}/>
+                  </button>
+                )}
+                {!done && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); if (tapAllowed()) handleChainTap(i); }}
+                    aria-label="Chain to another exercise"
+                    className={isLinkAnchor ? 'wo-linking' : undefined}
+                    style={{
+                      width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0, marginLeft: 14,
+                      background: isLinkAnchor ? 'rgba(168,85,247,0.28)' : 'rgba(168,85,247,0.08)',
+                      border: `1px solid ${isLinkAnchor ? C.violet : 'rgba(168,85,247,0.3)'}`,
+                      color: isLinkAnchor ? '#fff' : '#c9a6ff', fontSize: 12, lineHeight: 1,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                    }}
+                  >⛓</button>
                 )}
                 </div>
               </div>
