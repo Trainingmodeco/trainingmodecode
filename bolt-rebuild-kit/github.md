@@ -3,6 +3,29 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-08-20 · 14-exercise-chains.md (WB-H)** — supersets and circuits.
+  Double-tap a row's `⛓` to enter linking mode (glowing pulse, every other row
+  becomes a target); tapping one pulls it up beside the anchor so the bracket
+  stays contiguous. 2 moves = SUPERSET, 3+ = CIRCUIT with a 2–5 round stepper;
+  `✕` breaks it back to plain rows. Single taps never chain, so swap, hold-move
+  and swipe-remove are untouched. The player runs ONE round of each move and
+  hands straight over ("GO STRAIGHT IN", no rest timer), resting once at the
+  end of the round with the round counter on screen; the announcer counts
+  rounds, not sets. The WORKOUT MAP treats a chain as one unit — one bracket,
+  one status badge, hold starts the chain from the top, swipe skips every
+  member and lands past the bracket, and `weaveOrder` now works on units so a
+  drag moves the block and a drop can't land inside it. Ramp-coloured A1/A2/A3
+  chips share the builder's 10-hue spectrum.
+- **2026-08-20 · 13-exercise-info-sheet.md (WB-G)** — tap an exercise NAME
+  (list row, guided player, or SWAP row) for the EXERCISE INFO sheet: 16:9 demo
+  panel with three honest states (shimmer / `▶ LOOP · MUTED` / a designed
+  "DEMO ON THE WAY" waiting room), HOW TO with gold numerals, COMMON MISTAKES
+  in the sheet's only red, and EASIER/HARDER swap chips rendered only where a
+  swap can actually happen. Everything fits without scrolling, by design.
+  Content comes from 26 movement FAMILIES in `data/exerciseInfo.js` matched
+  most-specific-first, not per-exercise entries. Demo art reads from
+  `/static/exercise-demos/<id>.webp`; a missing file falls back to the waiting
+  room, never a broken image.
 - **2026-08-19 · 12-exercise-history-sheet.md (WB-F)** — tap an exercise's
   last-time line (list rows + weighted get-ready) to open the EXERCISE
   HISTORY bottom sheet: gold BEST pill, SVG trend of the last 8 sessions
