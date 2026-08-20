@@ -21,6 +21,13 @@ import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 
 const GOLD = C.gold;
 
+// The ⇄ and ⛓ in the list legend — the only two symbols you have to go FIND
+// on a row, so they carry their own weight against the 8.5px caption text.
+const LEGEND_GLYPH = {
+  fontSize: 13, lineHeight: 1, color: '#dcc0ff',
+  textShadow: '0 0 9px rgba(168,85,247,0.9)',
+};
+
 // −/＋ button in the working-weight stepper (design 39).
 const weightBtn = {
   width: 34, height: 34, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
@@ -907,15 +914,27 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
         {/* Workout header — exercises can only be swapped, never checked off
             by hand; the guided player crosses them out itself. */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 7 }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8, color: C.faint, marginTop: 1 }}>hold ↕ move · swipe ↔ remove</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.25 }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: C.violet, letterSpacing: '0.1em' }}>SWAP WORKOUT</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8, color: C.faint, textAlign: 'right', lineHeight: 1.4 }}>
-              ⇄ tap · swap workout<br/>⛓ double-tap · superset/circuit link
+        <div style={{ marginBottom: 7 }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
+          {/* One legend for the whole list. The two glyphs are the only things
+              here you have to FIND on a row, so they read brighter and larger
+              than the words around them. */}
+          <div style={{
+            display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 9, rowGap: 3, marginTop: 4,
+            fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8.5, color: C.faint, lineHeight: 1,
+          }}>
+            <span>hold ↕ move</span>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span>swipe ↔ remove</span>
+            <span style={{ width: 8 }}/>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={LEGEND_GLYPH}>⇄</span> swap workout
+            </span>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span>superset/circuit link</span>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={LEGEND_GLYPH}>⛓</span> double-tap
             </span>
           </div>
         </div>
@@ -1173,7 +1192,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             }
           }}
           style={{
-            width: '100%', marginTop: 96, padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+            width: '100%', marginTop: 34, padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
             color: '#0a0014',
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
