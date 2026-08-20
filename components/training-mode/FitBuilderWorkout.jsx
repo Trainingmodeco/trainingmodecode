@@ -914,29 +914,29 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
         {/* Workout header — exercises can only be swapped, never checked off
             by hand; the guided player crosses them out itself. */}
-        <div style={{ marginBottom: 7 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
-          {/* One legend for the whole list. The two glyphs are the only things
-              here you have to FIND on a row, so they read brighter and larger
-              than the words around them. */}
-          <div style={{
-            display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 9, rowGap: 3, marginTop: 4,
-            fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8.5, color: C.faint, lineHeight: 1,
-          }}>
-            <span>hold ↕ move</span>
-            <span style={{ opacity: 0.5 }}>·</span>
-            <span>swipe ↔ remove</span>
-            <span style={{ width: 8 }}/>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={LEGEND_GLYPH}>⇄</span> swap workout
-            </span>
-            <span style={{ opacity: 0.5 }}>·</span>
-            <span>superset/circuit link</span>
-            <span style={{ opacity: 0.5 }}>·</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={LEGEND_GLYPH}>⛓</span> double-tap
-            </span>
-          </div>
+        {/* Three titles, each sitting over what it explains: WORKOUT over the
+            gestures, and the two glyphs over their own captions — so a symbol
+            you have to FIND on a row is itself the heading you read. */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto auto auto',
+          columnGap: 9, rowGap: 4, alignItems: 'center', marginBottom: 7,
+          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8.5, color: C.faint, lineHeight: 1,
+        }}>
+          {/* titles */}
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em', justifySelf: 'start' }}>WORKOUT</span>
+          <span style={{ ...LEGEND_GLYPH, justifySelf: 'center' }}>⇄</span>
+          <span/>
+          <span style={{ ...LEGEND_GLYPH, justifySelf: 'center' }}>⛓</span>
+
+          {/* captions */}
+          <span style={{ justifySelf: 'start' }}>hold ↕ move&nbsp;&nbsp;·&nbsp;&nbsp;swipe ↔ remove</span>
+          <span style={{ justifySelf: 'center' }}>swap workout</span>
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span style={{ justifySelf: 'center' }}>superset/circuit link</span>
+
+          {/* second line of the ⛓ caption */}
+          <span/><span/><span/>
+          <span style={{ justifySelf: 'center' }}>double-tap</span>
         </div>
 
         {/* Exercise rows — swipe one away to delete, hold + drag to reorder */}
