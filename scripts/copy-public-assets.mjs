@@ -158,7 +158,12 @@ if (existsSync(indexPath)) {
     // updateViaCache:'none' + an explicit update() make installed PWAs check
     // for a new worker on every launch; the new worker then waits until the
     // next launch to activate (no skipWaiting in sw.js).
-    const swScript = '<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).then(function(reg){reg.update().catch(function(){});}).catch(function(){});});}</script>';
+    // Never register against a dev server: a worker's scope is the whole
+    // origin, so one installed from a local production preview keeps serving
+    // its precached bundles over Metro afterwards. (sw.js also unregisters
+    // itself on localhost, which cleans up anything already installed.)
+    const isLocal = 'location.hostname==="localhost"||location.hostname==="127.0.0.1"||location.hostname==="[::1]"';
+    const swScript = `<script>if("serviceWorker" in navigator&&!(${isLocal})){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"}).then(function(reg){reg.update().catch(function(){});}).catch(function(){});});}</script>`;
     html = html.replace('</body>', `${swScript}</body>`);
   }
   writeFileSync(indexPath, html);

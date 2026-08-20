@@ -922,17 +922,17 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             Four equal cells so no gesture reads as the important one, and it
             is deliberately inert: the row underneath is what you touch. */}
         <div style={{
-          display: 'flex', alignItems: 'center', minHeight: 22, boxSizing: 'border-box',
+          display: 'flex', alignItems: 'center', minHeight: 24, boxSizing: 'border-box',
           padding: '6px 8px', marginBottom: 11, borderRadius: 9,
           background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)',
         }}>
           {GESTURE_LEGEND.map(([glyph, text], n) => (
             <span key={glyph} style={{
               flex: 1, minWidth: 0, textAlign: 'center', whiteSpace: 'nowrap',
-              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 7.5, color: '#c4a4d8', lineHeight: 1,
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: '#c4a4d8', lineHeight: 1,
               borderLeft: n ? '1px solid rgba(168,85,247,0.25)' : 'none',
             }}>
-              <span style={{ color: '#c9a6ff' }}>{glyph}</span> {text}
+              <span style={{ color: '#c9a6ff', fontSize: 10 }}>{glyph}</span> {text}
             </span>
           ))}
         </div>

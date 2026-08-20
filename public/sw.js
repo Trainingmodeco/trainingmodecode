@@ -9,12 +9,40 @@
 const BUILD_ID = '__TM_BUILD_ID__'; // literal in dev; replaced per build
 const CACHE = 'tm-cache-' + (BUILD_ID.indexOf('__') === 0 ? 'dev' : BUILD_ID);
 const SHELL = ['/', '/index.html', '/manifest.json'];
+
+// A worker's scope is the whole ORIGIN, so one registered from a local
+// production preview goes on intercepting the Metro dev server afterwards —
+// serving precached bundles over live ones. The app then boots old code and
+// no amount of reloading or restarting Metro fixes it, because the dev
+// server was never the thing answering. On localhost the worker refuses the
+// job: it drops every cache, unregisters itself and reloads the open tabs,
+// so an already-installed one cleans up the next time you open the dev URL.
+const IS_LOCAL = self.location.hostname === 'localhost'
+  || self.location.hostname === '127.0.0.1'
+  || self.location.hostname === '[::1]'
+  || self.location.hostname === '::1';
 // Every JS/CSS chunk of THIS build, stamped in at build time. Precached
 // atomically at install so a running session can always lazy-load its own
 // chunks from its own cache — even after a newer deploy replaced the files
 // on the server. This is what prevents mixed-build "Requiring unknown
 // module N" crashes. (Placeholder is a literal in dev; filtered out.)
 const PRECACHE = ['__TM_PRECACHE__'].filter((p) => p.indexOf('__') === -1 && p.indexOf('/_') === 0);
+
+if (IS_LOCAL) {
+  // Take over immediately — the point is to get out of the way fast.
+  self.addEventListener('install', () => self.skipWaiting());
+  self.addEventListener('activate', (event) => {
+    event.waitUntil(
+      caches.keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .then(() => self.registration.unregister())
+        .then(() => self.clients.matchAll({ type: 'window' }))
+        .then((clients) => clients.forEach((c) => c.navigate(c.url)))
+        .catch(() => {}),
+    );
+  });
+  // No fetch listener at all: every request goes straight to the dev server.
+} else {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.concat(PRECACHE))));
@@ -100,3 +128,5 @@ self.addEventListener('fetch', (event) => {
     ),
   );
 });
+
+}   // end !IS_LOCAL
