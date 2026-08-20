@@ -59,7 +59,7 @@ export const SCREEN_GUIDES = {
     { screen: 'fight_hub', target: 'fh-movelab', title: '⚡ COMBO CREATOR (MOVE LAB)', body: 'Build your own combos and signature moves — chain real strikes into a sequence, or type your own call. Anything you save joins Combo Coach\'s rotation.' },
 
     { screen: 'training_hub', target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
-    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. You can swap any exercise, edit sets and reps, and save it as a routine.' },
+    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap a name for form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit that runs back-to-back with no rest inside.' },
     { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs, intervals, Tabata and HIIT, with pace coaching and a target you can set by distance or time.' },
 
@@ -158,6 +158,8 @@ export const SCREEN_GUIDES = {
     { target: 'wb-programming', title: 'WORKOUT PROGRAMS', body: 'Optional. Open this for set schemes (5×5, 3×10…), popular programs (Push/Pull/Legs, Upper/Lower…), session length, and your saved routines (up to 10). Leave it on AUTO and the generator picks for you.' },
     { target: 'wb-cardio', title: 'ADD CARDIO', body: 'Optional finisher — tack a run, intervals, or Tabata onto the end of your workout.' },
     { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. You can swap any exercise, edit sets and reps, and save it as a routine.' },
+    { target: 'wb-generate', title: 'ON THE WORKOUT LIST', body: 'Once it\'s built, the list is yours to shape. Tap an exercise NAME for a demo, form cues and common mistakes. Tap ⇄ to swap it. Swipe a row sideways to remove it (with an undo), and press and hold to drag it up or down.' },
+    { target: 'wb-generate', title: '⛓ SUPERSETS & CIRCUITS', body: 'Double-tap the ⛓ on any exercise and it starts glowing — now tap another exercise to link them. Two moves is a SUPERSET, three or more is a CIRCUIT with a rounds setting. Linked moves run back-to-back with NO rest between them, resting once at the end of each round. Tap ✕ on the bracket to unlink.' },
   ],
 
   quick_mission_setup: [
