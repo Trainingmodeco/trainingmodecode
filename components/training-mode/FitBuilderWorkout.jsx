@@ -296,6 +296,17 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // `infoAlt` is a swap-sheet candidate being previewed before committing.
   const [infoIdx, setInfoIdx] = useState(null);
   const [infoAlt, setInfoAlt] = useState(null);
+  // List gestures: swipe a row away to delete (with undo), hold + drag to
+  // reorder. Same engine as the in-workout map, tuned for this screen —
+  // here a horizontal swipe deletes immediately (no hold), because there is
+  // no set in progress to protect.
+  const [gest, setGest] = useState(null);      // { idx, mode, dx, dy, slot }
+  const gestRef = useRef(null);
+  const rowRefs = useRef({});
+  const listRef = useRef(null);
+  const tapBlockedRef = useRef(false);         // a gesture just ran — eat the click
+  const [undoInfo, setUndoInfo] = useState(null); // { index, exercise, wasDone, wasSkipped }
+  const undoTimer = useRef(0);
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -377,6 +388,170 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     applySwapAt(swapIdx, alt);
     setSwapIdx(null);
   };
+
+  // ── List gestures: delete (with undo) + drag to reorder ──────────────────
+  // completed/skipped are INDEX-keyed, so any structural change has to move
+  // their keys with the rows or a finished exercise would follow the slot
+  // instead of the movement.
+  const shiftMap = (m, from, delta) => {
+    const next = {};
+    Object.keys(m).forEach(k => {
+      if (!m[k]) return;
+      const n = Number(k);
+      if (n === from && delta < 0) return;                 // the removed row
+      next[n > from ? n + delta : n] = true;
+    });
+    return next;
+  };
+
+  const deleteAt = (idx) => {
+    if (exercises.length <= 1) return;   // never leave an empty workout
+    const victim = exercises[idx];
+    clearTimeout(undoTimer.current);
+    setUndoInfo({ index: idx, exercise: victim, wasDone: !!completed[idx], wasSkipped: !!skipped[idx] });
+    setExercises(prev => prev.filter((_, i) => i !== idx));
+    setCompleted(m => shiftMap(m, idx, -1));
+    setSkipped(m => shiftMap(m, idx, -1));
+    // The undo offer is quiet and self-clearing — it never becomes clutter.
+    undoTimer.current = setTimeout(() => setUndoInfo(null), 7000);
+  };
+
+  const undoDelete = () => {
+    if (!undoInfo) return;
+    clearTimeout(undoTimer.current);
+    const { index, exercise, wasDone, wasSkipped } = undoInfo;
+    setExercises(prev => { const next = [...prev]; next.splice(index, 0, exercise); return next; });
+    setCompleted(m => { const n = shiftMap(m, index - 1, +1); if (wasDone) n[index] = true; return n; });
+    setSkipped(m => { const n = shiftMap(m, index - 1, +1); if (wasSkipped) n[index] = true; return n; });
+    setUndoInfo(null);
+  };
+
+  const moveRow = (from, to) => {
+    if (from === to || to < 0 || to >= exercises.length) return;
+    setExercises(prev => { const next = [...prev]; const [row] = next.splice(from, 1); next.splice(to, 0, row); return next; });
+    const remap = (m) => {
+      const order = exercises.map((_, i) => i);
+      const [moved] = order.splice(from, 1);
+      order.splice(to, 0, moved);
+      const next = {};
+      order.forEach((oldI, newI) => { if (m[oldI]) next[newI] = true; });
+      return next;
+    };
+    setCompleted(remap);
+    setSkipped(remap);
+  };
+
+  useEffect(() => () => clearTimeout(undoTimer.current), []);
+
+  const clearGesture = () => {
+    const g = gestRef.current;
+    if (g) clearTimeout(g.holdTimer);
+    gestRef.current = null;
+    setGest(null);
+  };
+
+  // A gesture and a tap share the same pointerdown, so a row's onClick has to
+  // stand down once a gesture has actually engaged.
+  const tapAllowed = () => !tapBlockedRef.current;
+
+  const rowPointerDown = (e, i) => {
+    if (gestRef.current) clearGesture();
+    const g = { idx: i, mode: 'pending', x0: e.clientX, y0: e.clientY, pointerId: e.pointerId, dx: 0, dy: 0 };
+    // Held still for 250ms with no swipe → this is a reorder drag.
+    g.holdTimer = setTimeout(() => {
+      if (gestRef.current !== g || g.mode !== 'pending') return;
+      g.mode = 'drag';
+      g.startTop = rowRefs.current[i]?.getBoundingClientRect().top || 0;
+      g.height = (rowRefs.current[i]?.getBoundingClientRect().height || 56) + 4;
+      tapBlockedRef.current = true;
+      try { navigator.vibrate?.(20); } catch { /* no haptics */ }
+      setGest({ idx: i, mode: 'drag', dx: 0, dy: 0, slot: i });
+    }, 250);
+    gestRef.current = g;
+  };
+
+  const rowPointerMove = (e) => {
+    const g = gestRef.current;
+    if (!g) return;
+    const dx = e.clientX - g.x0;
+    const dy = e.clientY - g.y0;
+    if (g.mode === 'pending') {
+      // Horizontal first → swipe to delete. Vertical first → the list is
+      // scrolling; let it, and drop the gesture.
+      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+        clearTimeout(g.holdTimer);
+        g.mode = 'swipe'; g.dx = dx;
+        tapBlockedRef.current = true;
+        setGest({ idx: g.idx, mode: 'swipe', dx, dy: 0 });
+      } else if (Math.abs(dy) > 8) {
+        clearTimeout(g.holdTimer);
+        gestRef.current = null;
+      }
+      return;
+    }
+    if (g.mode === 'swipe') { g.dx = dx; setGest(s => (s ? { ...s, dx } : s)); return; }
+    if (g.mode === 'drag') {
+      const slot = Math.max(0, Math.min(exercises.length - 1, g.idx + Math.round(dy / (g.height || 56))));
+      g.dy = dy; g.slot = slot;
+      setGest(s => (s ? { ...s, dy, slot } : s));
+    }
+  };
+
+  const rowPointerUp = () => {
+    const g = gestRef.current;
+    if (!g) return;
+    const { mode, idx } = g;
+    // Read the commit values off the REF: the state closure can trail the
+    // final pointermove by one event.
+    const dx = g.dx || 0;
+    const slot = g.slot ?? idx;
+    clearGesture();
+    if (mode === 'swipe') {
+      const width = rowRefs.current[idx]?.offsetWidth || 320;
+      if (Math.abs(dx) > width * 0.4) deleteAt(idx);
+    } else if (mode === 'drag') {
+      moveRow(idx, slot);
+    }
+    // Release the tap block after the click that ends this gesture.
+    setTimeout(() => { tapBlockedRef.current = false; }, 0);
+  };
+
+  // Move/up on WINDOW: a dragged row re-renders (it becomes the lifted copy),
+  // which would destroy per-row handlers mid-gesture. Learned the hard way on
+  // the workout map.
+  useEffect(() => {
+    const move = (e) => { const g = gestRef.current; if (g && e.pointerId === g.pointerId) rowPointerMove(e); };
+    const up = (e) => { const g = gestRef.current; if (g && e.pointerId === g.pointerId) rowPointerUp(); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+  });
+
+  // Rows stay pan-y so the list scrolls normally; only an engaged gesture
+  // blocks the scroll.
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return undefined;
+    const h = (e) => { const g = gestRef.current; if (g && g.mode !== 'pending') e.preventDefault(); };
+    el.addEventListener('touchmove', h, { passive: false });
+    return () => el.removeEventListener('touchmove', h);
+  }, []);
+
+  // While dragging, the list renders in the PREVIEW order so the other rows
+  // part to show where this one will land.
+  const dragging = gest?.mode === 'drag';
+  const previewOrder = (() => {
+    const order = exercises.map((_, i) => i);
+    if (!dragging) return order;
+    const [moved] = order.splice(gest.idx, 1);
+    order.splice(Math.max(0, Math.min(gest.slot, order.length)), 0, moved);
+    return order;
+  })();
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
@@ -522,13 +697,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.25 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: C.violet, letterSpacing: '0.1em' }}>SWAP WORKOUT</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap name for info &middot; ⇄ to swap &middot; tap sets to edit</span>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap name for info &middot; swipe to delete &middot; hold + drag to reorder</span>
           </div>
         </div>
 
-        {/* Exercise rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {exercises.map((ex, i) => {
+        {/* Exercise rows — swipe one away to delete, hold + drag to reorder */}
+        <div ref={listRef} style={{ display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}>
+          {previewOrder.map((i) => {
+            const ex = exercises[i];
+            if (!ex) return null;
             const done = !!completed[i];
             const muscleColor = MUSCLE_COLORS[ex.muscle] || C.faint;
             // Design 39 — weight only shows on weighted lifts.
@@ -536,13 +713,54 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             // Spec 11 — last-time progression verdict for this row.
             const prog = rowProgression(ex, prevRecRef.current);
             const isPR = !!prog?.isPR;
+            const swiping = gest?.mode === 'swipe' && gest.idx === i;
+            const swipeDx = swiping ? gest.dx : 0;
+            const rowW = rowRefs.current[i]?.offsetWidth || 320;
+            const willDelete = swiping && Math.abs(swipeDx) > rowW * 0.4;
+
+            // The dragged row leaves a dashed slot behind and floats above.
+            if (dragging && i === gest.idx) {
+              return (
+                <div key={`drop-${i}`} style={{
+                  height: 52, borderRadius: 11, boxSizing: 'border-box',
+                  border: `2px dashed ${C.violet}`, background: 'rgba(168,85,247,0.06)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 800, color: C.violet, letterSpacing: '0.14em' }}>
+                    DROP HERE · SLOT {previewOrder.indexOf(i) + 1}
+                  </span>
+                </div>
+              );
+            }
+
             return (
-              <div key={`${ex.name}-${i}`} className="wo-row" style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 11px', borderRadius: 11,
-                background: done ? 'rgba(253,224,71,0.04)' : 'rgba(8,2,18,0.85)',
-                border: done ? '1px solid rgba(253,224,71,0.2)' : isPR ? '1px solid rgba(253,224,71,0.4)' : '1px solid rgba(168,85,247,0.22)',
-              }}>
+              <div key={`${ex.name}-${i}`} style={{ position: 'relative', borderRadius: 11, overflow: 'hidden' }}>
+                {/* Red backing revealed by the swipe */}
+                {swiping && (
+                  <div style={{
+                    position: 'absolute', inset: 0, borderRadius: 11,
+                    background: willDelete ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.16)',
+                    border: '1px solid rgba(239,68,68,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: swipeDx < 0 ? 'flex-end' : 'flex-start',
+                    padding: '0 16px',
+                  }}>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 900, color: '#ff8a8a', letterSpacing: '0.14em' }}>
+                      {willDelete ? 'RELEASE TO DELETE' : 'DELETE'}
+                    </span>
+                  </div>
+                )}
+                <div
+                  ref={(el) => { rowRefs.current[i] = el; }}
+                  onPointerDown={(e) => rowPointerDown(e, i)}
+                  className="wo-row" style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 11px', borderRadius: 11,
+                  position: 'relative', touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none',
+                  transform: swiping ? `translateX(${swipeDx}px)` : 'none',
+                  transition: swiping ? 'none' : 'transform 0.18s ease',
+                  background: done ? 'rgba(253,224,71,0.04)' : 'rgba(8,2,18,0.85)',
+                  border: done ? '1px solid rgba(253,224,71,0.2)' : isPR ? '1px solid rgba(253,224,71,0.4)' : '1px solid rgba(168,85,247,0.22)',
+                }}>
                 {/* Color initial square (PR rows go gold-tinted) */}
                 <div style={{
                   width: 24, height: 24, borderRadius: 7, flexShrink: 0,
@@ -561,7 +779,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {/* Spec 13 — the NAME now opens the info sheet ("what IS
                       this?"); the ⇄ button is the swap. */}
-                  <div onClick={() => !done && setInfoIdx(i)} style={{
+                  <div onClick={() => { if (!done && tapAllowed()) setInfoIdx(i); }} style={{
                     fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10.5,
                     color: done ? 'rgba(253,224,71,0.7)' : '#fff',
                     letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -571,7 +789,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                   }}>{ex.name}{!done && <span style={{ color: C.violet, fontSize: 9 }}> ⓘ</span>}{prog?.state === 'new' && !done && (
                     <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7, color: '#6d5a8f', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px', marginLeft: 6, letterSpacing: '0.1em', verticalAlign: 'middle' }}>NEW</span>
                   )}</div>
-                  <div onClick={() => !done && setEditIdx(i)} style={{
+                  <div onClick={() => { if (!done && tapAllowed()) setEditIdx(i); }} style={{
                     fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, marginTop: 1,
                     color: done ? C.faint : '#9a90b8', cursor: done ? 'default' : 'pointer',
                     textDecoration: done ? 'none' : 'underline dotted rgba(168,85,247,0.5)',
@@ -591,7 +809,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                         /* Spec 12 — the LAST line is the door to this
                            exercise's history sheet (dotted underline + ⟩). */
                         <span
-                          onClick={(e) => { e.stopPropagation(); setHistoryIdx(i); }}
+                          onClick={(e) => { e.stopPropagation(); if (tapAllowed()) setHistoryIdx(i); }}
                           style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 8.5, fontWeight: 600, color: '#c4a4d8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.5)', textUnderlineOffset: 2 }}
                         >{prog.line} ⟩</span>
                       )}
@@ -615,7 +833,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
                 {/* Swap button */}
                 {!done && (
-                  <button onClick={(e) => { e.stopPropagation(); setSwapIdx(i); }} style={{
+                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed()) setSwapIdx(i); }} style={{
                     width: 24, height: 24, borderRadius: 5, cursor: 'pointer',
                     background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -623,10 +841,39 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                     <ArrowRightLeft size={11} color={C.violet}/>
                   </button>
                 )}
+                </div>
               </div>
             );
           })}
+
+          {/* The lifted copy of the row being dragged */}
+          {dragging && exercises[gest.idx] && (
+            <div style={{
+              position: 'absolute', left: 0, right: 0, top: (gest.idx * 56) + (gest.dy || 0), zIndex: 5,
+              pointerEvents: 'none', borderRadius: 11, border: `2px solid ${C.violet}`,
+              background: '#241640', boxShadow: '0 14px 34px rgba(0,0,0,0.7)', transform: 'rotate(1deg)',
+              padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, boxSizing: 'border-box',
+            }}>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 800, color: C.violet }}>≡</span>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10.5, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {exercises[gest.idx].name}
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Quiet, borderless undo — self-clears after a few seconds */}
+        {undoInfo && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 6 }}>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>
+              {undoInfo.exercise.name} removed
+            </span>
+            <button onClick={undoDelete} style={{
+              background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
+              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
+            }}>UNDO</button>
+          </div>
+        )}
 
         {/* Regenerate + save routine — under the workout list */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
