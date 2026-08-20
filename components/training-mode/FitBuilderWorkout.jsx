@@ -17,6 +17,7 @@ import { classifyType, exerciseWeight, unitLabel, normUnit, stepFor, convertWeig
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
 import BuilderWarmup from './shared/BuilderWarmup';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
+import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 
 const GOLD = C.gold;
 
@@ -106,7 +107,7 @@ function getAlternates(exercise, cfg, takenNames, seed) {
   return pool.filter(isBw).slice(0, 8);
 }
 
-function SwapSheet({ exercise, alternates, onSelect, onClose }) {
+function SwapSheet({ exercise, alternates, onSelect, onInfo, onClose }) {
   return (
     <BottomSheet title={`SWAP: ${exercise.name.toUpperCase()}`} accent={C.violet} onClose={onClose} maxHeight="70dvh">
       {alternates.length === 0 ? (
@@ -125,9 +126,17 @@ function SwapSheet({ exercise, alternates, onSelect, onClose }) {
                 width: 6, height: 6, borderRadius: 3,
                 background: MUSCLE_COLORS[alt.primaryMuscle] || C.violet, flexShrink: 0,
               }}/>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: '#fff', letterSpacing: '0.03em' }}>
-                  {alt.name}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Spec 13 — preview before committing: the name opens the
+                    info sheet, which carries USE THIS EXERCISE. */}
+                <div
+                  onClick={(e) => { e.stopPropagation(); onInfo?.(alt); }}
+                  style={{
+                    fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: '#fff', letterSpacing: '0.03em',
+                    textDecoration: 'underline dotted rgba(196,164,216,0.45)', textUnderlineOffset: 2, cursor: 'pointer',
+                  }}
+                >
+                  {alt.name} <span style={{ color: C.violet, fontSize: 9 }}>ⓘ</span>
                 </div>
                 <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.faint, marginTop: 1 }}>
                   {alt.sets}x{alt.reps} &middot; {alt.equipment}
@@ -283,6 +292,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const warmupTargetRef = useRef(0);
   // Spec 12 — tapping a row's LAST line opens that exercise's history sheet.
   const [historyIdx, setHistoryIdx] = useState(null);
+  // Spec 13 — "what IS this exercise?". `infoIdx` is a row of the workout;
+  // `infoAlt` is a swap-sheet candidate being previewed before committing.
+  const [infoIdx, setInfoIdx] = useState(null);
+  const [infoAlt, setInfoAlt] = useState(null);
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -331,9 +344,18 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     setTimeout(() => setSavedFlash(false), 1800);
   };
 
-  const handleSwapSelect = (alt) => {
-    setExercises(prev => prev.map((ex, i) => i === swapIdx ? {
+  // One swap path for every entry point: the swap sheet, and the EASIER /
+  // HARDER chips on the exercise-info sheet.
+  //
+  // `id` is copied deliberately. It used to be left behind, which meant a
+  // swapped row kept the OLD exercise's id — and the weight log, the history
+  // sheet and the demo art all key off that id, so a swap would have logged
+  // sets and shown demos under the exercise you swapped AWAY from.
+  const applySwapAt = (idx, alt) => {
+    if (idx === null || idx === undefined || !alt) return;
+    setExercises(prev => prev.map((ex, i) => i === idx ? {
       ...ex,
+      id: alt.id || ex.id,
       name: alt.name,
       sets: alt.sets,
       reps: alt.reps,
@@ -344,7 +366,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       primaryMuscle: alt.primaryMuscle,
       equipment: alt.equipment,
       coachNote: alt.coachNote,
+      difficulty: alt.difficulty || ex.difficulty,
+      tempo: alt.tempo || ex.tempo,
+      // A different movement carries no memory of the old one's load.
+      weight: undefined,
     } : ex));
+  };
+
+  const handleSwapSelect = (alt) => {
+    applySwapAt(swapIdx, alt);
     setSwapIdx(null);
   };
 
@@ -492,7 +522,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: '#fff', letterSpacing: '0.1em' }}>WORKOUT</span>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.25 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: C.violet, letterSpacing: '0.1em' }}>SWAP WORKOUT</span>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap name to swap &middot; tap sets to edit</span>
+            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: C.faint }}>tap name for info &middot; ⇄ to swap &middot; tap sets to edit</span>
           </div>
         </div>
 
@@ -529,13 +559,16 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                 {/* Name taps open the swap sheet; the sets/reps/rest line taps
                     open the editor (rows are never checked off by hand) */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div onClick={() => !done && setSwapIdx(i)} style={{
+                  {/* Spec 13 — the NAME now opens the info sheet ("what IS
+                      this?"); the ⇄ button is the swap. */}
+                  <div onClick={() => !done && setInfoIdx(i)} style={{
                     fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10.5,
                     color: done ? 'rgba(253,224,71,0.7)' : '#fff',
                     letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    textDecoration: done ? 'line-through' : 'none',
+                    textDecoration: done ? 'line-through' : 'underline dotted rgba(196,164,216,0.4)',
+                    textUnderlineOffset: 2,
                     cursor: done ? 'default' : 'pointer',
-                  }}>{ex.name}{prog?.state === 'new' && !done && (
+                  }}>{ex.name}{!done && <span style={{ color: C.violet, fontSize: 9 }}> ⓘ</span>}{prog?.state === 'new' && !done && (
                     <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7, color: '#6d5a8f', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px', marginLeft: 6, letterSpacing: '0.1em', verticalAlign: 'middle' }}>NEW</span>
                   )}</div>
                   <div onClick={() => !done && setEditIdx(i)} style={{
@@ -662,6 +695,27 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         <ExerciseHistorySheet exercise={exercises[historyIdx]} onClose={() => setHistoryIdx(null)}/>
       )}
 
+      {/* Spec 13 — exercise info, from a workout row */}
+      {infoIdx !== null && exercises[infoIdx] && (
+        <ExerciseInfoSheet
+          exercise={exercises[infoIdx]}
+          onSwapTo={(target) => { applySwapAt(infoIdx, target); setInfoIdx(null); }}
+          onClose={() => setInfoIdx(null)}
+        />
+      )}
+
+      {/* Spec 13 — exercise info previewing a SWAP candidate: this one
+          carries the commit action and closes both sheets. */}
+      {infoAlt && (
+        <ExerciseInfoSheet
+          exercise={infoAlt}
+          fromSwap
+          onUse={(alt) => { handleSwapSelect(alt); setInfoAlt(null); }}
+          onSwapTo={(target) => setInfoAlt(target)}
+          onClose={() => setInfoAlt(null)}
+        />
+      )}
+
       {/* 90s warm-up gate (spec: follow-along counted moves or freestyle) */}
       {warmupOpen && (
         <BuilderWarmup
@@ -681,6 +735,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             `${swapSeed}:${swapIdx}`
           )}
           onSelect={handleSwapSelect}
+          onInfo={(alt) => setInfoAlt(alt)}
           onClose={() => setSwapIdx(null)}
         />
       )}

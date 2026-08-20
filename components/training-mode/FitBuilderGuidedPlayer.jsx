@@ -10,6 +10,7 @@ import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor, logBodyweightSets } from './data/weightLog';
 import { rowProgression } from './data/builderProgression';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
+import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
@@ -103,6 +104,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const [justDoneIdx, setJustDoneIdx] = useState(null);
   const [toast, setToast] = useState(null);           // { name, xp }
   const [historyOpen, setHistoryOpen] = useState(false); // spec 12 — history sheet
+  const [infoOpen, setInfoOpen] = useState(false);       // spec 13 — "what IS this?"
   const wasRunningRef = useRef(false);                // resume after map close?
   const flowTimers = useRef([]);
 
@@ -881,7 +883,12 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           {/* Centre: display + announcer + controls (kept high, no scroll) */}
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
             <div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 19, color: '#fff', letterSpacing: '0.04em', marginBottom: 4 }}>{ex.name}</div>
+              {/* Spec 13 — the name is the door to "what IS this exercise?",
+                  reachable mid-set without leaving the workout. */}
+              <div
+                onClick={() => setInfoOpen(true)}
+                style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 19, color: '#fff', letterSpacing: '0.04em', marginBottom: 4, cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.35)', textUnderlineOffset: 5 }}
+              >{ex.name} <span style={{ color: VIOLET, fontSize: 13 }}>ⓘ</span></div>
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: VIOLET, letterSpacing: '0.14em' }}>{ex.muscle} · {kindLabel}</div>
             </div>
 
@@ -1115,6 +1122,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       {/* Spec 12 — exercise history sheet, entered from the get-ready lines */}
       {historyOpen && (
         <ExerciseHistorySheet exercise={ex} onClose={() => setHistoryOpen(false)}/>
+      )}
+
+      {/* Spec 13 — exercise info, entered from the exercise name */}
+      {infoOpen && (
+        <ExerciseInfoSheet exercise={ex} onClose={() => setInfoOpen(false)}/>
       )}
 
       {/* Item 2 — shared END-session confirm (matches FightFocusTimer / CampFitSetRunner) */}
