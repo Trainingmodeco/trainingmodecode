@@ -306,7 +306,6 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const listRef = useRef(null);
   const tapBlockedRef = useRef(false);         // a gesture just ran — eat the click
   const [undoInfo, setUndoInfo] = useState(null); // { index, exercise, wasDone, wasSkipped }
-  const undoTimer = useRef(0);
 
   const doneCount = Object.values(completed).filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
@@ -407,18 +406,17 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const deleteAt = (idx) => {
     if (exercises.length <= 1) return;   // never leave an empty workout
     const victim = exercises[idx];
-    clearTimeout(undoTimer.current);
+    // The undo holds the gap it left and does NOT time out — the offer is
+    // only withdrawn when a neighbouring row moves and the slot stops
+    // meaning anything (see moveRow).
     setUndoInfo({ index: idx, exercise: victim, wasDone: !!completed[idx], wasSkipped: !!skipped[idx] });
     setExercises(prev => prev.filter((_, i) => i !== idx));
     setCompleted(m => shiftMap(m, idx, -1));
     setSkipped(m => shiftMap(m, idx, -1));
-    // The undo offer is quiet and self-clearing — it never becomes clutter.
-    undoTimer.current = setTimeout(() => setUndoInfo(null), 7000);
   };
 
   const undoDelete = () => {
     if (!undoInfo) return;
-    clearTimeout(undoTimer.current);
     const { index, exercise, wasDone, wasSkipped } = undoInfo;
     setExercises(prev => { const next = [...prev]; next.splice(index, 0, exercise); return next; });
     setCompleted(m => { const n = shiftMap(m, index - 1, +1); if (wasDone) n[index] = true; return n; });
@@ -428,6 +426,12 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
   const moveRow = (from, to) => {
     if (from === to || to < 0 || to >= exercises.length) return;
+    // A reorder involving the rows either side of the undo slot moves the
+    // gap out from under it, so the offer is withdrawn.
+    if (undoInfo) {
+      const touchesSlot = (p) => p === undoInfo.index - 1 || p === undoInfo.index;
+      if (touchesSlot(from) || touchesSlot(to)) setUndoInfo(null);
+    }
     setExercises(prev => { const next = [...prev]; const [row] = next.splice(from, 1); next.splice(to, 0, row); return next; });
     const remap = (m) => {
       const order = exercises.map((_, i) => i);
@@ -440,8 +444,6 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     setCompleted(remap);
     setSkipped(remap);
   };
-
-  useEffect(() => () => clearTimeout(undoTimer.current), []);
 
   const clearGesture = () => {
     const g = gestRef.current;
@@ -552,6 +554,26 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     order.splice(Math.max(0, Math.min(gest.slot, order.length)), 0, moved);
     return order;
   })();
+
+  // The undo offer holds the deleted exercise's OWN slot in the list, so the
+  // gap it left is what you tap to bring it back — not a message parked at
+  // the bottom of the screen. UNDO sits far right, where the swap arrow was.
+  const undoSlotNode = undoInfo ? (
+    <div key="undo-slot" style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+      padding: '8px 11px', borderRadius: 11, minHeight: 41, boxSizing: 'border-box',
+      border: '1px dashed rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.45)',
+    }}>
+      <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {undoInfo.exercise.name} removed
+      </span>
+      <button onClick={undoDelete} style={{
+        background: 'none', border: 'none', padding: '2px 2px', cursor: 'pointer', flexShrink: 0,
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
+      }}>UNDO</button>
+    </div>
+  ) : null;
+  const withUndo = (pos, node) => (undoInfo && undoInfo.index === pos ? [undoSlotNode, node] : [node]);
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
@@ -703,9 +725,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
         {/* Exercise rows — swipe one away to delete, hold + drag to reorder */}
         <div ref={listRef} style={{ display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}>
-          {previewOrder.map((i) => {
+          {previewOrder.flatMap((i, pos) => {
             const ex = exercises[i];
-            if (!ex) return null;
+            if (!ex) return [];
             const done = !!completed[i];
             const muscleColor = MUSCLE_COLORS[ex.muscle] || C.faint;
             // Design 39 — weight only shows on weighted lifts.
@@ -720,7 +742,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
             // The dragged row leaves a dashed slot behind and floats above.
             if (dragging && i === gest.idx) {
-              return (
+              return withUndo(pos,
                 <div key={`drop-${i}`} style={{
                   height: 52, borderRadius: 11, boxSizing: 'border-box',
                   border: `2px dashed ${C.violet}`, background: 'rgba(168,85,247,0.06)',
@@ -733,7 +755,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
               );
             }
 
-            return (
+            return withUndo(pos,
               <div key={`${ex.name}-${i}`} style={{ position: 'relative', borderRadius: 11, overflow: 'hidden' }}>
                 {/* Red backing revealed by the swipe */}
                 {swiping && (
@@ -846,6 +868,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             );
           })}
 
+          {/* Deleted the last row? Its slot is past the end of the list. */}
+          {undoInfo && undoInfo.index >= previewOrder.length && undoSlotNode}
+
           {/* The lifted copy of the row being dragged */}
           {dragging && exercises[gest.idx] && (
             <div style={{
@@ -861,19 +886,6 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             </div>
           )}
         </div>
-
-        {/* Quiet, borderless undo — self-clears after a few seconds */}
-        {undoInfo && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 6 }}>
-            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>
-              {undoInfo.exercise.name} removed
-            </span>
-            <button onClick={undoDelete} style={{
-              background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, color: GOLD, letterSpacing: '0.12em',
-            }}>UNDO</button>
-          </div>
-        )}
 
         {/* Regenerate + save routine — under the workout list */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
