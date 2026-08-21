@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 — Stage Not Found · Training Mode</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+      @font-face {
+        font-family: 'Orbitron';
+        font-weight: 700 900;
+        font-display: swap;
+        src: url('/assets/fonts/orbitron-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Rajdhani';
+        font-weight: 600;
+        font-display: swap;
+        src: url('/assets/fonts/rajdhani-600-latin.woff2') format('woff2');
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body {
+        min-height: 100svh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.18), transparent 55%),
+          #080012;
+        color: #f5e9ff;
+        font-family: 'Rajdhani', system-ui, sans-serif;
+        font-weight: 600;
+        text-align: center;
+      }
+      .panel {
+        max-width: 520px;
+        padding: 48px 34px;
+        background: rgba(8, 2, 18, 0.8);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        border-radius: 18px;
+      }
+      .code {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 900;
+        font-size: clamp(64px, 16vw, 110px);
+        line-height: 1;
+        color: #fde047;
+        text-shadow: 0 0 34px rgba(253, 224, 71, 0.4);
+        margin-bottom: 10px;
+      }
+      h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 900;
+        font-size: clamp(16px, 3.4vw, 22px);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+        text-shadow: 0 0 18px rgba(168, 85, 247, 0.5);
+      }
+      p { color: #c4a4d8; margin-bottom: 28px; }
+      .lives { font-size: 15px; letter-spacing: 4px; margin-bottom: 26px; }
+      .lives .spent { opacity: 0.3; filter: grayscale(1); }
+      a.btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+        padding: 0 30px;
+        border-radius: 13px;
+        background: linear-gradient(135deg, #fde047, #f59e0b);
+        color: #0a0014;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 900;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 0 24px rgba(253, 224, 71, 0.32);
+      }
+      a.btn:focus-visible { outline: 2px solid #fde047; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <div class="code">404</div>
+      <h1>Stage Not Found</h1>
+      <div class="lives" aria-hidden="true">❤️❤️<span class="spent">🖤</span></div>
+      <p>This route didn't survive the last patch. The page you're looking
+      for moved, or never unlocked. Head back to base and pick your mode.</p>
+      <a class="btn" href="/">▶ Continue</a>
+    </main>
+  </body>
+</html>
