@@ -631,6 +631,45 @@ h1, h2, h3 {
   max-width: 260px;
 }
 
+/* ---------- inside the app gallery ---------- */
+.gallery-strip {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 6px 4px 18px;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--violet) rgba(255, 255, 255, 0.06);
+}
+.gallery-strip:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+.gallery-strip figure {
+  flex: none;
+  width: clamp(180px, 22vw, 235px);
+  margin: 0;
+  scroll-snap-align: center;
+}
+.gallery-strip img {
+  width: 100%;
+  border-radius: 22px;
+  border: 2px solid rgba(176, 106, 255, 0.45);
+  box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.gallery-strip figure:hover img {
+  transform: translateY(-4px);
+  border-color: var(--violet-hi);
+  box-shadow: 0 0 32px rgba(168, 85, 247, 0.4), 0 20px 44px -16px rgba(0, 0, 0, 0.8);
+}
+.gallery-strip figcaption {
+  margin-top: 10px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 /* ---------- game sync ---------- */
 .gamesync-inner { max-width: 720px; margin: 0 auto; text-align: center; }
 .coming-chip {
@@ -649,16 +688,15 @@ h1, h2, h3 {
 .sync-visual { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 34px 0 26px; }
 .sync-visual .avatar { width: 86px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(253, 224, 71, 0.5); }
 .sync-visual .arrow { font-family: var(--font-display); font-weight: 900; font-size: 26px; color: var(--gold); animation: tapGlow 2.4s ease-in-out infinite; }
-.sync-visual .slot {
-  width: 86px;
-  aspect-ratio: 3/4;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: repeating-linear-gradient(45deg, #1a1030 0 8px, #241640 8px 16px);
-  border: 1px dashed rgba(176, 106, 255, 0.5);
-  font-size: 26px;
+.sync-phone {
+  width: 190px;
+  display: block;
+}
+.sync-phone img {
+  width: 100%;
+  border-radius: 18px;
+  border: 2px solid rgba(176, 106, 255, 0.55);
+  box-shadow: 0 0 34px rgba(168, 85, 247, 0.4);
 }
 .gamesync-inner > p { color: var(--muted); font-size: 18px; }
 .gamesync-inner strong { color: var(--text); }
