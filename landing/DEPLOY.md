@@ -18,6 +18,12 @@ optimized, fonts self-hosted). No build step, no server code.
    ├── index.html
    ├── styles.css
    ├── script.js
+   ├── 404.html
+   ├── favicon.ico
+   ├── robots.txt
+   ├── sitemap.xml
+   ├── .htaccess        ← IMPORTANT: hidden file — enable "show hidden
+   │                      files" in Hostinger File Manager or it won't upload
    └── assets/
        ├── fonts/…
        ├── tiers/…
@@ -42,6 +48,21 @@ optimized, fonts self-hosted). No build step, no server code.
 - "Join Community" and the contact form hand off to
   `mailto:trainingmode.co@gmail.com`. Replace the form with a real
   newsletter endpoint (e.g. Mailchimp, Beehiiv) when you have one.
+
+## After deploying — 404 / SEO checklist
+
+- `.htaccess` 301-redirects the old site's pages (`/about`,
+  `/training-paths`, `/try-beta`, `/founders-club`, `/investors`, …) to the
+  matching sections of the new single-page site, and serves the branded
+  `404.html` for anything else. Delete the old site's leftover folders from
+  `public_html` so stale half-broken pages stop being served.
+- Verify after upload: `trainingmode.co/favicon.ico`,
+  `/robots.txt`, `/sitemap.xml`, `/founders-club` (should redirect), and a
+  garbage URL like `/asdf` (should show the branded 404 page).
+- Submit `https://trainingmode.co/sitemap.xml` in Google Search Console —
+  it also shows every 404 Google has found, with the exact URLs.
+- The footer social icons are commented out in `index.html` until you add
+  the real profile URLs (dead links get flagged by audit tools).
 
 ## Notes
 
