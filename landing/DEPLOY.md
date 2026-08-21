@@ -61,8 +61,12 @@ optimized, fonts self-hosted). No build step, no server code.
   garbage URL like `/asdf` (should show the branded 404 page).
 - Submit `https://trainingmode.co/sitemap.xml` in Google Search Console —
   it also shows every 404 Google has found, with the exact URLs.
-- The footer social icons are commented out in `index.html` until you add
-  the real profile URLs (dead links get flagged by audit tools).
+- Footer social icons: TikTok/YouTube/Facebook are wired to the
+  `trainingmode.co` handle. After deploying, tap each icon once on your
+  phone — if TikTok or YouTube lands on "account not found", edit
+  `index.html` and change `@trainingmode.co` to `@trainingmodeco` for that
+  one link. Instagram is commented out until your account conversion is
+  done; then uncomment it and drop in the final handle.
 
 ## Notes
 
