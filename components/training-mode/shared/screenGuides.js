@@ -59,7 +59,8 @@ export const SCREEN_GUIDES = {
     { screen: 'fight_hub', target: 'fh-movelab', title: '⚡ COMBO CREATOR (MOVE LAB)', body: 'Build your own combos and signature moves — chain real strikes into a sequence, or type your own call. Anything you save joins Combo Coach\'s rotation.' },
 
     { screen: 'training_hub', target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
-    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap a name for form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit that runs back-to-back with no rest inside.' },
+    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
+    { screen: 'fit_hub', target: 'fit-builder', title: 'AND WHILE YOU TRAIN', body: 'The coach counts your reps out loud and times your rest. You are never locked into the order — a WORKOUT MAP sits above the tab bar, and holding any exercise starts that one instead. Every set you log builds a history, so the app knows what to ask of you next time.' },
     { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs, intervals, Tabata and HIIT, with pace coaching and a target you can set by distance or time.' },
 
@@ -117,7 +118,7 @@ export const SCREEN_GUIDES = {
 
   fit_hub: [
     { target: null, title: '💪 FIT MODE', body: 'This is the Fit Mode hub — it holds all the fitness portion of Training Mode. Tap a banner to enter.' },
-    { target: 'fit-builder', title: 'WORKOUT BUILDER', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear, and difficulty — choose Workout Builder.' },
+    { target: 'fit-builder', title: 'WORKOUT BUILDER', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear, and difficulty — choose Workout Builder. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
     { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit/HIIT-based workouts for when you are short on time and need a challenge — choose Quick Mission.' },
     { target: 'fit-cardio', title: 'CARDIO MODE', body: 'For cardio-specific workouts — timed pace, interval runs, distance running — choose Cardio Mode.' },
     { target: 'fit-codex', title: 'WORKOUT CODEX', body: 'Have your own workout? Training Mode will turn it into a follow-along routine — Workout Codex. Coming soon.' },
@@ -129,10 +130,12 @@ export const SCREEN_GUIDES = {
     { screen: 'arcade', target: null, title: '🕹 TRAINING ARCADE', body: 'This is the Training Arcade — workouts as a retro game. Each saga is a training storyline with stages to climb and a boss to beat.' },
     { screen: 'arcade', target: 'ar-carousel', title: 'CHOOSE YOUR SAGA', body: 'Swipe left and right to browse sagas. Tap a card to open its stage ladder and start climbing.' },
     { screen: 'arcade', target: 'ar-player', title: 'YOUR PLAYER BAR', body: 'Your arcade progress lives here — XP, badges, and your active challenge carry across sagas.' },
+    { screen: 'arcade', target: 'ar-code', title: '⚔️ CHALLENGE CODES', body: 'Someone cleared a stage and sent you a code? Paste it here and you drop straight into that exact stage, set up the same way, racing their run. Clear a stage yourself and you can copy your own code to send back.' },
     { screen: 'arcade', target: null, title: 'HOW A STAGE WORKS', body: 'Every stage is a real workout with an HP bar — each rep you finish chips it down. Clear the stage to unlock the next one on the ladder. Let\'s look at a real ladder.' },
     { screen: 'arcade_series', target: 'arc-stage', title: '▶ ENTER A STAGE', body: 'Tap a stage node like this one to open its mission card — you\'ll see the workout, your best time and ★ goals. ENTER STAGE starts it, and then the timer takes over.' },
     { screen: 'arcade_series', target: 'arc-stars', title: '★ STAR RANKS', body: 'Beat a stage fast enough to earn stars — ★, ★★, or ★★★. Your best time is saved on the stage, this counter tracks your clears, and an elite MYTHIC tier waits above three stars for the fastest fighters.' },
     { screen: 'arcade_series', target: 'arc-boss', title: '👑 THE BOSS', body: 'The final stage of every saga is the boss — those eyes at the top of the ladder. It\'s the hardest session of the storyline: answer the bell, survive it, and the saga\'s trophy and DOUBLE XP are yours.' },
+    { screen: 'arcade_series', target: 'arc-boss', title: '🔔 ANSWERING THE BELL', body: 'Before a boss session there is no menu and no back button — just the bell, your win-loss record against it, and one tap. Put the phone down where you can see it and go. The boss has an HP bar that chips away as you clear rounds, and it does not fall until the last one.' },
   ],
 
   fight_focus_setup: [
@@ -140,6 +143,8 @@ export const SCREEN_GUIDES = {
     { target: 'ff-difficulty', title: 'DIFFICULTY', body: 'How hard the coaching pushes — round focuses get more demanding as you go up.' },
     { target: 'ff-steppers', title: 'BUILD YOUR ROUNDS', body: 'Set how many rounds, how long each one runs, and your rest between them. TOTAL shows your full session time.' },
     { target: 'ff-start', title: 'START SESSION', body: 'Ready? Tap here — the coach announces each round and the timer runs the fight.' },
+    { target: 'ff-ghost', title: '👻 GHOST BATTLES', body: 'Race a recorded run instead of the clock. LOAD GHOST pastes a code someone sent you — or your own best run — and you fight it round for round, side by side, with a result screen at the end. The button below it copies YOUR best run as a code you can send to anyone.' },
+    { target: 'ff-rush', title: '⚡ RUSH MODE', body: 'Optional. Turn it on and the coach interrupts your rounds with surges — sudden calls to go explosive, throw strikes, or both. You choose how often they hit. It is the difference between pacing a round and being made to empty the tank.' },
   ],
 
   combo_coach_setup: [
@@ -148,18 +153,45 @@ export const SCREEN_GUIDES = {
     { target: 'cc-mode', title: 'MODE', body: 'Pick how the combos are called — stick with the default if you are new.' },
     { target: 'cc-steppers', title: 'ROUNDS & CADENCE', body: 'Rounds, round length, rest — and CADENCE, the seconds between combo calls. Lower cadence = faster calls.' },
     { target: 'cc-start', title: 'START COMBOS', body: 'Tap here and the first call comes in. React, throw, reset your stance.' },
+    { target: 'cc-rush', title: '⚡ RUSH MODE', body: 'Optional. Surges cut into your rounds — sudden calls to go explosive, throw strikes, or both, at whatever frequency you set. Turn it on when a steady cadence has stopped costing you anything.' },
   ],
 
   workout_builder: [
     { target: null, title: '🔧 WORKOUT BUILDER', body: 'This screen builds a strength workout around exactly what you want to train. Leave everything on its default for a solid balanced session.' },
-    { target: 'wb-muscles', title: 'TARGET MUSCLES', body: 'Tap the muscle groups you want to hit — they light up on the body map. Fewer groups = more focused volume.' },
+    { target: 'wb-trainagain', title: '⚡ TRAIN AGAIN', body: 'The fastest way to train. It repeats your last workout with the progression already applied — an extra rep, or a little more weight, on every exercise you finished cleanly last time. One tap and you skip this whole screen. It only appears once you have a workout behind you.' },
+    { target: 'wb-muscles', title: 'TARGET MUSCLES', body: 'Tap the muscle groups you want to hit — they light up on the body map. Fewer groups = more focused volume. Pick at least one, or GENERATE has nothing to build from.' },
     { target: 'wb-equipment', title: 'EQUIPMENT', body: 'Bodyweight, Weighted, or Hybrid — set what you actually have so every exercise is doable.' },
     { target: 'wb-difficulty', title: 'DIFFICULTY', body: 'Easy, Normal, or Hard — scales the reps, sets, and rest.' },
     { target: 'wb-programming', title: 'WORKOUT PROGRAMS', body: 'Optional. Open this for set schemes (5×5, 3×10…), popular programs (Push/Pull/Legs, Upper/Lower…), session length, and your saved routines (up to 10). Leave it on AUTO and the generator picks for you.' },
     { target: 'wb-cardio', title: 'ADD CARDIO', body: 'Optional finisher — tack a run, intervals, or Tabata onto the end of your workout.' },
-    { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. You can swap any exercise, edit sets and reps, and save it as a routine.' },
-    { target: 'wb-generate', title: 'ON THE WORKOUT LIST', body: 'Once it\'s built, the list is yours to shape. Tap an exercise NAME for a demo, form cues and common mistakes. Tap ⇄ to swap it. Swipe a row sideways to remove it (with an undo), and press and hold to drag it up or down.' },
-    { target: 'wb-generate', title: '⛓ SUPERSETS & CIRCUITS', body: 'Double-tap the ⛓ on any exercise and it starts glowing — now tap another exercise to link them. Two moves is a SUPERSET, three or more is a CIRCUIT with a rounds setting. Linked moves run back-to-back with NO rest between them, resting once at the end of each round. Tap ✕ on the bracket to unlink.' },
+    { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. Nothing is locked in — the next screen lets you swap, reorder, remove and link exercises before you start. Tap the "?" there for the full rundown.' },
+  ],
+
+  // The generated list. Everything the athlete can do to a workout BEFORE
+  // starting it lives here, which is why it gets its own guide rather than a
+  // paragraph tacked onto the setup screen.
+  fit_workout: [
+    { target: null, title: '📋 YOUR WORKOUT', body: 'This is the workout the builder made you — and none of it is fixed. Shape it however you like, then hit START. Nothing counts until you start.' },
+    { target: 'fw-legend', title: '↕ ↔ ⇄ ⛓ THE FOUR GESTURES', body: 'This strip is your cheat sheet, and it stays on screen the whole time. Press and HOLD a row to drag it up or down. SWIPE a row sideways to remove it. TAP ⇄ to swap that exercise for a different one. DOUBLE-TAP ⛓ to link exercises together.' },
+    { target: 'fw-row', title: 'TAP THE NAME — WHAT IS THIS?', body: 'Never seen the exercise before? Tap its NAME. You get a demo, numbered how-to cues, the two mistakes people actually make, and EASIER / HARDER versions you can swap straight to. Use it any time you are not sure — that is what it is for.' },
+    { target: 'fw-row', title: 'LAST TIME · YOUR HISTORY', body: 'Under an exercise you have done before, a line shows what you managed last time and what to try today — TRY 9 REPS in gold, or = HOLD if it says repeat it. Tap that line to open the full history: your best ever, every past session, and a chart of the trend. 🏆 marks a personal record.' },
+    { target: 'fw-row', title: 'REMOVE & PUT BACK', body: 'Swipe a row away and it leaves a gap where it used to be, with a small gold UNDO on the right. That offer waits — it does not time out — so you can change your mind. It only disappears once you move one of the rows beside it.' },
+    { target: 'fw-legend', title: '⛓ SUPERSETS & CIRCUITS', body: 'Double-tap the ⛓ on an exercise and it starts glowing — now tap any other exercise to link them. Two moves is a SUPERSET, three or more is a CIRCUIT with a rounds setting you can step up or down. Linked moves run back-to-back with NO rest between them; the rest comes once at the end of each round. Tap ✕ on the bracket to unlink and get plain rows back.' },
+    { target: 'fw-actions', title: 'REGENERATE · SAVE ROUTINE', body: 'REGENERATE rolls a whole new workout from the same settings. SAVE ROUTINE keeps this exact list — exercises, sets, reps, chains and all — so you can run it again in one tap. Saved routines live in WORKOUT PROGRAMS on the setup screen, up to 10 of them.' },
+    { target: 'fw-start', title: '▶ START', body: 'Starts the session. First comes a 90-second warm-up — follow the coach or freestyle it — and then the guided workout takes over, calling every rep.' },
+  ],
+
+  // The guided player. Two things here are genuinely new to a first-timer:
+  // the WORKOUT MAP (you are not locked into the order) and the chain pill.
+  fit_guided: [
+    { target: null, title: '🏋 GUIDED WORKOUT', body: 'The coach runs the session from here — announcing each exercise, counting your reps out loud, and timing your rest. You do not have to touch anything unless you want to.' },
+    { target: 'fg-header', title: 'WHERE YOU ARE', body: 'Exercise 3 of 6, set 2 of 4 — how far through the workout you are, and how far through this exercise. The bar underneath fills as you go.' },
+    { target: 'fg-name', title: 'TAP THE NAME MID-SET', body: 'Forgot the form halfway through? Tap the exercise name and the how-to sheet opens right there — cues, mistakes, demo. Your set is waiting where you left it when you close it.' },
+    { target: 'fg-display', title: 'THE COUNT', body: 'On rep exercises the coach counts every rep aloud and the number climbs with you. On holds and timed work it counts the seconds down instead. Finish early? Hit SET DONE and it moves on.' },
+    { target: 'fg-controls', title: 'THE CONTROLS', body: '⟲ REWIND replays the previous set. ⏸ pauses everything (leaving the app pauses it too). SKIP SET jumps to the next set — during rest it becomes SKIP REST. SKIP EXERCISE moves on without completing it. STOP ends the session and asks first; whatever you finished still counts.' },
+    { target: 'fg-map', title: '≡ THE WORKOUT MAP', body: 'Swipe this tab up — or tap it — for the map, and the workout pauses while it is open. You are NOT locked into the order: press and HOLD any exercise to start that one instead, HOLD + SWIPE to skip it, HOLD + DRAG to move it. Finished exercises lock so you cannot lose them. Closing the map counts you back in 3-2-1.' },
+    { target: 'fg-map', title: 'WHEN AN EXERCISE FINISHES', body: 'The map slides up on its own, your finished exercise locks with a ✓, and the next one glows. Swipe the map down to start it, or hold a different one if you would rather do that instead.' },
+    { target: 'fg-header', title: '⛓ INSIDE A CHAIN', body: 'If you linked exercises, a ⛓ pill shows which move of the chain you are on. There is no rest between them — the coach says GO STRAIGHT IN and hands you the next one. The rest comes at the end of the round, and the counter tells you which round you are on.' },
   ],
 
   quick_mission_setup: [

@@ -10,6 +10,9 @@ import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor, logBodyweightSets } from './data/weightLog';
 import { rowProgression } from './data/builderProgression';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
+import { HelpButton } from './shared/WorkoutHelpPanel';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
@@ -126,6 +129,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const [toast, setToast] = useState(null);           // { name, xp }
   const [historyOpen, setHistoryOpen] = useState(false); // spec 12 — history sheet
   const [infoOpen, setInfoOpen] = useState(false);       // spec 13 — "what IS this?"
+  const [helpOpen, setHelpOpen] = useState(false);       // the "?" walkthrough
   const wasRunningRef = useRef(false);                // resume after map close?
   const flowTimers = useRef([]);
 
@@ -804,7 +808,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     : `${plan.seconds}s HOLD`;
 
   const controls = (
-    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 360 }}>
+    <div data-guide="fg-controls" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 360 }}>
       <div style={{ display: 'flex', gap: 8 }}>
         {/* 3b — REWIND: previous set, or previous exercise from set 1 */}
         <button onClick={handleRewind} disabled={set === 1 && exerciseIdx === 0} aria-label="Previous" style={{ width: 52, height: 48, borderRadius: 11, cursor: (set === 1 && exerciseIdx === 0) ? 'not-allowed' : 'pointer', background: 'rgba(16,4,30,0.85)', border: '1.5px solid rgba(168,85,247,0.4)', opacity: (set === 1 && exerciseIdx === 0) ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1041,7 +1045,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   return (
     <PhoneFrame useBrandBg>
       <Embers count={2}/>
-      <VoiceMixer top={10} right={10}/>
+      {/* Below the header, matching the other players — the header's right
+          slot is the "?" now, and the two would sit on top of each other. */}
+      <VoiceMixer top={58} right={14}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
         {/* Training Mode logo header — back arrow returns to the list */}
         <TrainingHeader
@@ -1050,12 +1056,13 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           showBack
           onBack={handleBack}
           onHome={handleBack}
+          rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
         />
 
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '8px 16px calc(max(120px, 18dvh) + env(safe-area-inset-bottom, 0px))' }}>
           {/* Progress — one segment per exercise (✓ gold, skipped red, current
               fills set by set), tappable to open the workout map. */}
-          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div data-guide="fg-header" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>
               {chainCtx ? `ROUND ${chainCtx.round}/${chainCtx.rounds}` : `SET ${set}/${totalSets}`}
@@ -1077,7 +1084,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
           {/* Centre: display + announcer + controls (kept high, no scroll) */}
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
-            <div>
+            <div data-guide="fg-display">
               {/* Chain pill — which move of the chain, and that no rest is
                   coming until the round is done. */}
               {chainCtx && (
@@ -1102,6 +1109,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               {/* Spec 13 — the name is the door to "what IS this exercise?",
                   reachable mid-set without leaving the workout. */}
               <div
+                data-guide="fg-name"
                 onClick={() => setInfoOpen(true)}
                 style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 19, color: '#fff', letterSpacing: '0.04em', marginBottom: 4, cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.35)', textUnderlineOffset: 5 }}
               >{ex.name} <span style={{ color: VIOLET, fontSize: 13 }}>ⓘ</span></div>
@@ -1269,6 +1277,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
         <div
           role="button"
           aria-label="Open workout map"
+          data-guide="fg-map"
           onClick={openMap}
           onPointerDown={tabPointerDown}
           onPointerMove={tabPointerMove}
@@ -1351,6 +1360,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       {infoOpen && (
         <ExerciseInfoSheet exercise={ex} onClose={() => setInfoOpen(false)}/>
       )}
+
+      {/* The "?" walkthrough — the map and the chain hand-off are the two
+          things nobody guesses on their own. */}
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fit_guided} onClose={() => setHelpOpen(false)}/>}
 
       {/* Item 2 — shared END-session confirm (matches FightFocusTimer / CampFitSetRunner) */}
       {confirmEnd && (

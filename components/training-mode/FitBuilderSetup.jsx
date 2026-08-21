@@ -213,7 +213,7 @@ export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex
               Tapping goes STRAIGHT to the generated list with every nudge
               applied, skipping all config. Hidden entirely without history. */}
           {trainPlan && (
-            <div style={{ marginBottom: 12 }}>
+            <div data-guide="wb-trainagain" style={{ marginBottom: 12 }}>
               <button
                 onClick={() => onGenerate?.({ ...trainPlan.cfg, savedExercises: trainPlan.exercises })}
                 style={{

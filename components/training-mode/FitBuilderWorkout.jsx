@@ -18,6 +18,9 @@ import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './
 import BuilderWarmup from './shared/BuilderWarmup';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
+import { HelpButton } from './shared/WorkoutHelpPanel';
 
 const GOLD = C.gold;
 
@@ -293,6 +296,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const [skipped, setSkipped] = useState(initialResumeData?.skipped ?? {});
   const [activeIdx, setActiveIdx] = useState(null);
   const [swapIdx, setSwapIdx] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);   // the "?" walkthrough for this list
   // One deal of swap alternates per session — reopening a sheet keeps its
   // order, a fresh workout reshuffles (see seededShuffle above).
   const swapSeed = useRef(Math.random().toString(36).slice(2)).current;
@@ -876,6 +880,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         showBack
         onBack={onBack || (() => onDone(doneCount, exercises.length))}
         onHome={onHome || (() => onDone(doneCount, exercises.length))}
+        rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
       />
 
       <div style={{
@@ -921,7 +926,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         {/* 58a — one legend strip, and the only place gestures are explained.
             Four equal cells so no gesture reads as the important one, and it
             is deliberately inert: the row underneath is what you touch. */}
-        <div style={{
+        <div data-guide="fw-legend" style={{
           display: 'flex', alignItems: 'center', minHeight: 24, boxSizing: 'border-box',
           padding: '6px 8px', marginBottom: 11, borderRadius: 9,
           background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)',
@@ -994,6 +999,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                   ref={(el) => { rowRefs.current[i] = el; }}
                   onPointerDown={(e) => rowPointerDown(e, i)}
                   onClick={() => { if (joinable) addToChain(i); }}
+                  // The "?" walkthrough spotlights the FIRST row when it talks
+                  // about what you can do to an exercise.
+                  data-guide={pos === 0 ? 'fw-row' : undefined}
                   className="wo-row" style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '8px 11px',
@@ -1144,7 +1152,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         </div>
 
         {/* Regenerate + save routine — under the workout list */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <div data-guide="fw-actions" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button onClick={regenerate} className="wo-regen" style={{
             flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
             background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)',
@@ -1190,6 +1198,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
               }
             }
           }}
+          data-guide="fw-start"
           style={{
             width: '100%', marginTop: 34, padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
@@ -1230,6 +1239,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           onClose={() => setInfoAlt(null)}
         />
       )}
+
+      {/* The "?" walkthrough — the gestures on this list are discoverable but
+          not obvious, so they get a proper spotlight tour of their own. */}
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fit_workout} onClose={() => setHelpOpen(false)}/>}
 
       {/* 90s warm-up gate (spec: follow-along counted moves or freestyle) */}
       {warmupOpen && (
