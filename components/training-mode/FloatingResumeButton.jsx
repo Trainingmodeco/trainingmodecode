@@ -1,5 +1,6 @@
 import { Play } from 'lucide-react';
 import { C, fixedColumnRight } from './Styles';
+import SwipeAway from './shared/SwipeAway';
 
 export const SESSION_LABELS = {
   timer: 'Fight Focus',
@@ -10,14 +11,16 @@ export const SESSION_LABELS = {
   arcade_session: 'Arcade',
 };
 
-export default function FloatingResumeButton({ pausedSession, onResume }) {
+export default function FloatingResumeButton({ pausedSession, onResume, onDiscard }) {
   if (!pausedSession) return null;
 
   const label = SESSION_LABELS[pausedSession.screen] || 'Session';
 
   return (
-    <button
-      onClick={onResume}
+    // Swipe it off either way to drop the paused session — the pill has no ✕
+    // of its own, so this is the only way to get rid of it without resuming.
+    <SwipeAway
+      onDismiss={onDiscard}
       style={{
         position: 'fixed',
         bottom: 'calc(78px + env(safe-area-inset-bottom, 0px))',
@@ -26,6 +29,11 @@ export default function FloatingResumeButton({ pausedSession, onResume }) {
         // relationship to the app.
         ...fixedColumnRight(16),
         zIndex: 110,
+      }}
+    >
+    <button
+      onClick={onResume}
+      style={{
         display: 'flex',
         alignItems: 'center',
         gap: 8,
@@ -71,5 +79,6 @@ export default function FloatingResumeButton({ pausedSession, onResume }) {
         }
       `}} />
     </button>
+    </SwipeAway>
   );
 }

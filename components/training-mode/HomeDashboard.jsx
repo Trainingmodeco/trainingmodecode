@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Play } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
 import { SESSION_LABELS } from './FloatingResumeButton';
+import SwipeAway from './shared/SwipeAway';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -215,7 +216,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
             no content overlap, no tab-bar competition. ✕ discards the paused
             snapshot (onDiscardPaused was plumbed but unused until now). */}
         {pausedSession && (
-          <div style={{ position: 'relative', borderRadius: 12, border: '1.5px solid rgba(168,85,247,0.65)', background: 'linear-gradient(135deg,#1c0836,#12041f)', boxShadow: '0 0 18px -4px rgba(168,85,247,0.5)', padding: '11px 34px 11px 13px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <SwipeAway onDismiss={onDiscardPaused} style={{ position: 'relative', borderRadius: 12, border: '1.5px solid rgba(168,85,247,0.65)', background: 'linear-gradient(135deg,#1c0836,#12041f)', boxShadow: '0 0 18px -4px rgba(168,85,247,0.5)', padding: '11px 34px 11px 13px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg,#b06aff,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(168,85,247,0.6)' }}>
               <Play size={15} color="#fff" fill="#fff"/>
             </div>
@@ -226,7 +227,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
             </div>
             <button onClick={onResume} style={{ border: 'none', borderRadius: 9, background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.05em', padding: '10px 16px', cursor: 'pointer', boxShadow: '0 0 16px rgba(168,85,247,0.45)', flexShrink: 0 }}>RESUME</button>
             <button onClick={onDiscardPaused} aria-label="Discard paused session" style={{ position: 'absolute', top: 4, right: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 12, padding: 4 }}>✕</button>
-          </div>
+          </SwipeAway>
         )}
 
         {/* Today's bout — hero card with the bout art behind */}
