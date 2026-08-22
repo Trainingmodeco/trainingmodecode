@@ -56,7 +56,7 @@ function PillRow({ opts, val, onPick, wrap = false }) {
 }
 
 
-function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, callStyle, setCallStyle, audioSettings, updateAudio, persistProfile }) {
+function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachStyle, setCoachStyle, encouragement, setEncouragement, callStyle, setCallStyle, weightUnit, setWeightUnit, audioSettings, updateAudio, persistProfile }) {
   const [saved, setSaved] = useState(false);
 
   // Voice coach, coach style and encouragement live on the PROFILE, but this
@@ -86,8 +86,8 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
         minHeight: '100dvh',
       }}>
         <TrainingHeader
-          title="AUDIO SETTINGS"
-          subtitle="Voice and sound controls."
+          title="SETTINGS"
+          subtitle="Voice, sound and units."
           onHome={onHome}
           showBack
           onBack={onBack}
@@ -98,6 +98,21 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
           padding: '12px 16px calc(190px + env(safe-area-inset-bottom, 0px))',
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+            {/* Units — pounds by default. This is the ONE setting here that
+                changes numbers rather than sound, so it leads. */}
+            <div>
+              <SectionLabel text="WEIGHT UNITS"/>
+              <PillRow opts={['LBS', 'KG']} val={weightUnit} onPick={pick(setWeightUnit, 'weightUnit')}/>
+              <div style={{
+                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
+                color: 'rgba(255,255,255,0.5)', marginTop: 2, lineHeight: 1.35,
+              }}>
+                Used everywhere you log a lift. Pounds unless you change it.
+                Switching converts what you enter from here on — lifts you
+                already logged keep the number you logged them with.
+              </div>
+            </div>
 
             {/* Voice Coach */}
             <div>
@@ -456,6 +471,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         callStyle={callStyle}
         setCallStyle={setCallStyle}
         setEncouragement={setEncouragement}
+        weightUnit={weightUnit}
+        setWeightUnit={setWeightUnit}
         audioSettings={audioSettings}
         updateAudio={updateAudio}
       />

@@ -17,6 +17,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ChallengeShareModal from './shared/ChallengeShareModal';
+import { seriesTint, tintFilter } from './data/seriesTint';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -427,6 +428,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
               const isMythic = idx === mythicIdx;
               const isBoss = stage.isFinalRound && !isMythic;
               const src = `/static/series/stages/stage-${Math.min(idx + 1, 10)}.webp`;
+              // Stopgap until each saga has its own stage art: every ladder
+              // shares these ten images, so a per-saga hue shift is the only
+              // thing making this climb look like THIS story. State colours
+              // (locked / current / cleared / boss) are left alone.
+              const tint = seriesTint(series.id);
               // Full-size cards, aspect preserved: cap the height against the
               // row pitch and derive the width from it so nothing squashes.
               const idealW = isMythic || isBoss ? BOSS_W : st === 'current' ? CUR_W : NODE_W;
@@ -447,7 +453,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                     <div style={{
                       position: 'absolute', top: `calc(${(rowY(row) * 100).toFixed(3)}% - 1px)`, height: 2,
                       left: lane < 0.5 ? `${lane * 100}%` : '50%', width: `${Math.abs(lane - 0.5) * 100}%`,
-                      background: st === 'complete' ? 'rgba(34,197,94,0.5)' : 'rgba(168,85,247,0.3)',
+                      background: st === 'complete' ? 'rgba(34,197,94,0.5)' : tint.line,
                     }} />
                   )}
                   <button
@@ -524,8 +530,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                         </>
                       ) : (
                         <>
-                          <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(1) brightness(0.45)' : isMythic ? 'hue-rotate(35deg) saturate(1.3)' : 'none' }} />
-                          <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.4)' : isMythic ? 'linear-gradient(to top, rgba(30,2,30,0.78), rgba(80,10,90,0.25) 60%)' : 'linear-gradient(to top, rgba(5,0,12,0.75), transparent 60%)' }} />
+                          <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: st === 'locked' ? 'grayscale(1) brightness(0.45)' : isMythic ? 'hue-rotate(35deg) saturate(1.3)' : tintFilter(series.id) }} />
+                          <div style={{ position: 'absolute', inset: 0, background: st === 'locked' ? 'rgba(6,0,14,0.4)' : isMythic ? 'linear-gradient(to top, rgba(30,2,30,0.78), rgba(80,10,90,0.25) 60%)' : `linear-gradient(to top, ${tint.wash}, transparent 60%)` }} />
                           <div style={{ position: 'absolute', top: 2, left: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: isMythic ? 7.5 : 10, color: isMythic ? '#f0abfc' : '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0.04em' }}>
                             {isMythic ? 'ELITE' : stage.stageNumber || idx + 1}
                           </div>

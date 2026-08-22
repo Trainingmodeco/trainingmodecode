@@ -49,11 +49,48 @@
     color: #8b83a8; font-size: 13.5px;
   }
   code { background: rgba(168,85,247,0.14); padding: 1px 6px; border-radius: 5px; font-size: 14px; }
+  /* Standalone page: the app chrome does not exist here, so the way BACK
+     has to be part of the document. Without it an installed PWA strands
+     you on this page with no back button at all. */
+  .topbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 12px 22px; margin-bottom: 8px;
+    background: rgba(8,0,18,0.88); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(168,85,247,0.22);
+  }
+  .topbar .brand {
+    display: flex; align-items: center; gap: 9px;
+    font-family: 'Orbitron', 'Arial Black', sans-serif; font-weight: 900;
+    font-size: 13px; letter-spacing: 0.16em; color: #fff; text-decoration: none;
+  }
+  .topbar .brand img { width: 22px; height: 22px; }
+  .backlink {
+    font-family: 'Orbitron', 'Arial Black', sans-serif; font-weight: 800;
+    font-size: 10.5px; letter-spacing: 0.12em; text-decoration: none;
+    color: #0a0014; background: linear-gradient(135deg,#fde047,#f59e0b);
+    padding: 8px 14px; border-radius: 9px; white-space: nowrap;
+  }
+  .backlink:hover { filter: brightness(1.08); }
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 14px; }
+  footer nav a {
+    font-family: 'Orbitron', 'Arial Black', sans-serif; font-weight: 800;
+    font-size: 10.5px; letter-spacing: 0.1em; color: #c9a6ff; text-decoration: none;
+  }
+  footer nav a:hover { color: #fde047; }
+  @media (max-width: 420px) { .topbar { padding: 10px 16px; } .topbar .brand { font-size: 11px; } }
 </style>
 </head>
 <body>
+<div class="topbar">
+  <a class="brand" href="/">
+    <img src="/static/logo-mark.png" alt="" width="22" height="22" />
+    TRAINING MODE
+  </a>
+  <a class="backlink" href="/">&lsaquo; BACK TO APP</a>
+</div>
 <div class="wrap">
-  <header>
+  <header id="top">
     <p class="eyebrow">Training Mode</p>
     <h1>Privacy Policy</h1>
     <p class="meta">Last updated: July 20, 2026</p>
@@ -151,6 +188,11 @@
   </p>
 
   <footer>
+    <nav>
+      <a href="/">&lsaquo; BACK TO APP</a>
+      <a href="#top">&uarr; TOP OF PAGE</a>
+      <a href="mailto:trainingmode.co@gmail.com">CONTACT</a>
+    </nav>
     &copy; 2026 Training Mode &middot; apptrainingmode.com
   </footer>
 </div>
