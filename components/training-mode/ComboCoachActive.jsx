@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
-import { generateComboCoachSession } from './data/sessionGenerator';
+import { generateComboCoachSession, generateComboCoachRoundPlans } from './data/sessionGenerator';
 import { moveLabCallStrings } from './data/customCombos';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
@@ -102,6 +102,32 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const integrity = useIntegritySession('comboCoach', totalRounds);
   const integrityStartedRef = useRef(false);
   const [rapidWarning, setRapidWarning] = useState(null);
+  // Per-round call plans. The old build was ONE ordered pool consumed with
+  // `pool[i % pool.length]` — a fixed cycle whose period is the pool size, so
+  // with ~36 calls per round against 38 eligible combos every round replayed
+  // the same combos in the same order. Each round now gets its own shuffled,
+  // draw-without-replacement plan (see generateComboCoachRoundPlans).
+  const roundPlans = useMemo(() => {
+    // Calls a round can fit: cadence plus the ~1.2s the coach spends speaking.
+    const perCall = Math.max(2, (cfg.ms || 4000) / 1000 + 1.2);
+    const secs = (cfg.roundMin || 3) * 60;
+    const { plans } = generateComboCoachRoundPlans({
+      discipline,
+      difficulty: cfg.difficulty,
+      speed: cfg.speed,
+      rounds: Math.max(1, totalRounds),
+      roundDuration: cfg.roundMin,
+      mode: cfg.mode,
+      arsenalOnly: cfg.arsenalOnly,
+      arsenal: cfg.arsenal,
+      customCombos: cfg.customCombos,
+      // A margin over the theoretical count so a fast round never runs dry.
+      callsPerRound: Math.ceil(secs / perCall) + 8,
+      secondsPerCall: perCall,
+    });
+    return plans;
+  }, [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal, cfg.customCombos, cfg.ms]);
+
   const pool = useMemo(() => {
     const base = generateComboCoachSession({
       discipline,
@@ -124,10 +150,27 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     rot.forEach((s, i) => out.splice(Math.min(out.length, (i + 1) * 5), 0, s));
     return out.length ? out : rot;
   }, [discipline, cfg.difficulty, cfg.speed, totalRounds, cfg.roundMin, cfg.mode, cfg.arsenalOnly, cfg.arsenal, cfg.customCombos]);
+  // The calls for the CURRENT round: this round's plan, with any Move Lab
+  // rotation strings spliced in. Recomputed per round, so round 2 is a
+  // different sequence rather than the next lap of one fixed cycle.
+  const moveLabCalls = useMemo(
+    () => (Array.isArray(cfg.customCombos) && cfg.customCombos.length ? [] : moveLabCallStrings(discipline)),
+    [discipline, cfg.customCombos],
+  );
   const comboIndexRef = useRef(0);
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? 'round');
   const [roundIdx, setRoundIdx] = useState(initialResumeData?.roundIdx ?? 0);
+  const roundCalls = useMemo(() => {
+    const plan = roundPlans[Math.min(roundIdx, roundPlans.length - 1)];
+    const base = plan && plan.length ? plan : pool;
+    if (!moveLabCalls.length) return base;
+    const out = [...base];
+    moveLabCalls.forEach((str, i) => out.splice(Math.min(out.length, (i + 1) * 5), 0, str));
+    return out;
+  }, [roundPlans, roundIdx, moveLabCalls, pool]);
+  // Each round starts its own plan from the top.
+  useEffect(() => { comboIndexRef.current = 0; }, [roundIdx]);
   const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? roundSec);
   const [paused, setPaused] = useState(!!initialPaused);
   const [rush, setRush] = useState(false);
@@ -137,7 +180,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   // PROMPT N — CALL STYLE: stored combos stay words; conversion happens here
   // at display/speech time. currentCombo holds formatCall() output.
   const callStyle = callStyleOf(loadProfile()?.callStyle).id;
-  const [currentCombo, setCurrentCombo] = useState(() => formatCall(pool[0], callStyle));
+  const [currentCombo, setCurrentCombo] = useState(() => formatCall(roundPlans[0]?.[0] || pool[0], callStyle));
   const [comboStreak, setComboStreak] = useState(0);
   // 1.3 — defense-call state: violet display + a countdown of combos until the
   // next call. Cadence comes from mode+difficulty (null = no standalone calls).
@@ -210,7 +253,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const speedLabel = cfg.speedLabel || cfg.speed?.toUpperCase() || 'MEDIUM';
   const cadenceMs = cfg.ms || 4000;
 
-  const nextCombo = pool[(comboIndexRef.current) % pool.length];
+  const nextCombo = roundCalls[(comboIndexRef.current) % roundCalls.length];
 
   const runIntro = useCallback(async (rIdx) => {
     cancelSpeech();
@@ -438,10 +481,10 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           continue;
         }
 
-        const idx = comboIndexRef.current % pool.length;
+        const idx = comboIndexRef.current % roundCalls.length;
         comboIndexRef.current++;
         defenseInRef.current--;
-        const next = pool[idx];
+        const next = roundCalls[idx];
         const styled = formatCall(next, callStyle);
         setIsDefense(false);
         setCurrentCombo(styled);
@@ -472,7 +515,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       cancelSpeech();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, paused, countdown, done, cadenceMs, voiceRate, pool]);
+  }, [phase, paused, countdown, done, cadenceMs, voiceRate, roundCalls]);
 
   // Reset streak on pause
   useEffect(() => {
