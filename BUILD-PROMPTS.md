@@ -917,17 +917,24 @@ SecondaryButton / Card); no new design system.
 >
 > - `names` — today's behaviour. DEFAULT, so nothing changes for anyone
 >   until they opt in.
-> - `numbers` — display shows `1 - 2 - 3B · LOW KICK`; speech says
->   "One, two, three to the body, low kick". Speech must use number WORDS,
->   never digits, so TTS cannot read "1-2" as "one minus two".
-> - `teach` — CALL + NAME: speech says "One — jab. Two — cross." Slower
->   cadence tolerated; this is the learning bridge.
+> - `numbers` — display shows `1 - 2 - 3B`; speech says "One, two, three to
+>   the body". Speech must use number WORDS, never digits, so TTS cannot read
+>   "1-2" as "one minus two".
+>
+> SUPERSEDED BY PLAYTEST (see the CALL STYLE note below): the original spec
+> also had a third style, `teach` (CALL + NAME), and let `numbers` render
+> hybrid calls like `1 - 2 · LOW KICK`. Both were cut. `teach` rendered
+> identically to `numbers` on screen — the name only existed in the voice —
+> and the hybrid call read as two languages in one instruction. There are now
+> TWO styles, and a combo goes numeric only when every strike in it is a
+> numbered punch; anything containing a kick, knee, elbow or defensive word is
+> called by name in full.
 >
 > Surface the picker in TWO places, both persisting via the profile:
 > 1. Profile → Audio Settings, under COACH STYLE — persist ON PICK via the
 >    `persistProfile` callback (the pattern the encouragement row now uses;
 >    do NOT rely on the SAVE button alone).
-> 2. Combo Coach setup card — a compact 3-pill row, same ids.
+> 2. Combo Coach setup card — a compact 2-pill row, same ids.
 >
 > ### Where the code goes — the seam is two files
 >
@@ -978,7 +985,7 @@ SecondaryButton / Card); no new design system.
 > 5. Practice Mode badges + KNOW YOUR NUMBERS drill.
 > 6. Fix the false line in `TRAINING-MODE-BRIEF.md` — it currently claims the
 >    app already uses numbered vocabulary. After this ships it will be true;
->    update the wording to describe the three call styles.
+>    update the wording to describe the call styles.
 >
 > ### Verify before calling it done
 >
@@ -1020,11 +1027,10 @@ SecondaryButton / Card); no new design system.
 > ### Screens to design (5)
 >
 > 1. **CALL STYLE row — Audio Settings.** A labelled section "CALL STYLE"
->    under COACH STYLE with three pills: NAMES · NUMBERS · CALL + NAME.
+>    under COACH STYLE with two pills: NAMES · NUMBERS.
 >    Under the pills, one small live-preview line that changes with the pick:
 >    - NAMES → `"Jab, cross, lead hook."`
 >    - NUMBERS → `"One, two, three to the body."`
->    - CALL + NAME → `"One — jab. Two — cross."`
 > 2. **Combo Coach setup card version.** Same three pills, compact, sitting
 >    with the existing difficulty/rounds controls. No preview line — space is
 >    tight; the pills alone.

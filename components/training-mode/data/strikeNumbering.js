@@ -13,14 +13,17 @@
 // can switch call styles freely and nothing in the content layer changes.
 
 export const CALL_STYLES = [
-  { id: 'names', label: 'NAMES', blurb: 'Strikes called by name — today’s coach.' },
-  { id: 'numbers', label: 'NUMBERS', blurb: 'Punches by number, everything else by name.' },
-  { id: 'teach', label: 'CALL + NAME', blurb: 'Number then name — learn the count.' },
+  { id: 'names', label: 'NAMES', blurb: 'Every strike called by name.' },
+  { id: 'numbers', label: 'NUMBERS', blurb: 'Boxing numbers — 1-2-3, punches only.' },
 ];
 
+// 'teach' (CALL + NAME) was retired: it rendered EXACTLY like numbers on
+// screen and only differed in the voice, so the picker offered a choice the
+// display never honoured. Saved profiles carrying it land on numbers.
 export function callStyleOf(id) {
   const key = String(id || 'names').toLowerCase();
-  return CALL_STYLES.find((s) => s.id === key) || CALL_STYLES[0];
+  const mapped = key === 'teach' ? 'numbers' : key;
+  return CALL_STYLES.find((s) => s.id === mapped) || CALL_STYLES[0];
 }
 
 // ── The canonical map ──────────────────────────────────────────────────────
@@ -120,30 +123,27 @@ export function tokenize(comboText) {
 export function formatCall(comboText, style = 'names') {
   const styleId = callStyleOf(style).id;
   const segments = tokenize(comboText);
+  const asNames = () => ({
+    display: String(comboText || ''), speech: String(comboText || ''), segments, numeric: false,
+  });
 
-  if (styleId === 'names') {
-    return { display: String(comboText || ''), speech: String(comboText || ''), segments };
-  }
+  if (styleId === 'names') return asNames();
 
-  const displayParts = [];
-  const speechParts = [];
-  let prevKind = null;
-  for (const seg of segments) {
-    if (seg.kind === 'num') {
-      displayParts.push({ sep: prevKind === 'num' ? ' - ' : ' · ', text: seg.num });
-      speechParts.push(styleId === 'teach' ? `${seg.speech} — ${seg.name.toLowerCase()}` : seg.speech);
-    } else {
-      displayParts.push({ sep: ' · ', text: seg.text.toUpperCase() });
-      speechParts.push(seg.text.toLowerCase());
-    }
-    prevKind = seg.kind;
-  }
+  // NUMBERS is a BOXING call system and never mixes alphabets. A half-and-half
+  // call — "1 · SLIP · 2", "1 · LOW KICK" — was the single most confusing
+  // thing in playtest: the eye reads digits and words as two languages in one
+  // instruction. So a combo is called numerically ONLY when every strike in it
+  // is a numbered punch; the moment it contains a kick, knee, elbow, sprawl or
+  // defensive word it is called by NAME in full instead. Boxing pools are
+  // ~2/3 pure punches, so numbers show up constantly there; kickboxing and MMA
+  // pools are mostly kicks, so those rounds stay in words — which is honest,
+  // since no numbering for kicks is standard across gyms.
+  const allNumbered = segments.length > 0 && segments.every((seg) => seg.kind === 'num');
+  if (!allNumbered) return asNames();
 
-  const display = displayParts
-    .map((p, i) => (i === 0 ? p.text : p.sep + p.text))
-    .join('');
-  const speech = speechParts.join(', ');
-  return { display, speech, segments };
+  const display = segments.map((seg, i) => (i === 0 ? seg.num : ' - ' + seg.num)).join('');
+  const speech = segments.map((seg) => seg.speech).join(', ');
+  return { display, speech, segments, numeric: true };
 }
 
 /** The number badge for a single technique/lesson name, or null. */
