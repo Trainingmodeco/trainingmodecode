@@ -142,7 +142,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
         {/* PROMPT N — call style pills (compact; the Audio Settings row has
             the preview). Persisted on pick, shared app-wide. */}
-        <div style={{ marginBottom: 9 }}>
+        <div data-guide="cc-callstyle" style={{ marginBottom: 9 }}>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 5 }}>CALL STYLE</div>
           <div style={{ display: 'flex', gap: 6 }}>
             {CALL_STYLES.map((cs) => {
