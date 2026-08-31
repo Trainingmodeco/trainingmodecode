@@ -313,3 +313,221 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
 
   return gate(comboOrder.map(c => c.comboText));
 }
+
+/**
+ * Combo Coach session content, planned PER ROUND so no two rounds repeat the
+ * same order. Wraps generateComboCoachSession (which still supplies the
+ * eligible content, LRU ordering, arsenal gating and custom/technical modes)
+ * and adds tier buckets + the anti-repeat deck.
+ *
+ * @returns {{ plans: string[][], all: string[] }}
+ */
+export function generateComboCoachRoundPlans(opts = {}) {
+  const {
+    discipline, difficulty, rounds = 3, callsPerRound = 40, secondsPerCall = 5, seed,
+  } = opts;
+  const all = generateComboCoachSession(opts) || [];
+  if (!all.length) return { plans: Array.from({ length: rounds }, () => []), all };
+
+  // Tier buckets, keyed by comboText so they survive the string-only pool the
+  // player consumes. Custom/technical/fallback content has no tier metadata —
+  // it lands in `all` only, and the planner falls back to the full deck.
+  const disc = normalizeDiscipline(discipline);
+  const tierOf = new Map();
+  for (const item of COMBO_POOL) {
+    if (item.discipline === disc) tierOf.set(item.comboText, item.minDifficulty);
+  }
+  const byTier = {};
+  for (const text of all) {
+    const tier = tierOf.get(text);
+    if (!tier) continue;
+    (byTier[tier] = byTier[tier] || []).push(text);
+  }
+
+  const plans = planComboRounds({
+    byTier, all, difficulty: normalizeDifficulty(difficulty),
+    rounds, callsPerRound, secondsPerCall, seed,
+  });
+  return { plans, all };
+}
+
+// ── Per-round call planning (anti-repeat) ──────────────────────────────────
+//
+// WHY THIS EXISTS. Combo Coach used to build ONE ordered pool per session and
+// walk it with `pool[i % pool.length]`. That is a fixed cycle: with ~36-40
+// calls in a 3-minute round and 38 eligible combos at Advanced, a single
+// round consumes almost exactly one lap, so every later round replayed the
+// SAME combos in the SAME order. Five rounds felt like one round on loop.
+//
+// The fix is a per-round DECK: each round gets its own shuffle, combos are
+// drawn without replacement so nothing repeats until the deck is exhausted,
+// the deck reshuffles when empty (never repeating across the seam), and each
+// round starts from a different seed. Repetition can't be abolished — 5×36
+// calls over 38 combos means everything appears ~4-5 times — but it is now
+// spread as far apart as the content allows instead of cycling on a timer.
+
+// Small seeded RNG (mulberry32) so a plan is reproducible and testable.
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleWith(list, rng) {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * A draw-without-replacement deck. Reshuffles when exhausted and never deals
+ * the same item twice in a row across that seam.
+ */
+function makeDeck(items, rng) {
+  let rest = shuffleWith(items, rng);
+  let last = null;
+  return (avoid) => {
+    if (!items.length) return null;
+    if (!rest.length) {
+      rest = shuffleWith(items, rng);
+      if (items.length > 1 && rest[0] === last) rest.push(rest.shift());
+    }
+    // Prefer a card that isn't in the caller's recent window. Small tier
+    // buckets (hard has only ~6 combos) otherwise reshuffle fast enough to
+    // land the same combo two calls apart, which reads as a repeat even
+    // though the deck technically dealt fairly.
+    let idx = 0;
+    if (avoid && avoid.size) {
+      const free = rest.findIndex((c) => !avoid.has(c));
+      if (free >= 0) idx = free;
+    }
+    last = rest.splice(idx, 1)[0];
+    return last;
+  };
+}
+
+// Advanced rounds are built as a RAMP, per the owner's spec: a short easy
+// opening, a normal stretch, a longer hard block, then the rest advanced —
+// still jumping between tiers, but weighted to advanced. Band lengths are in
+// SECONDS and jittered per round so no two rounds share a shape.
+const ADVANCED_BANDS = [
+  { tier: 'easy',   min: 20, max: 30 },
+  { tier: 'normal', min: 25, max: 35 },
+  { tier: 'hard',   min: 50, max: 70 },
+];
+// The tail: mostly advanced, with occasional jumps back down so the round
+// keeps mixing rather than flattening into one tier.
+const TAIL_MIX = [
+  ['advanced', 0.65], ['hard', 0.20], ['normal', 0.10], ['easy', 0.05],
+];
+
+function pickWeighted(mix, rng) {
+  let r = rng();
+  for (const [tier, w] of mix) { r -= w; if (r <= 0) return tier; }
+  return mix[mix.length - 1][0];
+}
+
+/**
+ * Plan the calls for ONE round.
+ * @param {object} o
+ * @param {Record<string,string[]>} o.byTier  comboText[] bucketed by tier
+ * @param {string[]} o.all                    every eligible comboText
+ * @param {string} o.difficulty               easy|normal|hard|advanced
+ * @param {number} o.callCount                how many calls this round needs
+ * @param {number} o.secondsPerCall           used to convert bands → calls
+ * @param {function} o.rng
+ * @param {object} o.decks                    shared decks (session-scoped)
+ * @returns {string[]}
+ */
+function planRound({ byTier, all, difficulty, callCount, secondsPerCall, rng, decks }) {
+  const out = [];
+  // Rolling window of what was just called, so no combo comes back within a
+  // few calls of itself. Sized to the content available — a tiny pool cannot
+  // support a long window without starving.
+  const windowSize = Math.max(1, Math.min(6, Math.floor(all.length / 4)));
+  const recent = new Set();
+  const remember = (c) => {
+    if (!c) return;
+    out.push(c);
+    recent.add(c);
+    if (recent.size > windowSize) recent.delete(recent.values().next().value);
+  };
+  const drawFrom = (tier) => {
+    const deck = decks[tier];
+    // A tier with no content (or an empty band) falls back to the full set,
+    // so a plan is never short and never stalls on a missing bucket.
+    const v = deck ? deck(recent) : null;
+    return v == null ? decks.all(recent) : v;
+  };
+
+  if (difficulty !== 'advanced') {
+    for (let i = 0; i < callCount; i++) remember(decks.all(recent));
+    return out.filter(Boolean);
+  }
+
+  // A band whose own tier is smaller than the band is long WILL repeat: the
+  // hard bucket holds ~6 combos but a 60-second hard band wants ~12 calls, so
+  // its deck reshuffles mid-band and the recent-window has nothing left to
+  // prefer. Widen such a band upward (hard → hard+advanced) so it still
+  // climbs in difficulty but has enough content to stay fresh.
+  const widened = (tier, n) => {
+    const own = byTier[tier] || [];
+    if (own.length >= n) return null;
+    const order = DIFFICULTY_LEVELS.slice(DIFFICULTY_LEVELS.indexOf(tier) + 1);
+    let merged = [...own];
+    for (const up of order) {
+      merged = merged.concat(byTier[up] || []);
+      if (merged.length >= n) break;
+    }
+    return merged.length > own.length ? merged : null;
+  };
+
+  for (const band of ADVANCED_BANDS) {
+    const seconds = band.min + rng() * (band.max - band.min);
+    const n = Math.max(1, Math.round(seconds / secondsPerCall));
+    const wide = widened(band.tier, n);
+    const bandDeck = wide ? makeDeck(wide, rng) : null;
+    for (let i = 0; i < n && out.length < callCount; i++) {
+      if (bandDeck) remember(bandDeck(recent));
+      else remember((byTier[band.tier] || []).length ? drawFrom(band.tier) : decks.all(recent));
+    }
+  }
+  while (out.length < callCount) {
+    const tier = pickWeighted(TAIL_MIX, rng);
+    remember((byTier[tier] || []).length ? drawFrom(tier) : decks.all(recent));
+  }
+  return out.filter(Boolean);
+}
+
+/**
+ * Build one call list PER ROUND. Every round is shuffled independently, so no
+ * two rounds share an order.
+ * @returns {string[][]}
+ */
+export function planComboRounds({ byTier, all, difficulty, rounds, callsPerRound, secondsPerCall = 5, seed }) {
+  const list = Array.isArray(all) ? all.filter(Boolean) : [];
+  if (!list.length) return Array.from({ length: Math.max(1, rounds) }, () => []);
+  const baseSeed = Number.isFinite(seed) ? seed : Math.floor(Math.random() * 1e9);
+  const plans = [];
+  for (let r = 0; r < Math.max(1, rounds); r++) {
+    // A per-round seed is what makes round 2 differ from round 1; the decks
+    // are rebuilt per round too, so each round starts from a fresh shuffle.
+    const rng = makeRng(baseSeed + r * 7919);
+    const decks = { all: makeDeck(list, rng) };
+    for (const tier of Object.keys(byTier || {})) {
+      if ((byTier[tier] || []).length) decks[tier] = makeDeck(byTier[tier], rng);
+    }
+    plans.push(planRound({
+      byTier: byTier || {}, all: list, difficulty, rng, decks,
+      callCount: Math.max(1, callsPerRound), secondsPerCall,
+    }));
+  }
+  return plans;
+}
