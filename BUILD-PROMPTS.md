@@ -1432,3 +1432,95 @@ SecondaryButton / Card); no new design system.
 >    fully in words.
 >
 > Report the actual numbers you measured, not "looks right".
+
+## PROMPT CC-1 — Combo Coach: every round must be different, and the pool must be deep enough
+
+> Run this in the app. If the repo already matches the "Done state" below,
+> change nothing and say so — this prompt is safe to re-run, and it doubles as
+> the regression spec for combo repetition.
+>
+> ### The problem (from playtest: 5 rounds of advanced kickboxing)
+>
+> Combos repeated inside every round, and each round replayed the previous
+> one. Three causes compounded:
+>
+> 1. **A fixed cycle.** The caller consumed one session-wide list with
+>    `pool[comboIndexRef.current % pool.length]`. A modulo index over one
+>    array is periodic by construction: call N and call N+poolLength are
+>    always identical.
+> 2. **The pool was built once per session** in a `useMemo` keyed on
+>    session-level config, and never reshuffled, so round 2 was just the next
+>    lap of the same cycle.
+> 3. **One lap was about one round long.** A 3-minute round at 3.5s cadence
+>    plus ~1.2s of speech fits ~36 calls. Difficulty eligibility is
+>    CUMULATIVE (advanced = easy+normal+hard+advanced), which was 38 combos.
+>    36 calls against 38 combos means a round consumed a whole lap.
+>
+> Note `preventBackToBack` did NOT prevent this. It only stops two adjacent
+> duplicates inside the ordered list; it says nothing about the cycle.
+>
+> ### Done state — part 1, per-round planning
+>
+> - `sessionGenerator.js` exports `generateComboCoachRoundPlans(opts)`
+>   returning `{ plans: string[][], all: string[] }` — ONE call list per round.
+> - Each round has its OWN seed and its own shuffle. No two rounds share an
+>   order.
+> - Calls are drawn WITHOUT replacement (a deck). Nothing repeats until the
+>   deck is exhausted, and the reshuffle seam never deals the same combo twice
+>   in a row.
+> - A rolling recent-window (up to 6, scaled to pool size) stops a combo
+>   returning within a few calls of itself.
+> - ADVANCED rounds follow a ramp, jittered per round so no two rounds share a
+>   shape: ~20-30s easy, ~25-35s normal, ~50-70s hard, then the remainder
+>   advanced-weighted (65% advanced / 20% hard / 10% normal / 5% easy) so it
+>   keeps jumping tiers instead of flattening into one.
+> - A band whose own tier is smaller than the band is long widens UPWARD into
+>   the next tier. Without this the hard band (~12 calls) cycles the hard
+>   bucket twice and the worst repeat gap collapses to 2.
+> - `ComboCoachActive` consumes `roundCalls` — the current round's plan plus
+>   any Move Lab rotation strings — and resets the call index on every round
+>   change. The combo-loop effect depends on `roundCalls`, not the old pool.
+>
+> ### Done state — part 2, content depth
+>
+> Planning alone cannot create material: 38 combos against ~180 calls in a
+> 5-round session means everything appears 4-5 times however well it is
+> spread. The pool carries 30 additional combos per discipline (6 normal,
+> 10 hard, 14 advanced) for boxing, kickboxing, muay-thai and mma, so tiers
+> read 15/15/16/22 per discipline and eligibility is:
+>
+>     easy 15 · normal 30 · hard 46 · advanced 68     (was 15 / 24 / 30 / 38)
+>
+> Boxing's additions are deliberately weighted to PURE-PUNCH chains, taking
+> its numerically-callable combos from 25 to 48 — otherwise NUMBERS call
+> style keeps falling back to names (see PROMPT N-2). Kick disciplines use
+> their own vocabulary and stay worded.
+>
+> Every combo must be built from vocabulary the tokenizer in
+> `data/strikeNumbering.js` already knows, so call style, arsenal gating and
+> the voice coach read it with no further changes.
+>
+> ### Verify before you report done — report the numbers, not "looks right"
+>
+> 1. No duplicate `comboText` within a discipline anywhere in the pool. (A
+>    real one existed: kb-14 and kb-38 were both "Jab Body Kick" at different
+>    tiers, so at Normal and above that combo sat in the pool twice and could
+>    be dealt twice in quick succession as two different cards.)
+> 2. For all 4 disciplines x 4 difficulties, 5 rounds each: **zero identical
+>    rounds** and **zero back-to-back repeats**.
+> 3. Hard rounds contain NO repeat at all (46 eligible vs ~36 calls).
+> 4. Advanced worst repeat gap >= 12 calls, and 60+ of the 68 eligible combos
+>    are used across a 5-round session.
+> 5. `npx tsc --noEmit` clean.
+> 6. In a real browser: play three rounds, skipping between them, and confirm
+>    the sequences differ and nothing repeats back to back.
+>
+> ### Do NOT
+>
+> - Do NOT filter the combo pool down to punch-only combos to force more
+>   numeric calls. Kickboxing has ~2 pure-punch combos; the round would
+>   repeat itself into nonsense. Rendering is the layer that changes for call
+>   style, never content selection.
+> - Do NOT shrink the recent-window or drop the band widening to "simplify" —
+>   both are load-bearing, and removing either takes the worst repeat gap
+>   straight back to 2.
