@@ -14,7 +14,7 @@ const DEFAULT_PROFILE = {
   voiceCoach: 'FEMALE',
   coachStyle: 'STANDARD',
   encouragement: 'normal',
-  callStyle: 'names', // strike numbering: names | numbers | teach (PROMPT N)
+  callStyle: 'names', // strike numbering: names | numbers (PROMPT N)
 };
 
 // Parsed-profile cache — avoids re-reading + JSON.parse on every render. Cleared

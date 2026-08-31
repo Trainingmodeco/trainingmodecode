@@ -158,6 +158,17 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
               );
             })}
           </div>
+          {/* Numbers is a boxing system: kicks, knees and elbows have no
+              standard number, so combos containing them are called by name
+              rather than as a half-number hybrid. Say so up front here, or a
+              kickboxing athlete picks NUMBERS and thinks it failed. */}
+          {callStyleOf(callStyle).id === 'numbers' && (
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: '#a99cc4', lineHeight: 1.3, marginTop: 5 }}>
+              {String(discipline).toLowerCase() === 'boxing'
+                ? 'Punch combos are called 1-2-3. Combos with slips or rolls are called by name.'
+                : 'Punch-only combos are called 1-2-3. Kick, knee and elbow combos are always called by name.'}
+            </div>
+          )}
         </div>
 
         {/* Mode + explanation */}

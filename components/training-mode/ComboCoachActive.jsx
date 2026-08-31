@@ -706,9 +706,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
                   textShadow: isDefense ? '0 0 22px rgba(168,85,247,0.65)' : '0 0 18px rgba(253,224,71,0.4)',
                   maxWidth: 280,
                 }}>
-                  {/* Two-tone in numbers/teach: numbered punches gold, named
-                      strikes violet — the split IS the teaching signal. */}
-                  {callStyle !== 'names' && !isDefense && currentCombo?.segments ? (
+                  {/* NUMBERS style renders an all-numeric call (formatCall only
+                      returns numeric:true when every strike is a numbered
+                      punch), so this branch is pure gold digits with " - "
+                      separators — never a number/word hybrid. */}
+                  {currentCombo?.numeric && !isDefense && currentCombo?.segments ? (
                     currentCombo.segments.map((seg, i, arr) => {
                       const sep = i === 0 ? '' : seg.kind === 'num' && arr[i - 1].kind === 'num' ? ' - ' : ' · ';
                       return (
