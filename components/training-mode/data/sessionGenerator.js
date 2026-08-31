@@ -451,7 +451,16 @@ function planRound({ byTier, all, difficulty, callCount, secondsPerCall, rng, de
   // Rolling window of what was just called, so no combo comes back within a
   // few calls of itself. Sized to the content available — a tiny pool cannot
   // support a long window without starving.
-  const windowSize = Math.max(1, Math.min(6, Math.floor(all.length / 4)));
+  //
+  // The cap and the guarantee are the same number plus one: a window of N
+  // means the soonest a combo can return is N+1 calls later. PROMPT CC-1
+  // asks for a worst repeat gap of >= 12 on ADVANCED, so the cap must be
+  // >= 11. It was 6, which made 12 unreachable by construction - advanced
+  // sessions measured a floor of exactly 7 (= 6+1) in all four disciplines,
+  // ~20% of the time. The /4 scaling was already correct and still protects
+  // small pools: easy (15 eligible) keeps 3, normal (30) gets 7, hard (46)
+  // and advanced (68) get the full 11.
+  const windowSize = Math.max(1, Math.min(11, Math.floor(all.length / 4)));
   const recent = new Set();
   const remember = (c) => {
     if (!c) return;
