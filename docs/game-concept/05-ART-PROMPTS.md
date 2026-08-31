@@ -177,6 +177,25 @@ short curly fade) is CANON for in-game sprites — black/gold matches the
 brand tokens and sleeveless arms read better at sprite scale. The purple
 sleeved "TRAINING MODE" hoodie version is key art / alt costume.
 
+**CANON CHIBI DESIGNS — LOCKED (founder 2026-08-12):** the generated
+male and female TM chibis are canon for all comedy-flip beats, dialogue
+boxes, and crowd/reaction art:
+- **Male chibi:** ~3 heads tall, short black curly top with fade, thick
+  serious brows over glowing violet eyes (tiny violet flare at the
+  temples), black sleeveless hoodie with gold T emblem + gold
+  drawstrings, black joggers with gold side stripe, black fingerless
+  gloves with gold panels, black-gold sneakers with T mark. Default
+  expression: dead serious (the comedy is that he never chibi-smiles).
+- **Female chibi:** ~3 heads tall, huge black ponytail with gold tie,
+  soft smirk, glowing violet eyes, black sleeveless crop hoodie-top with
+  gold T + gold piping, black joggers with gold stripe, T-marked
+  fingerless gloves and sneakers, visible abs (she keeps the muscle even
+  in chibi — that IS the joke).
+- Consistency rule: chibi = same palette, same emblem placement, same
+  silhouette hooks (his fade, her ponytail) as the full designs — only
+  proportions change. The early boxer-shorts chibi (yellow trunks, red
+  gloves) is OFF-canon; keep as a "retro trunks" alt-costume candidate.
+
 ### Prompts
 
 Male:
