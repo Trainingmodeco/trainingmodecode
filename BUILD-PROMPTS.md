@@ -1503,3 +1503,74 @@ SecondaryButton / Card); no new design system.
 >   2.5 lb progression step.
 > - Gold marks progress and PRs only; holding steady is neutral, never red.
 > - The chart is glanceable in one second — if it needs a legend, simplify.
+
+## PROMPT N-2 — call style: collapse to TWO systems, and never mix numbers with words
+
+> Run this in the app. It supersedes the three-style part of PROMPT N.
+> If the repo already matches the "Done state" below, change nothing and say
+> so — this prompt is safe to re-run.
+>
+> ### The problem (from playtest)
+>
+> Two defects made the strike-numbering feature confusing to actually train
+> with:
+>
+> 1. **The picker offered a choice the screen never honoured.** `formatCall`
+>    built the display from `seg.num` for BOTH `numbers` and `teach`, so
+>    CALL + NAME rendered pixel-identical to NUMBERS — the name existed only
+>    in the voice. Three options, two behaviours.
+> 2. **Hybrid calls.** A combo containing any non-punch rendered as
+>    `1 · SLIP · 2` or `1 · LOW KICK` — digits and words as two alphabets in
+>    one instruction. Mid-round, at a glance, this is unreadable.
+>
+> ### Done state
+>
+> - `CALL_STYLES` has exactly TWO entries: `names` and `numbers`. `teach` is
+>   gone from the array.
+> - `callStyleOf()` maps a saved `'teach'` id onto `numbers`, so existing
+>   profiles never land on a missing style.
+> - `formatCall(text, 'numbers')` returns the NUMERIC form **only when every
+>   segment is a numbered punch**; if any segment is a kick, knee, elbow,
+>   sprawl, slip, roll, feint, pivot or any other word token, it returns the
+>   plain NAMES form instead. There is no third rendering — a call is all
+>   digits or all words, never both.
+> - The return value carries a boolean `numeric` flag.
+> - `ComboCoachActive`'s two-tone renderer gates on `currentCombo.numeric`,
+>   NOT on `callStyle !== 'names'` — otherwise the segment loop re-introduces
+>   the hybrid on screen even when `formatCall` refused to produce one.
+> - Both pickers (Profile → Audio Settings, Combo Coach setup) map over
+>   `CALL_STYLES`, so they show two pills with no further edits.
+> - Combo Coach setup prints the rule under the pills when NUMBERS is
+>   selected, worded by discipline:
+>   - boxing → "Punch combos are called 1-2-3. Combos with slips or rolls are
+>     called by name."
+>   - anything else → "Punch-only combos are called 1-2-3. Kick, knee and
+>     elbow combos are always called by name."
+>
+> ### Why NUMBERS stays a boxing system (do not "fix" this)
+>
+> Counted across the combo pool: boxing is 25/38 pure-punch combos, so
+> numbers appear constantly there. Kickboxing and MMA are 2/38 — those pools
+> are built on kicks, knees and sprawls, so NUMBERS rounds in those
+> disciplines are mostly called by name. That is correct and intentional:
+> punch numbering (1–8) is universal, kick numbering is NOT standard across
+> gyms, and inventing one is what produced the confusing hybrid in the first
+> place. Do NOT filter the combo pool down to punch-only combos to force more
+> numbers — kickboxing has only two eligible combos and the round would
+> repeat itself into nonsense. Rendering is the layer that changes; content
+> selection is not.
+>
+> ### Verify before you report done
+>
+> 1. Format EVERY combo in `data/comboCoachData.js` through
+>    `formatCall(text, 'numbers')` and assert **zero** results contain both a
+>    digit and a letter (excluding the `B` body suffix). This is the
+>    regression that matters.
+> 2. `callStyleOf('teach').id === 'numbers'`.
+> 3. `npx tsc --noEmit` clean.
+> 4. In a real browser at 412×883: both pickers show exactly two pills; a
+>    boxing Combo Coach round calls `1 - 2`, `1 - 2 - 3`, `1 - 2 - 3B` in
+>    gold with no word beside a digit; a combo with a slip or a kick comes up
+>    fully in words.
+>
+> Report the actual numbers you measured, not "looks right".
