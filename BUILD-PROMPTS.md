@@ -1610,8 +1610,13 @@ SecondaryButton / Card); no new design system.
 > - Calls are drawn WITHOUT replacement (a deck). Nothing repeats until the
 >   deck is exhausted, and the reshuffle seam never deals the same combo twice
 >   in a row.
-> - A rolling recent-window (up to 6, scaled to pool size) stops a combo
->   returning within a few calls of itself.
+> - A rolling recent-window stops a combo returning within a few calls of
+>   itself, sized `Math.max(1, Math.min(11, Math.floor(all.length / 4)))`.
+>   THE WINDOW IS THE GUARANTEE: a window of N means the soonest a combo can
+>   come back is call N+1, so the cap and the repeat-gap target in the verify
+>   list are the same number plus one. The cap shipped at 6 first, which put a
+>   hard ceiling of 7 on a spec asking for 12 — unreachable under any seed.
+>   Change one and you must change the other.
 > - ADVANCED rounds follow a ramp, jittered per round so no two rounds share a
 >   shape: ~20-30s easy, ~25-35s normal, ~50-70s hard, then the remainder
 >   advanced-weighted (65% advanced / 20% hard / 10% normal / 5% easy) so it
@@ -1652,7 +1657,10 @@ SecondaryButton / Card); no new design system.
 >    rounds** and **zero back-to-back repeats**.
 > 3. Hard rounds contain NO repeat at all (46 eligible vs ~36 calls).
 > 4. Advanced worst repeat gap >= 12 calls, and 60+ of the 68 eligible combos
->    are used across a 5-round session.
+>    are used across a 5-round session. MEASURE THIS OVER MANY SEEDS (200 per
+>    discipline), never one: the planner is seeded, so a single seed can report
+>    12-18 while a fifth of sessions actually sit on the floor. The floor is
+>    the number that matters, and only a sweep finds it.
 > 5. `npx tsc --noEmit` clean.
 > 6. In a real browser: play three rounds, skipping between them, and confirm
 >    the sequences differ and nothing repeats back to back.
@@ -1663,6 +1671,6 @@ SecondaryButton / Card); no new design system.
 >   numeric calls. Kickboxing has ~2 pure-punch combos; the round would
 >   repeat itself into nonsense. Rendering is the layer that changes for call
 >   style, never content selection.
-> - Do NOT shrink the recent-window or drop the band widening to "simplify" —
->   both are load-bearing, and removing either takes the worst repeat gap
+> - Do NOT shrink the recent-window cap or drop the band widening to
+>   "simplify" — both are load-bearing, and removing either takes the gap
 >   straight back to 2.
