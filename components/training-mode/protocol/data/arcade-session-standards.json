@@ -475,7 +475,7 @@
   "session_timing_behaviors": {
     "bodyweight_counted": {
       "rule": "Bodyweight sets are REP-COUNTED — the voice + counter count each rep so the user follows along. Counting is suppressed only if the announcer/voice is toggled OFF (on-screen counter still shows).",
-      "per_set_rounds": "Every movement runs SET BY SET — 'Set 1 of 3' -> rest -> 'Set 2 of 3' -> rest -> 'Set 3' — never one long undivided block (Baki playtest fix).",
+      "per_set_rounds": "Every movement runs SET BY SET — 'Set 1 of 3' -> rest -> 'Set 2 of 3' -> rest -> 'Set 3' — never one long undivided block (playtest fix).",
       "count_pace_by_category": {
         "rule": "The counting cadence matches the movement: pull-ups count SLOW, squats moderate, push-ups brisk. Weighted movements are timed, never counted.",
         "factors_on_difficulty_base": {
@@ -626,7 +626,7 @@
         "note": "combo length (strikes per call); difficulty shifts the max (easy -1, hard +1) via arcade-session-engine resolveComboParams"
       },
       "focus_saturation": {
-        "rule": "A focused round is SATURATED with its focus but never monotonous: ~60% of generated calls draw purely from the round's allowed_strikes; ~40% are MIXED calls that lead with a focus strike then draw from the discipline's wider pool (hooks, uppercuts, body shots — kicks/knees/elbows in kick disciplines) plus occasional head movement (slip/roll). From the Baki playtest: a jab-cross round should still sprinkle a lead hook, an uppercut, a double jab, head movement — here and there, not intensely.",
+        "rule": "A focused round is SATURATED with its focus but never monotonous: ~60% of generated calls draw purely from the round's allowed_strikes; ~40% are MIXED calls that lead with a focus strike then draw from the discipline's wider pool (hooks, uppercuts, body shots — kicks/knees/elbows in kick disciplines) plus occasional head movement (slip/roll). From the Grappler playtest: a jab-cross round should still sprinkle a lead hook, an uppercut, a double jab, head movement — here and there, not intensely.",
         "focus_share": 0.6,
         "secondary_pools": {
           "boxing": [
