@@ -1674,3 +1674,96 @@ SecondaryButton / Card); no new design system.
 > - Do NOT shrink the recent-window cap or drop the band widening to
 >   "simplify" — both are load-bearing, and removing either takes the gap
 >   straight back to 2.
+
+## PROMPT REVAMP-1 — the whole fight-mode + builder pass, with GitHub as the ledger
+
+> Run this in the app. It is a ROLL-UP: it lists every change from the
+> fight-mode/builder pass as a checkable item, and it requires the run to be
+> traceable in GitHub commit by commit. Most items may already be present —
+> for each one, VERIFY FIRST and only implement what is actually missing.
+> Reporting an item done without the evidence named beside it is a failure of
+> this prompt, not a shortcut.
+>
+> ### How to track this in GitHub (do this part first)
+>
+> 1. Work on a branch, never straight on the deploy branch. Confirm where you
+>    are before the first edit: `git rev-parse --abbrev-ref HEAD` and
+>    `git log --oneline -1`.
+> 2. **Rebase onto the deploy branch before you touch anything.** Two sessions
+>    have been landing work on `app` in parallel. A stale base means a
+>    cherry-pick silently REVERTS someone else's file. Check the size of the
+>    gap with `git diff HEAD origin/app --stat` — if it lists files you intend
+>    to edit, rebase first.
+> 3. **One commit per item below.** Do not batch unrelated items. Each message
+>    states the symptom, the root cause, and the measurement that proves it
+>    fixed — the numbers, not "looks right."
+> 4. Push the branch, then land on the deploy branch, then confirm the remote
+>    actually moved: `git log --oneline -1 origin/app`.
+> 5. **Report a table** at the end: item | commit SHA | the measured number.
+>    An item with no SHA is not done.
+> 6. Never rewrite commits you did not author. Two agents share this history.
+>
+> ### The items
+>
+> **1. Naming (AN-04).** No real character, place or movie names in campaign
+> data or the app's display strings. Personas are archetypes (The Karate
+> Prodigy, The Grip Monster, The Ogre…), badges derive from an explicit
+> `title` in `arcadeCampaignSeries.js` — never from the raw campaign name, or
+> "SONIC Badge" ships. Ids, qrSlugs and saved-progress keys stay UNCHANGED
+> (`hyperbolic-time-chamber` in particular).
+> *Evidence:* grep the shipped bundle for the franchise names — zero hits.
+>
+> **2. Builder player navigation.** The guided player carries three surfaces
+> reading one status model (DONE gold / SKIPPED red / NOW violet / QUEUED
+> faint): a segmented progress bar (one segment per exercise, current segment
+> filling set by set), a swipeable exercise strip that keeps the current card
+> centred, and a WORKOUT MAP pull-up sheet listing the session live with
+> per-set pips. Skipped exercises are tracked in the parent and survive resume.
+> *Evidence:* skip an exercise, open the map, see SKIPPED on that row.
+>
+> **3. Swap variety.** Swap sheets deal a seeded shuffle per session and
+> exclude every movement already in the workout. The DB order used to pin the
+> same first alternates into every sheet.
+> *Evidence:* two fresh sessions deal different alternates for the same slot.
+>
+> **4. Share card alignment.** The inline SHARE YOUR WIN card runs the full
+> column width on every summary screen — no `maxWidth` cap that leaves it
+> short of the right edge while sibling cards run wider.
+>
+> **5. Call style — TWO systems (see PROMPT N-2).** NAMES and NUMBERS only.
+> `teach` is retired and maps onto numbers. NUMBERS never mixes alphabets: a
+> combo is numeric ONLY when every strike in it is a numbered punch,
+> otherwise it is called by name in full. `formatCall` returns a `numeric`
+> flag and the two-tone renderer gates on it.
+> *Evidence:* format every combo in the pool through `formatCall(text,
+> 'numbers')` — zero results contain both a digit and a letter.
+>
+> **6. Combo Coach per-round planning (see PROMPT CC-1).** Calls are planned
+> PER ROUND, not walked with `pool[i % pool.length]`. Per-round seed, deck
+> drawn without replacement, recent-window sized
+> `Math.max(1, Math.min(11, Math.floor(all.length / 4)))`, advanced ramp with
+> band widening.
+> *Evidence:* 200 seeds per discipline — zero identical rounds, zero
+> back-to-back repeats, advanced worst gap >= 12.
+>
+> **7. Combo content depth.** 30 combos per discipline beyond the original 38
+> (6 normal / 10 hard / 14 advanced) across boxing, kickboxing, muay-thai and
+> mma, so tiers read 15/15/16/22 and eligibility is 15 / 30 / 46 / 68. Boxing
+> additions weighted to pure-punch chains so NUMBERS has depth (25 -> 48
+> numerically-callable). No duplicate `comboText` within a discipline.
+> *Evidence:* pool totals per tier, and a duplicate scan returning zero.
+>
+> ### The two mistakes this pass already made — do not repeat them
+>
+> - **A spec asked for something its own code forbade.** CC-1 wanted a repeat
+>   gap >= 12 while capping the recent window at 6. A window of N guarantees
+>   N+1, so 7 was the ceiling. If you change either number, change both.
+> - **A seeded system was verified with one seed.** Seed 42 reported a gap of
+>   12-18; a 200-seed sweep found a fifth of sessions sitting on 7. For
+>   anything seeded, sweep and report the FLOOR, never a sample.
+>
+> ### Finish
+>
+> Run `npx tsc --noEmit` and `npm run build:web` (the asset lockfile gate runs
+> inside it). Then the table of item / SHA / measured number. State plainly
+> anything you could not verify rather than implying you did.
