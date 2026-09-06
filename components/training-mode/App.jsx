@@ -101,6 +101,11 @@ const TOUR_KEY = 'trainingModeTourComplete';
 
 const PAUSED_SESSION_KEY = 'trainingModePausedSession';
 const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+// How often a running session writes itself to storage. The OS can kill a
+// backgrounded PWA without warning (memory pressure during a phone call is the
+// common one), and no lifecycle event is guaranteed to fire first — so the
+// session also saves on a timer. At 5s the worst case is losing five seconds.
+const SESSION_AUTOSAVE_MS = 5000;
 
 function loadPausedSession() {
   if (typeof localStorage === 'undefined') return null;
@@ -192,13 +197,18 @@ export default function App() {
     setProfile(merged);
   };
 
-  const pauseCurrentSession = useCallback(() => {
+  // A pure snapshot of everything needed to rebuild the running session. No
+  // side effects, so the lifecycle saver below can call it without stopping the
+  // voice or clearing the live state ref — the session may well continue.
+  // `reason` separates a deliberate exit ('nav', which leaves the resume banner
+  // for later) from the OS taking the app away ('lifecycle', which comes back
+  // into the player automatically on next launch).
+  const buildSessionSnapshot = useCallback((reason) => {
     if (!ACTIVE_SESSION_SCREENS.has(screen)) return null;
-    stopVoiceSession();
     const internalState = activeSessionStateRef.current
       ? { ...activeSessionStateRef.current }
       : null;
-    const paused = {
+    return {
       screen,
       disc,
       cfg,
@@ -212,13 +222,20 @@ export default function App() {
       arcadeOrder,
       arcadeSettings,
       internalState,
+      reason: reason || 'nav',
       timestamp: Date.now(),
     };
+  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings]);
+
+  const pauseCurrentSession = useCallback(() => {
+    const paused = buildSessionSnapshot('nav');
+    if (!paused) return null;
+    stopVoiceSession();
     setPausedSession(paused);
     savePausedSession(paused);
     activeSessionStateRef.current = null;
     return paused;
-  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings]);
+  }, [buildSessionSnapshot]);
 
   const resumeSession = useCallback(() => {
     if (!pausedSession) return;
@@ -237,10 +254,63 @@ export default function App() {
     setScreen(pausedSession.screen);
   }, [pausedSession]);
 
+  // ── Surviving the OS ──────────────────────────────────────────────────────
+  // The ONLY writer of the paused session used to be pauseCurrentSession(),
+  // which fires from in-app navigation (goHome, goProfile…). Nothing wrote on
+  // the way OUT of the app, so a phone call that got the PWA evicted lost the
+  // whole session: on return the page reloaded, found an empty key, and booted
+  // to the splash screen. useAutoPauseOnHidden paused the timer in memory, but
+  // memory is exactly what the OS reclaims.
+  //
+  // So a running session now saves itself when the app is hidden, when the page
+  // is being torn down, and on a timer in between (no lifecycle event is
+  // guaranteed to fire before a kill). It writes storage ONLY — never
+  // setPausedSession — because the state setter drives the resume banner, and
+  // a session that is merely backgrounded has not been left.
+  const snapshotRef = useRef(buildSessionSnapshot);
+  useEffect(() => { snapshotRef.current = buildSessionSnapshot; }, [buildSessionSnapshot]);
+
+  useEffect(() => {
+    if (!ACTIVE_SESSION_SCREENS.has(screen)) return undefined;
+    if (typeof document === 'undefined') return undefined;
+    const stash = () => {
+      const snap = snapshotRef.current?.('lifecycle');
+      if (snap) savePausedSession(snap);
+    };
+    const onVisibility = () => { if (document.hidden) stash(); };
+    stash(); // close the gap between entering a session and the first tick
+    const timer = setInterval(stash, SESSION_AUTOSAVE_MS);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', stash);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', stash);
+    };
+  }, [screen]);
+
   const discardPausedSession = useCallback(() => {
     setPausedSession(null);
     savePausedSession(null);
     setResumeData(null);
+  }, []);
+
+  // Boot: a session the OS interrupted comes straight back INTO its player,
+  // paused, rather than dumping the athlete on the splash screen. Only for
+  // 'lifecycle' stashes — a session the athlete deliberately navigated away
+  // from keeps the existing resume-banner behaviour, because leaving was their
+  // choice. resumeSession() feeds isResuming, which starts the player paused
+  // and skips the warm-up, so they land exactly where they were with the clock
+  // held and tap RESUME to carry on.
+  const bootRestoredRef = useRef(false);
+  useEffect(() => {
+    if (bootRestoredRef.current) return;
+    bootRestoredRef.current = true;
+    const stashed = pausedSession;
+    if (!stashed || stashed.reason !== 'lifecycle') return;
+    if (!ACTIVE_SESSION_SCREENS.has(stashed.screen)) return;
+    resumeSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Clear pausedSession after successfully resuming (next render after screen matches)

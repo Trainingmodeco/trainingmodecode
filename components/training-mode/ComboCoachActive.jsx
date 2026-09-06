@@ -212,6 +212,12 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const encourageFiredSet = useRef(new Set());
   const isSpeakingCombo = useRef(false);
   const skipInitialIntro = useRef(!!initialPaused);
+  // A resumed session already restored `remaining` from initialResumeData. The
+  // round-start effect below resets the clock to a full round on every roundIdx
+  // change — including its mount pass — which silently threw that away and put
+  // the athlete back at 3:00. Consume this once so only the FIRST pass is
+  // skipped; later rounds still reset normally.
+  const keepRestoredClock = useRef(initialResumeData?.remaining != null);
   const streakRef = useRef(0);
   // 1.5 — session tallies: total strikes called across all combos delivered,
   // and the best streak reached. Refs so they survive re-renders; snapshotted
@@ -302,7 +308,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     roundEndBellPlayedRef.current = false;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
-    setRemaining(roundSec);
+    if (keepRestoredClock.current) keepRestoredClock.current = false;
+    else setRemaining(roundSec);
 
     if (!integrityStartedRef.current) {
       integrityStartedRef.current = true;

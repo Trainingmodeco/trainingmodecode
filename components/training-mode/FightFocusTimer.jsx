@@ -116,6 +116,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const encourageUsedIds = useRef(new Set());
   const encourageFiredSet = useRef(new Set());
   const skipInitialIntro = useRef(!!initialPaused);
+  // Same guard as ComboCoachActive: a resumed session restored `remaining` from
+  // initialResumeData, and the round-start effect below resets the clock on
+  // every roundIdx change — its mount pass included — which threw the restored
+  // time away and put the athlete back at a full round. Consumed once.
+  const keepRestoredClock = useRef(initialResumeData?.remaining != null);
 
   const phaseRef     = useRef('round');
   const roundIdxRef  = useRef(0);
@@ -251,7 +256,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     roundEndBellPlayedRef.current = false;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
-    setRemaining(roundSec);
+    if (keepRestoredClock.current) keepRestoredClock.current = false;
+    else setRemaining(roundSec);
 
     if (!integrityStartedRef.current) {
       integrityStartedRef.current = true;
