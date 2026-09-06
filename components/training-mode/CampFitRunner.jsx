@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { Square, SkipForward } from 'lucide-react';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts, packLine } from './data/voicePacks';
@@ -64,6 +66,30 @@ export default function CampFitRunner({ cfg, onEnd }) {
   const [countdown, setCountdown] = useState('3');
   const [done, setDone] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+
+  // Floating mini-player (shared/miniPlayer): the round is the position. Reads
+  // only consts declared above this line - see the trap in PROMPT MP-2.
+  const miniFrame = useCallback(() => {
+    const resting = phase === 'rest';
+    const secs = Math.max(0, Number(remaining) || 0);
+    const r = rounds[Math.min(roundIdx, rounds.length - 1)] || {};
+    // Read the round's own seconds rather than the helper closures above: those
+    // are rebuilt every render and would churn this callback's identity.
+    const span = resting ? (r.rest_sec ?? baseRestSec) : (r.length_sec || baseRoundSec);
+    const roundName = r.title || r.name || r.focus || ('ROUND ' + (roundIdx + 1));
+    return {
+      phase: paused || countdown !== null ? 'paused' : resting ? 'rest' : 'work',
+      clock: Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'),
+      progress: span ? 1 - secs / span : 0,
+      exIdx: roundIdx + 1,
+      exTotal: total,
+      name: resting ? 'REST' : roundName,
+      prescription: String(cfg.title || cfg.label || 'TRAINING CAMP'),
+      nextName: resting ? ('ROUND ' + (roundIdx + 2)) : null,
+      segments: Array.from({ length: total }, (_, i) => (i < roundIdx ? 'done' : i === roundIdx ? 'current' : 'todo')),
+    };
+  }, [phase, paused, countdown, remaining, roundIdx, rounds, total, cfg.title, cfg.label, baseRoundSec, baseRestSec]);
+  const mini = useMiniPlayer(miniFrame, !done);
 
   const phaseRef = useRef('work');
   const roundIdxRef = useRef(0);
@@ -208,6 +234,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
   return (
     <PhoneFrame useBrandBg>
       <VoiceMixer top={10} right={10}/>
+      <MiniPlayerButton {...mini} top={10} right={52}/>
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 16px 0' }}>
         {/* Header */}
         <div style={{ font: "900 17px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.08em', textShadow: `0 0 14px ${TEAL}66` }}>CONDITIONING</div>

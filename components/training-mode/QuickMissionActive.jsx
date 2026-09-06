@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import CornerHUD from './CornerHUD';
@@ -8,6 +8,8 @@ import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay, setVoiceGender } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
@@ -84,7 +86,7 @@ function getPrepMessage(workoutType) {
 export default function QuickMissionActive({ missionCfg, profile, onEnd, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   const [mission] = useState(() => generateQuickMission(missionCfg));
-  const allExercises = [...mission.exercises, ...mission.finisherExercises];
+  const allExercises = useMemo(() => [...mission.exercises, ...mission.finisherExercises], [mission]);
 
   const integrity = useIntegritySession('quickMission', missionCfg.rounds || 1);
   const integrityStartedRef = useRef(false);
@@ -146,6 +148,33 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const currentEx = allExercises[exIdx] || allExercises[0];
   const isWeighted = missionCfg.workoutType === 'Weighted' || missionCfg.workoutType === 'Hybrid';
   const currentCadenceEligible = isCadenceEligible(currentEx, missionCfg);
+
+  // Floating mini-player (shared/miniPlayer). Declared AFTER every const it
+  // reads - see the trap noted in PROMPT MP-2.
+  const miniFrame = useCallback(() => {
+    const resting = phase === 'rest';
+    const working = phase === 'work';
+    const timed = currentEx?.mode === 'timed';
+    const secs = Math.max(0, Number(remaining) || 0);
+    const total = resting ? (currentEx?.rest || 0) : (currentEx?.work || 0);
+    const next = allExercises[exIdx + 1] || (round < (mission.rounds || 1) ? allExercises[0] : null);
+    return {
+      phase: paused ? 'paused' : working ? 'work' : 'rest',
+      clock: timed || resting ? (Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0')) : String(cadenceRep),
+      reps: working && !timed ? cadenceRep : null,
+      repsLabel: 'REPS',
+      progress: total ? 1 - secs / total : 0,
+      exIdx: exIdx + 1,
+      exTotal: allExercises.length,
+      setIdx: round,
+      setTotal: mission.rounds || 1,
+      name: resting ? 'REST' : (currentEx?.name || 'QUICK MISSION'),
+      prescription: 'ROUND ' + round + '/' + (mission.rounds || 1),
+      nextName: next?.name || null,
+      segments: allExercises.map((_, i) => (i < exIdx ? 'done' : i === exIdx ? 'current' : 'todo')),
+    };
+  }, [phase, paused, remaining, cadenceRep, exIdx, round, allExercises, currentEx, mission.rounds]);
+  const mini = useMiniPlayer(miniFrame, !done);
 
   // Fix 1: Refs for action functions to prevent stale closures in cadence loops
   const completeExerciseRef = useRef(null);
@@ -609,6 +638,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       {/* Universal layout: How-to (O) sits top-right in the header row below;
           Volume sits directly under it so the two never overlap. */}
       <VoiceMixer top={58} right={14} dataGuide="qma-volume"/>
+      <MiniPlayerButton {...mini} top={58} right={56}/>
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',

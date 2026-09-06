@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { Square, SkipForward, Check, RefreshCw, Dumbbell } from 'lucide-react';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts } from './data/voicePacks';
@@ -77,6 +79,36 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
     () => { if (!paused) { cancelSpeech(); setPaused(true); } },
     integrity,
   );
+
+  // Floating mini-player (shared/miniPlayer). Hooks must sit ABOVE the early
+  // returns below, so this reads the raw counters rather than the derived
+  // title/sub computed later in the render path.
+  const miniFrame = useCallback(() => {
+    const resting = phase === 'rest';
+    const working = phase === 'work';
+    const move = inFinisher ? finishers[finIdx] : cur;
+    const timed = inFinisher || !!move?.hold_sec || !!move?.timed;
+    const secs = Math.max(0, Number(resting || inFinisher ? restLeft : reps) || 0);
+    const span = resting ? (cur?.rest_sec || cur?.rest || 0) : inFinisher ? (move?.work_sec || 0) : (move?.reps || move?.hold_sec || 0);
+    const elapsed = setStartRef.current ? Math.max(0, Math.round((Date.now() - setStartRef.current) / 1000)) : 0;
+    const clockOf = (n) => Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
+    return {
+      phase: paused || countdown !== null ? 'paused' : working ? 'work' : 'rest',
+      clock: resting || inFinisher || timed ? clockOf(secs) : clockOf(elapsed),
+      reps: working && !inFinisher && !timed ? reps : null,
+      repsLabel: 'REPS',
+      progress: span ? Math.min(1, (resting || inFinisher ? 1 - secs / span : secs / span)) : 0,
+      exIdx: inFinisher ? finIdx + 1 : exIdx + 1,
+      exTotal: inFinisher ? finishers.length : total,
+      setIdx: inFinisher ? 1 : setIdx + 1,
+      setTotal: inFinisher ? 1 : (cur?.sets || 1),
+      name: resting ? 'REST' : (inFinisher ? (move?.movement || 'FINISHER') : (cur?.name || cur?.movement || 'CAMP')),
+      prescription: inFinisher ? 'FINISHER' : ((cur?.sets || 1) + ' x ' + (cur?.reps || cur?.hold_sec || '')).trim(),
+      nextName: inFinisher ? (finishers[finIdx + 1]?.movement || null) : (session?.[exIdx + 1]?.name || session?.[exIdx + 1]?.movement || null),
+      segments: Array.from({ length: Math.max(1, total) }, (_, i) => (i < exIdx ? 'done' : i === exIdx ? 'current' : 'todo')),
+    };
+  }, [phase, paused, countdown, inFinisher, finishers, finIdx, cur, restLeft, reps, exIdx, setIdx, total, session]);
+  const mini = useMiniPlayer(miniFrame, phase !== 'done' && phase !== 'review');
 
   const finish = (completedCount) => {
     if (doneRef.current) return;
@@ -251,6 +283,7 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
   return (
     <PhoneFrame useBrandBg>
       <VoiceMixer top={10} right={10}/>
+      <MiniPlayerButton {...mini} top={10} right={52}/>
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 16px 0' }}>
         <div style={{ font: "900 17px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.08em', textShadow: `0 0 14px ${TEAL}66` }}>{inFinisher ? 'FINISHER' : 'COUNTED SETS'}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>

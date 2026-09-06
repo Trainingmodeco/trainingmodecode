@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import StageChrome from './shared/StageChrome';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap, Play, Pause } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, recordInvalidAttempt } from './data/arcadeProgress';
@@ -131,7 +133,7 @@ const btnSecondary = {
 };
 
 export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, onComplete, onExit, onStateChange, onHome, skipIntro = false }) {
-  const tasks = stage?.fitBlock?.tasks || [];
+  const tasks = useMemo(() => stage?.fitBlock?.tasks || [], [stage]);
   const tiers = useMemo(() => stage?.scoringTiers || [], [stage]);
   const minValid = stage?.minValidSeconds || 180;
   const cadenceLocked = stage?.cadenceLocked || false;
@@ -190,6 +192,29 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
 
   const task = tasks[taskIdx];
   const totalTasks = tasks.length;
+
+  // Floating mini-player (shared/miniPlayer). A benchmark counts UP with no
+  // target, so the clock is elapsed time and the big number is the rep count.
+  // Declared after every const it reads - see the trap in PROMPT MP-2.
+  const miniFrame = useCallback(() => {
+    const working = phase === 'active' || phase === 'own';
+    const resting = phase === 'rest';
+    const secs = Math.max(0, Number(resting ? restTimer : elapsed) || 0);
+    return {
+      phase: paused ? 'paused' : working ? 'work' : 'rest',
+      clock: Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'),
+      reps: phase === 'active' ? currentRep : null,
+      repsLabel: 'REPS',
+      progress: 0,
+      exIdx: taskIdx + 1,
+      exTotal: totalTasks,
+      name: resting ? 'REST' : (task?.title || 'MAX OUT'),
+      prescription: 'AS MANY AS YOU CAN',
+      nextName: tasks[taskIdx + 1]?.title || null,
+      segments: tasks.map((_, i) => (i < taskIdx ? 'done' : i === taskIdx ? 'current' : 'todo')),
+    };
+  }, [phase, paused, restTimer, elapsed, currentRep, taskIdx, totalTasks, task, tasks]);
+  const mini = useMiniPlayer(miniFrame, phase !== 'summary' && phase !== 'intro');
   const nextTask = taskIdx + 1 < totalTasks ? tasks[taskIdx + 1] : null;
   const stageBg = `/static/series/stage-bg/stage-${Math.min(Math.max(stage?.stageNumber || 1, 1), 10)}.webp`;
 
@@ -597,6 +622,8 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   );
 
   const timerChip = (
+    <>
+    <MiniPlayerButton {...mini} top={8} right={104}/>
     <div style={{
       position: 'absolute', top: 12, right: 12,
       padding: '4px 10px', borderRadius: 6,
@@ -606,6 +633,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
         {formatTime(elapsed)}
       </span>
     </div>
+    </>
   );
 
   const announcerBox = (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide-react';
@@ -6,6 +6,8 @@ import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
@@ -94,6 +96,34 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   const currentDrill = drills[drillIdx] || drills[0];
   const isTimed = currentDrill.workType === 'timed';
   const isReps = currentDrill.workType === 'reps';
+
+  // Floating mini-player (shared/miniPlayer): the round is the position, the
+  // drill is the name. Declared AFTER every const it reads - a dependency
+  // array that names a later const throws during render and the only symptom
+  // is that no video element ever appears.
+  const miniFrame = useCallback(() => {
+    const resting = phase === 'resting';
+    const working = phase === 'working';
+    const total = resting ? (currentDrill?.restSeconds || 30) : (currentDrill?.workSeconds || 30);
+    const secs = Math.max(0, Number(remaining) || 0);
+    const nextDrill = drills[(drillIdx + 1) % Math.max(1, drills.length)];
+    return {
+      phase: paused ? 'paused' : working ? 'work' : 'rest',
+      clock: isTimed || resting ? (Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0')) : String(repCount),
+      reps: working && isReps ? repCount : null,
+      repsLabel: 'REPS',
+      progress: isTimed || resting ? (total ? 1 - secs / total : 0) : 0,
+      exIdx: round,
+      exTotal: totalRounds,
+      setIdx: drillIdx + 1,
+      setTotal: drills.length,
+      name: resting ? 'REST' : (currentDrill?.name || missionName),
+      prescription: String(missionName || style || 'COMBAT CONDITIONING'),
+      nextName: resting ? (nextDrill?.name || null) : (nextDrill && nextDrill !== currentDrill ? nextDrill.name : null),
+      segments: Array.from({ length: totalRounds }, (_, i) => (i + 1 < round ? 'done' : i + 1 === round ? 'current' : 'todo')),
+    };
+  }, [phase, paused, remaining, repCount, round, totalRounds, drillIdx, drills, currentDrill, isTimed, isReps, missionName, style]);
+  const mini = useMiniPlayer(miniFrame, !done);
 
   const cadenceEnabled = (d) =>
     !!d && d.workType === 'reps' && d.isCadenceSafe && !d.isManualDone && cadenceCount;
@@ -470,6 +500,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         {/* Universal layout: How-to (O) sits top-right in the header row below;
             Volume sits directly under it so the two never overlap. */}
         <VoiceMixer top={58} right={12} dataGuide="cca-volume"/>
+        <MiniPlayerButton {...mini} top={58} right={54}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>

@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import { ARCADE } from './ArcadeUI';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
@@ -239,6 +241,27 @@ export default function CardioProtocolPlayer({
   const isInterval = format === 'interval' || format === 'tabata';
   const totalTarget = segments.reduce((sum, s) => sum + s.seconds, 0);
 
+  // Floating mini-player (shared/miniPlayer): the segment is the position.
+  // Cardio has no coach voice to lose, but the clock and the WORK/RECOVER
+  // swing are exactly what an athlete glances at from the music app.
+  const miniFrame = useCallback(() => {
+    const secs = Math.max(0, Number(remaining) || 0);
+    const next = segments[segIndex + 1];
+    const roundTag = seg.round > 0 ? ' · ROUND ' + seg.round + '/' + rounds : '';
+    return {
+      phase: !running || done ? 'paused' : (seg.kind === 'work' || seg.kind === 'steady') ? 'work' : 'rest',
+      clock: Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'),
+      progress: seg.seconds ? 1 - secs / seg.seconds : 0,
+      exIdx: segIndex + 1,
+      exTotal: segments.length,
+      name: seg.label + roundTag,
+      prescription: String(format || 'CARDIO').toUpperCase(),
+      nextName: next ? next.label : null,
+      segments: segments.map((_, i) => (i < segIndex ? 'done' : i === segIndex ? 'current' : 'todo')),
+    };
+  }, [remaining, running, done, seg, segIndex, segments, rounds, format]);
+  const mini = useMiniPlayer(miniFrame, !done && !showManual);
+
   // Auto-pause on backgrounding — same as tapping PAUSE, so returning shows
   // RESUME. Applies to every cardio mode INCLUDING live GPS runs (per playtest
   // call): leaving the app pauses the run rather than banking distance the
@@ -385,8 +408,11 @@ export default function CardioProtocolPlayer({
     const statusDot = usingRealGps ? '#22c55e' : useGps ? '#f5b942' : '#b06aff';
     const gaugeColor = surge ? '#ff8a4a' : '#c9a6ff';
     return (
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
+      <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
         <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
+        {/* The run layout is its own render branch - the float button has to
+            live here too, or a runner never sees it. */}
+        <MiniPlayerButton {...mini} top={0} right={8}/>
         {/* GPS live header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusDot, boxShadow: `0 0 8px ${statusDot}`, animation: usingRealGps || !useGps ? 'none' : 'cardio-ring-glow 1.4s ease-in-out infinite' }}/>
@@ -470,8 +496,9 @@ export default function CardioProtocolPlayer({
   const phaseColor = seg.color;
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
+    <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
       <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
+      <MiniPlayerButton {...mini} top={0} right={8}/>
 
       <div style={{ fontFamily: ARCADE.fontHead, fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: '0.22em', marginBottom: 3, display: headerLabel ? 'block' : 'none' }}>{headerLabel}</div>
       {subLabel && <div style={{ fontFamily: ARCADE.fontHead, fontSize: 8, color: VIOLET, fontWeight: 700, letterSpacing: '0.2em', marginBottom: 4 }}>{subLabel}</div>}
