@@ -2039,3 +2039,81 @@ SecondaryButton / Card); no new design system.
 >    with a simulated hidden document is NOT the same test. If frames stop
 >    there, the web route is dead and the mini-player needs the native wrapper
 >    (variant B of MP-D).
+
+## PROMPT MP-2 — one mini-player window per SESSION, not per component
+
+> Run this in the app. Verify first; implement only what is missing. This is
+> the companion to MP-1 and it exists because MP-1 alone is not enough in the
+> Workout Builder.
+>
+> ### Symptom
+>
+> Open the floating window during a builder workout and it disappears on its
+> own partway through — specifically at the moment the warm-up ends and the
+> workout begins. It cannot be reopened without going back to the phone.
+>
+> ### Root cause
+>
+> A session is not one component. `FitBuilderWorkout` START on a fresh workout
+> opens `BuilderWarmup` for 90 seconds and only THEN mounts
+> `FitBuilderGuidedPlayer`. Those are two separate mounts. With the mini-player
+> owned by a component, the hand-off destroys the window mid-session — and
+> Android requires a fresh user GESTURE to enter picture-in-picture, which an
+> athlete looking at another app cannot give. The window vanishes and stays
+> gone.
+>
+> The same shape applies anywhere a session spans mounts (a warm-up gate, a
+> chain hand-off, a rest screen that unmounts the player).
+>
+> ### Done state
+>
+> - The window is a SINGLETON in `shared/miniPlayer.js`:
+>   `acquireMiniPlayer(getFrame)` / `releaseMiniPlayer(getFrame)` /
+>   `endMiniPlayer()`.
+> - Components ACQUIRE the window (swapping the frame source) and RELEASE it on
+>   unmount. Releasing does not close it: the window closes only if nothing
+>   claims it inside a **2.5s hand-off grace period**. That grace is precisely
+>   what distinguishes a hand-off from a session ending.
+> - `endMiniPlayer()` closes it immediately when a session genuinely finishes,
+>   grace period or not. `useMiniPlayer(getFrame, enabled)` calls it when
+>   `enabled` goes false.
+> - `createMiniPlayer` reads a SWAPPABLE source, so the source can change under
+>   an open window without touching the capture stream.
+> - `useMiniPlayer` inherits the open state on mount, so the button reads
+>   correctly on the far side of a hand-off.
+> - `BuilderWarmup` carries the mini-player too. The warm-up is 90 seconds OF
+>   the session; a call landing there would otherwise leave nothing on screen.
+>   It feeds the same content model — warm-up is the position, the current move
+>   is the name, UP NEXT reads WORKOUT.
+>
+> ### Do NOT
+>
+> - Do NOT give a component its own `createMiniPlayer`. That is the bug.
+> - Do NOT remove the grace period "because release should close it". Without
+>   it every hand-off kills the window, and the athlete cannot reopen it from
+>   outside the app.
+> - Do NOT rely on reopening automatically after a hand-off. There is no
+>   gesture available at that moment; surviving is the only option that works.
+>
+> ### Verify (builder → warm-up → workout, in a real browser)
+>
+> 1. The warm-up gate is reached from START on a fresh workout.
+> 2. The mini-player button renders DURING the warm-up.
+> 3. The window opens from the warm-up.
+> 4. Skipping the warm-up reaches the guided player.
+> 5. **`document.pictureInPictureElement` is still set after the hand-off.**
+>    This is the whole point of the prompt.
+> 6. The button reads "Close floating timer" on the far side.
+> 7. Draw the `<video>` to a canvas and read it back: the window shows the
+>    REAL session — `EXERCISE 1/6 · SET 1/4`, the ellipsized exercise name, the
+>    prescription, the segmented row, and UP NEXT with the next exercise.
+>
+> ### A trap worth naming
+>
+> Both wirings of this feature initially crashed on the same mistake: a
+> `useCallback` dependency array referencing a `const` declared LATER in the
+> component (`nextCombo` in ComboCoachActive, `weightUnit` in
+> FitBuilderGuidedPlayer). The array evaluates during render, so it throws
+> before the player can mount, and the only visible symptom is that no video
+> element ever appears. If the button is missing, check declaration order
+> before anything else.
