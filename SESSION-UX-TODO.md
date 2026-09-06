@@ -43,11 +43,25 @@ time, in order** — check items off (`[x]`) as they ship.
   `shared/VoiceMixer.jsx` (or a compact volume popover built on it) in the TOP
   bar of EVERY feature's session screen. One consistent placement + icon
   everywhere. Controls the voice/cue volume live mid-session.
+  - *Audited 2026-09 and it was NOT true: per-player copies had drifted and
+    ArcadeCadenceRepPlayer + ArcadeBenchmarkPlayer carried none, so an arcade
+    stage was the one screen you could not turn the coach down on. The mixer
+    now lives in `shared/StageChrome.jsx`, which every arcade stage screen
+    already wraps itself in, so it cannot drift again.*
+  - *The mixer is now three faders — VOICE / BELL / MUSIC. They were one:
+    cue gain multiplied `voiceVolume`, so raising VOICE made the bell up to
+    3x louder while the TTS voice stayed pinned at its 1.0 browser cap.*
 - [x] **5. Auto-pause on leaving the app** — when the app is backgrounded or
   the tab loses visibility (`visibilitychange` → `document.hidden`), every
   running session AUTO-PAUSES (same state as pressing PAUSE: timer halts,
   speech cancels, wake lock releases). On return, show the normal paused state
-  with RESUME. Implement once as a shared hook (e.g. `useAutoPauseOnHidden`)
+  with RESUME.
+  - *Pausing was only ever in MEMORY, which is exactly what the OS reclaims:
+    a phone call that got the PWA evicted lost the session entirely and booted
+    to the splash. A running session now also PERSISTS itself on
+    `visibilitychange`, on `pagehide`, and every 5s, and a session the OS
+    interrupted reopens straight back into its player, paused. Verified end to
+    end on Combo Coach and Fight Focus (clock restored to the exact second).* Implement once as a shared hook (e.g. `useAutoPauseOnHidden`)
   and wire it into every session player. IMPORTANT: coordinate with
   `utils/missionIntegrity.js` — backgrounding currently raises an integrity
   flag; an auto-pause triggered this way must NOT double-penalize the user
