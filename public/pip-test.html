@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Training Mode — PiP feasibility test</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 18px 16px 40px;
+    background: #0a0014; color: #e7ddf7;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1 { font-size: 17px; margin: 0 0 2px; color: #fde047; letter-spacing: 0.04em; }
+  .sub { font-size: 12px; color: #9a90b8; margin-bottom: 16px; line-height: 1.45; }
+  canvas { width: 100%; max-width: 340px; border-radius: 12px; border: 1px solid rgba(168,85,247,0.45); display: block; }
+  button {
+    width: 100%; max-width: 340px; margin-top: 10px; padding: 15px 0;
+    border: none; border-radius: 11px; cursor: pointer;
+    background: linear-gradient(135deg, #fde047, #f59e0b); color: #0a0014;
+    font-weight: 800; font-size: 14px; letter-spacing: 0.06em;
+  }
+  button.ghost { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.5); color: #c9a6ff; font-weight: 700; }
+  .panel {
+    max-width: 340px; margin-top: 16px; padding: 12px 14px; border-radius: 11px;
+    background: rgba(12,2,24,0.9); border: 1px solid rgba(255,255,255,0.09);
+    font-size: 12.5px; line-height: 1.6;
+  }
+  .panel b { color: #fff; }
+  .verdict { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .ok { color: #4ade80; } .bad { color: #f87171; } .warn { color: #fbbf24; }
+  .row { display: flex; justify-content: space-between; gap: 12px; }
+  .row span:last-child { color: #fff; font-variant-numeric: tabular-nums; }
+  ol { margin: 8px 0 0; padding-left: 20px; font-size: 12.5px; color: #c4b5fd; line-height: 1.65; }
+  code { background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+</style>
+</head>
+<body>
+
+<h1>PiP FEASIBILITY TEST</h1>
+<div class="sub">
+  Not part of the app — a throwaway page that answers one question:
+  <b>does a floating window keep updating after you leave the app?</b>
+  Android can only float a <code>&lt;video&gt;</code>, so the timer is drawn to a
+  canvas and streamed into one. If the numbers freeze when you switch away, the
+  web route is dead and the mini-player needs the native wrapper.
+</div>
+
+<canvas id="c" width="640" height="360"></canvas>
+<button id="go">START FLOATING WINDOW</button>
+<button id="reset" class="ghost">RESET COUNTERS</button>
+
+<div class="panel">
+  <div class="verdict" id="verdict">Waiting — press START, then switch apps.</div>
+  <div class="row"><span>Document PiP (whole DOM)</span><span id="docpip">—</span></div>
+  <div class="row"><span>Video PiP (Android route)</span><span id="vidpip">—</span></div>
+  <div class="row"><span>Seconds spent hidden</span><span id="hidden">0.0</span></div>
+  <div class="row"><span>Timer ticks while hidden</span><span id="ticks">0</span></div>
+  <div class="row"><span>Canvas frames while hidden</span><span id="frames">0</span></div>
+  <div class="row"><span>rAF frames while hidden</span><span id="raf">0</span></div>
+  <div class="row"><span>PiP window opened</span><span id="opened">no</span></div>
+  <div id="err" class="bad" style="margin-top:6px"></div>
+</div>
+
+<div class="panel">
+  <b>How to run it</b>
+  <ol>
+    <li>Press <b>START FLOATING WINDOW</b> and allow it if asked.</li>
+    <li>Swipe home (or take a call). The little window should stay on screen.</li>
+    <li>Watch it for ~15 seconds. <b>Do the numbers keep counting?</b></li>
+    <li>Come back here and read the verdict.</li>
+  </ol>
+</div>
+
+<script>
+(function () {
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var video = document.createElement('video');
+  video.muted = true; video.playsInline = true; video.setAttribute('playsinline', '');
+
+  var startedAt = Date.now();
+  var hiddenMs = 0, hiddenSince = null;
+  var ticksHidden = 0, framesHidden = 0, rafHidden = 0;
+  var opened = false;
+
+  var el = function (id) { return document.getElementById(id); };
+  var isHidden = function () { return document.visibilityState === 'hidden' || document.hidden; };
+
+  el('docpip').textContent = ('documentPictureInPicture' in window) ? 'supported' : 'not supported';
+  el('docpip').className = ('documentPictureInPicture' in window) ? 'ok' : 'warn';
+  var videoPipOk = !!(document.pictureInPictureEnabled && video.requestPictureInPicture);
+  el('vidpip').textContent = videoPipOk ? 'supported' : 'not supported';
+  el('vidpip').className = videoPipOk ? 'ok' : 'bad';
+
+  // Draw the "timer". Deliberately driven by setInterval, not rAF: rAF is
+  // throttled to a standstill on a hidden page, so it would fail the test for
+  // the wrong reason. rAF is counted separately, purely for comparison.
+  function draw() {
+    var elapsed = (Date.now() - startedAt) / 1000;
+    var mins = Math.floor(elapsed / 60), secs = Math.floor(elapsed % 60);
+    var clock = mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+    ctx.fillStyle = '#0a0014';
+    ctx.fillRect(0, 0, 640, 360);
+    ctx.strokeStyle = 'rgba(168,85,247,0.55)'; ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, 634, 354);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#a855f7';
+    ctx.font = '600 30px system-ui, sans-serif';
+    ctx.fillText('ROUND 1 / 3', 320, 76);
+
+    ctx.fillStyle = '#fde047';
+    ctx.font = '800 132px system-ui, sans-serif';
+    ctx.fillText(clock, 320, 205);
+
+    // A moving dot proves motion even if the digits are hard to read small.
+    var a = elapsed * 2;
+    ctx.beginPath();
+    ctx.arc(320 + Math.cos(a) * 110, 268 + Math.sin(a) * 22, 11, 0, Math.PI * 2);
+    ctx.fillStyle = '#fde047'; ctx.fill();
+
+    ctx.fillStyle = '#9a90b8';
+    ctx.font = '600 24px system-ui, sans-serif';
+    ctx.fillText('frames hidden: ' + framesHidden, 320, 330);
+
+    if (isHidden()) framesHidden++;
+  }
+
+  setInterval(function () { if (isHidden()) ticksHidden++; draw(); render(); }, 100);
+  (function loop() { if (isHidden()) rafHidden++; requestAnimationFrame(loop); })();
+
+  function render() {
+    if (hiddenSince) el('hidden').textContent = ((hiddenMs + (Date.now() - hiddenSince)) / 1000).toFixed(1);
+    else el('hidden').textContent = (hiddenMs / 1000).toFixed(1);
+    el('ticks').textContent = ticksHidden;
+    el('frames').textContent = framesHidden;
+    el('raf').textContent = rafHidden;
+    el('opened').textContent = opened ? 'yes' : 'no';
+
+    var v = el('verdict');
+    if (!opened) { v.textContent = 'Waiting — press START, then switch apps.'; v.className = 'verdict'; return; }
+    if (hiddenMs < 1500 && !hiddenSince) { v.textContent = 'Window open. Now switch away for ~15s.'; v.className = 'verdict warn'; return; }
+    if (framesHidden > 20) {
+      v.textContent = 'PASS — the window kept drawing while the app was hidden.';
+      v.className = 'verdict ok';
+    } else if (hiddenMs > 3000) {
+      v.textContent = 'FAIL — drawing stopped while hidden. Needs the native wrapper.';
+      v.className = 'verdict bad';
+    }
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (isHidden()) hiddenSince = Date.now();
+    else if (hiddenSince) { hiddenMs += Date.now() - hiddenSince; hiddenSince = null; }
+    render();
+  });
+
+  el('go').addEventListener('click', function () {
+    el('err').textContent = '';
+    try {
+      if (!video.srcObject) video.srcObject = canvas.captureStream(10);
+      video.play().then(function () {
+        if (!videoPipOk) { el('err').textContent = 'This browser cannot float a video at all.'; return; }
+        return video.requestPictureInPicture();
+      }).then(function () {
+        opened = true; render();
+      }).catch(function (e) {
+        el('err').textContent = 'PiP refused: ' + (e && e.message ? e.message : e);
+      });
+    } catch (e) {
+      el('err').textContent = 'Capture failed: ' + (e && e.message ? e.message : e);
+    }
+  });
+
+  el('reset').addEventListener('click', function () {
+    hiddenMs = 0; hiddenSince = null; ticksHidden = 0; framesHidden = 0; rafHidden = 0;
+    startedAt = Date.now(); el('err').textContent = ''; render();
+  });
+
+  draw(); render();
+})();
+</script>
+</body>
+</html>

@@ -1767,3 +1767,63 @@ SecondaryButton / Card); no new design system.
 > Run `npx tsc --noEmit` and `npm run build:web` (the asset lockfile gate runs
 > inside it). Then the table of item / SHA / measured number. State plainly
 > anything you could not verify rather than implying you did.
+
+## PROMPT MP-D — Designer brief: the floating mini-player (two variants, one picks itself)
+
+> Paste this into the design tool. Design BOTH variants below. Which one ships
+> is decided by a feasibility test on a real phone
+> (`apptrainingmode.com/pip-test.html`), not by preference — so neither variant
+> should borrow features from the other.
+>
+> ### Brand rules (match the existing app exactly)
+>
+> Deep violet/black background (#080012–#0a0014), gold #fde047 for the live
+> number and primary action, violet #a855f7 for chrome and the current round,
+> red #ef4444 only for stop, Orbitron for display/numerals, Rajdhani for body.
+> No new fonts or colours.
+>
+> ### What this is
+>
+> When the athlete swipes out of the app MID-SESSION — a phone call, a text,
+> checking a message — the round timer should keep visibly running in a small
+> floating window over whatever they are doing, the way Maps keeps navigation
+> up. It appears ONLY on player/timer screens, never anywhere else in the app,
+> and it disappears when the session ends.
+>
+> ### The constraint that splits this in two
+>
+> On Android a web app cannot float arbitrary interface — the platform only
+> floats a `<video>`. So the web version is a *picture* of the timer: live, but
+> with NO buttons, because there is nothing to tap inside a video. A native
+> wrapper lifts that limit and allows real controls. Design both.
+>
+> **Variant A — GLANCE (web, non-interactive).** Assume a small landscape
+> window, roughly 320×180, that the athlete can only look at or tap once to
+> reopen the app.
+> - The clock is the hero and must be readable at arm's length on a window the
+>   size of a matchbox — this is the whole design problem.
+> - Round position (`ROUND 2/3`), and the current call if one fits.
+> - A motion element that proves it is LIVE, not frozen — a sweeping arc, a
+>   pulsing dot. Athletes will glance for a second and need to know instantly
+>   that the session is still running.
+> - Rest vs work must be obvious from colour alone at that size.
+> - No buttons. Do not draw any. A button that cannot be pressed is worse than
+>   no button.
+>
+> **Variant B — CONTROL (native wrapper, interactive).** Same size and role,
+> but real controls are possible.
+> - Same clock hierarchy, plus PAUSE/RESUME, SKIP, and END.
+> - Controls must be thumb-sized on a window that small — show how they fit
+>   without crowding the clock, and show the pressed state.
+> - Show a paused state as well as running.
+>
+> ### For both
+>
+> - Design the window at 320×180 AND at roughly half that, since the system
+>   lets the athlete shrink it.
+> - Show it floating over a plausible phone background (a call screen, a
+>   messages list) so contrast is judged honestly, not against white.
+> - Show what the main app screen looks like WHILE the mini-player is out —
+>   the session screen needs to indicate the window is open and offer a way to
+>   dismiss it.
+> - Rest state, work state, and final-10-seconds state for each variant.
