@@ -314,7 +314,38 @@ export function createMiniPlayer(getFrame) {
     timer = null;
   };
 
+  // Get the video PLAYING before anyone asks for a window. Every automatic
+  // route into picture-in-picture - Android's autoPictureInPicture for an
+  // installed PWA, desktop Chrome's Auto-PiP through the Media Session action
+  // - fires only for a video that is already playing when the page is hidden.
+  // A muted captured stream may play without a gesture, so this can run the
+  // moment a session acquires the window.
+  const prime = async () => {
+    if (destroyed || !miniPlayerSupported()) return false;
+    startPainting();
+    if (!stream) {
+      stream = canvas.captureStream(FPS);
+      video.srcObject = stream;
+    }
+    try { await video.play(); return true; } catch { return false; }
+  };
+
+  // Desktop Chrome enters picture-in-picture BY ITSELF on a tab switch when the
+  // page registers this action and the video is playing (Auto-PiP, M120+).
+  // Without the handler the browser never offers it.
+  const enterFromSession = async () => {
+    if (destroyed || isMiniPlayerOpen()) return;
+    try { await prime(); await video.requestPictureInPicture(); } catch { /* platform said no - the button remains */ }
+  };
+  try { navigator.mediaSession?.setActionHandler?.('enterpictureinpicture', enterFromSession); } catch { /* unsupported action */ }
+
   return {
+    /** Paint + play without opening. Called on acquire so automatic entry can work. */
+    prime,
+
+    /** Best-effort automatic entry (visibilitychange / pagehide). Fails quietly where a gesture is required. */
+    enterFromSession,
+
     /** Open the floating window. MUST be called from a user gesture. */
     async open() {
       if (destroyed || !miniPlayerSupported()) return false;
@@ -328,7 +359,8 @@ export function createMiniPlayer(getFrame) {
         await video.requestPictureInPicture();
         return true;
       } catch {
-        if (!isMiniPlayerOpen()) stopPainting();
+        // Keep painting: a refused request (no gesture yet) must not stop the
+        // primed video, or automatic entry has nothing playing to float.
         return false;
       }
     },
@@ -347,6 +379,7 @@ export function createMiniPlayer(getFrame) {
     destroy() {
       destroyed = true;
       stopPainting();
+      try { navigator.mediaSession?.setActionHandler?.('enterpictureinpicture', null); } catch { /* ignore */ }
       try {
         if (document.pictureInPictureElement === video) document.exitPictureInPicture();
       } catch { /* ignore */ }
@@ -385,12 +418,37 @@ let shared = null;
 let currentSource = null;
 let idleTimer = null;
 
+// Automatic entry: when the athlete leaves the app mid-session, ask for the
+// window right there. Android requires a user gesture for this and will refuse
+// it - that is why the button exists - but an installed PWA with
+// autoPictureInPicture, and desktop Chrome with the Media Session action, can
+// say yes. Asking costs nothing where the answer is no.
+let hideListener = null;
+function watchForExit() {
+  if (hideListener || typeof document === 'undefined') return;
+  hideListener = () => {
+    if (!document.hidden || !shared || !currentSource) return;
+    shared.enterFromSession();
+  };
+  document.addEventListener('visibilitychange', hideListener);
+  window.addEventListener('pagehide', hideListener);
+}
+function unwatchForExit() {
+  if (!hideListener) return;
+  document.removeEventListener('visibilitychange', hideListener);
+  window.removeEventListener('pagehide', hideListener);
+  hideListener = null;
+}
+
 export function acquireMiniPlayer(getFrame) {
   if (typeof document === 'undefined') return null;
   clearTimeout(idleTimer);
   idleTimer = null;
   if (!shared) shared = createMiniPlayer(() => currentSource?.());
   currentSource = getFrame;
+  // Primed from the first acquire, so leaving the app finds a playing video.
+  shared.prime();
+  watchForExit();
   return shared;
 }
 
@@ -402,6 +460,7 @@ export function releaseMiniPlayer(getFrame) {
     if (currentSource) return;
     shared?.destroy();
     shared = null;
+    unwatchForExit();
   }, HANDOFF_GRACE_MS);
 }
 
@@ -412,4 +471,5 @@ export function endMiniPlayer() {
   currentSource = null;
   shared?.destroy();
   shared = null;
+  unwatchForExit();
 }
