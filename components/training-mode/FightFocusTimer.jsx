@@ -562,13 +562,23 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   };
 
   // Floating mini-player — same painted window as Combo Coach.
-  const miniFrame = useCallback(() => ({
-    clock: `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`,
-    eyebrow: `ROUND ${roundIdx + 1}/${cfg.rounds}`,
-    label: phase === 'rest' ? 'REST' : (curCombo || ''),
-    tone: phase === 'rest' ? 'rest' : (remaining <= 10 ? 'final' : 'work'),
-    paused,
-  }), [remaining, roundIdx, cfg.rounds, phase, curCombo, paused]);
+  const miniFrame = useCallback(() => {
+    const resting = phase === 'rest';
+    const total = resting ? (cfg.restSec || 60) : roundSec;
+    return {
+      phase: paused ? 'paused' : resting ? 'rest' : 'work',
+      clock: `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`,
+      progress: total ? 1 - remaining / total : 0,
+      exIdx: roundIdx + 1,
+      exTotal: cfg.rounds,
+      name: resting ? 'REST' : (curCombo || discipline),
+      prescription: `${discipline} · ${cfg.difficulty || ''}`.trim(),
+      nextName: resting ? `ROUND ${roundIdx + 2}` : null,
+      segments: Array.from({ length: cfg.rounds }, (_, i) => (
+        i < roundIdx ? 'done' : i === roundIdx ? 'current' : 'todo'
+      )),
+    };
+  }, [remaining, roundIdx, cfg.rounds, cfg.restSec, cfg.difficulty, roundSec, phase, curCombo, paused, discipline]);
   const mini = useMiniPlayer(miniFrame, !done);
 
   const isFinalRound = roundIdx + 1 >= cfg.rounds;

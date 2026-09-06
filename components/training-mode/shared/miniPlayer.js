@@ -1,35 +1,47 @@
-// The floating mini-player: the round clock kept visible over other apps when
-// the athlete leaves mid-session (a call, a text, checking a message).
+// The floating mini-player: the active workout follows the athlete out of the
+// app. Implements VARIANT A · GLANCE of PROMPT MP-D.
 //
-// WHY IT IS DRAWN AND NOT LAID OUT. Android will only float a <video>. There is
-// no way to put live interface in that window — Document Picture-in-Picture,
-// which floats real DOM, is desktop Chrome only. So the timer is PAINTED to a
-// canvas, the canvas is captured as a video stream, and that video is what
-// floats. Everything the window shows has to be drawn here by hand.
+// WHY IT IS PAINTED AND NOT LAID OUT. Android floats only a <video>. Document
+// Picture-in-Picture, which floats real DOM, is desktop Chrome only. So the
+// window is PAINTED to a canvas, the canvas is captured as a stream, and that
+// video is what floats. Every pixel here is drawn by hand.
 //
-// Consequences worth knowing before changing this:
-//   • Nothing in the window is tappable. Tapping it just returns to the app.
-//     Do not add anything that looks like a button (see PROMPT MP-D).
-//   • Entering PiP needs a user gesture on Android, so a session cannot pop the
-//     window on its own when backgrounded. `autoPictureInPicture` is set for
-//     the platforms that do allow automatic entry (installed PWAs, Safari);
-//     everywhere else the athlete taps the button once and the window persists
-//     across the app being backgrounded.
-//   • Frames are driven by setInterval, never requestAnimationFrame — rAF is
-//     throttled to a standstill on a hidden page, which is exactly when this
-//     window matters most.
+// Consequences, all of which the design depends on:
+//   • A web PiP frame is a video. Taps inside it do nothing, so GLANCE draws
+//     ZERO buttons — a control that cannot be pressed is worse than none. The
+//     OS owns tap-to-return. (VARIANT B · CONTROL, with a real control band,
+//     needs the native wrapper; it cannot be built on this path.)
+//   • Frames run on setInterval, NEVER requestAnimationFrame: rAF is throttled
+//     to a standstill on a hidden page, which is exactly when this matters.
+//   • The page is never told how large the OS drew the window, so COMPACT
+//     cannot be detected on web — the layout is drawn once and scaled down by
+//     the system. That is why the clock is oversized and the content is thin.
+//
+// Drawn in a 320x180 LOGICAL space (the spec's window) on a 2x backing canvas,
+// so the numbers below match MP-D directly.
 
-const W = 640;
-const H = 360;
+const VW = 320;   // logical window
+const VH = 180;
+const SCALE = 2;  // backing store: 640x360
 const FPS = 10;
 
-// Tones map to the app's own language: violet = working, blue = rest,
-// red = the last ten seconds, gold = the live numerals throughout.
-const TONES = {
-  work: { accent: '#a855f7', ring: 'rgba(168,85,247,0.55)' },
-  rest: { accent: '#4f8cff', ring: 'rgba(79,140,255,0.55)' },
-  final: { accent: '#ef4444', ring: 'rgba(239,68,68,0.6)' },
-};
+const GOLD = '#fde047';
+const VIOLET = '#a855f7';
+const BG = '#0a0014';
+const WHITE = '#ffffff';
+const MUTED = '#9a90b8';
+const DESAT = '#6d5a8f';   // every colour collapses to this when paused
+
+const HEAD = 'Orbitron, system-ui, sans-serif';
+const BODY = 'Rajdhani, system-ui, sans-serif';
+
+const PAD = 14;
+const RING_D = 112;
+const RING_STROKE = 8;
+const RING_CX = PAD + RING_D / 2;
+const RING_CY = VH / 2;
+const COL_X = PAD + RING_D + 12;
+const COL_W = VW - COL_X - PAD;
 
 export function miniPlayerSupported() {
   if (typeof document === 'undefined') return false;
@@ -43,74 +55,225 @@ export function isMiniPlayerOpen() {
   return typeof document !== 'undefined' && !!document.pictureInPictureElement;
 }
 
-function drawFrame(ctx, frame, tick) {
-  const tone = TONES[frame.tone] || TONES.work;
-
-  ctx.fillStyle = '#0a0014';
-  ctx.fillRect(0, 0, W, H);
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = tone.ring;
-  ctx.strokeRect(3, 3, W - 6, H - 6);
-
-  ctx.textAlign = 'center';
-
-  // Round position, small and quiet at the top.
-  if (frame.eyebrow) {
-    ctx.fillStyle = tone.accent;
-    ctx.font = '700 30px Orbitron, system-ui, sans-serif';
-    ctx.fillText(frame.eyebrow.toUpperCase(), W / 2, 62);
+// Names ellipsize, never wrap (MP-D). One line or nothing.
+function ellipsize(ctx, text, maxWidth) {
+  const str = String(text || '');
+  if (ctx.measureText(str).width <= maxWidth) return str;
+  let lo = 0;
+  let hi = str.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (ctx.measureText(str.slice(0, mid) + '…').width <= maxWidth) lo = mid;
+    else hi = mid - 1;
   }
+  return str.slice(0, lo).trimEnd() + '…';
+}
 
-  // The clock is the hero — this window gets glanced at for a second from
-  // arm's length, sometimes shrunk to half size, so it is deliberately huge.
-  ctx.fillStyle = '#fde047';
-  ctx.font = '900 138px Orbitron, system-ui, sans-serif';
-  ctx.fillText(frame.clock || '', W / 2, 196);
-
-  // The current call, if there is room for it.
-  if (frame.label) {
-    const label = String(frame.label).slice(0, 26).toUpperCase();
-    ctx.fillStyle = '#e7ddf7';
-    ctx.font = `700 ${label.length > 18 ? 28 : 34}px Orbitron, system-ui, sans-serif`;
-    ctx.fillText(label, W / 2, 258);
-  }
-
-  // Proof of life. A frozen window and a paused session look identical
-  // otherwise, and the athlete has no way to tell which they are looking at.
-  const cx = W / 2;
-  const cy = 310;
-  const span = 150;
-  ctx.strokeStyle = 'rgba(255,255,255,0.14)';
-  ctx.lineWidth = 5;
+function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(cx - span, cy);
-  ctx.lineTo(cx + span, cy);
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Phase drives colour, and colour is the whole state language:
+// gold = rest/done/primary, violet = work/structure. Paused desaturates all of
+// it — the ABSENCE of colour and motion is the paused signal.
+function palette(phase) {
+  if (phase === 'paused') return { arc: DESAT, accent: DESAT, text: DESAT, sub: DESAT };
+  if (phase === 'work') return { arc: VIOLET, accent: VIOLET, text: WHITE, sub: MUTED };
+  return { arc: GOLD, accent: GOLD, text: WHITE, sub: MUTED };  // rest + chain
+}
+
+function drawRing(ctx, f, p, tick) {
+  const r = (RING_D - RING_STROKE) / 2;
+
+  ctx.lineWidth = RING_STROKE;
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath();
+  ctx.arc(RING_CX, RING_CY, r, 0, Math.PI * 2);
   ctx.stroke();
 
-  if (frame.paused) {
-    ctx.fillStyle = '#9a90b8';
-    ctx.font = '700 26px Orbitron, system-ui, sans-serif';
-    ctx.fillText('PAUSED', cx, cy + 10);
-  } else {
-    const t = (tick % 40) / 40;
-    const x = cx - span + Math.abs(Math.sin(t * Math.PI)) * (span * 2);
+  const pct = Math.max(0, Math.min(1, Number(f.progress) || 0));
+  if (pct > 0) {
+    ctx.save();
+    if (f.phase !== 'paused') {
+      ctx.shadowColor = p.arc;
+      ctx.shadowBlur = 10;
+    }
+    ctx.strokeStyle = p.arc;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.arc(x, cy, 10, 0, Math.PI * 2);
-    ctx.fillStyle = '#fde047';
-    ctx.fill();
+    ctx.arc(RING_CX, RING_CY, r, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
   }
+
+  // Proof of life #1: a breathing dot riding the head of the arc, 1.1s cycle.
+  // Stops dead when paused — that stillness IS the paused signal.
+  if (f.phase !== 'paused') {
+    const cycle = (tick % (1.1 * FPS)) / (1.1 * FPS);
+    const grow = 1 + Math.sin(cycle * Math.PI * 2) * 0.35;
+    const a = -Math.PI / 2 + pct * Math.PI * 2;
+    ctx.save();
+    ctx.shadowColor = GOLD;
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = GOLD;
+    ctx.beginPath();
+    ctx.arc(RING_CX + Math.cos(a) * r, RING_CY + Math.sin(a) * r, 3.5 * grow, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Centre: the clock is the hero. WORK swaps it for the live rep count in the
+  // SAME frame — no re-layout, only the content and the colour change.
+  ctx.textAlign = 'center';
+  const showReps = f.phase === 'work' && Number.isFinite(f.reps);
+  ctx.fillStyle = f.phase === 'paused' ? DESAT : WHITE;
+  ctx.font = `900 30px ${HEAD}`;
+  ctx.fillText(showReps ? String(f.reps) : (f.clock || '—'), RING_CX, RING_CY + 9);
+
+  const label = f.phase === 'paused' ? 'PAUSED'
+    : f.phase === 'work' ? (showReps ? (f.repsLabel || 'REPS') : 'WORK')
+      : f.phase === 'chain' ? 'GO IN'
+        : 'REST';
+  ctx.fillStyle = p.accent;
+  ctx.font = `700 7px ${HEAD}`;
+  ctx.fillText(label, RING_CX, RING_CY + 24);
+
+  if (f.phase === 'paused') {
+    ctx.fillStyle = MUTED;
+    ctx.font = `600 6.5px ${BODY}`;
+    ctx.fillText('tap to resume', RING_CX, RING_CY + 36);
+  }
+}
+
+function drawColumn(ctx, f, p, y) {
+  ctx.textAlign = 'left';
+
+  // Eyebrow — position in the workout. CHAIN replaces the set line with the
+  // chain pill, because during a hand-off the set number is not the story.
+  if (f.phase === 'chain' && f.chainLabel) {
+    const text = `⛓ ${f.chainLabel}`;
+    ctx.font = `700 7px ${HEAD}`;
+    const w = Math.min(COL_W, ctx.measureText(text).width + 12);
+    ctx.fillStyle = 'rgba(253,224,71,0.14)';
+    roundRect(ctx, COL_X, y.eyebrow - 8, w, 12, 6);
+    ctx.fill();
+    ctx.fillStyle = GOLD;
+    ctx.fillText(text, COL_X + 6, y.eyebrow);
+  } else {
+    const bits = [];
+    if (Number.isFinite(f.exIdx) && Number.isFinite(f.exTotal)) bits.push(`EXERCISE ${f.exIdx}/${f.exTotal}`);
+    if (Number.isFinite(f.setIdx) && Number.isFinite(f.setTotal)) bits.push(`SET ${f.setIdx}/${f.setTotal}`);
+    if (bits.length) {
+      ctx.fillStyle = f.phase === 'paused' ? DESAT : VIOLET;
+      ctx.font = `700 7px ${HEAD}`;
+      ctx.fillText(bits.join(' · '), COL_X, y.eyebrow);
+    }
+  }
+
+  // Exercise name — the second-loudest thing in the window.
+  if (f.name) {
+    ctx.fillStyle = f.phase === 'paused' ? DESAT : WHITE;
+    ctx.font = `900 14px ${HEAD}`;
+    ctx.fillText(ellipsize(ctx, String(f.name).toUpperCase(), COL_W), COL_X, y.name);
+  }
+
+  // Prescription + working weight.
+  if (f.prescription) {
+    ctx.fillStyle = p.sub;
+    ctx.font = `600 9px ${BODY}`;
+    ctx.fillText(ellipsize(ctx, f.prescription, COL_W), COL_X, y.presc);
+  }
+
+  // Segmented progress — one cell per exercise. Done gold, current half-filled
+  // violet, queued faint. The same language the guided player's own bar uses.
+  const segs = Array.isArray(f.segments) ? f.segments : [];
+  if (segs.length) {
+    const gap = 2;
+    const cw = Math.max(2, (COL_W - gap * (segs.length - 1)) / segs.length);
+    segs.forEach((state, i) => {
+      const x = COL_X + i * (cw + gap);
+      ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      ctx.fillRect(x, y.segs, cw, 3);
+      if (f.phase === 'paused') return;
+      if (state === 'done') { ctx.fillStyle = GOLD; ctx.fillRect(x, y.segs, cw, 3); }
+      else if (state === 'current') { ctx.fillStyle = VIOLET; ctx.fillRect(x, y.segs, cw / 2, 3); }
+    });
+  }
+
+  // Up next.
+  if (f.nextName) {
+    ctx.fillStyle = f.phase === 'paused' ? DESAT : 'rgba(168,85,247,0.85)';
+    ctx.font = `700 7px ${HEAD}`;
+    ctx.fillText('UP NEXT', COL_X, y.upNextLabel);
+    ctx.fillStyle = p.sub;
+    ctx.font = `700 9px ${HEAD}`;
+    ctx.fillText(ellipsize(ctx, String(f.nextName).toUpperCase(), COL_W), COL_X, y.upNext);
+  }
+}
+
+function drawFrame(ctx, frame, tick) {
+  const f = frame || {};
+  const p = palette(f.phase);
+
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  ctx.clearRect(0, 0, VW, VH);
+
+  // Window: rounded, violet-bordered, everything clipped inside it.
+  ctx.save();
+  roundRect(ctx, 0.5, 0.5, VW - 1, VH - 1, 14);
+  ctx.clip();
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, VW, VH);
+
+  // Proof of life #2: a scan line sweeping the top edge on a 1s loop. Between
+  // this and the breathing dot, a live window can never be mistaken for a
+  // frozen screenshot — which is the actual design problem here.
+  if (f.phase !== 'paused') {
+    const t = (tick % FPS) / FPS;
+    const w = 90;
+    const x = -w + t * (VW + w);
+    const grad = ctx.createLinearGradient(x, 0, x + w, 0);
+    grad.addColorStop(0, 'rgba(168,85,247,0)');
+    grad.addColorStop(0.5, 'rgba(168,85,247,0.85)');
+    grad.addColorStop(1, 'rgba(168,85,247,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, 0, w, 2);
+  }
+
+  drawRing(ctx, f, p, tick);
+  drawColumn(ctx, f, p, {
+    eyebrow: 42, name: 62, presc: 78, segs: 88, upNextLabel: 112, upNext: 126,
+  });
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(154,144,184,0.65)';
+  ctx.font = `700 6.5px ${HEAD}`;
+  ctx.fillText('TRAINING MODE', VW - PAD, VH - 10);
+
+  ctx.restore();
+
+  ctx.strokeStyle = 'rgba(168,85,247,0.4)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, 0.5, 0.5, VW - 1, VH - 1, 14);
+  ctx.stroke();
 }
 
 /**
  * Create a mini-player bound to a frame source.
- * @param {() => {clock:string, eyebrow?:string, label?:string, tone?:string, paused?:boolean}} getFrame
+ * @param {() => object} getFrame  see drawFrame for the shape
  */
 export function createMiniPlayer(getFrame) {
   if (typeof document === 'undefined') return null;
 
   const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = VW * SCALE;
+  canvas.height = VH * SCALE;
   const ctx = canvas.getContext('2d');
 
   const video = document.createElement('video');
@@ -118,13 +281,11 @@ export function createMiniPlayer(getFrame) {
   video.playsInline = true;
   video.setAttribute('playsinline', '');
   // Honoured where automatic entry is allowed; ignored elsewhere, which is why
-  // the button below exists.
+  // the button exists.
   try { video.autoPictureInPicture = true; } catch { /* not supported */ }
 
   // The element has to live in the document: a detached <video> is accepted by
-  // some engines and refused by others, and this has to work on a phone, not
-  // just wherever it was last tested. Parked invisibly — it is never the thing
-  // the athlete looks at; the floating window is.
+  // some engines and refused by others, and this has to work on a phone.
   video.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
   video.setAttribute('aria-hidden', 'true');
   document.body.appendChild(video);
@@ -136,7 +297,7 @@ export function createMiniPlayer(getFrame) {
 
   const paint = () => {
     if (destroyed) return;
-    try { drawFrame(ctx, getFrame() || {}, tick++); } catch { /* a bad frame must never kill the session */ }
+    try { drawFrame(ctx, getFrame(), tick++); } catch { /* a bad frame must never kill the session */ }
   };
 
   const startPainting = () => {
@@ -165,8 +326,6 @@ export function createMiniPlayer(getFrame) {
         await video.requestPictureInPicture();
         return true;
       } catch {
-        // Refused (no gesture, permission, or unsupported). Stop burning
-        // frames for a window that never opened.
         if (!isMiniPlayerOpen()) stopPainting();
         return false;
       }
@@ -193,6 +352,9 @@ export function createMiniPlayer(getFrame) {
       video.srcObject = null;
       try { video.remove(); } catch { /* ignore */ }
     },
+
+    /** Exposed for tests: paint one frame and hand back a data URL. */
+    _snapshot() { paint(); return canvas.toDataURL('image/png'); },
 
     /** The element, so callers can listen for the window being closed. */
     video,

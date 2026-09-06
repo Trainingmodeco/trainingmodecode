@@ -261,22 +261,32 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const speedLabel = cfg.speedLabel || cfg.speed?.toUpperCase() || 'MEDIUM';
   const cadenceMs = cfg.ms || 4000;
 
+
+  const nextCombo = roundCalls[(comboIndexRef.current) % roundCalls.length];
+
   // Floating mini-player: the clock stays visible over other apps when the
   // athlete steps away mid-round. Painted, not laid out — see shared/miniPlayer.
   const miniFrame = useCallback(() => {
-    const m = Math.floor(remaining / 60);
-    const sec = remaining % 60;
+    // A round timer has no exercises or sets, so it maps onto the same content
+    // model one level up: the ROUND is the position, and the live call is the
+    // name. Nothing is invented to fill fields that do not exist here.
+    const resting = phase === 'rest';
+    const total = resting ? restSec : roundSec;
     return {
-      clock: `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
-      eyebrow: `ROUND ${roundIdx + 1}/${totalRounds}`,
-      label: phase === 'rest' ? 'REST' : (currentCombo?.display || ''),
-      tone: phase === 'rest' ? 'rest' : (remaining <= 10 ? 'final' : 'work'),
-      paused,
+      phase: paused ? 'paused' : resting ? 'rest' : 'work',
+      clock: `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`,
+      progress: total ? 1 - remaining / total : 0,
+      exIdx: roundIdx + 1,
+      exTotal: totalRounds,
+      name: resting ? 'REST' : (currentCombo?.display || discipline),
+      prescription: `${discipline} · ${(cfg.ms || 4000) / 1000}s cadence`,
+      nextName: resting ? `ROUND ${roundIdx + 2}` : nextCombo,
+      segments: Array.from({ length: totalRounds }, (_, i) => (
+        i < roundIdx ? 'done' : i === roundIdx ? 'current' : 'todo'
+      )),
     };
-  }, [remaining, roundIdx, totalRounds, phase, currentCombo, paused]);
+  }, [remaining, roundIdx, totalRounds, phase, currentCombo, paused, restSec, roundSec, discipline, cfg.ms, nextCombo]);
   const mini = useMiniPlayer(miniFrame, !done);
-
-  const nextCombo = roundCalls[(comboIndexRef.current) % roundCalls.length];
 
   const runIntro = useCallback(async (rIdx) => {
     cancelSpeech();

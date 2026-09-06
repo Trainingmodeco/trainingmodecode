@@ -1768,65 +1768,100 @@ SecondaryButton / Card); no new design system.
 > inside it). Then the table of item / SHA / measured number. State plainly
 > anything you could not verify rather than implying you did.
 
-## PROMPT MP-D — Designer brief: the floating mini-player (two variants, one picks itself)
+## PROMPT MP-D — the floating mini-player (owner's spec, authoritative)
 
-> Paste this into the design tool. Design BOTH variants below. Which one ships
-> is decided by a feasibility test on a real phone
-> (`apptrainingmode.com/pip-test.html`), not by preference — so neither variant
-> should borrow features from the other.
+> This replaces the earlier two-variant sketch. It is the owner's design spec
+> and the source of truth for the window; PROMPT MP-1 is the build spec.
 >
-> ### Brand rules (match the existing app exactly)
+> Add a picture-in-picture mini player so an active workout follows the athlete
+> out of the app. Two variants ship to two platforms — GLANCE on web, CONTROL in
+> the native wrapper. Palette: bg #0a0014, gold #fde047 = clock/rest/primary,
+> violet #a855f7 = work/structure, red #ef4444 = END only. Orbitron display,
+> Rajdhani body. Window 320x180, radius 14px, 1px violet border
+> rgba(168,85,247,0.4), overflow hidden.
 >
-> Deep violet/black background (#080012–#0a0014), gold #fde047 for the live
-> number and primary action, violet #a855f7 for chrome and the current round,
-> red #ef4444 only for stop, Orbitron for display/numerals, Rajdhani for body.
-> No new fonts or colours.
+> **Shared content model.** Both variants read the same live state as the guided
+> player: current exercise index/total, set index/total, exercise name,
+> prescription + working weight, phase (WORK / REST / CHAIN / PAUSED), remaining
+> time or live rep count, and the next exercise.
 >
-> ### What this is
+> ### VARIANT A · GLANCE (web)
 >
-> When the athlete swipes out of the app MID-SESSION — a phone call, a text,
-> checking a message — the round timer should keep visibly running in a small
-> floating window over whatever they are doing, the way Maps keeps navigation
-> up. It appears ONLY on player/timer screens, never anywhere else in the app,
-> and it disappears when the session ends.
+> A web PiP is a video frame — taps inside it do nothing, so draw ZERO buttons.
+> A button that cannot be pressed is worse than none.
 >
-> ### The constraint that splits this in two
+> Horizontal split, 14px side padding, no vertical padding:
+> - **Left — ring + clock, the hero.** 112px ring, 8px stroke, gold progress arc
+>   with a gold drop-shadow. Centre: `0:42` in 900 30px Orbitron white, state
+>   label below at 7px (REST gold / WORK violet).
+> - **Right column:** `EXERCISE 3/6 · SET 2/4` eyebrow (7px Orbitron violet) ·
+>   exercise name (900 14px Orbitron white, ellipsized on one line, never wraps)
+>   · `4x4-8 · 25 LB` (9px Rajdhani) · a segmented progress row (one 3px cell per
+>   exercise — done gold, current half-filled violet, queued faint white) ·
+>   UP NEXT eyebrow + next exercise name.
+> - TRAINING MODE wordmark bottom-right, 6.5px, muted.
+> - **Proof-of-life (required — this is the design problem, not decoration):** a
+>   7px gold breathing dot on the ring (1.1s pulse) and a violet scan line
+>   sweeping the top edge (1s loop). Without motion the window reads as a frozen
+>   screenshot. No return-to-app affordance — the OS owns tap-to-return.
 >
-> On Android a web app cannot float arbitrary interface — the platform only
-> floats a `<video>`. So the web version is a *picture* of the timer: live, but
-> with NO buttons, because there is nothing to tap inside a video. A native
-> wrapper lifts that limit and allows real controls. Design both.
+> ### VARIANT B · CONTROL (native wrapper)
 >
-> **Variant A — GLANCE (web, non-interactive).** Assume a small landscape
-> window, roughly 320×180, that the athlete can only look at or tap once to
-> reopen the app.
-> - The clock is the hero and must be readable at arm's length on a window the
->   size of a matchbox — this is the whole design problem.
-> - Round position (`ROUND 2/3`), and the current call if one fits.
-> - A motion element that proves it is LIVE, not frozen — a sweeping arc, a
->   pulsing dot. Athletes will glance for a second and need to know instantly
->   that the session is still running.
-> - Rest vs work must be obvious from colour alone at that size.
-> - No buttons. Do not draw any. A button that cannot be pressed is worse than
->   no button.
+> Same window and content, plus real thumb-sized controls in their own band —
+> never floated over the clock.
+> - **Wrapper geometry (critical):** the inner column must be
+>   `position:absolute;inset:0` with `box-sizing:border-box`. A `height:100%`
+>   content-box wrapper with vertical padding computes taller than 180px and
+>   clips the control band — the one thing this variant exists for. Ring row gets
+>   `flex:1;min-height:0;overflow:hidden`; the band gets `flex-shrink:0`.
+> - Pay for the band by shrinking: ring 112 -> 84px, clock 30 -> 23px. UP NEXT
+>   collapses to a single `NEXT Seated Row · 4x8` line.
+> - **Control band** — 36px tall, 6px gaps, 6px above it, pinned to the bottom:
+>   `PAUSE` gold gradient flex:2 (widest; the one you reach for mid-set) ·
+>   `SKIP` violet outline flex:1.4 · `END` red, 44px wide, icon-only so it cannot
+>   be hit by accident.
 >
-> **Variant B — CONTROL (native wrapper, interactive).** Same size and role,
-> but real controls are possible.
-> - Same clock hierarchy, plus PAUSE/RESUME, SKIP, and END.
-> - Controls must be thumb-sized on a window that small — show how they fit
->   without crowding the clock, and show the pressed state.
-> - Show a paused state as well as running.
+> ### States (both variants)
 >
-> ### For both
+> | State | Treatment |
+> | --- | --- |
+> | REST | Ring gold, centre = countdown + REST |
+> | WORK | Ring violet, centre = live rep count (7 + REPS). Same frame, no re-layout |
+> | CHAIN | Chain pill `SUPERSET A · 2/2` replaces the set line; centre = hand-off countdown + GO IN; NO REST in gold |
+> | PAUSED | Everything desaturates to #6d5a8f, PAUSED label + tap to resume. Dot and scan line stop — the absence of motion IS the paused signal |
 >
-> - Design the window at 320×180 AND at roughly half that, since the system
->   lets the athlete shrink it.
-> - Show it floating over a plausible phone background (a call screen, a
->   messages list) so contrast is judged honestly, not against white.
-> - Show what the main app screen looks like WHILE the mini-player is out —
->   the session screen needs to indicate the window is open and offer a way to
->   dismiss it.
-> - Rest state, work state, and final-10-seconds state for each variant.
+> ### Sizes
+>
+> 320x180 = full layout. COMPACT 150x84 (smallest OS size): 58px ring, 15px
+> clock, drop UP NEXT and the segmented row; keep clock, state, name, `3/6 ·
+> set 2/4`. Never shrink the clock below 15px — if content does not fit, cut
+> content.
+>
+> ### Rules
+>
+> The clock is the hero at every size; ring, progress and up-next support it,
+> never compete. Gold = rest/done/primary · violet = work/structure · red = END
+> only, never mixed. Names ellipsize, never wrap.
+>
+> ### Acceptance
+>
+> Clock readable in a half-second glance at arm's length mid-set · GLANCE draws
+> zero buttons · CONTROL's band never overlaps the clock and is never clipped —
+> verify the window's `scrollHeight === 180` · motion runs while active and fully
+> stops when paused · COMPACT sheds content, not clock size · WORK/REST/CHAIN
+> swap colours and centre content without re-laying out the frame.
+>
+> ### Implementation notes (web, from building variant A)
+>
+> - COMPACT **cannot be detected on web**: video PiP never tells the page how
+>   large the OS drew the window. The 320x180 layout is painted once and scaled
+>   down by the system, which is why the clock is oversized and the content thin.
+>   Shedding content at COMPACT needs the native wrapper.
+> - Variant B cannot be built on the web path at all — there is no DOM inside a
+>   video. Its geometry notes apply to the native wrapper (or to desktop
+>   Document Picture-in-Picture, which does float real DOM).
+
+---
 
 ## PROMPT SV-1 — a session must survive the OS taking the app away
 

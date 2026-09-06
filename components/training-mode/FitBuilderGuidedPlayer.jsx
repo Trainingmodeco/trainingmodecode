@@ -17,6 +17,8 @@ import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { encouragementIntervalSec } from './data/coachEncouragement';
@@ -144,6 +146,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   ), [exerciseIdx, completed, skipped, phase]);
   const doneCount = exercises.reduce((a, _, i) => a + (statusOf(i) === 'done' ? 1 : 0), 0);
 
+
   // On the map a chain is ONE thing: one bracket, one hold, one swipe, one
   // drag. This resolves any member index to the run it belongs to.
   const chainByIdx = useMemo(() => {
@@ -177,6 +180,40 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   // Rest-time weight logger (design 38a) — weighted exercises only.
   const exId = ex?.id || ex?.name || 'exercise';
   const weightUnit = String(loadProfile()?.weightUnit || 'LBS').toUpperCase() === 'KG' ? 'KG' : 'LB';
+
+  // Floating mini-player (PROMPT MP-D, variant A). This is the screen the
+  // window was specified against, so it feeds the full content model:
+  // position in the workout, the set, the prescription and weight, the phase,
+  // and what is coming next.
+  const miniFrame = useCallback(() => {
+    const resting = phase === 'rest';
+    const chaining = !!chainCtx && phase === 'intro';
+    const working = phase === 'active';
+    const secs = Math.max(0, Number(display) || 0);
+    const clock = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+    const total = resting ? restMax : (plan.kind === 'hold' ? plan.seconds : plan.windowSec || plan.reps || 1);
+    const wt = exerciseWeight(ex);
+    return {
+      phase: paused ? 'paused' : chaining ? 'chain' : working ? 'work' : resting ? 'rest' : 'rest',
+      clock,
+      reps: plan.kind === 'reps' && working ? secs : null,
+      repsLabel: 'REPS',
+      progress: total ? (resting || plan.kind !== 'reps' ? 1 - secs / total : secs / (plan.reps || 1)) : 0,
+      exIdx: exerciseIdx + 1,
+      exTotal: exercises.length,
+      setIdx: set,
+      setTotal: totalSets,
+      name: ex?.name,
+      prescription: [
+        `${ex?.sets || totalSets}×${ex?.reps ?? ''}`.replace(/×$/, ''),
+        wt ? `${wt.weight} ${weightUnit}` : null,
+      ].filter(Boolean).join(' · '),
+      nextName: nextExercise?.name,
+      chainLabel: chainCtx ? `${chainCtx.label || 'CHAIN'} · ${chainCtx.position + 1}/${chainCtx.members.length}` : null,
+      segments: exercises.map((_, i) => (i === exerciseIdx ? 'current' : statusOf(i) === 'done' ? 'done' : 'todo')),
+    };
+  }, [phase, paused, display, restMax, plan, ex, exerciseIdx, exercises, set, totalSets, nextExercise, chainCtx, statusOf, weightUnit]);
+  const mini = useMiniPlayer(miniFrame, phase !== 'done');
   // Honour the athlete's MID-ROUND ENCOURAGEMENT setting during timed holds.
   const encourageEvery = encouragementIntervalSec(loadProfile()?.encouragement);
   const [logWeight, setLogWeight] = useState(0);
@@ -1048,6 +1085,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       {/* Below the header, matching the other players — the header's right
           slot is the "?" now, and the two would sit on top of each other. */}
       <VoiceMixer top={58} right={14}/>
+      <MiniPlayerButton {...mini} top={58} right={56}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
         {/* Training Mode logo header — back arrow returns to the list */}
         <TrainingHeader
