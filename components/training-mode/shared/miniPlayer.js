@@ -271,6 +271,8 @@ function drawFrame(ctx, frame, tick) {
 export function createMiniPlayer(getFrame) {
   if (typeof document === 'undefined') return null;
 
+  let source = getFrame;
+
   const canvas = document.createElement('canvas');
   canvas.width = VW * SCALE;
   canvas.height = VH * SCALE;
@@ -297,7 +299,7 @@ export function createMiniPlayer(getFrame) {
 
   const paint = () => {
     if (destroyed) return;
-    try { drawFrame(ctx, getFrame(), tick++); } catch { /* a bad frame must never kill the session */ }
+    try { drawFrame(ctx, source?.(), tick++); } catch { /* a bad frame must never kill the session */ }
   };
 
   const startPainting = () => {
@@ -356,7 +358,58 @@ export function createMiniPlayer(getFrame) {
     /** Exposed for tests: paint one frame and hand back a data URL. */
     _snapshot() { paint(); return canvas.toDataURL('image/png'); },
 
+    /** Swap the live frame source without disturbing the open window. */
+    setSource(fn) { source = fn; },
+
     /** The element, so callers can listen for the window being closed. */
     video,
   };
+}
+
+// ── One window for the whole app ───────────────────────────────────────────
+//
+// A session is not one component. The Workout Builder runs a 90-second warm-up
+// gate and THEN mounts the guided player, and each is a separate mount. If the
+// mini-player belonged to a component, that hand-off would tear the floating
+// window down at exactly the moment the athlete is mid-session — and Android
+// needs a fresh user gesture to reopen it, which they cannot give while looking
+// at another app.
+//
+// So the window is a singleton. Components ACQUIRE it (swapping the frame
+// source) and RELEASE it on unmount; the window itself only closes if nothing
+// claims it within a short grace period, which is what distinguishes a hand-off
+// from the session actually ending.
+const HANDOFF_GRACE_MS = 2500;
+
+let shared = null;
+let currentSource = null;
+let idleTimer = null;
+
+export function acquireMiniPlayer(getFrame) {
+  if (typeof document === 'undefined') return null;
+  clearTimeout(idleTimer);
+  idleTimer = null;
+  if (!shared) shared = createMiniPlayer(() => currentSource?.());
+  currentSource = getFrame;
+  return shared;
+}
+
+export function releaseMiniPlayer(getFrame) {
+  if (currentSource === getFrame) currentSource = null;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    // Nobody picked the window up — the session is over, not handing off.
+    if (currentSource) return;
+    shared?.destroy();
+    shared = null;
+  }, HANDOFF_GRACE_MS);
+}
+
+/** End the session's window immediately, hand-off grace or not. */
+export function endMiniPlayer() {
+  clearTimeout(idleTimer);
+  idleTimer = null;
+  currentSource = null;
+  shared?.destroy();
+  shared = null;
 }

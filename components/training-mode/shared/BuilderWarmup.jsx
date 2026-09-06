@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { speakAsync, cancelSpeech, stopVoiceSession, primeSpeech, delay } from '../voiceCoach';
 import { playBeep, playBell, unlockAudio } from '../data/audioEngine';
 import useWakeLock from '../hooks/useWakeLock';
 import { C } from '../Styles';
+import useMiniPlayer from '../hooks/useMiniPlayer';
+import MiniPlayerButton from './MiniPlayerButton';
 
 // Builder warm-up (spec: 90s guided block before a fresh builder workout).
 //
@@ -170,6 +172,23 @@ export default function BuilderWarmup({ muscleGroups, onDone, onSkip }) {
 
   const pct = phase === 'choice' ? 0 : ((TOTAL_SEC - left) / TOTAL_SEC) * 100;
 
+  // The warm-up is 90 seconds of the session, so the floating window has to
+  // cover it too — a call landing here would otherwise leave nothing on screen
+  // until the workout itself began. Same content model as the guided player:
+  // the warm-up counts as position 0, and the current move is the name.
+  const miniFrame = useCallback(() => ({
+    phase: phase === 'choice' ? 'rest' : 'work',
+    clock: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`,
+    progress: phase === 'choice' ? 0 : (TOTAL_SEC - left) / TOTAL_SEC,
+    reps: phase === 'follow' ? count : null,
+    repsLabel: 'REPS',
+    name: phase === 'choice' ? 'WARM UP' : move.name,
+    prescription: phase === 'follow' ? `${move.reps} reps · follow along` : 'freestyle · 90s',
+    nextName: 'WORKOUT',
+    segments: ['current'],
+  }), [phase, left, count, move]);
+  const mini = useMiniPlayer(miniFrame, true);
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 380,
@@ -178,6 +197,7 @@ export default function BuilderWarmup({ muscleGroups, onDone, onSkip }) {
       padding: '24px 24px calc(24px + env(safe-area-inset-bottom, 0px))', textAlign: 'center',
     }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }}/>
+      <MiniPlayerButton {...mini} top={14} right={14}/>
 
       <div style={{ position: 'relative', flex: 1, width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
         <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: VIOLET, letterSpacing: '0.26em', marginBottom: 14 }}>
