@@ -15,7 +15,7 @@ import AccountCard from './AccountCard';
 import { hasProEntitlement } from './data/entitlements';
 import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
 import { getCurrentTier, tierImage, tierIndexForLevel } from './data/tiers';
-import { getAudioSettings, saveAudioSettings } from './data/audioEngine';
+import { getAudioSettings, saveAudioSettings, externalDuckingSupported } from './data/audioEngine';
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 import { planText } from './data/comboStreak';
 import { loadGamePlan, saveGamePlan } from './data/gamePlan';
@@ -176,6 +176,21 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
             {/* Ducking */}
             <div>
               <SectionLabel text="AUDIO DUCKING"/>
+              {/* Ducking needs navigator.audioSession, which Android Chrome does
+                  not implement — duckExternalAudio() returns immediately there.
+                  Say so rather than leaving a switch that quietly does nothing. */}
+              {!externalDuckingSupported() && (
+                <div style={{
+                  fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5,
+                  color: '#c9a6ff', lineHeight: 1.4, marginBottom: 6,
+                  background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)',
+                  borderRadius: 8, padding: '8px 11px',
+                }}>
+                  This browser cannot turn down other apps&apos; music, so ducking has
+                  no effect here — it works in the installed app. To hear the coach
+                  over music now, lower BELL and MUSIC in the session volume menu.
+                </div>
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',

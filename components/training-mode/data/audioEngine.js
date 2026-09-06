@@ -10,9 +10,6 @@ const STORAGE_KEY = 'tm_audio_settings';
 // voiceVolume is 0..VOICE_MAX (2.0); default 1.5. SETTINGS_VERSION bumps so
 // existing athletes pick up the new louder default; anything they set after
 // that is theirs and sticks.
-// voiceVolume is 0..VOICE_MAX (2.0); default 1.5. SETTINGS_VERSION bumps so
-// existing athletes pick up the new louder default; anything they set after
-// that is theirs and sticks.
 export const VOICE_MAX = 2.0;
 const SETTINGS_VERSION = 3;
 
@@ -204,6 +201,14 @@ export function setMusicVolume(v) { saveAudioSettings({ musicVolume: Math.max(0,
 // Raw voice setting (0..2.0) for the mixer UI and native gain.
 export function getVoiceVolume() { return getSettings().voiceVolume; }
 
+// Raw cue (bell/beep/riser) setting for the mixer UI.
+export function getSfxVolume() { return getSettings().sfxVolume; }
+
+// True when the browser can actually duck other apps' audio. Android Chrome
+// cannot (no navigator.audioSession), so any UI promising ducking has to say
+// so rather than offering a switch that does nothing.
+export function externalDuckingSupported() { return audioSessionSupported(); }
+
 // For browser SpeechSynthesis, whose utterance.volume is capped at 1.0.
 export function getEffectiveVoiceVolume() {
   const s = getSettings();
@@ -213,9 +218,16 @@ export function getEffectiveVoiceVolume() {
 // Gain for the app's own cue sounds (bells / beeps / riser). These play through
 // Web Audio, so unlike browser TTS they CAN exceed 1.0 — the VOICE slider drives
 // them across the full 0..200% range so cues audibly cut through even on web.
+// The bell/beeps ride sfxVolume ONLY. They used to be multiplied by
+// voiceVolume as well, which produced the exact complaint from playtest: the
+// spoken coach is browser TTS and stops getting louder at 1.0, while the same
+// slider kept multiplying the cues by up to 3x on top of the boost. Pushing
+// VOICE up made the bell deafening and the voice not one decibel louder. The
+// two are now independent, so the bell can be brought DOWN to sit under the
+// voice — which on web is the only way to win that fight.
 function getCueGain() {
   const s = getSettings();
-  return Math.max(0, Math.min(CUE_MAX, s.masterVolume * s.sfxVolume * s.voiceVolume * CUE_BOOST));
+  return Math.max(0, Math.min(CUE_MAX, s.masterVolume * s.sfxVolume * CUE_BOOST));
 }
 
 export function getEffectiveMusicVolume() {
