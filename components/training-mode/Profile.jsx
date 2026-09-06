@@ -188,7 +188,8 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
                 }}>
                   This browser cannot turn down other apps&apos; music, so ducking has
                   no effect here — it works in the installed app. To hear the coach
-                  over music now, lower BELL and MUSIC in the session volume menu.
+                  over music now, lower MUSIC in the session volume menu or raise
+                  your phone&apos;s media volume.
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>

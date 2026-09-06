@@ -2117,3 +2117,425 @@ SecondaryButton / Card); no new design system.
 > before the player can mount, and the only visible symptom is that no video
 > element ever appears. If the button is missing, check declaration order
 > before anything else.
+
+---
+
+## PROMPT SV-2 — Session survival + restored-clock fix (detailed, with code) · commit `1642416`
+
+> Run this in the Training Mode revamp app. This is the DETAILED version of
+> SV-1 and carries the real code from commit `1642416` on `app`. Verify each
+> piece first; implement only what is missing. Safe to re-run.
+>
+> ### What the athlete reported
+>
+> Take a phone call mid-session, come back, and the app is on the splash
+> screen with the workout gone. Every round trained is lost.
+>
+> ### Root cause (do not re-diagnose from scratch)
+>
+> In `components/training-mode/App.jsx`, `savePausedSession()` had exactly
+> ONE caller: `pauseCurrentSession()`. That fires only from in-app navigation
+> (`goHome`, `goProgress`, `goTrainingHub`, `goFitHub`, `goFitSetup`,
+> `goProfile`). Nothing wrote on the way OUT of the app. There was no
+> `visibilitychange`, `pagehide` or `freeze` handler at App level at all.
+> `useAutoPauseOnHidden` pauses the timer in MEMORY, and memory is exactly
+> what Android reclaims when it evicts a backgrounded PWA. On return the page
+> reloads, finds an empty `trainingModePausedSession` key, and boots to the
+> splash.
+>
+> Second bug, found while verifying the first: `ComboCoachActive` and
+> `FightFocusTimer` both run a round-start effect keyed on `[roundIdx]` that
+> calls `setRemaining(roundSec)` — on its MOUNT pass too — so a session
+> restored at 2:39 redisplayed 3:00 and handed back time already trained.
+>
+> ### Existing pieces you build on (already in App.jsx — do not duplicate)
+>
+> ```js
+> const PAUSED_SESSION_KEY = 'trainingModePausedSession';
+> const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+> const ACTIVE_SESSION_SCREENS = new Set([
+>   'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session',
+> ]);
+> function loadPausedSession() { /* reads + JSON.parse, drops if older than MAX_AGE */ }
+> function savePausedSession(session) { /* setItem, or removeItem when null */ }
+> const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
+> const [resumeData, setResumeData] = useState(null);
+> const activeSessionStateRef = useRef(null);
+> const reportSessionState = useCallback((state) => { activeSessionStateRef.current = state; }, []);
+> ```
+>
+> Players call `onStateChange({ phase, roundIdx, remaining })` every tick;
+> `ScreenRouter` passes `reportSessionState` as `onStateChange` and
+> `resumeData` as `initialResumeData`. `ScreenRouter` also derives
+> `const isResuming = pausedSession?.screen === screen;` and passes it as
+> `initialPaused` and as `enabled={!isResuming}` on `WithWarmup`. That is the
+> whole restore path; the fix only has to FEED it on boot.
+>
+> ### Step 1 — split the snapshot from its side effects (App.jsx)
+>
+> Replace the body of `pauseCurrentSession` with a pure builder plus a thin
+> wrapper. The lifecycle saver must be able to snapshot WITHOUT stopping the
+> voice or clearing the live state ref, because the session may well
+> continue.
+>
+> ```js
+> // How often a running session writes itself to storage. The OS can kill a
+> // backgrounded PWA without warning (memory pressure during a phone call is the
+> // common one), and no lifecycle event is guaranteed to fire first — so the
+> // session also saves on a timer. At 5s the worst case is losing five seconds.
+> const SESSION_AUTOSAVE_MS = 5000;
+>
+> // A pure snapshot of everything needed to rebuild the running session. No
+> // side effects. `reason` separates a deliberate exit ('nav', which leaves the
+> // resume banner for later) from the OS taking the app away ('lifecycle',
+> // which comes back into the player automatically on next launch).
+> const buildSessionSnapshot = useCallback((reason) => {
+>   if (!ACTIVE_SESSION_SCREENS.has(screen)) return null;
+>   const internalState = activeSessionStateRef.current
+>     ? { ...activeSessionStateRef.current }
+>     : null;
+>   return {
+>     screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission,
+>     arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings,
+>     internalState,
+>     reason: reason || 'nav',
+>     timestamp: Date.now(),
+>   };
+> }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings]);
+>
+> const pauseCurrentSession = useCallback(() => {
+>   const paused = buildSessionSnapshot('nav');
+>   if (!paused) return null;
+>   stopVoiceSession();
+>   setPausedSession(paused);
+>   savePausedSession(paused);
+>   activeSessionStateRef.current = null;
+>   return paused;
+> }, [buildSessionSnapshot]);
+> ```
+>
+> `resumeSession` is unchanged: it copies every field back into state, sets
+> `setResumeData(pausedSession.internalState || null)`, then
+> `setScreen(pausedSession.screen)`.
+>
+> ### Step 2 — the lifecycle saver (App.jsx, right after `resumeSession`)
+>
+> Writes STORAGE ONLY. Never `setPausedSession` — that setter drives the
+> resume banner, and a session that is merely backgrounded has not been left.
+>
+> ```js
+> const snapshotRef = useRef(buildSessionSnapshot);
+> useEffect(() => { snapshotRef.current = buildSessionSnapshot; }, [buildSessionSnapshot]);
+>
+> useEffect(() => {
+>   if (!ACTIVE_SESSION_SCREENS.has(screen)) return undefined;
+>   if (typeof document === 'undefined') return undefined;
+>   const stash = () => {
+>     const snap = snapshotRef.current?.('lifecycle');
+>     if (snap) savePausedSession(snap);
+>   };
+>   const onVisibility = () => { if (document.hidden) stash(); };
+>   stash(); // close the gap between entering a session and the first tick
+>   const timer = setInterval(stash, SESSION_AUTOSAVE_MS);
+>   document.addEventListener('visibilitychange', onVisibility);
+>   window.addEventListener('pagehide', stash);
+>   return () => {
+>     clearInterval(timer);
+>     document.removeEventListener('visibilitychange', onVisibility);
+>     window.removeEventListener('pagehide', stash);
+>   };
+> }, [screen]);
+> ```
+>
+> Why a ref: the effect is keyed on `[screen]` only, so it does not re-run on
+> every clock tick, but `stash` must still read the CURRENT config. The ref
+> gives it the latest builder without re-subscribing.
+>
+> ### Step 3 — boot restore (App.jsx, after `discardPausedSession`)
+>
+> ```js
+> // A session the OS interrupted comes straight back INTO its player, paused,
+> // rather than dumping the athlete on the splash screen. Only for 'lifecycle'
+> // stashes — a session the athlete deliberately navigated away from keeps the
+> // existing resume-banner behaviour, because leaving was their choice.
+> const bootRestoredRef = useRef(false);
+> useEffect(() => {
+>   if (bootRestoredRef.current) return;
+>   bootRestoredRef.current = true;
+>   const stashed = pausedSession;
+>   if (!stashed || stashed.reason !== 'lifecycle') return;
+>   if (!ACTIVE_SESSION_SCREENS.has(stashed.screen)) return;
+>   resumeSession();
+> // eslint-disable-next-line react-hooks/exhaustive-deps
+> }, []);
+> ```
+>
+> The existing effect that clears `pausedSession` once
+> `screen === pausedSession.screen` stays as-is; it runs on the next render
+> and clears the key, so a completed session never re-restores.
+>
+> ### Step 4 — keep the restored clock (ComboCoachActive.jsx + FightFocusTimer.jsx)
+>
+> Both players already do
+> `const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? roundSec);`
+> and `const skipInitialIntro = useRef(!!initialPaused);`. Add beside them:
+>
+> ```js
+> // A resumed session already restored `remaining` from initialResumeData. The
+> // round-start effect below resets the clock to a full round on every roundIdx
+> // change — including its mount pass — which silently threw that away and put
+> // the athlete back at 3:00. Consume this once so only the FIRST pass is
+> // skipped; later rounds still reset normally.
+> const keepRestoredClock = useRef(initialResumeData?.remaining != null);
+> ```
+>
+> Then in the round-start effect (the one that also resets
+> `roundEndBellPlayedRef`, `encourageSchedule`, `encourageFiredSet`):
+>
+> ```js
+> -   setRemaining(roundSec);
+> +   if (keepRestoredClock.current) keepRestoredClock.current = false;
+> +   else setRemaining(roundSec);
+> ```
+>
+> `QuickMissionActive` and `CombatConditioningActive` resume into their
+> working phase and bypass that path. They were never affected. Do NOT patch
+> them.
+>
+> ### Do NOT
+>
+> - Do NOT call `setPausedSession` from the lifecycle saver. It raises the
+>   resume banner over a session that is still running.
+> - Do NOT drop the 5s timer "because visibilitychange covers it". Android
+>   can kill the tab with no event at all; the timer is the floor.
+> - Do NOT auto-restore a `'nav'` stash. Leaving via HOME was a choice.
+> - Do NOT restore into a RUNNING clock. `isResuming` → `initialPaused` is
+>   deliberate: the athlete taps RESUME.
+>
+> ### Verify (real browser, both round timers)
+>
+> 1. Start a Combo Coach session, wait ~15s, then read
+>    `JSON.parse(localStorage.trainingModePausedSession)`: `reason` is
+>    `"lifecycle"` and `internalState.remaining` is counting down.
+> 2. Dispatch `visibilitychange` with `document.hidden` true; the stored
+>    `remaining` updates immediately. Then CLOSE the page outright (that is
+>    the eviction). Reopen: the app lands in the player, PAUSED, with RESUME
+>    showing, and the clock matches the stashed `remaining` within 1–2s.
+>    Reference run: saved 159s, shown 02:39.
+> 3. Repeat in Fight Focus. Reference run: saved 164s, shown 02:44.
+> 4. Regression: leave via HOME instead. The stash reason is `"nav"`, and the
+>    next launch does NOT auto-jump into the player; the banner appears.
+> 5. Finish a session normally: the key is gone afterwards.
+>
+> ### Commit as
+>
+> `A session now survives the OS taking the app away` — one commit, the four
+> steps together, so the ledger shows the fix as a unit.
+
+---
+
+## PROMPT VOL-2 — Volume split → fixed bell level (detailed, with code) · commits `a0d057f`, `afd0213`
+
+> Run this in the Training Mode revamp app. This is the DETAILED version of
+> VOL-1 and carries the real code from two commits on `app`: `a0d057f` split
+> the bell from the voice fader, and `afd0213` then REMOVED the bell fader in
+> favour of a fixed level. Implement the END STATE (after `afd0213`), not the
+> intermediate three-slider mixer. Verify first; implement only what is
+> missing. Safe to re-run.
+>
+> ### What the athlete reported
+>
+> "The timer bell is very loud but the voice commands are still too low and
+> can barely be heard under music. The voice commands will not rise."
+>
+> ### Root cause (do not re-diagnose from scratch)
+>
+> One slider drove two audio paths with OPPOSITE ceilings.
+>
+> - The spoken coach is browser TTS. In `voiceCoach.js`:
+>   `utter.volume = Math.max(0, Math.min(1, getEffectiveVoiceVolume()))`, and
+>   `getEffectiveVoiceVolume()` is `Math.min(1, masterVolume * voiceVolume)`.
+>   `SpeechSynthesisUtterance.volume` is hard-capped at **1.0** by the
+>   browser. At the default `voiceVolume` of 1.5 the voice is ALREADY pinned,
+>   so the top half of the VOICE fader does nothing at all.
+> - The bell, beeps and riser are Web Audio through a limiter. In
+>   `data/audioEngine.js`, `getCueGain()` WAS
+>   `masterVolume * sfxVolume * voiceVolume * CUE_BOOST(3.0)`, clamped at
+>   `CUE_MAX(6.0)`.
+>
+> Raising VOICE therefore multiplied the bell up to 3× while the spoken coach
+> did not move one decibel. Default bell gain was 4.5. Exactly the symptom.
+>
+> Separately, Profile advertised an AUDIO DUCKING switch that does nothing on
+> Android Chrome: ducking needs `navigator.audioSession`, which Chrome does
+> not implement, so `duckExternalAudio()` returned immediately there.
+>
+> ### Owner's decision (this is the design, not an oversight)
+>
+> Do NOT put the bell on a slider. A slider invites exactly the mistake the
+> shared fader made. The bell is a fixed neutral level, ten percent above
+> unity, and follows only master volume.
+>
+> ### Step 1 — `components/training-mode/data/audioEngine.js`
+>
+> Replace the `CUE_BOOST` constant:
+>
+> ```js
+> // The app's own Web Audio cues — round-start bell, beeps, riser — sit at ONE
+> // fixed level, a touch above the spoken coach. They used to be tripled
+> // (CUE_BOOST 3.0) and multiplied by the VOICE fader on top, which is how the
+> // bell ended up deafening while the voice could not move: browser TTS is
+> // hard-capped at 1.0, so the same fader raised only the cues.
+> //
+> // Owner's call after playtest: no bell fader at all. A slider invites exactly
+> // the mistake the old shared one made — the bell should simply be right.
+> // 1.1 puts it ~10% above unity, so a round bell still reads as a marker over
+> // the voice instead of drowning it. The limiter below still catches peaks.
+> const BELL_LEVEL = 1.1;
+> const CUE_MAX = 6.0;
+> ```
+>
+> Replace `getCueGain()`:
+>
+> ```js
+> // Cue gain follows master volume and nothing else. Not the VOICE fader (that
+> // is what broke it), and not a bell fader (there isn't one by design).
+> function getCueGain() {
+>   const s = getSettings();
+>   return Math.max(0, Math.min(CUE_MAX, s.masterVolume * BELL_LEVEL));
+> }
+> ```
+>
+> `getCueGain()` is consumed by `playBell` (`const vol = getCueGain()`), the
+> beep path (`volume * getCueGain()`) and the riser
+> (`0.32 * getCueGain()`). Those callers do not change. The limiter in
+> `cueOut()` (DynamicsCompressor, threshold −4, ratio 20) stays; cues still
+> connect through it, never straight to destination.
+>
+> Add the capability probe next to `getVoiceVolume`:
+>
+> ```js
+> // True when the browser can actually duck other apps' audio. Android Chrome
+> // cannot (no navigator.audioSession), so any UI promising ducking has to say
+> // so rather than offering a switch that does nothing.
+> export function externalDuckingSupported() { return audioSessionSupported(); }
+> ```
+>
+> `audioSessionSupported()` already exists (`!!audioSession()`). Do NOT add
+> `getSfxVolume()`; it was added in `a0d057f` for the bell slider and removed
+> again in `afd0213`. `setSfxVolume` stays exported for compatibility but
+> nothing reads `sfxVolume` for cue gain. `DEFAULTS` are unchanged:
+> `{ masterVolume: 1.0, sfxVolume: 1.0, voiceVolume: 1.5, musicVolume: 0.6,
+> duckingEnabled: true, duckingStrength: 'normal', v: 3 }`. Do NOT bump
+> `SETTINGS_VERSION`; `BELL_LEVEL` is a code constant, so every athlete gets
+> it immediately without touching their saved settings.
+>
+> ### Step 2 — `components/training-mode/shared/VoiceMixer.jsx`
+>
+> Exactly two faders. Imports:
+>
+> ```js
+> import { getAudioSettings, getVoiceVolume, setVoiceVolume, setMusicVolume, VOICE_MAX } from '../data/audioEngine';
+> ```
+>
+> State and handlers:
+>
+> ```js
+> const [voice, setVoice] = useState(() => Math.round((getVoiceVolume() ?? 1.5) * 100));
+> const [music, setMusic] = useState(() => Math.round((getAudioSettings().musicVolume ?? 0.6) * 100));
+> const onVoice = (e) => { const v = Number(e.target.value); setVoice(v); setVoiceVolume(v / 100); scheduleHide(); };
+> const onMusic = (e) => { const v = Number(e.target.value); setMusic(v); setMusicVolume(v / 100); scheduleHide(); };
+> ```
+>
+> Rows inside the open panel, and the honest ceiling note:
+>
+> ```jsx
+> <Slider icon="🔊" label="VOICE" pct={voice} max={VOICE_PCT_MAX} warn={muted} onChange={onVoice}/>
+> <Slider icon="🎵" label="MUSIC" pct={music} max={100} onChange={onMusic}/>
+> {voice > 100 && (
+>   <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', maxWidth: 210, lineHeight: 1.35 }}>
+>     The browser caps the spoken coach at 100%. Above that, turn MUSIC
+>     down instead — or raise your phone&apos;s media volume.
+>   </div>
+> )}
+> ```
+>
+> `VOICE_PCT_MAX = Math.round(VOICE_MAX * 100)` = 200. The VOICE range stays
+> 0–200 because the native wrapper will honour it; on web the note tells the
+> athlete the truth about the top half.
+>
+> ### Step 3 — `components/training-mode/Profile.jsx` (AUDIO DUCKING)
+>
+> ```js
+> import { getAudioSettings, saveAudioSettings, externalDuckingSupported } from './data/audioEngine';
+> ```
+>
+> Directly under `<SectionLabel text="AUDIO DUCKING"/>`, before the switch:
+>
+> ```jsx
+> {!externalDuckingSupported() && (
+>   <div style={{
+>     fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5,
+>     color: '#c9a6ff', lineHeight: 1.4, marginBottom: 6,
+>     background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)',
+>     borderRadius: 8, padding: '8px 11px',
+>   }}>
+>     This browser cannot turn down other apps&apos; music, so ducking has
+>     no effect here — it works in the installed app. To hear the coach
+>     over music now, lower MUSIC in the session volume menu or raise
+>     your phone&apos;s media volume.
+>   </div>
+> )}
+> ```
+>
+> Leave the switch itself in place; it is real on the native wrapper.
+>
+> ### Step 4 — every arcade player gets the mixer
+>
+> Arcade screens had NO VoiceMixer at all, so the fix was unreachable there.
+> `shared/StageChrome.jsx` now renders `<VoiceMixer top={10} right={44}/>`
+> unconditionally, and the duplicate in `ArcadeSessionPlayer` was removed.
+> Check that `ArcadeSessionPlayer` reaches the mixer through StageChrome and
+> does not render a second one.
+>
+> ### Do NOT
+>
+> - Do NOT add a BELL slider. Not in the mixer, not in Profile.
+> - Do NOT let `voiceVolume` or `sfxVolume` re-enter `getCueGain()` under any
+>   refactor. The formula is `masterVolume * BELL_LEVEL`, full stop.
+> - Do NOT raise `BELL_LEVEL` to "make the bell cut through". If the bell
+>   cannot be heard, the whole mix is too quiet; that is phone media volume.
+> - Do NOT leave any UI text that says "turn BELL down". There is no BELL
+>   control. Grep for it.
+>
+> ### Verify (real browser, mid-session)
+>
+> 1. Open the speaker button in Combo Coach: the panel shows VOICE and MUSIC,
+>    exactly two `input[type=range]`, no BELL row.
+> 2. Drag VOICE above 100: the ceiling note appears and names MUSIC and phone
+>    media volume only.
+> 3. `localStorage.tm_audio_settings` after dragging VOICE: `voiceVolume`
+>    changes, `sfxVolume` stays 1.
+> 4. Trigger a round bell with VOICE at 0 and at 200: the bell is the SAME
+>    loudness both times.
+> 5. Profile → Audio on Android Chrome: the ducking note is visible. On a
+>    browser with `navigator.audioSession` it is not.
+> 6. `grep -rn "BELL" components/training-mode --include=*.jsx` returns only
+>    the design comment in VoiceMixer, no user-facing copy.
+>
+> ### Still open (the real loudness fix, not part of this prompt)
+>
+> On web the spoken coach CANNOT exceed the browser ceiling. Making it
+> genuinely louder needs pre-recorded voice cues played through Web Audio.
+> They go through the same limiter as the bell and can be boosted far past
+> TTS, and they kill speech latency as a bonus. Start with the numbers 1-8
+> and round start/end; keep TTS as the fallback for anything unrecorded.
+>
+> ### Commit as
+>
+> Two commits mirroring `app`, so the ledger tells the story:
+> 1. `Split the volume sliders: the bell stops riding the VOICE fader`
+> 2. `No bell fader: the bell is a fixed level just above the voice`
+>
+> Or one commit if the intermediate state is never built:
+> `Bell is a fixed level; VOICE and MUSIC are the only faders`.

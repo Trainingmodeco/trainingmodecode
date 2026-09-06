@@ -3,7 +3,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { getAudioSettings, getVoiceVolume, setVoiceVolume, setMusicVolume, VOICE_MAX } from '../data/audioEngine';
 
 // The ONLY place volume is adjusted: a speaker button in the timer corner opens
-// this overlay mid-session — no pause — with 🔊 VOICE, 🔔 BELL and 🎵 MUSIC.
+// this overlay mid-session — no pause — with 🔊 VOICE and 🎵 MUSIC.
 //
 // There is deliberately NO bell fader. One slider used to drive both paths,
 // so raising VOICE multiplied the Web Audio cues while the TTS voice sat
@@ -14,10 +14,9 @@ import { getAudioSettings, getVoiceVolume, setVoiceVolume, setMusicVolume, VOICE
 // It auto-hides after 3s of no touch and every change persists as the new
 // default.
 //
-// VOICE runs 0–200% (default 150%). Browser TTS itself caps at 100%, but the
-// slider drives the app's own cue sounds (bells/beeps) across the full range so
-// they cut through even over external music; the true >100% voice boost and
-// ducking of other apps' audio land with the native wrapper. MUSIC controls
+// VOICE runs 0–200% (default 150%). Browser TTS itself caps at 100%; the
+// slider does NOT touch the bell or beeps any more. The true >100% voice boost
+// and ducking of other apps' audio land with the native wrapper. MUSIC controls
 // in-app music (0–100%); it's wired now and takes effect once in-app music
 // ships (a Pro perk).
 const AUTO_HIDE_MS = 3000;
