@@ -15,6 +15,8 @@ import { BossSlam } from './shared/AnswerTheBell';
 import { packOpts, packLine } from './data/voicePacks';
 import { recordGhostFromSession, finishGhostBattle, ghostCountAtTime } from './data/ghostBattles';
 import VoiceMixer from './shared/VoiceMixer';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import useStrikeCounter from './hooks/useStrikeCounter';
 import StrikeHud from './shared/StrikeHud';
 import StrikeCounterSheet from './shared/StrikeCounterSheet';
@@ -559,6 +561,16 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     onEnd(rounds, cfg, completed, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
   };
 
+  // Floating mini-player — same painted window as Combo Coach.
+  const miniFrame = useCallback(() => ({
+    clock: `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`,
+    eyebrow: `ROUND ${roundIdx + 1}/${cfg.rounds}`,
+    label: phase === 'rest' ? 'REST' : (curCombo || ''),
+    tone: phase === 'rest' ? 'rest' : (remaining <= 10 ? 'final' : 'work'),
+    paused,
+  }), [remaining, roundIdx, cfg.rounds, phase, curCombo, paused]);
+  const mini = useMiniPlayer(miniFrame, !done);
+
   const isFinalRound = roundIdx + 1 >= cfg.rounds;
   const maxTime = phase === 'rest' ? restSecOf(roundIdx) : roundSec;
   const pct = (remaining / maxTime) * 100;
@@ -673,6 +685,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* LT-1 — cue level, adjustable mid-round without pausing. */}
         <VoiceMixer top={10} right={10}/>
+        <MiniPlayerButton {...mini} top={10} right={52}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>

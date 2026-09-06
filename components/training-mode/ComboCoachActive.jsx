@@ -12,6 +12,8 @@ import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { createRushCaller } from './data/rushMoves';
 import VoiceMixer from './shared/VoiceMixer';
+import useMiniPlayer from './hooks/useMiniPlayer';
+import MiniPlayerButton from './shared/MiniPlayerButton';
 import useStrikeCounter from './hooks/useStrikeCounter';
 import StrikeHud from './shared/StrikeHud';
 import StrikeCounterSheet from './shared/StrikeCounterSheet';
@@ -258,6 +260,21 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const voiceRate = cfg.speed === 'slow' ? 0.85 : cfg.speed === 'turbo' ? 1.1 : 1.0;
   const speedLabel = cfg.speedLabel || cfg.speed?.toUpperCase() || 'MEDIUM';
   const cadenceMs = cfg.ms || 4000;
+
+  // Floating mini-player: the clock stays visible over other apps when the
+  // athlete steps away mid-round. Painted, not laid out — see shared/miniPlayer.
+  const miniFrame = useCallback(() => {
+    const m = Math.floor(remaining / 60);
+    const sec = remaining % 60;
+    return {
+      clock: `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
+      eyebrow: `ROUND ${roundIdx + 1}/${totalRounds}`,
+      label: phase === 'rest' ? 'REST' : (currentCombo?.display || ''),
+      tone: phase === 'rest' ? 'rest' : (remaining <= 10 ? 'final' : 'work'),
+      paused,
+    };
+  }, [remaining, roundIdx, totalRounds, phase, currentCombo, paused]);
+  const mini = useMiniPlayer(miniFrame, !done);
 
   const nextCombo = roundCalls[(comboIndexRef.current) % roundCalls.length];
 
@@ -658,6 +675,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
         {/* LT-1 — cue level, adjustable mid-round without pausing. */}
         <VoiceMixer top={10} right={10}/>
+        <MiniPlayerButton {...mini} top={10} right={52}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>
