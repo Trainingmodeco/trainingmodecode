@@ -13,14 +13,17 @@ const STORAGE_KEY = 'tm_audio_settings';
 export const VOICE_MAX = 2.0;
 const SETTINGS_VERSION = 3;
 
-// Cue loudness boost (user: "boost by 300%"). The app's own Web Audio cues —
-// round-start bell, beeps, riser — are tripled and pushed through a master
-// limiter so they cut through loudly without hard-clipping/distorting. Applies
-// to everyone immediately (it's a code constant, not a saved setting). Note: the
-// SPOKEN voice coach is browser TTS, hard-capped at 1.0 by the browser, so it
-// can't be boosted past 100% on web — only the native wrapper / phone media
-// volume can take the voice itself louder.
-const CUE_BOOST = 3.0;
+// The app's own Web Audio cues — round-start bell, beeps, riser — sit at ONE
+// fixed level, a touch above the spoken coach. They used to be tripled
+// (CUE_BOOST 3.0) and multiplied by the VOICE fader on top, which is how the
+// bell ended up deafening while the voice could not move: browser TTS is
+// hard-capped at 1.0, so the same fader raised only the cues.
+//
+// Owner's call after playtest: no bell fader at all. A slider invites exactly
+// the mistake the old shared one made — the bell should simply be right.
+// 1.1 puts it ~10% above unity, so a round bell still reads as a marker over
+// the voice instead of drowning it. The limiter below still catches peaks.
+const BELL_LEVEL = 1.1;
 const CUE_MAX = 6.0;
 
 const DEFAULTS = {
@@ -201,8 +204,6 @@ export function setMusicVolume(v) { saveAudioSettings({ musicVolume: Math.max(0,
 // Raw voice setting (0..2.0) for the mixer UI and native gain.
 export function getVoiceVolume() { return getSettings().voiceVolume; }
 
-// Raw cue (bell/beep/riser) setting for the mixer UI.
-export function getSfxVolume() { return getSettings().sfxVolume; }
 
 // True when the browser can actually duck other apps' audio. Android Chrome
 // cannot (no navigator.audioSession), so any UI promising ducking has to say
@@ -218,16 +219,11 @@ export function getEffectiveVoiceVolume() {
 // Gain for the app's own cue sounds (bells / beeps / riser). These play through
 // Web Audio, so unlike browser TTS they CAN exceed 1.0 — the VOICE slider drives
 // them across the full 0..200% range so cues audibly cut through even on web.
-// The bell/beeps ride sfxVolume ONLY. They used to be multiplied by
-// voiceVolume as well, which produced the exact complaint from playtest: the
-// spoken coach is browser TTS and stops getting louder at 1.0, while the same
-// slider kept multiplying the cues by up to 3x on top of the boost. Pushing
-// VOICE up made the bell deafening and the voice not one decibel louder. The
-// two are now independent, so the bell can be brought DOWN to sit under the
-// voice — which on web is the only way to win that fight.
+// Cue gain follows master volume and nothing else. Not the VOICE fader (that
+// is what broke it), and not a bell fader (there isn't one by design).
 function getCueGain() {
   const s = getSettings();
-  return Math.max(0, Math.min(CUE_MAX, s.masterVolume * s.sfxVolume * CUE_BOOST));
+  return Math.max(0, Math.min(CUE_MAX, s.masterVolume * BELL_LEVEL));
 }
 
 export function getEffectiveMusicVolume() {

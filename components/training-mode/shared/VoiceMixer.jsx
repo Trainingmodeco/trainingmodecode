@@ -1,16 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import { getAudioSettings, getVoiceVolume, setVoiceVolume, setMusicVolume, getSfxVolume, setSfxVolume, VOICE_MAX } from '../data/audioEngine';
+import { getAudioSettings, getVoiceVolume, setVoiceVolume, setMusicVolume, VOICE_MAX } from '../data/audioEngine';
 
 // The ONLY place volume is adjusted: a speaker button in the timer corner opens
 // this overlay mid-session — no pause — with 🔊 VOICE, 🔔 BELL and 🎵 MUSIC.
 //
-// VOICE and BELL are separate because they are separate audio paths with
-// opposite ceilings. Playtest: "the timer bell is very loud but the voice
-// commands are still too low." One slider used to drive both, so raising it
-// multiplied the Web Audio cues while the TTS voice sat pinned at its 1.0
-// browser cap. The voice cannot go above that on web — so the fix that works
-// today is being able to bring the BELL DOWN to meet it.
+// There is deliberately NO bell fader. One slider used to drive both paths,
+// so raising VOICE multiplied the Web Audio cues while the TTS voice sat
+// pinned at its 1.0 browser cap — the bell got deafening and the voice never
+// moved. The bell is now a fixed level in audioEngine (BELL_LEVEL), set just
+// above the voice so it reads as a marker. Owner's call: the bell should be
+// right, not adjustable.
 // It auto-hides after 3s of no touch and every change persists as the new
 // default.
 //
@@ -48,7 +48,6 @@ function Slider({ icon, label, pct, max, warn, onChange }) {
 export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
   const [open, setOpen] = useState(false);
   const [voice, setVoice] = useState(() => Math.round((getVoiceVolume() ?? 1.5) * 100));
-  const [sfx, setSfx] = useState(() => Math.round((getSfxVolume() ?? 1) * 100));
   const [music, setMusic] = useState(() => Math.round((getAudioSettings().musicVolume ?? 0.6) * 100));
   const hideTimer = useRef(null);
 
@@ -60,7 +59,6 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
   useEffect(() => () => clearTimeout(hideTimer.current), []);
 
   const onVoice = (e) => { const v = Number(e.target.value); setVoice(v); setVoiceVolume(v / 100); scheduleHide(); };
-  const onSfx = (e) => { const v = Number(e.target.value); setSfx(v); setSfxVolume(v / 100); scheduleHide(); };
   const onMusic = (e) => { const v = Number(e.target.value); setMusic(v); setMusicVolume(v / 100); scheduleHide(); };
 
   const muted = voice <= 0;
@@ -85,12 +83,11 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
             .vm-range::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #fde047; border: none; cursor: pointer; }
           ` }}/>
           <Slider icon="🔊" label="VOICE" pct={voice} max={VOICE_PCT_MAX} warn={muted} onChange={onVoice}/>
-          <Slider icon="🔔" label="BELL" pct={sfx} max={100} warn={sfx <= 0} onChange={onSfx}/>
           <Slider icon="🎵" label="MUSIC" pct={music} max={100} onChange={onMusic}/>
           {voice > 100 && (
             <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', maxWidth: 210, lineHeight: 1.35 }}>
-              The browser caps the spoken coach at 100%. Above that, turn BELL
-              and MUSIC down instead — or raise your phone&apos;s media volume.
+              The browser caps the spoken coach at 100%. Above that, turn MUSIC
+              down instead — or raise your phone&apos;s media volume.
             </div>
           )}
         </div>
