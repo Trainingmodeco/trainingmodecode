@@ -1827,3 +1827,180 @@ SecondaryButton / Card); no new design system.
 >   the session screen needs to indicate the window is open and offer a way to
 >   dismiss it.
 > - Rest state, work state, and final-10-seconds state for each variant.
+
+## PROMPT SV-1 — a session must survive the OS taking the app away
+
+> Run this in the app. Verify first; implement only what is missing. Safe to
+> re-run.
+>
+> ### Symptom
+>
+> Take a phone call mid-session, come back, and the app is on the splash screen
+> with the workout gone.
+>
+> ### Root cause (do not re-diagnose from scratch)
+>
+> `savePausedSession()` had exactly ONE caller — `pauseCurrentSession()` — and
+> that fires only from in-app navigation (`goHome`, `goProgress`,
+> `goTrainingHub`, `goFitHub`, `goFitSetup`, `goProfile`). Nothing wrote on the
+> way OUT of the app. There was no `visibilitychange`, `pagehide` or `freeze`
+> handler at App level at all. `useAutoPauseOnHidden` pauses the timer in
+> MEMORY, and memory is precisely what Android reclaims when it evicts a
+> backgrounded PWA. On return the page reloads, finds an empty key, and boots
+> to the splash.
+>
+> ### Done state
+>
+> - `buildSessionSnapshot(reason)` is a PURE snapshot — no side effects — so a
+>   lifecycle saver can call it without stopping the voice or clearing the live
+>   state ref. `pauseCurrentSession()` builds on it and keeps its side effects.
+> - `reason` separates `'nav'` (the athlete chose to leave — keeps the resume
+>   banner) from `'lifecycle'` (the OS took the app — comes back automatically).
+> - A running session saves itself on `visibilitychange`→hidden, on `pagehide`,
+>   once on entering the session, and **every 5s in between**. No lifecycle
+>   event is guaranteed to fire before a kill, which is why the timer exists.
+> - It writes STORAGE ONLY — never `setPausedSession`. That setter drives the
+>   resume banner, and being backgrounded is not the same as leaving.
+> - On boot a `'lifecycle'` stash restores straight into its player, PAUSED, via
+>   the existing `resumeSession()` path (`isResuming` drives `initialPaused` and
+>   skips the warm-up). A `'nav'` stash keeps the banner behaviour.
+>
+> ### The second bug — the restored clock
+>
+> Restoring the screen is not enough. `ComboCoachActive` and `FightFocusTimer`
+> both run a round-start effect that resets `remaining` to a full round on every
+> `roundIdx` change — **including its mount pass** — so a session restored at
+> 2:39 redisplayed 3:00 and handed back time already trained. Both consume a
+> `keepRestoredClock` ref on that first pass only; later rounds reset normally.
+> `QuickMissionActive` and `CombatConditioningActive` resume into their working
+> phase and bypass that path, so they were never affected — do not "fix" them.
+>
+> ### Verify
+>
+> 1. Start a session, wait ~15s, read `localStorage.trainingModePausedSession`:
+>    `reason` is `lifecycle` and `internalState.remaining` is counting down.
+> 2. Fire `visibilitychange` with `document.hidden` true, then CLOSE the page
+>    outright (that is the eviction). Reopen: the app lands in the player, and
+>    the clock matches the stashed `remaining` to within a second or two.
+> 3. Regression: leave via HOME instead. The stash reason is `nav`, and the next
+>    launch does NOT auto-jump into the player.
+> 4. Both round timers, not just one.
+
+---
+
+## PROMPT VOL-1 — the bell must not ride the voice fader
+
+> Run this in the app. Verify first; implement only what is missing.
+>
+> ### Symptom
+>
+> "The timer bell is very loud but the voice commands are still too low and can
+> barely be heard under music. The voice commands will not rise."
+>
+> ### Root cause
+>
+> One slider drove two audio paths with OPPOSITE ceilings.
+> - Voice is browser TTS: `utter.volume = min(1, masterVolume * voiceVolume)`,
+>   and `SpeechSynthesisUtterance.volume` is hard-capped at **1.0**. At the
+>   default `voiceVolume` of 1.5 the voice is ALREADY pinned — the top half of
+>   that fader does nothing whatsoever.
+> - Cues are Web Audio: `getCueGain()` was
+>   `masterVolume * sfxVolume * voiceVolume * CUE_BOOST(3.0)`.
+>
+> So raising VOICE multiplied the bell by up to 3x while the spoken coach did
+> not move one decibel.
+>
+> ### Done state
+>
+> - `getCueGain()` is `masterVolume * BELL_LEVEL` and nothing else.
+>   `BELL_LEVEL = 1.1` — a fixed neutral level a touch above the voice. Not the
+>   VOICE fader, and **not a bell fader either**: the owner's call is that the
+>   bell should simply be right, because a slider invites the same mistake.
+>   Effective bell gain goes 4.5 → 1.1.
+> - The session mixer has exactly TWO faders: VOICE and MUSIC.
+> - Above 100% the mixer states plainly that the browser caps the spoken coach
+>   there, and points at MUSIC and phone media volume instead of leaving the
+>   athlete dragging a fader that cannot help.
+> - Profile's AUDIO DUCKING section states that this browser cannot turn down
+>   other apps' audio. Ducking needs `navigator.audioSession`, which Android
+>   Chrome does not implement, so `duckExternalAudio()` returns immediately
+>   while the UI advertised a working switch.
+>
+> ### Do NOT
+>
+> - Do NOT add a bell slider back. That is the decision, not an oversight.
+> - Do NOT let `voiceVolume` re-enter `getCueGain()` under any refactor.
+>
+> ### Still open (the real loudness fix)
+>
+> On web the spoken coach CANNOT exceed the browser ceiling. Making it genuinely
+> louder needs pre-recorded voice cues played through Web Audio — they go
+> through the same limiter as the bell and can be boosted far past TTS, and they
+> kill speech latency as a bonus. Start with the numbers 1-8 and round
+> start/end, keep TTS as the fallback for anything unrecorded.
+
+---
+
+## PROMPT MP-1 — the floating mini-player (build spec)
+
+> Run this in the app. PROMPT MP-D is the DESIGN brief; this is the build.
+>
+> ### What it is
+>
+> When the athlete leaves the app mid-session, the round clock keeps running in
+> a small floating window over whatever they are doing. Player/timer screens
+> only, and gone when the session ends.
+>
+> ### The constraint everything follows from
+>
+> Android floats only a `<video>`. Document Picture-in-Picture, which floats
+> real DOM, is desktop Chrome only. So the timer is PAINTED to a canvas, the
+> canvas is captured as a stream, and that video is what floats. Every pixel in
+> that window is drawn by hand in `shared/miniPlayer.js`.
+>
+> ### Done state
+>
+> - `shared/miniPlayer.js` — the engine. Draws round position, a deliberately
+>   huge clock, the current call, and a sweeping dot that proves the window is
+>   LIVE (a frozen window and a paused session look identical otherwise). Tones
+>   follow the app: violet work, blue rest, red final ten seconds.
+> - Frames are driven by `setInterval`, **never** `requestAnimationFrame`. rAF
+>   is throttled to a standstill on a hidden page — exactly when this window
+>   matters. Changing this silently breaks the whole feature.
+> - The `<video>` is appended to the document (parked invisibly), not left
+>   detached: some engines refuse a detached element.
+> - `hooks/useMiniPlayer.js` reads the frame source through a REF, so a session
+>   re-rendering every second cannot tear the capture stream down mid-glance.
+>   It follows `enter/leavepictureinpicture` so the button tracks the platform,
+>   and destroys everything on unmount or session end.
+> - `shared/MiniPlayerButton.jsx` renders NOTHING where the platform cannot
+>   float a video — never a dead control (the mistake AUDIO DUCKING made).
+>   Wired into Combo Coach and Fight Focus beside the volume icon.
+>
+> ### Why a button and not automatic
+>
+> Android requires a user GESTURE to enter picture-in-picture, so a session
+> cannot pop the window as it is being backgrounded — which is exactly when it
+> would want to. `autoPictureInPicture` is set for platforms that do allow
+> automatic entry; everywhere else one tap opens a window that then survives the
+> app being left.
+>
+> ### Do NOT
+>
+> - Do NOT draw buttons in the window. Nothing inside a video is tappable, and a
+>   control that cannot be pressed is worse than none.
+> - Do NOT swap the interval for rAF "for smoothness".
+>
+> ### Verify
+>
+> 1. The button appears in a session and toggles its aria-label.
+> 2. Tapping it attaches a live 640x360 stream and opens PiP.
+> 3. With the page hidden, `video.getVideoPlaybackQuality().totalVideoFrames`
+>    keeps climbing — roughly 10/second. **This is the property the feature
+>    turns on.**
+> 4. Leaving the player closes the window AND removes the video element.
+> 5. On a REAL Android phone (`/pip-test.html` answers this cleanly): do the
+>    numbers keep moving once the app is actually backgrounded? Desktop Chromium
+>    with a simulated hidden document is NOT the same test. If frames stop
+>    there, the web route is dead and the mini-player needs the native wrapper
+>    (variant B of MP-D).
