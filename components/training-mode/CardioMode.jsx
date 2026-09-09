@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
 import VoiceMixer from './shared/VoiceMixer';
@@ -10,6 +10,10 @@ import { C } from './Styles';
 import { ARCADE } from './ArcadeUI';
 import { CARDIO_ADDON_TYPES, cardioAddonToPlayer } from './data/cardioAddon';
 import CardioProtocolPlayer from './CardioProtocolPlayer';
+import RunPlayer from './RunPlayer';
+import { loadLiveRun, liveRunElapsedSec } from './data/liveRun';
+import { computeRunTargets, metersPerUnit } from './data/runCoach';
+import { unlockAudio } from './data/audioEngine';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -24,15 +28,19 @@ const VIOLET = '#b06aff';
 
 const fmtClock = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
 
-// Auto pace target (design 12a): from the goal distance + the athlete's level we
-// set a target pace the voice coach holds them to. Base 10:00/mi at level 1,
-// ~18s/level faster, floored at 6:30/mi.
-function computeAutoPace(distance, unit, level) {
-  const paceSecPerMile = Math.max(390, 600 - (Math.max(1, level) - 1) * 18);
-  const miles = unit === 'km' ? distance * 0.621371 : distance;
-  const totalSec = Math.round(miles * paceSecPerMile);
-  const paceSecPerUnit = unit === 'km' ? paceSecPerMile * 0.621371 : paceSecPerMile;
-  return { totalSec, paceSecPerUnit, paceLabel: `${fmtClock(paceSecPerUnit)} /${unit}`, timeLabel: fmtClock(totalSec), goalLabel: `${distance} ${unit}` };
+// Target + elite time for a distance run. The target defaults from the goal
+// distance and the athlete's level (10:00/mi at level 1, ~18s/level faster,
+// floored at 6:30/mi) and is editable; the elite time is the number to chase —
+// two thirds of the target, never faster than 6:00/mi. All in data/runCoach.js
+// so the setup screen and the run player agree to the second.
+function computeAutoPace(distance, unit, level, targetSeconds) {
+  const t = computeRunTargets({ distance, unit, level, targetSeconds });
+  return {
+    totalSec: t.targetSec, autoTotalSec: t.autoTargetSec, eliteSec: t.eliteSec,
+    paceSecPerUnit: t.targetPaceSec, elitePaceSecPerUnit: t.elitePaceSec,
+    paceLabel: `${fmtClock(t.targetPaceSec)} /${unit}`, timeLabel: fmtClock(t.targetSec), eliteLabel: fmtClock(t.eliteSec),
+    goalLabel: `${distance} ${unit}`,
+  };
 }
 
 // Simplified method taxonomy (design 12a). Four categories; the category IS the
@@ -134,8 +142,11 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
 
 // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
 // pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
-export default function CardioMode({ onBack }) {
-  const [phase, setPhase] = useState('setup');
+export default function CardioMode({ onBack, onSessionState }) {
+  // A run that is still live (the athlete left the player, the app, or the
+  // OS took it) comes straight back into the player. See data/liveRun.js.
+  const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
+  const [phase, setPhase] = useState(() => (loadLiveRun() ? 'player' : 'setup'));
   const [categoryId, setCategoryId] = useState('running');
   const [style, setStyle] = useState('steady');
   const [intervalMode, setIntervalMode] = useState('target'); // 'random' | 'target'
@@ -146,6 +157,7 @@ export default function CardioMode({ onBack }) {
   const [customDistance, setCustomDistance] = useState('');
   const [goalTimeSeconds, setGoalTimeSeconds] = useState(1200);
   const [customTimeMin, setCustomTimeMin] = useState('');
+  const [customTargetMin, setCustomTargetMin] = useState('');
   const [noGps, setNoGps] = useState(false);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -168,7 +180,9 @@ export default function CardioMode({ onBack }) {
   const parsedCustomMin = parseFloat(customTimeMin);
   const effGoalTime = Number.isFinite(parsedCustomMin) && parsedCustomMin > 0 ? Math.round(parsedCustomMin * 60) : goalTimeSeconds;
 
-  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level) : null;
+  const parsedTargetMin = parseFloat(customTargetMin);
+  const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
+  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec) : null;
 
   const displayStyleLabel = style === 'steady' ? 'Steady Pace'
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
@@ -211,6 +225,9 @@ export default function CardioMode({ onBack }) {
       distanceUnit: dist ? dist.unit : 'mi',
       paceTargetSeconds: autoPace ? autoPace.paceSecPerUnit : null,
       paceTargetLabel: autoPace ? autoPace.paceLabel : null,
+      targetSeconds: autoPace ? autoPace.totalSec : null,
+      eliteSeconds: autoPace ? autoPace.eliteSec : null,
+      elitePaceSeconds: autoPace ? autoPace.elitePaceSecPerUnit : null,
       style: addonStyle,
       intervals,
       randomSurges,
@@ -220,17 +237,27 @@ export default function CardioMode({ onBack }) {
 
   const addon = buildAddon();
 
-  // Outdoor runs need GPS; probe real permission and route to the GPS empty
-  // state (25d) if it's unavailable / denied.
+  // START goes straight into the player, which speaks the brief and starts the
+  // clock itself. It used to probe getCurrentPosition first with an 8-second
+  // timeout — a silent wait on a fresh run, and the player then needed a
+  // SECOND start tap. The run player opens the GPS watch immediately (that is
+  // what raises the permission prompt) and reports a denial back here.
   const startCardio = () => {
     setPlayerResult(null);
-    if (usesGps) {
-      if (typeof navigator === 'undefined' || !navigator.geolocation) { setPhase('gps'); return; }
-      navigator.geolocation.getCurrentPosition(() => setPhase('player'), () => setPhase('gps'), { timeout: 8000, maximumAge: 60000 });
-      return;
-    }
+    setLiveRestore(null);
+    unlockAudio();
+    if (usesGps && (typeof navigator === 'undefined' || !navigator.geolocation)) { setPhase('gps'); return; }
     setPhase('player');
   };
+
+  // Leaving the player does NOT end the run. The clock is wall time, the run
+  // is in storage; the setup screen shows a RETURN banner until it finishes.
+  const leavePlayer = () => { setLiveRestore(loadLiveRun()); setPhase('setup'); };
+  useEffect(() => {
+    if (phase !== 'setup') return undefined;
+    const t = setInterval(() => setLiveRestore(loadLiveRun()), 1000);
+    return () => clearInterval(t);
+  }, [phase]);
 
   if (phase === 'gps') {
     return (
@@ -250,6 +277,14 @@ export default function CardioMode({ onBack }) {
 
   if (phase === 'player') {
     const player = cardioAddonToPlayer(addon);
+    // A restored run carries its own config; a fresh one takes the setup's.
+    const runCfg = liveRestore?.cfg || {
+      goal: addon.targetDistance, unit: addon.distanceUnit,
+      targetSec: addon.targetSeconds, eliteSec: addon.eliteSeconds,
+      targetPaceSec: addon.paceTargetSeconds, elitePaceSec: addon.elitePaceSeconds,
+      methodLabel, useGps: usesGps, randomSurges: addon.randomSurges,
+    };
+    const isRun = liveRestore ? true : useDistanceGauge;
     return (
       <PhoneFrame useBrandBg>
         <Embers count={2}/>
@@ -259,13 +294,24 @@ export default function CardioMode({ onBack }) {
         <VoiceMixer top={10} right={10}/>
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '12px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <button onClick={() => setPhase('setup')} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
+            <button onClick={leavePlayer} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
               <ChevronLeft size={22}/>
             </button>
             <IntroLogo size={26}/>
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: 4 }}>
+            {isRun ? (
+              <RunPlayer
+                cfg={runCfg}
+                restore={liveRestore}
+                autoStart
+                onState={onSessionState}
+                onGpsDenied={() => { if (!liveRestore) setPhase('gps'); }}
+                onComplete={(result) => { onSessionState?.(null); setLiveRestore(null); setPlayerResult(result); setPhase('summary'); }}
+              />
+            ) : (
             <CardioProtocolPlayer
+              autoStart
               format={player.format}
               durationSeconds={player.durationSeconds}
               intervalConfig={player.intervalConfig}
@@ -284,6 +330,7 @@ export default function CardioMode({ onBack }) {
               deferManualLog={useDistanceGauge}
               onComplete={(result) => { setPlayerResult(result); setPhase('summary'); }}
             />
+            )}
           </div>
         </div>
       </PhoneFrame>
@@ -307,7 +354,9 @@ export default function CardioMode({ onBack }) {
             targetTimeSeconds={addon.targetType === 'time' ? addon.targetTimeSeconds : null}
             targetDistance={addon.targetType === 'distance' ? player.distanceLabel : null}
             initialTimeSeconds={playerResult?.completedTimeSeconds ?? fallbackTime}
-            initialDistanceUnit={addon.distanceUnit || 'mi'}
+            initialDistance={typeof playerResult?.completedDistance === 'number' ? playerResult.completedDistance : null}
+            initialDistanceUnit={playerResult?.distanceUnit || addon.distanceUnit || 'mi'}
+            runResult={playerResult?.splits ? playerResult : null}
             awardXp
             onDone={onBack}
           />
@@ -345,6 +394,22 @@ export default function CardioMode({ onBack }) {
         {/* Options — top-aligned; this region fills, so the open space lands below the controls */}
         <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
+          {liveRestore && (
+            <button onClick={() => setPhase('player')} style={{
+              width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 12, padding: '10px 12px', borderRadius: 12,
+              background: 'rgba(34,197,94,0.1)', border: '1.5px solid rgba(34,197,94,0.55)', boxShadow: '0 0 16px rgba(34,197,94,0.18)',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e', flexShrink: 0 }}/>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: '#8fe8ac', letterSpacing: '0.12em' }}>RUN IN PROGRESS · {liveRestore.pausedAt ? 'PAUSED' : 'CLOCK RUNNING'}</div>
+                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 12, color: '#fff', marginTop: 2 }}>
+                  {fmtClock(liveRunElapsedSec(liveRestore))} · {((liveRestore.meters || 0) / metersPerUnit(liveRestore.cfg?.unit || 'mi')).toFixed(2)} {liveRestore.cfg?.unit || 'mi'} of {liveRestore.cfg?.goal}
+                </div>
+              </div>
+              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: GOLD, letterSpacing: '0.1em', flexShrink: 0 }}>RETURN ▶</span>
+            </button>
+          )}
           {/* METHOD — 4 compact category cards (the category is the selection) */}
           <ProgressionNudgeCard lane="cardio"/>
           <div data-guide="cm-method">
@@ -446,11 +511,23 @@ export default function CardioMode({ onBack }) {
               </div>
 
               {autoPace && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 9 }}>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>AUTO PACE</span>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>{autoPace.paceLabel}</span>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>Lvl {level}</span>
+                <div style={{ borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 9 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>TARGET</span>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, color: '#c4b5fd' }}>{autoPace.paceLabel}</span>
+                    <input
+                      type="number" inputMode="numeric" min="1" step="1" placeholder="min"
+                      value={customTargetMin} onChange={e => setCustomTargetMin(e.target.value)}
+                      aria-label="Target time in minutes"
+                      style={{ width: 52, marginLeft: 'auto', padding: '3px 6px', borderRadius: 7, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 11, fontWeight: 600, outline: 'none' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5 }}>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: GOLD, letterSpacing: '0.1em', flexShrink: 0 }}>ELITE</span>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: GOLD, textShadow: '0 0 10px rgba(253,224,71,0.4)' }}>{autoPace.eliteLabel}</span>
+                    <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>{customTargetSec ? 'your target' : `auto · Lvl ${level}`}</span>
+                  </div>
                 </div>
               )}
               </div>

@@ -533,7 +533,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         {/* TM-16 census caught this: CardioMode only accepts onBack — the
             onHome prop was passed and silently dropped. */}
-        <CardioMode onBack={goFitHub}/>
+        <CardioMode onBack={goFitHub} onSessionState={reportSessionState}/>
       </WithNav>
     );
   }

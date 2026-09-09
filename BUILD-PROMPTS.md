@@ -2539,3 +2539,169 @@ SecondaryButton / Card); no new design system.
 >
 > Or one commit if the intermediate state is never built:
 > `Bell is a fixed level; VOICE and MUSIC are the only faders`.
+
+---
+
+## PROMPT RUN-1 — Cardio Mode as a real run app: auto-start, voice, distance-first, survives leaving
+
+> Run this in the Training Mode revamp app. Verify first; implement only what
+> is missing. Safe to re-run. The reference implementation is on `app` in
+> `RunPlayer.jsx`, `data/runCoach.js`, `data/liveRun.js`, and the edits to
+> `CardioMode.jsx`, `CardioProtocolPlayer.jsx`, `CardioSummary.jsx`,
+> `App.jsx`, `ScreenRouter.jsx` — read them before writing anything.
+>
+> ### What the athlete reported
+>
+> Ran with Cardio Mode. It "somewhat monitored pace" but did nothing else: no
+> voice, no announcement, nothing. It should work like a dedicated run app —
+> start automatically from the options screen, keep the timer running when
+> the player or the app is left, show DISTANCE first and the time counting UP
+> from zero, announce splits precisely, call out pace (too slow / good pace),
+> give running pointers, and state a target time plus an ELITE time to chase.
+>
+> ### Root cause (do not re-diagnose from scratch)
+>
+> 1. `CardioProtocolPlayer.jsx` imported NOTHING from `voiceCoach.js`. Zero
+>    `speakAsync` calls anywhere in cardio. The "coach" line was text only.
+> 2. START CARDIO opened the player with `running = false`, so a SECOND start
+>    tap was needed. Before that it probed `getCurrentPosition` with an
+>    8-second timeout, silently.
+> 3. `useAutoPauseOnHidden(running && !done, () => setRunning(false))` paused
+>    the run on every backgrounding AND the GPS watch was tied to `running`,
+>    so leaving the app stopped both the clock and the distance.
+> 4. The clock was `setInterval(() => setTotalElapsed(t => t + 1), 1000)` — a
+>    counter, which browsers throttle in the background. Even without the
+>    auto-pause the time would have drifted.
+> 5. PACE was the 44px hero; distance and time were 15px footnotes.
+> 6. No wake lock, so the screen slept and the page froze mid-run.
+> 7. The summary asked the athlete to TYPE the distance the GPS just measured.
+> 8. `cardio_mode` was not a session screen, so a phone call lost the run.
+>
+> ### Done state
+>
+> **`data/runCoach.js` (pure, no browser):**
+> - `computeRunTargets({ distance, unit, level, targetSeconds })` →
+>   `{ targetSec, autoTargetSec, eliteSec, targetPaceSec, elitePaceSec }`.
+>   Target defaults from level (10:00/mi at L1, −18 s/level, floor 6:30) and
+>   is editable. **Elite = 2/3 of target, floored at a 6:00/mi pace.**
+>   3 mi in 30:00 → elite 20:00 (the owner's example).
+> - `buildRunIntro(...)` → "Cardio mode. GPS run, 3 miles. Target time, 30
+>   minutes. Elite time, 20 minutes." then "Ready." then "Go!"
+> - `crossedMarkers(prev, dist, 0.5)` / `crossedTenths` — spoken splits at
+>   every HALF and WHOLE unit; tenths are a visual tick + a 30 ms buzz only.
+> - `splitScript(...)` — "One mile. 9 minutes 40. Pace 9 40 per mile. 20
+>   seconds ahead of target." / "…behind target. Pick it up." / "You are on
+>   elite pace." / "Halfway." / "Half a mile to go. Empty the tank."
+> - `finishScript(...)` — "Goal reached. 3 miles in 28 minutes 30. Elite time.
+>   Outstanding." / "Under target by …" / "… over target. Next time we take it."
+> - `paceVerdict(cur, target)` — >20% slow `very_slow`, >8% `slow`, <−6%
+>   `fast`, else `on`. `PACE_CUES` per verdict ("You are under the speed
+>   limit. Pick it up." / "Good pace. Hold it right there." …) and `RUN_TIPS`
+>   (form pointers). `pickCue` never repeats the last line.
+> - Cue cadence: every 45–75 s, every third slot a tip, never within 12 s of a
+>   split (`shouldCue`, `nextCueGap`).
+> - `evaluateFix(prev, fix)` — reject accuracy > 35 m, moves under
+>   max(2 m, accuracy/4), and anything faster than 12 m/s. `rollingPaceSec`
+>   over the last 30 s of samples.
+> - `speakDistance` / `speakDuration` / `speakPace` — TTS-safe wording.
+>
+> **`data/liveRun.js`:** `loadLiveRun / saveLiveRun / clearLiveRun /
+> liveRunElapsedSec`. Key `tm_live_run`, 12 h max age. Elapsed is
+> `now − startedAt − pauseAccumMs − (pausedAt ? now − pausedAt : 0)`. Wall
+> time, never a counter.
+>
+> **`RunPlayer.jsx` (new — the distance/GPS player):**
+> - Mount → `intro` phase: `unlockAudio()`, `primeSpeech()`, speak the brief,
+>   "Ready.", 700 ms, bell, "Go!", `startRun()`. Wrapped in try/catch: **the
+>   brief is a courtesy, not a gate — the run starts whatever speech does.**
+> - GPS `watchPosition` runs for the life of the player (that is what raises
+>   the permission prompt), accrues only while running, `enableHighAccuracy`,
+>   `maximumAge: 0`. Denial → `onGpsDenied` → setup shows the GPS empty state.
+> - Clock sampled 4×/s from wall time. `useWakeLock(running)`.
+> - HUD order: GPS status · **DISTANCE 66px hero** (ticks gold at each tenth)
+>   · TIME 34px counting up · PACE | TARGET | ELITE chips · projected
+>   "−0:42 VS TARGET · +3:10 VS ELITE" · progress bar with tenth ticks · route
+>   trail · last coach line · PAUSE/RESUME + END.
+> - No GPS (treadmill, no fix yet): distance ESTIMATED at target pace,
+>   labelled `DISTANCE · EST`; splits still fire; pace verdicts do not.
+> - Random surges: "Surge! Push the pace…" / "Surge over. Settle back…".
+> - Persist on start/pause/resume/split, every accepted fix (≤1 per 4 s),
+>   every second while running, and on unmount mid-run.
+> - `restore` prop: hydrates from the stored run, phase `run`, running unless
+>   it was paused. Speaks "Run resumed. N on the clock. X so far." only if the
+>   run was away > 15 s.
+> - Coming back from hidden > 15 s: caption "Clock kept running while the app
+>   was away. GPS distance resumes from here." and `lastFix = null` so the
+>   next fix does not add a phantom jump.
+> - Done card: GOAL REACHED / RUN ENDED, distance, time, avg pace, vs target,
+>   vs elite, ★ ELITE TIME ★, splits list, CONTINUE. Result carries
+>   `completedDistance` (number), `gps`, `beatTarget`, `beatElite`, `splits`.
+>
+> **`CardioMode.jsx`:**
+> - Setup: `computeAutoPace` is a thin wrapper over `computeRunTargets`. The
+>   card shows TARGET (time + pace + an editable minutes input) and ELITE.
+> - START: `unlockAudio()`, no GPS probe, straight to the player.
+> - `phase` initialises to `'player'` when `loadLiveRun()` returns a run.
+> - Back from the player → `leavePlayer()`: run stays live; setup shows a
+>   green "RUN IN PROGRESS · CLOCK RUNNING · 12:34 · 1.2 mi of 3 — RETURN ▶"
+>   banner (refreshed every second) that re-enters the player with `restore`.
+> - Summary receives `initialDistance` and `runResult` → distance prefilled,
+>   VS TARGET / VS ELITE / GPS VERIFIED card.
+>
+> **`CardioProtocolPlayer.jsx` (intervals / tabata / HIIT / time):**
+> - `autoStart` + `voice` props. Spoken brief ("Cardio mode. Tabata. 8
+>   rounds, 20 seconds work, 10 seconds rest. Ready. Go!").
+> - Wall-clock timing: `clockRef { startedAt, pauseAccumMs, pausedAt,
+>   offsetSec }`; segment index and remaining DERIVED from elapsed against
+>   cumulative bounds; the ±15 s buttons move `offsetSec`.
+> - `useAutoPauseOnHidden` REMOVED. Voice on every segment change ("Round 3.
+>   Hard!" / "Rest." / "Recover. Easy pace." / "Warm up…" / "Cool down…"),
+>   beeps at 3-2-1, bell + "Complete. Great work." at the end.
+>
+> **`App.jsx` / `ScreenRouter.jsx`:** `'cardio_mode'` joins
+> `ACTIVE_SESSION_SCREENS`, guarded by `isSessionScreenLive(screen,
+> internalState)` which requires `internalState.live` for cardio. The run
+> player reports `{ live, running, elapsedSec, meters }` through
+> `onSessionState={reportSessionState}`. A phone call therefore stashes a
+> `'lifecycle'` snapshot and boot restores straight back into the run.
+>
+> ### Do NOT
+>
+> - Do NOT gate the run start on speech succeeding.
+> - Do NOT bring back `useAutoPauseOnHidden` for cardio. Leaving is not a pause.
+> - Do NOT tick a counter for time. Wall clock only.
+> - Do NOT speak at every tenth. Half and whole units only; tenths are visual.
+> - Do NOT let the pace coach judge an ESTIMATED distance.
+> - Do NOT ask for the distance on the summary when the run measured it.
+>
+> ### Verify (real browser with a mocked geolocation, then a real phone)
+>
+> 1. Setup shows TARGET 31:04 · 6:13 /km and ELITE 20:43 for 5 km at level 1;
+>    switching to MI and typing 0.6 shows TARGET 6:00 / ELITE 4:00.
+> 2. START CARDIO: the spoken log reads exactly `cardio mode. | gps run, 0.6
+>    miles. | target time, 6 minutes. | elite time, 4 minutes. | ready. | go!`
+>    and the clock is running with NO second tap.
+> 3. Feed fixes 10 m apart every second: GPS LIVE, distance climbs, the
+>    tenth ticks, pace chip populates.
+> 4. Reload the page outright mid-run. The app boots INTO the player; the
+>    stored stash was `{screen: cardio_mode, reason: lifecycle, live: true}`;
+>    the clock continues (reference: 0:20 → 0:25 across a 3.5 s reload);
+>    "Run resumed…" is spoken.
+> 5. Tap BACK: setup shows the RUN IN PROGRESS banner; RETURN re-enters with
+>    the clock still going.
+> 6. Half-mile split spoken with time, pace, verdict, "a tenth of a mile to
+>    go. Empty the tank."; a pace cue fires between splits.
+> 7. Goal reached: card shows distance, time, avg pace, vs target, vs elite,
+>    splits; finish call spoken; `tm_live_run` is cleared; CONTINUE lands on
+>    the summary with distance `0.6` and time `1:45` prefilled.
+> 8. Tabata from MACHINE: brief spoken, "round 1. hard!" spoken, and hiding
+>    the tab for 6 s advances the clock by 6 s with no RESUME state.
+>
+> ### Known limits on web (say them, do not hide them)
+>
+> - GPS cannot be read while the page is not on screen. The clock keeps
+>   running; distance resumes from the next fix. The wake lock keeps the
+>   screen on during the run so this only bites when the athlete leaves the
+>   app. The native wrapper closes this gap.
+> - Speech is browser TTS and cannot exceed the browser's volume ceiling
+>   (see VOL-2). Pre-recorded cues are the real fix.

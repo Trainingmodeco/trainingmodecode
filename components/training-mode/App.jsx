@@ -51,8 +51,15 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
 }
 
 const ACTIVE_SESSION_SCREENS = new Set([
-  'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session',
+  'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session', 'cardio_mode',
 ]);
+// cardio_mode is a setup screen most of the time and a session only while a
+// run is live. The run player reports { live: true } through onSessionState;
+// without it the screen is not stashed and the boot restore leaves it alone.
+function isSessionScreenLive(screen, internalState) {
+  if (screen === 'cardio_mode') return !!internalState?.live;
+  return true;
+}
 
 // Stable per-combo key so the Hybrid Training Bonus is awarded only once for a
 // given workout + cardio finisher, even across double-fires, refresh, or reopen.
@@ -205,6 +212,7 @@ export default function App() {
   // into the player automatically on next launch).
   const buildSessionSnapshot = useCallback((reason) => {
     if (!ACTIVE_SESSION_SCREENS.has(screen)) return null;
+    if (!isSessionScreenLive(screen, activeSessionStateRef.current)) return null;
     const internalState = activeSessionStateRef.current
       ? { ...activeSessionStateRef.current }
       : null;

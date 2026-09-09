@@ -2,10 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
-import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import MiniPlayerButton from './shared/MiniPlayerButton';
 import { ARCADE } from './ArcadeUI';
+import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
+import { playBell, playBeep, unlockAudio } from './data/audioEngine';
+import { buildIntervalIntro, speakDuration } from './data/runCoach';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
 
@@ -213,6 +215,8 @@ export default function CardioProtocolPlayer({
   goalDistance = null,
   initialDistanceUnit = 'mi',
   deferManualLog = false,
+  autoStart = false,
+  voice = true,
   onComplete,
 }) {
   const buildRef = useRef(null);
@@ -225,8 +229,18 @@ export default function CardioProtocolPlayer({
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [showManual, setShowManual] = useState(manualOnly);
+  const [starting, setStarting] = useState(!!autoStart && !manualOnly);
   const firedRef = useRef(false);
   const tickRef = useRef(null);
+  // Wall-clock timing. A 1-second setInterval counter drifts and stops the
+  // moment the browser throttles a background tab; timestamps do not. The
+  // clock is startedAt + accumulated pause time, and the nudge buttons move an
+  // offset, so leaving the app never freezes a session.
+  const clockRef = useRef({ startedAt: null, pauseAccumMs: 0, pausedAt: null, offsetSec: 0 });
+  const lastSpokenSegRef = useRef(-1);
+  const lastBeepSecRef = useRef(-1);
+
+  const say = (text, opts) => { if (voice && text) speakAsync(text, opts).catch(() => {}); };
 
   // Real GPS tracking (outdoor runs). Accumulates distance between fixes and keeps
   // a route trail; falls back to the simulation when GPS is unavailable/denied.
@@ -262,33 +276,114 @@ export default function CardioProtocolPlayer({
   }, [remaining, running, done, seg, segIndex, segments, rounds, format]);
   const mini = useMiniPlayer(miniFrame, !done && !showManual);
 
-  // Auto-pause on backgrounding — same as tapping PAUSE, so returning shows
-  // RESUME. Applies to every cardio mode INCLUDING live GPS runs (per playtest
-  // call): leaving the app pauses the run rather than banking distance the
-  // athlete didn't knowingly train. RESUME picks the run straight back up.
-  useAutoPauseOnHidden(running && !done, () => setRunning(false));
+  // Deliberately NO auto-pause on backgrounding any more. Owner's call after
+  // running with it: the timer keeps running regardless of where the athlete
+  // is — leaving the player or the app is not a pause.
 
+  // Pause / resume bookkeeping on the wall clock.
+  const toggleRunning = () => {
+    const c = clockRef.current;
+    if (running) {
+      c.pausedAt = Date.now();
+      setRunning(false);
+      say('Paused.');
+    } else {
+      if (c.startedAt == null) c.startedAt = Date.now();
+      if (c.pausedAt) { c.pauseAccumMs += Date.now() - c.pausedAt; c.pausedAt = null; }
+      setRunning(true);
+      if (totalElapsed > 0) say('Resume. Go!');
+    }
+  };
+
+  // The tick: sample the wall clock 4x a second and derive everything.
   useEffect(() => {
     if (!running || done || showManual) { clearInterval(tickRef.current); return; }
-    tickRef.current = setInterval(() => {
-      if (!distanceMode) setRemaining(r => Math.max(0, r - 1));
-      setTotalElapsed(t => t + 1);
-    }, 1000);
+    const bounds = [];
+    segments.reduce((acc, sg) => { const end = acc + sg.seconds; bounds.push(end); return end; }, 0);
+    const total = bounds[bounds.length - 1] || 0;
+    const tick = () => {
+      const c = clockRef.current;
+      if (c.startedAt == null) c.startedAt = Date.now();
+      const raw = (Date.now() - c.startedAt - c.pauseAccumMs) / 1000;
+      const elapsed = Math.max(0, Math.floor(raw));
+      setTotalElapsed(elapsed);
+      if (distanceMode) return;
+      const eff = Math.max(0, elapsed + c.offsetSec);
+      if (eff >= total) { setRemaining(0); setDone(true); setRunning(false); return; }
+      let idx = 0;
+      while (idx < bounds.length - 1 && eff >= bounds[idx]) idx++;
+      setSegIndex(idx);
+      setRemaining(Math.max(0, Math.ceil(bounds[idx] - eff)));
+    };
+    tick();
+    tickRef.current = setInterval(tick, 250);
     return () => clearInterval(tickRef.current);
-  }, [running, done, showManual, distanceMode]);
+  }, [running, done, showManual, distanceMode, segments]);
+
+  const nudge = (deltaSec) => { clockRef.current.offsetSec += deltaSec; };
+
+  // Voice on every segment change, beeps into the last three seconds of a
+  // block, and a bell + "Complete" at the end.
+  useEffect(() => {
+    if (distanceMode || !running || done) return;
+    if (lastSpokenSegRef.current === segIndex) return;
+    lastSpokenSegRef.current = segIndex;
+    const sg = segments[segIndex];
+    if (!sg) return;
+    if (sg.kind === 'work') { playBell(1); say(`Round ${sg.round}. ${sg.label === 'HARD' ? 'Hard!' : 'Work!'}`); }
+    else if (sg.kind === 'rest') say(sg.label === 'REST' ? 'Rest.' : 'Recover. Easy pace.');
+    else if (sg.kind === 'warmup') say(`Warm up. ${speakDuration(sg.seconds)}, easy.`);
+    else if (sg.kind === 'cooldown') say('Cool down. Bring it down.');
+    else if (sg.kind === 'steady' && totalElapsed === 0) { /* intro covers it */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segIndex, running, done, distanceMode]);
 
   useEffect(() => {
-    if (distanceMode) return;
-    if (remaining > 0 || done) return;
-    const next = segIndex + 1;
-    if (next >= segments.length) {
-      setDone(true);
-      setRunning(false);
-    } else {
-      setSegIndex(next);
-      setRemaining(segments[next].seconds);
-    }
-  }, [remaining, done, segIndex, segments, distanceMode]);
+    if (distanceMode || !running || done) return;
+    if (remaining >= 1 && remaining <= 3 && lastBeepSecRef.current !== remaining) { lastBeepSecRef.current = remaining; playBeep(); }
+  }, [remaining, running, done, distanceMode]);
+
+  useEffect(() => {
+    if (!done) return;
+    playBell(3);
+    say('Complete. Great work.');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
+
+  // Auto-start: speak the brief, then GO. START CARDIO on the setup screen is
+  // the gesture that primes speech and audio.
+  useEffect(() => {
+    if (!starting) return undefined;
+    let cancelled = false;
+    // The brief is a courtesy, not a gate: whatever speech does, the clock starts.
+    (async () => {
+      try {
+        unlockAudio();
+        if (voice) {
+          await primeSpeech();
+          const cfg = intervalConfig || {};
+          const intro = (format === 'interval' || format === 'tabata')
+            ? buildIntervalIntro({ styleLabel: styleLabel || format, rounds, workSec: cfg.workSeconds ?? cfg.fastSeconds ?? cfg.hardSeconds ?? 30, restSec: cfg.restSeconds ?? cfg.easySeconds ?? 15, warmupSec: cfg.warmupSeconds ?? 0 })
+            : { lines: ['Cardio mode.', `${String(methodLabel || 'cardio').toLowerCase()}, ${speakDuration(durationSeconds || 600)} steady.`], ready: 'Ready.', go: 'Go!' };
+          for (const line of intro.lines) { if (cancelled) return; await speakAsync(line).catch(() => {}); }
+          if (cancelled) return;
+          await speakAsync(intro.ready).catch(() => {});
+          await delay(700);
+        } else {
+          await delay(1200);
+        }
+      } catch { /* start anyway */ }
+      if (cancelled) return;
+      try { playBell(1); say('Go!', { rate: 1.1 }); } catch { /* ignore */ }
+      setStarting(false);
+      clockRef.current.startedAt = Date.now();
+      setRunning(true);
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [starting]);
+
+  useEffect(() => () => stopVoiceSession(), []);
 
   useEffect(() => () => clearInterval(tickRef.current), []);
 
@@ -478,10 +573,10 @@ export default function CardioProtocolPlayer({
         <div style={{ display: 'flex', gap: 10, width: '100%' }}>
           <TrainingCTA
             variant={running ? 'violet' : 'gold'}
-            label={running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
+            label={starting ? 'STARTING…' : running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
             icon={running ? '❚❚' : '▶'}
             height={52}
-            onClick={() => setRunning(v => !v)}
+            onClick={() => { if (!starting) toggleRunning(); }}
             style={{ flex: '2 1 0', width: 'auto', fontSize: 14, letterSpacing: '0.08em' }}
           />
           <button onClick={() => { setRunning(false); if (deferManualLog) finish({ completedDistance: +dist.toFixed(2), distanceUnit: unit }); else setShowManual(true); }} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -533,19 +628,19 @@ export default function CardioProtocolPlayer({
 
       {!done && (
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
-          <CtrlButton onClick={() => setRemaining(r => Math.max(0, r - 15))}>
+          <CtrlButton onClick={() => nudge(-15)}>
             <Rewind size={17} color={C.neon} />
           </CtrlButton>
-          <button onClick={() => setRunning(v => !v)} style={{
+          <button onClick={() => { if (!starting) toggleRunning(); }} style={{
             width: 60, height: 60, borderRadius: 16, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: running ? 'linear-gradient(135deg, rgba(168,85,247,0.28), rgba(168,85,247,0.12))' : 'rgba(253,224,71,0.12)',
             border: `1.5px solid ${running ? 'rgba(168,85,247,0.5)' : GOLD}`,
             boxShadow: running ? '0 0 16px rgba(168,85,247,0.2)' : '0 0 16px rgba(253,224,71,0.25)',
           }}>
-            {running ? <Pause size={24} color="#fff" /> : <Play size={24} color={GOLD} />}
+            {running ? <Pause size={24} color="#fff" /> : <Play size={24} color={GOLD} style={{ opacity: starting ? 0.5 : 1 }} />}
           </button>
-          <CtrlButton onClick={() => setRemaining(r => r + 15)}>
+          <CtrlButton onClick={() => nudge(15)}>
             <FastForward size={17} color={C.neon} />
           </CtrlButton>
         </div>
