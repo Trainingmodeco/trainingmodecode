@@ -49,8 +49,20 @@
 </div>
 
 <canvas id="c" width="640" height="360"></canvas>
-<button id="go">START FLOATING WINDOW</button>
+<video id="v" muted playsinline autopictureinpicture style="display:block;width:160px;height:90px;border-radius:10px;border:1px solid rgba(253,224,71,0.5);margin:8px 0;background:#0a0014;object-fit:cover"></video>
+<button id="go">START FLOATING WINDOW (TAP)</button>
+<button id="arm" class="ghost">ARM AUTO-OPEN (NO TAP) — THEN PRESS HOME</button>
 <button id="reset" class="ghost">RESET COUNTERS</button>
+
+<div class="panel">
+  <div class="verdict" id="autoverdict">Auto-open: not tested. Install this page as an app first (Add to Home Screen), tap ARM, press HOME.</div>
+  <div class="row"><span>Installed as app</span><span id="installed">—</span></div>
+  <div class="row"><span>Video visible + playing</span><span id="primed">no</span></div>
+  <div class="row"><span>autoPictureInPicture supported</span><span id="autopip">—</span></div>
+  <div class="row"><span>Media Session enter-PiP action</span><span id="msaction">—</span></div>
+  <div class="row"><span>Times the window opened BY ITSELF</span><span id="autoopens">0</span></div>
+  <div class="row"><span>Last auto-open reason</span><span id="autoreason">—</span></div>
+</div>
 
 <div class="panel">
   <div class="verdict" id="verdict">Waiting — press START, then switch apps.</div>
@@ -78,8 +90,35 @@
 (function () {
   var canvas = document.getElementById('c');
   var ctx = canvas.getContext('2d');
-  var video = document.createElement('video');
+  var video = document.getElementById('v');
   video.muted = true; video.playsInline = true; video.setAttribute('playsinline', '');
+  try { video.autoPictureInPicture = true; } catch (e) {}
+
+  // ── Auto-open test: persists across the trip out of the app ─────────────
+  var AUTO_KEY = 'pip_auto_log';
+  var autoLog = (function () { try { return JSON.parse(localStorage.getItem(AUTO_KEY) || '{"opens":0,"reason":"—"}'); } catch (e) { return { opens: 0, reason: '—' }; } })();
+  var armed = false, lastTapAt = 0;
+  function saveAuto() { try { localStorage.setItem(AUTO_KEY, JSON.stringify(autoLog)); } catch (e) {} }
+  el('installed').textContent = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? 'yes' : 'NO — add to Home Screen first';
+  el('installed').className = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? 'ok' : 'warn';
+  el('autopip').textContent = ('autoPictureInPicture' in HTMLVideoElement.prototype) ? 'yes' : 'no';
+  el('autopip').className = ('autoPictureInPicture' in HTMLVideoElement.prototype) ? 'ok' : 'warn';
+  var msOk = false;
+  try { navigator.mediaSession.setActionHandler('enterpictureinpicture', function () { autoLog.reason = 'media session action'; saveAuto(); video.requestPictureInPicture().catch(function () {}); }); msOk = true; } catch (e) {}
+  el('msaction').textContent = msOk ? 'registered' : 'unsupported';
+  el('msaction').className = msOk ? 'ok' : 'warn';
+  video.addEventListener('enterpictureinpicture', function () {
+    // A window that appears more than 1.5s after the last tap was not the tap.
+    if (Date.now() - lastTapAt > 1500) { autoLog.opens++; if (autoLog.reason === '—') autoLog.reason = document.hidden ? 'opened while hidden (autoPictureInPicture)' : 'opened by platform'; saveAuto(); }
+    renderAuto();
+  });
+  function renderAuto() {
+    el('autoopens').textContent = autoLog.opens;
+    el('autoreason').textContent = autoLog.reason;
+    var v = el('autoverdict');
+    if (autoLog.opens > 0) { v.textContent = 'PASS — the window opened by itself when you left. The app can do the same.'; v.className = 'verdict ok'; }
+    else if (armed) { v.textContent = 'Armed. Press HOME now. If no window appears, this phone needs a tap (or the native wrapper).'; v.className = 'verdict warn'; }
+  }
 
   var startedAt = Date.now();
   var hiddenMs = 0, hiddenSince = null;
@@ -159,8 +198,25 @@
     render();
   });
 
+  el('arm').addEventListener('click', function () {
+    el('err').textContent = '';
+    try {
+      if (!video.srcObject) video.srcObject = canvas.captureStream(10);
+      try { if (navigator.mediaSession) { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Training Mode test', artist: 'Session in progress' }); navigator.mediaSession.playbackState = 'playing'; } } catch (e) {}
+      video.play().then(function () { armed = true; el('primed').textContent = 'yes'; el('primed').className = 'ok'; renderAuto(); })
+        .catch(function (e) { el('err').textContent = 'play() refused: ' + (e && e.message ? e.message : e); });
+    } catch (e) { el('err').textContent = 'Capture failed: ' + (e && e.message ? e.message : e); }
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && armed && document.pictureInPictureElement !== video) {
+      video.requestPictureInPicture().then(function () { autoLog.reason = 'request on hide accepted'; saveAuto(); }).catch(function () {});
+    }
+  });
+  renderAuto();
+
   el('go').addEventListener('click', function () {
     el('err').textContent = '';
+    lastTapAt = Date.now();
     try {
       if (!video.srcObject) video.srcObject = canvas.captureStream(10);
       video.play().then(function () {
@@ -178,7 +234,8 @@
 
   el('reset').addEventListener('click', function () {
     hiddenMs = 0; hiddenSince = null; ticksHidden = 0; framesHidden = 0; rafHidden = 0;
-    startedAt = Date.now(); el('err').textContent = ''; render();
+    startedAt = Date.now(); el('err').textContent = ''; autoLog = { opens: 0, reason: '—' }; saveAuto(); armed = false;
+    el('autoverdict').textContent = 'Auto-open: not tested. Tap ARM, then press HOME.'; el('autoverdict').className = 'verdict'; render(); renderAuto();
   });
 
   draw(); render();

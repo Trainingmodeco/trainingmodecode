@@ -268,6 +268,29 @@ function drawFrame(ctx, frame, tick) {
  * Create a mini-player bound to a frame source.
  * @param {() => object} getFrame  see drawFrame for the shape
  */
+const OFFSCREEN_CSS = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+let previewRect = null;
+
+function applyPreviewRect(video) {
+  if (!video) return;
+  if (previewRect) {
+    const r = previewRect;
+    video.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;opacity:1;object-fit:cover;border-radius:${r.radius ?? 10}px;pointer-events:none;z-index:${r.zIndex ?? 59};background:#0a0014;`;
+  } else {
+    video.style.cssText = OFFSCREEN_CSS;
+  }
+}
+
+/**
+ * Where the live preview shows on screen (viewport coordinates), or null to
+ * park the video off-screen. The button calls this with its own rect so the
+ * preview IS the button face. Style only — the element never moves in the DOM.
+ */
+export function positionMiniPreview(rect) {
+  previewRect = rect ? { ...rect } : null;
+  applyPreviewRect(shared?.video);
+}
+
 export function createMiniPlayer(getFrame) {
   if (typeof document === 'undefined') return null;
 
@@ -288,9 +311,19 @@ export function createMiniPlayer(getFrame) {
 
   // The element has to live in the document: a detached <video> is accepted by
   // some engines and refused by others, and this has to work on a phone.
-  video.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+  //
+  // And it has to be VISIBLE. Android's automatic picture-in-picture only
+  // considers a video that is playing and intersecting the viewport, so an
+  // off-screen 1x1 element can never qualify — which is why "opens by itself
+  // when I leave" did nothing. The button therefore shows this video as a live
+  // preview (see positionMiniPreview); it is only parked off-screen when no
+  // button is mounted. The node is NEVER moved in the DOM: removing a video
+  // from the document exits picture-in-picture, which would kill the window at
+  // every hand-off.
+  video.style.cssText = OFFSCREEN_CSS;
   video.setAttribute('aria-hidden', 'true');
   document.body.appendChild(video);
+  applyPreviewRect(video);
 
   let timer = null;
   let stream = null;
@@ -379,6 +412,7 @@ export function createMiniPlayer(getFrame) {
     destroy() {
       destroyed = true;
       stopPainting();
+      try { if (navigator.mediaSession) { navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; } } catch { /* ignore */ }
       try { navigator.mediaSession?.setActionHandler?.('enterpictureinpicture', null); } catch { /* ignore */ }
       try {
         if (document.pictureInPictureElement === video) document.exitPictureInPicture();
@@ -448,6 +482,15 @@ export function acquireMiniPlayer(getFrame) {
   currentSource = getFrame;
   // Primed from the first acquire, so leaving the app finds a playing video.
   shared.prime();
+  // Tell the platform a session is playing. Chrome's automatic routes key off
+  // the Media Session; without metadata a muted captured stream is invisible
+  // to them.
+  try {
+    if (navigator.mediaSession) {
+      if (typeof MediaMetadata !== 'undefined') navigator.mediaSession.metadata = new MediaMetadata({ title: 'Training Mode', artist: 'Session in progress' });
+      navigator.mediaSession.playbackState = 'playing';
+    }
+  } catch { /* unsupported */ }
   watchForExit();
   return shared;
 }

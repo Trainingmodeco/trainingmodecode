@@ -2843,3 +2843,98 @@ SecondaryButton / Card); no new design system.
 >    done card `GHOST DEFEATED · −0:25`; summary `👻 GHOST BEATEN`.
 > 5. A run longer than 45 s hears a ghost call between splits ("You are
 >    beating your ghost. Great job. Keep it there." or the trail line).
+
+---
+
+## PROMPT MP-3 — the mini-player opens BY ITSELF when the athlete leaves; the button is a live preview
+
+> Run this in the Training Mode revamp app. Verify first; implement only what
+> is missing. Reference on `app`: `shared/miniPlayer.js`
+> (`positionMiniPreview`, Media Session metadata), `shared/MiniPlayerButton.jsx`,
+> `public/pip-test.html` (ARM AUTO-OPEN test). Companion to MP-1 / MP-2.
+>
+> ### The owner's ask
+>
+> Keep the button, but the mini window must open AUTOMATICALLY when the
+> athlete leaves Training Mode for the phone home screen or another app
+> (texts, YouTube…), and the timer keeps running under it. This applies to
+> Cardio Mode, every Fight Mode timer, Combat Conditioning and Quick Mission.
+> NOT Practice Mode or Create Combo. Workout Builder keeps it because its
+> sets and rests are timed.
+>
+> ### Where it stood
+>
+> MP-2's engine already primed the video on acquire, requested the window on
+> `visibilitychange`/`pagehide`, registered the Media Session
+> `enterpictureinpicture` action, and set `video.autoPictureInPicture`. It
+> still never opened by itself on a phone. Cause: the `<video>` was parked at
+> `left:-9999px`, `1×1`, `opacity:0`. Android's automatic picture-in-picture
+> only considers a video that is **playing AND visible in the viewport**. An
+> off-screen video can never qualify, so every automatic route was wired to
+> an element the platform refused to look at.
+>
+> ### Done state
+>
+> - **The button IS the preview.** `MiniPlayerButton` renders a 72×40 chip;
+>   the singleton's video is positioned OVER that chip (fixed, viewport
+>   coordinates, `opacity:1`, `object-fit:cover`, `z-index:59`) so it shows a
+>   live thumbnail of exactly what will float. The chip itself is a portal to
+>   `document.body` at `z-index:61` with a transparent face and a small PiP
+>   icon, so the tap still works. Anchor `<span>` keeps the chip's place in
+>   the player's layout (`top`/`right` props unchanged).
+> - **Style only, never a DOM move.** `positionMiniPreview(rect | null)` sets
+>   `style.cssText` on the existing video. Removing a video from the document
+>   exits picture-in-picture, so moving the node would kill the window at
+>   every hand-off (warm-up → guided player). The chip re-measures every
+>   500 ms and on resize/scroll; on unmount it parks the video off-screen.
+> - **Media Session.** `acquireMiniPlayer` sets
+>   `navigator.mediaSession.metadata = new MediaMetadata({ title: 'Training
+>   Mode', artist: 'Session in progress' })` and `playbackState = 'playing'`;
+>   `destroy()` clears both. Chrome's automatic routes key off the session.
+> - The hide-request, the action handler and `autoPictureInPicture` stay
+>   exactly as MP-2 left them.
+>
+> ### Screens (audit — this is the list)
+>
+> With the window: `ComboCoachActive`, `FightFocusTimer`,
+> `CombatConditioningActive`, `QuickMissionActive`, `RunPlayer` (Cardio GPS),
+> `CardioProtocolPlayer` (intervals/tabata + finisher), `FitBuilderGuidedPlayer`
+> + `BuilderWarmup`, `ArcadeBenchmarkPlayer`, `CampFitRunner`,
+> `CampFitSetRunner`. Without: `PracticeMode`, `ComboBuilderSheet` (Create
+> Combo), `MoveLab`, every hub and setup. Do not add it to the second list.
+>
+> ### Platform truth (say it, do not hide it)
+>
+> - **Android Chrome, installed PWA:** `autoPictureInPicture` on a playing,
+>   visible video enters the window when the app is left. That is the route
+>   this prompt unblocks. It does NOT fire in a plain browser tab — the app
+>   must be Added to Home Screen.
+> - **Desktop Chrome:** Auto-PiP via the Media Session action on tab switch.
+> - **iOS Safari:** no automatic entry for a web app. The tap remains.
+> - Under the window the session keeps running (MP-2's `useAutoPauseOnHidden`
+>   change; Cardio has no auto-pause at all).
+>
+> ### Do NOT
+>
+> - Do NOT hide the preview video again (display:none, opacity 0, off-screen).
+>   That is the bug.
+> - Do NOT move the `<video>` between DOM parents. Position it with CSS.
+> - Do NOT drop the tap. Where the platform refuses automatic entry, the
+>   gesture is the only way in.
+>
+> ### Verify
+>
+> 1. Headless, Cardio run with no tap: exactly one `<video>`, `paused ===
+>    false`, `autoPictureInPicture === true`, `getBoundingClientRect()` equal
+>    to the chip's rect and inside the viewport, `opacity` `1`,
+>    `navigator.mediaSession.playbackState === 'playing'`, metadata title
+>    `Training Mode`. Reference: rect `[316, 58, 72, 40]` on a 412-wide view.
+> 2. Tap the chip: `document.pictureInPictureElement` is set; the preview
+>    stays in place; tapping again closes it.
+> 3. Builder → warm-up → guided player: chip present in the warm-up, window
+>    opens from it, **still open after the hand-off**, chip reads "Close
+>    floating timer".
+> 4. On a phone: open `/pip-test.html` as an installed app, tap ARM AUTO-OPEN,
+>    press HOME. On return the page reports "Times the window opened BY
+>    ITSELF" ≥ 1 → the app will do the same. 0 → that phone needs the tap or
+>    the native wrapper; the app is not at fault.
