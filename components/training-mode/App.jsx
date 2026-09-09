@@ -155,6 +155,7 @@ export default function App() {
   const [ccMission, setCcMission] = useState(null);
   const [ccResult,  setCcResult ] = useState(null);
   const [cardioContext, setCardioContext] = useState(null);
+  const [cardioEntry,   setCardioEntry  ] = useState(null); // e.g. { ghost: 'best' } from the hub
   const [cardioResult,  setCardioResult ] = useState(null);
   const [arcadeSeries, setArcadeSeries] = useState(null);
   const [arcadeStage,  setArcadeStage ] = useState(null);
@@ -429,7 +430,7 @@ export default function App() {
     // app's normal resume flow picks it up) instead of silently abandoning it.
     goFitHub:      () => { pauseCurrentSession(); setScreen('fit_hub'); },
     goFitSetup:    () => { pauseCurrentSession(); setScreen('fit_setup'); },
-    goCardioMode:  () => setScreen('cardio_mode'),
+    goCardioMode:  (opts) => { setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     goWorkoutCodec: () => setScreen('workout_codec'),
     goQuickMissionSetup: () => setScreen('qm_setup'),
     goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
@@ -891,7 +892,7 @@ export default function App() {
             screen={screen} disc={disc} cfg={cfg} session={session}
             comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
             ccMission={ccMission} ccResult={ccResult}
-            cardioContext={cardioContext} cardioResult={cardioResult}
+            cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
             arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
             campCtx={campCtx} campResult={campResult}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}

@@ -2705,3 +2705,141 @@ SecondaryButton / Card); no new design system.
 >   app. The native wrapper closes this gap.
 > - Speech is browser TTS and cannot exceed the browser's volume ceiling
 >   (see VOL-2). Pre-recorded cues are the real fix.
+
+---
+
+## PROMPT GHOST-R1 — Ghost Mode for runs: a selector, not a code; the coach calls who is winning
+
+> Run this in the Training Mode revamp app. Verify first; implement only what
+> is missing. Reference implementation on `app`: `data/runGhosts.js`, the
+> ghost section of `data/runCoach.js`, `RunPlayer.jsx`, the GHOST MODE card in
+> `CardioMode.jsx`, the hub entry in `FitModeHub.jsx`, and the `cardioEntry`
+> plumbing in `App.jsx` / `ScreenRouter.jsx`.
+>
+> ### The owner's ask
+>
+> Ghost mode should be something you SELECT — on the Cardio options screen
+> and from the hub — not a code you paste. Beat your last run, or beat another
+> user's run. Show the other person's USERNAME and their ghost image when it
+> is someone else; your own mirror ghost art when it is you. And because a
+> run is measured, the coach can say who is winning out loud: "You're beating
+> your ghost. Great job." / "Your ghost is winning. Chase it down."
+>
+> ### Where it stood (verified before building)
+>
+> Ghost battles existed for Fight Focus only: a card on the setup with MY
+> BEST and a CODE button (`CodeEntryModal`, `TMG1.…` codes via
+> `importGhostCode` / `exportGhostCode`), the VS screen using
+> `/static/ghost/vs-{male|female}-{1..3}.webp`, and a live strikes strip in
+> the timer. No username lookup anywhere; friends' ghosts arrived ONLY as
+> pasted codes. Cardio had no ghost at all.
+>
+> ### Done state — run ghosts (built)
+>
+> **`data/runGhosts.js`**
+> - A run ghost is a distance-over-time trace: `trace: [{ t, d }]` thinned to
+>   one point per ≥5 s (max 720), plus `unit`, `goal`, `totalSec`, `splits`,
+>   `ownerId` ('me' for now), `ownerName`, `gender`, `verified`, `createdAt`.
+> - Storage key `tm_run_ghosts_v1`, two slots per distance keyed
+>   `${unit}|${goal}`: `last` (always overwritten) and `best` (fastest
+>   `totalSec`). `recordRunGhost(result)` runs on every COMPLETED, GPS run —
+>   never on an estimated distance, which would be racing a number.
+> - `ghostDistanceAt(ghost, tSec)` and `ghostTimeAt(ghost, d)` interpolate
+>   linearly; both clamp at the finish. `ghostArt(ghost)` picks the mirror art
+>   by the ghost's gender.
+>
+> **`data/runCoach.js` — the calls**
+> - `ghostGap({ myDist, ghostDist, paceSec })` → `{ dDist, dSec }` (positive
+>   = I lead). `ghostVerdict(gap)` → `lead` (≥ 8 s), `trail` (≤ −8 s), else
+>   `even`; 15 m dead-band when no pace yet.
+> - `GHOST_CUES.lead`: "You are beating your ghost. Great job. Keep it
+>   there." / "Ahead of your ghost by {gap}. Do not let it back in." …
+>   `GHOST_CUES.trail`: "Your ghost is winning. Chase it down." / "Ghost is
+>   {gap} ahead. Close the gap." … `GHOST_CUES.even`: "Neck and neck with
+>   your ghost. Push now and take the lead." `{gap}` reads as seconds when
+>   ≥ 5 s, else metres rounded to 10.
+> - `ghostSplitLine` appends to every split: "15 seconds ahead of your
+>   ghost." / "20 seconds behind your ghost." / "Level with your ghost."
+> - `ghostFinishLine`: "Ghost defeated. You beat your ghost by 42 seconds." /
+>   "The ghost takes this one by 30 seconds. Run it back." / "Dead heat with
+>   your ghost. A draw." — a friend's ghost uses their name in place of "the
+>   ghost".
+>
+> **`RunPlayer.jsx`**
+> - `cfg.ghost` is the opponent. The intro adds "Ghost mode. You are racing
+>   your own run, 28 minutes 40. Beat it."
+> - Live strip under the target deltas: the ghost's art, `👻 YOUR GHOST ·
+>   28:40`, `YOU LEAD · 0:18` / `GHOST LEADS · 0:12` / `LEVEL`, and a bar
+>   with my progress over the ghost's progress and a 👻 marker at the ghost's
+>   position. Border green / red / gold by verdict.
+> - Cue rotation with a ghost: slots 1 and 3 of every 4 are ghost calls, slot
+>   0 a form tip, slot 2 the pace coach (45–75 s apart, never within 12 s of
+>   a split). Without a ghost: pace, pace, tip.
+> - Every accepted GPS fix ≥ 3 s after the last trace point pushes `{ t, d }`
+>   to `run.trace` (persisted, capped 2400). The finish records the ghost,
+>   sets `result.ghost = { ownerName, ghostTotalSec, delta, outcome }` and
+>   `result.ghostRecorded` / `result.newBest`.
+> - Done card: a ghost row (`👻 GHOST DEFEATED · −0:25` / `GHOST WINS ·
+>   +0:30` / `DEAD HEAT`) with the art, and `NEW BEST — SAVED AS YOUR GHOST`
+>   or `SAVED AS YOUR LAST-RUN GHOST`.
+>
+> **`CardioMode.jsx` — the selector**
+> - A GHOST MODE card under TARGET/ELITE, shown only for GPS runs. Before any
+>   run: "Finish a GPS run at 3 mi to create your ghost." With ghosts: OFF ·
+>   `MY LAST · 28:40` · `MY BEST · 27:12` pills; the chosen ghost's art and
+>   `GHOST MODE · VS YOUR BEST RUN · 27:12`. Ghosts are looked up per
+>   distance + unit, so changing the goal changes the offer.
+> - `entry` prop (`{ ghost: 'best' }`) preselects from the hub.
+>
+> **Hub:** `FitModeHub` gets a `👻 GHOST MODE — Race your last run. The
+> coach calls who's winning. RACE ▶` row above the banners, calling
+> `goCardioMode({ ghost: 'best' })`. `App.goCardioMode(opts)` stores
+> `cardioEntry`; `ScreenRouter` passes it as `entry`.
+>
+> **Summary:** `CardioSummary` shows `👻 GHOST BEATEN / WON / DRAW` beside
+> VS TARGET / VS ELITE.
+>
+> ### Still to build — friend ghosts by USERNAME (needs the cloud)
+>
+> The local model is already the wire shape. To race another person:
+> 1. Table `run_ghosts` (Supabase): `id`, `owner_id`, `owner_username`,
+>    `gender`, `unit`, `goal`, `total_sec`, `trace` (jsonb), `splits`,
+>    `created_at`, `public` bool. Upload MY BEST per distance on record when
+>    the athlete is signed in and has opted in ("Let friends race my ghost").
+> 2. In the GHOST MODE card add `VS A FRIEND`: a username search (prefix
+>    match on `owner_username`, public only, same unit + goal). Show the
+>    result as `@USERNAME · 27:12 · their tier art` — art from their profile
+>    tier, not the mirror art, which stays yours alone.
+> 3. Picking one downloads the ghost into `cfg.ghost` with `ownerId` = their
+>    id and `ownerName` = their username; the player and coach need NO
+>    change. The finish line already says "MARCUS takes this one by 30
+>    seconds."
+> 4. Leaderboard per distance later: fastest public ghosts, tap to race.
+> 5. Fight Focus keeps its codes until the same table exists for strike
+>    ghosts; then the CODE button becomes the same username picker.
+>
+> ### Do NOT
+>
+> - Do NOT record a ghost from an estimated (no-GPS) run.
+> - Do NOT add a code paste to Cardio. Codes were the v1 with no server; the
+>   selector is the design.
+> - Do NOT speak a ghost call inside 12 s of a split or more often than the
+>   45–75 s slot. The split already carries the ghost delta.
+> - Do NOT use the mirror art for a friend's ghost.
+>
+> ### Verify (real browser, mocked geolocation)
+>
+> 1. Fresh profile: Cardio setup at 0.3 mi shows "Finish a GPS run at 0.3 mi
+>    to create your ghost." Run it at ~8 m/s. Done card shows `NEW BEST —
+>    SAVED AS YOUR GHOST`; `tm_run_ghosts_v1` has `last['mi|0.3']` and
+>    `best['mi|0.3']` with `totalSec` ≈ 60 and a trace of ~10 points.
+> 2. Hub shows the GHOST MODE row; tapping it opens Cardio with MY BEST
+>    selected. At 0.3 mi the card reads `GHOST MODE · VS YOUR BEST RUN ·
+>    1:00` with pills `OFF · MY LAST · 1:00 · MY BEST · 1:00`.
+> 3. START: the intro ends "…ghost mode. you are racing your own run, 1
+>    minute. beat it. | ready. | go!". Run at ~10 m/s: the strip reads
+>    `👻 YOUR GHOST · 1:00 · YOU LEAD · 0:18` around 25 s.
+> 4. Finish: spoken "…ghost defeated. you beat your ghost by 25 seconds.";
+>    done card `GHOST DEFEATED · −0:25`; summary `👻 GHOST BEATEN`.
+> 5. A run longer than 45 s hears a ghost call between splits ("You are
+>    beating your ghost. Great job. Keep it there." or the trail line).

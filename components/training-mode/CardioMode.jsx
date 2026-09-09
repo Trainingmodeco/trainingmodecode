@@ -12,7 +12,9 @@ import { CARDIO_ADDON_TYPES, cardioAddonToPlayer } from './data/cardioAddon';
 import CardioProtocolPlayer from './CardioProtocolPlayer';
 import RunPlayer from './RunPlayer';
 import { loadLiveRun, liveRunElapsedSec } from './data/liveRun';
-import { computeRunTargets, metersPerUnit } from './data/runCoach';
+import { computeRunTargets, metersPerUnit, fmtClock as fmtRunClock } from './data/runCoach';
+import { getRunGhost, ghostArt } from './data/runGhosts';
+import SafeImage from './SafeImage';
 import { unlockAudio } from './data/audioEngine';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
@@ -142,7 +144,7 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
 
 // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
 // pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
-export default function CardioMode({ onBack, onSessionState }) {
+export default function CardioMode({ onBack, onSessionState, entry = null }) {
   // A run that is still live (the athlete left the player, the app, or the
   // OS took it) comes straight back into the player. See data/liveRun.js.
   const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
@@ -158,6 +160,8 @@ export default function CardioMode({ onBack, onSessionState }) {
   const [goalTimeSeconds, setGoalTimeSeconds] = useState(1200);
   const [customTimeMin, setCustomTimeMin] = useState('');
   const [customTargetMin, setCustomTargetMin] = useState('');
+  // Ghost mode: 'off' | 'last' | 'best'. A hub entry can preselect it.
+  const [ghostChoice, setGhostChoice] = useState(() => (entry?.ghost === 'last' || entry?.ghost === 'best') ? entry.ghost : 'off');
   const [noGps, setNoGps] = useState(false);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -183,6 +187,9 @@ export default function CardioMode({ onBack, onSessionState }) {
   const parsedTargetMin = parseFloat(customTargetMin);
   const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
   const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec) : null;
+  const ghostLast = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'last') : null;
+  const ghostBest = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'best') : null;
+  const ghostPick = !usesGps ? null : ghostChoice === 'best' ? ghostBest : ghostChoice === 'last' ? ghostLast : null;
 
   const displayStyleLabel = style === 'steady' ? 'Steady Pace'
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
@@ -283,6 +290,7 @@ export default function CardioMode({ onBack, onSessionState }) {
       targetSec: addon.targetSeconds, eliteSec: addon.eliteSeconds,
       targetPaceSec: addon.paceTargetSeconds, elitePaceSec: addon.elitePaceSeconds,
       methodLabel, useGps: usesGps, randomSurges: addon.randomSurges,
+      ghost: ghostPick,
     };
     const isRun = liveRestore ? true : useDistanceGauge;
     return (
@@ -528,6 +536,45 @@ export default function CardioMode({ onBack, onSessionState }) {
                     <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: GOLD, textShadow: '0 0 10px rgba(253,224,71,0.4)' }}>{autoPace.eliteLabel}</span>
                     <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>{customTargetSec ? 'your target' : `auto · Lvl ${level}`}</span>
                   </div>
+                </div>
+              )}
+
+              {/* GHOST MODE — race your own recorded run over this distance. A
+                  selector, not a code: pick it here or from the hub. */}
+              {usesGps && (
+                <div data-guide="cm-ghost" style={{ borderRadius: 10, border: `1px solid ${ghostPick ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghostPick ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '8px 12px', marginBottom: 9 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {ghostPick ? (
+                      <SafeImage src={ghostArt(ghostPick)} alt="" style={{ width: 40, height: 40, borderRadius: 9, objectFit: 'cover', objectPosition: 'center 20%', flexShrink: 0 }}/>
+                    ) : (
+                      <div style={{ width: 40, height: 40, borderRadius: 9, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>👻</div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: ghostPick ? '#e6d4ff' : '#c4b5fd', letterSpacing: '0.1em' }}>
+                        {ghostPick ? `GHOST MODE · VS ${ghostPick.ownerId === 'me' ? `YOUR ${ghostChoice === 'best' ? 'BEST' : 'LAST'} RUN` : ghostPick.ownerName} · ${fmtRunClock(ghostPick.totalSec)}` : 'GHOST MODE'}
+                      </div>
+                      <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 2, lineHeight: 1.3 }}>
+                        {ghostPick ? 'Race the replay. The coach calls who leads.' : (ghostLast || ghostBest) ? 'Beat your last run or your best at this distance.' : `Finish a GPS run at ${effGoalDistance} ${distanceUnit} to create your ghost.`}
+                      </div>
+                    </div>
+                  </div>
+                  {(ghostLast || ghostBest) && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                      {[
+                        { id: 'off', label: 'OFF' },
+                        ghostLast ? { id: 'last', label: `MY LAST · ${fmtRunClock(ghostLast.totalSec)}` } : null,
+                        ghostBest ? { id: 'best', label: `MY BEST · ${fmtRunClock(ghostBest.totalSec)}` } : null,
+                      ].filter(Boolean).map(o => (
+                        <button key={o.id} onClick={() => setGhostChoice(o.id)} style={{
+                          flex: o.id === 'off' ? '0 0 auto' : 1, padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
+                          fontFamily: ARCADE.fontHead, fontWeight: 800, fontSize: 8.5, letterSpacing: '0.06em', whiteSpace: 'nowrap',
+                          background: ghostChoice === o.id ? 'rgba(176,106,255,0.18)' : 'rgba(8,2,18,0.55)',
+                          border: ghostChoice === o.id ? '1.5px solid rgba(176,106,255,0.75)' : `1px solid ${ARCADE.violetBorderSoft}`,
+                          color: ghostChoice === o.id ? '#e6d4ff' : C.muted,
+                        }}>{o.label}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               </div>

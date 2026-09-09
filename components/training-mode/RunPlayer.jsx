@@ -9,11 +9,14 @@ import MiniPlayerButton from './shared/MiniPlayerButton';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, unlockAudio } from './data/audioEngine';
 import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
+import { recordRunGhost, ghostDistanceAt, ghostTimeAt, ghostArt } from './data/runGhosts';
+import SafeImage from './SafeImage';
 import {
   metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance,
   buildRunIntro, crossedMarkers, crossedTenths, splitScript, finishScript,
   paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
   evaluateFix, rollingPaceSec, projectedFinish,
+  ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
 } from './data/runCoach';
 
 // The GPS / distance run player — the "run app" half of Cardio Mode.
@@ -60,6 +63,7 @@ function newRun(cfg) {
     meters: 0,
     route: [],
     samples: [],
+    trace: [],          // (t, d) every few seconds — becomes this run's ghost
     lastFix: null,
     markersDone: [],
     splits: [],
@@ -82,6 +86,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const unit = run.cfg.unit || 'mi';
   const goal = run.cfg.goal || 3;
   const useGps = !!run.cfg.useGps;
+  const ghost = run.cfg.ghost || null;
 
   const [phase, setPhase] = useState(restore ? 'run' : (autoStart ? 'intro' : 'ready'));
   const [running, setRunning] = useState(restore ? !restore.pausedAt : false);
@@ -121,6 +126,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       ...r,
       route: r.route.slice(-ROUTE_MAX),
       samples: r.samples.slice(-SAMPLES_MAX),
+      trace: r.trace.slice(-2400),
     });
   }, []);
 
@@ -190,7 +196,20 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       beatTarget: completed && el <= r.cfg.targetSec,
       beatElite: completed && !!r.cfg.eliteSec && el <= r.cfg.eliteSec,
       splits: r.splits.slice(),
+      goal,
+      trace: r.trace.slice(),
     };
+    if (ghost && completed) {
+      const delta = Math.round(el - ghost.totalSec);
+      res.ghost = { ownerName: ghost.ownerName, ghostTotalSec: ghost.totalSec, delta, outcome: Math.abs(delta) < 2 ? 'draw' : delta < 0 ? 'victory' : 'defeat' };
+    }
+    // Every verified GPS finish becomes a ghost for next time (MY LAST, and MY
+    // BEST when it is the fastest at this distance).
+    if (completed && !estimating) {
+      const rec = recordRunGhost(res);
+      res.ghostRecorded = !!rec.ghost;
+      res.newBest = rec.newBest;
+    }
     setPhase('done');
     setRunning(false);
     setResult(res);
@@ -198,11 +217,13 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     report({ live: false, running: false });
     if (completed) {
       playBell(3);
-      say(finishScript({ dist: d, unit, elapsedSec: el, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec }));
+      const lines = [finishScript({ dist: d, unit, elapsedSec: el, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec })];
+      if (res.ghost) lines.push(ghostFinishLine({ elapsedSec: el, ghostTotalSec: ghost.totalSec, ownerName: ghost.ownerName }));
+      say(lines.join(' '));
     } else {
       say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.`);
     }
-  }, [estimating, goal, unit, report, say]);
+  }, [estimating, goal, unit, report, say, ghost]);
 
   // ── Intro: speak the brief, then GO ───────────────────────────────────────
   useEffect(() => {
@@ -215,6 +236,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         unlockAudio();
         await primeSpeech();
         const intro = buildRunIntro({ methodLabel: run.cfg.methodLabel, useGps, distance: goal, unit, targetSec: run.cfg.targetSec, eliteSec: run.cfg.eliteSec });
+        if (ghost) intro.lines.push(`Ghost mode. You are racing ${ghost.ownerId === 'me' ? 'your' : ghost.ownerName + "'s"} ${ghost.ownerId === 'me' ? 'own run' : 'run'}, ${speakDuration(ghost.totalSec)}. Beat it.`);
         for (const line of intro.lines) {
           if (cancelled) return;
           await say(line, { rate: 1.0 });
@@ -281,6 +303,8 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           const el = liveRunElapsedSec(r);
           r.samples.push({ t: el, m: r.meters });
           if (r.samples.length > SAMPLES_MAX) r.samples.shift();
+          const last = r.trace[r.trace.length - 1];
+          if (!last || el - last.t >= 3) r.trace.push({ t: Math.round(el * 10) / 10, d: +(r.meters / metersPerUnit(unit)).toFixed(4) });
           r.route.push({ lat: fix.lat, lng: fix.lng });
           if (r.route.length > ROUTE_MAX) r.route.shift();
           setMeters(r.meters);
@@ -330,7 +354,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
       r.lastSplitSec = elapsedSec;
       playBell(1);
-      say(splitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec, goal, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec }));
+      const split = splitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec, goal, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec });
+      const gl = ghost && usingGps ? ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker: ghostTimeAt(ghost, marker) }) : '';
+      say(gl ? `${split} ${gl}` : split);
       persist(true);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -371,8 +397,18 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     if (!shouldCue({ nowSec: sec, lastCueSec: r.lastCueSec, lastSplitSec: r.lastSplitSec, gapSec: r.cueGap })) return;
     r.tipCounter += 1;
     let text = '';
-    const wantTip = !usingGps || r.tipCounter % 3 === 0;
-    if (wantTip) {
+    // Rotation: with a ghost, every other slot is the race call; every fourth a
+    // tip; the rest the pace coach. Without one: pace, pace, tip.
+    const slot = r.tipCounter % (ghost && usingGps ? 4 : 3);
+    const wantTip = !usingGps || (ghost && usingGps ? slot === 0 : slot === 0);
+    const wantGhost = ghost && usingGps && (slot === 1 || slot === 3);
+    if (wantGhost) {
+      const pace = rollingPaceSec(r.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null);
+      const gap = ghostGap({ myDist: dist, ghostDist: ghostDistanceAt(ghost, elapsedSec), paceSec: pace });
+      const verdict = ghostVerdict(gap, unit);
+      const pick = ghostCue(verdict, gap, unit, r.cueIdx[`ghost_${verdict}`] ?? -1);
+      r.cueIdx[`ghost_${verdict}`] = pick.index; text = pick.text;
+    } else if (wantTip) {
       const pick = pickCue(RUN_TIPS, r.cueIdx.tip ?? -1);
       r.cueIdx.tip = pick.index; text = pick.text;
     } else {
@@ -417,6 +453,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const vsTarget = projected != null ? projected - run.cfg.targetSec : null;
   const vsElite = projected != null && run.cfg.eliteSec ? projected - run.cfg.eliteSec : null;
   const pct = Math.min(100, (dist / goal) * 100);
+  const ghostDistNow = ghost && phase === 'run' ? ghostDistanceAt(ghost, elapsedSec) : null;
+  const ghostGapNow = ghost && phase === 'run' ? ghostGap({ myDist: dist, ghostDist: ghostDistNow, paceSec: curPace }) : null;
+  const ghostState = ghostGapNow ? ghostVerdict(ghostGapNow, unit) : null;
   const verdictNow = usingGps ? paceVerdict(curPace, run.cfg.targetPaceSec) : 'unknown';
   const paceColor = verdictNow === 'on' ? '#8fe8ac' : verdictNow === 'fast' ? '#c9a6ff' : verdictNow === 'unknown' ? '#fff' : '#ff9a52';
   const gpsLabel = !useGps ? 'PACE TRACK' : gpsStatus === 'live' ? 'GPS LIVE' : gpsStatus === 'denied' ? 'GPS DENIED' : 'GPS ACQUIRING…';
@@ -472,6 +511,20 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           {result.eliteSec ? <Stat label="VS ELITE" value={fmtSignedDelta(result.completedTimeSeconds - result.eliteSec)} color={result.beatElite ? '#8fe8ac' : '#c9a6ff'} /> : null}
         </div>
         {result.beatElite && <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', textShadow: '0 0 12px rgba(253,224,71,0.6)' }}>★ ELITE TIME ★</div>}
+        {result.ghost && (
+          <div style={{ width: '100%', marginTop: 12, borderRadius: 12, border: `1.5px solid ${result.ghost.outcome === 'victory' ? 'rgba(34,197,94,0.7)' : result.ghost.outcome === 'defeat' ? 'rgba(239,68,68,0.7)' : 'rgba(253,224,71,0.6)'}`, background: 'rgba(14,4,28,0.9)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <SafeImage src={ghostArt(ghost)} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', objectPosition: 'center 20%', opacity: 0.9 }}/>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: '#9a90b8', letterSpacing: '0.14em' }}>GHOST · {ghost?.ownerId === 'me' ? 'YOUR RUN' : result.ghost.ownerName}</div>
+              <div style={{ fontFamily: mono, fontSize: 13, fontWeight: 900, color: result.ghost.outcome === 'victory' ? '#8fe8ac' : result.ghost.outcome === 'defeat' ? '#ff8a8a' : GOLD, marginTop: 2 }}>
+                {result.ghost.outcome === 'victory' ? `👻 GHOST DEFEATED · ${fmtSignedDelta(result.ghost.delta)}` : result.ghost.outcome === 'defeat' ? `👻 GHOST WINS · ${fmtSignedDelta(result.ghost.delta)}` : '🤝 DEAD HEAT'}
+              </div>
+            </div>
+          </div>
+        )}
+        {result.ghostRecorded && (
+          <div style={{ marginTop: 10, fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#c9a6ff', letterSpacing: '0.12em' }}>👻 {result.newBest ? 'NEW BEST — SAVED AS YOUR GHOST' : 'SAVED AS YOUR LAST-RUN GHOST'}</div>
+        )}
         {result.splits.length > 0 && (
           <div style={{ width: '100%', marginTop: 12, borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.6)', padding: '8px 12px' }}>
             <div style={{ ...label, marginBottom: 5 }}>SPLITS</div>
@@ -527,6 +580,26 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
           <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>
           {vsElite != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsElite <= 0 ? GOLD : '#9a90b8' }}>{fmtSignedDelta(vsElite)} VS ELITE</span>}
+        </div>
+      )}
+
+      {/* Ghost race strip: who is ahead, by how much, and the ghost's art */}
+      {ghost && phase === 'run' && (
+        <div style={{ width: '100%', marginTop: 10, borderRadius: 12, border: `1.5px solid ${ghostState === 'lead' ? 'rgba(34,197,94,0.6)' : ghostState === 'trail' ? 'rgba(239,68,68,0.6)' : 'rgba(253,224,71,0.5)'}`, background: 'rgba(14,4,28,0.85)', padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <SafeImage src={ghostArt(ghost)} alt="" style={{ width: 38, height: 38, borderRadius: 9, objectFit: 'cover', objectPosition: 'center 20%', opacity: 0.85, filter: 'saturate(0.7)' }}/>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: '#9a90b8', letterSpacing: '0.14em' }}>👻 {ghost.ownerId === 'me' ? 'YOUR GHOST' : ghost.ownerName} · {fmtClock(ghost.totalSec)}</span>
+              <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 900, color: ghostState === 'lead' ? '#8fe8ac' : ghostState === 'trail' ? '#ff8a8a' : GOLD }}>
+                {ghostState === 'lead' ? 'YOU LEAD' : ghostState === 'trail' ? 'GHOST LEADS' : 'LEVEL'}{ghostGapNow?.dSec != null ? ` · ${fmtClock(Math.abs(ghostGapNow.dSec))}` : ''}
+              </span>
+            </div>
+            <div style={{ position: 'relative', height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', marginTop: 5 }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (ghostDistNow / goal) * 100)}%`, borderRadius: 99, background: 'rgba(168,85,247,0.45)' }}/>
+              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, borderRadius: 99, background: ghostState === 'trail' ? 'linear-gradient(90deg,#f59e0b,#ff8a8a)' : 'linear-gradient(90deg,#22c55e,#8fe8ac)' }}/>
+              <span style={{ position: 'absolute', left: `calc(${Math.min(100, (ghostDistNow / goal) * 100)}% - 5px)`, top: -3, fontSize: 9, lineHeight: '12px' }}>👻</span>
+            </div>
+          </div>
         </div>
       )}
 

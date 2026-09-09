@@ -292,3 +292,75 @@ export function rollingPaceSec(samples, nowSec, unit = 'mi', windowSec = 30) {
   const perMeter = sec / meters;
   return perMeter * metersPerUnit(unit);
 }
+
+// ── Ghost racing ─────────────────────────────────────────────────────────────
+
+// Gap between me and a ghost, in the ghost's own terms: distance (units, > 0 = I
+// lead) and seconds (using my current pace to turn distance into time).
+export function ghostGap({ myDist, ghostDist, paceSec }) {
+  const dDist = myDist - ghostDist;
+  const secs = paceSec > 0 ? dDist * paceSec : null;
+  return { dDist, dSec: secs == null ? null : Math.round(secs) };
+}
+
+// 'lead' when clearly ahead, 'trail' when clearly behind, 'even' inside the
+// dead-band (about 8 seconds at pace, or 15 m with no pace yet).
+export function ghostVerdict(gap, unit = 'mi') {
+  if (!gap) return 'even';
+  if (gap.dSec != null) {
+    if (gap.dSec >= 8) return 'lead';
+    if (gap.dSec <= -8) return 'trail';
+    return 'even';
+  }
+  const band = 15 / metersPerUnit(unit);
+  if (gap.dDist >= band) return 'lead';
+  if (gap.dDist <= -band) return 'trail';
+  return 'even';
+}
+
+export function speakGap(gap, unit = 'mi') {
+  if (gap?.dSec != null && Math.abs(gap.dSec) >= 5) return `${speakDuration(Math.abs(gap.dSec))}`;
+  const meters = Math.round(Math.abs(gap?.dDist || 0) * metersPerUnit(unit) / 10) * 10;
+  return `${meters} meters`;
+}
+
+export const GHOST_CUES = {
+  lead: [
+    'You are beating your ghost. Great job. Keep it there.',
+    'Ahead of your ghost by {gap}. Do not let it back in.',
+    'Your ghost is behind you. Stay smooth, stay ahead.',
+    'You are winning this race. {gap} clear.',
+  ],
+  trail: [
+    'Your ghost is winning. Chase it down.',
+    'Ghost is {gap} ahead. Close the gap.',
+    'You are behind your ghost. Pick the pace up and reel it in.',
+    'The ghost is getting away. {gap}. Go get it.',
+  ],
+  even: [
+    'Neck and neck with your ghost. Push now and take the lead.',
+    'Dead level with your ghost. This is where you win it.',
+  ],
+};
+
+export function ghostCue(verdict, gap, unit, lastIndex, rnd = Math.random) {
+  const pool = GHOST_CUES[verdict] || GHOST_CUES.even;
+  const pick = pickCue(pool, lastIndex, rnd);
+  return { text: pick.text.replace('{gap}', speakGap(gap, unit)), index: pick.index };
+}
+
+// Added to a split call: "One mile. … 15 seconds ahead of your ghost."
+export function ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker }) {
+  if (ghostTimeAtMarker == null) return '';
+  const delta = Math.round(elapsedSec - ghostTimeAtMarker); // < 0 = I got here first
+  if (Math.abs(delta) < 3) return 'Level with your ghost.';
+  return delta < 0 ? `${speakDuration(-delta)} ahead of your ghost.` : `${speakDuration(delta)} behind your ghost.`;
+}
+
+export function ghostFinishLine({ elapsedSec, ghostTotalSec, ownerName = 'your ghost' }) {
+  const who = ownerName && ownerName !== 'YOU' && ownerName !== 'your ghost' ? ownerName : 'your ghost';
+  const delta = Math.round(elapsedSec - ghostTotalSec);
+  if (Math.abs(delta) < 2) return `Dead heat with ${who}. A draw.`;
+  if (delta < 0) return `Ghost defeated. You beat ${who} by ${speakDuration(-delta)}.`;
+  return `${who === 'your ghost' ? 'The ghost' : who} takes this one by ${speakDuration(delta)}. Run it back.`;
+}

@@ -14,7 +14,7 @@ import { IMG } from './data/optimizedImageMap';
 const GOLD = '#fde047';
 const VIOLET = '#b06aff';
 
-export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMission, onCardioMode }) {
+export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMission, onCardioMode, onGhostMode }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const BANNERS = [
     { key: 'builder', img: IMG.fitMode.workoutBuilder, alt: 'Workout Builder', color: GOLD,   rgb: '250,204,21',  pos: 'center 42%', onClick: onWorkoutBuilder },
@@ -44,6 +44,22 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
 
         <div style={{ padding: '2px 14px 0' }}>
           <div style={{ font: "700 13px 'Orbitron',sans-serif", color: '#e2d6f5', letterSpacing: '0.18em', marginBottom: 16 }}>SELECT TRAINING PATH</div>
+          {/* Ghost mode: a selector, not a code. Opens Cardio Mode with your
+              best run at the chosen distance already loaded as the opponent. */}
+          {onGhostMode && (
+            <button onClick={onGhostMode} data-guide="fit-ghost" style={{
+              width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 16, padding: '9px 12px', borderRadius: 12,
+              background: 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))', border: '1px solid rgba(176,106,255,0.55)',
+              boxShadow: '0 0 14px rgba(176,106,255,0.15)', display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ fontSize: 20 }}>👻</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ font: "900 10px 'Orbitron',sans-serif", color: '#e6d4ff', letterSpacing: '0.12em' }}>GHOST MODE</div>
+                <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 2 }}>Race your last run. The coach calls who's winning.</div>
+              </div>
+              <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.1em' }}>RACE ▶</span>
+            </button>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
             {BANNERS.map(b => (
               <button
