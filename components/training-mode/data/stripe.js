@@ -33,3 +33,9 @@ export function startCheckout(planId, user) {
   if (typeof window !== 'undefined') window.location.assign(url);
   return true;
 }
+
+// Stripe's no-code Customer Portal link (Stripe → Settings → Billing → Customer
+// portal → "Activate link"). Lets a subscriber change or cancel their plan and
+// update their card without us building any of it. Optional: the subscription
+// screen shows MANAGE BILLING only when it is set.
+export const STRIPE_PORTAL_URL = process.env.EXPO_PUBLIC_STRIPE_PORTAL_URL || null;

@@ -62,11 +62,7 @@ export function shareRankUp({ rank, level, totalXp, streak }) {
 
   const text = lines.join('\n');
 
-  try {
-    if (typeof window !== 'undefined' && typeof window.plausible === 'function') {
-      window.plausible('Share', { props: { type: 'rank_up', rank: rank || 'unknown' } });
-    }
-  } catch {}
+  trackEvent('Share', { type: 'rank_up', rank: rank || 'unknown' });
 
   if (typeof navigator !== 'undefined' && navigator.share) {
     navigator.share({ text }).catch(() => {});

@@ -38,7 +38,7 @@ export default function Root({ children }: PropsWithChildren) {
         <link rel="apple-touch-icon" href="/brand/icon-192.png" />
 
         {/* Plausible analytics */}
-        <script defer data-domain="trainingmode.co" src="https://plausible.io/js/script.js" />
+        <script defer data-domain="apptrainingmode.com" src="https://plausible.io/js/script.js" />
 
         <ScrollViewStyleReset />
       </head>

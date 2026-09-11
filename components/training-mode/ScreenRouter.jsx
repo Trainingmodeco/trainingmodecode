@@ -650,7 +650,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     return <Notifications onBack={goProfile}/>;
   }
   if (screen === 'subscription') {
-    return <ManageSubscription onBack={goProfile}/>;
+    return <ManageSubscription onBack={goProfile} onPaywall={goPaywall}/>;
   }
   if (screen === 'arcade') {
     return (

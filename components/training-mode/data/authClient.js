@@ -100,7 +100,7 @@ export async function fetchEntitlement() {
   const token = await getAccessToken();
   if (!token) return null;
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/entitlements?select=plan,is_pro,current_period_end`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/entitlements?select=plan,is_pro,status,current_period_end,cancel_at_period_end`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;

@@ -54,9 +54,11 @@ const precache = existsSync(expoDir)
 // Stamp a per-build id into dist/sw.js so every deploy ships a byte-new
 // worker: the browser installs it, it WAITS (no mid-session takeover), and
 // the update activates with a fresh cache on the next app launch.
+// One build id for the worker cache name AND the crash-report tag, so an
+// error in Plausible can be matched to the deploy that shipped it.
+const buildId = Date.now().toString(36);
 const swPath = join(distDir, 'sw.js');
 if (existsSync(swPath)) {
-  const buildId = Date.now().toString(36);
   let sw = readFileSync(swPath, 'utf8').replace('__TM_BUILD_ID__', buildId);
   if (precache.length) {
     sw = sw.replace("'__TM_PRECACHE__'", precache.map((p) => JSON.stringify(p)).join(','));
@@ -153,6 +155,31 @@ if (existsSync(indexPath)) {
       '<script>setTimeout(function(){var r=document.getElementById("tm-prerender-retry");if(r)r.style.display="block";},8000);</script>',
     ].join('');
     html = html.replace('<div id="root"></div>', `<div id="root">${shell}</div>`);
+  }
+  // Analytics + crash visibility. Both used to live in app/+html.tsx, which the
+  // export ignores (see the SEO note above) — so every trackEvent() in the app
+  // was a no-op and a JS crash in the field was invisible. Injected here, in
+  // the pipeline that reaches production, with the domain the app is actually
+  // served from. Plausible ignores localhost on its own.
+  if (!html.includes('plausible.io/js/script.js')) {
+    const observ = [
+      // Queue shim: events fired before the script loads are replayed by it.
+      '<script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>',
+      '<script defer data-domain="apptrainingmode.com" src="https://plausible.io/js/script.js"></script>',
+      // Crash reporter: the first three uncaught errors / rejections per page
+      // load become a `js_error` event with the message and route, so a crash
+      // wave shows up in Plausible within minutes even without Sentry.
+      `<script>(function(){var n=0;function r(k,m,s){if(!m||n++>=3)return;try{window.plausible&&window.plausible("js_error",{props:{kind:k,message:String(m||"").slice(0,120),source:String(s||"").split("/").pop().slice(0,60),path:location.pathname,build:"${buildId}"}})}catch(e){}}addEventListener("error",function(e){r("error",e&&e.message,e&&e.filename)},true);addEventListener("unhandledrejection",function(e){var x=e&&e.reason;r("rejection",x&&(x.message||x),x&&x.stack)})})();</script>`,
+    ];
+    // Full error reporting when a Sentry DSN is set at build time (Netlify env
+    // var SENTRY_DSN). Optional: without it the Plausible reporter above still runs.
+    if (process.env.SENTRY_DSN) {
+      observ.push(
+        '<script src="https://browser.sentry-cdn.com/8.26.0/bundle.min.js" crossorigin="anonymous"></script>',
+        `<script>try{window.Sentry&&Sentry.init({dsn:${JSON.stringify(process.env.SENTRY_DSN)},release:"tm-${buildId}",sampleRate:1,tracesSampleRate:0})}catch(e){}</script>`,
+      );
+    }
+    html = html.replace('</head>', `${observ.join('')}</head>`);
   }
   if (!html.includes('serviceWorker.register')) {
     // updateViaCache:'none' + an explicit update() make installed PWAs check

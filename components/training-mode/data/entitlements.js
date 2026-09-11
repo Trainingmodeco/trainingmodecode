@@ -91,11 +91,21 @@ export async function refreshEntitlement() {
   const ent = await fetchEntitlement();
   try {
     if (typeof localStorage !== 'undefined') {
-      if (ent) localStorage.setItem(CACHE_KEY, JSON.stringify({ plan: ent.plan || 'free', is_pro: !!ent.is_pro }));
+      if (ent) localStorage.setItem(CACHE_KEY, JSON.stringify({
+        plan: ent.plan || 'free', is_pro: !!ent.is_pro, status: ent.status || null,
+        current_period_end: ent.current_period_end || null, cancel_at_period_end: !!ent.cancel_at_period_end,
+        fetched_at: Date.now(),
+      }));
       else localStorage.removeItem(CACHE_KEY);
     }
   } catch { /* quota */ }
   return ent;
+}
+
+// The cached entitlement row as last synced from Supabase (null when signed
+// out or never synced). The subscription screen renders THIS, never a mock.
+export function getCachedEntitlement() {
+  return readJSON(CACHE_KEY);
 }
 
 // Clear the cached entitlement (on sign-out).

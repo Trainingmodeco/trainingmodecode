@@ -96,3 +96,56 @@ with a signed-in test account to exercise the checkout → entitlement path.
 
 Tell Claude "flip the paywall on" once steps 1–4 are done and tested, and it'll
 handle step 5's code change.
+
+
+---
+
+## 5. Customer portal link (lets subscribers cancel without you)
+
+Stripe → **Settings → Billing → Customer portal** → turn on "Cancel
+subscriptions" and "Update payment method" → **Activate link** → copy the
+`https://billing.stripe.com/p/login/…` URL.
+
+Netlify → Environment variables → add `EXPO_PUBLIC_STRIPE_PORTAL_URL` = that
+URL → redeploy. The app's SUBSCRIPTION screen then shows MANAGE BILLING for
+paying subscribers. Without it the screen tells them to use the link in their
+Stripe receipt email (which also works once the portal is activated).
+
+## 6. Webhook events — add these to the endpoint from step 3
+
+The webhook now keeps the entitlement true to Stripe, so the endpoint must
+send more than `checkout.session.completed`. Edit the endpoint → **Select
+events** → add:
+
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted` (revokes Pro — founders are never revoked)
+- `invoice.payment_failed` (marks PAYMENT DUE; Pro stays until Stripe gives up)
+
+A failed Supabase write now returns 500, so Stripe retries for up to three
+days instead of losing the sale. Netlify → Functions → stripe-webhook → Logs
+shows one line per event: `granted annual to <user>`, `revoked sub_…`, or the
+error.
+
+## 7. Analytics + crash reporting (so the launch cohort is visible)
+
+- **Plausible:** create the site `apptrainingmode.com` in Plausible. The tag
+  is injected at build time (`scripts/copy-public-assets.mjs`) with that domain;
+  nothing else to configure. Events: `session_complete`, `paywall_viewed`,
+  `paywall_checkout_clicked`, `checkout_return_success`, `js_error`, and more.
+- **Crash visibility:** every build reports the first three uncaught errors per
+  page load as a Plausible `js_error` event (message, file, route, build id).
+- **Sentry (optional, full stack traces):** create a free Sentry project →
+  copy the DSN → Netlify env var `SENTRY_DSN` → redeploy. The SDK is only
+  injected when the variable exists.
+
+## 8. Go-live test, in order
+
+1. Stripe **test mode**: create test versions of the three Payment Links, set
+   the test webhook endpoint with the events above, `?paywall=preview` in the
+   app, buy the monthly plan with card 4242 4242 4242 4242.
+2. Profile → MANAGE SUBSCRIPTION shows `Monthly plan · $5.99/mo · Renews <date>`.
+3. Cancel in the portal → the screen shows ENDING; wait for or simulate
+   `customer.subscription.deleted` → FREE, and arcade stage 4 shows the paywall.
+4. Switch the endpoint and links to live mode, flip `PAYWALL_ENABLED = true`,
+   deploy.
