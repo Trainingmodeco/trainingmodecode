@@ -1,0 +1,2212 @@
+diff --git a/components/training-mode/App.jsx b/components/training-mode/App.jsx
+index 33e05f9..b36ec33 100644
+--- a/components/training-mode/App.jsx
++++ b/components/training-mode/App.jsx
+@@ -51,8 +51,15 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+ }
+ 
+ const ACTIVE_SESSION_SCREENS = new Set([
+-  'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session',
++  'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session', 'cardio_mode',
+ ]);
++// cardio_mode is a setup screen most of the time and a session only while a
++// run is live. The run player reports { live: true } through onSessionState;
++// without it the screen is not stashed and the boot restore leaves it alone.
++function isSessionScreenLive(screen, internalState) {
++  if (screen === 'cardio_mode') return !!internalState?.live;
++  return true;
++}
+ 
+ // Stable per-combo key so the Hybrid Training Bonus is awarded only once for a
+ // given workout + cardio finisher, even across double-fires, refresh, or reopen.
+@@ -148,6 +155,7 @@ export default function App() {
+   const [ccMission, setCcMission] = useState(null);
+   const [ccResult,  setCcResult ] = useState(null);
+   const [cardioContext, setCardioContext] = useState(null);
++  const [cardioEntry,   setCardioEntry  ] = useState(null); // e.g. { ghost: 'best' } from the hub
+   const [cardioResult,  setCardioResult ] = useState(null);
+   const [arcadeSeries, setArcadeSeries] = useState(null);
+   const [arcadeStage,  setArcadeStage ] = useState(null);
+@@ -205,6 +213,7 @@ export default function App() {
+   // into the player automatically on next launch).
+   const buildSessionSnapshot = useCallback((reason) => {
+     if (!ACTIVE_SESSION_SCREENS.has(screen)) return null;
++    if (!isSessionScreenLive(screen, activeSessionStateRef.current)) return null;
+     const internalState = activeSessionStateRef.current
+       ? { ...activeSessionStateRef.current }
+       : null;
+@@ -421,7 +430,7 @@ export default function App() {
+     // app's normal resume flow picks it up) instead of silently abandoning it.
+     goFitHub:      () => { pauseCurrentSession(); setScreen('fit_hub'); },
+     goFitSetup:    () => { pauseCurrentSession(); setScreen('fit_setup'); },
+-    goCardioMode:  () => setScreen('cardio_mode'),
++    goCardioMode:  (opts) => { setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
+     goWorkoutCodec: () => setScreen('workout_codec'),
+     goQuickMissionSetup: () => setScreen('qm_setup'),
+     goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
+@@ -883,7 +892,7 @@ export default function App() {
+             screen={screen} disc={disc} cfg={cfg} session={session}
+             comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
+             ccMission={ccMission} ccResult={ccResult}
+-            cardioContext={cardioContext} cardioResult={cardioResult}
++            cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
+             arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
+             campCtx={campCtx} campResult={campResult}
+             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
+diff --git a/components/training-mode/CardioMode.jsx b/components/training-mode/CardioMode.jsx
+index a4ebf32..ba150f8 100644
+--- a/components/training-mode/CardioMode.jsx
++++ b/components/training-mode/CardioMode.jsx
+@@ -1,4 +1,4 @@
+-import { useState } from 'react';
++import { useState, useEffect } from 'react';
+ import { createPortal } from 'react-dom';
+ import PhoneFrame from './PhoneFrame';
+ import VoiceMixer from './shared/VoiceMixer';
+@@ -10,6 +10,12 @@ import { C } from './Styles';
+ import { ARCADE } from './ArcadeUI';
+ import { CARDIO_ADDON_TYPES, cardioAddonToPlayer } from './data/cardioAddon';
+ import CardioProtocolPlayer from './CardioProtocolPlayer';
++import RunPlayer from './RunPlayer';
++import { loadLiveRun, liveRunElapsedSec } from './data/liveRun';
++import { computeRunTargets, metersPerUnit, fmtClock as fmtRunClock } from './data/runCoach';
++import { getRunGhost, ghostArt } from './data/runGhosts';
++import SafeImage from './SafeImage';
++import { unlockAudio } from './data/audioEngine';
+ import CardioSummary from './CardioSummary';
+ import EmptyState from './EmptyState';
+ import { HelpButton } from './shared/WorkoutHelpPanel';
+@@ -24,15 +30,19 @@ const VIOLET = '#b06aff';
+ 
+ const fmtClock = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+ 
+-// Auto pace target (design 12a): from the goal distance + the athlete's level we
+-// set a target pace the voice coach holds them to. Base 10:00/mi at level 1,
+-// ~18s/level faster, floored at 6:30/mi.
+-function computeAutoPace(distance, unit, level) {
+-  const paceSecPerMile = Math.max(390, 600 - (Math.max(1, level) - 1) * 18);
+-  const miles = unit === 'km' ? distance * 0.621371 : distance;
+-  const totalSec = Math.round(miles * paceSecPerMile);
+-  const paceSecPerUnit = unit === 'km' ? paceSecPerMile * 0.621371 : paceSecPerMile;
+-  return { totalSec, paceSecPerUnit, paceLabel: `${fmtClock(paceSecPerUnit)} /${unit}`, timeLabel: fmtClock(totalSec), goalLabel: `${distance} ${unit}` };
++// Target + elite time for a distance run. The target defaults from the goal
++// distance and the athlete's level (10:00/mi at level 1, ~18s/level faster,
++// floored at 6:30/mi) and is editable; the elite time is the number to chase —
++// two thirds of the target, never faster than 6:00/mi. All in data/runCoach.js
++// so the setup screen and the run player agree to the second.
++function computeAutoPace(distance, unit, level, targetSeconds) {
++  const t = computeRunTargets({ distance, unit, level, targetSeconds });
++  return {
++    totalSec: t.targetSec, autoTotalSec: t.autoTargetSec, eliteSec: t.eliteSec,
++    paceSecPerUnit: t.targetPaceSec, elitePaceSecPerUnit: t.elitePaceSec,
++    paceLabel: `${fmtClock(t.targetPaceSec)} /${unit}`, timeLabel: fmtClock(t.targetSec), eliteLabel: fmtClock(t.eliteSec),
++    goalLabel: `${distance} ${unit}`,
++  };
+ }
+ 
+ // Simplified method taxonomy (design 12a). Four categories; the category IS the
+@@ -134,8 +144,11 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
+ 
+ // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
+ // pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
+-export default function CardioMode({ onBack }) {
+-  const [phase, setPhase] = useState('setup');
++export default function CardioMode({ onBack, onSessionState, entry = null }) {
++  // A run that is still live (the athlete left the player, the app, or the
++  // OS took it) comes straight back into the player. See data/liveRun.js.
++  const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
++  const [phase, setPhase] = useState(() => (loadLiveRun() ? 'player' : 'setup'));
+   const [categoryId, setCategoryId] = useState('running');
+   const [style, setStyle] = useState('steady');
+   const [intervalMode, setIntervalMode] = useState('target'); // 'random' | 'target'
+@@ -146,6 +159,9 @@ export default function CardioMode({ onBack }) {
+   const [customDistance, setCustomDistance] = useState('');
+   const [goalTimeSeconds, setGoalTimeSeconds] = useState(1200);
+   const [customTimeMin, setCustomTimeMin] = useState('');
++  const [customTargetMin, setCustomTargetMin] = useState('');
++  // Ghost mode: 'off' | 'last' | 'best'. A hub entry can preselect it.
++  const [ghostChoice, setGhostChoice] = useState(() => (entry?.ghost === 'last' || entry?.ghost === 'best') ? entry.ghost : 'off');
+   const [noGps, setNoGps] = useState(false);
+   const [playerResult, setPlayerResult] = useState(null);
+   const [helpOpen, setHelpOpen] = useState(false);
+@@ -168,7 +184,12 @@ export default function CardioMode({ onBack }) {
+   const parsedCustomMin = parseFloat(customTimeMin);
+   const effGoalTime = Number.isFinite(parsedCustomMin) && parsedCustomMin > 0 ? Math.round(parsedCustomMin * 60) : goalTimeSeconds;
+ 
+-  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level) : null;
++  const parsedTargetMin = parseFloat(customTargetMin);
++  const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
++  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec) : null;
++  const ghostLast = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'last') : null;
++  const ghostBest = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'best') : null;
++  const ghostPick = !usesGps ? null : ghostChoice === 'best' ? ghostBest : ghostChoice === 'last' ? ghostLast : null;
+ 
+   const displayStyleLabel = style === 'steady' ? 'Steady Pace'
+     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
+@@ -211,6 +232,9 @@ export default function CardioMode({ onBack }) {
+       distanceUnit: dist ? dist.unit : 'mi',
+       paceTargetSeconds: autoPace ? autoPace.paceSecPerUnit : null,
+       paceTargetLabel: autoPace ? autoPace.paceLabel : null,
++      targetSeconds: autoPace ? autoPace.totalSec : null,
++      eliteSeconds: autoPace ? autoPace.eliteSec : null,
++      elitePaceSeconds: autoPace ? autoPace.elitePaceSecPerUnit : null,
+       style: addonStyle,
+       intervals,
+       randomSurges,
+@@ -220,18 +244,28 @@ export default function CardioMode({ onBack }) {
+ 
+   const addon = buildAddon();
+ 
+-  // Outdoor runs need GPS; probe real permission and route to the GPS empty
+-  // state (25d) if it's unavailable / denied.
++  // START goes straight into the player, which speaks the brief and starts the
++  // clock itself. It used to probe getCurrentPosition first with an 8-second
++  // timeout — a silent wait on a fresh run, and the player then needed a
++  // SECOND start tap. The run player opens the GPS watch immediately (that is
++  // what raises the permission prompt) and reports a denial back here.
+   const startCardio = () => {
+     setPlayerResult(null);
+-    if (usesGps) {
+-      if (typeof navigator === 'undefined' || !navigator.geolocation) { setPhase('gps'); return; }
+-      navigator.geolocation.getCurrentPosition(() => setPhase('player'), () => setPhase('gps'), { timeout: 8000, maximumAge: 60000 });
+-      return;
+-    }
++    setLiveRestore(null);
++    unlockAudio();
++    if (usesGps && (typeof navigator === 'undefined' || !navigator.geolocation)) { setPhase('gps'); return; }
+     setPhase('player');
+   };
+ 
++  // Leaving the player does NOT end the run. The clock is wall time, the run
++  // is in storage; the setup screen shows a RETURN banner until it finishes.
++  const leavePlayer = () => { setLiveRestore(loadLiveRun()); setPhase('setup'); };
++  useEffect(() => {
++    if (phase !== 'setup') return undefined;
++    const t = setInterval(() => setLiveRestore(loadLiveRun()), 1000);
++    return () => clearInterval(t);
++  }, [phase]);
++
+   if (phase === 'gps') {
+     return (
+       <PhoneFrame useBrandBg>
+@@ -250,6 +284,15 @@ export default function CardioMode({ onBack }) {
+ 
+   if (phase === 'player') {
+     const player = cardioAddonToPlayer(addon);
++    // A restored run carries its own config; a fresh one takes the setup's.
++    const runCfg = liveRestore?.cfg || {
++      goal: addon.targetDistance, unit: addon.distanceUnit,
++      targetSec: addon.targetSeconds, eliteSec: addon.eliteSeconds,
++      targetPaceSec: addon.paceTargetSeconds, elitePaceSec: addon.elitePaceSeconds,
++      methodLabel, useGps: usesGps, randomSurges: addon.randomSurges,
++      ghost: ghostPick,
++    };
++    const isRun = liveRestore ? true : useDistanceGauge;
+     return (
+       <PhoneFrame useBrandBg>
+         <Embers count={2}/>
+@@ -259,13 +302,24 @@ export default function CardioMode({ onBack }) {
+         <VoiceMixer top={10} right={10}/>
+         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '12px 16px 0' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+-            <button onClick={() => setPhase('setup')} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
++            <button onClick={leavePlayer} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
+               <ChevronLeft size={22}/>
+             </button>
+             <IntroLogo size={26}/>
+           </div>
+           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: 4 }}>
++            {isRun ? (
++              <RunPlayer
++                cfg={runCfg}
++                restore={liveRestore}
++                autoStart
++                onState={onSessionState}
++                onGpsDenied={() => { if (!liveRestore) setPhase('gps'); }}
++                onComplete={(result) => { onSessionState?.(null); setLiveRestore(null); setPlayerResult(result); setPhase('summary'); }}
++              />
++            ) : (
+             <CardioProtocolPlayer
++              autoStart
+               format={player.format}
+               durationSeconds={player.durationSeconds}
+               intervalConfig={player.intervalConfig}
+@@ -284,6 +338,7 @@ export default function CardioMode({ onBack }) {
+               deferManualLog={useDistanceGauge}
+               onComplete={(result) => { setPlayerResult(result); setPhase('summary'); }}
+             />
++            )}
+           </div>
+         </div>
+       </PhoneFrame>
+@@ -307,7 +362,9 @@ export default function CardioMode({ onBack }) {
+             targetTimeSeconds={addon.targetType === 'time' ? addon.targetTimeSeconds : null}
+             targetDistance={addon.targetType === 'distance' ? player.distanceLabel : null}
+             initialTimeSeconds={playerResult?.completedTimeSeconds ?? fallbackTime}
+-            initialDistanceUnit={addon.distanceUnit || 'mi'}
++            initialDistance={typeof playerResult?.completedDistance === 'number' ? playerResult.completedDistance : null}
++            initialDistanceUnit={playerResult?.distanceUnit || addon.distanceUnit || 'mi'}
++            runResult={playerResult?.splits ? playerResult : null}
+             awardXp
+             onDone={onBack}
+           />
+@@ -345,6 +402,22 @@ export default function CardioMode({ onBack }) {
+         {/* Options — top-aligned; this region fills, so the open space lands below the controls */}
+         <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+ 
++          {liveRestore && (
++            <button onClick={() => setPhase('player')} style={{
++              width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 12, padding: '10px 12px', borderRadius: 12,
++              background: 'rgba(34,197,94,0.1)', border: '1.5px solid rgba(34,197,94,0.55)', boxShadow: '0 0 16px rgba(34,197,94,0.18)',
++              display: 'flex', alignItems: 'center', gap: 10,
++            }}>
++              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e', flexShrink: 0 }}/>
++              <div style={{ flex: 1, minWidth: 0 }}>
++                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: '#8fe8ac', letterSpacing: '0.12em' }}>RUN IN PROGRESS · {liveRestore.pausedAt ? 'PAUSED' : 'CLOCK RUNNING'}</div>
++                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 12, color: '#fff', marginTop: 2 }}>
++                  {fmtClock(liveRunElapsedSec(liveRestore))} · {((liveRestore.meters || 0) / metersPerUnit(liveRestore.cfg?.unit || 'mi')).toFixed(2)} {liveRestore.cfg?.unit || 'mi'} of {liveRestore.cfg?.goal}
++                </div>
++              </div>
++              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: GOLD, letterSpacing: '0.1em', flexShrink: 0 }}>RETURN ▶</span>
++            </button>
++          )}
+           {/* METHOD — 4 compact category cards (the category is the selection) */}
+           <ProgressionNudgeCard lane="cardio"/>
+           <div data-guide="cm-method">
+@@ -446,11 +519,62 @@ export default function CardioMode({ onBack }) {
+               </div>
+ 
+               {autoPace && (
+-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 9 }}>
+-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>AUTO PACE</span>
+-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
+-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 11, color: GOLD }}>{autoPace.paceLabel}</span>
+-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>Lvl {level}</span>
++                <div style={{ borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 9 }}>
++                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
++                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.1em', flexShrink: 0 }}>TARGET</span>
++                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: '#fff' }}>{autoPace.timeLabel}</span>
++                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, color: '#c4b5fd' }}>{autoPace.paceLabel}</span>
++                    <input
++                      type="number" inputMode="numeric" min="1" step="1" placeholder="min"
++                      value={customTargetMin} onChange={e => setCustomTargetMin(e.target.value)}
++                      aria-label="Target time in minutes"
++                      style={{ width: 52, marginLeft: 'auto', padding: '3px 6px', borderRadius: 7, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 11, fontWeight: 600, outline: 'none' }}
++                    />
++                  </div>
++                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5 }}>
++                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: GOLD, letterSpacing: '0.1em', flexShrink: 0 }}>ELITE</span>
++                    <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 13, color: GOLD, textShadow: '0 0 10px rgba(253,224,71,0.4)' }}>{autoPace.eliteLabel}</span>
++                    <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>{customTargetSec ? 'your target' : `auto · Lvl ${level}`}</span>
++                  </div>
++                </div>
++              )}
++
++              {/* GHOST MODE — race your own recorded run over this distance. A
++                  selector, not a code: pick it here or from the hub. */}
++              {usesGps && (
++                <div data-guide="cm-ghost" style={{ borderRadius: 10, border: `1px solid ${ghostPick ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghostPick ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '8px 12px', marginBottom: 9 }}>
++                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
++                    {ghostPick ? (
++                      <SafeImage src={ghostArt(ghostPick)} alt="" style={{ width: 40, height: 40, borderRadius: 9, objectFit: 'cover', objectPosition: 'center 20%', flexShrink: 0 }}/>
++                    ) : (
++                      <div style={{ width: 40, height: 40, borderRadius: 9, background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>👻</div>
++                    )}
++                    <div style={{ flex: 1, minWidth: 0 }}>
++                      <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: ghostPick ? '#e6d4ff' : '#c4b5fd', letterSpacing: '0.1em' }}>
++                        {ghostPick ? `GHOST MODE · VS ${ghostPick.ownerId === 'me' ? `YOUR ${ghostChoice === 'best' ? 'BEST' : 'LAST'} RUN` : ghostPick.ownerName} · ${fmtRunClock(ghostPick.totalSec)}` : 'GHOST MODE'}
++                      </div>
++                      <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 2, lineHeight: 1.3 }}>
++                        {ghostPick ? 'Race the replay. The coach calls who leads.' : (ghostLast || ghostBest) ? 'Beat your last run or your best at this distance.' : `Finish a GPS run at ${effGoalDistance} ${distanceUnit} to create your ghost.`}
++                      </div>
++                    </div>
++                  </div>
++                  {(ghostLast || ghostBest) && (
++                    <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
++                      {[
++                        { id: 'off', label: 'OFF' },
++                        ghostLast ? { id: 'last', label: `MY LAST · ${fmtRunClock(ghostLast.totalSec)}` } : null,
++                        ghostBest ? { id: 'best', label: `MY BEST · ${fmtRunClock(ghostBest.totalSec)}` } : null,
++                      ].filter(Boolean).map(o => (
++                        <button key={o.id} onClick={() => setGhostChoice(o.id)} style={{
++                          flex: o.id === 'off' ? '0 0 auto' : 1, padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
++                          fontFamily: ARCADE.fontHead, fontWeight: 800, fontSize: 8.5, letterSpacing: '0.06em', whiteSpace: 'nowrap',
++                          background: ghostChoice === o.id ? 'rgba(176,106,255,0.18)' : 'rgba(8,2,18,0.55)',
++                          border: ghostChoice === o.id ? '1.5px solid rgba(176,106,255,0.75)' : `1px solid ${ARCADE.violetBorderSoft}`,
++                          color: ghostChoice === o.id ? '#e6d4ff' : C.muted,
++                        }}>{o.label}</button>
++                      ))}
++                    </div>
++                  )}
+                 </div>
+               )}
+               </div>
+diff --git a/components/training-mode/CardioProtocolPlayer.jsx b/components/training-mode/CardioProtocolPlayer.jsx
+index 173294a..043a6a4 100644
+--- a/components/training-mode/CardioProtocolPlayer.jsx
++++ b/components/training-mode/CardioProtocolPlayer.jsx
+@@ -2,10 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
+ import SafeImage from './SafeImage';
+ import { C } from './Styles';
+ import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
+-import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+ import useMiniPlayer from './hooks/useMiniPlayer';
+ import MiniPlayerButton from './shared/MiniPlayerButton';
+ import { ARCADE } from './ArcadeUI';
++import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
++import { playBell, playBeep, unlockAudio } from './data/audioEngine';
++import { buildIntervalIntro, speakDuration } from './data/runCoach';
+ import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
+ import TrainingCTA from './shared/TrainingCTA';
+ 
+@@ -213,6 +215,8 @@ export default function CardioProtocolPlayer({
+   goalDistance = null,
+   initialDistanceUnit = 'mi',
+   deferManualLog = false,
++  autoStart = false,
++  voice = true,
+   onComplete,
+ }) {
+   const buildRef = useRef(null);
+@@ -225,8 +229,18 @@ export default function CardioProtocolPlayer({
+   const [running, setRunning] = useState(false);
+   const [done, setDone] = useState(false);
+   const [showManual, setShowManual] = useState(manualOnly);
++  const [starting, setStarting] = useState(!!autoStart && !manualOnly);
+   const firedRef = useRef(false);
+   const tickRef = useRef(null);
++  // Wall-clock timing. A 1-second setInterval counter drifts and stops the
++  // moment the browser throttles a background tab; timestamps do not. The
++  // clock is startedAt + accumulated pause time, and the nudge buttons move an
++  // offset, so leaving the app never freezes a session.
++  const clockRef = useRef({ startedAt: null, pauseAccumMs: 0, pausedAt: null, offsetSec: 0 });
++  const lastSpokenSegRef = useRef(-1);
++  const lastBeepSecRef = useRef(-1);
++
++  const say = (text, opts) => { if (voice && text) speakAsync(text, opts).catch(() => {}); };
+ 
+   // Real GPS tracking (outdoor runs). Accumulates distance between fixes and keeps
+   // a route trail; falls back to the simulation when GPS is unavailable/denied.
+@@ -262,33 +276,114 @@ export default function CardioProtocolPlayer({
+   }, [remaining, running, done, seg, segIndex, segments, rounds, format]);
+   const mini = useMiniPlayer(miniFrame, !done && !showManual);
+ 
+-  // Auto-pause on backgrounding — same as tapping PAUSE, so returning shows
+-  // RESUME. Applies to every cardio mode INCLUDING live GPS runs (per playtest
+-  // call): leaving the app pauses the run rather than banking distance the
+-  // athlete didn't knowingly train. RESUME picks the run straight back up.
+-  useAutoPauseOnHidden(running && !done, () => setRunning(false));
++  // Deliberately NO auto-pause on backgrounding any more. Owner's call after
++  // running with it: the timer keeps running regardless of where the athlete
++  // is — leaving the player or the app is not a pause.
++
++  // Pause / resume bookkeeping on the wall clock.
++  const toggleRunning = () => {
++    const c = clockRef.current;
++    if (running) {
++      c.pausedAt = Date.now();
++      setRunning(false);
++      say('Paused.');
++    } else {
++      if (c.startedAt == null) c.startedAt = Date.now();
++      if (c.pausedAt) { c.pauseAccumMs += Date.now() - c.pausedAt; c.pausedAt = null; }
++      setRunning(true);
++      if (totalElapsed > 0) say('Resume. Go!');
++    }
++  };
+ 
++  // The tick: sample the wall clock 4x a second and derive everything.
+   useEffect(() => {
+     if (!running || done || showManual) { clearInterval(tickRef.current); return; }
+-    tickRef.current = setInterval(() => {
+-      if (!distanceMode) setRemaining(r => Math.max(0, r - 1));
+-      setTotalElapsed(t => t + 1);
+-    }, 1000);
++    const bounds = [];
++    segments.reduce((acc, sg) => { const end = acc + sg.seconds; bounds.push(end); return end; }, 0);
++    const total = bounds[bounds.length - 1] || 0;
++    const tick = () => {
++      const c = clockRef.current;
++      if (c.startedAt == null) c.startedAt = Date.now();
++      const raw = (Date.now() - c.startedAt - c.pauseAccumMs) / 1000;
++      const elapsed = Math.max(0, Math.floor(raw));
++      setTotalElapsed(elapsed);
++      if (distanceMode) return;
++      const eff = Math.max(0, elapsed + c.offsetSec);
++      if (eff >= total) { setRemaining(0); setDone(true); setRunning(false); return; }
++      let idx = 0;
++      while (idx < bounds.length - 1 && eff >= bounds[idx]) idx++;
++      setSegIndex(idx);
++      setRemaining(Math.max(0, Math.ceil(bounds[idx] - eff)));
++    };
++    tick();
++    tickRef.current = setInterval(tick, 250);
+     return () => clearInterval(tickRef.current);
+-  }, [running, done, showManual, distanceMode]);
++  }, [running, done, showManual, distanceMode, segments]);
++
++  const nudge = (deltaSec) => { clockRef.current.offsetSec += deltaSec; };
+ 
++  // Voice on every segment change, beeps into the last three seconds of a
++  // block, and a bell + "Complete" at the end.
+   useEffect(() => {
+-    if (distanceMode) return;
+-    if (remaining > 0 || done) return;
+-    const next = segIndex + 1;
+-    if (next >= segments.length) {
+-      setDone(true);
+-      setRunning(false);
+-    } else {
+-      setSegIndex(next);
+-      setRemaining(segments[next].seconds);
+-    }
+-  }, [remaining, done, segIndex, segments, distanceMode]);
++    if (distanceMode || !running || done) return;
++    if (lastSpokenSegRef.current === segIndex) return;
++    lastSpokenSegRef.current = segIndex;
++    const sg = segments[segIndex];
++    if (!sg) return;
++    if (sg.kind === 'work') { playBell(1); say(`Round ${sg.round}. ${sg.label === 'HARD' ? 'Hard!' : 'Work!'}`); }
++    else if (sg.kind === 'rest') say(sg.label === 'REST' ? 'Rest.' : 'Recover. Easy pace.');
++    else if (sg.kind === 'warmup') say(`Warm up. ${speakDuration(sg.seconds)}, easy.`);
++    else if (sg.kind === 'cooldown') say('Cool down. Bring it down.');
++    else if (sg.kind === 'steady' && totalElapsed === 0) { /* intro covers it */ }
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [segIndex, running, done, distanceMode]);
++
++  useEffect(() => {
++    if (distanceMode || !running || done) return;
++    if (remaining >= 1 && remaining <= 3 && lastBeepSecRef.current !== remaining) { lastBeepSecRef.current = remaining; playBeep(); }
++  }, [remaining, running, done, distanceMode]);
++
++  useEffect(() => {
++    if (!done) return;
++    playBell(3);
++    say('Complete. Great work.');
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [done]);
++
++  // Auto-start: speak the brief, then GO. START CARDIO on the setup screen is
++  // the gesture that primes speech and audio.
++  useEffect(() => {
++    if (!starting) return undefined;
++    let cancelled = false;
++    // The brief is a courtesy, not a gate: whatever speech does, the clock starts.
++    (async () => {
++      try {
++        unlockAudio();
++        if (voice) {
++          await primeSpeech();
++          const cfg = intervalConfig || {};
++          const intro = (format === 'interval' || format === 'tabata')
++            ? buildIntervalIntro({ styleLabel: styleLabel || format, rounds, workSec: cfg.workSeconds ?? cfg.fastSeconds ?? cfg.hardSeconds ?? 30, restSec: cfg.restSeconds ?? cfg.easySeconds ?? 15, warmupSec: cfg.warmupSeconds ?? 0 })
++            : { lines: ['Cardio mode.', `${String(methodLabel || 'cardio').toLowerCase()}, ${speakDuration(durationSeconds || 600)} steady.`], ready: 'Ready.', go: 'Go!' };
++          for (const line of intro.lines) { if (cancelled) return; await speakAsync(line).catch(() => {}); }
++          if (cancelled) return;
++          await speakAsync(intro.ready).catch(() => {});
++          await delay(700);
++        } else {
++          await delay(1200);
++        }
++      } catch { /* start anyway */ }
++      if (cancelled) return;
++      try { playBell(1); say('Go!', { rate: 1.1 }); } catch { /* ignore */ }
++      setStarting(false);
++      clockRef.current.startedAt = Date.now();
++      setRunning(true);
++    })();
++    return () => { cancelled = true; };
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [starting]);
++
++  useEffect(() => () => stopVoiceSession(), []);
+ 
+   useEffect(() => () => clearInterval(tickRef.current), []);
+ 
+@@ -478,10 +573,10 @@ export default function CardioProtocolPlayer({
+         <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+           <TrainingCTA
+             variant={running ? 'violet' : 'gold'}
+-            label={running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
++            label={starting ? 'STARTING…' : running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
+             icon={running ? '❚❚' : '▶'}
+             height={52}
+-            onClick={() => setRunning(v => !v)}
++            onClick={() => { if (!starting) toggleRunning(); }}
+             style={{ flex: '2 1 0', width: 'auto', fontSize: 14, letterSpacing: '0.08em' }}
+           />
+           <button onClick={() => { setRunning(false); if (deferManualLog) finish({ completedDistance: +dist.toFixed(2), distanceUnit: unit }); else setShowManual(true); }} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+@@ -533,19 +628,19 @@ export default function CardioProtocolPlayer({
+ 
+       {!done && (
+         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
+-          <CtrlButton onClick={() => setRemaining(r => Math.max(0, r - 15))}>
++          <CtrlButton onClick={() => nudge(-15)}>
+             <Rewind size={17} color={C.neon} />
+           </CtrlButton>
+-          <button onClick={() => setRunning(v => !v)} style={{
++          <button onClick={() => { if (!starting) toggleRunning(); }} style={{
+             width: 60, height: 60, borderRadius: 16, cursor: 'pointer',
+             display: 'flex', alignItems: 'center', justifyContent: 'center',
+             background: running ? 'linear-gradient(135deg, rgba(168,85,247,0.28), rgba(168,85,247,0.12))' : 'rgba(253,224,71,0.12)',
+             border: `1.5px solid ${running ? 'rgba(168,85,247,0.5)' : GOLD}`,
+             boxShadow: running ? '0 0 16px rgba(168,85,247,0.2)' : '0 0 16px rgba(253,224,71,0.25)',
+           }}>
+-            {running ? <Pause size={24} color="#fff" /> : <Play size={24} color={GOLD} />}
++            {running ? <Pause size={24} color="#fff" /> : <Play size={24} color={GOLD} style={{ opacity: starting ? 0.5 : 1 }} />}
+           </button>
+-          <CtrlButton onClick={() => setRemaining(r => r + 15)}>
++          <CtrlButton onClick={() => nudge(15)}>
+             <FastForward size={17} color={C.neon} />
+           </CtrlButton>
+         </div>
+diff --git a/components/training-mode/CardioSummary.jsx b/components/training-mode/CardioSummary.jsx
+index 6c6f3e4..33e619a 100644
+--- a/components/training-mode/CardioSummary.jsx
++++ b/components/training-mode/CardioSummary.jsx
+@@ -36,7 +36,9 @@ export default function CardioSummary({
+   targetTimeSeconds = null,
+   targetDistance = null,
+   initialTimeSeconds = 0,
++  initialDistance = null,
+   initialDistanceUnit = 'mi',
++  runResult = null,
+   awardXp = true,
+   onDone,
+ }) {
+@@ -45,7 +47,9 @@ export default function CardioSummary({
+ 
+   const [minutes, setMinutes] = useState(startMin ? String(startMin) : '');
+   const [seconds, setSeconds] = useState(startSec ? String(startSec) : '');
+-  const [distance, setDistance] = useState('');
++  // A GPS run already measured its distance — prefill it rather than asking the
++  // athlete to type the number the phone just recorded.
++  const [distance, setDistance] = useState(typeof initialDistance === 'number' && initialDistance > 0 ? String(initialDistance) : '');
+   const [distanceUnit, setDistanceUnit] = useState(initialDistanceUnit || 'mi');
+   const [calories, setCalories] = useState('');
+   const [notes, setNotes] = useState('');
+@@ -155,6 +159,14 @@ export default function CardioSummary({
+           Target: {targetDistance}
+         </p>
+       )}
++      {runResult && (
++        <div style={{ width: '100%', maxWidth: 340, borderRadius: 12, border: `1px solid ${runResult.beatElite ? 'rgba(253,224,71,0.5)' : 'rgba(168,85,247,0.3)'}`, background: 'rgba(8,2,18,0.6)', padding: '10px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
++          <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS TARGET</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatTarget ? '#8fe8ac' : '#ff9a52' }}>{runResult.completedTimeSeconds - runResult.targetSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.targetSec))}</div></div>
++          {runResult.eliteSec ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS ELITE</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatElite ? ARCADE.gold : '#c9a6ff' }}>{runResult.completedTimeSeconds - runResult.eliteSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.eliteSec))}</div></div> : null}
++          {runResult.ghost ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>👻 GHOST</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.ghost.outcome === 'victory' ? '#8fe8ac' : runResult.ghost.outcome === 'defeat' ? '#ff8a8a' : ARCADE.gold }}>{runResult.ghost.outcome === 'victory' ? 'BEATEN' : runResult.ghost.outcome === 'defeat' ? 'WON' : 'DRAW'}</div></div> : null}
++          <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>{runResult.gps ? 'GPS' : 'ESTIMATED'}</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.gps ? '#8fe8ac' : C.muted }}>{runResult.gps ? 'VERIFIED' : 'NO FIX'}</div></div>
++        </div>
++      )}
+       {!targetDistance && targetTimeSeconds ? (
+         <p style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: ARCADE.gold, margin: '0 0 14px', textAlign: 'center' }}>
+           Target: {formatClock(targetTimeSeconds)}
+diff --git a/components/training-mode/FitModeHub.jsx b/components/training-mode/FitModeHub.jsx
+index 4a045d0..aa5f0c0 100644
+--- a/components/training-mode/FitModeHub.jsx
++++ b/components/training-mode/FitModeHub.jsx
+@@ -14,7 +14,7 @@ import { IMG } from './data/optimizedImageMap';
+ const GOLD = '#fde047';
+ const VIOLET = '#b06aff';
+ 
+-export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMission, onCardioMode }) {
++export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMission, onCardioMode, onGhostMode }) {
+   const [helpOpen, setHelpOpen] = useState(false);
+   const BANNERS = [
+     { key: 'builder', img: IMG.fitMode.workoutBuilder, alt: 'Workout Builder', color: GOLD,   rgb: '250,204,21',  pos: 'center 42%', onClick: onWorkoutBuilder },
+@@ -44,6 +44,22 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
+ 
+         <div style={{ padding: '2px 14px 0' }}>
+           <div style={{ font: "700 13px 'Orbitron',sans-serif", color: '#e2d6f5', letterSpacing: '0.18em', marginBottom: 16 }}>SELECT TRAINING PATH</div>
++          {/* Ghost mode: a selector, not a code. Opens Cardio Mode with your
++              best run at the chosen distance already loaded as the opponent. */}
++          {onGhostMode && (
++            <button onClick={onGhostMode} data-guide="fit-ghost" style={{
++              width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 16, padding: '9px 12px', borderRadius: 12,
++              background: 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))', border: '1px solid rgba(176,106,255,0.55)',
++              boxShadow: '0 0 14px rgba(176,106,255,0.15)', display: 'flex', alignItems: 'center', gap: 10,
++            }}>
++              <span style={{ fontSize: 20 }}>👻</span>
++              <div style={{ flex: 1, minWidth: 0 }}>
++                <div style={{ font: "900 10px 'Orbitron',sans-serif", color: '#e6d4ff', letterSpacing: '0.12em' }}>GHOST MODE</div>
++                <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 2 }}>Race your last run. The coach calls who's winning.</div>
++              </div>
++              <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.1em' }}>RACE ▶</span>
++            </button>
++          )}
+           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+             {BANNERS.map(b => (
+               <button
+diff --git a/components/training-mode/RunPlayer.jsx b/components/training-mode/RunPlayer.jsx
+new file mode 100644
+index 0000000..2bed8ae
+--- /dev/null
++++ b/components/training-mode/RunPlayer.jsx
+@@ -0,0 +1,682 @@
++import { useState, useEffect, useRef, useCallback } from 'react';
++import { Flag } from 'lucide-react';
++import { C } from './Styles';
++import { ARCADE } from './ArcadeUI';
++import TrainingCTA from './shared/TrainingCTA';
++import useWakeLock from './hooks/useWakeLock';
++import useMiniPlayer from './hooks/useMiniPlayer';
++import MiniPlayerButton from './shared/MiniPlayerButton';
++import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
++import { playBell, unlockAudio } from './data/audioEngine';
++import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
++import { recordRunGhost, ghostDistanceAt, ghostTimeAt, ghostArt } from './data/runGhosts';
++import SafeImage from './SafeImage';
++import {
++  metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance,
++  buildRunIntro, crossedMarkers, crossedTenths, splitScript, finishScript,
++  paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
++  evaluateFix, rollingPaceSec, projectedFinish,
++  ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
++} from './data/runCoach';
++
++// The GPS / distance run player — the "run app" half of Cardio Mode.
++//
++// What it is built around, in order of importance:
++//  1. DISTANCE is the hero number and the clock counts UP from zero. A run has
++//     no countdown; it has how far you have gone and how long it took.
++//  2. The clock is wall time (see data/liveRun.js). Leave the player, leave the
++//     app, take a call — the run is still running when you come back.
++//  3. The coach TALKS: an intro with the target and the elite time, then a
++//     split call at every half and whole unit, pace verdicts between them, and
++//     form tips. The pure scripts live in data/runCoach.js.
++//  4. Every change is persisted, so the OS killing the PWA loses nothing but
++//     the GPS meters covered while it was away.
++//
++// Distance comes from GPS when there is a fix. Without GPS (treadmill, denied
++// permission) it is ESTIMATED at the target pace and labelled as such — the
++// splits still fire so a treadmill run still gets its mile calls, but the pace
++// coach stays quiet because it would have nothing real to judge.
++
++const GOLD = C.yellow;
++const VIOLET = '#a855f7';
++const GREEN = '#22c55e';
++
++const STYLES = `
++@keyframes run-tick { 0% { color: ${GOLD}; text-shadow: 0 0 22px rgba(253,224,71,0.9); } 100% { color: #fff; text-shadow: 0 0 16px rgba(168,85,247,0.4); } }
++@keyframes run-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
++`;
++
++const TICK_MS = 250;
++const PERSIST_EVERY_MS = 4000;
++const ROUTE_MAX = 240;
++const SAMPLES_MAX = 90;
++
++function newRun(cfg) {
++  return {
++    id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
++    kind: 'distance',
++    cfg,
++    startedAt: null,
++    pauseAccumMs: 0,
++    pausedAt: null,
++    offsetMs: 0,
++    meters: 0,
++    route: [],
++    samples: [],
++    trace: [],          // (t, d) every few seconds — becomes this run's ghost
++    lastFix: null,
++    markersDone: [],
++    splits: [],
++    tenth: 0,
++    lastCueSec: 0,
++    lastSplitSec: -999,
++    cueGap: 50,
++    cueIdx: {},
++    tipCounter: 0,
++    nextSurgeSec: null,
++    surgeEndSec: null,
++    hiddenGapNoted: false,
++  };
++}
++
++export default function RunPlayer({ cfg, restore = null, autoStart = true, onState, onGpsDenied, onComplete, onCaption }) {
++  const runRef = useRef(null);
++  if (!runRef.current) runRef.current = restore ? { ...newRun(cfg), ...restore, cfg: restore.cfg || cfg } : newRun(cfg);
++  const run = runRef.current;
++  const unit = run.cfg.unit || 'mi';
++  const goal = run.cfg.goal || 3;
++  const useGps = !!run.cfg.useGps;
++  const ghost = run.cfg.ghost || null;
++
++  const [phase, setPhase] = useState(restore ? 'run' : (autoStart ? 'intro' : 'ready'));
++  const [running, setRunning] = useState(restore ? !restore.pausedAt : false);
++  const [now, setNow] = useState(Date.now());
++  const [meters, setMeters] = useState(run.meters || 0);
++  const [route, setRoute] = useState(run.route || []);
++  const [gpsStatus, setGpsStatus] = useState(useGps ? 'acquiring' : 'off');
++  const [caption, setCaption] = useState(restore ? 'Welcome back. The clock kept running.' : 'Get set.');
++  const [surge, setSurge] = useState(false);
++  const [tickKey, setTickKey] = useState(0);
++  const [result, setResult] = useState(null);
++  const aliveRef = useRef(true);
++  const runningRef = useRef(running);
++  const phaseRef = useRef(phase);
++  const lastPersistRef = useRef(0);
++  useEffect(() => { runningRef.current = running; }, [running]);
++  useEffect(() => { phaseRef.current = phase; }, [phase]);
++  useEffect(() => () => { aliveRef.current = false; }, []);
++
++  // Keep the screen on while the run is live — a sleeping screen is a frozen
++  // page, and a frozen page cannot read GPS.
++  useWakeLock(running && phase === 'run');
++
++  const say = useCallback((text, opts) => {
++    if (!text) return Promise.resolve();
++    setCaption(text);
++    onCaption?.(text);
++    return speakAsync(text, opts).catch(() => {});
++  }, [onCaption]);
++
++  const persist = useCallback((force = false) => {
++    const t = Date.now();
++    if (!force && t - lastPersistRef.current < PERSIST_EVERY_MS) return;
++    lastPersistRef.current = t;
++    const r = runRef.current;
++    saveLiveRun({
++      ...r,
++      route: r.route.slice(-ROUTE_MAX),
++      samples: r.samples.slice(-SAMPLES_MAX),
++      trace: r.trace.slice(-2400),
++    });
++  }, []);
++
++  const report = useCallback((extra = {}) => {
++    const r = runRef.current;
++    onState?.({ live: phaseRef.current === 'run', running: runningRef.current, elapsedSec: liveRunElapsedSec(r), meters: r.meters, ...extra });
++  }, [onState]);
++
++  const elapsedSec = liveRunElapsedSec(run, now);
++  const gpsDist = meters / metersPerUnit(unit);
++  const usingGps = useGps && gpsStatus === 'live';
++  // No GPS: an estimate at the target pace, labelled EST on screen.
++  const estimating = !useGps || (gpsStatus !== 'live' && meters === 0);
++  const dist = estimating ? Math.min(goal, elapsedSec / (run.cfg.targetPaceSec || 600)) : gpsDist;
++
++  // ── Start / pause / resume / end ──────────────────────────────────────────
++  const startRun = useCallback(() => {
++    const r = runRef.current;
++    r.startedAt = Date.now();
++    r.pausedAt = null;
++    r.nextSurgeSec = r.cfg.randomSurges ? 45 + Math.round(Math.random() * 45) : null;
++    setPhase('run');
++    setRunning(true);
++    setNow(Date.now());
++    persist(true);
++    report({ live: true, running: true });
++  }, [persist, report]);
++
++  const pauseRun = useCallback(() => {
++    const r = runRef.current;
++    if (r.pausedAt) return;
++    r.pausedAt = Date.now();
++    setRunning(false);
++    persist(true);
++    report({ running: false });
++    say('Paused.');
++  }, [persist, report, say]);
++
++  const resumeRun = useCallback(() => {
++    const r = runRef.current;
++    if (!r.pausedAt) return;
++    r.pauseAccumMs += Date.now() - r.pausedAt;
++    r.pausedAt = null;
++    // Distance resumes from wherever the athlete is now, no phantom jump.
++    r.lastFix = null;
++    setRunning(true);
++    persist(true);
++    report({ running: true });
++    say('Resume. Go!');
++  }, [persist, report, say]);
++
++  const finishRun = useCallback((completed) => {
++    const r = runRef.current;
++    if (phaseRef.current === 'done') return;
++    const el = liveRunElapsedSec(r);
++    const finalDist = estimating ? Math.min(goal, el / (r.cfg.targetPaceSec || 600)) : r.meters / metersPerUnit(unit);
++    const d = completed ? Math.max(finalDist, goal) : finalDist;
++    const res = {
++      completed,
++      completedTimeSeconds: Math.round(el),
++      completedDistance: +d.toFixed(2),
++      distanceUnit: unit,
++      gps: !estimating,
++      avgPaceSec: d > 0.05 ? el / d : null,
++      targetSec: r.cfg.targetSec,
++      eliteSec: r.cfg.eliteSec,
++      beatTarget: completed && el <= r.cfg.targetSec,
++      beatElite: completed && !!r.cfg.eliteSec && el <= r.cfg.eliteSec,
++      splits: r.splits.slice(),
++      goal,
++      trace: r.trace.slice(),
++    };
++    if (ghost && completed) {
++      const delta = Math.round(el - ghost.totalSec);
++      res.ghost = { ownerName: ghost.ownerName, ghostTotalSec: ghost.totalSec, delta, outcome: Math.abs(delta) < 2 ? 'draw' : delta < 0 ? 'victory' : 'defeat' };
++    }
++    // Every verified GPS finish becomes a ghost for next time (MY LAST, and MY
++    // BEST when it is the fastest at this distance).
++    if (completed && !estimating) {
++      const rec = recordRunGhost(res);
++      res.ghostRecorded = !!rec.ghost;
++      res.newBest = rec.newBest;
++    }
++    setPhase('done');
++    setRunning(false);
++    setResult(res);
++    clearLiveRun();
++    report({ live: false, running: false });
++    if (completed) {
++      playBell(3);
++      const lines = [finishScript({ dist: d, unit, elapsedSec: el, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec })];
++      if (res.ghost) lines.push(ghostFinishLine({ elapsedSec: el, ghostTotalSec: ghost.totalSec, ownerName: ghost.ownerName }));
++      say(lines.join(' '));
++    } else {
++      say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.`);
++    }
++  }, [estimating, goal, unit, report, say, ghost]);
++
++  // ── Intro: speak the brief, then GO ───────────────────────────────────────
++  useEffect(() => {
++    if (phase !== 'intro') return undefined;
++    let cancelled = false;
++    // Whatever the speech engine does — no voices, a throw, a permission
++    // refusal — the run STARTS. The brief is a courtesy, not a gate.
++    (async () => {
++      try {
++        unlockAudio();
++        await primeSpeech();
++        const intro = buildRunIntro({ methodLabel: run.cfg.methodLabel, useGps, distance: goal, unit, targetSec: run.cfg.targetSec, eliteSec: run.cfg.eliteSec });
++        if (ghost) intro.lines.push(`Ghost mode. You are racing ${ghost.ownerId === 'me' ? 'your' : ghost.ownerName + "'s"} ${ghost.ownerId === 'me' ? 'own run' : 'run'}, ${speakDuration(ghost.totalSec)}. Beat it.`);
++        for (const line of intro.lines) {
++          if (cancelled) return;
++          await say(line, { rate: 1.0 });
++        }
++        if (cancelled) return;
++        await say(intro.ready);
++        await delay(700);
++      } catch { /* start anyway */ }
++      if (cancelled) return;
++      try { playBell(1); say('Go!', { rate: 1.1 }); } catch { /* ignore */ }
++      startRun();
++    })();
++    return () => { cancelled = true; };
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [phase]);
++
++  // Restored run: say where we are.
++  useEffect(() => {
++    if (!restore) return;
++    const r = runRef.current;
++    const el = liveRunElapsedSec(r);
++    const d = r.meters / metersPerUnit(unit);
++    // Only worth saying if the run was actually away (a call, a reload) —
++    // tapping back and straight in again does not need a re-brief.
++    const awayMs = Date.now() - (restore.updatedAt || 0);
++    const t = setTimeout(() => {
++      if (awayMs > 15000) say(`Run resumed. ${speakDuration(el)} on the clock. ${d > 0.05 ? `${speakDistance(+d.toFixed(2), unit)} so far.` : ''}`);
++      else setCaption(`Back in. ${fmtClock(el)} on the clock.`);
++    }, 400);
++    report({ live: true, running: !r.pausedAt });
++    return () => clearTimeout(t);
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, []);
++
++  // ── Clock: wall time, sampled 4x a second ─────────────────────────────────
++  useEffect(() => {
++    if (phase !== 'run') return undefined;
++    const t = setInterval(() => setNow(Date.now()), TICK_MS);
++    return () => clearInterval(t);
++  }, [phase]);
++
++  // ── GPS: watch for the life of the player, accrue only while running ──────
++  useEffect(() => {
++    if (!useGps || phase === 'done') return undefined;
++    if (typeof navigator === 'undefined' || !navigator.geolocation) { setGpsStatus('denied'); onGpsDenied?.(); return undefined; }
++    let staleTimer = null;
++    const armStale = () => {
++      clearTimeout(staleTimer);
++      staleTimer = setTimeout(() => { if (aliveRef.current) setGpsStatus(s => (s === 'live' ? 'acquiring' : s)); }, 20000);
++    };
++    const id = navigator.geolocation.watchPosition(
++      (pos) => {
++        if (!aliveRef.current) return;
++        const r = runRef.current;
++        const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp || Date.now(), accuracy: pos.coords.accuracy };
++        const verdict = evaluateFix(r.lastFix, fix);
++        if (verdict.reason === 'accuracy') { armStale(); return; }
++        setGpsStatus('live');
++        armStale();
++        if (!verdict.accept) return;
++        const accrue = runningRef.current && phaseRef.current === 'run';
++        if (accrue && verdict.meters > 0) {
++          r.meters += verdict.meters;
++          const el = liveRunElapsedSec(r);
++          r.samples.push({ t: el, m: r.meters });
++          if (r.samples.length > SAMPLES_MAX) r.samples.shift();
++          const last = r.trace[r.trace.length - 1];
++          if (!last || el - last.t >= 3) r.trace.push({ t: Math.round(el * 10) / 10, d: +(r.meters / metersPerUnit(unit)).toFixed(4) });
++          r.route.push({ lat: fix.lat, lng: fix.lng });
++          if (r.route.length > ROUTE_MAX) r.route.shift();
++          setMeters(r.meters);
++          setRoute(r.route.slice());
++          persist();
++        } else if (r.route.length === 0) {
++          r.route.push({ lat: fix.lat, lng: fix.lng });
++        }
++        r.lastFix = fix;
++      },
++      (err) => {
++        if (!aliveRef.current) return;
++        if (err && err.code === 1) { setGpsStatus('denied'); onGpsDenied?.(); }
++        else setGpsStatus('acquiring');
++      },
++      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
++    );
++    return () => { clearTimeout(staleTimer); navigator.geolocation.clearWatch(id); };
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [useGps, phase === 'done']);
++
++  // ── The coach: splits, tenths, pace cues, tips, surges, finish ────────────
++  const prevDistRef = useRef(restore ? (restore.meters || 0) / metersPerUnit(unit) : 0);
++  useEffect(() => {
++    if (phase !== 'run' || !running) return;
++    const r = runRef.current;
++    const prev = prevDistRef.current;
++    if (dist <= prev) return;
++    prevDistRef.current = dist;
++
++    // Tenths: a visual tick + a short buzz. No voice — thirty calls in a 5K
++    // would be noise.
++    const tenths = crossedTenths(prev, dist);
++    if (tenths.length) {
++      r.tenth = tenths[tenths.length - 1];
++      setTickKey(k => k + 1);
++      try { navigator.vibrate?.(30); } catch { /* ignore */ }
++    }
++
++    // Goal first — the finish call outranks a split on the same tick.
++    if (dist >= goal - 1e-9) { finishRun(true); return; }
++
++    const markers = crossedMarkers(prev, dist, 0.5).filter(m => m < goal - 1e-9 && !r.markersDone.includes(m));
++    if (markers.length) {
++      const marker = markers[markers.length - 1];
++      const pace = usingGps ? (rollingPaceSec(r.samples, elapsedSec, unit, 60) || (dist > 0.05 ? elapsedSec / dist : 0)) : r.cfg.targetPaceSec;
++      markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
++      r.lastSplitSec = elapsedSec;
++      playBell(1);
++      const split = splitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec, goal, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec });
++      const gl = ghost && usingGps ? ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker: ghostTimeAt(ghost, marker) }) : '';
++      say(gl ? `${split} ${gl}` : split);
++      persist(true);
++    }
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [dist, phase, running]);
++
++  // Once a second: pace verdicts, form tips, surges, periodic persistence.
++  const lastSecRef = useRef(-1);
++  useEffect(() => {
++    if (phase !== 'run' || !running) return;
++    const sec = Math.floor(elapsedSec);
++    if (sec === lastSecRef.current) return;
++    lastSecRef.current = sec;
++    const r = runRef.current;
++    persist();
++    report();
++
++    // Surges (random intervals): call it, hold it, call it off.
++    if (r.nextSurgeSec != null && sec >= r.nextSurgeSec && r.surgeEndSec == null) {
++      r.surgeEndSec = sec + 20 + Math.round(Math.random() * 10);
++      r.nextSurgeSec = null;
++      setSurge(true);
++      playBell(2);
++      say('Surge! Push the pace. Hold it until I call it off.');
++      r.lastCueSec = sec;
++      return;
++    }
++    if (r.surgeEndSec != null && sec >= r.surgeEndSec) {
++      r.surgeEndSec = null;
++      r.nextSurgeSec = sec + 45 + Math.round(Math.random() * 45);
++      setSurge(false);
++      say('Surge over. Settle back into your pace.');
++      r.lastCueSec = sec;
++      return;
++    }
++
++    // Pace coaching needs real movement to judge; a treadmill gets tips only.
++    if (dist < 0.08) return;
++    if (!shouldCue({ nowSec: sec, lastCueSec: r.lastCueSec, lastSplitSec: r.lastSplitSec, gapSec: r.cueGap })) return;
++    r.tipCounter += 1;
++    let text = '';
++    // Rotation: with a ghost, every other slot is the race call; every fourth a
++    // tip; the rest the pace coach. Without one: pace, pace, tip.
++    const slot = r.tipCounter % (ghost && usingGps ? 4 : 3);
++    const wantTip = !usingGps || (ghost && usingGps ? slot === 0 : slot === 0);
++    const wantGhost = ghost && usingGps && (slot === 1 || slot === 3);
++    if (wantGhost) {
++      const pace = rollingPaceSec(r.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null);
++      const gap = ghostGap({ myDist: dist, ghostDist: ghostDistanceAt(ghost, elapsedSec), paceSec: pace });
++      const verdict = ghostVerdict(gap, unit);
++      const pick = ghostCue(verdict, gap, unit, r.cueIdx[`ghost_${verdict}`] ?? -1);
++      r.cueIdx[`ghost_${verdict}`] = pick.index; text = pick.text;
++    } else if (wantTip) {
++      const pick = pickCue(RUN_TIPS, r.cueIdx.tip ?? -1);
++      r.cueIdx.tip = pick.index; text = pick.text;
++    } else {
++      const pace = rollingPaceSec(r.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null);
++      const verdict = paceVerdict(pace, r.cfg.targetPaceSec);
++      if (verdict === 'unknown') return;
++      const pick = pickCue(PACE_CUES[verdict], r.cueIdx[verdict] ?? -1);
++      r.cueIdx[verdict] = pick.index; text = pick.text;
++    }
++    r.lastCueSec = sec;
++    r.cueGap = nextCueGap();
++    say(text);
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [elapsedSec, phase, running]);
++
++  // Coming back from being hidden: the clock ran, GPS did not. Say so once.
++  useEffect(() => {
++    if (typeof document === 'undefined' || !useGps) return undefined;
++    let hiddenAt = null;
++    const onVis = () => {
++      if (document.hidden) { hiddenAt = Date.now(); return; }
++      if (hiddenAt && runningRef.current && phaseRef.current === 'run' && Date.now() - hiddenAt > 15000) {
++        setCaption('Clock kept running while the app was away. GPS distance resumes from here.');
++        runRef.current.lastFix = null;
++      }
++      hiddenAt = null;
++    };
++    document.addEventListener('visibilitychange', onVis);
++    return () => document.removeEventListener('visibilitychange', onVis);
++  }, [useGps]);
++
++  // Unmount mid-run (the athlete tapped back, or navigated away): the run stays
++  // live in storage with the clock running. Only a finished run stops the voice.
++  useEffect(() => () => {
++    if (phaseRef.current === 'run') persist(true);
++    if (phaseRef.current === 'done') stopVoiceSession();
++  }, [persist]);
++
++  // ── Derived numbers for the HUD ───────────────────────────────────────────
++  const curPace = usingGps ? rollingPaceSec(run.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null) : (running ? run.cfg.targetPaceSec : null);
++  const projected = projectedFinish(dist, elapsedSec, goal);
++  const vsTarget = projected != null ? projected - run.cfg.targetSec : null;
++  const vsElite = projected != null && run.cfg.eliteSec ? projected - run.cfg.eliteSec : null;
++  const pct = Math.min(100, (dist / goal) * 100);
++  const ghostDistNow = ghost && phase === 'run' ? ghostDistanceAt(ghost, elapsedSec) : null;
++  const ghostGapNow = ghost && phase === 'run' ? ghostGap({ myDist: dist, ghostDist: ghostDistNow, paceSec: curPace }) : null;
++  const ghostState = ghostGapNow ? ghostVerdict(ghostGapNow, unit) : null;
++  const verdictNow = usingGps ? paceVerdict(curPace, run.cfg.targetPaceSec) : 'unknown';
++  const paceColor = verdictNow === 'on' ? '#8fe8ac' : verdictNow === 'fast' ? '#c9a6ff' : verdictNow === 'unknown' ? '#fff' : '#ff9a52';
++  const gpsLabel = !useGps ? 'PACE TRACK' : gpsStatus === 'live' ? 'GPS LIVE' : gpsStatus === 'denied' ? 'GPS DENIED' : 'GPS ACQUIRING…';
++  const gpsDot = gpsStatus === 'live' ? GREEN : gpsStatus === 'denied' ? '#ef4444' : useGps ? '#f5b942' : '#b06aff';
++
++  // Floating mini-player: distance in the ring (WORK swaps the clock for a
++  // number), elapsed and pace on the right, tenths as the segmented row.
++  const miniFrame = useCallback(() => {
++    const tenths = Math.max(1, Math.round(goal * 10));
++    const doneTenths = Math.min(tenths, Math.floor(dist * 10 + 1e-9));
++    return {
++      phase: phase === 'run' && running ? 'work' : 'paused',
++      clock: fmtClock(elapsedSec),
++      reps: +dist.toFixed(2),
++      repsLabel: unit.toUpperCase(),
++      progress: Math.min(1, dist / goal),
++      exIdx: Math.min(tenths, doneTenths + 1),
++      exTotal: tenths,
++      name: `${fmtClock(elapsedSec)} · ${String(run.cfg.methodLabel || 'RUN').toUpperCase()} ${goal} ${unit.toUpperCase()}`,
++      prescription: `PACE ${curPace ? fmtClock(curPace) : '--:--'} /${unit} · TARGET ${fmtClock(run.cfg.targetSec)}`,
++      nextName: run.cfg.eliteSec ? `ELITE ${fmtClock(run.cfg.eliteSec)}` : null,
++      segments: Array.from({ length: tenths }, (_, i) => (i < doneTenths ? 'done' : i === doneTenths ? 'current' : 'todo')),
++    };
++  }, [phase, running, elapsedSec, dist, goal, unit, curPace, run.cfg]);
++  const mini = useMiniPlayer(miniFrame, phase !== 'done');
++
++  const routePts = (() => {
++    if (route.length >= 2) {
++      const lats = route.map(p => p.lat), lngs = route.map(p => p.lng);
++      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
++      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
++      const spanLat = Math.max(1e-6, maxLat - minLat), spanLng = Math.max(1e-6, maxLng - minLng);
++      const pad = 6;
++      return route.map(p => `${(pad + ((p.lng - minLng) / spanLng) * (300 - pad * 2)).toFixed(1)},${(58 - ((p.lat - minLat) / spanLat) * 52).toFixed(1)}`).join(' ');
++    }
++    return null;
++  })();
++
++  const mono = "'Orbitron',sans-serif";
++  const label = { fontFamily: mono, fontSize: 7.5, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.12em' };
++
++  // ── Done card ─────────────────────────────────────────────────────────────
++  if (phase === 'done' && result) {
++    const avg = result.avgPaceSec;
++    return (
++      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 0' }}>
++        <div style={{ fontFamily: mono, fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: '0.22em', marginBottom: 6 }}>{result.completed ? 'GOAL REACHED' : 'RUN ENDED'}</div>
++        <div style={{ fontFamily: mono, fontSize: 52, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{result.completedDistance.toFixed(2)}<span style={{ fontSize: 14, color: GOLD, marginLeft: 6 }}>{unit.toUpperCase()}</span></div>
++        <div style={{ fontFamily: mono, fontSize: 28, fontWeight: 900, color: GOLD, marginTop: 8 }}>{fmtClock(result.completedTimeSeconds)}</div>
++        <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
++          <Stat label="AVG PACE" value={avg ? fmtPace(avg, unit) : '--'} />
++          <Stat label="VS TARGET" value={fmtSignedDelta(result.completedTimeSeconds - result.targetSec)} color={result.beatTarget ? '#8fe8ac' : '#ff9a52'} />
++          {result.eliteSec ? <Stat label="VS ELITE" value={fmtSignedDelta(result.completedTimeSeconds - result.eliteSec)} color={result.beatElite ? '#8fe8ac' : '#c9a6ff'} /> : null}
++        </div>
++        {result.beatElite && <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', textShadow: '0 0 12px rgba(253,224,71,0.6)' }}>★ ELITE TIME ★</div>}
++        {result.ghost && (
++          <div style={{ width: '100%', marginTop: 12, borderRadius: 12, border: `1.5px solid ${result.ghost.outcome === 'victory' ? 'rgba(34,197,94,0.7)' : result.ghost.outcome === 'defeat' ? 'rgba(239,68,68,0.7)' : 'rgba(253,224,71,0.6)'}`, background: 'rgba(14,4,28,0.9)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
++            <SafeImage src={ghostArt(ghost)} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', objectPosition: 'center 20%', opacity: 0.9 }}/>
++            <div style={{ flex: 1, minWidth: 0 }}>
++              <div style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: '#9a90b8', letterSpacing: '0.14em' }}>GHOST · {ghost?.ownerId === 'me' ? 'YOUR RUN' : result.ghost.ownerName}</div>
++              <div style={{ fontFamily: mono, fontSize: 13, fontWeight: 900, color: result.ghost.outcome === 'victory' ? '#8fe8ac' : result.ghost.outcome === 'defeat' ? '#ff8a8a' : GOLD, marginTop: 2 }}>
++                {result.ghost.outcome === 'victory' ? `👻 GHOST DEFEATED · ${fmtSignedDelta(result.ghost.delta)}` : result.ghost.outcome === 'defeat' ? `👻 GHOST WINS · ${fmtSignedDelta(result.ghost.delta)}` : '🤝 DEAD HEAT'}
++              </div>
++            </div>
++          </div>
++        )}
++        {result.ghostRecorded && (
++          <div style={{ marginTop: 10, fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#c9a6ff', letterSpacing: '0.12em' }}>👻 {result.newBest ? 'NEW BEST — SAVED AS YOUR GHOST' : 'SAVED AS YOUR LAST-RUN GHOST'}</div>
++        )}
++        {result.splits.length > 0 && (
++          <div style={{ width: '100%', marginTop: 12, borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.6)', padding: '8px 12px' }}>
++            <div style={{ ...label, marginBottom: 5 }}>SPLITS</div>
++            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
++              {result.splits.map(s => (
++                <span key={s.marker} style={{ fontFamily: mono, fontSize: 9.5, color: '#d6c2ff' }}>{s.marker} {unit} · <span style={{ color: '#fff' }}>{fmtClock(s.elapsedSec)}</span></span>
++              ))}
++            </div>
++          </div>
++        )}
++        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: '#c9f5d6', marginTop: 10, textAlign: 'center', minHeight: 16 }}>{caption}</div>
++        <TrainingCTA variant="gold" label="CONTINUE" icon="✓" height={50} onClick={() => { stopVoiceSession(); onComplete(result); }} style={{ width: '100%', marginTop: 12, fontSize: 14 }} />
++      </div>
++    );
++  }
++
++  // ── Live HUD ──────────────────────────────────────────────────────────────
++  return (
++    <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
++      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
++      <MiniPlayerButton {...mini} top={0} right={8}/>
++
++      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
++        <span style={{ width: 7, height: 7, borderRadius: '50%', background: gpsDot, boxShadow: `0 0 8px ${gpsDot}`, animation: gpsStatus === 'acquiring' ? 'run-pulse 1.2s ease-in-out infinite' : 'none' }}/>
++        <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: gpsStatus === 'live' ? '#8fe8ac' : '#ffd27a', letterSpacing: '0.1em' }}>
++          {gpsLabel} · {String(run.cfg.methodLabel || 'RUN').toUpperCase()} · {goal} {unit}
++        </span>
++      </div>
++
++      {surge && (
++        <div style={{ width: '100%', borderRadius: 10, background: 'rgba(255,138,74,0.14)', border: '1px solid rgba(255,138,74,0.5)', padding: '6px 12px', marginBottom: 8, textAlign: 'center', animation: 'run-pulse 0.9s ease-in-out infinite' }}>
++          <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 900, color: '#ff8a4a', letterSpacing: '0.1em' }}>🔥 SURGE — PUSH THE PACE</span>
++        </div>
++      )}
++
++      {/* DISTANCE — the hero. Ticks gold at every tenth. */}
++      <div style={{ ...label, marginBottom: 2 }}>{estimating ? 'DISTANCE · EST' : 'DISTANCE'}</div>
++      <div key={tickKey} style={{ fontFamily: mono, fontSize: 66, fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.01em', animation: tickKey ? 'run-tick 0.7s ease-out' : 'none', textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>
++        {dist.toFixed(2)}<span style={{ fontSize: 16, color: GOLD, marginLeft: 6, letterSpacing: '0.08em' }}>{unit.toUpperCase()}</span>
++      </div>
++
++      {/* TIME — counts up from zero. */}
++      <div style={{ fontFamily: mono, fontSize: 34, fontWeight: 900, color: running ? GOLD : '#c4b5fd', marginTop: 6, lineHeight: 1, textShadow: '0 0 12px rgba(253,224,71,0.3)' }}>{fmtClock(elapsedSec)}</div>
++      <div style={{ ...label, marginTop: 3 }}>{phase === 'intro' ? 'STARTING…' : running ? 'ELAPSED' : phase === 'ready' ? 'READY' : 'PAUSED'}</div>
++
++      {/* Pace + targets */}
++      <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 12 }}>
++        <Chip label="PACE" value={curPace ? fmtClock(curPace) : '--:--'} sub={`/${unit}`} color={paceColor} />
++        <Chip label="TARGET" value={fmtClock(run.cfg.targetSec)} sub={fmtPace(run.cfg.targetPaceSec, unit)} color="#fff" />
++        {run.cfg.eliteSec ? <Chip label="ELITE" value={fmtClock(run.cfg.eliteSec)} sub={fmtPace(run.cfg.elitePaceSec, unit)} color={GOLD} /> : null}
++      </div>
++      {projected != null && (
++        <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
++          <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>
++          {vsElite != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsElite <= 0 ? GOLD : '#9a90b8' }}>{fmtSignedDelta(vsElite)} VS ELITE</span>}
++        </div>
++      )}
++
++      {/* Ghost race strip: who is ahead, by how much, and the ghost's art */}
++      {ghost && phase === 'run' && (
++        <div style={{ width: '100%', marginTop: 10, borderRadius: 12, border: `1.5px solid ${ghostState === 'lead' ? 'rgba(34,197,94,0.6)' : ghostState === 'trail' ? 'rgba(239,68,68,0.6)' : 'rgba(253,224,71,0.5)'}`, background: 'rgba(14,4,28,0.85)', padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
++          <SafeImage src={ghostArt(ghost)} alt="" style={{ width: 38, height: 38, borderRadius: 9, objectFit: 'cover', objectPosition: 'center 20%', opacity: 0.85, filter: 'saturate(0.7)' }}/>
++          <div style={{ flex: 1, minWidth: 0 }}>
++            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
++              <span style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: '#9a90b8', letterSpacing: '0.14em' }}>👻 {ghost.ownerId === 'me' ? 'YOUR GHOST' : ghost.ownerName} · {fmtClock(ghost.totalSec)}</span>
++              <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 900, color: ghostState === 'lead' ? '#8fe8ac' : ghostState === 'trail' ? '#ff8a8a' : GOLD }}>
++                {ghostState === 'lead' ? 'YOU LEAD' : ghostState === 'trail' ? 'GHOST LEADS' : 'LEVEL'}{ghostGapNow?.dSec != null ? ` · ${fmtClock(Math.abs(ghostGapNow.dSec))}` : ''}
++              </span>
++            </div>
++            <div style={{ position: 'relative', height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', marginTop: 5 }}>
++              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (ghostDistNow / goal) * 100)}%`, borderRadius: 99, background: 'rgba(168,85,247,0.45)' }}/>
++              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, borderRadius: 99, background: ghostState === 'trail' ? 'linear-gradient(90deg,#f59e0b,#ff8a8a)' : 'linear-gradient(90deg,#22c55e,#8fe8ac)' }}/>
++              <span style={{ position: 'absolute', left: `calc(${Math.min(100, (ghostDistNow / goal) * 100)}% - 5px)`, top: -3, fontSize: 9, lineHeight: '12px' }}>👻</span>
++            </div>
++          </div>
++        </div>
++      )}
++
++      {/* Progress to goal with tenth ticks */}
++      <div style={{ width: '100%', marginTop: 10 }}>
++        <div style={{ position: 'relative', height: 8, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
++          <div style={{ width: `${Math.max(2, pct)}%`, height: '100%', background: surge ? 'linear-gradient(90deg,#f59e0b,#ff8a4a)' : 'linear-gradient(90deg,#7c3aed,#c9a6ff)', transition: 'width 0.5s linear' }}/>
++          {Array.from({ length: Math.max(0, Math.round(goal * 10) - 1) }, (_, i) => (i + 1) / 10).map(m => (
++            <span key={m} style={{ position: 'absolute', left: `${(m / goal) * 100}%`, top: 0, bottom: 0, width: 1, background: Number.isInteger(Math.round(m * 10) / 10 * 2) ? 'rgba(253,224,71,0.55)' : 'rgba(255,255,255,0.14)' }}/>
++          ))}
++        </div>
++        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
++          <span style={label}>0</span>
++          <span style={label}>{goal} {unit.toUpperCase()}</span>
++        </div>
++      </div>
++
++      {/* Route trail */}
++      {useGps && (
++        <div style={{ width: '100%', borderRadius: 10, border: '1px solid rgba(34,197,94,0.22)', background: 'rgba(8,2,18,0.6)', padding: '6px 10px', marginTop: 8, position: 'relative' }}>
++          <svg viewBox="0 0 300 64" style={{ width: '100%', height: 34, display: 'block' }}>
++            {routePts
++              ? <polyline points={routePts} fill="none" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(34,197,94,0.5))' }}/>
++              : <text x="150" y="38" textAnchor="middle" fill="#5f5880" style={{ font: `700 9px ${mono}`, letterSpacing: '0.1em' }}>ROUTE DRAWS AS YOU MOVE</text>}
++          </svg>
++        </div>
++      )}
++
++      {/* Coach line — the last thing the voice said */}
++      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 99, background: surge ? 'rgba(255,138,74,0.12)' : 'rgba(34,197,94,0.1)', border: `1px solid ${surge ? 'rgba(255,138,74,0.4)' : 'rgba(34,197,94,0.3)'}`, padding: '6px 14px', marginTop: 10, marginBottom: 12, maxWidth: '100%' }}>
++        <span style={{ fontSize: 11 }}>{surge ? '🔥' : '🗣'}</span>
++        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: surge ? '#ffd0b0' : '#c9f5d6', lineHeight: 1.3 }}>{caption}</span>
++      </div>
++
++      {/* Controls */}
++      <div style={{ display: 'flex', gap: 10, width: '100%' }}>
++        {phase === 'ready' ? (
++          <TrainingCTA variant="gold" label="START" icon="▶" height={52} onClick={() => setPhase('intro')} style={{ flex: '2 1 0', width: 'auto', fontSize: 14, letterSpacing: '0.08em' }} />
++        ) : (
++          <TrainingCTA
++            variant={running ? 'violet' : 'gold'}
++            label={phase === 'intro' ? 'STARTING…' : running ? 'PAUSE' : 'RESUME'}
++            icon={running ? '❚❚' : '▶'}
++            height={52}
++            onClick={() => { if (phase !== 'run') return; if (running) pauseRun(); else resumeRun(); }}
++            style={{ flex: '2 1 0', width: 'auto', fontSize: 14, letterSpacing: '0.08em', opacity: phase === 'intro' ? 0.6 : 1 }}
++          />
++        )}
++        <button onClick={() => finishRun(false)} disabled={phase === 'intro' || phase === 'ready'} style={{ flex: 1, height: 52, borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#ff8a8a', fontFamily: mono, fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: phase === 'intro' || phase === 'ready' ? 0.5 : 1 }}>
++          <Flag size={14}/> END
++        </button>
++      </div>
++
++      {estimating && phase === 'run' && (
++        <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 8, textAlign: 'center', lineHeight: 1.35 }}>
++          {useGps ? 'No GPS fix yet — distance is estimated at your target pace until one arrives.' : 'No GPS on this method — distance is estimated at your target pace.'}
++        </div>
++      )}
++    </div>
++  );
++}
++
++function Chip({ label, value, sub, color }) {
++  return (
++    <div style={{ flex: 1, borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.6)', padding: '6px 6px 5px', textAlign: 'center', minWidth: 0 }}>
++      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.14em' }}>{label}</div>
++      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color, marginTop: 2, whiteSpace: 'nowrap' }}>{value}</div>
++      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#6f6790', marginTop: 1, whiteSpace: 'nowrap' }}>{sub}</div>
++    </div>
++  );
++}
++
++function Stat({ label, value, color = '#fff' }) {
++  return (
++    <div style={{ textAlign: 'center' }}>
++      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.14em' }}>{label}</div>
++      <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 900, color, marginTop: 2 }}>{value}</div>
++    </div>
++  );
++}
+diff --git a/components/training-mode/ScreenRouter.jsx b/components/training-mode/ScreenRouter.jsx
+index 1aee4a4..d5a80f9 100644
+--- a/components/training-mode/ScreenRouter.jsx
++++ b/components/training-mode/ScreenRouter.jsx
+@@ -190,7 +190,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
+   );
+ }
+ 
+-export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
++export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
+   const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete, goMoveLab, startPathTour } = actions;
+ 
+   const isResuming = pausedSession?.screen === screen;
+@@ -524,7 +524,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
+   if (screen === 'fit_hub') {
+     return (
+       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+-        <FitModeHub onHome={goHome} onBack={goTrainingHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onCombatConditioning={goCombatCondSetup} onCardioMode={goCardioMode} onWorkoutCodec={goWorkoutCodec}/>
++        <FitModeHub onHome={goHome} onBack={goTrainingHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })} onWorkoutCodec={goWorkoutCodec}/>
+       </WithNav>
+     );
+   }
+@@ -533,7 +533,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
+       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
+         {/* TM-16 census caught this: CardioMode only accepts onBack — the
+             onHome prop was passed and silently dropped. */}
+-        <CardioMode onBack={goFitHub}/>
++        <CardioMode onBack={goFitHub} onSessionState={reportSessionState} entry={cardioEntry}/>
+       </WithNav>
+     );
+   }
+diff --git a/components/training-mode/data/liveRun.js b/components/training-mode/data/liveRun.js
+new file mode 100644
+index 0000000..dd3ba66
+--- /dev/null
++++ b/components/training-mode/data/liveRun.js
+@@ -0,0 +1,53 @@
++// The live run. One cardio session at a time, written to storage on every
++// meaningful change so the OS can take the app away — a phone call, the screen
++// locking, a swipe to another app — and the run is still THERE when the
++// athlete comes back, with the clock still correct.
++//
++// The clock is wall time: `startedAt` plus accumulated pause time, never a
++// counter that ticks. A counter stops the moment the browser throttles a
++// background tab; a timestamp does not care. That is what "the timer keeps
++// running regardless" means in practice.
++//
++// Distance is a different story. A web app cannot read GPS while it is not on
++// screen, so meters covered while the app was hidden are NOT recovered — the
++// clock keeps running, the distance resumes from the last fix. The player says
++// so on screen rather than pretending. (The native wrapper closes that gap.)
++
++const KEY = 'tm_live_run';
++const MAX_AGE_MS = 12 * 60 * 60 * 1000;
++export const LIVE_RUN_VERSION = 1;
++
++export function loadLiveRun() {
++  if (typeof localStorage === 'undefined') return null;
++  try {
++    const raw = localStorage.getItem(KEY);
++    if (!raw) return null;
++    const run = JSON.parse(raw);
++    if (!run || run.v !== LIVE_RUN_VERSION || !run.startedAt) return null;
++    if (Date.now() - (run.updatedAt || run.startedAt) > MAX_AGE_MS) { localStorage.removeItem(KEY); return null; }
++    return run;
++  } catch {
++    return null;
++  }
++}
++
++export function saveLiveRun(run) {
++  if (typeof localStorage === 'undefined') return;
++  try {
++    localStorage.setItem(KEY, JSON.stringify({ ...run, v: LIVE_RUN_VERSION, updatedAt: Date.now() }));
++  } catch { /* quota */ }
++}
++
++export function clearLiveRun() {
++  if (typeof localStorage === 'undefined') return;
++  try { localStorage.removeItem(KEY); } catch { /* ignore */ }
++}
++
++// Elapsed seconds for a run, from its timestamps alone. Works on a run loaded
++// from storage exactly as on a live one.
++export function liveRunElapsedSec(run, now = Date.now()) {
++  if (!run?.startedAt) return 0;
++  const pausedNow = run.pausedAt ? now - run.pausedAt : 0;
++  const ms = now - run.startedAt - (run.pauseAccumMs || 0) - pausedNow + (run.offsetMs || 0);
++  return Math.max(0, ms / 1000);
++}
+diff --git a/components/training-mode/data/runCoach.js b/components/training-mode/data/runCoach.js
+new file mode 100644
+index 0000000..515e8f2
+--- /dev/null
++++ b/components/training-mode/data/runCoach.js
+@@ -0,0 +1,366 @@
++// Run coach — the pure brain behind the GPS / distance run player. Everything
++// here is a plain function of numbers so it can be reasoned about and tested
++// without a browser: targets and elite time, what to say at each split, how to
++// judge pace, and which GPS fixes to believe.
++//
++// Units: distance in the athlete's chosen unit ('mi' | 'km'), pace in seconds
++// per unit, time in seconds. Meters only at the GPS boundary.
++
++export const METERS_PER_MILE = 1609.344;
++export const METERS_PER_KM = 1000;
++
++export function metersPerUnit(unit) {
++  return unit === 'km' ? METERS_PER_KM : METERS_PER_MILE;
++}
++
++export function toMiles(distance, unit) {
++  return unit === 'km' ? distance * 0.621371 : distance;
++}
++
++// ── Targets ──────────────────────────────────────────────────────────────────
++
++// Level-driven default pace: 10:00/mi at level 1, ~18s/level faster, floored
++// at 6:30/mi. Same curve the setup screen has always used.
++export function levelPaceSecPerMile(level) {
++  return Math.max(390, 600 - (Math.max(1, level || 1) - 1) * 18);
++}
++
++// Elite time: the number the athlete chases. Two thirds of the target, but
++// never faster than a 6:00/mi pace so a generous target does not produce an
++// impossible elite. 3 mi in 30:00 → elite 20:00, which is the owner's example.
++export const ELITE_FRACTION = 2 / 3;
++export const ELITE_FLOOR_SEC_PER_MILE = 360;
++
++export function computeRunTargets({ distance, unit = 'mi', level = 1, targetSeconds = null }) {
++  const miles = toMiles(distance, unit);
++  const perMile = levelPaceSecPerMile(level);
++  const autoTargetSec = Math.round(miles * perMile);
++  const targetSec = targetSeconds && targetSeconds > 0 ? Math.round(targetSeconds) : autoTargetSec;
++  const eliteFloorSec = Math.round(miles * ELITE_FLOOR_SEC_PER_MILE);
++  const eliteSec = Math.max(eliteFloorSec, Math.round(targetSec * ELITE_FRACTION));
++  const targetPaceSec = distance > 0 ? targetSec / distance : 0;
++  const elitePaceSec = distance > 0 ? eliteSec / distance : 0;
++  return { targetSec, autoTargetSec, eliteSec, targetPaceSec, elitePaceSec };
++}
++
++// ── Formatting ───────────────────────────────────────────────────────────────
++
++export function fmtClock(sec) {
++  const s = Math.max(0, Math.round(sec || 0));
++  const h = Math.floor(s / 3600);
++  const m = Math.floor((s % 3600) / 60);
++  const r = s % 60;
++  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
++  return `${m}:${String(r).padStart(2, '0')}`;
++}
++
++export function fmtPace(secPerUnit, unit = 'mi') {
++  if (!Number.isFinite(secPerUnit) || secPerUnit <= 0 || secPerUnit > 3600) return `--:-- /${unit}`;
++  return `${fmtClock(secPerUnit)} /${unit}`;
++}
++
++export function fmtSignedDelta(sec) {
++  const s = Math.round(sec);
++  if (s === 0) return '0:00';
++  return `${s < 0 ? '−' : '+'}${fmtClock(Math.abs(s))}`;
++}
++
++// Spoken forms. TTS reads "3 mi" as "three em eye", so everything the coach
++// says goes through here.
++export function speakDistance(value, unit = 'mi') {
++  const v = Math.round(value * 100) / 100;
++  const name = unit === 'km' ? 'kilometer' : 'mile';
++  if (v === 0.1) return `a tenth of a ${name}`;
++  if (v === 0.25) return `a quarter ${name}`;
++  if (v === 0.5) return `half a ${name}`;
++  if (v === 1) return `one ${name}`;
++  if (Number.isInteger(v)) return `${v} ${name}s`;
++  if (Math.abs(v - Math.round(v * 2) / 2) < 1e-9 && v > 1) return `${Math.floor(v)} and a half ${name}s`;
++  return `${v} ${name}s`;
++}
++
++export function speakDuration(sec) {
++  const s = Math.max(0, Math.round(sec));
++  const m = Math.floor(s / 60);
++  const r = s % 60;
++  if (m === 0) return `${r} seconds`;
++  const mins = m === 1 ? '1 minute' : `${m} minutes`;
++  if (r === 0) return mins;
++  return `${mins} ${r}`;
++}
++
++export function speakPace(secPerUnit, unit = 'mi') {
++  if (!Number.isFinite(secPerUnit) || secPerUnit <= 0 || secPerUnit > 3600) return '';
++  const s = Math.round(secPerUnit);
++  const m = Math.floor(s / 60);
++  const r = s % 60;
++  return `${m} ${String(r).padStart(2, '0')} per ${unit === 'km' ? 'kilometer' : 'mile'}`;
++}
++
++// ── Scripts ──────────────────────────────────────────────────────────────────
++
++// "Cardio mode. GPS run, 3 miles. Target time, 30 minutes. Elite time, 20
++// minutes. Ready. Go." — the owner's exact shape.
++export function buildRunIntro({ methodLabel = 'Run', useGps = true, distance, unit = 'mi', targetSec, eliteSec }) {
++  // "Running" is the category name; the coach says "GPS run".
++  const base = String(methodLabel || 'run').toLowerCase().replace(/^running$/, 'run');
++  const method = useGps ? `GPS ${base}` : base;
++  const parts = [
++    'Cardio mode.',
++    `${method}, ${speakDistance(distance, unit)}.`,
++    `Target time, ${speakDuration(targetSec)}.`,
++  ];
++  if (eliteSec && eliteSec < targetSec) parts.push(`Elite time, ${speakDuration(eliteSec)}.`);
++  return { lines: parts, ready: 'Ready.', go: 'Go!' };
++}
++
++// Interval / tabata intro for the time-based player.
++export function buildIntervalIntro({ styleLabel = 'intervals', rounds, workSec, restSec, warmupSec = 0 }) {
++  const parts = ['Cardio mode.', `${String(styleLabel).toLowerCase()}.`];
++  if (rounds) parts.push(`${rounds} rounds, ${workSec} seconds work, ${restSec} seconds rest.`);
++  if (warmupSec > 0) parts.push(`${Math.round(warmupSec / 60)} minute warm up first.`);
++  return { lines: parts, ready: 'Ready.', go: 'Go!' };
++}
++
++// ── Milestones ───────────────────────────────────────────────────────────────
++
++// Which markers were crossed between two distances. Spoken markers are every
++// half unit plus every whole unit; tenths are visual only (a tick on the bar).
++export function crossedMarkers(prevDist, dist, step = 0.5) {
++  if (!(dist > prevDist)) return [];
++  const out = [];
++  const first = Math.floor(prevDist / step + 1e-9) + 1;
++  const last = Math.floor(dist / step + 1e-9);
++  for (let i = first; i <= last; i++) out.push(Math.round(i * step * 100) / 100);
++  return out;
++}
++
++export function crossedTenths(prevDist, dist) {
++  return crossedMarkers(prevDist, dist, 0.1);
++}
++
++// Verdict of a running clock against target and elite. delta < 0 is ahead.
++export function projectedFinish(dist, elapsedSec, goal) {
++  if (!(dist > 0.05)) return null;
++  return (elapsedSec / dist) * goal;
++}
++
++export function splitScript({ marker, unit, elapsedSec, paceSec, targetPaceSec, goal, targetSec, eliteSec }) {
++  const lines = [`${speakDistance(marker, unit)}.`, `${speakDuration(elapsedSec)}.`];
++  if (paceSec > 0) lines.push(`Pace ${speakPace(paceSec, unit)}.`);
++  const expectedAtMarker = targetPaceSec * marker;
++  const delta = elapsedSec - expectedAtMarker; // negative = ahead of target
++  const projected = projectedFinish(marker, elapsedSec, goal);
++  if (projected != null && eliteSec && projected <= eliteSec) lines.push('You are on elite pace.');
++  else if (delta <= -10) lines.push(`${speakDuration(-delta)} ahead of target.`);
++  else if (delta >= 10) lines.push(`${speakDuration(delta)} behind target. Pick it up.`);
++  else lines.push('Right on target.');
++  const remaining = goal - marker;
++  if (remaining > 0 && remaining <= 0.5 + 1e-9) lines.push(`${speakDistance(remaining, unit)} to go. Empty the tank.`);
++  else if (Math.abs(marker - goal / 2) < 1e-9) lines.push('Halfway.');
++  return lines.join(' ');
++}
++
++export function finishScript({ dist, unit, elapsedSec, targetSec, eliteSec }) {
++  const lines = ['Goal reached.', `${speakDistance(dist, unit)} in ${speakDuration(elapsedSec)}.`];
++  if (eliteSec && elapsedSec <= eliteSec) lines.push('Elite time. Outstanding.');
++  else if (elapsedSec <= targetSec) lines.push(`Under target by ${speakDuration(targetSec - elapsedSec)}. Good work.`);
++  else lines.push(`${speakDuration(elapsedSec - targetSec)} over target. Next time we take it.`);
++  return lines.join(' ');
++}
++
++// ── Pace coaching ────────────────────────────────────────────────────────────
++
++// Tolerance bands around the target pace. Slower than the target by more than
++// 8% is "slow"; more than 20% is "very slow"; faster than 6% is "fast".
++export function paceVerdict(curPaceSec, targetPaceSec) {
++  if (!(curPaceSec > 0) || !(targetPaceSec > 0)) return 'unknown';
++  const ratio = curPaceSec / targetPaceSec; // > 1 means slower than target
++  if (ratio > 1.2) return 'very_slow';
++  if (ratio > 1.08) return 'slow';
++  if (ratio < 0.94) return 'fast';
++  return 'on';
++}
++
++export const PACE_CUES = {
++  very_slow: [
++    'You are well under the speed limit. Pick it up now.',
++    'Way off pace. Shorten your stride and turn your legs over faster.',
++    'This is a jog. We came here to run. Push.',
++  ],
++  slow: [
++    'You are under the speed limit. Pick it up.',
++    'A little slow. Find the target pace and hold it.',
++    'Behind pace. Drive the arms, the legs will follow.',
++    'Lift the tempo. Ten seconds harder, then settle.',
++  ],
++  on: [
++    'Good pace. Hold it right there.',
++    'That is the pace. Stay relaxed.',
++    'On target. Smooth and steady.',
++    'Perfect rhythm. Keep it.',
++  ],
++  fast: [
++    'Ahead of pace. Nice. Settle in and hold it.',
++    'Fast. Make sure you can keep this to the finish.',
++    'Ahead of target. Stay controlled.',
++  ],
++};
++
++export const RUN_TIPS = [
++  'Relax your shoulders. Hands loose, like you are holding a chip you do not want to break.',
++  'Quick, light steps. Land under your hips, not out in front.',
++  'Breathe in for three steps, out for two.',
++  'Eyes up, chest tall. Run like someone is pulling a string from the top of your head.',
++  'Drive the elbows straight back. No crossing the body.',
++  'Slight lean from the ankles, not the waist.',
++  'Unclench the jaw. Tension in the face costs you energy.',
++  'Count your steps for ten seconds. Aim for around thirty.',
++];
++
++// Pick the next line from a pool without repeating the last one.
++export function pickCue(pool, lastIndex, rnd = Math.random) {
++  if (!pool || pool.length === 0) return { text: '', index: -1 };
++  if (pool.length === 1) return { text: pool[0], index: 0 };
++  let i = Math.floor(rnd() * pool.length);
++  if (i === lastIndex) i = (i + 1) % pool.length;
++  return { text: pool[i], index: i };
++}
++
++// Cadence of the pace coach: a cue every 45–75 s while the athlete is moving,
++// every third slot a form tip instead. Never inside 12 s of a split call so the
++// two do not pile up.
++export const CUE_MIN_GAP_SEC = 45;
++export const CUE_MAX_GAP_SEC = 75;
++export const CUE_AFTER_SPLIT_GAP_SEC = 12;
++
++export function shouldCue({ nowSec, lastCueSec, lastSplitSec, gapSec }) {
++  if (nowSec - lastSplitSec < CUE_AFTER_SPLIT_GAP_SEC) return false;
++  return nowSec - lastCueSec >= gapSec;
++}
++
++export function nextCueGap(rnd = Math.random) {
++  return CUE_MIN_GAP_SEC + Math.round(rnd() * (CUE_MAX_GAP_SEC - CUE_MIN_GAP_SEC));
++}
++
++// ── GPS ──────────────────────────────────────────────────────────────────────
++
++export function haversineMeters(lat1, lng1, lat2, lng2) {
++  const R = 6371000;
++  const toRad = (d) => (d * Math.PI) / 180;
++  const dLat = toRad(lat2 - lat1);
++  const dLng = toRad(lng2 - lng1);
++  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
++  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
++}
++
++export const GPS_MAX_ACCURACY_M = 35;   // ignore fixes the phone itself says are worse than this
++export const GPS_MAX_SPEED_MPS = 12;    // ~27 mph — nobody runs faster; it's a GPS jump
++export const GPS_MIN_STEP_M = 2;        // sub-2m moves are jitter while standing still
++
++// Decide whether a fix advances the distance. Returns { accept, meters }.
++// `prev` is the last ACCEPTED fix ({ lat, lng, t }), `fix` the new one
++// ({ lat, lng, t, accuracy }). Time in ms.
++export function evaluateFix(prev, fix) {
++  if (!fix || !Number.isFinite(fix.lat) || !Number.isFinite(fix.lng)) return { accept: false, meters: 0, reason: 'bad' };
++  if (Number.isFinite(fix.accuracy) && fix.accuracy > GPS_MAX_ACCURACY_M) return { accept: false, meters: 0, reason: 'accuracy' };
++  if (!prev) return { accept: true, meters: 0, reason: 'first' };
++  const d = haversineMeters(prev.lat, prev.lng, fix.lat, fix.lng);
++  const dt = (fix.t - prev.t) / 1000;
++  // Noise floor scales with the reported accuracy: a 20 m fix cannot resolve a 3 m move.
++  const floor = Math.max(GPS_MIN_STEP_M, Number.isFinite(fix.accuracy) ? fix.accuracy / 4 : GPS_MIN_STEP_M);
++  if (d < floor) return { accept: false, meters: 0, reason: 'jitter' };
++  if (dt > 0 && d / dt > GPS_MAX_SPEED_MPS) return { accept: false, meters: 0, reason: 'jump' };
++  return { accept: true, meters: d, reason: 'ok' };
++}
++
++// Rolling pace from recent (tSec, meters) samples: distance covered in the
++// last `windowSec`, as seconds per unit. Null until there is enough movement.
++export function rollingPaceSec(samples, nowSec, unit = 'mi', windowSec = 30) {
++  if (!samples || samples.length < 2) return null;
++  const cutoff = nowSec - windowSec;
++  let first = null;
++  for (let i = samples.length - 1; i >= 0; i--) {
++    if (samples[i].t <= cutoff) { first = samples[i]; break; }
++    first = samples[i];
++  }
++  const last = samples[samples.length - 1];
++  if (!first || first === last) return null;
++  const meters = last.m - first.m;
++  const sec = last.t - first.t;
++  if (sec <= 0 || meters < 15) return null;
++  const perMeter = sec / meters;
++  return perMeter * metersPerUnit(unit);
++}
++
++// ── Ghost racing ─────────────────────────────────────────────────────────────
++
++// Gap between me and a ghost, in the ghost's own terms: distance (units, > 0 = I
++// lead) and seconds (using my current pace to turn distance into time).
++export function ghostGap({ myDist, ghostDist, paceSec }) {
++  const dDist = myDist - ghostDist;
++  const secs = paceSec > 0 ? dDist * paceSec : null;
++  return { dDist, dSec: secs == null ? null : Math.round(secs) };
++}
++
++// 'lead' when clearly ahead, 'trail' when clearly behind, 'even' inside the
++// dead-band (about 8 seconds at pace, or 15 m with no pace yet).
++export function ghostVerdict(gap, unit = 'mi') {
++  if (!gap) return 'even';
++  if (gap.dSec != null) {
++    if (gap.dSec >= 8) return 'lead';
++    if (gap.dSec <= -8) return 'trail';
++    return 'even';
++  }
++  const band = 15 / metersPerUnit(unit);
++  if (gap.dDist >= band) return 'lead';
++  if (gap.dDist <= -band) return 'trail';
++  return 'even';
++}
++
++export function speakGap(gap, unit = 'mi') {
++  if (gap?.dSec != null && Math.abs(gap.dSec) >= 5) return `${speakDuration(Math.abs(gap.dSec))}`;
++  const meters = Math.round(Math.abs(gap?.dDist || 0) * metersPerUnit(unit) / 10) * 10;
++  return `${meters} meters`;
++}
++
++export const GHOST_CUES = {
++  lead: [
++    'You are beating your ghost. Great job. Keep it there.',
++    'Ahead of your ghost by {gap}. Do not let it back in.',
++    'Your ghost is behind you. Stay smooth, stay ahead.',
++    'You are winning this race. {gap} clear.',
++  ],
++  trail: [
++    'Your ghost is winning. Chase it down.',
++    'Ghost is {gap} ahead. Close the gap.',
++    'You are behind your ghost. Pick the pace up and reel it in.',
++    'The ghost is getting away. {gap}. Go get it.',
++  ],
++  even: [
++    'Neck and neck with your ghost. Push now and take the lead.',
++    'Dead level with your ghost. This is where you win it.',
++  ],
++};
++
++export function ghostCue(verdict, gap, unit, lastIndex, rnd = Math.random) {
++  const pool = GHOST_CUES[verdict] || GHOST_CUES.even;
++  const pick = pickCue(pool, lastIndex, rnd);
++  return { text: pick.text.replace('{gap}', speakGap(gap, unit)), index: pick.index };
++}
++
++// Added to a split call: "One mile. … 15 seconds ahead of your ghost."
++export function ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker }) {
++  if (ghostTimeAtMarker == null) return '';
++  const delta = Math.round(elapsedSec - ghostTimeAtMarker); // < 0 = I got here first
++  if (Math.abs(delta) < 3) return 'Level with your ghost.';
++  return delta < 0 ? `${speakDuration(-delta)} ahead of your ghost.` : `${speakDuration(delta)} behind your ghost.`;
++}
++
++export function ghostFinishLine({ elapsedSec, ghostTotalSec, ownerName = 'your ghost' }) {
++  const who = ownerName && ownerName !== 'YOU' && ownerName !== 'your ghost' ? ownerName : 'your ghost';
++  const delta = Math.round(elapsedSec - ghostTotalSec);
++  if (Math.abs(delta) < 2) return `Dead heat with ${who}. A draw.`;
++  if (delta < 0) return `Ghost defeated. You beat ${who} by ${speakDuration(-delta)}.`;
++  return `${who === 'your ghost' ? 'The ghost' : who} takes this one by ${speakDuration(delta)}. Run it back.`;
++}
+diff --git a/components/training-mode/data/runGhosts.js b/components/training-mode/data/runGhosts.js
+new file mode 100644
+index 0000000..4442476
+--- /dev/null
++++ b/components/training-mode/data/runGhosts.js
+@@ -0,0 +1,138 @@
++// Run ghosts — race the replay of a past GPS run over the same distance.
++//
++// A run ghost is a distance-over-time trace recorded from a VERIFIED GPS run:
++// at second t the ghost had covered d units. Racing it is a pure lookup — how
++// far had the ghost gone by now, and how far ahead or behind am I. Two ghosts
++// are kept per distance: MY LAST and MY BEST (fastest finish).
++//
++// Only GPS runs record a ghost. An estimated (no-fix, treadmill) distance is
++// the target pace played back, and racing that would be racing a number.
++//
++// Friend ghosts by USERNAME need the cloud (a ghost is a few hundred points)
++// and are specced in PROMPT GHOST-R1; the local model here is already the
++// shape they will arrive in, so nothing has to change on the player side.
++import { loadProfile } from './userProfile';
++import { trackEvent } from './analytics';
++
++const KEY = 'tm_run_ghosts_v1';
++export const RUN_GHOST_VERSION = 1;
++
++function load() {
++  try {
++    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(KEY) : null;
++    const p = raw ? JSON.parse(raw) : null;
++    if (p && p.v === RUN_GHOST_VERSION && p.best && p.last) return p;
++  } catch { /* fresh */ }
++  return { v: RUN_GHOST_VERSION, best: {}, last: {} };
++}
++function save(s) {
++  try { if (typeof localStorage !== 'undefined') localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* quota */ }
++}
++
++export const ghostKey = (unit, goal) => `${unit}|${Number(goal)}`;
++
++// Thin a raw (t, d) trace so a ghost stays small: keep a point at least every
++// `minGapSec`, always the first and the last.
++export function thinTrace(trace, minGapSec = 5, maxPoints = 720) {
++  if (!Array.isArray(trace) || trace.length === 0) return [];
++  const out = [trace[0]];
++  for (let i = 1; i < trace.length - 1; i++) {
++    if (trace[i].t - out[out.length - 1].t >= minGapSec) out.push(trace[i]);
++  }
++  if (trace.length > 1) out.push(trace[trace.length - 1]);
++  if (out.length <= maxPoints) return out;
++  const step = out.length / maxPoints;
++  const sampled = [];
++  for (let i = 0; i < maxPoints; i++) sampled.push(out[Math.floor(i * step)]);
++  sampled[sampled.length - 1] = out[out.length - 1];
++  return sampled;
++}
++
++export function makeRunGhost({ unit, goal, totalSec, trace, splits, ownerId = 'me', ownerName, gender }) {
++  const profile = loadProfile() || {};
++  const thin = thinTrace(trace);
++  if (!(totalSec > 0) || thin.length < 2) return null;
++  return {
++    v: RUN_GHOST_VERSION,
++    ghostId: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
++    ownerId,
++    ownerName: String(ownerName || profile.name || 'YOU').toUpperCase(),
++    gender: gender || (profile.sex === 'female' ? 'female' : 'male'),
++    unit,
++    goal: Number(goal),
++    totalSec: Math.round(totalSec),
++    trace: thin,
++    splits: Array.isArray(splits) ? splits : [],
++    verified: true,
++    createdAt: Date.now(),
++  };
++}
++
++// Record a ghost from a just-finished run. Returns { ghost, newBest }.
++export function recordRunGhost(result) {
++  if (!result || !result.completed || !result.gps || !Array.isArray(result.trace)) return { ghost: null, newBest: false };
++  const ghost = makeRunGhost({
++    unit: result.distanceUnit, goal: result.goal, totalSec: result.completedTimeSeconds,
++    trace: result.trace, splits: result.splits,
++  });
++  if (!ghost) return { ghost: null, newBest: false };
++  const box = load();
++  const k = ghostKey(ghost.unit, ghost.goal);
++  const prev = box.best[k];
++  const newBest = !prev || ghost.totalSec < prev.totalSec;
++  box.last[k] = ghost;
++  if (newBest) box.best[k] = ghost;
++  save(box);
++  trackEvent('run_ghost_recorded', { goal: ghost.goal, unit: ghost.unit, totalSec: ghost.totalSec, newBest });
++  return { ghost, newBest };
++}
++
++// 'best' | 'last' for a distance, or null when none exists yet.
++export function getRunGhost(unit, goal, which = 'best') {
++  const box = load();
++  const k = ghostKey(unit, goal);
++  return (which === 'last' ? box.last[k] : box.best[k]) || null;
++}
++
++export function hasAnyRunGhost() {
++  const box = load();
++  return Object.keys(box.last).length > 0;
++}
++
++// Distance the ghost had covered at second t (linear between trace points;
++// holds the finish after its last point).
++export function ghostDistanceAt(ghost, tSec) {
++  const tr = ghost?.trace;
++  if (!tr || tr.length === 0) return 0;
++  if (tSec <= tr[0].t) return tr[0].d * (tr[0].t > 0 ? Math.max(0, tSec) / tr[0].t : 1);
++  for (let i = 1; i < tr.length; i++) {
++    if (tSec <= tr[i].t) {
++      const a = tr[i - 1], b = tr[i];
++      const span = b.t - a.t;
++      return span > 0 ? a.d + ((tSec - a.t) / span) * (b.d - a.d) : b.d;
++    }
++  }
++  return ghost.goal || tr[tr.length - 1].d;
++}
++
++// Seconds the ghost needed to reach distance d (inverse lookup).
++export function ghostTimeAt(ghost, d) {
++  const tr = ghost?.trace;
++  if (!tr || tr.length === 0) return null;
++  if (d <= 0) return 0;
++  for (let i = 1; i < tr.length; i++) {
++    if (d <= tr[i].d) {
++      const a = tr[i - 1], b = tr[i];
++      const span = b.d - a.d;
++      return span > 0 ? a.t + ((d - a.d) / span) * (b.t - a.t) : b.t;
++    }
++  }
++  return ghost.totalSec;
++}
++
++// The image shown beside a ghost: the athlete's own mirror art when it is
++// theirs, a friend's tier art once friend ghosts arrive.
++export function ghostArt(ghost, variant = 1) {
++  const g = ghost?.gender === 'female' ? 'female' : 'male';
++  return `/static/ghost/vs-${g}-${variant}.webp`;
++}
+diff --git a/components/training-mode/shared/MiniPlayerButton.jsx b/components/training-mode/shared/MiniPlayerButton.jsx
+index fa89a92..eed6e4f 100644
+--- a/components/training-mode/shared/MiniPlayerButton.jsx
++++ b/components/training-mode/shared/MiniPlayerButton.jsx
+@@ -1,29 +1,75 @@
++import { useLayoutEffect, useRef, useState } from 'react';
++import { createPortal } from 'react-dom';
+ import { PictureInPicture2 } from 'lucide-react';
++import { positionMiniPreview } from './miniPlayer';
+ 
+-// Opens the floating mini-player. It is a BUTTON rather than something the
+-// session does by itself because Android requires a user gesture to enter
+-// picture-in-picture — a session cannot pop the window when it is already
+-// being backgrounded, which is precisely the moment it would want to. Tapped
+-// once before or during the round, the window then survives the athlete
+-// leaving the app.
++// The floating-window control, and the reason it looks like a tiny screen:
++// it IS the window. The mini-player's <video> is positioned over this chip as
++// a live preview, which does two jobs at once — the athlete sees exactly what
++// will float, and the video is VISIBLE in the viewport, which is what Android's
++// automatic picture-in-picture requires before it will open the window by
++// itself when they leave the app. Off-screen, the automatic route never fires
++// and only the tap works.
+ //
+-// Renders nothing at all where the platform cannot float a video, rather than
+-// offering a control that does nothing (the mistake AUDIO DUCKING made).
++// Tapping still opens or closes the window by hand (a gesture always works).
++// Renders nothing where the platform cannot float a video at all.
++const W = 72;
++const H = 40;
++const POLL_MS = 500;
++
+ export default function MiniPlayerButton({ supported, open, toggle, top = 10, right = 52 }) {
++  const anchorRef = useRef(null);
++  const [rect, setRect] = useState(null);
++
++  useLayoutEffect(() => {
++    if (!supported) return undefined;
++    let last = null;
++    const measure = () => {
++      const r = anchorRef.current?.getBoundingClientRect();
++      if (!r || r.width === 0) return;
++      const next = { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
++      if (last && last.left === next.left && last.top === next.top && last.width === next.width && last.height === next.height) return;
++      last = next;
++      setRect(next);
++      positionMiniPreview({ ...next, radius: 10, zIndex: 59 });
++    };
++    measure();
++    const t = setInterval(measure, POLL_MS);
++    window.addEventListener('resize', measure);
++    window.addEventListener('scroll', measure, true);
++    return () => {
++      clearInterval(t);
++      window.removeEventListener('resize', measure);
++      window.removeEventListener('scroll', measure, true);
++      positionMiniPreview(null);
++    };
++  }, [supported]);
++
+   if (!supported) return null;
+   return (
+-    <button
+-      onClick={toggle}
+-      aria-label={open ? 'Close floating timer' : 'Float the timer over other apps'}
+-      style={{
+-        position: 'absolute', top, right, zIndex: 60,
+-        width: 34, height: 34, borderRadius: '50%', padding: 0,
+-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+-        background: open ? 'rgba(253,224,71,0.16)' : 'rgba(12,2,24,0.9)',
+-        border: `1px solid ${open ? 'rgba(253,224,71,0.75)' : 'rgba(253,224,71,0.35)'}`,
+-        cursor: 'pointer',
+-      }}>
+-      <PictureInPicture2 size={15} color="#fde047"/>
+-    </button>
++    <>
++      {/* In-flow anchor: gives the chip its place in the player's layout. */}
++      <span ref={anchorRef} aria-hidden="true" style={{ position: 'absolute', top, right, width: W, height: H, pointerEvents: 'none' }}/>
++      {rect && typeof document !== 'undefined' && createPortal(
++        <button
++          onClick={toggle}
++          aria-label={open ? 'Close floating timer' : 'Float the timer over other apps'}
++          data-mini-preview="1"
++          style={{
++            position: 'fixed', left: rect.left, top: rect.top, width: rect.width, height: rect.height, zIndex: 61,
++            borderRadius: 10, padding: 0, background: 'transparent', cursor: 'pointer',
++            border: `1px solid ${open ? 'rgba(253,224,71,0.9)' : 'rgba(253,224,71,0.45)'}`,
++            boxShadow: open ? '0 0 12px rgba(253,224,71,0.5)' : '0 0 8px rgba(0,0,0,0.5)',
++          }}>
++          <span style={{
++            position: 'absolute', right: 2, bottom: 2, width: 16, height: 16, borderRadius: 5,
++            background: 'rgba(12,2,24,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center',
++          }}>
++            <PictureInPicture2 size={10} color="#fde047"/>
++          </span>
++        </button>,
++        document.body,
++      )}
++    </>
+   );
+ }
+diff --git a/components/training-mode/shared/miniPlayer.js b/components/training-mode/shared/miniPlayer.js
+index 661f75d..a475a11 100644
+--- a/components/training-mode/shared/miniPlayer.js
++++ b/components/training-mode/shared/miniPlayer.js
+@@ -268,6 +268,29 @@ function drawFrame(ctx, frame, tick) {
+  * Create a mini-player bound to a frame source.
+  * @param {() => object} getFrame  see drawFrame for the shape
+  */
++const OFFSCREEN_CSS = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
++let previewRect = null;
++
++function applyPreviewRect(video) {
++  if (!video) return;
++  if (previewRect) {
++    const r = previewRect;
++    video.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;opacity:1;object-fit:cover;border-radius:${r.radius ?? 10}px;pointer-events:none;z-index:${r.zIndex ?? 59};background:#0a0014;`;
++  } else {
++    video.style.cssText = OFFSCREEN_CSS;
++  }
++}
++
++/**
++ * Where the live preview shows on screen (viewport coordinates), or null to
++ * park the video off-screen. The button calls this with its own rect so the
++ * preview IS the button face. Style only — the element never moves in the DOM.
++ */
++export function positionMiniPreview(rect) {
++  previewRect = rect ? { ...rect } : null;
++  applyPreviewRect(shared?.video);
++}
++
+ export function createMiniPlayer(getFrame) {
+   if (typeof document === 'undefined') return null;
+ 
+@@ -288,9 +311,19 @@ export function createMiniPlayer(getFrame) {
+ 
+   // The element has to live in the document: a detached <video> is accepted by
+   // some engines and refused by others, and this has to work on a phone.
+-  video.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
++  //
++  // And it has to be VISIBLE. Android's automatic picture-in-picture only
++  // considers a video that is playing and intersecting the viewport, so an
++  // off-screen 1x1 element can never qualify — which is why "opens by itself
++  // when I leave" did nothing. The button therefore shows this video as a live
++  // preview (see positionMiniPreview); it is only parked off-screen when no
++  // button is mounted. The node is NEVER moved in the DOM: removing a video
++  // from the document exits picture-in-picture, which would kill the window at
++  // every hand-off.
++  video.style.cssText = OFFSCREEN_CSS;
+   video.setAttribute('aria-hidden', 'true');
+   document.body.appendChild(video);
++  applyPreviewRect(video);
+ 
+   let timer = null;
+   let stream = null;
+@@ -379,6 +412,7 @@ export function createMiniPlayer(getFrame) {
+     destroy() {
+       destroyed = true;
+       stopPainting();
++      try { if (navigator.mediaSession) { navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; } } catch { /* ignore */ }
+       try { navigator.mediaSession?.setActionHandler?.('enterpictureinpicture', null); } catch { /* ignore */ }
+       try {
+         if (document.pictureInPictureElement === video) document.exitPictureInPicture();
+@@ -448,6 +482,15 @@ export function acquireMiniPlayer(getFrame) {
+   currentSource = getFrame;
+   // Primed from the first acquire, so leaving the app finds a playing video.
+   shared.prime();
++  // Tell the platform a session is playing. Chrome's automatic routes key off
++  // the Media Session; without metadata a muted captured stream is invisible
++  // to them.
++  try {
++    if (navigator.mediaSession) {
++      if (typeof MediaMetadata !== 'undefined') navigator.mediaSession.metadata = new MediaMetadata({ title: 'Training Mode', artist: 'Session in progress' });
++      navigator.mediaSession.playbackState = 'playing';
++    }
++  } catch { /* unsupported */ }
+   watchForExit();
+   return shared;
+ }
+diff --git a/public/pip-test.html b/public/pip-test.html
+index ecf68b8..544ce42 100644
+--- a/public/pip-test.html
++++ b/public/pip-test.html
+@@ -49,9 +49,21 @@
+ </div>
+ 
+ <canvas id="c" width="640" height="360"></canvas>
+-<button id="go">START FLOATING WINDOW</button>
++<video id="v" muted playsinline autopictureinpicture style="display:block;width:160px;height:90px;border-radius:10px;border:1px solid rgba(253,224,71,0.5);margin:8px 0;background:#0a0014;object-fit:cover"></video>
++<button id="go">START FLOATING WINDOW (TAP)</button>
++<button id="arm" class="ghost">ARM AUTO-OPEN (NO TAP) — THEN PRESS HOME</button>
+ <button id="reset" class="ghost">RESET COUNTERS</button>
+ 
++<div class="panel">
++  <div class="verdict" id="autoverdict">Auto-open: not tested. Install this page as an app first (Add to Home Screen), tap ARM, press HOME.</div>
++  <div class="row"><span>Installed as app</span><span id="installed">—</span></div>
++  <div class="row"><span>Video visible + playing</span><span id="primed">no</span></div>
++  <div class="row"><span>autoPictureInPicture supported</span><span id="autopip">—</span></div>
++  <div class="row"><span>Media Session enter-PiP action</span><span id="msaction">—</span></div>
++  <div class="row"><span>Times the window opened BY ITSELF</span><span id="autoopens">0</span></div>
++  <div class="row"><span>Last auto-open reason</span><span id="autoreason">—</span></div>
++</div>
++
+ <div class="panel">
+   <div class="verdict" id="verdict">Waiting — press START, then switch apps.</div>
+   <div class="row"><span>Document PiP (whole DOM)</span><span id="docpip">—</span></div>
+@@ -78,8 +90,35 @@
+ (function () {
+   var canvas = document.getElementById('c');
+   var ctx = canvas.getContext('2d');
+-  var video = document.createElement('video');
++  var video = document.getElementById('v');
+   video.muted = true; video.playsInline = true; video.setAttribute('playsinline', '');
++  try { video.autoPictureInPicture = true; } catch (e) {}
++
++  // ── Auto-open test: persists across the trip out of the app ─────────────
++  var AUTO_KEY = 'pip_auto_log';
++  var autoLog = (function () { try { return JSON.parse(localStorage.getItem(AUTO_KEY) || '{"opens":0,"reason":"—"}'); } catch (e) { return { opens: 0, reason: '—' }; } })();
++  var armed = false, lastTapAt = 0;
++  function saveAuto() { try { localStorage.setItem(AUTO_KEY, JSON.stringify(autoLog)); } catch (e) {} }
++  el('installed').textContent = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? 'yes' : 'NO — add to Home Screen first';
++  el('installed').className = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? 'ok' : 'warn';
++  el('autopip').textContent = ('autoPictureInPicture' in HTMLVideoElement.prototype) ? 'yes' : 'no';
++  el('autopip').className = ('autoPictureInPicture' in HTMLVideoElement.prototype) ? 'ok' : 'warn';
++  var msOk = false;
++  try { navigator.mediaSession.setActionHandler('enterpictureinpicture', function () { autoLog.reason = 'media session action'; saveAuto(); video.requestPictureInPicture().catch(function () {}); }); msOk = true; } catch (e) {}
++  el('msaction').textContent = msOk ? 'registered' : 'unsupported';
++  el('msaction').className = msOk ? 'ok' : 'warn';
++  video.addEventListener('enterpictureinpicture', function () {
++    // A window that appears more than 1.5s after the last tap was not the tap.
++    if (Date.now() - lastTapAt > 1500) { autoLog.opens++; if (autoLog.reason === '—') autoLog.reason = document.hidden ? 'opened while hidden (autoPictureInPicture)' : 'opened by platform'; saveAuto(); }
++    renderAuto();
++  });
++  function renderAuto() {
++    el('autoopens').textContent = autoLog.opens;
++    el('autoreason').textContent = autoLog.reason;
++    var v = el('autoverdict');
++    if (autoLog.opens > 0) { v.textContent = 'PASS — the window opened by itself when you left. The app can do the same.'; v.className = 'verdict ok'; }
++    else if (armed) { v.textContent = 'Armed. Press HOME now. If no window appears, this phone needs a tap (or the native wrapper).'; v.className = 'verdict warn'; }
++  }
+ 
+   var startedAt = Date.now();
+   var hiddenMs = 0, hiddenSince = null;
+@@ -159,8 +198,25 @@
+     render();
+   });
+ 
++  el('arm').addEventListener('click', function () {
++    el('err').textContent = '';
++    try {
++      if (!video.srcObject) video.srcObject = canvas.captureStream(10);
++      try { if (navigator.mediaSession) { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Training Mode test', artist: 'Session in progress' }); navigator.mediaSession.playbackState = 'playing'; } } catch (e) {}
++      video.play().then(function () { armed = true; el('primed').textContent = 'yes'; el('primed').className = 'ok'; renderAuto(); })
++        .catch(function (e) { el('err').textContent = 'play() refused: ' + (e && e.message ? e.message : e); });
++    } catch (e) { el('err').textContent = 'Capture failed: ' + (e && e.message ? e.message : e); }
++  });
++  document.addEventListener('visibilitychange', function () {
++    if (document.hidden && armed && document.pictureInPictureElement !== video) {
++      video.requestPictureInPicture().then(function () { autoLog.reason = 'request on hide accepted'; saveAuto(); }).catch(function () {});
++    }
++  });
++  renderAuto();
++
+   el('go').addEventListener('click', function () {
+     el('err').textContent = '';
++    lastTapAt = Date.now();
+     try {
+       if (!video.srcObject) video.srcObject = canvas.captureStream(10);
+       video.play().then(function () {
+@@ -178,7 +234,8 @@
+ 
+   el('reset').addEventListener('click', function () {
+     hiddenMs = 0; hiddenSince = null; ticksHidden = 0; framesHidden = 0; rafHidden = 0;
+-    startedAt = Date.now(); el('err').textContent = ''; render();
++    startedAt = Date.now(); el('err').textContent = ''; autoLog = { opens: 0, reason: '—' }; saveAuto(); armed = false;
++    el('autoverdict').textContent = 'Auto-open: not tested. Tap ARM, then press HOME.'; el('autoverdict').className = 'verdict'; render(); renderAuto();
+   });
+ 
+   draw(); render();
