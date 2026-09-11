@@ -226,37 +226,9 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
           </div>
         </div>
 
-        {/* Demo Video Placeholder */}
-        <div style={{
-          width: '100%', borderRadius: 12, marginBottom: 14,
-          background: 'rgba(10,0,20,0.8)', border: '1px solid rgba(253,224,71,0.15)',
-          aspectRatio: '16/9',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: 8, position: 'relative', overflow: 'hidden',
-        }}>
-          {[['top','left'],['top','right'],['bottom','left'],['bottom','right']].map(([v,h]) => (
-            <div key={v+h} style={{
-              position: 'absolute', [v]: 10, [h]: 10,
-              width: 14, height: 14,
-              borderTop: v === 'top' ? '1.5px solid rgba(253,224,71,0.25)' : 'none',
-              borderBottom: v === 'bottom' ? '1.5px solid rgba(253,224,71,0.25)' : 'none',
-              borderLeft: h === 'left' ? '1.5px solid rgba(253,224,71,0.25)' : 'none',
-              borderRight: h === 'right' ? '1.5px solid rgba(253,224,71,0.25)' : 'none',
-            }}/>
-          ))}
-          <div style={{
-            width: 48, height: 48, borderRadius: '50%',
-            background: 'rgba(253,224,71,0.06)',
-            border: '1.5px solid rgba(253,224,71,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Play size={20} style={{ color: 'rgba(253,224,71,0.4)', marginLeft: 2 }}/>
-          </div>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: 'rgba(253,224,71,0.45)', letterSpacing: '0.1em' }}>
-            DEMO COMING SOON
-          </div>
-        </div>
+        {/* A 16:9 "DEMO COMING SOON" play button used to sit here. It played
+            nothing and had no ship date, so it is gone (beta TM-13). The rep
+            coach's real guidance is the spoken cadence and the cue line. */}
 
         {/* Pace + Audio Mode */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 8 }}>

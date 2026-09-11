@@ -70,7 +70,7 @@ export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStag
           <Lock size={32} color={C.muted} style={{ marginBottom: 12 }} />
           <h2 style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 14, color: C.text, margin: '0 0 8px', textAlign: 'center' }}>{series.title}</h2>
           <p style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', maxWidth: 260, margin: '0 0 20px', lineHeight: 1.5 }}>
-            Arcade series coming soon. Workouts and banners are being programmed.
+            This saga is still locked. Pick another from the arcade shelf and come back for this one.
           </p>
           <button onClick={onBack} style={{ padding: '10px 24px', borderRadius: 8, border: '1px solid rgba(253,224,71,0.3)', background: 'rgba(253,224,71,0.08)', cursor: 'pointer', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: C.yellow, letterSpacing: '0.08em' }}>GO BACK</button>
         </div>

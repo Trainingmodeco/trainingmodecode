@@ -6,6 +6,7 @@ import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import MiniPlayerButton from './shared/MiniPlayerButton';
+import Emoji from './shared/Emoji';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts, packLine } from './data/voicePacks';
@@ -260,7 +261,7 @@ export default function CampFitRunner({ cfg, onEnd }) {
               <div style={{ font: "900 84px 'Orbitron',sans-serif", color: TEAL, textShadow: `0 0 24px ${TEAL}88` }}>{countdown}</div>
             ) : (
               <>
-                <div style={{ font: "700 11px 'Press Start 2P',monospace", color: resting ? BLUE : TEAL, letterSpacing: '0.1em', marginBottom: 8 }}>{resting ? '☕ REST' : '🔥 WORK'}</div>
+                <div style={{ font: "700 11px 'Press Start 2P',monospace", color: resting ? BLUE : TEAL, letterSpacing: '0.1em', marginBottom: 8 }}>{resting ? <><Emoji>☕</Emoji> REST</> : <><Emoji>🔥</Emoji> WORK</>}</div>
                 <div style={{ font: "900 38px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em' }}>{mins}:{String(secs).padStart(2, '0')}</div>
                 <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>OF {Math.floor(maxTime / 60)}:{String(maxTime % 60).padStart(2, '0')}</div>
               </>

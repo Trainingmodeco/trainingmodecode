@@ -454,7 +454,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               </button>
             ) : (
               <button disabled style={{ width: '100%', height: 36, borderRadius: 10, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.5)', color: '#8b7fb0', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.06em', cursor: 'not-allowed' }}>
-                🔒 CLEAR L{open.level - 1} FIRST
+                🔒 FINISH LEVEL {open.level - 1} FIRST
               </button>
             )}
           </div>

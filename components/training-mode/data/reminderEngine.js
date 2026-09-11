@@ -173,23 +173,23 @@ export function getDashboardReminder() {
     category = 'progress';
     actionLabel = 'Earn XP Now';
     actionType = 'progress';
-  } else if (daysOff >= 7) {
+  } else if (daysOff >= 7 && settings.programReminders !== false) {
     category = 'inactivity7';
     actionLabel = 'Quick Mission';
     actionType = 'quickMission';
-  } else if (daysOff >= 3) {
+  } else if (daysOff >= 3 && settings.programReminders !== false) {
     category = 'inactivity3';
     actionLabel = 'Start a Round';
     actionType = 'fightFocus';
-  } else if (daysOff >= 2) {
+  } else if (daysOff >= 2 && settings.programReminders !== false) {
     category = 'inactivity2';
     actionLabel = 'Get Back In';
     actionType = 'general';
-  } else if (daysOff === 1 && streak > 0 && settings.streakReminders) {
+  } else if (daysOff === 1 && streak > 0 && settings.streakReminders !== false) {
     category = 'streak';
     actionLabel = 'Keep Streak';
     actionType = 'general';
-  } else if (daysOff === 1) {
+  } else if (daysOff === 1 && settings.programReminders !== false) {
     category = 'inactivity1';
     actionLabel = 'Start Training';
     actionType = 'general';

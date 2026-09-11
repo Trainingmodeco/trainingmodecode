@@ -7,6 +7,7 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import SafeImage from './SafeImage';
+import ReminderCard from './shared/ReminderCard';
 import Embers from './Embers';
 import { loadStats, getLevel, getLevelProgress, getWeeklySessions, getWeekDayCompletion, WEEKLY_GOAL } from './data/userStats';
 import { syncCombo, consumeComboFlash, getComboNudge, snoozeNudge, dismissNudgeToday } from './data/comboStreak';
@@ -172,6 +173,14 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           </span>
         </div>
 
+        {/* The come-back nudge from data/reminderEngine.js. It had computed a
+            reminder for months with no caller anywhere; this is where it lands. */}
+        <ReminderCard onAction={(type) => {
+          if (type === 'quickMission') onQuickMission?.();
+          else if (type === 'fightFocus') onFightFocus?.();
+          else onTrain?.();
+        }}/>
+
         {/* Spec 23 — combo outcome flash (milestone / guard used / break) or the daily nudge */}
         {(comboFlash || comboNudge) && (
           <div style={{ background: 'rgba(8,2,18,0.9)', border: `1px solid ${comboFlash?.kind === 'broken' ? 'rgba(255,138,58,0.4)' : 'rgba(143,232,172,0.35)'}`, borderRadius: 11, padding: '8px 11px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -237,7 +246,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
           {/* Slight uniform dim over the art */}
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,0,16,0.24)' }}/>
           <div style={{ position: 'absolute', left: 15, right: 15, top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
-            <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>⚔️ TODAY&apos;S BOUT</div>
+            <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#facc15', marginBottom: 6 }}>TODAY&apos;S BOUT</div>
             <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.12, letterSpacing: '0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.7)', maxWidth: '72%' }}>{boutTitle.toUpperCase()}</div>
             <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 4, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{boutSubtitle}</div>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', background: 'linear-gradient(135deg,#fde047,#f59e0b)', borderRadius: 8, padding: '9px 14px', marginTop: 11, boxShadow: '0 0 14px rgba(253,224,71,0.4)' }}>{boutCta}</span>

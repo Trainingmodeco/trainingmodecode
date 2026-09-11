@@ -43,7 +43,7 @@ export const SCREEN_GUIDES = {
   // Everything cut from the core is covered by each screen's own ? guide,
   // and the whole tour stays available under Profile → Replay Intro Guide.
   full_intro: [
-    { screen: 'home', target: 'todays-bout', title: "⚔️ TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
+    { screen: 'home', target: 'todays-bout', title: "TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
 
     { screen: 'training_hub', target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio, COMBAT CONDITIONING blends the two, and the TRAINING ARCADE turns it all into a game. You are never locked in — mix them however you like.' },
     { screen: 'training_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },

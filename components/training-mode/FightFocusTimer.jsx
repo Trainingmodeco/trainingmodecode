@@ -7,6 +7,7 @@ import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, 
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import Emoji from './shared/Emoji';
 import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { createRushCaller } from './data/rushMoves';
@@ -634,7 +635,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       {/* Spec 27 B2 — end-of-session finisher overlay */}
       {finisher && finishers[finisher.idx] && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 130, background: 'rgba(10,0,20,0.94)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
-          <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 10, color: '#f59e0b', letterSpacing: '0.1em', marginBottom: 16 }}>🔥 FINISHER {finisher.idx + 1}/{finishers.length}</div>
+          <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 10, color: '#f59e0b', letterSpacing: '0.1em', marginBottom: 16 }}><Emoji>🔥</Emoji> FINISHER {finisher.idx + 1}/{finishers.length}</div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 24, color: '#fff', textAlign: 'center', marginBottom: 12, letterSpacing: '0.04em' }}>{String(finishers[finisher.idx].movement).toUpperCase()}</div>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 76, color: '#f59e0b', lineHeight: 1, textShadow: '0 0 34px rgba(245,158,11,0.7)' }}>{finisher.remaining}</div>
           <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 700, color: '#c4a4d8', letterSpacing: '0.14em', marginTop: 10 }}>SECONDS · GO!</div>

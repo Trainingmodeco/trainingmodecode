@@ -6,7 +6,7 @@ import WordmarkFightMode from './WordmarkFightMode';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
 import SafeImage from './SafeImage';
-import { ChevronLeft, Play, Pause, Lock, ChevronRight, Volume2, Square } from 'lucide-react';
+import { ChevronLeft, Play, Pause, ChevronRight, Volume2, Square } from 'lucide-react';
 import { C } from './Styles';
 import { addStartHereLesson } from './data/userStats';
 import { loadProfile, isBeginnerLearner } from './data/userProfile';
@@ -23,7 +23,6 @@ import { addLearned } from './data/arsenal';
 import { numberForStrike, NUMBER_DRILL } from './data/strikeNumbering';
 
 const GOLD = C.yellow;
-const NEON = C.neon;
 
 // ─── Basics (fundamentals path) data per discipline ─────────────────────────────
 // PROMPT N — the numbers lesson, appended to every discipline's basics.
@@ -344,7 +343,7 @@ function TechniqueCard({ technique, onTap }) {
 }
 
 // ─── Detail (unified page: video · key points · common mistakes · drill it) ─────
-function DetailView({ detail, profile, onBack, onToast, onDrill }) {
+function DetailView({ detail, profile, onBack, onDrill }) {
   const [activeCue, setActiveCue] = useState(-1);
   const [reading, setReading] = useState(false);
   const readingRef = useRef(false);
@@ -386,16 +385,16 @@ function DetailView({ detail, profile, onBack, onToast, onDrill }) {
 
   return createPortal(
     <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 200, background: '#080012', display: 'flex', flexDirection: 'column' }}>
-      {/* Video */}
-      <div style={{ position: 'relative', flexShrink: 0, aspectRatio: '16/10', background: 'repeating-linear-gradient(45deg,#140823 0 14px,#1c0d30 14px 28px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Technique header. This used to be a MOCK video player — a gold play
+          button, a scrubber parked at 35%, a duration — that played nothing and
+          popped a "coming soon" toast (beta TM-13). Everything it implied was
+          untrue, so it is now the title card for the written guide below, which
+          is the real content. */}
+      <div style={{ position: 'relative', flexShrink: 0, aspectRatio: '16/7', background: 'repeating-linear-gradient(45deg,#140823 0 14px,#1c0d30 14px 28px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <button onClick={handleBack} style={{ position: 'absolute', top: 8, left: 12, background: 'none', border: 'none', color: '#f5e9ff', cursor: 'pointer', display: 'flex', padding: 4 }}><ChevronLeft size={20}/></button>
-        <div onClick={onToast} style={{ textAlign: 'center', cursor: 'pointer' }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(253,224,71,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}><Play size={24} fill="#0a0014" color="#0a0014" style={{ marginLeft: 3 }}/></div>
-          <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#8a6fb0' }}>{detail.title} · tutorial video</div>
-        </div>
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '10px 14px', background: 'linear-gradient(0deg,rgba(8,1,15,0.9),transparent)' }}>
-          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}><div style={{ width: '35%', height: '100%', background: GOLD }}/></div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Rajdhani',sans-serif", fontSize: 8, color: '#c4a4d8', marginTop: 5 }}><span>0:00</span><span>{detail.duration || '1:40'}</span></div>
+        <div style={{ textAlign: 'center', padding: '0 20px' }}>
+          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: '#fff', letterSpacing: '0.04em', textShadow: '0 0 16px rgba(168,85,247,0.5)' }}>{detail.title.toUpperCase()}</div>
+          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#c4a4d8', marginTop: 4, letterSpacing: '0.1em' }}>STEP-BY-STEP GUIDE</div>
         </div>
       </div>
 
@@ -666,7 +665,6 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
   const [detail, setDetail] = useState(null);
   const [drill, setDrill] = useState(null);
   const [comboDrill, setComboDrill] = useState(false);
-  const [toast, setToast] = useState(false);
   const [learned, setLearned] = useState(null); // strikes just added to the arsenal (1.1)
   const [completed, setCompleted] = useState(() => getCompletedLessons());
 
@@ -678,11 +676,6 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
 
   const basics = useMemo(() => [...(START_HERE_LESSONS[discipline] || []), NUMBERS_LESSON], [discipline]);
   const techniques = getTechniquesFor(discipline, category);
-
-  const showToast = useCallback(() => {
-    setToast(true);
-    setTimeout(() => setToast(false), 2200);
-  }, []);
 
   const completeBasic = useCallback((lesson) => {
     if (!lesson) return;
@@ -813,7 +806,7 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
               </div>
             </div>
           )) : (
-            <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: C.muted }}>Content coming soon.</div>
+            <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: C.muted }}>No techniques in this section yet. Try another category.</div>
           )}
 
           <div style={{ marginTop: 16, textAlign: 'center', fontFamily: "'Press Start 2P',monospace", fontSize: 6.5, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.18em' }}>TRAIN &middot; FIGHT &middot; WIN</div>
@@ -822,7 +815,7 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
 
       {/* Detail overlay (unified page) */}
       {detail && !drill && (
-        <DetailView detail={detail} profile={profile} onBack={() => setDetail(null)} onToast={showToast} onDrill={startDrill}/>
+        <DetailView detail={detail} profile={profile} onBack={() => setDetail(null)} onDrill={startDrill}/>
       )}
 
       {/* Shadowbox drill overlay */}
@@ -833,20 +826,6 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
       {/* Combo drill overlay */}
       {comboDrill && (
         <ComboDrillView discipline={discipline} onBack={() => setComboDrill(false)}/>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="pm-toast" style={{
-          position: 'fixed', bottom: 100, left: '50%', zIndex: 300, pointerEvents: 'none',
-          padding: '10px 20px', borderRadius: 10,
-          background: 'rgba(10,2,22,0.96)', border: '1px solid rgba(168,85,247,0.45)',
-          boxShadow: '0 0 18px rgba(168,85,247,0.22)',
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <Lock size={11} style={{ color: NEON }}/>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: NEON, letterSpacing: '0.08em' }}>Tutorial video coming soon.</span>
-        </div>
       )}
 
       {/* Arsenal toast (1.1) — a learned strike was banked */}

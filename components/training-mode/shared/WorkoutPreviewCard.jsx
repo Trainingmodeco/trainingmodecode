@@ -51,10 +51,14 @@ export default function WorkoutPreviewCard({ exercise, accentColor = GOLD, compa
         ) : (
           <div style={{ textAlign: 'center', padding: '0 16px' }}>
             <Dumbbell size={compact ? 26 : 34} color={accentColor} style={{ margin: '0 auto 8px', display: 'block' }}/>
-            <div style={{
-              fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.muted,
-              letterSpacing: '0.12em',
-            }}>PREVIEW COMING SOON</div>
+            {/* No media for this exercise. Name the target muscle rather than
+                promise a preview with no ship date (beta TM-13). */}
+            {target ? (
+              <div style={{
+                fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.muted,
+                letterSpacing: '0.12em',
+              }}>{target}</div>
+            ) : null}
           </div>
         )}
       </div>
