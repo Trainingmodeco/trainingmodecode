@@ -55,7 +55,7 @@ export default function FitModeHub({ onHome, onBack, onWorkoutBuilder, onQuickMi
               <span style={{ fontSize: 20 }}>👻</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: "900 10px 'Orbitron',sans-serif", color: '#e6d4ff', letterSpacing: '0.12em' }}>GHOST MODE</div>
-                <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 2 }}>Race your last run. The coach calls who's winning.</div>
+                <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 2 }}>Race your last run. The coach calls who&apos;s winning.</div>
               </div>
               <span style={{ font: "800 9px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.1em' }}>RACE ▶</span>
             </button>

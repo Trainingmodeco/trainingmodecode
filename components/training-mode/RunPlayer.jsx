@@ -38,7 +38,6 @@ import {
 // coach stays quiet because it would have nothing real to judge.
 
 const GOLD = C.yellow;
-const VIOLET = '#a855f7';
 const GREEN = '#22c55e';
 
 const STYLES = `
