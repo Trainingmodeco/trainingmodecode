@@ -2938,3 +2938,263 @@ SecondaryButton / Card); no new design system.
 >    press HOME. On return the page reports "Times the window opened BY
 >    ITSELF" ≥ 1 → the app will do the same. 0 → that phone needs the tap or
 >    the native wrapper; the app is not at fault.
+
+---
+
+## PROMPT REVAMP-2 — bring the whole week (Sept 5–11) into the revamp, from GitHub
+
+> Run this in the Training Mode revamp app. It is the authoritative roll-up of
+> everything shipped to branch `app` of
+> `https://github.com/Trainingmodeco/trainingmodecode` between `8ce2c13` (base)
+> and `e9169da` (head). Do NOT rebuild any of it from the descriptions below —
+> fetch the code from GitHub and verify it in place. The descriptions exist so
+> you know what you are verifying and why each change was made. Safe to
+> re-run: every step is idempotent.
+>
+> ### 0. Fetch first, before anything else
+>
+> ```bash
+> git fetch https://github.com/Trainingmodeco/trainingmodecode.git app
+> git show FETCH_HEAD:transfer/README.md
+> ```
+>
+> That README carries the exact 52-file checkout command (Option A), the full
+> patch (Option B) and the cherry-pick list (Option C). Use A unless the
+> revamp has its own edits in `App.jsx`, `ScreenRouter.jsx`, `Profile.jsx` or
+> `HomeDashboard.jsx`; for those four use B (`git apply --3way`) so your edits
+> merge instead of being overwritten. Then, before reading further:
+>
+> ```bash
+> npx tsc --noEmit && npx expo lint && npm run build:web
+> ```
+>
+> All three must be clean. If `tsc` fails, the most likely cause is a missing
+> dependency listed at the bottom of the transfer README — check those exist
+> in the revamp before touching any of the copied files.
+>
+> ### 1. The ledger — what each commit is, so nothing is missed
+>
+> | Commit | Feature | Files |
+> |---|---|---|
+> | `08ee279` | AN-04: last two real-franchise strings in a rules JSON | `protocol/data/arcade-session-standards.json` |
+> | `58faaf6` | VoiceMixer owned by `StageChrome` for every arcade screen | `shared/StageChrome.jsx`, `ArcadeSessionPlayer.jsx` |
+> | `1642416` | Session survives the OS taking the app + restored-clock fix | `App.jsx`, `ComboCoachActive.jsx`, `FightFocusTimer.jsx` |
+> | `a0d057f` | Bell split from the VOICE fader; ducking honesty note | `data/audioEngine.js`, `shared/VoiceMixer.jsx`, `Profile.jsx` |
+> | `afd0213` | Bell is a FIXED level (`BELL_LEVEL = 1.1`), no bell slider | `data/audioEngine.js`, `shared/VoiceMixer.jsx` |
+> | `16457ed` | Mini-player engine: canvas → captureStream → video → PiP | `shared/miniPlayer.js`, `hooks/useMiniPlayer.js`, `shared/MiniPlayerButton.jsx` |
+> | `7f0cf89` | Mini-player repainted to the owner's MP-D spec (320×180 content model) | `shared/miniPlayer.js`, three players |
+> | `095a45c` | One window per SESSION (singleton + 2.5 s hand-off grace) | `shared/miniPlayer.js`, `hooks/useMiniPlayer.js`, `shared/BuilderWarmup.jsx` |
+> | `3bc43fe` | Auto-open routes wired: primed video, request on hide, Media Session action; no auto-pause under the window | `shared/miniPlayer.js`, `hooks/useAutoPauseOnHidden.js` |
+> | `a3c2f22` | Mini-player on every timer (Quick Mission, Combat Conditioning, Cardio, Camp, Arcade) | six player files |
+> | `aa8bf29` | Cardio Mode is a run app | `RunPlayer.jsx`, `data/runCoach.js`, `data/liveRun.js`, `CardioMode.jsx`, `CardioProtocolPlayer.jsx`, `CardioSummary.jsx`, `App.jsx`, `ScreenRouter.jsx` |
+> | `45dfb92` | Ghost mode for runs | `data/runGhosts.js`, `data/runCoach.js`, `RunPlayer.jsx`, `CardioMode.jsx`, `CardioSummary.jsx`, `FitModeHub.jsx`, `App.jsx`, `ScreenRouter.jsx` |
+> | `be4ca67` | Mini-player button is a live preview (the visible video Android needs) | `shared/MiniPlayerButton.jsx`, `shared/miniPlayer.js`, `public/pip-test.html` |
+> | `47e9b64` | Six launch blockers: webhook, cancellations, dormant duplicate, subscription screen, analytics, crash reporting | `netlify/functions/stripe-webhook.js`, `ManageSubscription.jsx`, `data/entitlements.js`, `data/authClient.js`, `data/stripe.js`, `data/shareUtils.js`, `scripts/copy-public-assets.mjs`, `app/+html.tsx`, `supabase/config.toml`, deletes `supabase/functions/stripe-webhook/*` |
+> | `e9169da` | Honesty pass: stray glyph, camp copy, dead placeholders, real notification permission, reminder card | `HomeDashboard.jsx`, `Notifications.jsx`, `PracticeMode.jsx`, `FitRepCoach.jsx`, `TrainingCampMap.jsx`, `ArcadeSeriesDetail.jsx`, `shared/WorkoutPreviewCard.jsx`, `shared/Emoji.jsx`, `shared/ReminderCard.jsx`, `shared/screenGuides.js`, `data/reminderEngine.js`, `CampFitRunner.jsx`, `FightFocusTimer.jsx` |
+>
+> After the fetch, `git log --oneline -1` in the revamp will not show these
+> hashes (Option A copies files, not history). Record `e9169da` in your own
+> commit message as the source so the next roll-up can diff from it.
+>
+> ### 2. Session survival (`1642416`) — verify
+>
+> Why: a phone call mid-round used to reload the app to the splash with the
+> workout gone. `savePausedSession()` had one caller, in-app navigation only.
+>
+> - `App.jsx` has `buildSessionSnapshot(reason)` (pure), `pauseCurrentSession`
+>   built on it with reason `'nav'`, a lifecycle effect that stashes on
+>   `visibilitychange`→hidden, `pagehide`, on entry, and every
+>   `SESSION_AUTOSAVE_MS = 5000`, writing STORAGE ONLY, and a boot effect
+>   that calls `resumeSession()` for a `'lifecycle'` stash.
+> - `ComboCoachActive` and `FightFocusTimer` carry
+>   `keepRestoredClock = useRef(initialResumeData?.remaining != null)` and the
+>   round-start effect skips `setRemaining(roundSec)` exactly once.
+> - Check: start Combo Coach, wait 15 s, close the tab outright, reopen. The
+>   app boots INTO the player, paused, clock within 2 s of the stash. Leave
+>   via HOME instead: stash reason is `nav`, banner shows, no auto-jump.
+>
+> ### 3. Volume (`58faaf6`, `a0d057f`, `afd0213`) — verify
+>
+> Why: one fader drove browser TTS (capped at 1.0) and Web Audio cues
+> (uncapped), so raising VOICE tripled the bell and left the voice pinned.
+>
+> - `getCueGain()` is exactly `Math.max(0, Math.min(CUE_MAX, masterVolume * BELL_LEVEL))`
+>   with `BELL_LEVEL = 1.1`. No `voiceVolume`, no `sfxVolume` in it.
+> - `VoiceMixer` has two range inputs, VOICE and MUSIC, and no BELL row.
+>   Above 100 it says the browser caps the coach and points at MUSIC.
+> - `externalDuckingSupported()` exists; Profile's AUDIO DUCKING shows the
+>   "cannot turn down other apps' music" note when it returns false.
+> - `StageChrome` renders `<VoiceMixer top={10} right={44}/>`; no duplicate in
+>   `ArcadeSessionPlayer`.
+>
+> ### 4. Mini-player (`16457ed` → `be4ca67`) — verify
+>
+> Why: the athlete wants the round clock over other apps, and wants it to
+> open BY ITSELF when they leave. Android will only auto-float a video that
+> is playing AND visible in the viewport; the button is now that video.
+>
+> - `shared/miniPlayer.js` exports `acquireMiniPlayer`, `releaseMiniPlayer`,
+>   `endMiniPlayer`, `positionMiniPreview`, `miniPlayerSupported`. Never
+>   `createMiniPlayer` from a component.
+> - `MiniPlayerButton` renders a 72×40 chip; the singleton video is positioned
+>   over it (style only, the node never moves in the DOM). Media Session
+>   metadata is set on acquire.
+> - Present on: ComboCoachActive, FightFocusTimer, CombatConditioningActive,
+>   QuickMissionActive, RunPlayer, CardioProtocolPlayer,
+>   FitBuilderGuidedPlayer + BuilderWarmup, ArcadeBenchmarkPlayer,
+>   CampFitRunner, CampFitSetRunner. ABSENT from PracticeMode, the Create
+>   Combo sheet, MoveLab, every hub and setup.
+> - Check headless: on a Cardio run with no tap, one `<video>`, `paused`
+>   false, `autoPictureInPicture` true, rect equal to the chip and inside the
+>   viewport, opacity 1. Tap opens the window. Builder warm-up → guided
+>   player keeps `document.pictureInPictureElement` set across the hand-off.
+> - Check on a phone: install to Home Screen, open `/pip-test.html`, ARM
+>   AUTO-OPEN, press HOME. "Times the window opened BY ITSELF" ≥ 1 means the
+>   app will do the same.
+>
+> ### 5. Cardio Mode as a run app (`aa8bf29`) — verify
+>
+> Why: the owner ran with it and got no voice, no announcements, a second
+> START tap, a paused clock on leaving, pace as the hero. It must behave
+> like a dedicated run app.
+>
+> - `RunPlayer.jsx` is the GPS/distance player. On mount it speaks the brief
+>   ("Cardio mode. GPS run, 3 miles. Target time, 30 minutes. Elite time, 20
+>   minutes. Ready. Go!") and starts itself; a speech failure never blocks
+>   the start (try/catch around the brief).
+> - Time is wall clock via `data/liveRun.js` (`liveRunElapsedSec`), never a
+>   counter. `useWakeLock` while running. GPS `watchPosition` runs for the
+>   life of the player, accrues only while running, filtered by
+>   `evaluateFix` (accuracy ≤ 35 m, jitter floor, 12 m/s jump guard).
+> - HUD: DISTANCE 66 px hero, TIME counting up, PACE / TARGET / ELITE chips,
+>   projected deltas, progress bar with tenth ticks, route trail, last coach
+>   line, PAUSE / END.
+> - Splits every half and whole unit (`splitScript`), pace cues every 45–75 s
+>   with a form tip every third slot, never within 12 s of a split; surges
+>   for random intervals; `finishScript` with the elite / target verdict.
+> - `computeRunTargets`: target from level (10:00/mi at L1, −18 s/level,
+>   floor 6:30) or the typed minutes; **elite = 2/3 of target, floored at
+>   6:00/mi**. 3 mi in 30:00 → elite 20:00.
+> - `CardioMode`: TARGET (editable) + ELITE card; START goes straight to the
+>   player; a live run restores on mount; BACK keeps it running with a RUN IN
+>   PROGRESS / RETURN banner; summary prefilled with distance and time.
+> - `CardioProtocolPlayer` (intervals / tabata / HIIT): `autoStart`, spoken
+>   brief, wall-clock segments, voice on every segment change, beeps at
+>   3-2-1, bell + "Complete". `useAutoPauseOnHidden` REMOVED from cardio.
+> - `App.jsx`: `'cardio_mode'` in `ACTIVE_SESSION_SCREENS` guarded by
+>   `isSessionScreenLive` (requires `internalState.live`); ScreenRouter passes
+>   `onSessionState={reportSessionState}` and `entry={cardioEntry}`.
+> - Check with mocked geolocation (10 m/s): spoken log exactly
+>   `cardio mode. | gps run, 0.6 miles. | target time, 6 minutes. | elite time,
+>   4 minutes. | ready. | go!`; reload mid-run boots into the player with the
+>   clock continuous; half-mile split spoken; GOAL REACHED card with splits;
+>   `tm_live_run` cleared; summary prefilled `0.6` / `1:45`.
+>
+> ### 6. Ghost mode for runs (`45dfb92`) — verify
+>
+> Why: ghost mode should be a SELECTOR on the options screen and in the hub,
+> not a pasted code, and the coach should say out loud who is winning.
+>
+> - `data/runGhosts.js`: `recordRunGhost` on every completed GPS run (never an
+>   estimated one), slots `last` and `best` per `${unit}|${goal}`,
+>   `ghostDistanceAt` / `ghostTimeAt`, `ghostArt`.
+> - `data/runCoach.js`: `ghostGap`, `ghostVerdict` (8 s dead-band),
+>   `GHOST_CUES` lead / trail / even, `ghostSplitLine`, `ghostFinishLine`.
+> - `RunPlayer`: intro adds "Ghost mode. You are racing your own run, N.
+>   Beat it."; live strip with art, YOU LEAD / GHOST LEADS / LEVEL and the
+>   gap; ghost calls take slots 1 and 3 of every 4; done card shows GHOST
+>   DEFEATED / GHOST WINS / DEAD HEAT and NEW BEST — SAVED AS YOUR GHOST.
+> - `CardioMode`: GHOST MODE card with OFF · MY LAST · MY BEST pills and the
+>   mirror art, per distance + unit. `FitModeHub`: GHOST MODE row →
+>   `goCardioMode({ ghost: 'best' })`. `CardioSummary`: GHOST BEATEN / WON /
+>   DRAW.
+> - Check: two runs at 0.3 mi. First saves NEW BEST (≈60 s, ~10 trace
+>   points). Hub row preselects it; card reads `VS YOUR BEST RUN · 1:00`.
+>   Second run faster: strip reads YOU LEAD, finish speaks "ghost defeated.
+>   you beat your ghost by N seconds.", summary GHOST BEATEN.
+> - Friend ghosts by username need the cloud: table + picker are specced in
+>   GHOST-R1 §"Still to build"; the player needs no change for them.
+>
+> ### 7. The six launch blockers (`47e9b64`) — verify
+>
+> Why: the payment path could lose a paying customer silently, keep Pro
+> forever after cancellation, show fabricated billing, and every analytics
+> event went nowhere.
+>
+> - `netlify/functions/stripe-webhook.js`: every Supabase call goes through
+>   `supabaseRest`, which throws on `!res.ok`; the handler returns **500** on
+>   failure so Stripe retries. Handles `checkout.session.completed`,
+>   `customer.subscription.created/updated/deleted`, `invoice.payment_failed`.
+>   Founder rows are never revoked. `supabase/functions/stripe-webhook/` is
+>   deleted; `supabase/config.toml` no longer declares it.
+> - `ManageSubscription.jsx` renders `getCachedEntitlement()` (plan, price,
+>   ACTIVE / ENDING / PAYMENT DUE / FREE, renews or ends date, founder for
+>   life), SEE PRO PLANS for free accounts, MANAGE BILLING via
+>   `STRIPE_PORTAL_URL` when set. No "4242", no "March 14", no "$59.99/yr",
+>   no App Store copy — grep for all four.
+> - `authClient.fetchEntitlement` selects `plan,is_pro,status,current_period_end,cancel_at_period_end`;
+>   `refreshEntitlement` caches all of them; `getCachedEntitlement` exists.
+> - `scripts/copy-public-assets.mjs` injects the Plausible queue shim + tag
+>   with `data-domain="apptrainingmode.com"`, the `js_error` crash reporter
+>   (first 3 uncaught errors per load, message-less resource errors skipped,
+>   build id attached), and the Sentry SDK when `SENTRY_DSN` is set. `buildId`
+>   is hoisted above both the sw stamp and the index injection.
+> - `data/shareUtils.js` uses `trackEvent`, not `window.plausible` directly.
+> - Check: build, then `grep -c plausible dist/index.html` ≥ 2 and the
+>   reporter script passes `node --check`. Throw an error in the built app:
+>   a `js_error` event arrives with `build`. Run the webhook test in
+>   `SETUP-MONETIZATION.md` §8.
+>
+> ### 8. The honesty pass (`e9169da`) — verify
+>
+> Why: the beta tester's open items, plus a screen that told users
+> notifications were on when nothing had been granted.
+>
+> - `shared/Emoji.jsx` wraps emoji that sit inside 'Press Start 2P' at 10–11
+>   px (CampFitRunner WORK/REST, FightFocusTimer FINISHER). The 6.5 px
+>   TODAY'S BOUT label and its coach mark carry NO emoji at all — at that
+>   size it can only read as a stray mark.
+> - `TrainingCampMap`: "FINISH LEVEL N FIRST", not "CLEAR LN FIRST".
+> - Removed: the mock video player in `PracticeMode` DetailView (play button,
+>   35% scrubber, duration, toast) → a title card reading STEP-BY-STEP GUIDE;
+>   the 16:9 DEMO COMING SOON block in `FitRepCoach`; PREVIEW COMING SOON in
+>   `WorkoutPreviewCard` → target muscle; "being programmed" copy in
+>   `ArcadeSeriesDetail`; "Content coming soon." in PracticeMode. Honest
+>   COMING SOON labels on locked sagas and the Codex card STAY.
+> - `Notifications.jsx`: ALLOW NOTIFICATIONS calls
+>   `requestNotificationPermission()`; the screen renders the real browser
+>   state (allowed / blocked with unblock instructions / unavailable / not
+>   asked); the fake "Remind me at 6:30 PM / Repeat MON–FRI" rows are gone;
+>   toggles write `streakReminders` / `programReminders` to
+>   `tm_reminder_settings`, which `getDashboardReminder` now honours.
+> - `shared/ReminderCard.jsx` mounted at the top of `HomeDashboard` body,
+>   wired to `onQuickMission` / `onFightFocus` / `onTrain` by `actionType`,
+>   dismissible for the day.
+> - Check: seed `tm_user_stats` with one session `completedAt` four days ago
+>   and 420 XP. Home shows the card with EARN XP NOW. The Notifications
+>   screen shows "Allowed." in a context with the permission granted and
+>   "Blocked." in one without. The technique detail has no "0:00".
+>
+> ### 9. Dashboard steps the code cannot do (owner)
+>
+> From `SETUP-MONETIZATION.md` §5–8: add the four subscription/invoice events
+> to the Stripe webhook endpoint; activate the customer portal link and set
+> `EXPO_PUBLIC_STRIPE_PORTAL_URL`; create the Plausible site
+> `apptrainingmode.com`; optionally set `SENTRY_DSN`; then the test-mode
+> purchase → cancel → revoke run-through before flipping `PAYWALL_ENABLED`.
+>
+> ### 10. Do NOT
+>
+> - Do NOT re-implement any of the above from these notes. The code is on
+>   `app`; fetch it.
+> - Do NOT reintroduce `useAutoPauseOnHidden` into cardio, a bell fader, a
+>   ghost code paste, a hidden mini-player video, or `getCueGain` reading the
+>   voice fader.
+> - Do NOT skip the deletes: a second webhook implementation must not exist.
+> - Do NOT commit `dist/` or change `PAYWALL_ENABLED`; that flip is the
+>   owner's, after the test purchase.
+>
+> ### 11. Done means
+>
+> `tsc` clean, `expo lint` clean, `build:web` exit 0, the eight verify blocks
+> above pass, and your commit message names `e9169da` as the source.
