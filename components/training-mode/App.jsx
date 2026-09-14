@@ -25,6 +25,7 @@ import FeedbackChip from './shared/FeedbackChip';
 import { TRAINING_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
 import { preloadCriticalArt } from './shared/preloadImages';
 import { challengeFromLocation, resolveChallenge, clearChallengeFromURL } from './data/challengeCodes';
+import { migrateArcadeIds } from './data/arcadeIdMigration';
 import ChallengeInboundModal from './shared/ChallengeInboundModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
@@ -105,6 +106,13 @@ function tryCompleteDailyMission(completedActionType) {
 
 const ONBOARDING_KEY = 'trainingModeOnboardingComplete';
 const TOUR_KEY = 'trainingModeTourComplete';
+
+// Arcade ids were renamed off their source franchises (ARC_BAKI → ARC_GRAPPLER,
+// `berserk-struggler` → `struggler-protocol`, and the stage ids inside them).
+// Those ids are ALSO progress keys, so stored progress has to be rewritten
+// before anything reads it — hence module scope, which runs before the first
+// render rather than after it. Idempotent, so this is free on every later boot.
+migrateArcadeIds();
 
 const PAUSED_SESSION_KEY = 'trainingModePausedSession';
 const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;

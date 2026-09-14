@@ -55,14 +55,6 @@
     "size": 90716,
     "sha1": "42a5c1ae2242a2feff55c3720f1994d676b1d20f"
   },
-  "banners/arcade/dark-knight-protocol.png": {
-    "size": 421941,
-    "sha1": "f8f183c06eb0838905403a576840e1a642f74a80"
-  },
-  "banners/arcade/dark-knight-protocol.webp": {
-    "size": 56886,
-    "sha1": "354957ae0acd1d1931c46b098457091f9bfa145e"
-  },
   "banners/arcade/demon-back-protocol.png": {
     "size": 434044,
     "sha1": "e3b98e199dd7f01caa3efcb0fbd8e7ba28019eb8"
@@ -70,6 +62,14 @@
   "banners/arcade/demon-back-protocol.webp": {
     "size": 67744,
     "sha1": "ef14addad0edeb050dc87d93d184810bce90a575"
+  },
+  "banners/arcade/destroyer-protocol.png": {
+    "size": 483294,
+    "sha1": "4efea67d4608464f5ef0192ad927cd8be4cb3f62"
+  },
+  "banners/arcade/destroyer-protocol.webp": {
+    "size": 74098,
+    "sha1": "637f68d0d4aba89998939ca7dbf9692cc2ecc28c"
   },
   "banners/arcade/one-punch-regiment.png": {
     "size": 387589,
@@ -79,14 +79,6 @@
     "size": 63648,
     "sha1": "94f245dbb9d1b1a9ba694bc34c55ebbd424220df"
   },
-  "banners/arcade/ultra-ego-style.png": {
-    "size": 483294,
-    "sha1": "4efea67d4608464f5ef0192ad927cd8be4cb3f62"
-  },
-  "banners/arcade/ultra-ego-style.webp": {
-    "size": 74098,
-    "sha1": "637f68d0d4aba89998939ca7dbf9692cc2ecc28c"
-  },
   "banners/arcade/ultra-instinct-banner.png": {
     "size": 619504,
     "sha1": "a68f8ecc26b32f72bf4e9ce5e5913dfef62ea7a5"
@@ -94,6 +86,14 @@
   "banners/arcade/ultra-instinct-banner.webp": {
     "size": 88004,
     "sha1": "3df41d2264a946bd561b58b006a2c834d6ad17d4"
+  },
+  "banners/arcade/vigilante-protocol.png": {
+    "size": 421941,
+    "sha1": "f8f183c06eb0838905403a576840e1a642f74a80"
+  },
+  "banners/arcade/vigilante-protocol.webp": {
+    "size": 56886,
+    "sha1": "354957ae0acd1d1931c46b098457091f9bfa145e"
   },
   "banners/combat-conditioning.png": {
     "size": 332056,
@@ -879,22 +879,6 @@
     "size": 58624,
     "sha1": "8b85d5e75ad8c737cd5744eb19316f75cde9ab3b"
   },
-  "static/series/posters/baki-grappler.png": {
-    "size": 670582,
-    "sha1": "917b4332d87b4038ff10c7a1b3e30cba62f82691"
-  },
-  "static/series/posters/baki-grappler.webp": {
-    "size": 78610,
-    "sha1": "7482f4c2f3d662f5c7754b00844c95ec90bc8d39"
-  },
-  "static/series/posters/berserk-struggler.png": {
-    "size": 636052,
-    "sha1": "fae2d22a507f1ac37e2b9e9f542008e7144c8f45"
-  },
-  "static/series/posters/berserk-struggler.webp": {
-    "size": 70420,
-    "sha1": "f9344cbe68303333b2bd04b4bf0a45779a496eb4"
-  },
   "static/series/posters/blue-blur.png": {
     "size": 677903,
     "sha1": "54737cece42cfb370cf50d9509a072bfa6b6ca11"
@@ -919,6 +903,14 @@
     "size": 82266,
     "sha1": "f5a4c823f1cedf1246be46331fd8ae1a178a3d8d"
   },
+  "static/series/posters/grappler-protocol.png": {
+    "size": 670582,
+    "sha1": "917b4332d87b4038ff10c7a1b3e30cba62f82691"
+  },
+  "static/series/posters/grappler-protocol.webp": {
+    "size": 78610,
+    "sha1": "7482f4c2f3d662f5c7754b00844c95ec90bc8d39"
+  },
   "static/series/posters/hero-hunter.png": {
     "size": 232895,
     "sha1": "71eda2bb63da7c271fa476b14ef9f1e6c9046e85"
@@ -942,6 +934,14 @@
   "static/series/posters/one-punch.webp": {
     "size": 89700,
     "sha1": "000acd264689365670ae40c63dc37185d7e4d4d3"
+  },
+  "static/series/posters/struggler-protocol.png": {
+    "size": 636052,
+    "sha1": "fae2d22a507f1ac37e2b9e9f542008e7144c8f45"
+  },
+  "static/series/posters/struggler-protocol.webp": {
+    "size": 70420,
+    "sha1": "f9344cbe68303333b2bd04b4bf0a45779a496eb4"
   },
   "static/series/posters/the-contender.png": {
     "size": 720375,

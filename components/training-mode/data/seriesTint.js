@@ -21,20 +21,20 @@ export const SERIES_TINT = {
   // Gold / heroic
   'one-punch-protocol':        { deg: 130, sat: 1.2,  line: 'rgba(253,224,71,0.30)',  wash: 'rgba(14,9,0,0.75)' },
   'the-dragon':                { deg: 125, sat: 1.05, line: 'rgba(250,204,21,0.28)',  wash: 'rgba(14,9,0,0.75)' },
-  'hyperbolic-time-chamber':   { deg: 115, sat: 1.1,  line: 'rgba(251,191,36,0.28)',  wash: 'rgba(16,8,0,0.75)' },
+  'gravity-chamber-protocol':   { deg: 115, sat: 1.1,  line: 'rgba(251,191,36,0.28)',  wash: 'rgba(16,8,0,0.75)' },
   // Orange / ember
   'the-contender':             { deg: 110, sat: 1.2,  line: 'rgba(249,115,22,0.30)',  wash: 'rgba(18,6,0,0.75)' },
   // Red / crimson
-  'baki-grappler':             { deg: 95,  sat: 1.15, line: 'rgba(239,68,68,0.30)',   wash: 'rgba(18,2,4,0.75)' },
+  'grappler-protocol':             { deg: 95,  sat: 1.15, line: 'rgba(239,68,68,0.30)',   wash: 'rgba(18,2,4,0.75)' },
   'the-wall-crawler':          { deg: 90,  sat: 1.2,  line: 'rgba(244,63,94,0.30)',   wash: 'rgba(18,2,6,0.75)' },
-  'hero-hunter-protocol':      { deg: 85,  sat: 1.25, line: 'rgba(220,38,38,0.32)',   wash: 'rgba(16,1,3,0.78)' },
-  'berserk-struggler':         { deg: 80,  sat: 0.9,  line: 'rgba(153,27,27,0.32)',   wash: 'rgba(12,1,2,0.8)' },
+  'martial-monster-protocol':      { deg: 85,  sat: 1.25, line: 'rgba(220,38,38,0.32)',   wash: 'rgba(16,1,3,0.78)' },
+  'struggler-protocol':         { deg: 80,  sat: 0.9,  line: 'rgba(153,27,27,0.32)',   wash: 'rgba(12,1,2,0.8)' },
   // Magenta
-  'ultra-ego-style':           { deg: 35,  sat: 1.3,  line: 'rgba(217,70,239,0.30)',  wash: 'rgba(16,2,20,0.75)' },
+  'destroyer-protocol':           { deg: 35,  sat: 1.3,  line: 'rgba(217,70,239,0.30)',  wash: 'rgba(16,2,20,0.75)' },
   // Cool / blue / silver
-  'dark-knight-protocol':      { deg: -55, sat: 0.85, line: 'rgba(96,165,250,0.26)',  wash: 'rgba(2,6,16,0.8)' },
-  'blue-blur-speed-protocol':  { deg: -60, sat: 1.3,  line: 'rgba(59,130,246,0.32)',  wash: 'rgba(0,5,18,0.75)' },
-  'ultra-instinct-protocol':   { deg: -85, sat: 0.7,  line: 'rgba(165,243,252,0.26)', wash: 'rgba(2,10,14,0.75)' },
+  'vigilante-protocol':      { deg: -55, sat: 0.85, line: 'rgba(96,165,250,0.26)',  wash: 'rgba(2,6,16,0.8)' },
+  'blue-blur-protocol':  { deg: -60, sat: 1.3,  line: 'rgba(59,130,246,0.32)',  wash: 'rgba(0,5,18,0.75)' },
+  'flow-state-protocol':   { deg: -85, sat: 0.7,  line: 'rgba(165,243,252,0.26)', wash: 'rgba(2,10,14,0.75)' },
   // Green
   'demon-back-protocol':       { deg: -145, sat: 1.15, line: 'rgba(34,197,94,0.28)',  wash: 'rgba(1,12,5,0.75)' },
 };

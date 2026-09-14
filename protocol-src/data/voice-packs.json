@@ -54,14 +54,14 @@
   ],
 
   "campaign_assignments": {
-    "ARC_BAKI": "underground",
-    "ARC_BERSERK": "warrior",
-    "ARC_DARKKNIGHT": "vigilante",
-    "ARC_GAROU": "sensei",
+    "ARC_GRAPPLER": "underground",
+    "ARC_STRUGGLER": "warrior",
+    "ARC_VIGILANTE": "vigilante",
+    "ARC_MARTIALMONSTER": "sensei",
     "ARC_GRAVITY": "chamber",
-    "ARC_SONIC": "hype",
-    "ARC_ULTRAEGO": "destroyer",
-    "ARC_ULTRAINSTINCT": "serene",
+    "ARC_BLUEBLUR": "hype",
+    "ARC_DESTROYER": "destroyer",
+    "ARC_FLOWSTATE": "serene",
     "_default": "coach",
     "_note": "Training Camp and Combo Coach / Fight Focus use 'coach' unless a discipline pack is chosen. Each campaign's voice_guidance.settings.voice_pack_default carries the same value; this map is the single source of truth."
   }

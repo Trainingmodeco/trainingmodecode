@@ -93,10 +93,10 @@ export const optimizedImageMap = {
   },
   arcade: {
     easy: '/banners/arcade/one-punch-regiment.webp',
-    medium: '/banners/arcade/dark-knight-protocol.webp',
+    medium: '/banners/arcade/vigilante-protocol.webp',
     hard: '/banners/arcade/demon-back-protocol.webp',
     ultra: '/banners/arcade/ultra-instinct-banner.webp',
-    cardio10k: '/banners/arcade/ultra-ego-style.webp',
+    cardio10k: '/banners/arcade/destroyer-protocol.webp',
   },
   homeHub: {
     trainCard: '/static/hub/fit.png',

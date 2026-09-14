@@ -5,6 +5,7 @@
 // The URL form (…/?ch=<code>) makes any QR scanner a "scan-to-start" entry: the
 // scanned link opens the app, which deep-links into the stage (see App.jsx).
 import { CAMPAIGN_SERIES_BY_ID } from './arcadeCampaignSeries';
+import { resolveSeriesId, resolveStageId } from './arcadeIdMigration';
 import { trackEvent } from './analytics';
 
 const PREFIX = 'TMC1.';
@@ -45,8 +46,13 @@ export function decodeChallenge(code) {
     const token = (m ? decodeURIComponent(m[1]) : raw).trim();
     if (!token.startsWith(PREFIX)) return null;
     const parts = b64urlDecode(token.slice(PREFIX.length)).split('|');
-    const [seriesId, stageId, m2, d2, from] = parts;
-    if (!seriesId || !stageId) return null;
+    const [rawSeriesId, rawStageId, m2, d2, from] = parts;
+    if (!rawSeriesId || !rawStageId) return null;
+    // Codes are already out in the world, in QR images and message threads,
+    // carrying the pre-rename ids. They have to keep working forever, so the
+    // decode resolves legacy ids rather than the encode staying frozen.
+    const seriesId = resolveSeriesId(rawSeriesId);
+    const stageId = resolveStageId(rawStageId);
     return {
       seriesId,
       stageId,

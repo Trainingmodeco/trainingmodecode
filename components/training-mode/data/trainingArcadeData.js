@@ -863,7 +863,7 @@ export const TRAINING_ARCADE_SERIES = [
     backBalanceOptions: BACK_BALANCE_OPTIONS,
   },
   {
-    id: 'dark-knight-protocol',
+    id: 'vigilante-protocol',
     title: 'The Vigilante', // AN-04 gap fix — was "Dark Knight Protocol"
     subtitle: 'Tactical Conditioning',
     description: 'Hybrid tactical conditioning with strength, mobility, combat basics, and endurance. Train like an elite vigilante.',
@@ -875,8 +875,8 @@ export const TRAINING_ARCADE_SERIES = [
     equipment: 'Bodyweight, optional equipment',
     durationType: 'Stage-based series',
     availableModes: ['fit', 'fight', 'both'],
-    bannerImage: '/banners/arcade/dark-knight-protocol.webp',
-    qrSlug: 'dark-knight-protocol',
+    bannerImage: '/banners/arcade/vigilante-protocol.webp',
+    qrSlug: 'vigilante-protocol',
     sourceWorkout: null,
     phases: [],
     statRewards: { strength: 2, agility: 3, endurance: 2 },
@@ -905,7 +905,7 @@ export const TRAINING_ARCADE_SERIES = [
     stages: DEMON_BACK_STAGES,
   },
   {
-    id: 'ultra-instinct-protocol',
+    id: 'flow-state-protocol',
     title: 'Flow State Protocol',
     subtitle: 'Speed + Flow',
     description: 'Speed, mobility, reaction, shadowboxing, footwork, and flow-based conditioning. Move before you think.',
@@ -918,7 +918,7 @@ export const TRAINING_ARCADE_SERIES = [
     durationType: 'Stage-based series',
     availableModes: ['fight', 'both'],
     bannerImage: '/banners/arcade/ultra-instinct-banner.webp',
-    qrSlug: 'ultra-instinct-protocol',
+    qrSlug: 'flow-state-protocol',
     sourceWorkout: null,
     phases: [],
     statRewards: { speed: 4, agility: 3, reflexes: 3 },
@@ -926,7 +926,7 @@ export const TRAINING_ARCADE_SERIES = [
     stages: [],
   },
   {
-    id: 'ultra-ego-style',
+    id: 'destroyer-protocol',
     title: 'The Destroyer',
     subtitle: 'Power Training',
     description: 'Strength-focused power training built around heavy lifts, durability, legs, shoulders, and intensity. Embrace the damage.',
@@ -938,7 +938,7 @@ export const TRAINING_ARCADE_SERIES = [
     equipment: 'Full gym recommended',
     durationType: 'Stage-based series',
     availableModes: ['fit', 'both'],
-    bannerImage: '/banners/arcade/ultra-ego-style.webp',
+    bannerImage: '/banners/arcade/destroyer-protocol.webp',
     qrSlug: 'ultra-ego-protocol',
     sourceWorkout: null,
     phases: [],
@@ -1010,7 +1010,7 @@ export const TRAINING_ARCADE_SERIES = [
     stages: [],
   },
   {
-    id: 'hyperbolic-time-chamber',
+    id: 'gravity-chamber-protocol',
     title: 'The Gravity Chamber',
     subtitle: 'Tempo-based time-under-tension training',
     description: 'Slow eccentric and controlled concentric training designed to create fatigue through time under tension.',
@@ -1023,7 +1023,7 @@ export const TRAINING_ARCADE_SERIES = [
     durationType: 'Stage-based series',
     availableModes: ['fit'],
     bannerImage: '/static/series/posters/hyperbolic-gravity.png',
-    qrSlug: 'hyperbolic-time-chamber',
+    qrSlug: 'gravity-chamber-protocol',
     sourceWorkout: null,
     phases: [],
     statRewards: { endurance: 3, strength: 2, discipline: 3 },
@@ -1031,7 +1031,7 @@ export const TRAINING_ARCADE_SERIES = [
     stages: [],
   },
   {
-    id: 'blue-blur-speed-protocol',
+    id: 'blue-blur-protocol',
     title: 'Blue Blur Speed Protocol',
     subtitle: 'Sprint, speed, and cardio training',
     description: 'Original speed-inspired cardio series built around intervals, sprints, jump rope, and conditioning.',
@@ -1044,7 +1044,7 @@ export const TRAINING_ARCADE_SERIES = [
     durationType: 'Stage-based series',
     availableModes: ['fit'],
     bannerImage: '/static/series/posters/blue-blur.png',
-    qrSlug: 'blue-blur-speed-protocol',
+    qrSlug: 'blue-blur-protocol',
     sourceWorkout: null,
     phases: [],
     statRewards: { speed: 4, agility: 3, endurance: 3 },
@@ -1145,12 +1145,12 @@ CAMPAIGN_SERIES.forEach((cs) => {
 });
 
 // Sagas still gated as "under construction". Per playtest review (2026-07-25),
-// only ONE PUNCH and THE GRAPPLER (ARC_BAKI, the approved reference) are open;
+// only ONE PUNCH and THE GRAPPLER (ARC_GRAPPLER, the approved reference) are open;
 // every other saga is re-locked until it's individually playtested & signed off.
 // Remove an id here as its stages are reviewed.
 const UNDER_CONSTRUCTION = new Set([
-  'berserk-struggler', 'dark-knight-protocol', 'demon-back-protocol',
-  'blue-blur-speed-protocol', 'ultra-instinct-protocol',
+  'struggler-protocol', 'vigilante-protocol', 'demon-back-protocol',
+  'blue-blur-protocol', 'flow-state-protocol',
 ]);
 // Signed off and OPEN, in carousel order: ONE PUNCH · GRAVITY CHAMBER ·
 // MARTIAL MONSTER · THE DESTROYER · THE GRAPPLER. Each is 10 stages,
@@ -1167,15 +1167,15 @@ for (let i = 0; i < TRAINING_ARCADE_SERIES.length; i++) {
 const VISIBLE_SERIES_IDS = [
   // Active — the owner's order.
   'one-punch-protocol',
-  'hyperbolic-time-chamber', // Gravity Chamber
-  'hero-hunter-protocol',    // Martial Monster
-  'ultra-ego-style',         // Destroyer
-  'baki-grappler',           // The Grappler
+  'gravity-chamber-protocol', // Gravity Chamber
+  'martial-monster-protocol',    // Martial Monster
+  'destroyer-protocol',         // Destroyer
+  'grappler-protocol',           // The Grappler
   // Locked, pending playtest sign-off.
-  'berserk-struggler',
-  'dark-knight-protocol',
-  'ultra-instinct-protocol',
-  'blue-blur-speed-protocol',
+  'struggler-protocol',
+  'vigilante-protocol',
+  'flow-state-protocol',
+  'blue-blur-protocol',
   'demon-back-protocol',
   // Coming soon
   'the-contender',

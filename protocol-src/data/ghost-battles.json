@@ -83,7 +83,7 @@
     },
     "fit_only_safety_gate": {
       "rule": "A ghost TIME race must never turn a safety-capped stage into a 'beat the clock' incentive that undermines its caps.",
-      "opt_out_campaigns": ["ARC_GRAVITY", "ARC_SONIC"],
+      "opt_out_campaigns": ["ARC_GRAVITY", "ARC_BLUEBLUR"],
       "opt_out_reason": "Gravity is controlled tempo/hold work and Sonic's max-velocity sprints require full recovery — racing on time would push users to violate the built-in caps. These campaigns opt OUT of fit-only ghosts; prefer 'completed it' over 'how fast'."
     }
   },

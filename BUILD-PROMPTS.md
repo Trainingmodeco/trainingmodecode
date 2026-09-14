@@ -3198,3 +3198,127 @@ SecondaryButton / Card); no new design system.
 >
 > `tsc` clean, `expo lint` clean, `build:web` exit 0, the eight verify blocks
 > above pass, and your commit message names `e9169da` as the source.
+
+---
+
+## PROMPT AN-05 — franchise names out of the IDENTIFIERS, without losing progress
+
+> Run this in the Training Mode revamp app. The code is on branch `app` of
+> `https://github.com/Trainingmodeco/trainingmodecode`; fetch it rather than
+> reimplementing. Safe to re-run.
+>
+> ### What was wrong
+>
+> AN-04 swept the DISPLAY names to archetypes. The identifiers were missed, and
+> they are not private: campaign ids (`ARC_BAKI`), stage ids
+> (`ARC_BAKI_STG01`), series ids (`berserk-struggler`) and four public image
+> filenames shipped in the JavaScript bundle and over HTTP. Each of the eight
+> names appeared 28 times in the built bundle on a public repo. For a product
+> that renamed these for legal distance, shipping the originals undid the work.
+>
+> ### Why it is delicate
+>
+> Those same ids are PROGRESS KEYS, and all four stores are in cloudSync's
+> `SYNC_KEYS`:
+>
+> | Store | Keyed by |
+> |---|---|
+> | `tm_arcade_progress` | series id, with stage ids nested in `completedStages` |
+> | `tm_arcade_v2` | campaign id |
+> | `tm_arcade_intro_seen` | campaign id |
+> | `tm_active_arcade_challenge` | `{ seriesId, stageId }` |
+>
+> A rename without a migration silently resets every athlete's Arcade ladder to
+> stage 1, and then uploads that reset to their other devices.
+>
+> ### The mapping
+>
+> | Old campaign | New campaign | Old series | New series |
+> |---|---|---|---|
+> | `ARC_DARKKNIGHT` | `ARC_VIGILANTE` | `dark-knight-protocol` | `vigilante-protocol` |
+> | `ARC_ULTRAINSTINCT` | `ARC_FLOWSTATE` | `ultra-instinct-protocol` | `flow-state-protocol` |
+> | `ARC_ULTRAEGO` | `ARC_DESTROYER` | `ultra-ego-style` | `destroyer-protocol` |
+> | `ARC_BAKI` | `ARC_GRAPPLER` | `baki-grappler` | `grappler-protocol` |
+> | `ARC_BERSERK` | `ARC_STRUGGLER` | `berserk-struggler` | `struggler-protocol` |
+> | `ARC_SONIC` | `ARC_BLUEBLUR` | `blue-blur-speed-protocol` | `blue-blur-protocol` |
+> | `ARC_GAROU` | `ARC_MARTIALMONSTER` | `hero-hunter-protocol` | `martial-monster-protocol` |
+> | `ARC_GRAVITY` (already clean) | unchanged | `hyperbolic-time-chamber` | `gravity-chamber-protocol` |
+>
+> Stage ids follow the campaign prefix: `ARC_BAKI_STG01` → `ARC_GRAPPLER_STG01`.
+> Display titles are NOT changed. They were signed off in AN-04 and the new ids
+> are derived from them.
+>
+> ### Done state
+>
+> - Campaign directories renamed under BOTH `protocol-src/data/campaigns/` and
+>   `components/training-mode/protocol/data/campaigns/` (they are byte-identical
+>   mirrors and must not drift), with `campaign_id` and `stage_id` updated
+>   inside every `campaign.json` and `stages.json`.
+> - Ids updated in `protocol/campaigns.ts`, `data/arcadeCampaignSeries.js`,
+>   `data/trainingArcadeData.js` (including `qrSlug`), `TrainingArcade.jsx`,
+>   `data/seriesTint.js`, `data/optimizedImageMap.js`, `data/webpManifest.js`,
+>   `protocol/data/ghost-battles.json`, `protocol/data/voice-packs.json`.
+> - Four public image files renamed because their names WERE series ids, then
+>   `assets.lock.json` regenerated with `node scripts/lock-assets.mjs --write`:
+>   `posters/baki-grappler.*` → `grappler-protocol.*`,
+>   `posters/berserk-struggler.*` → `struggler-protocol.*`,
+>   `banners/arcade/dark-knight-protocol.*` → `vigilante-protocol.*`,
+>   `banners/arcade/ultra-ego-style.*` → `destroyer-protocol.*`.
+> - **`data/arcadeIdMigration.js`** is the whole safety story. It exports
+>   `LEGACY_CAMPAIGN_IDS`, `LEGACY_SERIES_IDS`, `resolveSeriesId`,
+>   `resolveCampaignId`, `resolveStageId` and `migrateArcadeIds()`.
+> - `migrateArcadeIds()` is called at MODULE SCOPE in `App.jsx`, before the
+>   first render, and again inside `cloudSync.applySnapshot` after a restore.
+> - `decodeChallenge` resolves legacy ids, so `TMC1.` codes already out in QR
+>   images and message threads keep working forever.
+>
+> ### Two design decisions, both deliberate — do not "simplify" them away
+>
+> 1. **No version flag.** The migration runs on every boot and after every cloud
+>    restore. A one-shot flag would skip the case that matters most: a stale
+>    device syncing a pre-migration snapshot back down after this device already
+>    migrated. Idempotence comes from the absence of legacy keys, not a flag, so
+>    repeat runs cost nothing.
+> 2. **Merge, never clobber.** When a legacy and a new key both exist, they are
+>    merged by taking the furthest progress on every field: union of
+>    `completedStages`, union of `badges` and `unlockedStages`, max of
+>    `currentStage` and `xpEarned`. An athlete can gain a cleared stage from a
+>    merge; they can never lose one.
+>
+> ### Do NOT
+>
+> - Do NOT delete the legacy maps later. They are load-bearing for challenge
+>   codes in the wild, not temporary scaffolding.
+> - Do NOT change the display titles. Ids only.
+> - Do NOT rename only one of `protocol-src/` and `protocol/`.
+> - Do NOT rename an image without regenerating `assets.lock.json`; the build
+>   verifies the lock and will fail.
+>
+> ### Verify
+>
+> 1. `node scripts/check-public-assets.mjs` exits 0, `lock-assets.mjs` reports
+>    all files match, then `tsc`, `expo lint` and `build:web` are clean.
+> 2. Grep the built bundle for each of the eight old names. Each must appear
+>    EXACTLY ONCE, in the legacy map inside the migration module. Before this
+>    change each appeared 28 times.
+> 3. Unit-test the migration against a stubbed `localStorage`: legacy keys
+>    migrate, nested stage ids remap, `lastCompletedStage` remaps, a second run
+>    is a no-op, a legacy+new collision merges to the furthest progress, unknown
+>    ids pass through, and corrupt JSON in storage does not throw.
+> 4. In a real browser, seed pre-rename progress, load the app, and confirm:
+>    legacy keys gone, new keys present, `currentStage` and `xpEarned`
+>    preserved, every stage id prefixed with the new campaign id, and the Arcade
+>    carousel showing the migrated count. Reference run: five cleared stages
+>    seeded as `baki-grappler` displayed as `5 / 10 CLEARED` after migration.
+> 5. Open a challenge link built from the OLD ids. It must resolve to the same
+>    stage as one built from the new ids. Assert case-insensitively: the modal
+>    renders the sender uppercased ("COACH RAY CHALLENGED YOU").
+>
+> ### Still open after this
+>
+> Franchise-derived words remain in user-facing SUBTITLES, for example
+> "Strongest Teen Protocol". Those are display copy signed off in AN-04, so
+> changing them is the owner's call, not a mechanical rename. Several unrelated
+> public image files still carry source names (`one-punch*`, `demon-back*`,
+> `ultra-instinct*`, `hero-hunter*`, `dark-knight.*` posters). They are not ids
+> and nothing breaks, but they are the same category of exposure.

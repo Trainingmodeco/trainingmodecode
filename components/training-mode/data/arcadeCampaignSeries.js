@@ -8,22 +8,22 @@ import { getCampaign, campaignStages } from '../protocol/campaigns';
 // campaignId → { series id (reuses the existing placeholder id where one exists,
 // so posters + carousel slot carry over), subtitle, difficultyStars, type }.
 const MAP = {
-  ARC_DARKKNIGHT:    { id: 'dark-knight-protocol',    subtitle: 'Peak Human Protocol',  stars: 4, type: 'Hybrid', title: 'The Vigilante' },
-  ARC_ULTRAINSTINCT: { id: 'ultra-instinct-protocol', subtitle: 'Flow State Protocol',   stars: 4, type: 'Hybrid / Fight', title: 'Flow State' },
-  ARC_ULTRAEGO:      { id: 'ultra-ego-style',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid', title: 'The Destroyer' },
-  ARC_BAKI:          { id: 'baki-grappler',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid', title: 'The Grappler' },
-  ARC_BERSERK:       { id: 'berserk-struggler',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid', title: 'The Struggler' },
-  ARC_GRAVITY:       { id: 'hyperbolic-time-chamber', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit', title: 'The Gravity Chamber' },
-  ARC_SONIC:         { id: 'blue-blur-speed-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
+  ARC_VIGILANTE:    { id: 'vigilante-protocol',    subtitle: 'Peak Human Protocol',  stars: 4, type: 'Hybrid', title: 'The Vigilante' },
+  ARC_FLOWSTATE: { id: 'flow-state-protocol', subtitle: 'Flow State Protocol',   stars: 4, type: 'Hybrid / Fight', title: 'Flow State' },
+  ARC_DESTROYER:      { id: 'destroyer-protocol',         subtitle: 'Destroyer Protocol',    stars: 5, type: 'Fit / Hybrid', title: 'The Destroyer' },
+  ARC_GRAPPLER:          { id: 'grappler-protocol',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid', title: 'The Grappler' },
+  ARC_STRUGGLER:       { id: 'struggler-protocol',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid', title: 'The Struggler' },
+  ARC_GRAVITY:       { id: 'gravity-chamber-protocol', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit', title: 'The Gravity Chamber' },
+  ARC_BLUEBLUR:         { id: 'blue-blur-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
   // This campaign had no series entry at all, so a finished 10-stage campaign
   // was unreachable from the carousel. New id — no placeholder existed for it.
-  ARC_GAROU:         { id: 'hero-hunter-protocol',     subtitle: 'Martial Monster Protocol', stars: 4, type: 'Fit / Fight', title: 'Martial Monster' },
+  ARC_MARTIALMONSTER:         { id: 'martial-monster-protocol',     subtitle: 'Martial Monster Protocol', stars: 4, type: 'Fit / Fight', title: 'Martial Monster' },
 };
 // Display order in the carousel. Active sagas lead, in the owner's chosen
 // order; the still-locked ones follow.
 const ORDER = [
-  'ARC_GRAVITY', 'ARC_GAROU', 'ARC_ULTRAEGO', 'ARC_BAKI',        // active
-  'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_SONIC',  // locked
+  'ARC_GRAVITY', 'ARC_MARTIALMONSTER', 'ARC_DESTROYER', 'ARC_GRAPPLER',        // active
+  'ARC_VIGILANTE', 'ARC_STRUGGLER', 'ARC_FLOWSTATE', 'ARC_BLUEBLUR',  // locked
 ];
 
 const shortName = (name) => String(name || '').split('—')[0].trim();
@@ -102,4 +102,4 @@ function campaignToSeries(campaignId) {
 export const CAMPAIGN_SERIES = ORDER.map(campaignToSeries).filter(Boolean);
 export const CAMPAIGN_SERIES_BY_ID = Object.fromEntries(CAMPAIGN_SERIES.map((s) => [s.id, s]));
 // New series ids that aren't already placeholders in the base list.
-export const NEW_CAMPAIGN_SERIES_IDS = ['baki-grappler', 'berserk-struggler', 'hero-hunter-protocol'];
+export const NEW_CAMPAIGN_SERIES_IDS = ['grappler-protocol', 'struggler-protocol', 'martial-monster-protocol'];

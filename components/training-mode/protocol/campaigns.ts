@@ -5,30 +5,30 @@
 // exposes resolvers the stage-select UI (slice 2) and the runner (slice 3) read
 // from. No component imports campaign JSON directly. Difficulty timing reuses the
 // campaign's own difficulty_scaling; round goals come from the module.
-import bakiCampaign from './data/campaigns/ARC_BAKI/campaign.json';
-import bakiStages from './data/campaigns/ARC_BAKI/stages.json';
-import bakiModules from './data/campaigns/ARC_BAKI/modules.json';
-import berserkCampaign from './data/campaigns/ARC_BERSERK/campaign.json';
-import berserkStages from './data/campaigns/ARC_BERSERK/stages.json';
-import berserkModules from './data/campaigns/ARC_BERSERK/modules.json';
-import darkknightCampaign from './data/campaigns/ARC_DARKKNIGHT/campaign.json';
-import darkknightStages from './data/campaigns/ARC_DARKKNIGHT/stages.json';
-import darkknightModules from './data/campaigns/ARC_DARKKNIGHT/modules.json';
-import ultraegoCampaign from './data/campaigns/ARC_ULTRAEGO/campaign.json';
-import ultraegoStages from './data/campaigns/ARC_ULTRAEGO/stages.json';
-import ultraegoModules from './data/campaigns/ARC_ULTRAEGO/modules.json';
-import ultrainstinctCampaign from './data/campaigns/ARC_ULTRAINSTINCT/campaign.json';
-import ultrainstinctStages from './data/campaigns/ARC_ULTRAINSTINCT/stages.json';
-import ultrainstinctModules from './data/campaigns/ARC_ULTRAINSTINCT/modules.json';
+import bakiCampaign from './data/campaigns/ARC_GRAPPLER/campaign.json';
+import bakiStages from './data/campaigns/ARC_GRAPPLER/stages.json';
+import bakiModules from './data/campaigns/ARC_GRAPPLER/modules.json';
+import berserkCampaign from './data/campaigns/ARC_STRUGGLER/campaign.json';
+import berserkStages from './data/campaigns/ARC_STRUGGLER/stages.json';
+import berserkModules from './data/campaigns/ARC_STRUGGLER/modules.json';
+import darkknightCampaign from './data/campaigns/ARC_VIGILANTE/campaign.json';
+import darkknightStages from './data/campaigns/ARC_VIGILANTE/stages.json';
+import darkknightModules from './data/campaigns/ARC_VIGILANTE/modules.json';
+import ultraegoCampaign from './data/campaigns/ARC_DESTROYER/campaign.json';
+import ultraegoStages from './data/campaigns/ARC_DESTROYER/stages.json';
+import ultraegoModules from './data/campaigns/ARC_DESTROYER/modules.json';
+import ultrainstinctCampaign from './data/campaigns/ARC_FLOWSTATE/campaign.json';
+import ultrainstinctStages from './data/campaigns/ARC_FLOWSTATE/stages.json';
+import ultrainstinctModules from './data/campaigns/ARC_FLOWSTATE/modules.json';
 import gravityCampaign from './data/campaigns/ARC_GRAVITY/campaign.json';
 import gravityStages from './data/campaigns/ARC_GRAVITY/stages.json';
 import gravityModules from './data/campaigns/ARC_GRAVITY/modules.json';
-import sonicCampaign from './data/campaigns/ARC_SONIC/campaign.json';
-import sonicStages from './data/campaigns/ARC_SONIC/stages.json';
-import sonicModules from './data/campaigns/ARC_SONIC/modules.json';
-import garouCampaign from './data/campaigns/ARC_GAROU/campaign.json';
-import garouStages from './data/campaigns/ARC_GAROU/stages.json';
-import garouModules from './data/campaigns/ARC_GAROU/modules.json';
+import sonicCampaign from './data/campaigns/ARC_BLUEBLUR/campaign.json';
+import sonicStages from './data/campaigns/ARC_BLUEBLUR/stages.json';
+import sonicModules from './data/campaigns/ARC_BLUEBLUR/modules.json';
+import garouCampaign from './data/campaigns/ARC_MARTIALMONSTER/campaign.json';
+import garouStages from './data/campaigns/ARC_MARTIALMONSTER/stages.json';
+import garouModules from './data/campaigns/ARC_MARTIALMONSTER/modules.json';
 import { humanizeGoal } from './content';
 import { resolveComboParams } from './engine/arcade-session-engine';
 
@@ -41,40 +41,40 @@ interface Raw { campaign: any; stages: any[]; modules: any[]; }
 const asArr = (x: any): any[] => (Array.isArray(x) ? x : x?.stages || x?.modules || []);
 
 const RAW: Record<string, Raw> = {
-  ARC_BAKI:          { campaign: bakiCampaign,          stages: asArr(bakiStages),          modules: asArr(bakiModules) },
-  ARC_BERSERK:       { campaign: berserkCampaign,       stages: asArr(berserkStages),       modules: asArr(berserkModules) },
-  ARC_DARKKNIGHT:    { campaign: darkknightCampaign,    stages: asArr(darkknightStages),    modules: asArr(darkknightModules) },
-  ARC_ULTRAEGO:      { campaign: ultraegoCampaign,      stages: asArr(ultraegoStages),      modules: asArr(ultraegoModules) },
-  ARC_ULTRAINSTINCT: { campaign: ultrainstinctCampaign, stages: asArr(ultrainstinctStages), modules: asArr(ultrainstinctModules) },
+  ARC_GRAPPLER:          { campaign: bakiCampaign,          stages: asArr(bakiStages),          modules: asArr(bakiModules) },
+  ARC_STRUGGLER:       { campaign: berserkCampaign,       stages: asArr(berserkStages),       modules: asArr(berserkModules) },
+  ARC_VIGILANTE:    { campaign: darkknightCampaign,    stages: asArr(darkknightStages),    modules: asArr(darkknightModules) },
+  ARC_DESTROYER:      { campaign: ultraegoCampaign,      stages: asArr(ultraegoStages),      modules: asArr(ultraegoModules) },
+  ARC_FLOWSTATE: { campaign: ultrainstinctCampaign, stages: asArr(ultrainstinctStages), modules: asArr(ultrainstinctModules) },
   ARC_GRAVITY:       { campaign: gravityCampaign,       stages: asArr(gravityStages),       modules: asArr(gravityModules) },
-  ARC_SONIC:         { campaign: sonicCampaign,         stages: asArr(sonicStages),         modules: asArr(sonicModules) },
-  ARC_GAROU:         { campaign: garouCampaign,         stages: asArr(garouStages),         modules: asArr(garouModules) },
+  ARC_BLUEBLUR:         { campaign: sonicCampaign,         stages: asArr(sonicStages),         modules: asArr(sonicModules) },
+  ARC_MARTIALMONSTER:         { campaign: garouCampaign,         stages: asArr(garouStages),         modules: asArr(garouModules) },
 };
 
 // Display order for the saga carousel.
-export const CAMPAIGN_ORDER = ['ARC_BAKI', 'ARC_DARKKNIGHT', 'ARC_BERSERK', 'ARC_ULTRAINSTINCT', 'ARC_ULTRAEGO', 'ARC_GAROU', 'ARC_GRAVITY', 'ARC_SONIC'];
+export const CAMPAIGN_ORDER = ['ARC_GRAPPLER', 'ARC_VIGILANTE', 'ARC_STRUGGLER', 'ARC_FLOWSTATE', 'ARC_DESTROYER', 'ARC_MARTIALMONSTER', 'ARC_GRAVITY', 'ARC_BLUEBLUR'];
 
 // 2.10 — franchise-flavored coach lines per campaign (archetype-safe, original —
 // never reproduces trademarked characters/quotes). Rotated across the rounds so
 // each drill carries the campaign's identity; the underlying exercises stay real.
 const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
-  ARC_BAKI: {
+  ARC_GRAPPLER: {
     fit: ['Own your bodyweight — brace the core.', 'Train like a human, chase the monster.', 'Iron core. Control every rep.'],
     fight: ['Read the phantom — counter it.', 'Shadow-fight your strongest self.', 'Relaxed power. Flow into the strike.'],
   },
-  ARC_DARKKNIGHT: {
+  ARC_VIGILANTE: {
     fit: ['Train in the dark. Master your body.', 'No shortcuts — forge every rep.', 'Peak human is built, not born.'],
     fight: ['Control the fight. Never panic.', 'Precise, silent, decisive.', 'Read, counter, reset.'],
   },
-  ARC_BERSERK: {
+  ARC_STRUGGLER: {
     fit: ['Struggle forward — one more rep.', 'Heavy work builds a heavy blade.', 'Endure. Swing through the fatigue.'],
     fight: ['Relentless pressure — keep advancing.', 'Every swing carries your whole body.', 'Never stop moving forward.'],
   },
-  ARC_ULTRAEGO: {
+  ARC_DESTROYER: {
     fit: ['Embrace the strain — grow from it.', 'Pride fuels the last rep.', 'The harder it gets, the stronger you get.'],
     fight: ['Take the hit, return it doubled.', 'Rising power under pressure.', 'Dominate the exchange.'],
   },
-  ARC_ULTRAINSTINCT: {
+  ARC_FLOWSTATE: {
     fit: ['Move before you think — stay loose.', 'Flow: smooth, relaxed, precise.', 'Let the body lead.'],
     fight: ['React, don’t decide — pure flow.', 'Slip, counter, flow onward.', 'Calm mind, instant hands.'],
   },
@@ -82,11 +82,11 @@ const CAMPAIGN_COACH: Record<string, { fit: string[]; fight: string[] }> = {
     fit: ['Control the tension — breathe through it.', 'Slow it down. Own every inch of the rep.', 'Hold to the target, then release. Never grind.', 'Keep breathing — never hold your breath.'],
     fight: ['Control the tension — breathe through it.', 'Slow, steady, deliberate.', 'Breathe. Stay in control.'],
   },
-  ARC_SONIC: {
+  ARC_BLUEBLUR: {
     fit: ['Go fast — but keep your form.', 'Quick feet, light on the ground.', 'Explode, then recover. Repeat.', 'Speed is earned rep by rep.'],
     fight: ['Fast hands, faster feet.', 'Blitz the round — then reset.', 'Explosive and precise.'],
   },
-  ARC_GAROU: {
+  ARC_MARTIALMONSTER: {
     fit: ['Build the engine — legs drive the punch.', 'Lean, fast, relentless.', 'Evolve rep by rep — no shortcuts.'],
     fight: ['Learn the style. Steal its speed.', 'Fast hands — stay loose, stay sharp.', 'Every round, a new lesson.'],
   },
