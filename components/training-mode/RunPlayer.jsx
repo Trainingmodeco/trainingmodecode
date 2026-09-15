@@ -13,7 +13,14 @@ import { recordRunGhost, ghostDistanceAt, ghostTimeAt, ghostArt } from './data/r
 import { thinRoute } from './data/geoRoute';
 import { estimateCalories } from './data/runLog';
 import RouteMap from './shared/RouteMap';
+import SpeedDial from './shared/SpeedDial';
 import SafeImage from './SafeImage';
+import useCadence from './hooks/useCadence';
+import { cadenceCue, strideFromSpeedAndCadence } from './data/cadence';
+import {
+  newSpeedTrack, setSpeedAt, distanceFromSpeed, speedAt, paceFromSpeed,
+  defaultSpeed, fmtSpeed, speedUnitLabel, applyMachineCorrection,
+} from './data/machineSpeed';
 import {
   metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance,
   buildRunIntro, crossedMarkers, crossedTenths, splitScript, finishScript,
@@ -35,10 +42,21 @@ import {
 //  4. Every change is persisted, so the OS killing the PWA loses nothing but
 //     the GPS meters covered while it was away.
 //
-// Distance comes from GPS when there is a fix. Without GPS (treadmill, denied
-// permission) it is ESTIMATED at the target pace and labelled as such — the
-// splits still fire so a treadmill run still gets its mile calls, but the pace
-// coach stays quiet because it would have nothing real to judge.
+// WHERE DISTANCE COMES FROM, in order of preference:
+//
+//  1. GPS, outdoors, when there is a fix.
+//  2. The MACHINE'S OWN SPEED indoors — the athlete matches the dial to the
+//     console and distance is that speed integrated over elapsed time. As
+//     accurate as the belt's calibration, which is the number they would check
+//     us against anyway, and it makes everything downstream real: exact pace,
+//     honest splits, and a pace coach that can finally disagree with them.
+//  3. Only if neither exists, an ESTIMATE at the target pace, labelled EST.
+//     This is the one that cannot teach you anything — it is the goal played
+//     back, so it always finishes exactly on target — so it never becomes a
+//     ghost and the pace coach stays quiet under it.
+//
+// Cadence rides alongside all three, from the accelerometer (data/cadence.js).
+// It is a FORM metric, never a distance source; see that file for why.
 
 const GOLD = C.yellow;
 const GREEN = '#22c55e';
@@ -69,6 +87,11 @@ function newRun(cfg) {
     pausedAt: null,
     offsetMs: 0,
     meters: 0,
+    // Indoor only: the machine's speed over time, keyed on ELAPSED seconds so
+    // pauses need no special handling.
+    speedSegs: cfg?.speedSource === 'machine'
+      ? newSpeedTrack(cfg.startSpeed || defaultSpeed(cfg.targetPaceSec, cfg.unit || 'mi'))
+      : null,
     route: [],
     samples: [],
     trace: [],          // (t, d) every few seconds — becomes this run's ghost
@@ -106,6 +129,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const [surge, setSurge] = useState(false);
   const [tickKey, setTickKey] = useState(0);
   const [result, setResult] = useState(null);
+  const [consoleDist, setConsoleDist] = useState('');
   const aliveRef = useRef(true);
   const runningRef = useRef(running);
   const phaseRef = useRef(phase);
@@ -146,9 +170,37 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const elapsedSec = liveRunElapsedSec(run, now);
   const gpsDist = meters / metersPerUnit(unit);
   const usingGps = useGps && gpsStatus === 'live';
-  // No GPS: an estimate at the target pace, labelled EST on screen.
-  const estimating = !useGps || (gpsStatus !== 'live' && meters === 0);
-  const dist = estimating ? Math.min(goal, elapsedSec / (run.cfg.targetPaceSec || 600)) : gpsDist;
+  const machine = run.cfg.speedSource === 'machine';
+  const speedNow = machine ? speedAt(run.speedSegs, elapsedSec) : 0;
+  const machineDist = machine ? distanceFromSpeed(run.speedSegs, elapsedSec) : 0;
+  // Estimating is now the LAST resort, not the indoor default.
+  const estimating = !machine && (!useGps || (gpsStatus !== 'live' && meters === 0));
+  // Distance is MEASURED when it came from satellites or from the machine —
+  // the distinction everything downstream keys off: whether the pace coach may
+  // speak, whether splits mean anything, whether this becomes a ghost.
+  const measuring = machine || usingGps;
+  const dist = machine
+    ? machineDist
+    : (estimating ? Math.min(goal, elapsedSec / (run.cfg.targetPaceSec || 600)) : gpsDist);
+
+  // Cadence, from the accelerometer. The speed is handed over for the stride
+  // cross-check — a rate that implies an impossible stride is not shown.
+  const cadence = useCadence({
+    active: phase === 'run' && running,
+    kind: run.cfg.cadenceKind || 'run',
+    speed: machine ? speedNow : 0,
+    unit,
+  });
+
+  // Changing the belt speed starts a new segment from this instant. Everything
+  // already covered stays covered — the integral is over segments, so the past
+  // is never recomputed at the new rate.
+  const changeSpeed = useCallback((next) => {
+    const r = runRef.current;
+    r.speedSegs = setSpeedAt(r.speedSegs, liveRunElapsedSec(r), next);
+    setNow(Date.now());
+    persist(true);
+  }, [persist]);
 
   // ── Start / pause / resume / end ──────────────────────────────────────────
   const startRun = useCallback(() => {
@@ -190,14 +242,19 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const r = runRef.current;
     if (phaseRef.current === 'done') return;
     const el = liveRunElapsedSec(r);
-    const finalDist = estimating ? Math.min(goal, el / (r.cfg.targetPaceSec || 600)) : r.meters / metersPerUnit(unit);
+    const finalDist = machine
+      ? distanceFromSpeed(r.speedSegs, el)
+      : (estimating ? Math.min(goal, el / (r.cfg.targetPaceSec || 600)) : r.meters / metersPerUnit(unit));
     const d = completed ? Math.max(finalDist, goal) : finalDist;
     const res = {
       completed,
       completedTimeSeconds: Math.round(el),
       completedDistance: +d.toFixed(2),
       distanceUnit: unit,
-      gps: !estimating,
+      gps: !machine && !estimating,
+      measured: measuring,
+      surface: machine ? 'machine' : 'gps',
+      machineSpeed: machine ? speedAt(r.speedSegs, el) : null,
       avgPaceSec: d > 0.05 ? el / d : null,
       targetSec: r.cfg.targetSec,
       eliteSec: r.cfg.eliteSec,
@@ -216,9 +273,10 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       const delta = Math.round(el - ghost.totalSec);
       res.ghost = { ownerName: ghost.ownerName, ghostTotalSec: ghost.totalSec, delta, outcome: Math.abs(delta) < 2 ? 'draw' : delta < 0 ? 'victory' : 'defeat' };
     }
-    // Every verified GPS finish becomes a ghost for next time (MY LAST, and MY
-    // BEST when it is the fastest at this distance).
-    if (completed && !estimating) {
+    // Every MEASURED finish becomes a ghost for next time (MY LAST, and MY BEST
+    // when it is the fastest at this distance) — bucketed by surface, so an
+    // indoor run never overwrites an outdoor best.
+    if (completed && measuring) {
       const rec = recordRunGhost(res);
       res.ghostRecorded = !!rec.ghost;
       res.newBest = rec.newBest;
@@ -236,7 +294,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     } else {
       say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.`);
     }
-  }, [estimating, goal, unit, report, say, ghost]);
+  }, [estimating, machine, measuring, goal, unit, report, say, ghost]);
 
   // ── Intro: speak the brief, then GO ───────────────────────────────────────
   useEffect(() => {
@@ -249,6 +307,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         unlockAudio();
         await primeSpeech();
         const intro = buildRunIntro({ methodLabel: run.cfg.methodLabel, useGps, distance: goal, unit, targetSec: run.cfg.targetSec, eliteSec: run.cfg.eliteSec });
+        if (machine) intro.lines.push(`Set the machine to ${fmtSpeed(speedAt(run.speedSegs, 0))} ${speedUnitLabel(unit).toLowerCase()} and match the dial if you change it.`);
         if (ghost) intro.lines.push(`Ghost mode. You are racing ${ghost.ownerId === 'me' ? 'your' : ghost.ownerName + "'s"} ${ghost.ownerId === 'me' ? 'own run' : 'run'}, ${speakDuration(ghost.totalSec)}. Beat it.`);
         for (const line of intro.lines) {
           if (cancelled) return;
@@ -341,6 +400,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useGps, phase === 'done']);
 
+  const cadenceRef = useRef(cadence);
+  useEffect(() => { cadenceRef.current = cadence; }, [cadence]);
+
   // ── The coach: splits, tenths, pace cues, tips, surges, finish ────────────
   const prevDistRef = useRef(restore ? (restore.meters || 0) / metersPerUnit(unit) : 0);
   useEffect(() => {
@@ -365,12 +427,15 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const markers = crossedMarkers(prev, dist, 0.5).filter(m => m < goal - 1e-9 && !r.markersDone.includes(m));
     if (markers.length) {
       const marker = markers[markers.length - 1];
-      const pace = usingGps ? (rollingPaceSec(r.samples, elapsedSec, unit, 60) || (dist > 0.05 ? elapsedSec / dist : 0)) : r.cfg.targetPaceSec;
+      const pace = machine
+        ? (paceFromSpeed(speedNow) || r.cfg.targetPaceSec)
+        : usingGps ? (rollingPaceSec(r.samples, elapsedSec, unit, 60) || (dist > 0.05 ? elapsedSec / dist : 0))
+          : r.cfg.targetPaceSec;
       markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
       r.lastSplitSec = elapsedSec;
       playBell(1);
       const split = splitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec, goal, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec });
-      const gl = ghost && usingGps ? ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker: ghostTimeAt(ghost, marker) }) : '';
+      const gl = ghost && measuring ? ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker: ghostTimeAt(ghost, marker) }) : '';
       say(gl ? `${split} ${gl}` : split);
       persist(true);
     }
@@ -387,6 +452,13 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const r = runRef.current;
     persist();
     report();
+
+    // Indoors there is no GPS callback to build the ghost trace, so it is
+    // sampled here, on the same every-three-seconds cadence the GPS path uses.
+    if (machine) {
+      const last = r.trace[r.trace.length - 1];
+      if (!last || sec - last.t >= 3) r.trace.push({ t: sec, d: +machineDist.toFixed(4) });
+    }
 
     // Surges (random intervals): call it, hold it, call it off.
     if (r.nextSurgeSec != null && sec >= r.nextSurgeSec && r.surgeEndSec == null) {
@@ -407,28 +479,39 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       return;
     }
 
-    // Pace coaching needs real movement to judge; a treadmill gets tips only.
+    // Pace coaching needs a real number to judge, and indoors it now has one —
+    // the machine's speed. So a treadmill gets the whole coach rather than tips
+    // only, including the call that only ever made sense against a real pace:
+    // you are under the target, pick it up.
     if (dist < 0.08) return;
     if (!shouldCue({ nowSec: sec, lastCueSec: r.lastCueSec, lastSplitSec: r.lastSplitSec, gapSec: r.cueGap })) return;
     r.tipCounter += 1;
+    const livePace = machine
+      ? paceFromSpeed(speedNow)
+      : (rollingPaceSec(r.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null));
     let text = '';
     // Rotation: with a ghost, every other slot is the race call; every fourth a
     // tip; the rest the pace coach. Without one: pace, pace, tip.
-    const slot = r.tipCounter % (ghost && usingGps ? 4 : 3);
-    const wantTip = !usingGps || (ghost && usingGps ? slot === 0 : slot === 0);
-    const wantGhost = ghost && usingGps && (slot === 1 || slot === 3);
+    const slot = r.tipCounter % (ghost && measuring ? 4 : 3);
+    const wantTip = !measuring || slot === 0;
+    const wantGhost = ghost && measuring && (slot === 1 || slot === 3);
+    const cad = cadenceRef.current;
     if (wantGhost) {
-      const pace = rollingPaceSec(r.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null);
-      const gap = ghostGap({ myDist: dist, ghostDist: ghostDistanceAt(ghost, elapsedSec), paceSec: pace });
+      const gap = ghostGap({ myDist: dist, ghostDist: ghostDistanceAt(ghost, elapsedSec), paceSec: livePace });
       const verdict = ghostVerdict(gap, unit);
       const pick = ghostCue(verdict, gap, unit, r.cueIdx[`ghost_${verdict}`] ?? -1);
       r.cueIdx[`ghost_${verdict}`] = pick.index; text = pick.text;
+    } else if (wantTip && cad.rate && cad.verdict) {
+      // A cadence the meter is actually confident about beats a generic tip:
+      // it is about THIS athlete, right now, and it is the one thing they can
+      // change instantly without changing pace.
+      const pick = cadenceCue(cad.verdict, run.cfg.cadenceKind || 'run', r.cueIdx[`cad_${cad.verdict}`] ?? -1);
+      r.cueIdx[`cad_${cad.verdict}`] = pick.index; text = pick.text;
     } else if (wantTip) {
       const pick = pickCue(RUN_TIPS, r.cueIdx.tip ?? -1);
       r.cueIdx.tip = pick.index; text = pick.text;
     } else {
-      const pace = rollingPaceSec(r.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null);
-      const verdict = paceVerdict(pace, r.cfg.targetPaceSec);
+      const verdict = paceVerdict(livePace, r.cfg.targetPaceSec);
       if (verdict === 'unknown') return;
       const pick = pickCue(PACE_CUES[verdict], r.cueIdx[verdict] ?? -1);
       r.cueIdx[verdict] = pick.index; text = pick.text;
@@ -463,7 +546,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   }, [persist]);
 
   // ── Derived numbers for the HUD ───────────────────────────────────────────
-  const curPace = usingGps ? rollingPaceSec(run.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null) : (running ? run.cfg.targetPaceSec : null);
+  const curPace = machine ? paceFromSpeed(speedNow)
+    : usingGps ? (rollingPaceSec(run.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null))
+      : (running ? run.cfg.targetPaceSec : null);
   const projected = projectedFinish(dist, elapsedSec, goal);
   const vsTarget = projected != null ? projected - run.cfg.targetSec : null;
   const vsElite = projected != null && run.cfg.eliteSec ? projected - run.cfg.eliteSec : null;
@@ -471,10 +556,13 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const ghostDistNow = ghost && phase === 'run' ? ghostDistanceAt(ghost, elapsedSec) : null;
   const ghostGapNow = ghost && phase === 'run' ? ghostGap({ myDist: dist, ghostDist: ghostDistNow, paceSec: curPace }) : null;
   const ghostState = ghostGapNow ? ghostVerdict(ghostGapNow, unit) : null;
-  const verdictNow = usingGps ? paceVerdict(curPace, run.cfg.targetPaceSec) : 'unknown';
+  const verdictNow = measuring ? paceVerdict(curPace, run.cfg.targetPaceSec) : 'unknown';
   const paceColor = verdictNow === 'on' ? '#8fe8ac' : verdictNow === 'fast' ? '#c9a6ff' : verdictNow === 'unknown' ? '#fff' : '#ff9a52';
-  const gpsLabel = !useGps ? 'PACE TRACK' : gpsStatus === 'live' ? 'GPS LIVE' : gpsStatus === 'denied' ? 'GPS DENIED' : 'GPS ACQUIRING…';
-  const gpsDot = gpsStatus === 'live' ? GREEN : gpsStatus === 'denied' ? '#ef4444' : useGps ? '#f5b942' : '#b06aff';
+  const gpsLabel = machine ? `${fmtSpeed(speedNow)} ${speedUnitLabel(unit)}`
+    : !useGps ? 'PACE TRACK'
+      : gpsStatus === 'live' ? 'GPS LIVE' : gpsStatus === 'denied' ? 'GPS DENIED' : 'GPS ACQUIRING…';
+  const gpsDot = machine ? GREEN
+    : gpsStatus === 'live' ? GREEN : gpsStatus === 'denied' ? '#ef4444' : useGps ? '#f5b942' : '#b06aff';
 
   // Floating mini-player: distance in the ring (WORK swaps the clock for a
   // number), elapsed and pace on the right, tenths as the segmented row.
@@ -500,6 +588,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // Calories burned so far. An estimate from mass, distance and time — no heart
   // rate is involved, so every screen that shows it says EST.
   const kcal = estimateCalories({ meters: dist * metersPerUnit(unit), seconds: elapsedSec });
+
+  // Stride length, which is only trustworthy because BOTH halves are measured:
+  // the speed from the machine and the cadence from the accelerometer. Nothing
+  // here is estimated from the athlete's height.
+  const stride = machine && cadence.rate ? strideFromSpeedAndCadence(speedNow, cadence.rate, unit) : null;
 
   const mono = "'Orbitron',sans-serif";
   const label = { fontFamily: mono, fontSize: 7.5, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.12em' };
@@ -548,8 +641,58 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
             </div>
           </div>
         )}
+        {/* The finish-line correction. Whatever we integrated, the console is the
+            ground truth an athlete will compare us against, so let them hand it
+            over in one tap and log THAT. A belt reads slightly differently from
+            its own dial and a speed change always lands a second or two late;
+            this is the only way the logged number is exactly right. */}
+        {result.surface === 'machine' && (
+          <div style={{ width: '100%', marginTop: 12, borderRadius: 12, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.6)', padding: '10px 12px' }}>
+            <div style={{ ...label, marginBottom: 6 }}>WHAT DOES THE MACHINE SAY?</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                value={consoleDist}
+                onChange={(e) => setConsoleDist(e.target.value)}
+                placeholder={result.completedDistance.toFixed(2)}
+                aria-label={`Distance from the machine in ${unit}`}
+                style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: '1px solid rgba(168,85,247,0.35)', background: 'rgba(14,4,28,0.9)', color: '#fff', fontFamily: mono, fontSize: 18, fontWeight: 900, textAlign: 'center' }}
+              />
+              <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: GOLD }}>{unit.toUpperCase()}</span>
+            </div>
+            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 6, lineHeight: 1.35 }}>
+              Optional. Leave it blank to keep {result.completedDistance.toFixed(2)} {unit}.
+            </div>
+          </div>
+        )}
         <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: '#c9f5d6', marginTop: 10, textAlign: 'center', minHeight: 16 }}>{caption}</div>
-        <TrainingCTA variant="gold" label="CONTINUE" icon="✓" height={50} onClick={() => { stopVoiceSession(); onComplete(result); }} style={{ width: '100%', marginTop: 12, fontSize: 14 }} />
+        <TrainingCTA
+          variant="gold"
+          label="CONTINUE"
+          icon="✓"
+          height={50}
+          onClick={() => {
+            stopVoiceSession();
+            const typed = parseFloat(consoleDist);
+            if (result.surface === 'machine' && Number.isFinite(typed) && typed > 0) {
+              const c = applyMachineCorrection(result.completedDistance, typed);
+              const el = result.completedTimeSeconds;
+              onComplete({
+                ...result,
+                completedDistance: +c.distance.toFixed(2),
+                machineCorrected: true,
+                machineDriftFactor: +c.factor.toFixed(4),
+                avgPaceSec: c.distance > 0.05 ? el / c.distance : result.avgPaceSec,
+                calories: estimateCalories({ meters: c.distance * metersPerUnit(unit), seconds: el }),
+              });
+              return;
+            }
+            onComplete(result);
+          }}
+          style={{ width: '100%', marginTop: 12, fontSize: 14 }}
+        />
       </div>
     );
   }
@@ -574,7 +717,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       )}
 
       {/* DISTANCE — the hero. Ticks gold at every tenth. */}
-      <div style={{ ...label, marginBottom: 2 }}>{estimating ? 'DISTANCE · EST' : 'DISTANCE'}</div>
+      <div style={{ ...label, marginBottom: 2 }}>{estimating ? 'DISTANCE · EST' : machine ? 'DISTANCE · MACHINE' : 'DISTANCE'}</div>
       <div key={tickKey} style={{ fontFamily: mono, fontSize: 66, fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.01em', animation: tickKey ? 'run-tick 0.7s ease-out' : 'none', textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>
         {dist.toFixed(2)}<span style={{ fontSize: 16, color: GOLD, marginLeft: 6, letterSpacing: '0.08em' }}>{unit.toUpperCase()}</span>
       </div>
@@ -589,6 +732,17 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         <Chip label="TARGET" value={fmtClock(run.cfg.targetSec)} sub={fmtPace(run.cfg.targetPaceSec, unit)} color="#fff" />
         {run.cfg.eliteSec ? <Chip label="ELITE" value={fmtClock(run.cfg.eliteSec)} sub={fmtPace(run.cfg.elitePaceSec, unit)} color={GOLD} /> : null}
       </div>
+      {cadence.rate != null && (
+        <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 6 }}>
+          <Chip
+            label={cadence.band.label}
+            value={String(cadence.rate)}
+            sub={`${cadence.band.unit}${cadence.verdict === 'good' ? ' · GOOD' : cadence.verdict === 'low' ? ' · LOW' : cadence.verdict === 'high' ? ' · HIGH' : ''}`}
+            color={cadence.verdict === 'good' ? '#8fe8ac' : cadence.verdict === 'low' ? '#ff9a52' : '#c9a6ff'}
+          />
+          {stride != null && <Chip label="STRIDE" value={stride.toFixed(2)} sub="METRES" color="#fff" />}
+        </div>
+      )}
       {(projected != null || kcal != null) && (
         <div style={{ display: 'flex', gap: 14, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
           {projected != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>}
@@ -670,6 +824,30 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           <Flag size={14}/> END
         </button>
       </div>
+
+      {machine && phase !== 'ready' && (
+        <div style={{ width: '100%', marginTop: 10, borderRadius: 12, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.6)', padding: '8px 10px' }}>
+          <SpeedDial speed={speedNow} unit={unit} onChange={changeSpeed} compact />
+          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 6, textAlign: 'center', lineHeight: 1.35 }}>
+            Match this to the machine. Distance is tracked from it.
+          </div>
+        </div>
+      )}
+
+      {machine && phase === 'run' && cadence.supported && cadence.permission === 'prompt' && (
+        <button
+          type="button"
+          onClick={cadence.requestPermission}
+          style={{ marginTop: 8, borderRadius: 10, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(124,58,237,0.14)', color: '#d6c2ff', fontFamily: ARCADE.fontBody, fontSize: 10, padding: '8px 14px', cursor: 'pointer' }}
+        >
+          TRACK MY CADENCE — allow motion
+        </button>
+      )}
+      {machine && phase === 'run' && cadence.permission === 'granted' && cadence.rate == null && (
+        <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 8, textAlign: 'center', lineHeight: 1.35 }}>
+          Reading your cadence… keep the phone on you, or resting on the machine.
+        </div>
+      )}
 
       {estimating && phase === 'run' && (
         <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 8, textAlign: 'center', lineHeight: 1.35 }}>

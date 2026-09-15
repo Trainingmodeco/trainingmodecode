@@ -1,12 +1,22 @@
-// Run ghosts — race the replay of a past GPS run over the same distance.
+// Run ghosts — race the replay of a past run over the same distance.
 //
-// A run ghost is a distance-over-time trace recorded from a VERIFIED GPS run:
-// at second t the ghost had covered d units. Racing it is a pure lookup — how
+// A run ghost is a distance-over-time trace recorded from a run whose distance
+// was measured: at second t the ghost had covered d units. Racing it is a pure lookup — how
 // far had the ghost gone by now, and how far ahead or behind am I. Two ghosts
 // are kept per distance: MY LAST and MY BEST (fastest finish).
 //
-// Only GPS runs record a ghost. An estimated (no-fix, treadmill) distance is
-// the target pace played back, and racing that would be racing a number.
+// A ghost is recorded from any run whose distance was MEASURED — outdoors from
+// GPS, indoors from the machine's own speed. What never becomes a ghost is an
+// ESTIMATED distance: with no speed and no fix, distance is the target pace
+// played back, so racing it would be racing a number that was always going to
+// finish exactly on time.
+//
+// Ghosts are bucketed by SURFACE as well as distance, and the two never mix. A
+// treadmill mile and an outdoor mile are not the same mile — the belt comes
+// back to meet you, there is no wind, no camber and no turns, and the honest
+// comparison is a treadmill run against a treadmill run. Without this, the
+// first indoor session would quietly overwrite an outdoor personal best, and
+// the athlete would be told they had beaten a record they had not.
 //
 // Friend ghosts by USERNAME need the cloud (a ghost is a few hundred points)
 // and are specced in PROMPT GHOST-R1; the local model here is already the
@@ -17,11 +27,40 @@ import { trackEvent } from './analytics';
 const KEY = 'tm_run_ghosts_v1';
 export const RUN_GHOST_VERSION = 1;
 
+// 'gps' outdoors, 'machine' on a treadmill/bike/rower/stair climber.
+export const SURFACES = ['gps', 'machine'];
+export const surfaceOf = (result) => (result?.surface || (result?.gps ? 'gps' : 'machine'));
+export const surfaceLabel = (s) => (s === 'machine' ? 'INDOOR' : 'OUTDOOR');
+
+// Keys written before surfaces existed are all `${unit}|${goal}`, and every one
+// of them is from a GPS run because that was the only kind that recorded. They
+// are rewritten in place on read, so nobody loses a ghost to this change.
+// Idempotent: once no un-suffixed key remains it does nothing.
+function migrateSurfaces(box) {
+  let changed = false;
+  for (const slot of ['best', 'last']) {
+    const bag = box[slot];
+    if (!bag) continue;
+    for (const k of Object.keys(bag)) {
+      if (k.split('|').length >= 3) continue;
+      const ghost = bag[k];
+      const next = `${k}|gps`;
+      if (!bag[next]) bag[next] = { ...ghost, surface: 'gps' };
+      delete bag[k];
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 function load() {
   try {
     const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(KEY) : null;
     const p = raw ? JSON.parse(raw) : null;
-    if (p && p.v === RUN_GHOST_VERSION && p.best && p.last) return p;
+    if (p && p.v === RUN_GHOST_VERSION && p.best && p.last) {
+      if (migrateSurfaces(p)) save(p);
+      return p;
+    }
   } catch { /* fresh */ }
   return { v: RUN_GHOST_VERSION, best: {}, last: {} };
 }
@@ -29,7 +68,7 @@ function save(s) {
   try { if (typeof localStorage !== 'undefined') localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* quota */ }
 }
 
-export const ghostKey = (unit, goal) => `${unit}|${Number(goal)}`;
+export const ghostKey = (unit, goal, surface = 'gps') => `${unit}|${Number(goal)}|${surface === 'machine' ? 'machine' : 'gps'}`;
 
 // Thin a raw (t, d) trace so a ghost stays small: keep a point at least every
 // `minGapSec`, always the first and the last.
@@ -48,7 +87,7 @@ export function thinTrace(trace, minGapSec = 5, maxPoints = 720) {
   return sampled;
 }
 
-export function makeRunGhost({ unit, goal, totalSec, trace, splits, ownerId = 'me', ownerName, gender }) {
+export function makeRunGhost({ unit, goal, totalSec, trace, splits, surface = 'gps', ownerId = 'me', ownerName, gender }) {
   const profile = loadProfile() || {};
   const thin = thinTrace(trace);
   if (!(totalSec > 0) || thin.length < 2) return null;
@@ -60,6 +99,7 @@ export function makeRunGhost({ unit, goal, totalSec, trace, splits, ownerId = 'm
     gender: gender || (profile.sex === 'female' ? 'female' : 'male'),
     unit,
     goal: Number(goal),
+    surface: surface === 'machine' ? 'machine' : 'gps',
     totalSec: Math.round(totalSec),
     trace: thin,
     splits: Array.isArray(splits) ? splits : [],
@@ -70,33 +110,39 @@ export function makeRunGhost({ unit, goal, totalSec, trace, splits, ownerId = 'm
 
 // Record a ghost from a just-finished run. Returns { ghost, newBest }.
 export function recordRunGhost(result) {
-  if (!result || !result.completed || !result.gps || !Array.isArray(result.trace)) return { ghost: null, newBest: false };
+  // `measured` is the gate, not `gps`: a machine run tracked from the speed
+  // dial is as real a trace as a satellite one. Only an estimate is excluded.
+  const measured = result?.measured ?? result?.gps;
+  if (!result || !result.completed || !measured || !Array.isArray(result.trace)) return { ghost: null, newBest: false };
+  const surface = surfaceOf(result);
   const ghost = makeRunGhost({
     unit: result.distanceUnit, goal: result.goal, totalSec: result.completedTimeSeconds,
-    trace: result.trace, splits: result.splits,
+    trace: result.trace, splits: result.splits, surface,
   });
   if (!ghost) return { ghost: null, newBest: false };
   const box = load();
-  const k = ghostKey(ghost.unit, ghost.goal);
+  const k = ghostKey(ghost.unit, ghost.goal, surface);
   const prev = box.best[k];
   const newBest = !prev || ghost.totalSec < prev.totalSec;
   box.last[k] = ghost;
   if (newBest) box.best[k] = ghost;
   save(box);
-  trackEvent('run_ghost_recorded', { goal: ghost.goal, unit: ghost.unit, totalSec: ghost.totalSec, newBest });
+  trackEvent('run_ghost_recorded', { goal: ghost.goal, unit: ghost.unit, surface, totalSec: ghost.totalSec, newBest });
   return { ghost, newBest };
 }
 
-// 'best' | 'last' for a distance, or null when none exists yet.
-export function getRunGhost(unit, goal, which = 'best') {
+// 'best' | 'last' for a distance ON A GIVEN SURFACE, or null when none exists.
+export function getRunGhost(unit, goal, which = 'best', surface = 'gps') {
   const box = load();
-  const k = ghostKey(unit, goal);
+  const k = ghostKey(unit, goal, surface);
   return (which === 'last' ? box.last[k] : box.best[k]) || null;
 }
 
-export function hasAnyRunGhost() {
+export function hasAnyRunGhost(surface = null) {
   const box = load();
-  return Object.keys(box.last).length > 0;
+  const keys = Object.keys(box.last);
+  if (!surface) return keys.length > 0;
+  return keys.some(k => k.endsWith(`|${surface}`));
 }
 
 // Distance the ghost had covered at second t (linear between trace points;

@@ -12,6 +12,7 @@
     "lock:assets": "node scripts/lock-assets.mjs --write",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "test:indoor": "node scripts/test-indoor-tracking.mjs",
     "audit:tap": "node scripts/audit-tap-targets.mjs"
   },
   "dependencies": {

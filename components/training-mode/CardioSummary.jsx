@@ -50,11 +50,12 @@ export default function CardioSummary({
 
   const [minutes, setMinutes] = useState(startMin ? String(startMin) : '');
   const [seconds, setSeconds] = useState(startSec ? String(startSec) : '');
-  // A GPS run already measured its distance — prefill it rather than asking the
-  // athlete to type the number the phone just recorded.
+  // A run that measured its distance — GPS outdoors, the machine indoors —
+  // prefills it, rather than asking the athlete to type a number the app
+  // already recorded.
   const [distance, setDistance] = useState(typeof initialDistance === 'number' && initialDistance > 0 ? String(initialDistance) : '');
   const [distanceUnit, setDistanceUnit] = useState(initialDistanceUnit || 'mi');
-  // A GPS run already knows roughly what it cost — prefill the estimate rather
+  // A measured run already knows roughly what it cost — prefill the estimate rather
   // than leaving the athlete to guess a number the app can work out.
   const [calories, setCalories] = useState(runResult?.calories ? String(runResult.calories) : '');
   const [notes, setNotes] = useState('');
@@ -192,7 +193,19 @@ export default function CardioSummary({
           <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS TARGET</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatTarget ? '#8fe8ac' : '#ff9a52' }}>{runResult.completedTimeSeconds - runResult.targetSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.targetSec))}</div></div>
           {runResult.eliteSec ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS ELITE</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatElite ? ARCADE.gold : '#c9a6ff' }}>{runResult.completedTimeSeconds - runResult.eliteSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.eliteSec))}</div></div> : null}
           {runResult.ghost ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>👻 GHOST</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.ghost.outcome === 'victory' ? '#8fe8ac' : runResult.ghost.outcome === 'defeat' ? '#ff8a8a' : ARCADE.gold }}>{runResult.ghost.outcome === 'victory' ? 'BEATEN' : runResult.ghost.outcome === 'defeat' ? 'WON' : 'DRAW'}</div></div> : null}
-          <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>{runResult.gps ? 'GPS' : 'ESTIMATED'}</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.gps ? '#8fe8ac' : C.muted }}>{runResult.gps ? 'VERIFIED' : 'NO FIX'}</div></div>
+          {/* Three states, not two. A machine run is MEASURED — from the
+              console's own speed — so calling it "estimated / no fix" the way
+              this did when `gps` was the only flag would understate a number
+              that is as good as the belt's calibration, and better still once
+              the athlete has typed in what the console said. */}
+          <div>
+            <div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>
+              {runResult.gps ? 'GPS' : runResult.measured ? 'MACHINE' : 'ESTIMATED'}
+            </div>
+            <div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: (runResult.gps || runResult.measured) ? '#8fe8ac' : C.muted }}>
+              {runResult.gps ? 'VERIFIED' : runResult.measured ? (runResult.machineCorrected ? 'CONFIRMED' : 'TRACKED') : 'NO FIX'}
+            </div>
+          </div>
         </div>
       )}
       {runResult?.route?.length >= 2 && (

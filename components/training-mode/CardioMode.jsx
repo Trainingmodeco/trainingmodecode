@@ -182,6 +182,18 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const showTimeGoal = !supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
   const showConfigCard = style === 'tabata' || style === 'hiit' || (style === 'intervals' && intervalMode === 'target');
   const usesGps = cardioType === 'outdoor-run' && useDistanceGauge && !noGps;
+  // Indoors — a treadmill, or anything in the MACHINE category — distance now
+  // comes from the machine's own speed instead of being estimated at the target
+  // pace. That was circular: it replayed the goal, so the run always finished
+  // exactly on time and the pace coach had to stay silent.
+  const usesMachine = useDistanceGauge && !usesGps;
+  const surface = usesMachine ? 'machine' : 'gps';
+  // Which rhythm the cadence meter should look for. The bands do not overlap,
+  // and looking for the wrong one finds nothing.
+  const cadenceKind = cardioType === 'row-machine' ? 'row'
+    : cardioType === 'stair-climber' ? 'stairs'
+      : (cardioType === 'bike' || cardioType === 'assault-bike') ? 'bike'
+        : 'run';
 
   const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
   const parsedCustomDist = parseFloat(customDistance);
@@ -192,9 +204,11 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const parsedTargetMin = parseFloat(customTargetMin);
   const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
   const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec) : null;
-  const ghostLast = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'last') : null;
-  const ghostBest = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'best') : null;
-  const ghostPick = !usesGps ? null : ghostChoice === 'best' ? ghostBest : ghostChoice === 'last' ? ghostLast : null;
+  // Ghosts are bucketed by surface, so the treadmill ladder and the outdoor
+  // ladder are separate. An indoor mile must never overwrite an outdoor best.
+  const ghostLast = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'last', surface) : null;
+  const ghostBest = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'best', surface) : null;
+  const ghostPick = !(usesGps || usesMachine) ? null : ghostChoice === 'best' ? ghostBest : ghostChoice === 'last' ? ghostLast : null;
 
   const displayStyleLabel = style === 'steady' ? 'Steady Pace'
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
@@ -308,6 +322,8 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
       targetSec: addon.targetSeconds, eliteSec: addon.eliteSeconds,
       targetPaceSec: addon.paceTargetSeconds, elitePaceSec: addon.elitePaceSeconds,
       methodLabel, useGps: usesGps, randomSurges: addon.randomSurges,
+      speedSource: usesMachine ? 'machine' : null,
+      cadenceKind,
       ghost: ghostPick,
     };
     const isRun = liveRestore ? true : useDistanceGauge;
@@ -462,6 +478,29 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             })}
           </div>
 
+          {/* OUTDOOR vs TREADMILL. Until now the only route into treadmill mode
+              was to be DENIED location — an athlete standing on a belt with GPS
+              happily granted would pick RUNNING and watch the distance sit at
+              zero, because there is no satellite movement to measure. This is
+              the same choice, asked before the run instead of after it fails. */}
+          {categoryId === 'running' && useDistanceGauge && (
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              {[
+                { id: false, label: '🛰 OUTDOOR', sub: 'GPS' },
+                { id: true, label: '🏃 TREADMILL', sub: 'Machine speed' },
+              ].map(o => (
+                <button key={String(o.id)} onClick={() => setNoGps(o.id)} style={{
+                  flex: 1, padding: '7px 10px', borderRadius: ARCADE.radius.sm, cursor: 'pointer', textAlign: 'left',
+                  background: noGps === o.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.6)',
+                  border: noGps === o.id ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
+                }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9.5, letterSpacing: '0.05em', color: noGps === o.id ? GOLD : '#c4b5fd' }}>{o.label}</div>
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 8.5, color: C.muted, marginTop: 1 }}>{o.sub}</div>
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* PROTOCOL */}
           </div>
           <div data-guide="cm-protocol">
@@ -560,8 +599,10 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
               )}
 
               {/* GHOST MODE — race your own recorded run over this distance. A
-                  selector, not a code: pick it here or from the hub. */}
-              {usesGps && (
+                  selector, not a code: pick it here or from the hub. Available
+                  indoors too now that a machine run is measured rather than
+                  estimated, but against INDOOR ghosts only — see runGhosts.js. */}
+              {(usesGps || usesMachine) && (
                 <div data-guide="cm-ghost" style={{ borderRadius: 10, border: `1px solid ${ghostPick ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghostPick ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '8px 12px', marginBottom: 9 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {ghostPick ? (
@@ -571,10 +612,14 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: ghostPick ? '#e6d4ff' : '#c4b5fd', letterSpacing: '0.1em' }}>
-                        {ghostPick ? `GHOST MODE · VS ${ghostPick.ownerId === 'me' ? `YOUR ${ghostChoice === 'best' ? 'BEST' : 'LAST'} RUN` : ghostPick.ownerName} · ${fmtRunClock(ghostPick.totalSec)}` : 'GHOST MODE'}
+                        {ghostPick ? `GHOST MODE · VS ${ghostPick.ownerId === 'me' ? `YOUR ${ghostChoice === 'best' ? 'BEST' : 'LAST'} RUN` : ghostPick.ownerName} · ${fmtRunClock(ghostPick.totalSec)}` : `GHOST MODE · ${usesMachine ? 'INDOOR' : 'OUTDOOR'}`}
                       </div>
                       <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 2, lineHeight: 1.3 }}>
-                        {ghostPick ? 'Race the replay. The coach calls who leads.' : (ghostLast || ghostBest) ? 'Beat your last run or your best at this distance.' : `Finish a GPS run at ${effGoalDistance} ${distanceUnit} to create your ghost.`}
+                        {ghostPick
+                          ? `Race the replay. The coach calls who leads. ${usesMachine ? 'Indoor runs race indoor ghosts.' : ''}`
+                          : (ghostLast || ghostBest)
+                            ? `Beat your last ${usesMachine ? 'indoor' : 'outdoor'} run or your best at this distance.`
+                            : `Finish ${usesMachine ? 'a machine' : 'a GPS'} run at ${effGoalDistance} ${distanceUnit} to create your ${usesMachine ? 'indoor' : 'outdoor'} ghost.`}
                       </div>
                     </div>
                   </div>
