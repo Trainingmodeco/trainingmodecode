@@ -3,6 +3,7 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
 import useMiniPlayer from './hooks/useMiniPlayer';
+import useCadence from './hooks/useCadence';
 import MiniPlayerButton from './shared/MiniPlayerButton';
 import { ARCADE } from './ArcadeUI';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
@@ -207,6 +208,11 @@ export default function CardioProtocolPlayer({
   subLabel,
   manualOnly = false,
   distanceMode = false,
+  // Which rhythm to look for on a timed machine. An elliptical and a stair
+  // climber cannot give us a distance worth showing, so cadence and calories
+  // are what the session has to offer — and cadence is the more useful of the
+  // two anyway, because it is the thing the athlete can act on mid-set.
+  cadenceKind = null,
   useGps = false,
   randomSurges = false,
   distanceTargetLabel = null,
@@ -297,6 +303,10 @@ export default function CardioProtocolPlayer({
     };
   }, [remaining, running, done, seg, segIndex, segments, rounds, format]);
   const mini = useMiniPlayer(miniFrame, !done && !showManual);
+
+  // No speed is known on a timed machine, so the stride cross-check is skipped
+  // (it is permissive without one) and the impulse test carries the meter.
+  const cadence = useCadence({ active: !!cadenceKind && running && !done && !showManual, kind: cadenceKind || 'run' });
 
   // Deliberately NO auto-pause on backgrounding any more. Owner's call after
   // running with it: the timer keeps running regardless of where the athlete
@@ -654,6 +664,32 @@ export default function CardioProtocolPlayer({
         <div style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: GOLD, opacity: 0.85, marginTop: 8 }}>
           Target: {distanceLabel}
         </div>
+      )}
+
+      {cadenceKind && cadence.rate != null && (
+        <div style={{
+          display: 'inline-flex', alignItems: 'baseline', gap: 7, marginTop: 10,
+          padding: '6px 14px', borderRadius: 99,
+          background: 'rgba(8,2,18,0.6)', border: '1px solid rgba(168,85,247,0.3)',
+        }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.14em' }}>{cadence.band.label}</span>
+          <span style={{
+            fontFamily: "'Orbitron',sans-serif", fontSize: 17, fontWeight: 900,
+            color: cadence.verdict === 'good' ? '#8fe8ac' : cadence.verdict === 'low' ? '#ff9a52' : '#c9a6ff',
+          }}>{cadence.rate}</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 700, color: '#6f6790', letterSpacing: '0.1em' }}>
+            {cadence.band.unit}{cadence.verdict === 'good' ? ' · GOOD' : cadence.verdict === 'low' ? ' · LOW' : cadence.verdict === 'high' ? ' · HIGH' : ''}
+          </span>
+        </div>
+      )}
+      {cadenceKind && cadence.supported && cadence.permission === 'prompt' && !done && (
+        <button
+          type="button"
+          onClick={cadence.requestPermission}
+          style={{ marginTop: 10, borderRadius: 10, border: '1px solid rgba(168,85,247,0.4)', background: 'rgba(124,58,237,0.14)', color: '#d6c2ff', fontFamily: ARCADE.fontBody, fontSize: 10, padding: '8px 14px', cursor: 'pointer' }}
+        >
+          TRACK MY CADENCE — allow motion
+        </button>
       )}
 
       {!done && (

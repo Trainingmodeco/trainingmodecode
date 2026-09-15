@@ -18,6 +18,7 @@ import SafeImage from './SafeImage';
 import { unlockAudio } from './data/audioEngine';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
+import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance, trackingLabel } from './data/cardioEquipment';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
@@ -45,12 +46,15 @@ function computeAutoPace(distance, unit, level, targetSeconds) {
   };
 }
 
-// Simplified method taxonomy (design 12a). Four categories; the category IS the
-// selection (no sub-method chips). Each maps to a representative CARDIO_ADDON_TYPE
-// that decides distance-vs-time + whether GPS applies.
+// Four categories. RUNNING and MACHINE are now GROUPS that open an equipment
+// screen rather than being the selection themselves — a park and a belt need
+// opposite tracking, and a bike and an elliptical differ in whether a distance
+// can honestly be produced at all. See data/cardioEquipment.js. ALTERNATE and
+// EXERCISE are still selected directly; there is no equipment to disambiguate.
+const EQUIPMENT_GROUPS = ['running', 'machine'];
 const METHOD_CATEGORIES = [
   { id: 'running', label: 'RUNNING', icon: '🏃', sub: 'Outdoor GPS · Treadmill', type: 'outdoor-run', methodLabel: 'Running' },
-  { id: 'machine', label: 'MACHINE', icon: '⚙️', sub: 'Elliptical · Row · Stairs · Bike', type: 'bike', methodLabel: 'Machine' },
+  { id: 'machine', label: 'MACHINE', icon: '⚙️', sub: 'Bike · Rower · Elliptical · Stairs', type: 'bike', methodLabel: 'Machine' },
   { id: 'alternate', label: 'ALTERNATE', icon: '🥊', sub: 'Rope · Burpees · Swim · Shadowbox', type: 'jump-rope', methodLabel: 'Alternate' },
   { id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Climbers · Knees · Squats · KB', type: 'mountain-climbers', methodLabel: 'Exercise' },
 ];
@@ -167,33 +171,44 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const [customTargetMin, setCustomTargetMin] = useState(rs?.customTargetMin ?? '');
   // Ghost mode: 'off' | 'last' | 'best'. A hub entry can preselect it.
   const [ghostChoice, setGhostChoice] = useState(() => (entry?.ghost === 'last' || entry?.ghost === 'best') ? entry.ghost : 'off');
-  const [noGps, setNoGps] = useState(!!rs?.noGps);
+  // The chosen equipment, remembered per group: switching to MACHINE and back
+  // should not forget that you were on a treadmill.
+  const [eqByGroup, setEqByGroup] = useState(rs?.eqByGroup ?? { running: defaultEquipment('running'), machine: defaultEquipment('machine') });
+  // Which group's equipment screen is open, or null for the setup screen.
+  const [pickerGroup, setPickerGroup] = useState(null);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
   const category = METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0];
-  const cardioType = category.type;
+  const hasEquipment = EQUIPMENT_GROUPS.includes(categoryId);
+  const equipment = hasEquipment ? equipmentById(eqByGroup[categoryId]) : null;
+  const cardioType = equipment ? equipment.cardioType : category.type;
   const method = getMethod(cardioType);
-  const supportsDistance = method.supportsDistance;
-  const methodLabel = category.methodLabel;
+  const methodLabel = equipment ? equipment.methodLabel : category.methodLabel;
   const level = getLevel(loadStats().xp);
 
-  const useDistanceGauge = supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
-  const showTimeGoal = !supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
+  // Whether a distance can be shown is now the EQUIPMENT's claim, not the
+  // method table's. A rower's console does hold a real distance, but nothing
+  // feeds it to us live, so it is timed on screen and its metres are taken at
+  // the end — the method table's `supportsDistance: true` would have produced a
+  // distance we could not stand behind for the whole session.
+  const distanceCapable = equipment ? tracksDistance(equipment) : method.supportsDistance;
+  const goalPhase = style === 'steady' || (style === 'intervals' && intervalMode === 'random');
+  const useDistanceGauge = distanceCapable && goalPhase;
+  const showTimeGoal = !distanceCapable && goalPhase;
   const showConfigCard = style === 'tabata' || style === 'hiit' || (style === 'intervals' && intervalMode === 'target');
-  const usesGps = cardioType === 'outdoor-run' && useDistanceGauge && !noGps;
-  // Indoors — a treadmill, or anything in the MACHINE category — distance now
-  // comes from the machine's own speed instead of being estimated at the target
-  // pace. That was circular: it replayed the goal, so the run always finished
-  // exactly on time and the pace coach had to stay silent.
-  const usesMachine = useDistanceGauge && !usesGps;
+  const usesGps = equipment?.tracking === 'gps' && useDistanceGauge;
+  // Indoors, distance comes from the machine's own speed instead of being
+  // estimated at the target pace. That was circular: it replayed the goal, so
+  // the run always finished exactly on time and the coach had to stay silent.
+  const usesMachine = equipment?.tracking === 'speed' && useDistanceGauge;
   const surface = usesMachine ? 'machine' : 'gps';
   // Which rhythm the cadence meter should look for. The bands do not overlap,
   // and looking for the wrong one finds nothing.
-  const cadenceKind = cardioType === 'row-machine' ? 'row'
-    : cardioType === 'stair-climber' ? 'stairs'
-      : (cardioType === 'bike' || cardioType === 'assault-bike') ? 'bike'
-        : 'run';
+  const cadenceKind = equipment?.cadenceKind || 'run';
+  // Equipment with a console distance we cannot read live (the rower): timed on
+  // screen, real number typed in at the end.
+  const consoleUnit = equipment?.tracking === 'console' ? equipment.consoleUnit : null;
 
   const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
   const parsedCustomDist = parseFloat(customDistance);
@@ -214,7 +229,16 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
       : style === 'tabata' ? 'Tabata' : 'HIIT';
 
-  const selectCategory = (catId) => { setCategoryId(catId); setNoGps(false); };
+  // Tapping RUNNING or MACHINE opens its equipment screen; the other two select
+  // directly, because there is nothing to disambiguate.
+  const selectCategory = (catId) => {
+    setCategoryId(catId);
+    if (EQUIPMENT_GROUPS.includes(catId)) setPickerGroup(catId);
+  };
+  const chooseEquipment = (eqId) => {
+    setEqByGroup(prev => ({ ...prev, [pickerGroup]: eqId }));
+    setPickerGroup(null);
+  };
 
   const pickProtocol = (id) => {
     setStyle(id);
@@ -270,7 +294,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const setupSnapRef = useRef(null);
   setupSnapRef.current = {
     categoryId, style, intervalMode, cfgByStyle, goalDistance, distanceUnit,
-    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, noGps,
+    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, eqByGroup,
   };
   const reportProtocol = useCallback((st) => {
     onSessionState?.({ live: true, protocol: st, setup: setupSnapRef.current });
@@ -298,6 +322,77 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
     return () => clearInterval(t);
   }, [phase]);
 
+  // ── EQUIPMENT SCREEN ──────────────────────────────────────────────────────
+  // Reached by tapping RUNNING or MACHINE. What you are standing on decides how
+  // the session can honestly be measured, so each card states its own tracking
+  // rather than leaving the athlete to find out mid-run.
+  if (pickerGroup) {
+    const options = equipmentInGroup(pickerGroup);
+    const groupCat = METHOD_CATEGORIES.find(c => c.id === pickerGroup);
+    const currentId = eqByGroup[pickerGroup];
+    return (
+      <PhoneFrame useBrandBg>
+        <Embers count={2}/>
+        <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={8}/>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '12px 16px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <button onClick={() => setPickerGroup(null)} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
+              <ChevronLeft size={22}/>
+            </button>
+            <IntroLogo size={26}/>
+          </div>
+
+          <div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: GOLD, letterSpacing: '0.12em', marginBottom: 3 }}>
+            {groupCat?.label || 'EQUIPMENT'}
+          </div>
+          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted, marginBottom: 14, lineHeight: 1.35 }}>
+            What are you on? Each one is tracked differently.
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {options.map(eq => {
+              const active = currentId === eq.id;
+              return (
+                <button key={eq.id} onClick={() => chooseEquipment(eq.id)} style={{
+                  textAlign: 'left', padding: '12px 13px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
+                  background: active ? 'rgba(253,224,71,0.1)' : 'rgba(14,2,28,0.62)',
+                  border: active ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
+                  boxShadow: active ? '0 0 16px rgba(253,224,71,0.16)' : 'none',
+                  display: 'flex', alignItems: 'flex-start', gap: 11,
+                }}>
+                  <span style={{ fontSize: 20, lineHeight: 1.1, flexShrink: 0 }}>{eq.icon}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ fontFamily: ARCADE.fontHead, fontSize: 11, fontWeight: 900, letterSpacing: '0.06em', color: active ? GOLD : '#e6d4ff' }}>{eq.label}</span>
+                      {active && <span style={{ fontFamily: ARCADE.fontHead, fontSize: 7.5, fontWeight: 800, color: GOLD, letterSpacing: '0.1em' }}>SELECTED</span>}
+                    </span>
+                    <span style={{ display: 'block', fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 3, lineHeight: 1.35 }}>{eq.blurb}</span>
+                    <span style={{
+                      display: 'inline-block', marginTop: 6, padding: '3px 8px', borderRadius: 99,
+                      background: tracksDistance(eq) ? 'rgba(34,197,94,0.12)' : 'rgba(176,106,255,0.14)',
+                      border: `1px solid ${tracksDistance(eq) ? 'rgba(34,197,94,0.4)' : 'rgba(176,106,255,0.4)'}`,
+                      fontFamily: ARCADE.fontHead, fontSize: 7.5, fontWeight: 800, letterSpacing: '0.08em',
+                      color: tracksDistance(eq) ? '#8fe8ac' : '#d6c2ff',
+                    }}>
+                      {tracksDistance(eq) ? 'DISTANCE GOAL' : 'TIME GOAL'}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Pinned to the bottom so a two-item list does not leave a hole in
+              the middle of the screen. */}
+          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 'auto', paddingTop: 18, lineHeight: 1.4 }}>
+            Machines without a distance we can trust are timed instead. We would
+            rather show you no distance than one we made up.
+          </div>
+        </div>
+      </PhoneFrame>
+    );
+  }
+
   if (phase === 'gps') {
     return (
       <PhoneFrame useBrandBg>
@@ -307,7 +402,12 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             <button onClick={() => setPhase('setup')} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}><ChevronLeft size={22}/></button>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <EmptyState preset="gps" onPrimary={startCardio} onSecondary={() => { setNoGps(true); setPhase('player'); }} style={{ width: '100%' }}/>
+            <EmptyState
+              preset="gps"
+              onPrimary={startCardio}
+              onSecondary={() => { setEqByGroup(prev => ({ ...prev, running: 'treadmill' })); setPhase('setup'); }}
+              style={{ width: '100%' }}
+            />
           </div>
         </div>
       </PhoneFrame>
@@ -360,6 +460,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
               headerLabel="CARDIO MODE"
               methodLabel={methodLabel}
               styleLabel={displayStyleLabel}
+              cadenceKind={cadenceKind}
               distanceLabel={useDistanceGauge ? player.distanceLabel : null}
               distanceMode={useDistanceGauge}
               useGps={usesGps}
@@ -398,6 +499,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             targetTimeSeconds={addon.targetType === 'time' ? addon.targetTimeSeconds : null}
             targetDistance={addon.targetType === 'distance' ? player.distanceLabel : null}
             initialTimeSeconds={playerResult?.completedTimeSeconds ?? fallbackTime}
+            consoleUnit={consoleUnit}
             initialDistance={typeof playerResult?.completedDistance === 'number' ? playerResult.completedDistance : null}
             initialDistanceUnit={playerResult?.distanceUnit || addon.distanceUnit || 'mi'}
             runResult={playerResult?.splits ? playerResult : null}
@@ -461,6 +563,11 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 14 }}>
             {METHOD_CATEGORIES.map(cat => {
               const active = categoryId === cat.id;
+              const group = EQUIPMENT_GROUPS.includes(cat.id);
+              // An active group card shows the equipment you are actually on,
+              // so the choice is legible from the setup screen without opening
+              // anything. Tapping it goes back to the picker.
+              const chosen = group && active ? equipmentById(eqByGroup[cat.id]) : null;
               return (
                 <button key={cat.id} onClick={() => selectCategory(cat.id)} style={{
                   textAlign: 'left', padding: '8px 10px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
@@ -469,37 +576,19 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                   boxShadow: active ? '0 0 14px rgba(253,224,71,0.16)' : 'none', transition: 'all 0.15s',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 10 }}>{cat.icon}</span>
-                    <span style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: active ? GOLD : '#c4b5fd' }}>{cat.label}</span>
+                    <span style={{ fontSize: 10 }}>{chosen ? chosen.icon : cat.icon}</span>
+                    <span style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: active ? GOLD : '#c4b5fd' }}>
+                      {chosen ? chosen.label : cat.label}
+                    </span>
+                    {group && active && <span style={{ marginLeft: 'auto', fontSize: 9, color: GOLD }}>⌄</span>}
                   </div>
-                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, lineHeight: 1.25 }}>{cat.sub}</div>
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, lineHeight: 1.25 }}>
+                    {chosen ? trackingLabel(chosen) : cat.sub}
+                  </div>
                 </button>
               );
             })}
           </div>
-
-          {/* OUTDOOR vs TREADMILL. Until now the only route into treadmill mode
-              was to be DENIED location — an athlete standing on a belt with GPS
-              happily granted would pick RUNNING and watch the distance sit at
-              zero, because there is no satellite movement to measure. This is
-              the same choice, asked before the run instead of after it fails. */}
-          {categoryId === 'running' && useDistanceGauge && (
-            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-              {[
-                { id: false, label: '🛰 OUTDOOR', sub: 'GPS' },
-                { id: true, label: '🏃 TREADMILL', sub: 'Machine speed' },
-              ].map(o => (
-                <button key={String(o.id)} onClick={() => setNoGps(o.id)} style={{
-                  flex: 1, padding: '7px 10px', borderRadius: ARCADE.radius.sm, cursor: 'pointer', textAlign: 'left',
-                  background: noGps === o.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.6)',
-                  border: noGps === o.id ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 9.5, letterSpacing: '0.05em', color: noGps === o.id ? GOLD : '#c4b5fd' }}>{o.label}</div>
-                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 8.5, color: C.muted, marginTop: 1 }}>{o.sub}</div>
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* PROTOCOL */}
           </div>

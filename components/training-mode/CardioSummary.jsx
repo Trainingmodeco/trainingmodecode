@@ -41,6 +41,10 @@ export default function CardioSummary({
   initialTimeSeconds = 0,
   initialDistance = null,
   initialDistanceUnit = 'mi',
+  // A rower's console holds a real distance in METRES that nothing feeds us
+  // live. Rather than invent one during the session, ask for it here in the
+  // unit the console actually shows, and convert on the way into the log.
+  consoleUnit = null,
   runResult = null,
   awardXp = true,
   onDone,
@@ -54,7 +58,10 @@ export default function CardioSummary({
   // prefills it, rather than asking the athlete to type a number the app
   // already recorded.
   const [distance, setDistance] = useState(typeof initialDistance === 'number' && initialDistance > 0 ? String(initialDistance) : '');
-  const [distanceUnit, setDistanceUnit] = useState(initialDistanceUnit || 'mi');
+  const [distanceUnit, setDistanceUnit] = useState(consoleUnit === 'm' ? 'km' : (initialDistanceUnit || 'mi'));
+  // Typed in metres, stored in km — the rest of the app has no metre unit and
+  // adding one for a single machine would ripple into every total and chart.
+  const [metres, setMetres] = useState('');
   // A measured run already knows roughly what it cost — prefill the estimate rather
   // than leaving the athlete to guess a number the app can work out.
   const [calories, setCalories] = useState(runResult?.calories ? String(runResult.calories) : '');
@@ -249,24 +256,45 @@ export default function CardioSummary({
           </div>
         </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <span style={fieldLabel}>DISTANCE <span style={{ color: C.muted, letterSpacing: 0 }}>(optional)</span></span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input type="text" inputMode="decimal" placeholder="e.g. 5" value={distance}
-              onChange={(e) => setDistance(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-            <div style={{ display: 'flex', gap: 4 }}>
-              {['km', 'mi'].map(u => (
-                <button key={u} onClick={() => setDistanceUnit(u)} style={{
-                  padding: '0 14px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
-                  background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
-                  border: distanceUnit === u ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                  color: distanceUnit === u ? ARCADE.gold : C.muted,
-                  fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
-                }}>{u.toUpperCase()}</button>
-              ))}
+        {consoleUnit === 'm' ? (
+          <div style={{ marginBottom: 14 }}>
+            <span style={fieldLabel}>METRES <span style={{ color: C.muted, letterSpacing: 0 }}>(from the console)</span></span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                type="text" inputMode="numeric" placeholder="e.g. 2000" value={metres}
+                onChange={(e) => {
+                  setMetres(e.target.value);
+                  const m = parseFloat(e.target.value);
+                  setDistance(Number.isFinite(m) && m > 0 ? String(+(m / 1000).toFixed(3)) : '');
+                }}
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <span style={{ fontFamily: ARCADE.fontHead, fontSize: 11, fontWeight: 700, color: ARCADE.gold, letterSpacing: '0.06em' }}>M</span>
+            </div>
+            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 5 }}>
+              Optional. Logged as {distance ? `${distance} km` : 'kilometres'}.
             </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ marginBottom: 14 }}>
+            <span style={fieldLabel}>DISTANCE <span style={{ color: C.muted, letterSpacing: 0 }}>(optional)</span></span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input type="text" inputMode="decimal" placeholder="e.g. 5" value={distance}
+                onChange={(e) => setDistance(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+              <div style={{ display: 'flex', gap: 4 }}>
+                {['km', 'mi'].map(u => (
+                  <button key={u} onClick={() => setDistanceUnit(u)} style={{
+                    padding: '0 14px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
+                    background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
+                    border: distanceUnit === u ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
+                    color: distanceUnit === u ? ARCADE.gold : C.muted,
+                    fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+                  }}>{u.toUpperCase()}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ marginBottom: 14 }}>
           <span style={fieldLabel}>CALORIES <span style={{ color: C.muted, letterSpacing: 0 }}>(optional)</span></span>
