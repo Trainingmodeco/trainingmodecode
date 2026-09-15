@@ -37,7 +37,7 @@ const repCadenceMs = (d, category) => {
   return Math.round(base * (CAT_PACE[category] || 1));
 };
 
-export default function CampFitSetRunner({ cfg, onEnd }) {
+export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   const packId = cfg.voicePack || 'coach';
   const vOpts = packOpts(packId);
@@ -49,29 +49,54 @@ export default function CampFitSetRunner({ cfg, onEnd }) {
   const isWeighted = useMemo(() => basePrescription.some((e) => e.weighted || e.load_type === 'weighted'), [basePrescription]);
 
   // Phase machine: 'review' (weighted only) → 'countdown' → 'work'|'rest' → 'done'.
-  const [phase, setPhase] = useState(isWeighted ? 'review' : 'countdown');
+  // A restored session re-enters at the phase it was in, never at 'review' — the
+  // loads were already chosen, and asking for them again would discard the sets
+  // already logged against them.
+  const [phase, setPhase] = useState(initialResumeData?.phase ?? (isWeighted ? 'review' : 'countdown'));
 
   // ── Weighted review/generate setup ─────────────────────────────────────────
   const [setup, setSetup] = useState(() => (isWeighted ? initWeightedSetup(basePrescription) : null));
-  const [session, setSession] = useState(isWeighted ? null : basePrescription);
+  // The resolved plan is carried in the stash: for a weighted block it is
+  // generated from the review, so it cannot be rebuilt from cfg alone.
+  const [session, setSession] = useState(initialResumeData?.session ?? (isWeighted ? null : basePrescription));
 
   // ── Counted run state ──────────────────────────────────────────────────────
   const total = useMemo(() => (session ? session.length : 0), [session]);
-  const [exIdx, setExIdx] = useState(0);
-  const [setIdx, setSetIdx] = useState(0);      // current set within the movement
-  const [reps, setReps] = useState(0);          // reps counted this set (or seconds for holds)
-  const [restLeft, setRestLeft] = useState(0);
-  const [countdown, setCountdown] = useState('3');
-  const [paused, setPaused] = useState(false);
+  const [exIdx, setExIdx] = useState(initialResumeData?.exIdx ?? 0);
+  const [setIdx, setSetIdx] = useState(initialResumeData?.setIdx ?? 0);      // current set within the movement
+  const [reps, setReps] = useState(initialResumeData?.reps ?? 0);          // reps counted this set (or seconds for holds)
+  const [restLeft, setRestLeft] = useState(initialResumeData?.restLeft ?? 0);
+  const [countdown, setCountdown] = useState(initialResumeData ? null : '3');
+  const [paused, setPaused] = useState(!!initialPaused);
   const [confirmEnd, setConfirmEnd] = useState(false);
-  const [inFinisher, setInFinisher] = useState(false);
-  const [finIdx, setFinIdx] = useState(0);
+  const [inFinisher, setInFinisher] = useState(!!initialResumeData?.inFinisher);
+  const [finIdx, setFinIdx] = useState(initialResumeData?.finIdx ?? 0);
 
   const cur = session ? session[Math.min(exIdx, total - 1)] : null;
   const integrity = useIntegritySession('combatConditioning', total || 1);
   const startedRef = useRef(false);
   const setStartRef = useRef(0);
   const doneRef = useRef(false);
+
+  // A restored block never passes through the countdown effect (its phase is
+  // already 'work' or 'rest'), so the integrity unit and the set clock have to
+  // be opened here instead — otherwise completeUnit() later closes a unit that
+  // was never started.
+  useEffect(() => {
+    if (!initialResumeData || startedRef.current) return;
+    startedRef.current = true;
+    setStartRef.current = Date.now();
+    integrity.startUnit('circuit');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Report the position upward so App.jsx can stash it. The resolved plan rides
+  // along because a weighted block's loads come from the review, not from cfg.
+  useEffect(() => {
+    if (typeof onStateChange !== 'function') return;
+    if (phase === 'review' || phase === 'done') return;
+    onStateChange({ phase, exIdx, setIdx, reps, restLeft, inFinisher, finIdx, session });
+  }, [phase, exIdx, setIdx, reps, restLeft, inFinisher, finIdx, session, onStateChange]);
 
   // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
   useAutoPauseOnHidden(

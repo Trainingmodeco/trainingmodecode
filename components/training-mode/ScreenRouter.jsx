@@ -103,7 +103,13 @@ function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit, is
   // shared striking ring timer. Both produce the same onEnd shape.
   // Spec 27 — a prescribed Arcade fit stage runs the COUNTED-SETS runner (reps
   // counted, weighted review, finishers); legacy timed circuits keep CampFitRunner.
-  if (fit) return cfg.prescription?.length ? <CampFitSetRunner cfg={cfg} onEnd={onEnd} /> : <CampFitRunner cfg={cfg} onEnd={onEnd} />;
+  // Conditioning blocks restore the same way: the counted-sets runner brings
+  // back its movement, set, reps and resolved plan; the timed runner its round
+  // and clock. Both open held so nothing is banked while the phone was away.
+  const resumeProps = { initialPaused: !!isResuming, onStateChange, initialResumeData: resumeData };
+  if (fit) return cfg.prescription?.length
+    ? <CampFitSetRunner cfg={cfg} onEnd={onEnd} {...resumeProps} />
+    : <CampFitRunner cfg={cfg} onEnd={onEnd} {...resumeProps} />;
   // Skill blocks are the shared round timer, so a camp round restores its round
   // number and its clock exactly the way Fight Focus does.
   return (
@@ -308,7 +314,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'camp_full' && campCtx?.cfgSkill && campCtx?.cfgFit) {
     // FULL CAMP — warm-up, then skill block → transition → conditioning block.
     const bossBellFull = !!campCtx.cfgSkill.bossFinale && !!campCtx?.arcade;
-    const fullSession = <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} />;
+    const fullSession = <CampFullSession discipline={disc} cfgSkill={campCtx.cfgSkill} cfgFit={campCtx.cfgFit} onComplete={goCampFullComplete} initialPaused={!!isResuming} onStateChange={reportSessionState} initialResumeData={resumeData} />;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <AnswerTheBellHost
@@ -543,7 +549,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         {/* TM-16 census caught this: CardioMode only accepts onBack — the
             onHome prop was passed and silently dropped. */}
-        <CardioMode onBack={goFitHub} onSessionState={reportSessionState} entry={cardioEntry}/>
+        <CardioMode onBack={goFitHub} onSessionState={reportSessionState} entry={cardioEntry} resumeData={resumeData}/>
       </WithNav>
     );
   }
@@ -575,6 +581,8 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
         sourceMode={cardioContext.mode}
         onComplete={finishCardioFinisher}
         onSkip={skipCardioFinisher}
+        onStateChange={reportSessionState}
+        initialResumeData={resumeData}
       />
     );
   }

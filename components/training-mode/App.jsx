@@ -455,7 +455,11 @@ export default function App() {
     // app's normal resume flow picks it up) instead of silently abandoning it.
     goFitHub:      () => { pauseCurrentSession(); setScreen('fit_hub'); },
     goFitSetup:    () => { pauseCurrentSession(); setScreen('fit_setup'); },
-    goCardioMode:  (opts) => { setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
+    // Cardio Mode is a SETUP screen that becomes a session, so unlike every
+    // other session entry it was not clearing resumeData. Now that an interval
+    // session restores from it, a stale one would drop somebody who tapped
+    // CARDIO MODE straight back into a Tabata they finished yesterday.
+    goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     goWorkoutCodec: () => setScreen('workout_codec'),
     goQuickMissionSetup: () => setScreen('qm_setup'),
     goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },

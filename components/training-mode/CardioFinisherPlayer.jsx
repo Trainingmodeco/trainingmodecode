@@ -14,7 +14,7 @@ const NEON = C.neon;
 // Intermediate screen after the main workout completes. Runs the cardio
 // finisher, logs the cardio session (awarding cardio XP once), then hands a
 // cardioResult back to the parent so the summary can show it.
-export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, onSkip }) {
+export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, onSkip, onStateChange, initialResumeData }) {
   const player = cardioAddonToPlayer(addon);
   const firedRef = useRef(false);
 
@@ -110,6 +110,8 @@ export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, on
             distanceMode={addon.targetType === 'distance'}
             distanceTargetLabel={player.distanceLabel}
             initialDistanceUnit={addon.distanceUnit || 'mi'}
+            onStateChange={onStateChange}
+            initialResumeData={initialResumeData}
             onComplete={finish}
           />
         </div>

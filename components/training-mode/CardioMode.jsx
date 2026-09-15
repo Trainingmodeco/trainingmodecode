@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import PhoneFrame from './PhoneFrame';
 import VoiceMixer from './shared/VoiceMixer';
@@ -144,25 +144,30 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
 
 // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
 // pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
-export default function CardioMode({ onBack, onSessionState, entry = null }) {
+export default function CardioMode({ onBack, onSessionState, entry = null, resumeData = null }) {
+  // A restored INTERVAL/TABATA/HIIT session. Distance runs have their own live
+  // store (data/liveRun.js); the protocol player had nothing, so a Tabata lost
+  // to a phone call was simply gone. The stash carries the whole setup, because
+  // the player is rebuilt from it and cfg lives in this component.
+  const rs = resumeData?.setup || null;
   // A run that is still live (the athlete left the player, the app, or the
   // OS took it) comes straight back into the player. See data/liveRun.js.
   const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
-  const [phase, setPhase] = useState(() => (loadLiveRun() ? 'player' : 'setup'));
-  const [categoryId, setCategoryId] = useState('running');
-  const [style, setStyle] = useState('steady');
-  const [intervalMode, setIntervalMode] = useState('target'); // 'random' | 'target'
-  const [cfgByStyle, setCfgByStyle] = useState(CFG_DEFAULTS);
+  const [phase, setPhase] = useState(() => (loadLiveRun() || resumeData?.protocol ? 'player' : 'setup'));
+  const [categoryId, setCategoryId] = useState(rs?.categoryId ?? 'running');
+  const [style, setStyle] = useState(rs?.style ?? 'steady');
+  const [intervalMode, setIntervalMode] = useState(rs?.intervalMode ?? 'target'); // 'random' | 'target'
+  const [cfgByStyle, setCfgByStyle] = useState(rs?.cfgByStyle ?? CFG_DEFAULTS);
   const [configOpen, setConfigOpen] = useState(false);
-  const [goalDistance, setGoalDistance] = useState(5);
-  const [distanceUnit, setDistanceUnit] = useState('km');
-  const [customDistance, setCustomDistance] = useState('');
-  const [goalTimeSeconds, setGoalTimeSeconds] = useState(1200);
-  const [customTimeMin, setCustomTimeMin] = useState('');
-  const [customTargetMin, setCustomTargetMin] = useState('');
+  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? 5);
+  const [distanceUnit, setDistanceUnit] = useState(rs?.distanceUnit ?? 'km');
+  const [customDistance, setCustomDistance] = useState(rs?.customDistance ?? '');
+  const [goalTimeSeconds, setGoalTimeSeconds] = useState(rs?.goalTimeSeconds ?? 1200);
+  const [customTimeMin, setCustomTimeMin] = useState(rs?.customTimeMin ?? '');
+  const [customTargetMin, setCustomTargetMin] = useState(rs?.customTargetMin ?? '');
   // Ghost mode: 'off' | 'last' | 'best'. A hub entry can preselect it.
   const [ghostChoice, setGhostChoice] = useState(() => (entry?.ghost === 'last' || entry?.ghost === 'best') ? entry.ghost : 'off');
-  const [noGps, setNoGps] = useState(false);
+  const [noGps, setNoGps] = useState(!!rs?.noGps);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -243,6 +248,19 @@ export default function CardioMode({ onBack, onSessionState, entry = null }) {
   };
 
   const addon = buildAddon();
+
+  // The protocol player reports its clock upward so App.jsx stashes it, and the
+  // whole setup rides along because the player cannot be rebuilt without it.
+  // Assigning the ref during render is deliberate: it always holds THIS render's
+  // values, so the report never stashes a stale setup.
+  const setupSnapRef = useRef(null);
+  setupSnapRef.current = {
+    categoryId, style, intervalMode, cfgByStyle, goalDistance, distanceUnit,
+    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, noGps,
+  };
+  const reportProtocol = useCallback((st) => {
+    onSessionState?.({ live: true, protocol: st, setup: setupSnapRef.current });
+  }, [onSessionState]);
 
   // START goes straight into the player, which speaks the brief and starts the
   // clock itself. It used to probe getCurrentPosition first with an 8-second
@@ -336,7 +354,9 @@ export default function CardioMode({ onBack, onSessionState, entry = null }) {
               goalDistance={addon.targetDistance}
               initialDistanceUnit={addon.distanceUnit}
               deferManualLog={useDistanceGauge}
-              onComplete={(result) => { setPlayerResult(result); setPhase('summary'); }}
+              onStateChange={reportProtocol}
+              initialResumeData={resumeData?.protocol || null}
+              onComplete={(result) => { onSessionState?.(null); setPlayerResult(result); setPhase('summary'); }}
             />
             )}
           </div>

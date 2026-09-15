@@ -218,25 +218,47 @@ export default function CardioProtocolPlayer({
   autoStart = false,
   voice = true,
   onComplete,
+  // No initialPaused here: a restored cardio block ALWAYS opens held, because
+  // its clock is wall time and resuming it silently would bank seconds the
+  // athlete spent away from the phone.
+  onStateChange,
+  initialResumeData,
 }) {
   const buildRef = useRef(null);
   if (!buildRef.current) buildRef.current = buildSegments(format, durationSeconds, intervalConfig);
   const { segments, rounds } = buildRef.current;
 
-  const [segIndex, setSegIndex] = useState(0);
-  const [remaining, setRemaining] = useState(segments[0].seconds);
-  const [totalElapsed, setTotalElapsed] = useState(0);
+  // A restored session opens on the segment it was in, held, with the brief
+  // already spoken. Everything below is display state; the clock itself is
+  // rebuilt in clockRef a few lines down.
+  const [segIndex, setSegIndex] = useState(initialResumeData?.segIndex ?? 0);
+  const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? segments[0].seconds);
+  const [totalElapsed, setTotalElapsed] = useState(initialResumeData?.effElapsed ?? 0);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [showManual, setShowManual] = useState(manualOnly);
-  const [starting, setStarting] = useState(!!autoStart && !manualOnly);
+  const [starting, setStarting] = useState(initialResumeData ? false : (!!autoStart && !manualOnly));
   const firedRef = useRef(false);
   const tickRef = useRef(null);
   // Wall-clock timing. A 1-second setInterval counter drifts and stops the
   // moment the browser throttles a background tab; timestamps do not. The
   // clock is startedAt + accumulated pause time, and the nudge buttons move an
   // offset, so leaving the app never freezes a session.
-  const clockRef = useRef({ startedAt: null, pauseAccumMs: 0, pausedAt: null, offsetSec: 0 });
+  // Everything the player shows is derived from this, so restoring a session is
+  // one number: put the elapsed seconds into offsetSec and start held. Tapping
+  // RESUME then folds the held time into pauseAccumMs, leaving raw elapsed at
+  // zero and the effective clock exactly where the athlete left it.
+  const clockRef = useRef(
+    initialResumeData
+      ? { startedAt: Date.now(), pauseAccumMs: 0, pausedAt: Date.now(), offsetSec: initialResumeData.effElapsed || 0 }
+      : { startedAt: null, pauseAccumMs: 0, pausedAt: null, offsetSec: 0 },
+  );
+  // On a restore the wall clock restarts at zero and the time already served
+  // lives in offsetSec. The tick therefore has to add that base back when it
+  // sets the DISPLAYED total, or the session would appear to rewind to 0:00 the
+  // moment the athlete taps RESUME. Zero for a fresh session, so nothing about
+  // the normal path changes.
+  const displayBaseRef = useRef(initialResumeData?.effElapsed || 0);
   const lastSpokenSegRef = useRef(-1);
   const lastBeepSecRef = useRef(-1);
 
@@ -306,7 +328,7 @@ export default function CardioProtocolPlayer({
       if (c.startedAt == null) c.startedAt = Date.now();
       const raw = (Date.now() - c.startedAt - c.pauseAccumMs) / 1000;
       const elapsed = Math.max(0, Math.floor(raw));
-      setTotalElapsed(elapsed);
+      setTotalElapsed(elapsed + displayBaseRef.current);
       if (distanceMode) return;
       const eff = Math.max(0, elapsed + c.offsetSec);
       if (eff >= total) { setRemaining(0); setDone(true); setRunning(false); return; }
@@ -321,6 +343,14 @@ export default function CardioProtocolPlayer({
   }, [running, done, showManual, distanceMode, segments]);
 
   const nudge = (deltaSec) => { clockRef.current.offsetSec += deltaSec; };
+
+  // Report the clock upward so App.jsx can stash it. effElapsed folds in the
+  // nudge offset, so the number reported is the one the athlete can see.
+  useEffect(() => {
+    if (typeof onStateChange !== 'function' || done) return;
+    const nudged = clockRef.current.offsetSec - displayBaseRef.current;
+    onStateChange({ segIndex, remaining, totalElapsed, effElapsed: totalElapsed + nudged });
+  }, [segIndex, remaining, totalElapsed, done, onStateChange]);
 
   // Voice on every segment change, beeps into the last three seconds of a
   // block, and a bell + "Complete" at the end.

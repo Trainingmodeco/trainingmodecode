@@ -26,7 +26,7 @@ const RING_SIZE = 264;
 const RING_R = 113;
 const RING_STROKE = 12;
 
-export default function CampFitRunner({ cfg, onEnd }) {
+export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   const total = cfg.rounds || (cfg.blockRounds ? cfg.blockRounds.length : 1);
   const baseRoundSec = Math.round((cfg.roundMin || 1) * 60);
@@ -55,16 +55,25 @@ export default function CampFitRunner({ cfg, onEnd }) {
   const halfwayRef = useRef(null);
   const say = (text) => { if (cfg.voiceOn && text) speakAsync(text, vOpts); };
 
-  const [phase, setPhase] = useState('work');       // 'work' | 'rest'
-  const [roundIdx, setRoundIdx] = useState(0);
-  const [remaining, setRemaining] = useState(roundSecFor(0));
+  // A restored session seeds every clock-bearing value from the stash rather
+  // than the top of the block. Without this the athlete came back to the right
+  // screen and lost the round they were in.
+  const [phase, setPhase] = useState(initialResumeData?.phase ?? 'work');       // 'work' | 'rest'
+  const [roundIdx, setRoundIdx] = useState(initialResumeData?.roundIdx ?? 0);
+  const [remaining, setRemaining] = useState(
+    initialResumeData?.remaining ?? roundSecFor(initialResumeData?.roundIdx ?? 0),
+  );
   // 49c — the boss slam: once per session, on the reveal round's WORK phase
   // (round 10 of the 12-round burnout), holding the clock while it plays.
-  const [bossRevealDone, setBossRevealDone] = useState(false);
+  // Resuming at or past that round means it has already played; replaying a
+  // cutscene the athlete has seen is worse than skipping one they have not.
+  const [bossRevealDone, setBossRevealDone] = useState(
+    !!initialResumeData && (initialResumeData.roundIdx ?? 0) >= (total >= 12 ? 9 : total - 1),
+  );
   const [slamOpen, setSlamOpen] = useState(false);
   const bossRevealIdx = total >= 12 ? 9 : total - 1;
-  const [paused, setPaused] = useState(false);
-  const [countdown, setCountdown] = useState('3');
+  const [paused, setPaused] = useState(!!initialPaused);
+  const [countdown, setCountdown] = useState(initialResumeData ? null : '3');
   const [done, setDone] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
@@ -101,9 +110,17 @@ export default function CampFitRunner({ cfg, onEnd }) {
   useEffect(() => { roundIdxRef.current = roundIdx; }, [roundIdx]);
   useEffect(() => { doneRef.current = done; }, [done]);
 
-  // Intro: 3-2-1-GO once, then round 1 runs.
+  // Report the clock upward so App.jsx can stash it. This is what makes the
+  // block resumable at all — the snapshot is only as good as what it is told.
+  useEffect(() => {
+    if (typeof onStateChange === 'function') onStateChange({ phase, roundIdx, remaining });
+  }, [phase, roundIdx, remaining, onStateChange]);
+
+  // Intro: 3-2-1-GO once, then round 1 runs. A restored session is already
+  // underway, so it skips the count-in and picks up where it left off.
   useEffect(() => {
     if (!startedRef.current) { startedRef.current = true; integrity.startUnit('circuit'); }
+    if (initialResumeData) return undefined;
     let cancelled = false;
     (async () => {
       unlockAudio();
