@@ -10,6 +10,9 @@ import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, unlockAudio } from './data/audioEngine';
 import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
 import { recordRunGhost, ghostDistanceAt, ghostTimeAt, ghostArt } from './data/runGhosts';
+import { thinRoute } from './data/geoRoute';
+import { estimateCalories } from './data/runLog';
+import RouteMap from './shared/RouteMap';
 import SafeImage from './SafeImage';
 import {
   metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance,
@@ -47,7 +50,13 @@ const STYLES = `
 
 const TICK_MS = 250;
 const PERSIST_EVERY_MS = 4000;
-const ROUTE_MAX = 240;
+// The route is SIMPLIFIED, never truncated. The old cap shifted the OLDEST fix
+// off the front, so by mile two the first streets of the run had silently
+// vanished from the map. Now, when the raw track passes ROUTE_SOFT_MAX, RDP
+// thins it back to ROUTE_KEEP points that draw the same shape — corners kept,
+// straights dropped, start and finish always there.
+const ROUTE_SOFT_MAX = 600;
+const ROUTE_KEEP = 300;
 const SAMPLES_MAX = 90;
 
 function newRun(cfg) {
@@ -123,7 +132,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const r = runRef.current;
     saveLiveRun({
       ...r,
-      route: r.route.slice(-ROUTE_MAX),
+      route: thinRoute(r.route, ROUTE_KEEP),
       samples: r.samples.slice(-SAMPLES_MAX),
       trace: r.trace.slice(-2400),
     });
@@ -197,6 +206,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       splits: r.splits.slice(),
       goal,
       trace: r.trace.slice(),
+      // The ground covered, thinned once for storage. This is the track the
+      // finish card, the manual log and the run history all draw.
+      id: r.id,
+      route: thinRoute(r.route, 200),
+      calories: estimateCalories({ meters: d * metersPerUnit(unit), seconds: el }),
     };
     if (ghost && completed) {
       const delta = Math.round(el - ghost.totalSec);
@@ -304,13 +318,15 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           if (r.samples.length > SAMPLES_MAX) r.samples.shift();
           const last = r.trace[r.trace.length - 1];
           if (!last || el - last.t >= 3) r.trace.push({ t: Math.round(el * 10) / 10, d: +(r.meters / metersPerUnit(unit)).toFixed(4) });
-          r.route.push({ lat: fix.lat, lng: fix.lng });
-          if (r.route.length > ROUTE_MAX) r.route.shift();
+          // Each kept point carries the second it happened and the metres by
+          // then, so the map can colour any segment by the pace run on it.
+          r.route.push({ lat: fix.lat, lng: fix.lng, t: Math.round(el), m: Math.round(r.meters) });
+          if (r.route.length > ROUTE_SOFT_MAX) r.route = thinRoute(r.route, ROUTE_KEEP);
           setMeters(r.meters);
           setRoute(r.route.slice());
           persist();
         } else if (r.route.length === 0) {
-          r.route.push({ lat: fix.lat, lng: fix.lng });
+          r.route.push({ lat: fix.lat, lng: fix.lng, t: 0, m: 0 });
         }
         r.lastFix = fix;
       },
@@ -481,17 +497,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   }, [phase, running, elapsedSec, dist, goal, unit, curPace, run.cfg]);
   const mini = useMiniPlayer(miniFrame, phase !== 'done');
 
-  const routePts = (() => {
-    if (route.length >= 2) {
-      const lats = route.map(p => p.lat), lngs = route.map(p => p.lng);
-      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
-      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-      const spanLat = Math.max(1e-6, maxLat - minLat), spanLng = Math.max(1e-6, maxLng - minLng);
-      const pad = 6;
-      return route.map(p => `${(pad + ((p.lng - minLng) / spanLng) * (300 - pad * 2)).toFixed(1)},${(58 - ((p.lat - minLat) / spanLat) * 52).toFixed(1)}`).join(' ');
-    }
-    return null;
-  })();
+  // Calories burned so far. An estimate from mass, distance and time — no heart
+  // rate is involved, so every screen that shows it says EST.
+  const kcal = estimateCalories({ meters: dist * metersPerUnit(unit), seconds: elapsedSec });
 
   const mono = "'Orbitron',sans-serif";
   const label = { fontFamily: mono, fontSize: 7.5, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.12em' };
@@ -508,8 +516,14 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           <Stat label="AVG PACE" value={avg ? fmtPace(avg, unit) : '--'} />
           <Stat label="VS TARGET" value={fmtSignedDelta(result.completedTimeSeconds - result.targetSec)} color={result.beatTarget ? '#8fe8ac' : '#ff9a52'} />
           {result.eliteSec ? <Stat label="VS ELITE" value={fmtSignedDelta(result.completedTimeSeconds - result.eliteSec)} color={result.beatElite ? '#8fe8ac' : '#c9a6ff'} /> : null}
+          {result.calories ? <Stat label="KCAL EST" value={result.calories} color="#ff9a52" /> : null}
         </div>
         {result.beatElite && <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', textShadow: '0 0 12px rgba(253,224,71,0.6)' }}>★ ELITE TIME ★</div>}
+        {result.route?.length >= 2 && (
+          <div style={{ width: '100%', marginTop: 12 }}>
+            <RouteMap route={result.route} height={160} unit={unit} targetPaceSec={run.cfg.targetPaceSec} label="WHERE YOU RAN" />
+          </div>
+        )}
         {result.ghost && (
           <div style={{ width: '100%', marginTop: 12, borderRadius: 12, border: `1.5px solid ${result.ghost.outcome === 'victory' ? 'rgba(34,197,94,0.7)' : result.ghost.outcome === 'defeat' ? 'rgba(239,68,68,0.7)' : 'rgba(253,224,71,0.6)'}`, background: 'rgba(14,4,28,0.9)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <SafeImage src={ghostArt(ghost)} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', objectPosition: 'center 20%', opacity: 0.9 }}/>
@@ -575,10 +589,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         <Chip label="TARGET" value={fmtClock(run.cfg.targetSec)} sub={fmtPace(run.cfg.targetPaceSec, unit)} color="#fff" />
         {run.cfg.eliteSec ? <Chip label="ELITE" value={fmtClock(run.cfg.eliteSec)} sub={fmtPace(run.cfg.elitePaceSec, unit)} color={GOLD} /> : null}
       </div>
-      {projected != null && (
-        <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
-          <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>
-          {vsElite != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsElite <= 0 ? GOLD : '#9a90b8' }}>{fmtSignedDelta(vsElite)} VS ELITE</span>}
+      {(projected != null || kcal != null) && (
+        <div style={{ display: 'flex', gap: 14, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {projected != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>}
+          {projected != null && vsElite != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsElite <= 0 ? GOLD : '#9a90b8' }}>{fmtSignedDelta(vsElite)} VS ELITE</span>}
+          {kcal != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ff9a52' }}>🔥 {kcal} KCAL EST</span>}
         </div>
       )}
 
@@ -616,14 +631,18 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         </div>
       </div>
 
-      {/* Route trail */}
+      {/* The map — the ground actually covered, drawn to scale and coloured by
+          the pace run on each stretch. */}
       {useGps && (
-        <div style={{ width: '100%', borderRadius: 10, border: '1px solid rgba(34,197,94,0.22)', background: 'rgba(8,2,18,0.6)', padding: '6px 10px', marginTop: 8, position: 'relative' }}>
-          <svg viewBox="0 0 300 64" style={{ width: '100%', height: 34, display: 'block' }}>
-            {routePts
-              ? <polyline points={routePts} fill="none" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 3px rgba(34,197,94,0.5))' }}/>
-              : <text x="150" y="38" textAnchor="middle" fill="#5f5880" style={{ font: `700 9px ${mono}`, letterSpacing: '0.1em' }}>ROUTE DRAWS AS YOU MOVE</text>}
-          </svg>
+        <div style={{ width: '100%', marginTop: 9 }}>
+          <RouteMap
+            route={route}
+            height={124}
+            unit={unit}
+            targetPaceSec={run.cfg.targetPaceSec}
+            live
+            label="YOUR ROUTE"
+          />
         </div>
       )}
 

@@ -56,6 +56,23 @@ npm run build:web      # production build → dist/ (deploy this folder)
 
 Useful scripts: `npm run optimize:images` (WebP pipeline + manifest), `npm run check:assets` (verifies every referenced image exists), `node scripts/prune-unused-assets.mjs` (finds unreferenced art).
 
+### Optional: street tiles under the run map
+
+A GPS run records its route and draws it to scale on the app's own grid. That
+needs no key, no signal and no third party, and is the default. To put real
+streets underneath, set a raster tile template in Netlify → Environment
+variables and redeploy:
+
+```
+EXPO_PUBLIC_MAP_TILES_URL          https://your-tile-host/{z}/{x}/{y}.png
+EXPO_PUBLIC_MAP_TILES_ATTRIBUTION  © OpenStreetMap contributors
+```
+
+The route uses Web Mercator at an integer zoom, so any standard `{z}/{x}/{y}`
+source lines up. Check the provider's tile-usage policy and set the attribution
+string it requires. If tiles fail to load, the map falls back to the grid.
+Turning this on sends the athlete's coordinates to that host.
+
 ---
 
 *Beta — built with [Claude Code](https://claude.com/claude-code).*

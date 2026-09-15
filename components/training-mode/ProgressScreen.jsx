@@ -9,6 +9,7 @@ import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
 import { VISIBLE_TIERS, getCurrentTier } from './data/tiers';
 import { groupedAchievements, progressByKind, ACHIEVEMENTS_UPDATED } from './data/achievements';
+import RunHistory from './RunHistory';
 
 // Progress · Overview — pixel match of design 23a:
 // PROGRESS header + OVERVIEW/TROPHIES toggle · rank card · XP-this-month trend ·
@@ -307,7 +308,7 @@ export default function ProgressScreen({ onHome, profile }) {
 
         {/* Sub-tab toggle */}
         <div style={{ display: 'flex', gap: 6, padding: '2px 16px 10px' }}>
-          {['overview', 'trophies'].map(t => (
+          {['overview', 'runs', 'trophies'].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", color: tab === t ? '#0a0014' : '#d9d1ef', background: tab === t ? '#fde047' : 'rgba(16,4,30,0.8)', border: tab === t ? 'none' : '1px solid rgba(168,85,247,0.3)', borderRadius: 9, padding: '9px 0', cursor: 'pointer' }}>{t.toUpperCase()}</button>
           ))}
         </div>
@@ -377,6 +378,12 @@ export default function ProgressScreen({ onHome, profile }) {
               </div>
               </>)}
             </>
+          ) : tab === 'runs' ? (
+            /* RUNS — the career page for cardio: totals, the week against a
+               goal, personal bests, and every run with the map of where it
+               went. Its own tab because a route is a different kind of record
+               from a trophy. */
+            <RunHistory preferredUnit={String(profile?.weightUnit || '').toUpperCase() === 'KG' ? 'km' : 'mi'} />
           ) : (
             <>
               {/* Current + next rank (kept from the ladder) */}

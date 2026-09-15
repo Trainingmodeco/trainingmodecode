@@ -26,6 +26,7 @@ export function createCardioSession({
   calories = null,
   notes = '',
   completed = true,
+  runId = null,
 } = {}) {
   return {
     id: makeId(),
@@ -44,6 +45,11 @@ export function createCardioSession({
     calories,
     notes,
     completed,
+    // Set when this cardio session was a GPS run: the id of the entry in
+    // data/runLog.js holding its route and splits. The two stores are kept
+    // apart on purpose — this one feeds XP, streaks and the cloud mirror and
+    // has to stay small; a route is kilobytes. runId is the join between them.
+    runId,
     completedAt: new Date().toISOString(),
   };
 }

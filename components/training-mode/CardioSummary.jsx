@@ -3,6 +3,9 @@ import { C } from './Styles';
 import { CircleCheck as CheckCircle } from 'lucide-react';
 import { ARCADE, ArcadeHudPanel, ArcadeSectionLabel, ArcadePrimaryButton, ArcadeSecondaryButton, ArcadeStatusChip } from './ArcadeUI';
 import { createCardioSession, logCardioSession } from './data/cardioSessions';
+import { logRun } from './data/runLog';
+import RouteMap from './shared/RouteMap';
+import RunSplits from './shared/RunSplits';
 import SharePromptModal from './SharePromptModal';
 
 function formatClock(totalSeconds) {
@@ -51,7 +54,9 @@ export default function CardioSummary({
   // athlete to type the number the phone just recorded.
   const [distance, setDistance] = useState(typeof initialDistance === 'number' && initialDistance > 0 ? String(initialDistance) : '');
   const [distanceUnit, setDistanceUnit] = useState(initialDistanceUnit || 'mi');
-  const [calories, setCalories] = useState('');
+  // A GPS run already knows roughly what it cost — prefill the estimate rather
+  // than leaving the athlete to guess a number the app can work out.
+  const [calories, setCalories] = useState(runResult?.calories ? String(runResult.calories) : '');
   const [notes, setNotes] = useState('');
   const [logged, setLogged] = useState(false);
   const [saved, setSaved] = useState(null);
@@ -78,6 +83,21 @@ export default function CardioSummary({
     const completedTimeSeconds = buildTimeSeconds();
     const completedDistance = buildDistanceLabel();
     const cals = parseInt(calories, 10);
+    const kcal = Number.isFinite(cals) && cals > 0 ? cals : null;
+    // A run that recorded ground keeps that ground. The route, the splits and
+    // the pace go to the run log; the XP-bearing summary below stays lean and
+    // points at it by id.
+    let runId = null;
+    if (runResult) {
+      const saved = logRun(
+        {
+          ...runResult,
+          completedTimeSeconds: completedTimeSeconds || runResult.completedTimeSeconds,
+        },
+        { source: sourceMode, methodLabel, calories: kcal, notes: notes.trim() },
+      );
+      runId = saved?.id || null;
+    }
     const session = createCardioSession({
       sourceMode,
       cardioType: cardioType || method,
@@ -87,9 +107,10 @@ export default function CardioSummary({
       targetDistance,
       completedTimeSeconds,
       completedDistance,
-      calories: Number.isFinite(cals) && cals > 0 ? cals : null,
+      calories: kcal,
       notes: notes.trim(),
       completed: true,
+      runId,
     });
     const { xpEarned: earned } = logCardioSession(session, { awardXp });
     setXpEarned(earned || 0);
@@ -110,6 +131,12 @@ export default function CardioSummary({
             {methodLabel}
           </div>
 
+          {runResult?.route?.length >= 2 && (
+            <div style={{ marginBottom: 14 }}>
+              <RouteMap route={runResult.route} height={130} unit={runResult.distanceUnit || distanceUnit} label="ROUTE SAVED" />
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18, textAlign: 'left' }}>
             <SummaryRow label="Method" value={methodLabel} />
             <SummaryRow label="Time Completed" value={saved.completedTimeSeconds ? formatClock(saved.completedTimeSeconds) : 'Not recorded'} />
@@ -117,6 +144,7 @@ export default function CardioSummary({
             <SummaryRow label="Distance Completed" value={saved.completedDistance || 'Not recorded'} />
             {saved.calories != null && <SummaryRow label="Calories" value={`${saved.calories} kcal`} />}
             {saved.notes ? <SummaryRow label="Notes" value={saved.notes} /> : null}
+            {saved.runId ? <SummaryRow label="Route" value="Saved to PROGRESS → RUNS" /> : null}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
@@ -165,6 +193,28 @@ export default function CardioSummary({
           {runResult.eliteSec ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS ELITE</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatElite ? ARCADE.gold : '#c9a6ff' }}>{runResult.completedTimeSeconds - runResult.eliteSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.eliteSec))}</div></div> : null}
           {runResult.ghost ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>👻 GHOST</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.ghost.outcome === 'victory' ? '#8fe8ac' : runResult.ghost.outcome === 'defeat' ? '#ff8a8a' : ARCADE.gold }}>{runResult.ghost.outcome === 'victory' ? 'BEATEN' : runResult.ghost.outcome === 'defeat' ? 'WON' : 'DRAW'}</div></div> : null}
           <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>{runResult.gps ? 'GPS' : 'ESTIMATED'}</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.gps ? '#8fe8ac' : C.muted }}>{runResult.gps ? 'VERIFIED' : 'NO FIX'}</div></div>
+        </div>
+      )}
+      {runResult?.route?.length >= 2 && (
+        <div style={{ width: '100%', maxWidth: 340, marginBottom: 12 }}>
+          <RouteMap
+            route={runResult.route}
+            height={168}
+            unit={runResult.distanceUnit || distanceUnit}
+            targetPaceSec={runResult.targetSec && runResult.goal ? runResult.targetSec / runResult.goal : null}
+            label="WHERE YOU RAN"
+          />
+        </div>
+      )}
+      {runResult?.splits?.length > 0 && (
+        <div style={{ width: '100%', maxWidth: 340, marginBottom: 12 }}>
+          <RunSplits
+            splits={runResult.splits}
+            totalDist={runResult.completedDistance}
+            totalSec={runResult.completedTimeSeconds}
+            unit={runResult.distanceUnit || distanceUnit}
+            compact
+          />
         </div>
       )}
       {!targetDistance && targetTimeSeconds ? (
