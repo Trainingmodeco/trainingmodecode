@@ -55,12 +55,30 @@ opposite side of START.
 
 `EXPO_PUBLIC_MAP_TILES_URL` takes a `{z}/{x}/{y}` template. Set it and real
 streets appear under the same projection at an integer zoom; leave it unset —
-the default — and the route draws on the app's own grid.
+the default — and the route draws on the app’s own grid.
 
 Off is the default on purpose: it costs nothing, works with no signal, and
-sends the athlete's coordinates to no third party. One out-of-band probe tile
+sends the athlete’s coordinates to no third party. One out-of-band probe tile
 decides whether the layer loads at all, so a blocked host falls back cleanly
 instead of showing a grid of broken rectangles.
+
+**Recommended provider: Geoapify**, style `dark-matter-dark-purple`. The app
+takes payment, and that single fact eliminates most free map tiers:
+
+| Provider | Free volume | Commercial on free? |
+|---|---|---|
+| OpenStreetMap standard | n/a | Requires a unique User-Agent a browser cannot send, and bans prefetch/offline — which is what a PWA is |
+| Stadia Maps | 200k credits/mo | No |
+| MapTiler | 100k req/mo | Non-commercial |
+| Mapbox Static Tiles | 200k req/mo | Points at a separate Commercial Application Licence |
+| **Geoapify** | **3k credits/day** | **Yes, explicitly** |
+
+`data/mapTiles.js` holds the choice, and the required credit is derived from
+the host rather than left to whoever sets the variable — getting attribution
+wrong is a licence breach, not a cosmetic slip. The override can replace the
+credit, never remove it. The key is a client key that ships in every tile URL,
+so it belongs in a public env var locked to the domain in the provider’s
+dashboard, not in the secrets pile with Stripe and Supabase.
 
 ## 3 · Where the map appears
 
@@ -132,21 +150,53 @@ object form.
 ## Session survival (same pass)
 
 Being in `ACTIVE_SESSION_SCREENS` is what makes a session survive the OS: it is
-stashed on the way out and restored on the next launch. Three screens with live
-clocks were outside it, so a phone call during one lost the session to the
-splash screen:
+stashed on the way out and restored on the next launch. Leaving a player out of
+it is invisible until the day the phone rings mid-session.
 
-- `camp_session` and `camp_full` rebuild from `campCtx`
-- `cardio_finisher` rebuilds from `cardioContext`
+Four holes, all the same shape:
 
-Neither context was in the snapshot, so even adding the screens would have
-restored into a router branch whose guard was false. Both are now carried, and:
+| Screen | Rebuilt from | Was |
+|---|---|---|
+| `camp_session` | `campCtx` | Not in the set, context not in the snapshot |
+| `camp_full` | `campCtx` | Same |
+| `cardio_finisher` | `cardioContext` | Same |
+| `cardio_mode` (intervals) | its own setup | In the set, but reported no state, so `isSessionScreenLive` was always false and nothing was ever stashed |
 
-- A restored camp session **skips the NEXT UP interstitial and the warm-up** —
-  both are for a session about to start, not one already underway.
-- Camp **skill** blocks run the shared `FightFocusTimer`, so they restore their
-  round and clock exactly the way Fight Focus does.
-- Camp **conditioning** blocks (`CampFitRunner` / `CampFitSetRunner`) and the
-  Cardio Finisher have no inner resume state of their own yet — they return to
-  the right screen and restart the block. Honest gap, listed here so it is not
-  mistaken for done.
+Adding the screens alone would not have been enough: each restores into a
+router branch whose guard reads a context the snapshot did not carry, so it
+would have fallen through to the splash anyway. `campCtx` and `cardioContext`
+are now in the snapshot and restored with it.
+
+**Every block now restores its own clock**, not just its screen:
+
+- `FightFocusTimer` (Fight Focus, camp skill blocks, full-camp block 1) — round
+  and clock, as before.
+- `CampFitRunner` (camp conditioning, full-camp block 2) — phase, round and
+  clock. Resuming at or past the boss-reveal round suppresses the slam, because
+  replaying a cutscene the athlete has seen is worse than skipping one they
+  have not.
+- `CampFitSetRunner` (prescribed arcade fit stages) — movement, set, reps, rest
+  and the RESOLVED PLAN. A weighted block generates its plan from the review
+  screen, so the plan itself rides in the stash; rebuilding it from cfg would
+  discard the loads already lifted against it. The integrity unit is reopened
+  on restore, since the countdown effect that normally opens it is skipped.
+- `CardioProtocolPlayer` (Cardio Mode intervals/Tabata/HIIT, Cardio Finisher) —
+  the whole clock is one number. Wall time restarts at zero and the served time
+  goes into `offsetSec`, so tapping RESUME folds the hold into `pauseAccumMs`
+  and the effective clock continues exactly where it was. A `displayBaseRef`
+  adds the served time back to the DISPLAYED total, or the session would appear
+  to rewind to 0:00 on resume.
+
+A restored camp session **skips the NEXT UP interstitial and the warm-up** —
+both are for a session about to start, not one already underway. A full camp
+restores only the block that was interrupted; the next one starts clean.
+
+**A cardio block always reopens held.** Its clock is wall time, and resuming it
+silently would bank the seconds the athlete spent away from the phone.
+
+### One bug this uncovered
+
+`goCardioMode` was the only session entry point not clearing `resumeData`,
+because Cardio Mode is a setup screen that *becomes* a session. Harmless until
+an interval session started restoring from it — then tapping CARDIO MODE fresh
+dropped you into yesterday’s Tabata. It now clears it like every other entry.

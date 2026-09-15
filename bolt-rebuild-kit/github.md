@@ -3,6 +3,24 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-09-14 · 15-cardio-route-map.md · RUN-1 follow-up** — the tile provider
+  is chosen and every block now restores its own CLOCK, not just its screen.
+  Geoapify (`dark-matter-dark-purple`) is the recommendation: the app takes
+  payment, which rules out OSM’s own servers (they need a User-Agent a browser
+  cannot send and ban the caching a PWA does), Stadia and MapTiler free plans
+  (non-commercial) and leaves Mapbox needing a commercial licence conversation.
+  `data/mapTiles.js` derives the required attribution from the host so a
+  forgotten credit cannot become a licence breach. Resume: `CampFitRunner`
+  brings back phase/round/clock (and suppresses a boss slam already seen),
+  `CampFitSetRunner` brings back movement/set/reps plus the RESOLVED plan
+  (a weighted block generates it from the review, so cfg cannot rebuild it),
+  `CardioProtocolPlayer` restores by putting served time in `offsetSec` and
+  always reopens HELD, and `CampFullSession` wraps its child’s report so the
+  stash names which block was running. Also closed a fourth hole: `cardio_mode`
+  was in the active set but only the distance runner reported state, so an
+  interval/Tabata session was never stashed at all — and `goCardioMode` was the
+  one session entry not clearing `resumeData`, which would have dropped you
+  into yesterday’s Tabata.
 - **2026-09-14 · 15-cardio-route-map.md (RUN-1)** — Cardio Mode records the
   ground covered. The GPS track is SIMPLIFIED (Ramer–Douglas–Peucker) rather
   than truncated, so the start of a run no longer falls off the front of the
