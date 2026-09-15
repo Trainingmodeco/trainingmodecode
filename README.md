@@ -60,18 +60,33 @@ Useful scripts: `npm run optimize:images` (WebP pipeline + manifest), `npm run c
 
 A GPS run records its route and draws it to scale on the app's own grid. That
 needs no key, no signal and no third party, and is the default. To put real
-streets underneath, set a raster tile template in Netlify → Environment
-variables and redeploy:
+streets underneath, add **one** variable in Netlify → Environment variables and
+redeploy.
+
+**Recommended provider: [Geoapify](https://myprojects.geoapify.com).** Training
+Mode takes payment, and that rules out most "free" map tiers — OpenStreetMap's
+own servers require a unique User-Agent a browser cannot send, Stadia Maps and
+MapTiler exclude commercial use on their free plans, and Mapbox points business
+use at a separate commercial licence. Geoapify allows commercial use inside its
+free quota (3,000 credits/day) and has a dark-purple style that matches the app.
+
+Sign up, create a project, copy the API key, then set:
 
 ```
-EXPO_PUBLIC_MAP_TILES_URL          https://your-tile-host/{z}/{x}/{y}.png
-EXPO_PUBLIC_MAP_TILES_ATTRIBUTION  © OpenStreetMap contributors
+EXPO_PUBLIC_MAP_TILES_URL=https://maps.geoapify.com/v1/tile/dark-matter-dark-purple/{z}/{x}/{y}@2x.png?apiKey=YOUR_KEY
 ```
 
-The route uses Web Mercator at an integer zoom, so any standard `{z}/{x}/{y}`
-source lines up. Check the provider's tile-usage policy and set the attribution
-string it requires. If tiles fail to load, the map falls back to the grid.
-Turning this on sends the athlete's coordinates to that host.
+Lock the key to `apptrainingmode.com` in the Geoapify dashboard. It is a client
+key that ships in every tile URL, so it is not a secret in the way the Stripe
+and Supabase keys are — it lives in an env var so it can be rotated without a
+code change, not to hide it.
+
+Any raster `{z}/{x}/{y}` source works; the route uses Web Mercator at an integer
+zoom so tiles line up. The required credit is derived from the host and rendered
+on the map automatically (`EXPO_PUBLIC_MAP_TILES_ATTRIBUTION` overrides it, and
+can only replace the credit, never remove it). If tiles fail to load the map
+falls back to the grid. Turning this on sends the athlete's coordinates to that
+host, which is why it is off until you choose to.
 
 ---
 

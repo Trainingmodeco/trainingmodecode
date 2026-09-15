@@ -3,6 +3,7 @@ import {
   routeBounds, mercatorProjector, tileCover, segmentPaceSec, paceColor, pointAtDistance,
 } from '../data/geoRoute';
 import { metersPerUnit } from '../data/runCoach';
+import { tilesConfigured, tileUrl, TILE_ATTRIBUTION } from '../data/mapTiles';
 
 // The map. Draws the ground an athlete actually covered.
 //
@@ -18,13 +19,8 @@ import { metersPerUnit } from '../data/runCoach';
 // where was I moving well. With it, the same projection puts real streets
 // underneath, because both use Web Mercator at the same integer zoom.
 
-export const MAP_TILES_URL = process.env.EXPO_PUBLIC_MAP_TILES_URL || null;
-export const MAP_TILES_ATTRIBUTION = process.env.EXPO_PUBLIC_MAP_TILES_ATTRIBUTION || '';
-export const mapTilesEnabled = () => !!MAP_TILES_URL;
-
-const tileUrl = (t) => (MAP_TILES_URL || '')
-  .replace('{z}', String(t.z)).replace('{x}', String(t.x)).replace('{y}', String(t.y))
-  .replace('{s}', ['a', 'b', 'c'][(t.x + t.y) % 3]);
+export { RECOMMENDED_PROVIDER } from '../data/mapTiles';
+export const mapTilesEnabled = tilesConfigured;
 
 // Width of the element, in CSS pixels, kept current as the phone rotates.
 function useMeasuredWidth(fallback = 320) {
@@ -231,11 +227,14 @@ export default function RouteMap({
         }}>{label}</div>
       )}
 
-      {!compact && useTiles && MAP_TILES_ATTRIBUTION && (
+      {/* Mandatory while tiles are on: every one of these basemaps is built
+          from OpenStreetMap, and the credit is a licence condition, not a
+          courtesy. It renders whenever the layer does. */}
+      {!compact && useTiles && (
         <div style={{
           position: 'absolute', right: 4, bottom: 3, padding: '1px 5px', borderRadius: 4,
           background: 'rgba(4,0,12,0.6)', font: "600 7px 'Rajdhani',sans-serif", color: '#9a90b8',
-        }}>{MAP_TILES_ATTRIBUTION}</div>
+        }}>{TILE_ATTRIBUTION}</div>
       )}
     </div>
   );
