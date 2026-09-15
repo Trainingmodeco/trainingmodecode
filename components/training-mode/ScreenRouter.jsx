@@ -94,15 +94,24 @@ function useScrollIndicator(containerRef, children) {
 // 2.4b — camp block runner: an S7 "NEXT UP" interstitial leads into the round
 // timer. As multi-block sessions land, this is where blocks chain — each block
 // gets its transition card, then its timer.
-function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit }) {
-  const [running, setRunning] = useState(false);
+function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit, isResuming, onStateChange, resumeData }) {
+  // A restored session skips straight past the NEXT UP card — it is an
+  // interstitial for a session about to start, not one already underway.
+  const [running, setRunning] = useState(!!resumeData);
   if (!running) return <CampTransitionCard label={label} sub={sub} detail={detail} onDone={() => setRunning(true)} />;
   // S2 (PM conditioning) runs the dedicated fit runner; skill blocks use the
   // shared striking ring timer. Both produce the same onEnd shape.
   // Spec 27 — a prescribed Arcade fit stage runs the COUNTED-SETS runner (reps
   // counted, weighted review, finishers); legacy timed circuits keep CampFitRunner.
   if (fit) return cfg.prescription?.length ? <CampFitSetRunner cfg={cfg} onEnd={onEnd} /> : <CampFitRunner cfg={cfg} onEnd={onEnd} />;
-  return <FightFocusTimer discipline={discipline} cfg={cfg} onEnd={onEnd} initialPaused={false} />;
+  // Skill blocks are the shared round timer, so a camp round restores its round
+  // number and its clock exactly the way Fight Focus does.
+  return (
+    <FightFocusTimer
+      discipline={discipline} cfg={cfg} onEnd={onEnd}
+      initialPaused={!!isResuming} onStateChange={onStateChange} initialResumeData={resumeData}
+    />
+  );
 }
 
 function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaused, children, lock = false }) {
@@ -276,6 +285,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
         sub={campCtx?.split ? `LEVEL ${campCtx?.level} · ${slotNum === 2 ? 'EVENING MISSION' : 'MORNING MISSION'}` : 'TRAINING CAMP'}
         detail={`${cfg.rounds} × ${mmss} · ${cfg.restSec}s rest`}
         onEnd={goCampComplete}
+        isResuming={isResuming} onStateChange={reportSessionState} resumeData={resumeData}
       />
     );
     return (
@@ -287,7 +297,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
         >
           {bossBell ? runner : (
             /* 2.4 — a warm-up phase leads into every camp session (skippable). */
-            <WithWarmup minutes={cfg.warmupMin} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
+            <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title={`WARM UP · ${campCtx?.slot === 's2' ? 'CONDITIONING' : 'SKILL'}`}>
               {runner}
             </WithWarmup>
           )}
@@ -307,7 +317,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
           seriesId={campCtx?.arcade?.seriesId} stageId={campCtx?.arcade?.stageId}
         >
           {bossBellFull ? fullSession : (
-            <WithWarmup minutes={campCtx.cfgSkill.warmupMin} title="WARM UP · FULL CAMP">
+            <WithWarmup minutes={campCtx.cfgSkill.warmupMin} enabled={!isResuming} title="WARM UP · FULL CAMP">
               {fullSession}
             </WithWarmup>
           )}

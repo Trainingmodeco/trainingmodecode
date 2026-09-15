@@ -51,8 +51,18 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Every screen that can have a clock running on it. Being in this set is what
+// makes a session survive the OS: it is stashed on the way out and comes back
+// on the next launch. Leaving a player out of it is invisible until the day the
+// phone rings mid-session and the athlete lands on the splash screen.
+//
+// Training Camp (single and full) and the post-workout Cardio Finisher were
+// both outside it — they rebuild from campCtx / cardioContext, which the
+// snapshot did not carry, so a camp round lost to a phone call was gone. Both
+// now stash with the context they need to come back.
 const ACTIVE_SESSION_SCREENS = new Set([
   'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session', 'cardio_mode',
+  'camp_session', 'camp_full', 'cardio_finisher',
 ]);
 // cardio_mode is a setup screen most of the time and a session only while a
 // run is live. The run player reports { live: true } through onSessionState;
@@ -238,11 +248,16 @@ export default function App() {
       arcadeMode,
       arcadeOrder,
       arcadeSettings,
+      // camp_session / camp_full rebuild from campCtx, and cardio_finisher from
+      // cardioContext. Without them in the snapshot those screens restore into
+      // a router branch whose guard is false and fall through to the splash.
+      campCtx,
+      cardioContext,
       internalState,
       reason: reason || 'nav',
       timestamp: Date.now(),
     };
-  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings]);
+  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext]);
 
   const pauseCurrentSession = useCallback(() => {
     const paused = buildSessionSnapshot('nav');
@@ -267,6 +282,8 @@ export default function App() {
     setArcadeMode(pausedSession.arcadeMode);
     setArcadeOrder(pausedSession.arcadeOrder);
     setArcadeSettings(pausedSession.arcadeSettings || null);
+    if (pausedSession.campCtx) setCampCtx(pausedSession.campCtx);
+    if (pausedSession.cardioContext) setCardioContext(pausedSession.cardioContext);
     setResumeData(pausedSession.internalState || null);
     setScreen(pausedSession.screen);
   }, [pausedSession]);
