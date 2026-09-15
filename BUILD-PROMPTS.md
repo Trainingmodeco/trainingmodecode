@@ -2941,12 +2941,12 @@ SecondaryButton / Card); no new design system.
 
 ---
 
-## PROMPT REVAMP-2 — bring the whole week (Sept 5–11) into the revamp, from GitHub
+## PROMPT REVAMP-2 — bring the whole fortnight (Sept 5–15) into the revamp, from GitHub
 
 > Run this in the Training Mode revamp app. It is the authoritative roll-up of
 > everything shipped to branch `app` of
 > `https://github.com/Trainingmodeco/trainingmodecode` between `8ce2c13` (base)
-> and `e9169da` (head). Do NOT rebuild any of it from the descriptions below —
+> and `86d4ceb` (head). Do NOT rebuild any of it from the descriptions below —
 > fetch the code from GitHub and verify it in place. The descriptions exist so
 > you know what you are verifying and why each change was made. Safe to
 > re-run: every step is idempotent.
@@ -2958,11 +2958,15 @@ SecondaryButton / Card); no new design system.
 > git show FETCH_HEAD:transfer/README.md
 > ```
 >
-> That README carries the exact 52-file checkout command (Option A), the full
+> That README carries the exact 124-file checkout command (Option A), the full
 > patch (Option B) and the cherry-pick list (Option C). Use A unless the
-> revamp has its own edits in `App.jsx`, `ScreenRouter.jsx`, `Profile.jsx` or
-> `HomeDashboard.jsx`; for those four use B (`git apply --3way`) so your edits
-> merge instead of being overwritten. Then, before reading further:
+> revamp has its own edits in `App.jsx`, `ScreenRouter.jsx`, `Profile.jsx`,
+> `HomeDashboard.jsx` or `ProgressScreen.jsx`; for those five use B
+> (`git apply -3 --binary`) so your edits merge instead of being overwritten.
+>
+> Option A is verified end to end: run against a checkout of the base commit it
+> reproduces the `app` tree exactly, and `tsc`, `expo lint` and `build:web` are
+> all green on the result. Then, before reading further:
 >
 > ```bash
 > npx tsc --noEmit && npx expo lint && npm run build:web
@@ -2990,11 +2994,46 @@ SecondaryButton / Card); no new design system.
 > | `45dfb92` | Ghost mode for runs | `data/runGhosts.js`, `data/runCoach.js`, `RunPlayer.jsx`, `CardioMode.jsx`, `CardioSummary.jsx`, `FitModeHub.jsx`, `App.jsx`, `ScreenRouter.jsx` |
 > | `be4ca67` | Mini-player button is a live preview (the visible video Android needs) | `shared/MiniPlayerButton.jsx`, `shared/miniPlayer.js`, `public/pip-test.html` |
 > | `47e9b64` | Six launch blockers: webhook, cancellations, dormant duplicate, subscription screen, analytics, crash reporting | `netlify/functions/stripe-webhook.js`, `ManageSubscription.jsx`, `data/entitlements.js`, `data/authClient.js`, `data/stripe.js`, `data/shareUtils.js`, `scripts/copy-public-assets.mjs`, `app/+html.tsx`, `supabase/config.toml`, deletes `supabase/functions/stripe-webhook/*` |
+> | `2011819` | **Arcade ids off the franchises, with a progress migration** — `ARC_BAKI` → `ARC_GRAPPLER` and six more, across campaign ids, stage ids, series ids, 14 campaign data directories (app copy **and** `protocol-src/`) and 8 images | `data/arcadeIdMigration.js` (new), `App.jsx`, `data/cloudSync.js`, `data/challengeCodes.js`, `data/arcadeCampaignSeries.js`, `data/trainingArcadeData.js`, `data/optimizedImageMap.js`, `data/seriesTint.js`, `data/webpManifest.js`, `TrainingArcade.jsx`, `protocol/campaigns.ts`, `assets.lock.json` |
+> | `c1bc2f7` | Cardio records the route: a real map, splits, a RUNS history | `data/geoRoute.js`, `data/runLog.js`, `shared/RouteMap.jsx`, `shared/RunSplits.jsx`, `RunHistory.jsx` (all new), `RunPlayer.jsx`, `CardioSummary.jsx`, `ProgressScreen.jsx`, `ScreenRouter.jsx` |
+> | `d75acf8` | Training Camp and the Cardio Finisher survive the OS too | `App.jsx`, `ScreenRouter.jsx`, `shared/screenGuides.js` |
+> | `86d4ceb` | `cloudSync.js` stops being a binary file (two raw control bytes → escapes) | `data/cloudSync.js` |
 > | `e9169da` | Honesty pass: stray glyph, camp copy, dead placeholders, real notification permission, reminder card | `HomeDashboard.jsx`, `Notifications.jsx`, `PracticeMode.jsx`, `FitRepCoach.jsx`, `TrainingCampMap.jsx`, `ArcadeSeriesDetail.jsx`, `shared/WorkoutPreviewCard.jsx`, `shared/Emoji.jsx`, `shared/ReminderCard.jsx`, `shared/screenGuides.js`, `data/reminderEngine.js`, `CampFitRunner.jsx`, `FightFocusTimer.jsx` |
 >
 > After the fetch, `git log --oneline -1` in the revamp will not show these
-> hashes (Option A copies files, not history). Record `e9169da` in your own
+> hashes (Option A copies files, not history). Record `86d4ceb` in your own
 > commit message as the source so the next roll-up can diff from it.
+>
+> ### 1a. Two traps in this roll-up — read before you run anything
+>
+> **The arcade ids are progress keys.** `2011819` renamed them, and the same
+> strings key `tm_arcade_progress`, `tm_arcade_v2`, `tm_arcade_intro_seen` and
+> `tm_active_arcade_challenge` — all four of which are in cloudSync's
+> `SYNC_KEYS`. Taking the rename without `data/arcadeIdMigration.js` resets
+> every athlete's Arcade ladder to stage 1 and then uploads the reset to their
+> other devices. The migration has three call sites and all three are required:
+> the definition, a module-scope call in `App.jsx` (before first render), and a
+> call inside `cloudSync`'s `applySnapshot` (because a restore can pull a
+> pre-rename snapshot back down from a device that has not updated). It carries
+> no "already migrated" flag on purpose — it is idempotent, and a flag would
+> skip exactly the restore case. Verify with:
+>
+> ```bash
+> grep -rn "migrateArcadeIds" components/ | sort   # expect 5 lines, 3 call sites
+> ```
+>
+> **The campaign content lives in two trees.** `protocol-src/data/campaigns/` is
+> the authoring source of truth; `components/training-mode/protocol/data/campaigns/`
+> is the copy the app imports. They are kept in step by hand and the rename
+> touched both. If you take only the app copy, the revamp's source of truth
+> still says `ARC_BAKI`, and the next re-sync of `protocol-src` → app silently
+> undoes the rename and breaks every ladder a second time.
+>
+> ```bash
+> grep -rln -E "ARC_BAKI|ARC_BERSERK|ARC_SONIC|ARC_GAROU|ARC_DARKKNIGHT|ARC_ULTRAINSTINCT|ARC_ULTRAEGO" \
+>   components/ protocol-src/
+> # expect only data/arcadeIdMigration.js and the comment atop App.jsx
+> ```
 >
 > ### 2. Session survival (`1642416`) — verify
 >
