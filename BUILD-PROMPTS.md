@@ -3322,3 +3322,24 @@ SecondaryButton / Card); no new design system.
 > public image files still carry source names (`one-punch*`, `demon-back*`,
 > `ultra-instinct*`, `hero-hunter*`, `dark-knight.*` posters). They are not ids
 > and nothing breaks, but they are the same category of exposure.
+
+---
+
+## The three large specs live in their own files
+
+Three deliverables from the 2026-09-15 research pass were too long to sit in
+this file without burying everything else. They follow the same house style and
+are meant to be pasted whole into the target session.
+
+| File | What it is | Paste into |
+|---|---|---|
+| `PROMPT-MONEY-90.md` | **PROMPT MONEY-90** — the 90-day monetization plan as shippable work: the truth pass on paywall copy, the coach channel, the Founder 100 counter, the referral loop, paywall placement, the five metrics and the weekly digest. | the revamp codebase |
+| `PROMPT-GAMELINK-1.md` | **PROMPT GAMELINK-1** — linking the app and the game: one identity, one fighter, and a server that decides. Builds on `game-sync/fighterProfile.js` and `docs/game-concept/03-APP-TO-GAME-SYNC-SPEC.md` rather than replacing them, and names the conflicts between them. | the revamp codebase |
+| `GAME-PROTOTYPE-PLAN.md` | The one-stage prototype production plan: what the vertical slice is, engine choice, art, hit feel, team, cost and time. Not a build prompt. | a game developer, or act on directly |
+
+**Read MONEY-90 §1 before charging anyone.** It documents a verified honesty
+problem: `Paywall.jsx` sells four benefits and only three gates exist
+(`canAccessStage`, `canAccessCampLevel`, `routineSlotLimit`). "Every avatar
+tier + exclusive skins" and "Full voice coaching + game-link rewards" are not
+enforced anywhere, and the same untrue claim is repeated at `Profile.jsx:433`
+and `Profile.jsx:649`.
