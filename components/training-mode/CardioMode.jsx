@@ -19,6 +19,8 @@ import { unlockAudio } from './data/audioEngine';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
 import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance, trackingLabel } from './data/cardioEquipment';
+import { defaultSpeed, clampSpeed, speedUnitLabel } from './data/machineSpeed';
+import SpeedDial from './shared/SpeedDial';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
@@ -54,7 +56,7 @@ function computeAutoPace(distance, unit, level, targetSeconds) {
 const EQUIPMENT_GROUPS = ['running', 'machine'];
 const METHOD_CATEGORIES = [
   { id: 'running', label: 'RUNNING', icon: '🏃', sub: 'Outdoor GPS · Treadmill', type: 'outdoor-run', methodLabel: 'Running' },
-  { id: 'machine', label: 'MACHINE', icon: '⚙️', sub: 'Bike · Rower · Elliptical · Stairs', type: 'bike', methodLabel: 'Machine' },
+  { id: 'machine', label: 'OTHER EQUIPMENT', icon: '⚙️', sub: 'Bike · Rower · Elliptical · Stairs', type: 'bike', methodLabel: 'Machine' },
   { id: 'alternate', label: 'ALTERNATE', icon: '🥊', sub: 'Rope · Burpees · Swim · Shadowbox', type: 'jump-rope', methodLabel: 'Alternate' },
   { id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Climbers · Knees · Squats · KB', type: 'mountain-climbers', methodLabel: 'Exercise' },
 ];
@@ -176,6 +178,10 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const [eqByGroup, setEqByGroup] = useState(rs?.eqByGroup ?? { running: defaultEquipment('running'), machine: defaultEquipment('machine') });
   // Which group's equipment screen is open, or null for the setup screen.
   const [pickerGroup, setPickerGroup] = useState(null);
+  // An explicit starting speed for the machines that have one. null means "use
+  // whatever holds the target pace", which is right until the athlete says
+  // otherwise — so it resets whenever they change equipment.
+  const [startSpeed, setStartSpeed] = useState(null);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -210,6 +216,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   // screen, real number typed in at the end.
   const consoleUnit = equipment?.tracking === 'console' ? equipment.consoleUnit : null;
 
+
   const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
   const parsedCustomDist = parseFloat(customDistance);
   const effGoalDistance = Number.isFinite(parsedCustomDist) && parsedCustomDist > 0 ? parsedCustomDist : goalDistance;
@@ -219,6 +226,11 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const parsedTargetMin = parseFloat(customTargetMin);
   const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
   const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec) : null;
+  // The dial opens on whatever speed holds the target pace, so the common case
+  // is zero taps — on the setup screen AND during the run.
+  const effStartSpeed = usesMachine
+    ? clampSpeed(startSpeed ?? defaultSpeed(autoPace?.paceSecPerUnit, distanceUnit), distanceUnit)
+    : null;
   // Ghosts are bucketed by surface, so the treadmill ladder and the outdoor
   // ladder are separate. An indoor mile must never overwrite an outdoor best.
   const ghostLast = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'last', surface) : null;
@@ -237,6 +249,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   };
   const chooseEquipment = (eqId) => {
     setEqByGroup(prev => ({ ...prev, [pickerGroup]: eqId }));
+    setStartSpeed(null);
     setPickerGroup(null);
   };
 
@@ -423,6 +436,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
       targetPaceSec: addon.paceTargetSeconds, elitePaceSec: addon.elitePaceSeconds,
       methodLabel, useGps: usesGps, randomSurges: addon.randomSurges,
       speedSource: usesMachine ? 'machine' : null,
+      startSpeed: effStartSpeed,
       cadenceKind,
       ghost: ghostPick,
     };
@@ -589,6 +603,58 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
               );
             })}
           </div>
+
+          {/* WHAT THIS EQUIPMENT GIVES YOU. The setup screen now changes with
+              the equipment rather than looking identical for a park and a belt:
+              an outdoor run advertises the route map, a treadmill and a bike get
+              the speed control up front so the run needs no taps, and the timed
+              machines say plainly that there will be no distance. */}
+          {equipment && (
+            <div style={{
+              borderRadius: ARCADE.radius.md, border: `1px solid ${ARCADE.violetBorderSoft}`,
+              background: 'rgba(10,2,22,0.7)', padding: '10px 12px', marginBottom: 14,
+            }}>
+              {equipment.tracking === 'speed' ? (
+                <>
+                  <div style={{ ...sectionLabel, marginBottom: 7 }}>
+                    STARTING {speedUnitLabel(distanceUnit)}
+                  </div>
+                  <SpeedDial speed={effStartSpeed} unit={distanceUnit} onChange={setStartSpeed} compact />
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 7, lineHeight: 1.35 }}>
+                    Set this to the {equipment.id === 'treadmill' ? 'belt' : 'console'} speed you will start on —
+                    you can change it mid-run too. Distance is tracked from it.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ ...sectionLabel, marginBottom: 6 }}>
+                    {equipment.tracking === 'gps' ? 'THIS RUN GIVES YOU' : 'THIS SESSION GIVES YOU'}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {(equipment.tracking === 'gps'
+                      ? ['GPS DISTANCE', 'ROUTE MAP', 'SPLITS', 'PACE COACH', 'GHOST RACE']
+                      : equipment.tracking === 'console'
+                        ? ['TIMED GOAL', 'STROKE RATE', 'CALORIES', 'METRES AT THE END']
+                        : ['TIMED GOAL', equipment.cadenceKind === 'stairs' ? 'STEP RATE' : 'CADENCE', 'CALORIES']
+                    ).map(chip => (
+                      <span key={chip} style={{
+                        padding: '3px 8px', borderRadius: 99,
+                        background: 'rgba(176,106,255,0.12)', border: '1px solid rgba(176,106,255,0.32)',
+                        fontFamily: ARCADE.fontHead, fontSize: 7.5, fontWeight: 800,
+                        letterSpacing: '0.08em', color: '#d6c2ff',
+                      }}>{chip}</span>
+                    ))}
+                  </div>
+                  {!tracksDistance(equipment) && (
+                    <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 7, lineHeight: 1.35 }}>
+                      No distance on this one — its console does not give us a number we
+                      would stand behind, so the goal is time.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {/* PROTOCOL */}
           </div>

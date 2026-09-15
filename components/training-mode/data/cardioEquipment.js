@@ -26,9 +26,12 @@ export const CARDIO_EQUIPMENT = [
   {
     id: 'gps-run',
     group: 'running',
-    label: 'GPS RUN',
+    // "GPS RUN" named the technology, not the thing the athlete is doing.
+    // OUTDOOR RUN is what they would say out loud, and it pairs with
+    // TREADMILL RUN as one choice: where am I running?
+    label: 'OUTDOOR RUN',
     icon: '🛰',
-    blurb: 'Outdoors. Satellite distance, route map, splits.',
+    blurb: 'Outside. Satellite distance, route map, splits.',
     tracking: 'gps',
     cardioType: 'outdoor-run',
     cadenceKind: 'run',
@@ -37,7 +40,7 @@ export const CARDIO_EQUIPMENT = [
   {
     id: 'treadmill',
     group: 'running',
-    label: 'TREADMILL',
+    label: 'TREADMILL RUN',
     icon: '🏃',
     blurb: 'Match the belt speed. Real distance, pace and cadence.',
     tracking: 'speed',
