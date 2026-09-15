@@ -3,6 +3,26 @@
 Design-tracked changes shipped to the Training Mode app
 (github.com/Trainingmodeco/trainingmodecode, branch `app`).
 
+- **2026-09-14 · 15-cardio-route-map.md (RUN-1)** — Cardio Mode records the
+  ground covered. The GPS track is SIMPLIFIED (Ramer–Douglas–Peucker) rather
+  than truncated, so the start of a run no longer falls off the front of the
+  buffer; each kept point carries its elapsed second and cumulative metres.
+  `shared/RouteMap.jsx` draws it in Web Mercator at one scale for both axes,
+  measured 1:1 against its own box — a 150×100 m rectangle draws at aspect
+  1.500 against a real 1.500, where the old 300×64 trail smeared it. The line
+  is coloured by the pace run on each stretch, with START/FINISH pins and a
+  numbered pin at every unit. Raster tiles are optional behind
+  `EXPO_PUBLIC_MAP_TILES_URL` and OFF by default (no key, no signal needed, no
+  coordinates leaving the device). The map appears live in the player, on the
+  finish card, on the log screen and in history. New `shared/RunSplits.jsx`
+  gives DIST/TIME/PACE with a 0.5/1/2 unit toggle; calories are an ACSM MET
+  estimate labelled EST everywhere and prefilled into the log. New
+  `data/runLog.js` (`tm_run_log_v1`) keeps runs with their routes, joined to
+  `tm_cardio_sessions` by `runId`; PROGRESS gains a third RUNS tab with career
+  totals, a weekly distance goal, personal bests and every run's map.
+  Same pass: `camp_session`, `camp_full` and `cardio_finisher` joined
+  `ACTIVE_SESSION_SCREENS`, with `campCtx`/`cardioContext` added to the session
+  snapshot, so a camp round or a finisher survives the OS taking the app away.
 - **2026-08-20 · 14-exercise-chains.md (WB-H)** — supersets and circuits.
   Double-tap a row's `⛓` to enter linking mode (glowing pulse, every other row
   becomes a target); tapping one pulls it up beside the anchor so the bracket
