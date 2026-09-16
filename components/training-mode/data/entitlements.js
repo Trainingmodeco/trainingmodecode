@@ -20,6 +20,12 @@ export const GATES = {
   freeArcadeStages: 3,   // stages 1..N free per saga
   freeCampLevels: 3,     // Training Camp levels 1..N free; N+1..12 are Pro
   freeRoutineSlots: 1,   // saved-routine slots on the free tier
+  // A free athlete gets three rounds — enough to prove the app works and to
+  // finish a real Tabata (8 rounds of 20s is under the sitting-there threshold
+  // anyway; three rounds of 3-minute Fight Focus is the ceiling that hurts). A
+  // "5 rounds of Muay Thai, 1 minute rest" setup hits the overlay before it
+  // starts, which is exactly the point of pressure the owner named.
+  freeRoundsPerSession: 3,
 };
 
 // LAUNCH SWITCH: flip to true when accounts + Stripe are live and the free
@@ -135,6 +141,12 @@ export function canAccessCampLevel(level) {
 
 export function routineSlotLimit() {
   return isPro() ? Infinity : GATES.freeRoutineSlots;
+}
+
+// Can a session with `rounds` rounds start? The gate bites only under the
+// paywall switch, so free-tier work in dev is not blocked by accident.
+export function canRunRounds(rounds) {
+  return isPro() || !paywallActive() || (Number(rounds) || 0) <= GATES.freeRoundsPerSession;
 }
 
 // Dev/test helper — force a plan locally without paying.

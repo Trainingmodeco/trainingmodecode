@@ -10,6 +10,7 @@ import { loadCampProgress, isCampComplete } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
 import { loadParq, saveParq } from './data/parq';
 import { canAccessCampLevel, GATES } from './data/entitlements';
+import ProGateOverlay from './shared/ProGateOverlay';
 import ReadinessSheet from './shared/ReadinessSheet';
 import ParQSheet from './shared/ParQSheet';
 import GearSheet from './shared/GearSheet';
@@ -131,6 +132,9 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [gearCtx, setGearCtx] = useState(null);             // 2.9 — gear check, after readiness
   const [format, setFormat] = useState('split');            // 2.4 — 'split' | 'full'
   const [helpOpen, setHelpOpen] = useState(false);
+  // The overlay fires when a Pro level is opened, in-place, so the map and
+  // the level detail stay visible behind the ask.
+  const [proGate, setProGate] = useState(null);   // { level } | null
   const [current] = useState(loadCampProgress);
   const [campDone] = useState(isCampComplete);   // item 13b — the title fight is won
   const [sessAll] = useState(() => loadCampSessions());     // 2.4b — per-level S1/S2 state
@@ -217,7 +221,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // 45b START → paywall gate → readiness check (2.6) → gear check (2.9) → launch.
   const requestStart = () => {
     if (!open || !canStart) return;
-    if (levelGated) { onPaywall?.(); setOpenLevel(null); return; }
+    if (levelGated) { setProGate({ level: open.level }); return; }
     setReadinessCtx({ level: open.level, difficulty, slot: openSess.s1 ? 's2' : 's1', full: useFull });
     setOpenLevel(null);
   };
@@ -515,6 +519,16 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
           setShowParq(false);
         }} />
       )}
+
+      <ProGateOverlay
+        open={proGate != null}
+        title={`Level ${proGate?.level || ''} is Pro.`}
+        body={`Camp levels 1–${GATES.freeCampLevels} are free — the whole climb to level 12 unlocks with Pro. You keep every session you have already logged.`}
+        freeLine={`Levels 1–${GATES.freeCampLevels}. Both formats.`}
+        proLine={`Levels 4–12. The full 12-week camp.`}
+        onGoPro={() => { setProGate(null); onPaywall?.(); }}
+        onClose={() => setProGate(null)}
+      />
     </PhoneFrame>
   );
 }

@@ -11,6 +11,7 @@ import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
 import { targetsForStage } from './data/benchmarkLog';
 import { canAccessStage, GATES } from './data/entitlements';
+import ProGateOverlay from './shared/ProGateOverlay';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
 import { loadParq } from './data/parq';
 import ScreenGuide from './shared/ScreenGuide';
@@ -212,6 +213,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   // this is the SEPARATE paywall gate (only bites once the switch is on).
   const stageNumOf = (idx) => (idx == null ? 1 : (nodes[idx]?.stageNumber || (idx === mythicIdx ? stages.length + 1 : idx + 1)));
   const selectedGated = selected != null && !canAccessStage(stageNumOf(openIdx));
+  // The overlay pops IN PLACE when a Pro stage is tapped, so the ladder,
+  // stage art and progress stay visible behind it. Closing it puts the athlete
+  // back exactly where they were.
+  const [proGateOpen, setProGateOpen] = useState(false);
 
   function onNodeTap(e, idx) {
     if (!accessible(idx)) {
@@ -249,8 +254,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   function handleStart() {
     if (!selected || !canEnter) return;
-    // Paywall gate: a Pro stage routes to the paywall instead of starting.
-    if (selectedGated) { onPaywall?.(); return; }
+    // Paywall gate: name the stage in the overlay so the ask is specific to
+    // what they were about to do, not a generic upsell.
+    if (selectedGated) { setProGateOpen(true); return; }
     // 2.10 — v2 campaign: choose PATH + DIFFICULTY per stage first.
     if (series.v2Campaign) {
       const modes = series.modeOptions || ['fight'];
@@ -774,6 +780,16 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           returning to the ladder. GuidePreview sits beneath the guide's dim/spotlight. */}
       {howTo && <GuidePreview screen={guideScreen} series={series} stageTitle={guideStage?.title} stageNumber={guideStage?.stageNumber} />}
       {howTo && <ScreenGuide steps={howToSteps} onStep={onGuideStep} onClose={closeHowTo} />}
+
+      <ProGateOverlay
+        open={proGateOpen}
+        title={`Stage ${stageNumOf(openIdx)} is Pro.`}
+        body={`Free members climb the first ${GATES.freeArcadeStages} stages of every saga. The rest of the ladder — plus the mythic boss — unlocks with Pro.`}
+        freeLine={`Stages 1–${GATES.freeArcadeStages}, all sagas.`}
+        proLine={`Every stage. The mythic boss. Ghosts you race.`}
+        onGoPro={() => { setProGateOpen(false); onPaywall?.(); }}
+        onClose={() => setProGateOpen(false)}
+      />
     </PhoneFrame>
   );
 }

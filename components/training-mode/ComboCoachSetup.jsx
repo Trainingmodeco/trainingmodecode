@@ -7,6 +7,8 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
+import { canRunRounds, GATES } from './data/entitlements';
+import ProGateOverlay from './shared/ProGateOverlay';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { IMG } from './data/optimizedImageMap';
 import TrainingCTA from './shared/TrainingCTA';
@@ -76,7 +78,7 @@ function Segmented({ label, options, value, onChange, accent }) {
   );
 }
 
-export default function ComboCoachSetup({ discipline, onBack, onStart, profile }) {
+export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall, profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
   // 1.2 — beginner learners are LOCKED to Basic Mode: starter basics + strikes
   // learned in Practice (no ALL STRIKES escape hatch). Experienced users see no
@@ -84,6 +86,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
   const beginner = isBeginnerLearner(profile);
   const arsenal = getEffectiveArsenal(discipline);
   const arsenalOnly = beginner;
+  const [proGateOpen, setProGateOpen] = useState(false);
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
     rush: { on: false, pattern: 'endRound' }, warmupMin: loadWarmup('comboCoach'),
@@ -216,6 +219,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
           variant="gold" label="START COMBOS" icon="⚡" height={48}
           style={{ width: '100%', fontSize: 13, letterSpacing: '0.1em' }}
           onClick={async () => {
+            if (!canRunRounds(cfg.rounds)) { setProGateOpen(true); return; }
             setVoiceGender(profile?.voiceCoach || 'FEMALE');
             await primeSpeech();
             const speed = speedFor(cfg.cadenceSec);
@@ -233,6 +237,16 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, profile }
 
       </div>
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.combo_coach_setup} onClose={() => setHelpOpen(false)}/>}
+
+      <ProGateOverlay
+        open={proGateOpen}
+        title={`${cfg.rounds}-round session is Pro.`}
+        body={`Free members run up to ${GATES.freeRoundsPerSession} rounds of the coach. Pro takes the cap off, so a five-round Muay Thai session or a full boxing card just starts.`}
+        freeLine={`Up to ${GATES.freeRoundsPerSession} rounds per session.`}
+        proLine={`Any round count. Any format.`}
+        onGoPro={() => { setProGateOpen(false); onPaywall?.(); }}
+        onClose={() => setProGateOpen(false)}
+      />
     </PhoneFrame>
   );
 }

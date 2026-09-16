@@ -9,6 +9,8 @@ import { getMyBestGhost, importGhostCode, exportGhostCode } from './data/ghostBa
 import Embers from './Embers';
 import SafeImage from './SafeImage';
 import { C } from './Styles';
+import { canRunRounds, GATES } from './data/entitlements';
+import ProGateOverlay from './shared/ProGateOverlay';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { IMG } from './data/optimizedImageMap';
 import TrainingCTA from './shared/TrainingCTA';
@@ -63,13 +65,14 @@ function Segmented({ label, options, value, onChange, accent }) {
   );
 }
 
-export default function FightFocusSetup({ discipline, onBack, onStart, profile }) {
+export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall, profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
   // Ghost Battles — the chosen opponent (null = plain session).
   const [ghost, setGhost] = useState(null);
   const [ghostCodeOpen, setGhostCodeOpen] = useState(false); // in-app code entry (RN Web has no prompt)
   const [ghostToast, setGhostToast] = useState('');
   const myBest = getMyBestGhost('fight_focus', discipline);
+  const [proGateOpen, setProGateOpen] = useState(false);
   const [cfg, setCfg] = useState({
     difficulty: 'Normal', mode: 'Technical', rounds: 3,
     roundMin: 3, restSec: 60, voiceOn: true,
@@ -177,6 +180,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
           variant="gold" label="START SESSION" icon="🎯" height={50}
           style={{ width: '100%', fontSize: 13, letterSpacing: '0.1em' }}
           onClick={async () => {
+            if (!canRunRounds(cfg.rounds)) { setProGateOpen(true); return; }
             setVoiceGender(profile?.voiceCoach || 'FEMALE');
             await primeSpeech();
             onStart({
@@ -202,6 +206,16 @@ export default function FightFocusSetup({ discipline, onBack, onStart, profile }
           onClose={() => setGhostCodeOpen(false)}
         />
       )}
+
+      <ProGateOverlay
+        open={proGateOpen}
+        title={`${cfg.rounds}-round session is Pro.`}
+        body={`Free members train up to ${GATES.freeRoundsPerSession} rounds of Fight Focus. Pro removes the cap so a full 12-round card runs end to end.`}
+        freeLine={`Up to ${GATES.freeRoundsPerSession} rounds per session.`}
+        proLine={`Any round count. Any format.`}
+        onGoPro={() => { setProGateOpen(false); onPaywall?.(); }}
+        onClose={() => setProGateOpen(false)}
+      />
     </PhoneFrame>
   );
 }

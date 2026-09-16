@@ -451,7 +451,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FightFocusSetup discipline={disc} onBack={goFightHub} onStart={c => goTimer(c)} profile={profile}/>
+        <FightFocusSetup discipline={disc} onBack={goFightHub} onStart={c => goTimer(c)} onPaywall={goPaywall} profile={profile}/>
       </WithNav>
     );
   }
@@ -524,7 +524,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'combo_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <ComboCoachSetup discipline={disc} onBack={goFightHub} onStart={goComboActive} profile={profile}/>
+        <ComboCoachSetup discipline={disc} onBack={goFightHub} onStart={goComboActive} onPaywall={goPaywall} profile={profile}/>
       </WithNav>
     );
   }
