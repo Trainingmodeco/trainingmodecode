@@ -282,7 +282,7 @@ export default function CardioSummary({
               <input type="text" inputMode="decimal" placeholder="e.g. 5" value={distance}
                 onChange={(e) => setDistance(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
               <div style={{ display: 'flex', gap: 4 }}>
-                {['km', 'mi'].map(u => (
+                {['mi', 'km'].map(u => (
                   <button key={u} onClick={() => setDistanceUnit(u)} style={{
                     padding: '0 14px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
                     background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',

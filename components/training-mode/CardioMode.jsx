@@ -21,6 +21,7 @@ import EmptyState from './EmptyState';
 import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance, trackingLabel } from './data/cardioEquipment';
 import { defaultSpeed, clampSpeed, speedUnitLabel } from './data/machineSpeed';
 import SpeedDial from './shared/SpeedDial';
+import IntervalQuickSet from './shared/IntervalQuickSet';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
@@ -165,8 +166,12 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const [intervalMode, setIntervalMode] = useState(rs?.intervalMode ?? 'target'); // 'random' | 'target'
   const [cfgByStyle, setCfgByStyle] = useState(rs?.cfgByStyle ?? CFG_DEFAULTS);
   const [configOpen, setConfigOpen] = useState(false);
-  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? 5);
-  const [distanceUnit, setDistanceUnit] = useState(rs?.distanceUnit ?? 'km');
+  // 3 miles rather than 5 kilometres — the same run, named the way it is named
+  // here. A 5 in a miles field would be a much longer session than intended.
+  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? 3);
+  // Miles is the default and the dominant unit — the athletes using this are in
+  // the US. Kilometres stay one tap away, not the other way round.
+  const [distanceUnit, setDistanceUnit] = useState(rs?.distanceUnit ?? 'mi');
   const [customDistance, setCustomDistance] = useState(rs?.customDistance ?? '');
   const [goalTimeSeconds, setGoalTimeSeconds] = useState(rs?.goalTimeSeconds ?? 1200);
   const [customTimeMin, setCustomTimeMin] = useState(rs?.customTimeMin ?? '');
@@ -245,7 +250,12 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   // directly, because there is nothing to disambiguate.
   const selectCategory = (catId) => {
     setCategoryId(catId);
-    if (EQUIPMENT_GROUPS.includes(catId)) setPickerGroup(catId);
+    if (EQUIPMENT_GROUPS.includes(catId)) { setPickerGroup(catId); return; }
+    // ALTERNATE and EXERCISE are bodyweight work: there is no distance and no
+    // equipment to configure, so the timer IS the session. Landing them on
+    // STEADY meant a screen offering a goal the category cannot measure, and
+    // one more tap before they saw the only controls that matter.
+    if (style === 'steady') { setStyle('intervals'); setIntervalMode('target'); }
   };
   const chooseEquipment = (eqId) => {
     setEqByGroup(prev => ({ ...prev, [pickerGroup]: eqId }));
@@ -708,7 +718,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ display: 'flex', gap: 3 }}>
-                      {['km', 'mi'].map(u => (
+                      {['mi', 'km'].map(u => (
                         <button key={u} onClick={() => { setDistanceUnit(u); setGoalDistance(u === 'km' ? 5 : 3); setCustomDistance(''); }} style={{
                           padding: '3px 10px', borderRadius: 7, cursor: 'pointer',
                           background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
@@ -838,10 +848,11 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                     border: `1px solid ${ARCADE.goldBorder}`, color: GOLD, fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
                   }}>EDIT</button>
                 </div>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted }}>🔥 {cfg.warmupMin}m warm-up</span>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: '#ff9a8a' }}>💪 {cfg.workSec}s work</span>
-                  <span style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: '#8fe8ac' }}>😮‍💨 {cfg.restSec}s rest</span>
+                {/* Editable in place. These four numbers ARE the workout for a
+                    bodyweight session, and they used to live behind the EDIT
+                    button in a modal. */}
+                <div style={{ marginBottom: 8 }}>
+                  <IntervalQuickSet cfg={cfg} onChange={setCfg} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingTop: 7, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
                   <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em' }}>TOTAL TIME</span>

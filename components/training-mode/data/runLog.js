@@ -198,7 +198,8 @@ export function weekByDay(runs = null, date = new Date()) {
   return days;
 }
 
-const DEFAULT_GOAL = { value: 10, unit: 'km' };
+// Miles by default, to match the rest of the app.
+const DEFAULT_GOAL = { value: 6, unit: 'mi' };
 
 export function loadWeekGoal() {
   if (typeof localStorage === 'undefined') return { ...DEFAULT_GOAL };
@@ -215,7 +216,7 @@ export function loadWeekGoal() {
 
 export function saveWeekGoal(goal) {
   if (typeof localStorage === 'undefined') return;
-  const clean = { value: Math.max(0.5, Math.min(500, Number(goal?.value) || DEFAULT_GOAL.value)), unit: goal?.unit === 'mi' ? 'mi' : 'km' };
+  const clean = { value: Math.max(0.5, Math.min(500, Number(goal?.value) || DEFAULT_GOAL.value)), unit: goal?.unit === 'km' ? 'km' : 'mi' };
   try { localStorage.setItem(GOAL_KEY, JSON.stringify(clean)); } catch { /* quota */ }
   if (typeof window !== 'undefined') {
     try { window.dispatchEvent(new Event(RUN_LOG_UPDATED)); } catch { /* ignore */ }
