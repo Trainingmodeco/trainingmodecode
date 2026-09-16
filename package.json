@@ -13,6 +13,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test:indoor": "node scripts/test-indoor-tracking.mjs",
+    "test:cardio": "node --import ./scripts/extensionless-loader-register.mjs scripts/test-cardio-generator.mjs",
     "audit:tap": "node scripts/audit-tap-targets.mjs"
   },
   "dependencies": {

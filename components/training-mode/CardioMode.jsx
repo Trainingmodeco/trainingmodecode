@@ -22,6 +22,8 @@ import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance, trac
 import { defaultSpeed, clampSpeed, speedUnitLabel } from './data/machineSpeed';
 import SpeedDial from './shared/SpeedDial';
 import IntervalQuickSet from './shared/IntervalQuickSet';
+import CardioSessionCard from './shared/CardioSessionCard';
+import { generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig } from './data/cardioGenerator';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
@@ -58,9 +60,39 @@ const EQUIPMENT_GROUPS = ['running', 'machine'];
 const METHOD_CATEGORIES = [
   { id: 'running', label: 'RUNNING', icon: '🏃', sub: 'Outdoor GPS · Treadmill', type: 'outdoor-run', methodLabel: 'Running' },
   { id: 'machine', label: 'OTHER EQUIPMENT', icon: '⚙️', sub: 'Bike · Rower · Elliptical · Stairs', type: 'bike', methodLabel: 'Machine' },
-  { id: 'alternate', label: 'ALTERNATE', icon: '🥊', sub: 'Rope · Burpees · Swim · Shadowbox', type: 'jump-rope', methodLabel: 'Alternate' },
-  { id: 'exercise', label: 'EXERCISE', icon: '💪', sub: 'Climbers · Knees · Squats · KB', type: 'mountain-climbers', methodLabel: 'Exercise' },
+  // ALTERNATE and EXERCISE were the same product wearing two hats: pick a
+  // bodyweight movement, run a clock. The only difference was which movements
+  // each listed, which is not worth a card. They are one card now, and the
+  // movement is chosen inside it — or generated.
+  { id: 'rounds', label: 'ROUNDS', icon: '🔔', sub: 'Fight rounds · Tabata · HIIT', type: 'mountain-climbers', methodLabel: 'Rounds', wide: true },
 ];
+
+// Old saved setups still name the two cards that merged.
+const LEGACY_CATEGORIES = { alternate: 'rounds', exercise: 'rounds' };
+
+// The formats, kept to four so the row fits one line. The timings live in the
+// note UNDER the chips rather than inside them — a chip reading
+// "FIGHT ROUNDS 3:00 / 1:00 × 12" pushed the other three onto a second row and
+// made the one selected option the widest thing on the screen.
+const ROUND_FORMATS = [
+  {
+    id: 'fight', label: 'FIGHT ROUNDS',
+    cfg: { warmupMin: 3, workSec: 180, restSec: 60, rounds: 12, cooldownMin: 0 },
+    blurb: 'Three minutes on, one minute off, twelve rounds — a championship fight. Long rounds, real recovery. Builds the gas tank to last.',
+  },
+  {
+    id: 'tabata', label: 'TABATA',
+    cfg: { warmupMin: 0, workSec: 20, restSec: 10, rounds: 8, cooldownMin: 0 },
+    blurb: 'Twenty seconds flat out, ten seconds off, eight times. Four minutes total. Brutally short — go as hard as you can hold.',
+  },
+  {
+    id: 'hiit', label: 'HIIT',
+    cfg: { warmupMin: 2, workSec: 45, restSec: 15, rounds: 10, cooldownMin: 0 },
+    blurb: 'Forty-five seconds hard, fifteen off, ten rounds. Between the other two: long enough to hurt, short enough to repeat.',
+  },
+  { id: 'custom', label: 'CUSTOM', cfg: null, blurb: 'Your numbers. Set the warm-up, work, rest and rounds below.' },
+];
+const formatById = (id) => ROUND_FORMATS.find(f => f.id === id) || ROUND_FORMATS[0];
 
 const PROTOCOLS = [
   { id: 'steady', label: 'STEADY' },
@@ -161,7 +193,10 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   // OS took it) comes straight back into the player. See data/liveRun.js.
   const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
   const [phase, setPhase] = useState(() => (loadLiveRun() || resumeData?.protocol ? 'player' : 'setup'));
-  const [categoryId, setCategoryId] = useState(rs?.categoryId ?? 'running');
+  const [categoryId, setCategoryId] = useState(() => {
+    const saved = rs?.categoryId ?? 'running';
+    return LEGACY_CATEGORIES[saved] || saved;
+  });
   const [style, setStyle] = useState(rs?.style ?? 'steady');
   const [intervalMode, setIntervalMode] = useState(rs?.intervalMode ?? 'target'); // 'random' | 'target'
   const [cfgByStyle, setCfgByStyle] = useState(rs?.cfgByStyle ?? CFG_DEFAULTS);
@@ -187,6 +222,9 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   // whatever holds the target pace", which is right until the athlete says
   // otherwise — so it resets whenever they change equipment.
   const [startSpeed, setStartSpeed] = useState(null);
+  // ROUNDS: which format, and the generated session if one has been built.
+  const [roundFormat, setRoundFormat] = useState(rs?.roundFormat ?? 'fight');
+  const [genSession, setGenSession] = useState(null);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -220,6 +258,8 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   // Equipment with a console distance we cannot read live (the rower): timed on
   // screen, real number typed in at the end.
   const consoleUnit = equipment?.tracking === 'console' ? equipment.consoleUnit : null;
+  const isRounds = categoryId === 'rounds';
+  const activeFormat = formatById(roundFormat);
 
 
   const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
@@ -248,15 +288,33 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
 
   // Tapping RUNNING or MACHINE opens its equipment screen; the other two select
   // directly, because there is nothing to disambiguate.
+  const applyFormat = (fid) => {
+    setRoundFormat(fid);
+    const f = formatById(fid);
+    if (f.cfg) setCfgByStyle(prev => ({ ...prev, intervals: { ...f.cfg } }));
+  };
+
   const selectCategory = (catId) => {
     setCategoryId(catId);
     if (EQUIPMENT_GROUPS.includes(catId)) { setPickerGroup(catId); return; }
+    if (catId === 'rounds') {
+      setStyle('intervals'); setIntervalMode('target');
+      applyFormat(roundFormat);
+      return;
+    }
     // ALTERNATE and EXERCISE are bodyweight work: there is no distance and no
     // equipment to configure, so the timer IS the session. Landing them on
     // STEADY meant a screen offering a goal the category cannot measure, and
     // one more tap before they saw the only controls that matter.
     if (style === 'steady') { setStyle('intervals'); setIntervalMode('target'); }
   };
+  const genOpts = () => ({ level, rng: Math.random });
+  const regenerate = () => setGenSession(generateCardioSession({ level, moveCount: 5 }));
+  const onSwapMove = (i) => setGenSession(prev => swapMove(prev, i, genOpts()));
+  const onMoveUp = (i) => setGenSession(prev => reorderMove(prev, i, 'up'));
+  const onMoveDown = (i) => setGenSession(prev => reorderMove(prev, i, 'down'));
+  const onRemoveMove = (i) => setGenSession(prev => removeMove(prev, i));
+
   const chooseEquipment = (eqId) => {
     setEqByGroup(prev => ({ ...prev, [pickerGroup]: eqId }));
     setStartSpeed(null);
@@ -478,13 +536,16 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             ) : (
             <CardioProtocolPlayer
               autoStart
-              format={player.format}
+              format={isRounds && genSession ? 'intervals' : player.format}
               durationSeconds={player.durationSeconds}
-              intervalConfig={player.intervalConfig}
+              intervalConfig={isRounds && genSession
+                ? sessionToIntervalConfig(genSession, cfg.warmupMin)
+                : player.intervalConfig}
               headerLabel="CARDIO MODE"
               methodLabel={methodLabel}
               styleLabel={displayStyleLabel}
               cadenceKind={cadenceKind}
+              moveNames={isRounds && genSession ? genSession.moves.map(m => m.name) : null}
               distanceLabel={useDistanceGauge ? player.distanceLabel : null}
               distanceMode={useDistanceGauge}
               useGps={usesGps}
@@ -594,6 +655,9 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
               const chosen = group && active ? equipmentById(eqByGroup[cat.id]) : null;
               return (
                 <button key={cat.id} onClick={() => selectCategory(cat.id)} style={{
+                  // ROUNDS sits on its own row: it is one of three cards in a
+                  // two-column grid, and left dangling it reads as an orphan.
+                  gridColumn: cat.wide ? '1 / -1' : 'auto',
                   textAlign: 'left', padding: '8px 10px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
                   background: active ? 'rgba(253,224,71,0.1)' : 'rgba(14,2,28,0.6)',
                   border: active ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
@@ -666,9 +730,64 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             </div>
           )}
 
+          {/* ROUNDS — format, then what that format actually means, then the
+              generated session. The chips carry only their names so all four
+              fit one line; the timings are in the note below, where there is
+              room to explain the difference rather than just state it. */}
+          {isRounds && (
+            <>
+              <div style={sectionLabel}>FORMAT</div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {ROUND_FORMATS.map(f => (
+                  <button key={f.id} onClick={() => applyFormat(f.id)} style={{
+                    flex: 1, padding: '7px 4px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
+                    fontFamily: ARCADE.fontHead, fontWeight: 800, fontSize: 8.5, letterSpacing: '0.03em',
+                    background: roundFormat === f.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.6)',
+                    border: roundFormat === f.id ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
+                    color: roundFormat === f.id ? GOLD : C.muted, whiteSpace: 'nowrap',
+                  }}>{f.label}</button>
+                ))}
+              </div>
+              <div style={{
+                borderRadius: ARCADE.radius.sm, border: '1px solid rgba(34,197,94,0.28)',
+                background: 'rgba(34,197,94,0.07)', padding: '8px 11px', marginBottom: 12,
+                fontFamily: ARCADE.fontBody, fontSize: 10, color: '#c9f5d6', lineHeight: 1.45,
+              }}>
+                {activeFormat.blurb}
+              </div>
+
+              {genSession ? (
+                <CardioSessionCard
+                  session={genSession}
+                  level={level}
+                  onSwap={onSwapMove}
+                  onMoveUp={onMoveUp}
+                  onMoveDown={onMoveDown}
+                  onRemove={onRemoveMove}
+                  onRegenerate={regenerate}
+                />
+              ) : (
+                <button onClick={regenerate} style={{
+                  width: '100%', padding: '12px 14px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
+                  textAlign: 'left', marginBottom: 12,
+                  background: 'linear-gradient(180deg, rgba(88,28,135,0.3), rgba(16,4,30,0.8))',
+                  border: '1px solid rgba(176,106,255,0.5)',
+                }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 900, color: '#e6d4ff', letterSpacing: '0.06em' }}>
+                    ⟳ BUILD ME A SESSION
+                  </div>
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 3, lineHeight: 1.35 }}>
+                    Five movements picked for your level — plyo, sprints, rope, shadowbox.
+                    Reorder or swap any of them. Or just run the clock without one.
+                  </div>
+                </button>
+              )}
+            </>
+          )}
+
           {/* PROTOCOL */}
           </div>
-          <div data-guide="cm-protocol">
+          <div data-guide="cm-protocol" style={{ display: isRounds ? 'none' : 'block' }}>
           <div style={sectionLabel}>PROTOCOL</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: style === 'intervals' ? 8 : 14 }}>
             {PROTOCOLS.map(p => (

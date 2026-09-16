@@ -213,6 +213,10 @@ export default function CardioProtocolPlayer({
   // are what the session has to offer — and cadence is the more useful of the
   // two anyway, because it is the thing the athlete can act on mid-set.
   cadenceKind = null,
+  // A generated session names a movement per work interval. The coach calls it
+  // at the start of each one, which is the difference between this and any
+  // other interval timer: it tells you WHAT to do, not just when.
+  moveNames = null,
   useGps = false,
   randomSurges = false,
   distanceTargetLabel = null,
@@ -280,6 +284,13 @@ export default function CardioProtocolPlayer({
   const [surge, setSurge] = useState(false);
 
   const seg = segments[segIndex];
+  // Which movement this interval is, and the one after it. During a rest the
+  // "current" move is the one coming up, because that is what the athlete is
+  // about to do and what they want the rest to prepare them for.
+  const moveFor = (round) => (moveNames && moveNames.length && round > 0
+    ? moveNames[(round - 1 + moveNames.length) % moveNames.length] : null);
+  const currentMove = seg ? (seg.kind === 'work' ? moveFor(seg.round) : null) : null;
+  const nextMove = seg && seg.kind !== 'work' ? moveFor((seg.round || 0) + (seg.kind === 'rest' ? 1 : 1)) : null;
   const isInterval = format === 'interval' || format === 'tabata';
   const totalTarget = segments.reduce((sum, s) => sum + s.seconds, 0);
 
@@ -370,7 +381,11 @@ export default function CardioProtocolPlayer({
     lastSpokenSegRef.current = segIndex;
     const sg = segments[segIndex];
     if (!sg) return;
-    if (sg.kind === 'work') { playBell(1); say(`Round ${sg.round}. ${sg.label === 'HARD' ? 'Hard!' : 'Work!'}`); }
+    if (sg.kind === 'work') {
+      playBell(1);
+      const move = moveNames && moveNames.length ? moveNames[(sg.round - 1 + moveNames.length) % moveNames.length] : null;
+      say(move ? `Round ${sg.round}. ${move}. Go!` : `Round ${sg.round}. ${sg.label === 'HARD' ? 'Hard!' : 'Work!'}`);
+    }
     else if (sg.kind === 'rest') say(sg.label === 'REST' ? 'Rest.' : 'Recover. Easy pace.');
     else if (sg.kind === 'warmup') say(`Warm up. ${speakDuration(sg.seconds)}, easy.`);
     else if (sg.kind === 'cooldown') say('Cool down. Bring it down.');
@@ -643,6 +658,18 @@ export default function CardioProtocolPlayer({
       {isInterval && (
         <div style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, color: C.muted, letterSpacing: '0.12em', marginBottom: 8 }}>
           {seg.round > 0 ? `ROUND ${seg.round} OF ${rounds}` : seg.label}
+        </div>
+      )}
+
+      {currentMove && (
+        <div style={{
+          fontFamily: "'Orbitron',sans-serif", fontSize: 15, fontWeight: 900, color: '#fff',
+          letterSpacing: '0.02em', textAlign: 'center', marginBottom: 4, lineHeight: 1.2,
+        }}>{currentMove}</div>
+      )}
+      {nextMove && (
+        <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginBottom: 8 }}>
+          UP NEXT · {nextMove}
         </div>
       )}
 
