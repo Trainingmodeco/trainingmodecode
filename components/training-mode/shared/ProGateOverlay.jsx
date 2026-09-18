@@ -53,10 +53,11 @@ export default function ProGateOverlay({
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         // A scrim, not a fade — enough to read against, not so opaque it
         // erases the context of what the athlete was about to do.
-        background: 'rgba(4,0,14,0.72)',
+        padding: '20px 16px',
+        background: 'rgba(4,0,14,0.78)',
         backdropFilter: 'blur(3px)',
         WebkitBackdropFilter: 'blur(3px)',
       }}
@@ -64,44 +65,51 @@ export default function ProGateOverlay({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 'min(390px, 100%)',
+          width: 'min(358px, 100%)',
           background: 'linear-gradient(180deg, rgba(30,6,54,0.98) 0%, rgba(12,2,24,0.98) 100%)',
-          borderTop: '1.5px solid rgba(253,224,71,0.6)',
-          borderRadius: '18px 18px 0 0',
-          boxShadow: '0 -12px 40px rgba(0,0,0,0.55), 0 0 30px rgba(253,224,71,0.12)',
-          padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 0px))',
+          border: '1.5px solid rgba(253,224,71,0.6)',
+          borderRadius: 18,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.65), 0 0 34px rgba(253,224,71,0.14)',
+          padding: '22px 20px 20px',
           animation: 'progate-in 0.28s cubic-bezier(.2,.7,.3,1) both',
+          position: 'relative',
         }}
       >
         <style>{`
           @keyframes progate-in {
-            from { transform: translateY(24px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { transform: scale(0.94); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
           }
         `}</style>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 22, lineHeight: 1 }}>👑</span>
-          <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 11, color: ARCADE.gold, letterSpacing: '0.16em' }}>
+        {/* Close in the corner so the crown can sit dead centre without
+            fighting a title bar for space. */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            position: 'absolute', top: 10, right: 10,
+            width: 28, height: 28, borderRadius: 8,
+            border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.6)',
+            color: '#d6c2ff', fontSize: 13, fontWeight: 900, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+          }}
+        >✕</button>
+
+        {/* Crown centred at the top, brand badge below it. This is the header
+            the owner asked for: logo in the middle, everything else beneath. */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 12 }}>
+          <span style={{ fontSize: 32, lineHeight: 1, marginBottom: 6 }}>👑</span>
+          <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: ARCADE.gold, letterSpacing: '0.2em' }}>
             TRAINING MODE PRO
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              marginLeft: 'auto', width: 30, height: 30, borderRadius: 8,
-              border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.6)',
-              color: '#d6c2ff', fontSize: 14, fontWeight: 900, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-            }}
-          >✕</button>
         </div>
 
-        <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 18, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.25, marginBottom: 8 }}>
+        <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 17, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.25, marginBottom: 8, textAlign: 'center' }}>
           {title}
         </div>
-        <div style={{ fontFamily: ARCADE.fontBody, fontSize: 12.5, color: '#c9c0e0', lineHeight: 1.45, marginBottom: 14 }}>
+        <div style={{ fontFamily: ARCADE.fontBody, fontSize: 12, color: '#c9c0e0', lineHeight: 1.45, marginBottom: 14, textAlign: 'center' }}>
           {body}
         </div>
 
