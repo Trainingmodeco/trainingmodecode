@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { C } from '../Styles';
 import { ARCADE } from '../ArcadeUI';
+import IntroLogo from '../IntroLogo';
 
 // The Pro overlay. Pops at the point of contact — the moment an athlete tries
 // the thing that free does not cover — rather than sitting on a separate
@@ -97,11 +98,17 @@ export default function ProGateOverlay({
           }}
         >✕</button>
 
-        {/* Crown centred at the top, brand badge below it. This is the header
-            the owner asked for: logo in the middle, everything else beneath. */}
+        {/* The Training Mode logo centred at the top with the PRO badge under
+            it. Using the real brand mark (IntroLogo, which is already the app's
+            gold-on-purple wordmark stamp) rather than a generic emoji — this is
+            the paywall header, so it should read as Training Mode's ask, not
+            a stock modal. Glow on, since the modal itself is small. */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 32, lineHeight: 1, marginBottom: 6 }}>👑</span>
-          <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: ARCADE.gold, letterSpacing: '0.2em' }}>
+          <IntroLogo size={44} glow />
+          <span style={{
+            fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10,
+            color: ARCADE.gold, letterSpacing: '0.2em', marginTop: 6,
+          }}>
             TRAINING MODE PRO
           </span>
         </div>
