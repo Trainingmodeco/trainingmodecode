@@ -115,7 +115,7 @@ export default function HowItWorksGuide({ onDone, profile }) {
               </div>
               <div style={{ display: 'inline-block', font: "700 7px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.12em', border: '1px solid rgba(250,204,21,0.4)', borderRadius: 6, padding: '4px 9px', marginBottom: 12 }}>COMING SOON</div>
               <div style={{ font: "900 19px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em', marginBottom: 12, textShadow: '0 0 14px rgba(168,85,247,.5)' }}>TRAIN HERE, WIN THERE</div>
-              <div style={{ font: "600 12px 'Rajdhani',sans-serif", color: '#d9d1ef', lineHeight: 1.6, maxWidth: 275 }}>Soon you&apos;ll link Training Mode to the companion game — your real training will boost your in-game fighter&apos;s stats, rank &amp; skins. Build the body, power the avatar.</div>
+              <div style={{ font: "600 12px 'Rajdhani',sans-serif", color: '#d9d1ef', lineHeight: 1.6, maxWidth: 275 }}>Soon you&apos;ll link Training Mode to the companion game — your real training will power your in-game fighter. Build the body, power the avatar.</div>
             </>
           )}
         </div>

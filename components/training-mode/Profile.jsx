@@ -430,7 +430,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <span style={{ fontSize: 16 }}>👑</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em' }}>{hasProEntitlement() ? 'TRAINING MODE PRO · MEMBER' : 'GO PRO'}</div>
-                    <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#facc15' }}>{hasProEntitlement() ? 'Manage your plan & benefits' : 'Unlock all protocols, builder & skins'}</div>
+                    <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#facc15' }}>{hasProEntitlement() ? 'Manage your plan & benefits' : 'Unlock Arcade, Camp levels 4-12 & unlimited routines'}</div>
                   </div>
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fde047' }}>›</span>
                 </button>
@@ -646,8 +646,11 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         {/* Account & PRO */}
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
-            { emoji: '👑', title: 'TRAINING MODE PRO', sub: 'Unlock all protocols, builder & skins.', onClick: onPaywall },
-            { emoji: '🎮', title: 'GAME LINK', sub: 'Connect your fighter — launches 2026.', onClick: onGameLink },
+            { emoji: '👑', title: 'TRAINING MODE PRO', sub: 'Unlock Arcade, Camp levels 4-12 & unlimited routines.', onClick: onPaywall },
+            // Game Link is future work — the companion game does not exist yet.
+            // "IN THE WORKS" matches how GameLink.jsx itself frames it and drops
+            // the 2026 date so we are not selling a launch we cannot commit to.
+            { emoji: '🎮', title: 'GAME LINK', sub: 'Connect your fighter — in the works.', onClick: onGameLink },
             { emoji: '💳', title: 'MANAGE SUBSCRIPTION', sub: 'Plan, billing & renewals.', onClick: onSubscription },
           ].filter(r => r.onClick).map(r => (
             <button key={r.title} onClick={r.onClick} style={{

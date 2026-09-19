@@ -3,12 +3,15 @@ import SafeImage from './SafeImage';
 import { ChevronLeft } from 'lucide-react';
 
 // Game Link — connect your game avatar. UI port of design 26a.
-// Companion game is not live; CTA joins a waitlist (placeholder toast).
-
+// Companion game is IN THE WORKS; CTA joins a waitlist. Every bullet here
+// is a plan, not a shipping feature, and the page frames it that way — the
+// screen leads with "IN THE WORKS" and the CTA says "NOTIFY ME" rather than
+// "SIGN UP". If any of these three ever become sellable perks, the paywall
+// gets the truthful bullet at the same time (see TRUTH-AUDIT.md).
 const BENEFITS = [
-  { icon: '⚔️', text: 'Workout XP → in-game stat points' },
-  { icon: '🥋', text: 'Unlocked avatar tiers appear in-game' },
-  { icon: '🏆', text: 'Exclusive skins from training streaks' },
+  { icon: '⚔️', text: 'Workout XP will carry into the game' },
+  { icon: '🥋', text: 'Your fighter mirrors your real training' },
+  { icon: '🏆', text: 'Streaks and PRs unlock in-game milestones' },
 ];
 
 export default function GameLink({ onBack, profile }) {
@@ -48,7 +51,7 @@ export default function GameLink({ onBack, profile }) {
               <div style={{ width: 66, height: 82, borderRadius: 10, background: 'repeating-linear-gradient(45deg,#1a1030 0 8px,#241640 8px 16px)', border: '1px dashed rgba(176,106,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🎮</div>
             </div>
             <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.02em', textShadow: '0 0 14px rgba(168,85,247,.5)' }}>TRAIN HERE. LEVEL UP THERE.</div>
-            <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 5, lineHeight: 1.5 }}>Every real workout earns XP that powers up your fighter in the Training Mode game. Your rank, avatar tier &amp; stats carry over.</div>
+            <div style={{ font: "600 10px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 5, lineHeight: 1.5 }}>Every real workout earns XP that will power your fighter in the Training Mode game. Your rank and stats will carry over.</div>
           </div>
 
           {/* Benefits */}

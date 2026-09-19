@@ -9,11 +9,14 @@ import { getCurrentUser, onAuthChange, signInWithGoogle } from './data/authClien
 // checkout; the purchase is tied to the signed-in account so the webhook can
 // grant Pro. Requires sign-in first (so Pro unlocks on any device).
 
+// TRUTH PASS. These read from the ground-truth gates in data/entitlements.js.
+// Nothing here should name a feature that does not have a canAccess... check
+// behind it. If a benefit is added, the gate ships first — the banner second.
 const BENEFITS = [
   'All Arcade protocols & boss stages',
-  'Unlimited Workout Builder & routines',
-  'Every avatar tier + exclusive skins',
-  'Full voice coaching + game-link rewards',
+  'Training Camp levels 4-12',
+  'Unlimited saved Builder routines',
+  'Full session length in Combo Coach & Fight Focus',
 ];
 
 export default function Paywall({ onClose }) {
