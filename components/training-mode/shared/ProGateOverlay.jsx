@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { C } from '../Styles';
 import { ARCADE } from '../ArcadeUI';
 import IntroLogo from '../IntroLogo';
+import OverlayPortal, { OVERLAY_Z } from './OverlayPortal';
 
 // The Pro overlay. Pops at the point of contact — the moment an athlete tries
 // the thing that free does not cover — rather than sitting on a separate
@@ -46,14 +47,30 @@ export default function ProGateOverlay({
 
   if (!open) return null;
 
+  // Portalled to document.body at the shared overlay layer, for the reason
+  // shared/OverlayPortal.jsx documents: PhoneFrame sets `isolation: isolate`,
+  // so a z-index declared inside the frame is ranked only against its siblings
+  // IN the frame and loses to anything outside it.
+  //
+  // At a bare z-index of 200 this overlay opened BEHIND Training Camp's level
+  // card, which portals correctly at OVERLAY_Z (1000) — the title and the tiles
+  // were in the DOM and read correctly, but elementFromPoint over GO PRO
+  // returned the card underneath, so the one button that leads to a purchase
+  // could not be tapped. It only looked right on the other three sites because
+  // nothing there competes.
+  //
+  // OVERLAY_Z + 10 rather than OVERLAY_Z: this layer exists to open ON TOP of
+  // whatever asked for it, including another overlay, so it should not depend
+  // on paint order to win.
   return (
+    <OverlayPortal>
     <div
       role="dialog"
       aria-modal="true"
       aria-label={title || 'Go Pro'}
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 200,
+        position: 'fixed', inset: 0, zIndex: OVERLAY_Z + 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         // A scrim, not a fade — enough to read against, not so opaque it
         // erases the context of what the athlete was about to do.
@@ -176,5 +193,6 @@ export default function ProGateOverlay({
         </button>
       </div>
     </div>
+    </OverlayPortal>
   );
 }

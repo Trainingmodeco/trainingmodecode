@@ -34,6 +34,15 @@ import { loadStats, getLevel } from './data/userStats';
 const GOLD = C.yellow;
 const VIOLET = '#b06aff';
 
+// 'interval', SINGULAR. buildSegments() in CardioProtocolPlayer tests
+// `format === 'interval' || format === 'tabata'`, and data/cardioAddon.js has
+// always produced the singular. A generated ROUNDS session was being handed the
+// plural, which matched neither branch and fell through to steady — so five
+// movements over four rounds ran as one flat block, and the coach never reached
+// a WORK segment to name a movement on. moveNames still arrived, so UP NEXT
+// looked correct while nothing behind it was.
+const ROUNDS_PLAYER_FORMAT = 'interval';
+
 const fmtClock = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
 
 // Target + elite time for a distance run. The target defaults from the goal
@@ -536,7 +545,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             ) : (
             <CardioProtocolPlayer
               autoStart
-              format={isRounds && genSession ? 'intervals' : player.format}
+              format={isRounds && genSession ? ROUNDS_PLAYER_FORMAT : player.format}
               durationSeconds={player.durationSeconds}
               intervalConfig={isRounds && genSession
                 ? sessionToIntervalConfig(genSession, cfg.warmupMin)
