@@ -67,6 +67,19 @@ const FOCUS_PROFILES = {
     categories: ['Striking', 'Bag Work', 'Shadowboxing', 'Strength', 'Loaded Carry', 'Upper Body', 'Upper Body Push', 'Upper Body Pull', 'Fight-Specific', 'Grip Strength'],
     repScale: 1.0,
   },
+  // Fight Athlete: hybrid full-body, high-output — pulls from every other
+  // profile so the picker gets breadth rather than a single flavour. Rep scale
+  // sits between Gas Tank and Strike & Strength.
+  'fight-athlete': {
+    categories: [
+      'Cardio', 'Conditioning', 'Intervals', 'Combat Skill Conditioning',
+      'Plyometrics', 'Power', 'Lateral Power', 'Rotation / Power',
+      'Striking', 'Bag Work', 'Shadowboxing',
+      'Strength', 'Upper Body Push', 'Upper Body Pull', 'Loaded Carry',
+      'Footwork', 'Agility', 'Locomotion',
+    ],
+    repScale: 1.1,
+  },
 };
 function focusProfile(focus) {
   return FOCUS_PROFILES[focus] || FOCUS_PROFILES['gas-tank'];
