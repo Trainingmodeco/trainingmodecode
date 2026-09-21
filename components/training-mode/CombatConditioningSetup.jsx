@@ -219,13 +219,26 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
         style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%',
-          objectFit: 'cover', objectPosition: 'right center',
+          // The banner's CONDITION HARDER title lives in the artwork itself
+          // (baked into the WebP), so bias the crop slightly left of centre.
+          // A pure 'center' crop cuts the leading C off the title at portrait
+          // widths — 32% keeps the whole word intact while still showing the
+          // fighter, and only trims the far-right "GO FOR BROKE" graffiti.
+          objectFit: 'cover', objectPosition: '32% center',
           pointerEvents: 'none',
         }}
       />
+      {/* Slight dim + a violet wash to tie the banner to the app frame.
+          The CONDITION HARDER / NEXT ROUND GO FOR BROKE text lives inside
+          the artwork, so nothing here overlays it — just a soft tint. */}
       <div aria-hidden="true" style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(90deg, rgba(6,0,18,0.92) 0%, rgba(6,0,18,0.7) 40%, rgba(6,0,18,0.1) 78%, rgba(6,0,18,0) 100%)',
+        background: 'linear-gradient(180deg, rgba(60,10,100,0.10) 0%, rgba(30,4,60,0.18) 100%)',
+        mixBlendMode: 'multiply',
+      }}/>
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0,
+        background: 'radial-gradient(ellipse at 50% 50%, rgba(88,28,135,0.18) 0%, rgba(6,0,18,0.05) 55%, rgba(6,0,18,0.35) 100%)',
       }}/>
 
       <div style={{
@@ -239,31 +252,24 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
           <span style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5,
             color: '#ff9a9a',
-            border: '1px solid rgba(239,68,68,0.5)', borderRadius: 4,
+            border: '1px solid rgba(239,68,68,0.6)', borderRadius: 4,
             padding: '2.5px 6px', letterSpacing: '0.14em', flexShrink: 0,
-            background: 'rgba(239,68,68,0.08)',
+            background: 'rgba(20,4,10,0.55)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
           }}>HYBRID</span>
           <span style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
             color: '#ffd7d7', letterSpacing: '0.08em',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+            textShadow: '0 1px 6px rgba(0,0,0,0.9)',
           }}>{summaryLine}</span>
         </div>
 
-        <div style={{ maxWidth: '68%' }}>
-          <div style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
-            fontSize: 'clamp(19px, 5.6vw, 26px)',
-            lineHeight: 1, letterSpacing: '0.01em',
-            color: '#fff',
-            textShadow: '0 2px 12px rgba(0,0,0,0.75)',
-          }}>CONDITION HARDER</div>
-          <div style={{
-            fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9,
-            color: '#e6dcff', letterSpacing: '0.12em', marginTop: 3,
-            textShadow: '0 1px 8px rgba(0,0,0,0.85)',
-          }}>FIT FIGHTER · STRONGER YOU.</div>
-        </div>
+        {/* Middle band left empty — the banner artwork carries the
+            CONDITION HARDER title itself, so overlaying HTML text on top
+            would double up and misalign at responsive widths. */}
+        <div/>
 
         <div style={{
           display: 'grid',
