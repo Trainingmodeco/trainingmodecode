@@ -146,12 +146,39 @@ function withTotals(s) {
 /** Replace one movement with a fresh one, keeping everything else. */
 export function swapMove(session, index, { level = 1, equipment = null, rng = Math.random } = {}) {
   if (!session?.moves?.[index]) return session;
-  const inUse = new Set(session.moves.map(m => m.id));
-  const options = availableMoves(level, equipment).filter(m => !inUse.has(m.id));
+  const options = swapOptions(session, index, { level, equipment });
   if (options.length === 0) return session;
   const moves = session.moves.slice();
   moves[index] = options[Math.floor(rng() * options.length)];
   return withTotals({ ...session, moves });
+}
+
+// What ⇄ can actually reach.
+//
+// A level-1 card holds all FOUR Easy movements there are, so the same-tier pool
+// came back empty and the button did nothing at all — it looked live, it was
+// not. A swap is the ATHLETE choosing, which is a different act from the
+// generator prescribing: the level gate exists so a beginner is not handed
+// burpees unasked, not to stop them asking. So when their own tier is spent we
+// widen to the next one up rather than leave a dead control on the card.
+// Advanced is already excluded from the pool entirely, so this can never reach
+// it.
+export function swapOptions(session, index, { level = 1, equipment = null } = {}) {
+  if (!session?.moves?.[index]) return [];
+  const inUse = new Set(session.moves.map(m => m.id));
+  const tiers = [level, ...Object.values(DIFFICULTY_MIN_LEVEL)
+    .filter(l => l > level && l < 99)
+    .sort((a, b) => a - b)];
+  for (const tier of tiers) {
+    const options = availableMoves(tier, equipment).filter(m => !inUse.has(m.id));
+    if (options.length) return options;
+  }
+  return [];
+}
+
+/** Whether ⇄ has anywhere to go, so the card can dim it instead of lying. */
+export function canSwap(session, index, opts = {}) {
+  return swapOptions(session, index, opts).length > 0;
 }
 
 /** Move one movement up or down the card. */

@@ -23,7 +23,7 @@ import { defaultSpeed, clampSpeed, speedUnitLabel } from './data/machineSpeed';
 import SpeedDial from './shared/SpeedDial';
 import IntervalQuickSet from './shared/IntervalQuickSet';
 import CardioSessionCard from './shared/CardioSessionCard';
-import { generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig } from './data/cardioGenerator';
+import { generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig, canSwap } from './data/cardioGenerator';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
@@ -73,7 +73,7 @@ const METHOD_CATEGORIES = [
   // bodyweight movement, run a clock. The only difference was which movements
   // each listed, which is not worth a card. They are one card now, and the
   // movement is chosen inside it — or generated.
-  { id: 'rounds', label: 'ROUNDS', icon: '🔔', sub: 'Fight rounds · Tabata · HIIT', type: 'mountain-climbers', methodLabel: 'Rounds', wide: true },
+  { id: 'rounds', label: 'ROUNDS', icon: '🔔', sub: 'Fight rounds · Tabata · custom', type: 'mountain-climbers', methodLabel: 'Rounds', wide: true },
 ];
 
 // Old saved setups still name the two cards that merged.
@@ -94,11 +94,6 @@ const ROUND_FORMATS = [
     cfg: { warmupMin: 0, workSec: 20, restSec: 10, rounds: 8, cooldownMin: 0 },
     blurb: 'Twenty seconds flat out, ten seconds off, eight times. Four minutes total. Brutally short — go as hard as you can hold.',
   },
-  {
-    id: 'hiit', label: 'HIIT',
-    cfg: { warmupMin: 2, workSec: 45, restSec: 15, rounds: 10, cooldownMin: 0 },
-    blurb: 'Forty-five seconds hard, fifteen off, ten rounds. Between the other two: long enough to hurt, short enough to repeat.',
-  },
   { id: 'custom', label: 'CUSTOM', cfg: null, blurb: 'Your numbers. Set the warm-up, work, rest and rounds below.' },
 ];
 const formatById = (id) => ROUND_FORMATS.find(f => f.id === id) || ROUND_FORMATS[0];
@@ -107,14 +102,12 @@ const PROTOCOLS = [
   { id: 'steady', label: 'STEADY' },
   { id: 'intervals', label: 'INTERVALS' },
   { id: 'tabata', label: 'TABATA' },
-  { id: 'hiit', label: 'HIIT' },
 ];
 
 // Default work/rest structures per protocol; the config modal edits copies of these.
 const CFG_DEFAULTS = {
   intervals: { warmupMin: 3, workSec: 60, restSec: 60, rounds: 8, cooldownMin: 0 },
   tabata: { warmupMin: 0, workSec: 20, restSec: 10, rounds: 8, cooldownMin: 0 },
-  hiit: { warmupMin: 2, workSec: 45, restSec: 15, rounds: 10, cooldownMin: 0 },
 };
 
 const cfgTargetSeconds = (c) => Math.round((c.warmupMin || 0) * 60) + c.rounds * (c.workSec + c.restSec) + Math.round((c.cooldownMin || 0) * 60);
@@ -154,9 +147,9 @@ function NumRow({ label, value, unit, min, max, step, onChange }) {
   );
 }
 
-// Narrow, centered config modal for Target Intervals / Tabata / HIIT (design 12a).
+// Narrow, centered config modal for Target Intervals / Tabata (design 12a).
 function ConfigModal({ styleId, cfg, onChange, onClose }) {
-  const titleMap = { intervals: 'TARGET INTERVALS', tabata: 'TABATA', hiit: 'HIIT' };
+  const titleMap = { intervals: 'TARGET INTERVALS', tabata: 'TABATA' };
   const total = cfgTargetSeconds(cfg);
   return createPortal(
     <div onClick={onClose} style={{
@@ -254,7 +247,16 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const goalPhase = style === 'steady' || (style === 'intervals' && intervalMode === 'random');
   const useDistanceGauge = distanceCapable && goalPhase;
   const showTimeGoal = !distanceCapable && goalPhase;
-  const showConfigCard = style === 'tabata' || style === 'hiit' || (style === 'intervals' && intervalMode === 'target');
+  // In ROUNDS the format chips ARE the timings and the session card states
+  // the result, so the four steppers only repeated what was already on
+  // screen — and they were the tallest block on it. CUSTOM is the one format
+  // that exists to set those numbers, so it keeps them.
+  const showConfigCard = categoryId === 'rounds'
+    ? roundFormat === 'custom'
+    : (style === 'tabata' || (style === 'intervals' && intervalMode === 'target'));
+  // In ROUNDS the generated session supplies work, rest and rounds; only the
+  // warm-up still comes from cfg, so only the warm-up is shown.
+  const warmupOnly = categoryId === 'rounds' && !!genSession;
   const usesGps = equipment?.tracking === 'gps' && useDistanceGauge;
   // Indoors, distance comes from the machine's own speed instead of being
   // estimated at the target pace. That was circular: it replayed the goal, so
@@ -293,7 +295,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
 
   const displayStyleLabel = style === 'steady' ? 'Steady Pace'
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
-      : style === 'tabata' ? 'Tabata' : 'HIIT';
+      : 'Tabata';
 
   // Tapping RUNNING or MACHINE opens its equipment screen; the other two select
   // directly, because there is nothing to disambiguate.
@@ -332,7 +334,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
 
   const pickProtocol = (id) => {
     setStyle(id);
-    if (id === 'tabata' || id === 'hiit') setConfigOpen(true);
+    if (id === 'tabata') setConfigOpen(true);
   };
   const pickIntervalMode = (mode) => {
     setIntervalMode(mode);
@@ -350,7 +352,6 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
       if (intervalMode === 'random') { addonStyle = 'steady'; randomSurges = true; }
       else { addonStyle = 'intervals'; intervals = cfgToIntervals(cfgByStyle.intervals); }
     } else if (style === 'tabata') { addonStyle = 'tabata'; intervals = cfgToIntervals(cfgByStyle.tabata); }
-    else if (style === 'hiit') { addonStyle = 'hiit'; intervals = cfgToIntervals(cfgByStyle.hiit); }
 
     const dist = useDistanceGauge ? { value: effGoalDistance, unit: distanceUnit } : null;
     return {
@@ -618,17 +619,30 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             </button>
             <IntroLogo size={26}/>
           </div>
-          <HelpButton onClick={() => setHelpOpen(true)}/>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* START lives in the header now. The old footer button plus the
+                9vh of air beneath it cost 127px of a 494px options window,
+                which is most of the reason the screen had to scroll. Up here
+                it is on screen whatever the options are doing, and never
+                needs scrolling to reach. */}
+            <div data-guide="cm-start">
+              <button onClick={startCardio} style={{
+                padding: '7px 15px', borderRadius: 999, cursor: 'pointer',
+                background: 'linear-gradient(180deg,#fde047,#f0a92a)', border: 'none',
+                color: '#1a0b02', fontFamily: ARCADE.fontHead, fontWeight: 900,
+                fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap',
+                boxShadow: '0 0 14px rgba(253,224,71,0.45)',
+              }}>▶ START</button>
+            </div>
+            <HelpButton onClick={() => setHelpOpen(true)}/>
+          </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginBottom: 12, flexShrink: 0 }}>
+        <div style={{ textAlign: 'center', marginBottom: 7, flexShrink: 0 }}>
           <h1 style={{
-            fontFamily: ARCADE.fontHead, fontWeight: 900, color: GOLD, fontSize: 19,
+            fontFamily: ARCADE.fontHead, fontWeight: 900, color: GOLD, fontSize: 15,
             letterSpacing: '0.12em', textShadow: '0 0 14px rgba(253,224,71,0.4)',
           }}>CARDIO MODE</h1>
-          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 11, color: C.muted, marginTop: 2 }}>
-            Pick method + goal. We set your pace.
-          </div>
         </div>
 
         {/* Options — top-aligned; this region fills, so the open space lands below the controls */}
@@ -654,7 +668,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           <ProgressionNudgeCard lane="cardio"/>
           <div data-guide="cm-method">
           <div style={sectionLabel}>METHOD</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
             {METHOD_CATEGORIES.map(cat => {
               const active = categoryId === cat.id;
               const group = EQUIPMENT_GROUPS.includes(cat.id);
@@ -667,7 +681,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                   // ROUNDS sits on its own row: it is one of three cards in a
                   // two-column grid, and left dangling it reads as an orphan.
                   gridColumn: cat.wide ? '1 / -1' : 'auto',
-                  textAlign: 'left', padding: '8px 10px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
+                  textAlign: 'left', padding: '6px 9px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
                   background: active ? 'rgba(253,224,71,0.1)' : 'rgba(14,2,28,0.6)',
                   border: active ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
                   boxShadow: active ? '0 0 14px rgba(253,224,71,0.16)' : 'none', transition: 'all 0.15s',
@@ -695,7 +709,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           {equipment && (
             <div style={{
               borderRadius: ARCADE.radius.md, border: `1px solid ${ARCADE.violetBorderSoft}`,
-              background: 'rgba(10,2,22,0.7)', padding: '10px 12px', marginBottom: 14,
+              background: 'rgba(10,2,22,0.7)', padding: '8px 10px', marginBottom: 8,
             }}>
               {equipment.tracking === 'speed' ? (
                 <>
@@ -715,7 +729,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                     {(equipment.tracking === 'gps'
-                      ? ['GPS DISTANCE', 'ROUTE MAP', 'SPLITS', 'PACE COACH', 'GHOST RACE']
+                      ? ['GPS DISTANCE', 'ROUTE MAP', 'PACE COACH', 'GHOST RACE']
                       : equipment.tracking === 'console'
                         ? ['TIMED GOAL', 'STROKE RATE', 'CALORIES', 'METRES AT THE END']
                         : ['TIMED GOAL', equipment.cadenceKind === 'stairs' ? 'STEP RATE' : 'CADENCE', 'CALORIES']
@@ -746,10 +760,10 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           {isRounds && (
             <>
               <div style={sectionLabel}>FORMAT</div>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <div style={{ display: 'flex', gap: 5, marginBottom: 6 }}>
                 {ROUND_FORMATS.map(f => (
                   <button key={f.id} onClick={() => applyFormat(f.id)} style={{
-                    flex: 1, padding: '7px 4px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
+                    flex: 1, padding: '6px 4px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
                     fontFamily: ARCADE.fontHead, fontWeight: 800, fontSize: 8.5, letterSpacing: '0.03em',
                     background: roundFormat === f.id ? 'rgba(253,224,71,0.12)' : 'rgba(14,2,28,0.6)',
                     border: roundFormat === f.id ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
@@ -757,13 +771,15 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                   }}>{f.label}</button>
                 ))}
               </div>
+              {roundFormat !== 'custom' && (
               <div style={{
                 borderRadius: ARCADE.radius.sm, border: '1px solid rgba(34,197,94,0.28)',
-                background: 'rgba(34,197,94,0.07)', padding: '8px 11px', marginBottom: 12,
-                fontFamily: ARCADE.fontBody, fontSize: 10, color: '#c9f5d6', lineHeight: 1.45,
+                background: 'rgba(34,197,94,0.07)', padding: '7px 10px', marginBottom: 8,
+                fontFamily: ARCADE.fontBody, fontSize: 9.5, color: '#c9f5d6', lineHeight: 1.35,
               }}>
                 {activeFormat.blurb}
               </div>
+              )}
 
               {genSession ? (
                 <CardioSessionCard
@@ -774,10 +790,11 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                   onMoveDown={onMoveDown}
                   onRemove={onRemoveMove}
                   onRegenerate={regenerate}
+                  canSwapAt={(i) => canSwap(genSession, i, { level })}
                 />
               ) : (
                 <button onClick={regenerate} style={{
-                  width: '100%', padding: '12px 14px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
+                  width: '100%', padding: '10px 12px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
                   textAlign: 'left', marginBottom: 12,
                   background: 'linear-gradient(180deg, rgba(88,28,135,0.3), rgba(16,4,30,0.8))',
                   border: '1px solid rgba(176,106,255,0.5)',
@@ -964,28 +981,34 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             </>
           )}
 
-          {/* Interval / Tabata / HIIT config summary card */}
+          {/* Interval / Tabata config summary card */}
           {showConfigCard && (
             <>
-              <div style={sectionLabel}>INTERVAL SETUP</div>
-              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '11px 13px', marginBottom: 9 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10.5, color: '#e6d4ff', letterSpacing: '0.04em' }}>{displayStyleLabel} · {cfg.rounds} ROUNDS</div>
+              {!isRounds && <div style={sectionLabel}>INTERVAL SETUP</div>}
+              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '9px 11px', marginBottom: 8 }}>
+                {/* The total used to sit in its own bordered row underneath,
+                    which cost 33px to say one number. It reads better up here
+                    beside the label it is the total OF. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: warmupOnly ? 0 : 6 }}>
+                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 10, color: '#e6d4ff', letterSpacing: '0.04em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{warmupOnly ? 'WARM-UP' : displayStyleLabel}</div>
+                  {/* One field does not need a row of its own. Inlined here the
+                      whole card is a single line instead of three, which is the
+                      last of what a 375x667 phone needed. */}
+                  {warmupOnly && (
+                    <div style={{ flexShrink: 0 }}>
+                      <IntervalQuickSet cfg={cfg} onChange={setCfg} only={['warmupMin']} inline />
+                    </div>
+                  )}
+                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 15, color: GOLD, marginLeft: 'auto' }}>{fmtClock(cfgTargetSeconds(cfg))}</span>
                   <button onClick={() => setConfigOpen(true)} style={{
-                    padding: '4px 12px', borderRadius: 8, cursor: 'pointer', background: 'rgba(253,224,71,0.12)',
-                    border: `1px solid ${ARCADE.goldBorder}`, color: GOLD, fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
+                    padding: '3px 10px', borderRadius: 8, cursor: 'pointer', background: 'rgba(253,224,71,0.12)',
+                    border: `1px solid ${ARCADE.goldBorder}`, color: GOLD, fontFamily: ARCADE.fontHead, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.08em', flexShrink: 0,
                   }}>EDIT</button>
                 </div>
                 {/* Editable in place. These four numbers ARE the workout for a
                     bodyweight session, and they used to live behind the EDIT
                     button in a modal. */}
-                <div style={{ marginBottom: 8 }}>
-                  <IntervalQuickSet cfg={cfg} onChange={setCfg} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingTop: 7, borderTop: '1px solid rgba(176,106,255,0.15)' }}>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 8, color: VIOLET, letterSpacing: '0.12em' }}>TOTAL TIME</span>
-                  <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 17, color: GOLD }}>{fmtClock(cfgTargetSeconds(cfg))}</span>
-                </div>
+                {!warmupOnly && <IntervalQuickSet cfg={cfg} onChange={setCfg} />}
               </div>
             </>
           )}
@@ -998,15 +1021,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           )}
         </div>
 
-        {/* Footer — just the CTA, sitting high with open space above and below */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
-          <div data-guide="cm-start">
-          <TrainingCTA variant="gold" label="START CARDIO" onClick={startCardio} height={46} style={{ width: 'auto', minWidth: 264, paddingLeft: 42, paddingRight: 42, fontSize: 13.5, letterSpacing: '0.12em' }} />
-          </div>
-        </div>
 
-        {/* Open space below the CTA — keeps it lifted off the nav */}
-        <div style={{ flexShrink: 0, height: '9vh' }} />
       </div>
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>

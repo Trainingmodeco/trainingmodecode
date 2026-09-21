@@ -62,7 +62,7 @@ export const SCREEN_GUIDES = {
     { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
     { screen: 'fit_hub', target: 'fit-builder', title: 'AND WHILE YOU TRAIN', body: 'The coach counts your reps out loud and times your rest. You are never locked into the order — a WORKOUT MAP sits above the tab bar, and holding any exercise starts that one instead. Every set you log builds a history, so the app knows what to ask of you next time.' },
     { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
-    { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs, intervals, Tabata and HIIT, with pace coaching and a target you can set by distance or time.' },
+    { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs on GPS or a treadmill, machine work, and fight rounds or Tabata, with pace coaching and a target you set by distance or time.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '🗺️ AND IT TRACKS YOUR RUN', body: 'Start an outdoor run and Training Mode maps it. The route draws itself as you move, coloured green where you are on pace and orange where you drop off it, with a split called at every half mile or kilometre. Afterwards it all goes to PROGRESS → RUNS — career totals, a weekly distance goal, your best time at each distance, and the map of every run you have done.' },
 
     { screen: 'training_hub', target: 'hub-combat', title: '🔥 COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Strike work and hard conditioning in the same round. Pick this when you want to be exhausted and sharp at the same time.' },
@@ -217,7 +217,7 @@ export const SCREEN_GUIDES = {
   cardio_mode: [
     { target: null, title: '🏃 CARDIO MODE', body: 'This screen sets up a pure cardio session — pick how you move, the protocol, and your goal. We set your pace.' },
     { target: 'cm-method', title: 'METHOD', body: 'How you want to move — running, machines, jump rope, swimming, and more.' },
-    { target: 'cm-protocol', title: 'PROTOCOL', body: 'Steady holds one pace. Intervals, Tabata, and HIIT alternate hard work with recovery.' },
+    { target: 'cm-protocol', title: 'PROTOCOL', body: 'Steady holds one pace. Intervals and Tabata alternate hard work with recovery, and ROUNDS builds you a session.' },
     { target: 'cm-goal', title: 'YOUR GOAL', body: 'Set a distance or time target — AUTO PACE calculates the pace to hold for your level.' },
     { target: 'cm-start', title: 'START CARDIO', body: 'Tap here and the timer, pace coaching, and logging handle the rest.' },
     { target: null, title: '🗺️ YOUR ROUTE IS RECORDED', body: 'On a GPS run the map draws itself as you move — the real shape of where you went, coloured by how fast you were running each stretch. Green is at or under your target pace, orange is behind it. The route, your splits and an estimated calorie burn are saved when you log the run.' },
