@@ -9,8 +9,7 @@ import { C } from './Styles';
 import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import AddCardioSheet from './AddCardioSheet';
-import TrainingCTA from './shared/TrainingCTA';
-import WarmupRow, { loadWarmup } from './shared/WarmupRow';
+import { loadWarmup } from './shared/WarmupRow';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
@@ -32,7 +31,8 @@ const PRESETS = [
   {
     id: 'gas-tank',
     label: 'GAS TANK',
-    focusLabel: 'Endurance',
+    focusLabel: 'Conditioning',
+    focusShort: 'Endurance',
     icon: '🔥',
     tint: '#ff5a2a',
     desc: 'Bag work + bursts. Build fight endurance.',
@@ -42,28 +42,31 @@ const PRESETS = [
     id: 'power',
     label: 'POWER & EXPLOSION',
     focusLabel: 'Power',
+    focusShort: 'Power',
     icon: '💥',
     tint: '#ff3448',
     desc: 'Plyo + strikes for knockout force.',
-    defaults: { rounds: 6, workSec: 30, restSec: 30, difficulty: 'Hard', equipment: 'NONE', blend: 40 },
+    defaults: { rounds: 5, workSec: 30, restSec: 30, difficulty: 'Hard', equipment: 'NONE', blend: 40 },
   },
   {
     id: 'strike-strength',
     label: 'STRIKE & STRENGTH',
     focusLabel: 'Strength',
+    focusShort: 'Strength',
     icon: '🥊',
     tint: '#a855f7',
     desc: 'Alternating combos + resistance.',
-    defaults: { rounds: 4, workSec: 45, restSec: 20, difficulty: 'Normal', equipment: 'WEIGHTS', blend: 65 },
+    defaults: { rounds: 5, workSec: 45, restSec: 20, difficulty: 'Normal', equipment: 'WEIGHTS', blend: 65 },
   },
   {
     id: 'fight-athlete',
     label: 'FIGHT ATHLETE',
     focusLabel: 'Athletic',
+    focusShort: 'Athletic',
     icon: '🏃',
-    tint: '#22d3ee',
+    tint: '#a855f7',
     desc: 'Full body. High output. No limits.',
-    defaults: { rounds: 8, workSec: 40, restSec: 20, difficulty: 'Hard', equipment: 'BAG', blend: 55 },
+    defaults: { rounds: 5, workSec: 40, restSec: 20, difficulty: 'Hard', equipment: 'BAG', blend: 55 },
   },
 ];
 function getPreset(id) { return PRESETS.find(p => p.id === id); }
@@ -71,10 +74,10 @@ function getPreset(id) { return PRESETS.find(p => p.id === id); }
 // Intensity progresses green → red as the difficulty climbs. Only the
 // selected chip wears its colour; the rest stay dark violet.
 const INTENSITIES = [
-  { id: 'Easy',     label: 'LOW',    color: GREEN },
-  { id: 'Normal',   label: 'MED',    color: YELLOW },
-  { id: 'Hard',     label: 'HIGH',   color: ORANGE },
-  { id: 'Advanced', label: 'SAVAGE', color: RED },
+  { id: 'Easy',     label: 'LOW',    color: GREEN,  short: 'Low' },
+  { id: 'Normal',   label: 'MED',    color: YELLOW, short: 'Medium' },
+  { id: 'Hard',     label: 'HIGH',   color: ORANGE, short: 'High' },
+  { id: 'Advanced', label: 'SAVAGE', color: RED,    short: 'Savage' },
 ];
 function getIntensity(id) { return INTENSITIES.find(i => i.id === id) || INTENSITIES[1]; }
 
@@ -83,141 +86,130 @@ const EQUIPMENT = [
   { id: 'BAG', label: 'BAG' },
   { id: 'WEIGHTS', label: 'WEIGHTS' },
 ];
-// Map the on-screen equipment choice to a generator equipment tier.
 const EQUIPMENT_TIER = { NONE: 'Bodyweight', BAG: 'Bags & Combat Gear', WEIGHTS: 'Basic Gym' };
 
 const setupCSS = `
-.cc-pill { transition: all 0.2s ease; cursor: pointer; }
-.cc-pill:hover { filter: brightness(1.1); }
-.cc-pill:active { transform: scale(0.96); }
-.cc-preset { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
-.cc-preset:active { transform: scale(0.97); }
-.cc-customize { overflow: hidden; transition: max-height 220ms ease, opacity 200ms ease; }
-.cc-customize.closed { max-height: 0; opacity: 0; }
+.cc-tap { transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cc-tap:hover { filter: brightness(1.08); }
+.cc-tap:active { transform: scale(0.97); }
+.cc-preset:active { transform: scale(0.96); }
+.cc-customize { overflow: hidden; transition: max-height 220ms ease, opacity 200ms ease, margin-top 200ms ease; }
+.cc-customize.closed { max-height: 0; opacity: 0; margin-top: 0 !important; }
 .cc-customize.open { max-height: 1200px; opacity: 1; }
+.cc-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.cc-scroll::-webkit-scrollbar { display: none; }
 `;
 
-function SectionLabel({ children, style }) {
+// ── Tiny building blocks ────────────────────────────────────────────────
+function SectionMicroLabel({ children }) {
   return (
     <div style={{
       fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8',
-      fontSize: 8, letterSpacing: '0.16em', marginBottom: 5, ...style,
+      fontSize: 6.8, letterSpacing: '0.14em', marginBottom: 2, textAlign: 'center',
     }}>{children}</div>
   );
 }
 
-function Stepper({ label, value, unit, min, max, step, onChange }) {
+// A tight +/- stepper for the TIMING row. Small enough that ROUNDS/WORK/REST
+// all sit on one line beside the icon + label.
+function MicroStepper({ label, value, unit, min, max, step, onChange }) {
   const btn = {
-    width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(168,85,247,0.4)', color: RED,
-    fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, lineHeight: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', flexShrink: 0,
+    width: 22, height: 22, borderRadius: 6,
+    border: 'none', color: '#fff',
+    background: RED,
+    fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, lineHeight: 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
   };
   return (
-    <div style={{ flex: 1 }}>
-      <SectionLabel>{label}</SectionLabel>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 9, padding: '7px 11px' }}>
-        <button className="cc-pill" aria-label={`Decrease ${label}`} onClick={() => onChange(Math.max(min, value - step))} style={btn}>−</button>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#fff' }}>
-          {value}{unit && <span style={{ fontSize: 8, color: C.faint, marginLeft: 1 }}>{unit}</span>}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
+      <SectionMicroLabel>{label}</SectionMicroLabel>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <button className="cc-tap" aria-label={`Decrease ${label}`} onClick={() => onChange(Math.max(min, value - step))} style={btn}>−</button>
+        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#fff', minWidth: 24, textAlign: 'center' }}>
+          {value}{unit && <span style={{ fontSize: 7.5, color: '#c4a4d8', marginLeft: 0 }}>{unit}</span>}
         </span>
-        <button className="cc-pill" aria-label={`Increase ${label}`} onClick={() => onChange(Math.min(max, value + step))} style={btn}>+</button>
+        <button className="cc-tap" aria-label={`Increase ${label}`} onClick={() => onChange(Math.min(max, value + step))} style={btn}>+</button>
       </div>
     </div>
   );
 }
 
-function EquipmentSegmented({ value, onChange }) {
+// A row-shaped card used for every customize row: icon on the left, label +
+// sub in the centre, controls (children) on the right. Matches the reference.
+function ControlRow({ icon, iconTint, label, sub, children }) {
   return (
-    <div>
-      <SectionLabel>EQUIPMENT</SectionLabel>
-      <div style={{ display: 'flex', gap: 4 }}>
-        {EQUIPMENT.map(o => {
-          const active = o.id === value;
-          return (
-            <button key={o.id} className="cc-pill" aria-pressed={active} onClick={() => onChange(o.id)} style={{
-              flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8, cursor: 'pointer',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.06em',
-              background: active ? GOLD : 'rgba(16,4,30,0.8)',
-              border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-              color: active ? '#0a0014' : '#d9d1ef',
-              boxShadow: active ? '0 0 12px rgba(253,224,71,0.35)' : 'none',
-            }}>{o.label}</button>
-          );
-        })}
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 9,
+      padding: '7px 10px 7px 8px',
+      borderRadius: 11,
+      border: '1px solid rgba(168,85,247,0.28)',
+      background: 'rgba(10,3,22,0.75)',
+    }}>
+      <div style={{
+        width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+        background: `${iconTint}22`,
+        border: `1px solid ${iconTint}55`,
+        color: iconTint,
+        fontSize: 15,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>{icon}</div>
+      <div style={{ minWidth: 0, flex: '0 0 auto', width: 92 }}>
+        <div style={{
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9.5,
+          color: '#fff', letterSpacing: '0.06em', lineHeight: 1.1,
+        }}>{label}</div>
+        <div style={{
+          fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 8,
+          color: '#9a90b8', marginTop: 1, lineHeight: 1.1,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>{sub}</div>
+      </div>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        {children}
       </div>
     </div>
   );
 }
 
-function IntensitySegmented({ value, onChange }) {
+// Segmented button used in DISCIPLINE / INTENSITY / EQUIPMENT rows.
+function Chip({ active, activeColor, activeText, label, onClick, style }) {
   return (
-    <div>
-      <SectionLabel>INTENSITY</SectionLabel>
-      <div style={{ display: 'flex', gap: 4 }}>
-        {INTENSITIES.map(o => {
-          const active = o.id === value;
-          return (
-            <button key={o.id} className="cc-pill" aria-pressed={active} onClick={() => onChange(o.id)} style={{
-              flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8, cursor: 'pointer',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.06em',
-              background: active ? o.color : 'rgba(16,4,30,0.8)',
-              border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-              color: active ? '#0a0014' : '#d9d1ef',
-              boxShadow: active ? `0 0 14px ${o.color}66` : 'none',
-            }}>{o.label}</button>
-          );
-        })}
-      </div>
-    </div>
+    <button
+      type="button"
+      className="cc-tap"
+      onClick={onClick}
+      aria-pressed={active}
+      style={{
+        padding: '6px 7px',
+        borderRadius: 7,
+        cursor: 'pointer',
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, letterSpacing: '0.05em',
+        lineHeight: 1.1, minWidth: 0, whiteSpace: 'normal', textAlign: 'center',
+        background: active ? activeColor : 'rgba(16,4,30,0.8)',
+        border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
+        color: active ? (activeText || '#fff') : '#d9d1ef',
+        boxShadow: active ? `0 0 10px ${activeColor}55` : 'none',
+        ...style,
+      }}
+    >{label}</button>
   );
 }
 
-function DisciplineSegmented({ value, onChange }) {
-  return (
-    <div>
-      <SectionLabel>DISCIPLINE</SectionLabel>
-      <div style={{ display: 'flex', gap: 4 }}>
-        {STYLES.map(s => {
-          const active = s.id === value;
-          return (
-            <button key={s.id} className="cc-pill" aria-pressed={active} onClick={() => onChange(s.id)} style={{
-              flex: 1, textAlign: 'center', padding: '10px 6px', borderRadius: 8, cursor: 'pointer',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, letterSpacing: '0.04em',
-              lineHeight: 1.2, minWidth: 0,
-              background: active ? RED : 'rgba(16,4,30,0.8)',
-              border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-              color: active ? '#fff' : '#d9d1ef',
-              boxShadow: active ? '0 0 12px rgba(239,68,68,0.35)' : 'none',
-            }}>{s.label}</button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// The cinematic hero. The fighter art is the background and stays put — the
-// workout summary above it is HTML and reads current state, so nothing about
-// the picture changes when the athlete changes rounds or intensity. That is
-// what §4 asks for.
-function CombatHeroBanner({ preset, rounds, difficulty, durationMin, discipline }) {
+// ── Hero banner ─────────────────────────────────────────────────────────
+function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
   const intensity = getIntensity(difficulty);
-  const showChip = !!preset;
   const summaryLine = preset
     ? `${preset.label} · ${rounds} ROUNDS · ${intensity.label}`
-    : `PICK A CIRCUIT TO PROGRAM ${discipline.split(' ')[0].toUpperCase()}`;
+    : 'PICK A CIRCUIT BELOW';
 
   return (
     <div style={{
       position: 'relative',
-      borderRadius: 14,
+      borderRadius: 12,
       overflow: 'hidden',
       border: '1px solid rgba(168,85,247,0.35)',
-      boxShadow: '0 6px 22px rgba(0,0,0,0.55), 0 0 24px rgba(168,85,247,0.18)',
-      marginBottom: 12,
-      // Aspect ratio close to the reference — tall enough to be cinematic,
-      // short enough to leave presets above the fold on 375x667.
-      aspectRatio: '1440 / 640',
+      boxShadow: '0 6px 22px rgba(0,0,0,0.55), 0 0 22px rgba(168,85,247,0.15)',
+      aspectRatio: '390 / 150',
       background: '#0a0116',
     }}>
       <img
@@ -227,93 +219,60 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin, discipline 
         style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%',
-          objectFit: 'cover',
-          objectPosition: 'right center',
+          objectFit: 'cover', objectPosition: 'right center',
           pointerEvents: 'none',
         }}
       />
-      {/* Left-heavy dark gradient so text reads without hiding the fighter. */}
       <div aria-hidden="true" style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(90deg, rgba(6,0,18,0.92) 0%, rgba(6,0,18,0.72) 42%, rgba(6,0,18,0.15) 78%, rgba(6,0,18,0) 100%)',
-      }}/>
-      {/* A soft violet vignette that ties it to the app frame. */}
-      <div aria-hidden="true" style={{
-        position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse at 0% 50%, rgba(168,85,247,0.14) 0%, transparent 55%)',
+        background: 'linear-gradient(90deg, rgba(6,0,18,0.92) 0%, rgba(6,0,18,0.7) 40%, rgba(6,0,18,0.1) 78%, rgba(6,0,18,0) 100%)',
       }}/>
 
       <div style={{
         position: 'relative', zIndex: 2,
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         height: '100%',
-        padding: '11px 13px 10px',
+        padding: '9px 11px',
         color: '#fff',
       }}>
-        {/* Top row — HYBRID chip + live summary line */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          {showChip && (
-            <span style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7,
-              color: '#ff9a9a',
-              border: '1px solid rgba(239,68,68,0.5)', borderRadius: 4,
-              padding: '3px 7px', letterSpacing: '0.1em', flexShrink: 0,
-              background: 'rgba(239,68,68,0.08)',
-            }}>HYBRID</span>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
           <span style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5,
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5,
+            color: '#ff9a9a',
+            border: '1px solid rgba(239,68,68,0.5)', borderRadius: 4,
+            padding: '2.5px 6px', letterSpacing: '0.14em', flexShrink: 0,
+            background: 'rgba(239,68,68,0.08)',
+          }}>HYBRID</span>
+          <span style={{
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
             color: '#ffd7d7', letterSpacing: '0.08em',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
           }}>{summaryLine}</span>
         </div>
 
-        {/* Middle — hero name + tagline. Kept on the left half so the fighter
-            stays readable on the right. */}
-        <div style={{ maxWidth: '68%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ maxWidth: '68%' }}>
           <div style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
-            fontSize: 'clamp(20px, 6.4vw, 30px)',
-            lineHeight: 1.02, letterSpacing: '0.01em',
+            fontSize: 'clamp(19px, 5.6vw, 26px)',
+            lineHeight: 1, letterSpacing: '0.01em',
             color: '#fff',
-            textShadow: '0 2px 14px rgba(0,0,0,0.75)',
-          }}>
-            CONDITION<br/>HARDER
-          </div>
+            textShadow: '0 2px 12px rgba(0,0,0,0.75)',
+          }}>CONDITION HARDER</div>
           <div style={{
-            fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10,
-            color: '#e6dcff', letterSpacing: '0.14em',
+            fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9,
+            color: '#e6dcff', letterSpacing: '0.12em', marginTop: 3,
             textShadow: '0 1px 8px rgba(0,0,0,0.85)',
-          }}>
-            FIT FIGHTER · STRONGER YOU.
-          </div>
+          }}>FIT FIGHTER · STRONGER YOU.</div>
         </div>
 
-        {/* Bottom — three stat cards: focus / rounds / est. time. Only their
-            accent moves with intensity; the rest stays neutral. */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
-          gap: 6,
+          gap: 5,
         }}>
-          <HeroStat
-            icon={preset ? preset.icon : '🎯'}
-            label={preset ? preset.label.split(' ')[0] : 'PICK ONE'}
-            sub={preset ? preset.focusLabel : 'Below'}
-            accent={preset ? preset.tint : C.faint}
-          />
-          <HeroStat
-            icon="▮▮▮"
-            label={`${rounds} ROUNDS`}
-            sub={intensity.label}
-            accent={intensity.color}
-          />
-          <HeroStat
-            icon="⏱"
-            label={`~${durationMin} MIN`}
-            sub="Est. Time"
-            accent={GOLD}
-          />
+          <HeroStat icon={preset ? preset.icon : '🎯'} label={preset ? preset.label.split(' ')[0] : 'PICK'} sub={preset ? preset.focusShort : 'Below'} accent={preset ? preset.tint : C.faint}/>
+          <HeroStat icon="▮▮▮" label={`${rounds} ROUNDS`} sub={intensity.short} accent={intensity.color}/>
+          <HeroStat icon="⏱" label={`~${durationMin} MIN`} sub="Est. time" accent={GOLD}/>
         </div>
       </div>
     </div>
@@ -323,27 +282,27 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin, discipline 
 function HeroStat({ icon, label, sub, accent }) {
   return (
     <div style={{
-      background: 'rgba(6,0,18,0.7)',
+      background: 'rgba(6,0,18,0.72)',
       border: `1px solid ${accent}55`,
-      borderRadius: 8,
-      padding: '6px 7px',
-      display: 'flex', alignItems: 'center', gap: 6,
+      borderRadius: 7,
+      padding: '4px 6px',
+      display: 'flex', alignItems: 'center', gap: 5,
       minWidth: 0,
     }}>
       <span style={{
         color: accent,
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11,
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
         flexShrink: 0,
       }}>{icon}</span>
       <div style={{ minWidth: 0 }}>
         <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 8,
-          color: '#fff', letterSpacing: '0.04em',
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 7.5,
+          color: '#fff', letterSpacing: '0.03em',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>{label}</div>
         <div style={{
-          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8,
-          color: '#c4a4d8', marginTop: 1,
+          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 7.5,
+          color: '#c4a4d8', marginTop: 0,
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>{sub}</div>
       </div>
@@ -351,23 +310,24 @@ function HeroStat({ icon, label, sub, accent }) {
   );
 }
 
+// ── Presets row (four across, one line) ────────────────────────────────
 function CircuitPresetSelector({ selected, onSelect }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
         <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12,
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11,
           color: '#fff', letterSpacing: '0.08em',
         }}>CIRCUIT PRESETS</div>
         <div style={{
-          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9,
+          fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8,
           color: C.faint, letterSpacing: '0.14em', whiteSpace: 'nowrap',
-        }}>PICK A WORKOUT. GET TO WORK.</div>
+        }}>PICK A WORKOUT. GET TO WORK. ›</div>
       </div>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 7,
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 5,
       }}>
         {PRESETS.map(p => (
           <PresetCard key={p.id} preset={p} active={selected === p.id} onSelect={() => onSelect(p.id)} />
@@ -381,63 +341,66 @@ function PresetCard({ preset, active, onSelect }) {
   return (
     <button
       type="button"
-      className="cc-preset"
+      className="cc-tap cc-preset"
       onClick={onSelect}
       aria-pressed={active}
       style={{
         position: 'relative',
-        borderRadius: 12,
+        borderRadius: 10,
         cursor: 'pointer',
-        textAlign: 'left',
-        padding: '11px 11px 10px',
-        minHeight: 118,
+        textAlign: 'center',
+        padding: '10px 4px 8px',
+        minHeight: 122,
         background: active
           ? `linear-gradient(160deg, rgba(239,68,68,0.14) 0%, rgba(8,2,18,0.9) 70%)`
           : 'rgba(16,4,30,0.8)',
         border: active ? `1.5px solid ${RED}` : '1px solid rgba(168,85,247,0.3)',
         boxShadow: active
-          ? `0 0 18px rgba(239,68,68,0.35), inset 0 0 28px rgba(239,68,68,0.08)`
-          : 'inset 0 0 0 transparent',
+          ? `0 0 14px rgba(239,68,68,0.4), inset 0 0 22px rgba(239,68,68,0.08)`
+          : 'none',
         color: '#fff',
-        display: 'flex', flexDirection: 'column', gap: 6,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
       }}
     >
       {active && (
         <span aria-hidden="true" style={{
-          position: 'absolute', top: 8, right: 8,
-          width: 18, height: 18, borderRadius: '50%',
+          position: 'absolute', top: 5, right: 5,
+          width: 15, height: 15, borderRadius: '50%',
           background: RED, color: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9,
-          boxShadow: '0 0 10px rgba(239,68,68,0.55)',
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 8,
+          boxShadow: '0 0 8px rgba(239,68,68,0.55)',
         }}>✓</span>
       )}
       <span style={{
-        fontSize: 22, lineHeight: 1,
+        fontSize: 20, lineHeight: 1,
         filter: active ? 'drop-shadow(0 0 8px rgba(239,68,68,0.55))' : 'none',
       }}>{preset.icon}</span>
       <span style={{
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11,
-        color: active ? '#ff9a9a' : '#fff', letterSpacing: '0.03em', lineHeight: 1.15,
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9,
+        color: active ? '#ff9a9a' : '#fff', letterSpacing: '0.02em', lineHeight: 1.1,
+        padding: '0 2px',
       }}>{preset.label}</span>
       <span style={{
-        fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 10,
-        color: '#a89bc8', lineHeight: 1.28, flex: 1,
+        fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 8.5,
+        color: '#a89bc8', lineHeight: 1.22, flex: 1,
+        padding: '0 2px',
       }}>{preset.desc}</span>
       <span style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        marginTop: 2,
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
+        display: 'flex', alignItems: 'center', gap: 3,
+        marginTop: 1,
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5,
         color: active ? '#ff9a9a' : '#c4a4d8',
-        letterSpacing: '0.14em',
+        letterSpacing: '0.12em',
       }}>
-        <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', border: `1.5px solid ${active ? RED : preset.tint}`, background: 'transparent' }}/>
-        {preset.defaults.rounds} ROUNDS · {preset.focusLabel.toUpperCase()}
+        <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', border: `1.4px solid ${active ? RED : preset.tint}`, background: 'transparent' }}/>
+        {preset.defaults.rounds} R · {preset.focusLabel.toUpperCase()}
       </span>
     </button>
   );
 }
 
+// ── Main screen ─────────────────────────────────────────────────────────
 export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly: _onCardioOnly, profile: _profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [style, setStyle] = useState('Boxing');
@@ -445,20 +408,16 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
   const [rounds, setRounds] = useState(5);
   const [workSec, setWorkSec] = useState(40);
   const [restSec, setRestSec] = useState(15);
-  // Nothing selected on mount — the page reads as "pick a preset first"
-  // (§8) and the customize block stays folded up.
-  const [focus, setFocus] = useState(null);
+  const [focus, setFocus] = useState(null); // §8 — nothing preselected on mount
   const [equipment, setEquipment] = useState('NONE');
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const cadencePreset = 'moderate';
   const cadenceMs = CADENCE_PRESETS.moderate;
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
-  const [warmupMin, setWarmupMin] = useState(() => loadWarmup('combatConditioning'));
+  const [warmupMin] = useState(() => loadWarmup('combatConditioning'));
 
   const scrollRef = useRef(null);
-  // §19 — every entry into this page starts at the top, so a return trip
-  // from Add Cardio or Progress does not land the user mid-form.
   useEffect(() => {
     scrollRef.current?.scrollTo?.({ top: 0 });
     if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
@@ -467,10 +426,8 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
   const preset = useMemo(() => getPreset(focus), [focus]);
   const hasPreset = !!preset;
 
-  // The banner reads warm-up + work × rounds + rest × (rounds − 1) + the
-  // cardio addon minutes when the athlete opts into one. This is the same
-  // shape the existing session generator budgets against, so the summary
-  // matches what the round timer will actually run.
+  // Warm-up + work × rounds + rest × (rounds-1) + cardio addon minutes,
+  // rounded up to whole minutes so the banner reads what the timer will run.
   const durationMin = useMemo(() => {
     const restBetween = Math.max(0, rounds - 1) * restSec;
     const work = rounds * workSec;
@@ -496,30 +453,20 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
   const handleStart = () => {
     if (!hasPreset) return;
     onStart({
-      style,
-      duration: durationMin,
-      difficulty,
+      style, duration: durationMin, difficulty,
       equipment: EQUIPMENT_TIER[equipment] || 'Any',
       format: 'Auto',
-      voiceOn: true,
-      formPreviewOn: true,
-      cadenceCount: true,
-      cadencePreset,
-      cadenceMs,
-      cardioAddon,
-      rounds,
-      workSec,
-      restSec,
-      focus,
-      blend: preset?.defaults.blend ?? 50,
-      warmupMin,
+      voiceOn: true, formPreviewOn: true, cadenceCount: true,
+      cadencePreset, cadenceMs, cardioAddon,
+      rounds, workSec, restSec, focus,
+      blend: preset?.defaults.blend ?? 50, warmupMin,
     });
   };
 
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: setupCSS }}/>
-      <Embers count={3}/>
+      <Embers count={2}/>
 
       <TrainingHeader
         title="COMBAT CONDITIONING"
@@ -535,8 +482,8 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
         style={{
           position: 'relative', zIndex: 10,
           display: 'flex', flexDirection: 'column',
-          padding: '8px 12px 0',
-          paddingBottom: 'calc(30dvh + env(safe-area-inset-bottom, 0px))',
+          padding: '8px 12px calc(88px + env(safe-area-inset-bottom, 0px))',
+          gap: 8,
         }}
       >
         <CombatHeroBanner
@@ -544,45 +491,49 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
           rounds={rounds}
           difficulty={difficulty}
           durationMin={durationMin}
-          discipline={style}
         />
 
-        <div data-guide="ccs-style" style={{ marginBottom: 12 }}>
+        <div data-guide="ccs-style">
           <CircuitPresetSelector selected={focus} onSelect={handleSelectPreset}/>
         </div>
 
-        {/* Customize header row — visible only once a preset is picked
-            (§8/§9). Tap toggles the fold. */}
         {hasPreset && (
           <button
             type="button"
             onClick={() => setCustomizeOpen(v => !v)}
             aria-expanded={customizeOpen}
             aria-controls="cc-customize"
-            className="cc-pill"
+            className="cc-tap"
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '10px 12px', marginBottom: 8, cursor: 'pointer',
+              padding: '8px 12px', cursor: 'pointer',
               border: '1px solid rgba(168,85,247,0.3)',
               background: 'rgba(16,4,30,0.7)', borderRadius: 10,
+              minHeight: 32,
             }}
           >
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 7, minWidth: 0 }}>
               <span style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12,
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11,
                 color: '#fff', letterSpacing: '0.08em',
               }}>CUSTOMIZE</span>
               <span style={{
-                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9,
+                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8,
                 color: C.faint, letterSpacing: '0.12em',
               }}>(OPTIONAL)</span>
             </span>
-            <span style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11,
-              color: C.faint,
-              transform: customizeOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 200ms ease',
-            }}>▼</span>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{
+                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8,
+                color: '#8f8ab8', letterSpacing: '0.14em', whiteSpace: 'nowrap',
+              }}>FINE-TUNE YOUR SESSION</span>
+              <span style={{
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
+                color: C.faint,
+                transform: customizeOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 200ms ease',
+              }}>▼</span>
+            </span>
           </button>
         )}
 
@@ -591,90 +542,138 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
           className={`cc-customize ${hasPreset && customizeOpen ? 'open' : 'closed'}`}
           aria-hidden={!(hasPreset && customizeOpen)}
         >
-          <div data-guide="ccs-discipline" style={{ marginBottom: 10 }}>
-            <DisciplineSegmented value={style} onChange={setStyle}/>
-          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {/* DISCIPLINE */}
+            <ControlRow icon="🥊" iconTint="#ef4444" label="DISCIPLINE" sub="Training style">
+              <div style={{ display: 'flex', gap: 3, minWidth: 0, width: '100%', justifyContent: 'flex-end' }}>
+                {STYLES.map(s => (
+                  <Chip
+                    key={s.id}
+                    active={style === s.id}
+                    activeColor={RED}
+                    activeText="#fff"
+                    label={s.label}
+                    onClick={() => setStyle(s.id)}
+                    style={{ flex: 1, maxWidth: 82 }}
+                  />
+                ))}
+              </div>
+            </ControlRow>
 
-          <div data-guide="ccs-config">
-            <div style={{ marginBottom: 10 }}>
-              <WarmupRow feature="combatConditioning" value={warmupMin} onChange={setWarmupMin}/>
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-              <Stepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
-              <Stepper label="WORK" value={workSec} unit="s" min={10} max={120} step={5} onChange={setWorkSec}/>
-              <Stepper label="REST" value={restSec} unit="s" min={0} max={90} step={5} onChange={setRestSec}/>
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <IntensitySegmented value={difficulty} onChange={setDifficulty}/>
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <EquipmentSegmented value={equipment} onChange={setEquipment}/>
-            </div>
+            {/* TIMING */}
+            <ControlRow icon="⏱" iconTint="#a855f7" label="TIMING" sub="Work / rest">
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: 'flex-end' }}>
+                <MicroStepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
+                <MicroStepper label="WORK"   value={workSec} unit="s" min={10} max={120} step={5} onChange={setWorkSec}/>
+                <MicroStepper label="REST"   value={restSec} unit="s" min={0}  max={90}  step={5} onChange={setRestSec}/>
+              </div>
+            </ControlRow>
+
+            {/* INTENSITY */}
+            <ControlRow icon="▮▮" iconTint="#a855f7" label="INTENSITY" sub="How hard">
+              <div style={{ display: 'flex', gap: 3, minWidth: 0, width: '100%', justifyContent: 'flex-end' }}>
+                {INTENSITIES.map(o => (
+                  <Chip
+                    key={o.id}
+                    active={difficulty === o.id}
+                    activeColor={o.color}
+                    activeText="#0a0014"
+                    label={o.label}
+                    onClick={() => setDifficulty(o.id)}
+                    style={{ flex: 1, maxWidth: 60 }}
+                  />
+                ))}
+              </div>
+            </ControlRow>
+
+            {/* EQUIPMENT */}
+            <ControlRow icon="🏋" iconTint="#a855f7" label="EQUIPMENT" sub="What you have">
+              <div style={{ display: 'flex', gap: 3, minWidth: 0, width: '100%', justifyContent: 'flex-end' }}>
+                {EQUIPMENT.map(o => (
+                  <Chip
+                    key={o.id}
+                    active={equipment === o.id}
+                    activeColor={GOLD}
+                    activeText="#0a0014"
+                    label={o.label}
+                    onClick={() => setEquipment(o.id)}
+                    style={{ flex: 1, maxWidth: 82 }}
+                  />
+                ))}
+              </div>
+            </ControlRow>
           </div>
         </div>
 
-        {/* Add cardio — visible even before a preset is chosen. */}
+        {/* ADD CARDIO — always visible */}
         <div
           onClick={() => setCardioSheetOpen(true)}
-          className="cc-pill"
+          className="cc-tap"
           role="button"
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setCardioSheetOpen(true); }}
           style={{
-            display: 'flex', alignItems: 'center', gap: 12, borderRadius: 12, padding: '10px 13px', marginBottom: 12, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '7px 10px 7px 8px', borderRadius: 11, cursor: 'pointer',
             border: '1px solid rgba(253,224,71,0.4)',
             background: cardioAddon
               ? 'linear-gradient(90deg,rgba(253,224,71,0.14),rgba(239,68,68,0.10))'
               : 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(239,68,68,0.06))',
-            boxShadow: cardioAddon ? '0 0 14px rgba(253,224,71,0.18)' : 'none',
+            boxShadow: cardioAddon ? '0 0 12px rgba(253,224,71,0.18)' : 'none',
           }}
         >
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>❤</div>
+          <div style={{
+            width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+            background: 'rgba(253,224,71,0.10)',
+            border: '1px solid rgba(253,224,71,0.35)',
+            color: GOLD, fontSize: 15,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>❤</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, color: GOLD, letterSpacing: '0.05em' }}>{cardioAddon ? 'CARDIO ADDED' : 'ADD CARDIO'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9.5,
+                color: GOLD, letterSpacing: '0.06em',
+              }}>{cardioAddon ? 'CARDIO ADDED' : 'ADD CARDIO'}</div>
               {!cardioAddon && (
                 <span style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7,
-                  color: GOLD, border: '1px solid rgba(253,224,71,0.45)', borderRadius: 4,
-                  padding: '2px 5px', letterSpacing: '0.1em',
+                  fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5,
+                  color: GOLD, border: '1px solid rgba(253,224,71,0.45)', borderRadius: 3,
+                  padding: '1.5px 4px', letterSpacing: '0.12em',
                 }}>OPTIONAL</span>
               )}
             </div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: '#c4a4d8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {cardioAddon ? summarizeCardioAddon(cardioAddon) : 'Finish with a run — bonus XP'}
-            </div>
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 8.5,
+              color: '#c4a4d8', marginTop: 1, lineHeight: 1.1,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{cardioAddon ? summarizeCardioAddon(cardioAddon) : 'Finish with a run — bonus XP'}</div>
           </div>
           {cardioAddon ? (
             <button onClick={(e) => { e.stopPropagation(); setCardioAddon(null); }} style={{
               background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 6, padding: '4px 9px', cursor: 'pointer', flexShrink: 0,
-              fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: C.red,
+              borderRadius: 6, padding: '3px 8px', cursor: 'pointer', flexShrink: 0,
+              fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 700, color: C.red,
+              letterSpacing: '0.08em',
             }}>REMOVE</button>
           ) : (
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: GOLD, flexShrink: 0 }}>›</span>
+            // A little toggle-shaped affordance to match the reference; opening
+            // the sheet is what actually configures the addon.
+            <div aria-hidden="true" style={{
+              width: 32, height: 18, borderRadius: 999,
+              border: '1px solid rgba(253,224,71,0.4)',
+              background: 'rgba(8,2,18,0.55)',
+              display: 'flex', alignItems: 'center', padding: 2,
+              flexShrink: 0,
+            }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#fff' }}/>
+            </div>
           )}
         </div>
 
+        {/* START CIRCUIT */}
         <div data-guide="ccs-start">
-          <TrainingCTA
-            variant="red"
-            label={canStart ? 'START CIRCUIT' : 'PICK A CIRCUIT'}
-            icon="⚔️"
-            onClick={handleStart}
-            height={54}
-            style={{
-              width: '100%', fontSize: 14, letterSpacing: '0.1em',
-              opacity: canStart ? 1 : 0.55, pointerEvents: canStart ? 'auto' : 'none',
-            }}
-          />
-          {canStart && (
-            <div style={{
-              textAlign: 'center', marginTop: 4,
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
-              color: C.faint, letterSpacing: '0.16em',
-            }}>SAME WORK · A STRONGER YOU</div>
-          )}
+          <StartCircuitButton canStart={canStart} onClick={handleStart}/>
         </div>
       </div>
 
@@ -689,4 +688,60 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.combat_conditioning_setup} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
+}
+
+// A bespoke START button with corner brackets to match the reference. The
+// standard TrainingCTA styles cleanly but does not carry the bracket motif.
+function StartCircuitButton({ canStart, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!canStart}
+      className="cc-tap"
+      style={{
+        position: 'relative', width: '100%',
+        padding: '13px 18px 15px',
+        borderRadius: 12,
+        border: canStart ? '1.5px solid rgba(239,68,68,0.9)' : '1.5px solid rgba(239,68,68,0.3)',
+        background: canStart
+          ? 'linear-gradient(180deg, rgba(239,68,68,0.85) 0%, rgba(180,20,32,0.85) 100%)'
+          : 'linear-gradient(180deg, rgba(60,10,20,0.6) 0%, rgba(30,4,10,0.6) 100%)',
+        color: '#fff', cursor: canStart ? 'pointer' : 'not-allowed',
+        boxShadow: canStart ? '0 6px 22px rgba(239,68,68,0.35), inset 0 0 22px rgba(255,255,255,0.05)' : 'none',
+        opacity: canStart ? 1 : 0.7,
+        overflow: 'hidden',
+      }}
+    >
+      <Bracket at="tl"/><Bracket at="tr"/><Bracket at="bl"/><Bracket at="br"/>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
+        letterSpacing: '0.12em',
+      }}>
+        <span style={{ fontSize: 15 }}>⚔️</span>
+        <span>{canStart ? 'START CIRCUIT' : 'PICK A CIRCUIT'}</span>
+        <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 16, opacity: 0.85 }}>›</span>
+      </div>
+      <div style={{
+        marginTop: 3, textAlign: 'center',
+        fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7.5,
+        color: '#ffe6e6', letterSpacing: '0.18em', opacity: 0.9,
+      }}>SAME WORK · A STRONGER YOU</div>
+    </button>
+  );
+}
+
+function Bracket({ at }) {
+  const size = 12;
+  const stroke = 1.5;
+  const color = 'rgba(255,255,255,0.85)';
+  const base = { position: 'absolute', width: size, height: size, pointerEvents: 'none' };
+  const map = {
+    tl: { top: 5, left: 5, borderTop: `${stroke}px solid ${color}`, borderLeft: `${stroke}px solid ${color}` },
+    tr: { top: 5, right: 5, borderTop: `${stroke}px solid ${color}`, borderRight: `${stroke}px solid ${color}` },
+    bl: { bottom: 5, left: 5, borderBottom: `${stroke}px solid ${color}`, borderLeft: `${stroke}px solid ${color}` },
+    br: { bottom: 5, right: 5, borderBottom: `${stroke}px solid ${color}`, borderRight: `${stroke}px solid ${color}` },
+  };
+  return <span aria-hidden="true" style={{ ...base, ...map[at] }}/>;
 }
