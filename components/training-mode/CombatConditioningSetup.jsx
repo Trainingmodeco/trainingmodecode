@@ -209,7 +209,11 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
       overflow: 'hidden',
       border: '1px solid rgba(168,85,247,0.35)',
       boxShadow: '0 6px 22px rgba(0,0,0,0.55), 0 0 22px rgba(168,85,247,0.15)',
-      aspectRatio: '390 / 150',
+      // Match the artwork's own 3:1 ratio (2172 x 724) so both baked-in
+      // titles — CONDITION HARDER on the left and NEXT ROUND · GO FOR
+      // BROKE on the right — sit inside the frame without either side
+      // getting cropped away.
+      aspectRatio: '2172 / 724',
       background: '#0a0116',
     }}>
       <img
@@ -219,12 +223,9 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
         style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%',
-          // The banner's CONDITION HARDER title lives in the artwork itself
-          // (baked into the WebP), so bias the crop slightly left of centre.
-          // A pure 'center' crop cuts the leading C off the title at portrait
-          // widths — 32% keeps the whole word intact while still showing the
-          // fighter, and only trims the far-right "GO FOR BROKE" graffiti.
-          objectFit: 'cover', objectPosition: '32% center',
+          // The banner container is 3:1 (the artwork's own ratio), so cover
+          // needs no bias — the whole picture fits and neither edge crops.
+          objectFit: 'cover', objectPosition: 'center center',
           pointerEvents: 'none',
         }}
       />

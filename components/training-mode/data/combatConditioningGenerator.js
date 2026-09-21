@@ -305,8 +305,20 @@ function prebuiltToMission(workout, config) {
   // Determine format string
   const format = config.format !== 'Auto' ? config.format : workout.format;
 
-  const drills = workout.exercises.map((exName) => {
-    // Try to find matching exercise in library for richer data
+  // Per-drill equipment gate. Prebuilts can carry a mixed equipment list
+  // (their top-level `equipment` array names every gear item any drill
+  // uses); one drill demanding a Trap Bar does not disqualify the whole
+  // circuit, but that one drill has to be swapped when the athlete has
+  // no weights. We only keep drills whose OWN equipment is in tier.
+  const kept = workout.exercises.filter((exName) => {
+    const libMatch = CC_EXERCISE_LIBRARY.find(
+      (ex) => ex.name.toLowerCase() === exName.toLowerCase()
+    );
+    if (!libMatch) return true; // unknown drill — trust the prebuilt
+    return exerciseEquipmentAllowed(libMatch.equipment, config.equipment);
+  });
+
+  const drills = kept.map((exName) => {
     const libMatch = CC_EXERCISE_LIBRARY.find(
       (ex) => ex.name.toLowerCase() === exName.toLowerCase()
     );
@@ -412,11 +424,27 @@ function pickTemplate(config) {
 }
 
 /**
+ * Normalizes a style string to a rules-map key. The setup screen writes
+ * "Kickboxing / Muay Thai" (with spaces around the slash) — the randomizer
+ * map is keyed "Kickboxing/Muay Thai". Without this normaliser the
+ * generator silently falls through to All-Around, so a fighter who picked
+ * Muay Thai discipline gets a workout that was never tuned for it. We
+ * check equal keys after collapsing whitespace around punctuation and
+ * casing.
+ */
+function normalizeStyleKey(style) {
+  if (!style) return 'All-Around';
+  const cleaned = String(style).replace(/\s*\/\s*/g, '/').trim();
+  const target = cleaned.toLowerCase();
+  const keys = Object.keys(CC_RANDOMIZER_RULES);
+  return keys.find(k => k.toLowerCase() === target) || 'All-Around';
+}
+
+/**
  * Builds a mission from the exercise library using randomizer rules.
  */
 function generateFromLibrary(config) {
-  const ruleKey =
-    config.style === 'All-Around' ? 'All-Around' : config.style;
+  const ruleKey = normalizeStyleKey(config.style);
   const rules = CC_RANDOMIZER_RULES[ruleKey] || CC_RANDOMIZER_RULES['All-Around'];
   const settings = DIFFICULTY_SETTINGS[config.difficulty] || DIFFICULTY_SETTINGS.Normal;
   const template = pickTemplate(config);
@@ -448,42 +476,97 @@ function generateFromLibrary(config) {
     return buildMissionFromExercises(shuffle(fallback).slice(0, template.exercisesPerRound), template, config, settings);
   }
 
-  // Bias exercise selection toward the circuit-style focus categories, while
-  // keeping some variety across categories.
   const profile = focusProfile(config.focus);
   const target = template.exercisesPerRound;
-  const preferred = shuffle(eligible.filter((ex) => inFocus(ex.category, profile)));
-  const others = shuffle(eligible.filter((ex) => !inFocus(ex.category, profile)));
+  let selected;
 
-  const selected = [];
-  const usedCats = new Set();
-  const focusTarget = Math.max(1, Math.round(target * 0.7));
-
-  // ~70% from focus categories (one per category for variety)
-  for (const ex of preferred) {
-    if (selected.length >= focusTarget) break;
-    if (usedCats.has(ex.category)) continue;
-    selected.push(ex);
-    usedCats.add(ex.category);
-  }
-  // Remaining slots from other categories for variety
-  for (const ex of others) {
-    if (selected.length >= target) break;
-    if (usedCats.has(ex.category)) continue;
-    selected.push(ex);
-    usedCats.add(ex.category);
-  }
-  // Backfill if still short (focus pool first), ignoring category uniqueness
-  if (selected.length < target) {
-    const chosen = new Set(selected.map((e) => e.id));
-    const rest = [...preferred, ...others].filter((e) => !chosen.has(e.id));
-    for (const ex of rest) {
-      if (selected.length >= target) break;
+  if (config.focus === 'fight-athlete') {
+    // Fight Athlete is a hybrid session — its promise is "full body, high
+    // output, no limits". Picking with the same "70% focus, 30% others"
+    // algorithm the other three presets use makes it collapse onto Gas
+    // Tank's session when they share categories, because the shuffle
+    // picks the same top-of-list drills. Instead, deliberately draw one
+    // drill from EACH of the other three focus buckets, then top up from
+    // whatever else is eligible. That is what the tile promises the
+    // athlete: strength AND power AND endurance in one circuit, and no
+    // two picks from the same lane.
+    selected = pickFightAthlete(eligible, target);
+  } else {
+    // Bias exercise selection toward the circuit-style focus categories,
+    // while keeping some variety across categories.
+    const preferred = shuffle(eligible.filter((ex) => inFocus(ex.category, profile)));
+    const others = shuffle(eligible.filter((ex) => !inFocus(ex.category, profile)));
+    selected = [];
+    const usedCats = new Set();
+    const focusTarget = Math.max(1, Math.round(target * 0.7));
+    for (const ex of preferred) {
+      if (selected.length >= focusTarget) break;
+      if (usedCats.has(ex.category)) continue;
       selected.push(ex);
+      usedCats.add(ex.category);
+    }
+    for (const ex of others) {
+      if (selected.length >= target) break;
+      if (usedCats.has(ex.category)) continue;
+      selected.push(ex);
+      usedCats.add(ex.category);
+    }
+    if (selected.length < target) {
+      const chosen = new Set(selected.map((e) => e.id));
+      const rest = [...preferred, ...others].filter((e) => !chosen.has(e.id));
+      for (const ex of rest) {
+        if (selected.length >= target) break;
+        selected.push(ex);
+      }
     }
   }
 
   return buildMissionFromExercises(selected, template, config, settings);
+}
+
+/**
+ * Fight Athlete's picker: one drill per lane (gas / power / strike-and-
+ * strength) so the circuit reads as a hybrid, not another endurance day.
+ * If a lane is empty in this equipment / difficulty tier we skip it and
+ * top up from the general eligible pool.
+ */
+function pickFightAthlete(eligible, target) {
+  const lanes = [
+    focusProfile('gas-tank').categories,
+    focusProfile('power').categories,
+    focusProfile('strike-strength').categories,
+  ];
+  const chosen = [];
+  const usedIds = new Set();
+  const usedCats = new Set();
+  for (const laneCategories of lanes) {
+    const laneProfile = { categories: laneCategories };
+    const pool = shuffle(
+      eligible.filter(ex => inFocus(ex.category, laneProfile) && !usedIds.has(ex.id) && !usedCats.has(ex.category))
+    );
+    if (pool.length) {
+      chosen.push(pool[0]);
+      usedIds.add(pool[0].id);
+      usedCats.add(pool[0].category);
+    }
+  }
+  // Top up with any remaining eligible drills (no category repeats first,
+  // then anything left).
+  const rest = shuffle(eligible.filter(ex => !usedIds.has(ex.id)));
+  for (const ex of rest) {
+    if (chosen.length >= target) break;
+    if (usedCats.has(ex.category)) continue;
+    chosen.push(ex);
+    usedIds.add(ex.id);
+    usedCats.add(ex.category);
+  }
+  for (const ex of rest) {
+    if (chosen.length >= target) break;
+    if (usedIds.has(ex.id)) continue;
+    chosen.push(ex);
+    usedIds.add(ex.id);
+  }
+  return chosen;
 }
 
 /**
@@ -614,21 +697,39 @@ export function generateCombatConditioningMission(config) {
     cadenceCount: config.cadenceCount,
   };
 
-  // Step 1: Score all prebuilt workouts
-  const scored = CC_PREBUILT_WORKOUTS.map((w) => ({
+  // Fight Athlete never resolves to a prebuilt. Its promise ("full body,
+  // high output, no limits") is a hybrid drawn deliberately from every
+  // lane — a hand-crafted prebuilt would always be more single-focus than
+  // that. Sending fight-athlete through the library keeps it from
+  // collapsing onto Gas Tank's session for the same (style, equipment,
+  // difficulty), which was the root cause of every gas-tank ↔ fight-
+  // athlete overlap in the earlier audit.
+  if (normalizedConfig.focus === 'fight-athlete') {
+    return generateFromLibrary(normalizedConfig);
+  }
+
+  // Step 1: Score prebuilt workouts — but only ones the athlete can
+  // actually do with the equipment they have. Silently letting a beginner
+  // with NONE equipment run "Trap Bar Deadlift · Hang Clean · Kettlebell
+  // Swings" because it happened to score highest is worse than sitting a
+  // prebuilt out entirely. This gate keeps prebuilts honest about the
+  // equipment choice; the library fallback beneath still fills in.
+  const eligiblePrebuilts = CC_PREBUILT_WORKOUTS.filter((w) =>
+    equipmentAllowed(w.equipment, normalizedConfig.equipment)
+  );
+  const scored = eligiblePrebuilts.map((w) => ({
     workout: w,
     score: scorePrebuilt(w, normalizedConfig),
   }));
 
-  // Sort by score descending
   scored.sort((a, b) => b.score - a.score);
-
   const best = scored[0];
 
-  // Step 2: Use a prebuilt only when it scores well AND reasonably covers the
-  // selected focus; otherwise generate a focus-biased circuit from the library so
-  // each circuit style produces a genuinely different workout.
-  const focusOk = !normalizedConfig.focus || focusMatchRatio(best.workout, normalizedConfig.focus) >= 0.34;
+  // Step 2: Use a prebuilt only when it scores well AND reasonably covers
+  // the selected focus. The floor is 0.5 (was 0.34) — under half of the
+  // drills matching the focus is not "the right circuit style", it is a
+  // prebuilt that happened to win on discipline and duration.
+  const focusOk = !normalizedConfig.focus || (best && focusMatchRatio(best.workout, normalizedConfig.focus) >= 0.5);
   if (best && best.score >= PREBUILT_MATCH_THRESHOLD && focusOk) {
     return prebuiltToMission(best.workout, normalizedConfig);
   }
