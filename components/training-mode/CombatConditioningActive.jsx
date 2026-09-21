@@ -10,6 +10,7 @@ import useMiniPlayer from './hooks/useMiniPlayer';
 import MiniPlayerButton from './shared/MiniPlayerButton';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
+import { playBell, unlockAudio } from './data/audioEngine';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
 import VoiceMixer from './shared/VoiceMixer';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -143,6 +144,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     }
     (async () => {
       setVoiceGender(profile?.voiceCoach || 'FEMALE');
+      // Prime the bell audio graph on the same gesture that started the
+      // session — mobile browsers won't play a bell later without it.
+      try { unlockAudio(); } catch { /* best effort */ }
       if (voiceOn) await primeSpeech();
       if (version !== versionRef.current) return;
 
@@ -265,7 +269,12 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
 
   const startDrill = async (isFirst) => {
     const drill = drills[drillIdxRef.current];
-    setPhase('working');
+    // Hold the clock while the coach announces the drill. What was
+    // happening before: setPhase('working') + setRemaining(40) fired
+    // BEFORE the intro was spoken, so a 40-second work window lost 5-7
+    // seconds to the announcement while the counter was already ticking.
+    // The ring's rule is announce, bell, THEN punch — do the same.
+    setPhase('ready');
     setRepCount(0);
     cadenceRepRef.current = 0;
     if (drill.workType === 'timed') {
@@ -278,13 +287,31 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     }
 
     const d = isFirst ? drills[0] : drill;
+    const version = versionRef.current;
+    const stale = () => version !== versionRef.current || doneRef.current;
+
     if (d.workType === 'timed') {
-      speak(`${d.name}. ${d.workSeconds || 30} seconds. Ready. Begin.`);
+      await speak(`${d.name}. ${d.workSeconds || 30} seconds. Ready. Begin.`);
+      if (stale()) return;
+      playBell(1);
+      await delay(320);
+      if (stale()) return;
+      setPhase('working');
     } else if (cadenceEnabled(d)) {
-      speak(`${d.name}. ${d.reps || 10} reps. On my count. Begin.`);
+      await speak(`${d.name}. ${d.reps || 10} reps. On my count. Begin.`);
+      if (stale()) return;
+      playBell(1);
+      await delay(320);
+      if (stale()) return;
+      setPhase('working');
       startCadence(d);
     } else {
-      speak(`${d.name}. ${d.reps || '--'} reps. Move with control. Tap done when complete.`);
+      await speak(`${d.name}. ${d.reps || '--'} reps. Move with control. Tap done when complete.`);
+      if (stale()) return;
+      playBell(1);
+      await delay(320);
+      if (stale()) return;
+      setPhase('working');
     }
   };
 
@@ -311,6 +338,10 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         return;
       }
       integrity.startUnit('circuit');
+      // End-of-round is the loudest cue in a fight — two bells before the
+      // corner voice, so an athlete on the far side of the bag knows the
+      // work window closed even if they missed the announcement.
+      playBell(2);
       speak(`Round ${roundRef.current} complete. Prepare for Round ${roundRef.current + 1}.`);
       setPhase('resting');
       setRemaining(drill.restSeconds || 30);
@@ -321,6 +352,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     } else {
       const nextDrill = drills[nextIdx];
       const prep = getEquipmentPrep(nextDrill);
+      // Single bell to close a drill inside a round; the next drill's
+      // own start bell will follow after "Ready. Begin." lands.
+      playBell(1);
       speak(`Rest. ${drill.restSeconds || 15} seconds. Up next: ${nextDrill.name}. ${prep}`);
       setPhase('resting');
       setRemaining(drill.restSeconds || 15);
@@ -437,6 +471,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     versionRef.current++;
     setDone(true);
     setPhase('complete');
+    // Triple bell for mission complete — the closing statement, spoken
+    // before the coach voice.
+    playBell(3);
     speak('Conditioning complete. Good work.');
     const integrityResult = integrity.finalize();
     setTimeout(() => {
