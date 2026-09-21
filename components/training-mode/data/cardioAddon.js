@@ -45,7 +45,6 @@ export const CARDIO_STYLES = [
   { id: 'roadwork', label: 'Roadwork' },
   { id: 'intervals', label: 'Intervals' },
   { id: 'sprints', label: 'Sprints' },
-  { id: 'hiit', label: 'HIIT' },
   { id: 'tabata', label: 'Tabata' },
   { id: 'custom', label: 'Custom' },
 ];
@@ -70,6 +69,9 @@ export const INTERVAL_PRESETS = {
   intervals: { easySeconds: 60, fastSeconds: 30, rounds: 8 },
   sprints: { easySeconds: 30, fastSeconds: 30, rounds: 10 },
   roadwork: { easySeconds: 60, fastSeconds: 60, rounds: 10 },
+  // Not offered any more — Tabata covers the short-burst slot and CUSTOM
+  // covers any other split. Kept so a finisher saved before it was removed
+  // still plays instead of falling through to a default.
   hiit: { easySeconds: 15, fastSeconds: 45, rounds: 10 },
   tabata: { hardSeconds: 20, restSeconds: 10, rounds: 8 },
 };

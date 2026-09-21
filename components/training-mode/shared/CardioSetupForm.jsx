@@ -44,13 +44,11 @@ const PROTOCOLS = [
   { id: 'steady', label: 'STEADY' },
   { id: 'intervals', label: 'INTERVALS' },
   { id: 'tabata', label: 'TABATA' },
-  { id: 'hiit', label: 'HIIT' },
 ];
 
 const CFG_DEFAULTS = {
   intervals: { warmupMin: 3, workSec: 60, restSec: 60, rounds: 8, cooldownMin: 0 },
   tabata: { warmupMin: 0, workSec: 20, restSec: 10, rounds: 8, cooldownMin: 0 },
-  hiit: { warmupMin: 2, workSec: 45, restSec: 15, rounds: 10, cooldownMin: 0 },
 };
 
 const cfgTargetSeconds = (c) => Math.round((c.warmupMin || 0) * 60) + c.rounds * (c.workSec + c.restSec) + Math.round((c.cooldownMin || 0) * 60);
@@ -90,7 +88,7 @@ function NumRow({ label, value, unit, min, max, step, onChange }) {
 }
 
 function ConfigModal({ styleId, cfg, onChange, onClose }) {
-  const titleMap = { intervals: 'TARGET INTERVALS', tabata: 'TABATA', hiit: 'HIIT' };
+  const titleMap = { intervals: 'TARGET INTERVALS', tabata: 'TABATA' };
   const total = cfgTargetSeconds(cfg);
   return createPortal(
     <div onClick={onClose} style={{
@@ -131,11 +129,14 @@ function seedFromAddon(initial) {
   let style = 'steady';
   let intervalMode = 'target';
   if (a.style === 'tabata') style = 'tabata';
-  else if (a.style === 'hiit') style = 'hiit';
+  // A finisher saved as HIIT opens as a target interval holding its own
+  // numbers, which is what HIIT was. Leaving it as 'hiit' would seed the
+  // form to a protocol no chip can select.
+  else if (a.style === 'hiit') { style = 'intervals'; intervalMode = 'target'; }
   else if (a.randomSurges) { style = 'intervals'; intervalMode = 'random'; }
   else if (a.style === 'intervals' || a.style === 'sprints' || a.style === 'roadwork') { style = 'intervals'; intervalMode = 'target'; }
   const cfgByStyle = { ...CFG_DEFAULTS };
-  if (a.intervals && (style === 'intervals' || style === 'tabata' || style === 'hiit')) {
+  if (a.intervals && (style === 'intervals' || style === 'tabata')) {
     const key = style === 'intervals' ? 'intervals' : style;
     const iv = a.intervals;
     cfgByStyle[key] = {
@@ -189,7 +190,7 @@ export default function CardioSetupForm({
 
   const useDistanceGauge = supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
   const showTimeGoal = !supportsDistance && (style === 'steady' || (style === 'intervals' && intervalMode === 'random'));
-  const showConfigCard = style === 'tabata' || style === 'hiit' || (style === 'intervals' && intervalMode === 'target');
+  const showConfigCard = style === 'tabata' || (style === 'intervals' && intervalMode === 'target');
 
   const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
   const parsedCustomDist = parseFloat(customDistance);
@@ -201,10 +202,10 @@ export default function CardioSetupForm({
 
   const displayStyleLabel = style === 'steady' ? 'Steady Pace'
     : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
-      : style === 'tabata' ? 'Tabata' : 'HIIT';
+      : 'Tabata';
 
   const selectCategory = (catId) => setCategoryId(catId);
-  const pickProtocol = (id) => { setStyle(id); if (id === 'tabata' || id === 'hiit') setConfigOpen(true); };
+  const pickProtocol = (id) => { setStyle(id); if (id === 'tabata') setConfigOpen(true); };
   const pickIntervalMode = (mode) => { setIntervalMode(mode); if (mode === 'target') setConfigOpen(true); };
 
   const cfg = cfgByStyle[style === 'intervals' ? 'intervals' : style] || CFG_DEFAULTS.intervals;
@@ -218,7 +219,6 @@ export default function CardioSetupForm({
       if (intervalMode === 'random') { addonStyle = 'steady'; randomSurges = true; }
       else { addonStyle = 'intervals'; intervals = cfgToIntervals(cfgByStyle.intervals); }
     } else if (style === 'tabata') { addonStyle = 'tabata'; intervals = cfgToIntervals(cfgByStyle.tabata); }
-    else if (style === 'hiit') { addonStyle = 'hiit'; intervals = cfgToIntervals(cfgByStyle.hiit); }
 
     const dist = useDistanceGauge ? { value: effGoalDistance, unit: distanceUnit } : null;
     return {

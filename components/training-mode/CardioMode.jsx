@@ -87,12 +87,12 @@ const ROUND_FORMATS = [
   {
     id: 'fight', label: 'FIGHT ROUNDS',
     cfg: { warmupMin: 3, workSec: 180, restSec: 60, rounds: 12, cooldownMin: 0 },
-    blurb: 'Three minutes on, one minute off, twelve rounds — a championship fight. Long rounds, real recovery. Builds the gas tank to last.',
+    blurb: 'Three minutes on, one minute off, twelve rounds. A championship fight: long rounds, real recovery.',
   },
   {
     id: 'tabata', label: 'TABATA',
     cfg: { warmupMin: 0, workSec: 20, restSec: 10, rounds: 8, cooldownMin: 0 },
-    blurb: 'Twenty seconds flat out, ten seconds off, eight times. Four minutes total. Brutally short — go as hard as you can hold.',
+    blurb: 'Twenty seconds flat out, ten off, eight times. Four minutes total, and brutal.',
   },
   { id: 'custom', label: 'CUSTOM', cfg: null, blurb: 'Your numbers. Set the warm-up, work, rest and rounds below.' },
 ];
@@ -619,23 +619,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             </button>
             <IntroLogo size={26}/>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* START lives in the header now. The old footer button plus the
-                9vh of air beneath it cost 127px of a 494px options window,
-                which is most of the reason the screen had to scroll. Up here
-                it is on screen whatever the options are doing, and never
-                needs scrolling to reach. */}
-            <div data-guide="cm-start">
-              <button onClick={startCardio} style={{
-                padding: '7px 15px', borderRadius: 999, cursor: 'pointer',
-                background: 'linear-gradient(180deg,#fde047,#f0a92a)', border: 'none',
-                color: '#1a0b02', fontFamily: ARCADE.fontHead, fontWeight: 900,
-                fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap',
-                boxShadow: '0 0 14px rgba(253,224,71,0.45)',
-              }}>▶ START</button>
-            </div>
-            <HelpButton onClick={() => setHelpOpen(true)}/>
-          </div>
+          <HelpButton onClick={() => setHelpOpen(true)}/>
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 7, flexShrink: 0 }}>
@@ -668,7 +652,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           <ProgressionNudgeCard lane="cardio"/>
           <div data-guide="cm-method">
           <div style={sectionLabel}>METHOD</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
             {METHOD_CATEGORIES.map(cat => {
               const active = categoryId === cat.id;
               const group = EQUIPMENT_GROUPS.includes(cat.id);
@@ -717,9 +701,8 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                     STARTING {speedUnitLabel(distanceUnit)}
                   </div>
                   <SpeedDial speed={effStartSpeed} unit={distanceUnit} onChange={setStartSpeed} compact />
-                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 7, lineHeight: 1.35 }}>
-                    Set this to the {equipment.id === 'treadmill' ? 'belt' : 'console'} speed you will start on —
-                    you can change it mid-run too. Distance is tracked from it.
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 5, lineHeight: 1.3 }}>
+                    Match the {equipment.id === 'treadmill' ? 'belt' : 'console'}. Distance is tracked from it, and you can change it mid-run.
                   </div>
                 </>
               ) : (
@@ -760,7 +743,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           {isRounds && (
             <>
               <div style={sectionLabel}>FORMAT</div>
-              <div style={{ display: 'flex', gap: 5, marginBottom: 6 }}>
+              <div style={{ display: 'flex', gap: 5, marginBottom: 5 }}>
                 {ROUND_FORMATS.map(f => (
                   <button key={f.id} onClick={() => applyFormat(f.id)} style={{
                     flex: 1, padding: '6px 4px', borderRadius: ARCADE.radius.sm, cursor: 'pointer',
@@ -774,7 +757,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
               {roundFormat !== 'custom' && (
               <div style={{
                 borderRadius: ARCADE.radius.sm, border: '1px solid rgba(34,197,94,0.28)',
-                background: 'rgba(34,197,94,0.07)', padding: '7px 10px', marginBottom: 8,
+                background: 'rgba(34,197,94,0.07)', padding: '6px 10px', marginBottom: 6,
                 fontFamily: ARCADE.fontBody, fontSize: 9.5, color: '#c9f5d6', lineHeight: 1.35,
               }}>
                 {activeFormat.blurb}
@@ -803,8 +786,8 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
                     ⟳ BUILD ME A SESSION
                   </div>
                   <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 3, lineHeight: 1.35 }}>
-                    Five movements picked for your level — plyo, sprints, rope, shadowbox.
-                    Reorder or swap any of them. Or just run the clock without one.
+                    Five movements for your level, and the coach calls each one as it lands.
+                    Reorder or swap any of them, or just run the clock without one.
                   </div>
                 </button>
               )}
@@ -985,7 +968,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           {showConfigCard && (
             <>
               {!isRounds && <div style={sectionLabel}>INTERVAL SETUP</div>}
-              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '9px 11px', marginBottom: 8 }}>
+              <div style={{ borderRadius: 12, border: '1px solid rgba(176,106,255,0.4)', background: 'rgba(176,106,255,0.06)', padding: '8px 11px', marginBottom: 6 }}>
                 {/* The total used to sit in its own bordered row underneath,
                     which cost 33px to say one number. It reads better up here
                     beside the label it is the total OF. */}
@@ -1021,7 +1004,17 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
           )}
         </div>
 
-
+        {/* START, back at the bottom. What does NOT come back is the 9vh
+            spacer that used to sit under it: that was 73px of empty space on
+            a screen whose whole problem was height. Full width rather than a
+            centred 264px island, so it reads as the floor of the page without
+            needing air beneath it to look deliberate. */}
+        <div data-guide="cm-start" style={{ flexShrink: 0, paddingTop: 5 }}>
+          <TrainingCTA
+            variant="gold" label="START CARDIO" onClick={startCardio} height={42}
+            style={{ width: '100%', fontSize: 13, letterSpacing: '0.12em' }}
+          />
+        </div>
       </div>
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>

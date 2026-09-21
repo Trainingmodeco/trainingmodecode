@@ -1,4 +1,3 @@
-import { C } from '../Styles';
 import { ARCADE } from '../ArcadeUI';
 
 // The generated cardio session, editable the way the Workout Builder's is.
@@ -40,9 +39,9 @@ export default function CardioSessionCard({
       borderRadius: ARCADE.radius.md,
       border: '1px solid rgba(253,224,71,0.35)',
       background: 'linear-gradient(180deg, rgba(88,28,135,0.32), rgba(16,4,30,0.85))',
-      padding: '7px 10px', marginBottom: 6,
+      padding: '6px 10px', marginBottom: 5,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <span style={{ fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', color: ARCADE.gold }}>
           ★ BUILT FOR YOU · LEVEL {level}
         </span>
@@ -88,10 +87,11 @@ export default function CardioSessionCard({
         </div>
       ))}
 
-      <div style={{ fontFamily: ARCADE.fontBody, fontSize: 8.5, color: C.muted, marginTop: 6, lineHeight: 1.3 }}>
-        Reorder ↑↓ · swap ⇄ · remove ✕. The coach calls each move as it lands.
-      </div>
-
+      {/* The legend that used to sit here is gone. Up, down, swap and remove
+          are conventional enough to read from the glyphs, and the line it was
+          really carrying — that the coach names each movement — now sits on
+          the BUILD ME A SESSION card, where it is read once before you commit
+          and costs no height afterwards. */}
       <div style={{
         display: 'flex', alignItems: 'baseline', gap: 9,
         paddingTop: 5, marginTop: 5, borderTop: '1px solid rgba(176,106,255,0.18)',
