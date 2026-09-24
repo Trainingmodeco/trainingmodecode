@@ -186,6 +186,8 @@ export function cancelSpeech() {
   const synth = getSynth();
   if (!synth) return;
   currentVersion++;
+  currentSpeechPromise = null;
+  currentSpeechPriority = -1;
   synth.cancel();
 }
 
@@ -205,19 +207,47 @@ function normalizeSpeech(text) {
     .toLowerCase();
 }
 
-export async function speakAsync(rawText, opts = {}) {
+// ── Priority-aware scheduler ────────────────────────────────────────────
+//
+// Before: every speakAsync unconditionally called synth.cancel() and
+// stomped whatever was mid-sentence. Two callers on the same session
+// (Combo Coach's combo callouts + Sprint / Rush / motivational quotes)
+// cut each other off constantly — the athlete heard "one-two-th…RUSH!"
+// clipped mid-syllable.
+//
+// Now: a single lock tracks who owns the mic. Callers pick from three
+// modes.
+//
+//   opts.preempt   — cancel whatever is playing, take the mic (critical
+//                    events: Rush activation, round-end horn, session
+//                    complete).
+//   opts.dropIfBusy — if someone else is talking, drop THIS message
+//                    silently. For time-sensitive lines whose window
+//                    passes if delayed (a combo call arrives on the
+//                    cadence beat; a queued combo delivered three
+//                    seconds late is wrong).
+//   default        — queue: wait for the current speaker to finish,
+//                    then talk. For motivational quotes and coach flow
+//                    lines that stay relevant even a few seconds later.
+//
+// opts.priority (0..3) lets a higher-priority queued line pre-empt a
+// lower-priority speaker mid-sentence even without opts.preempt. Rush
+// countdowns are priority 3; combos are 2; quotes and cadence counts
+// are 1; the default is 1.
+
+let currentSpeechPromise = null;
+let currentSpeechPriority = -1;
+
+export function isSpeechBusy() { return currentSpeechPromise !== null; }
+export function currentSpeechLevel() { return currentSpeechPriority; }
+
+function speakUtterance(rawText, opts) {
   const synth = getSynth();
-  if (!synth) return;
-
+  if (!synth) return Promise.resolve();
   const text = normalizeSpeech(rawText);
-
-  await ensureVoicesReady();
+  synth.resume();
 
   const speakVersion = ++currentVersion;
-
-  // Cancel any current speech before starting new
-  synth.cancel();
-  synth.resume();
 
   return new Promise((resolve) => {
     if (speakVersion !== currentVersion) { resolve(); return; }
@@ -246,10 +276,7 @@ export async function speakAsync(rawText, opts = {}) {
 
     utter.onend = done;
     utter.onerror = (e) => {
-      if (e.error === 'canceled' || speakVersion !== currentVersion) {
-        done();
-        return;
-      }
+      if (e.error === 'canceled' || speakVersion !== currentVersion) { done(); return; }
       done();
     };
 
@@ -260,6 +287,44 @@ export async function speakAsync(rawText, opts = {}) {
 
     synth.speak(utter);
   });
+}
+
+export async function speakAsync(rawText, opts = {}) {
+  const synth = getSynth();
+  if (!synth) return;
+
+  await ensureVoicesReady();
+
+  const priority = Number.isFinite(opts.priority) ? opts.priority : 1;
+  const preempt = opts.preempt === true;
+  const dropIfBusy = opts.dropIfBusy === true;
+
+  // Someone's currently talking. Decide fast.
+  if (currentSpeechPromise) {
+    const shouldPreempt = preempt || priority > currentSpeechPriority;
+    if (shouldPreempt) {
+      synth.cancel();
+      // Give the previous promise a tick to unwind before we start.
+      await new Promise((r) => setTimeout(r, 20));
+    } else if (dropIfBusy) {
+      return;
+    } else {
+      // queue behind the current speaker
+      try { await currentSpeechPromise; } catch { /* ignore */ }
+    }
+  }
+
+  currentSpeechPriority = priority;
+  const p = speakUtterance(rawText, opts).finally(() => {
+    // Only clear the lock if this promise is still the one holding it —
+    // a pre-empter may already have replaced it.
+    if (currentSpeechPromise === p) {
+      currentSpeechPromise = null;
+      currentSpeechPriority = -1;
+    }
+  });
+  currentSpeechPromise = p;
+  return p;
 }
 
 export async function speakOrDelay(text, minMs, opts = {}) {

@@ -245,9 +245,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       });
       setGhostVerdict({ outcome: result.outcome, headline });
       ghostDelay = 3600;
-      if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', vOpts), 1400);
+      if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', { ...vOpts, priority: 3, preempt: true }), 1400);
     }
-    setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), vOpts); }, 400);
+    setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), { ...vOpts, priority: 3, preempt: true }); }, 400);
     setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, ghostDelay);
   }, [ghost, cfg, vOpts, flavored, packId, rounds, onEnd]);
 
@@ -302,7 +302,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         if (quote) {
           encourageUsedIds.current.add(quote.id);
           setCaptionText(quote.text);
-          speakAsync(quote.text, { rate: 0.95 });
+          speakAsync(quote.text, { rate: 0.95, priority: 1, dropIfBusy: true });
         }
         break;
       }
@@ -332,7 +332,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           if (cfg.voiceOn && !rushSpoken.current) {
             rushSpoken.current = true;
             playRiser();
-            speakAsync(RUSH_ACTIVATION);
+            speakAsync(RUSH_ACTIVATION, { priority: 3, preempt: true });
             rushVoice.current.reset();
             rushCueIn.current = nextCueDelaySec();
           }
@@ -343,7 +343,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           // "Rush mode complete" only makes sense if there's session left — at
           // the final bell the bell itself is the closing statement.
           const moreToCome = remaining > 3 || roundIdxRef.current + 1 < cfg.rounds;
-          if (cfg.voiceOn && moreToCome) speakAsync(RUSH_COMPLETE);
+          if (cfg.voiceOn && moreToCome) speakAsync(RUSH_COMPLETE, { priority: 2 });
         }
 
         // Push cues while the surge runs, spaced 8-10s, never during the
@@ -353,7 +353,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           const inFinalCountdown = rushPatternNow.startsWith('end') && remaining <= 10;
           if (rushCueIn.current <= 0) {
             if (!inFinalCountdown && remaining > 3) {
-              speakAsync(rushVoice.current.nextLine());
+              speakAsync(rushVoice.current.nextLine(), { priority: 1, dropIfBusy: true });
               rushCueIn.current = nextCueDelaySec();
             } else {
               rushCueIn.current = 1;
@@ -368,7 +368,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         cfg.voiceOn && lastRushCountdownSecond.current !== remaining
       ) {
         lastRushCountdownSecond.current = remaining;
-        speakAsync(String(remaining));
+        speakAsync(String(remaining), { priority: 3, preempt: true });
       }
       // Spec 22 — halfway call on longer rounds (skipped in rush countdowns).
       if (
@@ -377,7 +377,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         halfwayRef.current !== roundIdxRef.current
       ) {
         halfwayRef.current = roundIdxRef.current;
-        speakAsync('Halfway.', vOpts);
+        speakAsync('Halfway.', { ...vOpts, priority: 2, dropIfBusy: true });
       }
       // Specs/27 B1.5 — cadence-called combos while an arcade round runs.
       if (phaseRef.current === 'round' && countdown === null) {
@@ -400,7 +400,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             // CALL STYLE converts them here (covers Arcade AND Camp).
             const styled = formatCall(call, loadUserProfile()?.callStyle);
             setCurCombo(styled.display);
-            if (cfg.voiceOn) speakAsync(styled.speech, vOpts);
+            if (cfg.voiceOn) speakAsync(styled.speech, { ...vOpts, priority: 2 });
           }
         }
       }
@@ -441,7 +441,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           endArgsRef.current = integrityResult;
           const f0 = finishers[0];
           setFinisher({ idx: 0, remaining: f0.work_sec });
-          if (cfg.voiceOn) setTimeout(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, vOpts), 300);
+          if (cfg.voiceOn) setTimeout(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, { ...vOpts, priority: 3, preempt: true }), 300);
         } else {
           endNow(integrityResult);
         }
@@ -457,7 +457,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         setRemaining(restSecOf(roundIdxRef.current));
         // Rest + next-up (spec 22): name the coming round so nothing needs reading.
         const nxt = rounds[roundIdxRef.current + 1];
-        setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, vOpts); }, 400);
+        setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, { ...vOpts, priority: 2 }); }, 400);
       }
     } else {
       setPhase('round');
@@ -477,7 +477,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         const fn = finishers[next];
         playBell(1);
         setFinisher({ idx: next, remaining: fn.work_sec });
-        if (cfg.voiceOn) speakAsync(`${fn.movement}. ${fn.work_sec} seconds. Go!`, vOpts);
+        if (cfg.voiceOn) speakAsync(`${fn.movement}. ${fn.work_sec} seconds. Go!`, { ...vOpts, priority: 3, preempt: true });
       } else {
         playBell(2);
         setFinisher(null);

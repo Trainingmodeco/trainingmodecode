@@ -378,7 +378,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         if (quote) {
           encourageUsedIds.current.add(quote.id);
           setCaptionText(quote.text);
-          speakAsync(quote.text, { rate: 0.95 });
+          // Motivational quotes are background flavour — never interrupt a
+          // combo call, and never queue up to fire two seconds late. If
+          // the mic is busy right now, this one's window has passed and
+          // we drop it.
+          speakAsync(quote.text, { rate: 0.95, priority: 1, dropIfBusy: true });
         }
         break;
       }
@@ -399,7 +403,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           if (cfg.voiceOn !== false && !rushSpoken.current && !isSpeakingCombo.current) {
             rushSpoken.current = true;
             playRiser();
-            speakAsync(RUSH_ACTIVATION);
+            // Rush activation is THE mic-defining moment of the round —
+            // pre-empt whatever is playing and take over.
+            speakAsync(RUSH_ACTIVATION, { priority: 3, preempt: true });
             rushVoice.current.reset();
             rushCueIn.current = nextCueDelaySec();
           }
@@ -411,7 +417,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           // at the final bell the bell itself is the closing statement.
           const moreToCome = remaining > 3 || roundIdxRef.current + 1 < totalRounds;
           if (cfg.voiceOn !== false && moreToCome && !isSpeakingCombo.current) {
-            speakAsync(RUSH_COMPLETE);
+            speakAsync(RUSH_COMPLETE, { priority: 2 });
           }
         }
 
@@ -423,7 +429,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             (cfg.rushPattern || 'endRound') === 'endRound' && remaining <= 10;
           if (rushCueIn.current <= 0) {
             if (!isSpeakingCombo.current && !inFinalCountdown && remaining > 3) {
-              speakAsync(rushVoice.current.nextLine());
+              // Mid-rush cheerleading — drop rather than queue so the
+              // final-countdown numbers are never held up behind it.
+              speakAsync(rushVoice.current.nextLine(), { priority: 1, dropIfBusy: true });
               rushCueIn.current = nextCueDelaySec();
             } else {
               rushCueIn.current = 1; // retry next tick
@@ -438,7 +446,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         cfg.voiceOn !== false && lastRushCountdownSecond.current !== remaining
       ) {
         lastRushCountdownSecond.current = remaining;
-        speakAsync(String(remaining));
+        // The countdown numbers HAVE to hit on the second — pre-empt.
+        speakAsync(String(remaining), { priority: 3, preempt: true });
       }
       if (
         phaseRef.current === 'round' &&
@@ -462,7 +471,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         setDone(true);
         const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
         setTimeout(() => {
-          if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'));
+          if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'), { priority: 3, preempt: true });
         }, 400);
         setTimeout(() => { stopVoiceSession(); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult, sessionStats()); }, 1500);
       } else {
@@ -472,7 +481,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         }
         setPhase('rest');
         setRemaining(restSec);
-        setTimeout(() => { if (cfg.voiceOn !== false) speakAsync('Rest.'); }, 400);
+        setTimeout(() => { if (cfg.voiceOn !== false) speakAsync('Rest.', { priority: 2 }); }, 400);
       }
     } else {
       setPhase('round');
@@ -504,9 +513,12 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           setCallTick(t => t + 1);
           await delay(300);
           if (!active || pausedRef.current) break;
-          if (cfg.voiceOn !== false && remainingRef.current > 3) {
+          // Defense call: fire only when rush is NOT active. During rush,
+          // the athlete's whole attention is on the countdown / rush cues —
+          // no defense flashes competing for the same mic.
+          if (cfg.voiceOn !== false && remainingRef.current > 3 && !rushRef.current) {
             isSpeakingCombo.current = true;
-            await speakAsync(call, { rate: Math.min(voiceRate + 0.15, 1.3) });
+            await speakAsync(call, { rate: Math.min(voiceRate + 0.15, 1.3), priority: 2 });
             isSpeakingCombo.current = false;
           }
           if (!active || pausedRef.current) break;
@@ -529,9 +541,13 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         setComboStreak(streakRef.current);
         await delay(500);
         if (!active || pausedRef.current) break;
-        if (cfg.voiceOn !== false && remainingRef.current > 3 && !(rushRef.current && remainingRef.current <= 10)) {
+        // Combo call: suppressed for the entire rush window (any rush
+        // pattern, not just the final-10s countdown). That matches the
+        // fighter's ask — when the rush is on, everything except the rush
+        // audio itself goes silent.
+        if (cfg.voiceOn !== false && remainingRef.current > 3 && !rushRef.current) {
           isSpeakingCombo.current = true;
-          await speakAsync(styled.speech, { rate: voiceRate });
+          await speakAsync(styled.speech, { rate: voiceRate, priority: 2 });
           isSpeakingCombo.current = false;
         }
         if (!active || pausedRef.current) break;
