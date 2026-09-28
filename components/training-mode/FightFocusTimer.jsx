@@ -82,6 +82,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const restSecOf = (i) => rounds[Math.min(i, rounds.length - 1)]?.rest_sec ?? cfg.restSec;
   const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? roundSec);
   const [paused, setPaused] = useState(!!initialPaused);
+  // Seconds since the session started, counting the countdown and the
+  // round call as well as the rounds and rests. A resume restores it; an
+  // older snapshot without it falls back to the rounds-and-rests sum.
+  const [sessionElapsed, setSessionElapsed] = useState(() => (
+    initialResumeData?.sessionElapsed
+    ?? ((initialResumeData?.roundIdx ?? 0) * (roundSec + cfg.restSec) + (initialResumeData?.remaining != null ? roundSec - initialResumeData.remaining : 0))
+  ));
   const [rush, setRush] = useState(false);
   const [done, setDone] = useState(false);
   const [countdown, setCountdown] = useState(initialPaused ? null : '3');
@@ -150,9 +157,17 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ phase, roundIdx, remaining });
+      onStateChange({ phase, roundIdx, remaining, sessionElapsed });
     }
-  }, [phase, roundIdx, remaining, onStateChange]);
+  }, [phase, roundIdx, remaining, sessionElapsed, onStateChange]);
+
+  // The session clock: one tick a second whenever the session is live —
+  // through the countdown, the rounds and the rests — held while paused.
+  useEffect(() => {
+    if (paused || done) return undefined;
+    const id = setInterval(() => setSessionElapsed(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [paused, done]);
 
   // Spec 22 — voice pack (per campaign via cfg.voicePack): flavors tone +
   // greeting/rest/done phrasing. 'coach' keeps the original neutral lines;
@@ -614,7 +629,10 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const last10 = phase === 'round' && remaining <= 10 && remaining > 0;
   const stripeClass = dangerPulse ? 'danger-stripes' : rush ? 'rush-stripes' : '';
 
-  const totalElapsed = roundIdx * (roundSec + cfg.restSec) + (maxTime - remaining);
+  // Wall time in the session, intros included — the derived sum of rounds
+  // and rests left the 3-2-1 and the round call off the ELAPSED line, so it
+  // read 0:30 after almost a minute.
+  const totalElapsed = sessionElapsed;
   const elapsedMins = Math.floor(totalElapsed / 60);
   const elapsedSecs = totalElapsed % 60;
   const roundsLeft = cfg.rounds - roundIdx - (phase === 'rest' ? 1 : 0);
