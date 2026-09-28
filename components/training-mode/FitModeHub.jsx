@@ -36,8 +36,8 @@ const hubCSS = `
 .fm-go { transition: filter .18s ease, box-shadow .18s ease, transform .1s ease; }
 .fm-go:hover, .fm-go:focus-visible { filter: brightness(1.1); box-shadow: 0 0 30px rgba(242,190,69,.55); }
 .fm-go:active { transform: scale(0.985); }
-.fm-hero img { opacity: .45; filter: brightness(.75); transition: opacity .25s ease, filter .25s ease; }
-.fm-hero:hover img { opacity: .62; filter: brightness(.9); }
+.fm-hero img { opacity: .62; filter: brightness(.85); transition: opacity .25s ease, filter .25s ease, transform .3s ease; }
+.fm-hero:hover img { opacity: .85; filter: brightness(1) saturate(1.1); transform: scale(1.02); }
 `;
 
 export default function FitModeHub({
@@ -126,8 +126,10 @@ export default function FitModeHub({
             position: 'relative', height: 224, flexShrink: 0, borderRadius: 16, overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
           }}>
-            <SafeImage src="/static/app-bg.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '70% 40%' }}/>
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.78) 60%, rgba(7,6,12,0.35) 100%)' }}/>
+            {/* Real art, not the page background: with app-bg here the card
+                read as empty, which beta called "the banner is missing". */}
+            <SafeImage src="/static/hub/fit.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '82% 30%' }}/>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.8) 52%, rgba(7,6,12,0.18) 100%)' }}/>
             <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Today&apos;s mission</span>
@@ -157,7 +159,9 @@ export default function FitModeHub({
             </div>
           </section>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 28, marginTop: 4, flexShrink: 0 }}>
+          {/* SURPRISE ME at the far left, ADJUST at the far right — the design
+              parks them at the card's corners, not side by side in the middle. */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px', marginTop: 4, flexShrink: 0 }}>
             <button type="button" className="fm-quiet" onClick={() => setSurprise(surpriseQuickMission())} style={{
               height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',

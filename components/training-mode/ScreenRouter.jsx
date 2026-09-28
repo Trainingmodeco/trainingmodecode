@@ -552,14 +552,14 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         {/* TM-16 census caught this: CardioMode only accepts onBack — the
             onHome prop was passed and silently dropped. */}
-        <CardioMode onBack={goFitHub} onSessionState={reportSessionState} entry={cardioEntry} resumeData={resumeData}/>
+        <CardioMode onBack={goFitHub} onFightMode={goFightHub} onSessionState={reportSessionState} entry={cardioEntry} resumeData={resumeData}/>
       </WithNav>
     );
   }
   if (screen === 'fit_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FitBuilderSetup onBack={goFitHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'}/>
+        <FitBuilderSetup onBack={goFitHub} onFightMode={goFightHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'}/>
       </WithNav>
     );
   }
@@ -601,7 +601,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
   if (screen === 'qm_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <QuickMissionSetup onBack={goFitHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode}/>
+        <QuickMissionSetup onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode}/>
       </WithNav>
     );
   }

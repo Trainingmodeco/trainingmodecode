@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
+import SafeImage from './SafeImage';
 import ModeTabs from './shared/ModeTabs';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
@@ -44,6 +45,8 @@ const css = `
 .pg-go { transition: filter .18s ease, box-shadow .18s ease, transform .1s ease; }
 .pg-go:hover, .pg-go:focus-visible { filter: brightness(1.1); box-shadow: 0 0 30px rgba(242,190,69,.55); }
 .pg-go:active { transform: scale(0.985); }
+.pg-hero img { opacity: .55; filter: brightness(.85); transition: opacity .25s ease, filter .25s ease, transform .3s ease; }
+.pg-hero:hover img { opacity: .85; filter: brightness(1) saturate(1.1); transform: scale(1.02); }
 `;
 
 export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart }) {
@@ -106,20 +109,24 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart })
             })}
           </div>
 
-          <section data-guide="pg-continue" style={{
+          <section className="pg-hero" data-guide="pg-continue" style={{
             position: 'relative', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
-            border: '1px solid rgba(157,108,255,0.4)', background: 'linear-gradient(135deg,#1A1034 0%,#0D0A18 70%)',
+            border: '1px solid rgba(157,108,255,0.4)', background: '#0D0A18',
             padding: 18, display: 'flex', flexDirection: 'column', gap: 8,
           }}>
-            <div style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD }}>
+            {/* The design's continue card sits on art; ours was a flat gradient
+                and read as unfinished. */}
+            <SafeImage src="/static/revamp/hub-fit-reveal.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '80% 20%' }}/>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.82) 60%, rgba(7,6,12,0.3) 100%)' }}/>
+            <div style={{ position: 'relative', font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD }}>
               {current ? 'Continue program' : 'Start a program'}
             </div>
-            <h1 style={{ margin: 0, font: "700 26px 'Chakra Petch',sans-serif", lineHeight: 1.1, color: '#fff' }}>{titleCase(featured.title)}</h1>
-            <div style={{ fontSize: 15, color: '#DCD7EE' }}>
+            <h1 style={{ position: 'relative', margin: 0, font: "700 26px 'Chakra Petch',sans-serif", lineHeight: 1.1, color: '#fff' }}>{titleCase(featured.title)}</h1>
+            <div style={{ position: 'relative', fontSize: 15, color: '#DCD7EE' }}>
               {isSplit ? `Next: ${titleCase(day.label)} day` : 'Every muscle group, every session'}
             </div>
             {isSplit && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
                 <div style={{ flex: 1, display: 'flex', gap: 4 }}>
                   {featured.days.map((d, i) => (
                     <span key={d.label} style={{ flex: 1, height: 5, borderRadius: 3, background: i <= idx ? GOLD : 'rgba(255,255,255,0.12)' }}/>
@@ -129,7 +136,7 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart })
               </div>
             )}
             <button type="button" className="pg-go" onClick={() => start(featured)} style={{
-              height: 52, marginTop: 8, borderRadius: 12, border: 'none', cursor: 'pointer',
+              position: 'relative', height: 52, marginTop: 8, borderRadius: 12, border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
               font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.2em',

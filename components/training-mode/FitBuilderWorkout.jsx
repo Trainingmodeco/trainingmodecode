@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Minus, Plus, Bookmark } from 'lucide-react';
+import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark, Link2 } from 'lucide-react';
 import { C } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
@@ -12,10 +12,9 @@ import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
 import { routineSlotLimit } from './data/entitlements';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
-import { loadProfile } from './data/userProfile';
-import { classifyType, exerciseWeight, unitLabel, normUnit, stepFor, convertWeight, defaultWeight } from './data/weightLog';
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
 import BuilderWarmup from './shared/BuilderWarmup';
+import ExerciseEditSheet from './shared/ExerciseEditSheet';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 import ScreenGuide from './shared/ScreenGuide';
@@ -34,14 +33,20 @@ const GESTURE_LEGEND = [
   ['⛓', '2×tap · link'],
 ];
 
-// −/＋ button in the working-weight stepper (design 39).
-const weightBtn = {
-  width: 34, height: 34, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
-  background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.4)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-};
+const HEAD = "'Chakra Petch', system-ui, sans-serif";
+const BODY = "'Barlow', system-ui, sans-serif";
+const CHF = { clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' };
 
 const workoutCSS = `
+.wo-gold { transition: filter .18s ease, box-shadow .18s ease, transform .1s ease; }
+.wo-gold:hover:not(:disabled), .wo-gold:focus-visible { filter: brightness(1.12); box-shadow: 0 0 30px rgba(242,190,69,.55) !important; }
+.wo-gold:active { transform: scale(.98); }
+.wo-ghost { transition: border-color .2s, background .2s, color .2s; }
+.wo-ghost:hover, .wo-ghost:focus-visible { background: rgba(157,108,255,.14) !important; border-color: #9D6CFF !important; color: #fff !important; }
+.wo-dose { transition: border-color .18s, color .18s; }
+.wo-dose:hover, .wo-dose:focus-visible { border-color: #F2BE45 !important; color: #F2BE45 !important; }
+.wo-ib { transition: border-color .18s, background .18s; }
+.wo-ib:hover, .wo-ib:focus-visible { border-color: #9D6CFF !important; background: rgba(157,108,255,.16) !important; }
 @keyframes fadeSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .wo-row { transition: all 0.2s ease; }
 .wo-row:hover { background: rgba(253,224,71,0.04) !important; }
@@ -65,6 +70,12 @@ const MUSCLE_COLORS = {
   Biceps: '#22c55e', Triceps: '#8b5cf6', Core: '#ec4899',
   Quads: '#06b6d4', Hamstrings: '#14b8a6', Glutes: '#f97316',
 };
+
+// "Chest" in the muscle's colour, for a row's second line.
+function muscleLabel(ex, color) {
+  const m = String(ex.primaryMuscle || ex.muscle || '');
+  return <span style={{ color }}>{m ? m.charAt(0).toUpperCase() + m.slice(1).toLowerCase() : ''}</span>;
+}
 
 function buildTitle(cfg) {
   const mg = cfg.muscleGroups;
@@ -169,101 +180,8 @@ function SwapSheet({ exercise, alternates, onSelect, onInfo, onClose }) {
   );
 }
 
-function Stepper({ label, value, display, onDec, onInc }) {
-  const btn = {
-    width: 34, height: 34, borderRadius: 8, cursor: 'pointer',
-    background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  };
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0' }}>
-      <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: C.faint, letterSpacing: '0.12em' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={onDec} aria-label={`Decrease ${label}`} style={btn}><Minus size={14} color={C.violet}/></button>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, color: '#fff', minWidth: 52, textAlign: 'center' }}>{display ?? value}</span>
-        <button onClick={onInc} aria-label={`Increase ${label}`} style={btn}><Plus size={14} color={C.violet}/></button>
-      </div>
-    </div>
-  );
-}
-
-// Edit sets / reps / rest for one exercise before the workout starts.
-function EditSheet({ exercise, onSave, onClose }) {
-  const isHold = /^\d+\s*s$/i.test(String(exercise.reps).trim());
-  const repsInit = parseInt(String(exercise.reps).split('-').pop(), 10) || 10;
-  const [sets, setSets] = useState(exercise.sets || 3);
-  const [reps, setReps] = useState(repsInit);
-  const [rest, setRest] = useState(exercise.restSeconds || parseInt(exercise.rest) || 60);
-  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-
-  // Design 39 — optional WORKING WEIGHT (weighted lifts only).
-  const isWeighted = classifyType(exercise) === 'weighted';
-  const existing = exerciseWeight(exercise);
-  const initUnit = existing?.unit || normUnit(loadProfile()?.weightUnit);
-  const [unit, setUnit] = useState(initUnit);
-  const [weight, setWeight] = useState(existing?.weight || defaultWeight(initUnit));
-  const [hasWeight, setHasWeight] = useState(!!existing);
-  const toggleUnit = (u) => { if (u !== unit) { setWeight(w => convertWeight(w, unit, u)); setUnit(u); } };
-  const wStep = stepFor(unit);
-
-  const save = () => onSave({
-    sets, reps: isHold ? `${reps}s` : reps, restSeconds: rest, rest: `${rest}s`,
-    ...(isWeighted ? { weight: hasWeight ? weight : null, unit } : {}),
-  });
-
-  return (
-    <BottomSheet
-      title={`EDIT: ${exercise.name.toUpperCase()}`}
-      accent={GOLD}
-      onClose={onClose}
-      footer={(
-        <button className="wo-cta" onClick={save} style={{
-          width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-          background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014',
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-        }}>
-          <Check size={15} strokeWidth={3}/> APPLY
-        </button>
-      )}
-    >
-      <Stepper label="SETS" value={sets} onDec={() => setSets(s => clamp(s - 1, 1, 8))} onInc={() => setSets(s => clamp(s + 1, 1, 8))}/>
-      <Stepper label={isHold ? 'HOLD TIME' : 'REPS'} value={reps} display={isHold ? `${reps}s` : reps}
-        onDec={() => setReps(r => clamp(r - (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}
-        onInc={() => setReps(r => clamp(r + (isHold ? 5 : 1), isHold ? 10 : 1, isHold ? 180 : 60))}/>
-      <Stepper label="REST" value={rest} display={`${rest}s`}
-        onDec={() => setRest(r => clamp(r - 15, 15, 300))} onInc={() => setRest(r => clamp(r + 15, 15, 300))}/>
-
-      {/* Design 39 — WORKING WEIGHT (optional, weighted lifts only) */}
-      {isWeighted && (
-          <div style={{ marginTop: 10, borderRadius: 12, border: '1px solid rgba(253,224,71,0.55)', background: 'rgba(253,224,71,0.05)', boxShadow: '0 0 14px rgba(253,224,71,0.14)', padding: '10px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: hasWeight ? 8 : 0 }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: GOLD, letterSpacing: '0.1em' }}>WORKING WEIGHT</span>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5, color: '#0a0014', background: GOLD, borderRadius: 3, padding: '2px 5px', letterSpacing: '0.08em' }}>· NEW</span>
-              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: C.muted, marginLeft: 'auto' }}>optional</span>
-            </div>
-            {!hasWeight ? (
-              <button onClick={() => setHasWeight(true)} style={{ width: '100%', padding: '9px 0', borderRadius: 9, cursor: 'pointer', background: 'rgba(253,224,71,0.1)', border: '1px dashed rgba(253,224,71,0.5)', color: GOLD, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.06em' }}>+ ADD WEIGHT</button>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button onClick={() => setWeight(w => Math.max(wStep, w - wStep))} style={weightBtn}><Minus size={15} color={GOLD}/></button>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 26, color: '#fff' }}>{weight}</span>
-                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, color: GOLD, marginLeft: 4 }}>{unitLabel(unit)}</span>
-                </div>
-                <button onClick={() => setWeight(w => Math.min(2000, w + wStep))} style={weightBtn}><Plus size={15} color={GOLD}/></button>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginLeft: 2 }}>
-                  {['lb', 'kg'].map(u => (
-                    <button key={u} onClick={() => toggleUnit(u)} style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, letterSpacing: '0.05em', color: unit === u ? '#0a0014' : '#c9b8e8', background: unit === u ? GOLD : 'rgba(16,4,30,0.8)', border: unit === u ? 'none' : '1px solid rgba(168,85,247,0.3)' }}>{u.toUpperCase()}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-      )}
-    </BottomSheet>
-  );
-}
+// The per-exercise sets / reps / rest editor is shared/ExerciseEditSheet now:
+// the guided player opens the same sheet from its ADJUST pill.
 
 // 38b — a selected set scheme (3×10 / 5×5 / …) becomes the default for every
 // WEIGHTED lift in the generated list; bodyweight rows keep the generator's
@@ -865,6 +783,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         chainRoundsMap={chainRounds}
         onChainNext={chainNext}
         onChainRound={chainRoundDone}
+        // The player's ADJUST pill: sets / reps / rest edited in place, before
+        // a set starts. Same sheet as the list rows.
+        onEditExercise={(idx, vals) => setExercises(prev => prev.map((ex, i) => (i === idx ? { ...ex, ...vals } : ex)))}
       />
     );
   }
@@ -890,16 +811,23 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))',
       }}>
 
-        {/* Muscle tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-          {cfg.muscleGroups.map(g => (
-            <span key={g} style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 7.5, fontWeight: 700,
-              color: MUSCLE_COLORS[g] || GOLD, letterSpacing: '0.06em',
-              padding: '2px 7px', borderRadius: 4,
-              background: `${MUSCLE_COLORS[g] || GOLD}12`, border: `1px solid ${MUSCLE_COLORS[g] || GOLD}40`,
-            }}>{g.toUpperCase()}</span>
-          ))}
+        {/* The session at a glance — the design's tag row: length, difficulty,
+            gear, count. The muscle groups are in the title already. */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+          {[
+            cfg.duration ? `${cfg.duration} min` : null,
+            cfg.difficulty,
+            { label: cfg.equipment, accent: true },
+            `${exercises.length} exercises`,
+          ].filter(Boolean).map((t, i) => {
+            const tag = typeof t === 'string' ? { label: t } : t;
+            return (
+              <span key={i} style={{
+                font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '5px 8px',
+                background: tag.accent ? 'rgba(157,108,255,0.2)' : 'rgba(255,255,255,0.07)', color: tag.accent ? '#C4A8FF' : '#fff',
+              }}>{tag.label}</span>
+            );
+          })}
         </div>
 
         {/* Progress bar — the count that used to label it now rides the
@@ -949,10 +877,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             if (!ex) return [];
             const done = !!completed[i];
             const muscleColor = MUSCLE_COLORS[ex.muscle] || C.faint;
-            // Design 39 — weight only shows on weighted lifts.
-            const wLog = classifyType(ex) === 'weighted' ? exerciseWeight(ex) : null;
             // Spec 11 — last-time progression verdict for this row.
             const prog = rowProgression(ex, prevRecRef.current);
+            // The dose, the way the design prints it: "4 × 8" or "3 × 40s".
+            const dose = `${ex.sets} × ${ex.reps}`;
             const isPR = !!prog?.isPR;
             const swiping = gest?.mode === 'swipe' && gest.idx === i;
             const swipeDx = swiping ? gest.dx : 0;
@@ -1003,8 +931,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                   // about what you can do to an exercise.
                   data-guide={pos === 0 ? 'fw-row' : undefined}
                   className="wo-row" style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 11px',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 9px',
                   // Chained rows square off into the bracket and carry its
                   // violet left edge; the last member keeps a rounded foot.
                   borderRadius: chain ? (chain.linkIndex === chain.count - 1 ? '0 0 11px 11px' : 0) : 11,
@@ -1020,105 +948,105 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
                     : done ? '1px solid rgba(253,224,71,0.2)' : isPR ? '1px solid rgba(253,224,71,0.4)' : '1px solid rgba(168,85,247,0.22)',
                   ...(chain ? { borderLeft: `3px solid ${C.violet}`, borderTop: 'none' } : null),
                 }}>
-                {/* Color initial square (PR rows go gold-tinted) */}
-                {/* Member chips carry the chain's colour ramp — one hue per
-                    link index, so a long circuit stays readable at a glance. */}
+                {/* Position number (the design's "01"). Chain members carry
+                    the chain's colour ramp — one hue per link index — and a
+                    finished row shows the check. */}
                 <div style={{
-                  width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                  background: done ? GOLD : chain ? `${linkColor}26` : isPR ? 'rgba(253,224,71,0.12)' : `${muscleColor}18`,
-                  border: done ? 'none' : chain ? `1.5px solid ${linkColor}` : isPR ? '1.5px solid rgba(253,224,71,0.5)' : `1.5px solid ${muscleColor}50`,
+                  width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                  background: done ? GOLD : chain ? `${linkColor}26` : 'transparent',
+                  border: done ? 'none' : chain ? `1.5px solid ${linkColor}` : 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {done
                     ? <Check size={13} color="#0a0014" strokeWidth={3}/>
-                    : <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: chain ? 8.5 : 10, color: chain ? linkColor : isPR ? GOLD : muscleColor }}>
-                        {chain ? `A${chain.linkIndex + 1}` : ex.name[0]}
+                    : <span style={{ font: `700 ${chain ? 9 : 12}px ${HEAD}`, color: chain ? linkColor : isPR ? GOLD : '#9D6CFF' }}>
+                        {chain ? `A${chain.linkIndex + 1}` : String(pos + 1).padStart(2, '0')}
                       </span>
                   }
                 </div>
 
-                {/* Name taps open the swap sheet; the sets/reps/rest line taps
-                    open the editor (rows are never checked off by hand) */}
+                {/* Name (tap: what IS this?) over the last-time line. The
+                    sets · reps · rest · weight line the rows used to print
+                    is the dose pill on the right now — one number, tappable
+                    to change, and the player can change it too. */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Spec 13 — the NAME now opens the info sheet ("what IS
-                      this?"); the ⇄ button is the swap. */}
                   <div onClick={() => { if (!done && tapAllowed()) setInfoIdx(i); }} style={{
-                    fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10.5,
-                    color: done ? 'rgba(253,224,71,0.7)' : '#fff',
-                    letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    textDecoration: done ? 'line-through' : 'underline dotted rgba(196,164,216,0.4)',
-                    textUnderlineOffset: 2,
-                    cursor: done ? 'default' : 'pointer',
-                  }}>{ex.name}{!done && <span style={{ color: C.violet, fontSize: 9 }}> ⓘ</span>}{prog?.state === 'new' && !done && (
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7, color: '#6d5a8f', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px', marginLeft: 6, letterSpacing: '0.1em', verticalAlign: 'middle' }}>NEW</span>
+                    font: `600 14px ${BODY}`, color: done ? 'rgba(253,224,71,0.7)' : '#fff',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    textDecoration: done ? 'line-through' : 'none', cursor: done ? 'default' : 'pointer',
+                  }}>{ex.name}{!done && <span style={{ color: C.violet, fontSize: 12 }}> ⓘ</span>}{prog?.state === 'new' && !done && (
+                    <span style={{ font: `700 8px ${HEAD}`, color: '#8E88A8', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 5px', marginLeft: 6, letterSpacing: '0.1em', verticalAlign: 'middle' }}>NEW</span>
                   )}</div>
-                  <div onClick={() => { if (!done && tapAllowed()) setEditIdx(i); }} style={{
-                    fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, marginTop: 1,
-                    color: done ? C.faint : '#9a90b8', cursor: done ? 'default' : 'pointer',
-                    textDecoration: done ? 'none' : 'underline dotted rgba(168,85,247,0.5)',
-                    textUnderlineOffset: 2,
-                  }}>{ex.sets}x{ex.reps} &middot; {ex.rest} rest
-                    {wLog
-                      ? <span style={{ color: GOLD }}> &middot; {wLog.weight} {unitLabel(wLog.unit)}</span>
-                      : classifyType(ex) === 'weighted' && !done
-                        ? <span style={{ color: '#9a90b8' }}> &middot; + add weight</span>
-                        : null}
-                  </div>
                   {/* Spec 11 — the last-time line: what happened, what to try.
                       Gold = nudge · faint = hold · never red. */}
-                  {!done && prog && prog.state !== 'new' && (prog.line || prog.state === 'nudge' || prog.state === 'hold') && (
+                  {!done && prog && prog.state !== 'new' && (prog.line || prog.state === 'nudge' || prog.state === 'hold') ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2, minWidth: 0 }}>
                       {prog.line && (
                         /* Spec 12 — the LAST line is the door to this
                            exercise's history sheet (dotted underline + ⟩). */
                         <span
                           onClick={(e) => { e.stopPropagation(); if (tapAllowed()) setHistoryIdx(i); }}
-                          style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 8.5, fontWeight: 600, color: '#c4a4d8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.5)', textUnderlineOffset: 2 }}
-                        >{prog.line} ⟩</span>
+                          style={{ font: `500 11.5px ${BODY}`, color: '#8E88A8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.5)', textUnderlineOffset: 2 }}
+                        >Last · {prog.line} ⟩</span>
                       )}
                       {prog.state === 'nudge' ? (
                         <span style={{
-                          flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 6.5, letterSpacing: '0.06em',
+                          flexShrink: 0, font: `700 8px ${HEAD}`, letterSpacing: '0.06em',
                           color: '#0a0014', borderRadius: 5, padding: '2px 6px',
                           background: isPR ? `linear-gradient(135deg, ${GOLD}, #f59e0b)` : GOLD,
                           boxShadow: isPR ? '0 0 8px rgba(253,224,71,0.45)' : 'none',
                         }}>
-                          → TRY {prog.kind === 'weighted' ? prog.suggested : `${prog.suggestedReps} REPS`}{isPR ? ' 🏆 PR' : ''}
+                          TRY {prog.kind === 'weighted' ? prog.suggested : `${prog.suggestedReps} REPS`}{isPR ? ' 🏆 PR' : ''}
                         </span>
                       ) : (
-                        <span style={{ flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5, letterSpacing: '0.06em', color: '#9a90b8', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 5, padding: '2px 6px' }}>
-                          = HOLD{prog.kind === 'weighted' && prog.lastWeight ? ` ${prog.lastWeight}` : ''}
+                        <span style={{ flexShrink: 0, font: `700 8px ${HEAD}`, letterSpacing: '0.06em', color: '#9a90b8', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 5, padding: '2px 6px' }}>
+                          HOLD{prog.kind === 'weighted' && prog.lastWeight ? ` ${prog.lastWeight}` : ''}
                         </span>
                       )}
+                    </div>
+                  ) : (
+                    <div style={{ font: `500 11.5px ${BODY}`, color: '#8E88A8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {done ? 'Done' : <>{muscleLabel(ex, muscleColor)} · {String(ex.equipment || '').toLowerCase()}</>}
                     </div>
                   )}
                 </div>
 
-                {/* Swap (single tap) and chain (double tap) — unlabeled 26px
-                    squares, 14px apart so neither is a mis-tap. What they do
-                    is the legend strip's job, not theirs (58a). */}
+                {/* The dose. Tap to change sets / reps / rest for this row. */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (!done && tapAllowed()) setEditIdx(i); }}
+                  aria-label={`${ex.name}: ${dose}, tap to change sets, reps and rest`}
+                  className="wo-dose"
+                  disabled={done}
+                  style={{
+                    flexShrink: 0, height: 28, padding: '0 6px', borderRadius: 7, cursor: done ? 'default' : 'pointer',
+                    background: 'transparent', border: `1px solid ${done ? 'transparent' : 'rgba(255,255,255,0.14)'}`,
+                    font: `700 12px ${HEAD}`, color: done ? C.faint : '#fff', whiteSpace: 'nowrap',
+                  }}
+                >{dose}</button>
+
+                {/* Swap (single tap) and chain (double tap). What they do is
+                    the legend strip's job (58a); the labels are for readers. */}
                 {!done && (
-                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} style={{
-                    width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0,
+                  <button onClick={(e) => { e.stopPropagation(); if (tapAllowed() && !linking) setSwapIdx(i); }} aria-label="Swap exercise" className="wo-ib" style={{
+                    width: 28, height: 28, borderRadius: 7, cursor: 'pointer', flexShrink: 0,
                     background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
                   }}>
-                    <ArrowRightLeft size={12} color={C.violet}/>
+                    <ArrowRightLeft size={13} color={C.violet}/>
                   </button>
                 )}
                 {!done && (
                   <button
                     onClick={(e) => { e.stopPropagation(); if (tapAllowed()) handleChainTap(i); }}
                     aria-label="Chain to another exercise"
-                    className={isLinkAnchor ? 'wo-linking' : undefined}
+                    className={`wo-ib${isLinkAnchor ? ' wo-linking' : ''}`}
                     style={{
-                      width: 26, height: 26, borderRadius: 6, cursor: 'pointer', flexShrink: 0, marginLeft: 14,
+                      width: 28, height: 28, borderRadius: 7, cursor: 'pointer', flexShrink: 0, marginLeft: 2,
                       background: isLinkAnchor ? 'rgba(168,85,247,0.28)' : 'rgba(168,85,247,0.08)',
                       border: `1px solid ${isLinkAnchor ? C.violet : 'rgba(168,85,247,0.3)'}`,
-                      color: isLinkAnchor ? '#fff' : '#c9a6ff', fontSize: 12, lineHeight: 1,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
                     }}
-                  >⛓</button>
+                  ><Link2 size={13} color={isLinkAnchor ? '#fff' : '#c9a6ff'}/></button>
                 )}
                 </div>
               </div>
@@ -1151,34 +1079,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           )}
         </div>
 
-        {/* Regenerate + save routine — under the workout list */}
-        <div data-guide="fw-actions" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button onClick={regenerate} className="wo-regen" style={{
-            flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
-            background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11,
-            color: C.violet, letterSpacing: '0.1em',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}>
-            <RotateCcw size={14}/> REGENERATE
-          </button>
-          <button onClick={() => setSaveOpen(true)} className="wo-regen" style={{
-            flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
-            background: savedFlash ? 'rgba(34,197,94,0.14)' : 'rgba(253,224,71,0.08)',
-            border: `1px solid ${savedFlash ? 'rgba(34,197,94,0.5)' : 'rgba(253,224,71,0.35)'}`,
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11,
-            color: savedFlash ? '#22c55e' : GOLD, letterSpacing: '0.1em',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}>
-            <Bookmark size={14}/> {savedFlash ? 'SAVED ✓' : 'SAVE ROUTINE'}
-          </button>
-        </div>
-
-        {/* START CTA — in flow, an inch below the regenerate/save row (was a
-            fixed bottom bar; the floating placement covered list rows and sat
-            detached from the content it acts on). */}
+        {/* START, then the two quiet actions under it — the design's order. */}
         <button
-          className="wo-cta"
+          className="wo-gold"
           onClick={async () => {
             if (allDone) {
               onDone(doneCount, exercises.length);
@@ -1200,18 +1103,32 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           }}
           data-guide="fw-start"
           style={{
-            width: '100%', marginTop: 34, padding: '15px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`,
-            color: '#0a0014',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13,
-            letterSpacing: '0.14em',
-            boxShadow: `0 0 20px rgba(253,224,71,${allDone ? '0.5' : '0.3'})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            ...CHF, width: '100%', marginTop: 16, height: 54, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
+            font: `700 20px ${HEAD}`, letterSpacing: '0.2em',
+            boxShadow: `0 0 28px rgba(242,190,69,${allDone ? '0.55' : '0.35'})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
           }}
         >
-          {allDone ? <Trophy size={17}/> : <Play size={15}/>}
+          {allDone ? <Trophy size={18}/> : <Play size={18} fill="currentColor" strokeWidth={0}/>}
           {allDone ? 'COMPLETE WORKOUT' : 'START'}
         </button>
+
+        <div data-guide="fw-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
+          <button onClick={regenerate} className="wo-ghost" style={{
+            ...CHF, height: 44, cursor: 'pointer', background: '#110E1C', border: '1px solid rgba(255,255,255,0.12)', color: '#fff',
+            font: `600 13px ${HEAD}`, letterSpacing: '0.12em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <RotateCcw size={16} color={GOLD}/> REGENERATE
+          </button>
+          <button onClick={() => setSaveOpen(true)} className="wo-ghost" style={{
+            ...CHF, height: 44, cursor: 'pointer', background: '#110E1C', color: savedFlash ? '#4ade80' : '#fff',
+            border: `1px solid ${savedFlash ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.12)'}`,
+            font: `600 13px ${HEAD}`, letterSpacing: '0.12em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <Bookmark size={16} color={savedFlash ? '#4ade80' : '#C4A8FF'}/> {savedFlash ? 'SAVED ✓' : 'SAVE ROUTINE'}
+          </button>
+        </div>
       </div>
 
       {/* Spec 12 — exercise history sheet (display-only) */}
@@ -1270,7 +1187,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
       {/* Sets/reps/rest editor */}
       {editIdx !== null && (
-        <EditSheet
+        <ExerciseEditSheet
           exercise={exercises[editIdx]}
           onSave={handleEditSave}
           onClose={() => setEditIdx(null)}

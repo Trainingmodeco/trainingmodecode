@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
+import { settleFightXp } from './data/fightSessionXp';
 import { completeCampLevel, markCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
@@ -838,7 +839,12 @@ export default function App() {
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
-      addFightFocusSession(done, total, { justTrain: c.mode === 'Just Train' });
+      // Bank what the summary will show — the outcome engine's number, not
+      // the flat per-round rate (an early END used to save four times more
+      // than the screen said).
+      const justTrain = c.mode === 'Just Train';
+      const { xp } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight' });
+      addFightFocusSession(done, total, { justTrain, xp });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       const fs = fightSessionStats || {};
@@ -859,7 +865,8 @@ export default function App() {
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
-      addComboCoachSession(done, total);
+      const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo' });
+      addComboCoachSession(done, total, { xp });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
       // 1.4 — when the accelerometer counted real thrown strikes, that number

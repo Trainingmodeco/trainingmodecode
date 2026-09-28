@@ -28,7 +28,8 @@ export const PROGRAMS = [
     days: [{ label: 'CHEST', chips: ['CHEST'] }, { label: 'BACK', chips: ['BACK'] }, { label: 'SHOULDERS', chips: ['SHOULDERS'] }, { label: 'ARMS', chips: ['ARMS'] }, { label: 'LEGS', chips: ['LEGS'] }] },
 ];
 
-export const DURATIONS = [20, 40, 60];
+export const DURATIONS = [15, 30, 45, 60];
+export const DEFAULT_DURATION = 30;
 
 // Which day of a split is up next (rotates via a per-program localStorage counter).
 export function programDayIndex(p) {

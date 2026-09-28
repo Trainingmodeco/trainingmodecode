@@ -217,15 +217,17 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     const isPaused = () => pausedRef.current;
 
     (async () => {
+      // The spoken number is part of the cadence, not added on top of it.
+      let spokenMs = 0;
       for (let i = 1; i <= targetReps; i++) {
         if (stale()) return;
         // A plain delay ignores PAUSE — reps kept counting while paused.
-        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
         if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         cadenceRepRef.current = i;
         setRepCount(i);
-        if (voiceOn && !doneRef.current) await speakAsync(String(i));
+        if (voiceOn && !doneRef.current) { const t0 = Date.now(); await speakAsync(String(i)); spokenMs = Date.now() - t0; }
         if (cadenceVersionRef.current !== version) return;
       }
       if (cadenceVersionRef.current !== version) return;
@@ -249,14 +251,15 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     const isPaused = () => pausedRef.current;
 
     (async () => {
+      let spokenMs = 0;
       for (let i = startFrom + 1; i <= targetReps; i++) {
         if (stale()) return;
-        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
         if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         cadenceRepRef.current = i;
         setRepCount(i);
-        if (voiceOn && !doneRef.current) await speakAsync(String(i));
+        if (voiceOn && !doneRef.current) { const t0 = Date.now(); await speakAsync(String(i)); spokenMs = Date.now() - t0; }
         if (cadenceVersionRef.current !== version) return;
       }
       if (cadenceVersionRef.current !== version) return;

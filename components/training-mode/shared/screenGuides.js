@@ -161,12 +161,14 @@ export const SCREEN_GUIDES = {
   workout_builder: [
     { target: null, title: '🔧 BUILD WORKOUT', body: 'This screen builds a strength workout around exactly what you want to train. Leave everything on its default for a solid balanced session. Rather follow a plan? PROGRAMS on the Fit Mode hub runs one day by day.' },
     { target: 'wb-trainagain', title: '⚡ TRAIN AGAIN', body: 'The fastest way to train. It repeats your last workout with the progression already applied — an extra rep, or a little more weight, on every exercise you finished cleanly last time. One tap and you skip this whole screen. It only appears once you have a workout behind you.' },
-    { target: 'wb-muscles', title: 'TARGET MUSCLES', body: 'Tap the muscle groups you want to hit — they light up on the body map. Fewer groups = more focused volume. Pick at least one, or GENERATE has nothing to build from.' },
-    { target: 'wb-equipment', title: 'EQUIPMENT', body: 'Bodyweight, Weighted, or Hybrid — set what you actually have so every exercise is doable.' },
+    { target: 'wb-duration', title: 'DURATION', body: 'How long you have. The number of exercises comes from this — fifteen minutes is four lifts, an hour is eight — so the list always fits the time.' },
     { target: 'wb-difficulty', title: 'DIFFICULTY', body: 'Easy, Normal, or Hard — scales the reps, sets, and rest.' },
-    { target: 'wb-programming', title: 'WORKOUT PROGRAMS', body: 'Optional. Open this for set schemes (5×5, 3×10…), popular programs (Push/Pull/Legs, Upper/Lower…), session length, and your saved routines (up to 10). Leave it on AUTO and the generator picks for you.' },
+    { target: 'wb-muscles', title: 'TARGET', body: 'Tap to pick the muscle groups you want to hit — they light up on the body map. Fewer groups = more focused volume. Pick at least one, or GENERATE has nothing to build from.' },
+    { target: 'wb-equipment', title: 'EQUIPMENT', body: 'Bodyweight, Weighted (dumbbells, a bar, kettlebells, bands), or Hybrid — set what you actually have so every exercise is doable. Nothing here needs a cable stack.' },
+    { target: 'wb-programming', title: 'SET SCHEME', body: 'Optional. AUTO lets the generator pick sets and reps; 5×5, 3×10 and the rest apply one scheme to every weighted lift, and CUSTOM is your own numbers. You can still change any single exercise in the player.' },
     { target: 'wb-cardio', title: 'ADD CARDIO', body: 'Optional finisher — tack a run, intervals, or Tabata onto the end of your workout.' },
-    { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. Nothing is locked in — the next screen lets you swap, reorder, remove and link exercises before you start. Tap the "?" there for the full rundown.' },
+    { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. Nothing is locked in — the next screen lets you swap, reorder, remove and link exercises before you start. SURPRISE ME under it rolls the muscles and gear for you.' },
+    { target: 'wb-routines', title: 'SAVED ROUTINES', body: 'Every list you saved with SAVE ROUTINE, up to ten. Tap one to load it exactly as you left it.' },
   ],
 
   // The generated list. Everything the athlete can do to a workout BEFORE
@@ -179,7 +181,8 @@ export const SCREEN_GUIDES = {
     { target: 'fw-row', title: 'LAST TIME · YOUR HISTORY', body: 'Under an exercise you have done before, a line shows what you managed last time and what to try today — TRY 9 REPS in gold, or = HOLD if it says repeat it. Tap that line to open the full history: your best ever, every past session, and a chart of the trend. 🏆 marks a personal record.' },
     { target: 'fw-row', title: 'REMOVE & PUT BACK', body: 'Swipe a row away and it leaves a gap where it used to be, with a small gold UNDO on the right. That offer waits — it does not time out — so you can change your mind. It only disappears once you move one of the rows beside it.' },
     { target: 'fw-legend', title: '⛓ SUPERSETS & CIRCUITS', body: 'Double-tap the ⛓ on an exercise and it starts glowing — now tap any other exercise to link them. Two moves is a SUPERSET, three or more is a CIRCUIT with a rounds setting you can step up or down. Linked moves run back-to-back with NO rest between them; the rest comes once at the end of each round. Tap ✕ on the bracket to unlink and get plain rows back.' },
-    { target: 'fw-actions', title: 'REGENERATE · SAVE ROUTINE', body: 'REGENERATE rolls a whole new workout from the same settings. SAVE ROUTINE keeps this exact list — exercises, sets, reps, chains and all — so you can run it again in one tap. Saved routines live in WORKOUT PROGRAMS on the setup screen, up to 10 of them.' },
+    { target: 'fw-row', title: 'SETS · REPS · REST', body: 'The number on the right of a row is its dose — 4 × 8, or 3 × 40s for a hold. Tap it to change sets, reps or rest for that exercise, or leave it: you can also change any of them from inside the player before a set starts.' },
+    { target: 'fw-actions', title: 'REGENERATE · SAVE ROUTINE', body: 'REGENERATE rolls a whole new workout from the same settings. SAVE ROUTINE keeps this exact list — exercises, sets, reps, chains and all — so you can run it again in one tap. Saved routines live under SAVED ROUTINES on the Build Workout screen, up to 10 of them.' },
     { target: 'fw-start', title: '▶ START', body: 'Starts the session. First comes a 90-second warm-up — follow the coach or freestyle it — and then the guided workout takes over, calling every rep.' },
   ],
 
@@ -190,6 +193,7 @@ export const SCREEN_GUIDES = {
     { target: 'fg-header', title: 'WHERE YOU ARE', body: 'Exercise 3 of 6, set 2 of 4 — how far through the workout you are, and how far through this exercise. The bar underneath fills as you go.' },
     { target: 'fg-name', title: 'TAP THE NAME MID-SET', body: 'Forgot the form halfway through? Tap the exercise name and the how-to sheet opens right there — cues, mistakes, demo. Your set is waiting where you left it when you close it.' },
     { target: 'fg-display', title: 'THE COUNT', body: 'On rep exercises the coach counts every rep aloud and the number climbs with you. On holds and timed work it counts the seconds down instead. Finish early? Hit SET DONE and it moves on.' },
+    { target: 'fg-adjust', title: 'ADJUST · SETS, REPS, REST', body: 'The gold pill under the name is this exercise\'s dose. Tap it between sets to change the sets, reps or rest — the defaults are a starting point, not a rule. It disappears while a set is running.' },
     { target: 'fg-controls', title: '⧉ LEAVE THE APP, KEEP THE CLOCK', body: 'Step out to your music or a message and the set follows you as a small floating window — the count, the exercise, what is next. Where your phone allows it this happens by itself when you leave; otherwise tap the ⧉ button near the top once and the window is armed for the whole workout, warm-up included. Nothing pauses while the window is up.' },
     { target: 'fg-controls', title: 'THE CONTROLS', body: '⟲ REWIND replays the previous set. ⏸ pauses everything (leaving the app pauses it too). SKIP SET jumps to the next set — during rest it becomes SKIP REST. SKIP EXERCISE moves on without completing it. STOP ends the session and asks first; whatever you finished still counts.' },
     { target: 'fg-map', title: '≡ THE WORKOUT MAP', body: 'Swipe this tab up — or tap it — for the map, and the workout pauses while it is open. You are NOT locked into the order: press and HOLD any exercise to start that one instead, HOLD + SWIPE to skip it, HOLD + DRAG to move it. Finished exercises lock so you cannot lose them. Closing the map counts you back in 3-2-1.' },
@@ -199,10 +203,10 @@ export const SCREEN_GUIDES = {
 
   quick_mission_setup: [
     { target: null, title: '⏱️ QUICK MISSION', body: 'No planning needed — pick a time and intensity and the app builds the whole session for you.' },
-    { target: 'qm-length', title: 'HOW LONG?', body: 'Pick your mission length — or hit SURPRISE ME and let the app roll the dice.' },
-    { target: 'qm-intensity', title: 'INTENSITY', body: 'Easy, Normal, or Hard — how dense the work gets inside your time.' },
-    { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission.' },
-    { target: 'qm-start', title: 'START MISSION', body: 'Tap here and the guided flow takes over — timer, coach, and all.' },
+    { target: 'qm-length', title: "TODAY'S MISSION", body: 'The mission you would run right now: its name, every move and how many reps or seconds each gets. The line under the list is how long it really takes with the count and the rest included.' },
+    { target: 'qm-intensity', title: 'SURPRISE ME · ADJUST', body: 'SURPRISE ME deals a different mission. ADJUST opens the three choices — focus (upper, lower, core, combat or full body), length and intensity — and the card rebuilds as you pick.' },
+    { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission. Flip the switch to set it up; EDIT changes it.' },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card — timer, coach, and all.' },
   ],
 
   combat_conditioning_setup: [
@@ -233,11 +237,13 @@ export const SCREEN_GUIDES = {
 
   cardio_mode: [
     { target: null, title: '🏃 CARDIO MODE', body: 'This screen sets up a pure cardio session — pick how you move, the protocol, and your goal. We set your pace.' },
-    { target: 'cm-method', title: 'METHOD', body: 'How you move: RUNNING outdoors on GPS or on a treadmill, OTHER EQUIPMENT (bike, rower, elliptical, stairs), or ROUNDS — fight rounds, Tabata or your own.' },
+    { target: 'cm-method', title: 'ACTIVITY', body: 'How you move: RUN or WALK outdoors on GPS (or on a treadmill — pick that under CUSTOMIZE), MACHINE for a bike, rower, elliptical or stairs, or INTERVALS — fight rounds, Tabata or your own, with the coach calling every switch.' },
+    { target: 'cm-start', title: 'THE PREVIEW', body: 'The panel shows what you are about to do: the route map for a GPS run, or the timer for everything else, with the target pace or the total time on it. The stats underneath fill in once you start.' },
+    { target: 'cm-options', title: 'CUSTOMIZE', body: 'Everything else lives here, folded away: where you are running, the protocol, the goal distance or time, your target pace, and a ghost to race. The one-line summary on the row says what is set.' },
     { target: 'cm-protocol', title: 'PROTOCOL', body: 'STEADY holds one pace the whole way. INTERVALS and TABATA alternate hard work with recovery.' },
     { target: 'cm-goal', title: 'YOUR GOAL', body: 'Set a distance or a time target. The app works out the pace to hold for your level, and the coach keeps you on it.' },
     { target: 'cm-ghost', title: '👻 GHOST RUN', body: 'Race a past run at this distance — your LAST or your BEST. Your ghost runs beside you and the coach tells you whether you are ahead or behind. Every measured finish becomes the ghost for next time.' },
-    { target: 'cm-start', title: 'START CARDIO', body: 'Tap here and the timer, pace coaching, and logging handle the rest.' },
+    { target: 'cm-start', title: 'START', body: 'Tap here and the timer, pace coaching, and logging handle the rest. The three presets at the foot of the screen skip the setup entirely: treadmill intervals, a 3-mile outdoor run, or a Tabata cardio blast.' },
     { target: null, title: '🗺️ YOUR ROUTE IS RECORDED', body: 'On a GPS run the map draws itself as you move — the real shape of where you went, coloured by how fast you were running each stretch. Green is at or under your target pace, orange is behind it. The route, your splits and an estimated calorie burn are saved when you log the run.' },
     { target: null, title: 'WHERE YOUR RUNS LIVE', body: 'Every logged run goes to PROGRESS → RUNS: your career totals, a weekly distance goal you can set, your personal best at each distance, and the map of every run you can tap open. Routes stay on this device.' },
   ],

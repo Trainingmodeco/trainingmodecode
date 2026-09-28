@@ -69,9 +69,11 @@ export function fightTimerXp(roundsCompleted, totalRounds, { justTrain = false }
   return roundsCompleted * perRound + (roundsCompleted === totalRounds ? bonus : 0);
 }
 
-export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain = false } = {}) {
+// `xp` is the settled amount from data/fightSessionXp (outcome engine
+// applied); without it the flat rate is banked.
+export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain = false, xp } = {}) {
   const stats = loadStats();
-  const xpEarned = fightTimerXp(roundsCompleted, totalRounds, { justTrain });
+  const xpEarned = typeof xp === 'number' ? xp : fightTimerXp(roundsCompleted, totalRounds, { justTrain });
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),
@@ -108,10 +110,13 @@ export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
   return xpEarned;
 }
 
-export function addComboCoachSession(roundsCompleted, totalRounds) {
+export function comboCoachXp(roundsCompleted, totalRounds) {
+  return (roundsCompleted * XP_PER_COMBO_ROUND) + (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+}
+
+export function addComboCoachSession(roundsCompleted, totalRounds, { xp } = {}) {
   const stats = loadStats();
-  const xpEarned = (roundsCompleted * XP_PER_COMBO_ROUND) +
-    (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+  const xpEarned = typeof xp === 'number' ? xp : comboCoachXp(roundsCompleted, totalRounds);
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),

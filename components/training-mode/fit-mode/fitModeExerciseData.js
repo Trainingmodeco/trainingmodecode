@@ -1,3 +1,5 @@
+import { FIT_MODE_CORE_EXERCISES } from './fitModeExerciseDataCore';
+
 export const FIT_MODE_EXERCISES = [
   {
     id: "chest_alligator_push_ups_0001",
@@ -3284,4 +3286,12 @@ export const FIT_MODE_EXERCISES = [
     previewTip: "Use a low, stable step and control the way down.",
     active: true,
   },
+  // The staples the alphabetical export never reached — see the note in
+  // fitModeExerciseDataCore.
+  ...FIT_MODE_CORE_EXERCISES,
 ];
+
+// Category headings that were imported as if they were exercises. The coach
+// was reading "Arms slash Back" out loud as a movement.
+const PLACEHOLDER_NAMES = new Set(['Arms/Back', 'Arms/Shoulders', 'Core/Cardio', 'Agility/Balance', 'Arms', 'Balance Drill', 'Balance and Quick Steps']);
+FIT_MODE_EXERCISES.forEach((e) => { if (PLACEHOLDER_NAMES.has(e.name)) e.active = false; });

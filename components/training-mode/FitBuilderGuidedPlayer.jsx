@@ -14,6 +14,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
+import ExerciseEditSheet from './shared/ExerciseEditSheet';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
@@ -105,7 +106,7 @@ function weaveOrder(n, isLocked, from, slot, membersOf = () => null) {
   return order;
 }
 
-export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onCompleteExercise, onJumpExercise, onMarkSkipped, onReorder, onFinishWorkout, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true, chainCtx = null, chainRoundsMap = {}, onChainNext, onChainRound }) {
+export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, completed = {}, skipped = {}, onCompleteExercise, onJumpExercise, onMarkSkipped, onReorder, onFinishWorkout, onBack, onStop, onSkipExercise, onRewindExercise, voiceOn = true, chainCtx = null, chainRoundsMap = {}, onChainNext, onChainRound, onEditExercise }) {
   const ex = exercises[exerciseIdx];
   const plan = useMemo(() => classify(ex), [ex]);
   // In a chain each visit runs ONE round of this move, then hands straight
@@ -131,6 +132,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const [toast, setToast] = useState(null);           // { name, xp }
   const [historyOpen, setHistoryOpen] = useState(false); // spec 12 — history sheet
   const [infoOpen, setInfoOpen] = useState(false);       // spec 13 — "what IS this?"
+  const [editOpen, setEditOpen] = useState(false);       // ADJUST — sets / reps / rest for this exercise
   const [helpOpen, setHelpOpen] = useState(false);       // the "?" walkthrough
   const wasRunningRef = useRef(false);                // resume after map close?
   const flowTimers = useRef([]);
@@ -1152,6 +1154,20 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                 style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 19, color: '#fff', letterSpacing: '0.04em', marginBottom: 4, cursor: 'pointer', textDecoration: 'underline dotted rgba(196,164,216,0.35)', textUnderlineOffset: 5 }}
               >{ex.name} <span style={{ color: VIOLET, fontSize: 13 }}>ⓘ</span></div>
               <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8.5, color: VIOLET, letterSpacing: '0.14em' }}>{ex.muscle} · {kindLabel}</div>
+              {/* The defaults the list no longer prints live here: the dose
+                  for this exercise, editable between sets (never mid-set). */}
+              {onEditExercise && !chainCtx && phase !== 'active' && phase !== 'done' && (
+                <button
+                  type="button" data-guide="fg-adjust"
+                  onClick={() => setEditOpen(true)}
+                  aria-label="Adjust sets, reps and rest"
+                  style={{
+                    marginTop: 8, height: 28, padding: '0 10px', borderRadius: 14, cursor: 'pointer',
+                    background: 'rgba(242,190,69,0.08)', border: '1px solid rgba(242,190,69,0.45)', color: GOLD,
+                    fontFamily: "'Chakra Petch', system-ui, sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.12em',
+                  }}
+                >{totalSets} × {ex.reps} · REST {restMax}s · ADJUST</button>
+              )}
             </div>
 
             {phase === 'done' ? (
@@ -1395,6 +1411,14 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       )}
 
       {/* Spec 13 — exercise info, entered from the exercise name */}
+      {editOpen && (
+        <ExerciseEditSheet
+          exercise={ex}
+          title={`ADJUST: ${ex.name.toUpperCase()}`}
+          onSave={(vals) => { onEditExercise?.(exerciseIdx, vals); setEditOpen(false); }}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
       {infoOpen && (
         <ExerciseInfoSheet exercise={ex} onClose={() => setInfoOpen(false)}/>
       )}

@@ -66,6 +66,16 @@ const homeCSS = `
 .mc:hover .msub, .mc:active .msub, .mc:focus-visible .msub { max-height: 30px; opacity: 1; }
 .hm-arcade { transition: border-color .2s, box-shadow .2s; }
 .hm-arcade:hover, .hm-arcade:focus-visible { border-color: #F2BE45 !important; box-shadow: 0 0 22px rgba(242,190,69,.35); }
+/* The Arcade card rests dimmed — art and title alike — and wakes on hover,
+   when the STAGES · BOSSES · XP line also appears. Same idea as the mode
+   cards' silhouette → reveal. */
+.hm-arcade img { opacity: .45; filter: brightness(.7); transition: opacity .3s ease, filter .3s ease, transform .4s ease; }
+.hm-arcade .hm-arcade-title { opacity: .55; transition: opacity .3s ease, filter .3s ease; }
+.hm-arcade .hm-arcade-sub { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .3s ease, opacity .3s ease; }
+.hm-arcade:hover img, .hm-arcade:active img, .hm-arcade:focus-visible img { opacity: 1; filter: brightness(1.05) saturate(1.15); transform: scale(1.03); }
+.hm-arcade:hover .hm-arcade-title, .hm-arcade:active .hm-arcade-title, .hm-arcade:focus-visible .hm-arcade-title { opacity: 1; }
+.hm-arcade:hover .hm-arcade-sub, .hm-arcade:active .hm-arcade-sub, .hm-arcade:focus-visible .hm-arcade-sub { max-height: 20px; opacity: 1; }
+@media (hover: none) { .hm-arcade .hm-arcade-title { opacity: .8; } }
 .hm-scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px); }
 `;
 
@@ -361,13 +371,13 @@ export default function HomeDashboard({
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0B0718 0%, rgba(11,7,24,.95) 38%, rgba(11,7,24,.55) 58%, rgba(11,7,24,0) 72%)' }}/>
           <div className="hm-scan"/>
           <span style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.42em', color: '#5FE3FF', textShadow: '0 0 8px rgba(95,227,255,.6)' }}>TRAINING</span>
-            <span style={{
+            <span className="hm-arcade-title" style={{ font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.42em', color: '#5FE3FF', textShadow: '0 0 8px rgba(95,227,255,.6)' }}>TRAINING</span>
+            <span className="hm-arcade-title" style={{
               font: "italic 900 26px 'Orbitron',sans-serif", lineHeight: 1, letterSpacing: '0.04em',
               background: 'linear-gradient(180deg, #FFF6C8 0%, #FDE047 45%, #E0A21C 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
               filter: 'drop-shadow(0 0 10px rgba(253,224,71,.35)) drop-shadow(2px 2px 0 #4C1D95)',
             }}>ARCADE</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: '#E6E2F5' }}>
+            <span className="hm-arcade-sub" style={{ display: 'flex', alignItems: 'center', gap: 6, font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: '#E6E2F5' }}>
               STAGES<span style={{ color: '#5FE3FF' }}>◆</span>BOSSES<span style={{ color: '#5FE3FF' }}>◆</span>XP
             </span>
           </span>

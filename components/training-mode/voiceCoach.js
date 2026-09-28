@@ -201,9 +201,17 @@ export function stopVoiceSession() {
 // TTS voices misread hyphenated / title-cased words — "Push-Ups" gets split at
 // the hyphen and "Ups" is read as the initialism "U-P-S". De-hyphenate between
 // letters and lowercase everything; speech doesn't need casing.
+// Exercise names and cadence labels carry notation that reads fine on screen
+// and badly out loud: "(Flat/Incline/Decline)", "Step In / Step Out", "3.5s".
+// Strip the brackets, say "or" for a slash and "seconds" for a trailing s.
 function normalizeSpeech(text) {
   return String(text)
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s*\/\s*/g, ' or ')
+    .replace(/(\d+(?:\.\d+)?)\s*s\b/g, '$1 seconds')
     .replace(/([a-zA-Z])-([a-zA-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
     .toLowerCase();
 }
 

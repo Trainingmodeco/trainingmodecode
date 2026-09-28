@@ -315,7 +315,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     setCountdown(`ROUND ${rIdx + 1}`);
     setCountdownSub(`${discipline} \u2022 ${speedLabel}`);
-    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedLabel} speed.`, 1200, { voice });
+    // "3.5s" is a label, not a sentence — the coach says the cadence in words.
+    const speedSpoken = /^\d/.test(String(speedLabel)) ? `${parseFloat(speedLabel)} second cadence` : `${speedLabel} speed`;
+    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedSpoken}.`, 1200, { voice });
     if (aborted()) return;
 
     setCountdown('GO');
@@ -516,14 +518,17 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           // Defense call: fire only when rush is NOT active. During rush,
           // the athlete's whole attention is on the countdown / rush cues —
           // no defense flashes competing for the same mic.
+          let defSpokenMs = 0;
           if (cfg.voiceOn !== false && remainingRef.current > 3 && !rushRef.current) {
             isSpeakingCombo.current = true;
+            const t0 = Date.now();
             await speakAsync(call, { rate: Math.min(voiceRate + 0.15, 1.3), priority: 2 });
+            defSpokenMs = Date.now() - t0;
             isSpeakingCombo.current = false;
           }
           if (!active || pausedRef.current) break;
           // Defense reactions are snappier than a full combo window.
-          await delay(Math.max(cadenceMs * 0.55, 1000));
+          await delay(Math.max(cadenceMs * 0.55 - defSpokenMs, 500));
           continue;
         }
 
@@ -545,14 +550,20 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         // pattern, not just the final-10s countdown). That matches the
         // fighter's ask — when the rush is on, everything except the rush
         // audio itself goes silent.
+        // The call is spoken INSIDE the cadence window, not before it: a
+        // "3.5 s" cadence was landing every 5.5–6 s because the wait only
+        // started once the voice had finished.
+        let spokenMs = 0;
         if (cfg.voiceOn !== false && remainingRef.current > 3 && !rushRef.current) {
           isSpeakingCombo.current = true;
+          const t0 = Date.now();
           await speakAsync(styled.speech, { rate: voiceRate, priority: 2 });
+          spokenMs = Date.now() - t0;
           isSpeakingCombo.current = false;
         }
         if (!active || pausedRef.current) break;
         const rushSpeedUp = rushRef.current ? 0.7 : 1;
-        const waitMs = Math.max((cadenceMs - 500) * rushSpeedUp, 1200);
+        const waitMs = Math.max((cadenceMs - 500 - spokenMs) * rushSpeedUp, 600);
         await delay(waitMs);
       }
     };

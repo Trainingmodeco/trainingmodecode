@@ -18,21 +18,38 @@ import SafeImage from './SafeImage';
 import { unlockAudio } from './data/audioEngine';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
-import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance, trackingLabel } from './data/cardioEquipment';
+import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance } from './data/cardioEquipment';
 import { defaultSpeed, clampSpeed, speedUnitLabel } from './data/machineSpeed';
 import SpeedDial from './shared/SpeedDial';
 import IntervalQuickSet from './shared/IntervalQuickSet';
 import CardioSessionCard from './shared/CardioSessionCard';
 import { generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig, canSwap } from './data/cardioGenerator';
-import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import TrainingCTA from './shared/TrainingCTA';
 import { loadStats, getLevel } from './data/userStats';
+import ModeTabs from './shared/ModeTabs';
+import { fitKitCSS, SetupHeader, SetupPage, GoldButton, HEAD, BODY, MUTED } from './shared/FitSetupKit';
 
 const GOLD = C.yellow;
 const VIOLET = '#b06aff';
+
+// Hover states for the Revamp setup (activity cards, presets, the option rows).
+const cardioCSS = `
+.cm-act { transition: border-color .18s, background .18s, color .18s; }
+.cm-act[aria-checked="false"]:hover, .cm-act[aria-checked="false"]:focus-visible { border-color: #9D6CFF !important; background: rgba(157,108,255,.14) !important; color: #fff !important; }
+.cm-opt { transition: border-color .18s, background .18s; }
+.cm-opt:hover, .cm-opt:focus-visible { border-color: #F2BE45 !important; }
+.cm-preset { transition: border-color .2s, box-shadow .2s; }
+.cm-preset:hover, .cm-preset:focus-visible { border-color: #F2BE45 !important; box-shadow: 0 0 0 1px rgba(242,190,69,.3), 0 0 22px rgba(157,108,255,.55); }
+.cm-preset img { opacity: .55; filter: brightness(.8); transition: opacity .25s, filter .25s, transform .3s; }
+.cm-preset:hover img, .cm-preset:focus-visible img { opacity: .95; filter: brightness(1.08) saturate(1.15); transform: scale(1.03); }
+.cm-banner img { opacity: .6; filter: brightness(.85); }
+`;
+
+// Seconds a whole interval config takes — the timer ring's number.
+const intervalTotal = (ic) => (ic?.warmupSeconds || 0) + (ic?.rounds || 0) * ((ic?.workSeconds || 0) + (ic?.restSeconds || 0)) + (ic?.cooldownSeconds || 0);
 
 // 'interval', SINGULAR. buildSegments() in CardioProtocolPlayer tests
 // `format === 'interval' || format === 'tabata'`, and data/cardioAddon.js has
@@ -185,7 +202,7 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
 
 // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
 // pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
-export default function CardioMode({ onBack, onSessionState, entry = null, resumeData = null }) {
+export default function CardioMode({ onBack, onFightMode, onSessionState, entry = null, resumeData = null }) {
   // A restored INTERVAL/TABATA/HIIT session. Distance runs have their own live
   // store (data/liveRun.js); the protocol player had nothing, so a Tabata lost
   // to a phone call was simply gone. The stash carries the whole setup, because
@@ -231,13 +248,20 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const [genSession, setGenSession] = useState(null);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  // WALK is a run at a walking pace: same GPS, same map, a slower target.
+  const [walkMode, setWalkMode] = useState(!!rs?.walkMode);
+  // CUSTOMIZE — the protocol / goal / ghost / interval controls, collapsed.
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  // A quick-start preset applies its setup, then starts on the next render
+  // (startCardio reads the setup from the render it was created in).
+  const [pendingStart, setPendingStart] = useState(false);
 
   const category = METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0];
   const hasEquipment = EQUIPMENT_GROUPS.includes(categoryId);
   const equipment = hasEquipment ? equipmentById(eqByGroup[categoryId]) : null;
   const cardioType = equipment ? equipment.cardioType : category.type;
   const method = getMethod(cardioType);
-  const methodLabel = equipment ? equipment.methodLabel : category.methodLabel;
+  const methodLabel = walkMode && equipment?.tracking !== 'speed' ? 'Walk' : equipment ? equipment.methodLabel : category.methodLabel;
   const level = getLevel(loadStats().xp);
 
   // Whether a distance can be shown is now the EQUIPMENT's claim, not the
@@ -283,7 +307,9 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
 
   const parsedTargetMin = parseFloat(customTargetMin);
   const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
-  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec) : null;
+  // A brisk walk: 15:00 a mile (9:20 a kilometre) unless the athlete typed a target.
+  const walkTargetSec = walkMode ? Math.round(effGoalDistance * (distanceUnit === 'km' ? 560 : 900)) : null;
+  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec ?? walkTargetSec) : null;
   // The dial opens on whatever speed holds the target pace, so the common case
   // is zero taps — on the setup screen AND during the run.
   const effStartSpeed = usesMachine
@@ -387,7 +413,7 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const setupSnapRef = useRef(null);
   setupSnapRef.current = {
     categoryId, style, intervalMode, cfgByStyle, goalDistance, distanceUnit,
-    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, eqByGroup,
+    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, eqByGroup, walkMode,
   };
   const reportProtocol = useCallback((st) => {
     onSessionState?.({ live: true, protocol: st, setup: setupSnapRef.current });
@@ -405,6 +431,13 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
     if (usesGps && (typeof navigator === 'undefined' || !navigator.geolocation)) { setPhase('gps'); return; }
     setPhase('player');
   };
+
+  useEffect(() => {
+    if (!pendingStart) return;
+    setPendingStart(false);
+    startCardio();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingStart]);
 
   // Leaving the player does NOT end the run. The clock is wall time, the run
   // is in storage; the setup screen shows a RETURN banner until it finishes.
@@ -608,85 +641,211 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
     );
   }
 
+  // ── SETUP ────────────────────────────────────────────────────────────────
+  // The Revamp layout (Cardio.dc.html): banner, four activities, a preview
+  // panel (route map for a GPS run, a timer ring for everything else) with
+  // the stat row under it, START, and three quick-start presets. Every
+  // control the old screen stacked in the open — protocol, goal distance,
+  // target pace, ghost, interval setup — is still here, under CUSTOMIZE,
+  // collapsed until asked for.
+  const act = isRounds ? 'intervals' : categoryId === 'machine' ? 'machine' : walkMode ? 'walk' : 'run';
+  const ACTS = [
+    { id: 'run', label: 'RUN', icon: <path d="M11 4a2 2 0 1 0 4 0a2 2 0 1 0-4 0M9 21l3-6 3 2v4M6 12l3-4 4 1 3 3 3 1M12 15l-2-4"/> },
+    { id: 'walk', label: 'WALK', icon: <path d="M11 4a2 2 0 1 0 4 0a2 2 0 1 0-4 0M10 21l2-7 3 3v4M8 11l3-3 3 2 2 3M12 14l-1-4"/> },
+    { id: 'machine', label: 'MACHINE', icon: <path d="M3 18h18M5 18l3-9h7l2 4h2M8 9V5h3M17 13v5"/> },
+    { id: 'intervals', label: 'INTERVALS', icon: <path d="M5 20V14M10 20V8M15 20V11M20 20V4"/> },
+  ];
+  const selectAct = (id) => {
+    if (id === 'intervals') { setWalkMode(false); selectCategory('rounds'); return; }
+    setWalkMode(id === 'walk');
+    setCategoryId(id === 'machine' ? 'machine' : 'running');
+    if (id === 'walk') setStyle('steady');
+    else if (style === 'intervals' && intervalMode === 'target' && isRounds) setStyle('steady');
+  };
+  const actLabel = ACTS.find(a => a.id === act)?.label || 'CARDIO';
+  const showMap = usesGps;
+  const timerTotal = isRounds
+    ? (genSession ? intervalTotal(sessionToIntervalConfig(genSession, cfg.warmupMin)) : cfgTargetSeconds(cfg))
+    : useDistanceGauge ? (autoPace?.totalSec || effGoalTime) : showConfigCard ? cfgTargetSeconds(cfg) : effGoalTime;
+  const optionsSummary = isRounds
+    ? `${activeFormat.label}${genSession ? ' · session built' : ''}`
+    : `${displayStyleLabel} · ${useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : `${Math.round(effGoalTime / 60)} min`}${equipment ? ` · ${equipment.label}` : ''}${ghostPick ? ' · 👻 ghost' : ''}`;
+
+  // Quick-start presets: apply the setup, then the effect below starts it.
+  const runPreset = (id) => {
+    setGenSession(null);
+    if (id === 'treadmill') {
+      setWalkMode(false); setCategoryId('running');
+      setEqByGroup(prev => ({ ...prev, running: 'treadmill' }));
+      setStyle('intervals'); setIntervalMode('target');
+      setCfgByStyle(prev => ({ ...prev, intervals: { warmupMin: 3, workSec: 60, restSec: 60, rounds: 8, cooldownMin: 0 } }));
+    } else if (id === 'outdoor') {
+      setWalkMode(false); setCategoryId('running');
+      setEqByGroup(prev => ({ ...prev, running: 'gps-run' }));
+      setStyle('steady'); setDistanceUnit('mi'); setGoalDistance(3); setCustomDistance('');
+    } else {
+      setWalkMode(false); setCategoryId('rounds');
+      setStyle('intervals'); setIntervalMode('target');
+      setRoundFormat('tabata'); applyFormat('tabata');
+      setGenSession(generateCardioSession({ level, moveCount: 5 }));
+    }
+    setPendingStart(true);
+  };
+
+  const stat = (label, value, unit) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 8px 8px 10px', minWidth: 0 }}>
+      <span style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>{label}</span>
+      <span style={{ font: `700 16px ${HEAD}`, color: '#fff', whiteSpace: 'nowrap' }}>{value}{unit && <span style={{ fontSize: 10, color: MUTED }}> {unit}</span>}</span>
+    </div>
+  );
+
   return (
     <PhoneFrame useBrandBg>
+      <style dangerouslySetInnerHTML={{ __html: fitKitCSS + cardioCSS }}/>
       <Embers count={2}/>
-      <CornerHUD color="rgba(253,224,71,0.25)" size={20} inset={10}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', padding: '12px 16px calc(78px + env(safe-area-inset-bottom, 0px))' }}>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8, flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={onBack} aria-label="Back" style={{ background: 'transparent', border: 'none', padding: 6, color: C.text, display: 'flex', alignItems: 'center' }}>
-              <ChevronLeft size={22}/>
-            </button>
-            <IntroLogo size={26}/>
-          </div>
-          <HelpButton onClick={() => setHelpOpen(true)}/>
+      <SetupPage scroll>
+        <SetupHeader title="CARDIO" onBack={onBack} onHelp={() => { setOptionsOpen(true); setHelpOpen(true); }}/>
+        <div style={{ flexShrink: 0, padding: '0 16px' }}>
+          <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div style={{ textAlign: 'center', marginBottom: 7, flexShrink: 0 }}>
-          <h1 style={{
-            fontFamily: ARCADE.fontHead, fontWeight: 900, color: GOLD, fontSize: 15,
-            letterSpacing: '0.12em', textShadow: '0 0 14px rgba(253,224,71,0.4)',
-          }}>CARDIO MODE</h1>
-        </div>
-
-        {/* Options — top-aligned; this region fills, so the open space lands below the controls */}
-        <div className="no-scrollbar" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
-
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 16px 0' }}>
           {liveRestore && (
             <button onClick={() => setPhase('player')} style={{
-              width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 12, padding: '10px 12px', borderRadius: 12,
+              width: '100%', textAlign: 'left', cursor: 'pointer', padding: '10px 12px', borderRadius: 12,
               background: 'rgba(34,197,94,0.1)', border: '1.5px solid rgba(34,197,94,0.55)', boxShadow: '0 0 16px rgba(34,197,94,0.18)',
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e', flexShrink: 0 }}/>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: '#8fe8ac', letterSpacing: '0.12em' }}>RUN IN PROGRESS · {liveRestore.pausedAt ? 'PAUSED' : 'CLOCK RUNNING'}</div>
-                <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 700, fontSize: 12, color: '#fff', marginTop: 2 }}>
+                <div style={{ font: `700 10px ${HEAD}`, color: '#8fe8ac', letterSpacing: '0.12em' }}>RUN IN PROGRESS · {liveRestore.pausedAt ? 'PAUSED' : 'CLOCK RUNNING'}</div>
+                <div style={{ font: `700 13px ${HEAD}`, color: '#fff', marginTop: 2 }}>
                   {fmtClock(liveRunElapsedSec(liveRestore))} · {((liveRestore.meters || 0) / metersPerUnit(liveRestore.cfg?.unit || 'mi')).toFixed(2)} {liveRestore.cfg?.unit || 'mi'} of {liveRestore.cfg?.goal}
                 </div>
               </div>
-              <span style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 10, color: GOLD, letterSpacing: '0.1em', flexShrink: 0 }}>RETURN ▶</span>
+              <span style={{ font: `700 11px ${HEAD}`, color: GOLD, letterSpacing: '0.1em', flexShrink: 0 }}>RETURN ▶</span>
             </button>
           )}
-          {/* METHOD — 4 compact category cards (the category is the selection) */}
           <ProgressionNudgeCard lane="cardio"/>
-          <div data-guide="cm-method">
-          <div style={sectionLabel}>METHOD</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
-            {METHOD_CATEGORIES.map(cat => {
-              const active = categoryId === cat.id;
-              const group = EQUIPMENT_GROUPS.includes(cat.id);
-              // An active group card shows the equipment you are actually on,
-              // so the choice is legible from the setup screen without opening
-              // anything. Tapping it goes back to the picker.
-              const chosen = group && active ? equipmentById(eqByGroup[cat.id]) : null;
+
+          {/* Banner */}
+          <div className="cm-banner" style={{ position: 'relative', flexShrink: 0, height: 108, borderRadius: 10, overflow: 'hidden', background: '#07060C', border: '1px solid rgba(176,140,255,0.6)', boxShadow: '0 0 18px rgba(157,108,255,0.35)' }}>
+            <SafeImage src="/static/revamp/cardio-banner.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '70% 30%' }}/>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(8,6,16,0.92) 0%, rgba(8,6,16,0.7) 45%, rgba(8,6,16,0) 75%)' }}/>
+            <div style={{ position: 'absolute', left: 14, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, font: `700 22px ${HEAD}`, lineHeight: 1, letterSpacing: '0.06em', color: '#D2BCFF', textShadow: '0 0 14px rgba(157,108,255,0.5)' }}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#C4A8FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>CARDIO
+              </div>
+              <div style={{ font: `600 9.5px ${HEAD}`, lineHeight: 1.45, letterSpacing: '0.12em', color: '#D9D4EC', textTransform: 'uppercase' }}>Build endurance<br/>Burn calories<br/>Improve fight conditioning</div>
+            </div>
+          </div>
+
+          {/* Activity */}
+          <div role="radiogroup" aria-label="Activity" data-guide="cm-method" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+            {ACTS.map(a => {
+              const on = act === a.id;
               return (
-                <button key={cat.id} onClick={() => selectCategory(cat.id)} style={{
-                  // ROUNDS sits on its own row: it is one of three cards in a
-                  // two-column grid, and left dangling it reads as an orphan.
-                  gridColumn: cat.wide ? '1 / -1' : 'auto',
-                  textAlign: 'left', padding: '6px 9px', borderRadius: ARCADE.radius.md, cursor: 'pointer',
-                  background: active ? 'rgba(253,224,71,0.1)' : 'rgba(14,2,28,0.6)',
-                  border: active ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                  boxShadow: active ? '0 0 14px rgba(253,224,71,0.16)' : 'none', transition: 'all 0.15s',
+                <button key={a.id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="cm-act" onClick={() => selectAct(a.id)} style={{
+                  height: 56, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
+                  background: on ? 'rgba(157,108,255,0.2)' : '#110E1C', border: on ? '1.5px solid #9D6CFF' : '1px solid rgba(255,255,255,0.09)', borderRadius: 10,
+                  color: on ? '#fff' : '#CFC9E4', font: `600 11px ${HEAD}`, letterSpacing: '0.08em', boxShadow: on ? '0 0 14px rgba(157,108,255,0.4)' : 'none', padding: 0,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 10 }}>{chosen ? chosen.icon : cat.icon}</span>
-                    <span style={{ fontFamily: ARCADE.fontHead, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: active ? GOLD : '#c4b5fd' }}>
-                      {chosen ? chosen.label : cat.label}
-                    </span>
-                    {group && active && <span style={{ marginLeft: 'auto', fontSize: 9, color: GOLD }}>⌄</span>}
-                  </div>
-                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, lineHeight: 1.25 }}>
-                    {chosen ? trackingLabel(chosen) : cat.sub}
-                  </div>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#C4A8FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{a.icon}</svg>
+                  {a.label}
                 </button>
               );
             })}
           </div>
 
+          {/* Preview panel + stats */}
+          <div style={{ flexShrink: 0, borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(157,108,255,0.45)', background: '#0B0916' }}>
+            <div style={{ position: 'relative', height: 140 }}>
+              {showMap ? (
+                <>
+                  <svg viewBox="0 0 358 150" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} aria-hidden="true">
+                    <path d="M-10 36 L380 18 M-10 92 L380 74 M-10 140 L380 132 M50 -10 L74 170 M160 -10 L176 170 M280 -10 L272 170" stroke="rgba(255,255,255,.07)" strokeWidth="9" fill="none"/>
+                    <path d="M-10 62 L380 48 M110 -10 L124 170 M220 -10 L228 170" stroke="rgba(255,255,255,.04)" strokeWidth="4" fill="none"/>
+                    <path d="M92 104 C 104 70, 130 50, 168 46 C 200 42, 214 30, 240 36 C 262 42, 268 70, 256 92 C 244 112, 200 118, 170 112 C 140 106, 118 118, 92 104" fill="none" stroke="#B794FF" strokeWidth="4" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 6px rgba(157,108,255,.9))' }}/>
+                    <circle cx="92" cy="104" r="9" fill="rgba(61,123,255,.3)"/>
+                    <circle cx="92" cy="104" r="5" fill="#3D7BFF" stroke="#FFFFFF" strokeWidth="2"/>
+                  </svg>
+                  <div style={{ position: 'absolute', left: 10, top: 10, display: 'flex', alignItems: 'center', gap: 6, height: 28, padding: '0 10px', borderRadius: 8, background: 'rgba(7,6,12,0.85)', border: '1px solid rgba(255,255,255,0.14)' }}>
+                    <span style={{ font: `700 12px ${HEAD}`, letterSpacing: '0.08em', color: '#fff' }}>GPS</span>
+                    <svg viewBox="0 0 14 10" width="14" height="10" aria-hidden="true"><path d="M1 9V7M5 9V5M9 9V3M13 9V1" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round"/></svg>
+                  </div>
+                  {ghostPick && (
+                    <div style={{ position: 'absolute', right: 10, top: 10, height: 28, display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px 0 6px', borderRadius: 14, background: 'rgba(157,108,255,0.22)', border: '1px solid rgba(196,168,255,0.6)', color: '#D2BCFF', font: `700 10px ${HEAD}`, letterSpacing: '0.14em', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 15, lineHeight: 1 }}>👻</span>GHOST RUN · {fmtRunClock(ghostPick.totalSec)}
+                    </div>
+                  )}
+                  <div style={{ position: 'absolute', right: 10, bottom: 8, font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: '#7D7799' }}>{autoPace ? `TARGET ${autoPace.paceLabel}` : 'ROUTE MAP'}</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 18, background: 'radial-gradient(60% 80% at 50% 50%, rgba(107,61,240,.22), rgba(11,9,22,0) 70%)' }}>
+                    <div style={{ position: 'relative', width: 116, height: 116, flexShrink: 0 }}>
+                      <svg viewBox="0 0 124 124" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'rotate(-90deg)' }} aria-hidden="true">
+                        <circle cx="62" cy="62" r="54" fill="none" stroke="rgba(157,108,255,.18)" strokeWidth="8"/>
+                        <circle cx="62" cy="62" r="54" fill="none" stroke="#B794FF" strokeWidth="8" strokeLinecap="round" strokeDasharray="339.3" strokeDashoffset="0" style={{ filter: 'drop-shadow(0 0 6px rgba(157,108,255,.9))' }}/>
+                        <circle cx="62" cy="62" r="44" fill="none" stroke="rgba(242,190,69,.55)" strokeWidth="1.5" strokeDasharray="2 6"/>
+                      </svg>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                        <span style={{ font: `700 26px ${HEAD}`, lineHeight: 1, color: '#fff' }}>{fmtClock(timerTotal)}</span>
+                        <span style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: '#C4A8FF' }}>{isRounds ? (genSession ? 'SESSION' : 'ROUNDS') : 'COUNTDOWN'}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                      <span style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>{actLabel} · TIMER</span>
+                      <span style={{ font: `700 14px ${HEAD}`, lineHeight: 1.2, color: '#fff', maxWidth: 150 }}>
+                        {isRounds
+                          ? (genSession ? `${genSession.moves.length} moves · ${activeFormat.label}` : `${activeFormat.label}`)
+                          : `${equipment?.label || 'Machine'} · ${useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : `${Math.round(effGoalTime / 60)} min`}`}
+                      </span>
+                      <span style={{ font: `500 12px ${BODY}`, color: MUTED, maxWidth: 150, lineHeight: 1.3 }}>
+                        {isRounds ? 'The coach calls every switch.' : 'No GPS needed. Log the console at the end.'}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ position: 'absolute', left: 10, top: 10, height: 28, padding: '0 10px', display: 'flex', alignItems: 'center', borderRadius: 8, background: 'rgba(7,6,12,0.85)', border: '1px solid rgba(255,255,255,0.14)', font: `700 12px ${HEAD}`, letterSpacing: '0.08em', color: '#fff' }}>TIMER</div>
+                </>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              {stat('Time', '00:00')}
+              {stat('Distance', '0.00', distanceUnit)}
+              {showMap || usesMachine ? stat('Pace', '--:--', `/${distanceUnit}`) : stat('Heart rate', '--', 'bpm')}
+              {stat('Calories', '0')}
+            </div>
+          </div>
+
+          <div data-guide="cm-start">
+            <GoldButton label={`START ${actLabel}`} icon="play" onClick={startCardio} height={50} style={{ fontSize: 19, letterSpacing: '0.2em' }}/>
+          </div>
+
+          {/* CUSTOMIZE — everything the old screen kept in the open. */}
+          <button type="button" className="cm-opt" data-guide="cm-options" aria-expanded={optionsOpen ? 'true' : 'false'} onClick={() => setOptionsOpen(o => !o)} style={{
+            minHeight: 46, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+            background: '#0F0C1C', border: `1px solid ${optionsOpen ? 'rgba(157,108,255,0.55)' : 'rgba(255,255,255,0.1)'}`, color: '#fff',
+          }}>
+            <span style={{ font: `700 12px ${HEAD}`, letterSpacing: '0.14em', flexShrink: 0 }}>CUSTOMIZE</span>
+            <span style={{ flex: 1, minWidth: 0, font: `500 12px ${BODY}`, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{optionsSummary}</span>
+            <span style={{ font: `700 12px ${HEAD}`, color: '#C4A8FF', transform: optionsOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>⌄</span>
+          </button>
+
+          {optionsOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Where you are: Outdoor GPS or a treadmill for a run, which
+                  machine for MACHINE. Opens the equipment screen. */}
+              {hasEquipment && (
+                <button type="button" className="cm-opt" onClick={() => setPickerGroup(categoryId)} style={{
+                  minHeight: 44, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', marginBottom: 8, borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  background: '#110E1C', border: '1px solid rgba(255,255,255,0.09)', color: '#fff',
+                }}>
+                  <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: MUTED, width: 92, flexShrink: 0 }}>{categoryId === 'machine' ? 'MACHINE' : 'WHERE'}</span>
+                  <span style={{ flex: 1, font: `600 15px ${BODY}` }}>{equipment?.icon} {equipment?.label}</span>
+                  <span style={{ font: `700 14px ${HEAD}`, color: '#7D7799' }}>›</span>
+                </button>
+              )}
           {/* WHAT THIS EQUIPMENT GIVES YOU. The setup screen now changes with
               the equipment rather than looking identical for a park and a belt:
               an outdoor run advertises the route map, a treadmill and a bike get
@@ -796,8 +955,6 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
             </>
           )}
 
-          {/* PROTOCOL */}
-          </div>
           <div data-guide="cm-protocol" style={{ display: isRounds ? 'none' : 'block' }}>
           <div style={sectionLabel}>PROTOCOL</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: style === 'intervals' ? 8 : 14 }}>
@@ -1004,20 +1161,31 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
               We&apos;ll throw in surprise pace surges a few times — hold each surge until the coach calls it off.
             </div>
           )}
-        </div>
+            </div>
+          )}
 
-        {/* START, back at the bottom. What does NOT come back is the 9vh
-            spacer that used to sit under it: that was 73px of empty space on
-            a screen whose whole problem was height. Full width rather than a
-            centred 264px island, so it reads as the floor of the page without
-            needing air beneath it to look deliberate. */}
-        <div data-guide="cm-start" style={{ flexShrink: 0, paddingTop: 5 }}>
-          <TrainingCTA
-            variant="gold" label="START CARDIO" onClick={startCardio} height={42}
-            style={{ width: '100%', fontSize: 13, letterSpacing: '0.12em' }}
-          />
+          {/* Quick start presets */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 4 }}>
+            <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Quick start presets</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+              {[
+                { id: 'treadmill', title: 'TREADMILL INTERVALS', sub: '20 min · 8 × 1:00', img: '/static/fitmode/cardio-mode-banner.webp', pos: '12% 50%', border: 'rgba(157,108,255,0.45)' },
+                { id: 'outdoor', title: 'OUTDOOR RUN', sub: '3 mi · GPS', img: '/static/revamp/cardio-banner.webp', pos: '78% 40%', border: 'rgba(61,123,255,0.5)' },
+                { id: 'blast', title: 'CARDIO BLAST', sub: 'Tabata · 5 moves', img: '/static/revamp/cardio-blast.webp', pos: '100% 0%', border: 'rgba(242,190,69,0.55)' },
+              ].map(p => (
+                <button key={p.id} type="button" className="cm-preset" onClick={() => runPreset(p.id)} style={{ position: 'relative', height: 76, borderRadius: 10, overflow: 'hidden', border: `1px solid ${p.border}`, background: '#0B0916', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+                  <SafeImage src={p.img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: p.pos }}/>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(8,6,16,.1) 0%, rgba(8,6,16,.92) 70%)' }}/>
+                  <div style={{ position: 'absolute', left: 8, right: 6, bottom: 7, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <span style={{ font: `700 11px ${HEAD}`, lineHeight: 1.1, color: '#fff' }}>{p.title}</span>
+                    <span style={{ font: `500 10px ${BODY}`, color: MUTED }}>{p.sub}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      </SetupPage>
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>
       )}

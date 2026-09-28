@@ -1,8 +1,6 @@
 import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
-import { calculatePartialXp } from './utils/missionIntegrity';
-import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
-import { fightTimerXp } from './data/userStats';
+import { settleFightXp } from './data/fightSessionXp';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
@@ -13,19 +11,16 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   const totalPlanned = cfg.rounds || rounds.length;
   // Item 9 — the engine decides how this ended, not a round count. A session
   // can now come back fail or validation_failed, not just success/partial.
-  const verdict = resolveOutcome({
+  // Settled by the same helper App.jsx banks with, so the number shown is the
+  // number saved.
+  const isCombo = cfg.mode === 'Combo Coach';
+  const { verdict, xp } = settleFightXp({
     completed, total: totalPlanned, difficulty: cfg.difficulty, integrityResult,
+    mode: isCombo ? 'combo' : cfg.mode === 'Just Train' ? 'justTrain' : 'fight',
   });
   const stoppedEarly = verdict.outcome !== 'pass';
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);
-
-  const baseXp = fightTimerXp(completed, totalPlanned, { justTrain: cfg.mode === 'Just Train' });
-  const rawXp = integrityResult?.awardXp
-    ? calculatePartialXp(baseXp, integrityResult.validCompletedUnits, integrityResult.totalRequiredUnits)
-    : (integrityResult ? 0 : baseXp);
-  const xp = xpForOutcome(verdict.outcome, rawXp);
-  const isCombo = cfg.mode === 'Combo Coach';
   // Just Train runs on the Fight Focus timer but is its own thing to the
   // athlete, so the summary names it as they chose it.
   const modeName = isCombo ? 'Combo Coach' : cfg.mode === 'Just Train' ? 'Just Train' : 'Fight Focus';
