@@ -47,7 +47,7 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, d
     if (Number.isFinite(raw)) onChange(round(clamp(raw)));
   };
   return (
-    <div style={{ height: 46, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8, background: t.row, border: `1px solid ${t.rowBorder}`, borderRadius: 12, padding: '0 8px 0 14px' }}>
+    <div style={{ height: 40, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8, background: t.row, border: `1px solid ${t.rowBorder}`, borderRadius: 12, padding: '0 8px 0 14px' }}>
       <style>{stepperCSS}</style>
       <span style={{ flex: 1, minWidth: 0, fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: t.label }}>{label}</span>
       <button type="button" className={`st-btn ${tone}`} aria-label={`Decrease ${String(label).toLowerCase()}`} onClick={() => onChange(round(clamp(value - step)))} style={btn}>−</button>
@@ -77,7 +77,7 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, d
 // Dashed gold, so it reads as a result of the rows above rather than a control.
 export function TotalRow({ label, value }) {
   return (
-    <div style={{ height: 40, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', borderRadius: 12, border: '1px dashed rgba(242,190,69,0.35)' }}>
+    <div style={{ height: 34, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', borderRadius: 12, border: '1px dashed rgba(242,190,69,0.35)' }}>
       <span style={{ fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: '#A9B4D6' }}>{label}</span>
       <span style={{ fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 18, color: '#F2BE45' }}>{value}</span>
     </div>

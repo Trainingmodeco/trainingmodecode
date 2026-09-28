@@ -315,10 +315,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       ...ex,
       id: alt.id || ex.id,
       name: alt.name,
-      sets: alt.sets,
-      reps: alt.reps,
-      rest: `${alt.restSeconds}s`,
-      restSeconds: alt.restSeconds,
+      // The slot keeps ITS sets and rest (the scheme the workout was built
+      // with); a swapped-in move used to arrive with the library's own
+      // 2×8-12 / 75 s next to everyone else's 4×8 / 120 s. Reps only follow
+      // the new move when one of the two is a timed hold.
+      sets: ex.sets,
+      reps: /\d\s*s$/i.test(String(alt.reps)) || /\d\s*s$/i.test(String(ex.reps)) ? alt.reps : ex.reps,
+      rest: ex.rest,
+      restSeconds: ex.restSeconds,
       // Keep the UPPERCASE convention the generator uses (display + colours).
       muscle: String(alt.primaryMuscle || '').toUpperCase(),
       primaryMuscle: alt.primaryMuscle,

@@ -60,6 +60,7 @@ export default function ExerciseEditSheet({ exercise, onSave, onClose, title }) 
 
   return (
     <BottomSheet
+      variant="float"
       title={title || `EDIT: ${exercise.name.toUpperCase()}`}
       accent={GOLD}
       onClose={onClose}

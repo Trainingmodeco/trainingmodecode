@@ -147,31 +147,49 @@ const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 // session also saves on a timer. At 5s the worst case is losing five seconds.
 const SESSION_AUTOSAVE_MS = 5000;
 
-function loadPausedSession() {
-  if (typeof localStorage === 'undefined') return null;
+// Two paused sessions can wait at once — a Quick Mission AND a Build Workout
+// — one per kind of session (its screen). Pausing a third of a new kind
+// drops the older one; pausing the same kind again replaces it. Slot 0 is
+// the most recent: it drives the Continue card, the floating pill and the
+// boot restore; slot 1 shows as "also paused" on Home.
+const PAUSED_SLOTS = 2;
+
+function loadPausedSessions() {
+  if (typeof localStorage === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(PAUSED_SESSION_KEY);
-    if (!raw) return null;
+    // The single-session key from before the second slot migrates once.
+    let raw = localStorage.getItem(PAUSED_SESSION_KEY);
+    if (raw && raw.trim().startsWith('{')) raw = `[${raw}]`;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    if (!parsed || !parsed.timestamp) return null;
-    if (Date.now() - parsed.timestamp > PAUSED_SESSION_MAX_AGE_MS) {
-      localStorage.removeItem(PAUSED_SESSION_KEY);
-      return null;
-    }
-    return parsed;
+    const list = (Array.isArray(parsed) ? parsed : [parsed])
+      .filter(x => x && x.timestamp && Date.now() - x.timestamp <= PAUSED_SESSION_MAX_AGE_MS)
+      .slice(0, PAUSED_SLOTS);
+    if (!list.length) localStorage.removeItem(PAUSED_SESSION_KEY);
+    return list;
   } catch {
-    return null;
+    return [];
   }
 }
 
-function savePausedSession(session) {
+function savePausedSessions(list) {
   if (typeof localStorage === 'undefined') return;
-  if (session) {
-    try { localStorage.setItem(PAUSED_SESSION_KEY, JSON.stringify(session)); }
+  if (list && list.length) {
+    try { localStorage.setItem(PAUSED_SESSION_KEY, JSON.stringify(list.slice(0, PAUSED_SLOTS))); }
     catch { /* quota or serialization error */ }
   } else {
     localStorage.removeItem(PAUSED_SESSION_KEY);
   }
+}
+
+// A new snapshot goes to the front; an older one of the SAME kind is replaced.
+function mergePaused(snap, list) {
+  return [snap, ...list.filter(x => x.screen !== snap.screen)].slice(0, PAUSED_SLOTS);
+}
+
+// Storage-only write from the lifecycle saver: keeps the other slot intact.
+function stashPausedSession(snap) {
+  savePausedSessions(mergePaused(snap, loadPausedSessions()));
 }
 
 export default function App() {
@@ -196,7 +214,18 @@ export default function App() {
   const [arcadeOrder,  setArcadeOrder ] = useState(null);
   const [arcadeSettings, setArcadeSettings] = useState(null);
   const [profile,  setProfile ] = useState(() => loadProfile());
-  const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
+  const [pausedSlots, setPausedSlots] = useState(() => loadPausedSessions());
+  const pausedSession = pausedSlots[0] || null;
+  const pausedAlt = pausedSlots[1] || null;
+  // Drop the paused session of one kind (the screen it ran on), keep the other.
+  const dropPausedFor = useCallback((scr) => {
+    setPausedSlots(list => {
+      if (!list.some(x => x.screen === scr)) return list;
+      const next = list.filter(x => x.screen !== scr);
+      savePausedSessions(next);
+      return next;
+    });
+  }, []);
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
@@ -330,30 +359,34 @@ export default function App() {
     const paused = buildSessionSnapshot('nav');
     if (!paused) return null;
     stopVoiceSession();
-    setPausedSession(paused);
-    savePausedSession(paused);
+    setPausedSlots(list => { const next = mergePaused(paused, list); savePausedSessions(next); return next; });
     activeSessionStateRef.current = null;
     return paused;
   }, [buildSessionSnapshot]);
 
-  const resumeSession = useCallback(() => {
-    if (!pausedSession) return;
-    setDisc(pausedSession.disc);
-    setCfg(pausedSession.cfg);
-    setComboCfg(pausedSession.comboCfg);
-    setFitCfg(pausedSession.fitCfg);
-    setQmCfg(pausedSession.qmCfg);
-    setCcMission(pausedSession.ccMission);
-    setArcadeSeries(pausedSession.arcadeSeries);
-    setArcadeStage(pausedSession.arcadeStage);
-    setArcadeMode(pausedSession.arcadeMode);
-    setArcadeOrder(pausedSession.arcadeOrder);
-    setArcadeSettings(pausedSession.arcadeSettings || null);
-    if (pausedSession.campCtx) setCampCtx(pausedSession.campCtx);
-    if (pausedSession.cardioContext) setCardioContext(pausedSession.cardioContext);
-    setResumeData(pausedSession.internalState || null);
-    setScreen(pausedSession.screen);
-  }, [pausedSession]);
+  // Resume one slot. It is promoted to the front first, so isResuming (which
+  // reads slot 0) and the clear-on-arrival effect both see it.
+  const resumeSlot = useCallback((ps) => {
+    if (!ps) return;
+    setPausedSlots(list => { const next = [ps, ...list.filter(x => x !== ps)]; savePausedSessions(next); return next; });
+    setDisc(ps.disc);
+    setCfg(ps.cfg);
+    setComboCfg(ps.comboCfg);
+    setFitCfg(ps.fitCfg);
+    setQmCfg(ps.qmCfg);
+    setCcMission(ps.ccMission);
+    setArcadeSeries(ps.arcadeSeries);
+    setArcadeStage(ps.arcadeStage);
+    setArcadeMode(ps.arcadeMode);
+    setArcadeOrder(ps.arcadeOrder);
+    setArcadeSettings(ps.arcadeSettings || null);
+    if (ps.campCtx) setCampCtx(ps.campCtx);
+    if (ps.cardioContext) setCardioContext(ps.cardioContext);
+    setResumeData(ps.internalState || null);
+    setScreen(ps.screen);
+  }, []);
+  const resumeSession = useCallback(() => resumeSlot(pausedSession), [resumeSlot, pausedSession]);
+  const resumeAltSession = useCallback(() => resumeSlot(pausedAlt), [resumeSlot, pausedAlt]);
 
   // ── Surviving the OS ──────────────────────────────────────────────────────
   // The ONLY writer of the paused session used to be pauseCurrentSession(),
@@ -366,7 +399,7 @@ export default function App() {
   // So a running session now saves itself when the app is hidden, when the page
   // is being torn down, and on a timer in between (no lifecycle event is
   // guaranteed to fire before a kill). It writes storage ONLY — never
-  // setPausedSession — because the state setter drives the resume banner, and
+  // the paused-session state — because the state setter drives the resume banner, and
   // a session that is merely backgrounded has not been left.
   const snapshotRef = useRef(buildSessionSnapshot);
   useEffect(() => { snapshotRef.current = buildSessionSnapshot; }, [buildSessionSnapshot]);
@@ -376,7 +409,7 @@ export default function App() {
     if (typeof document === 'undefined') return undefined;
     const stash = () => {
       const snap = snapshotRef.current?.('lifecycle');
-      if (snap) savePausedSession(snap);
+      if (snap) stashPausedSession(snap);
     };
     const onVisibility = () => { if (document.hidden) stash(); };
     stash(); // close the gap between entering a session and the first tick
@@ -391,9 +424,11 @@ export default function App() {
   }, [screen]);
 
   const discardPausedSession = useCallback(() => {
-    setPausedSession(null);
-    savePausedSession(null);
+    setPausedSlots(list => { const next = list.slice(1); savePausedSessions(next); return next; });
     setResumeData(null);
+  }, []);
+  const discardAltSession = useCallback(() => {
+    setPausedSlots(list => { const next = list.slice(0, 1); savePausedSessions(next); return next; });
   }, []);
 
   // Boot: a session the OS interrupted comes straight back INTO its player,
@@ -414,14 +449,9 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Clear pausedSession after successfully resuming (next render after screen matches)
-  useEffect(() => {
-    if (pausedSession && screen === pausedSession.screen) {
-      setPausedSession(null);
-      savePausedSession(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen]);
+  // Arriving on a session screen — by RESUME or by starting fresh — retires
+  // the paused session of that kind; the other slot waits on.
+  useEffect(() => { dropPausedFor(screen); }, [screen, dropPausedFor]);
 
   // Cloud progress sync. No-ops entirely while signed out; once an account
   // exists it mirrors local progress up and restores it on a fresh device.
@@ -535,11 +565,10 @@ export default function App() {
     // CARDIO MODE straight back into a Tabata they finished yesterday.
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
+    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null);
-      savePausedSession(null);
+      dropPausedFor(screen);
       setResumeData(null);
       addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed);
       tryCompleteDailyMission('quickMission');
@@ -569,7 +598,7 @@ export default function App() {
     goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen((series?.v2Campaign || ['one-punch-protocol', 'demon-back-protocol'].includes(series?.id)) ? 'arcade_series' : 'arcade_intro'); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
       // old player). PATH → fit/fight/full arc; difficulty → easy/normal/hard.
       if (series?.v2Campaign) {
@@ -631,10 +660,10 @@ export default function App() {
       setArcadeSettings(settings || arcadeSettings || null);
       setScreen('arcade_session');
     },
-    goArcadeComplete: () => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
+    goArcadeComplete: () => { dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
     goCombatCondActive: (config) => {
       rememberSession('cc', config);
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       const mission = generateCombatConditioningMission(config);
       if (config?.cardioAddon?.enabled) mission.cardioAddon = config.cardioAddon;
       setCcMission(mission);
@@ -642,7 +671,7 @@ export default function App() {
     },
     goCombatCondComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
       tryCompleteDailyMission('combatConditioning');
       trackEvent('session_complete', { mode: 'combatConditioning', drills: result.drillsCompleted });
@@ -707,7 +736,7 @@ export default function App() {
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       setCampCtx(ctx); setDisc(ctx.discipline);
       // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
       // the warm-up wrapper still reads warmupMin.
@@ -719,7 +748,7 @@ export default function App() {
     // levels (L4–11) mark S1/S2 done independently and clear only at ✓✓.
     goCampComplete: (rounds, c, completed, integrityResult) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
       const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
       // 2.10 — arcade v2 stage completion reuses this pipeline but updates arcade
@@ -789,7 +818,7 @@ export default function App() {
     // marks its slot; the level clears when both are ✓✓.
     goCampFullComplete: ({ skill, fit }) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const s = skill || { total: 1, done: 0, valid: false };
       const f = fit || { total: 1, done: 0, valid: false };
       // 2.10 — FULL ARC arcade stage: both blocks over the shared runner.
@@ -833,10 +862,10 @@ export default function App() {
       setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
-    goTimer:       (c) => { rememberSession('timer', c, disc); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
+    goTimer:       (c) => { rememberSession('timer', c, disc); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
       // Bank what the summary will show — the outcome engine's number, not
@@ -859,10 +888,10 @@ export default function App() {
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
       const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo' });
@@ -897,10 +926,10 @@ export default function App() {
       });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goFitWorkout:  (c) => { rememberSession('fit', c); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
+    goFitWorkout:  (c) => { rememberSession('fit', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);
       tryCompleteDailyMission('fitMode');
       trackEvent('session_complete', { mode: 'fitMode', exercises: done });
@@ -1132,6 +1161,7 @@ export default function App() {
             campCtx={campCtx} campResult={campResult}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
+            pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}
             reportSessionState={reportSessionState} resumeData={resumeData}
             actions={actions}
           />

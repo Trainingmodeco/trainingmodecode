@@ -192,6 +192,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const defenseInRef = useRef(defenseCadence ? rollCadence(defenseCadence) : Infinity);
   const defensePool = DEFENSE_CALLS[disciplineSlug(discipline)] || DEFENSE_CALLS.boxing;
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // "End session?" holds the clock and the calls while it asks; CANCEL hands
+  // them back as they were.
+  const confirmPausedRef = useRef(false);
+  const openConfirmEnd = () => { if (!paused) { confirmPausedRef.current = true; setPaused(true); } setConfirmEnd(true); };
+  const closeConfirmEnd = () => { setConfirmEnd(false); if (confirmPausedRef.current) { confirmPausedRef.current = false; setPaused(false); } };
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
   const rushSpoken = useRef(false);
@@ -716,7 +721,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>
-          <button onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
+          <button onClick={openConfirmEnd} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
             <ChevronLeft size={22} />
           </button>
           <div style={{
@@ -954,7 +959,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             }}>
               {isFinalRound ? <>FINISH <CheckCircle size={15} /></> : <>SKIP <SkipForward size={15} /></>}
             </button>
-            <button onClick={() => setConfirmEnd(true)} style={{
+            <button onClick={openConfirmEnd} style={{
               flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
               border: '1px solid rgba(255,90,90,0.4)', background: 'rgba(255,90,90,0.09)', color: '#ff8a8a',
               fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
@@ -1007,7 +1012,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
               Are you sure you want to end this training session?
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmEnd(false)} style={{
+              <button onClick={closeConfirmEnd} style={{
                 flex: 1, padding: '11px 0', borderRadius: 10,
                 background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
                 color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,

@@ -78,8 +78,10 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
       <style dangerouslySetInnerHTML={{ __html: fightTimerCSS }}/>
 
       <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 12,
-        padding: '10px 16px 0',
+        // 8, not 12: with six stepper rows this is the one fight setup that
+        // ran START under the tab bar on a 667px phone.
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 7,
+        padding: '6px 16px 0',
         paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
       }}>
         <FightHeader title="COMBO COACH" sub={`${discipline} · strike combos at cadence`} onBack={onBack} onHelp={() => setHelpOpen(true)}/>
@@ -117,7 +119,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
 
         {/* Stacked steppers — WARM-UP first, since it's the first thing that
             happens in the session. */}
-        <div data-guide="cc-steppers" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div data-guide="cc-steppers" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <WarmupRow feature="comboCoach" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
           <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)}/>
           <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)}/>

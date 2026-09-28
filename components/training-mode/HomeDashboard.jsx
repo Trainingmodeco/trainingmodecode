@@ -84,6 +84,7 @@ export default function HomeDashboard({
   onPractice, onFightFocus, onQuickMission, onStartQuickMission, onFitSetup, onComboCoach, onJustTrain, onPrograms,
   onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
+  pausedAlt, onResumeAlt, onDiscardAlt,
 }) {
   const [stats, setStats] = useState(() => loadStats());
   const [helpOpen, setHelpOpen] = useState(false);
@@ -275,7 +276,19 @@ export default function HomeDashboard({
         </header>
 
         {/* The one thing to do. */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+          {/* The second paused session — one of each kind can wait. */}
+          {pausedAlt && (
+            <div className="hm-tile" style={{
+              order: 2, display: 'flex', alignItems: 'center', gap: 10, height: 44, padding: '0 8px 0 14px',
+              borderRadius: 12, background: '#0E0B18', border: `1px solid ${sideOfScreen(pausedAlt.screen).accent}55`,
+            }}>
+              <span style={{ font: "600 10px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: sideOfScreen(pausedAlt.screen).accentText, flexShrink: 0 }}>Also paused</span>
+              <span style={{ flex: 1, minWidth: 0, font: "700 14px 'Chakra Petch',sans-serif", color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sessionLabel(pausedAlt)}</span>
+              <button type="button" className="hm-quiet" onClick={onResumeAlt} style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid rgba(242,190,69,0.5)', background: 'rgba(242,190,69,0.1)', color: '#F2BE45', cursor: 'pointer', font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.14em' }}>RESUME</button>
+              <button type="button" onClick={onDiscardAlt} aria-label="Discard this paused session" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 4, display: 'flex' }}><X size={14}/></button>
+            </div>
+          )}
           <section data-guide="home-continue" style={{
             position: 'relative', minHeight: 176, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',

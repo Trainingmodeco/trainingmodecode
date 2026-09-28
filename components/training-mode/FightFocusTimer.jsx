@@ -87,6 +87,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const [countdown, setCountdown] = useState(initialPaused ? null : '3');
   const [countdownSub, setCountdownSub] = useState('');
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // "End session?" holds the clock (and the voice) while it asks; CANCEL
+  // hands both back exactly as they were.
+  const confirmPausedRef = useRef(false);
+  const openConfirmEnd = () => { if (!paused) { confirmPausedRef.current = true; setPaused(true); } setConfirmEnd(true); };
+  const closeConfirmEnd = () => { setConfirmEnd(false); if (confirmPausedRef.current) { confirmPausedRef.current = false; setPaused(false); } };
   // 49c — the boss slam. Fires ONCE per session on the reveal round's first
   // WORK call (round 10 on a 12-round finale; the final circuit on the
   // 9-round gauntlet) and HOLDS THE ROUND CLOCK while it plays, so the
@@ -214,8 +219,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
     setCountdown(`ROUND ${rIdx + 1}`);
     setCountdownSub(focus);
+    // A short round (Tabata, 30 s work) gets the bell and GO, not a briefing
+    // that runs a third as long as the round itself.
+    const shortRound = (rounds[rIdx]?.length_sec || baseRoundSec) <= 45;
     const startLine = rIdx === 0 && flavored ? packLine(packId, 'start') : null;
-    await speakOrDelay(`${startLine ? `${startLine} ` : ''}Round ${rIdx + 1}. ${focus}.${cur?.coach_prompt ? ` ${cur.coach_prompt}` : ''}`, 1200, { voice, ...vOpts });
+    if (shortRound) {
+      await speakOrDelay(`Round ${rIdx + 1}.`, 500, { voice, ...vOpts });
+    } else {
+      await speakOrDelay(`${startLine ? `${startLine} ` : ''}Round ${rIdx + 1}. ${focus}.${cur?.coach_prompt ? ` ${cur.coach_prompt}` : ''}`, 1200, { voice, ...vOpts });
+    }
     if (aborted()) return;
 
     setCountdown('GO');
@@ -225,7 +237,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
     setCountdown(null);
     setCountdownSub('');
-  }, [rounds, cfg.voiceOn, packId, vOpts, flavored]);
+  }, [rounds, cfg.voiceOn, packId, vOpts, flavored, baseRoundSec]);
 
   // Close out the session: resolve a ghost battle (if racing), speak the closing
   // line, then hand back to the host via onEnd. Called either straight after the
@@ -361,10 +373,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           }
         }
       }
+      // The closing count: ten seconds on a real round, three on a short one
+      // (a 20 s Tabata round was half counting).
+      const countFrom = roundSec >= 60 ? 10 : 3;
       if (
         phaseRef.current === 'round' && (cfg.rushMode || roundRush) && rushRef.current &&
         rushPatternNow.startsWith('end') &&
-        remaining >= 1 && remaining <= 10 &&
+        remaining >= 1 && remaining <= countFrom &&
         cfg.voiceOn && lastRushCountdownSecond.current !== remaining
       ) {
         lastRushCountdownSecond.current = remaining;
@@ -700,7 +715,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>
-          <button onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
+          <button onClick={openConfirmEnd} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
             <ChevronLeft size={22} />
           </button>
           <div style={{
@@ -815,7 +830,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
                 NEXT: ROUND {roundIdx + 2}
               </div>
             )}
-            {dangerPulse && phase !== 'rest' && (
+            {dangerPulse && phase !== 'rest' && roundSec > 45 && (
               <div style={{
                 fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 600,
                 color: '#ef4444', letterSpacing: '0.2em', marginTop: 4, opacity: 0.85,
@@ -914,7 +929,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             }}>
               {isFinalRound ? <>FINISH <CheckCircle size={15} /></> : <>SKIP ROUND <SkipForward size={15} /></>}
             </button>
-            <button onClick={() => setConfirmEnd(true)} style={{
+            <button onClick={openConfirmEnd} style={{
               flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
               border: '1px solid rgba(255,90,90,0.4)', background: 'rgba(255,90,90,0.09)', color: '#ff8a8a',
               fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
@@ -967,7 +982,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               Are you sure you want to end this training session?
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmEnd(false)} style={{
+              <button onClick={closeConfirmEnd} style={{
                 flex: 1, padding: '11px 0', borderRadius: 10,
                 background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
                 color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,

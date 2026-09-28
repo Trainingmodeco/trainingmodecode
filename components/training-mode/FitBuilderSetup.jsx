@@ -259,7 +259,7 @@ export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerat
         </ChoiceSheet>
       )}
       {sheet === 'routines' && (
-        <BottomSheet title="SAVED ROUTINES" accent={GOLD} onClose={() => setSheet(null)} maxHeight="72dvh">
+        <BottomSheet variant="float" title="SAVED ROUTINES" accent={GOLD} onClose={() => setSheet(null)} maxHeight="72dvh">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ font: `500 13px ${BODY}`, color: MUTED }}>Tap a routine to load it exactly as you saved it.</span>
             <span style={{ font: `700 11px ${HEAD}`, color: routines.length >= MAX_ROUTINES ? '#f87171' : GOLD }}>{routines.length}/{MAX_ROUTINES}</span>

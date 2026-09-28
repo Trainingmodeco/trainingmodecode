@@ -207,7 +207,7 @@ export function Modal({ title, onClose, children, footer, ariaLabel }) {
 // A picker sheet for one setting: chips (single or multi) + DONE.
 export function ChoiceSheet({ title, options, value, onPick, onClose, multi, note, children }) {
   return (
-    <BottomSheet title={title} accent={VIOLET} onClose={onClose} maxHeight="72dvh" footer={(
+    <BottomSheet variant="float" title={title} accent={VIOLET} onClose={onClose} maxHeight="72dvh" footer={(
       <GoldButton label="DONE" icon={<Check size={16} strokeWidth={3}/>} height={48} onClick={onClose} style={{ fontSize: 14 }}/>
     )}>
       {note && <div style={{ font: `500 13px ${BODY}`, color: MUTED, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}
