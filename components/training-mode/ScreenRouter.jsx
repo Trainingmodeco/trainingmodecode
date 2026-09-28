@@ -8,6 +8,7 @@ import Notifications from './Notifications';
 import HomeDashboard from './HomeDashboard';
 import FightModeHub from './FightModeHub';
 import FightFocusSetup from './FightFocusSetup';
+import JustTrainSetup from './JustTrainSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
 import { resolveOutcome } from './shared/sessionOutcome';
@@ -204,7 +205,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
 }
 
 export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
+  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -242,7 +243,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'fight_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FightModeHub onHome={goHome} onBack={goHome} onFitMode={goFitHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onQuickFight={goTimer} onQuickCombo={goComboActive} onTrainingCamp={goTrainingCamp}/>
+        <FightModeHub onHome={goHome} onBack={goHome} onFitMode={goFitHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onJustTrain={goJustTrain} onTrainingCamp={goTrainingCamp}/>
       </WithNav>
     );
   }
@@ -439,6 +440,14 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       </WithNav>
     );
   }
+  if (screen === 'just_train') {
+    // Just Train starts the same live timer as Fight Focus, with its own rounds.
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
+        <JustTrainSetup discipline={disc} onBack={goFightHub} onStart={c => goTimer(c)} onPaywall={goPaywall} profile={profile}/>
+      </WithNav>
+    );
+  }
   if (screen === 'timer' && cfg) {
     // Item 11a — a ghost battle opens on the VS screen. Resuming a paused
     // session skips it: the fight was already made.
@@ -453,7 +462,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     }
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title="FIGHT FOCUS">
+        <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title={cfg.mode === 'Just Train' ? 'JUST TRAIN' : 'FIGHT FOCUS'}>
           <FightFocusTimer discipline={disc} cfg={cfg} onEnd={(rounds, c, completed, integrityResult) => goSummary(rounds, c, completed, integrityResult)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
         </WithWarmup>
       </WithNav>
@@ -461,9 +470,10 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   }
   if (screen === 'summary' && session) {
     const isCombo = session.sessionSource === 'comboCoach';
+    const isJustTrain = session.cfg?.mode === 'Just Train';
     const handleRetry = isCombo
       ? () => goComboSetup(disc)
-      : () => goSetup(disc);
+      : isJustTrain ? () => goJustTrain(disc) : () => goSetup(disc);
     // Item 11c — if this session raced a ghost, the battle result reads first.
     // The battle is matched by session, not just "the last one ever recorded",
     // so an old battle can't reappear on an unrelated summary.
@@ -474,7 +484,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // Item 11 — second entry point: after a plain session, offer to race the
     // run that was just banked. Only when a verified ghost exists and this
     // session wasn't already a battle.
-    const myBest = session.cfg?.ghost ? null : getMyBestGhost('fight_focus', disc);
+    // Not after Just Train: racing a Fight Focus ghost with a bag timer isn't
+    // a fair race, and Just Train has no ghost battles of its own yet.
+    const myBest = (session.cfg?.ghost || isJustTrain) ? null : getMyBestGhost('fight_focus', disc);
     const ghostRematchAction = myBest
       ? [{ label: '👻 BEAT THIS RUN', kind: 'secondary', onClick: () => goTimer({ ...session.cfg, ghost: myBest }) }]
       : [];

@@ -25,7 +25,9 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
     : (integrityResult ? 0 : baseXp);
   const xp = xpForOutcome(verdict.outcome, rawXp);
   const isCombo = cfg.mode === 'Combo Coach';
-  const modeName = isCombo ? 'Combo Coach' : 'Fight Focus';
+  // Just Train runs on the Fight Focus timer but is its own thing to the
+  // athlete, so the summary names it as they chose it.
+  const modeName = isCombo ? 'Combo Coach' : cfg.mode === 'Just Train' ? 'Just Train' : 'Fight Focus';
 
   // 1.5 — Combo Coach knows how many strikes it called and the best streak, so
   // it shows ROUNDS · STRIKES · STREAK. Fight Focus has no combo call-outs, so
@@ -84,7 +86,9 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       variant={verdict.preset.variant}
       eyebrow={verdict.preset.eyebrow}
       title={verdict.preset.title}
-      subtitle={`${discipline} · ${cfg.difficulty} · ${cfg.archetypeName || modeName}`}
+      subtitle={cfg.mode === 'Just Train'
+        ? `${discipline} · ${modeName}`
+        : `${discipline} · ${cfg.difficulty} · ${cfg.archetypeName || modeName}`}
       accent={GOLD}
       xp={xp}
       heroImage="/static/trophies/mission-complete-fight.webp"

@@ -47,9 +47,10 @@ export const SCREEN_GUIDES = {
     { screen: 'fit_hub', target: null, title: '🎬 WANT THE GRAND TOUR?', body: 'That\'s everything you need to start training. Tap NEXT for the full walkthrough — inside every mode, the camp, the arcade and the rewards, about two minutes. Or tap ✕ to start now; you can replay all of this any time from PROFILE → Replay Intro Guide.' },
 
     { screen: 'fit_hub', target: 'mode-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
-    { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
-    { screen: 'fight_hub', target: 'fh-fight-focus', title: '⏱️ FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
+    { screen: 'fight_hub', target: 'fh-just-train', title: '⏱ JUST TRAIN', body: 'A plain round timer for bag work, pads or sparring. Pick a preset or set your own rounds, and the bell does the rest — no coach talking unless you turn on Rush Mode. Save the setups you use most.' },
+    { screen: 'fight_hub', target: 'fh-fight-focus', title: '🎯 FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
     { screen: 'fight_hub', target: 'fh-combo', title: '🥊 COMBO COACH', body: 'The coach calls combinations and you throw them — "one-two, slip, hook". Builds speed, rhythm and reaction. You set how often the calls come.' },
+    { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
     { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. Strikes, defense and footwork taught one at a time, with form cues — no timer pressure.' },
 
     { screen: 'fit_hub', target: 'mode-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
@@ -80,13 +81,14 @@ export const SCREEN_GUIDES = {
   // from Profile → Replay intro guide.
 
   fight_hub: [
-    { target: null, title: '🥊 FIGHT MODE', body: 'This is the Fight Mode hub — the striking-skill side of Training Mode. Pick a discipline first, then choose how to train it.' },
-    { target: 'fh-disciplines', title: 'SELECT DISCIPLINE', body: 'Boxing, Kickboxing, Muay Thai, or MMA — your session is built around the one you pick.' },
-    { target: 'fh-camp', title: 'TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight — real periodization: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next. Choose Training Camp.' },
+    { target: null, title: '🥊 FIGHT MODE', body: 'This is the Fight Mode hub — the striking-skill side of Training Mode. Pick a discipline, then one of the four ways to train it. They go from least to most structured.' },
+    { target: 'fh-disciplines', title: 'DISCIPLINE', body: 'Boxing, Kickboxing, Muay Thai or MMA. Your pick carries everywhere — the timers, Practice Mode and Combat Conditioning all use it.' },
+    { target: 'fh-just-train', title: 'JUST TRAIN', body: 'A plain round timer for bag work, pads or sparring. Pick a preset or set your own and go — just the bell and the clock. Choose Just Train.' },
     { target: 'fh-fight-focus', title: 'FIGHT FOCUS', body: 'Voice-coached rounds like a real session — a round timer with a coach calling the work. Choose Fight Focus.' },
-    { target: 'fh-combo', title: 'COMBO COACH', body: 'The coach calls strike combinations and you throw them — builds speed, rhythm, and reaction. Choose Combo Coach.' },
-    { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense, and footwork step by step. Choose Practice Mode.' },
-    { target: 'fh-conditioning', title: 'CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work. Choose Conditioning.' },
+    { target: 'fh-combo', title: 'COMBO COACH', body: 'The coach calls strike combinations and you throw them — builds speed, rhythm and reaction. Choose Combo Coach.' },
+    { target: 'fh-camp', title: 'TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight — Foundation, Development, Hard Camp, Taper, then the belt. Clear a stage to unlock the next. Choose Training Camp.' },
+    { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense and footwork step by step. Choose Practice Mode.' },
+    { target: 'fh-conditioning', title: 'COMBAT CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work.' },
   ],
 
   // `campModal: true` steps open the current level's card so the guide can
@@ -202,10 +204,18 @@ export const SCREEN_GUIDES = {
 
   combat_conditioning_setup: [
     { target: null, title: '🔥 COMBAT CONDITIONING', body: 'This screen builds a fight-pace circuit — explosive, athletic conditioning that trains your gas tank.' },
-    { target: 'ccs-style', title: 'CIRCUIT STYLE', body: 'Pick the style of circuit — it shapes which drills show up in your rounds.' },
-    { target: 'ccs-discipline', title: 'DISCIPLINE', body: 'Your fight base — drills lean toward the striking style you choose.' },
-    { target: 'ccs-config', title: 'ROUNDS & INTENSITY', body: 'Set rounds, work time, and rest. Shorter rests run hotter.' },
+    { target: 'ccs-discipline', title: 'DISCIPLINE', body: 'Your fight base — drills lean toward the striking style you pick. It is the same choice as on the Fight Mode hub.' },
+    { target: 'ccs-style', title: 'PICK A CIRCUIT', body: 'Each circuit is a complete workout with its own rounds, work, rest and gear. Pick one and you can start straight away.' },
+    { target: 'ccs-customize', title: 'CUSTOMIZE (OPTIONAL)', body: 'Only if you want to change it: intensity, equipment, rounds, work and rest. The gold number is the time the circuit will take. This appears once you have picked a circuit.' },
     { target: 'ccs-start', title: 'START CIRCUIT', body: 'Tap here and fight through each round — recover on the rest, reset, go again.' },
+  ],
+
+  just_train_setup: [
+    { target: null, title: '⏱ JUST TRAIN', body: 'A plain round timer for bag work, pads or sparring — no coaching, just the bell and the clock.' },
+    { target: 'jt-presets', title: 'SAVED PRESETS', body: 'Four common setups to start from. Change the numbers and + SAVE CURRENT keeps your own; your three most recent are kept.' },
+    { target: 'jt-steppers', title: 'YOUR ROUNDS', body: 'Rounds, round length and rest. Tap a number to type it — round length is in minutes, so 3 means 3:00. TOTAL is the whole session.' },
+    { target: 'jt-rush', title: '⚡ RUSH MODE', body: 'Optional. Turns on surges — sudden calls to go all-out. Rushes are spoken, so the coach only talks when this is on.' },
+    { target: 'jt-start', title: 'START TIMER', body: 'The bell starts round one. Pause, skip or end any time from the timer.' },
   ],
 
   cardio_mode: [

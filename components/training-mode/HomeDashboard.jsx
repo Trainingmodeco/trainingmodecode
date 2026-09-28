@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
-import { SESSION_LABELS } from './FloatingResumeButton';
+import { sessionLabel } from './FloatingResumeButton';
 import SwipeAway from './shared/SwipeAway';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
@@ -231,7 +231,7 @@ export default function HomeDashboard({ onHome, onFightMode, onProfile, profile,
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "700 6.5px 'Press Start 2P',monospace", color: '#c9a6ff', marginBottom: 4 }}>⏸ SESSION PAUSED</div>
-              <div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff' }}>{(SESSION_LABELS[pausedSession.screen] || 'Session').toUpperCase()}</div>
+              <div style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fff' }}>{sessionLabel(pausedSession).toUpperCase()}</div>
               <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>Pick up where you left off.</div>
             </div>
             <button onClick={onResume} style={{ border: 'none', borderRadius: 9, background: 'linear-gradient(135deg,#b975ff,#a855f7)', color: '#fff', font: "900 10px 'Orbitron',sans-serif", letterSpacing: '0.05em', padding: '10px 16px', cursor: 'pointer', boxShadow: '0 0 16px rgba(168,85,247,0.45)', flexShrink: 0 }}>RESUME</button>

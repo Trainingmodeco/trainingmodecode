@@ -430,7 +430,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
         const ghostVerified = (!integrityResult || integrityResult.isFullyValid) && thrownRef.current > 0;
         recordGhostFromSession({
-          mode: 'fight_focus', discipline, difficulty: diff,
+          mode: cfg.mode === 'Just Train' ? 'just_train' : 'fight_focus', discipline, difficulty: diff,
           roundsConfig: { rounds: cfg.rounds, roundSec, restSec: cfg.restSec },
           strikeTimesSec: strikeTimesRef.current, totalSec: Math.max(1, workElapsedRef.current),
           perRoundStrikes: perRoundStrikesRef.current, completionSec: workElapsedRef.current,
@@ -707,7 +707,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
             color: GOLD, letterSpacing: '0.12em',
             textShadow: '0 0 10px rgba(253,224,71,0.3)',
-          }}>FIGHT FOCUS</div>
+          }}>{cfg.mode === 'Just Train' ? 'JUST TRAIN' : 'FIGHT FOCUS'}</div>
           <div style={{ width: 30 }}/>
         </div>
 
@@ -726,9 +726,12 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
             {String(discipline).toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
-            {String(cfg.difficulty).toUpperCase()}
-          </span>
+          {/* Just Train has no difficulty — it's a plain timer — so no chip. */}
+          {cfg.mode !== 'Just Train' && (
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
+              {String(cfg.difficulty).toUpperCase()}
+            </span>
+          )}
         </div>
 
         {/* 1.4 — live motion strike counter */}

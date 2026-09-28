@@ -590,6 +590,7 @@ export default function App() {
     goNotifications: () => setScreen('notifications'),
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
+    goJustTrain:   (d) => { if (d) setDisc(d); setScreen('just_train'); },
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
