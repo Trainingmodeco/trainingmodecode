@@ -803,6 +803,114 @@
     "size": 144110,
     "sha1": "1c7a8923655e9e021ba77942e21c6982854ff02d"
   },
+  "static/revamp/arcade-banner.webp": {
+    "size": 42322,
+    "sha1": "93a310ed2f40c26661b268e321de4e1de107ae79"
+  },
+  "static/revamp/cardio-banner.webp": {
+    "size": 41010,
+    "sha1": "d504863a2ff6bafe20ee12098f6cd537a341a0b8"
+  },
+  "static/revamp/cardio-blast.webp": {
+    "size": 29192,
+    "sha1": "bdc07761d8d39e72d491d436c3b4c7348b24401c"
+  },
+  "static/revamp/cc-poster.webp": {
+    "size": 88766,
+    "sha1": "64abdbb9c4aacfc183cb9f2db644749735883304"
+  },
+  "static/revamp/combat-hero.webp": {
+    "size": 29888,
+    "sha1": "0718ef30474655cac339695fa20b8a1d77680e43"
+  },
+  "static/revamp/combo-coach-banner.png": {
+    "size": 434344,
+    "sha1": "1f3d61ce8cd1aef3a7afdb6d4d7fe850898140d5"
+  },
+  "static/revamp/combo-coach-banner.webp": {
+    "size": 39058,
+    "sha1": "df41544e3a042e23f3878b9e5b4260eeebc16b83"
+  },
+  "static/revamp/fight-focus-banner.png": {
+    "size": 561614,
+    "sha1": "b7a8a28e669ddbadaa7bf2b37ff6fa5795f6ed53"
+  },
+  "static/revamp/fight-focus-banner.webp": {
+    "size": 56232,
+    "sha1": "767b0733287e90b31ae1a9c753e289696626a652"
+  },
+  "static/revamp/ghost-female.webp": {
+    "size": 113948,
+    "sha1": "2389497a09e6eb52706743526f7d187c256f69b2"
+  },
+  "static/revamp/ghost-male.webp": {
+    "size": 97080,
+    "sha1": "52ef03a48bc8a03fd1dec93118f4d529d057cb7b"
+  },
+  "static/revamp/hub-fight-reveal.webp": {
+    "size": 139052,
+    "sha1": "de59f9f8f017ffe09716482d4dd2ce73f9d75bc7"
+  },
+  "static/revamp/hub-fight-silhouette.webp": {
+    "size": 113910,
+    "sha1": "7eedf5fecc69070014d7ca5720dfaad15723d99a"
+  },
+  "static/revamp/hub-fit-reveal.webp": {
+    "size": 138754,
+    "sha1": "ba837976c05b0c038b3680ea771c9bb7443df129"
+  },
+  "static/revamp/hub-fit-silhouette.webp": {
+    "size": 104756,
+    "sha1": "fddc35eed7ca303ab5aff0456c92cb5264057e3f"
+  },
+  "static/revamp/just-train-banner.png": {
+    "size": 579220,
+    "sha1": "b34fc734505dfb37f2306d30e833e4f3c6b73180"
+  },
+  "static/revamp/just-train-banner.webp": {
+    "size": 67058,
+    "sha1": "67aea702dd2478a75bb080accf3ab86505d9b10f"
+  },
+  "static/revamp/practice-book.webp": {
+    "size": 30352,
+    "sha1": "ff3b898a29c2ef5681bd9b36463dc34b18fa2406"
+  },
+  "static/revamp/practice-poster.webp": {
+    "size": 118948,
+    "sha1": "d6c3bfd30e7b54db8e6d9c6298cd3b05d5a64231"
+  },
+  "static/revamp/practice/f-boxing.webp": {
+    "size": 13520,
+    "sha1": "02773bf9e98f8bea95010c6f3f4e7e808ac67b60"
+  },
+  "static/revamp/practice/f-kickboxing.webp": {
+    "size": 12402,
+    "sha1": "b70c6e862dda5b978e34777494b9a36214a642ea"
+  },
+  "static/revamp/practice/f-mma.webp": {
+    "size": 14012,
+    "sha1": "61d41bd20421178760222c55386d66709b2f4982"
+  },
+  "static/revamp/practice/f-muaythai.webp": {
+    "size": 13792,
+    "sha1": "186f0baaf5edb6a4331f8cccbcd14f62a8e02592"
+  },
+  "static/revamp/practice/m-boxing.webp": {
+    "size": 13114,
+    "sha1": "9ebf6bd95f3dcdaaafa31a3c21eb1e3df2dfadd6"
+  },
+  "static/revamp/practice/m-kickboxing.webp": {
+    "size": 11946,
+    "sha1": "cadd335153d2e2d65391708a8d3728d429147a60"
+  },
+  "static/revamp/practice/m-mma.webp": {
+    "size": 13308,
+    "sha1": "5bb9f2e682dfca2e29f875ae573af007244ea07d"
+  },
+  "static/revamp/practice/m-muaythai.webp": {
+    "size": 14044,
+    "sha1": "eda80c3c82fb625aa9aa915162b7a30a6993493f"
+  },
   "static/ring-alt2.png": {
     "size": 287390,
     "sha1": "8a48705ec88252cb74de82bbaff354b03186f852"
