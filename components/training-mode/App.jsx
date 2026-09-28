@@ -33,6 +33,7 @@ import { startCloudSync } from './data/cloudSync';
 import { rememberSession, loadLastSession, programFor } from './data/lastSession';
 import { startProgramDay } from './data/workoutPrograms';
 import PracticeInvite from './PracticeInvite';
+import HauntWelcome from './HauntWelcome';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
 import GhostChallenge from './GhostChallenge';
 import Comeback from './Comeback';
@@ -124,6 +125,10 @@ function tryCompleteDailyMission(completedActionType) {
 }
 
 const ONBOARDING_KEY = 'trainingModeOnboardingComplete';
+// Set while a haunt-link newcomer is doing their battle before setup; the
+// welcome page takes over as soon as they leave the battle screens.
+const HAUNT_NEWCOMER_KEY = 'tm_haunt_newcomer';
+const HAUNT_BATTLE_SCREENS = new Set(['start', 'onboarding', 'setup', 'timer', 'summary', 'level_up']);
 const TOUR_KEY = 'trainingModeTourComplete';
 
 // Arcade ids were renamed off their source franchises (ARC_BAKI → ARC_GRAPPLER,
@@ -214,6 +219,10 @@ export default function App() {
   const [ghostLaunch, setGhostLaunch] = useState(null);
   // A due comeback cutscene, and a Combat Conditioning preset it asked for.
   const [comeback, setComeback] = useState(null);
+  // A newcomer who arrived by a friend's haunt link (no setup yet): the
+  // two-page welcome, then the battle or the app, then the 'welcome' page.
+  // { page: 'intro' | 'battle' | 'welcome', challenge, beaten? }
+  const [hauntIntro, setHauntIntro] = useState(null);
   const [ccPreset, setCcPreset] = useState(null);
   // A friend's haunt link (?h=): it becomes the live challenge straight away.
   // Someone already set up sees it now; a first-run user after onboarding,
@@ -222,16 +231,36 @@ export default function App() {
   // async. Also keeps a stranger's ghost on hand for the next challenge.
   useEffect(() => {
     hauntFromLocation().then((g) => {
-      if (!g) return;
+      if (!g) {
+        // A newcomer who reloads before battling or setting up gets the
+        // welcome pages back, as long as that friend's ghost is still waiting.
+        try {
+          const id = localStorage.getItem(HAUNT_NEWCOMER_KEY);
+          const live = getActiveChallenge();
+          if (id && live?.id === id && localStorage.getItem(ONBOARDING_KEY) !== 'true') setHauntIntro({ page: 'intro', challenge: live });
+        } catch { /* best-effort */ }
+        return;
+      }
       const ch = takeHaunt(g);
+      markChallengeSeen();
       if (typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true') {
-        markChallengeSeen();
         setGhostView({ view: 'challenge', challenge: ch });
+      } else {
+        // Never used the app: explain it, and the challenge, first.
+        try { localStorage.setItem(HAUNT_NEWCOMER_KEY, ch.id); } catch { /* best-effort */ }
+        setHauntIntro({ page: 'intro', challenge: ch });
       }
     });
     prefetchStranger(loadProfile()?.discipline || 'Boxing');
   }, []);
   const afterParqRef = useRef(null);
+  useEffect(() => {
+    if (hauntIntro || typeof localStorage === 'undefined') return;
+    const id = localStorage.getItem(HAUNT_NEWCOMER_KEY);
+    if (!id || localStorage.getItem(ONBOARDING_KEY) === 'true' || HAUNT_BATTLE_SCREENS.has(screen)) return;
+    const live = getActiveChallenge();
+    setHauntIntro({ page: 'welcome', challenge: live || null, beaten: !live || live.id !== id });
+  }, [screen, hauntIntro]);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -1011,6 +1040,29 @@ export default function App() {
             if (f) f();
           }}/>
         </div>
+      )}
+      {hauntIntro && (
+        <HauntWelcome
+          page={hauntIntro.page}
+          challenge={hauntIntro.challenge}
+          beaten={hauntIntro.beaten}
+          onNext={() => setHauntIntro(h => ({ ...h, page: 'battle' }))}
+          onBack={() => setHauntIntro(h => ({ ...h, page: 'intro' }))}
+          onAccept={() => {
+            const ch = hauntIntro.challenge;
+            setHauntIntro(null);
+            const launch = () => { setDisc(ch.disc || 'Boxing'); setGhostLaunch(ch); setScreen('setup'); };
+            // The one-time health check comes before a newcomer's first round.
+            if (!loadParq().done) { afterParqRef.current = launch; setShowParqGate(true); }
+            else launch();
+          }}
+          onDecline={() => setHauntIntro(h => ({ ...h, page: 'welcome', beaten: false }))}
+          onExplore={() => {
+            try { localStorage.removeItem(HAUNT_NEWCOMER_KEY); } catch { /* best-effort */ }
+            setHauntIntro(null);
+            setScreen('onboarding');
+          }}
+        />
       )}
       {ghostView && (
         <GhostChallenge
