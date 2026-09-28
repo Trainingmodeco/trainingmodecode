@@ -4,7 +4,7 @@ import { C } from './Styles';
 import TrainingCTA from './shared/TrainingCTA';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import {
-  SET_SCHEMES, PROGRAMS, DURATIONS, programDayIndex, advanceProgramDay, resolveScheme,
+  SET_SCHEMES, PROGRAMS, DURATIONS, programDayIndex, advanceProgramDay, resolveScheme, saveCurrentProgram,
 } from './data/workoutPrograms';
 import { loadRoutines, deleteRoutine, MAX_ROUTINES } from './data/savedRoutines';
 
@@ -52,7 +52,7 @@ export default function WorkoutProgrammingSheet({ initial, onApply, onClose, onL
     let muscleChips = null;
     if (pickedProgram && programId) {
       const p = PROGRAMS.find(x => x.id === programId);
-      if (p) { const idx = programDayIndex(p); muscleChips = p.days[idx].chips; advanceProgramDay(p, idx); }
+      if (p) { const idx = programDayIndex(p); muscleChips = p.days[idx].chips; advanceProgramDay(p, idx); saveCurrentProgram(p.id); }
     }
     onApply?.({
       focus, schemeId, customScheme, programId, duration,

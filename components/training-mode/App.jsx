@@ -186,7 +186,7 @@ export default function App() {
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
   // Which app-level guide is running: 'full_intro' (first-run + replay),
-  // 'train_hub' (the ? on Choose Your Path), 'arcade_saga_select' (the ? on
+  // 'arcade_saga_select' (the ? on
   // the arcade), or null. Lives up here rather than inside a screen because
   // cross-screen guides navigate, and a guide rendered inside a screen dies
   // the moment that screen unmounts.
@@ -447,20 +447,18 @@ export default function App() {
     goStart:       () => setScreen('start'),
     goHome:        () => { pauseCurrentSession(); setScreen('home'); },
     goProgress:    () => { pauseCurrentSession(); setScreen('progress'); },
-    goTrainingHub: () => { pauseCurrentSession(); setScreen('training_hub'); },
-    startPathTour: () => { setScreen('training_hub'); setPathTour('train_hub'); },
     startArcadeGuide: () => setPathTour('arcade_saga_select'),
     goFightHub:    () => setScreen('fight_hub'),
     // 3c — backing out of a live builder/quick-mission session PAUSES it (the
     // app's normal resume flow picks it up) instead of silently abandoning it.
     goFitHub:      () => { pauseCurrentSession(); setScreen('fit_hub'); },
     goFitSetup:    () => { pauseCurrentSession(); setScreen('fit_setup'); },
+    goPrograms:    () => { pauseCurrentSession(); setScreen('programs'); },
     // Cardio Mode is a SETUP screen that becomes a session, so unlike every
     // other session entry it was not clearing resumeData. Now that an interval
     // session restores from it, a stale one would drop somebody who tapped
     // CARDIO MODE straight back into a Tabata they finished yesterday.
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
-    goWorkoutCodec: () => setScreen('workout_codec'),
     goQuickMissionSetup: () => setScreen('qm_setup'),
     goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
@@ -593,7 +591,6 @@ export default function App() {
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
-    goMoveLab: (d) => { if (d) setDisc(d); setScreen('move_lab'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;

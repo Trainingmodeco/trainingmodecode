@@ -13,11 +13,6 @@ export const SCREEN_GUIDES = {
     { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
   ],
 
-  move_lab: [
-    { target: null, title: '🥊 MOVE LAB', body: 'Your fighting-game command list — build your own moves and signature specials. They join the Combo Coach call rotation.' },
-    { target: 'ml-create', title: '+ CREATE A MOVE', body: 'Name it, then BUILD IT (chain real strikes) or TYPE IT (a spoken special like “Hadouken”). Signature specials collect in the ★ tier.' },
-    { target: null, title: 'ROTATION & GAME-READY', body: 'Toggle a move into the Combo Coach rotation so the coach calls it. Moves built from real strikes get a 🎮 GAME-READY tag — those sync to your in-game fighter when Game Link launches.' },
-  ],
 
   profile: [
     { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, account, and every app setting. Here is what each button does.' },
@@ -45,33 +40,33 @@ export const SCREEN_GUIDES = {
   full_intro: [
     { screen: 'home', target: 'todays-bout', title: "TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
 
-    { screen: 'training_hub', target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio, COMBAT CONDITIONING blends the two, and the TRAINING ARCADE turns it all into a game. You are never locked in — mix them however you like.' },
-    { screen: 'training_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN is this screen. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
-    { screen: 'training_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+    { screen: 'fit_hub', target: null, title: '🥊 FIT OR FIGHT', body: 'Every workout in the app lives under one of these two tabs. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio. They sit side by side at the top of every training screen, so you are never more than one tap from the other — mix them however you like.' },
+    { screen: 'fit_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN opens your training tabs. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
+    { screen: 'fit_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
 
-    { screen: 'training_hub', target: null, title: '🎬 WANT THE GRAND TOUR?', body: 'That\'s everything you need to start training. Tap NEXT for the full walkthrough — inside every mode, the camp, the arcade and the rewards, about two minutes. Or tap ✕ to start now; you can replay all of this any time from PROFILE → Replay Intro Guide.' },
+    { screen: 'fit_hub', target: null, title: '🎬 WANT THE GRAND TOUR?', body: 'That\'s everything you need to start training. Tap NEXT for the full walkthrough — inside every mode, the camp, the arcade and the rewards, about two minutes. Or tap ✕ to start now; you can replay all of this any time from PROFILE → Replay Intro Guide.' },
 
-    { screen: 'training_hub', target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
+    { screen: 'fit_hub', target: 'mode-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill: striking, rounds, combos and technique. Let\'s go inside and look at what it holds.' },
     { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
     { screen: 'fight_hub', target: 'fh-fight-focus', title: '⏱️ FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
     { screen: 'fight_hub', target: 'fh-combo', title: '🥊 COMBO COACH', body: 'The coach calls combinations and you throw them — "one-two, slip, hook". Builds speed, rhythm and reaction. You set how often the calls come.' },
     { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. Strikes, defense and footwork taught one at a time, with form cues — no timer pressure.' },
-    { screen: 'fight_hub', target: 'fh-movelab', title: '⚡ COMBO CREATOR (MOVE LAB)', body: 'Build your own combos and signature moves — chain real strikes into a sequence, or type your own call. Anything you save joins Combo Coach\'s rotation.' },
 
-    { screen: 'training_hub', target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
+    { screen: 'fit_hub', target: 'mode-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
     { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
     { screen: 'fit_hub', target: 'fit-builder', title: 'AND WHILE YOU TRAIN', body: 'The coach counts your reps out loud and times your rest. You are never locked into the order — a WORKOUT MAP sits above the tab bar, and holding any exercise starts that one instead. Every set you log builds a history, so the app knows what to ask of you next time.' },
     { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
+    { screen: 'fit_hub', target: 'fit-programs', title: '📋 PROGRAMS', body: 'Rather follow a plan? Programs runs a split for you — Push/Pull/Legs, Upper/Lower and more — and remembers which day is next, so every session is one tap.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs on GPS or a treadmill, machine work, and fight rounds or Tabata, with pace coaching and a target you set by distance or time.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '🗺️ AND IT TRACKS YOUR RUN', body: 'Start an outdoor run and Training Mode maps it. The route draws itself as you move, coloured green where you are on pace and orange where you drop off it, with a split called at every half mile or kilometre. Afterwards it all goes to PROGRESS → RUNS — career totals, a weekly distance goal, your best time at each distance, and the map of every run you have done.' },
 
-    { screen: 'training_hub', target: 'hub-combat', title: '🔥 COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Strike work and hard conditioning in the same round. Pick this when you want to be exhausted and sharp at the same time.' },
+    { screen: 'fight_hub', target: 'fh-conditioning', title: '🔥 COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Strike work and hard conditioning in the same round. Pick this when you want to be exhausted and sharp at the same time.' },
 
-    { screen: 'training_hub', target: 'hub-arcade', title: '🕹 TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Let\'s step inside and see how it works.' },
+    { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Let\'s step inside and see how it works.' },
     { screen: 'arcade', target: 'ar-carousel', title: 'THE CAMPAIGN SHELF', body: 'Every card is a saga — a themed campaign of 10 stages with a boss at the end. Swipe to browse them; locked ones say COMING SOON. Tap a card to open its stage ladder.' },
     { screen: 'arcade_series', target: 'arc-ladder', title: 'THE STAGE LADDER', body: 'Inside a saga you climb bottom to top. Each node is one real workout — clear it to unlock the next, and finish fast for ★ ratings. Stage 10 is the boss: answer the bell, survive the finale, and it pays DOUBLE XP.' },
 
-    { screen: 'training_hub', target: null, title: '⚡ XP, LEVELS & REWARDS', body: 'Every finished session earns XP, and XP raises your fighter level and rank. Beat arcade stages fast enough for ★ ratings, train days in a row to grow your 🔥 streak, and unlock trophies and badges as you go. Bosses pay double XP.' },
+    { screen: 'home', target: null, title: '⚡ XP, LEVELS & REWARDS', body: 'Every finished session earns XP, and XP raises your fighter level and rank. Beat arcade stages fast enough for ★ ratings, train days in a row to grow your 🔥 streak, and unlock trophies and badges as you go. Bosses pay double XP.' },
     { screen: 'profile', target: 'pr-gamelink', title: '🎮 LINKED TO THE UPCOMING GAME', body: 'Training Mode connects to a companion FIGHTING GAME in development. Your real training — rank, XP, unlocked tiers — will sync INTO the game and level up your in-game fighter. Tap GAME LINK any time to read more and join the free launch list.' },
     // The grand tour lands back on Home — the two cards the core pass skipped,
     // ending where the athlete actually starts training. (The tabs and ? steps
@@ -83,14 +78,6 @@ export const SCREEN_GUIDES = {
   // The everyday "?" on Choose Your Path — compact and single-screen. The
   // full cross-screen walkthrough above only runs after the questionnaire or
   // from Profile → Replay intro guide.
-  train_hub: [
-    { target: null, title: '🥊 CHOOSE YOUR PATH', body: 'Every workout in the app starts here. Pick the path that matches your goal today — you are never locked in, and you can mix them however you like.' },
-    { target: 'hub-fight', title: 'FIGHT MODE — LEARN TO STRIKE', body: 'Choose this to build fighting skill. Inside: TRAINING CAMP (a 12-level camp to a Title Fight), FIGHT FOCUS (coached rounds), COMBO COACH (combos called out to throw), PRACTICE MODE (learn strikes step by step), COMBO CREATOR (build your own moves) and CONDITIONING.' },
-    { target: 'hub-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Inside: WORKOUT BUILDER (a workout around the muscles you pick), QUICK MISSION (instant workout when you\'re short on time), CARDIO MODE (runs, intervals, Tabata) and WORKOUT CODEX, coming soon.' },
-    { target: 'hub-combat', title: '🔥 COMBAT CONDITIONING — THE BLEND', body: 'Fight and fitness in one: ring-pace circuits that build your gas tank. Pick this when you want to be exhausted and sharp at the same time.' },
-    { target: 'hub-arcade', title: '🕹 TRAINING ARCADE — THE GAME', body: 'The same real workouts, played like a retro game. Each saga is 10 stages with a boss at the end. Every rep you complete damages the stage, and clearing one unlocks the next.' },
-    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
-  ],
 
   fight_hub: [
     { target: null, title: '🥊 FIGHT MODE', body: 'This is the Fight Mode hub — the striking-skill side of Training Mode. Pick a discipline first, then choose how to train it.' },
@@ -99,7 +86,6 @@ export const SCREEN_GUIDES = {
     { target: 'fh-fight-focus', title: 'FIGHT FOCUS', body: 'Voice-coached rounds like a real session — a round timer with a coach calling the work. Choose Fight Focus.' },
     { target: 'fh-combo', title: 'COMBO COACH', body: 'The coach calls strike combinations and you throw them — builds speed, rhythm, and reaction. Choose Combo Coach.' },
     { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense, and footwork step by step. Choose Practice Mode.' },
-    { target: 'fh-movelab', title: 'MOVE LAB', body: 'Build your own combos and signature moves — tap strikes into a sequence or type your own call. Saved moves join Combo Coach’s rotation, and game-ready ones sync to your fighter later. Choose Move Lab.' },
     { target: 'fh-conditioning', title: 'CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work. Choose Conditioning.' },
   ],
 
@@ -117,12 +103,20 @@ export const SCREEN_GUIDES = {
     { target: 'tc-belt', title: 'EARN THE BELT', body: 'Every session you finish earns XP toward your fighter level. Clear all 12 levels — Foundation through this TITLE FIGHT at the top — and the belt is yours.' },
   ],
 
+  programs: [
+    { target: null, title: '📋 PROGRAMS', body: 'A program is a plan you follow across sessions, so you are not rebuilding your workout every day.' },
+    { target: 'pg-equipment', title: 'TRAIN WITH', body: 'Pick what you have: bodyweight, weights, or a mix. The program keeps its sets and reps; this decides which exercises fill them.' },
+    { target: 'pg-continue', title: 'YOUR NEXT DAY', body: 'The program you are on and which day of it is next. RESUME builds that day — you can review and edit it before you start.' },
+    { target: 'pg-library', title: 'PROGRAM LIBRARY', body: 'Every program, with the day each one would give you next. Tap one to switch to it.' },
+  ],
+
   fit_hub: [
-    { target: null, title: '💪 FIT MODE', body: 'This is the Fit Mode hub — it holds all the fitness portion of Training Mode. Tap a banner to enter.' },
-    { target: 'fit-builder', title: 'WORKOUT BUILDER', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear, and difficulty — choose Workout Builder. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
-    { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit/HIIT-based workouts for when you are short on time and need a challenge — choose Quick Mission.' },
-    { target: 'fit-cardio', title: 'CARDIO MODE', body: 'For cardio-specific workouts — timed pace, interval runs, distance running — choose Cardio Mode.' },
-    { target: 'fit-codex', title: 'WORKOUT CODEX', body: 'Have your own workout? Training Mode will turn it into a follow-along routine — Workout Codex. Coming soon.' },
+    { target: null, title: '💪 FIT MODE', body: 'This is the Fit Mode hub — strength, conditioning and cardio, no fighting required. The card at the top is today\'s workout; everything below it is for when you want to choose your own.' },
+    { target: 'fit-today', title: "TODAY'S MISSION", body: 'A workout picked for you from your goal and your last session. The line under the title is exactly what START runs. Not feeling it? SURPRISE ME deals a random one in its place, and ADJUST lets you set the length and intensity yourself.' },
+    { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit-style workouts for when you are short on time — pick a length and an intensity and it builds the circuit on the spot.' },
+    { target: 'fit-builder', title: 'BUILD WORKOUT', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear and difficulty. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
+    { target: 'fit-programs', title: 'PROGRAMS', body: 'Follow a plan instead of deciding each day. Pick a split — Full Body, Push/Pull/Legs, Upper/Lower or Bro Split — and it remembers which day is next.' },
+    { target: 'fit-cardio', title: 'CARDIO', body: 'Runs on GPS or a treadmill, machine work and intervals, with pace coaching and a target you set by distance or time.' },
   ],
 
   // Crosses into the stage ladder for the last three steps (hosted by

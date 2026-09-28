@@ -12,7 +12,7 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
-import { resolveScheme, programmingSummary } from './data/workoutPrograms';
+import { resolveScheme, programmingSummary, CHIP_GROUPS } from './data/workoutPrograms';
 import { trainAgainPlan } from './data/builderProgression';
 
 // Workout Builder — streamlined setup (design 11a follow-up): TARGET MUSCLES
@@ -23,15 +23,9 @@ import { trainAgainPlan } from './data/builderProgression';
 const GOLD = C.gold;
 
 // 7 design chips -> the app's granular muscle groups (fed to the generator).
-const CHIPS = [
-  { id: 'CHEST', groups: ['Chest'] },
-  { id: 'BACK', groups: ['Back'] },
-  { id: 'SHOULDERS', groups: ['Shoulders'] },
-  { id: 'ARMS', groups: ['Biceps', 'Triceps'] },
-  { id: 'CORE', groups: ['Core'] },
-  { id: 'LEGS', groups: ['Quads', 'Hamstrings'] },
-  { id: 'GLUTES', groups: ['Glutes'], span2: true },
-];
+// The mapping itself lives in workoutPrograms so Programs resolves a day the
+// same way; only the layout hint is local.
+const CHIPS = Object.keys(CHIP_GROUPS).map(id => ({ id, groups: CHIP_GROUPS[id], span2: id === 'GLUTES' }));
 const EQUIPMENT = ['BODYWEIGHT', 'WEIGHTED', 'HYBRID'];
 const DIFFICULTY = ['EASY', 'NORMAL', 'HARD'];
 

@@ -2,14 +2,14 @@ import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
-import { Check } from 'lucide-react';
 import TrainingHeader from './TrainingHeader';
 import { hasCompletedFirstLesson } from './data/recommendations';
-import { loadProfile, saveProfile } from './data/userProfile';
+import { loadProfile } from './data/userProfile';
 import { loadCampProgress } from './data/campProgress';
-import { totalMoveCount } from './data/customCombos';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import FightRingBackdrop from './shared/FightRingBackdrop';
+import ModeTabs from './shared/ModeTabs';
+import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -26,13 +26,10 @@ const GOLD = '#fde047';
 const VIOLET = '#a855f7';
 const RED = '#ef4444';
 
-const DISCIPLINES = [
-  { id: 'Boxing',     key: 'boxing',     label: 'BOXING' },
-  { id: 'Kickboxing', key: 'kickboxing', label: 'KICKBOXING' },
-  { id: 'Muay Thai',  key: 'muay_thai',  label: 'MUAY THAI' },
-  { id: 'MMA',        key: 'mma',        label: 'MMA' },
-];
-const discImg = (key, variant) => `/discipline-cards/${key}_${variant}.webp`;
+// The four-across character tiles are gone: they cost 44px of heading plus a
+// 0.74-aspect row, and they were the third different discipline picker in the
+// app. DisciplineTabs is the one control now, shared with Practice Mode and
+// Combat Conditioning.
 
 // Primary banner stack (heights per design: camp 72, others 64).
 const BANNERS = [
@@ -42,48 +39,30 @@ const BANNERS = [
   { key: 'practice',      title: '📚 PRACTICE MODE', sub: 'Tutorials, fundamentals & form', art: '/static/fight-hub/practice.webp', accent: VIOLET, h: 64, guide: 'fh-practice' },
 ];
 
-const getVariant = (p) => {
-  const pref = String(p?.avatarPreference || '').toLowerCase();
-  if (pref === 'female') return 'female';
-  if (pref === 'male') return 'male';
-  const s = String(p?.sex || p?.gender || '').toLowerCase();
-  return s === 'female' ? 'female' : 'male';
-};
-
-
 const hubCSS = `
 .fm-banner { transition: filter .18s ease, border-color .18s ease, box-shadow .18s ease, transform .12s ease; }
 .fm-banner img { filter: brightness(0.68); transition: filter .18s ease; }
 .fm-banner:hover img, .fm-banner:active img { filter: brightness(1); }
 .fm-banner:active { transform: scale(0.985); }
-.fm-tile { transition: border-color .15s ease, transform .12s ease; }
-.fm-tile:active { transform: scale(0.96); }
 `;
 
-export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp, onMoveLab }) {
+export default function FightModeHub({ onHome, onBack, onFitMode, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp }) {
   const profile = loadProfile();
-  const variant = getVariant(profile);
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
   const needsGate = isBeginner && !hasCompletedFirstLesson();
 
   // The chosen discipline persists to the profile and drives every feature
   // below (call sets, opponent art, lesson lists).
-  const [disc, setDisc] = useState(() => loadProfile()?.discipline || 'Boxing');
-  const pickDisc = (id) => {
-    setDisc(id);
-    try { saveProfile({ ...loadProfile(), discipline: id }); } catch { /* noop */ }
-  };
+  const [disc, pickDisc] = useDiscipline();
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [toast, setToast] = useState(false);
 
   const campStage = Math.min(loadCampProgress(), 12);
-  const moves = totalMoveCount();
 
   const goMode = async (key) => {
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
     if (key === 'conditioning') { onCombatConditioning?.(); return; }
-    if (key === 'move_lab') { onMoveLab?.(disc); return; }
     if (key === 'practice') {
       if (onPractice) onPractice(disc);
       else { setToast('Practice Mode preview — coming soon.'); setTimeout(() => setToast(false), 2200); }
@@ -119,32 +98,18 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
           />
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '14px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
-
-        {/* SELECT DISCIPLINE — 4-across, selection persists */}
-        <div style={{ textAlign: 'center', font: "700 12px 'Orbitron',sans-serif", color: '#d9cdf0', letterSpacing: '0.3em', marginBottom: 8, flexShrink: 0 }}>‹ SELECT DISCIPLINE ›</div>
-        <div data-guide="fh-disciplines" style={{ display: 'flex', gap: 6, flexShrink: 0, marginBottom: 44 }}>
-          {DISCIPLINES.map(d => {
-            const on = d.id === disc;
-            return (
-              <button key={d.id} className="fm-tile" onClick={() => pickDisc(d.id)} style={{
-                flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', padding: 0, cursor: 'pointer',
-                aspectRatio: '0.74', background: '#0a0014',
-                border: on ? `2px solid ${GOLD}` : '1.5px solid rgba(168,85,247,0.35)',
-                boxShadow: on ? '0 0 14px rgba(253,224,71,0.35)' : 'none',
-              }}>
-                <SafeImage src={discImg(d.key, variant)} alt={d.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter: on ? 'none' : 'brightness(0.62)' }}/>
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '16px 2px 6px', background: 'linear-gradient(to top, rgba(5,0,12,0.94), transparent)' }}>
-                  <div style={{ font: "900 12px 'Orbitron',sans-serif", color: on ? GOLD : '#fff', letterSpacing: '0.02em', textAlign: 'center', textShadow: on ? '0 0 10px rgba(253,224,71,0.45)' : '0 1px 4px rgba(0,0,0,0.85)' }}>{d.label}</div>
-                </div>
-                {on && <span style={{ position: 'absolute', top: 4, right: 4, width: 15, height: 15, borderRadius: '50%', background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={10} color="#0a0014" strokeWidth={3.5}/></span>}
-              </button>
-            );
-          })}
+        {/* Fit / Fight is a tab switch now, not a screen you back out to. */}
+        <div style={{ flexShrink: 0, padding: '0 14px' }}>
+          <ModeTabs active="fight" onFit={onFitMode}/>
         </div>
 
-        {/* SELECT MODE — the banner stack */}
-        <div style={{ textAlign: 'center', font: "700 12px 'Orbitron',sans-serif", color: '#d9cdf0', letterSpacing: '0.3em', marginBottom: 8, flexShrink: 0 }}>‹ SELECT MODE ›</div>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '10px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
+
+        <DisciplineTabs value={disc} onChange={pickDisc} guide="fh-disciplines" style={{ marginBottom: 18 }}/>
+
+        {/* The banner stack. The ‹ SELECT MODE › heading is gone with the
+            discipline heading above it: two centred labels in 12px Orbitron
+            cost 40px and said only what the numbered rows already say. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
           {BANNERS.map(b => (
             <button key={b.key} className="fm-banner" data-tour={b.tour} data-guide={b.guide} onClick={() => goMode(b.key)} style={{
@@ -170,15 +135,11 @@ export default function FightModeHub({ onHome, onBack, onFightFocus, onComboCoac
           ))}
         </div>
 
-        {/* Two-up utility row — secondary: MOVE LAB (gold) + CONDITIONING (red, cross-listed from Fit) */}
+        {/* Move Lab is gone — it was a second combo builder reached from a
+            tile most people never found, and nothing in the revamp keeps it.
+            Conditioning takes the whole row rather than sitting half-width
+            next to a gap. */}
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexShrink: 0 }}>
-          <button data-tour="mode-movelab" data-guide="fh-movelab" onClick={() => goMode('move_lab')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(30,20,4,0.55)', border: '1px solid rgba(253,224,71,0.4)' }}>
-            <span style={{ fontSize: 13 }}>⚡</span>
-            <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', font: "900 9.5px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.05em' }}>MOVE LAB</span>
-              <span style={{ display: 'block', font: "600 8px 'Rajdhani',sans-serif", color: '#b9a8d6' }}>Custom combos · 🎮 {moves} moves</span>
-            </span>
-          </button>
           <button data-guide="fh-conditioning" onClick={() => goMode('conditioning')} style={{ flex: 1, height: 44, borderRadius: 11, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, padding: '0 11px', background: 'rgba(34,6,10,0.55)', border: '1px solid rgba(239,68,68,0.45)' }}>
             <span style={{ fontSize: 13 }}>🔥</span>
             <span style={{ minWidth: 0 }}>

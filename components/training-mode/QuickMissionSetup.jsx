@@ -6,7 +6,7 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { C } from './Styles';
-import { CADENCE_PRESETS } from './shared/CadenceSlider';
+import { QM_LENGTHS, QM_FOCI, QM_INTENSITY, quickMissionConfig } from './data/quickMissionConfig';
 import AddCardioSheet from './AddCardioSheet';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import TrainingCTA from './shared/TrainingCTA';
@@ -16,9 +16,9 @@ import TrainingCTA from './shared/TrainingCTA';
 // Plus the designer's "Surprise me" random quick-pick.
 const GOLD = C.gold;
 const VIOLET = '#b06aff';
-const LENGTHS = [5, 10, 15, 20, 30];
-const FOCI = ['FULL BODY', 'UPPER', 'LOWER', 'CORE', 'COMBAT'];
-const INTENSITY = ['EASY', 'NORMAL', 'HARD'];
+const LENGTHS = QM_LENGTHS;
+const FOCI = QM_FOCI;
+const INTENSITY = QM_INTENSITY;
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
@@ -35,12 +35,7 @@ export default function QuickMissionSetup({ onBack, onHome, onStart, onCardioOnl
   const surprise = () => { setCustom(false); setDuration(rand(LENGTHS)); setFocus(rand(FOCI)); setDifficulty(rand(INTENSITY)); };
 
   const handleStart = () => {
-    onStart?.({
-      workoutType: 'Bodyweight', duration, difficulty: cap(difficulty),
-      focus: focus === 'FULL BODY' ? 'Full Body' : cap(focus), format: 'Auto',
-      cardioFinisher: false, cadenceCount: true, cadencePreset: 'moderate',
-      cadenceMs: CADENCE_PRESETS.moderate, voiceOn: true, cardioAddon,
-    });
+    onStart?.(quickMissionConfig({ duration, focus, difficulty, cardioAddon }));
   };
 
   const Label = ({ children, right }) => (

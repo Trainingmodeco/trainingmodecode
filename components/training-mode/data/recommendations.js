@@ -163,7 +163,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
       subtitle: 'A short bodyweight circuit to get moving.',
       reason: 'Beginner fitness path',
       actionType: 'quickMission',
-      actionPayload: null,
+      actionPayload: { duration: 12, difficulty: 'Easy', focus: 'Full Body' },
       isMissionOfTheDay: false,
     };
   }
@@ -209,7 +209,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
         subtitle: 'Light conditioning to stay active after combat work.',
         reason: 'Based on your last session',
         actionType: 'quickMission',
-        actionPayload: null,
+        actionPayload: { duration: 10, difficulty: 'Easy', focus: 'Full Body' },
         isMissionOfTheDay: false,
       };
     }
@@ -229,7 +229,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
         subtitle: 'Fresh circuit to keep momentum going.',
         reason: 'Based on your last session',
         actionType: 'quickMission',
-        actionPayload: null,
+        actionPayload: { duration: 15, difficulty: 'Normal', focus: 'Full Body' },
         isMissionOfTheDay: false,
       };
     }
@@ -239,7 +239,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
       subtitle: 'Light conditioning to stay active.',
       reason: 'Based on your last session',
       actionType: 'quickMission',
-      actionPayload: null,
+      actionPayload: { duration: 10, difficulty: 'Easy', focus: 'Full Body' },
       isMissionOfTheDay: false,
     };
   }
@@ -250,7 +250,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
     subtitle: 'A quick guided session to get you moving.',
     reason: 'Starter recommendation',
     actionType: 'quickMission',
-    actionPayload: null,
+    actionPayload: { duration: 12, difficulty: 'Normal', focus: 'Full Body' },
     isMissionOfTheDay: false,
   };
 }

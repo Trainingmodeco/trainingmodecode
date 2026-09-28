@@ -8,6 +8,7 @@ import CornerHUD from './CornerHUD';
 import SafeImage from './SafeImage';
 import { ChevronLeft, Play, Pause, ChevronRight, Volume2, Square } from 'lucide-react';
 import { C } from './Styles';
+import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
 import { addStartHereLesson } from './data/userStats';
 import { loadProfile, isBeginnerLearner } from './data/userProfile';
 import {
@@ -660,7 +661,18 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
   const variant = getVariant(profile);
   const mustDrill = isBeginnerLearner(profile);
 
-  const [discipline, setDisc] = useState(PRACTICE_DISCIPLINES.includes(initialDisc) ? initialDisc : 'Boxing');
+  // Shared with the Fight hub and Combat Conditioning: switching discipline
+  // here switches it everywhere. initialDisc is kept for callers that open
+  // Practice on a specific discipline — it wins once, then the shared value
+  // carries.
+  const [stored, pickStored] = useDiscipline();
+  const discipline = PRACTICE_DISCIPLINES.includes(stored) ? stored : 'Boxing';
+  useEffect(() => {
+    if (PRACTICE_DISCIPLINES.includes(initialDisc) && initialDisc !== stored) pickStored(initialDisc);
+    // Intentionally mount-only: this is the caller's opening choice, not a
+    // subscription to it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [category, setCategory] = useState('Strikes');
   const [detail, setDetail] = useState(null);
   const [drill, setDrill] = useState(null);
@@ -727,14 +739,14 @@ export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome })
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         minHeight: '100dvh', padding: '14px 14px 0',
       }}>
-        {/* Discipline selector */}
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 10, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', flexShrink: 0 }}>
-          {PRACTICE_DISCIPLINES.map(d => (
-            <button key={d} className={`pm-disc-pill${discipline === d ? ' active' : ''}`} style={{ flex: '0 0 auto' }} onClick={() => { setDisc(d); setCategory('Strikes'); setDetail(null); }}>
-              {d.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        {/* Discipline selector — the shared tabs. The old pill row scrolled
+            horizontally, so MMA sat off-screen on a 375px phone and nothing
+            said it was there. */}
+        <DisciplineTabs
+          value={discipline}
+          onChange={(d) => { pickStored(d); setCategory('Strikes'); setDetail(null); }}
+          style={{ marginBottom: 10 }}
+        />
 
         {/* Scrollable content: learning banner → basics → technique library */}
         <div className="pm-technique-list" style={{ flex: 1, minHeight: 0, paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))', paddingRight: 4 }}>

@@ -9,7 +9,6 @@ export const BANNERS = {
   combatConditioning: '/banners/combat-conditioning.png',
   quickMission: '/banners/quick-mission.png',
   workoutBuilder: '/banners/workout-builder.png',
-  workoutCodex: '/banners/Workout-Codex.png',
 };
 
 export const REWARDS = {

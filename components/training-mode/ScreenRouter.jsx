@@ -6,9 +6,7 @@ import GameLink from './GameLink';
 import ManageSubscription from './ManageSubscription';
 import Notifications from './Notifications';
 import HomeDashboard from './HomeDashboard';
-import TrainingHub from './TrainingHub';
 import FightModeHub from './FightModeHub';
-import MoveLab from './MoveLab';
 import FightFocusSetup from './FightFocusSetup';
 import FightFocusTimer from './FightFocusTimer';
 import SessionSummary from './SessionSummary';
@@ -24,6 +22,7 @@ import CampFullSession from './CampFullSession';
 import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
 import FitModeHub from './FitModeHub';
+import ProgramsScreen from './ProgramsScreen';
 import CardioMode from './CardioMode';
 import FitBuilderSetup from './FitBuilderSetup';
 import FitBuilderWorkout from './FitBuilderWorkout';
@@ -47,7 +46,6 @@ import FloatingResumeButton from './FloatingResumeButton';
 import LevelUpReveal from './LevelUpReveal';
 
 // Code-split the heavy, rarely-first screens so they're not in the initial bundle.
-const CodecApp = lazy(() => import('../workout-codec/CodecApp'));
 const TrainingArcade = lazy(() => import('./TrainingArcade'));
 const TrainingCampMap = lazy(() => import('./TrainingCampMap'));
 const ArcadeSeriesIntroPage = lazy(() => import('./ArcadeSeriesIntroPage'));
@@ -206,7 +204,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
 }
 
 export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goTrainingHub, goFightHub, goFitHub, goFitSetup, goCardioMode, goWorkoutCodec, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete, goMoveLab, startPathTour } = actions;
+  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -220,7 +218,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
 
   const handleNavigate = (tab) => {
     if (tab === 'home') goHome();
-    else if (tab === 'train') goTrainingHub();
+    else if (tab === 'train') goFitHub();
     else if (tab === 'progress') goProgress();
     else if (tab === 'profile') goProfile();
   };
@@ -237,28 +235,14 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // stays the global affordance on every other tab screen.
     return (
       <WithNav activeTab="home" onNavigate={handleNavigate}>
-        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitBuilder={goFitHub} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goTrainingHub} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
-      </WithNav>
-    );
-  }
-  if (screen === 'training_hub') {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <TrainingHub onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onTrainingArcade={goTrainingArcade} onCombatConditioning={goCombatCondSetup} onProfile={goProfile} onStartGuide={startPathTour} profile={profile}/>
+        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitBuilder={goFitHub} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
       </WithNav>
     );
   }
   if (screen === 'fight_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FightModeHub onHome={goHome} onBack={goTrainingHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onQuickFight={goTimer} onQuickCombo={goComboActive} onTrainingCamp={goTrainingCamp} onMoveLab={goMoveLab}/>
-      </WithNav>
-    );
-  }
-  if (screen === 'move_lab') {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <MoveLab discipline={disc} onBack={goFightHub} onHome={goHome}/>
+        <FightModeHub onHome={goHome} onBack={goHome} onFitMode={goFitHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onQuickFight={goTimer} onQuickCombo={goComboActive} onTrainingCamp={goTrainingCamp}/>
       </WithNav>
     );
   }
@@ -540,7 +524,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'fit_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <FitModeHub onHome={goHome} onBack={goTrainingHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })} onWorkoutCodec={goWorkoutCodec}/>
+        <FitModeHub onHome={goHome} onBack={goHome} onFightMode={goFightHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onStartQuickMission={goQuickMissionActive} onPrograms={goPrograms} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })}/>
       </WithNav>
     );
   }
@@ -553,13 +537,6 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       </WithNav>
     );
   }
-  if (screen === 'workout_codec') {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <CodecApp onBack={goFitHub} onHome={goHome}/>
-      </WithNav>
-    );
-  }
   if (screen === 'fit_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
@@ -567,10 +544,19 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       </WithNav>
     );
   }
+  if (screen === 'programs') {
+    // A program day goes to the same generated-workout screen the builder
+    // produces, so reviewing, editing and starting it work exactly as there.
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
+        <ProgramsScreen onBack={goFitHub} onHome={goHome} onFightMode={goFightHub} onStart={goFitWorkout}/>
+      </WithNav>
+    );
+  }
   if (screen === 'fit_workout' && fitCfg) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <FitBuilderWorkout cfg={fitCfg} profile={profile} onPaywall={goPaywall} onBack={goFitSetup} onHome={goHome} onDone={(done, total) => goFitComplete(fitCfg, done, total)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <FitBuilderWorkout cfg={fitCfg} profile={profile} onPaywall={goPaywall} onBack={fitCfg?.programId ? goPrograms : goFitSetup} onHome={goHome} onDone={(done, total) => goFitComplete(fitCfg, done, total)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }
@@ -617,7 +603,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'cc_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <CombatConditioningSetup onBack={goTrainingHub} onStart={goCombatCondActive} onCardioOnly={goCardioMode} profile={profile}/>
+        <CombatConditioningSetup onBack={goFightHub} onStart={goCombatCondActive} onCardioOnly={goCardioMode} profile={profile}/>
       </WithNav>
     );
   }
@@ -673,7 +659,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'arcade') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <TrainingArcade onHome={goHome} onBack={goTrainingHub} onSelectSeries={goArcadeSeries} onChallengeCode={actions.startChallenge} onStartGuide={actions.startArcadeGuide}/>
+        <TrainingArcade onHome={goHome} onBack={goHome} onSelectSeries={goArcadeSeries} onChallengeCode={actions.startChallenge} onStartGuide={actions.startArcadeGuide}/>
       </WithNav>
     );
   }
