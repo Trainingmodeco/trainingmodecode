@@ -6,6 +6,7 @@
 import { loadFightStats } from './fightStats';
 import { loadStats } from './userStats';
 import { loadCampProgress } from './campProgress';
+import { ghostHunter, GHOST_HUNTER_TROPHY } from './ghostChallenges';
 
 const ART = (n) => `/static/trophies/fight/${n}.webp`;
 
@@ -69,6 +70,14 @@ export const FIGHT_TROPHIES = [
     desc: 'Live in the shadow work — 5,000 total strikes thrown.',
     need: 5000, valueOf: (c) => c.fight.strikes,
   },
+  {
+    // The ghost challenges' trophy (Simplify revamp): a ghost challenge is
+    // one of your own sessions — or a friend's, or a stranger's — come back
+    // to be beaten. Losses don't count; the ghost just waits.
+    id: 'GHOST_HUNTER', label: 'Ghost Hunter', art: ART('ghost-hunter'),
+    desc: `Beat ${GHOST_HUNTER_TROPHY} ghost challenges.`,
+    need: GHOST_HUNTER_TROPHY, valueOf: (c) => c.ghostsBeaten,
+  },
 ];
 
 // Snapshot of every stat the triggers read, computed once per render.
@@ -79,6 +88,7 @@ export function fightTrophyContext() {
     fight: loadFightStats(),
     campLevel: loadCampProgress(),
     lessons: count('Start Here'),
+    ghostsBeaten: ghostHunter().beaten,
     comboSessions: count('Combo Coach'),
     focusSessions: count('Fight Focus'),
     finishedFights: sessions.filter(

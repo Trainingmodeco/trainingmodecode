@@ -25,7 +25,10 @@ const EVERY = { fight: 8 * DAY, cardio: 14 * DAY };
 // A ghost has to be at least this old to come back — last night's session
 // "returning" this morning is not a challenge, it's a repeat.
 const MIN_AGE = 2 * DAY;
-export const GHOST_HUNTER_TIERS = [1, 5, 10, 25];
+// The Ghost Hunter trophy (data/fightTrophies) is the first mark; the count
+// keeps going past it for the veteran marks.
+export const GHOST_HUNTER_TROPHY = 5;
+export const GHOST_HUNTER_TIERS = [GHOST_HUNTER_TROPHY, 10, 25, 50];
 const DISCIPLINES = ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'];
 
 function load() {
