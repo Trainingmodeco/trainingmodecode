@@ -66,7 +66,7 @@ export default function ParQSheet({ onDone, ctaLabel = '▶ ENTER CAMP ON EASY' 
         <ShieldCheck size={26} color={TEAL} style={{ marginBottom: 5 }} />
         <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.05em' }}>HEALTH CHECK</div>
         <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 3, lineHeight: 1.35 }}>
-          One-time screening before your first camp. Answer honestly — this keeps training safe.
+          A one-time check before you start training. Answer honestly — it keeps every workout safe for you.
         </div>
       </div>
 
