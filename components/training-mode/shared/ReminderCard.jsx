@@ -38,13 +38,38 @@ const TONE = {
   default: { emoji: '🥊', border: 'rgba(176,106,255,0.55)', glow: 'rgba(176,106,255,0.45)', fill: 'rgba(176,106,255,0.12)', cta: '#c9a6ff' },
 };
 
-export default function ReminderCard({ onAction, style }) {
+export default function ReminderCard({ onAction, style, compact = false }) {
   const [reminder, setReminder] = useState(() => (dismissedToday() ? null : getDashboardReminder()));
   if (!reminder) return null;
 
   const tone = TONE[reminder.category === 'streak' ? 'streak' : reminder.category === 'progress' ? 'progress' : 'default'] || TONE.default;
   const dismiss = () => { markDismissed(); setReminder(null); };
   const act = () => { markDismissed(); setReminder(null); onAction?.(reminder.actionType); };
+
+  // One row, header-height, for Home's toast: it floats over the header, so it
+  // must not reach down over the card below.
+  if (compact) {
+    return (
+      <div role="status" style={{
+        minHeight: 52, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px 6px 12px',
+        borderRadius: 14, border: `1px solid ${tone.border}`, boxShadow: `0 10px 30px rgba(0,0,0,.6), 0 0 18px -4px ${tone.glow}`,
+        background: 'rgba(20,12,38,0.97)', ...style,
+      }}>
+        <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{tone.emoji}</span>
+        <span style={{
+          flex: 1, minWidth: 0, fontSize: 12.5, color: '#e7ddf7', lineHeight: 1.3,
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        }}>{reminder.message}</span>
+        <button onClick={act} style={{
+          flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+          color: tone.cta, font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', whiteSpace: 'nowrap',
+        }}>{reminder.actionLabel.toUpperCase()}</button>
+        <button onClick={dismiss} aria-label="Dismiss reminder" style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#9a90b8', padding: 4, display: 'flex' }}>
+          <X size={14}/>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{

@@ -235,8 +235,12 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     // floating pill (no pausedSession into WithNav = no pill here); the pill
     // stays the global affordance on every other tab screen.
     return (
-      <WithNav activeTab="home" onNavigate={handleNavigate}>
-        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitBuilder={goFitHub} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
+      // Locked like the setup screens: the redesigned Home fits one screen, and
+      // unlocked it took the container's scroll padding on top of its own —
+      // enough to scroll, and to inherit the previous screen's scroll position
+      // with the header cut off. Lock still scrolls if a short phone needs it.
+      <WithNav activeTab="home" onNavigate={handleNavigate} lock>
+        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
       </WithNav>
     );
   }

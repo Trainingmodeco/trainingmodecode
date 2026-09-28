@@ -38,6 +38,25 @@ const loadSaved = () => {
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
 const sameShape = (a, b) => a.rounds === b.rounds && a.lenSec === b.lenSec && a.restSec === b.restSec;
 
+// The setup reopens on the rounds last started, so Home's ADJUST on a Just
+// Train card lands on that session's values, not the first preset.
+const LAST_KEY = 'tm_just_train_last';
+const loadLast = () => {
+  try {
+    const v = JSON.parse(localStorage.getItem(LAST_KEY) || 'null');
+    return v && v.rounds > 0 && v.lenSec > 0 && v.restSec >= 0 ? v : null;
+  } catch { return null; }
+};
+const initialCfg = (saved) => {
+  const last = loadLast() || BUILT_IN[0];
+  const preset = BUILT_IN.concat(saved).find(p => sameShape(p, last));
+  return {
+    rounds: last.rounds, lenSec: last.lenSec, restSec: last.restSec, preset: preset ? preset.label : null,
+    rush: last.rush || { on: false, pattern: 'endRound' },
+    warmupMin: loadWarmup('justTrain'),
+  };
+};
+
 // Every round is the same "Free flow" round: FightFocusTimer shows the title
 // on its round card and, only when voice is on, reads it at the bell.
 const freeFlowRounds = (n) => Array.from({ length: n }, () => ({
@@ -48,11 +67,7 @@ export default function JustTrainSetup({ discipline, onBack, onStart, onPaywall,
   const [helpOpen, setHelpOpen] = useState(false);
   const [proGateOpen, setProGateOpen] = useState(false);
   const [saved, setSaved] = useState(loadSaved);
-  const [cfg, setCfg] = useState({
-    ...BUILT_IN[0], preset: BUILT_IN[0].label,
-    rush: { on: false, pattern: 'endRound' },
-    warmupMin: loadWarmup('justTrain'),
-  });
+  const [cfg, setCfg] = useState(() => initialCfg(saved));
   // Touching a stepper means the values no longer match any preset.
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v, preset: null }));
   const pick = (p) => setCfg(c => ({ ...c, rounds: p.rounds, lenSec: p.lenSec, restSec: p.restSec, preset: p.label }));
@@ -84,6 +99,9 @@ export default function JustTrainSetup({ discipline, onBack, onStart, onPaywall,
   const start = async () => {
     if (!canRunRounds(cfg.rounds)) { setProGateOpen(true); return; }
     const voiceOn = cfg.rush.on;
+    try {
+      localStorage.setItem(LAST_KEY, JSON.stringify({ rounds: cfg.rounds, lenSec: cfg.lenSec, restSec: cfg.restSec, rush: cfg.rush }));
+    } catch { /* best-effort */ }
     if (voiceOn) { setVoiceGender(profile?.voiceCoach || 'FEMALE'); await primeSpeech(); }
     onStart({
       mode: 'Just Train', difficulty: 'Normal',

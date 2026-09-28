@@ -30,6 +30,8 @@ import ChallengeInboundModal from './shared/ChallengeInboundModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
 import { startCloudSync } from './data/cloudSync';
+import { rememberSession, loadLastSession, programFor } from './data/lastSession';
+import { startProgramDay } from './data/workoutPrograms';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -460,7 +462,7 @@ export default function App() {
     // CARDIO MODE straight back into a Tabata they finished yesterday.
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
+    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null);
@@ -558,6 +560,7 @@ export default function App() {
     },
     goArcadeComplete: () => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
     goCombatCondActive: (config) => {
+      rememberSession('cc', config);
       setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
       const mission = generateCombatConditioningMission(config);
       if (config?.cardioAddon?.enabled) mission.cardioAddon = config.cardioAddon;
@@ -591,6 +594,39 @@ export default function App() {
     goSetup:       (d) => { setDisc(d); setScreen('setup'); },
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goJustTrain:   (d) => { if (d) setDisc(d); setScreen('just_train'); },
+    // Home's Continue card: run the last started session again with the
+    // settings it ran with. A program starts its next day instead.
+    replayLastSession: () => {
+      const last = loadLastSession();
+      if (!last) return false;
+      const c = last.cfg;
+      switch (last.kind) {
+        case 'timer':
+          if (last.disc) setDisc(last.disc);
+          actions.goTimer(c);
+          // goTimer records with the discipline it closed over; the replay's
+          // own discipline is the right one.
+          rememberSession('timer', c, last.disc);
+          return true;
+        case 'combo':
+          if (last.disc) setDisc(last.disc);
+          actions.goComboActive(c);
+          return true;
+        case 'quick_mission':
+          actions.goQuickMissionActive(c);
+          return true;
+        case 'fit': {
+          const p = programFor(last);
+          actions.goFitWorkout(p ? startProgramDay(p, { equipment: c.equipment, difficulty: c.difficulty }) : c);
+          return true;
+        }
+        case 'cc':
+          actions.goCombatCondActive(c);
+          return true;
+        default:
+          return false;
+      }
+    },
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
@@ -720,7 +756,7 @@ export default function App() {
       setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
-    goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
+    goTimer:       (c) => { rememberSession('timer', c, disc); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
@@ -736,7 +772,7 @@ export default function App() {
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed } });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);
@@ -773,7 +809,7 @@ export default function App() {
       });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goFitWorkout:  (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
+    goFitWorkout:  (c) => { rememberSession('fit', c); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
       const beforeLevel = getLevel(loadStats().xp);
       setPausedSession(null); savePausedSession(null); setResumeData(null);

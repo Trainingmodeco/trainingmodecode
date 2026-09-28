@@ -4,11 +4,12 @@
 
 export const SCREEN_GUIDES = {
   home: [
-    { target: null, title: '🏠 HOME', body: 'Your daily command center. If you only ever tap one thing, tap TODAY\'S BOUT — everything else on this screen is a shortcut.' },
-    { target: 'home-level', title: 'LEVEL · XP · STREAK', body: 'Every finished workout adds XP and fills the bar. Fill it and you level up. The 🔥 number is how many days in a row you\'ve trained — miss a day and it resets.' },
-    { target: 'todays-bout', title: "TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds.' },
-    { target: 'home-arcade', title: 'CONTINUE CHALLENGE', body: 'Training Arcade turns workouts into a game — sagas with stages and a boss at the end. This card is a bookmark: it shows the stage you\'re on and drops you straight back in. It only appears once you\'ve started a saga.' },
-    { target: 'home-favorites', title: 'FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want and don\'t want to hunt through menus.' },
+    { target: null, title: '🏠 HOME', body: 'Your daily command center. If you only ever tap one thing, tap the gold START at the top — everything else on this screen is a way to choose something different.' },
+    { target: 'home-level', title: 'LEVEL · RANK · STREAK', body: 'Every finished workout adds XP and fills the bar. Fill it and you level up and climb the ranks. The 🔥 number is how many days in a row you\'ve trained.' },
+    { target: 'home-continue', title: 'CONTINUE', body: 'The session you paused, or the last one you started — START runs it again with the same settings. A program moves on to its next day. New here? It shows a workout picked for you instead. SURPRISE ME deals a random quick mission; ADJUST opens the settings first.' },
+    { target: 'home-modes', title: 'FIT OR FIGHT', body: 'The two sides of Training Mode. FIT MODE builds strength and cardio; FIGHT MODE builds striking skill. Everything else in the app lives inside one of these.' },
+    { target: 'home-arcade', title: 'TRAINING ARCADE', body: 'Real workouts played like a game — sagas with stages and a boss at the end. Clear a stage to unlock the next.' },
+    { target: 'home-quick', title: 'QUICK ACCESS', body: 'Three shortcuts for when you know what you want: an instant Quick Mission, the Just Train round timer, and Combat Conditioning.' },
     { target: 'nav-tabs', title: 'THE FOUR TABS', body: 'HOME is here. TRAIN is every workout in the app. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
     { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
   ],
@@ -38,7 +39,7 @@ export const SCREEN_GUIDES = {
   // Everything cut from the core is covered by each screen's own ? guide,
   // and the whole tour stays available under Profile → Replay Intro Guide.
   full_intro: [
-    { screen: 'home', target: 'todays-bout', title: "TODAY'S BOUT", body: 'One workout, picked for you from your discipline and level, so you never have to decide. Tap it and you\'re training in seconds. If you only ever tap one thing, tap this.' },
+    { screen: 'home', target: 'home-continue', title: '▶ START HERE', body: 'This card always holds your next workout — one picked for you today, and after that, whatever you trained last, ready to run again with the same settings. If you only ever tap one thing, tap START.' },
 
     { screen: 'fit_hub', target: null, title: '🥊 FIT OR FIGHT', body: 'Every workout in the app lives under one of these two tabs. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio. They sit side by side at the top of every training screen, so you are never more than one tap from the other — mix them however you like.' },
     { screen: 'fit_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN opens your training tabs. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
@@ -72,8 +73,8 @@ export const SCREEN_GUIDES = {
     // The grand tour lands back on Home — the two cards the core pass skipped,
     // ending where the athlete actually starts training. (The tabs and ? steps
     // live in the mandatory core now, so they don't repeat here.)
-    { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE — YOUR CHALLENGE', body: 'This card is your arcade bookmark. START CHALLENGE begins a saga — a 10-stage campaign with a boss at the end — and once you\'re climbing, it drops you straight back onto the stage you\'re on.' },
-    { screen: 'home', target: 'home-favorites', title: '❤ FAVORITES', body: 'Four one-tap shortcuts to the workouts you use most — QUICK, HIIT, FIGHT and BUILD. Use these when you know exactly what you want. That\'s the tour — go train.' },
+    { screen: 'home', target: 'home-arcade', title: '🕹 TRAINING ARCADE', body: 'Your way into the arcade from Home — a 10-stage saga with a boss at the end. Tap it any time to pick a saga or carry on with the one you\'re climbing.' },
+    { screen: 'home', target: 'home-quick', title: '⚡ QUICK ACCESS', body: 'Three one-tap shortcuts — Quick Mission, Just Train and Combat Conditioning — for when you know exactly what you want. That\'s the tour — go train.' },
   ],
 
   // The everyday "?" on Choose Your Path — compact and single-screen. The
