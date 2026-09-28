@@ -2,6 +2,7 @@ import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
 import { calculatePartialXp } from './utils/missionIntegrity';
 import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
+import { fightTimerXp } from './data/userStats';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
@@ -19,7 +20,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);
 
-  const baseXp = completed * 20 + (completed === totalPlanned ? 50 : 0);
+  const baseXp = fightTimerXp(completed, totalPlanned, { justTrain: cfg.mode === 'Just Train' });
   const rawXp = integrityResult?.awardXp
     ? calculatePartialXp(baseXp, integrityResult.validCompletedUnits, integrityResult.totalRequiredUnits)
     : (integrityResult ? 0 : baseXp);

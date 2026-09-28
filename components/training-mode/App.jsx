@@ -805,7 +805,7 @@ export default function App() {
       setPausedSession(null); savePausedSession(null); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
-      addFightFocusSession(done, total);
+      addFightFocusSession(done, total, { justTrain: c.mode === 'Just Train' });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       const fs = fightSessionStats || {};
