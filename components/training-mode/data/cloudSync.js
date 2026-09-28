@@ -35,6 +35,7 @@ export const SYNC_KEYS = [
   'tm_camp_progress', 'tm_camp_sessions', 'tm_camp_complete', 'tm_camp_archetype', 'tm_camp_parq',
   // fit / fight content the athlete created or earned
   'tm_benchmarks', 'tm_saved_routines', 'tm_custom_combos', 'tm_arsenal',
+  'tm_practice_library_drilled', 'tm_practice_invite_v1',
   'tm_fit_builder_history', 'tm_cardio_sessions', 'tm_weight_log',
   'tm_prog_bro', 'tm_prog_ppl', 'tm_prog_ul',
   // plan + preferences

@@ -211,6 +211,34 @@ export function addComboBonus(xpAward) {
   return xpAward;
 }
 
+// Practice Round (Simplify revamp) — the drill after a lesson. Logged as
+// 'Practice', which the tier and Progress splits already count as Fight.
+// The XP is decided by the round's level (data/practiceRound xpFor).
+export function addPracticeSession(focus, roundsCompleted, totalRounds, xpAward) {
+  const stats = loadStats();
+  stats.xp += xpAward;
+  stats.sessions.push({
+    id: makeId(),
+    type: 'Practice',
+    completedAt: new Date().toISOString(),
+    completedCount: roundsCompleted,
+    totalCount: totalRounds,
+    xpEarned: xpAward,
+    lessonTitle: focus,
+  });
+  saveStats(stats);
+  return xpAward;
+}
+
+// The weekly practice reminder's lesson bonus. XP only, like addComboBonus:
+// the lesson itself already logged its own row.
+export function addPracticeWeeklyBonus(xpAward) {
+  const stats = loadStats();
+  stats.xp += xpAward;
+  saveStats(stats);
+  return xpAward;
+}
+
 const XP_CARDIO_BASE = 20;
 const XP_CARDIO_PER_MINUTE = 5;
 

@@ -52,7 +52,7 @@ export const SCREEN_GUIDES = {
     { screen: 'fight_hub', target: 'fh-fight-focus', title: '🎯 FIGHT FOCUS', body: 'Voice-coached rounds on a fight timer. A coach calls the work, the bell starts and ends each round, and you get rest between them. The closest thing to a real session.' },
     { screen: 'fight_hub', target: 'fh-combo', title: '🥊 COMBO COACH', body: 'The coach calls combinations and you throw them — "one-two, slip, hook". Builds speed, rhythm and reaction. You set how often the calls come.' },
     { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
-    { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. Strikes, defense and footwork taught one at a time, with form cues — no timer pressure.' },
+    { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. A seven-lesson path per discipline plus a library of strikes, defense and footwork. Every lesson ends in a Practice Round — the coach calls what you just learned, and the rounds grow as you learn more.' },
 
     { screen: 'fit_hub', target: 'mode-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
     { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
@@ -88,7 +88,7 @@ export const SCREEN_GUIDES = {
     { target: 'fh-fight-focus', title: 'FIGHT FOCUS', body: 'Voice-coached rounds like a real session — a round timer with a coach calling the work. Choose Fight Focus.' },
     { target: 'fh-combo', title: 'COMBO COACH', body: 'The coach calls strike combinations and you throw them — builds speed, rhythm and reaction. Choose Combo Coach.' },
     { target: 'fh-camp', title: 'TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight — Foundation, Development, Hard Camp, Taper, then the belt. Clear a stage to unlock the next. Choose Training Camp.' },
-    { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense and footwork step by step. Choose Practice Mode.' },
+    { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense and footwork step by step, then drill each one in a Practice Round. Choose Practice Mode.' },
     { target: 'fh-conditioning', title: 'COMBAT CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work.' },
   ],
 
@@ -217,6 +217,16 @@ export const SCREEN_GUIDES = {
     { target: 'jt-steppers', title: 'YOUR ROUNDS', body: 'Rounds, round length and rest. Tap a number to type it — round length is in minutes, so 3 means 3:00. TOTAL is the whole session.' },
     { target: 'jt-rush', title: '⚡ RUSH MODE', body: 'Optional. Turns on surges — sudden calls to go all-out. Rushes are spoken, so the coach only talks when this is on.' },
     { target: 'jt-start', title: 'START TIMER', body: 'The bell starts round one. Pause, skip or end any time from the timer.' },
+  ],
+
+  practice: [
+    { target: null, title: '📚 PRACTICE MODE', body: 'Learn a move, then drill it. Everything here is one lesson or one technique at a time.' },
+    { target: 'pm-discipline', title: 'DISCIPLINE', body: 'Each discipline has its own path and library. Your pick is shared with Fight Mode and Combat Conditioning.' },
+    { target: 'pm-continue', title: 'CONTINUE LEARNING', body: 'Opens the next lesson on your path. Each lesson has step-by-step key points — press play and the coach reads them to you.' },
+    { target: 'pm-path', title: 'FUNDAMENTALS PATH', body: 'Seven lessons, in order. Gold ✓ is done, the glowing ring is next. Tap any dot to open that lesson.' },
+    { target: 'pm-library', title: 'TECHNIQUE LIBRARY', body: 'Every strike, defense and footwork move for this discipline. Tap one for its key points and what to watch for. SEE ALL shows the full list.' },
+    { target: 'pm-combo', title: '🥊 DRILL A COMBO', body: 'Opens Combo Coach, where the coach calls full combinations for you to throw.' },
+    { target: null, title: 'PRACTICE ROUNDS', body: 'Every lesson and technique ends with START PRACTICE ROUND: a short round where the coach calls what you just learned mixed with what you already know. It starts at 1 × 1:00 and grows to 3 × 3:00 as you learn more.' },
   ],
 
   cardio_mode: [

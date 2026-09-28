@@ -409,17 +409,13 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       </WithNav>
     );
   }
-  if (screen === 'start_here' || screen === 'practice_starthere') {
+  if (screen === 'start_here' || screen === 'practice_starthere' || screen === 'practice') {
+    // One screen (Simplify revamp): locked, the technique grid scrolls on
+    // its own. The Start Here entries open straight onto the current lesson.
+    // Keyed so switching between the two entries remounts onto the right view.
     return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <PracticeMode initialDisc={disc} initialView="startHere" onBack={goFightHub} onHome={goHome}/>
-      </WithNav>
-    );
-  }
-  if (screen === 'practice') {
-    return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <PracticeMode initialDisc={disc} initialView="library" onBack={goFightHub} onHome={goHome}/>
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
+        <PracticeMode key={screen} openLesson={screen !== 'practice'} onBack={goFightHub} onComboCoach={goComboSetup}/>
       </WithNav>
     );
   }

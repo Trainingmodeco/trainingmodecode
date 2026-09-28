@@ -32,6 +32,8 @@ import { loadParq, saveParq } from './data/parq';
 import { startCloudSync } from './data/cloudSync';
 import { rememberSession, loadLastSession, programFor } from './data/lastSession';
 import { startProgramDay } from './data/workoutPrograms';
+import PracticeInvite from './PracticeInvite';
+import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -199,6 +201,8 @@ export default function App() {
   // every mode is covered for new users. Camp keeps its own gate and the
   // Arcade gains one as the safety net for pre-existing profiles.
   const [showParqGate, setShowParqGate] = useState(false);
+  // Practice posters: 'intro' once after first-run setup, 'weekly' on open.
+  const [practiceInvite, setPracticeInvite] = useState(null);
   const afterParqRef = useRef(null);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
@@ -432,6 +436,13 @@ export default function App() {
     if (typeof localStorage !== 'undefined') localStorage.setItem(TOUR_KEY, 'true');
   };
   const startFullIntro = () => { setScreen('home'); setPathTour('full_intro'); };
+  // Practice Mode's welcome poster, for new learners, once — the last step
+  // of first-run setup (after the walkthrough, so the two never overlap).
+  const maybePracticeIntro = () => {
+    if (!shouldShowIntro(loadProfile())) return;
+    markIntroShown();
+    setPracticeInvite('intro');
+  };
   const closePathTour = (finished) => {
     const key = pathTour;
     setPathTour(null);
@@ -439,6 +450,7 @@ export default function App() {
       markTourDone();
       trackEvent(finished ? 'feature_tour_complete' : 'feature_tour_skipped');
       setScreen('home');
+      maybePracticeIntro();
     } else if (key === 'arcade_saga_select') {
       // Per spec: however the arcade guide ends, land back on the saga page.
       setScreen('arcade');
@@ -865,8 +877,14 @@ export default function App() {
       setLevelUp(null);
       setScreen(dest);
     },
-    goPractice:    (d) => { setDisc(d); setScreen('practice'); },
-    goStartHere:   () => { setDisc('Boxing'); setScreen('practice_starthere'); },
+    goPractice:    (d) => { if (d) setDisc(d); setScreen('practice'); },
+    // Practice, opened on the current lesson of the shared discipline.
+    goStartHere:   (d) => { if (d) setDisc(d); setScreen('practice_starthere'); },
+    // The same, switching the shared discipline first (the Practice posters).
+    goPracticeLesson: (d) => {
+      if (d) { try { saveProfile({ ...loadProfile(), discipline: d }); } catch { /* best-effort */ } setDisc(d); }
+      setScreen('practice_starthere');
+    },
     goStartDailyMission: (mission) => {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('dailyMissionActive', 'true');
@@ -893,6 +911,8 @@ export default function App() {
     goAfterSplash: () => {
       const done = typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true';
       setScreen(done ? 'home' : 'onboarding');
+      // The weekly practice reminder, at most once a week, on opening the app.
+      if (done && shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
     },
     completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -902,7 +922,7 @@ export default function App() {
       // Never auto-show again.
       const finish = () => {
         const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-        if (!tourDone) startFullIntro(); else setScreen('home');
+        if (!tourDone) startFullIntro(); else { setScreen('home'); maybePracticeIntro(); }
       };
       // ND-06 — PAR-Q closes out onboarding (once ever), then the tour runs.
       if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }
@@ -920,7 +940,7 @@ export default function App() {
       // it ended — skipping the wizard doesn't skip the intro (or the PAR-Q).
       const finish = () => {
         const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-        if (!tourDone) startFullIntro(); else setScreen('home');
+        if (!tourDone) startFullIntro(); else { setScreen('home'); maybePracticeIntro(); }
       };
       if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }
       else finish();
@@ -942,6 +962,14 @@ export default function App() {
             if (f) f();
           }}/>
         </div>
+      )}
+      {practiceInvite && (
+        <PracticeInvite
+          view={practiceInvite}
+          discipline={loadProfile()?.discipline || 'Boxing'}
+          onStart={(d) => { setPracticeInvite(null); actions.goPracticeLesson(d); }}
+          onClose={() => setPracticeInvite(null)}
+        />
       )}
       {showOffline && (
         <div style={{ position: 'fixed', ...fixedColumnLeft(12), bottom: 'calc(74px + env(safe-area-inset-bottom,0px))', zIndex: 600, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 99, background: 'rgba(20,6,38,0.95)', border: '1px solid rgba(253,224,71,0.35)', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'none', animation: 'tm-offline-toast 4s ease forwards' }}>
