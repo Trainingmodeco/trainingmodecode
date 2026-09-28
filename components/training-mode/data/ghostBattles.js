@@ -11,6 +11,9 @@ import { trackEvent } from './analytics';
 const KEY = 'tm_ghosts_v1';
 const LAST_KEY = 'tm_ghost_last_battle';
 const VS_VARIANT_KEY = 'tm_ghost_vs_variant';
+// The ghost the most recent verified session made, best or not — what Haunt a
+// Friend sends from that session's summary.
+const LAST_RECORDED_KEY = 'tm_ghost_last_recorded';
 const VICTORY_XP = 75; // bonus on a win; a loss still keeps normal session XP
 
 function load() {
@@ -60,6 +63,7 @@ export function recordGhostFromSession({ mode, discipline, difficulty = 'normal'
     createdAt: Date.now(),
   });
   if (!ghost || ghost.totalStrikes <= 0) return null;
+  try { localStorage.setItem(LAST_RECORDED_KEY, JSON.stringify(ghost)); } catch { /* quota */ }
   const box = load();
   const k = keyFor(mode, discipline);
   const prev = box.best[k];
@@ -97,6 +101,10 @@ export function finishGhostBattle(ghost, you) {
   try { if (typeof localStorage !== 'undefined') localStorage.setItem(LAST_KEY, JSON.stringify({ result, headline, ghost, you, at: Date.now() })); } catch { /* noop */ }
   trackEvent('ghost_battle_finished', { outcome: result.outcome, margin: result.margin });
   return { result, headline };
+}
+
+export function getLastRecordedGhost() {
+  try { const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(LAST_RECORDED_KEY) : null; return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
 
 export function getLastBattle() {

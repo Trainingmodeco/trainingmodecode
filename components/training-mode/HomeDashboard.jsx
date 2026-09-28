@@ -15,6 +15,7 @@ import { getFightMiniSuggestion } from './data/recommendations';
 import { loadLastSession, describeSession, programFor } from './data/lastSession';
 import { surpriseQuickMission } from './data/quickMissionConfig';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
+import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './data/ghostChallenges';
 
 // Home — the Simplify revamp hub.
 //
@@ -43,6 +44,10 @@ const sideOfScreen = (screen) => (screen === 'arcade_session' ? ARCADE : FIT_SCR
 const MUTED = '#A9A3C4';
 
 const homeCSS = `
+@keyframes hm-ghost { 0%, 100% { opacity: 0; transform: translateY(0) } 50% { opacity: 1; transform: translateY(-4px) } }
+.hm-ghost { animation: hm-ghost 3.2s ease-in-out infinite; transition: filter .2s; }
+.hm-ghost:hover, .hm-ghost:focus-visible { animation-play-state: paused; opacity: 1; filter: drop-shadow(0 0 8px rgba(196,168,255,.9)); }
+@media (prefers-reduced-motion: reduce) { .hm-ghost { animation: none; opacity: 1; } }
 .hm-go { transition: filter .18s ease, box-shadow .18s ease, transform .1s ease; }
 .hm-go:hover, .hm-go:focus-visible { filter: brightness(1.1); box-shadow: 0 0 30px rgba(242,190,69,.55) !important; }
 .hm-go:active { transform: scale(0.985); }
@@ -67,7 +72,7 @@ const homeCSS = `
 export default function HomeDashboard({
   onHome, onFightMode, onFitMode, onTrain, profile,
   onPractice, onFightFocus, onQuickMission, onStartQuickMission, onFitSetup, onComboCoach, onJustTrain, onPrograms,
-  onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast,
+  onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
 }) {
   const [stats, setStats] = useState(() => loadStats());
@@ -92,6 +97,27 @@ export default function HomeDashboard({
   const [comboFlash, setComboFlash] = useState(() => consumeComboFlash());
   const [comboNudge, setComboNudge] = useState(null);
   useEffect(() => { setComboNudge(getComboNudge(profile?.name)); }, [profile?.name]);
+
+  // A live ghost challenge haunts the Continue card until it's beaten; its
+  // nudges (the decline line, then at most one a day) take the toast slot.
+  const [ghostCh, setGhostCh] = useState(() => getActiveChallenge());
+  const [ghostNudge, setGhostNudge] = useState(() => consumeGhostNudge());
+  // Home is usually already mounted under the challenge screen, so a decline
+  // there has to reach it: re-read on every change.
+  useEffect(() => {
+    const onChange = () => {
+      setGhostCh(getActiveChallenge());
+      const n = consumeGhostNudge();
+      if (n) setGhostNudge(n);
+    };
+    window.addEventListener(GHOST_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(GHOST_CHANGE_EVENT, onChange);
+  }, []);
+  useEffect(() => {
+    if (!ghostNudge?.auto) return undefined;
+    const t = setTimeout(() => setGhostNudge(null), 4500);
+    return () => clearTimeout(t);
+  }, [ghostNudge]);
 
   const level = getLevel(stats.xp);
   const { current: levelXp, needed: levelNeeded } = getLevelProgress(stats.xp);
@@ -185,6 +211,12 @@ export default function HomeDashboard({
   // ever shows once), then the daily nudge, then the come-back reminder.
   const nudge = comboFlash
     ? { icon: comboFlash.kind === 'milestone' ? '🏅' : comboFlash.kind === 'guarded' ? '🛡' : '🔁', text: comboFlash.text, onClose: () => setComboFlash(null) }
+    : ghostNudge
+      ? {
+        icon: '👻', text: ghostNudge.text,
+        onGo: ghostNudge.auto ? undefined : () => { setGhostNudge(null); onOpenGhost?.(); },
+        onClose: () => setGhostNudge(null),
+      }
     : comboNudge
       ? {
         icon: '⏰', text: comboNudge.text,
@@ -246,10 +278,20 @@ export default function HomeDashboard({
                   3 Round Starter") drop a size and wrap rather than lose words.
                   Longhand, not `font`: the size changes between renders, and a
                   changing shorthand beside lineHeight makes React warn. */}
-              <h1 style={{
-                margin: '2px 0 0', fontWeight: 700, fontSize: card.title.length > 18 ? 22 : 28, fontFamily: "'Chakra Petch',sans-serif", lineHeight: 1.08, color: '#fff',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-              }}>{card.title}</h1>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <h1 style={{
+                  flex: '0 1 auto', minWidth: 0,
+                  margin: '2px 0 0', fontWeight: 700, fontSize: card.title.length > 18 ? 22 : 28, fontFamily: "'Chakra Petch',sans-serif", lineHeight: 1.08, color: '#fff',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>{card.title}</h1>
+                {/* The design's 👻: fades in and out beside the title while a
+                    ghost challenge is live, and opens it. */}
+                {ghostCh && (
+                  <button type="button" className="hm-ghost" data-guide="home-ghost" onClick={onOpenGhost} aria-label="Your ghost challenge" style={{
+                    flexShrink: 0, background: 'none', border: 0, padding: 2, cursor: 'pointer', fontSize: 24, lineHeight: 1,
+                  }}>👻</button>
+                )}
+              </div>
               <div style={{ fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.parts.join(' · ')}</div>
               <div style={{ flexGrow: 1 }}/>
               <button type="button" className="hm-go" onClick={card.onGo} style={{

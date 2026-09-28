@@ -29,20 +29,34 @@ const DIFF_DESC = {
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
 const toInt = (s) => parseInt(s, 10);
 
-export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall, profile }) {
+// A ghost challenge (data/ghostChallenges) opens this screen with the ghost
+// already chosen: its rounds and level preset, and surprise rushes locked on
+// in place of the Rush Mode row, per the design.
+const levelOf = (d) => {
+  const v = String(d || '').charAt(0).toUpperCase() + String(d || '').slice(1).toLowerCase();
+  return DIFFICULTIES.includes(v) ? v : 'Normal';
+};
+const SURPRISE_RUSH = { on: true, pattern: 'random', mix: 'explosive' };
+
+export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall, profile, challenge = null }) {
   const [helpOpen, setHelpOpen] = useState(false);
   // Ghost Battles — the chosen opponent (null = plain session).
-  const [ghost, setGhost] = useState(null);
+  const [ghost, setGhost] = useState(() => challenge?.ghost || null);
   const [ghostCodeOpen, setGhostCodeOpen] = useState(false); // in-app code entry (RN Web has no prompt)
   const [ghostToast, setGhostToast] = useState('');
   const myBest = getMyBestGhost('fight_focus', discipline);
   const [proGateOpen, setProGateOpen] = useState(false);
-  const [cfg, setCfg] = useState({
-    difficulty: 'Normal', mode: 'Technical', rounds: 3,
-    roundMin: 3, restSec: 60, voiceOn: true,
-    rush: { on: false, pattern: 'endRound' },
-    encouragement: profile?.encouragement || 'normal',
-    warmupMin: loadWarmup('fightFocus'),
+  const [cfg, setCfg] = useState(() => {
+    const rc = challenge?.ghost?.source?.roundsConfig;
+    return {
+      difficulty: challenge ? levelOf(challenge.ghost.source?.difficulty) : 'Normal', mode: 'Technical',
+      rounds: rc?.rounds || 3,
+      roundMin: rc?.roundSec ? rc.roundSec / 60 : 3,
+      restSec: rc?.restSec ?? 60, voiceOn: true,
+      rush: challenge ? SURPRISE_RUSH : { on: false, pattern: 'endRound' },
+      encouragement: profile?.encouragement || 'normal',
+      warmupMin: loadWarmup('fightFocus'),
+    };
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
 
@@ -72,15 +86,33 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
         </div>
 
-        {/* Rush mode (opens the flame popup) — unchanged, per the design. */}
-        <div data-guide="ff-rush">
-          <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
-        </div>
+        {/* Rush mode (opens the flame popup) — unchanged, per the design.
+            A ghost challenge takes its place: surprise rushes, locked on. */}
+        {challenge ? (
+          <div data-guide="ff-rush" style={{
+            display: 'flex', alignItems: 'center', gap: 10, minHeight: 56, padding: '8px 12px', borderRadius: 12, boxSizing: 'border-box',
+            background: 'linear-gradient(90deg, rgba(36,88,224,.28), rgba(11,15,34,.92))', border: '1px solid rgba(110,155,255,.6)',
+            boxShadow: '0 0 16px rgba(61,123,255,.25)',
+          }}>
+            <span style={{ fontSize: 22 }}>👻</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color: '#fff' }}>GHOST CHALLENGE</div>
+              <div style={{ fontSize: 12, color: '#A9B4D6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                VS {challenge.ghost.ownerName} · {challenge.ghost.totalStrikes} strikes · surprise rushes locked on
+              </div>
+            </div>
+            <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color: '#F2BE45', border: '1px solid rgba(242,190,69,.55)', borderRadius: 6, padding: '4px 7px', flexShrink: 0 }}>⚡ ON</span>
+          </div>
+        ) : (
+          <div data-guide="ff-rush">
+            <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
+          </div>
+        )}
 
         {/* Ghost Battles (specs 18/24) — race the replay of a verified past
             session. MY BEST is always available once one exists; a friend's
             challenge code pastes in. The battle inherits this session's format. */}
-        <div data-tour="ghost-battle" data-guide="ff-ghost" style={{ borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
+        {!challenge && <div data-tour="ghost-battle" data-guide="ff-ghost" style={{ borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <span style={{ fontSize: 15 }}>👻</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -109,7 +141,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
             }} style={{ marginTop: 7, width: '100%', background: 'none', border: '1px dashed rgba(176,106,255,0.35)', borderRadius: 8, color: '#8b83a8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '6px 0' }}>⚔️ SET MY BEST AS A CHALLENGE (COPY CODE)</button>
           )}
           {ghostToast && <div style={{ marginTop: 7, font: "600 9px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{ghostToast}</div>}
-        </div>
+        </div>}
 
         {/* Start — inline, right under Rush Mode so it's never hidden */}
         <div data-guide="ff-start">
@@ -127,6 +159,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
               encouragement: cfg.encouragement,
               warmupMin: cfg.warmupMin,
               ghost,
+              ghostChallengeId: challenge?.id || null,
             });
           }}
         />

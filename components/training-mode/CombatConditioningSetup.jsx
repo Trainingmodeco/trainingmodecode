@@ -359,7 +359,7 @@ function PresetCard({ preset, active, onSelect, compact }) {
 }
 
 // ── Main screen ─────────────────────────────────────────────────────────
-export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly: _onCardioOnly, profile: _profile }) {
+export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly: _onCardioOnly, profile: _profile, initialPreset = null }) {
   const [helpOpen, setHelpOpen] = useState(false);
   // The discipline is the shared one from the tabs (and the Fight hub), not a
   // separate pick buried in Customize.
@@ -411,6 +411,14 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
       setEquipment(d.equipment);
     }
   };
+
+  // The Combat Conditioning comeback's START GAS TANK lands here with its
+  // circuit picked, exactly as if it had been tapped.
+  useEffect(() => {
+    if (initialPreset && getPreset(initialPreset)) handleSelectPreset(initialPreset);
+    // Mount-only: the opener's choice, not a subscription to it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const canStart = hasPreset;
   const handleStart = () => {

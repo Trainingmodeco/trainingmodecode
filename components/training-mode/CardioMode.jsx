@@ -195,8 +195,10 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   // OS took it) comes straight back into the player. See data/liveRun.js.
   const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
   const [phase, setPhase] = useState(() => (loadLiveRun() || resumeData?.protocol ? 'player' : 'setup'));
+  // A ghost-run challenge (data/ghostChallenges) arrives with the ghost's own
+  // distance, unit and surface, so the race is the same run.
   const [categoryId, setCategoryId] = useState(() => {
-    const saved = rs?.categoryId ?? 'running';
+    const saved = rs?.categoryId ?? (entry?.surface === 'machine' ? 'machine' : 'running');
     return LEGACY_CATEGORIES[saved] || saved;
   });
   const [style, setStyle] = useState(rs?.style ?? 'steady');
@@ -205,10 +207,10 @@ export default function CardioMode({ onBack, onSessionState, entry = null, resum
   const [configOpen, setConfigOpen] = useState(false);
   // 3 miles rather than 5 kilometres — the same run, named the way it is named
   // here. A 5 in a miles field would be a much longer session than intended.
-  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? 3);
+  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? (entry?.goal > 0 ? Number(entry.goal) : 3));
   // Miles is the default and the dominant unit — the athletes using this are in
   // the US. Kilometres stay one tap away, not the other way round.
-  const [distanceUnit, setDistanceUnit] = useState(rs?.distanceUnit ?? 'mi');
+  const [distanceUnit, setDistanceUnit] = useState(rs?.distanceUnit ?? (entry?.unit === 'km' ? 'km' : 'mi'));
   const [customDistance, setCustomDistance] = useState(rs?.customDistance ?? '');
   const [goalTimeSeconds, setGoalTimeSeconds] = useState(rs?.goalTimeSeconds ?? 1200);
   const [customTimeMin, setCustomTimeMin] = useState(rs?.customTimeMin ?? '');

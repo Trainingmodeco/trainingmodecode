@@ -138,6 +138,12 @@ export function getRunGhost(unit, goal, which = 'best', surface = 'gps') {
   return (which === 'last' ? box.last[k] : box.best[k]) || null;
 }
 
+// Every MY BEST ghost, one per distance and surface (ghost challenges pick
+// from these).
+export function bestRunGhosts() {
+  return Object.values(load().best).filter(Boolean);
+}
+
 export function hasAnyRunGhost(surface = null) {
   const box = load();
   const keys = Object.keys(box.last);

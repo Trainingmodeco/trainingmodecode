@@ -4,6 +4,8 @@ import { CircleCheck as CheckCircle } from 'lucide-react';
 import { ARCADE, ArcadeHudPanel, ArcadeSectionLabel, ArcadePrimaryButton, ArcadeSecondaryButton, ArcadeStatusChip } from './ArcadeUI';
 import { createCardioSession, logCardioSession } from './data/cardioSessions';
 import { logRun } from './data/runLog';
+import { surfaceOf } from './data/runGhosts';
+import { settleChallenge } from './data/ghostChallenges';
 import RouteMap from './shared/RouteMap';
 import RunSplits from './shared/RunSplits';
 import SharePromptModal from './SharePromptModal';
@@ -105,6 +107,10 @@ export default function CardioSummary({
         { source: sourceMode, methodLabel, calories: kcal, notes: notes.trim() },
       );
       runId = saved?.id || null;
+      // A win over the live ghost-run challenge settles it and pays its bonus.
+      if (runResult.ghost) {
+        settleChallenge('cardio', { unit: runResult.distanceUnit, goal: runResult.goal, surface: surfaceOf(runResult) }, runResult.ghost.outcome);
+      }
     }
     const session = createCardioSession({
       sourceMode,

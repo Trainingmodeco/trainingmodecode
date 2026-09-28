@@ -14,7 +14,7 @@ import SessionSummary from './SessionSummary';
 import { resolveOutcome } from './shared/sessionOutcome';
 import GhostVsScreen from './shared/GhostVsScreen';
 import GhostResultScreen from './shared/GhostResultScreen';
-import { getLastBattle, getMyBestGhost } from './data/ghostBattles';
+import { getLastBattle, getMyBestGhost, getLastRecordedGhost } from './data/ghostBattles';
 import MissionComplete from './shared/MissionComplete';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
@@ -204,7 +204,7 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
   );
 }
 
-export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
+export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, reportSessionState, resumeData, actions }) {
   const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
 
   const isResuming = pausedSession?.screen === screen;
@@ -240,7 +240,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
       // enough to scroll, and to inherit the previous screen's scroll position
       // with the header cut off. Lock still scrolls if a short phone needs it.
       <WithNav activeTab="home" onNavigate={handleNavigate} lock>
-        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
+        <HomeDashboard onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} onOpenGhost={actions.openGhostChallenge} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}/>
       </WithNav>
     );
   }
@@ -436,7 +436,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FightFocusSetup discipline={disc} onBack={goFightHub} onStart={c => goTimer(c)} onPaywall={goPaywall} profile={profile}/>
+        <FightFocusSetup key={ghostLaunch?.id || 'plain'} discipline={disc} challenge={ghostLaunch} onBack={goFightHub} onStart={c => goTimer(c)} onPaywall={goPaywall} profile={profile}/>
       </WithNav>
     );
   }
@@ -490,11 +490,18 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
     const ghostRematchAction = myBest
       ? [{ label: '👻 BEAT THIS RUN', kind: 'secondary', onClick: () => goTimer({ ...session.cfg, ghost: myBest }) }]
       : [];
+    // Haunt a Friend — only when THIS session made a verified Fight Focus
+    // ghost (recorded within the last hour), since that is what gets sent.
+    const madeGhost = !isJustTrain ? getLastRecordedGhost() : null;
+    const hauntAction = madeGhost?.source?.mode === 'fight_focus' && Date.now() - (madeGhost.createdAt || 0) < 60 * 60 * 1000
+      ? [{ label: '👻 HAUNT A FRIEND', kind: 'secondary', onClick: () => actions.openHaunt(madeGhost) }]
+      : [];
 
     if (battleIsThisSession) {
       return (
         <GhostResultScreen
           battle={battle}
+          challenge={session.challengeWin}
           onRematch={() => { setGhostResultSeen(true); handleRetry(); }}
           onDone={() => setGhostResultSeen(true)}
         />
@@ -506,7 +513,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
           discipline={disc}
           rounds={session.rounds}
           cfg={session.cfg}
-          extraActions={ghostRematchAction}
+          extraActions={[...hauntAction, ...ghostRematchAction]}
           completedRounds={session.completedRounds}
           integrityResult={session.integrityResult}
           fightStats={session.fightStats}
@@ -615,7 +622,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, comboCfg, fit
   if (screen === 'cc_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <CombatConditioningSetup onBack={goFightHub} onStart={goCombatCondActive} onCardioOnly={goCardioMode} profile={profile}/>
+        <CombatConditioningSetup key={ccPreset || 'plain'} initialPreset={ccPreset} onBack={goFightHub} onStart={goCombatCondActive} onCardioOnly={goCardioMode} profile={profile}/>
       </WithNav>
     );
   }

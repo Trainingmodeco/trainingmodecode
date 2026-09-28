@@ -34,6 +34,11 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay } from './data/workoutPrograms';
 import PracticeInvite from './PracticeInvite';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
+import GhostChallenge from './GhostChallenge';
+import Comeback from './Comeback';
+import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChallenge, hauntFromLocation, takeHaunt, unseenHaunt, markChallengeSeen } from './data/ghostChallenges';
+import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
+import { getLastBattle } from './data/ghostBattles';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -203,6 +208,25 @@ export default function App() {
   const [showParqGate, setShowParqGate] = useState(false);
   // Practice posters: 'intro' once after first-run setup, 'weekly' on open.
   const [practiceInvite, setPracticeInvite] = useState(null);
+  // Ghost challenge screen: { view: 'challenge' | 'haunt', challenge?, ghost?, xpLine? }.
+  const [ghostView, setGhostView] = useState(null);
+  // The challenge Fight Focus setup was opened for (null = a plain setup).
+  const [ghostLaunch, setGhostLaunch] = useState(null);
+  // A due comeback cutscene, and a Combat Conditioning preset it asked for.
+  const [comeback, setComeback] = useState(null);
+  const [ccPreset, setCcPreset] = useState(null);
+  // A friend's haunt link (?h=): it becomes the live challenge straight away.
+  // Someone already set up sees it now; a first-run user after onboarding,
+  // at the next open (goAfterSplash).
+  useEffect(() => {
+    const g = hauntFromLocation();
+    if (!g) return;
+    const ch = takeHaunt(g);
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true') {
+      markChallengeSeen();
+      setGhostView({ view: 'challenge', challenge: ch });
+    }
+  }, []);
   const afterParqRef = useRef(null);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
@@ -495,7 +519,7 @@ export default function App() {
         routeAfterXp(beforeLevel, 'qm_complete');
       }
     },
-    goCombatCondSetup: () => setScreen('cc_setup'),
+    goCombatCondSetup: () => { setCcPreset(null); setScreen('cc_setup'); },
     // A pasted/scanned challenge code resolved to a real series+stage — surface
     // the same accept-and-start modal the deep link uses.
     startChallenge: (resolved) => setPendingChallenge(resolved),
@@ -603,7 +627,11 @@ export default function App() {
     goGameLink:     () => setScreen('game_link'),
     goSubscription: () => setScreen('subscription'),
     goNotifications: () => setScreen('notifications'),
-    goSetup:       (d) => { setDisc(d); setScreen('setup'); },
+    goSetup:       (d) => { setDisc(d); setGhostLaunch(null); setScreen('setup'); },
+    // Home's 👻: the live challenge's screen again.
+    openGhostChallenge: () => { const ch = getActiveChallenge(); if (ch) setGhostView({ view: 'challenge', challenge: ch }); },
+    // Haunt a Friend, from a session summary.
+    openHaunt: (ghost, xpLine) => setGhostView({ view: 'haunt', ghost, xpLine }),
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
     goJustTrain:   (d) => { if (d) setDisc(d); setScreen('just_train'); },
     // Home's Continue card: run the last started session again with the
@@ -781,7 +809,12 @@ export default function App() {
       recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: 'fightFocus', rounds: done });
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed } });
+      // A win over the live ghost challenge settles it (the battle itself was
+      // resolved by the timer at the final bell).
+      const battle = c.ghost ? getLastBattle() : null;
+      const challengeWin = battle?.ghost?.ghostId && battle.ghost.ghostId === c.ghost.ghostId
+        ? settleChallenge('fight', c.ghost, battle.result?.outcome) : null;
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
     goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
@@ -911,8 +944,17 @@ export default function App() {
     goAfterSplash: () => {
       const done = typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true';
       setScreen(done ? 'home' : 'onboarding');
+      if (!done) return;
+      // One full-screen interstitial per open, most personal first: a
+      // friend's haunt, a ghost challenge, a comeback, the weekly lesson.
+      const haunt = unseenHaunt();
+      if (haunt) { markChallengeSeen(); setGhostView({ view: 'challenge', challenge: haunt }); return; }
+      const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
+      if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
+      const cb = dueComeback();
+      if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
       // The weekly practice reminder, at most once a week, on opening the app.
-      if (done && shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
+      if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
     },
     completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -963,6 +1005,42 @@ export default function App() {
           }}/>
         </div>
       )}
+      {ghostView && (
+        <GhostChallenge
+          view={ghostView.view}
+          challenge={ghostView.challenge}
+          ghost={ghostView.ghost}
+          xpLine={ghostView.xpLine}
+          gender={(() => { const p = loadProfile() || {}; const pref = String(p.avatarPreference || '').toLowerCase(); return pref === 'female' || pref === 'male' ? pref : String(p.sex || '').toLowerCase() === 'female' ? 'female' : 'male'; })()}
+          onAccept={() => {
+            const ch = ghostView.challenge;
+            setGhostView(null);
+            if (ch.kind === 'cardio') {
+              actions.goCardioMode({ ghost: 'best', unit: ch.run.unit, goal: ch.run.goal, surface: ch.run.surface });
+            } else {
+              setDisc(ch.disc || disc);
+              setGhostLaunch(ch);
+              setScreen('setup');
+            }
+          }}
+          onDecline={() => { declineChallenge(); setGhostView(null); setScreen('home'); }}
+          onClose={() => setGhostView(null)}
+        />
+      )}
+      {comeback && (
+        <Comeback
+          comeback={comeback}
+          onGo={() => {
+            const v = comeback.view;
+            setComeback(null);
+            if (v === 'arcade') actions.goTrainingArcade();
+            else if (v === 'cc') { setCcPreset('gas-tank'); setScreen('cc_setup'); }
+            else actions.goTrainingCamp();
+          }}
+          onSkip={() => setComeback(null)}
+          onRemind={() => { remindComebackNextWeek(comeback.view); setComeback(null); }}
+        />
+      )}
       {practiceInvite && (
         <PracticeInvite
           view={practiceInvite}
@@ -980,7 +1058,7 @@ export default function App() {
       <div style={{ minHeight: '100dvh', background: C.bg }}>
         <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gold, fontFamily: "'Orbitron',sans-serif", fontSize: 11, letterSpacing: '0.2em' }}>LOADING…</div>}>
           <ScreenRouter
-            screen={screen} disc={disc} cfg={cfg} session={session}
+            screen={screen} disc={disc} cfg={cfg} session={session} ghostLaunch={ghostLaunch} ccPreset={ccPreset}
             comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
