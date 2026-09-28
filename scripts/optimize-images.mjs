@@ -49,7 +49,6 @@ const DIR_TARGETS = {
   'static/tiers': 520,
   'static/trophies': 520,
   'static/hub': 880,
-  'static/practice': 800,
   'static/brand': 760,
   'static/fitmode': 800,
   // Holds both small result overlays AND the two full-bleed arena backdrops,

@@ -247,7 +247,7 @@ Verified on disk, 2026-09-15:
 | `ArcadeUI.jsx` | `goldGradient`, `glowViolet`, `glowGold`, 4-state stage-node palette | Exact values for HUD chrome |
 | `docs/game-concept/05-ART-PROMPTS.md` | Protagonist designs to wardrobe detail, reusable STYLE BLOCK, turnaround-sheet prompt | **The art brief is written.** Hand it over on day one |
 | `docs/game-concept/09-STORY-SCRIPT.md:35-44` | FLEX's design note and three lines | The boss's personality, written |
-| `public/static/practice/` | 16 files, 800×267 action art per discipline × gender | Pose and silhouette reference for animators |
+| `public/static/revamp/practice/` | 8 files, 800×267 action art per discipline × gender | Pose and silhouette reference for animators |
 | `public/static/fight/boss-eyes.webp` | 640×172 | Boss intro sting |
 
 **What you cannot reuse, and must accept:**
