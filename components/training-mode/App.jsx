@@ -36,7 +36,7 @@ import PracticeInvite from './PracticeInvite';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
 import GhostChallenge from './GhostChallenge';
 import Comeback from './Comeback';
-import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChallenge, hauntFromLocation, takeHaunt, unseenHaunt, markChallengeSeen } from './data/ghostChallenges';
+import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChallenge, hauntFromLocation, takeHaunt, unseenHaunt, markChallengeSeen, prefetchStranger } from './data/ghostChallenges';
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
 
@@ -218,14 +218,18 @@ export default function App() {
   // A friend's haunt link (?h=): it becomes the live challenge straight away.
   // Someone already set up sees it now; a first-run user after onboarding,
   // at the next open (goAfterSplash).
+  // A short code (?h=HX7K2Q) is looked up on the server first, so this is
+  // async. Also keeps a stranger's ghost on hand for the next challenge.
   useEffect(() => {
-    const g = hauntFromLocation();
-    if (!g) return;
-    const ch = takeHaunt(g);
-    if (typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true') {
-      markChallengeSeen();
-      setGhostView({ view: 'challenge', challenge: ch });
-    }
+    hauntFromLocation().then((g) => {
+      if (!g) return;
+      const ch = takeHaunt(g);
+      if (typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true') {
+        markChallengeSeen();
+        setGhostView({ view: 'challenge', challenge: ch });
+      }
+    });
+    prefetchStranger(loadProfile()?.discipline || 'Boxing');
   }, []);
   const afterParqRef = useRef(null);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)

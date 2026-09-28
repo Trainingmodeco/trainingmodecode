@@ -10,10 +10,13 @@
 // for three more, then pride only — never a block. At most one nudge a day.
 //
 // A friend's ghost arrives by link (?h=<code>) and becomes the live challenge,
-// named, because they sent it. Ghosts of strangers need a server; there is
-// none, so the design's anonymous "A Warrior, LV 22" is not built.
+// named, because they sent it. A stranger's ghost comes from the server's
+// anonymous pool (data/ghostCloud) and is named the design's way:
+// "A Warrior, LV 22". Fight challenges alternate between your own ghosts and
+// strangers' when both are ready.
 
-import { getMyBestGhost, exportGhostCode, importGhostCode } from './ghostBattles';
+import { getMyBestGhost, exportGhostCode, importGhostCode, importGhostObject } from './ghostBattles';
+import { fetchHaunt, fetchStrangerGhost, cleanHauntCode, HAUNT_CODE_RE } from './ghostCloud';
 import { bestRunGhosts } from './runGhosts';
 import { addComboBonus } from './userStats';
 import { trackEvent } from './analytics';
@@ -86,8 +89,15 @@ export function maybeOfferChallenge(discipline = 'Boxing', now = Date.now()) {
   const discs = [discipline, ...DISCIPLINES.filter(d => d !== discipline)];
   const fight = discs.map(d => ({ d, g: getMyBestGhost('fight_focus', d) }))
     .find(x => x.g && now - (x.g.createdAt || now) >= MIN_AGE);
-  if (fight && waited('fight') >= EVERY.fight) {
-    options.push({ kind: 'fight', ghost: fight.g, disc: fight.d, wait: waited('fight') });
+  // A stranger's ghost, fetched ahead of time (prefetchStranger) because this
+  // runs synchronously on app open. Used when you have no ghost of your own
+  // ready, or in turn with yours.
+  const stranger = s.stranger && now - s.stranger.fetchedAt < 3 * DAY ? s.stranger : null;
+  if (waited('fight') >= EVERY.fight && (fight || stranger)) {
+    const useStranger = stranger && (!fight || s.lastFightFrom === 'self');
+    options.push(useStranger
+      ? { kind: 'fight', from: 'stranger', ghost: stranger.ghost, level: stranger.level, disc: stranger.disc, wait: waited('fight') }
+      : { kind: 'fight', ghost: fight.g, disc: fight.d, wait: waited('fight') });
   }
   const run = bestRunGhosts().filter(g => now - (g.createdAt || now) >= MIN_AGE).sort((a, b) => b.createdAt - a.createdAt)[0];
   if (run && waited('cardio') >= EVERY.cardio) {
@@ -100,6 +110,8 @@ export function maybeOfferChallenge(discipline = 'Boxing', now = Date.now()) {
   const ch = { id: newId(), from: 'self', offeredAt: now, ...rest };
   s.active = ch;
   s.lastOffered = { ...s.lastOffered, [ch.kind]: now };
+  if (ch.kind === 'fight') s.lastFightFrom = ch.from;
+  if (ch.from === 'stranger') s.stranger = null;
   save(s);
   trackEvent('ghost_challenge_offered', { kind: ch.kind });
   return ch;
@@ -171,11 +183,24 @@ export function hauntURL(ghost) {
   return `${window.location.origin}/?h=${encodeURIComponent(code)}`;
 }
 
-// Reads ?h=, imports the ghost, clears the URL. Returns the ghost or null.
+// Keep one stranger's ghost on hand for the next app open. Best-effort; a
+// fresh one is fetched at most every 2 days.
+export async function prefetchStranger(discipline = 'Boxing', now = Date.now()) {
+  const s = load();
+  if (s.stranger && now - s.stranger.fetchedAt < 2 * DAY) return;
+  const got = await fetchStrangerGhost(discipline);
+  if (!got) return;
+  const fresh = load();
+  fresh.stranger = { ...got, disc: discipline, fetchedAt: now };
+  save(fresh);
+}
+
+// Reads ?h= — a 6-character code or a full TMG1 ghost — imports the ghost,
+// clears the URL. Resolves to the ghost or null.
 // The URL can come back (the dev router restores it), so a haunt already
 // taken is never taken again — a reload must not reset its clock, or bring a
 // beaten ghost back.
-export function hauntFromLocation() {
+export async function hauntFromLocation() {
   try {
     if (typeof window === 'undefined') return null;
     const params = new URLSearchParams(window.location.search);
@@ -184,7 +209,8 @@ export function hauntFromLocation() {
     params.delete('h');
     const qs = params.toString();
     window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + (window.location.hash || ''));
-    const ghost = importGhostCode(code);
+    const short = cleanHauntCode(code);
+    const ghost = HAUNT_CODE_RE.test(short) ? importGhostObject(await fetchHaunt(short)) : importGhostCode(code);
     return ghost && !(load().hauntsTaken || []).includes(ghost.ghostId) ? ghost : null;
   } catch { return null; }
 }

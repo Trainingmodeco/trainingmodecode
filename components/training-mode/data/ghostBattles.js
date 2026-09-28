@@ -7,6 +7,7 @@ import { makeGhost, ghostCountAtTime, resolveGhostBattle, battleHeadline } from 
 import { loadProfile } from './userProfile';
 import { addComboBonus } from './userStats';
 import { trackEvent } from './analytics';
+import { shareToPool } from './ghostCloud';
 
 const KEY = 'tm_ghosts_v1';
 const LAST_KEY = 'tm_ghost_last_battle';
@@ -64,6 +65,9 @@ export function recordGhostFromSession({ mode, discipline, difficulty = 'normal'
   });
   if (!ghost || ghost.totalStrikes <= 0) return null;
   try { localStorage.setItem(LAST_RECORDED_KEY, JSON.stringify(ghost)); } catch { /* quota */ }
+  // Strangers' pool: every verified Fight Focus ghost is offered; the server
+  // keeps at most 2 a week, anonymised, and only for players sharing.
+  if (mode === 'fight_focus') shareToPool(ghost, discipline || 'Boxing');
   const box = load();
   const k = keyFor(mode, discipline);
   const prev = box.best[k];
@@ -83,7 +87,14 @@ export function importGhostCode(code) {
   try {
     const raw = String(code || '').trim();
     if (!raw.startsWith('TMG1.')) return null;
-    const g = JSON.parse(decodeURIComponent(escape(atob(raw.slice(5)))));
+    return importGhostObject(JSON.parse(decodeURIComponent(escape(atob(raw.slice(5))))));
+  } catch { return null; }
+}
+
+// A ghost that arrived as an object (a short haunt code's lookup) — the same
+// checks and the same shelf as a pasted code.
+export function importGhostObject(g) {
+  try {
     if (!g || !Array.isArray(g.buckets) || !g.source || !g.verified) return null;
     const box = load();
     box.recent = [g, ...box.recent.filter((x) => x.ghostId !== g.ghostId)].slice(0, 5);

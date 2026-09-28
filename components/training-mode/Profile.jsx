@@ -22,6 +22,7 @@ import { loadGamePlan, saveGamePlan } from './data/gamePlan';
 import { PRIVACY_URL, openExternalUrl } from './data/links';
 import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
 import { loadProfile } from './data/userProfile';
+import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
 
 
 function SectionLabel({ text }) {
@@ -289,6 +290,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
   const [goal,        setGoal       ] = useState(p.goal ?? '');
   // From storage: the tabs change it without going through App's copy.
   const [discipline,  setDiscipline ] = useState(() => loadProfile()?.discipline ?? p.discipline ?? '');
+  // Strangers' ghosts: on unless switched off (data/ghostCloud).
+  const [shareGhosts, setShareGhosts] = useState(() => sharesGhosts(p));
   const [voiceCoach,  setVoiceCoach ] = useState(p.voiceCoach  ?? 'FEMALE');
   const [coachStyle,  setCoachStyle ] = useState(() => {
     const saved = p.coachStyle ?? 'STANDARD';
@@ -333,11 +336,14 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
       experience,
       goal,
       ...(discipline ? { discipline, specialty: discipline.toUpperCase() } : {}),
+      shareGhosts,
       voiceCoach,
       coachStyle,
       encouragement,
       callStyle,
     });
+    // Switching sharing off takes this player's ghosts back out of the pool.
+    if (!shareGhosts && sharesGhosts(p)) removeMyPoolGhosts();
     onSave();
   };
 
@@ -616,6 +622,16 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               onPick={v => setDiscipline(DISCIPLINE_CHOICES.find(d => d.toUpperCase() === v) || '')}
               wrap
             />
+          </div>
+
+          {/* Ghost sharing — anonymous: other players see "A Warrior" and a
+              level, never a name. At most 2 of your sessions a week. */}
+          <div>
+            <SectionLabel text="LET OTHERS RACE MY GHOSTS"/>
+            <PillRow opts={['ON', 'OFF']} val={shareGhosts ? 'ON' : 'OFF'} onPick={v => setShareGhosts(v === 'ON')}/>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: '#9a90b8', lineHeight: 1.4 }}>
+              When you&apos;re signed in, up to 2 of your Fight Focus sessions a week can come back as a ghost for other fighters — anonymous, just your level. Off removes any already shared.
+            </div>
           </div>
 
           {/* Audio Settings Card */}

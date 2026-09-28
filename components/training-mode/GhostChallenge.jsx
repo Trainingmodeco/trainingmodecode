@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import SafeImage from './SafeImage';
 import { bonusFor, bonusLine, ghostHunter, hauntURL } from './data/ghostChallenges';
+import { createHauntCode, prettyHauntCode } from './data/ghostCloud';
 
 // The Ghost Challenge screen (Simplify revamp, GhostChallenge.dc.html), full
 // screen over everything. Three views:
@@ -44,6 +45,15 @@ function describe(ch) {
   const rc = g.source?.roundsConfig || {};
   const rounds = rc.rounds && rc.roundSec ? `${rc.rounds} × ${mmss(rc.roundSec)}` : '—';
   const level = upper(g.source?.difficulty || 'normal');
+  if (ch.from === 'stranger') {
+    // Strangers stay anonymous — only their level shows.
+    return {
+      title: `A WARRIOR, LV ${ch.level || 1}`,
+      sub: `Finished Fight Focus · ${rounds} on ${level.toLowerCase()}. Match the session — with surprise rushes scattered through it.`,
+      stats: [[String(g.totalStrikes), 'STRIKES'], [rounds, 'ROUNDS'], [level, 'LEVEL']],
+      cta: 'TAKE THE FIGHT',
+    };
+  }
   if (ch.from === 'friend') {
     return {
       title: `${upper(g.ownerName)} HAUNTED YOU`,
@@ -77,8 +87,18 @@ export default function GhostChallenge({ view = 'challenge', challenge, ghost, x
   const accent = fight ? '#8FB4FF' : '#C4A8FF';
   const d = haunt ? null : describe(challenge);
   const [copied, setCopied] = useState('');
+  // A short code when signed in (the server makes it); otherwise the long
+  // link, which carries the whole ghost. undefined = still asking.
+  const [code, setCode] = useState(haunt ? undefined : null);
+  useEffect(() => {
+    if (!haunt) return undefined;
+    let live = true;
+    createHauntCode(ghost).then(c => { if (live) setCode(c); });
+    return () => { live = false; };
+  }, [haunt, ghost]);
 
-  const link = haunt ? hauntURL(ghost) : null;
+  const link = !haunt || code === undefined ? null
+    : code ? `${window.location.origin}/?h=${code}` : hauntURL(ghost);
   const bonus = haunt ? 0 : bonusFor(challenge);
   const hunter = ghostHunter();
   const kicker = haunt ? `SESSION COMPLETE${xpLine ? ` · ${xpLine}` : ''}`
@@ -148,11 +168,21 @@ export default function GhostChallenge({ view = 'challenge', challenge, ghost, x
       {haunt && (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: 14, borderRadius: 12, border: '1px dashed rgba(196,168,255,.55)', background: 'rgba(157,108,255,.08)', flexShrink: 0 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', color: '#A9A3C4' }}>YOUR GHOST · {ghost.totalStrikes} STRIKES</span>
-            <span style={{ font: "700 13px 'Chakra Petch',sans-serif", color: '#F2BE45', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {link ? link.replace(/^https?:\/\//, '').slice(0, 38) + '…' : 'Link unavailable'}
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', color: '#A9A3C4' }}>
+              {code ? 'YOUR HAUNT CODE' : `YOUR GHOST · ${ghost.totalStrikes} STRIKES`}
             </span>
-            <span style={{ fontSize: 12, color: '#8E88A8' }}>{copied || 'Opens straight into racing your session'}</span>
+            {code ? (
+              <span style={{ font: "700 30px 'Chakra Petch',sans-serif", letterSpacing: '0.22em', color: '#F2BE45' }}>{prettyHauntCode(code)}</span>
+            ) : (
+              <span style={{ font: "700 13px 'Chakra Petch',sans-serif", color: '#F2BE45', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {code === undefined ? 'Making your code…' : link ? link.replace(/^https?:\/\//, '').slice(0, 38) + '…' : 'Link unavailable'}
+              </span>
+            )}
+            <span style={{ fontSize: 12, color: '#8E88A8', textAlign: 'center' }}>
+              {copied || (code
+                ? `${window.location.host}/?h=${code} · expires in 7 days`
+                : code === null ? 'Sign in with Google in Profile for a short code' : 'Opens straight into racing your session')}
+            </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${shares.length}, minmax(0,1fr))`, gap: 6, flexShrink: 0 }}>
             {shares.map(k => (
