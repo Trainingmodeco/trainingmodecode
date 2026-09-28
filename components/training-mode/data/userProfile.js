@@ -1,3 +1,5 @@
+import { normalizeGoal, normalizeExperience } from './profileOptions';
+
 const STORAGE_KEY = 'tm_user_profile';
 
 const DEFAULT_PROFILE = {
@@ -8,8 +10,11 @@ const DEFAULT_PROFILE = {
   heightUnit: 'FT/IN',
   weightVal: '',
   weightUnit: 'LBS',
-  experience: 'INTERMEDIATE',
-  goal: 'BUILD MUSCLE',
+  // Unanswered until the questionnaire (or Profile) sets them — the old
+  // 'INTERMEDIATE' / 'BUILD MUSCLE' defaults matched none of the answers the
+  // rest of the app reads. See data/profileOptions.
+  experience: '',
+  goal: '',
   specialty: '',
   voiceCoach: 'FEMALE',
   coachStyle: 'STANDARD',
@@ -40,7 +45,9 @@ export function loadProfile() {
   try {
     if (typeof localStorage === 'undefined') return { ...DEFAULT_PROFILE };
     const raw = localStorage.getItem(STORAGE_KEY);
-    _profileCache = raw ? { ...DEFAULT_PROFILE, ...JSON.parse(raw) } : { ...DEFAULT_PROFILE };
+    const merged = raw ? { ...DEFAULT_PROFILE, ...JSON.parse(raw) } : { ...DEFAULT_PROFILE };
+    // Profiles saved by the old Profile screen carry its own answer set.
+    _profileCache = { ...merged, goal: normalizeGoal(merged.goal), experience: normalizeExperience(merged.experience) };
     return _profileCache;
   } catch {
     return { ...DEFAULT_PROFILE };

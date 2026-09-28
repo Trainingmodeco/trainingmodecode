@@ -11,9 +11,9 @@ import { loadStats, getLevel, getLevelProgress } from './data/userStats';
 import { getCurrentTier } from './data/tiers';
 import { syncCombo, consumeComboFlash, getComboNudge, snoozeNudge, dismissNudgeToday } from './data/comboStreak';
 import { getTodayBout } from './data/gamePlan';
-import { getFightMiniSuggestion } from './data/recommendations';
+import { firstPick } from './data/recommendations';
 import { loadLastSession, describeSession, programFor } from './data/lastSession';
-import { surpriseQuickMission } from './data/quickMissionConfig';
+import { surpriseQuickMission, quickMissionConfig } from './data/quickMissionConfig';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './data/ghostChallenges';
 
@@ -126,14 +126,21 @@ export default function HomeDashboard({
   const combo = syncCombo();
   const disc = profile?.discipline || 'Boxing';
 
-  // Today's pick — the fallback when there is nothing to continue.
-  const suggestion = getFightMiniSuggestion({ profile: profile || {}, stats, dailyMission: null });
+  // Today's pick — the fallback when there is nothing to continue. The same
+  // pick the setup questionnaire promised (data/recommendations firstPick):
+  // Fit goals get a Fit workout, not a fight timer.
+  const suggestion = firstPick({ profile: profile || {}, stats, dailyMission: null });
   const bout = getTodayBout();
   const routeAction = (actionType, payload) => {
     switch (actionType) {
       case 'fightFocus': onFightFocus?.(payload || disc); break;
       case 'comboCoach': onComboCoach?.(payload || disc); break;
-      case 'quickMission': onQuickMission?.(); break;
+      // A suggested mission carries its settings, so START runs exactly the
+      // mission named on the card — as the Fit hub's does.
+      case 'quickMission':
+        if (payload && typeof payload === 'object') onStartQuickMission?.(quickMissionConfig(payload));
+        else onQuickMission?.();
+        break;
       case 'fitMode': onFitSetup?.(); break;
       case 'combatConditioning': onCombatConditioning?.(); break;
       case 'startHere': onStartHere?.(); break;
@@ -202,7 +209,8 @@ export default function HomeDashboard({
     };
   } else {
     card = {
-      kind: 'bout', eyebrow: "Today's bout", side: FIGHT,
+      kind: 'bout', eyebrow: !bout && suggestion?.mode === 'fit' ? "Today's pick" : "Today's bout",
+      side: !bout && suggestion?.mode === 'fit' ? FIT : FIGHT,
       title: boutTitle, parts: [boutSub], cta: boutCta, onGo: handleBoutStart,
     };
   }

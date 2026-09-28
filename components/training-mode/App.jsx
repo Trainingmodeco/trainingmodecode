@@ -247,8 +247,11 @@ export default function App() {
     }
   };
 
+  // Merged onto the STORED profile, not this component's copy: the
+  // discipline tabs (and Practice) save straight to storage, and merging onto
+  // a stale copy quietly put the old discipline back.
   const updateProfile = (nextProfile) => {
-    const merged = { ...profile, ...nextProfile };
+    const merged = { ...loadProfile(), ...nextProfile };
     saveProfile(merged);
     setProfile(merged);
   };

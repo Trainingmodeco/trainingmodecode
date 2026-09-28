@@ -19,13 +19,13 @@ export const SCREEN_GUIDES = {
   profile: [
     { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, account, and every app setting. Here is what each button does.' },
     { target: 'pr-avatar', title: 'YOUR FIGHTER', body: 'Your avatar and rank. It evolves as you level up — Rookie to Champion… and there are secret tiers beyond.' },
-    { target: 'pr-stats', title: 'YOUR STATS', body: 'Your body profile — avatar style, age, height, weight, experience. Tap any row to edit.' },
+    { target: 'pr-stats', title: 'YOUR STATS', body: 'Your body profile and your setup answers — experience, goal and discipline, the same questions you answered on day one. Tap any row to change them: your goal decides the workout Home picks for you, and your discipline is the tab Fight Mode opens on.' },
     { target: 'pr-google', title: '🔐 GOOGLE SIGN-IN', body: 'Continue with Google to attach your progress to your account. Optional — everything trains fine without it; signing in backs up your fighter identity.' },
     { target: 'pr-pro', title: '👑 GO PRO', body: 'Opens the Training Mode Pro page — plans, pricing, and everything Pro unlocks (full Camp levels, all Arcade stages, and more). Browsing never charges you; you always confirm first.' },
     { target: 'pr-gamelink', title: '🎮 GAME LINK — TRAIN HERE, WIN THERE', body: 'Training Mode connects to the upcoming companion FIGHTING GAME. The Game Link page explains it: your real training — rank, XP, unlocked tiers — will sync INTO the game and level up your in-game fighter. Tap to open the page and join the free launch list.' },
     { target: 'pr-settings', title: '⚙ SETTINGS', body: 'The full settings page: weight units (pounds unless you change them), the audio mixer and voice options, how strikes are called out — by name or by number — plus your subscription and the privacy policy. Anything adjustable lives in here.' },
     { target: 'pr-notifs', title: '🔔 NOTIFICATIONS', body: 'Workout reminders and alerts: your if-then training plan (what, which days, what time), quiet hours, streak-safety nudges, and browser push permission.' },
-    { target: 'pr-replay', title: '🔁 REPLAY INTRO GUIDE', body: 'Runs the first-run feature tour again — the spotlight walkthrough of Home, the Train tab, Arcade, Camp, Progress, and Game Link. Replay it any time.' },
+    { target: 'pr-replay', title: '🔁 REPLAY INTRO GUIDE', body: 'Runs the intro walkthrough again — Home, Fight Mode and Practice, Fit Mode and Cardio, Combat Conditioning, the Arcade, rewards and Game Link. Replay it any time.' },
   ],
 
   // The FULL walkthrough — runs after the questionnaire and from Profile →
@@ -33,8 +33,8 @@ export const SCREEN_GUIDES = {
   // a `screen` drives the app there first, so each feature is spotlighted on
   // its REAL button. Hosted by App.jsx — a guide rendered inside one screen
   // would unmount the instant it navigates away.
-  // Beta AN-03 — the mandatory pass is now a 4-step CORE (~30 seconds:
-  // Today's Bout → Choose Your Path → the tabs → the ? icon) followed by an
+  // Beta AN-03 — the mandatory pass is a 4-step CORE (~30 seconds: Home's
+  // top card → the Fit / Fight tabs → the tab bar → the ? icon) followed by an
   // OFFER step. NEXT on the offer continues into the full walk-every-mode
   // tour; ✕ starts training (the close path already marks the tour done).
   // Everything cut from the core is covered by each screen's own ? guide,
@@ -42,7 +42,7 @@ export const SCREEN_GUIDES = {
   full_intro: [
     { screen: 'home', target: 'home-continue', title: '▶ START HERE', body: 'This card always holds your next workout — one picked for you today, and after that, whatever you trained last, ready to run again with the same settings. If you only ever tap one thing, tap START.' },
 
-    { screen: 'fit_hub', target: null, title: '🥊 FIT OR FIGHT', body: 'Every workout in the app lives under one of these two tabs. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio. They sit side by side at the top of every training screen, so you are never more than one tap from the other — mix them however you like.' },
+    { screen: 'fit_hub', target: null, title: '🥊 FIT OR FIGHT', body: 'Every workout in the app lives under one of these two tabs. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio. They sit side by side at the top of both training hubs, so you are never more than one tap from the other — mix them however you like.' },
     { screen: 'fit_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN opens your training tabs. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
     { screen: 'fit_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
 
@@ -57,7 +57,7 @@ export const SCREEN_GUIDES = {
     { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. A seven-lesson path per discipline plus a library of strikes, defense and footwork. Every lesson ends in a Practice Round — the coach calls what you just learned, and the rounds grow as you learn more.' },
 
     { screen: 'fit_hub', target: 'mode-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
-    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 WORKOUT BUILDER', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
+    { screen: 'fit_hub', target: 'fit-builder', title: '🛠 BUILD WORKOUT', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
     { screen: 'fit_hub', target: 'fit-builder', title: 'AND WHILE YOU TRAIN', body: 'The coach counts your reps out loud and times your rest. You are never locked into the order — a WORKOUT MAP sits above the tab bar, and holding any exercise starts that one instead. Every set you log builds a history, so the app knows what to ask of you next time.' },
     { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
     { screen: 'fit_hub', target: 'fit-programs', title: '📋 PROGRAMS', body: 'Rather follow a plan? Programs runs a split for you — Push/Pull/Legs, Upper/Lower and more — and remembers which day is next, so every session is one tap.' },
@@ -79,9 +79,9 @@ export const SCREEN_GUIDES = {
     { screen: 'home', target: 'home-quick', title: '⚡ QUICK ACCESS', body: 'Three one-tap shortcuts — Quick Mission, Just Train and Combat Conditioning — for when you know exactly what you want. That\'s the tour — go train.' },
   ],
 
-  // The everyday "?" on Choose Your Path — compact and single-screen. The
-  // full cross-screen walkthrough above only runs after the questionnaire or
-  // from Profile → Replay intro guide.
+  // The everyday "?" on each screen — compact and single-screen. The full
+  // cross-screen walkthrough above only runs after the questionnaire or from
+  // Profile → Replay intro guide.
 
   fight_hub: [
     { target: null, title: '🥊 FIGHT MODE', body: 'This is the Fight Mode hub — the striking-skill side of Training Mode. Pick a discipline, then one of the four ways to train it. They go from least to most structured.' },
@@ -142,9 +142,9 @@ export const SCREEN_GUIDES = {
     { target: null, title: '🎯 FIGHT FOCUS', body: 'This screen builds your round session. Set the difficulty and rounds, then hit start — the coach handles the rest.' },
     { target: 'ff-difficulty', title: 'DIFFICULTY', body: 'How hard the coaching pushes — round focuses get more demanding as you go up.' },
     { target: 'ff-steppers', title: 'BUILD YOUR ROUNDS', body: 'Set how many rounds, how long each one runs, and your rest between them. TOTAL shows your full session time.' },
+    { target: 'ff-rush', title: '⚡ RUSH MODE', body: 'Optional. Turn it on and the coach interrupts your rounds with surges — sudden calls to go explosive, throw strikes, or both. You choose how often they hit. It is the difference between pacing a round and being made to empty the tank. Opened from a ghost challenge? This row shows the challenge instead, with surprise rushes locked on.' },
+    { target: 'ff-ghost', title: '👻 GHOST BATTLES', body: 'Race a recorded session instead of the clock. MY BEST races your own best verified run; CODE loads one a friend sent you. Most verified strikes wins, and a result screen compares you at the end. The button below copies YOUR best as a code you can send to anyone.' },
     { target: 'ff-start', title: 'START SESSION', body: 'Ready? Tap here — the coach announces each round and the timer runs the fight.' },
-    { target: 'ff-ghost', title: '👻 GHOST BATTLES', body: 'Race a recorded run instead of the clock. LOAD GHOST pastes a code someone sent you — or your own best run — and you fight it round for round, side by side, with a result screen at the end. The button below it copies YOUR best run as a code you can send to anyone.' },
-    { target: 'ff-rush', title: '⚡ RUSH MODE', body: 'Optional. Turn it on and the coach interrupts your rounds with surges — sudden calls to go explosive, throw strikes, or both. You choose how often they hit. It is the difference between pacing a round and being made to empty the tank.' },
   ],
 
   combo_coach_setup: [
@@ -154,12 +154,12 @@ export const SCREEN_GUIDES = {
     { target: 'cc-callstyle', title: 'WHY NUMBERS SOMETIMES SAYS WORDS', body: 'Punches 1 to 8 are standard in every gym. Kicks, knees and elbows are not — no two gyms number them the same way. So on NUMBERS a punch-only combo is called 1-2-3, and any combo with a kick, knee, slip or roll is called by name instead. You will never get half numbers and half words in one call.' },
     { target: 'cc-mode', title: 'MODE', body: 'TECHNICAL calls one strike at a time so you can drill clean technique. COMBO calls full combinations to chain together for flow and speed. Not sure? Leave it on COMBO.' },
     { target: 'cc-steppers', title: 'ROUNDS & CADENCE', body: 'Rounds, round length, rest — and CADENCE, the seconds between combo calls. Lower cadence = faster calls.' },
-    { target: 'cc-start', title: 'START COMBOS', body: 'Tap here and the first call comes in. React, throw, reset your stance.' },
     { target: 'cc-rush', title: '⚡ RUSH MODE', body: 'Optional. Surges cut into your rounds — sudden calls to go explosive, throw strikes, or both, at whatever frequency you set. Turn it on when a steady cadence has stopped costing you anything.' },
+    { target: 'cc-start', title: 'START COMBOS', body: 'Tap here and the first call comes in. React, throw, reset your stance.' },
   ],
 
   workout_builder: [
-    { target: null, title: '🔧 WORKOUT BUILDER', body: 'This screen builds a strength workout around exactly what you want to train. Leave everything on its default for a solid balanced session.' },
+    { target: null, title: '🔧 BUILD WORKOUT', body: 'This screen builds a strength workout around exactly what you want to train. Leave everything on its default for a solid balanced session. Rather follow a plan? PROGRAMS on the Fit Mode hub runs one day by day.' },
     { target: 'wb-trainagain', title: '⚡ TRAIN AGAIN', body: 'The fastest way to train. It repeats your last workout with the progression already applied — an extra rep, or a little more weight, on every exercise you finished cleanly last time. One tap and you skip this whole screen. It only appears once you have a workout behind you.' },
     { target: 'wb-muscles', title: 'TARGET MUSCLES', body: 'Tap the muscle groups you want to hit — they light up on the body map. Fewer groups = more focused volume. Pick at least one, or GENERATE has nothing to build from.' },
     { target: 'wb-equipment', title: 'EQUIPMENT', body: 'Bodyweight, Weighted, or Hybrid — set what you actually have so every exercise is doable.' },
@@ -233,9 +233,10 @@ export const SCREEN_GUIDES = {
 
   cardio_mode: [
     { target: null, title: '🏃 CARDIO MODE', body: 'This screen sets up a pure cardio session — pick how you move, the protocol, and your goal. We set your pace.' },
-    { target: 'cm-method', title: 'METHOD', body: 'How you want to move — running, machines, jump rope, swimming, and more.' },
-    { target: 'cm-protocol', title: 'PROTOCOL', body: 'Steady holds one pace. Intervals and Tabata alternate hard work with recovery, and ROUNDS builds you a session.' },
-    { target: 'cm-goal', title: 'YOUR GOAL', body: 'Set a distance or time target — AUTO PACE calculates the pace to hold for your level.' },
+    { target: 'cm-method', title: 'METHOD', body: 'How you move: RUNNING outdoors on GPS or on a treadmill, OTHER EQUIPMENT (bike, rower, elliptical, stairs), or ROUNDS — fight rounds, Tabata or your own.' },
+    { target: 'cm-protocol', title: 'PROTOCOL', body: 'STEADY holds one pace the whole way. INTERVALS and TABATA alternate hard work with recovery.' },
+    { target: 'cm-goal', title: 'YOUR GOAL', body: 'Set a distance or a time target. The app works out the pace to hold for your level, and the coach keeps you on it.' },
+    { target: 'cm-ghost', title: '👻 GHOST RUN', body: 'Race a past run at this distance — your LAST or your BEST. Your ghost runs beside you and the coach tells you whether you are ahead or behind. Every measured finish becomes the ghost for next time.' },
     { target: 'cm-start', title: 'START CARDIO', body: 'Tap here and the timer, pace coaching, and logging handle the rest.' },
     { target: null, title: '🗺️ YOUR ROUTE IS RECORDED', body: 'On a GPS run the map draws itself as you move — the real shape of where you went, coloured by how fast you were running each stretch. Green is at or under your target pace, orange is behind it. The route, your splits and an estimated calorie burn are saved when you log the run.' },
     { target: null, title: 'WHERE YOUR RUNS LIVE', body: 'Every logged run goes to PROGRESS → RUNS: your career totals, a weekly distance goal you can set, your personal best at each distance, and the map of every run you can tap open. Routes stay on this device.' },
