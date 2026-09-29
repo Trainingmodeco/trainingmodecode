@@ -30,7 +30,7 @@ const POSTER_MAP = {
   'the-dragon': '/static/series/posters/the-dragon.png',
 };
 
-const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'ELITE', 'CHAMPION'];
+const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'MAX', 'CHAMPION'];
 const TEAL = '#5eead4';
 
 const arcadeStyles = `
