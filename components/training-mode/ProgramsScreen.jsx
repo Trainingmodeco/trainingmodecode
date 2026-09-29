@@ -94,7 +94,7 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         height: '100dvh', boxSizing: 'border-box', overflow: 'hidden',
-        paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))',
+        paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom,0px))',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px', flexShrink: 0 }}>
           <button onClick={onBack} aria-label="Back to Fit Mode" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={22}/></button>
@@ -107,7 +107,9 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 16px 0' }}>
+        {/* Scrolls only when the phone is too short for the library (SE, or
+            with the resume row reserved) instead of clipping MORE PROGRAMS. */}
+        <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 16px 0' }}>
 
           {/* What the program is generated with. Programs are rep schemes over
               muscle days; the equipment decides which exercises fill them. */}

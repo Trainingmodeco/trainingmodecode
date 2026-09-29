@@ -368,7 +368,7 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 10,
         height: '100dvh', boxSizing: 'border-box', padding: '10px 16px 0',
         // Clears the tab bar and the BETA chip that floats just above it.
-        paddingBottom: 'calc(108px + env(safe-area-inset-bottom, 0px))', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif',
+        paddingBottom: 'calc(max(108px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif',
       }}>
         <header style={{ display: 'flex', alignItems: 'center', gap: 8, height: 48, flexShrink: 0 }}>
           <button type="button" className="pm-txt" aria-label="Back to Fight Mode" onClick={onBack} style={{

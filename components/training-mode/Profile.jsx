@@ -375,7 +375,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     return (
       <PhoneFrame useBrandBg>
         <CornerHUD color="rgba(168,85,247,0.35)" size={22} inset={10}/>
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
             {/* Beta TM-16 — tab roots share one back-to-Home affordance (Train
                 and now Progress have it; Profile's overview was the odd one out). */}

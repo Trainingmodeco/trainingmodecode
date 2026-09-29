@@ -138,7 +138,7 @@ function getAlternates(exercise, cfg, takenNames, seed) {
 
 function SwapSheet({ exercise, alternates, onSelect, onInfo, onClose }) {
   return (
-    <BottomSheet title={`SWAP: ${exercise.name.toUpperCase()}`} accent={C.violet} onClose={onClose} maxHeight="70dvh">
+    <BottomSheet wide title={`SWAP: ${exercise.name.toUpperCase()}`} accent={C.violet} onClose={onClose} maxHeight="70dvh">
       {alternates.length === 0 ? (
         <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.faint, textAlign: 'center', padding: 20 }}>
           No alternates available for this muscle/equipment.

@@ -9,9 +9,9 @@ import { PROGRAMS, programDayIndex } from './workoutPrograms';
 // known.
 //
 // Covered: Just Train / Fight Focus, Combo Coach, Quick Mission, Build Workout
-// and Programs, Combat Conditioning. Camp, Arcade and Cardio keep their own
-// progress and aren't recorded here; after one of those, Continue still shows
-// the last session from the list above.
+// and Programs, Combat Conditioning, Training Camp, Arcade and Cardio. Camp and
+// Arcade keep their own progress, so their Continue opens the map / stage
+// ladder on the next session instead of repeating the last one.
 const KEY = 'tm_last_session_v1';
 
 export function rememberSession(kind, cfg, disc) {
@@ -30,6 +30,9 @@ export function loadLastSession() {
     return v && v.kind && v.cfg ? v : null;
   } catch { return null; }
 }
+
+const CARDIO_KIND = { running: 'Run', machine: 'Machine', rounds: 'Rounds', alternate: 'Rounds', exercise: 'Rounds' };
+const CARDIO_STYLE = { steady: 'Steady', intervals: 'Intervals', tabata: 'Tabata' };
 
 const titleCase = (s) => String(s).toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
@@ -67,6 +70,26 @@ export function describeSession(last) {
     }
     case 'cc':
       return { mode: 'fight', title: 'Combat Conditioning', sub: `${c.style || disc} · ${c.rounds} rounds`, diff: c.difficulty, time: `${c.duration} min` };
+    case 'camp':
+      return {
+        mode: 'fight', title: 'Training Camp', cta: 'CONTINUE',
+        sub: `${disc}${c.level ? ` · Level ${c.level}` : ''}${c.format === 'full' ? ' · Full camp' : ''}`,
+        diff: c.difficulty ? titleCase(c.difficulty) : null, time: null,
+      };
+    case 'arcade':
+      return {
+        mode: c.mode === 'fit' ? 'fit' : 'fight', title: c.title ? titleCase(c.title) : 'Training Arcade', cta: 'CONTINUE',
+        sub: c.stageNumber ? `Arcade · Stage ${c.stageNumber}` : 'Arcade',
+        diff: c.settings?.difficulty ? titleCase(c.settings.difficulty) : null, time: null,
+      };
+    case 'cardio': {
+      const st = c.setup || {};
+      const kind = CARDIO_KIND[st.categoryId] || 'Cardio';
+      const detail = st.categoryId === 'running' && st.style === 'steady' && st.goalDistance
+        ? `${st.goalDistance} ${st.distanceUnit || 'mi'}`
+        : (CARDIO_STYLE[st.style] || null);
+      return { mode: 'fit', title: st.walkMode ? 'Walk' : 'Cardio', sub: [st.walkMode ? null : kind, detail].filter(Boolean).join(' · ') || 'Cardio', diff: null, time: null };
+    }
     default:
       return null;
   }

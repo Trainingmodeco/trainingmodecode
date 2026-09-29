@@ -82,7 +82,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
         // ran START under the tab bar on a 667px phone.
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 7,
         padding: '6px 16px 0',
-        paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))',
       }}>
         <FightHeader title="COMBO COACH" sub={`${discipline} · strike combos at cadence`} onBack={onBack} onHelp={() => setHelpOpen(true)}/>
 

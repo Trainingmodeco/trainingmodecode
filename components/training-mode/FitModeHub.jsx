@@ -84,7 +84,7 @@ export default function FitModeHub({
     <button
       key={r.key} type="button" className="fm-row" data-guide={'fit-' + r.key} onClick={r.onClick}
       style={{
-        height: 60, borderRadius: 14, background: '#0E0B18', border: '1px solid rgba(255,255,255,0.08)',
+        height: 'clamp(50px, 7.4dvh, 60px)', borderRadius: 14, background: '#0E0B18', border: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', alignItems: 'center', gap: 14, padding: '0 16px', cursor: 'pointer',
         textAlign: 'left', width: '100%', flexShrink: 0, WebkitTapHighlightColor: 'transparent',
       }}
@@ -105,7 +105,7 @@ export default function FitModeHub({
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         height: '100dvh', boxSizing: 'border-box', overflow: 'hidden',
-        paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))',
+        paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom,0px))',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px', flexShrink: 0 }}>
@@ -119,11 +119,13 @@ export default function FitModeHub({
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 16px 0' }}>
+        {/* Sizes flex down with the viewport first; on a short phone (SE) it
+            scrolls rather than hiding Programs and Cardio under the tab bar. */}
+        <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', padding: 'clamp(10px, 2.4dvh, 20px) 16px 0' }}>
 
           {/* Today's mission — the one thing on this screen with a gold button. */}
           <section className="fm-hero" data-guide="fit-today" style={{
-            position: 'relative', height: 224, flexShrink: 0, borderRadius: 16, overflow: 'hidden',
+            position: 'relative', height: 'clamp(196px, 30dvh, 224px)', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
           }}>
             {/* Real art, not the page background: with app-bg here the card
@@ -172,12 +174,12 @@ export default function FitModeHub({
             }}><SlidersHorizontal size={15}/>ADJUST</button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'clamp(8px, 2dvh, 16px)', flexShrink: 0 }}>
             {ROWS.map(row)}
           </div>
 
           <button type="button" className="fm-row" data-guide="fit-cardio" onClick={onCardioMode} style={{
-            marginTop: 12, height: 60, flexShrink: 0, borderRadius: 14, background: '#0E0B18',
+            marginTop: 'clamp(6px, 1.5dvh, 12px)', height: 'clamp(50px, 7.4dvh, 60px)', flexShrink: 0, borderRadius: 14, background: '#0E0B18',
             border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 14,
             padding: '0 8px 0 16px', cursor: 'pointer', textAlign: 'left', width: '100%',
             WebkitTapHighlightColor: 'transparent',

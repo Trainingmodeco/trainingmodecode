@@ -31,7 +31,10 @@ export default function FloatingResumeButton({ pausedSession, onResume, onDiscar
       onDismiss={onDiscard}
       style={{
         position: 'fixed',
-        bottom: 'calc(78px + env(safe-area-inset-bottom, 0px))',
+        // Same row as the BETA chip, just above the tab bar. Pages reserve this row
+        // while a session is paused (--tm-resume-top, set by WithNav), so the
+        // pill never sits on a button.
+        bottom: 'calc(74px + env(safe-area-inset-bottom, 0px))',
         // Beta RS-04 — hug the app column's edge, not the browser window's:
         // at 1920px the pill floated ~600px from the content with no visual
         // relationship to the app.
@@ -44,8 +47,8 @@ export default function FloatingResumeButton({ pausedSession, onResume, onDiscar
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        padding: '10px 14px',
+        gap: 7,
+        padding: '4px 12px 4px 4px',
         background: 'rgba(20,5,40,0.92)',
         border: '1.5px solid rgba(168,85,247,0.6)',
         borderRadius: 28,
@@ -57,8 +60,8 @@ export default function FloatingResumeButton({ pausedSession, onResume, onDiscar
       }}
     >
       <div style={{
-        width: 28,
-        height: 28,
+        width: 24,
+        height: 24,
         borderRadius: '50%',
         background: 'linear-gradient(135deg, #b06aff 0%, #7c3aed 100%)',
         display: 'flex',
@@ -66,7 +69,7 @@ export default function FloatingResumeButton({ pausedSession, onResume, onDiscar
         justifyContent: 'center',
         boxShadow: '0 0 12px rgba(168,85,247,0.6)',
       }}>
-        <Play size={14} color="#fff" fill="#fff" />
+        <Play size={12} color="#fff" fill="#fff" />
       </div>
       {/* Beta TM-09 — "Fit Builder" alone explained nothing to a user who
           forgot pausing. The verb makes it an action, not a mystery chip. */}

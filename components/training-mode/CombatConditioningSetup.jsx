@@ -146,17 +146,20 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
 
   return (
     <div style={{
-      position: 'relative',
       borderRadius: 12,
       overflow: 'hidden',
       border: '1px solid rgba(168,85,247,0.35)',
       boxShadow: '0 6px 22px rgba(0,0,0,0.55), 0 0 22px rgba(168,85,247,0.15)',
+      background: '#0a0116',
+      flexShrink: 0,
+    }}>
+    <div style={{
+      position: 'relative',
       // Match the artwork's own 3:1 ratio (2172 x 724) so both baked-in
       // titles — CONDITION HARDER on the left and NEXT ROUND · GO FOR
       // BROKE on the right — sit inside the frame without either side
       // getting cropped away.
       aspectRatio: '2172 / 724',
-      background: '#0a0116',
     }}>
       <img
         src={HERO_ART}
@@ -209,21 +212,21 @@ function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
           }}>{summaryLine}</span>
         </div>
 
-        {/* Middle band left empty — the banner artwork carries the
-            CONDITION HARDER title itself, so overlaying HTML text on top
-            would double up and misalign at responsive widths. */}
-        <div/>
-
+      </div>
+    </div>
+        {/* The stats sit in a strip UNDER the art, not on it: laid over the
+            bottom third they covered the baked-in HARDER. */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
           gap: 5,
+          padding: 6,
+          borderTop: '1px solid rgba(168,85,247,0.25)',
         }}>
           <HeroStat icon={preset ? preset.icon : '🎯'} label={preset ? preset.label.split(' ')[0] : 'PICK'} sub={preset ? preset.focusShort : 'Below'} accent={preset ? preset.tint : C.faint}/>
           <HeroStat icon="▮▮▮" label={`${rounds} ROUNDS`} sub={intensity.short} accent={intensity.color}/>
           <HeroStat icon="⏱" label={`~${durationMin} MIN`} sub="Est. time" accent={GOLD}/>
         </div>
-      </div>
     </div>
   );
 }
@@ -453,7 +456,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
         style={{
           position: 'relative', zIndex: 10,
           display: 'flex', flexDirection: 'column',
-          padding: '8px 12px calc(88px + env(safe-area-inset-bottom, 0px))',
+          padding: '8px 12px calc(max(88px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))',
           gap: 8,
         }}
       >

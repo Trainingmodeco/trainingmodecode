@@ -36,7 +36,7 @@ const BANNERS = [
 // brightens and the border turns gold. The banners were painted violet for the
 // old theme; the hue shift is the design's way of reusing them.
 const hubCSS = `
-.fb { position: relative; height: 68px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(61,123,255,.4); background: #070B1C; display: block; width: 100%; padding: 0; text-align: left; cursor: pointer; flex-shrink: 0;
+.fb { position: relative; height: clamp(56px, 8.6dvh, 68px); border-radius: 14px; overflow: hidden; border: 1px solid rgba(61,123,255,.4); background: #070B1C; display: block; width: 100%; padding: 0; text-align: left; cursor: pointer; flex-shrink: 0;
   transition: border-color .2s, box-shadow .2s, transform .12s; -webkit-tap-highlight-color: transparent; }
 .fb img { opacity: .5; filter: hue-rotate(-48deg) saturate(1.15) brightness(.75); transition: opacity .25s, filter .25s, transform .25s; }
 .fb.no-shift img { filter: brightness(.75); }
@@ -120,7 +120,10 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
           <ModeTabs active="fight" onFit={onFitMode}/>
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '10px 14px 0', paddingBottom: 'calc(max(96px, 15dvh) + env(safe-area-inset-bottom, 0px))' }}>
+        {/* Sizes flex down with the viewport first (clamp on the banners, gap and
+            tiles); on a very short phone, or with the resume row reserved, it
+            scrolls a little rather than clipping the tiles under the tab bar. */}
+        <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', padding: '10px 14px 0', paddingBottom: 'calc(max(96px, 15dvh, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))' }}>
 
         <DisciplineTabs value={disc} onChange={pickDisc} guide="fh-disciplines" style={{ marginBottom: 12 }}/>
 
@@ -151,14 +154,14 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
 
         {/* Clear air between the four ways to train and the two skill tiles —
             stacked straight under Training Camp they read as one dense list. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 10px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 'clamp(10px, 2.4dvh, 18px) 2px clamp(6px, 1.4dvh, 10px)', flexShrink: 0 }}>
           <span style={{ font: "600 10px 'Chakra Petch',sans-serif", letterSpacing: '0.2em', color: '#6F7699' }}>SKILLS &amp; CONDITIONING</span>
           <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(61,123,255,0.35), transparent)' }}/>
         </div>
 
         {/* Practice teaches, Combat Conditioning builds the engine: two
             side-by-side tiles, a step quieter than the ladder above. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, height: 114, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, height: 'clamp(96px, 15dvh, 114px)', flexShrink: 0 }}>
           <button type="button" className="ft prac" data-guide="fh-practice" onClick={() => goMode('practice')} style={{ background: '#0B0F1F', border: '1px dashed rgba(143,180,255,0.55)' }}>
             <SafeImage src="/static/fight-hub/practice.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '82% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(5,8,20,0.1) 0%, rgba(5,8,20,0.85) 70%)' }}/>

@@ -205,7 +205,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         height: '100dvh', boxSizing: 'border-box',
-        paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(max(72px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))',
       }}>
         {/* Header — teal */}
         <div style={{ position: 'relative', padding: '14px 16px 8px', textAlign: 'center' }}>

@@ -386,7 +386,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
       <div style={{
         position: 'relative', zIndex: 10, height: '100dvh', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(max(72px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))',
       }}>
         {/* Standard app header (TT logo) */}
         <TrainingHeader

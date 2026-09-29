@@ -5,6 +5,7 @@ import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, X } from 'lucide-react';
 import { C, fixedColumnBar, NAV_H } from './Styles';
+import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor, logBodyweightSets } from './data/weightLog';
@@ -1361,11 +1362,13 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
             @keyframes wmGlowPulse { 0%,100% { box-shadow: 0 0 10px rgba(253,224,71,0.35); } 50% { box-shadow: 0 0 22px rgba(253,224,71,0.7); } }
             .wm-glow { animation: wmGlowPulse 1.6s ease-in-out infinite; }
           ` }}/>
-          <div onClick={closeMap} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
+          <div onClick={closeMap} style={{ flex: 1, ...FLOAT_BACKDROP }}/>
+          <div onClick={closeMap} style={{ position: 'absolute', inset: 0 }}/>
+          {/* The universal floating sheet (see shared/BottomSheet); tall,
+              because the map is the whole workout. Swipe the handle down to
+              close, same as before. */}
           <div style={{
-            width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', height: '92%',
-            background: 'rgba(14,5,26,0.97)', borderRadius: '16px 16px 0 0',
-            border: `1px solid ${VIOLET}66`, borderBottom: 'none',
+            ...floatPanel(VIOLET, { wide: true }), height: 'calc(100% - 56px)',
             display: 'flex', flexDirection: 'column', animation: 'wmSlideUp 0.28s ease',
           }}>
             {/* Header: grab handle (swipe down closes → resume / start-next) */}

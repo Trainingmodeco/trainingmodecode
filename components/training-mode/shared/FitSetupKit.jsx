@@ -256,7 +256,7 @@ export function SetupPage({ children, scroll }) {
     <div className={scroll ? 'no-scrollbar' : undefined} style={{
       position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
       height: '100dvh', boxSizing: 'border-box', overflow: scroll ? 'auto' : 'hidden',
-      paddingBottom: 'calc(84px + env(safe-area-inset-bottom,0px))',
+      paddingBottom: 'calc(max(84px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom,0px))',
     }}>
       {children}
     </div>
