@@ -37,8 +37,11 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-title" content="Training Mode" />
         <link rel="apple-touch-icon" href="/brand/icon-192.png" />
 
-        {/* Plausible analytics */}
+        {/* Plausible analytics. The queue stub (Plausible's own snippet) holds
+            events fired before the deferred script loads — without it a crash
+            during start-up would never be reported. */}
         <script defer data-domain="apptrainingmode.com" src="https://plausible.io/js/script.js" />
+        <script dangerouslySetInnerHTML={{ __html: 'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }' }} />
 
         <ScrollViewStyleReset />
       </head>

@@ -9,6 +9,8 @@
     "build:web": "node scripts/check-public-assets.mjs && node scripts/lock-assets.mjs && node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && expo export --platform web && node scripts/copy-public-assets.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",
     "check:assets": "node scripts/check-public-assets.mjs",
+    "check:guides": "node scripts/check-guides.mjs",
+    "check:all": "tsc --noEmit && expo lint && node scripts/test-indoor-tracking.mjs && npm run -s test:cardio && npm run -s audit:cc && node scripts/check-guides.mjs && npm run -s build:web",
     "lock:assets": "node scripts/lock-assets.mjs --write",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
