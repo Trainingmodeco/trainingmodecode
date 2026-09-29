@@ -375,7 +375,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     return (
       <PhoneFrame useBrandBg>
         <CornerHUD color="rgba(168,85,247,0.35)" size={22} inset={10}/>
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: 'calc(max(120px, 15dvh) + env(safe-area-inset-bottom,0px))' }}>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
             {/* Beta TM-16 — tab roots share one back-to-Home affordance (Train
                 and now Progress have it; Profile's overview was the odd one out). */}
@@ -385,53 +385,58 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><HelpButton onClick={() => setHelpOpen(true)}/><button onClick={() => setProfileView('audio')} aria-label="Settings" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', fontSize: 15 }}>⚙</button></div>
           </div>
+          {/* One screen, no scroll (owner call): a slimmer avatar card with the
+              three counters folded into it, the stats as a 2×2 grid, and the
+              four secondary links as tiles. Same destinations as before. */}
           <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px' }}>
             {/* Avatar showcase */}
-            <div data-guide="pr-avatar" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 12, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
-              <div style={{ display: 'flex', gap: 14, padding: 14, alignItems: 'center' }}>
-                <div style={{ width: 96, height: 120, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)' }}>
+            <div data-guide="pr-avatar" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 10, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
+              <div style={{ display: 'flex', gap: 12, padding: 10, alignItems: 'center' }}>
+                <div style={{ width: 72, height: 90, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)' }}>
                   <SafeImage src={tierImage(tier.id, avSex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em' }}>{displayName}</div>
-                  <div style={{ font: "700 9px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', letterSpacing: '0.06em', marginTop: 2 }}>LVL {lvl} · {tier.label.toUpperCase()}{tier.secret ? ' ★' : ''}</div>
-                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${pctToNext}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
-                  <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 4 }}>{lp.current} / {lp.needed} XP to next</div>
-                  <button onClick={() => setProfileView('main')} style={{ marginTop: 9, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 8, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 9px 'Orbitron',sans-serif", padding: '6px 12px', cursor: 'pointer' }}>⚔️ CHANGE AVATAR</button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0, font: "900 16px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
+                    <button onClick={() => setProfileView('main')} aria-label="Change avatar" style={{ flexShrink: 0, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 7, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px', cursor: 'pointer' }}>⚔️ AVATAR</button>
+                  </div>
+                  <div style={{ font: "700 9px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', letterSpacing: '0.06em', marginTop: 3 }}>LVL {lvl} · {tier.label.toUpperCase()}{tier.secret ? ' ★' : ''}</div>
+                  <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 6 }}><div style={{ width: `${pctToNext}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
+                  <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 3 }}>{lp.current} / {lp.needed} XP to next</div>
+                  {/* Streak · sessions · trophies — inside the card now. */}
+                  <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                    {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
+                      <div key={s.label} style={{ flex: 1, minWidth: 0, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 7, padding: '3px 2px', textAlign: 'center' }}>
+                        <div style={{ font: "900 12px 'Orbitron',sans-serif", color: s.color, lineHeight: 1.2 }}>{s.v}</div>
+                        <div style={{ font: "600 6px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.05em' }}>{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-            {/* Combat stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-              {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
-                <div key={s.label} style={{ background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
-                  <div style={{ font: "900 17px 'Orbitron',sans-serif", color: s.color }}>{s.v}</div>
-                  <div style={{ font: "600 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.06em' }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-            {/* Your stats */}
+            {/* Your stats — a 2×2 grid, each cell opens the editor */}
             <div data-guide="pr-stats">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em' }}>YOUR STATS</span>
               <button onClick={() => setProfileView('main')} style={{ background: 'none', border: 'none', cursor: 'pointer', font: "700 7px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.06em' }}>TAP TO EDIT</button>
             </div>
-            <div style={{ background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '4px 14px', marginBottom: 12 }}>
-              {statRows.map((r, i) => (
-                <button key={r.label} onClick={() => setProfileView('main')} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: i === statRows.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                  <span style={{ font: "700 10px 'Rajdhani',sans-serif", color: '#9a90b8' }}>{r.label}</span>
-                  <span style={{ font: "800 10px 'Orbitron',sans-serif", color: r.gold ? '#fde047' : '#fff' }}>{r.value} ›</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, marginBottom: 10 }}>
+              {statRows.map((r) => (
+                <button key={r.label} onClick={() => setProfileView('main')} style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '7px 11px', background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 10, cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ font: "700 9px 'Rajdhani',sans-serif", color: '#9a90b8', letterSpacing: '0.04em' }}>{r.label}</span>
+                  <span style={{ maxWidth: '100%', font: "800 10px 'Orbitron',sans-serif", color: r.gold ? '#fde047' : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.value} ›</span>
                 </button>
               ))}
             </div>
             </div>
             {/* Links */}
-            <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               <div data-guide="pr-google"><AccountCard/></div>
               {/* Training Mode PRO — prominent upsell / member entry */}
               {onPaywall && (
                 <button data-guide="pr-pro" onClick={onPaywall} style={{
-                  display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '9px 13px', cursor: 'pointer', textAlign: 'left',
                   border: '1px solid rgba(253,224,71,0.55)',
                   background: 'linear-gradient(90deg,rgba(253,224,71,0.16),rgba(176,106,255,0.08))',
                   boxShadow: '0 0 16px -6px rgba(253,224,71,0.6)',
@@ -444,34 +449,26 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#fde047' }}>›</span>
                 </button>
               )}
-              {onGameLink && (
-                <button data-tour="game-link" data-guide="pr-gamelink" onClick={onGameLink} style={{ display: 'flex', alignItems: 'center', gap: 11, borderRadius: 11, padding: '12px 13px', border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', boxShadow: '0 0 16px -6px rgba(176,106,255,.5)', cursor: 'pointer', textAlign: 'left' }}>
-                  <span style={{ fontSize: 16 }}>🎮</span>
-                  <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#c9a6ff' }}>GAME LINK</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#facc15' }}>Level up your in-game avatar · reserve now</div></div>
-                  <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
-                </button>
-              )}
-              <button data-guide="pr-settings" onClick={() => setProfileView('audio')} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
-                <span style={{ fontSize: 14 }}>⚙</span>
-                <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>SETTINGS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Audio · units · subscription · privacy</div></div>
-                <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
-              </button>
-              {onNotifications && (
-                <button data-guide="pr-notifs" onClick={onNotifications} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
-                  <span style={{ fontSize: 14 }}>🔔</span>
-                  <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>NOTIFICATIONS</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Streak reminders &amp; alerts</div></div>
-                  <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
-                </button>
-              )}
-              {/* Replay the first-run feature tour (design 33) — lives under
-                  Notifications on the profile overview. */}
-              {onReplayTour && (
-                <button data-guide="pr-replay" onClick={onReplayTour} style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(8,2,18,0.8)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '12px 13px', cursor: 'pointer', textAlign: 'left' }}>
-                  <span style={{ fontSize: 14 }}>🔁</span>
-                  <div style={{ flex: 1 }}><div style={{ font: "800 10px 'Orbitron',sans-serif", color: '#fff' }}>REPLAY INTRO GUIDE</div><div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8' }}>Take the 4-step feature tour again</div></div>
-                  <span style={{ font: "900 13px 'Orbitron',sans-serif", color: '#b06aff' }}>›</span>
-                </button>
-              )}
+              {/* The four secondary links as a 2×2 grid of tiles. */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7 }}>
+                {[
+                  onGameLink && { key: 'gamelink', guide: 'pr-gamelink', icon: '🎮', label: 'GAME LINK', sub: 'Reserve your avatar', go: onGameLink, color: '#c9a6ff', border: 'rgba(176,106,255,0.5)', bg: 'linear-gradient(90deg,rgba(176,106,255,0.14),rgba(253,224,71,0.05))', tour: 'game-link' },
+                  { key: 'settings', guide: 'pr-settings', icon: '⚙', label: 'SETTINGS', sub: 'Audio · units · privacy', go: () => setProfileView('audio') },
+                  onNotifications && { key: 'notifs', guide: 'pr-notifs', icon: '🔔', label: 'NOTIFICATIONS', sub: 'Streak reminders', go: onNotifications },
+                  onReplayTour && { key: 'replay', guide: 'pr-replay', icon: '🔁', label: 'INTRO GUIDE', sub: 'Take the tour again', go: onReplayTour },
+                ].filter(Boolean).map(t => (
+                  <button key={t.key} data-tour={t.tour} data-guide={t.guide} onClick={t.go} style={{
+                    minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 11, cursor: 'pointer', textAlign: 'left',
+                    background: t.bg || 'rgba(8,2,18,0.8)', border: `1px solid ${t.border || 'rgba(168,85,247,0.25)'}`,
+                  }}>
+                    <span style={{ fontSize: 15, flexShrink: 0 }}>{t.icon}</span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', font: "800 9px 'Orbitron',sans-serif", color: t.color || '#fff', letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.label}</span>
+                      <span style={{ display: 'block', font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.sub}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
           </div>

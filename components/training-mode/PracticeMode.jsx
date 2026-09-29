@@ -395,7 +395,9 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
           aspectRatio: '2172 / 724', borderRadius: 10, overflow: 'hidden', background: '#000', color: '#fff', display: 'block',
           transition: 'box-shadow .18s ease',
         }}>
-          <SafeImage src={bannerSrc(discipline, variant)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}/>
+          {/* Dimmed for good (owner call): the art sits behind the lesson
+              name as texture, not as the thing you read. */}
+          <SafeImage src={bannerSrc(discipline, variant)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45, filter: 'brightness(0.75) saturate(0.9)' }}/>
           <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: '14px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
             <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: allDone ? '#4ADE80' : GOLD }}>{allDone ? 'BASICS COMPLETE' : 'CONTINUE LEARNING'}</span>
             <span style={{ font: "700 15px 'Chakra Petch',sans-serif", letterSpacing: '0.03em', lineHeight: 1.1, maxWidth: '62%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -488,11 +490,14 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
           </div>
 
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button type="button" className="pm-hit" data-guide="pm-combo" onClick={() => onComboCoach?.(discipline)} style={{
-              flex: 1, height: 44, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
-              background: 'linear-gradient(90deg, rgba(61,123,255,.22), rgba(11,15,34,.9))', border: '1px solid rgba(110,155,255,.6)', color: '#fff',
-              font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.12em',
-            }}>🥊 DRILL A COMBO<span style={{ marginLeft: 'auto', color: '#8FB4FF' }}>›</span></button>
+            {/* The screen's one action, so it wears the gold START look. */}
+            <button type="button" className="pm-gold" data-guide="pm-combo" onClick={() => onComboCoach?.(discipline)} style={{
+              flex: 1, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 12px', border: 'none', cursor: 'pointer',
+              clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)',
+              background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
+              boxShadow: '0 0 22px rgba(242,190,69,.35)',
+              font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
+            }}>🥊 DRILL A COMBO</button>
             <button type="button" className="pm-hit pm-txt" disabled={techniques.length <= SHOW} onClick={() => setShowAll(a => !a)} style={{
               width: 110, height: 44, borderRadius: 10, background: 'transparent', border: '1px solid rgba(143,180,255,.3)', color: '#8FB4FF',
               font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', cursor: techniques.length > SHOW ? 'pointer' : 'default',

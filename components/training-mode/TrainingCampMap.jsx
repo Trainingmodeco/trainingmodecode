@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
-import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, humanizeGoal, titleFight } from './protocol/content';
+import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, titleFight } from './protocol/content';
 import ArchetypePicker from './shared/ArchetypePicker';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { loadProfile } from './data/userProfile';
@@ -365,7 +365,6 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                 difficulty={difficulty}
                 value={archetypeId}
                 onChange={chooseArchetype}
-                compact
               />
             </div>
 
@@ -403,7 +402,6 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                   const isNext = !isDone && (m.slot === 's1' || !!openSess.s1);
                   // 2.4b — real block content for this mission (module or emphasis).
                   const blk = campBlock(discKey, open.level, difficulty, m.block);
-                  const items = blk.goals.map(humanizeGoal);
                   return (
                     <div key={m.slot} style={{
                       borderRadius: 9, padding: '8px 10px', marginBottom: 6,
@@ -419,9 +417,6 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                       <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b9a9d8', letterSpacing: '0.04em', marginTop: 2 }}>
                         {m.ampm} · {m.kind}{blk.durationMin ? ` · ~${blk.durationMin}m` : ''}
                       </div>
-                      <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#cfc2e8', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {items.join(' · ')}
-                      </div>
                     </div>
                   );
                 })}
@@ -429,14 +424,10 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                   {useFull ? 'Both blocks back-to-back · level clears at ✓✓' : 'Leave 4–8 hours between missions · level clears at ✓✓'}
                 </div>
               </>
-            ) : (
-              <>
-                <div style={{ marginBottom: 4, font: "700 7px 'Orbitron',sans-serif", color: '#e879f9', letterSpacing: '0.1em' }}>THIS SESSION</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
-                  {campBlock(discKey, open.level, difficulty, 'fight').goals.map(humanizeGoal).map((c, i) => <span key={i} style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#d7c9ee', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 5, padding: '2px 6px' }}>{c}</span>)}
-                </div>
-              </>
-            )}
+            ) : null}
+            {/* The session's drill list lived here ("THIS SESSION"). The coach
+                calls each drill as the rounds run, so the card no longer
+                lists them up front. */}
 
           </div>
 

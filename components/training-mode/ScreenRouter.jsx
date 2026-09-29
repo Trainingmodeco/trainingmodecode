@@ -651,7 +651,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
   }
   if (screen === 'profile') {
     return (
-      <WithNav activeTab="profile" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+      // lock: the overview fits one screen now. The edit and settings views
+      // are longer and still scroll — lock falls back to scrolling on overflow.
+      <WithNav activeTab="profile" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         <Profile onHome={goHome} onBack={goHome} onSave={goHome} profile={profile} updateProfile={updateProfile} onBetaFeedback={goBetaFeedback} onPaywall={goPaywall} onGameLink={goGameLink} onSubscription={goSubscription} onNotifications={goNotifications} onReplayTour={startFeatureTour}/>
       </WithNav>
     );

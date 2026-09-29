@@ -81,6 +81,14 @@ function getNextExerciseInfo(allExercises, exIdx, round, totalRounds) {
   return null;
 }
 
+// What the coach says the target is: "40 seconds", "12 reps", or a named
+// workout's own unit ("1 mile").
+function spokenTarget(ex) {
+  if (ex.mode === 'timed') return `${ex.work} seconds`;
+  if (ex.unit) return `${ex.reps} ${String(ex.unit).toLowerCase()}`;
+  return `${ex.reps} reps`;
+}
+
 function getPrepMessage(workoutType) {
   if (workoutType === 'Weighted') return 'Grab your weight and prepare.';
   if (workoutType === 'Hybrid') return 'Prepare your setup.';
@@ -263,9 +271,12 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     }
 
     if (voiceOn) {
-      const target = ex.mode === 'timed' ? `${ex.work} seconds` : `${ex.reps} reps`;
+      const target = spokenTarget(ex);
       const cadenceIntro = exCadence ? ' On my count.' : '';
-      speakAsync(`${ex.name}. ${target}.${cadenceIntro} Ready. Begin.`).then(() => {
+      // A move with its own calls (Sally Up) starts on the first call, not
+      // on "Ready. Begin." — the calls ARE the start.
+      const line = ex.calls?.length ? `${ex.name}.` : `${ex.name}. ${target}.${cadenceIntro} Ready. Begin.`;
+      speakAsync(line).then(() => {
         // Fix 3: use refs to check current state, not stale closure
         if (exCadence && phaseRef.current === 'work' && !doneRef.current && !pausedRef.current) {
           startCadence(ex);
@@ -466,11 +477,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     }
 
     if (voiceOn) {
-      const target = firstEx.mode === 'timed'
-        ? `${firstEx.work} seconds`
-        : `${firstEx.reps} reps`;
+      const target = spokenTarget(firstEx);
       const cadenceIntro = firstCadence ? ' On my count.' : '';
-      await speakAsync(`Round 1. ${firstEx.name}. ${target}.${cadenceIntro} Ready. Begin.`);
+      const line = firstEx.calls?.length ? `${firstEx.name}.` : `Round 1. ${firstEx.name}. ${target}.${cadenceIntro} Ready. Begin.`;
+      await speakAsync(line);
       if (aborted()) return;
     }
 
@@ -515,6 +525,21 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
+
+  // Scripted calls on a timed move (Sally Up's DOWN / UP): spoken on the
+  // second they are due, and the latest one shown under the clock.
+  const [liveCall, setLiveCall] = useState(null);
+  useEffect(() => {
+    const ex = allExercises[exIdxRef.current];
+    if (phase !== 'work' || paused || done || !ex?.calls?.length || ex.mode !== 'timed') { if (phase !== 'work') setLiveCall(null); return; }
+    const elapsed = ex.work - remaining;
+    const due = ex.calls.find(c => c.t === elapsed);
+    if (due) {
+      setLiveCall(due.say.replace(/\.\s*Done\.?$/, '').toUpperCase());
+      if (voiceOn) speakAsync(due.say, { preempt: true, priority: 3 });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, phase, paused, done]);
 
   // Beeps at 3, 2, 1
   useEffect(() => {
@@ -728,6 +753,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                 fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
                 color: ringColor, letterSpacing: '0.2em', marginTop: 6,
               }}>{phase === 'rest' ? 'REST' : 'WORK'}</div>
+              {phase === 'work' && liveCall && (
+                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: GOLD, letterSpacing: '0.12em', marginTop: 6, textShadow: '0 0 14px rgba(253,224,71,0.5)' }}>{liveCall}</div>
+              )}
             </div>
           </div>
         ) : phase === 'work' && cadenceActive ? (
@@ -777,7 +805,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                 <div style={{
                   fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
                   color: C.muted, letterSpacing: '0.15em', marginTop: 6,
-                }}>REPS</div>
+                }}>{currentEx.unit || 'REPS'}</div>
               </>
             )}
           </div>

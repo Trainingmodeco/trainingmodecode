@@ -60,8 +60,29 @@ export const readinessConfig = readinessData;
 export function roundTemplate(discipline: Discipline, level: number, difficulty: Difficulty): RoundTemplate {
   return resolveRoundTemplate(discipline, level, difficulty, timingTables, campLevels);
 }
+// Plain names for the fighter styles. The data keeps its original names
+// ("Slick Counter Boxer", "Muay Khao Clinch Grinder") as `fullName`; what the
+// athlete reads is the style in two words. Ids are unchanged, so saved picks
+// carry over.
+const STYLE_NAMES: Record<string, string> = {
+  pressure_dog: 'Pressure Fighter',
+  slick_counter_boxer: 'Counter Fighter',
+  twelve_round_finisher: 'Well-Rounded',
+  dutch_volume_pressure: 'Pressure Fighter',
+  angle_counter_kickboxer: 'Counter Fighter',
+  long_range_kicker: 'Distance Kicker',
+  muay_khao_clinch_grinder: 'Clinch Fighter',
+  muay_femur_technician: 'Technician',
+  muay_mat_power_puncher: 'Power Puncher',
+  wrestle_box_control: 'Wrestler',
+  anti_wrestling_sniper: 'Striker',
+  chaos_finisher: 'Brawler',
+};
+
 export function archetypesFor(discipline: Discipline): Archetype[] {
-  return getArchetypes(archetypes, discipline);
+  return getArchetypes(archetypes, discipline).map((a) => (
+    STYLE_NAMES[a.id] ? { ...a, fullName: a.name, name: STYLE_NAMES[a.id] } : a
+  ));
 }
 export function campLevel(level: number): CampLevel {
   return getCampLevel(campLevels, level);

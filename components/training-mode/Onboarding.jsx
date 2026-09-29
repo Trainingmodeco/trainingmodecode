@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
-import CornerHUD from './CornerHUD';
 import IntroLogo from './IntroLogo';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { C } from './Styles';
+import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
 import { firstPick } from './data/recommendations';
 import { loadStats } from './data/userStats';
+import { fitKitCSS, GOLD, GOLD_FILL, VIOLET, VIOLET_TEXT, MUTED, CARD, HEAD, BODY, chf } from './shared/FitSetupKit';
 
-const GOLD = C.yellow;
-
-// The answer lists are shared with Profile's edit screen (data/profileOptions)
-// so changing an answer later changes the same answer.
+// The setup questionnaire, in the Revamp's look: Chakra Petch headings over
+// Barlow, violet selection, one gold chamfered CONTINUE. Same seven steps and
+// the same answers as before — the answer lists are shared with Profile's
+// edit screen (data/profileOptions), so changing an answer later changes the
+// same answer.
 const NOT_SURE = 'Not sure yet';
 
-// Total ordered steps: Welcome, Name, Goal, Experience, Discipline, Body, First workout
+// Welcome, Name, Goal, Experience, Discipline, Body, First workout
 const STEP = {
   WELCOME: 0,
   NAME: 1,
@@ -27,38 +27,40 @@ const STEP = {
 };
 const TOTAL_STEPS = 7;
 
+const css = `
+.ob-opt { transition: border-color .18s, background .18s, box-shadow .18s; }
+.ob-opt[aria-checked="false"]:hover, .ob-opt[aria-checked="false"]:focus-visible { border-color: ${VIOLET} !important; background: rgba(157,108,255,.1) !important; }
+.ob-skip { transition: color .18s; }
+.ob-skip:hover, .ob-skip:focus-visible { color: #fff !important; }
+.ob-in::placeholder { color: #5E5878; }
+.ob-in:focus { border-color: ${VIOLET} !important; box-shadow: 0 0 0 3px rgba(157,108,255,.18); }
+`;
+
 const inputStyle = {
-  width: '100%', padding: '10px 14px', borderRadius: 8,
-  background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(255,255,255,0.08)',
-  color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 14,
-  outline: 'none',
+  width: '100%', boxSizing: 'border-box', height: 48, padding: '0 14px', borderRadius: 10,
+  background: CARD, border: '1px solid rgba(255,255,255,0.12)',
+  color: '#fff', font: `700 16px ${HEAD}`, outline: 'none',
 };
 
-function StepTitle({ title, subtitle }) {
+const fieldLabel = { font: `600 11px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED, marginBottom: 7 };
+
+function StepTitle({ kicker, title, subtitle }) {
   return (
-    <>
-      <div style={{
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
-        color: '#fff', letterSpacing: '0.1em', textAlign: 'center', marginBottom: 6,
-      }}>{title}</div>
-      <div style={{
-        fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted,
-        textAlign: 'center', marginBottom: 22,
-      }}>{subtitle}</div>
-    </>
+    <div style={{ marginBottom: 20 }}>
+      {kicker && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.18em', color: VIOLET_TEXT, marginBottom: 8 }}>{kicker}</div>}
+      <h1 style={{ margin: 0, font: `700 26px ${HEAD}`, lineHeight: 1.08, color: '#fff' }}>{title}</h1>
+      {subtitle && <p style={{ margin: '8px 0 0', font: `500 15px ${BODY}`, lineHeight: 1.4, color: MUTED }}>{subtitle}</p>}
+    </div>
   );
 }
 
 function PrimaryButton({ children, onClick, disabled }) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{
-      marginTop: 20, width: '100%', padding: '14px 0', borderRadius: 12,
-      background: disabled ? 'rgba(255,255,255,0.05)' : `linear-gradient(135deg, ${GOLD}, ${C.yellow})`,
-      color: disabled ? 'rgba(255,255,255,0.2)' : C.bg,
-      border: 'none',
-      fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12,
-      letterSpacing: '0.14em', cursor: disabled ? 'not-allowed' : 'pointer',
-      boxShadow: disabled ? 'none' : '0 0 20px rgba(253,224,71,0.3)',
+    <button type="button" className="fk-gold" onClick={onClick} disabled={disabled} style={{
+      ...chf, marginTop: 22, width: '100%', height: 56, border: 'none', flexShrink: 0,
+      background: disabled ? '#1B1730' : GOLD_FILL, color: disabled ? '#5E5878' : '#1A1204',
+      font: `700 17px ${HEAD}`, letterSpacing: '0.18em', cursor: disabled ? 'not-allowed' : 'pointer',
+      boxShadow: disabled ? 'none' : '0 0 28px rgba(242,190,69,0.35)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     }}>
       {children}
@@ -68,30 +70,53 @@ function PrimaryButton({ children, onClick, disabled }) {
 
 function SkipButton({ onClick }) {
   return (
-    <button onClick={onClick} style={{
-      marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 10,
-      background: 'transparent', border: 'none',
-      color: C.muted, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,
-      letterSpacing: '0.14em', cursor: 'pointer',
+    <button type="button" className="ob-skip" onClick={onClick} style={{
+      marginTop: 8, width: '100%', height: 40, background: 'transparent', border: 'none',
+      color: MUTED, font: `600 11px ${HEAD}`, letterSpacing: '0.16em', cursor: 'pointer',
     }}>
       SKIP FOR NOW · EDIT LATER
     </button>
   );
 }
 
-function UnitToggle({ options, value, onPick }) {
+// One answer row: label (+ optional line), a check when chosen.
+function Option({ active, onClick, label, desc }) {
   return (
-    <div style={{ display: 'flex', gap: 3 }}>
-      {options.map(u => (
-        <button key={u} onClick={() => onPick(u)} style={{
-          padding: '8px 10px', borderRadius: 6, minHeight: 38,
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8,
-          background: u === value ? 'rgba(253,224,71,0.1)' : 'rgba(10,0,20,0.7)',
-          color: u === value ? GOLD : C.muted,
-          border: `1.5px solid ${u === value ? GOLD : 'rgba(255,255,255,0.08)'}`,
-          cursor: 'pointer', transition: 'all 0.18s',
-        }}>{u}</button>
-      ))}
+    <button type="button" role="radio" aria-checked={active ? 'true' : 'false'} className="ob-opt" onClick={onClick} style={{
+      width: '100%', minHeight: desc ? 60 : 52, padding: '10px 14px', borderRadius: 12, boxSizing: 'border-box',
+      display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer',
+      background: active ? 'rgba(157,108,255,0.2)' : CARD,
+      border: `1px solid ${active ? VIOLET : 'rgba(255,255,255,0.09)'}`,
+      boxShadow: active ? '0 0 16px rgba(157,108,255,0.35)' : 'none',
+    }}>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', font: `700 15px ${HEAD}`, letterSpacing: '0.04em', color: '#fff' }}>{label}</span>
+        {desc && <span style={{ display: 'block', font: `500 13px ${BODY}`, color: MUTED, marginTop: 2 }}>{desc}</span>}
+      </span>
+      <span style={{
+        width: 22, height: 22, borderRadius: '50%', flexShrink: 0, boxSizing: 'border-box',
+        border: `1.5px solid ${active ? GOLD : 'rgba(255,255,255,0.2)'}`, background: active ? GOLD : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>{active && <Check size={13} color="#1A1204" strokeWidth={3}/>}</span>
+    </button>
+  );
+}
+
+// Two-way strip (sex, units) — the design's segmented control.
+function Seg({ options, value, onPick, ariaLabel }) {
+  return (
+    <div role="radiogroup" aria-label={ariaLabel} style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: '1px solid rgba(255,255,255,0.09)', flexShrink: 0 }}>
+      {options.map(o => {
+        const on = o === value;
+        return (
+          <button key={o} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-seg" onClick={() => onPick(o)} style={{
+            flex: 1, minWidth: 52, height: 40, padding: '0 8px', border: 'none', cursor: 'pointer',
+            font: `600 12px ${HEAD}`, letterSpacing: '0.1em',
+            color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
+            boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
+          }}>{o}</button>
+        );
+      })}
     </div>
   );
 }
@@ -137,68 +162,63 @@ export default function Onboarding({ onComplete }) {
 
   return (
     <PhoneFrame useBrandBg>
-      <Embers count={4}/>
-      <CornerHUD color="rgba(253,224,71,0.2)" size={18} inset={10}/>
+      <style dangerouslySetInnerHTML={{ __html: fitKitCSS + css }}/>
+      <Embers count={3}/>
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: step === STEP.WELCOME ? 'center' : 'flex-start',
-        minHeight: '100dvh', padding: '32px 20px',
-        paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))',
-        paddingTop: step === STEP.WELCOME ? 32 : 46,
-        overflowX: 'hidden',
+        minHeight: '100dvh', boxSizing: 'border-box', padding: '14px 20px',
+        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))', overflowX: 'hidden',
       }}>
 
-        {/* Back button — every step after welcome */}
-        {step > STEP.WELCOME && (
-          <button onClick={goBack} style={{
-            position: 'absolute', top: 16, left: 16, zIndex: 20,
-            display: 'flex', alignItems: 'center', gap: 4,
-            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 8, padding: '7px 11px 7px 8px', cursor: 'pointer',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,
-            letterSpacing: '0.1em', color: C.muted,
-          }}>
-            <ChevronLeft size={13}/> BACK
-          </button>
-        )}
-
-        {/* Step indicators */}
-        <div style={{ display: 'flex', gap: 5, marginBottom: 26 }}>
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div key={i} style={{
-              width: i === step ? 22 : 7, height: 4, borderRadius: 4,
-              background: i === step ? GOLD : i < step ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.12)',
-              transition: 'all 0.3s ease',
-            }}/>
-          ))}
+        {/* Top bar: back (after welcome) · progress */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, height: 44, flexShrink: 0 }}>
+          {step > STEP.WELCOME ? (
+            <button type="button" className="fk-back" onClick={goBack} aria-label="Back" style={{
+              width: 44, height: 44, marginLeft: -12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0,
+            }}><ChevronLeft size={22}/></button>
+          ) : <span style={{ width: 32 }}/>}
+          <div style={{ flex: 1, display: 'flex', gap: 4 }} aria-label={`Step ${step + 1} of ${TOTAL_STEPS}`}>
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <div key={i} style={{
+                flex: 1, height: 4, borderRadius: 2,
+                background: i <= step ? GOLD : '#1B1730',
+                boxShadow: i === step ? '0 0 8px rgba(242,190,69,0.6)' : 'none',
+                transition: 'background .3s ease',
+              }}/>
+            ))}
+          </div>
+          <span style={{ font: `700 12px ${HEAD}`, color: MUTED, minWidth: 32, textAlign: 'right' }}>{step + 1}/{TOTAL_STEPS}</span>
         </div>
+
+        <div style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          justifyContent: step === STEP.WELCOME ? 'center' : 'flex-start',
+          paddingTop: step === STEP.WELCOME ? 0 : 26, width: '100%', maxWidth: 380, margin: '0 auto',
+        }}>
 
         {/* SCREEN 0: Welcome */}
         {step === STEP.WELCOME && (
-          <div style={{ textAlign: 'center', maxWidth: 320 }}>
-            <IntroLogo size={50}/>
-            <h1 style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20,
-              color: '#fff', letterSpacing: '0.12em', marginTop: 20, marginBottom: 12,
-              textShadow: '0 0 14px rgba(253,224,71,0.3)',
-            }}>WELCOME TO<br/>TRAINING MODE</h1>
-            <p style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 14, fontWeight: 500,
-              color: C.muted, lineHeight: 1.6, marginBottom: 20,
-            }}>
+          <div style={{ textAlign: 'center' }}>
+            <IntroLogo size={56}/>
+            <h1 style={{ margin: '22px 0 0', font: `700 30px ${HEAD}`, lineHeight: 1.05, color: '#fff' }}>
+              Welcome to<br/><span style={{ color: GOLD }}>Training Mode</span>
+            </h1>
+            <p style={{ margin: '12px auto 0', maxWidth: 300, font: `500 16px ${BODY}`, lineHeight: 1.45, color: MUTED }}>
               Let&apos;s build your fighter profile. It takes under a minute, and you can change every answer later.
             </p>
             <PrimaryButton onClick={() => setStep(STEP.NAME)}>
-              START SETUP <ChevronRight size={16}/>
+              START SETUP <ChevronRight size={18}/>
             </PrimaryButton>
           </div>
         )}
 
         {/* SCREEN 1: Name */}
         {step === STEP.NAME && (
-          <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="WHAT SHOULD WE CALL YOU?" subtitle="Your name shows up on your player card."/>
+          <div>
+            <StepTitle kicker="YOUR PROFILE" title="What should we call you?" subtitle="Your name shows up on your player card."/>
             <input
+              className="ob-in"
               type="text"
               placeholder="Trainee"
               value={name}
@@ -207,7 +227,7 @@ export default function Onboarding({ onComplete }) {
               autoFocus
             />
             <PrimaryButton onClick={() => setStep(STEP.GOAL)}>
-              CONTINUE <ChevronRight size={15}/>
+              CONTINUE <ChevronRight size={18}/>
             </PrimaryButton>
             <SkipButton onClick={() => setStep(STEP.GOAL)}/>
           </div>
@@ -215,63 +235,30 @@ export default function Onboarding({ onComplete }) {
 
         {/* SCREEN 2: Goal */}
         {step === STEP.GOAL && (
-          <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="WHAT ARE YOU TRAINING FOR?" subtitle="Pick your primary training goal."/>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {GOALS.map(g => {
-                const active = goal === g;
-                return (
-                  <button key={g} onClick={() => setGoal(g)} style={{
-                    width: '100%', padding: '13px 16px', borderRadius: 10,
-                    background: active ? 'rgba(253,224,71,0.1)' : 'rgba(10,0,20,0.7)',
-                    border: `1.5px solid ${active ? GOLD : 'rgba(255,255,255,0.08)'}`,
-                    color: active ? GOLD : C.text,
-                    fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11,
-                    letterSpacing: '0.08em', textAlign: 'left', cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: active ? '0 0 12px rgba(253,224,71,0.15)' : 'none',
-                  }}>
-                    {g.toUpperCase()}
-                  </button>
-                );
-              })}
+          <div>
+            <StepTitle kicker="YOUR GOAL" title="What are you training for?" subtitle="Pick the one that matters most."/>
+            <div role="radiogroup" aria-label="Goal" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {GOALS.map(g => (
+                <Option key={g} active={goal === g} onClick={() => setGoal(g)} label={g}/>
+              ))}
             </div>
             <PrimaryButton onClick={() => { if (goal) setStep(STEP.EXPERIENCE); }} disabled={!goal}>
-              CONTINUE <ChevronRight size={15}/>
+              CONTINUE <ChevronRight size={18}/>
             </PrimaryButton>
           </div>
         )}
 
         {/* SCREEN 3: Experience */}
         {step === STEP.EXPERIENCE && (
-          <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="EXPERIENCE LEVEL" subtitle="How long have you been training?"/>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {LEVELS.map(l => {
-                const active = experience === l.id;
-                return (
-                  <button key={l.id} onClick={() => setExperience(l.id)} style={{
-                    width: '100%', padding: '13px 16px', borderRadius: 10,
-                    background: active ? 'rgba(253,224,71,0.1)' : 'rgba(10,0,20,0.7)',
-                    border: `1.5px solid ${active ? GOLD : 'rgba(255,255,255,0.08)'}`,
-                    textAlign: 'left', cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: active ? '0 0 12px rgba(253,224,71,0.15)' : 'none',
-                  }}>
-                    <div style={{
-                      fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11,
-                      color: active ? GOLD : C.text, letterSpacing: '0.08em',
-                    }}>{l.label.toUpperCase()}</div>
-                    <div style={{
-                      fontFamily: "'Rajdhani',sans-serif", fontSize: 11,
-                      color: C.muted, marginTop: 2,
-                    }}>{l.desc}</div>
-                  </button>
-                );
-              })}
+          <div>
+            <StepTitle kicker="EXPERIENCE" title="How long have you been training?"/>
+            <div role="radiogroup" aria-label="Experience" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {LEVELS.map(l => (
+                <Option key={l.id} active={experience === l.id} onClick={() => setExperience(l.id)} label={l.label} desc={l.desc}/>
+              ))}
             </div>
             <PrimaryButton onClick={() => { if (experience) setStep(STEP.DISCIPLINE); }} disabled={!experience}>
-              CONTINUE <ChevronRight size={15}/>
+              CONTINUE <ChevronRight size={18}/>
             </PrimaryButton>
           </div>
         )}
@@ -279,85 +266,58 @@ export default function Onboarding({ onComplete }) {
         {/* SCREEN 4: Discipline — the four tabs Fight Mode, Practice and
             Combat Conditioning share. */}
         {step === STEP.DISCIPLINE && (
-          <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="YOUR DISCIPLINE" subtitle="Fight Mode, Practice and Combat Conditioning open on it. Switch any time with the tabs."/>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-              {[...DISCIPLINE_CHOICES, NOT_SURE].map(s => {
-                const active = s === NOT_SURE ? discipline === '' : discipline === s;
-                return (
-                  <button key={s} onClick={() => setDiscipline(s === NOT_SURE ? '' : s)} style={{
-                    padding: '11px 15px', borderRadius: 20,
-                    background: active ? 'rgba(253,224,71,0.1)' : 'rgba(10,0,20,0.7)',
-                    border: `1.5px solid ${active ? GOLD : 'rgba(255,255,255,0.08)'}`,
-                    color: active ? GOLD : C.text,
-                    fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10,
-                    letterSpacing: '0.06em', cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: active ? '0 0 12px rgba(253,224,71,0.15)' : 'none',
-                  }}>
-                    {s.toUpperCase()}
-                  </button>
-                );
-              })}
+          <div>
+            <StepTitle kicker="DISCIPLINE" title="What do you want to fight in?" subtitle="Fight Mode, Practice and Combat Conditioning open on it. Switch any time with the tabs."/>
+            <div role="radiogroup" aria-label="Discipline" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+              {DISCIPLINE_CHOICES.map(s => (
+                <Option key={s} active={discipline === s} onClick={() => setDiscipline(s)} label={s}/>
+              ))}
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Option active={discipline === ''} onClick={() => setDiscipline('')} label={NOT_SURE} desc="We'll start you on Boxing"/>
             </div>
             <PrimaryButton onClick={() => setStep(STEP.BODY)}>
-              CONTINUE <ChevronRight size={15}/>
+              CONTINUE <ChevronRight size={18}/>
             </PrimaryButton>
-            <SkipButton onClick={() => setStep(STEP.BODY)}/>
           </div>
         )}
 
         {/* SCREEN 5: Body profile */}
         {step === STEP.BODY && (
-          <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="BODY PROFILE" subtitle="Optional — sets your fighter's look and tailors your training. Skip anytime."/>
+          <div>
+            <StepTitle kicker="OPTIONAL" title="Body profile" subtitle="Sets your fighter's look and tailors your training. Skip anytime."/>
 
-            {/* Sex + Age */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>SEX</div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {['MALE', 'FEMALE'].map(s => (
-                    <button key={s} onClick={() => setSex(s)} style={{
-                      flex: 1, padding: '10px 0', borderRadius: 8,
-                      background: sex === s ? 'rgba(253,224,71,0.1)' : 'rgba(10,0,20,0.7)',
-                      border: `1.5px solid ${sex === s ? GOLD : 'rgba(255,255,255,0.08)'}`,
-                      color: sex === s ? GOLD : C.text,
-                      fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9,
-                      letterSpacing: '0.06em', cursor: 'pointer', transition: 'all 0.18s',
-                    }}>{s}</button>
-                  ))}
-                </div>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+              <div style={{ flex: 1.3 }}>
+                <div style={fieldLabel}>Sex</div>
+                <Seg ariaLabel="Sex" options={['MALE', 'FEMALE']} value={sex} onPick={setSex}/>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>AGE</div>
-                <input type="number" inputMode="numeric" placeholder="25" value={age} onChange={e => setAge(e.target.value)}
-                  style={{ ...inputStyle, fontSize: 13 }}/>
+                <div style={fieldLabel}>Age</div>
+                <input className="ob-in" type="number" inputMode="numeric" placeholder="25" value={age} onChange={e => setAge(e.target.value)} style={inputStyle} aria-label="Age"/>
               </div>
             </div>
 
-            {/* Height */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>HEIGHT</div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input type="text" inputMode="decimal" placeholder={heightUnit === 'FT/IN' ? '5\'10"' : '178'} value={heightVal}
-                  onChange={e => setHeightVal(e.target.value)} style={{ ...inputStyle, flex: 1, fontSize: 13 }}/>
-                <UnitToggle options={['FT/IN', 'CM']} value={heightUnit} onPick={setHeightUnit}/>
+            <div style={{ marginBottom: 14 }}>
+              <div style={fieldLabel}>Height</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input className="ob-in" type="text" inputMode="decimal" placeholder={heightUnit === 'FT/IN' ? '5\'10"' : '178'} value={heightVal}
+                  onChange={e => setHeightVal(e.target.value)} style={{ ...inputStyle, flex: 1 }} aria-label="Height"/>
+                <Seg ariaLabel="Height unit" options={['FT/IN', 'CM']} value={heightUnit} onPick={setHeightUnit}/>
               </div>
             </div>
 
-            {/* Weight */}
             <div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, color: C.muted, letterSpacing: '0.18em', marginBottom: 6, fontWeight: 600 }}>WEIGHT</div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input type="number" inputMode="numeric" placeholder={weightUnit === 'LBS' ? '175' : '80'} value={weightVal}
-                  onChange={e => setWeightVal(e.target.value)} style={{ ...inputStyle, flex: 1, fontSize: 13 }}/>
-                <UnitToggle options={['LBS', 'KG']} value={weightUnit} onPick={setWeightUnit}/>
+              <div style={fieldLabel}>Weight</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input className="ob-in" type="number" inputMode="numeric" placeholder={weightUnit === 'LBS' ? '175' : '80'} value={weightVal}
+                  onChange={e => setWeightVal(e.target.value)} style={{ ...inputStyle, flex: 1 }} aria-label="Weight"/>
+                <Seg ariaLabel="Weight unit" options={['LBS', 'KG']} value={weightUnit} onPick={setWeightUnit}/>
               </div>
             </div>
 
             <PrimaryButton onClick={() => setStep(STEP.RECOMMEND)}>
-              CONTINUE <ChevronRight size={15}/>
+              CONTINUE <ChevronRight size={18}/>
             </PrimaryButton>
             <SkipButton onClick={() => setStep(STEP.RECOMMEND)}/>
           </div>
@@ -365,53 +325,34 @@ export default function Onboarding({ onComplete }) {
 
         {/* SCREEN 6: First workout. It names the real workout Home's top card
             will hold (firstPick), and says so — setup goes on to Home, where
-            the walkthrough starts on that card. It used to promise a mission
-            by an invented name and START it, then land on Home anyway. */}
+            the walkthrough starts on that card. */}
         {step === STEP.RECOMMEND && pick && (
-          <div style={{ width: '100%', maxWidth: 340, textAlign: 'center' }}>
-            <div style={{
-              fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.neon,
-              letterSpacing: '0.2em', marginBottom: 10,
-            }}>SETUP COMPLETE</div>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
-              color: '#fff', letterSpacing: '0.1em', marginBottom: 6,
-            }}>YOUR FIRST WORKOUT</div>
-            <div style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, marginBottom: 20,
-            }}>Picked from your goal and experience.</div>
+          <div>
+            <StepTitle kicker="SETUP COMPLETE" title="Your first workout" subtitle="Picked from your goal and experience."/>
 
-            <div style={{
-              padding: '18px 16px', borderRadius: 12,
-              background: 'rgba(10,0,20,0.8)', border: '1.5px solid rgba(253,224,71,0.25)',
-              marginBottom: 14, textAlign: 'left',
-              boxShadow: '0 0 20px rgba(253,224,71,0.08)',
+            <section style={{
+              position: 'relative', borderRadius: 16, overflow: 'hidden', padding: 18,
+              background: 'linear-gradient(135deg,#1A1034 0%,#0D0A18 75%)',
+              border: `1px solid ${pick.mode === 'fit' ? 'rgba(157,108,255,0.45)' : 'rgba(61,123,255,0.45)'}`,
             }}>
-              <div style={{
-                fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: GOLD,
-                letterSpacing: '0.15em', marginBottom: 8,
-              }}>{pick.mode === 'fit' ? 'FIT MODE' : 'FIGHT MODE'}</div>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
-                color: '#fff', letterSpacing: '0.06em', marginBottom: 6,
-              }}>{pick.title}</div>
-              <div style={{
-                fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
-                color: C.muted, lineHeight: 1.5,
-              }}>{pick.subtitle}</div>
-            </div>
+              <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 2, background: pick.mode === 'fit' ? VIOLET : '#3D7BFF' }}/>
+              <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: pick.mode === 'fit' ? VIOLET_TEXT : '#8FB4FF' }}>
+                {pick.mode === 'fit' ? 'FIT MODE' : 'FIGHT MODE'}
+              </div>
+              <div style={{ font: `700 22px ${HEAD}`, lineHeight: 1.1, color: '#fff', marginTop: 6 }}>{pick.title}</div>
+              <div style={{ font: `500 14px ${BODY}`, lineHeight: 1.45, color: MUTED, marginTop: 6 }}>{pick.subtitle}</div>
+            </section>
 
-            <div style={{
-              fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
-              color: C.text, lineHeight: 1.5, marginBottom: 6,
-            }}>It&apos;ll be waiting at the top of Home — tap START when you&apos;re ready.</div>
+            <p style={{ margin: '14px 0 0', font: `500 15px ${BODY}`, lineHeight: 1.45, color: '#DCD7EE' }}>
+              It&apos;ll be waiting at the top of Home — tap START when you&apos;re ready.
+            </p>
 
             <PrimaryButton onClick={handleFinish}>
-              LET&apos;S GO <ChevronRight size={16}/>
+              LET&apos;S GO <ChevronRight size={18}/>
             </PrimaryButton>
           </div>
         )}
-
+        </div>
       </div>
     </PhoneFrame>
   );
