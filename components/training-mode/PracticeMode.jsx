@@ -88,6 +88,9 @@ const css = `
 .pm-tile:hover, .pm-tile:focus-visible { border-color: ${GOLD} !important; box-shadow: 0 0 14px rgba(61,123,255,.4); }
 .pm-txt:hover, .pm-txt:focus-visible { color: ${GOLD} !important; }
 .pm-banner:hover, .pm-banner:focus-visible { box-shadow: 0 0 22px rgba(168,85,247,.5); }
+/* Dimmed until highlighted, and even then only part way up - never full strength. */
+.pm-banner > img { opacity: .4; filter: brightness(.72) saturate(.9); transition: opacity .25s, filter .25s, transform .25s; }
+.pm-banner:hover > img, .pm-banner:focus-visible > img { opacity: .68; filter: brightness(.88) saturate(.95); transform: scale(1.02); }
 .pm-gold:hover, .pm-gold:focus-visible { filter: brightness(1.1); }
 .pm-hit:active, .pm-tile:active { transform: scale(0.98); }
 .pm-grid { scrollbar-width: thin; scrollbar-color: rgba(143,180,255,.35) transparent; }
@@ -395,9 +398,10 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
           aspectRatio: '2172 / 724', borderRadius: 10, overflow: 'hidden', background: '#000', color: '#fff', display: 'block',
           transition: 'box-shadow .18s ease',
         }}>
-          {/* Dimmed for good (owner call): the art sits behind the lesson
-              name as texture, not as the thing you read. */}
-          <SafeImage src={bannerSrc(discipline, variant)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45, filter: 'brightness(0.75) saturate(0.9)' }}/>
+          {/* Dimmed (owner call): the art sits behind the lesson name as
+              texture. Highlight lifts it part way, never to full strength —
+              see .pm-banner in the css above. */}
+          <SafeImage src={bannerSrc(discipline, variant)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}/>
           <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: '14px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
             <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: allDone ? '#4ADE80' : GOLD }}>{allDone ? 'BASICS COMPLETE' : 'CONTINUE LEARNING'}</span>
             <span style={{ font: "700 15px 'Chakra Petch',sans-serif", letterSpacing: '0.03em', lineHeight: 1.1, maxWidth: '62%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

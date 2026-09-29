@@ -33,10 +33,10 @@ export default function useMiniPlayer(getFrame, enabled = true) {
     if (!player) return undefined;
 
     // Inherit the window if a previous screen in this session already opened
-    // it, so the button reads correctly straight after a hand-off.
+    // it, so the state reads correctly straight after a hand-off.
     setOpen(player.isOpen());
 
-    // The athlete can dismiss the window from the system UI, so the button
+    // The athlete can dismiss the window from the system UI, so the state
     // state has to follow the platform rather than assume.
     const onLeave = () => setOpen(false);
     const onEnter = () => setOpen(true);

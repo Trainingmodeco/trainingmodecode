@@ -7,7 +7,7 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import { playBell, unlockAudio } from './data/audioEngine';
@@ -540,7 +540,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         {/* Universal layout: How-to (O) sits top-right in the header row below;
             Volume sits directly under it so the two never overlap. */}
         <VoiceMixer top={58} right={12} dataGuide="cca-volume"/>
-        <MiniPlayerButton {...mini} top={58} right={54}/>
+        <FloatOnLeave {...mini}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>

@@ -19,7 +19,7 @@ import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
 import VoiceMixer from './shared/VoiceMixer';
 import useMiniPlayer from './hooks/useMiniPlayer';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { encouragementIntervalSec } from './data/coachEncouragement';
@@ -1087,7 +1087,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       {/* Below the header, matching the other players — the header's right
           slot is the "?" now, and the two would sit on top of each other. */}
       <VoiceMixer top={58} right={14}/>
-      <MiniPlayerButton {...mini} top={58} right={56}/>
+      <FloatOnLeave {...mini}/>
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
         {/* Training Mode logo header — back arrow returns to the list */}
         <TrainingHeader

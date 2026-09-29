@@ -275,16 +275,16 @@ function applyPreviewRect(video) {
   if (!video) return;
   if (previewRect) {
     const r = previewRect;
-    video.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;opacity:1;object-fit:cover;border-radius:${r.radius ?? 10}px;pointer-events:none;z-index:${r.zIndex ?? 59};background:#0a0014;`;
+    video.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;opacity:${r.opacity ?? 1};object-fit:cover;border-radius:${r.radius ?? 10}px;pointer-events:none;z-index:${r.zIndex ?? 59};background:#0a0014;`;
   } else {
     video.style.cssText = OFFSCREEN_CSS;
   }
 }
 
 /**
- * Where the live preview shows on screen (viewport coordinates), or null to
- * park the video off-screen. The button calls this with its own rect so the
- * preview IS the button face. Style only — the element never moves in the DOM.
+ * Where the live video sits on screen (viewport coordinates, optional
+ * opacity), or null to park it off-screen. FloatOnLeave keeps it inside the
+ * viewport but invisible. Style only — the element never moves in the DOM.
  */
 export function positionMiniPreview(rect) {
   previewRect = rect ? { ...rect } : null;
@@ -305,8 +305,7 @@ export function createMiniPlayer(getFrame) {
   video.muted = true;
   video.playsInline = true;
   video.setAttribute('playsinline', '');
-  // Honoured where automatic entry is allowed; ignored elsewhere, which is why
-  // the button exists.
+  // Honoured where automatic entry is allowed; ignored elsewhere.
   try { video.autoPictureInPicture = true; } catch { /* not supported */ }
 
   // The element has to live in the document: a detached <video> is accepted by
@@ -315,9 +314,9 @@ export function createMiniPlayer(getFrame) {
   // And it has to be VISIBLE. Android's automatic picture-in-picture only
   // considers a video that is playing and intersecting the viewport, so an
   // off-screen 1x1 element can never qualify — which is why "opens by itself
-  // when I leave" did nothing. The button therefore shows this video as a live
-  // preview (see positionMiniPreview); it is only parked off-screen when no
-  // button is mounted. The node is NEVER moved in the DOM: removing a video
+  // when I leave" once did nothing. FloatOnLeave therefore parks it as a tiny,
+  // near-transparent square inside the viewport (see positionMiniPreview); it
+  // is only parked off-screen when no session is mounted. The node is NEVER moved in the DOM: removing a video
   // from the document exits picture-in-picture, which would kill the window at
   // every hand-off.
   video.style.cssText = OFFSCREEN_CSS;
@@ -368,7 +367,7 @@ export function createMiniPlayer(getFrame) {
   // Without the handler the browser never offers it.
   const enterFromSession = async () => {
     if (destroyed || isMiniPlayerOpen()) return;
-    try { await prime(); await video.requestPictureInPicture(); } catch { /* platform said no - the button remains */ }
+    try { await prime(); await video.requestPictureInPicture(); } catch { /* platform said no - it needs a tap first */ }
   };
   try { navigator.mediaSession?.setActionHandler?.('enterpictureinpicture', enterFromSession); } catch { /* unsupported action */ }
 
@@ -453,8 +452,9 @@ let currentSource = null;
 let idleTimer = null;
 
 // Automatic entry: when the athlete leaves the app mid-session, ask for the
-// window right there. Android requires a user gesture for this and will refuse
-// it - that is why the button exists - but an installed PWA with
+// window right there. This is the ONLY way in (owner call: no in-timer button).
+// A plain browser tab on Android may still refuse without a gesture, but an
+// installed PWA with
 // autoPictureInPicture, and desktop Chrome with the Media Session action, can
 // say yes. Asking costs nothing where the answer is no.
 let hideListener = null;
