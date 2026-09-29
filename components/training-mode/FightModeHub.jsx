@@ -55,6 +55,8 @@ const hubCSS = `
 .ft:hover, .ft:focus-visible { border-color: #F2BE45 !important; box-shadow: 0 0 0 1px rgba(242,190,69,.3), 0 0 18px rgba(61,123,255,.4); }
 .ft:active { transform: scale(.985); }
 .ft.prac img { opacity: .35; filter: brightness(.7) saturate(.85); }
+.ft.prac .ft-book img { opacity: 1; filter: drop-shadow(0 0 8px rgba(168,85,247,.6)); transition: transform .25s, filter .25s; }
+.ft.prac:hover .ft-book img, .ft.prac:focus-visible .ft-book img { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(168,85,247,.8)) drop-shadow(0 0 6px rgba(242,190,69,.5)); }
 .ft.cond img { opacity: .45; filter: brightness(.7); }
 .ft.cond:hover img, .ft.cond:focus-visible img { opacity: .85; filter: brightness(1); transform: scale(1.03); }
 .ft:hover .ft-go, .ft:focus-visible .ft-go { color: #F2BE45 !important; }
@@ -158,6 +160,11 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
           <button type="button" className="ft prac" data-guide="fh-practice" onClick={() => goMode('practice')} style={{ background: '#0B0F1F', border: '1px dashed rgba(143,180,255,0.55)' }}>
             <SafeImage src="/static/fight-hub/practice.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '82% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(5,8,20,0.1) 0%, rgba(5,8,20,0.85) 70%)' }}/>
+            {/* The book, top-middle — Practice's mark. Full strength while the
+                art behind it stays dimmed. */}
+            <span className="ft-book" style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 40, height: 40 }}>
+              <SafeImage src="/static/revamp/practice-book.webp" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
+            </span>
             <span style={{ position: 'absolute', left: 12, right: 10, bottom: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ flex: 1, font: "700 14px 'Chakra Petch',sans-serif", letterSpacing: '0.08em', color: '#fff' }}>PRACTICE</span>
@@ -167,7 +174,7 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
             </span>
           </button>
           <button type="button" className="ft cond" data-guide="fh-conditioning" onClick={() => goMode('conditioning')} style={{ background: '#120A14', border: '1px solid rgba(239,68,68,0.45)' }}>
-            <SafeImage src="/static/revamp/combat-hero.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '74% 35%' }}/>
+            <SafeImage src="/static/revamp/combat-hero.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '100% 35%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(18,6,10,0.1) 0%, rgba(18,6,10,0.85) 70%)' }}/>
             <span style={{ position: 'absolute', left: 12, right: 10, bottom: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

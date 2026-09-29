@@ -113,6 +113,7 @@ export const SCREEN_GUIDES = {
     { target: 'pg-equipment', title: 'TRAIN WITH', body: 'Pick what you have: bodyweight, weights, or a mix. The program keeps its sets and reps; this decides which exercises fill them.' },
     { target: 'pg-continue', title: 'YOUR NEXT DAY', body: 'The program you are on and which day of it is next. RESUME builds that day — you can review and edit it before you start.' },
     { target: 'pg-library', title: 'PROGRAM LIBRARY', body: 'Every program, with the day each one would give you next. Tap one to switch to it.' },
+    { target: 'pg-more', title: 'MORE PROGRAMS', body: 'Full training plans with their own exercises — a 7-day shadowboxing starter, a bodyweight week, bodyweight circuits at three levels, shadowbox routines for every discipline, and the signature plans. Fit and Fight tabs; each one remembers which day is next. PRO plans are part of Training Mode Pro.' },
   ],
 
   fit_hub: [

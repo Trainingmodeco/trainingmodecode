@@ -14,6 +14,8 @@
 // challenge's idea — hold at the bottom until UP — on our own call pattern
 // (no music). Deadly Seven and 5 Minutes of Hell are Training Mode's versions.
 
+import { LIBRARY_CLASSICS } from './workoutLibrary';
+
 const TRANSITION = 5; // seconds between moves inside a named workout
 
 const reps = (name, n, extra = {}) => ({ name, mode: 'reps', reps: n, rest: TRANSITION, ...extra });
@@ -128,6 +130,9 @@ export const NAMED_WORKOUTS = [
   },
 ];
 
+// The owner's own sessions (data/workoutLibrary) join the classics.
+NAMED_WORKOUTS.push(...LIBRARY_CLASSICS);
+
 export const namedWorkoutById = (id) => NAMED_WORKOUTS.find(w => w.id === id) || null;
 
 // The mission object QuickMissionActive runs.
@@ -136,14 +141,14 @@ export function buildNamedMission(id) {
   if (!w) return null;
   return {
     title: w.title,
-    workoutType: 'Bodyweight',
+    workoutType: w.workoutType || 'Bodyweight',
     duration: w.estMin,
     difficulty: 'Hard',
     format: 'Auto',
     focus: w.focus,
     exercises: w.build(),
     finisherExercises: [],
-    rounds: 1,
+    rounds: w.rounds || 1,
     cardioFinisher: false,
     named: w.id,
   };

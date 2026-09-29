@@ -10,6 +10,7 @@ import { QM_LENGTHS, QM_FOCI, QM_INTENSITY, quickMissionConfig } from './data/qu
 import { generateQuickMission, estimateQuickMissionSeconds, quickMissionDose } from './fit-mode/quickMissionGenerator';
 import AddCardioSheet from './AddCardioSheet';
 import { NAMED_WORKOUTS, namedWorkoutById, buildNamedMission } from './data/namedWorkouts';
+import { isPro } from './data/entitlements';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import {
   fitKitCSS, SetupHeader, SetupPage, GoldButton, GhostButton, Tag, ChipGroup, Modal, CardioToggleCard, Label,
@@ -27,7 +28,7 @@ const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const focusLabel = (f) => (f === 'FULL BODY' ? 'Full Body' : cap(f));
 
-export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart, onCardioOnly }) {
+export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart, onCardioOnly, onPaywall }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [duration, setDuration] = useState(10);
   const [focus, setFocus] = useState('FULL BODY');
@@ -56,6 +57,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   };
 
   const handleStart = () => {
+    // Pro classics: only enforced once the paywall is on (isPro() is true
+    // for everyone until then).
+    if (named?.pro && !isPro()) { onPaywall?.(); return; }
     if (named) {
       const m = buildNamedMission(named.id);
       onStart?.({ ...cfg, duration: m.duration, difficulty: 'Hard', focus: m.focus, mission: m });
@@ -82,7 +86,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
             position: 'relative', borderRadius: 16, overflow: 'hidden', flexShrink: 0,
             border: '1px solid rgba(157,108,255,0.35)', background: '#0D0A18',
           }}>
-            <SafeImage src="/static/fitmode/quick-mission.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '30% 50%' }}/>
+            <SafeImage src="/static/fitmode/banner-gym-quick.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '55% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.82) 55%, rgba(7,6,12,0.4) 100%)' }}/>
             <div style={{ position: 'relative', padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: named ? GOLD : VIOLET_TEXT }}>{named ? `Classic · ${named.tag}` : 'Today’s Quick Mission'}</span>
@@ -93,6 +97,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                     <Tag>~{named.estMin} min</Tag>
                     <Tag accent>{named.focus}</Tag>
                     {named.needs && <Tag>{named.needs}</Tag>}
+                    {named.pro && <Tag>PRO</Tag>}
                   </>
                 ) : (
                   <>
@@ -106,7 +111,10 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               {named ? (
                 <>
                   <ol style={{ listStyle: 'none', margin: '4px 0 2px', padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                    {named.lines.map(([a, b], i) => (
+                    {named.lines.map(([a, b], i) => /^[+×]\s/.test(a) ? (
+                      // "+ 3 more" / "× 2 rounds" are notes on the list, not steps.
+                      <li key={i} style={{ paddingLeft: 28, font: `600 12px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>{a}</li>
+                    ) : (
                       <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 14px ${BODY}`, color: '#fff' }}>
                         <span style={{ width: 18, font: `700 11px ${HEAD}`, color: GOLD }}>{String(i + 1).padStart(2, '0')}</span>
                         <span style={{ flex: 1, fontWeight: 600 }}>{a}</span>
@@ -162,7 +170,8 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                     flexShrink: 0, height: 36, padding: '0 12px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
                     background: on ? 'rgba(242,190,69,0.16)' : '#16131F', border: `1px solid ${on ? 'rgba(242,190,69,0.7)' : 'transparent'}`,
                     color: on ? GOLD : '#E6E2F5', font: `700 11px ${HEAD}`, letterSpacing: '0.1em',
-                  }}>{w.title}</button>
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}>{w.title}{w.pro && <span style={{ font: `800 8px ${HEAD}`, letterSpacing: '0.1em', color: '#1A1204', background: GOLD, borderRadius: 3, padding: '2px 4px' }}>PRO</span>}</button>
                 );
               })}
             </div>

@@ -704,9 +704,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         </div>
 
         {/* Mission title */}
+        {/* Named programs carry long titles ("7-DAY SHADOWBOX MINI · JAB +
+            FOOTWORK"); keep them on one line, clear of the floating
+            mini-player and voice buttons in the top-right corner. */}
         <div style={{
           fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 12,
           color: C.text, letterSpacing: '0.1em', marginBottom: 4,
+          maxWidth: 'calc(100% - 120px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
         }}>{mission.title}</div>
 
         {/* Status strip */}

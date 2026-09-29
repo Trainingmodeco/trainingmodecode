@@ -568,7 +568,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
     // produces, so reviewing, editing and starting it work exactly as there.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <ProgramsScreen onBack={goFitHub} onHome={goHome} onFightMode={goFightHub} onStart={goFitWorkout}/>
+        <ProgramsScreen onBack={goFitHub} onHome={goHome} onFightMode={goFightHub} onStart={goFitWorkout} onStartMission={goQuickMissionActive} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
@@ -601,7 +601,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
   if (screen === 'qm_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <QuickMissionSetup onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode}/>
+        <QuickMissionSetup onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
       </WithNav>
     );
   }

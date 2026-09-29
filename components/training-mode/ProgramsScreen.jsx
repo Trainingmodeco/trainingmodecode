@@ -8,6 +8,10 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { ChevronLeft, ChevronRight, Home, Play } from 'lucide-react';
 import { PROGRAMS, programDayIndex, loadCurrentProgram, startProgramDay } from './data/workoutPrograms';
+import { PLAN_PROGRAMS, planDayIndex, planDayMinutes, startPlanDay } from './data/workoutLibrary';
+import { quickMissionConfig } from './data/quickMissionConfig';
+import { isPro } from './data/entitlements';
+import BottomSheet from './shared/BottomSheet';
 
 // Programs — promoted from a sheet inside the Workout Builder to its own Fit
 // Mode destination (row 03 on the hub).
@@ -45,12 +49,27 @@ const css = `
 .pg-go { transition: filter .18s ease, box-shadow .18s ease, transform .1s ease; }
 .pg-go:hover, .pg-go:focus-visible { filter: brightness(1.1); box-shadow: 0 0 30px rgba(242,190,69,.55); }
 .pg-go:active { transform: scale(0.985); }
+.pg-more { transition: border-color .18s, color .18s, background .18s; }
+.pg-more:hover, .pg-more:focus-visible { border-color: #F2BE45 !important; color: #F2BE45 !important; background: rgba(157,108,255,.08) !important; }
+.pg-plan { transition: border-color .18s, background .18s; }
+.pg-plan:hover, .pg-plan:focus-visible { border-color: #F2BE45 !important; background: rgba(157,108,255,.1) !important; }
 .pg-hero img { opacity: .55; filter: brightness(.85); transition: opacity .25s ease, filter .25s ease, transform .3s ease; }
 .pg-hero:hover img { opacity: .85; filter: brightness(1) saturate(1.1); transform: scale(1.02); }
 `;
 
-export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart }) {
+export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, onStartMission, onPaywall }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreCat, setMoreCat] = useState('fit');
+
+  // A plan day runs on the Quick Mission timer (fixed moves, voice calls).
+  // Pro plans are only locked once the paywall is on.
+  const startPlan = (p) => {
+    if (p.pro && !isPro()) { setMoreOpen(false); onPaywall?.(); return; }
+    const mission = startPlanDay(p);
+    setMoreOpen(false);
+    onStartMission?.({ ...quickMissionConfig({ duration: mission.duration, focus: mission.focus, difficulty: 'Hard' }), workoutType: mission.workoutType, mission });
+  };
   const [equipment, setEquipment] = useState(loadEquip);
   const [current] = useState(() => loadCurrentProgram());
 
@@ -116,7 +135,7 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart })
           }}>
             {/* The design's continue card sits on art; ours was a flat gradient
                 and read as unfinished. */}
-            <SafeImage src="/static/revamp/hub-fit-reveal.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '80% 20%' }}/>
+            <SafeImage src="/static/fitmode/banner-gym-programs.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '75% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.82) 60%, rgba(7,6,12,0.3) 100%)' }}/>
             <div style={{ position: 'relative', font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD }}>
               {current ? 'Continue program' : 'Start a program'}
@@ -172,10 +191,57 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart })
                 );
               })}
             </div>
+            {/* The owner's own plans — they don't fit the split-builder mould
+                above (fixed exercises, fight days), so they open in a list. */}
+            <button type="button" className="pg-more" data-guide="pg-more" onClick={() => setMoreOpen(true)} style={{
+              height: 48, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: 'transparent', border: '1px dashed rgba(196,168,255,0.5)', color: VIOLET,
+              font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
+            }}>MORE PROGRAMS · {PLAN_PROGRAMS.length}<ChevronRight size={16}/></button>
           </div>
         </div>
       </div>
 
+      {moreOpen && (
+        <BottomSheet variant="float" title="MORE PROGRAMS" accent="#9D6CFF" onClose={() => setMoreOpen(false)} maxHeight="76dvh">
+          <div role="tablist" aria-label="Program type" style={{ display: 'flex', padding: 3, gap: 3, marginBottom: 10, borderRadius: 10, background: '#110E1C', border: '1px solid rgba(255,255,255,0.09)' }}>
+            {[['fit', 'FIT'], ['fight', 'FIGHT']].map(([id, label]) => {
+              const on = moreCat === id;
+              return (
+                <button key={id} type="button" role="tab" aria-selected={on} className="pg-seg" aria-pressed={on ? 'true' : 'false'} onClick={() => setMoreCat(id)} style={{
+                  flex: 1, height: 34, border: 'none', borderRadius: 8, cursor: 'pointer',
+                  font: "600 12px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
+                  color: on ? '#fff' : MUTED, background: on ? (id === 'fight' ? 'rgba(61,123,255,0.28)' : 'rgba(157,108,255,0.22)') : 'transparent',
+                  boxShadow: on ? `inset 0 0 0 1px ${id === 'fight' ? '#3D7BFF' : '#9D6CFF'}` : 'none',
+                }}>{label} · {PLAN_PROGRAMS.filter(p => p.category === id).length}</button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {PLAN_PROGRAMS.filter(p => p.category === moreCat).map(p => {
+              const idx = planDayIndex(p);
+              return (
+                <button key={p.id} type="button" className="pg-plan" onClick={() => startPlan(p)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  background: '#110E1C', border: '1px solid rgba(255,255,255,0.09)',
+                }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ minWidth: 0, font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.04em', lineHeight: 1.2, color: '#fff' }}>{p.title}</span>
+                      {p.pro && <span style={{ flexShrink: 0, font: "800 8px 'Chakra Petch',sans-serif", letterSpacing: '0.1em', color: '#1A1204', background: GOLD, borderRadius: 3, padding: '2px 4px' }}>PRO</span>}
+                    </span>
+                    <span style={{ display: 'block', fontSize: 12, color: '#8E88A8', marginTop: 2 }}>{p.meta}</span>
+                    <span style={{ display: 'block', fontSize: 12, color: VIOLET, marginTop: 2 }}>
+                      Next: Day {idx + 1} · {titleCase(p.days[idx].label)} · ~{planDayMinutes(p, idx)} min
+                    </span>
+                  </span>
+                  <Play size={16} color={GOLD} fill={GOLD} strokeWidth={0}/>
+                </button>
+              );
+            })}
+          </div>
+        </BottomSheet>
+      )}
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.programs} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
