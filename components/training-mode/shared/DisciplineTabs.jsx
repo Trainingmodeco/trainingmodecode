@@ -24,22 +24,51 @@ export const DISCIPLINES = [
   { id: 'MMA', key: 'mma', label: 'MMA' },
 ];
 
-const ON = {
-  bg: 'linear-gradient(180deg,#16307A 0%,#0C1838 60%,#081026 100%)',
-  line: '#7EA6FF',
-  glow: 'drop-shadow(0 0 5px rgba(61,123,255,.7))',
-  color: '#FFFFFF',
-  bar: 'linear-gradient(90deg,#2458E0,#F2BE45 50%,#2458E0)',
-  barGlow: '0 0 8px #3D7BFF',
+// Each discipline wears its own colours, so the selected tab says WHICH
+// discipline at a glance instead of only that one is selected. Boxing is red
+// and white, Kickboxing blue and gold, Muay Thai gold and black, MMA black and
+// white. Unselected tabs stay muted but keep a faint edge in their colour.
+const THEMES = {
+  Boxing: {
+    bg: 'linear-gradient(180deg,#8E1420 0%,#4A0A12 60%,#2A060B 100%)',
+    line: '#FF8A8A', rgb: '255,90,90', color: '#FFFFFF',
+    bar: 'linear-gradient(90deg,#E0283A,#FFFFFF 50%,#E0283A)',
+  },
+  Kickboxing: {
+    bg: 'linear-gradient(180deg,#16307A 0%,#0C1838 60%,#081026 100%)',
+    line: '#F2BE45', rgb: '61,123,255', color: '#FFFFFF',
+    bar: 'linear-gradient(90deg,#2458E0,#F2BE45 50%,#2458E0)',
+  },
+  'Muay Thai': {
+    bg: 'linear-gradient(180deg,#3A2A08 0%,#15100A 60%,#0A0806 100%)',
+    line: '#F2BE45', rgb: '242,190,69', color: '#F2BE45',
+    bar: 'linear-gradient(90deg,#0A0806,#F2BE45 50%,#0A0806)',
+  },
+  MMA: {
+    bg: 'linear-gradient(180deg,#26262B 0%,#101014 60%,#060608 100%)',
+    line: '#FFFFFF', rgb: '255,255,255', color: '#FFFFFF',
+    bar: 'linear-gradient(90deg,#3A3A40,#FFFFFF 50%,#3A3A40)',
+  },
 };
-const OFF = {
-  bg: 'rgba(14,16,36,.55)',
-  line: 'rgba(126,166,255,.22)',
-  glow: 'none',
-  color: '#6F7699',
-  bar: 'transparent',
-  barGlow: 'none',
-};
+
+function themeFor(id, on) {
+  const t = THEMES[id] || THEMES.Kickboxing;
+  if (on) {
+    return {
+      bg: t.bg, line: t.line, color: t.color, bar: t.bar,
+      glow: `drop-shadow(0 0 5px rgba(${t.rgb},.7))`,
+      barGlow: `0 0 8px rgba(${t.rgb},.9)`,
+    };
+  }
+  return {
+    bg: 'rgba(14,16,36,.55)',
+    line: `rgba(${t.rgb},.24)`,
+    glow: 'none',
+    color: '#6F7699',
+    bar: 'transparent',
+    barGlow: 'none',
+  };
+}
 
 export const disciplineTabsCSS = `
 .dt-tab { transition: color .18s ease, filter .18s ease; }
@@ -68,13 +97,13 @@ export default function DisciplineTabs({ value, onChange, style, guide }) {
         role="tablist" aria-label="Discipline" data-guide={guide}
         style={{
           display: 'flex', gap: 3, height: 40, flexShrink: 0,
-          borderBottom: '1px solid rgba(126,166,255,.3)',
+          borderBottom: `1px solid rgba(${(THEMES[value] || THEMES.Kickboxing).rgb},.3)`,
           ...style,
         }}
       >
         {DISCIPLINES.map((d) => {
           const on = d.id === value;
-          const t = on ? ON : OFF;
+          const t = themeFor(d.id, on);
           return (
             <button
               key={d.id} className="dt-tab" type="button"

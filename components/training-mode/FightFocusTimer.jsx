@@ -17,7 +17,7 @@ import { packOpts, packLine } from './data/voicePacks';
 import { recordGhostFromSession, finishGhostBattle, ghostCountAtTime } from './data/ghostBattles';
 import VoiceMixer from './shared/VoiceMixer';
 import useMiniPlayer from './hooks/useMiniPlayer';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import useStrikeCounter from './hooks/useStrikeCounter';
 import StrikeHud from './shared/StrikeHud';
 import StrikeCounterSheet from './shared/StrikeCounterSheet';
@@ -729,7 +729,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* LT-1 — cue level, adjustable mid-round without pausing. */}
         <VoiceMixer top={10} right={10}/>
-        <MiniPlayerButton {...mini} top={10} right={52}/>
+        <FloatOnLeave {...mini}/>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>

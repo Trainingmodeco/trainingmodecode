@@ -5,7 +5,7 @@ import { ARCADE } from './ArcadeUI';
 import TrainingCTA from './shared/TrainingCTA';
 import useWakeLock from './hooks/useWakeLock';
 import useMiniPlayer from './hooks/useMiniPlayer';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, unlockAudio } from './data/audioEngine';
 import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
@@ -701,7 +701,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   return (
     <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      <MiniPlayerButton {...mini} top={0} right={8}/>
+      <FloatOnLeave {...mini}/>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
         <span style={{ width: 7, height: 7, borderRadius: '50%', background: gpsDot, boxShadow: `0 0 8px ${gpsDot}`, animation: gpsStatus === 'acquiring' ? 'run-pulse 1.2s ease-in-out infinite' : 'none' }}/>

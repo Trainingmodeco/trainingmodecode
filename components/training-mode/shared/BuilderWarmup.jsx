@@ -4,7 +4,7 @@ import { playBeep, playBell, unlockAudio } from '../data/audioEngine';
 import useWakeLock from '../hooks/useWakeLock';
 import { C } from '../Styles';
 import useMiniPlayer from '../hooks/useMiniPlayer';
-import MiniPlayerButton from './MiniPlayerButton';
+import FloatOnLeave from './FloatOnLeave';
 
 // Builder warm-up (spec: 90s guided block before a fresh builder workout).
 //
@@ -197,7 +197,7 @@ export default function BuilderWarmup({ muscleGroups, onDone, onSkip }) {
       padding: '24px 24px calc(24px + env(safe-area-inset-bottom, 0px))', textAlign: 'center',
     }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }}/>
-      <MiniPlayerButton {...mini} top={14} right={14}/>
+      <FloatOnLeave {...mini}/>
 
       <div style={{ position: 'relative', flex: 1, width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
         <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, color: VIOLET, letterSpacing: '0.26em', marginBottom: 14 }}>

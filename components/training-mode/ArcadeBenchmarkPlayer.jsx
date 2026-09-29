@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import StageChrome from './shared/StageChrome';
 import useMiniPlayer from './hooks/useMiniPlayer';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import { RotateCcw, MoveHorizontal as MoreHorizontal, Zap, Play, Pause } from 'lucide-react';
 import { C } from './Styles';
 import { markBlockComplete, completeStage, recordInvalidAttempt } from './data/arcadeProgress';
@@ -623,7 +623,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
 
   const timerChip = (
     <>
-    <MiniPlayerButton {...mini} top={8} right={104}/>
+    <FloatOnLeave {...mini}/>
     <div style={{
       position: 'absolute', top: 12, right: 12,
       padding: '4px 10px', borderRadius: 6,

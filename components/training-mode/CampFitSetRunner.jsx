@@ -5,7 +5,7 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { speakOrDelay, speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { packOpts } from './data/voicePacks';
@@ -308,7 +308,7 @@ export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateCha
   return (
     <PhoneFrame useBrandBg>
       <VoiceMixer top={10} right={10}/>
-      <MiniPlayerButton {...mini} top={10} right={52}/>
+      <FloatOnLeave {...mini}/>
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 16px 0' }}>
         <div style={{ font: "900 17px 'Orbitron',sans-serif", color: TEAL, letterSpacing: '0.08em', textShadow: `0 0 14px ${TEAL}66` }}>{inFinisher ? 'FINISHER' : 'COUNTED SETS'}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>

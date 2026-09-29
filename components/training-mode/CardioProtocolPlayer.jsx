@@ -4,7 +4,7 @@ import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import useCadence from './hooks/useCadence';
-import MiniPlayerButton from './shared/MiniPlayerButton';
+import FloatOnLeave from './shared/FloatOnLeave';
 import { ARCADE } from './ArcadeUI';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
@@ -560,9 +560,9 @@ export default function CardioProtocolPlayer({
     return (
       <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px 0' }}>
         <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
-        {/* The run layout is its own render branch - the float button has to
-            live here too, or a runner never sees it. */}
-        <MiniPlayerButton {...mini} top={0} right={8}/>
+        {/* The run layout is its own render branch - the float-on-leave
+            anchor has to live here too, or a runner never gets the window. */}
+        <FloatOnLeave {...mini}/>
         {/* GPS live header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusDot, boxShadow: `0 0 8px ${statusDot}`, animation: usingRealGps || !useGps ? 'none' : 'cardio-ring-glow 1.4s ease-in-out infinite' }}/>
@@ -648,7 +648,7 @@ export default function CardioProtocolPlayer({
   return (
     <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
       <style dangerouslySetInnerHTML={{ __html: RING_STYLES }} />
-      <MiniPlayerButton {...mini} top={0} right={8}/>
+      <FloatOnLeave {...mini}/>
 
       <div style={{ fontFamily: ARCADE.fontHead, fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: '0.22em', marginBottom: 3, display: headerLabel ? 'block' : 'none' }}>{headerLabel}</div>
       {subLabel && <div style={{ fontFamily: ARCADE.fontHead, fontSize: 8, color: VIOLET, fontWeight: 700, letterSpacing: '0.2em', marginBottom: 4 }}>{subLabel}</div>}
