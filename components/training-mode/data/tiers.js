@@ -13,7 +13,9 @@ export const VISIBLE_TIERS = [
   { id: 'rookie',   name: 'Rookie',   label: 'Combat Rookie',   color: '#b87333', xp: 0 },
   { id: 'novice',   name: 'Novice',   label: 'Combat Novice',   color: '#c0c0c0', xp: 500 },
   { id: 'warrior',  name: 'Warrior',  label: 'Combat Warrior',  color: '#fde047', xp: 1500 },
-  { id: 'elite',    name: 'Elite',    label: 'Combat Elite',    color: '#60a5fa', xp: 3500 },
+  // Shown as MAX (owner call). The id stays 'elite' so saved progress and the
+  // avatar art (/avatars/*/elite) keep resolving.
+  { id: 'elite',    name: 'Max',      label: 'Combat Max',      color: '#60a5fa', xp: 3500 },
   { id: 'champion', name: 'Champion', label: 'Combat Champion', color: '#c084fc', xp: 7000 },
 ];
 
