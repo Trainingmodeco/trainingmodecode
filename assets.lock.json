@@ -595,6 +595,18 @@
     "size": 28398,
     "sha1": "ef722e3f7f0384d070dac32bd5cd1d735cf5d31f"
   },
+  "static/fitmode/banner-gym-mission.webp": {
+    "size": 95552,
+    "sha1": "f717dd255f9c1859bda49026cbb93190fb196f55"
+  },
+  "static/fitmode/banner-gym-programs.webp": {
+    "size": 93642,
+    "sha1": "fae70b2cb7f13653344ba495d8110cd1beae5118"
+  },
+  "static/fitmode/banner-gym-quick.webp": {
+    "size": 94864,
+    "sha1": "48297358e5d886521138696970a7a70c5d481418"
+  },
   "static/fitmode/cardio-finisher-sub-banner.png": {
     "size": 106756,
     "sha1": "6a596749f1256a61c0f3ce111d932d7fa7ad507d"

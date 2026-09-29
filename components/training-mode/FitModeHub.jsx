@@ -128,7 +128,7 @@ export default function FitModeHub({
           }}>
             {/* Real art, not the page background: with app-bg here the card
                 read as empty, which beta called "the banner is missing". */}
-            <SafeImage src="/static/hub/fit.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '82% 30%' }}/>
+            <SafeImage src="/static/fitmode/banner-gym-mission.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '70% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.8) 52%, rgba(7,6,12,0.18) 100%)' }}/>
             <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

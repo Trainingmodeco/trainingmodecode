@@ -71,14 +71,14 @@ export default function AccountCard() {
   };
 
   const card = {
-    width: '100%', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.2)',
+    width: '100%', padding: '9px 14px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.2)',
     background: 'rgba(12,2,24,0.85)', display: 'flex', alignItems: 'center', gap: 12,
   };
 
   if (p) {
     return (
       <div style={card}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1.5px solid rgba(253,224,71,0.5)', background: 'rgba(168,85,247,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1.5px solid rgba(253,224,71,0.5)', background: 'rgba(168,85,247,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {p.avatarUrl
             ? <SafeImage src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
             : <span style={{ font: "900 15px 'Orbitron',sans-serif", color: GOLD }}>{(p.name[0] || 'A').toUpperCase()}</span>}
@@ -112,7 +112,7 @@ export default function AccountCard() {
 
   return (
     <button onClick={handleSignIn} disabled={busy} style={{ ...card, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 }}>
-      <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <GoogleG size={20}/>
       </div>
       <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>

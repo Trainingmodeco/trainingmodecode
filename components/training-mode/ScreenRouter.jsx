@@ -568,7 +568,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
     // produces, so reviewing, editing and starting it work exactly as there.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <ProgramsScreen onBack={goFitHub} onHome={goHome} onFightMode={goFightHub} onStart={goFitWorkout}/>
+        <ProgramsScreen onBack={goFitHub} onHome={goHome} onFightMode={goFightHub} onStart={goFitWorkout} onStartMission={goQuickMissionActive} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
@@ -601,7 +601,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
   if (screen === 'qm_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <QuickMissionSetup onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode}/>
+        <QuickMissionSetup onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
@@ -651,7 +651,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
   }
   if (screen === 'profile') {
     return (
-      <WithNav activeTab="profile" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+      // lock: the overview fits one screen now. The edit and settings views
+      // are longer and still scroll — lock falls back to scrolling on overflow.
+      <WithNav activeTab="profile" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         <Profile onHome={goHome} onBack={goHome} onSave={goHome} profile={profile} updateProfile={updateProfile} onBetaFeedback={goBetaFeedback} onPaywall={goPaywall} onGameLink={goGameLink} onSubscription={goSubscription} onNotifications={goNotifications} onReplayTour={startFeatureTour}/>
       </WithNav>
     );

@@ -103,7 +103,7 @@ export const SCREEN_GUIDES = {
     { target: 'tc-pips4', title: 'SESSION 1 vs SESSION 2', body: 'From Level 4 up, each level is a real two-a-day — the S1 and S2 boxes highlighted here show both. SESSION 1 · SKILL is your combat work (bag, pads, footwork, sparring drills), done FIRST while you are fresh so technique stays sharp. SESSION 2 · CONDITIONING is the physical side (roadwork, intervals, strength) done later.' },
     { target: 'tc-pips4', title: 'WHY SPLIT THEM?', body: 'Skill degrades when you are tired, so combat work goes first; conditioning handles fatigue fine, so it goes second. Leave 4–8 hours between the two. The level only clears — and the next one unlocks — once BOTH sessions are done ✓✓.' },
     { target: 'tc-difficulty', campModal: true, title: 'PICK YOUR DIFFICULTY', body: 'This is your level card — every session runs at EASY, NORMAL, or HARD, and you choose right here. Higher difficulty adds rounds, volume, and complexity. Important: a clean EASY session always beats a sloppy HARD one, so pick the level you can actually finish with good form.' },
-    { target: 'tc-archetype', campModal: true, title: '🥊 FIGHTER ARCHETYPE', body: 'Your fighting identity for this camp. Each card is a real style — think relentless forward pressure, slick defense-into-counters, or a composed twelve-round pace — and your pick shapes what the coach drills every session: the combos called, the footwork, the round goals. The blurb on each card previews its plan at the difficulty you just chose. Not locked in — switch archetypes any time and the camp adapts.' },
+    { target: 'tc-archetype', campModal: true, title: '🥊 FIGHTING STYLE', body: 'How you like to fight — a Pressure Fighter, a Counter Fighter, or Well-Rounded (each discipline has its own three). Your pick shapes what the coach drills every session: the combos called, the footwork, the round goals. The line under the buttons says what that style means at the difficulty you chose. Switch any time and the camp adapts.' },
     { target: 'tc-readiness', campSheet: true, title: 'READINESS & SAFETY', body: 'This gut-check appears before every session — rate sleep, energy, soreness, stress and mood, 5 being best. Feeling rough? It offers an EASIER session that still counts and keeps your streak. Flag a danger symptom (dizziness, chest, sharp pain, concussion signs) and the camp tells you to REST — no penalty, no streak lost, ever.' },
     { target: 'tc-belt', title: 'EARN THE BELT', body: 'Every session you finish earns XP toward your fighter level. Clear all 12 levels — Foundation through this TITLE FIGHT at the top — and the belt is yours.' },
   ],
@@ -113,6 +113,7 @@ export const SCREEN_GUIDES = {
     { target: 'pg-equipment', title: 'TRAIN WITH', body: 'Pick what you have: bodyweight, weights, or a mix. The program keeps its sets and reps; this decides which exercises fill them.' },
     { target: 'pg-continue', title: 'YOUR NEXT DAY', body: 'The program you are on and which day of it is next. RESUME builds that day — you can review and edit it before you start.' },
     { target: 'pg-library', title: 'PROGRAM LIBRARY', body: 'Every program, with the day each one would give you next. Tap one to switch to it.' },
+    { target: 'pg-more', title: 'MORE PROGRAMS', body: 'Full training plans with their own exercises — a 7-day shadowboxing starter, a bodyweight week, bodyweight circuits at three levels, shadowbox routines for every discipline, and the signature plans. Fit and Fight tabs; each one remembers which day is next. PRO plans are part of Training Mode Pro.' },
   ],
 
   fit_hub: [
@@ -205,6 +206,7 @@ export const SCREEN_GUIDES = {
     { target: null, title: '⏱️ QUICK MISSION', body: 'No planning needed — pick a time and intensity and the app builds the whole session for you.' },
     { target: 'qm-length', title: "TODAY'S MISSION", body: 'The mission you would run right now: its name, every move and how many reps or seconds each gets. The line under the list is how long it really takes with the count and the rest included.' },
     { target: 'qm-intensity', title: 'SURPRISE ME · ADJUST', body: 'SURPRISE ME deals a different mission. ADJUST opens the three choices — focus (upper, lower, core, combat or full body), length and intensity — and the card rebuilds as you pick.' },
+    { target: 'qm-classics', title: 'CLASSICS', body: 'The workouts people know by name — Murph, Half Murph, the Sally Up challenge, Deadly Seven and 5 Minutes of Hell. Tap one to put it on the card, then START. The coach calls every move; on a run, tap DONE when you are back.' },
     { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission. Flip the switch to set it up; EDIT changes it.' },
     { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card — timer, coach, and all.' },
   ],
