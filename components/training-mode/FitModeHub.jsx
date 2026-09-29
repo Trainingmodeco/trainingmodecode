@@ -125,14 +125,14 @@ export default function FitModeHub({
 
           {/* Today's mission — the one thing on this screen with a gold button. */}
           <section className="fm-hero" data-guide="fit-today" style={{
-            position: 'relative', height: 'clamp(196px, 30dvh, 224px)', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
+            position: 'relative', height: 'clamp(168px, 22dvh, 180px)', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
           }}>
             {/* Real art, not the page background: with app-bg here the card
                 read as empty, which beta called "the banner is missing". */}
             <SafeImage src="/static/fitmode/banner-gym-mission.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '70% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.8) 52%, rgba(7,6,12,0.18) 100%)' }}/>
-            <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Today&apos;s mission</span>
                 {/* Ghost is a state of today's mission now, not a separate row
@@ -148,14 +148,14 @@ export default function FitModeHub({
                   </button>
                 )}
               </div>
-              <h1 style={{ margin: 0, font: "700 26px 'Chakra Petch',sans-serif", lineHeight: 1.05, maxWidth: 270, color: '#fff' }}>{title}</h1>
-              <div style={{ fontSize: 14, color: MUTED }}>{line}</div>
+              <h1 style={{ margin: 0, font: "700 22px 'Chakra Petch',sans-serif", lineHeight: 1.05, maxWidth: 270, color: '#fff' }}>{title}</h1>
+              <div style={{ fontSize: 13, color: MUTED }}>{line}</div>
               <div style={{ flexGrow: 1 }}/>
               <button type="button" className="fm-go" onClick={startPick} style={{
-                height: 52, borderRadius: 12, border: 'none', cursor: 'pointer',
+                height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                 background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
-                font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.2em',
+                font: "700 16px 'Chakra Petch',sans-serif", letterSpacing: '0.2em',
                 boxShadow: '0 0 28px rgba(242,190,69,0.35)',
               }}><Play size={17} fill="currentColor" strokeWidth={0}/>START</button>
             </div>

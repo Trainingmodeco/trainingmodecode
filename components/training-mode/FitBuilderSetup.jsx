@@ -13,7 +13,7 @@ import { resolveScheme, CHIP_GROUPS, SET_SCHEMES, DURATIONS, DEFAULT_DURATION } 
 import { trainAgainPlan } from './data/builderProgression';
 import { loadRoutines, deleteRoutine, MAX_ROUTINES } from './data/savedRoutines';
 import {
-  fitKitCSS, SetupHeader, SetupPage, SegRow, SettingsCard, SettingRow, GoldButton, GhostButton, ChoiceSheet, Label,
+  fitKitCSS, SetupHeader, SetupPage, SegRow, SettingsCard, SettingRow, GoldButton, GhostButton, ChoiceSheet, Label, Tag,
   HEAD, BODY, MUTED, GOLD, VIOLET_TEXT, CARD, CARD_BORDER,
 } from './shared/FitSetupKit';
 
@@ -86,8 +86,6 @@ const builderCSS = `
 }
 .wb-again { transition: border-color .2s, box-shadow .2s; }
 .wb-again:hover, .wb-again:focus-visible { border-color: ${GOLD} !important; box-shadow: 0 0 0 1px rgba(242,190,69,.3), 0 0 22px rgba(157,108,255,.45); }
-.wb-routine { transition: border-color .2s, background .2s; }
-.wb-routine:hover, .wb-routine:focus-visible { border-color: ${GOLD} !important; background: rgba(157,108,255,.1) !important; }
 `;
 
 function MuscleGlow({ x, y }) {
@@ -174,7 +172,31 @@ export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerat
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 0', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0', flex: 1 }}>
+          {/* The build card — same banner card as Today's Mission and Quick
+              Mission (owner's gym art), with GENERATE inside it like their
+              START. It reads back what the settings below will build. */}
+          <section className="fk-hero" style={{
+            position: 'relative', borderRadius: 16, overflow: 'hidden', flexShrink: 0,
+            border: '1px solid rgba(157,108,255,0.35)', background: '#0D0A18',
+            animation: genNudge ? 'wb-shake 0.45s ease' : 'none',
+          }}>
+            <SafeImage src="/static/fitmode/banner-gym-builder.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 60%' }}/>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.95) 0%, rgba(7,6,12,0.78) 55%, rgba(7,6,12,0.35) 100%)' }}/>
+            <div style={{ position: 'relative', padding: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: VIOLET_TEXT }}>Your build</span>
+              <h1 style={{ margin: 0, font: `700 21px ${HEAD}`, lineHeight: 1.1, textTransform: 'uppercase', color: chips.length ? '#fff' : '#f87171', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chips.length ? targetValue : 'Pick muscles below'}</h1>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <Tag>{duration} min</Tag>
+                <Tag>{cap(difficulty)}</Tag>
+                <Tag accent>{equip.value}</Tag>
+              </div>
+              <div style={{ marginTop: 2 }}>
+                <GoldButton guide="wb-generate" label="GENERATE WORKOUT" icon={<Zap size={17} fill="currentColor" strokeWidth={0}/>} onClick={generate} height={44} style={{ letterSpacing: '0.16em', fontSize: 15 }}/>
+              </div>
+            </div>
+          </section>
+
           {/* Spec 11 — TRAIN AGAIN: straight to the generated list with every
               nudge applied. Hidden entirely without history. */}
           {trainPlan && (
@@ -192,38 +214,26 @@ export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerat
             </button>
           )}
 
-          <SegRow label="Duration" guide="wb-duration" value={duration} onPick={setDuration}
+          <SegRow label="Duration" guide="wb-duration" value={duration} onPick={setDuration} height={34} gap={6}
             options={DURATIONS.map(d => ({ id: d, label: d === duration ? `${d} MIN` : String(d) }))}/>
-          <SegRow label="Difficulty" guide="wb-difficulty" value={difficulty} onPick={setDifficulty} options={DIFFICULTY}/>
+          <SegRow label="Difficulty" guide="wb-difficulty" value={difficulty} onPick={setDifficulty} options={DIFFICULTY} height={34} gap={6}/>
 
           <SettingsCard>
-            <SettingRow first guide="wb-muscles" label="Target" value={targetValue} accent={chips.length ? undefined : '#f87171'} onClick={() => setSheet('target')}/>
-            <SettingRow guide="wb-equipment" label="Equipment" value={equip.value} onClick={() => setSheet('equipment')}/>
-            <SettingRow guide="wb-programming" label="Set scheme" value={schemeValue} onClick={() => setSheet('scheme')}/>
-            <SettingRow guide="wb-cardio" label="Cardio" value={cardioSummary} accent={cardioAddon ? GOLD : undefined} onClick={() => setSheet('cardio')}/>
+            <SettingRow first height={44} guide="wb-muscles" label="Target" value={targetValue} accent={chips.length ? undefined : '#f87171'} onClick={() => setSheet('target')}/>
+            <SettingRow height={44} guide="wb-equipment" label="Equipment" value={equip.value} onClick={() => setSheet('equipment')}/>
+            <SettingRow height={44} guide="wb-programming" label="Set scheme" value={schemeValue} onClick={() => setSheet('scheme')}/>
+            <SettingRow height={44} guide="wb-cardio" label="Cardio" value={cardioSummary} accent={cardioAddon ? GOLD : undefined} onClick={() => setSheet('cardio')}/>
           </SettingsCard>
 
           {genNudge && (
             <div style={{ textAlign: 'center', font: `600 13px ${BODY}`, color: '#f87171' }}>Pick at least one muscle group.</div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, animation: genNudge ? 'wb-shake 0.45s ease' : 'none' }}>
-            <GoldButton guide="wb-generate" label="GENERATE WORKOUT" icon={<Zap size={18} fill="currentColor" strokeWidth={0}/>} onClick={generate} height={58} style={{ letterSpacing: '0.16em' }}/>
-            <GhostButton label="SURPRISE ME" icon={<Shuffle size={17} color={GOLD}/>} onClick={surprise} height={50}/>
+          {/* SURPRISE ME and SAVED ROUTINES share one row, like SURPRISE ME /
+              ADJUST under the other two cards. */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+            <GhostButton label="SURPRISE ME" icon={<Shuffle size={16} color={GOLD}/>} onClick={surprise} height={44}/>
+            <GhostButton guide="wb-routines" label={routines.length ? `ROUTINES · ${routines.length}` : 'ROUTINES'} icon={<Bookmark size={16} color={VIOLET_TEXT}/>} onClick={() => setSheet('routines')} height={44}/>
           </div>
-
-          <div style={{ flex: 1 }}/>
-
-          <button type="button" className="wb-routine" data-guide="wb-routines" onClick={() => setSheet('routines')} style={{
-            height: 60, flexShrink: 0, borderRadius: 14, border: '1px dashed rgba(196,168,255,0.45)', background: 'transparent',
-            display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', cursor: 'pointer', textAlign: 'left', width: '100%', color: '#fff',
-          }}>
-            <Bookmark size={20} color={VIOLET_TEXT}/>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', font: `700 14px ${HEAD}`, letterSpacing: '0.1em' }}>SAVED ROUTINES</span>
-              <span style={{ display: 'block', font: `500 12px ${BODY}`, color: MUTED }}>{routines.length ? `${routines.length} saved · tap to load one` : 'Save a workout from its list to shelf it here'}</span>
-            </span>
-            <ChevronRight size={18} color={VIOLET_TEXT}/>
-          </button>
         </div>
       </SetupPage>
 
