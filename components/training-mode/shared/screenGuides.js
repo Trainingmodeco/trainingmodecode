@@ -26,6 +26,7 @@ export const SCREEN_GUIDES = {
     { target: 'pr-settings', title: '⚙ SETTINGS', body: 'The full settings page: weight units (pounds unless you change them), the audio mixer and voice options, how strikes are called out — by name or by number — plus your subscription and the privacy policy. Anything adjustable lives in here.' },
     { target: 'pr-notifs', title: '🔔 NOTIFICATIONS', body: 'Workout reminders and alerts: your if-then training plan (what, which days, what time), quiet hours, streak-safety nudges, and browser push permission.' },
     { target: 'pr-replay', title: '🔁 REPLAY INTRO GUIDE', body: 'Runs the intro walkthrough again — Home, Fight Mode and Practice, Fit Mode and Cardio, Combat Conditioning, the Arcade, rewards and Game Link. Replay it any time.' },
+    { target: 'pr-social', title: 'FOLLOW TRAINING MODE', body: 'The official Instagram, @trainingmode.co, and the website trainingmode.co: new sagas, updates and training clips. Both open outside the app.' },
   ],
 
   // The FULL walkthrough — runs after the questionnaire and from Profile →

@@ -1,0 +1,52 @@
+# Every PR into `app` (which auto-deploys to apptrainingmode.com) runs the same
+# gates that are run by hand before each merge, so a broken change shows a red
+# X on the PR instead of reaching users.
+name: checks
+
+on:
+  pull_request:
+    branches: [app]
+  push:
+    branches: [app]
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run -s lint
+
+      # The indoor-tracking suite is timing-sensitive and occasionally flakes
+      # on a busy machine; one retry separates a flake from a real failure.
+      - name: Indoor tracking tests
+        run: npm run -s test:indoor || npm run -s test:indoor
+
+      - name: Cardio generator tests
+        run: npm run -s test:cardio
+
+      - name: Combat Conditioning audit
+        run: npm run -s audit:cc
+
+      - name: Screen guides resolve
+        run: npm run -s check:guides
+
+      # Also checks every referenced image exists and matches assets.lock.json.
+      - name: Web build
+        run: npm run -s build:web

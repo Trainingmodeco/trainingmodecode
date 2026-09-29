@@ -16,7 +16,7 @@ import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession } from './voiceCoach';
-import { trackEvent } from './data/analytics';
+import { trackEvent, setErrorScreen } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -461,6 +461,8 @@ export default function App() {
   // Arriving on a session screen — by RESUME or by starting fresh — retires
   // the paused session of that kind; the other slot waits on.
   useEffect(() => { dropPausedFor(screen); }, [screen, dropPausedFor]);
+  // Crash reports say which screen the athlete was on.
+  useEffect(() => { setErrorScreen(screen); }, [screen]);
 
   // Cloud progress sync. No-ops entirely while signed out; once an account
   // exists it mirrors local progress up and restores it on a fresh device.

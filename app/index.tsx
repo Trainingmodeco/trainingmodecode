@@ -1,5 +1,10 @@
 import { Component } from 'react';
 import App from '@/components/training-mode/App';
+import { reportError, installErrorReporting } from '@/components/training-mode/data/analytics';
+
+// Script errors and rejected promises outside React's reach go to Plausible
+// as "App Error" events (see data/analytics.js).
+if (typeof window !== 'undefined') installErrorReporting();
 
 // A lazy screen (Training Arcade, Camp map, Codec…) loads its chunk on
 // demand. If the page's main bundle and that chunk come from DIFFERENT
@@ -28,7 +33,9 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
   }
 
   componentDidCatch(error: Error) {
-    if (!STALE_BUNDLE.test(error?.message || '')) return;
+    // A real crash (the athlete sees the error screen) is reported; a stale
+    // bundle after a deploy is expected and fixes itself with a reload.
+    if (!STALE_BUNDLE.test(error?.message || '')) { reportError(error, 'crash-screen'); return; }
     try {
       if (sessionStorage.getItem(RELOAD_FLAG)) return; // already tried once
       sessionStorage.setItem(RELOAD_FLAG, '1');

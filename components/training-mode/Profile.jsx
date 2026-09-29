@@ -6,7 +6,7 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import TrainingHeader from './TrainingHeader';
 import WordmarkTM from './WordmarkTM';
 import CornerHUD from './CornerHUD';
-import { ChevronLeft, MessageSquare, Bell, Volume2 } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Bell, Volume2, Globe } from 'lucide-react';
 import { C } from './Styles';
 import { ENCOURAGEMENT_FREQUENCIES, encouragementFrequency, describeEncouragement } from './data/coachEncouragement';
 import { CALL_STYLES, callStyleOf, formatCall } from './data/strikeNumbering';
@@ -19,7 +19,7 @@ import { getAudioSettings, saveAudioSettings, externalDuckingSupported } from '.
 import { loadReminderSettings, saveReminderSettings, requestNotificationPermission, getNotificationPermissionStatus } from './data/reminderEngine';
 import { planText } from './data/comboStreak';
 import { loadGamePlan, saveGamePlan } from './data/gamePlan';
-import { PRIVACY_URL, openExternalUrl } from './data/links';
+import { PRIVACY_URL, INSTAGRAM_URL, MARKETING_SITE_URL, openExternalUrl } from './data/links';
 import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
 import { loadProfile } from './data/userProfile';
 import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
@@ -466,6 +466,27 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                       <span style={{ display: 'block', font: "800 9px 'Orbitron',sans-serif", color: t.color || '#fff', letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.label}</span>
                       <span style={{ display: 'block', font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.sub}</span>
                     </span>
+                  </button>
+                ))}
+              </div>
+              {/* Where Training Mode lives outside the app: the official
+                  Instagram and the website. One slim row, so the overview
+                  still fits one screen. */}
+              <div data-guide="pr-social" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7 }}>
+                {[
+                  { key: 'ig', label: '@TRAININGMODE.CO', aria: 'Training Mode on Instagram', url: INSTAGRAM_URL, icon: (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6" fill="#c9a6ff"/>
+                    </svg>
+                  ) },
+                  { key: 'web', label: 'TRAININGMODE.CO', aria: 'Training Mode website', url: MARKETING_SITE_URL, icon: <Globe size={14} color="#c9a6ff" aria-hidden="true"/> },
+                ].map(l => (
+                  <button key={l.key} type="button" aria-label={l.aria} onClick={() => openExternalUrl(l.url)} style={{
+                    minWidth: 0, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 11, cursor: 'pointer',
+                    background: 'transparent', border: '1px dashed rgba(168,85,247,0.35)',
+                  }}>
+                    {l.icon}
+                    <span style={{ font: "800 8.5px 'Orbitron',sans-serif", color: '#c9a6ff', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.label}</span>
                   </button>
                 ))}
               </div>
