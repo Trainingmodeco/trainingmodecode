@@ -70,7 +70,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 12,
         padding: '10px 16px 0',
-        paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))',
       }}>
         <FightHeader title="FIGHT FOCUS" sub={`${discipline} · round timer with focus calls`} onBack={onBack} onHelp={() => setHelpOpen(true)}/>
 

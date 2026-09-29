@@ -23,7 +23,7 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import FeedbackChip from './shared/FeedbackChip';
 // Already in the main bundle via HomeDashboard's Continue Challenge card, so
 // this import adds nothing to the entry chunk.
-import { TRAINING_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
+import { TRAINING_ARCADE_SERIES, isSeriesPlayable, getSeriesById } from './data/trainingArcadeData';
 import { preloadCriticalArt } from './shared/preloadImages';
 import { challengeFromLocation, resolveChallenge, clearChallengeFromURL } from './data/challengeCodes';
 import { migrateArcadeIds } from './data/arcadeIdMigration';
@@ -32,7 +32,8 @@ import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
 import { startCloudSync } from './data/cloudSync';
 import { rememberSession, loadLastSession, programFor } from './data/lastSession';
-import { startProgramDay } from './data/workoutPrograms';
+import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
+import { completePlanDay } from './data/workoutLibrary';
 import PracticeInvite from './PracticeInvite';
 import HauntWelcome from './HauntWelcome';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
@@ -81,6 +82,14 @@ const ACTIVE_SESSION_SCREENS = new Set([
 function isSessionScreenLive(screen, internalState) {
   if (screen === 'cardio_mode') return !!internalState?.live;
   return true;
+}
+
+// Whether a program / plan day counts as done, so its rotation moves on:
+// finished outright, or at least three quarters of the exercises done (one
+// skipped move is not a quit). Quitting halfway keeps the same day up next.
+function dayCounts(done, total, completed) {
+  if (completed) return true;
+  return total > 0 && done >= Math.ceil(total * 0.75);
 }
 
 // Stable per-combo key so the Hybrid Training Bonus is awarded only once for a
@@ -564,6 +573,8 @@ export default function App() {
     // session restores from it, a stale one would drop somebody who tapped
     // CARDIO MODE straight back into a Tabata they finished yesterday.
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
+    // Cardio records itself for Home's Continue card when a session starts.
+    rememberCardio: (setup) => rememberSession('cardio', { setup }),
     goQuickMissionSetup: () => setScreen('qm_setup'),
     goQuickMissionActive: (c) => { rememberSession('quick_mission', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
@@ -571,6 +582,9 @@ export default function App() {
       dropPausedFor(screen);
       setResumeData(null);
       addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed);
+      // A plan day only moves the rotation on once it is (mostly) done — quit
+      // halfway and the same day is still up next.
+      if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
       tryCompleteDailyMission('quickMission');
       trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
       setQmResult(result);
@@ -599,6 +613,7 @@ export default function App() {
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
+      if (series?.id) rememberSession('arcade', { seriesId: series.id, title: series.title || null, stageNumber: stage?.stageNumber || null, mode: mode || null, settings: settings || null });
       // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
       // old player). PATH → fit/fight/full arc; difficulty → easy/normal/hard.
       if (series?.v2Campaign) {
@@ -702,7 +717,9 @@ export default function App() {
     goJustTrain:   (d) => { if (d) setDisc(d); setScreen('just_train'); },
     // Home's Continue card: run the last started session again with the
     // settings it ran with. A program starts its next day instead.
-    replayLastSession: () => {
+    // opts.adjust (ADJUST): open the setup without starting — only Cardio
+    // would otherwise start by itself.
+    replayLastSession: (opts) => {
       const last = loadLastSession();
       if (!last) return false;
       const c = last.cfg;
@@ -729,6 +746,20 @@ export default function App() {
         case 'cc':
           actions.goCombatCondActive(c);
           return true;
+        // Camp and Arcade continue on their own path: the map / stage ladder
+        // opens on the next session rather than repeating the last one.
+        case 'camp':
+          actions.goTrainingCamp(last.disc || c.discipline);
+          return true;
+        case 'arcade': {
+          const series = getSeriesById(c.seriesId);
+          if (!series) return false;
+          actions.goArcadeDetail(series, c.settings || null);
+          return true;
+        }
+        case 'cardio':
+          actions.goCardioMode({ setup: c.setup, autoStart: !opts?.adjust });
+          return true;
         default:
           return false;
       }
@@ -738,6 +769,7 @@ export default function App() {
     goCampSession: (ctx) => {
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       setCampCtx(ctx); setDisc(ctx.discipline);
+      rememberSession('camp', { level: ctx.level, difficulty: ctx.difficulty, format: ctx.format || 'single', archetypeName: ctx.archetypeName || null }, ctx.discipline);
       // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
       // the warm-up wrapper still reads warmupMin.
       setCfg(ctx.format === 'full' ? ctx.cfgSkill : ctx.cfg);
@@ -931,6 +963,7 @@ export default function App() {
       const beforeLevel = getLevel(loadStats().xp);
       dropPausedFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);
+      if (dayCounts(done, total)) completeProgramDay(c?.programId ? c : fitCfg);
       tryCompleteDailyMission('fitMode');
       trackEvent('session_complete', { mode: 'fitMode', exercises: done });
       setFitCfg(c);

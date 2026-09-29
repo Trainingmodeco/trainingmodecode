@@ -178,6 +178,11 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
+          // Top edge of the resume pill (plus a small gap) while a session is
+          // paused. One-screen pages take max(their own clearance, this) as
+          // bottom padding, so the pill gets its own row instead of covering
+          // the last button. 0 when nothing is paused.
+          '--tm-resume-top': pausedSession ? '116px' : '0px',
           // Beta TM-09 — when the resume pill floats over this screen, buy the
           // last rows of content enough clearance to scroll out from under it.
           paddingBottom: scrolls
@@ -552,7 +557,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         {/* TM-16 census caught this: CardioMode only accepts onBack — the
             onHome prop was passed and silently dropped. */}
-        <CardioMode onBack={goFitHub} onFightMode={goFightHub} onSessionState={reportSessionState} entry={cardioEntry} resumeData={resumeData}/>
+        <CardioMode onBack={goFitHub} onFightMode={goFightHub} onSessionState={reportSessionState} onStarted={actions.rememberCardio} entry={cardioEntry} resumeData={resumeData}/>
       </WithNav>
     );
   }

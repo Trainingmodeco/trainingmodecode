@@ -202,12 +202,14 @@ function ConfigModal({ styleId, cfg, onChange, onClose }) {
 
 // Standalone Cardio Mode (design 12a). Compact, breathable options with the START
 // pinned high; awards normal cardio XP once (via CardioSummary), never the bonus.
-export default function CardioMode({ onBack, onFightMode, onSessionState, entry = null, resumeData = null }) {
+export default function CardioMode({ onBack, onFightMode, onSessionState, onStarted, entry = null, resumeData = null }) {
   // A restored INTERVAL/TABATA/HIIT session. Distance runs have their own live
   // store (data/liveRun.js); the protocol player had nothing, so a Tabata lost
   // to a phone call was simply gone. The stash carries the whole setup, because
   // the player is rebuilt from it and cfg lives in this component.
-  const rs = resumeData?.setup || null;
+  // Home's Continue hands back the setup of the last cardio session the same
+  // way (entry.setup), so it opens exactly as it ran.
+  const rs = resumeData?.setup || entry?.setup || null;
   // A run that is still live (the athlete left the player, the app, or the
   // OS took it) comes straight back into the player. See data/liveRun.js.
   const [liveRestore, setLiveRestore] = useState(() => loadLiveRun());
@@ -254,7 +256,8 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, entry 
   const [optionsOpen, setOptionsOpen] = useState(false);
   // A quick-start preset applies its setup, then starts on the next render
   // (startCardio reads the setup from the render it was created in).
-  const [pendingStart, setPendingStart] = useState(false);
+  // Continue from Home starts straight away, like every other Continue.
+  const [pendingStart, setPendingStart] = useState(() => !!(entry?.autoStart && entry?.setup));
 
   const category = METHOD_CATEGORIES.find(c => c.id === categoryId) || METHOD_CATEGORIES[0];
   const hasEquipment = EQUIPMENT_GROUPS.includes(categoryId);
@@ -428,6 +431,8 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, entry 
     setPlayerResult(null);
     setLiveRestore(null);
     unlockAudio();
+    // Home's Continue card offers this setup again next time.
+    onStarted?.(setupSnapRef.current);
     if (usesGps && (typeof navigator === 'undefined' || !navigator.geolocation)) { setPhase('gps'); return; }
     setPhase('player');
   };

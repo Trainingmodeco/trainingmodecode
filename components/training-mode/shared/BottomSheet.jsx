@@ -20,9 +20,26 @@ import { C, NAV_H } from '../Styles';
 // rest ON the tab bar, never cover it. The nav stays visible and tappable, so
 // the athlete can always leave the screen without hunting for a close button.
 
-// variant 'float' — the Fit side's pickers: a narrower card that hovers in
-// the lower middle of the screen instead of docking to the nav, so the
-// screen behind stays visible around it.
+// ONE sheet look for the whole app (owner call: sheets are universal): a card
+// that floats in the lower middle of the screen instead of docking to the nav,
+// so the screen behind stays visible around it. 'float' is the default; 'dock'
+// is kept only as an escape hatch and nothing uses it.
+//
+// Sheets that are not built on this component (Exercise Info, Exercise
+// History, the guided player's Workout Map) use the same two exports below so
+// they cannot drift.
+export const FLOAT_BACKDROP = { background: 'rgba(3,2,8,0.7)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' };
+
+export function floatPanel(accent = C.violet, { wide = false } = {}) {
+  return {
+    position: 'relative', boxSizing: 'border-box',
+    width: wide ? 'min(92%, 400px)' : 'min(88%, 340px)', margin: '0 auto 36px',
+    background: '#110C22', borderRadius: 18,
+    border: `1.5px solid ${accent}b3`,
+    boxShadow: `0 0 30px ${accent}4d, 0 20px 50px rgba(0,0,0,0.75)`,
+  };
+}
+
 export default function BottomSheet({
   title,
   accent = C.violet,
@@ -30,7 +47,8 @@ export default function BottomSheet({
   children,
   footer,
   maxHeight = '86dvh',
-  variant = 'dock',
+  variant = 'float',
+  wide = false,
 }) {
   if (typeof document === 'undefined') return null;
   const float = variant === 'float';
@@ -42,14 +60,13 @@ export default function BottomSheet({
     }}>
       {/* Portalled out of the screen, so it can't rely on a screen's own CSS. */}
       <style dangerouslySetInnerHTML={{ __html: '@keyframes fadeSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }' }}/>
-      <div onClick={onClose} style={{ flex: 1, background: float ? 'rgba(3,2,8,0.7)' : 'rgba(0,0,0,0.7)', backdropFilter: float ? 'blur(2px)' : undefined }}/>
+      <div onClick={onClose} style={{ flex: 1, ...(float ? FLOAT_BACKDROP : { background: 'rgba(0,0,0,0.7)' }) }}/>
       {float && <div onClick={onClose} style={{ position: 'absolute', inset: 0 }}/>}
       <div style={{
-        position: 'relative',
-        width: float ? 'min(88%, 340px)' : '100%', maxWidth: 440, margin: float ? '0 auto 36px' : '0 auto', boxSizing: 'border-box',
-        background: float ? '#110C22' : '#0a0014', borderRadius: float ? 18 : '16px 16px 0 0',
-        border: float ? `1.5px solid ${accent}b3` : `1px solid ${accent}4d`, borderBottom: float ? undefined : 'none',
-        boxShadow: float ? `0 0 30px ${accent}4d, 0 20px 50px rgba(0,0,0,0.75)` : undefined,
+        ...(float ? floatPanel(accent, { wide }) : {
+          position: 'relative', width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box',
+          background: '#0a0014', borderRadius: '16px 16px 0 0', border: `1px solid ${accent}4d`, borderBottom: 'none',
+        }),
         // min(…, 100%) so a tall sheet can never outgrow the shortened
         // overlay (which now ends at the nav) on a small screen.
         maxHeight: float ? `min(${maxHeight}, calc(100% - 56px))` : `min(${maxHeight}, 100%)`, display: 'flex', flexDirection: 'column',

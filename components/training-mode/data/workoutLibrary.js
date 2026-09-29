@@ -387,11 +387,11 @@ function advancePlanDay(p, idx) {
 
 export const planById = (id) => PLAN_PROGRAMS.find(p => p.id === id) || null;
 
-// Builds the next day's mission and advances the rotation.
+// Builds the next day's mission. The rotation does NOT advance here - quitting
+// halfway would skip the day; completePlanDay moves it on at the finish.
 export function startPlanDay(p) {
   const idx = planDayIndex(p);
   const day = p.days[idx];
-  advancePlanDay(p, idx);
   const exercises = day.build();
   return {
     title: `${p.title} · ${day.label}`,
@@ -405,7 +405,17 @@ export function startPlanDay(p) {
     rounds: 1,
     cardioFinisher: false,
     named: `${p.id}:${idx}`,
+    planId: p.id,
+    planDay: idx,
   };
+}
+
+// The plan day a mission came from is done: advance the rotation, but only if
+// that day is still the one up next (a replay never skips ahead).
+export function completePlanDay(mission) {
+  const p = mission?.planId ? planById(mission.planId) : null;
+  if (!p || !Number.isInteger(mission.planDay)) return;
+  if (planDayIndex(p) === mission.planDay) advancePlanDay(p, mission.planDay);
 }
 
 export function planDayMinutes(p, idx) {

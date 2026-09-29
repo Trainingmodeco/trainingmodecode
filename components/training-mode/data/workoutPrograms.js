@@ -37,7 +37,7 @@ export function programDayIndex(p) {
   try { return (parseInt(localStorage.getItem(p.rotateKey), 10) || 0) % p.days.length; } catch { return 0; }
 }
 
-// Advance a split to its next day (called when a program is applied).
+// Advance a split to its next day (called when a day is finished).
 export function advanceProgramDay(p, currentIndex) {
   if (!p?.rotateKey) return;
   try { localStorage.setItem(p.rotateKey, String(currentIndex + 1)); } catch { /* noop */ }
@@ -99,18 +99,26 @@ export function saveCurrentProgram(id) {
   try { localStorage.setItem(CURRENT_KEY, id); } catch { /* storage is best-effort */ }
 }
 
-// A program's next day as the config the builder hands to the generator, and
-// the side effects of starting it: the split advances and it becomes current.
+// A program's next day as the config the builder hands to the generator. It
+// becomes the current program, but the split does NOT advance here: quitting
+// halfway would skip the day. completeProgramDay moves it on at the finish.
 // Uses the program's own scheme so a split always trains what it advertises.
 export function startProgramDay(p, { equipment = 'Bodyweight', difficulty = 'Normal' } = {}) {
   const idx = programDayIndex(p);
   const day = p.days[idx];
-  advanceProgramDay(p, idx);
   saveCurrentProgram(p.id);
   return {
     muscleGroups: day.chips.flatMap(id => CHIP_GROUPS[id] || []),
     equipment, difficulty, focus: 'Strength', duration: p.duration,
     cardioAddon: null, addCardio: false, setScheme: { ...p.scheme },
-    programId: p.id, programDay: day.label || null,
+    programId: p.id, programDay: day.label || null, programDayIndex: idx,
   };
+}
+
+// The day a config came from is done: advance its split. Only when that day is
+// still the one up next, so replaying an old config never skips ahead.
+export function completeProgramDay(cfg) {
+  const p = cfg?.programId ? PROGRAMS.find(x => x.id === cfg.programId) : null;
+  if (!p || !Number.isInteger(cfg.programDayIndex)) return;
+  if (programDayIndex(p) === cfg.programDayIndex) advanceProgramDay(p, cfg.programDayIndex);
 }

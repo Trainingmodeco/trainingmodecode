@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { C, NAV_H } from '../Styles';
+import { FLOAT_BACKDROP, floatPanel } from './BottomSheet';
 import { exerciseInfo, difficultyPips } from '../data/exerciseInfo';
 
 // Spec 13 (WB-G) — the EXERCISE INFO sheet: "what IS this exercise?", the #1
@@ -116,16 +117,15 @@ export default function ExerciseInfoSheet({ exercise, fromSwap = false, onUse, o
   return createPortal(
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: NAV_H, zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }}/>
-      <div onClick={onClose} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
+      <div onClick={onClose} style={{ flex: 1, ...FLOAT_BACKDROP }}/>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0 }}/>
+      {/* The universal floating sheet (see shared/BottomSheet). */}
       <div style={{
-        width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box', maxHeight: '100%',
-        background: 'rgba(14,5,26,0.97)', borderRadius: '16px 16px 0 0',
-        border: `1px solid ${VIOLET}66`, borderBottom: 'none',
+        ...floatPanel(VIOLET, { wide: true }), maxHeight: 'calc(100% - 56px)',
         display: 'flex', flexDirection: 'column', animation: 'xi-up 0.26s ease',
       }}>
-        {/* Handle + header */}
-        <div style={{ flexShrink: 0, padding: '8px 16px 0' }}>
-          <div style={{ width: 44, height: 4, borderRadius: 999, background: 'rgba(168,85,247,0.55)', margin: '0 auto 10px' }}/>
+        {/* Header */}
+        <div style={{ flexShrink: 0, padding: '14px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "900 13.5px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

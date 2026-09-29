@@ -252,7 +252,9 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         'linear-gradient(180deg, rgba(4,0,10,0.72) 0%, rgba(4,0,10,0.42) 30%, rgba(4,0,10,0.72) 100%)' }} />
 
       {/* Header + ladder, bounded above the nav footer. */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_RESERVE, zIndex: 5, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0,
+        // Clears the nav, and the resume row too while a session is paused.
+        bottom: `max(${NAV_RESERVE}px, var(--tm-resume-top, 0px))`, zIndex: 5, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px 6px' }}>
           <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -6, display: 'flex' }}>

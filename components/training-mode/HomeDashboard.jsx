@@ -187,6 +187,9 @@ export default function HomeDashboard({
     else if (last.kind === 'quick_mission') onQuickMission?.();
     else if (last.kind === 'fit') (programFor(last) ? onPrograms : onFitSetup)?.();
     else if (last.kind === 'cc') onCombatConditioning?.();
+    // Camp, Arcade and Cardio: CONTINUE already opens their own setup (map,
+    // stage ladder, cardio setup), so ADJUST goes to the same place.
+    else if (last.kind === 'camp' || last.kind === 'arcade' || last.kind === 'cardio') onReplayLast?.({ adjust: true });
   };
 
   // A session start from a tap on Home is still a user gesture, so speech can
@@ -216,7 +219,7 @@ export default function HomeDashboard({
     card = {
       kind: 'last', eyebrow: 'Continue', side: lastInfo.mode === 'fit' ? FIT : FIGHT,
       title: lastInfo.title, parts: [lastInfo.sub, lastInfo.diff, lastInfo.time].filter(Boolean),
-      cta: 'START', onGo: () => primeThen(() => onReplayLast?.()), onAdjust: adjustLast,
+      cta: lastInfo.cta || 'START', onGo: () => primeThen(() => onReplayLast?.()), onAdjust: adjustLast,
     };
   } else {
     card = {
