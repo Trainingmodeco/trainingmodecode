@@ -56,10 +56,24 @@ function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-export function addFightFocusSession(roundsCompleted, totalRounds) {
+// Just Train is a plain bell-and-clock timer — no coached focuses — so it
+// pays half of Fight Focus. It still logs as a 'Fight Focus' session.
+const XP_PER_JUST_TRAIN_ROUND = 10;
+const XP_JUST_TRAIN_BONUS = 25;
+
+// XP for a Fight Focus-timer session: what gets banked and what the summary
+// shows come from here, so the two can't disagree on the rate.
+export function fightTimerXp(roundsCompleted, totalRounds, { justTrain = false } = {}) {
+  const perRound = justTrain ? XP_PER_JUST_TRAIN_ROUND : XP_PER_FIGHT_ROUND;
+  const bonus = justTrain ? XP_JUST_TRAIN_BONUS : XP_SESSION_BONUS;
+  return roundsCompleted * perRound + (roundsCompleted === totalRounds ? bonus : 0);
+}
+
+// `xp` is the settled amount from data/fightSessionXp (outcome engine
+// applied); without it the flat rate is banked.
+export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain = false, xp } = {}) {
   const stats = loadStats();
-  const xpEarned = (roundsCompleted * XP_PER_FIGHT_ROUND) +
-    (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+  const xpEarned = typeof xp === 'number' ? xp : fightTimerXp(roundsCompleted, totalRounds, { justTrain });
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),
@@ -96,10 +110,13 @@ export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
   return xpEarned;
 }
 
-export function addComboCoachSession(roundsCompleted, totalRounds) {
+export function comboCoachXp(roundsCompleted, totalRounds) {
+  return (roundsCompleted * XP_PER_COMBO_ROUND) + (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+}
+
+export function addComboCoachSession(roundsCompleted, totalRounds, { xp } = {}) {
   const stats = loadStats();
-  const xpEarned = (roundsCompleted * XP_PER_COMBO_ROUND) +
-    (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
+  const xpEarned = typeof xp === 'number' ? xp : comboCoachXp(roundsCompleted, totalRounds);
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),
@@ -205,6 +222,34 @@ export function addDailyMissionBonus() {
 // Spec 23 — combo-milestone bonus XP (reminders/streak). XP only: no session
 // row is pushed, so weekly counts and history stay honest.
 export function addComboBonus(xpAward) {
+  const stats = loadStats();
+  stats.xp += xpAward;
+  saveStats(stats);
+  return xpAward;
+}
+
+// Practice Round (Simplify revamp) — the drill after a lesson. Logged as
+// 'Practice', which the tier and Progress splits already count as Fight.
+// The XP is decided by the round's level (data/practiceRound xpFor).
+export function addPracticeSession(focus, roundsCompleted, totalRounds, xpAward) {
+  const stats = loadStats();
+  stats.xp += xpAward;
+  stats.sessions.push({
+    id: makeId(),
+    type: 'Practice',
+    completedAt: new Date().toISOString(),
+    completedCount: roundsCompleted,
+    totalCount: totalRounds,
+    xpEarned: xpAward,
+    lessonTitle: focus,
+  });
+  saveStats(stats);
+  return xpAward;
+}
+
+// The weekly practice reminder's lesson bonus. XP only, like addComboBonus:
+// the lesson itself already logged its own row.
+export function addPracticeWeeklyBonus(xpAward) {
   const stats = loadStats();
   stats.xp += xpAward;
   saveStats(stats);

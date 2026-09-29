@@ -2,40 +2,39 @@ import { useState, useRef, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
-import { ChevronLeft, Home, SlidersHorizontal } from 'lucide-react';
-import { C } from './Styles';
-import AddCardioSheet from './AddCardioSheet';
-import WorkoutProgrammingSheet from './WorkoutProgrammingSheet';
-import { summarizeCardioAddon } from './data/cardioAddon';
-import TrainingCTA from './shared/TrainingCTA';
-import { HelpButton } from './shared/WorkoutHelpPanel';
-import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
+import ModeTabs from './shared/ModeTabs';
+import BottomSheet from './shared/BottomSheet';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
-import { resolveScheme, programmingSummary } from './data/workoutPrograms';
+import { Shuffle, Zap, Bookmark, ChevronRight, X } from 'lucide-react';
+import AddCardioSheet from './AddCardioSheet';
+import { summarizeCardioAddon } from './data/cardioAddon';
+import { resolveScheme, CHIP_GROUPS, SET_SCHEMES, DURATIONS, DEFAULT_DURATION } from './data/workoutPrograms';
 import { trainAgainPlan } from './data/builderProgression';
+import { loadRoutines, deleteRoutine, MAX_ROUTINES } from './data/savedRoutines';
+import {
+  fitKitCSS, SetupHeader, SetupPage, SegRow, SettingsCard, SettingRow, GoldButton, GhostButton, ChoiceSheet, Label,
+  HEAD, BODY, MUTED, GOLD, VIOLET_TEXT, CARD, CARD_BORDER,
+} from './shared/FitSetupKit';
 
-// Workout Builder — streamlined setup (design 11a follow-up): TARGET MUSCLES
-// chip grid + two body maps · EQUIPMENT · DIFFICULTY · PROGRAMMING row (the
-// single door to set scheme / programs / duration) · ADD CARDIO · sticky
-// GENERATE with a summary line. Advanced controls live in the PROGRAMMING
-// sub-page (WorkoutProgrammingSheet).
-const GOLD = C.gold;
-
-// 7 design chips -> the app's granular muscle groups (fed to the generator).
-const CHIPS = [
-  { id: 'CHEST', groups: ['Chest'] },
-  { id: 'BACK', groups: ['Back'] },
-  { id: 'SHOULDERS', groups: ['Shoulders'] },
-  { id: 'ARMS', groups: ['Biceps', 'Triceps'] },
-  { id: 'CORE', groups: ['Core'] },
-  { id: 'LEGS', groups: ['Quads', 'Hamstrings'] },
-  { id: 'GLUTES', groups: ['Glutes'], span2: true },
+// Build Workout — the Revamp layout (BuildWorkout.dc.html).
+//
+// One screen, no scroll: DURATION and DIFFICULTY as segmented rows, then a
+// settings card whose rows open a picker — TARGET (the muscle chips and the
+// body maps live in the sheet now), EQUIPMENT, SET SCHEME, CARDIO — then a
+// gold GENERATE with SURPRISE ME under it and the saved-routines shelf at
+// the foot. The old WORKOUT PROGRAMS sub-page is gone: programs have their
+// own screen on the hub, and everything else it held is a row here.
+const CHIP_IDS = Object.keys(CHIP_GROUPS);
+const EQUIPMENT = [
+  { id: 'BODYWEIGHT', label: 'BODYWEIGHT', value: 'Bodyweight', note: 'No gear at all' },
+  { id: 'WEIGHTED', label: 'WEIGHTED', value: 'Weighted', note: 'Dumbbells, a bar, kettlebells, bands' },
+  { id: 'HYBRID', label: 'HYBRID', value: 'Hybrid', note: 'A mix of both' },
 ];
-const EQUIPMENT = ['BODYWEIGHT', 'WEIGHTED', 'HYBRID'];
 const DIFFICULTY = ['EASY', 'NORMAL', 'HARD'];
 
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 // Beta ND-09 — the anatomy panels rendered as bare dark boxes while the art
 // decoded, which read as broken. A pulsing silhouette placeholder holds the
@@ -43,28 +42,18 @@ const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 function BodyMapFigure({ v, sex, spots }) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <div style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(34,211,238,0.3)', background: '#050010', display: 'flex', justifyContent: 'center' }}>
+    <div style={{ flex: 1, position: 'relative', borderRadius: 11, overflow: 'hidden', border: '1px solid rgba(157,108,255,0.3)', background: '#050010', display: 'flex', justifyContent: 'center' }}>
       {!loaded && (
-        <>
-          <style>{'@keyframes wb-map-pulse{0%,100%{opacity:.25}50%{opacity:.6}}'}</style>
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 6,
-            animation: 'wb-map-pulse 1.3s ease-in-out infinite',
-          }}>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid rgba(34,211,238,0.4)' }}/>
-            <div style={{ width: 52, height: 74, borderRadius: 12, border: '2px solid rgba(34,211,238,0.4)' }}/>
-          </div>
-        </>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, animation: 'wb-map-pulse 1.3s ease-in-out infinite' }}>
+          <div style={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid rgba(157,108,255,0.4)' }}/>
+          <div style={{ width: 52, height: 74, borderRadius: 12, border: '2px solid rgba(157,108,255,0.4)' }}/>
+        </div>
       )}
-      {/* Figure box — glows are positioned relative to the image itself.
-          128px tall (was 168): the crowding pass buys the screen its bottom
-          quarter of air mostly here. */}
-      <div style={{ position: 'relative', height: 128, opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}>
-        <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} onLoaded={() => setLoaded(true)} style={{ height: 128, width: 'auto', objectFit: 'contain', display: 'block' }}/>
+      <div style={{ position: 'relative', height: 150, opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}>
+        <SafeImage src={`/static/bodymap/${sex}-${v}.webp`} alt={v} onLoaded={() => setLoaded(true)} style={{ height: 150, width: 'auto', objectFit: 'contain', display: 'block' }}/>
         {spots.map(([x, y], i) => <MuscleGlow key={i} x={x} y={y}/>)}
       </div>
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#5fd0e0', letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, textAlign: 'center', font: `600 9px ${HEAD}`, color: VIOLET_TEXT, letterSpacing: '0.16em', background: 'linear-gradient(0deg,rgba(8,1,15,.9),transparent)', padding: '5px 0 3px' }}>{v.toUpperCase()}</div>
     </div>
   );
 }
@@ -82,11 +71,12 @@ const GLOW_MAP = {
   GLUTES:    { front: [], back: [[43, 55], [57, 55]] },
 };
 
-const bodymapCSS = `
+const builderCSS = `
 @keyframes bm-glow {
   0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.9); }
   50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.12); }
 }
+@keyframes wb-map-pulse { 0%, 100% { opacity: .25 } 50% { opacity: .6 } }
 @keyframes wb-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-7px); }
@@ -94,6 +84,10 @@ const bodymapCSS = `
   60% { transform: translateX(-5px); }
   80% { transform: translateX(5px); }
 }
+.wb-again { transition: border-color .2s, box-shadow .2s; }
+.wb-again:hover, .wb-again:focus-visible { border-color: ${GOLD} !important; box-shadow: 0 0 0 1px rgba(242,190,69,.3), 0 0 22px rgba(157,108,255,.45); }
+.wb-routine { transition: border-color .2s, background .2s; }
+.wb-routine:hover, .wb-routine:focus-visible { border-color: ${GOLD} !important; background: rgba(157,108,255,.1) !important; }
 `;
 
 function MuscleGlow({ x, y }) {
@@ -108,242 +102,194 @@ function MuscleGlow({ x, y }) {
   );
 }
 
-function Segmented({ options, value, onPick }) {
-  return (
-    <div style={{ display: 'flex', gap: 7 }}>
-      {options.map(o => {
-        const active = o === value;
-        return (
-          <button key={o} onClick={() => onPick(o)} style={{
-            flex: 1, textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", padding: '8px 0', borderRadius: 8, cursor: 'pointer',
-            color: active ? '#0a0014' : '#d9d1ef', background: active ? GOLD : 'rgba(16,4,30,0.8)', border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-          }}>{o}</button>
-        );
-      })}
-    </div>
-  );
-}
+const numInput = {
+  width: '100%', boxSizing: 'border-box', padding: '9px 6px', textAlign: 'center', borderRadius: 8,
+  background: '#16131F', border: '1px solid rgba(157,108,255,0.45)', color: '#fff', font: `700 14px ${HEAD}`, outline: 'none',
+};
 
-export default function FitBuilderSetup({ onBack, onHome, onGenerate, profileSex }) {
+export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerate, profileSex }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [chips, setChips] = useState(['CHEST', 'BACK']);
   const [equipment, setEquipment] = useState('BODYWEIGHT');
   const [difficulty, setDifficulty] = useState('NORMAL');
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [schemeId, setSchemeId] = useState('auto');
+  const [customScheme, setCustomScheme] = useState({ sets: 4, reps: 10, restSeconds: 60 });
   const [cardioAddon, setCardioAddon] = useState(null);
-  const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
+  const [sheet, setSheet] = useState(null); // 'target' | 'equipment' | 'scheme' | 'routines' | 'cardio'
+  const [routines, setRoutines] = useState(() => loadRoutines());
   // Spec 11 — one-tap repeat of the last workout with progression baked in.
-  // Null when there's no history (state B): the card simply doesn't exist.
+  // Null when there's no history: the card simply doesn't exist.
   const [trainPlan] = useState(() => trainAgainPlan());
   // GENERATE with zero muscles: shake + tell them why (never a silent no-op).
   const [genNudge, setGenNudge] = useState(false);
   const genNudgeTimer = useRef(0);
   useEffect(() => () => clearTimeout(genNudgeTimer.current), []);
-  // Programming state — edited in the PROGRAMMING sub-page, summarised on the row.
-  const [programmingOpen, setProgrammingOpen] = useState(false);
-  const [focus, setFocus] = useState('Strength');
-  const [schemeId, setSchemeId] = useState('auto');
-  const [customScheme, setCustomScheme] = useState({ sets: 4, reps: 10, restSeconds: 60 });
-  const [programId, setProgramId] = useState(null);
-  const [duration, setDuration] = useState(40);
+  void onHome;
 
   const sex = String(profileSex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
-  const progSummary = programmingSummary({ schemeId, programId, duration });
+  const equip = EQUIPMENT.find(e => e.id === equipment) || EQUIPMENT[0];
+  const scheme = SET_SCHEMES.find(s => s.id === schemeId) || SET_SCHEMES[0];
+  const schemeValue = schemeId === 'auto' ? 'Auto · generator picks'
+    : schemeId === 'custom' ? `${customScheme.sets}×${customScheme.reps} · ${customScheme.restSeconds}s rest`
+      : `${scheme.label} · ${scheme.sub}`;
+  const targetValue = chips.length ? chips.map(cap).join(', ') : 'Pick muscles';
 
   const toggleChip = (id) => setChips(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-  const summary = () => {
-    const parts = [chips.length ? chips.map(cap).join(', ') : 'Full body', cap(equipment), cap(difficulty)];
-    if (cardioAddon) parts.push('+Cardio');
-    return parts.join(' · ');
-  };
+  const buildCfg = (ids, eq, diff) => ({
+    muscleGroups: ids.flatMap(id => CHIP_GROUPS[id] || []),
+    equipment: eq, difficulty: diff, focus: 'Strength', duration,
+    cardioAddon, addCardio: false, setScheme: resolveScheme(schemeId, customScheme),
+  });
 
   const generate = () => {
-    const muscleGroups = chips.flatMap(id => CHIPS.find(c => c.id === id)?.groups || []);
-    if (!muscleGroups.length) {
-      // Beta find: this used to be a silent no-op — the button just ignored
-      // the tap, which reads as broken. Shake + say why instead.
+    if (!chips.length) {
       setGenNudge(true);
       clearTimeout(genNudgeTimer.current);
       genNudgeTimer.current = setTimeout(() => setGenNudge(false), 1800);
       return;
     }
-    onGenerate?.({ muscleGroups, equipment: cap(equipment), difficulty: cap(difficulty), focus, duration, cardioAddon, addCardio: false, setScheme: resolveScheme(schemeId, customScheme) });
+    onGenerate?.(buildCfg(chips, equip.value, cap(difficulty)));
   };
 
-  // Write the PROGRAMMING sub-page's choices back to the builder config. A
-  // program also pre-fills the muscle targets on the main screen.
-  const applyProgramming = (next) => {
-    setFocus(next.focus);
-    setSchemeId(next.schemeId);
-    setCustomScheme(next.customScheme);
-    setProgramId(next.programId);
-    setDuration(next.duration);
-    if (next.muscleChips) setChips(next.muscleChips);
-    setProgrammingOpen(false);
+  // Roll the muscles and the gear, keep the athlete's time and difficulty.
+  const surprise = () => {
+    const n = 1 + Math.floor(Math.random() * 3);
+    const ids = [...CHIP_IDS].sort(() => Math.random() - 0.5).slice(0, n);
+    const eq = rand(EQUIPMENT);
+    setChips(ids); setEquipment(eq.id);
+    onGenerate?.(buildCfg(ids, eq.value, cap(difficulty)));
   };
 
-  const Label = ({ children, right }) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-      <span style={{ font: "600 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.18em' }}>{children}</span>
-      {right}
-    </div>
-  );
+  const cardioSummary = cardioAddon ? summarizeCardioAddon(cardioAddon) : 'Off';
 
   return (
     <PhoneFrame useBrandBg>
-      <style dangerouslySetInnerHTML={{ __html: bodymapCSS }}/>
+      <style dangerouslySetInnerHTML={{ __html: fitKitCSS + builderCSS }}/>
       <Embers count={2}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-        {/* Header */}
-        {/* Beta TM-16 — sticky so the back affordance never scrolls away */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 8px', position: 'sticky', top: 0, zIndex: 80, background: 'rgba(5,0,15,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={20}/></button>
-          <div style={{ flex: 1 }}>
-            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.06em' }}>WORKOUT BUILDER</div>
-            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8' }}>Target muscles, pick gear, generate.</div>
-          </div>
-          <HelpButton onClick={() => setHelpOpen(true)}/>
-          <button onClick={onHome || onBack} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><Home size={17}/></button>
+      <SetupPage scroll>
+        <SetupHeader title="BUILD WORKOUT" onBack={onBack} onHelp={() => setHelpOpen(true)}/>
+        <div style={{ flexShrink: 0, padding: '0 16px' }}>
+          <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '2px 14px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))' }}>
-          <ProgressionNudgeCard lane="strength"/>
-
-          {/* Spec 11 — TRAIN AGAIN: the one gold-accented element on setup.
-              Tapping goes STRAIGHT to the generated list with every nudge
-              applied, skipping all config. Hidden entirely without history. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 0', flex: 1 }}>
+          {/* Spec 11 — TRAIN AGAIN: straight to the generated list with every
+              nudge applied. Hidden entirely without history. */}
           {trainPlan && (
-            <div data-guide="wb-trainagain" style={{ marginBottom: 12 }}>
-              <button
-                onClick={() => onGenerate?.({ ...trainPlan.cfg, savedExercises: trainPlan.exercises })}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left', cursor: 'pointer',
-                  padding: '9px 12px', borderRadius: 14,
-                  border: '1.5px solid rgba(168,85,247,0.6)',
-                  background: 'linear-gradient(100deg, rgba(168,85,247,0.18), rgba(253,224,71,0.12) 65%)',
-                  boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.2), 0 0 20px -6px rgba(168,85,247,0.5), 0 0 20px -8px rgba(253,224,71,0.4)',
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ font: "800 7px 'Orbitron',sans-serif", letterSpacing: '0.16em', marginBottom: 3 }}>
-                    <span style={{ color: '#c9a6ff' }}>⚡ TRAIN AGAIN · </span>
-                    <span style={{ color: GOLD }}>PROGRESSION APPLIED</span>
-                  </div>
-                  <div style={{ font: "900 12.5px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.04em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trainPlan.title}</div>
-                  <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 1 }}>
-                    <span style={{ color: trainPlan.stale ? GOLD : '#c4a4d8', fontWeight: trainPlan.stale ? 700 : 600 }}>{trainPlan.agoPhrase}</span> · {trainPlan.meta}
-                  </div>
-                  <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
-                    {trainPlan.chips.map((c2, ci) => (
-                      <span key={ci} style={c2.tone === 'nudge'
-                        ? { font: "900 6.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', color: '#0a0014', background: GOLD, borderRadius: 5, padding: '2px 6px' }
-                        : { font: "700 6.5px 'Orbitron',sans-serif", letterSpacing: '0.06em', color: '#9a90b8', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 5, padding: '2px 6px' }
-                      }>{c2.label}</span>
-                    ))}
-                  </div>
-                </div>
-                <div style={{
-                  width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #c9a6ff, #fde047 45%, #f59e0b)',
-                  boxShadow: '0 0 16px rgba(253,224,71,0.45)',
-                  font: "900 10px 'Orbitron',sans-serif", color: '#0a0014', letterSpacing: '0.02em',
-                }}>▶ GO</div>
-              </button>
-              <div style={{ textAlign: 'center', font: "600 8.5px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 5 }}>or build something new below ↓</div>
-            </div>
+            <button type="button" className="wb-again" data-guide="wb-trainagain" onClick={() => onGenerate?.({ ...trainPlan.cfg, savedExercises: trainPlan.exercises })} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 14, cursor: 'pointer', textAlign: 'left', width: '100%',
+              background: 'linear-gradient(100deg, rgba(157,108,255,0.18), rgba(242,190,69,0.12) 70%)', border: '1px solid rgba(157,108,255,0.55)',
+            }}>
+              <Zap size={18} color={GOLD} fill={GOLD} style={{ flexShrink: 0 }}/>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', font: `700 10px ${HEAD}`, letterSpacing: '0.16em', color: VIOLET_TEXT }}>TRAIN AGAIN · <span style={{ color: GOLD }}>PROGRESSION APPLIED</span></span>
+                <span style={{ display: 'block', font: `700 15px ${HEAD}`, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{trainPlan.title}</span>
+                <span style={{ display: 'block', font: `500 12px ${BODY}`, color: MUTED, marginTop: 1 }}>{trainPlan.agoPhrase} · {trainPlan.meta}</span>
+              </span>
+              <ChevronRight size={18} color={GOLD}/>
+            </button>
           )}
 
-          {/* TARGET MUSCLES */}
-          <div data-guide="wb-muscles">
-          <Label right={<span style={{ font: "800 8px 'Orbitron',sans-serif", color: GOLD }}>{chips.length} SELECTED</span>}>TARGET MUSCLES</Label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 12 }}>
-            {CHIPS.map(c => {
-              const active = chips.includes(c.id);
-              return (
-                <button key={c.id} onClick={() => toggleChip(c.id)} style={{
-                  gridColumn: c.span2 ? 'span 2' : undefined, textAlign: 'center', font: "800 8px 'Orbitron',sans-serif", padding: '6px 2px', borderRadius: 7, cursor: 'pointer',
-                  color: active ? '#0a0014' : '#d9d1ef', background: active ? GOLD : 'rgba(16,4,30,0.8)', border: active ? 'none' : '1px solid rgba(168,85,247,0.3)', boxShadow: active ? '0 0 8px rgba(253,224,71,.4)' : 'none',
-                }}>{c.id}</button>
-              );
-            })}
+          <SegRow label="Duration" guide="wb-duration" value={duration} onPick={setDuration}
+            options={DURATIONS.map(d => ({ id: d, label: d === duration ? `${d} MIN` : String(d) }))}/>
+          <SegRow label="Difficulty" guide="wb-difficulty" value={difficulty} onPick={setDifficulty} options={DIFFICULTY}/>
+
+          <SettingsCard>
+            <SettingRow first guide="wb-muscles" label="Target" value={targetValue} accent={chips.length ? undefined : '#f87171'} onClick={() => setSheet('target')}/>
+            <SettingRow guide="wb-equipment" label="Equipment" value={equip.value} onClick={() => setSheet('equipment')}/>
+            <SettingRow guide="wb-programming" label="Set scheme" value={schemeValue} onClick={() => setSheet('scheme')}/>
+            <SettingRow guide="wb-cardio" label="Cardio" value={cardioSummary} accent={cardioAddon ? GOLD : undefined} onClick={() => setSheet('cardio')}/>
+          </SettingsCard>
+
+          {genNudge && (
+            <div style={{ textAlign: 'center', font: `600 13px ${BODY}`, color: '#f87171' }}>Pick at least one muscle group.</div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, animation: genNudge ? 'wb-shake 0.45s ease' : 'none' }}>
+            <GoldButton guide="wb-generate" label="GENERATE WORKOUT" icon={<Zap size={18} fill="currentColor" strokeWidth={0}/>} onClick={generate} height={58} style={{ letterSpacing: '0.16em' }}/>
+            <GhostButton label="SURPRISE ME" icon={<Shuffle size={17} color={GOLD}/>} onClick={surprise} height={50}/>
           </div>
-          {/* Body maps — selected muscle chips light up the anatomy */}
-          <div style={{ display: 'flex', gap: 9, marginBottom: 12 }}>
+
+          <div style={{ flex: 1 }}/>
+
+          <button type="button" className="wb-routine" data-guide="wb-routines" onClick={() => setSheet('routines')} style={{
+            height: 60, flexShrink: 0, borderRadius: 14, border: '1px dashed rgba(196,168,255,0.45)', background: 'transparent',
+            display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', cursor: 'pointer', textAlign: 'left', width: '100%', color: '#fff',
+          }}>
+            <Bookmark size={20} color={VIOLET_TEXT}/>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', font: `700 14px ${HEAD}`, letterSpacing: '0.1em' }}>SAVED ROUTINES</span>
+              <span style={{ display: 'block', font: `500 12px ${BODY}`, color: MUTED }}>{routines.length ? `${routines.length} saved · tap to load one` : 'Save a workout from its list to shelf it here'}</span>
+            </span>
+            <ChevronRight size={18} color={VIOLET_TEXT}/>
+          </button>
+        </div>
+      </SetupPage>
+
+      {sheet === 'target' && (
+        <ChoiceSheet title="TARGET MUSCLES" multi options={CHIP_IDS} value={chips} onPick={toggleChip} onClose={() => setSheet(null)}
+          note="Tap the groups you want to hit — they light up on the body map. Fewer groups means more volume on each.">
+          <div style={{ display: 'flex', gap: 9, marginTop: 14 }}>
             {['front', 'back'].map(v => (
-              <BodyMapFigure key={v} v={v} sex={sex} spots={chips.flatMap(id => GLOW_MAP[id]?.[v] || [])} />
+              <BodyMapFigure key={v} v={v} sex={sex} spots={chips.flatMap(id => GLOW_MAP[id]?.[v] || [])}/>
             ))}
           </div>
-          </div>
-
-          {/* EQUIPMENT */}
-          <div data-guide="wb-equipment">
-          <Label>EQUIPMENT</Label>
-          <div style={{ marginBottom: 12 }}><Segmented options={EQUIPMENT} value={equipment} onPick={setEquipment}/></div>
-          </div>
-
-          {/* DIFFICULTY */}
-          <div data-guide="wb-difficulty">
-          <Label>DIFFICULTY</Label>
-          <div style={{ marginBottom: 12 }}><Segmented options={DIFFICULTY} value={difficulty} onPick={setDifficulty}/></div>
-          </div>
-
-          {/* PROGRAMMING — single door to set scheme · programs · duration.
-              Compact banner (crowding pass): shorter, not crunched — the 12px
-              section rhythm stays even top to bottom. */}
-          <div data-guide="wb-programming">
-          <button onClick={() => setProgrammingOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(90deg,rgba(168,85,247,0.12),rgba(253,224,71,0.05))', padding: '8px 12px', cursor: 'pointer', textAlign: 'left', marginBottom: 12 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SlidersHorizontal size={14} color="#c9a6ff"/></div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 10.5px 'Orbitron',sans-serif", color: '#c9a6ff' }}>WORKOUT PROGRAMS</div>
-              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>Set scheme · programs · duration · saved routines</div>
-            </div>
-            <span style={{ font: "800 10px 'Orbitron',sans-serif", color: progSummary === 'AUTO' ? '#9a90b8' : GOLD, flexShrink: 0, maxWidth: 118, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{progSummary}</span>
-            <span style={{ font: "900 14px 'Orbitron',sans-serif", color: '#b06aff', flexShrink: 0 }}>›</span>
-          </button>
-          </div>
-
-          {/* ADD CARDIO */}
-          <div data-guide="wb-cardio">
-          <button onClick={() => setCardioSheetOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: '1px solid rgba(253,224,71,0.4)', background: 'linear-gradient(90deg,rgba(253,224,71,0.08),rgba(168,85,247,0.06))', padding: '8px 12px', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(253,224,71,0.1)', border: '1px solid rgba(253,224,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>❤</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ font: "800 10.5px 'Orbitron',sans-serif", color: GOLD }}>{cardioAddon ? 'CARDIO FINISHER ADDED' : 'ADD CARDIO'}</div>
-              <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 1 }}>{cardioAddon ? summarizeCardioAddon(cardioAddon) : 'One tap — we generate the finisher for you'}</div>
-            </div>
-            <span style={{ font: "900 14px 'Orbitron',sans-serif", color: GOLD }}>›</span>
-          </button>
-          </div>
-
-          {/* Generate — inline, right under Add Cardio so it's never hidden.
-              (Saved routines moved into the WORKOUT PROGRAMS page, under
-              Duration — one door for everything pre-built.) */}
-          <div style={{ textAlign: 'center', font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', margin: '12px 0 8px' }}>{summary()}</div>
-          {genNudge && (
-            <div style={{ textAlign: 'center', font: "700 11px 'Rajdhani',sans-serif", color: '#f87171', marginBottom: 8 }}>
-              Pick at least one muscle group.
+        </ChoiceSheet>
+      )}
+      {sheet === 'equipment' && (
+        <ChoiceSheet title="EQUIPMENT" options={EQUIPMENT} value={equipment} onPick={setEquipment} onClose={() => setSheet(null)}
+          note={EQUIPMENT.find(e => e.id === equipment)?.note}/>
+      )}
+      {sheet === 'scheme' && (
+        <ChoiceSheet title="SET SCHEME" options={SET_SCHEMES.map(s => ({ id: s.id, label: s.id === 'custom' ? 'CUSTOM' : `${s.label} · ${s.sub}` }))} value={schemeId} onPick={setSchemeId} onClose={() => setSheet(null)}
+          note="Applied to every weighted lift. AUTO lets the generator pick; bodyweight moves keep their own numbers either way.">
+          {schemeId === 'custom' && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+              {[['SETS', 'sets', 1, 8], ['REPS', 'reps', 1, 50], ['REST s', 'restSeconds', 15, 300]].map(([lab, key, min, max]) => (
+                <div key={key} style={{ flex: 1 }}>
+                  <Label style={{ marginBottom: 5 }}>{lab}</Label>
+                  <input type="number" inputMode="numeric" value={customScheme[key]} aria-label={lab}
+                    onChange={e => { const n = Math.max(min, Math.min(max, parseInt(e.target.value, 10) || min)); setCustomScheme(cs => ({ ...cs, [key]: n })); }}
+                    style={numInput}/>
+                </div>
+              ))}
             </div>
           )}
-          <div data-guide="wb-generate" style={{ animation: genNudge ? 'wb-shake 0.45s ease' : 'none' }}>
-          <TrainingCTA variant="gold" label="GENERATE WORKOUT" icon="⚙" height={44} onClick={generate} style={{ fontSize: 12.5, letterSpacing: '0.06em' }}/>
-          </div>
-        </div>
-      </div>
-
-      {programmingOpen && (
-        <WorkoutProgrammingSheet
-          initial={{ focus, schemeId, customScheme, programId, duration }}
-          onApply={applyProgramming}
-          onClose={() => setProgrammingOpen(false)}
-          onLoadRoutine={(r) => onGenerate?.({ ...r.cfg, savedExercises: r.exercises })}
-        />
+        </ChoiceSheet>
       )}
-      {cardioSheetOpen && (
+      {sheet === 'routines' && (
+        <BottomSheet variant="float" title="SAVED ROUTINES" accent={GOLD} onClose={() => setSheet(null)} maxHeight="72dvh">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ font: `500 13px ${BODY}`, color: MUTED }}>Tap a routine to load it exactly as you saved it.</span>
+            <span style={{ font: `700 11px ${HEAD}`, color: routines.length >= MAX_ROUTINES ? '#f87171' : GOLD }}>{routines.length}/{MAX_ROUTINES}</span>
+          </div>
+          {routines.length === 0 ? (
+            <div style={{ borderRadius: 12, border: '1px dashed rgba(157,108,255,0.35)', padding: '14px 12px', font: `500 13px ${BODY}`, color: MUTED }}>
+              No saved routines yet — generate a workout and tap SAVE ROUTINE on its list.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {routines.map(r => (
+                <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 12, border: `1px solid ${CARD_BORDER}`, background: CARD, padding: '10px 12px' }}>
+                  <button type="button" onClick={() => onGenerate?.({ ...r.cfg, savedExercises: r.exercises })} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, color: '#fff' }}>
+                    <span style={{ display: 'block', font: `700 14px ${HEAD}`, letterSpacing: '0.04em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</span>
+                    <span style={{ display: 'block', font: `500 12px ${BODY}`, color: MUTED, marginTop: 2 }}>{r.exercises?.length || 0} exercises · {r.cfg?.equipment || ''} · {r.cfg?.difficulty || ''}</span>
+                  </button>
+                  <button type="button" onClick={() => setRoutines(list => { deleteRoutine(r.id); return list.filter(x => x.id !== r.id); })} aria-label={`Delete ${r.name}`}
+                    style={{ width: 30, height: 30, borderRadius: 8, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><X size={14}/></button>
+                </div>
+              ))}
+            </div>
+          )}
+        </BottomSheet>
+      )}
+      {sheet === 'cardio' && (
         <AddCardioSheet
           context={{ source: 'Workout Builder', difficulty: cap(difficulty), durationMin: duration }}
           initialAddon={cardioAddon}
-          onAdd={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
-          onClose={() => setCardioSheetOpen(false)}
+          onAdd={(addon) => { setCardioAddon(addon); setSheet(null); }}
+          onClose={() => setSheet(null)}
         />
       )}
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.workout_builder} onClose={() => setHelpOpen(false)}/>}

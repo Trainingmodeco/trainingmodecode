@@ -60,20 +60,6 @@ export const HELP_CONTENT = {
     modifications: 'Cut the duration, drop a difficulty, or switch to Cardio Only for a steadier session.',
     completion: 'Complete every round in the circuit to finish. Effort logs even if you cut it short.',
   },
-  train_hub: {
-    title: 'THE TRAIN TAB',
-    purpose: 'Your mission select. Every training path in the app starts here — pick the kind of fighter work you want today.',
-    cues: [
-      'Fight Mode trains striking skill: rounds, combos, and technique.',
-      'Fit Mode builds the body: strength workouts, quick missions, and cardio.',
-      'Combat Conditioning blends both into fight-pace circuits.',
-      'Training Arcade turns workouts into stages, bosses, and star ranks.',
-    ],
-    howHard: 'Each mode has its own difficulty settings inside — this screen is just the doorway.',
-    safety: 'New here? Start with a Quick Mission or Fight Focus on Normal to find your level.',
-    modifications: 'You can mix modes freely. Nothing locks you into one path.',
-    completion: 'Every mode banks XP toward the same rank — Rookie to Champion and beyond.',
-  },
   fight_hub: {
     title: 'FIGHT MODE',
     purpose: 'The striking-skill wing. Pick a discipline, then train rounds, combos, or technique fundamentals.',

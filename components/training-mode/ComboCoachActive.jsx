@@ -192,6 +192,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const defenseInRef = useRef(defenseCadence ? rollCadence(defenseCadence) : Infinity);
   const defensePool = DEFENSE_CALLS[disciplineSlug(discipline)] || DEFENSE_CALLS.boxing;
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // "End session?" holds the clock and the calls while it asks; CANCEL hands
+  // them back as they were.
+  const confirmPausedRef = useRef(false);
+  const openConfirmEnd = () => { if (!paused) { confirmPausedRef.current = true; setPaused(true); } setConfirmEnd(true); };
+  const closeConfirmEnd = () => { setConfirmEnd(false); if (confirmPausedRef.current) { confirmPausedRef.current = false; setPaused(false); } };
   const [showRushOverlay, setShowRushOverlay] = useState(false);
   const [captionText, setCaptionText] = useState('');
   const rushSpoken = useRef(false);
@@ -315,7 +320,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     setCountdown(`ROUND ${rIdx + 1}`);
     setCountdownSub(`${discipline} \u2022 ${speedLabel}`);
-    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedLabel} speed.`, 1200, { voice });
+    // "3.5s" is a label, not a sentence — the coach says the cadence in words.
+    const speedSpoken = /^\d/.test(String(speedLabel)) ? `${parseFloat(speedLabel)} second cadence` : `${speedLabel} speed`;
+    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedSpoken}.`, 1200, { voice });
     if (aborted()) return;
 
     setCountdown('GO');
@@ -516,14 +523,17 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           // Defense call: fire only when rush is NOT active. During rush,
           // the athlete's whole attention is on the countdown / rush cues —
           // no defense flashes competing for the same mic.
+          let defSpokenMs = 0;
           if (cfg.voiceOn !== false && remainingRef.current > 3 && !rushRef.current) {
             isSpeakingCombo.current = true;
+            const t0 = Date.now();
             await speakAsync(call, { rate: Math.min(voiceRate + 0.15, 1.3), priority: 2 });
+            defSpokenMs = Date.now() - t0;
             isSpeakingCombo.current = false;
           }
           if (!active || pausedRef.current) break;
           // Defense reactions are snappier than a full combo window.
-          await delay(Math.max(cadenceMs * 0.55, 1000));
+          await delay(Math.max(cadenceMs * 0.55 - defSpokenMs, 500));
           continue;
         }
 
@@ -545,14 +555,20 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         // pattern, not just the final-10s countdown). That matches the
         // fighter's ask — when the rush is on, everything except the rush
         // audio itself goes silent.
+        // The call is spoken INSIDE the cadence window, not before it: a
+        // "3.5 s" cadence was landing every 5.5–6 s because the wait only
+        // started once the voice had finished.
+        let spokenMs = 0;
         if (cfg.voiceOn !== false && remainingRef.current > 3 && !rushRef.current) {
           isSpeakingCombo.current = true;
+          const t0 = Date.now();
           await speakAsync(styled.speech, { rate: voiceRate, priority: 2 });
+          spokenMs = Date.now() - t0;
           isSpeakingCombo.current = false;
         }
         if (!active || pausedRef.current) break;
         const rushSpeedUp = rushRef.current ? 0.7 : 1;
-        const waitMs = Math.max((cadenceMs - 500) * rushSpeedUp, 1200);
+        const waitMs = Math.max((cadenceMs - 500 - spokenMs) * rushSpeedUp, 600);
         await delay(waitMs);
       }
     };
@@ -705,7 +721,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>
-          <button onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
+          <button onClick={openConfirmEnd} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
             <ChevronLeft size={22} />
           </button>
           <div style={{
@@ -943,7 +959,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
             }}>
               {isFinalRound ? <>FINISH <CheckCircle size={15} /></> : <>SKIP <SkipForward size={15} /></>}
             </button>
-            <button onClick={() => setConfirmEnd(true)} style={{
+            <button onClick={openConfirmEnd} style={{
               flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
               border: '1px solid rgba(255,90,90,0.4)', background: 'rgba(255,90,90,0.09)', color: '#ff8a8a',
               fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
@@ -996,7 +1012,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
               Are you sure you want to end this training session?
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmEnd(false)} style={{
+              <button onClick={closeConfirmEnd} style={{
                 flex: 1, padding: '11px 0', borderRadius: 10,
                 background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
                 color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,

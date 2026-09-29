@@ -35,6 +35,8 @@
     font-size: 17px; letter-spacing: 0.06em; color: #fde047;
     margin: 34px 0 10px; text-transform: uppercase;
   }
+  /* Linked sections land below the sticky top bar, not under it. */
+  h2[id], header[id] { scroll-margin-top: 72px; }
   p, li { font-size: 16.5px; color: #d8d0ea; }
   a { color: #7dd3fc; }
   ul { padding-left: 20px; }
@@ -93,7 +95,7 @@
   <header id="top">
     <p class="eyebrow">Training Mode</p>
     <h1>Privacy Policy</h1>
-    <p class="meta">Last updated: July 20, 2026</p>
+    <p class="meta">Last updated: September 28, 2026</p>
   </header>
 
   <p>
@@ -112,10 +114,20 @@
       Google password.
     </li>
     <li>
-      <strong>Your training data stays on your device.</strong> Workouts, XP, levels, streaks,
+      <strong>Your training data lives on your device.</strong> Workouts, XP, levels, streaks,
       saved routines, custom combos, and app settings are stored locally in your browser (using
-      <code>localStorage</code>) on the device you train with. This information is not uploaded to
-      our servers.
+      <code>localStorage</code>) on the device you train with. If you are not signed in, none of it
+      is uploaded to our servers.
+    </li>
+    <li>
+      <strong>Progress backup (only if you sign in).</strong> When you are signed in, the app keeps
+      a copy of that training data in your account so you can restore it on a new phone or after
+      clearing your browser. Only your account can read or change this copy.
+    </li>
+    <li>
+      <strong>Ghosts you share (only if you sign in, or send a link).</strong> Ghost challenges let
+      you race a recorded session. Some of these recordings can be shared with other players, as
+      explained in <a href="#ghosts">Ghost challenges and sharing</a> below.
     </li>
     <li>
       <strong>Subscription status (only if you subscribe).</strong> If you purchase Pro, payment is
@@ -141,11 +153,45 @@
     advertising in the app.
   </div>
 
+  <h2 id="ghosts">Ghost challenges and sharing</h2>
+  <p>
+    A <strong>ghost</strong> is a record of a finished Fight Focus session: how many strikes you
+    threw and when (counted in 10-second slices), your totals, the number and length of rounds, the
+    difficulty, the discipline, the date, and your avatar setting (male or female art). A ghost does
+    not contain your email, your Google profile, or your location.
+  </p>
+  <ul>
+    <li>
+      <strong>Anonymous ghosts for other players.</strong> If you are signed in, up to
+      <strong>2</strong> of your Fight Focus ghosts each week are added to a pool that other players
+      can be challenged by. Your name is removed on our servers before the ghost is stored. Other
+      players see only &ldquo;A Warrior,&rdquo; your fighter level, and the session numbers above
+      &mdash; never your name, email, photo, or account. This is <strong>on by default</strong>. Turn
+      it off any time in <strong>Profile &rarr; Edit profile &rarr; Let others race my ghosts</strong>;
+      turning it off deletes every ghost you have shared. Shared ghosts are offered to other players
+      for up to 60 days and are kept until you turn sharing off or delete your account.
+    </li>
+    <li>
+      <strong>Haunt a Friend (only when you choose to send one).</strong> After a session you can
+      send your ghost to a friend. If you are signed in, we store that ghost with a 6-character code;
+      anyone who has the code or its link can open that session, including the display name you set
+      in the app, for 7 days. After 7 days the code stops working, and the stored ghost is automatically
+      deleted from our servers within the hour. If you are not signed in, the link you send
+      contains the session and your display name inside the link itself; it is not stored on our
+      servers, and anyone who has the link can see it.
+    </li>
+    <li>
+      <strong>Ghosts you receive.</strong> A friend&rsquo;s ghost or a stranger&rsquo;s ghost that
+      you open is saved on your device &mdash; and in your own progress backup if you are signed
+      in. It is never passed on to anyone else.
+    </li>
+  </ul>
+
   <h2>Service providers</h2>
   <p>We rely on a small number of trusted providers to run the app:</p>
   <ul>
     <li><strong>Google</strong> &mdash; sign-in.</li>
-    <li><strong>Supabase</strong> &mdash; stores your account record.</li>
+    <li><strong>Supabase</strong> &mdash; stores your account record and, if you sign in, your progress backup and the ghosts you share.</li>
     <li><strong>Stripe</strong> &mdash; processes subscription payments.</li>
     <li><strong>Netlify</strong> &mdash; hosts and delivers the app.</li>
   </ul>
@@ -163,8 +209,13 @@
       apptrainingmode.com.
     </li>
     <li>
+      <strong>Stop sharing ghosts</strong> in Profile &rarr; Edit profile &rarr; Let others race my
+      ghosts. Turning it off removes the ghosts you have already shared.
+    </li>
+    <li>
       <strong>Access or delete your account data.</strong> Email us and we will help you access or
-      permanently delete the account information associated with your sign-in.
+      permanently delete the account information associated with your sign-in. Deleting your
+      account also deletes your progress backup, your shared ghosts, and your haunt codes.
     </li>
   </ul>
 

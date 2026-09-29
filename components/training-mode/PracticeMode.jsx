@@ -1,353 +1,110 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { ChevronLeft } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
-import TrainingHeader from './TrainingHeader';
-import WordmarkFightMode from './WordmarkFightMode';
-import Embers from './Embers';
-import CornerHUD from './CornerHUD';
 import SafeImage from './SafeImage';
-import { ChevronLeft, Play, Pause, ChevronRight, Volume2, Square } from 'lucide-react';
-import { C } from './Styles';
-import { addStartHereLesson } from './data/userStats';
+import ScreenGuide from './shared/ScreenGuide';
+import { SCREEN_GUIDES } from './shared/screenGuides';
+import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
+import { FightBackdrop } from './shared/FightTimerKit';
+import PracticeRound from './PracticeRound';
+import { addStartHereLesson, addPracticeSession, addPracticeWeeklyBonus } from './data/userStats';
 import { loadProfile, isBeginnerLearner } from './data/userProfile';
-import {
-  primeSpeech, setVoiceGender, speakAsync, cancelSpeech, stopVoiceSession, delay,
-} from './voiceCoach';
-import TrainingCTA from './shared/TrainingCTA';
-import {
-  PRACTICE_DISCIPLINES,
-  PRACTICE_CATEGORIES,
-  TECHNIQUES,
-} from './practiceData';
+import { primeSpeech, setVoiceGender, speakAsync, cancelSpeech, stopVoiceSession, delay } from './voiceCoach';
+import { PRACTICE_DISCIPLINES, PRACTICE_CATEGORIES, TECHNIQUES } from './practiceData';
 import { addLearned } from './data/arsenal';
-import { numberForStrike, NUMBER_DRILL } from './data/strikeNumbering';
+import { numberForStrike } from './data/strikeNumbering';
+import {
+  basicsFor, getCompletedLessons, markLessonComplete, getLibraryDrilled, markLibraryDrilled,
+} from './data/practiceLessons';
+import { buildRound, planLine } from './data/practiceRound';
+import { claimWeeklyBonus, notePracticed } from './data/practiceInvite';
 
-const GOLD = C.yellow;
+// Practice Mode — simplified to one screen in the Simplify revamp
+// (Practice.dc.html): Continue Learning banner, the Fundamentals Path as a
+// 7-dot stepper, and the Technique Library as a two-column grid. Every
+// lesson and technique opens one centred card, and its START PRACTICE ROUND
+// runs a round built from what the athlete has learned (PracticeRound.jsx).
+// That round replaces the old Shadowbox and Combo drills; DRILL A COMBO now
+// goes to Combo Coach, the app's real combo caller.
 
-// ─── Basics (fundamentals path) data per discipline ─────────────────────────────
-// PROMPT N — the numbers lesson, appended to every discipline's basics.
-// Steps come from the canonical map so this can never drift from the caller.
-const NUMBERS_LESSON = {
-  id: 'know_your_numbers',
-  title: 'Know Your Numbers',
-  subtitle: 'The 1\u20138 count every gym uses.',
-  steps: [
-    ...NUMBER_DRILL.map((n) => `${n.num} is your ${n.name.toUpperCase()}. Throw five slow.`),
-    'Any number \u201Cto the body\u201D is the same punch downstairs \u2014 3 to the body is a lead hook to the ribs.',
-    'Coach calls: 1-2. Then 1-2-3. Then 1-2, 3 to the body. Answer with your hands.',
-  ],
-};
+const GOLD = '#F2BE45';
+const SOFT = '#A9B4D6';
+const LEVEL = { Beginner: ['BEGINNER', '#4ADE80'], Intermediate: ['INTERMEDIATE', GOLD], Advanced: ['ADVANCED', '#F87171'] };
+const SHOW = 6;
 
-const START_HERE_LESSONS = {
-  Boxing: [
-    { id: 'boxing_stance', title: 'Boxing Stance', subtitle: 'Learn your base, guard, and foot position.', steps: ['Stand with feet shoulder-width apart.','Step lead foot forward (left if right-handed).','Keep knees slightly bent — stay light.','Hands up to protect your chin.','Tuck elbows close to ribs.','Chin down, eyes forward.','Move forward and back for 30 seconds.'] },
-    { id: 'boxing_guard', title: 'Guard + Footwork', subtitle: 'Protect yourself and move with balance.', steps: ['Start in your boxing stance.','Keep both hands glued to your cheeks.','Step forward: lead foot first, back foot follows.','Step back: back foot first, lead foot follows.','Never cross your feet.','Practice 10 steps forward, 10 back.','Add lateral movement: step-slide left and right.'] },
-    { id: 'boxing_jab', title: 'Jab', subtitle: 'Your fastest, longest-range punch.', steps: ['Start in your boxing stance with guard up.','Extend your lead hand straight out, palm turns down.','Snap it back to guard immediately.','Keep your rear hand glued to your chin.','Step forward slightly as you jab.','Practice 20 jabs — focus on speed, not power.','Keep your shoulder up to protect your chin.'] },
-    { id: 'boxing_cross', title: 'Cross', subtitle: 'Your power punch from the rear hand.', steps: ['Start in stance with guard up.','Rotate your back hip forward.','Throw your rear hand straight.','Your back heel lifts as you rotate.','Full extension — don\'t loop it.','Snap back to guard.','Practice 20 crosses — focus on rotation.'] },
-    { id: 'boxing_jab_cross', title: 'Jab-Cross', subtitle: 'Your first combination.', steps: ['Start in stance.','Throw a JAB (lead hand snap).','Immediately follow with a CROSS (rear hand, rotate hips).','Return to guard between combos.','Practice 10 jab-cross combos.','Focus on smooth flow, not power.','Add a small step forward with the jab.'] },
-    { id: 'boxing_defense', title: 'Basic Defense', subtitle: 'Slips, blocks, and getting out of the way.', steps: ['Start in stance with guard up tight.','BLOCK: Keep hands high — absorb with your gloves.','SLIP INSIDE: Bend knees, move head off center (lead side).','SLIP OUTSIDE: Bend knees, move head to rear side.','PULL: Lean back slightly from the waist.','Practice 10 of each defensive move.','Always return to guard after every slip.'] },
-  ],
-  Kickboxing: [
-    { id: 'kb_stance', title: 'Kickboxing Stance', subtitle: 'Wider base for kicks and punches.', steps: ['Stand slightly wider than boxing stance.','Weight evenly distributed on both feet.','Hands up protecting your chin.','Keep your lead hand extended slightly more.','Stay on the balls of your feet.','Chin down, core tight.','Practice bouncing lightly in place for 30 seconds.'] },
-    { id: 'kb_jab', title: 'Jab', subtitle: 'Same fundamentals, kickboxing range.', steps: ['Start in kickboxing stance.','Extend lead hand straight, palm down.','Snap back immediately.','Keep your weight centered (not over-committing).','Step forward slightly with the jab.','Practice 20 quick jabs.','Use the jab to set up kicks.'] },
-    { id: 'kb_cross', title: 'Cross', subtitle: 'Power from your rear hand.', steps: ['Start in stance.','Rotate your rear hip forward.','Throw rear hand straight out.','Back heel lifts, hips fully rotate.','Return to guard immediately.','Practice 20 crosses.','Combine: jab-cross, 10 reps.'] },
-    { id: 'kb_front_kick', title: 'Front Kick / Teep', subtitle: 'Your longest-range weapon — push them back.', steps: ['Start in stance.','Lift your lead knee to waist height.','Push your foot forward, hitting with the ball of your foot.','Extend your leg fully.','Snap it back to stance.','Keep your hands up the entire time.','Practice 10 lead teeps, then 10 rear teeps.'] },
-    { id: 'kb_roundhouse', title: 'Rear Roundhouse Kick', subtitle: 'Power kick using your shin.', steps: ['Start in stance.','Pivot on your lead foot — turn it 90 degrees.','Swing your rear leg in an arc.','Hit with your SHIN, not your foot.','Your hips rotate all the way through.','Return to stance.','Practice 10 slow roundhouses — focus on form.'] },
-    { id: 'kb_combo', title: 'Basic Kickboxing Combo', subtitle: 'Hands and feet together.', steps: ['Start in stance.','Jab.','Cross.','Rear roundhouse kick.','Return to stance.','That\'s your 1-2-kick combo.','Practice 10 reps each side.'] },
-  ],
-  'Muay Thai': [
-    { id: 'mt_stance', title: 'Muay Thai Stance', subtitle: 'Tall, square, ready for all 8 weapons.', steps: ['Stand taller than boxing stance.','Feet shoulder-width, slightly squared.','Weight slightly on back foot.','Hands high — palms facing forward.','Elbows tucked and ready.','Stay on the balls of your feet.','Practice shifting weight forward and back.'] },
-    { id: 'mt_jab_cross', title: 'Jab + Cross', subtitle: 'Setting up your heavy weapons.', steps: ['Start in Muay Thai stance.','Jab: lead hand straight, step forward slightly.','Cross: rotate rear hip, throw rear hand.','Keep hands high between punches.','Practice 10 jab-cross combos.','These set up your elbows and kicks.','Focus on returning to guard.'] },
-    { id: 'mt_teep', title: 'Teep', subtitle: 'The Thai push kick — control distance.', steps: ['Start in stance.','Lift your lead knee high.','Push forward — extend your leg.','Hit with ball of foot or flat foot.','Push opponent away — don\'t kick through.','Snap leg back to stance.','Practice 10 lead teeps, 10 rear teeps.'] },
-    { id: 'mt_roundhouse', title: 'Roundhouse Kick', subtitle: 'The most powerful kick in combat sports.', steps: ['Start in Muay Thai stance.','Step your lead foot 45 degrees outward.','Swing rear leg — hip drives through.','Hit with your SHIN.','Your whole body rotates with the kick.','Follow through completely.','Practice 10 slow, controlled kicks per side.'] },
-    { id: 'mt_knee', title: 'Knee', subtitle: 'Close-range devastation.', steps: ['Start in stance — closer range.','Grab imaginary clinch (hands up high).','Drive your rear knee straight up.','Point your knee, push hips forward.','Return to stance.','Practice 10 rear knees.','Then 10 lead knees (switch stance slightly).'] },
-    { id: 'mt_elbow', title: 'Elbow', subtitle: 'The blade of Muay Thai.', steps: ['Start in stance — very close range.','Lift your elbow to shoulder height.','Slash horizontally across.','Use your hip rotation for power.','Keep opposite hand protecting your face.','Practice horizontal elbows: 10 per side.','Elbows are for VERY close range only.'] },
-  ],
-  MMA: [
-    { id: 'mma_stance', title: 'MMA Stance', subtitle: 'Balanced for striking and takedown defense.', steps: ['Stand with feet shoulder-width, slightly staggered.','Weight centered — 50/50 distribution.','Hands slightly lower than boxing (defend takedowns).','Stay on the balls of your feet.','Chin tucked, core engaged.','Ready to strike AND sprawl.','Practice bouncing lightly — stay mobile.'] },
-    { id: 'mma_jab_cross', title: 'Jab + Cross', subtitle: 'Setting up everything in MMA.', steps: ['Start in MMA stance.','Jab: lead hand straight.','Cross: rotate hips, rear hand.','Keep hands ready to defend takedowns after.','Don\'t over-extend on the cross.','Practice 10 jab-cross combos.','After the combo, reset your stance.'] },
-    { id: 'mma_teep_low', title: 'Teep or Low Kick', subtitle: 'Control distance or chop the legs.', steps: ['TEEP: Lift knee, push foot forward.','Hit with ball of foot — push away.','LOW KICK: Target outside of lead thigh.','Use your rear leg, pivot lead foot.','Hit with your shin, low and hard.','Practice 10 teeps, then 10 low kicks.','These keep opponents at your range.'] },
-    { id: 'mma_sprawl', title: 'Sprawl', subtitle: 'Defend the takedown — stay on your feet.', steps: ['Start in stance.','When someone shoots in, kick your legs BACK.','Drop your hips DOWN to the ground.','Your hands push down on their head/shoulders.','Your legs are extended behind you.','Pop back up to stance immediately.','Practice 10 sprawls (shadow, no partner needed).'] },
-    { id: 'mma_level_change', title: 'Level Change Defense', subtitle: 'Recognize and stop the shot.', steps: ['Start in MMA stance.','Lower your level by bending knees.','Keep your back straight — don\'t bend at waist.','Hands drop to hip/thigh level.','If opponent shoots: SPRAWL.','If they don\'t: pop back up.','Practice level changes: down, up, 10 reps.'] },
-    { id: 'mma_movement', title: 'Basic MMA Movement', subtitle: 'Angles, footwork, and cage awareness.', steps: ['Start in MMA stance.','Circle left: lead foot steps, rear foot follows.','Circle right: rear foot steps, lead foot follows.','Practice pivoting: plant lead foot, swing rear 90 degrees.','Never walk straight backward.','Always circle away from opponent\'s power hand.','Practice 2 minutes of movement drills.'] },
-  ],
-};
-
-
-const COMPLETION_KEY = 'tm_starthere_completed';
-
-function getCompletedLessons() {
-  if (typeof localStorage === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(COMPLETION_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function markLessonComplete(lessonId) {
-  if (typeof localStorage === 'undefined') return;
-  const completed = getCompletedLessons();
-  if (!completed.includes(lessonId)) {
-    completed.push(lessonId);
-    localStorage.setItem(COMPLETION_KEY, JSON.stringify(completed));
-  }
-  if (!localStorage.getItem('trainingModeStartHereFirstLessonComplete')) {
-    localStorage.setItem('trainingModeStartHereFirstLessonComplete', 'true');
-  }
-}
-
-// ─── Profile-driven helpers ─────────────────────────────────────────────────────
 // Avatar (male/female banner) follows the profile's avatarPreference, else sex.
 const getVariant = (p) => {
   const pref = String(p?.avatarPreference || '').toLowerCase();
-  if (pref === 'female') return 'female';
-  if (pref === 'male') return 'male';
+  if (pref === 'female' || pref === 'male') return pref;
   const s = String(p?.sex || p?.gender || '').toLowerCase();
   return s === 'female' ? 'female' : 'male';
 };
-
-// A "beginner learner" (told onboarding they're new AND want to learn combat)
-// must drill a basic for it to count, and the Technique Library stays locked
-// until all basics are drilled. Shared helper — see data/userProfile.
-const DISC_KEY = { Boxing: 'boxing', Kickboxing: 'kickbox', 'Muay Thai': 'muaythai', MMA: 'mma' };
-const bannerSrc = (disc, variant) => `/static/practice/${DISC_KEY[disc] || 'boxing'}-${variant}.png`;
+const SLUG = { Boxing: 'boxing', Kickboxing: 'kickboxing', 'Muay Thai': 'muaythai', MMA: 'mma' };
+const bannerSrc = (disc, variant) => `/static/revamp/practice/${variant === 'female' ? 'f' : 'm'}-${SLUG[disc] || 'boxing'}.webp`;
 
 // ─── Technique Library helpers ─────────────────────────────────────────────────
+// Defense and footwork carry over from the simpler disciplines: Muay Thai
+// lists boxing's slips as well as its own checks.
 const DEFENSE_FOOTWORK_INCLUDES = {
-  Boxing:    ['Boxing'],
+  Boxing: ['Boxing'],
   Kickboxing: ['Boxing', 'Kickboxing'],
   'Muay Thai': ['Boxing', 'Kickboxing', 'Muay Thai'],
-  MMA:       ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'],
+  MMA: ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'],
 };
 
-// Sub-section label for a technique (group techniques within a category).
-function subSectionFor(t) {
-  const n = String(t.name).toLowerCase();
-  if (t.category === 'Defense') {
-    if (/slip|bob|weave|roll|pull|lean|duck|sway/.test(n)) return 'HEAD MOVEMENT';
-    return 'BLOCKS & PARRIES';
-  }
-  if (t.category === 'Footwork') {
-    if (/pivot|angle|lateral|circle|exit|entry|switch/.test(n)) return 'ANGLES & PIVOTS';
-    return 'STEPS';
-  }
-  if (/knee/.test(n)) return 'KNEES';
-  if (/elbow/.test(n)) return 'ELBOWS';
-  if (/kick|teep|roundhouse|\bcheck\b/.test(n)) return 'KICKS';
-  return 'PUNCHES';
-}
-
-// Short badge for the detail header (matches the "PUNCH" tag in the design).
-const STRIKE_BADGE = { PUNCHES: 'PUNCH', KICKS: 'KICK', KNEES: 'KNEE', ELBOWS: 'ELBOW' };
-function badgeForTech(t) {
-  if (t.category === 'Strikes') {
-    return STRIKE_BADGE[subSectionFor(t)] || 'STRIKE';
-  }
-  return String(t.category || 'MOVE').toUpperCase();
-}
-
-// Preserve first-seen order of sub-sections.
-function groupBySubSection(techniques) {
-  const groups = [];
-  const idx = {};
-  techniques.forEach(t => {
-    const s = subSectionFor(t);
-    if (idx[s] === undefined) { idx[s] = groups.length; groups.push({ section: s, items: [] }); }
-    groups[idx[s]].items.push(t);
-  });
-  return groups;
-}
-
 function getTechniquesFor(discipline, category) {
-  if (category === 'Strikes') {
-    return TECHNIQUES.filter(t => t.discipline === discipline && t.category === 'Strikes');
-  }
-  const sources = DEFENSE_FOOTWORK_INCLUDES[discipline] || [discipline];
+  if (category === 'Strikes') return TECHNIQUES.filter(t => t.discipline === discipline && t.category === 'Strikes');
   const seen = new Set();
   const result = [];
-  for (const src of sources) {
+  for (const src of DEFENSE_FOOTWORK_INCLUDES[discipline] || [discipline]) {
     for (const t of TECHNIQUES) {
-      if (t.discipline === src && t.category === category && !seen.has(t.name)) {
-        seen.add(t.name);
-        result.push(t);
-      }
+      if (t.discipline === src && t.category === category && !seen.has(t.name)) { seen.add(t.name); result.push(t); }
     }
   }
   return result;
 }
 
-// ─── Normalizers → the shared detail shape ─────────────────────────────────────
-const basicToDetail = (lesson) => ({
-  kind: 'basic', lessonId: lesson.id, title: lesson.title,
-  description: lesson.subtitle, badge: 'BASIC',
-  keyPoints: lesson.steps, mistakes: [], duration: `${lesson.steps.length} steps`,
-});
-const techToDetail = (t) => ({
-  kind: 'technique', lessonId: null, title: t.name,
-  description: t.description, badge: badgeForTech(t),
-  keyPoints: t.cues || [], mistakes: t.mistakes || [], duration: t.duration || '20–30 sec',
-});
+// The card's kind badge: PUNCH / KICK / KNEE / ELBOW for strikes.
+function badgeForTech(t) {
+  if (t.category !== 'Strikes') return String(t.category).toUpperCase().replace(/S$/, '');
+  const n = t.name.toLowerCase();
+  if (/knee/.test(n)) return 'KNEE';
+  if (/elbow/.test(n)) return 'ELBOW';
+  if (/kick|teep|roundhouse|\bcheck\b/.test(n)) return 'KICK';
+  return 'PUNCH';
+}
+
+// Tile badge: the gym number when the move has one (1 = jab …), otherwise
+// the move's initials.
+const tileMark = (name) => numberForStrike(name) || name.split(/[\s-]+/).map(w => w[0]).join('').slice(0, 3).toUpperCase();
+
+const techCall = (name) => name.toUpperCase();
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const css = `
-.pm-disc-pill {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  padding: 7px 12px;
-  border-radius: 20px;
-  border: 1.5px solid rgba(168,85,247,0.2);
-  background: rgba(10,0,20,0.7);
-  color: rgba(255,255,255,0.65);
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
-.pm-disc-pill.active {
-  border-color: rgba(253,224,71,0.7);
-  background: rgba(253,224,71,0.08);
-  color: ${GOLD};
-  box-shadow: 0 0 12px rgba(253,224,71,0.2);
-}
-.pm-disc-pill:hover:not(.active) {
-  border-color: rgba(168,85,247,0.4);
-  color: rgba(255,255,255,0.7);
-}
-.pm-cat-pill {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  padding: 6px 13px;
-  border-radius: 6px;
-  border: 1px solid rgba(168,85,247,0.15);
-  background: transparent;
-  color: rgba(255,255,255,0.62);
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-.pm-cat-pill.active {
-  border: none;
-  background: #fde047;
-  color: #0a0014;
-}
-.pm-cat-pill:hover:not(.active) {
-  border-color: rgba(168,85,247,0.35);
-  color: rgba(255,255,255,0.65);
-}
-.pm-card {
-  border-radius: 11px;
-  border: 1px solid rgba(168,85,247,0.2);
-  background: rgba(8,2,18,0.82);
-  padding: 9px 12px;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  position: relative;
-  overflow: hidden;
-}
-.pm-card:hover {
-  opacity: 1;
-  border-color: rgba(168,85,247,0.35);
-  box-shadow: 0 0 12px rgba(168,85,247,0.12);
-  transform: translateY(-1px);
-}
-.pm-card:active {
-  transform: scale(0.98);
-}
-.pm-technique-list {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(168,85,247,0.4) rgba(10,0,20,0.3);
-}
-.pm-technique-list::-webkit-scrollbar { width: 5px; }
-.pm-technique-list::-webkit-scrollbar-track { background: rgba(10,0,20,0.3); border-radius: 4px; }
-.pm-technique-list::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
-.pm-toast {
-  animation: pm-toast-in 0.22s ease forwards;
-}
-@keyframes pm-toast-in {
-  from { opacity: 0; transform: translateY(10px) translateX(-50%); }
-  to   { opacity: 1; transform: translateY(0)    translateX(-50%); }
-}
-.pm-panel-in {
-  animation: pm-panel-slide 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-}
-@keyframes pm-panel-slide {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes pm-cue-glow {
-  0%, 100% { box-shadow: 0 0 14px rgba(253,224,71,0.35); }
-  50%      { box-shadow: 0 0 24px rgba(253,224,71,0.6); }
-}
+.pm-hit { transition: border-color .18s ease, color .18s ease, box-shadow .18s ease, filter .18s ease; }
+.pm-hit:hover, .pm-hit:focus-visible { border-color: ${GOLD} !important; }
+.pm-tile:hover, .pm-tile:focus-visible { border-color: ${GOLD} !important; box-shadow: 0 0 14px rgba(61,123,255,.4); }
+.pm-txt:hover, .pm-txt:focus-visible { color: ${GOLD} !important; }
+.pm-banner:hover, .pm-banner:focus-visible { box-shadow: 0 0 22px rgba(168,85,247,.5); }
+.pm-gold:hover, .pm-gold:focus-visible { filter: brightness(1.1); }
+.pm-hit:active, .pm-tile:active { transform: scale(0.98); }
+.pm-grid { scrollbar-width: thin; scrollbar-color: rgba(143,180,255,.35) transparent; }
+@keyframes pm-toast-in { from { opacity: 0; transform: translate(-50%, 10px) } to { opacity: 1; transform: translate(-50%, 0) } }
+@keyframes pm-cue-glow { 0%, 100% { box-shadow: 0 0 10px rgba(242,190,69,0.3) } 50% { box-shadow: 0 0 20px rgba(242,190,69,0.55) } }
 `;
+const label = { font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', color: SOFT };
+const Play = ({ size = 11, style }) => <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: size, height: size, fill: 'currentColor', ...style }}><path d="M7 4l13 8-13 8z"/></svg>;
 
-// ─── Level badge ─────────────────────────────────────────────────────────────
-function LevelBadge({ level }) {
-  const color = level === 'Beginner' ? 'rgba(74,222,128,0.85)'
-    : level === 'Intermediate' ? GOLD : 'rgba(249,115,22,0.9)';
-  return (
-    <span style={{
-      fontFamily: "'Press Start 2P',monospace", fontSize: 6,
-      color, letterSpacing: '0.06em',
-      padding: '2px 6px', borderRadius: 4,
-      background: 'rgba(0,0,0,0.4)', border: `1px solid ${color}`,
-      opacity: 0.85,
-    }}>{level.toUpperCase()}</span>
-  );
-}
-
-function SectionLabel({ children, color = '#c4a4d8' }) {
-  return (
-    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color, letterSpacing: '0.18em', marginBottom: 9 }}>{children}</div>
-  );
-}
-
-// ─── Technique Card (library row) ──────────────────────────────────────────────
-function TechniqueCard({ technique, onTap }) {
-  return (
-    <button className="pm-card" onClick={() => onTap(technique)} style={{ width: '100%', textAlign: 'left' }}>
-      <div style={{
-        position: 'relative', width: 52, height: 40, borderRadius: 7, flexShrink: 0,
-        overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'repeating-linear-gradient(45deg,#1a1030 0 6px,#241640 6px 12px)',
-      }}>
-        <Play size={13} style={{ color: '#fde047', marginLeft: 1 }} fill="#fde047"/>
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#fff', letterSpacing: '0.03em' }}>{technique.name}</span>
-          {/* PROMPT N — numbered punches wear their count. */}
-          {numberForStrike(technique.name) && (
-            <span style={{
-              minWidth: 18, height: 18, borderRadius: 9, padding: '0 4px', flexShrink: 0,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(253,224,71,0.14)', border: '1px solid rgba(253,224,71,0.55)',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, color: '#fde047',
-            }}>{numberForStrike(technique.name)}</span>
-          )}
-          <LevelBadge level={technique.level}/>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#9a90b8', lineHeight: 1.3 }}>
-          {technique.description}{technique.duration ? ` · ${technique.duration}` : ''}
-        </div>
-      </div>
-      <ChevronRight size={15} style={{ color: '#b06aff', flexShrink: 0 }}/>
-    </button>
-  );
-}
-
-// ─── Detail (unified page: video · key points · common mistakes · drill it) ─────
-function DetailView({ detail, profile, onBack, onDrill }) {
+// ─── Lesson / technique card (centred modal) ──────────────────────────────────
+// The design draws a video player here. There are no lesson videos yet, so
+// the player area is the title card for the step-by-step guide, and its play
+// button reads the key points aloud — the guide it promises, for real.
+function DetailCard({ detail, profile, roundLine, onClose, onStartRound }) {
   const [activeCue, setActiveCue] = useState(-1);
   const [reading, setReading] = useState(false);
   const readingRef = useRef(false);
-
   const keyPoints = useMemo(() => detail.keyPoints || [], [detail]);
   const mistakes = detail.mistakes || [];
 
@@ -358,7 +115,6 @@ function DetailView({ detail, profile, onBack, onDrill }) {
     cancelSpeech();
   }, []);
 
-  // Cancel any speech if the page unmounts.
   useEffect(() => () => { readingRef.current = false; stopVoiceSession(); }, []);
 
   const toggleRead = useCallback(async () => {
@@ -374,474 +130,403 @@ function DetailView({ detail, profile, onBack, onDrill }) {
       if (!readingRef.current) break;
       await delay(320);
     }
-    if (readingRef.current) {
-      readingRef.current = false;
-      setReading(false);
-      setActiveCue(-1);
-    }
+    if (readingRef.current) { readingRef.current = false; setReading(false); setActiveCue(-1); }
   }, [keyPoints, profile, stopReading]);
 
-  const handleBack = () => { stopReading(); onBack(); };
+  const close = () => { stopReading(); onClose(); };
+  const progress = reading && keyPoints.length ? ((activeCue + 1) / keyPoints.length) * 100 : 0;
 
   return createPortal(
-    <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 200, background: '#080012', display: 'flex', flexDirection: 'column' }}>
-      {/* Technique header. This used to be a MOCK video player — a gold play
-          button, a scrubber parked at 35%, a duration — that played nothing and
-          popped a "coming soon" toast (beta TM-13). Everything it implied was
-          untrue, so it is now the title card for the written guide below, which
-          is the real content. */}
-      <div style={{ position: 'relative', flexShrink: 0, aspectRatio: '16/7', background: 'repeating-linear-gradient(45deg,#140823 0 14px,#1c0d30 14px 28px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={handleBack} style={{ position: 'absolute', top: 8, left: 12, background: 'none', border: 'none', color: '#f5e9ff', cursor: 'pointer', display: 'flex', padding: 4 }}><ChevronLeft size={20}/></button>
-        <div style={{ textAlign: 'center', padding: '0 20px' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: '#fff', letterSpacing: '0.04em', textShadow: '0 0 16px rgba(168,85,247,0.5)' }}>{detail.title.toUpperCase()}</div>
-          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#c4a4d8', marginTop: 4, letterSpacing: '0.1em' }}>STEP-BY-STEP GUIDE</div>
-        </div>
-      </div>
-
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '14px 16px calc(90px + env(safe-area-inset-bottom,0px))' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, color: '#fff', letterSpacing: '0.03em' }}>{detail.title.toUpperCase()}</div>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#c9a6ff', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 5, padding: '3px 7px' }}>{detail.badge}</span>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: '#c4a4d8', marginBottom: 14 }}>{detail.description}</div>
-
-        {/* KEY POINTS header + voice readout toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em' }}>KEY POINTS</span>
+    <div style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 200 }}>
+      <button type="button" aria-label="Close" onClick={close} style={{ position: 'absolute', inset: 0, background: 'rgba(3,2,8,.78)', border: 0, backdropFilter: 'blur(3px)', cursor: 'default' }}/>
+      <div role="dialog" aria-modal="true" aria-label={detail.title} style={{
+        position: 'absolute', left: 14, right: 14, top: '50%', transform: 'translateY(-50%)', maxHeight: 'calc(100dvh - 28px)',
+        boxSizing: 'border-box', borderRadius: 18, overflow: 'hidden', background: '#0A0716', color: '#fff',
+        border: '1.5px solid rgba(168,85,247,.6)', boxShadow: '0 0 30px rgba(168,85,247,.35), 0 24px 60px rgba(0,0,0,.7)',
+        display: 'flex', flexDirection: 'column', fontFamily: 'Barlow, system-ui, sans-serif',
+      }}>
+        <div style={{
+          position: 'relative', aspectRatio: '16 / 9', flexShrink: 0, maxHeight: '32dvh',
+          background: 'repeating-linear-gradient(135deg, #1A1030 0 16px, #150C28 16px 32px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
+        }}>
+          <button type="button" className="pm-hit pm-txt" aria-label="Close" onClick={close} style={{
+            position: 'absolute', top: 8, right: 8, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,.5)',
+            border: '1px solid rgba(255,255,255,.18)', color: '#fff', cursor: 'pointer', fontSize: 14,
+          }}>✕</button>
+          <span style={{
+            position: 'absolute', top: 10, left: 10, font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
+            padding: '3px 7px', borderRadius: 5, border: '1px solid rgba(196,168,255,.6)', color: '#D2BCFF', background: 'rgba(0,0,0,.4)',
+          }}>{detail.badge}</span>
           {keyPoints.length > 0 && (
-            <button onClick={toggleRead} style={{
-              display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
-              padding: '5px 10px', borderRadius: 7,
-              border: `1px solid ${reading ? 'rgba(253,224,71,0.7)' : 'rgba(168,85,247,0.4)'}`,
-              background: reading ? 'rgba(253,224,71,0.12)' : 'rgba(168,85,247,0.08)',
-              color: reading ? GOLD : '#c9a6ff',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, letterSpacing: '0.1em',
+            <button type="button" className="pm-gold" aria-label={reading ? 'Stop the guide' : 'Play the step-by-step guide'} onClick={toggleRead} style={{
+              width: 58, height: 58, borderRadius: '50%', border: 0, cursor: 'pointer', color: '#1A1204',
+              background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)', boxShadow: '0 0 24px rgba(242,190,69,.55)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              {reading ? <Square size={10} fill="currentColor"/> : <Volume2 size={11}/>}
-              {reading ? 'STOP' : 'READ ALOUD'}
+              {reading
+                ? <span aria-hidden="true" style={{ width: 16, height: 16, borderRadius: 2, background: 'currentColor' }}/>
+                : <Play size={22} style={{ marginLeft: 3 }}/>}
             </button>
           )}
+          <span style={{ font: "700 20px 'Chakra Petch',sans-serif", letterSpacing: '0.06em', textAlign: 'center', padding: '0 44px' }}>{detail.title.toUpperCase()}</span>
+          <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: '#C4A8FF' }}>
+            STEP-BY-STEP GUIDE · {keyPoints.length} STEPS
+          </span>
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, background: 'rgba(255,255,255,.1)' }}>
+            <div style={{ width: `${progress}%`, height: '100%', background: GOLD, transition: 'width .3s ease' }}/>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
+
+        <div style={{ padding: '12px 14px 14px', display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto', minHeight: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ flexGrow: 1, fontSize: 13, color: '#A9A3C4' }}>{detail.description}</span>
+            {keyPoints.length > 0 && (
+              <button type="button" className="pm-hit pm-txt" onClick={toggleRead} style={{
+                height: 30, padding: '0 9px', borderRadius: 7, flexShrink: 0, cursor: 'pointer', whiteSpace: 'nowrap',
+                background: reading ? 'rgba(242,190,69,.12)' : 'transparent',
+                border: `1px solid ${reading ? 'rgba(242,190,69,.7)' : 'rgba(196,168,255,.5)'}`, color: reading ? GOLD : '#D2BCFF',
+                font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.12em',
+              }}>{reading ? '■ STOP' : '🔊 READ ALOUD'}</button>
+            )}
+          </div>
+
+          {keyPoints.length > 0 && <span style={{ ...label, color: '#C4A8FF' }}>KEY POINTS</span>}
           {keyPoints.map((c, i) => {
             const on = activeCue === i;
             return (
               <div key={i} style={{
-                display: 'flex', gap: 9, alignItems: 'flex-start',
-                background: on ? 'rgba(253,224,71,0.12)' : 'rgba(8,2,18,0.7)',
-                border: `1px solid ${on ? 'rgba(253,224,71,0.9)' : 'rgba(168,85,247,0.2)'}`,
-                borderRadius: 9, padding: '9px 12px',
-                transform: on ? 'scale(1.02)' : 'none',
-                transition: 'background 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
-                animation: on ? 'pm-cue-glow 1.3s ease-in-out infinite' : 'none',
+                display: 'flex', gap: 10, alignItems: 'center', minHeight: 36, padding: '6px 12px', borderRadius: 9, boxSizing: 'border-box',
+                background: on ? 'rgba(242,190,69,.12)' : '#0F0B1F', border: `1px solid ${on ? 'rgba(242,190,69,.9)' : 'rgba(168,85,247,.28)'}`,
+                fontSize: 13, lineHeight: 1.25, animation: on ? 'pm-cue-glow 1.3s ease-in-out infinite' : 'none',
+                transition: 'background .2s ease, border-color .2s ease',
               }}>
-                <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10, color: GOLD }}>{i + 1}</span>
-                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: on ? '#fff' : '#e6dcff' }}>{c}</span>
+                <span style={{ font: "700 13px 'Chakra Petch',sans-serif", color: GOLD, flexShrink: 0 }}>{i + 1}</span>{c}
               </div>
             );
           })}
-        </div>
 
-        {mistakes.length > 0 && (
-          <>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#ff8a8a', letterSpacing: '0.18em', marginBottom: 8 }}>COMMON MISTAKES</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-              {mistakes.map((m, i) => (
-                <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 9, padding: '9px 12px' }}>
-                  <span style={{ color: '#ff8a8a', fontWeight: 800, fontSize: 11 }}>✕</span>
-                  <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#e6dcff' }}>{m}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+          {mistakes.length > 0 && (
+            <>
+              <span style={{ ...label, color: '#F87171' }}>WATCH FOR</span>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {mistakes.map(m => (
+                  <span key={m} style={{ minHeight: 28, display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', boxSizing: 'border-box', borderRadius: 7, background: '#1A0A12', border: '1px solid rgba(239,68,68,.35)', fontSize: 12 }}>
+                    <span style={{ color: '#EF4444', fontWeight: 700 }}>✕</span>{m}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
 
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 16px calc(14px + env(safe-area-inset-bottom,0px))', display: 'flex', gap: 10, alignItems: 'stretch', background: 'linear-gradient(0deg,#080012 72%,transparent)' }}>
-        <button onClick={handleBack} style={{ flex: 1, height: 48, border: '1px solid rgba(168,85,247,0.4)', borderRadius: 13, background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.05em', cursor: 'pointer' }}>↺ LIBRARY</button>
-        <div style={{ flex: 2, display: 'flex' }}>
-          <TrainingCTA variant="gold" label="DRILL IT" icon="🥊" height={48} onClick={() => onDrill(detail)} style={{ fontSize: 13, letterSpacing: '0.06em' }}/>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-// ─── Shadowbox Drill (guided reps) ─────────────────────────────────────────────
-function ShadowboxDrillView({ technique, onBack, onComplete }) {
-  const TARGET = 30;
-  const [reps, setReps] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [tempoMs, setTempoMs] = useState(2000);
-  const [done, setDone] = useState(false);
-  const timer = useRef(null);
-  const completedRef = useRef(false);
-
-  useEffect(() => {
-    if (paused || done) { clearInterval(timer.current); return; }
-    timer.current = setInterval(() => {
-      setReps(r => {
-        if (r + 1 >= TARGET) { setDone(true); return TARGET; }
-        return r + 1;
-      });
-    }, tempoMs);
-    return () => clearInterval(timer.current);
-  }, [paused, done, tempoMs]);
-
-  // Finishing all reps counts as completing the drill.
-  useEffect(() => {
-    if (done && !completedRef.current) { completedRef.current = true; onComplete?.(); }
-  }, [done, onComplete]);
-
-  const finishAndExit = () => {
-    if (!completedRef.current) { completedRef.current = true; onComplete?.(); }
-    onBack();
-  };
-
-  const name = String(technique.name || technique.title || 'HOOK').toUpperCase();
-  const tempoLabel = `1 EVERY ${(tempoMs / 1000).toFixed(tempoMs % 1000 ? 1 : 0)}s`;
-
-  return createPortal(
-    <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 210, background: 'radial-gradient(ellipse at 50% 42%, rgba(168,85,247,0.22), rgba(10,7,20,0.96) 72%), #0a0714', display: 'flex', flexDirection: 'column' }}>
-      <style dangerouslySetInnerHTML={{ __html: '@keyframes sb-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}' }}/>
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-        <div style={{ textAlign: 'center', padding: '10px 0 0' }}><span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#b06aff', letterSpacing: '0.14em' }}>SHADOWBOX DRILL · {name}</span></div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 11, color: '#c4a4d8', letterSpacing: '0.1em', marginBottom: 16 }}>{done ? 'DRILL COMPLETE' : 'THROW ON THE CALL'}</div>
-          <div style={{ position: 'relative', width: 'min(90vw, 372px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, animation: paused || done ? 'none' : `sb-pulse ${tempoMs}ms ease-in-out infinite` }}>
-            <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.28 }}/>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 38, color: GOLD, textShadow: '0 0 18px rgba(253,224,71,.4)' }}>{name}</div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 22, color: '#fff', marginTop: 8 }}>{reps} / {TARGET}</div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#8b83a8', letterSpacing: '0.1em', marginTop: 4 }}>REPS</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '9px 15px' }}>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 9, color: '#6d6688', letterSpacing: '0.08em' }}>TEMPO</span>
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#c9bff0' }}>{tempoLabel}</span>
-          </div>
-        </div>
-        <div style={{ padding: '0 22px calc(26px + env(safe-area-inset-bottom,0px))' }}>
-          <button onClick={() => setPaused(p => !p)} disabled={done} style={{ width: '100%', height: 56, border: 'none', borderRadius: 15, background: 'linear-gradient(180deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em', marginBottom: 11, cursor: 'pointer', boxShadow: '0 6px 22px -6px rgba(168,85,247,.7)', opacity: done ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            {paused ? <><Play size={18} fill="#fff"/> RESUME</> : <><Pause size={18} fill="#fff"/> PAUSE</>}
+          <button type="button" className="pm-gold" data-guide="pm-start-round" onClick={() => { stopReading(); onStartRound(); }} style={{
+            marginTop: 2, height: 52, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+            border: 0, cursor: 'pointer', color: '#1A1204', fontFamily: "'Chakra Petch',sans-serif",
+            clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)',
+            background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 50%,#C98A1C)',
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.16em' }}>🥊 START PRACTICE ROUND</span>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', opacity: 0.75 }}>{roundLine}</span>
           </button>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => setTempoMs(m => Math.min(4000, m + 500))} style={{ flex: 1, height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: '#130e20', color: '#c9bff0', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>↺ SLOWER</button>
-            <button onClick={finishAndExit} style={{ flex: 1, height: 46, border: '1px solid rgba(34,197,94,0.5)', borderRadius: 12, background: 'rgba(34,197,94,0.1)', color: '#7ee7a7', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>✓ DONE</button>
-          </div>
         </div>
       </div>
     </div>,
     document.body,
-  );
-}
-
-// ─── Combo Drill (multi-strike call-out) ───────────────────────────────────────
-const DRILL_COMBOS = [
-  ['JAB', 'CROSS'],
-  ['JAB', 'CROSS', 'HOOK'],
-  ['JAB', 'JAB', 'CROSS'],
-  ['CROSS', 'HOOK', 'CROSS'],
-];
-
-function ComboDrillView({ discipline, onBack }) {
-  const [comboIdx, setComboIdx] = useState(0);
-  const [strikeIdx, setStrikeIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [tempoMs, setTempoMs] = useState(1500);
-  const timer = useRef(null);
-
-  const combo = DRILL_COMBOS[comboIdx];
-
-  const advance = useCallback(() => {
-    setStrikeIdx(si => {
-      if (si + 1 < combo.length) return si + 1;
-      setComboIdx(ci => (ci + 1) % DRILL_COMBOS.length);
-      return 0;
-    });
-  }, [combo.length]);
-
-  useEffect(() => {
-    if (paused) { clearInterval(timer.current); return; }
-    timer.current = setInterval(advance, tempoMs);
-    return () => clearInterval(timer.current);
-  }, [paused, tempoMs, advance]);
-
-  const skip = () => { setComboIdx(ci => (ci + 1) % DRILL_COMBOS.length); setStrikeIdx(0); };
-
-  return createPortal(
-    <div className="pm-panel-in" style={{ position: 'fixed', inset: 0, maxWidth: 440, margin: '0 auto', zIndex: 210, background: 'radial-gradient(ellipse at 50% 42%, rgba(168,85,247,0.22), rgba(10,7,20,0.96) 72%), #0a0714', display: 'flex', flexDirection: 'column' }}>
-      <style dangerouslySetInnerHTML={{ __html: '@keyframes cd-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}' }}/>
-      <div style={{ textAlign: 'center', padding: '10px 0 0' }}><span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#b06aff', letterSpacing: '0.14em' }}>COMBO DRILL · {String(discipline).toUpperCase()}</span></div>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '9px 0 0' }}>
-        {DRILL_COMBOS.map((_, i) => <span key={i} style={{ width: 22, height: 6, borderRadius: 99, background: i < comboIdx ? '#b06aff' : i === comboIdx ? '#fde047' : '#2a2140' }}/>)}
-      </div>
-      <div style={{ textAlign: 'center', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: '#8b83a8', letterSpacing: '0.1em', marginTop: 6 }}>COMBO {comboIdx + 1} / {DRILL_COMBOS.length}</div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-        <div style={{ position: 'relative', width: 'min(90vw, 372px)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, animation: paused ? 'none' : `cd-pulse ${tempoMs}ms ease-in-out infinite` }}>
-          <SafeImage src="/static/ring-alt2.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.28 }}/>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: '#c9a6ff', marginBottom: 12 }}>THROW IT</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-              {combo.map((s, i) => {
-                const cur = i === strikeIdx;
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 13 : 11, color: cur ? '#fde047' : '#9a90b8' }}>{i + 1}</span>
-                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: cur ? 26 : 20, color: cur ? '#fde047' : '#8b83a8', textShadow: cur ? '0 0 18px rgba(253,224,71,.5)' : 'none' }}>{s}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#fff', letterSpacing: '0.08em', marginBottom: 10 }}>{combo.join(' · ')}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(16,4,30,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 12, padding: '8px 15px' }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 9, color: '#6d6688', letterSpacing: '0.08em' }}>SPEED</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12, color: '#c9bff0' }}>{tempoMs <= 1200 ? 'FAST' : tempoMs >= 2000 ? 'SLOW' : 'MEDIUM'}</span>
-        </div>
-      </div>
-      <div style={{ padding: '0 22px calc(26px + env(safe-area-inset-bottom,0px))' }}>
-        <button onClick={() => setPaused(p => !p)} style={{ width: '100%', height: 56, border: 'none', borderRadius: 15, background: 'linear-gradient(180deg,#b975ff,#a855f7)', color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: '0.12em', marginBottom: 11, cursor: 'pointer', boxShadow: '0 6px 22px -6px rgba(168,85,247,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          {paused ? <><Play size={18} fill="#fff"/> RESUME</> : <><Pause size={18} fill="#fff"/> PAUSE</>}
-        </button>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setTempoMs(m => Math.min(2500, m + 400))} style={{ flex: 1, height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: '#130e20', color: '#c9bff0', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>↺ SLOWER</button>
-          <button onClick={skip} style={{ flex: 1, height: 46, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, background: '#130e20', color: '#c9bff0', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>SKIP ⏭</button>
-          <button onClick={onBack} style={{ flex: 1, height: 46, border: '1px solid rgba(255,90,90,0.4)', borderRadius: 12, background: 'rgba(255,90,90,0.09)', color: '#ff8a8a', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>✕ END</button>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-// ─── Learning-mission banner (avatar changes by discipline + gender) ────────────
-function LearningBanner({ discipline, variant, basics, completed, onResume }) {
-  const ci = basics.findIndex(l => !completed.includes(l.id));
-  const cur = ci >= 0 ? basics[ci] : null;
-  const src = bannerSrc(discipline, variant);
-  return (
-    <button
-      onClick={() => { if (cur) onResume(cur); }}
-      style={{
-        position: 'relative', width: '100%', aspectRatio: '3 / 1', borderRadius: 14,
-        overflow: 'hidden', marginBottom: 16, padding: 0, display: 'block',
-        border: '1px solid rgba(168,85,247,0.3)', background: '#0a0014',
-        cursor: cur ? 'pointer' : 'default',
-      }}
-    >
-      <SafeImage src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.78 }}/>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(8,1,15,0.9) 0%, rgba(8,1,15,0.5) 46%, rgba(8,1,15,0.08) 100%)' }}/>
-      <div style={{ position: 'absolute', left: 16, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'left', maxWidth: '64%' }}>
-        {cur ? (
-          <>
-            <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#facc15', letterSpacing: '0.14em', marginBottom: 4 }}>CONTINUE LEARNING</div>
-            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.15 }}>LESSON {ci + 1} · {cur.title.toUpperCase()}</div>
-            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 3 }}>{discipline} · Fundamentals path</div>
-            <span style={{ display: 'inline-block', width: 'fit-content', marginTop: 10, borderRadius: 8, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 10px 'Orbitron',sans-serif", padding: '7px 15px' }}>▶ RESUME</span>
-          </>
-        ) : (
-          <>
-            <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#4ade80', letterSpacing: '0.14em', marginBottom: 4 }}>BASICS COMPLETE</div>
-            <div style={{ font: "900 15px 'Orbitron',sans-serif", color: '#fff', lineHeight: 1.15 }}>{discipline.toUpperCase()} MASTERED</div>
-            <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 3 }}>Full technique library unlocked below.</div>
-          </>
-        )}
-      </div>
-    </button>
   );
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
-export default function PracticeMode({ initialDisc = 'Boxing', onBack, onHome }) {
+export default function PracticeMode({ openLesson = false, onBack, onComboCoach }) {
   const profile = loadProfile();
   const variant = getVariant(profile);
+  // A "beginner learner" (told onboarding they're new AND want to learn
+  // combat) must finish the practice round for a lesson to count; everyone
+  // else completes a lesson by opening it.
   const mustDrill = isBeginnerLearner(profile);
 
-  const [discipline, setDisc] = useState(PRACTICE_DISCIPLINES.includes(initialDisc) ? initialDisc : 'Boxing');
-  const [category, setCategory] = useState('Strikes');
-  const [detail, setDetail] = useState(null);
-  const [drill, setDrill] = useState(null);
-  const [comboDrill, setComboDrill] = useState(false);
-  const [learned, setLearned] = useState(null); // strikes just added to the arsenal (1.1)
-  const [completed, setCompleted] = useState(() => getCompletedLessons());
+  // The discipline shared with the Fight hub and Combat Conditioning. There
+  // is no per-caller override: Home opened Practice with none, and the old
+  // 'Boxing' default then quietly reset everyone's tab. A caller that wants
+  // a discipline saves it to the profile first (App's goPracticeLesson).
+  const [stored, pickStored] = useDiscipline();
+  const discipline = PRACTICE_DISCIPLINES.includes(stored) ? stored : 'Boxing';
 
-  // Bank strikes into the arsenal and flash a "learned" toast (1.1).
+  const [category, setCategory] = useState('Strikes');
+  const [showAll, setShowAll] = useState(false);
+  const [detail, setDetail] = useState(null);   // the open card
+  const [round, setRound] = useState(null);     // the open Practice Round
+  const [toast, setToast] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [completed, setCompleted] = useState(() => getCompletedLessons());
+  const [drilled, setDrilled] = useState(() => getLibraryDrilled(discipline));
+  useEffect(() => { setDrilled(getLibraryDrilled(discipline)); }, [discipline]);
+
+  const flash = useCallback((msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); }, []);
+
+  const basics = useMemo(() => basicsFor(discipline), [discipline]);
+  const doneCount = basics.filter(l => completed.includes(l.id)).length;
+  const nextIndex = basics.findIndex(l => !completed.includes(l.id));
+  const current = nextIndex >= 0 ? nextIndex : basics.length - 1;
+  const techniques = getTechniquesFor(discipline, category);
+  const shown = showAll ? techniques : techniques.slice(0, SHOW);
+
+  // Bank strikes into the arsenal and say so.
   const bankArsenal = useCallback((name) => {
     const gained = addLearned(discipline, name);
-    if (gained.length) { setLearned(gained); setTimeout(() => setLearned(null), 2600); }
-  }, [discipline]);
-
-  const basics = useMemo(() => [...(START_HERE_LESSONS[discipline] || []), NUMBERS_LESSON], [discipline]);
-  const techniques = getTechniquesFor(discipline, category);
+    if (gained.length) flash(`${gained.map(s => s.toUpperCase()).join(' + ')} ADDED TO YOUR ARSENAL`);
+  }, [discipline, flash]);
 
   const completeBasic = useCallback((lesson) => {
-    if (!lesson) return;
-    const already = getCompletedLessons().includes(lesson.id);
+    if (!lesson || getCompletedLessons().includes(lesson.id)) return;
     markLessonComplete(lesson.id);
-    if (!already && lesson.title) addStartHereLesson(lesson.title);
+    addStartHereLesson(lesson.title);
     setCompleted(getCompletedLessons());
-    // 1.1 — completing a strike lesson banks it into the arsenal.
-    if (!already) bankArsenal(lesson.title);
-  }, [bankArsenal]);
+    bankArsenal(lesson.title);
+    const bonus = claimWeeklyBonus();
+    if (bonus) { addPracticeWeeklyBonus(bonus); flash(`WEEKLY LESSON DONE · +${bonus} XP`); }
+  }, [bankArsenal, flash]);
 
-  // Open a basic lesson. Non-beginners complete it just by opening; beginners
-  // must finish the drill (handled on drill complete) for it to count.
-  const openBasic = useCallback((lesson) => {
-    setDetail(basicToDetail(lesson));
+  // What a card's practice round would be, from what's learned so far.
+  const roundFor = useCallback((d) => {
+    if (d.kind === 'basic') {
+      const i = basics.findIndex(l => l.id === d.lessonId);
+      const lesson = basics[i];
+      const learned = doneCount + (completed.includes(lesson.id) ? 0 : 1) + drilled.length;
+      return {
+        focus: { id: lesson.id, name: lesson.title, calls: lesson.calls, keyPoints: lesson.steps },
+        prior: basics.slice(0, i).map(l => ({ name: l.title, calls: l.calls })),
+        learned, lessonId: lesson.id,
+      };
+    }
+    const list = getTechniquesFor(discipline, d.category);
+    const i = list.findIndex(t => t.name === d.title);
+    const learned = doneCount + drilled.length + (drilled.includes(d.title) ? 0 : 1);
+    return {
+      focus: { name: d.title, calls: [techCall(d.title), `${techCall(d.title)} × 2`], keyPoints: d.keyPoints },
+      prior: list.slice(Math.max(0, i - 3), Math.max(0, i)).map(t => ({ name: t.name, calls: [techCall(t.name)] })),
+      learned, techName: d.title,
+    };
+  }, [basics, completed, doneCount, drilled, discipline]);
+
+  const openBasic = useCallback((lesson, index) => {
+    setDetail({
+      kind: 'basic', lessonId: lesson.id, title: lesson.title, description: lesson.subtitle,
+      badge: `LESSON ${index + 1}`, keyPoints: lesson.steps, mistakes: [],
+    });
     if (!mustDrill) completeBasic(lesson);
   }, [mustDrill, completeBasic]);
 
-  const openTechnique = useCallback((t) => { setDetail(techToDetail(t)); }, []);
+  const openTechnique = useCallback((t) => {
+    setDetail({
+      kind: 'technique', title: t.name, description: t.description, badge: badgeForTech(t),
+      keyPoints: t.cues || [], mistakes: t.mistakes || [], category: t.category,
+    });
+  }, []);
 
-  const startDrill = useCallback((d) => { setDrill(d); setDetail(null); }, []);
+  // Home's Start Here, the Practice invite and the weekly reminder open
+  // Practice straight onto the current lesson.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!openLesson || opened.current) return;
+    opened.current = true;
+    openBasic(basics[current], current);
+  }, [openLesson, basics, current, openBasic]);
 
-  const onDrillComplete = useCallback(() => {
-    if (drill?.lessonId) {
-      const lesson = basics.find(b => b.id === drill.lessonId) || { id: drill.lessonId, title: drill.title };
-      completeBasic(lesson);
-    } else if (drill?.title) {
-      // Drilling a Technique Library strike also banks it (1.1).
-      bankArsenal(drill.title);
+  const finishRound = useCallback(({ xp, rounds }) => {
+    addPracticeSession(round.focus.name, rounds, rounds, xp);
+    notePracticed();
+    if (round.lessonId) {
+      completeBasic(basics.find(l => l.id === round.lessonId));
+    } else if (round.techName) {
+      markLibraryDrilled(discipline, round.techName);
+      setDrilled(getLibraryDrilled(discipline));
+      bankArsenal(round.techName);
     }
-  }, [drill, basics, completeBasic, bankArsenal]);
+  }, [round, basics, discipline, completeBasic, bankArsenal]);
+
+  // After a lesson's round: the next lesson on the path, if there is one.
+  const nextAfterRound = round?.lessonId ? basics.findIndex(l => !completed.includes(l.id) && l.id !== round.lessonId) : -1;
+
+  const roundLine = (d) => {
+    const r = roundFor(d);
+    const { plan } = buildRound(r);
+    return `${plan.rounds} ${plan.rounds === 1 ? 'ROUND' : 'ROUNDS'} × ${planLine(plan).split(' × ')[1]} · FOCUS: ${d.title.toUpperCase()}`;
+  };
+
+  const lesson = basics[current];
+  const allDone = nextIndex < 0;
 
   return (
     <PhoneFrame useBrandBg>
+      <FightBackdrop/>
       <style dangerouslySetInnerHTML={{ __html: css }}/>
-      <Embers count={3}/>
-      <CornerHUD color="rgba(168,85,247,0.25)" size={22} inset={10}/>
-
-      <TrainingHeader
-        title="PRACTICE MODE"
-        subtitle="Learn techniques step by step."
-        onHome={onHome}
-        showBack
-        onBack={onBack}
-        rightSlot={<WordmarkFightMode height={22}/>}
-      />
 
       <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        minHeight: '100dvh', padding: '14px 14px 0',
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 10,
+        height: '100dvh', boxSizing: 'border-box', padding: '10px 16px 0',
+        // Clears the tab bar and the BETA chip that floats just above it.
+        paddingBottom: 'calc(108px + env(safe-area-inset-bottom, 0px))', color: '#fff', fontFamily: 'Barlow, system-ui, sans-serif',
       }}>
-        {/* Discipline selector */}
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 10, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', flexShrink: 0 }}>
-          {PRACTICE_DISCIPLINES.map(d => (
-            <button key={d} className={`pm-disc-pill${discipline === d ? ' active' : ''}`} style={{ flex: '0 0 auto' }} onClick={() => { setDisc(d); setCategory('Strikes'); setDetail(null); }}>
-              {d.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        <header style={{ display: 'flex', alignItems: 'center', gap: 8, height: 48, flexShrink: 0 }}>
+          <button type="button" className="pm-txt" aria-label="Back to Fight Mode" onClick={onBack} style={{
+            width: 40, height: 44, marginLeft: -10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'none', border: 'none', color: '#fff', cursor: 'pointer',
+          }}><ChevronLeft size={22}/></button>
+          <SafeImage src="/static/revamp/practice-book.webp" alt="" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(168,85,247,.55))', flexShrink: 0 }}/>
+          <div style={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ font: "700 20px 'Chakra Petch',sans-serif", letterSpacing: '0.06em', lineHeight: 1 }}>PRACTICE MODE</div>
+            <div style={{ fontSize: 12, color: SOFT }}>Learn &amp; drill techniques</div>
+          </div>
+          <button type="button" className="pm-hit pm-txt" aria-label="How it works" onClick={() => setHelpOpen(true)} style={{
+            width: 40, height: 40, borderRadius: '50%', background: 'rgba(61,123,255,0.14)', flexShrink: 0,
+            border: '1px solid rgba(61,123,255,0.55)', color: '#8FB4FF', cursor: 'pointer', font: "700 17px 'Chakra Petch',sans-serif",
+          }}>?</button>
+        </header>
 
-        {/* Scrollable content: learning banner → basics → technique library */}
-        <div className="pm-technique-list" style={{ flex: 1, minHeight: 0, paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))', paddingRight: 4 }}>
+        <DisciplineTabs
+          value={discipline}
+          guide="pm-discipline"
+          onChange={(d) => { pickStored(d); setCategory('Strikes'); setShowAll(false); setDetail(null); }}
+        />
 
-          {/* Learning-mission banner */}
-          <LearningBanner discipline={discipline} variant={variant} basics={basics} completed={completed} onResume={openBasic}/>
+        {/* Continue Learning: the art at its native 2172:724, text inside its frame. */}
+        <button type="button" className="pm-banner" data-guide="pm-continue" onClick={() => openBasic(lesson, current)} style={{
+          position: 'relative', flexShrink: 0, width: '100%', padding: 0, border: 0, textAlign: 'left', cursor: 'pointer',
+          aspectRatio: '2172 / 724', borderRadius: 10, overflow: 'hidden', background: '#000', color: '#fff', display: 'block',
+          transition: 'box-shadow .18s ease',
+        }}>
+          <SafeImage src={bannerSrc(discipline, variant)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}/>
+          <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: '14px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
+            <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: allDone ? '#4ADE80' : GOLD }}>{allDone ? 'BASICS COMPLETE' : 'CONTINUE LEARNING'}</span>
+            <span style={{ font: "700 15px 'Chakra Petch',sans-serif", letterSpacing: '0.03em', lineHeight: 1.1, maxWidth: '62%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {allDone ? `${discipline.toUpperCase()} BASICS DONE` : `${current + 1} · ${lesson.title.toUpperCase()}`}
+            </span>
+            <span style={{ fontSize: 11, color: SOFT }}>{discipline} · Fundamentals path</span>
+            <span style={{
+              marginTop: 2, flexShrink: 0, alignSelf: 'flex-start', height: 26, display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px',
+              borderRadius: 8, background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)', color: '#1A1204',
+              font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
+            }}><Play/>{allDone ? 'REVIEW' : 'RESUME'}</span>
+          </div>
+        </button>
 
-          {/* ── The Basics (fundamentals path) ── */}
-          <SectionLabel>THE BASICS · FUNDAMENTALS PATH</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
-            {basics.map((lesson, idx) => {
-              const done = completed.includes(lesson.id);
-              const isCurrent = !done && basics.slice(0, idx).every(l => completed.includes(l.id));
-              const upcoming = !done && !isCurrent;
+        {/* Fundamentals Path — done gold ✓, current gold ring, upcoming faint. */}
+        <div data-guide="pm-path" style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0, padding: '10px 12px', borderRadius: 12, background: '#0B0F22', border: '1px solid rgba(61,123,255,.22)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span style={label}>FUNDAMENTALS PATH</span>
+            <span style={{ ...label, letterSpacing: '0.12em', color: '#8FB4FF' }}>{doneCount} / {basics.length} DONE</span>
+          </div>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ position: 'absolute', left: 14, right: 14, top: '50%', height: 2, marginTop: -1, background: 'rgba(143,180,255,.2)' }}/>
+            {basics.map((l, i) => {
+              const done = completed.includes(l.id);
+              const here = !allDone && i === current;
+              const size = here ? 34 : 28;
               return (
-                <button key={lesson.id} onClick={() => openBasic(lesson)} style={{
-                  display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left', cursor: 'pointer',
-                  borderRadius: 10, padding: '9px 12px',
-                  border: `1px solid ${done ? 'rgba(34,197,94,0.35)' : isCurrent ? 'rgba(253,224,71,0.6)' : 'rgba(168,85,247,0.2)'}`,
-                  background: done ? 'rgba(34,197,94,0.06)' : isCurrent ? 'rgba(253,224,71,0.07)' : 'rgba(16,4,30,0.6)',
-                  boxShadow: isCurrent ? '0 0 12px rgba(253,224,71,0.14)' : 'none', opacity: upcoming ? 0.72 : 1,
-                }}>
-                  <span style={{
-                    width: 24, height: 24, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    font: "900 11px 'Orbitron',sans-serif",
-                    background: done ? 'rgba(34,197,94,0.15)' : isCurrent ? '#fde047' : 'rgba(16,4,30,0.9)',
-                    color: done ? '#22c55e' : isCurrent ? '#0a0014' : '#c4a4d8',
-                    border: upcoming ? '1px solid rgba(168,85,247,0.3)' : 'none',
-                  }}>{done ? '✓' : idx + 1}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ font: "900 11px 'Orbitron',sans-serif", color: done ? '#fff' : isCurrent ? '#fde047' : '#c4a4d8' }}>{lesson.title.toUpperCase()}</div>
-                    <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: done ? '#c4a4d8' : isCurrent ? '#facc15' : '#9a90b8' }}>
-                      {done ? `${lesson.steps.length} key points · complete` : isCurrent ? `in progress · ${lesson.steps.length} key points` : lesson.subtitle}
-                    </div>
-                  </div>
-                  <ChevronRight size={15} style={{ color: done ? 'rgba(34,197,94,0.6)' : isCurrent ? '#fde047' : 'rgba(168,85,247,0.4)', flexShrink: 0 }}/>
-                </button>
+                <button key={l.id} type="button" className="pm-hit" aria-label={`Lesson ${i + 1}: ${l.title}${done ? ' (done)' : ''}`} onClick={() => openBasic(l, i)} style={{
+                  position: 'relative', width: size, height: size, borderRadius: '50%', padding: 0, cursor: 'pointer', flexShrink: 0,
+                  background: done ? GOLD : here ? '#141A36' : '#0E1024',
+                  border: `2px solid ${done || here ? GOLD : 'rgba(143,180,255,.35)'}`,
+                  boxShadow: here ? '0 0 14px rgba(242,190,69,.55)' : 'none',
+                  color: done ? '#1A1204' : here ? GOLD : '#8E98BC', font: "700 12px 'Chakra Petch',sans-serif",
+                }}>{done ? '✓' : i + 1}</button>
               );
             })}
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <span style={{ font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.06em', color: GOLD, whiteSpace: 'nowrap' }}>{current + 1} · {lesson.title}</span>
+            <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lesson.subtitle}</span>
+          </div>
+        </div>
 
-          {/* ── Technique Library (always available, under the basics) ── */}
-          <SectionLabel>TECHNIQUE LIBRARY</SectionLabel>
-
-          {/* Category pills */}
-          <div style={{ display: 'flex', gap: 7, marginBottom: 10 }}>
-            {PRACTICE_CATEGORIES.map(c => (
-              <button key={c} className={`pm-cat-pill${category === c ? ' active' : ''}`} onClick={() => { setCategory(c); setDetail(null); }}>
-                {c}
-              </button>
-            ))}
+        <div data-guide="pm-library" style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 auto', minHeight: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexShrink: 0 }}>
+            <span style={label}>TECHNIQUE LIBRARY</span>
+            <div role="radiogroup" aria-label="Category" style={{ display: 'flex', padding: 3, gap: 3, borderRadius: 10, background: '#0B0F22', border: '1px solid rgba(143,180,255,.18)' }}>
+              {PRACTICE_CATEGORIES.map(c => {
+                const on = category === c;
+                return (
+                  <button key={c} type="button" role="radio" aria-checked={on} className={on ? '' : 'pm-txt'} onClick={() => { setCategory(c); setShowAll(false); }} style={{
+                    height: 30, padding: '0 8px', borderRadius: 7, border: 0, cursor: 'pointer',
+                    background: on ? 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)' : 'transparent', color: on ? '#1A1204' : '#8E98BC',
+                    font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.06em',
+                  }}>{c.toUpperCase()}</button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Combo drill launcher */}
-          <button onClick={() => setComboDrill(true)} style={{ width: '100%', marginBottom: 12, padding: '10px 14px', borderRadius: 11, border: '1px solid rgba(176,106,255,0.5)', background: 'linear-gradient(135deg,rgba(176,106,255,0.18),rgba(124,58,237,0.12))', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, color: '#c9a6ff', letterSpacing: '0.06em' }}>🥊 DRILL A COMBO</span>
-              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: '#9a90b8' }}>Multi-strike call-outs on the beat</span>
-            </span>
-            <ChevronRight size={16} style={{ color: '#b06aff' }}/>
-          </button>
+          {/* Only the grid scrolls, and only once SEE ALL opens it up. */}
+          <div className="pm-grid" style={{
+            flex: '1 1 auto', minHeight: 0, overflowY: 'auto', display: 'grid',
+            gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gridAutoRows: 56, alignContent: 'start', gap: 6,
+          }}>
+            {shown.map(t => {
+              const [lvl, color] = LEVEL[t.level] || LEVEL.Beginner;
+              const wasDrilled = drilled.includes(t.name);
+              return (
+                <button key={t.name} type="button" className="pm-tile" onClick={() => openTechnique(t)} style={{
+                  height: 56, display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', borderRadius: 10, minWidth: 0,
+                  background: '#0B0F22', border: '1px solid rgba(61,123,255,.22)', color: '#fff', textAlign: 'left', cursor: 'pointer',
+                  transition: 'border-color .18s ease, box-shadow .18s ease',
+                }}>
+                  <span style={{
+                    width: 26, height: 26, flexShrink: 0, borderRadius: '50%', boxSizing: 'border-box',
+                    border: `1.5px solid ${wasDrilled ? GOLD : 'rgba(242,190,69,.7)'}`, background: wasDrilled ? 'rgba(242,190,69,.18)' : 'transparent',
+                    color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', font: "700 10px 'Chakra Petch',sans-serif",
+                  }}>{tileMark(t.name)}</span>
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                    <span style={{ font: "700 13px 'Chakra Petch',sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</span>
+                    <span style={{ font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color }}>{lvl}</span>
+                  </span>
+                </button>
+              );
+            })}
+            {!techniques.length && (
+              <div style={{ gridColumn: '1 / -1', padding: '16px 0', textAlign: 'center', fontSize: 13, color: SOFT }}>Nothing in this section yet — try another.</div>
+            )}
+          </div>
 
-          {/* Grouped technique list */}
-          {techniques.length > 0 ? groupBySubSection(techniques).map(({ section, items }) => (
-            <div key={section} style={{ marginBottom: 14 }}>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 600, fontSize: 8, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 9 }}>{section} &middot; {items.length}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {items.map(t => <TechniqueCard key={t.name} technique={t} onTap={openTechnique}/>)}
-              </div>
-            </div>
-          )) : (
-            <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: C.muted }}>No techniques in this section yet. Try another category.</div>
-          )}
-
-          <div style={{ marginTop: 16, textAlign: 'center', fontFamily: "'Press Start 2P',monospace", fontSize: 6.5, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.18em' }}>TRAIN &middot; FIGHT &middot; WIN</div>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button type="button" className="pm-hit" data-guide="pm-combo" onClick={() => onComboCoach?.(discipline)} style={{
+              flex: 1, height: 44, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
+              background: 'linear-gradient(90deg, rgba(61,123,255,.22), rgba(11,15,34,.9))', border: '1px solid rgba(110,155,255,.6)', color: '#fff',
+              font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.12em',
+            }}>🥊 DRILL A COMBO<span style={{ marginLeft: 'auto', color: '#8FB4FF' }}>›</span></button>
+            <button type="button" className="pm-hit pm-txt" disabled={techniques.length <= SHOW} onClick={() => setShowAll(a => !a)} style={{
+              width: 110, height: 44, borderRadius: 10, background: 'transparent', border: '1px solid rgba(143,180,255,.3)', color: '#8FB4FF',
+              font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', cursor: techniques.length > SHOW ? 'pointer' : 'default',
+            }}>{techniques.length > SHOW ? (showAll ? 'SHOW LESS' : `SEE ALL ${techniques.length}`) : `${techniques.length} TOTAL`}</button>
+          </div>
         </div>
       </div>
 
-      {/* Detail overlay (unified page) */}
-      {detail && !drill && (
-        <DetailView detail={detail} profile={profile} onBack={() => setDetail(null)} onDrill={startDrill}/>
+      {detail && !round && (
+        <DetailCard
+          detail={detail} profile={profile} roundLine={roundLine(detail)}
+          onClose={() => setDetail(null)}
+          onStartRound={() => { setRound(roundFor(detail)); setDetail(null); }}
+        />
       )}
 
-      {/* Shadowbox drill overlay */}
-      {drill && (
-        <ShadowboxDrillView technique={drill} onBack={() => setDrill(null)} onComplete={onDrillComplete}/>
+      {round && (
+        <PracticeRound
+          discipline={discipline} focus={round.focus} prior={round.prior} learned={round.learned} profile={profile}
+          onClose={() => setRound(null)}
+          onFinish={finishRound}
+          onNext={nextAfterRound >= 0 ? () => { setRound(null); openBasic(basics[nextAfterRound], nextAfterRound); } : undefined}
+        />
       )}
 
-      {/* Combo drill overlay */}
-      {comboDrill && (
-        <ComboDrillView discipline={discipline} onBack={() => setComboDrill(false)}/>
-      )}
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.practice} onClose={() => setHelpOpen(false)}/>}
 
-      {/* Arsenal toast (1.1) — a learned strike was banked */}
-      {learned && (
-        <div className="pm-toast" style={{
-          position: 'fixed', bottom: 100, left: '50%', zIndex: 300, pointerEvents: 'none',
-          padding: '10px 20px', borderRadius: 10,
-          background: 'rgba(10,2,22,0.96)', border: '1px solid rgba(253,224,71,0.55)',
-          boxShadow: '0 0 18px rgba(253,224,71,0.28)',
-          display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
-        }}>
-          <span style={{ fontSize: 13 }}>🥊</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, color: GOLD, letterSpacing: '0.06em' }}>
-            {learned.map(s => s.toUpperCase()).join(' + ')} ADDED TO YOUR ARSENAL
-          </span>
-        </div>
+      {toast && (
+        <div role="status" style={{
+          position: 'fixed', bottom: 100, left: '50%', zIndex: 300, pointerEvents: 'none', transform: 'translateX(-50%)',
+          padding: '10px 18px', borderRadius: 10, background: 'rgba(10,2,22,0.96)', border: '1px solid rgba(242,190,69,0.55)',
+          boxShadow: '0 0 18px rgba(242,190,69,0.28)', whiteSpace: 'nowrap', animation: 'pm-toast-in .22s ease both',
+          font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.08em', color: GOLD,
+        }}>🥊 {toast}</div>
       )}
     </PhoneFrame>
   );

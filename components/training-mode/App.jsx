@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
 import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
+import { settleFightXp } from './data/fightSessionXp';
 import { completeCampLevel, markCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
@@ -30,6 +31,16 @@ import ChallengeInboundModal from './shared/ChallengeInboundModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
 import { startCloudSync } from './data/cloudSync';
+import { rememberSession, loadLastSession, programFor } from './data/lastSession';
+import { startProgramDay } from './data/workoutPrograms';
+import PracticeInvite from './PracticeInvite';
+import HauntWelcome from './HauntWelcome';
+import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
+import GhostChallenge from './GhostChallenge';
+import Comeback from './Comeback';
+import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChallenge, hauntFromLocation, takeHaunt, unseenHaunt, markChallengeSeen, prefetchStranger } from './data/ghostChallenges';
+import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
+import { getLastBattle } from './data/ghostBattles';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -115,6 +126,10 @@ function tryCompleteDailyMission(completedActionType) {
 }
 
 const ONBOARDING_KEY = 'trainingModeOnboardingComplete';
+// Set while a haunt-link newcomer is doing their battle before setup; the
+// welcome page takes over as soon as they leave the battle screens.
+const HAUNT_NEWCOMER_KEY = 'tm_haunt_newcomer';
+const HAUNT_BATTLE_SCREENS = new Set(['start', 'onboarding', 'setup', 'timer', 'summary', 'level_up']);
 const TOUR_KEY = 'trainingModeTourComplete';
 
 // Arcade ids were renamed off their source franchises (ARC_BAKI → ARC_GRAPPLER,
@@ -132,31 +147,49 @@ const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 // session also saves on a timer. At 5s the worst case is losing five seconds.
 const SESSION_AUTOSAVE_MS = 5000;
 
-function loadPausedSession() {
-  if (typeof localStorage === 'undefined') return null;
+// Two paused sessions can wait at once — a Quick Mission AND a Build Workout
+// — one per kind of session (its screen). Pausing a third of a new kind
+// drops the older one; pausing the same kind again replaces it. Slot 0 is
+// the most recent: it drives the Continue card, the floating pill and the
+// boot restore; slot 1 shows as "also paused" on Home.
+const PAUSED_SLOTS = 2;
+
+function loadPausedSessions() {
+  if (typeof localStorage === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(PAUSED_SESSION_KEY);
-    if (!raw) return null;
+    // The single-session key from before the second slot migrates once.
+    let raw = localStorage.getItem(PAUSED_SESSION_KEY);
+    if (raw && raw.trim().startsWith('{')) raw = `[${raw}]`;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    if (!parsed || !parsed.timestamp) return null;
-    if (Date.now() - parsed.timestamp > PAUSED_SESSION_MAX_AGE_MS) {
-      localStorage.removeItem(PAUSED_SESSION_KEY);
-      return null;
-    }
-    return parsed;
+    const list = (Array.isArray(parsed) ? parsed : [parsed])
+      .filter(x => x && x.timestamp && Date.now() - x.timestamp <= PAUSED_SESSION_MAX_AGE_MS)
+      .slice(0, PAUSED_SLOTS);
+    if (!list.length) localStorage.removeItem(PAUSED_SESSION_KEY);
+    return list;
   } catch {
-    return null;
+    return [];
   }
 }
 
-function savePausedSession(session) {
+function savePausedSessions(list) {
   if (typeof localStorage === 'undefined') return;
-  if (session) {
-    try { localStorage.setItem(PAUSED_SESSION_KEY, JSON.stringify(session)); }
+  if (list && list.length) {
+    try { localStorage.setItem(PAUSED_SESSION_KEY, JSON.stringify(list.slice(0, PAUSED_SLOTS))); }
     catch { /* quota or serialization error */ }
   } else {
     localStorage.removeItem(PAUSED_SESSION_KEY);
   }
+}
+
+// A new snapshot goes to the front; an older one of the SAME kind is replaced.
+function mergePaused(snap, list) {
+  return [snap, ...list.filter(x => x.screen !== snap.screen)].slice(0, PAUSED_SLOTS);
+}
+
+// Storage-only write from the lifecycle saver: keeps the other slot intact.
+function stashPausedSession(snap) {
+  savePausedSessions(mergePaused(snap, loadPausedSessions()));
 }
 
 export default function App() {
@@ -181,12 +214,23 @@ export default function App() {
   const [arcadeOrder,  setArcadeOrder ] = useState(null);
   const [arcadeSettings, setArcadeSettings] = useState(null);
   const [profile,  setProfile ] = useState(() => loadProfile());
-  const [pausedSession, setPausedSession] = useState(() => loadPausedSession());
+  const [pausedSlots, setPausedSlots] = useState(() => loadPausedSessions());
+  const pausedSession = pausedSlots[0] || null;
+  const pausedAlt = pausedSlots[1] || null;
+  // Drop the paused session of one kind (the screen it ran on), keep the other.
+  const dropPausedFor = useCallback((scr) => {
+    setPausedSlots(list => {
+      if (!list.some(x => x.screen === scr)) return list;
+      const next = list.filter(x => x.screen !== scr);
+      savePausedSessions(next);
+      return next;
+    });
+  }, []);
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
   // Which app-level guide is running: 'full_intro' (first-run + replay),
-  // 'train_hub' (the ? on Choose Your Path), 'arcade_saga_select' (the ? on
+  // 'arcade_saga_select' (the ? on
   // the arcade), or null. Lives up here rather than inside a screen because
   // cross-screen guides navigate, and a guide rendered inside a screen dies
   // the moment that screen unmounts.
@@ -197,7 +241,56 @@ export default function App() {
   // every mode is covered for new users. Camp keeps its own gate and the
   // Arcade gains one as the safety net for pre-existing profiles.
   const [showParqGate, setShowParqGate] = useState(false);
+  // Practice posters: 'intro' once after first-run setup, 'weekly' on open.
+  const [practiceInvite, setPracticeInvite] = useState(null);
+  // Ghost challenge screen: { view: 'challenge' | 'haunt', challenge?, ghost?, xpLine? }.
+  const [ghostView, setGhostView] = useState(null);
+  // The challenge Fight Focus setup was opened for (null = a plain setup).
+  const [ghostLaunch, setGhostLaunch] = useState(null);
+  // A due comeback cutscene, and a Combat Conditioning preset it asked for.
+  const [comeback, setComeback] = useState(null);
+  // A newcomer who arrived by a friend's haunt link (no setup yet): the
+  // two-page welcome, then the battle or the app, then the 'welcome' page.
+  // { page: 'intro' | 'battle' | 'welcome', challenge, beaten? }
+  const [hauntIntro, setHauntIntro] = useState(null);
+  const [ccPreset, setCcPreset] = useState(null);
+  // A friend's haunt link (?h=): it becomes the live challenge straight away.
+  // Someone already set up sees it now; a first-run user after onboarding,
+  // at the next open (goAfterSplash).
+  // A short code (?h=HX7K2Q) is looked up on the server first, so this is
+  // async. Also keeps a stranger's ghost on hand for the next challenge.
+  useEffect(() => {
+    hauntFromLocation().then((g) => {
+      if (!g) {
+        // A newcomer who reloads before battling or setting up gets the
+        // welcome pages back, as long as that friend's ghost is still waiting.
+        try {
+          const id = localStorage.getItem(HAUNT_NEWCOMER_KEY);
+          const live = getActiveChallenge();
+          if (id && live?.id === id && localStorage.getItem(ONBOARDING_KEY) !== 'true') setHauntIntro({ page: 'intro', challenge: live });
+        } catch { /* best-effort */ }
+        return;
+      }
+      const ch = takeHaunt(g);
+      markChallengeSeen();
+      if (typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true') {
+        setGhostView({ view: 'challenge', challenge: ch });
+      } else {
+        // Never used the app: explain it, and the challenge, first.
+        try { localStorage.setItem(HAUNT_NEWCOMER_KEY, ch.id); } catch { /* best-effort */ }
+        setHauntIntro({ page: 'intro', challenge: ch });
+      }
+    });
+    prefetchStranger(loadProfile()?.discipline || 'Boxing');
+  }, []);
   const afterParqRef = useRef(null);
+  useEffect(() => {
+    if (hauntIntro || typeof localStorage === 'undefined') return;
+    const id = localStorage.getItem(HAUNT_NEWCOMER_KEY);
+    if (!id || localStorage.getItem(ONBOARDING_KEY) === 'true' || HAUNT_BATTLE_SCREENS.has(screen)) return;
+    const live = getActiveChallenge();
+    setHauntIntro({ page: 'welcome', challenge: live || null, beaten: !live || live.id !== id });
+  }, [screen, hauntIntro]);
   const [pendingChallenge, setPendingChallenge] = useState(null); // inbound challenge (deep link)
   const activeSessionStateRef = useRef(null);
   // Level captured at the start of a session so the cardio finisher (which adds
@@ -217,8 +310,11 @@ export default function App() {
     }
   };
 
+  // Merged onto the STORED profile, not this component's copy: the
+  // discipline tabs (and Practice) save straight to storage, and merging onto
+  // a stale copy quietly put the old discipline back.
   const updateProfile = (nextProfile) => {
-    const merged = { ...profile, ...nextProfile };
+    const merged = { ...loadProfile(), ...nextProfile };
     saveProfile(merged);
     setProfile(merged);
   };
@@ -263,30 +359,34 @@ export default function App() {
     const paused = buildSessionSnapshot('nav');
     if (!paused) return null;
     stopVoiceSession();
-    setPausedSession(paused);
-    savePausedSession(paused);
+    setPausedSlots(list => { const next = mergePaused(paused, list); savePausedSessions(next); return next; });
     activeSessionStateRef.current = null;
     return paused;
   }, [buildSessionSnapshot]);
 
-  const resumeSession = useCallback(() => {
-    if (!pausedSession) return;
-    setDisc(pausedSession.disc);
-    setCfg(pausedSession.cfg);
-    setComboCfg(pausedSession.comboCfg);
-    setFitCfg(pausedSession.fitCfg);
-    setQmCfg(pausedSession.qmCfg);
-    setCcMission(pausedSession.ccMission);
-    setArcadeSeries(pausedSession.arcadeSeries);
-    setArcadeStage(pausedSession.arcadeStage);
-    setArcadeMode(pausedSession.arcadeMode);
-    setArcadeOrder(pausedSession.arcadeOrder);
-    setArcadeSettings(pausedSession.arcadeSettings || null);
-    if (pausedSession.campCtx) setCampCtx(pausedSession.campCtx);
-    if (pausedSession.cardioContext) setCardioContext(pausedSession.cardioContext);
-    setResumeData(pausedSession.internalState || null);
-    setScreen(pausedSession.screen);
-  }, [pausedSession]);
+  // Resume one slot. It is promoted to the front first, so isResuming (which
+  // reads slot 0) and the clear-on-arrival effect both see it.
+  const resumeSlot = useCallback((ps) => {
+    if (!ps) return;
+    setPausedSlots(list => { const next = [ps, ...list.filter(x => x !== ps)]; savePausedSessions(next); return next; });
+    setDisc(ps.disc);
+    setCfg(ps.cfg);
+    setComboCfg(ps.comboCfg);
+    setFitCfg(ps.fitCfg);
+    setQmCfg(ps.qmCfg);
+    setCcMission(ps.ccMission);
+    setArcadeSeries(ps.arcadeSeries);
+    setArcadeStage(ps.arcadeStage);
+    setArcadeMode(ps.arcadeMode);
+    setArcadeOrder(ps.arcadeOrder);
+    setArcadeSettings(ps.arcadeSettings || null);
+    if (ps.campCtx) setCampCtx(ps.campCtx);
+    if (ps.cardioContext) setCardioContext(ps.cardioContext);
+    setResumeData(ps.internalState || null);
+    setScreen(ps.screen);
+  }, []);
+  const resumeSession = useCallback(() => resumeSlot(pausedSession), [resumeSlot, pausedSession]);
+  const resumeAltSession = useCallback(() => resumeSlot(pausedAlt), [resumeSlot, pausedAlt]);
 
   // ── Surviving the OS ──────────────────────────────────────────────────────
   // The ONLY writer of the paused session used to be pauseCurrentSession(),
@@ -299,7 +399,7 @@ export default function App() {
   // So a running session now saves itself when the app is hidden, when the page
   // is being torn down, and on a timer in between (no lifecycle event is
   // guaranteed to fire before a kill). It writes storage ONLY — never
-  // setPausedSession — because the state setter drives the resume banner, and
+  // the paused-session state — because the state setter drives the resume banner, and
   // a session that is merely backgrounded has not been left.
   const snapshotRef = useRef(buildSessionSnapshot);
   useEffect(() => { snapshotRef.current = buildSessionSnapshot; }, [buildSessionSnapshot]);
@@ -309,7 +409,7 @@ export default function App() {
     if (typeof document === 'undefined') return undefined;
     const stash = () => {
       const snap = snapshotRef.current?.('lifecycle');
-      if (snap) savePausedSession(snap);
+      if (snap) stashPausedSession(snap);
     };
     const onVisibility = () => { if (document.hidden) stash(); };
     stash(); // close the gap between entering a session and the first tick
@@ -324,9 +424,11 @@ export default function App() {
   }, [screen]);
 
   const discardPausedSession = useCallback(() => {
-    setPausedSession(null);
-    savePausedSession(null);
+    setPausedSlots(list => { const next = list.slice(1); savePausedSessions(next); return next; });
     setResumeData(null);
+  }, []);
+  const discardAltSession = useCallback(() => {
+    setPausedSlots(list => { const next = list.slice(0, 1); savePausedSessions(next); return next; });
   }, []);
 
   // Boot: a session the OS interrupted comes straight back INTO its player,
@@ -347,14 +449,9 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Clear pausedSession after successfully resuming (next render after screen matches)
-  useEffect(() => {
-    if (pausedSession && screen === pausedSession.screen) {
-      setPausedSession(null);
-      savePausedSession(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen]);
+  // Arriving on a session screen — by RESUME or by starting fresh — retires
+  // the paused session of that kind; the other slot waits on.
+  useEffect(() => { dropPausedFor(screen); }, [screen, dropPausedFor]);
 
   // Cloud progress sync. No-ops entirely while signed out; once an account
   // exists it mirrors local progress up and restores it on a fresh device.
@@ -430,6 +527,13 @@ export default function App() {
     if (typeof localStorage !== 'undefined') localStorage.setItem(TOUR_KEY, 'true');
   };
   const startFullIntro = () => { setScreen('home'); setPathTour('full_intro'); };
+  // Practice Mode's welcome poster, for new learners, once — the last step
+  // of first-run setup (after the walkthrough, so the two never overlap).
+  const maybePracticeIntro = () => {
+    if (!shouldShowIntro(loadProfile())) return;
+    markIntroShown();
+    setPracticeInvite('intro');
+  };
   const closePathTour = (finished) => {
     const key = pathTour;
     setPathTour(null);
@@ -437,6 +541,7 @@ export default function App() {
       markTourDone();
       trackEvent(finished ? 'feature_tour_complete' : 'feature_tour_skipped');
       setScreen('home');
+      maybePracticeIntro();
     } else if (key === 'arcade_saga_select') {
       // Per spec: however the arcade guide ends, land back on the saga page.
       setScreen('arcade');
@@ -447,26 +552,23 @@ export default function App() {
     goStart:       () => setScreen('start'),
     goHome:        () => { pauseCurrentSession(); setScreen('home'); },
     goProgress:    () => { pauseCurrentSession(); setScreen('progress'); },
-    goTrainingHub: () => { pauseCurrentSession(); setScreen('training_hub'); },
-    startPathTour: () => { setScreen('training_hub'); setPathTour('train_hub'); },
     startArcadeGuide: () => setPathTour('arcade_saga_select'),
     goFightHub:    () => setScreen('fight_hub'),
     // 3c — backing out of a live builder/quick-mission session PAUSES it (the
     // app's normal resume flow picks it up) instead of silently abandoning it.
     goFitHub:      () => { pauseCurrentSession(); setScreen('fit_hub'); },
     goFitSetup:    () => { pauseCurrentSession(); setScreen('fit_setup'); },
+    goPrograms:    () => { pauseCurrentSession(); setScreen('programs'); },
     // Cardio Mode is a SETUP screen that becomes a session, so unlike every
     // other session entry it was not clearing resumeData. Now that an interval
     // session restores from it, a stale one would drop somebody who tapped
     // CARDIO MODE straight back into a Tabata they finished yesterday.
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
-    goWorkoutCodec: () => setScreen('workout_codec'),
     goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
+    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null);
-      savePausedSession(null);
+      dropPausedFor(screen);
       setResumeData(null);
       addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed);
       tryCompleteDailyMission('quickMission');
@@ -483,7 +585,7 @@ export default function App() {
         routeAfterXp(beforeLevel, 'qm_complete');
       }
     },
-    goCombatCondSetup: () => setScreen('cc_setup'),
+    goCombatCondSetup: () => { setCcPreset(null); setScreen('cc_setup'); },
     // A pasted/scanned challenge code resolved to a real series+stage — surface
     // the same accept-and-start modal the deep link uses.
     startChallenge: (resolved) => setPendingChallenge(resolved),
@@ -496,7 +598,7 @@ export default function App() {
     goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen((series?.v2Campaign || ['one-punch-protocol', 'demon-back-protocol'].includes(series?.id)) ? 'arcade_series' : 'arcade_intro'); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
       // old player). PATH → fit/fight/full arc; difficulty → easy/normal/hard.
       if (series?.v2Campaign) {
@@ -558,9 +660,10 @@ export default function App() {
       setArcadeSettings(settings || arcadeSettings || null);
       setScreen('arcade_session');
     },
-    goArcadeComplete: () => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
+    goArcadeComplete: () => { dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
     goCombatCondActive: (config) => {
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      rememberSession('cc', config);
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       const mission = generateCombatConditioningMission(config);
       if (config?.cardioAddon?.enabled) mission.cardioAddon = config.cardioAddon;
       setCcMission(mission);
@@ -568,7 +671,7 @@ export default function App() {
     },
     goCombatCondComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
       tryCompleteDailyMission('combatConditioning');
       trackEvent('session_complete', { mode: 'combatConditioning', drills: result.drillsCompleted });
@@ -590,13 +693,50 @@ export default function App() {
     goGameLink:     () => setScreen('game_link'),
     goSubscription: () => setScreen('subscription'),
     goNotifications: () => setScreen('notifications'),
-    goSetup:       (d) => { setDisc(d); setScreen('setup'); },
+    goSetup:       (d) => { setDisc(d); setGhostLaunch(null); setScreen('setup'); },
+    // Home's 👻: the live challenge's screen again.
+    openGhostChallenge: () => { const ch = getActiveChallenge(); if (ch) setGhostView({ view: 'challenge', challenge: ch }); },
+    // Haunt a Friend, from a session summary.
+    openHaunt: (ghost, xpLine) => setGhostView({ view: 'haunt', ghost, xpLine }),
     goComboSetup:  (d) => { setDisc(d); setScreen('combo_setup'); },
+    goJustTrain:   (d) => { if (d) setDisc(d); setScreen('just_train'); },
+    // Home's Continue card: run the last started session again with the
+    // settings it ran with. A program starts its next day instead.
+    replayLastSession: () => {
+      const last = loadLastSession();
+      if (!last) return false;
+      const c = last.cfg;
+      switch (last.kind) {
+        case 'timer':
+          if (last.disc) setDisc(last.disc);
+          actions.goTimer(c);
+          // goTimer records with the discipline it closed over; the replay's
+          // own discipline is the right one.
+          rememberSession('timer', c, last.disc);
+          return true;
+        case 'combo':
+          if (last.disc) setDisc(last.disc);
+          actions.goComboActive(c);
+          return true;
+        case 'quick_mission':
+          actions.goQuickMissionActive(c);
+          return true;
+        case 'fit': {
+          const p = programFor(last);
+          actions.goFitWorkout(p ? startProgramDay(p, { equipment: c.equipment, difficulty: c.difficulty }) : c);
+          return true;
+        }
+        case 'cc':
+          actions.goCombatCondActive(c);
+          return true;
+        default:
+          return false;
+      }
+    },
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
-    goMoveLab: (d) => { if (d) setDisc(d); setScreen('move_lab'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
-      setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null;
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       setCampCtx(ctx); setDisc(ctx.discipline);
       // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
       // the warm-up wrapper still reads warmupMin.
@@ -608,7 +748,7 @@ export default function App() {
     // levels (L4–11) mark S1/S2 done independently and clear only at ✓✓.
     goCampComplete: (rounds, c, completed, integrityResult) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
       const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
       // 2.10 — arcade v2 stage completion reuses this pipeline but updates arcade
@@ -678,7 +818,7 @@ export default function App() {
     // marks its slot; the level clears when both are ✓✓.
     goCampFullComplete: ({ skill, fit }) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const s = skill || { total: 1, done: 0, valid: false };
       const f = fit || { total: 1, done: 0, valid: false };
       // 2.10 — FULL ARC arcade stage: both blocks over the shared runner.
@@ -722,29 +862,40 @@ export default function App() {
       setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
-    goTimer:       (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
+    goTimer:       (c) => { rememberSession('timer', c, disc); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
-      addFightFocusSession(done, total);
+      // Bank what the summary will show — the outcome engine's number, not
+      // the flat per-round rate (an early END used to save four times more
+      // than the screen said).
+      const justTrain = c.mode === 'Just Train';
+      const { xp } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight' });
+      addFightFocusSession(done, total, { justTrain, xp });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       const fs = fightSessionStats || {};
       recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: 'fightFocus', rounds: done });
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed } });
+      // A win over the live ghost challenge settles it (the battle itself was
+      // resolved by the timer at the final bell).
+      const battle = c.ghost ? getLastBattle() : null;
+      const challengeWin = battle?.ghost?.ghostId && battle.ghost.ghostId === c.ghost.ghostId
+        ? settleChallenge('fight', c.ghost, battle.result?.outcome) : null;
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
-      addComboCoachSession(done, total);
+      const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo' });
+      addComboCoachSession(done, total, { xp });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
       // 1.4 — when the accelerometer counted real thrown strikes, that number
@@ -775,10 +926,10 @@ export default function App() {
       });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goFitWorkout:  (c) => { setPausedSession(null); savePausedSession(null); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
+    goFitWorkout:  (c) => { rememberSession('fit', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
       const beforeLevel = getLevel(loadStats().xp);
-      setPausedSession(null); savePausedSession(null); setResumeData(null);
+      dropPausedFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);
       tryCompleteDailyMission('fitMode');
       trackEvent('session_complete', { mode: 'fitMode', exercises: done });
@@ -831,8 +982,14 @@ export default function App() {
       setLevelUp(null);
       setScreen(dest);
     },
-    goPractice:    (d) => { setDisc(d); setScreen('practice'); },
-    goStartHere:   () => { setDisc('Boxing'); setScreen('practice_starthere'); },
+    goPractice:    (d) => { if (d) setDisc(d); setScreen('practice'); },
+    // Practice, opened on the current lesson of the shared discipline.
+    goStartHere:   (d) => { if (d) setDisc(d); setScreen('practice_starthere'); },
+    // The same, switching the shared discipline first (the Practice posters).
+    goPracticeLesson: (d) => {
+      if (d) { try { saveProfile({ ...loadProfile(), discipline: d }); } catch { /* best-effort */ } setDisc(d); }
+      setScreen('practice_starthere');
+    },
     goStartDailyMission: (mission) => {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('dailyMissionActive', 'true');
@@ -859,6 +1016,17 @@ export default function App() {
     goAfterSplash: () => {
       const done = typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true';
       setScreen(done ? 'home' : 'onboarding');
+      if (!done) return;
+      // One full-screen interstitial per open, most personal first: a
+      // friend's haunt, a ghost challenge, a comeback, the weekly lesson.
+      const haunt = unseenHaunt();
+      if (haunt) { markChallengeSeen(); setGhostView({ view: 'challenge', challenge: haunt }); return; }
+      const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
+      if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
+      const cb = dueComeback();
+      if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
+      // The weekly practice reminder, at most once a week, on opening the app.
+      if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
     },
     completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
       if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -868,7 +1036,7 @@ export default function App() {
       // Never auto-show again.
       const finish = () => {
         const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-        if (!tourDone) startFullIntro(); else setScreen('home');
+        if (!tourDone) startFullIntro(); else { setScreen('home'); maybePracticeIntro(); }
       };
       // ND-06 — PAR-Q closes out onboarding (once ever), then the tour runs.
       if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }
@@ -886,7 +1054,7 @@ export default function App() {
       // it ended — skipping the wizard doesn't skip the intro (or the PAR-Q).
       const finish = () => {
         const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
-        if (!tourDone) startFullIntro(); else setScreen('home');
+        if (!tourDone) startFullIntro(); else { setScreen('home'); maybePracticeIntro(); }
       };
       if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }
       else finish();
@@ -909,6 +1077,73 @@ export default function App() {
           }}/>
         </div>
       )}
+      {hauntIntro && (
+        <HauntWelcome
+          page={hauntIntro.page}
+          challenge={hauntIntro.challenge}
+          beaten={hauntIntro.beaten}
+          onNext={() => setHauntIntro(h => ({ ...h, page: 'battle' }))}
+          onBack={() => setHauntIntro(h => ({ ...h, page: 'intro' }))}
+          onAccept={() => {
+            const ch = hauntIntro.challenge;
+            setHauntIntro(null);
+            const launch = () => { setDisc(ch.disc || 'Boxing'); setGhostLaunch(ch); setScreen('setup'); };
+            // The one-time health check comes before a newcomer's first round.
+            if (!loadParq().done) { afterParqRef.current = launch; setShowParqGate(true); }
+            else launch();
+          }}
+          onDecline={() => setHauntIntro(h => ({ ...h, page: 'welcome', beaten: false }))}
+          onExplore={() => {
+            try { localStorage.removeItem(HAUNT_NEWCOMER_KEY); } catch { /* best-effort */ }
+            setHauntIntro(null);
+            setScreen('onboarding');
+          }}
+        />
+      )}
+      {ghostView && (
+        <GhostChallenge
+          view={ghostView.view}
+          challenge={ghostView.challenge}
+          ghost={ghostView.ghost}
+          xpLine={ghostView.xpLine}
+          gender={(() => { const p = loadProfile() || {}; const pref = String(p.avatarPreference || '').toLowerCase(); return pref === 'female' || pref === 'male' ? pref : String(p.sex || '').toLowerCase() === 'female' ? 'female' : 'male'; })()}
+          onAccept={() => {
+            const ch = ghostView.challenge;
+            setGhostView(null);
+            if (ch.kind === 'cardio') {
+              actions.goCardioMode({ ghost: 'best', unit: ch.run.unit, goal: ch.run.goal, surface: ch.run.surface });
+            } else {
+              setDisc(ch.disc || disc);
+              setGhostLaunch(ch);
+              setScreen('setup');
+            }
+          }}
+          onDecline={() => { declineChallenge(); setGhostView(null); setScreen('home'); }}
+          onClose={() => setGhostView(null)}
+        />
+      )}
+      {comeback && (
+        <Comeback
+          comeback={comeback}
+          onGo={() => {
+            const v = comeback.view;
+            setComeback(null);
+            if (v === 'arcade') actions.goTrainingArcade();
+            else if (v === 'cc') { setCcPreset('gas-tank'); setScreen('cc_setup'); }
+            else actions.goTrainingCamp();
+          }}
+          onSkip={() => setComeback(null)}
+          onRemind={() => { remindComebackNextWeek(comeback.view); setComeback(null); }}
+        />
+      )}
+      {practiceInvite && (
+        <PracticeInvite
+          view={practiceInvite}
+          discipline={loadProfile()?.discipline || 'Boxing'}
+          onStart={(d) => { setPracticeInvite(null); actions.goPracticeLesson(d); }}
+          onClose={() => setPracticeInvite(null)}
+        />
+      )}
       {showOffline && (
         <div style={{ position: 'fixed', ...fixedColumnLeft(12), bottom: 'calc(74px + env(safe-area-inset-bottom,0px))', zIndex: 600, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 99, background: 'rgba(20,6,38,0.95)', border: '1px solid rgba(253,224,71,0.35)', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'none', animation: 'tm-offline-toast 4s ease forwards' }}>
           <span style={{ fontSize: 11 }}>📡</span>
@@ -918,7 +1153,7 @@ export default function App() {
       <div style={{ minHeight: '100dvh', background: C.bg }}>
         <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gold, fontFamily: "'Orbitron',sans-serif", fontSize: 11, letterSpacing: '0.2em' }}>LOADING…</div>}>
           <ScreenRouter
-            screen={screen} disc={disc} cfg={cfg} session={session}
+            screen={screen} disc={disc} cfg={cfg} session={session} ghostLaunch={ghostLaunch} ccPreset={ccPreset}
             comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
@@ -926,6 +1161,7 @@ export default function App() {
             campCtx={campCtx} campResult={campResult}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
+            pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}
             reportSessionState={reportSessionState} resumeData={resumeData}
             actions={actions}
           />

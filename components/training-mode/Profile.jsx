@@ -20,6 +20,9 @@ import { loadReminderSettings, saveReminderSettings, requestNotificationPermissi
 import { planText } from './data/comboStreak';
 import { loadGamePlan, saveGamePlan } from './data/gamePlan';
 import { PRIVACY_URL, openExternalUrl } from './data/links';
+import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
+import { loadProfile } from './data/userProfile';
+import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
 
 
 function SectionLabel({ text }) {
@@ -280,12 +283,15 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
   const [heightUnit,  setHeightUnit ] = useState(p.heightUnit  ?? 'FT/IN');
   const [weightVal,   setWeightVal  ] = useState(p.weightVal   ?? '');
   const [weightUnit,  setWeightUnit ] = useState(p.weightUnit  ?? 'LBS');
-  const [experience,  setExperience ] = useState(p.experience  ?? 'INTERMEDIATE');
-  const [goal,        setGoal       ] = useState(() => {
-    const saved = p.goal ?? 'BUILD MUSCLE';
-    return saved === 'GET FASTER' ? 'BUILD MUSCLE' : saved;
-  });
-  const [specialty,   setSpecialty  ] = useState(p.specialty   ?? '');
+  // The questionnaire's own answers (data/profileOptions), so an edit here
+  // is read by Home's pick and the beginner checks. loadProfile has already
+  // mapped any old-style values.
+  const [experience,  setExperience ] = useState(p.experience  ?? '');
+  const [goal,        setGoal       ] = useState(p.goal ?? '');
+  // From storage: the tabs change it without going through App's copy.
+  const [discipline,  setDiscipline ] = useState(() => loadProfile()?.discipline ?? p.discipline ?? '');
+  // Strangers' ghosts: on unless switched off (data/ghostCloud).
+  const [shareGhosts, setShareGhosts] = useState(() => sharesGhosts(p));
   const [voiceCoach,  setVoiceCoach ] = useState(p.voiceCoach  ?? 'FEMALE');
   const [coachStyle,  setCoachStyle ] = useState(() => {
     const saved = p.coachStyle ?? 'STANDARD';
@@ -329,12 +335,15 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
       weightUnit,
       experience,
       goal,
-      specialty,
+      ...(discipline ? { discipline, specialty: discipline.toUpperCase() } : {}),
+      shareGhosts,
       voiceCoach,
       coachStyle,
       encouragement,
       callStyle,
     });
+    // Switching sharing off takes this player's ghosts back out of the pool.
+    if (!shareGhosts && sharesGhosts(p)) removeMyPoolGhosts();
     onSave();
   };
 
@@ -594,24 +603,35 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
           {/* Experience */}
           <div>
             <SectionLabel text="EXPERIENCE"/>
-            <PillRow opts={['BEGINNER', 'INTERMEDIATE', 'ADVANCED']} val={experience} onPick={setExperience}/>
+            <PillRow opts={LEVELS.map(l => l.id.toUpperCase())} val={experience.toUpperCase()} onPick={v => setExperience(LEVELS.find(l => l.id.toUpperCase() === v)?.id || '')} wrap/>
           </div>
 
           {/* Primary Goal */}
           <div>
             <SectionLabel text="PRIMARY GOAL"/>
-            <PillRow opts={['LOSE WEIGHT', 'BUILD MUSCLE', 'COMPETE']} val={goal} onPick={setGoal} wrap/>
+            <PillRow opts={GOALS.map(g => g.toUpperCase())} val={goal.toUpperCase()} onPick={v => setGoal(GOALS.find(g => g.toUpperCase() === v) || '')} wrap/>
           </div>
 
-          {/* Training Specialty */}
+          {/* Discipline — the tab Fight Mode, Practice and Combat
+              Conditioning open on (the same as switching it there). */}
           <div>
-            <SectionLabel text="TRAINING SPECIALTY"/>
+            <SectionLabel text="DISCIPLINE"/>
             <PillRow
-              opts={['BOXING', 'KICKBOXING', 'MUAY THAI', 'MMA', 'GRAPPLING/WRESTLING', 'GENERAL FITNESS', 'COMBAT CONDITIONING']}
-              val={specialty}
-              onPick={v => setSpecialty(v === specialty ? '' : v)}
+              opts={DISCIPLINE_CHOICES.map(d => d.toUpperCase())}
+              val={discipline.toUpperCase()}
+              onPick={v => setDiscipline(DISCIPLINE_CHOICES.find(d => d.toUpperCase() === v) || '')}
               wrap
             />
+          </div>
+
+          {/* Ghost sharing — anonymous: other players see "A Warrior" and a
+              level, never a name. At most 2 of your sessions a week. */}
+          <div>
+            <SectionLabel text="LET OTHERS RACE MY GHOSTS"/>
+            <PillRow opts={['ON', 'OFF']} val={shareGhosts ? 'ON' : 'OFF'} onPick={v => setShareGhosts(v === 'ON')}/>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: '#9a90b8', lineHeight: 1.4 }}>
+              When you&apos;re signed in, up to 2 of your Fight Focus sessions a week can come back as a ghost for other fighters — anonymous, just your level. Off removes any already shared.
+            </div>
           </div>
 
           {/* Audio Settings Card */}

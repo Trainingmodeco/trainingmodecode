@@ -49,13 +49,18 @@ const DIR_TARGETS = {
   'static/tiers': 520,
   'static/trophies': 520,
   'static/hub': 880,
-  'static/practice': 800,
   'static/brand': 760,
   'static/fitmode': 800,
   // Holds both small result overlays AND the two full-bleed arena backdrops,
   // so this has to be sized for the backdrops (a 640 box was squashing them).
   'static/arcade': 880,
   'static/stages': 320,
+  // Simplify revamp art. Arrives from the design handoff at 2172px wide —
+  // roughly 5x what a 440px column needs — and three of the banners arrive as
+  // raw PNG despite the handoff calling them optimized, so this folder leans
+  // on the same 880 box as the rest of /static rather than shipping as sent.
+  'static/revamp': 880,
+  'static/revamp/practice': 800,
   // Folders added in the July 2026 sweep — previously had no WebP coverage.
   'social': 1200,
   'ui': 520,

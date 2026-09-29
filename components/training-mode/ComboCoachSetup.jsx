@@ -1,35 +1,28 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
-import TrainingHeader from './TrainingHeader';
-import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
-import Embers from './Embers';
-import SafeImage from './SafeImage';
-import { C } from './Styles';
 import { canRunRounds, GATES } from './data/entitlements';
 import ProGateOverlay from './shared/ProGateOverlay';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
-import { IMG } from './data/optimizedImageMap';
 import TrainingCTA from './shared/TrainingCTA';
-import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
 import { isBeginnerLearner, saveProfile, loadProfile } from './data/userProfile';
 import { CALL_STYLES, callStyleOf } from './data/strikeNumbering';
+import { FightBackdrop, FightHeader, FightDifficulty, FightToggle, fightTimerCSS } from './shared/FightTimerKit';
 
-const GOLD = C.gold;
-const VIOLET = C.violet;
-const BLUE = '#4f8cff';
+// Combo Coach setup — the Simplify revamp reskin (royal blue + gold, no
+// banner, one screen). What it starts is unchanged: same config, same runner.
+
+const GOLD = '#F2BE45';
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard', 'Advanced'];
+// The design drops MODE's description line to keep the screen to one page;
+// the two words carry it and the ? guide explains the difference.
 const MODES = ['Technical', 'Combo'];
-const MODE_DESC = {
-  Technical: 'Single strikes on the beat — drill clean technique one shot at a time.',
-  Combo: 'Full combinations on the beat — chain strikes together for flow & speed.',
-};
 // Picking a difficulty sets a default cadence (faster as it gets harder); the
 // user can still adjust the CADENCE stepper afterward.
 const CADENCE_BY_DIFF = { Easy: 4, Normal: 3.5, Hard: 3, Advanced: 2.5 };
@@ -44,39 +37,6 @@ const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) 
 const toInt = (s) => parseInt(s, 10);
 // Cadence seconds → speed word (drives voice pacing + colour in the player).
 const speedFor = (sec) => (sec >= 5.5 ? 'slow' : sec <= 3.5 ? 'turbo' : 'medium');
-
-const setupCSS = `
-.cc-seg { transition: all 0.18s ease; cursor: pointer; }
-.cc-seg:active { transform: scale(0.97); }
-`;
-
-function SectionLabel({ children }) {
-  return (
-    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8', fontSize: 8.5, letterSpacing: '0.16em', marginBottom: 5 }}>{children}</div>
-  );
-}
-
-function Segmented({ label, options, value, onChange, accent }) {
-  return (
-    <div>
-      <SectionLabel>{label}</SectionLabel>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {options.map(o => {
-          const active = o === value;
-          return (
-            <button key={o} className="cc-seg" onClick={() => onChange(o)} style={{
-              flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8,
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9.5, letterSpacing: '0.03em',
-              background: active ? accent : 'rgba(16,4,30,0.8)',
-              border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-              color: active ? '#0a0014' : '#d9d1ef',
-            }}>{o.toUpperCase()}</button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall, profile }) {
   const [helpOpen, setHelpOpen] = useState(false);
@@ -103,113 +63,73 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
 
   const totalEst = Math.round((cfg.rounds * (cfg.roundMin * 60 + cfg.restSec)) / 60);
 
+  const callStyleId = callStyleOf(callStyle).id;
+  // Numbers is a boxing system: kicks, knees and elbows have no standard
+  // number, so combos containing them are called by name rather than as a
+  // half-number hybrid. Say so up front, or a kickboxing athlete picks NUMBERS
+  // and thinks it failed.
+  const numbersNote = String(discipline).toLowerCase() === 'boxing'
+    ? 'Punch combos are called 1-2-3; ones with slips or rolls by name.'
+    : 'Punch-only combos are called 1-2-3; kicks, knees and elbows by name.';
+
   return (
     <PhoneFrame useBrandBg>
-      <FightRingBackdrop/>
-      <style dangerouslySetInnerHTML={{ __html: setupCSS }}/>
-      <Embers count={3}/>
-
-      <TrainingHeader
-        title="COMBO COACH"
-        subtitle={`${discipline} — strike combos at cadence`}
-        onHome={onBack}
-        showBack
-        onBack={onBack}
-        rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
-      />
+      <FightBackdrop/>
+      <style dangerouslySetInnerHTML={{ __html: fightTimerCSS }}/>
 
       <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        padding: '8px 14px 0',
-        // ~15% of the viewport of clear space under START COMBOS.
-        paddingBottom: 'calc(15dvh + env(safe-area-inset-bottom, 0px))',
+        // 8, not 12: with six stepper rows this is the one fight setup that
+        // ran START under the tab bar on a 667px phone.
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 7,
+        padding: '6px 16px 0',
+        paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
       }}>
+        <FightHeader title="COMBO COACH" sub={`${discipline} · strike combos at cadence`} onBack={onBack} onHelp={() => setHelpOpen(true)}/>
 
-        {/* Banner (identical to Fight Focus, dimmed, bigger title) */}
-        <div style={{ width: '100%', height: 52, borderRadius: 12, overflow: 'hidden', marginBottom: 10, position: 'relative', border: '1px solid rgba(253,224,71,0.2)' }}>
-          <SafeImage src={IMG.hub.fight} alt="Combo Coach" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.5 }}/>
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,0,20,0.86) 0%, rgba(10,0,20,0.5) 55%, rgba(10,0,20,0.3) 100%)' }}/>
-          <div style={{ position: 'absolute', bottom: 8, left: 15, zIndex: 2 }}>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 17, color: VIOLET, letterSpacing: '0.08em', textShadow: '0 0 10px rgba(168,85,247,0.4)' }}>COMBO COACH</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10, color: 'rgba(255,255,255,0.72)', marginTop: 0 }}>Flash combos, build flow</div>
+        {/* Difficulty also sets a default cadence (faster as it gets harder);
+            the CADENCE stepper can still override it. */}
+        <FightDifficulty
+          levels={DIFFICULTIES} value={cfg.difficulty} desc={DIFF_DESC[cfg.difficulty]} guide="cc-difficulty"
+          onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))}
+        />
+
+        {/* CALL STYLE lives on the profile (shared with Camp and Arcade), so a
+            pick persists immediately. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flexShrink: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }}>
+            <FightToggle
+              label="CALL STYLE" guide="cc-callstyle"
+              options={CALL_STYLES.map(cs => cs.id)} value={callStyleId} onChange={pickCallStyle}
+              format={id => CALL_STYLES.find(cs => cs.id === id)?.label || id}
+            />
+            <FightToggle label="MODE" guide="cc-mode" options={MODES} value={cfg.mode} onChange={v => set('mode', v)}/>
           </div>
-        </div>
-
-        {/* Difficulty + explanation (also sets a default cadence) */}
-        <div style={{ marginBottom: 5 }}>
-          <div data-guide="cc-difficulty"><Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))} accent={GOLD}/></div>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 8, minHeight: 20 }}>
-          <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
-        </div>
-
-        {/* PROMPT N — call style pills (compact; the Audio Settings row has
-            the preview). Persisted on pick, shared app-wide. */}
-        <div data-guide="cc-callstyle" style={{ marginBottom: 9 }}>
-          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5, color: '#c4a4d8', letterSpacing: '0.14em', marginBottom: 5 }}>CALL STYLE</div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {CALL_STYLES.map((cs) => {
-              const on = callStyleOf(callStyle).id === cs.id;
-              return (
-                <button key={cs.id} onClick={() => pickCallStyle(cs.id)} style={{
-                  flex: 1, padding: '7px 0', borderRadius: 8, cursor: 'pointer',
-                  background: on ? 'rgba(253,224,71,0.13)' : 'rgba(10,0,20,0.55)',
-                  border: `1px solid ${on ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.28)'}`,
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8.5,
-                  letterSpacing: '0.05em', color: on ? GOLD : '#c4a4d8',
-                }}>{cs.label}</button>
-              );
-            })}
-          </div>
-          {/* Numbers is a boxing system: kicks, knees and elbows have no
-              standard number, so combos containing them are called by name
-              rather than as a half-number hybrid. Say so up front here, or a
-              kickboxing athlete picks NUMBERS and thinks it failed. */}
-          {callStyleOf(callStyle).id === 'numbers' && (
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9.5, color: '#a99cc4', lineHeight: 1.3, marginTop: 5 }}>
-              {String(discipline).toLowerCase() === 'boxing'
-                ? 'Punch combos are called 1-2-3. Combos with slips or rolls are called by name.'
-                : 'Punch-only combos are called 1-2-3. Kick, knee and elbow combos are always called by name.'}
+          {callStyleId === 'numbers' && (
+            <div style={{ fontSize: 12, color: '#A9B4D6', lineHeight: 1.3 }}>{numbersNote}</div>
+          )}
+          {/* Beginner learners are locked to basics plus strikes learned in
+              Practice, with the way to unlock combos spelled out. */}
+          {beginner && (
+            <div style={{ fontSize: 12, color: '#A9B4D6', lineHeight: 1.3 }}>
+              <span style={{ font: "700 11px 'Chakra Petch',sans-serif", color: '#8FB4FF', letterSpacing: '0.08em' }}>🔒 BASIC MODE</span>{' '}
+              Basic strikes plus what you&apos;ve learned in Practice. <span style={{ color: GOLD }}>More Practice unlocks combos.</span>
             </div>
           )}
         </div>
 
-        {/* Mode + explanation */}
-        <div style={{ marginBottom: 5 }}>
-          <div data-guide="cc-mode"><Segmented label="MODE" options={MODES} value={cfg.mode} onChange={v => set('mode', v)} accent={VIOLET}/></div>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 9, minHeight: 20 }}>
-          <span style={{ color: VIOLET, fontWeight: 700 }}>{cfg.mode.toUpperCase()}:</span> {MODE_DESC[cfg.mode]}
-        </div>
-
-        {/* 1.2 — Basic Mode (beginner learners only): locked to starter basics
-            + Practice-learned strikes, with the unlock path spelled out. */}
-        {beginner && (
-          <>
-            <div style={{ marginBottom: 5 }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, color: '#e6d4ff', background: 'rgba(168,85,247,0.16)', border: '1px solid rgba(168,85,247,0.5)', borderRadius: 5, padding: '4px 8px', letterSpacing: '0.06em' }}>🔒 BASIC MODE</span>
-            </div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.3, marginBottom: 9 }}>
-              Calling basic strikes plus ones you&apos;ve learned through Practice. <span style={{ color: GOLD, fontWeight: 700 }}>Do more Practice Mode training to unlock combos.</span>
-            </div>
-          </>
-        )}
-
         {/* Stacked steppers — WARM-UP first, since it's the first thing that
             happens in the session. */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 9 }}>
-          <div data-guide="cc-steppers">
+        <div data-guide="cc-steppers" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <WarmupRow feature="comboCoach" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
-          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
-          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
-          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
-          <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="s" min={2} max={8} step={0.5} display={v => v.toFixed(1)} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('cadenceSec', v)} accent={VIOLET}/>
+          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)}/>
+          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)}/>
+          <StepperRow label="ROUND REST" value={cfg.restSec} unit="S" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)}/>
+          <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="S" min={2} max={8} step={0.5} display={v => v.toFixed(1)} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('cadenceSec', v)}/>
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
-          </div>
         </div>
 
-        {/* Rush mode (opens the flame popup) */}
-        <div data-guide="cc-rush" style={{ marginBottom: 9 }}>
+        {/* Rush mode (opens the flame popup) — unchanged, per the design. */}
+        <div data-guide="cc-rush">
           <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
         </div>
 

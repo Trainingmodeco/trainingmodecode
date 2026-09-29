@@ -34,7 +34,9 @@ const fmtTime = (s) => (s == null || !Number.isFinite(s) ? '—' : `${Math.floor
  * @param {function} onRematch
  * @param {function} onDone
  */
-export default function GhostResultScreen({ battle, onRematch, onDone }) {
+// challenge: { bonus, hunter } when this win settled a ghost challenge
+// (data/ghostChallenges) — its bonus lands on top of the win's own XP.
+export default function GhostResultScreen({ battle, challenge, onRematch, onDone }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [toast, setToast] = useState('');
   // Same pose the VS screen showed — reading, not advancing the rotation.
@@ -162,6 +164,11 @@ export default function GhostResultScreen({ battle, onRematch, onDone }) {
         {result.outcome === 'victory' && (
           <div style={{ textAlign: 'center', font: "800 10px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', marginBottom: 10 }}>
             +75 BONUS XP
+          </div>
+        )}
+        {challenge && (
+          <div style={{ textAlign: 'center', font: "800 10px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em', marginTop: -4, marginBottom: 10 }}>
+            👻 CHALLENGE BEATEN{challenge.bonus ? ` · +${challenge.bonus} XP` : ''} · GHOST HUNTER {challenge.hunter.beaten}/{challenge.hunter.next}
           </div>
         )}
 

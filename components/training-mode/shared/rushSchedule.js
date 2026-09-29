@@ -48,10 +48,13 @@ export function isRushAt(pattern, elapsedSec, remainingSec, roundSec, roundIndex
     const e = Math.floor(elapsedSec);
     return windowsFor(roundSec, roundIndex).some(([s, en]) => e >= s && e < en);
   }
+  // An end-of-round push never takes more than half the round: on a 20 s
+  // Tabata round the 25 s surge used to fire two seconds in and never end.
+  const cap = Math.max(5, Math.floor((roundSec || 180) / 2));
   const endN = /^end(\d+)$/.exec(String(pattern));
-  if (endN) return remainingSec > 0 && remainingSec <= Number(endN[1]);
+  if (endN) return remainingSec > 0 && remainingSec <= Math.min(Number(endN[1]), cap);
   // endRound (default): 20–30s all-out push at the end.
-  return remainingSec > 0 && remainingSec <= 25;
+  return remainingSec > 0 && remainingSec <= Math.min(25, cap);
 }
 
 export const RUSH_PATTERNS = [

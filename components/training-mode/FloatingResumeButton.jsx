@@ -11,10 +11,18 @@ export const SESSION_LABELS = {
   arcade_session: 'Arcade',
 };
 
+// Just Train runs on the Fight Focus timer screen, so the screen alone can't
+// name it; the session's own config can.
+export function sessionLabel(paused) {
+  if (!paused) return 'Session';
+  if (paused.screen === 'timer' && paused.cfg?.mode === 'Just Train') return 'Just Train';
+  return SESSION_LABELS[paused.screen] || 'Session';
+}
+
 export default function FloatingResumeButton({ pausedSession, onResume, onDiscard }) {
   if (!pausedSession) return null;
 
-  const label = SESSION_LABELS[pausedSession.screen] || 'Session';
+  const label = sessionLabel(pausedSession);
 
   return (
     // Swipe it off either way to drop the paused session — the pill has no ✕

@@ -49,6 +49,10 @@ const CADENCE_SAFE_NAMES = new Set([
   'step-ups',
   'box jumps',
   'tuck jumps',
+  // The focus-tagged Quick Mission pool (fit-mode/quickMissionGenerator).
+  'shoulder taps', 'inchworms', 'squat thrusts', 'skater hops',
+  'russian twists', 'knee strikes', 'squat to front kick', 'sprawl to jab-cross',
+  'elbow strikes', 'slip and rip', 'reverse lunges', 'plank jacks',
 ]);
 
 function isCadenceEligible(exercise, missionCfg) {
@@ -85,7 +89,11 @@ function getPrepMessage(workoutType) {
 
 export default function QuickMissionActive({ missionCfg, profile, onEnd, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
-  const [mission] = useState(() => generateQuickMission(missionCfg));
+  // The mission is generated ONCE and travels with the session: a resume used
+  // to regenerate from the config and come back as a different workout at the
+  // old position. The setup screen may also hand over the exact mission it
+  // previewed, so what you saw is what you run.
+  const [mission] = useState(() => initialResumeData?.mission || missionCfg.mission || generateQuickMission(missionCfg));
   const allExercises = useMemo(() => [...mission.exercises, ...mission.finisherExercises], [mission]);
 
   const integrity = useIntegritySession('quickMission', missionCfg.rounds || 1);
@@ -139,9 +147,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted });
+      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission });
     }
-  }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange]);
+  }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange, mission]);
 
   // Fix 4: voice from config, not profile
   const voiceOn = missionCfg.voiceOn !== false;
@@ -346,18 +354,24 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     const isPaused = () => pausedRef.current;
 
     const runCadenceLoop = async () => {
+      // The count is spoken INSIDE the cadence, not on top of it: a "2 s"
+      // cadence measured 3.5 s per rep because the wait only began once the
+      // voice had finished. Subtract what the last number cost.
+      let spokenMs = 0;
       for (let i = 1; i <= targetReps; i++) {
         if (stale()) return;
 
         // A plain delay ignores PAUSE, so reps kept being counted and spoken
         // while the session was paused. Wait unpaused time, then hold at the
         // gate so a rep can never fire mid-pause.
-        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
         if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         setCadenceRep(i);
         if (voiceOn) {
+          const t0 = Date.now();
           await speakAsync(String(i));
+          spokenMs = Date.now() - t0;
         }
 
         if (cadenceVersionRef.current !== version) return;
@@ -384,15 +398,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     const isPaused = () => pausedRef.current;
 
     const runCadenceLoop = async () => {
+      let spokenMs = 0;
       for (let i = startFrom + 1; i <= targetReps; i++) {
         if (stale()) return;
 
-        if (!await waitUnpaused(cadenceMsRef.current, { isPaused, isStale: stale })) return;
+        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
         if (!await awaitResume({ isPaused, isStale: stale })) return;
 
         setCadenceRep(i);
         if (voiceOn) {
+          const t0 = Date.now();
           await speakAsync(String(i));
+          spokenMs = Date.now() - t0;
         }
 
         if (cadenceVersionRef.current !== version) return;

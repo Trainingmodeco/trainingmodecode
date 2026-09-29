@@ -527,6 +527,10 @@
     "size": 7710,
     "sha1": "72588579837ee4cb96195e3745247c8ba20697d3"
   },
+  "static/brand/tm-logo-violet.webp": {
+    "size": 17988,
+    "sha1": "1521bc8105b2f7d6e9e1b39e4e124b63dc62cc80"
+  },
   "static/discipline/boxing.webp": {
     "size": 7430,
     "sha1": "ad11dea44ab229f3e613ae0a221003e2a8ad73ab"
@@ -731,70 +735,6 @@
     "size": 3908,
     "sha1": "b29d274f818096cc9047c31f29a1e22054685ac8"
   },
-  "static/practice/boxing-female.png": {
-    "size": 154226,
-    "sha1": "5f43235a03732dbbd6844c75faad7361ba84efe0"
-  },
-  "static/practice/boxing-female.webp": {
-    "size": 14644,
-    "sha1": "34c65bd99916436156180380acbc2a62ed28a2f6"
-  },
-  "static/practice/boxing-male.png": {
-    "size": 154611,
-    "sha1": "460300f55426836a889e5a71a983987b8095344f"
-  },
-  "static/practice/boxing-male.webp": {
-    "size": 14338,
-    "sha1": "712fe4e103c6261279ba10fa4daee48867866cd2"
-  },
-  "static/practice/kickbox-female.png": {
-    "size": 146947,
-    "sha1": "0725a6179366c9057c14801da2136fe54525465e"
-  },
-  "static/practice/kickbox-female.webp": {
-    "size": 13858,
-    "sha1": "0c50598a98539c83390ccfd101d0c062c42d43d4"
-  },
-  "static/practice/kickbox-male.png": {
-    "size": 162295,
-    "sha1": "fb25274493f479136b77af088371b74402bfd61e"
-  },
-  "static/practice/kickbox-male.webp": {
-    "size": 13084,
-    "sha1": "6f2297ab3ea6f63cd1a6697bee6a24754446b245"
-  },
-  "static/practice/mma-female.png": {
-    "size": 160025,
-    "sha1": "7daec87d62ae51fb5fcb02951f53e650219e23ad"
-  },
-  "static/practice/mma-female.webp": {
-    "size": 15306,
-    "sha1": "17e6a33ce0a4d506c9e93d3f8c648e98572b1b32"
-  },
-  "static/practice/mma-male.png": {
-    "size": 162903,
-    "sha1": "6ab8431e0bf103ae523c0c3990b1549f3deb3bbf"
-  },
-  "static/practice/mma-male.webp": {
-    "size": 14628,
-    "sha1": "e173ace16541749e3a6d8947c6405731bc6d7631"
-  },
-  "static/practice/muaythai-female.png": {
-    "size": 157114,
-    "sha1": "91b23615df7de5c3cd3a946fbdf43b72199a48d1"
-  },
-  "static/practice/muaythai-female.webp": {
-    "size": 14988,
-    "sha1": "2bd9ba5ad6e0225d76e44ccb97266c8ccc3fcea4"
-  },
-  "static/practice/muaythai-male.png": {
-    "size": 181532,
-    "sha1": "458dd0942584fc9f10fc7f76db72301df714cc7e"
-  },
-  "static/practice/muaythai-male.webp": {
-    "size": 15340,
-    "sha1": "7274344cb5b65d5e9ca9869bc741f5ecc05403d1"
-  },
   "static/qr-code-poster.png": {
     "size": 984417,
     "sha1": "c84133959378a193ce205143ec21237adeb77432"
@@ -802,6 +742,114 @@
   "static/qr-code-poster.webp": {
     "size": 144110,
     "sha1": "1c7a8923655e9e021ba77942e21c6982854ff02d"
+  },
+  "static/revamp/arcade-banner.webp": {
+    "size": 42322,
+    "sha1": "93a310ed2f40c26661b268e321de4e1de107ae79"
+  },
+  "static/revamp/cardio-banner.webp": {
+    "size": 41010,
+    "sha1": "d504863a2ff6bafe20ee12098f6cd537a341a0b8"
+  },
+  "static/revamp/cardio-blast.webp": {
+    "size": 29192,
+    "sha1": "bdc07761d8d39e72d491d436c3b4c7348b24401c"
+  },
+  "static/revamp/cc-poster.webp": {
+    "size": 88766,
+    "sha1": "64abdbb9c4aacfc183cb9f2db644749735883304"
+  },
+  "static/revamp/combat-hero.webp": {
+    "size": 29888,
+    "sha1": "0718ef30474655cac339695fa20b8a1d77680e43"
+  },
+  "static/revamp/combo-coach-banner.png": {
+    "size": 434344,
+    "sha1": "1f3d61ce8cd1aef3a7afdb6d4d7fe850898140d5"
+  },
+  "static/revamp/combo-coach-banner.webp": {
+    "size": 39058,
+    "sha1": "df41544e3a042e23f3878b9e5b4260eeebc16b83"
+  },
+  "static/revamp/fight-focus-banner.png": {
+    "size": 561614,
+    "sha1": "b7a8a28e669ddbadaa7bf2b37ff6fa5795f6ed53"
+  },
+  "static/revamp/fight-focus-banner.webp": {
+    "size": 56232,
+    "sha1": "767b0733287e90b31ae1a9c753e289696626a652"
+  },
+  "static/revamp/ghost-female.webp": {
+    "size": 113948,
+    "sha1": "2389497a09e6eb52706743526f7d187c256f69b2"
+  },
+  "static/revamp/ghost-male.webp": {
+    "size": 97080,
+    "sha1": "52ef03a48bc8a03fd1dec93118f4d529d057cb7b"
+  },
+  "static/revamp/hub-fight-reveal.webp": {
+    "size": 139052,
+    "sha1": "de59f9f8f017ffe09716482d4dd2ce73f9d75bc7"
+  },
+  "static/revamp/hub-fight-silhouette.webp": {
+    "size": 113910,
+    "sha1": "7eedf5fecc69070014d7ca5720dfaad15723d99a"
+  },
+  "static/revamp/hub-fit-reveal.webp": {
+    "size": 138754,
+    "sha1": "ba837976c05b0c038b3680ea771c9bb7443df129"
+  },
+  "static/revamp/hub-fit-silhouette.webp": {
+    "size": 104756,
+    "sha1": "fddc35eed7ca303ab5aff0456c92cb5264057e3f"
+  },
+  "static/revamp/just-train-banner.png": {
+    "size": 579220,
+    "sha1": "b34fc734505dfb37f2306d30e833e4f3c6b73180"
+  },
+  "static/revamp/just-train-banner.webp": {
+    "size": 67058,
+    "sha1": "67aea702dd2478a75bb080accf3ab86505d9b10f"
+  },
+  "static/revamp/practice-book.webp": {
+    "size": 30352,
+    "sha1": "ff3b898a29c2ef5681bd9b36463dc34b18fa2406"
+  },
+  "static/revamp/practice-poster.webp": {
+    "size": 118948,
+    "sha1": "d6c3bfd30e7b54db8e6d9c6298cd3b05d5a64231"
+  },
+  "static/revamp/practice/f-boxing.webp": {
+    "size": 13520,
+    "sha1": "02773bf9e98f8bea95010c6f3f4e7e808ac67b60"
+  },
+  "static/revamp/practice/f-kickboxing.webp": {
+    "size": 12402,
+    "sha1": "b70c6e862dda5b978e34777494b9a36214a642ea"
+  },
+  "static/revamp/practice/f-mma.webp": {
+    "size": 14012,
+    "sha1": "61d41bd20421178760222c55386d66709b2f4982"
+  },
+  "static/revamp/practice/f-muaythai.webp": {
+    "size": 13792,
+    "sha1": "186f0baaf5edb6a4331f8cccbcd14f62a8e02592"
+  },
+  "static/revamp/practice/m-boxing.webp": {
+    "size": 13114,
+    "sha1": "9ebf6bd95f3dcdaaafa31a3c21eb1e3df2dfadd6"
+  },
+  "static/revamp/practice/m-kickboxing.webp": {
+    "size": 11946,
+    "sha1": "cadd335153d2e2d65391708a8d3728d429147a60"
+  },
+  "static/revamp/practice/m-mma.webp": {
+    "size": 13308,
+    "sha1": "5bb9f2e682dfca2e29f875ae573af007244ea07d"
+  },
+  "static/revamp/practice/m-muaythai.webp": {
+    "size": 14044,
+    "sha1": "eda80c3c82fb625aa9aa915162b7a30a6993493f"
   },
   "static/ring-alt2.png": {
     "size": 287390,
@@ -1366,6 +1414,10 @@
   "static/trophies/fight/combo-machine.webp": {
     "size": 61232,
     "sha1": "d0eb4525273064bbd44e37326a181c527a8014f4"
+  },
+  "static/trophies/fight/ghost-hunter.webp": {
+    "size": 79384,
+    "sha1": "1e85a9591043e2133412fcc27996f40aa422877a"
   },
   "static/trophies/fight/iron-rounds.webp": {
     "size": 54192,

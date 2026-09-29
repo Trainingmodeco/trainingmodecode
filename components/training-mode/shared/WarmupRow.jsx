@@ -5,7 +5,6 @@ import { StepperRow } from './Stepper';
 // minutes). 1-minute steps, 0 = OFF (no warm-up). Value shows as mm:ss.
 // Remembers the last choice PER FEATURE (a warm-up before Combat Conditioning
 // and one before Combo Coach are different habits).
-const TEAL = '#2dd4bf';
 const MAX_MIN = 60;
 
 const KEY = (feature) => `tm_warmup_${feature}`;
@@ -29,9 +28,11 @@ export function saveWarmup(feature, minutes) {
   } catch {}
 }
 
-export default function WarmupRow({ feature, value, onChange }) {
+export default function WarmupRow({ feature, value, onChange, tone }) {
   const set = (v) => { const n = clampMin(v); saveWarmup(feature, n); onChange(n); };
 
+  // The warm-up row matches the rows it sits among — a teal row used to break
+  // the stack on every setup screen.
   return (
     <StepperRow
       label="WARM-UP"
@@ -43,7 +44,7 @@ export default function WarmupRow({ feature, value, onChange }) {
       editDisplay={(v) => String(v)}
       parse={(s) => parseInt(s, 10)}
       onChange={set}
-      accent={TEAL}
+      tone={tone}
     />
   );
 }

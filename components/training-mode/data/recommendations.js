@@ -1,3 +1,5 @@
+import { FIT_GOALS } from './profileOptions';
+
 const START_HERE_KEY = 'tm_starthere_completed';
 const FIRST_LESSON_KEY = 'trainingModeStartHereFirstLessonComplete';
 
@@ -163,14 +165,14 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
       subtitle: 'A short bodyweight circuit to get moving.',
       reason: 'Beginner fitness path',
       actionType: 'quickMission',
-      actionPayload: null,
+      actionPayload: { duration: 12, difficulty: 'Easy', focus: 'Full Body' },
       isMissionOfTheDay: false,
     };
   }
 
   if (goal === 'Build Strength') {
     return {
-      title: 'Workout Builder — Strength Starter',
+      title: 'Build Workout — Strength Starter',
       subtitle: 'Weighted compound moves to build raw power.',
       reason: 'Based on your goal',
       actionType: 'fitSetup',
@@ -196,7 +198,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
     if (lastFit.type === 'Combat Conditioning') {
       if (goal === 'Build Strength') {
         return {
-          title: 'Workout Builder — Custom Build',
+          title: 'Build Workout — Custom Build',
           subtitle: 'Build a workout targeting your weak points.',
           reason: 'Based on your last session',
           actionType: 'fitSetup',
@@ -209,14 +211,14 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
         subtitle: 'Light conditioning to stay active after combat work.',
         reason: 'Based on your last session',
         actionType: 'quickMission',
-        actionPayload: null,
+        actionPayload: { duration: 10, difficulty: 'Easy', focus: 'Full Body' },
         isMissionOfTheDay: false,
       };
     }
     if (lastFit.type === 'Quick Mission') {
       if (goal === 'Build Strength' || goal === 'Train Like a Fighter') {
         return {
-          title: 'Workout Builder — Custom Build',
+          title: 'Build Workout — Custom Build',
           subtitle: 'Build a workout targeting your weak points.',
           reason: 'Based on your last session',
           actionType: 'fitSetup',
@@ -229,17 +231,17 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
         subtitle: 'Fresh circuit to keep momentum going.',
         reason: 'Based on your last session',
         actionType: 'quickMission',
-        actionPayload: null,
+        actionPayload: { duration: 15, difficulty: 'Normal', focus: 'Full Body' },
         isMissionOfTheDay: false,
       };
     }
-    // Last was Fit Mode (Workout Builder)
+    // Last was Fit Mode (Build Workout)
     return {
       title: 'Quick Mission — Recovery Circuit',
       subtitle: 'Light conditioning to stay active.',
       reason: 'Based on your last session',
       actionType: 'quickMission',
-      actionPayload: null,
+      actionPayload: { duration: 10, difficulty: 'Easy', focus: 'Full Body' },
       isMissionOfTheDay: false,
     };
   }
@@ -250,7 +252,17 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
     subtitle: 'A quick guided session to get you moving.',
     reason: 'Starter recommendation',
     actionType: 'quickMission',
-    actionPayload: null,
+    actionPayload: { duration: 12, difficulty: 'Normal', focus: 'Full Body' },
     isMissionOfTheDay: false,
   };
+}
+
+// The first workout someone is offered — on Home's top card when there is
+// nothing to continue, and on the setup questionnaire's last screen, so the
+// two always name the same thing. Fit goals get a Fit pick; everything else
+// a Fight one. `mode` says which side it is on.
+export function firstPick({ profile, stats, dailyMission = null }) {
+  const fit = FIT_GOALS.has(profile?.goal);
+  const pick = fit ? getFitMiniSuggestion({ profile, stats, dailyMission }) : getFightMiniSuggestion({ profile, stats, dailyMission });
+  return pick ? { ...pick, mode: fit ? 'fit' : 'fight' } : null;
 }

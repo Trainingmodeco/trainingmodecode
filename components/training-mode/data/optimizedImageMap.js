@@ -29,7 +29,6 @@ export const IMG = {
     combatConditioning: '/static/fitmode/combat-conditioning.webp',
     cardioMode: '/static/fitmode/cardio-mode.webp',
     cardioFinisherSubBanner: '/static/fitmode/cardio-finisher-sub-banner.png',
-    workoutCodex: '/static/fitmode/workout-codex.webp',
   },
   fightMode: {
     boxingMale: '/static/discipline/boxing.webp',
@@ -79,7 +78,6 @@ export const optimizedImageMap = {
     combatConditioning: '/static/fitmode/combat-conditioning.webp',
     cardioMode: '/static/fitmode/cardio-mode-banner.webp',
     cardioFinisherSubBanner: '/static/fitmode/cardio-finisher-sub-banner.png',
-    workoutCodex: '/static/fitmode/workout-codex.webp',
   },
   fightMode: {
     boxingMale: '/discipline-cards/boxing_male.webp',

@@ -82,11 +82,23 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const restSecOf = (i) => rounds[Math.min(i, rounds.length - 1)]?.rest_sec ?? cfg.restSec;
   const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? roundSec);
   const [paused, setPaused] = useState(!!initialPaused);
+  // Seconds since the session started, counting the countdown and the
+  // round call as well as the rounds and rests. A resume restores it; an
+  // older snapshot without it falls back to the rounds-and-rests sum.
+  const [sessionElapsed, setSessionElapsed] = useState(() => (
+    initialResumeData?.sessionElapsed
+    ?? ((initialResumeData?.roundIdx ?? 0) * (roundSec + cfg.restSec) + (initialResumeData?.remaining != null ? roundSec - initialResumeData.remaining : 0))
+  ));
   const [rush, setRush] = useState(false);
   const [done, setDone] = useState(false);
   const [countdown, setCountdown] = useState(initialPaused ? null : '3');
   const [countdownSub, setCountdownSub] = useState('');
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // "End session?" holds the clock (and the voice) while it asks; CANCEL
+  // hands both back exactly as they were.
+  const confirmPausedRef = useRef(false);
+  const openConfirmEnd = () => { if (!paused) { confirmPausedRef.current = true; setPaused(true); } setConfirmEnd(true); };
+  const closeConfirmEnd = () => { setConfirmEnd(false); if (confirmPausedRef.current) { confirmPausedRef.current = false; setPaused(false); } };
   // 49c — the boss slam. Fires ONCE per session on the reveal round's first
   // WORK call (round 10 on a 12-round finale; the final circuit on the
   // 9-round gauntlet) and HOLDS THE ROUND CLOCK while it plays, so the
@@ -145,9 +157,17 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ phase, roundIdx, remaining });
+      onStateChange({ phase, roundIdx, remaining, sessionElapsed });
     }
-  }, [phase, roundIdx, remaining, onStateChange]);
+  }, [phase, roundIdx, remaining, sessionElapsed, onStateChange]);
+
+  // The session clock: one tick a second whenever the session is live —
+  // through the countdown, the rounds and the rests — held while paused.
+  useEffect(() => {
+    if (paused || done) return undefined;
+    const id = setInterval(() => setSessionElapsed(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [paused, done]);
 
   // Spec 22 — voice pack (per campaign via cfg.voicePack): flavors tone +
   // greeting/rest/done phrasing. 'coach' keeps the original neutral lines;
@@ -214,8 +234,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
     setCountdown(`ROUND ${rIdx + 1}`);
     setCountdownSub(focus);
+    // A short round (Tabata, 30 s work) gets the bell and GO, not a briefing
+    // that runs a third as long as the round itself.
+    const shortRound = (rounds[rIdx]?.length_sec || baseRoundSec) <= 45;
     const startLine = rIdx === 0 && flavored ? packLine(packId, 'start') : null;
-    await speakOrDelay(`${startLine ? `${startLine} ` : ''}Round ${rIdx + 1}. ${focus}.${cur?.coach_prompt ? ` ${cur.coach_prompt}` : ''}`, 1200, { voice, ...vOpts });
+    if (shortRound) {
+      await speakOrDelay(`Round ${rIdx + 1}.`, 500, { voice, ...vOpts });
+    } else {
+      await speakOrDelay(`${startLine ? `${startLine} ` : ''}Round ${rIdx + 1}. ${focus}.${cur?.coach_prompt ? ` ${cur.coach_prompt}` : ''}`, 1200, { voice, ...vOpts });
+    }
     if (aborted()) return;
 
     setCountdown('GO');
@@ -225,7 +252,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
     setCountdown(null);
     setCountdownSub('');
-  }, [rounds, cfg.voiceOn, packId, vOpts, flavored]);
+  }, [rounds, cfg.voiceOn, packId, vOpts, flavored, baseRoundSec]);
 
   // Close out the session: resolve a ghost battle (if racing), speak the closing
   // line, then hand back to the host via onEnd. Called either straight after the
@@ -361,10 +388,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           }
         }
       }
+      // The closing count: ten seconds on a real round, three on a short one
+      // (a 20 s Tabata round was half counting).
+      const countFrom = roundSec >= 60 ? 10 : 3;
       if (
         phaseRef.current === 'round' && (cfg.rushMode || roundRush) && rushRef.current &&
         rushPatternNow.startsWith('end') &&
-        remaining >= 1 && remaining <= 10 &&
+        remaining >= 1 && remaining <= countFrom &&
         cfg.voiceOn && lastRushCountdownSecond.current !== remaining
       ) {
         lastRushCountdownSecond.current = remaining;
@@ -430,7 +460,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
         const ghostVerified = (!integrityResult || integrityResult.isFullyValid) && thrownRef.current > 0;
         recordGhostFromSession({
-          mode: 'fight_focus', discipline, difficulty: diff,
+          mode: cfg.mode === 'Just Train' ? 'just_train' : 'fight_focus', discipline, difficulty: diff,
           roundsConfig: { rounds: cfg.rounds, roundSec, restSec: cfg.restSec },
           strikeTimesSec: strikeTimesRef.current, totalSec: Math.max(1, workElapsedRef.current),
           perRoundStrikes: perRoundStrikesRef.current, completionSec: workElapsedRef.current,
@@ -599,7 +629,10 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const last10 = phase === 'round' && remaining <= 10 && remaining > 0;
   const stripeClass = dangerPulse ? 'danger-stripes' : rush ? 'rush-stripes' : '';
 
-  const totalElapsed = roundIdx * (roundSec + cfg.restSec) + (maxTime - remaining);
+  // Wall time in the session, intros included — the derived sum of rounds
+  // and rests left the 3-2-1 and the round call off the ELAPSED line, so it
+  // read 0:30 after almost a minute.
+  const totalElapsed = sessionElapsed;
   const elapsedMins = Math.floor(totalElapsed / 60);
   const elapsedSecs = totalElapsed % 60;
   const roundsLeft = cfg.rounds - roundIdx - (phase === 'rest' ? 1 : 0);
@@ -700,14 +733,14 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>
-          <button onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
+          <button onClick={openConfirmEnd} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
             <ChevronLeft size={22} />
           </button>
           <div style={{
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
             color: GOLD, letterSpacing: '0.12em',
             textShadow: '0 0 10px rgba(253,224,71,0.3)',
-          }}>FIGHT FOCUS</div>
+          }}>{cfg.mode === 'Just Train' ? 'JUST TRAIN' : 'FIGHT FOCUS'}</div>
           <div style={{ width: 30 }}/>
         </div>
 
@@ -726,9 +759,12 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
             {String(discipline).toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
-            {String(cfg.difficulty).toUpperCase()}
-          </span>
+          {/* Just Train has no difficulty — it's a plain timer — so no chip. */}
+          {cfg.mode !== 'Just Train' && (
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#c4a4d8', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 6, padding: '4px 9px', letterSpacing: '0.04em' }}>
+              {String(cfg.difficulty).toUpperCase()}
+            </span>
+          )}
         </div>
 
         {/* 1.4 — live motion strike counter */}
@@ -812,7 +848,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
                 NEXT: ROUND {roundIdx + 2}
               </div>
             )}
-            {dangerPulse && phase !== 'rest' && (
+            {dangerPulse && phase !== 'rest' && roundSec > 45 && (
               <div style={{
                 fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 600,
                 color: '#ef4444', letterSpacing: '0.2em', marginTop: 4, opacity: 0.85,
@@ -911,7 +947,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             }}>
               {isFinalRound ? <>FINISH <CheckCircle size={15} /></> : <>SKIP ROUND <SkipForward size={15} /></>}
             </button>
-            <button onClick={() => setConfirmEnd(true)} style={{
+            <button onClick={openConfirmEnd} style={{
               flex: 1, height: 46, borderRadius: 12, cursor: 'pointer',
               border: '1px solid rgba(255,90,90,0.4)', background: 'rgba(255,90,90,0.09)', color: '#ff8a8a',
               fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
@@ -964,7 +1000,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               Are you sure you want to end this training session?
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmEnd(false)} style={{
+              <button onClick={closeConfirmEnd} style={{
                 flex: 1, padding: '11px 0', borderRadius: 10,
                 background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
                 color: '#fff', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,

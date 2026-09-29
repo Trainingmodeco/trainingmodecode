@@ -3,72 +3,29 @@ import PhoneFrame from './PhoneFrame';
 import Embers from './Embers';
 import CornerHUD from './CornerHUD';
 import IntroLogo from './IntroLogo';
-import { ChevronRight, ChevronLeft, Play, House } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { C } from './Styles';
+import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
+import { firstPick } from './data/recommendations';
+import { loadStats } from './data/userStats';
 
 const GOLD = C.yellow;
 
-const GOALS = [
-  'Get Fit',
-  'Learn Combat Basics',
-  'Build Fight Conditioning',
-  'Lose Weight',
-  'Build Strength',
-  'Train Like a Fighter',
-];
+// The answer lists are shared with Profile's edit screen (data/profileOptions)
+// so changing an answer later changes the same answer.
+const NOT_SURE = 'Not sure yet';
 
-const LEVELS = [
-  { id: 'Beginner', label: 'Beginner', desc: 'New to training' },
-  { id: 'Some Training', label: 'Some Training', desc: '3-6 months' },
-  { id: 'Experienced', label: 'Experienced', desc: '1+ years' },
-  { id: 'Advanced', label: 'Advanced', desc: '3+ years' },
-];
-
-const SPECIALTIES = [
-  'BOXING',
-  'KICKBOXING',
-  'MUAY THAI',
-  'MMA',
-  'GRAPPLING/WRESTLING',
-  'GENERAL FITNESS',
-  'COMBAT CONDITIONING',
-];
-
-// Total ordered steps: Welcome, Name, Goal, Experience, Specialty, Body, Recommendation
+// Total ordered steps: Welcome, Name, Goal, Experience, Discipline, Body, First workout
 const STEP = {
   WELCOME: 0,
   NAME: 1,
   GOAL: 2,
   EXPERIENCE: 3,
-  SPECIALTY: 4,
+  DISCIPLINE: 4,
   BODY: 5,
   RECOMMEND: 6,
 };
 const TOTAL_STEPS = 7;
-
-function getRecommendation(goal, experience) {
-  const isNew = experience === 'Beginner' || experience === 'Some Training';
-
-  if (isNew && goal === 'Learn Combat Basics') {
-    return { title: 'Fighting Stance + Jab', type: 'startHere', desc: 'Learn your first combat technique with guided lessons.' };
-  }
-  if (isNew && goal === 'Get Fit') {
-    return { title: '12 Minute Bodyweight Starter', type: 'quickMission', desc: 'A short bodyweight circuit to get moving.' };
-  }
-  if (isNew && goal === 'Lose Weight') {
-    return { title: '15 Minute Fat Burn Circuit', type: 'quickMission', desc: 'High-energy bodyweight exercises to torch calories.' };
-  }
-  if (goal === 'Build Fight Conditioning') {
-    return { title: 'Fighter Conditioning Starter', type: 'quickMission', desc: 'Combat-inspired conditioning to build endurance.' };
-  }
-  if (goal === 'Build Strength') {
-    return { title: 'Strength Builder — Weighted', type: 'quickMission', desc: 'Weighted compound moves to build raw power.' };
-  }
-  if (!isNew) {
-    return { title: 'Fight Focus — 3 Round Starter', type: 'fightFocus', desc: 'Timed rounds with coach prompts. Built for fighters.' };
-  }
-  return { title: 'Quick Mission — Bodyweight Starter', type: 'quickMission', desc: 'A quick guided session to get you moving.' };
-}
 
 const inputStyle = {
   width: '100%', padding: '10px 14px', borderRadius: 8,
@@ -139,12 +96,12 @@ function UnitToggle({ options, value, onPick }) {
   );
 }
 
-export default function Onboarding({ onComplete, onHome }) {
+export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(STEP.WELCOME);
   const [name, setName] = useState('');
   const [goal, setGoal] = useState('');
   const [experience, setExperience] = useState('');
-  const [specialty, setSpecialty] = useState('');
+  const [discipline, setDiscipline] = useState('');
   const [sex, setSex] = useState('MALE');
   const [age, setAge] = useState('');
   const [heightVal, setHeightVal] = useState('');
@@ -152,7 +109,10 @@ export default function Onboarding({ onComplete, onHome }) {
   const [weightVal, setWeightVal] = useState('');
   const [weightUnit, setWeightUnit] = useState('LBS');
 
-  const recommendation = getRecommendation(goal, experience);
+  // The first workout — the same pick Home's top card will show them.
+  const pick = step === STEP.RECOMMEND
+    ? firstPick({ profile: { goal, experience, discipline: discipline || 'Boxing' }, stats: loadStats() })
+    : null;
 
   const buildProfile = () => ({
     name: name.trim(),
@@ -164,17 +124,15 @@ export default function Onboarding({ onComplete, onHome }) {
     weightUnit,
     experience,
     goal,
-    specialty,
+    // The discipline tabs open on this; "not sure" leaves them on Boxing.
+    specialty: discipline ? discipline.toUpperCase() : '',
+    ...(discipline ? { discipline } : {}),
   });
 
   const goBack = () => setStep(s => Math.max(0, s - 1));
 
   const handleFinish = () => {
-    onComplete({ goal, experience, recommendation, profile: buildProfile() });
-  };
-
-  const handleGoHome = () => {
-    onHome({ goal, experience, profile: buildProfile() });
+    onComplete({ goal, experience, recommendation: pick, profile: buildProfile() });
   };
 
   return (
@@ -312,21 +270,22 @@ export default function Onboarding({ onComplete, onHome }) {
                 );
               })}
             </div>
-            <PrimaryButton onClick={() => { if (experience) setStep(STEP.SPECIALTY); }} disabled={!experience}>
+            <PrimaryButton onClick={() => { if (experience) setStep(STEP.DISCIPLINE); }} disabled={!experience}>
               CONTINUE <ChevronRight size={15}/>
             </PrimaryButton>
           </div>
         )}
 
-        {/* SCREEN 4: Specialty */}
-        {step === STEP.SPECIALTY && (
+        {/* SCREEN 4: Discipline — the four tabs Fight Mode, Practice and
+            Combat Conditioning share. */}
+        {step === STEP.DISCIPLINE && (
           <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="TRAINING SPECIALTY" subtitle="Pick the discipline you want to focus on."/>
+            <StepTitle title="YOUR DISCIPLINE" subtitle="Fight Mode, Practice and Combat Conditioning open on it. Switch any time with the tabs."/>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-              {SPECIALTIES.map(s => {
-                const active = specialty === s;
+              {[...DISCIPLINE_CHOICES, NOT_SURE].map(s => {
+                const active = s === NOT_SURE ? discipline === '' : discipline === s;
                 return (
-                  <button key={s} onClick={() => setSpecialty(active ? '' : s)} style={{
+                  <button key={s} onClick={() => setDiscipline(s === NOT_SURE ? '' : s)} style={{
                     padding: '11px 15px', borderRadius: 20,
                     background: active ? 'rgba(253,224,71,0.1)' : 'rgba(10,0,20,0.7)',
                     border: `1.5px solid ${active ? GOLD : 'rgba(255,255,255,0.08)'}`,
@@ -336,7 +295,7 @@ export default function Onboarding({ onComplete, onHome }) {
                     transition: 'all 0.2s ease',
                     boxShadow: active ? '0 0 12px rgba(253,224,71,0.15)' : 'none',
                   }}>
-                    {s}
+                    {s.toUpperCase()}
                   </button>
                 );
               })}
@@ -351,7 +310,7 @@ export default function Onboarding({ onComplete, onHome }) {
         {/* SCREEN 5: Body profile */}
         {step === STEP.BODY && (
           <div style={{ width: '100%', maxWidth: 340 }}>
-            <StepTitle title="BODY PROFILE" subtitle="Optional — helps tailor your training. Skip anytime."/>
+            <StepTitle title="BODY PROFILE" subtitle="Optional — sets your fighter's look and tailors your training. Skip anytime."/>
 
             {/* Sex + Age */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
@@ -404,70 +363,52 @@ export default function Onboarding({ onComplete, onHome }) {
           </div>
         )}
 
-        {/* SCREEN 6: Recommendation */}
-        {step === STEP.RECOMMEND && (
+        {/* SCREEN 6: First workout. It names the real workout Home's top card
+            will hold (firstPick), and says so — setup goes on to Home, where
+            the walkthrough starts on that card. It used to promise a mission
+            by an invented name and START it, then land on Home anyway. */}
+        {step === STEP.RECOMMEND && pick && (
           <div style={{ width: '100%', maxWidth: 340, textAlign: 'center' }}>
             <div style={{
               fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.neon,
               letterSpacing: '0.2em', marginBottom: 10,
-            }}>YOUR FIRST MISSION</div>
+            }}>SETUP COMPLETE</div>
             <div style={{
               fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
               color: '#fff', letterSpacing: '0.1em', marginBottom: 6,
-            }}>RECOMMENDED START</div>
+            }}>YOUR FIRST WORKOUT</div>
             <div style={{
               fontFamily: "'Rajdhani',sans-serif", fontSize: 12, color: C.muted, marginBottom: 20,
-            }}>Based on your goal and experience level.</div>
+            }}>Picked from your goal and experience.</div>
 
-            {/* Recommendation Card */}
             <div style={{
               padding: '18px 16px', borderRadius: 12,
               background: 'rgba(10,0,20,0.8)', border: '1.5px solid rgba(253,224,71,0.25)',
-              marginBottom: 16, textAlign: 'left',
+              marginBottom: 14, textAlign: 'left',
               boxShadow: '0 0 20px rgba(253,224,71,0.08)',
             }}>
               <div style={{
                 fontFamily: "'Press Start 2P',monospace", fontSize: 6, color: GOLD,
                 letterSpacing: '0.15em', marginBottom: 8,
-              }}>START HERE</div>
+              }}>{pick.mode === 'fit' ? 'FIT MODE' : 'FIGHT MODE'}</div>
               <div style={{
                 fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14,
                 color: '#fff', letterSpacing: '0.06em', marginBottom: 6,
-              }}>{recommendation.title}</div>
+              }}>{pick.title}</div>
               <div style={{
                 fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
                 color: C.muted, lineHeight: 1.5,
-              }}>{recommendation.desc}</div>
+              }}>{pick.subtitle}</div>
             </div>
 
-            {/* Beta report TM-13 — the "Video guide coming soon" placeholder
-                advertised incompleteness at the exact moment a new user decides
-                whether to trust the product. Hidden until the video exists;
-                restore a real player here when it does. */}
+            <div style={{
+              fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 600,
+              color: C.text, lineHeight: 1.5, marginBottom: 6,
+            }}>It&apos;ll be waiting at the top of Home — tap START when you&apos;re ready.</div>
 
-            {/* CTAs */}
-            <button onClick={handleFinish} style={{
-              width: '100%', padding: '15px 0', borderRadius: 12,
-              background: `linear-gradient(135deg, ${GOLD}, ${C.yellow})`,
-              color: C.bg, border: 'none',
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12,
-              letterSpacing: '0.14em', cursor: 'pointer',
-              boxShadow: '0 0 24px rgba(253,224,71,0.4)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              marginBottom: 10,
-            }}>
-              <Play size={15}/> START FIRST MISSION
-            </button>
-
-            <button onClick={handleGoHome} style={{
-              width: '100%', padding: '12px 0', borderRadius: 10,
-              background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-              color: C.muted, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10,
-              letterSpacing: '0.1em', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              <House size={13}/> GO TO HOME
-            </button>
+            <PrimaryButton onClick={handleFinish}>
+              LET&apos;S GO <ChevronRight size={16}/>
+            </PrimaryButton>
           </div>
         )}
 

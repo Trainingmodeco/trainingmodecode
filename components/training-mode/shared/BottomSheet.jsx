@@ -20,6 +20,9 @@ import { C, NAV_H } from '../Styles';
 // rest ON the tab bar, never cover it. The nav stays visible and tappable, so
 // the athlete can always leave the screen without hunting for a close button.
 
+// variant 'float' — the Fit side's pickers: a narrower card that hovers in
+// the lower middle of the screen instead of docking to the nav, so the
+// screen behind stays visible around it.
 export default function BottomSheet({
   title,
   accent = C.violet,
@@ -27,8 +30,10 @@ export default function BottomSheet({
   children,
   footer,
   maxHeight = '86dvh',
+  variant = 'dock',
 }) {
   if (typeof document === 'undefined') return null;
+  const float = variant === 'float';
 
   return createPortal(
     <div style={{
@@ -37,14 +42,17 @@ export default function BottomSheet({
     }}>
       {/* Portalled out of the screen, so it can't rely on a screen's own CSS. */}
       <style dangerouslySetInnerHTML={{ __html: '@keyframes fadeSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }' }}/>
-      <div onClick={onClose} style={{ flex: 1, background: 'rgba(0,0,0,0.7)' }}/>
+      <div onClick={onClose} style={{ flex: 1, background: float ? 'rgba(3,2,8,0.7)' : 'rgba(0,0,0,0.7)', backdropFilter: float ? 'blur(2px)' : undefined }}/>
+      {float && <div onClick={onClose} style={{ position: 'absolute', inset: 0 }}/>}
       <div style={{
-        width: '100%', maxWidth: 440, margin: '0 auto', boxSizing: 'border-box',
-        background: '#0a0014', borderRadius: '16px 16px 0 0',
-        border: `1px solid ${accent}4d`, borderBottom: 'none',
+        position: 'relative',
+        width: float ? 'min(88%, 340px)' : '100%', maxWidth: 440, margin: float ? '0 auto 36px' : '0 auto', boxSizing: 'border-box',
+        background: float ? '#110C22' : '#0a0014', borderRadius: float ? 18 : '16px 16px 0 0',
+        border: float ? `1.5px solid ${accent}b3` : `1px solid ${accent}4d`, borderBottom: float ? undefined : 'none',
+        boxShadow: float ? `0 0 30px ${accent}4d, 0 20px 50px rgba(0,0,0,0.75)` : undefined,
         // min(…, 100%) so a tall sheet can never outgrow the shortened
         // overlay (which now ends at the nav) on a small screen.
-        maxHeight: `min(${maxHeight}, 100%)`, display: 'flex', flexDirection: 'column',
+        maxHeight: float ? `min(${maxHeight}, calc(100% - 56px))` : `min(${maxHeight}, 100%)`, display: 'flex', flexDirection: 'column',
         animation: 'fadeSlideUp 0.2s ease',
       }}>
         {title != null && (

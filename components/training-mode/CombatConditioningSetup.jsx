@@ -10,19 +10,21 @@ import { CADENCE_PRESETS } from './shared/CadenceSlider';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import AddCardioSheet from './AddCardioSheet';
 import { loadWarmup } from './shared/WarmupRow';
+import { StepperRow } from './shared/Stepper';
+import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
+import { ChevronDown } from 'lucide-react';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
-const GREEN = '#2ecc71';
-const YELLOW = '#e4d43a';
-const ORANGE = '#ff8a2a';
 const HERO_ART = '/static/hub/combat-hero.webp';
 
-const STYLES = [
-  { id: 'Boxing', label: 'BOXING' },
-  { id: 'Kickboxing / Muay Thai', label: 'KICKBOXING / MUAY THAI' },
-  { id: 'MMA', label: 'MMA' },
-];
+// The shared tabs offer four disciplines; the conditioning generator has
+// three styles, with Kickboxing and Muay Thai as one. Mapping here keeps the
+// generator untouched: both tabs give the same kick-and-knee pool they
+// always did.
+const ccStyleFor = (discipline) =>
+  (discipline === 'Kickboxing' || discipline === 'Muay Thai') ? 'Kickboxing / Muay Thai'
+    : discipline === 'MMA' ? 'MMA' : 'Boxing';
 
 // Four circuit presets. Each carries the defaults the caller expects on
 // select. focus + blend feed the generator; the rest seed the customize
@@ -71,15 +73,24 @@ const PRESETS = [
 ];
 function getPreset(id) { return PRESETS.find(p => p.id === id); }
 
-// Intensity progresses green → red as the difficulty climbs. Only the
-// selected chip wears its colour; the rest stay dark violet.
+// Intensity climbs from soft blue to deep red, and the top two carry a bolt,
+// so how hard a circuit is reads before the word. Only the selected option
+// wears its colour. `color` is the accent the hero banner uses for the level.
 const INTENSITIES = [
-  { id: 'Easy',     label: 'LOW',    color: GREEN,  short: 'Low' },
-  { id: 'Normal',   label: 'MED',    color: YELLOW, short: 'Medium' },
-  { id: 'Hard',     label: 'HIGH',   color: ORANGE, short: 'High' },
-  { id: 'Advanced', label: 'SAVAGE', color: RED,    short: 'Savage' },
+  { id: 'Easy',     label: 'LOW',    color: '#8FB4FF', short: 'Low' },
+  { id: 'Normal',   label: 'MED',    color: '#6E9BFF', short: 'Medium' },
+  { id: 'Hard',     label: 'HIGH',   color: '#F2BE45', short: 'High' },
+  { id: 'Advanced', label: 'SAVAGE', color: '#FDE047', short: 'Savage' },
 ];
 function getIntensity(id) { return INTENSITIES.find(i => i.id === id) || INTENSITIES[1]; }
+const INTENSITY_ON = {
+  Easy: { bg: 'rgba(143,180,255,0.16)', border: '#8FB4FF', color: '#E3ECFF', shadow: '0 0 12px rgba(143,180,255,0.35)' },
+  Normal: { bg: 'linear-gradient(180deg,#4F8BFF,#2458E0)', border: '#6E9BFF', color: '#FFFFFF', shadow: '0 0 14px rgba(61,123,255,0.6)' },
+  Hard: { bg: 'linear-gradient(180deg,#F87171,#DC2626 55%,#991B1B)', border: '#F2BE45', color: '#FFFFFF', shadow: '0 0 14px rgba(239,68,68,0.6)', bolt: true },
+  Advanced: { bg: 'linear-gradient(180deg,#EF4444,#991B1B 60%,#450A0A)', border: '#FDE047', color: '#FDE047', shadow: '0 0 16px rgba(239,68,68,0.8), 0 0 10px rgba(242,190,69,0.6)', bolt: true },
+};
+const OPT_OFF = { bg: '#0F1328', border: 'rgba(143,180,255,0.2)', color: '#A9B4D6', shadow: 'none' };
+const OPT_SELECTED = { bg: 'rgba(61,123,255,0.28)', border: '#3D7BFF', color: '#FFFFFF', shadow: '0 0 12px rgba(61,123,255,0.45)' };
 
 const EQUIPMENT = [
   { id: 'NONE', label: 'NONE' },
@@ -93,109 +104,40 @@ const setupCSS = `
 .cc-tap:hover { filter: brightness(1.08); }
 .cc-tap:active { transform: scale(0.97); }
 .cc-preset:active { transform: scale(0.96); }
-.cc-customize { overflow: hidden; transition: max-height 220ms ease, opacity 200ms ease, margin-top 200ms ease; }
-.cc-customize.closed { max-height: 0; opacity: 0; margin-top: 0 !important; }
-.cc-customize.open { max-height: 1200px; opacity: 1; }
 .cc-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .cc-scroll::-webkit-scrollbar { display: none; }
+.cc-opt, .cc-custom { transition: border-color .18s ease, box-shadow .18s ease; }
+.cc-opt:hover, .cc-opt:focus-visible, .cc-custom:hover, .cc-custom:focus-visible { border-color: #F2BE45 !important; }
 `;
 
-// ── Tiny building blocks ────────────────────────────────────────────────
-function SectionMicroLabel({ children }) {
-  return (
-    <div style={{
-      fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8',
-      fontSize: 6.8, letterSpacing: '0.14em', marginBottom: 2, textAlign: 'center',
-    }}>{children}</div>
-  );
-}
+const Bolt = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 11, height: 11, fill: 'currentColor', flexShrink: 0 }}><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+);
 
-// A tight +/- stepper for the TIMING row. Small enough that ROUNDS/WORK/REST
-// all sit on one line beside the icon + label.
-function MicroStepper({ label, value, unit, min, max, step, onChange }) {
-  const btn = {
-    width: 22, height: 22, borderRadius: 6,
-    border: 'none', color: '#fff',
-    background: RED,
-    fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, lineHeight: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
-  };
+// One Customize row: label, then the options as equal buttons. Same 46px,
+// red-bordered row as the timing steppers under it, so the panel reads as one
+// stack.
+function OptionRow({ label, options, value, onChange, styleFor }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
-      <SectionMicroLabel>{label}</SectionMicroLabel>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <button className="cc-tap" aria-label={`Decrease ${label}`} onClick={() => onChange(Math.max(min, value - step))} style={btn}>−</button>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 13, color: '#fff', minWidth: 24, textAlign: 'center' }}>
-          {value}{unit && <span style={{ fontSize: 7.5, color: '#c4a4d8', marginLeft: 0 }}>{unit}</span>}
-        </span>
-        <button className="cc-tap" aria-label={`Increase ${label}`} onClick={() => onChange(Math.min(max, value + step))} style={btn}>+</button>
+    <div style={{ height: 46, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8, padding: '0 5px 0 14px', borderRadius: 12, background: '#0B0F22', border: '1px solid rgba(239,68,68,0.32)' }}>
+      <span style={{ width: 84, flexShrink: 0, font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color: '#fff' }}>{label}</span>
+      <div role="radiogroup" aria-label={label} style={{ flex: 1, display: 'flex', gap: 4, minWidth: 0 }}>
+        {options.map(o => {
+          const on = o.id === value;
+          const s = styleFor(o, on);
+          return (
+            <button key={o.id} type="button" role="radio" aria-checked={on} className="cc-opt" onClick={() => onChange(o.id)} style={{
+              flex: 1, minWidth: 0, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+              borderRadius: 8, background: s.bg, border: `1px solid ${s.border}`, color: s.color, boxShadow: s.shadow,
+              font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', padding: '0 2px',
+            }}>{s.bolt && <Bolt/>}{o.label}</button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-// A row-shaped card used for every customize row: icon on the left, label +
-// sub in the centre, controls (children) on the right. Matches the reference.
-function ControlRow({ icon, iconTint, label, sub, children }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 9,
-      padding: '7px 10px 7px 8px',
-      borderRadius: 11,
-      border: '1px solid rgba(168,85,247,0.28)',
-      background: 'rgba(10,3,22,0.75)',
-    }}>
-      <div style={{
-        width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-        background: `${iconTint}22`,
-        border: `1px solid ${iconTint}55`,
-        color: iconTint,
-        fontSize: 15,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>{icon}</div>
-      <div style={{ minWidth: 0, flex: '0 0 auto', width: 92 }}>
-        <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9.5,
-          color: '#fff', letterSpacing: '0.06em', lineHeight: 1.1,
-        }}>{label}</div>
-        <div style={{
-          fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 8,
-          color: '#9a90b8', marginTop: 1, lineHeight: 1.1,
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>{sub}</div>
-      </div>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// Segmented button used in DISCIPLINE / INTENSITY / EQUIPMENT rows.
-function Chip({ active, activeColor, activeText, label, onClick, style }) {
-  return (
-    <button
-      type="button"
-      className="cc-tap"
-      onClick={onClick}
-      aria-pressed={active}
-      style={{
-        padding: '6px 7px',
-        borderRadius: 7,
-        cursor: 'pointer',
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 7.5, letterSpacing: '0.05em',
-        lineHeight: 1.1, minWidth: 0, whiteSpace: 'normal', textAlign: 'center',
-        background: active ? activeColor : 'rgba(16,4,30,0.8)',
-        border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-        color: active ? (activeText || '#fff') : '#d9d1ef',
-        boxShadow: active ? `0 0 10px ${activeColor}55` : 'none',
-        ...style,
-      }}
-    >{label}</button>
-  );
-}
-
-// ── Hero banner ─────────────────────────────────────────────────────────
 function CombatHeroBanner({ preset, rounds, difficulty, durationMin }) {
   const intensity = getIntensity(difficulty);
   const summaryLine = preset
@@ -318,7 +260,7 @@ function HeroStat({ icon, label, sub, accent }) {
 }
 
 // ── Presets row (four across, one line) ────────────────────────────────
-function CircuitPresetSelector({ selected, onSelect }) {
+function CircuitPresetSelector({ selected, onSelect, compact }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -337,27 +279,32 @@ function CircuitPresetSelector({ selected, onSelect }) {
         gap: 5,
       }}>
         {PRESETS.map(p => (
-          <PresetCard key={p.id} preset={p} active={selected === p.id} onSelect={() => onSelect(p.id)} />
+          <PresetCard key={p.id} preset={p} active={selected === p.id} onSelect={() => onSelect(p.id)} compact={compact}/>
         ))}
       </div>
     </div>
   );
 }
 
-function PresetCard({ preset, active, onSelect }) {
+// The cards stay exactly as they were, per the design. While Customize is
+// open they compact to icon + name so the whole panel fits on one screen;
+// the description and round count come back when it closes.
+function PresetCard({ preset, active, onSelect, compact }) {
   return (
     <button
       type="button"
       className="cc-tap cc-preset"
       onClick={onSelect}
       aria-pressed={active}
+      aria-label={compact ? `${preset.label} — ${preset.desc}` : undefined}
       style={{
         position: 'relative',
         borderRadius: 10,
         cursor: 'pointer',
         textAlign: 'center',
-        padding: '10px 4px 8px',
-        minHeight: 122,
+        padding: compact ? '8px 4px' : '10px 4px 8px',
+        minHeight: compact ? 58 : 122,
+        justifyContent: compact ? 'center' : undefined,
         background: active
           ? `linear-gradient(160deg, rgba(239,68,68,0.14) 0%, rgba(8,2,18,0.9) 70%)`
           : 'rgba(16,4,30,0.8)',
@@ -380,7 +327,7 @@ function PresetCard({ preset, active, onSelect }) {
         }}>✓</span>
       )}
       <span style={{
-        fontSize: 20, lineHeight: 1,
+        fontSize: compact ? 16 : 20, lineHeight: 1,
         filter: active ? 'drop-shadow(0 0 8px rgba(239,68,68,0.55))' : 'none',
       }}>{preset.icon}</span>
       <span style={{
@@ -388,29 +335,36 @@ function PresetCard({ preset, active, onSelect }) {
         color: active ? '#ff9a9a' : '#fff', letterSpacing: '0.02em', lineHeight: 1.1,
         padding: '0 2px',
       }}>{preset.label}</span>
-      <span style={{
-        fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 8.5,
-        color: '#a89bc8', lineHeight: 1.22, flex: 1,
-        padding: '0 2px',
-      }}>{preset.desc}</span>
-      <span style={{
-        display: 'flex', alignItems: 'center', gap: 3,
-        marginTop: 1,
-        fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5,
-        color: active ? '#ff9a9a' : '#c4a4d8',
-        letterSpacing: '0.12em',
-      }}>
-        <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', border: `1.4px solid ${active ? RED : preset.tint}`, background: 'transparent' }}/>
-        {preset.defaults.rounds} R · {preset.focusLabel.toUpperCase()}
-      </span>
+      {!compact && (
+        <>
+          <span style={{
+            fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 8.5,
+            color: '#a89bc8', lineHeight: 1.22, flex: 1,
+            padding: '0 2px',
+          }}>{preset.desc}</span>
+          <span style={{
+            display: 'flex', alignItems: 'center', gap: 3,
+            marginTop: 1,
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 6.5,
+            color: active ? '#ff9a9a' : '#c4a4d8',
+            letterSpacing: '0.12em',
+          }}>
+            <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', border: `1.4px solid ${active ? RED : preset.tint}`, background: 'transparent' }}/>
+            {preset.defaults.rounds} R · {preset.focusLabel.toUpperCase()}
+          </span>
+        </>
+      )}
     </button>
   );
 }
 
 // ── Main screen ─────────────────────────────────────────────────────────
-export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly: _onCardioOnly, profile: _profile }) {
+export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly: _onCardioOnly, profile: _profile, initialPreset = null }) {
   const [helpOpen, setHelpOpen] = useState(false);
-  const [style, setStyle] = useState('Boxing');
+  // The discipline is the shared one from the tabs (and the Fight hub), not a
+  // separate pick buried in Customize.
+  const [disc, pickDisc] = useDiscipline();
+  const style = ccStyleFor(disc);
   const [difficulty, setDifficulty] = useState('Normal');
   const [rounds, setRounds] = useState(5);
   const [workSec, setWorkSec] = useState(40);
@@ -432,6 +386,7 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
 
   const preset = useMemo(() => getPreset(focus), [focus]);
   const hasPreset = !!preset;
+  const open = hasPreset && customizeOpen;
 
   // Warm-up + work × rounds + rest × (rounds-1) + cardio addon minutes,
   // rounded up to whole minutes so the banner reads what the timer will run.
@@ -443,9 +398,10 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
     return Math.max(1, Math.round(total / 60));
   }, [warmupMin, rounds, workSec, restSec, cardioAddon]);
 
+  // Picking a circuit loads its defaults but leaves Customize shut: the
+  // preset is a complete workout, and most people should just start it.
   const handleSelectPreset = (id) => {
     setFocus(id);
-    setCustomizeOpen(true);
     const d = getPreset(id)?.defaults;
     if (d) {
       setRounds(d.rounds);
@@ -455,6 +411,14 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
       setEquipment(d.equipment);
     }
   };
+
+  // The Combat Conditioning comeback's START GAS TANK lands here with its
+  // circuit picked, exactly as if it had been tapped.
+  useEffect(() => {
+    if (initialPreset && getPreset(initialPreset)) handleSelectPreset(initialPreset);
+    // Mount-only: the opener's choice, not a subscription to it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const canStart = hasPreset;
   const handleStart = () => {
@@ -493,124 +457,66 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
           gap: 8,
         }}
       >
-        <CombatHeroBanner
-          preset={preset}
-          rounds={rounds}
-          difficulty={difficulty}
-          durationMin={durationMin}
-        />
+        <DisciplineTabs value={disc} onChange={pickDisc} guide="ccs-discipline"/>
+
+        {/* The hero steps aside while Customize is open, so the whole panel
+            and START stay on one screen. */}
+        {!open && (
+          <CombatHeroBanner
+            preset={preset}
+            rounds={rounds}
+            difficulty={difficulty}
+            durationMin={durationMin}
+          />
+        )}
 
         <div data-guide="ccs-style">
-          <CircuitPresetSelector selected={focus} onSelect={handleSelectPreset}/>
+          <CircuitPresetSelector selected={focus} onSelect={handleSelectPreset} compact={open}/>
         </div>
 
+        {/* Collapsed until tapped: the preset is already a full workout. The
+            gold estimate says what START will run without opening it. */}
         {hasPreset && (
           <button
             type="button"
             onClick={() => setCustomizeOpen(v => !v)}
-            aria-expanded={customizeOpen}
+            aria-expanded={open}
             aria-controls="cc-customize"
-            className="cc-tap"
+            className="cc-custom"
+            data-guide="ccs-customize"
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '8px 12px', cursor: 'pointer',
-              border: '1px solid rgba(168,85,247,0.3)',
-              background: 'rgba(16,4,30,0.7)', borderRadius: 10,
-              minHeight: 32,
+              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0 12px', height: 38, cursor: 'pointer', borderRadius: 10, color: '#fff',
+              border: '1px solid rgba(239,68,68,0.45)',
+              background: 'linear-gradient(90deg, rgba(239,68,68,0.12), #0B0F22 60%)',
             }}
           >
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 7, minWidth: 0 }}>
-              <span style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 11,
-                color: '#fff', letterSpacing: '0.08em',
-              }}>CUSTOMIZE</span>
-              <span style={{
-                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8,
-                color: C.faint, letterSpacing: '0.12em',
-              }}>(OPTIONAL)</span>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+              <span style={{ font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.12em' }}>CUSTOMIZE</span>
+              <span style={{ font: "600 10px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color: '#8E98BC' }}>(OPTIONAL)</span>
             </span>
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{
-                fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8,
-                color: '#8f8ab8', letterSpacing: '0.14em', whiteSpace: 'nowrap',
-              }}>FINE-TUNE YOUR SESSION</span>
-              <span style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
-                color: C.faint,
-                transform: customizeOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 200ms ease',
-              }}>▼</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ font: "700 12px 'Chakra Petch',sans-serif", color: '#F2BE45' }}>~{durationMin} MIN</span>
+              <ChevronDown size={16} color="#8FB4FF" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}/>
             </span>
           </button>
         )}
 
-        <div
-          id="cc-customize"
-          className={`cc-customize ${hasPreset && customizeOpen ? 'open' : 'closed'}`}
-          aria-hidden={!(hasPreset && customizeOpen)}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* DISCIPLINE */}
-            <ControlRow icon="🥊" iconTint="#ef4444" label="DISCIPLINE" sub="Training style">
-              <div style={{ display: 'flex', gap: 3, minWidth: 0, width: '100%', justifyContent: 'flex-end' }}>
-                {STYLES.map(s => (
-                  <Chip
-                    key={s.id}
-                    active={style === s.id}
-                    activeColor={RED}
-                    activeText="#fff"
-                    label={s.label}
-                    onClick={() => setStyle(s.id)}
-                    style={{ flex: 1, maxWidth: 82 }}
-                  />
-                ))}
-              </div>
-            </ControlRow>
-
-            {/* TIMING */}
-            <ControlRow icon="⏱" iconTint="#a855f7" label="TIMING" sub="Work / rest">
-              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: 'flex-end' }}>
-                <MicroStepper label="ROUNDS" value={rounds} min={2} max={12} step={1} onChange={setRounds}/>
-                <MicroStepper label="WORK"   value={workSec} unit="s" min={10} max={120} step={5} onChange={setWorkSec}/>
-                <MicroStepper label="REST"   value={restSec} unit="s" min={0}  max={90}  step={5} onChange={setRestSec}/>
-              </div>
-            </ControlRow>
-
-            {/* INTENSITY */}
-            <ControlRow icon="▮▮" iconTint="#a855f7" label="INTENSITY" sub="How hard">
-              <div style={{ display: 'flex', gap: 3, minWidth: 0, width: '100%', justifyContent: 'flex-end' }}>
-                {INTENSITIES.map(o => (
-                  <Chip
-                    key={o.id}
-                    active={difficulty === o.id}
-                    activeColor={o.color}
-                    activeText="#0a0014"
-                    label={o.label}
-                    onClick={() => setDifficulty(o.id)}
-                    style={{ flex: 1, maxWidth: 60 }}
-                  />
-                ))}
-              </div>
-            </ControlRow>
-
-            {/* EQUIPMENT */}
-            <ControlRow icon="🏋" iconTint="#a855f7" label="EQUIPMENT" sub="What you have">
-              <div style={{ display: 'flex', gap: 3, minWidth: 0, width: '100%', justifyContent: 'flex-end' }}>
-                {EQUIPMENT.map(o => (
-                  <Chip
-                    key={o.id}
-                    active={equipment === o.id}
-                    activeColor={GOLD}
-                    activeText="#0a0014"
-                    label={o.label}
-                    onClick={() => setEquipment(o.id)}
-                    style={{ flex: 1, maxWidth: 82 }}
-                  />
-                ))}
-              </div>
-            </ControlRow>
+        {open && (
+          <div id="cc-customize" style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+            <OptionRow
+              label="INTENSITY" options={INTENSITIES} value={difficulty} onChange={setDifficulty}
+              styleFor={(o, on) => (on ? INTENSITY_ON[o.id] : OPT_OFF)}
+            />
+            <OptionRow
+              label="EQUIPMENT" options={EQUIPMENT} value={equipment} onChange={setEquipment}
+              styleFor={(_o, on) => (on ? OPT_SELECTED : OPT_OFF)}
+            />
+            <StepperRow tone="red" label="ROUNDS" value={rounds} min={2} max={12} step={1} parse={s => parseInt(s, 10)} onChange={setRounds}/>
+            <StepperRow tone="red" label="WORK" value={workSec} unit="S" min={10} max={120} step={5} parse={s => parseInt(s, 10)} onChange={setWorkSec}/>
+            <StepperRow tone="red" label="REST" value={restSec} unit="S" min={0} max={90} step={5} parse={s => parseInt(s, 10)} onChange={setRestSec}/>
           </div>
-        </div>
+        )}
 
         {/* ADD CARDIO — always visible */}
         <div

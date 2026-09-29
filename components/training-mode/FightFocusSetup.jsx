@@ -1,28 +1,25 @@
 import { useState } from 'react';
 import PhoneFrame from './PhoneFrame';
-import TrainingHeader from './TrainingHeader';
-import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import CodeEntryModal from './shared/CodeEntryModal';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { getMyBestGhost, importGhostCode, exportGhostCode } from './data/ghostBattles';
-import Embers from './Embers';
-import SafeImage from './SafeImage';
-import { C } from './Styles';
 import { canRunRounds, GATES } from './data/entitlements';
 import ProGateOverlay from './shared/ProGateOverlay';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
-import { IMG } from './data/optimizedImageMap';
 import TrainingCTA from './shared/TrainingCTA';
-import FightRingBackdrop from './shared/FightRingBackdrop';
 import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
 import WarmupRow, { loadWarmup } from './shared/WarmupRow';
+import { FightBackdrop, FightHeader, FightDifficulty, fightTimerCSS } from './shared/FightTimerKit';
 
-const GOLD = C.gold;
-const BLUE = '#4f8cff';
+// Fight Focus setup — the Simplify revamp reskin (royal blue + gold, no
+// banner, one screen). The session it starts is unchanged: same config, same
+// FightFocusTimer.
 
 const DIFFICULTIES = ['Easy', 'Normal', 'Hard'];
+// Kept from before rather than the mock's copy: the mock's Hard line promises
+// "less recovery", but rest is whatever ROUND REST is set to.
 const DIFF_DESC = {
   Easy: 'Fundamental focuses — clean technique, one cue at a time.',
   Normal: 'Balanced focuses & combinations across your discipline.',
@@ -32,53 +29,34 @@ const DIFF_DESC = {
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
 const toInt = (s) => parseInt(s, 10);
 
-const setupCSS = `
-.ff-seg { transition: all 0.18s ease; cursor: pointer; }
-.ff-seg:active { transform: scale(0.97); }
-`;
+// A ghost challenge (data/ghostChallenges) opens this screen with the ghost
+// already chosen: its rounds and level preset, and surprise rushes locked on
+// in place of the Rush Mode row, per the design.
+const levelOf = (d) => {
+  const v = String(d || '').charAt(0).toUpperCase() + String(d || '').slice(1).toLowerCase();
+  return DIFFICULTIES.includes(v) ? v : 'Normal';
+};
+const SURPRISE_RUSH = { on: true, pattern: 'random', mix: 'explosive' };
 
-function SectionLabel({ children }) {
-  return (
-    <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, color: '#c4a4d8', fontSize: 8.5, letterSpacing: '0.16em', marginBottom: 7 }}>{children}</div>
-  );
-}
-
-function Segmented({ label, options, value, onChange, accent }) {
-  return (
-    <div>
-      <SectionLabel>{label}</SectionLabel>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {options.map(o => {
-          const active = o === value;
-          return (
-            <button key={o} className="ff-seg" onClick={() => onChange(o)} style={{
-              flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8,
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.04em',
-              background: active ? accent : 'rgba(16,4,30,0.8)',
-              border: active ? 'none' : '1px solid rgba(168,85,247,0.3)',
-              color: active ? '#0a0014' : '#d9d1ef',
-            }}>{o.toUpperCase()}</button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall, profile }) {
+export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall, profile, challenge = null }) {
   const [helpOpen, setHelpOpen] = useState(false);
   // Ghost Battles — the chosen opponent (null = plain session).
-  const [ghost, setGhost] = useState(null);
+  const [ghost, setGhost] = useState(() => challenge?.ghost || null);
   const [ghostCodeOpen, setGhostCodeOpen] = useState(false); // in-app code entry (RN Web has no prompt)
   const [ghostToast, setGhostToast] = useState('');
   const myBest = getMyBestGhost('fight_focus', discipline);
   const [proGateOpen, setProGateOpen] = useState(false);
-  const [cfg, setCfg] = useState({
-    difficulty: 'Normal', mode: 'Technical', rounds: 3,
-    roundMin: 3, restSec: 60, voiceOn: true,
-    rush: { on: false, pattern: 'endRound' },
-    encouragement: profile?.encouragement || 'normal',
-    warmupMin: loadWarmup('fightFocus'),
+  const [cfg, setCfg] = useState(() => {
+    const rc = challenge?.ghost?.source?.roundsConfig;
+    return {
+      difficulty: challenge ? levelOf(challenge.ghost.source?.difficulty) : 'Normal', mode: 'Technical',
+      rounds: rc?.rounds || 3,
+      roundMin: rc?.roundSec ? rc.roundSec / 60 : 3,
+      restSec: rc?.restSec ?? 60, voiceOn: true,
+      rush: challenge ? SURPRISE_RUSH : { on: false, pattern: 'endRound' },
+      encouragement: profile?.encouragement || 'normal',
+      warmupMin: loadWarmup('fightFocus'),
+    };
   });
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
 
@@ -86,64 +64,55 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
 
   return (
     <PhoneFrame useBrandBg>
-      <FightRingBackdrop/>
-      <style dangerouslySetInnerHTML={{ __html: setupCSS }}/>
-      <Embers count={3}/>
-
-      <TrainingHeader
-        title="FIGHT FOCUS"
-        subtitle={`${discipline} — voice-coached rounds`}
-        onHome={onBack}
-        showBack
-        onBack={onBack}
-        rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
-      />
+      <FightBackdrop/>
+      <style dangerouslySetInnerHTML={{ __html: fightTimerCSS }}/>
 
       <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        padding: '10px 14px 0',
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 12,
+        padding: '10px 16px 0',
         paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
       }}>
+        <FightHeader title="FIGHT FOCUS" sub={`${discipline} · round timer with focus calls`} onBack={onBack} onHelp={() => setHelpOpen(true)}/>
 
-        {/* Banner (dimmed, bigger title) */}
-        <div style={{ width: '100%', height: 62, borderRadius: 12, overflow: 'hidden', marginBottom: 13, position: 'relative', border: '1px solid rgba(253,224,71,0.2)' }}>
-          <SafeImage src={IMG.hub.fight} alt="Fight Focus" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.5 }}/>
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,0,20,0.86) 0%, rgba(10,0,20,0.5) 55%, rgba(10,0,20,0.3) 100%)' }}/>
-          <div style={{ position: 'absolute', bottom: 11, left: 15, zIndex: 2 }}>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, color: GOLD, letterSpacing: '0.08em', textShadow: '0 0 10px rgba(253,224,71,0.4)' }}>FIGHT FOCUS</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: 'rgba(255,255,255,0.72)', marginTop: 1 }}>Round timer with focus calls</div>
-          </div>
-        </div>
-
-        {/* Difficulty + explanation */}
-        <div style={{ marginBottom: 6 }}>
-          <div data-guide="ff-difficulty"><Segmented label="DIFFICULTY" options={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} accent={GOLD}/></div>
-        </div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: '#a99cc4', lineHeight: 1.35, marginBottom: 14, minHeight: 26 }}>
-          <span style={{ color: GOLD, fontWeight: 700 }}>{cfg.difficulty.toUpperCase()}:</span> {DIFF_DESC[cfg.difficulty]}
-        </div>
+        <FightDifficulty levels={DIFFICULTIES} value={cfg.difficulty} onChange={v => set('difficulty', v)} desc={DIFF_DESC[cfg.difficulty]} guide="ff-difficulty"/>
 
         {/* Stacked steppers — WARM-UP first, since it's the first thing that
             happens in the session. */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
-          <div data-guide="ff-steppers">
+        <div data-guide="ff-steppers" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <WarmupRow feature="fightFocus" value={cfg.warmupMin} onChange={v => set('warmupMin', v)}/>
-          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)} accent={GOLD}/>
-          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)} accent={GOLD}/>
-          <StepperRow label="ROUND REST" value={cfg.restSec} unit="s" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)} accent={BLUE}/>
+          <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)}/>
+          <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)}/>
+          <StepperRow label="ROUND REST" value={cfg.restSec} unit="S" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)}/>
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
-          </div>
         </div>
 
-        {/* Rush mode (opens the flame popup) */}
-        <div data-guide="ff-rush" style={{ marginBottom: 9 }}>
-          <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
-        </div>
+        {/* Rush mode (opens the flame popup) — unchanged, per the design.
+            A ghost challenge takes its place: surprise rushes, locked on. */}
+        {challenge ? (
+          <div data-guide="ff-rush" style={{
+            display: 'flex', alignItems: 'center', gap: 10, minHeight: 56, padding: '8px 12px', borderRadius: 12, boxSizing: 'border-box',
+            background: 'linear-gradient(90deg, rgba(36,88,224,.28), rgba(11,15,34,.92))', border: '1px solid rgba(110,155,255,.6)',
+            boxShadow: '0 0 16px rgba(61,123,255,.25)',
+          }}>
+            <span style={{ fontSize: 22 }}>👻</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color: '#fff' }}>GHOST CHALLENGE</div>
+              <div style={{ fontSize: 12, color: '#A9B4D6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                VS {challenge.ghost.ownerName} · {challenge.ghost.totalStrikes} strikes · surprise rushes locked on
+              </div>
+            </div>
+            <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color: '#F2BE45', border: '1px solid rgba(242,190,69,.55)', borderRadius: 6, padding: '4px 7px', flexShrink: 0 }}>⚡ ON</span>
+          </div>
+        ) : (
+          <div data-guide="ff-rush">
+            <RushModeRow rush={cfg.rush} onChange={r => set('rush', r)} discipline={discipline}/>
+          </div>
+        )}
 
         {/* Ghost Battles (specs 18/24) — race the replay of a verified past
             session. MY BEST is always available once one exists; a friend's
             challenge code pastes in. The battle inherits this session's format. */}
-        <div data-tour="ghost-battle" data-guide="ff-ghost" style={{ marginBottom: 9, borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
+        {!challenge && <div data-tour="ghost-battle" data-guide="ff-ghost" style={{ borderRadius: 12, border: `1px solid ${ghost ? 'rgba(176,106,255,0.65)' : 'rgba(168,85,247,0.28)'}`, background: ghost ? 'linear-gradient(90deg,rgba(88,28,135,0.35),rgba(16,4,30,0.85))' : 'rgba(16,4,30,0.8)', padding: '10px 13px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <span style={{ fontSize: 15 }}>👻</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -172,7 +141,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
             }} style={{ marginTop: 7, width: '100%', background: 'none', border: '1px dashed rgba(176,106,255,0.35)', borderRadius: 8, color: '#8b83a8', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.06em', padding: '6px 0' }}>⚔️ SET MY BEST AS A CHALLENGE (COPY CODE)</button>
           )}
           {ghostToast && <div style={{ marginTop: 7, font: "600 9px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{ghostToast}</div>}
-        </div>
+        </div>}
 
         {/* Start — inline, right under Rush Mode so it's never hidden */}
         <div data-guide="ff-start">
@@ -190,6 +159,7 @@ export default function FightFocusSetup({ discipline, onBack, onStart, onPaywall
               encouragement: cfg.encouragement,
               warmupMin: cfg.warmupMin,
               ghost,
+              ghostChallengeId: challenge?.id || null,
             });
           }}
         />

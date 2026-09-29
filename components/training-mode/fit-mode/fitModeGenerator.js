@@ -29,10 +29,13 @@ function shuffle(arr) {
   return a;
 }
 
+// Cable stacks and machines are a gym, not a home. WEIGHTED means what fits
+// in a garage — dumbbells, a bar, kettlebells, bands.
+const GYM_ONLY = new Set(['Cable', 'Machine']);
 function matchesEquipment(exercise, equipment) {
+  if (GYM_ONLY.has(exercise.equipment)) return false;
   if (equipment === 'Hybrid') return true;
   if (equipment === 'Bodyweight') return exercise.equipment === 'Bodyweight';
-  // Weighted covers any loaded implement: Weighted, Band, Cable, Machine.
   return exercise.equipment !== 'Bodyweight';
 }
 
@@ -42,12 +45,23 @@ function diffDistance(exercise, difficulty) {
   return Math.abs(exDiff - target);
 }
 
+// Strength used to prescribe 4×4-8 with two minutes' rest — a powerlifting
+// template that made a "Normal" home session run an hour and put "120s rest"
+// on every row. These are a coach's home-gym numbers.
 const FOCUS_PARAMS = {
-  Strength:   { reps: '4-8',   sets: 4, setsHigh: 5, rest: 120, restRange: [90, 150], biasCompound: true },
-  Hypertrophy:{ reps: '8-12',  sets: 3, setsHigh: 4, rest: 75,  restRange: [60, 90],  biasCompound: false },
+  Strength:   { reps: '6-10',  sets: 3, setsHigh: 4, rest: 75,  restRange: [60, 90],  biasCompound: true },
+  Hypertrophy:{ reps: '8-12',  sets: 3, setsHigh: 4, rest: 60,  restRange: [45, 75],  biasCompound: false },
   Endurance:  { reps: '15-20', sets: 2, setsHigh: 3, rest: 35,  restRange: [30, 45],  biasCompound: false },
   Hybrid:     { reps: '10-12', sets: 3, setsHigh: 4, rest: 60,  restRange: [45, 90],  biasCompound: false },
 };
+
+// Seconds one exercise costs under a focus: sets × (a ~35 s working set +
+// the rest after it). What the DURATION picker is budgeted against.
+function perExerciseSeconds(focus, difficulty) {
+  const fp = FOCUS_PARAMS[focus] || FOCUS_PARAMS.Hypertrophy;
+  const sets = difficulty === 'Easy' ? Math.max(2, fp.sets - 1) : (difficulty === 'Hard' || difficulty === 'Advanced') ? fp.setsHigh : fp.sets;
+  return sets * (35 + fp.rest);
+}
 
 function tuneForFocus(exercise, difficulty, focus, exerciseIndex) {
   const isTimed = !!exercise.durationSeconds;
@@ -258,17 +272,19 @@ function pickForGroup(mg, equipment, difficulty, targetCount, usedNames, pattern
   return picked;
 }
 
-function targetStrengthCount(count, addCardio, difficulty) {
-  let total;
-  if (count <= 1) total = 5;
-  else if (count === 2) total = 6;
-  else if (count === 3) total = 7;
-  else total = 8;
-  // Hard/Advanced sessions run one lift longer so difficulty changes volume,
-  // not just sets/reps. Easy keeps the base so it never feels too short.
-  if (difficulty === 'Hard' || difficulty === 'Advanced') total += 1;
-  // Cardio adds one block; trim one strength slot so the session stays balanced.
-  return addCardio ? Math.max(count, total - 1) : total;
+// The list never runs past eight rows: that is what fits above START on a
+// phone, and more than that is a second session, not a longer one.
+export const MAX_EXERCISES = 8;
+
+// How many lifts the session gets. The DURATION the athlete picked decides
+// it (it used to be ignored — a 15-minute pick generated the same list as
+// 60), then difficulty and cardio trade a slot either way inside the cap.
+function targetStrengthCount(count, addCardio, difficulty, duration, focus) {
+  const mins = Number(duration) || 30;
+  // The cardio block takes about four minutes of the budget and one row.
+  const budget = mins * 60 - (addCardio ? 240 : 0);
+  const total = Math.round(budget / perExerciseSeconds(focus, difficulty));
+  return Math.max(Math.min(count, 3), Math.min(MAX_EXERCISES - (addCardio ? 1 : 0), total));
 }
 
 // Curated conditioning finishers. The `cardioFinisher` flag in the exercise
@@ -344,8 +360,13 @@ function buildOnce(cfg) {
     return exercises;
   }
 
-  const count = muscleGroups.length;
-  const strengthTarget = targetStrengthCount(count, addCardio, difficulty);
+  const strengthTarget = targetStrengthCount(muscleGroups.length, addCardio, difficulty, cfg.duration, focus);
+  // More groups than slots (a full-body day is ten granular groups): every
+  // group used to get one exercise anyway, so FULL BODY WEIGHTED ran to
+  // eleven rows and pushed START off the screen. Now the slots pick which
+  // groups train today and the rest wait for the next regenerate.
+  const groups = muscleGroups.length > strengthTarget ? shuffle(muscleGroups).slice(0, strengthTarget) : muscleGroups;
+  const count = groups.length;
 
   const perGroup = Math.floor(strengthTarget / count);
   const remainder = strengthTarget - perGroup * count;
@@ -355,11 +376,11 @@ function buildOnce(cfg) {
   const exercises = [];
 
   // Randomize which groups get the extra slot so regenerate varies emphasis.
-  const order = shuffle(muscleGroups.map((mg, idx) => ({ mg, idx })));
+  const order = shuffle(groups.map((mg, idx) => ({ mg, idx })));
   const extraForIndex = new Set(order.slice(0, remainder).map(o => o.idx));
 
   let runningIndex = 0;
-  muscleGroups.forEach((mg, idx) => {
+  groups.forEach((mg, idx) => {
     const groupTarget = Math.max(1, perGroup + (extraForIndex.has(idx) ? 1 : 0));
     const picks = pickForGroup(mg, equipment, difficulty, groupTarget, usedNames, patternCounts, { focus, baseIndex: runningIndex });
     runningIndex += picks.length;
@@ -383,6 +404,7 @@ function configSignature(cfg) {
     cfg.difficulty,
     cfg.addCardio ? 'cardio' : 'nocardio',
     cfg.focus,
+    cfg.duration,
   ].join('|');
 }
 
@@ -437,6 +459,7 @@ export function generateFitModeWorkout(cfg) {
     difficulty: cfg?.difficulty || 'Normal',
     addCardio: !!cfg?.addCardio,
     focus: cfg?.focus || 'Strength',
+    duration: Number(cfg?.duration) || 30,
   };
 
   if (safeCfg.muscleGroups.length === 0) return [];

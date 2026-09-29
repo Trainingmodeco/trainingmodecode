@@ -1,21 +1,45 @@
 import { useState } from 'react';
 import { C } from '../Styles';
 
-// Full-width stacked row: label on the left, then − [ typable value ] +.
+// The Simplify revamp's stepper row: 46px, label left, then − [ typable value ] +.
 // The centre value is an editable number field (digits only); `display` formats
 // the resting value, `editDisplay` the value while typing, `parse` reads it back,
 // and `unit` is a small suffix shown next to the resting value.
-export function StepperRow({ label, value, unit, min, max, step = 1, onChange, accent = '#a855f7', display, editDisplay, parse }) {
+//
+// Two tones, both from the design. `fight` (royal blue buttons that turn gold
+// under the pointer) is the Fight Timer setups'. `red` is Combat
+// Conditioning's Customize rows: red row border and red buttons, gold units.
+const TONES = {
+  fight: {
+    row: '#0B0F22', rowBorder: 'rgba(61,123,255,0.22)',
+    btnBg: 'rgba(61,123,255,0.1)', btnBorder: 'rgba(61,123,255,0.6)', btnColor: '#8FB4FF',
+    unit: '#8FB4FF', label: '#FFFFFF',
+  },
+  red: {
+    row: '#0B0F22', rowBorder: 'rgba(239,68,68,0.32)',
+    btnBg: 'linear-gradient(180deg,#EF4444,#B91C1C)', btnBorder: 'rgba(255,150,150,0.55)', btnColor: '#FFFFFF',
+    unit: '#F2BE45', label: '#FFFFFF',
+  },
+};
+
+export const stepperCSS = `
+.st-btn { transition: border-color .18s ease, color .18s ease, box-shadow .18s ease; }
+.st-btn:hover, .st-btn:focus-visible { border-color: #F2BE45 !important; box-shadow: 0 0 10px rgba(242,190,69,.35); }
+.st-btn.fight:hover, .st-btn.fight:focus-visible { color: #F2BE45 !important; }
+.st-btn:active { transform: scale(0.94); }
+`;
+
+export function StepperRow({ label, value, unit, min, max, step = 1, onChange, display, editDisplay, parse, tone = 'fight' }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState('');
+  const t = TONES[tone] || TONES.fight;
   const round = (v) => Math.round(v * 100) / 100;
   const clamp = (v) => Math.min(max, Math.max(min, v));
   const resting = display ? display(value) : String(value);
   const btn = {
-    width: 28, height: 28, borderRadius: 7, border: `1px solid ${accent}66`, color: accent,
-    fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, lineHeight: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-    background: `${accent}14`, flexShrink: 0,
+    width: 34, height: 34, borderRadius: 8, border: `1px solid ${t.btnBorder}`, color: t.btnColor,
+    background: t.btnBg, fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 18, lineHeight: 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
   };
   const commit = () => {
     setEditing(false);
@@ -23,11 +47,13 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, a
     if (Number.isFinite(raw)) onChange(round(clamp(raw)));
   };
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(8,2,18,0.82)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '6px 10px' }}>
-      <span style={{ flex: 1, minWidth: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.07em', color: '#d9d1ef' }}>{label}</span>
-      <button onClick={() => onChange(round(clamp(value - step)))} style={btn}>−</button>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 62 }}>
+    <div style={{ height: 40, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8, background: t.row, border: `1px solid ${t.rowBorder}`, borderRadius: 12, padding: '0 8px 0 14px' }}>
+      <style>{stepperCSS}</style>
+      <span style={{ flex: 1, minWidth: 0, fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: t.label }}>{label}</span>
+      <button type="button" className={`st-btn ${tone}`} aria-label={`Decrease ${String(label).toLowerCase()}`} onClick={() => onChange(round(clamp(value - step)))} style={btn}>−</button>
+      <div style={{ width: 70, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
         <input
+          aria-label={label}
           value={editing ? text : resting}
           inputMode="decimal"
           onFocus={() => { setEditing(true); setText(editDisplay ? editDisplay(value) : String(value)); }}
@@ -35,24 +61,25 @@ export function StepperRow({ label, value, unit, min, max, step = 1, onChange, a
           onBlur={commit}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
           style={{
-            width: 62, textAlign: 'center', background: 'transparent', border: 'none', outline: 'none',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, color: '#fff', padding: 0,
-            caretColor: accent,
+            width: 52, textAlign: 'center', background: 'transparent', border: 'none', outline: 'none',
+            fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 18, color: '#fff', padding: 0,
+            caretColor: '#F2BE45',
           }}
         />
-        {unit && !editing && <span style={{ position: 'absolute', right: 6, fontSize: 9, color: '#8b83a8', pointerEvents: 'none' }}>{unit}</span>}
+        {unit && !editing && <span style={{ fontSize: 10, color: t.unit, pointerEvents: 'none' }}>{unit}</span>}
       </div>
-      <button onClick={() => onChange(round(clamp(value + step)))} style={btn}>+</button>
+      <button type="button" className={`st-btn ${tone}`} aria-label={`Increase ${String(label).toLowerCase()}`} onClick={() => onChange(round(clamp(value + step)))} style={btn}>+</button>
     </div>
   );
 }
 
 // Full-width read-only row (e.g. TOTAL): label left, value right, no controls.
-export function TotalRow({ label, value, accent = C.gold }) {
+// Dashed gold, so it reads as a result of the rows above rather than a control.
+export function TotalRow({ label, value }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(8,2,18,0.5)', border: '1px dashed rgba(168,85,247,0.25)', borderRadius: 11, padding: '7px 12px' }}>
-      <span style={{ flex: 1, fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.07em', color: '#c4a4d8' }}>{label}</span>
-      <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, color: accent }}>{value}</span>
+    <div style={{ height: 34, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', borderRadius: 12, border: '1px dashed rgba(242,190,69,0.35)' }}>
+      <span style={{ fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: '#A9B4D6' }}>{label}</span>
+      <span style={{ fontFamily: "'Chakra Petch',sans-serif", fontWeight: 700, fontSize: 18, color: '#F2BE45' }}>{value}</span>
     </div>
   );
 }

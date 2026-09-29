@@ -28,7 +28,8 @@ export const PROGRAMS = [
     days: [{ label: 'CHEST', chips: ['CHEST'] }, { label: 'BACK', chips: ['BACK'] }, { label: 'SHOULDERS', chips: ['SHOULDERS'] }, { label: 'ARMS', chips: ['ARMS'] }, { label: 'LEGS', chips: ['LEGS'] }] },
 ];
 
-export const DURATIONS = [20, 40, 60];
+export const DURATIONS = [15, 30, 45, 60];
+export const DEFAULT_DURATION = 30;
 
 // Which day of a split is up next (rotates via a per-program localStorage counter).
 export function programDayIndex(p) {
@@ -48,7 +49,13 @@ export function resolveScheme(schemeId, customScheme) {
   if (!schemeId || schemeId === 'auto') return null;
   if (schemeId === 'custom') return { id: 'custom', ...customScheme };
   const s = SET_SCHEMES.find(x => x.id === schemeId);
-  return s ? { id: s.id, sets: s.sets, reps: s.reps, restSeconds: s.restSeconds } : null;
+  if (s) return { id: s.id, sets: s.sets, reps: s.reps, restSeconds: s.restSeconds };
+  // A program can carry a scheme that isn't one of the selector's chips —
+  // Bro Split's 4×10 isn't. Without this it resolved to null and the
+  // generator quietly used its own numbers, so the program never delivered
+  // the scheme printed on it.
+  const ps = PROGRAMS.find(p => p.scheme.id === schemeId)?.scheme;
+  return ps ? { ...ps } : null;
 }
 
 // Short one-line summary of the current programming, or 'AUTO' when untouched.
@@ -59,7 +66,7 @@ export function programmingSummary({ schemeId, programId, duration }) {
   const parts = [];
   if (schemeId && schemeId !== 'auto') {
     const s = SET_SCHEMES.find(x => x.id === schemeId);
-    parts.push(s ? s.label : schemeId);
+    parts.push(s ? s.label : schemeId.replace('x', '×'));
   }
   if (programId) {
     const p = PROGRAMS.find(x => x.id === programId);
@@ -67,4 +74,43 @@ export function programmingSummary({ schemeId, programId, duration }) {
   }
   if (duration) parts.push(`${duration}m`);
   return parts.join(' · ');
+}
+
+// The builder's muscle chips mapped to the generator's granular groups. Lives
+// here, not in FitBuilderSetup, so the Programs screen resolves a program day
+// exactly the way the builder does.
+export const CHIP_GROUPS = {
+  CHEST: ['Chest'],
+  BACK: ['Back'],
+  SHOULDERS: ['Shoulders'],
+  ARMS: ['Biceps', 'Triceps'],
+  CORE: ['Core'],
+  LEGS: ['Quads', 'Hamstrings'],
+  GLUTES: ['Glutes'],
+};
+
+// Which program the athlete is on — set whenever one is started, from the
+// Programs screen or the builder's PROGRAMMING sheet, so both doors agree.
+const CURRENT_KEY = 'tm_current_program';
+export function loadCurrentProgram() {
+  try { return PROGRAMS.find(p => p.id === localStorage.getItem(CURRENT_KEY)) || null; } catch { return null; }
+}
+export function saveCurrentProgram(id) {
+  try { localStorage.setItem(CURRENT_KEY, id); } catch { /* storage is best-effort */ }
+}
+
+// A program's next day as the config the builder hands to the generator, and
+// the side effects of starting it: the split advances and it becomes current.
+// Uses the program's own scheme so a split always trains what it advertises.
+export function startProgramDay(p, { equipment = 'Bodyweight', difficulty = 'Normal' } = {}) {
+  const idx = programDayIndex(p);
+  const day = p.days[idx];
+  advanceProgramDay(p, idx);
+  saveCurrentProgram(p.id);
+  return {
+    muscleGroups: day.chips.flatMap(id => CHIP_GROUPS[id] || []),
+    equipment, difficulty, focus: 'Strength', duration: p.duration,
+    cardioAddon: null, addCardio: false, setScheme: { ...p.scheme },
+    programId: p.id, programDay: day.label || null,
+  };
 }
