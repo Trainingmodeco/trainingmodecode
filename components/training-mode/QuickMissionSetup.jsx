@@ -88,9 +88,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
           }}>
             <SafeImage src="/static/fitmode/banner-gym-quick.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '55% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.82) 55%, rgba(7,6,12,0.4) 100%)' }}/>
-            <div style={{ position: 'relative', padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ position: 'relative', padding: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: named ? GOLD : VIOLET_TEXT }}>{named ? `Classic · ${named.tag}` : 'Today’s Quick Mission'}</span>
-              <h1 style={{ margin: 0, font: `700 26px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 300 }}>{named ? named.title : mission.title}</h1>
+              <h1 style={{ margin: 0, font: `700 21px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 300 }}>{named ? named.title : mission.title}</h1>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {named ? (
                   <>
@@ -110,12 +110,12 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               </div>
               {named ? (
                 <>
-                  <ol style={{ listStyle: 'none', margin: '4px 0 2px', padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <ol style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {named.lines.map(([a, b], i) => /^[+×]\s/.test(a) ? (
                       // "+ 3 more" / "× 2 rounds" are notes on the list, not steps.
                       <li key={i} style={{ paddingLeft: 28, font: `600 12px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>{a}</li>
                     ) : (
-                      <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 14px ${BODY}`, color: '#fff' }}>
+                      <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 13px ${BODY}`, color: '#fff' }}>
                         <span style={{ width: 18, font: `700 11px ${HEAD}`, color: GOLD }}>{String(i + 1).padStart(2, '0')}</span>
                         <span style={{ flex: 1, fontWeight: 600 }}>{a}</span>
                         {b && <span style={{ font: `600 12px ${HEAD}`, color: '#CFC9E4' }}>{b}</span>}
@@ -126,16 +126,16 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                 </>
               ) : (
               <>
-              <ol style={{ listStyle: 'none', margin: '4px 0 2px', padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <ol style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {mission.exercises.map((ex, i) => (
-                  <li key={`${ex.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 14px ${BODY}`, color: '#fff' }}>
+                  <li key={`${ex.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 13px ${BODY}`, color: '#fff' }}>
                     <span style={{ width: 18, font: `700 11px ${HEAD}`, color: '#9D6CFF' }}>{String(i + 1).padStart(2, '0')}</span>
                     <span style={{ flex: 1, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.name}</span>
                     <span style={{ font: `600 12px ${HEAD}`, color: '#CFC9E4' }}>{quickMissionDose(ex)}</span>
                   </li>
                 ))}
                 {mission.finisherExercises.map((ex, i) => (
-                  <li key={`fin-${ex.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 14px ${BODY}`, color: GOLD }}>
+                  <li key={`fin-${ex.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 13px ${BODY}`, color: GOLD }}>
                     <span style={{ width: 18, font: `700 11px ${HEAD}`, color: GOLD }}>❤</span>
                     <span style={{ flex: 1, fontWeight: 600 }}>{ex.name}</span>
                     <span style={{ font: `600 12px ${HEAD}` }}>{quickMissionDose(ex)}</span>
@@ -145,8 +145,8 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               <div style={{ font: `500 12px ${BODY}`, color: MUTED }}>About {estMin} min with the coach&apos;s count and rest.</div>
               </>
               )}
-              <div data-guide="qm-start" style={{ marginTop: 4 }}>
-                <GoldButton label="START" icon="play" onClick={handleStart} height={56} style={{ fontSize: 20, letterSpacing: '0.2em' }}/>
+              <div data-guide="qm-start" style={{ marginTop: 2 }}>
+                <GoldButton label="START" icon="play" onClick={handleStart} height={46} style={{ fontSize: 18, letterSpacing: '0.2em' }}/>
               </div>
             </div>
           </section>

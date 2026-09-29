@@ -77,10 +77,10 @@ export function Label({ children, right, style }) {
 }
 
 // A label over a chamfered radio strip. options: [{ id, label }] or strings.
-export function SegRow({ label, options, value, onPick, guide, height = 40 }) {
+export function SegRow({ label, options, value, onPick, guide, height = 40, gap = 8 }) {
   const opts = options.map(o => (typeof o === 'string' ? { id: o, label: o } : o));
   return (
-    <div data-guide={guide} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div data-guide={guide} style={{ display: 'flex', flexDirection: 'column', gap }}>
       {label && <Label>{label}</Label>}
       <div role="radiogroup" aria-label={label} style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
         {opts.map(o => {
@@ -107,11 +107,11 @@ export function SettingsCard({ children, style }) {
   );
 }
 
-// LABEL · value · ›  (56px). `first` drops the top hairline.
-export function SettingRow({ label, value, onClick, guide, first, accent }) {
+// LABEL · value · ›  (56px; `height` for a denser card). `first` drops the top hairline.
+export function SettingRow({ label, value, onClick, guide, first, accent, height = 56 }) {
   return (
     <button type="button" className="fk-row" data-guide={guide} onClick={onClick} style={{
-      minHeight: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', width: '100%',
+      minHeight: height, display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', width: '100%',
       border: 'none', borderTop: first ? 'none' : `1px solid rgba(255,255,255,0.07)`, background: 'transparent',
       color: '#fff', textAlign: 'left', cursor: 'pointer',
     }}>

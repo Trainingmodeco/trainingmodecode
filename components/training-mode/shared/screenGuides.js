@@ -168,8 +168,8 @@ export const SCREEN_GUIDES = {
     { target: 'wb-equipment', title: 'EQUIPMENT', body: 'Bodyweight, Weighted (dumbbells, a bar, kettlebells, bands), or Hybrid — set what you actually have so every exercise is doable. Nothing here needs a cable stack.' },
     { target: 'wb-programming', title: 'SET SCHEME', body: 'Optional. AUTO lets the generator pick sets and reps; 5×5, 3×10 and the rest apply one scheme to every weighted lift, and CUSTOM is your own numbers. You can still change any single exercise in the player.' },
     { target: 'wb-cardio', title: 'ADD CARDIO', body: 'Optional finisher — tack a run, intervals, or Tabata onto the end of your workout.' },
-    { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. Nothing is locked in — the next screen lets you swap, reorder, remove and link exercises before you start. SURPRISE ME under it rolls the muscles and gear for you.' },
-    { target: 'wb-routines', title: 'SAVED ROUTINES', body: 'Every list you saved with SAVE ROUTINE, up to ten. Tap one to load it exactly as you left it.' },
+    { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. Nothing is locked in — the next screen lets you swap, reorder, remove and link exercises before you start. It sits in the build card, which reads back what you picked. SURPRISE ME under the settings rolls the muscles and gear for you.' },
+    { target: 'wb-routines', title: 'SAVED ROUTINES', body: 'ROUTINES holds every list you saved with SAVE ROUTINE, up to ten. Tap one to load it exactly as you left it.' },
   ],
 
   // The generated list. Everything the athlete can do to a workout BEFORE
