@@ -16,7 +16,7 @@ import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession } from './voiceCoach';
-import { trackEvent, setErrorScreen } from './data/analytics';
+import { trackEvent, setErrorScreen, trackSessionStart } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -607,9 +607,9 @@ export default function App() {
     // CARDIO MODE straight back into a Tabata they finished yesterday.
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     // Cardio records itself for Home's Continue card when a session starts.
-    rememberCardio: (setup) => rememberSession('cardio', { setup }),
+    rememberCardio: (setup) => { rememberSession('cardio', { setup }); trackSessionStart('cardio', { kind: setup?.categoryId || null }); },
     goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
+    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); trackSessionStart('quickMission', c?.mission?.planId ? { plan: c.mission.planId } : undefined); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
     goQuickMissionComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
       dropPausedFor(screen);
@@ -646,6 +646,7 @@ export default function App() {
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
+      if (series?.id) trackSessionStart('arcade', { series: series.id, stage: stage?.stageNumber || null });
       if (series?.id) rememberSession('arcade', { seriesId: series.id, title: series.title || null, stageNumber: stage?.stageNumber || null, mode: mode || null, settings: settings || null });
       // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
       // old player). PATH → fit/fight/full arc; difficulty → easy/normal/hard.
@@ -711,6 +712,7 @@ export default function App() {
     goArcadeComplete: () => { dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
     goCombatCondActive: (config) => {
       rememberSession('cc', config);
+      trackSessionStart('combatConditioning');
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       const mission = generateCombatConditioningMission(config);
       if (config?.cardioAddon?.enabled) mission.cardioAddon = config.cardioAddon;
@@ -800,6 +802,7 @@ export default function App() {
     goTrainingCamp: (d) => { if (d) setDisc(d); setScreen('training_camp'); },
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
+      trackSessionStart('trainingCamp', { level: ctx?.level, format: ctx?.format || 'single' });
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
       setCampCtx(ctx); setDisc(ctx.discipline);
       rememberSession('camp', { level: ctx.level, difficulty: ctx.difficulty, format: ctx.format || 'single', archetypeName: ctx.archetypeName || null }, ctx.discipline);
@@ -927,7 +930,7 @@ export default function App() {
       setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
-    goTimer:       (c) => { rememberSession('timer', c, disc); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
+    goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       dropPausedFor(screen); setResumeData(null);
@@ -944,7 +947,7 @@ export default function App() {
       const fs = fightSessionStats || {};
       recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
-      trackEvent('session_complete', { mode: 'fightFocus', rounds: done });
+      trackEvent('session_complete', { mode: justTrain ? 'justTrain' : 'fightFocus', rounds: done });
       // A win over the live ghost challenge settles it (the battle itself was
       // resolved by the timer at the final bell).
       const battle = c.ghost ? getLastBattle() : null;
@@ -953,7 +956,7 @@ export default function App() {
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       dropPausedFor(screen); setResumeData(null);

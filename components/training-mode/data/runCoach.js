@@ -255,15 +255,23 @@ export function haversineMeters(lat1, lng1, lat2, lng2) {
 }
 
 export const GPS_MAX_ACCURACY_M = 35;   // ignore fixes the phone itself says are worse than this
+// Weak-signal fallback: under trees or between tall buildings a phone can go a
+// long stretch without a single 35 m fix, and every metre of it was dropped.
+// After GPS_WEAK_SIGNAL_MS without a usable fix, callers pass this looser cap
+// so the run keeps counting (the speed and jitter checks still apply).
+export const GPS_RELAXED_ACCURACY_M = 50;
+export const GPS_WEAK_SIGNAL_MS = 20000;
 export const GPS_MAX_SPEED_MPS = 12;    // ~27 mph — nobody runs faster; it's a GPS jump
 export const GPS_MIN_STEP_M = 2;        // sub-2m moves are jitter while standing still
 
 // Decide whether a fix advances the distance. Returns { accept, meters }.
 // `prev` is the last ACCEPTED fix ({ lat, lng, t }), `fix` the new one
 // ({ lat, lng, t, accuracy }). Time in ms.
-export function evaluateFix(prev, fix) {
+// opts.relaxed: accept fixes up to GPS_RELAXED_ACCURACY_M (weak-signal fallback).
+export function evaluateFix(prev, fix, opts = {}) {
   if (!fix || !Number.isFinite(fix.lat) || !Number.isFinite(fix.lng)) return { accept: false, meters: 0, reason: 'bad' };
-  if (Number.isFinite(fix.accuracy) && fix.accuracy > GPS_MAX_ACCURACY_M) return { accept: false, meters: 0, reason: 'accuracy' };
+  const maxAcc = opts.relaxed ? GPS_RELAXED_ACCURACY_M : GPS_MAX_ACCURACY_M;
+  if (Number.isFinite(fix.accuracy) && fix.accuracy > maxAcc) return { accept: false, meters: 0, reason: 'accuracy' };
   if (!prev) return { accept: true, meters: 0, reason: 'first' };
   const d = haversineMeters(prev.lat, prev.lng, fix.lat, fix.lng);
   const dt = (fix.t - prev.t) / 1000;

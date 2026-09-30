@@ -5,6 +5,12 @@ export function trackEvent(name, props) {
   }
 }
 
+// Paired with the existing session_complete events, so the dashboard shows
+// which modes people start and where they drop off.
+export function trackSessionStart(mode, props) {
+  trackEvent('session_start', { mode, ...(props || {}) });
+}
+
 export function trackPageView() {
   trackEvent('pageview');
 }

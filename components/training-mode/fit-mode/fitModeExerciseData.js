@@ -1463,7 +1463,9 @@ export const FIT_MODE_EXERCISES = [
     cardioFinisher: false,
     bodyMapRegion: "Quads",
     videoUrl: "",
-    active: true,
+    // Off: "Agility/Balance" is a spreadsheet category, not a movement —
+    // the coach announced it with nothing to do. Kept for saved routines.
+    active: false,
   },
   {
     id: "quads_alt_one_leg_wall_sit_0731",
@@ -2183,7 +2185,9 @@ export const FIT_MODE_EXERCISES = [
     cardioFinisher: false,
     bodyMapRegion: "Full Body",
     videoUrl: "",
-    active: true,
+    // Off: "Agility/Balance" is a spreadsheet category, not a movement —
+    // the coach announced it with nothing to do. Kept for saved routines.
+    active: false,
   },
   {
     id: "full_body_air_boxing_combos_0892",

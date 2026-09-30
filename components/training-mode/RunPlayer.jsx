@@ -4,6 +4,8 @@ import { C } from './Styles';
 import { ARCADE } from './ArcadeUI';
 import TrainingCTA from './shared/TrainingCTA';
 import useWakeLock from './hooks/useWakeLock';
+import { waitForGpsLock } from './data/gpsLock';
+import PocketMode, { PocketModeChip } from './shared/PocketMode';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
@@ -25,7 +27,7 @@ import {
   metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance,
   buildRunIntro, crossedMarkers, crossedTenths, splitScript, finishScript,
   paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
-  evaluateFix, rollingPaceSec, projectedFinish,
+  evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS, rollingPaceSec, projectedFinish,
   ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
 } from './data/runCoach';
 
@@ -125,6 +127,10 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const [meters, setMeters] = useState(run.meters || 0);
   const [route, setRoute] = useState(run.route || []);
   const [gpsStatus, setGpsStatus] = useState(useGps ? 'acquiring' : 'off');
+  // START waits for GPS (up to GPS_LOCK_MAX_MS) so the first stretch isn't
+  // lost to a cold chip; true while that wait is on screen.
+  const [lockingGps, setLockingGps] = useState(false);
+  const [pocket, setPocket] = useState(false);
   const [caption, setCaption] = useState(restore ? 'Welcome back. The clock kept running.' : 'Get set.');
   const [surge, setSurge] = useState(false);
   const [tickKey, setTickKey] = useState(0);
@@ -318,6 +324,20 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         await delay(700);
       } catch { /* start anyway */ }
       if (cancelled) return;
+      // Automatic GPS gate (owner call: no second tap): the run starts the
+      // moment GPS locks, or after GPS_LOCK_MAX_MS at most. A quick lock is
+      // invisible; a slow one says so.
+      if (useGps) {
+        const lock = waitForGpsLock({ isCancelled: () => cancelled });
+        const quick = await Promise.race([lock, delay(1500).then(() => 'slow')]);
+        if (quick === 'slow') {
+          setLockingGps(true);
+          try { say('Locking GPS. You start the moment it is ready.')?.catch?.(() => {}); } catch { /* ignore */ }
+          await lock;
+          setLockingGps(false);
+        }
+        if (cancelled) return;
+      }
       try { playBell(1); say('Go!', { rate: 1.1 }); } catch { /* ignore */ }
       startRun();
     })();
@@ -377,6 +397,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
     };
 
+    // Weak-signal fallback: after GPS_WEAK_SIGNAL_MS without a fix inside
+    // the normal accuracy cap, accept looser fixes so the run keeps counting.
+    let lastGoodAt = Date.now();
     let staleTimer = null;
     const armStale = () => {
       clearTimeout(staleTimer);
@@ -386,7 +409,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       if (!aliveRef.current) return;
       const r = runRef.current;
       const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp || Date.now(), accuracy: pos.coords.accuracy };
-      const verdict = evaluateFix(r.lastFix, fix);
+      const relaxed = Date.now() - lastGoodAt > GPS_WEAK_SIGNAL_MS;
+      if (!Number.isFinite(fix.accuracy) || fix.accuracy <= GPS_MAX_ACCURACY_M) lastGoodAt = Date.now();
+      const verdict = evaluateFix(r.lastFix, fix, { relaxed });
       if (verdict.reason === 'accuracy') { armStale(); return; }
       setGpsStatus('live');
       armStale();
@@ -754,7 +779,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: gpsStatus === 'live' ? '#8fe8ac' : '#ffd27a', letterSpacing: '0.1em' }}>
           {gpsLabel} · {String(run.cfg.methodLabel || 'RUN').toUpperCase()} · {goal} {unit}
         </span>
+        {useGps && <PocketModeChip onClick={() => setPocket(true)}/>}
       </div>
+      <PocketMode open={pocket} onClose={() => setPocket(false)}/>
 
       {surge && (
         <div style={{ width: '100%', borderRadius: 10, background: 'rgba(255,138,74,0.14)', border: '1px solid rgba(255,138,74,0.5)', padding: '6px 12px', marginBottom: 8, textAlign: 'center', animation: 'run-pulse 0.9s ease-in-out infinite' }}>
@@ -770,7 +797,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
 
       {/* TIME — counts up from zero. */}
       <div style={{ fontFamily: mono, fontSize: 34, fontWeight: 900, color: running ? GOLD : '#c4b5fd', marginTop: 6, lineHeight: 1, textShadow: '0 0 12px rgba(253,224,71,0.3)' }}>{fmtClock(elapsedSec)}</div>
-      <div style={{ ...label, marginTop: 3 }}>{phase === 'intro' ? 'STARTING…' : running ? 'ELAPSED' : phase === 'ready' ? 'READY' : 'PAUSED'}</div>
+      <div style={{ ...label, marginTop: 3 }}>{phase === 'intro' ? (lockingGps ? 'LOCKING GPS…' : 'STARTING…') : running ? 'ELAPSED' : phase === 'ready' ? 'READY' : 'PAUSED'}</div>
 
       {/* Pace + targets */}
       <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 12 }}>
@@ -859,7 +886,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         ) : (
           <TrainingCTA
             variant={running ? 'violet' : 'gold'}
-            label={phase === 'intro' ? 'STARTING…' : running ? 'PAUSE' : 'RESUME'}
+            label={phase === 'intro' ? (lockingGps ? 'LOCKING GPS…' : 'STARTING…') : running ? 'PAUSE' : 'RESUME'}
             icon={running ? '❚❚' : '▶'}
             height={52}
             onClick={() => { if (phase !== 'run') return; if (running) pauseRun(); else resumeRun(); }}

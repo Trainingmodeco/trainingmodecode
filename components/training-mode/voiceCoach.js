@@ -277,9 +277,15 @@ function speakUtterance(rawText, opts) {
     const voice = pickVoice();
     if (voice) utter.voice = voice;
 
+    // The fallback exists for engines that never fire onend. It used to be a
+    // word count only, armed before speech had even started, and it CANCELLED
+    // the line when it ran out — so long lines, long words ("hyperextend")
+    // and numbers got clipped mid-sentence. Now: estimate by characters as
+    // well as words, allow start-up time, and if the engine is still
+    // speaking when the timer fires, give it one grace period before cutting.
     const wordCount = text.split(/\s+/).length;
     const rate = opts.rate || 1.0;
-    const estimatedMs = Math.max(1500, (wordCount * 600) / rate + 800);
+    const estimatedMs = Math.max(1500, Math.max(wordCount * 600, text.length * 85) / rate + 800);
     duckAppAudio(estimatedMs);
 
     utter.onend = done;
@@ -288,10 +294,21 @@ function speakUtterance(rawText, opts) {
       done();
     };
 
-    const fallback = setTimeout(() => {
-      if (speakVersion === currentVersion) synth.cancel();
+    // Extra time only while the engine is actually speaking (or still about
+    // to start) this line — a silent engine gets no added wait, so sessions
+    // never start later on devices without working speech.
+    let graces = 0;
+    const onFallback = () => {
+      if (speakVersion !== currentVersion) { done(); return; }
+      if (graces < 2 && (synth.speaking || synth.pending)) {
+        graces += 1;
+        fallback = setTimeout(onFallback, Math.round(estimatedMs * 0.6));
+        return;
+      }
+      synth.cancel();
       done();
-    }, estimatedMs);
+    };
+    let fallback = setTimeout(onFallback, estimatedMs);
 
     synth.speak(utter);
   });

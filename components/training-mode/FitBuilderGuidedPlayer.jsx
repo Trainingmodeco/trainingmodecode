@@ -6,6 +6,7 @@ import Embers from './Embers';
 import { Play, Pause, SkipForward, Check, Square, ChevronsRight, RotateCcw, X } from 'lucide-react';
 import { C, fixedColumnBar, NAV_H } from './Styles';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
+import { trackSessionStart } from './data/analytics';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { logSetWeight, getLastWeight, defaultWeight, exerciseWeight, stepFor, logBodyweightSets } from './data/weightLog';
@@ -173,6 +174,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   }, [exercises, chainRoundsMap]);
   const chainOf = useCallback((i) => chainByIdx[i] || null, [chainByIdx]);
   const chainMembersOf = useCallback((i) => chainByIdx[i]?.members || null, [chainByIdx]);
+
+  // Usage: a guided Fit session actually started (not just generated).
+  useEffect(() => { trackSessionStart('fitMode'); }, []);
 
   // Keep the current card centred in the up-next strip as the workout moves.
   const curCardRef = useRef(null);
