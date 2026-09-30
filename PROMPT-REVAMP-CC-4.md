@@ -49,7 +49,7 @@ branch `app`, at commit `3dd63cc`:
 | Paused-session TTL | `components/training-mode/App.jsx` (`PAUSED_SESSION_MAX_AGE_MS`) |
 | GPS gap detector (data only, whispered footnote) | `RunPlayer.jsx`, `CardioProtocolPlayer.jsx`, `CardioSummary.jsx` |
 | Plate art (six WebP, 640 px, alpha) | `public/static/xp/gain-crown.webp`, `gain-blaze.webp`, `gain-iron.webp`, `fail-blaze.webp`, `fail-gloves.webp`, `fail-reaper.webp` |
-| Tests | `scripts/test-run-intervals.mjs` (495), `scripts/test-xp-verdicts.mjs` (51) |
+| Tests | `scripts/test-run-intervals.mjs` (494), `scripts/test-xp-verdicts.mjs` (51) |
 
 **Ledger of commits this prompt combines** (oldest first):
 
@@ -406,12 +406,11 @@ and the trace has ≥ 4 points. Pass when second half ≤ 99% of the first →
 
 Port both suites verbatim and wire them into the check chain:
 
-- `scripts/test-run-intervals.mjs` — 495 checks (effort bands, chase
+- `scripts/test-run-intervals.mjs` — 494 checks (effort bands, chase
   scheduling and judging, programme library, tier aliases).
 - `scripts/test-xp-verdicts.mjs` — 51 checks (stakes, rush verdicts
   incl. every blind case and win-only tally, negative splits, round
   intensity, plate picks, mic detector).
-- `scripts/test-run-intervals.mjs` checks count: 495.
 
 `package.json`: `"test:intervals"`, `"test:xp"` (both with
 `--import ./scripts/extensionless-loader-register.mjs`), added to
