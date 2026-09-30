@@ -351,52 +351,98 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   }, [phase]);
 
   // ── GPS: watch for the life of the player, accrue only while running ──────
+  //
+  // A phone that locks or backgrounds mid-run stops delivering fixes — the
+  // PWA is at the mercy of the browser's page-visibility rules. Two
+  // defences layered here:
+  //  (1) Screen wake-lock: request one for the life of the player. If the
+  //      screen stays on, GPS keeps firing. This is the single biggest fix
+  //      for "I ran a mile and it registered a quarter."
+  //  (2) On the tab becoming visible again, re-acquire the wake-lock the
+  //      OS revoked on hide, and re-arm watchPosition. Some browsers keep
+  //      the watch registered but stop firing while hidden.
   useEffect(() => {
     if (!useGps || phase === 'done') return undefined;
     if (typeof navigator === 'undefined' || !navigator.geolocation) { setGpsStatus('denied'); onGpsDenied?.(); return undefined; }
+
+    let wakeLock = null;
+    const acquireWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator && !wakeLock) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch { /* best effort */ }
+    };
+    const releaseWakeLock = () => {
+      if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+    };
+
     let staleTimer = null;
     const armStale = () => {
       clearTimeout(staleTimer);
       staleTimer = setTimeout(() => { if (aliveRef.current) setGpsStatus(s => (s === 'live' ? 'acquiring' : s)); }, 20000);
     };
-    const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (!aliveRef.current) return;
-        const r = runRef.current;
-        const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp || Date.now(), accuracy: pos.coords.accuracy };
-        const verdict = evaluateFix(r.lastFix, fix);
-        if (verdict.reason === 'accuracy') { armStale(); return; }
-        setGpsStatus('live');
-        armStale();
-        if (!verdict.accept) return;
-        const accrue = runningRef.current && phaseRef.current === 'run';
-        if (accrue && verdict.meters > 0) {
-          r.meters += verdict.meters;
-          const el = liveRunElapsedSec(r);
-          r.samples.push({ t: el, m: r.meters });
-          if (r.samples.length > SAMPLES_MAX) r.samples.shift();
-          const last = r.trace[r.trace.length - 1];
-          if (!last || el - last.t >= 3) r.trace.push({ t: Math.round(el * 10) / 10, d: +(r.meters / metersPerUnit(unit)).toFixed(4) });
-          // Each kept point carries the second it happened and the metres by
-          // then, so the map can colour any segment by the pace run on it.
-          r.route.push({ lat: fix.lat, lng: fix.lng, t: Math.round(el), m: Math.round(r.meters) });
-          if (r.route.length > ROUTE_SOFT_MAX) r.route = thinRoute(r.route, ROUTE_KEEP);
-          setMeters(r.meters);
-          setRoute(r.route.slice());
-          persist();
-        } else if (r.route.length === 0) {
-          r.route.push({ lat: fix.lat, lng: fix.lng, t: 0, m: 0 });
-        }
-        r.lastFix = fix;
-      },
-      (err) => {
-        if (!aliveRef.current) return;
-        if (err && err.code === 1) { setGpsStatus('denied'); onGpsDenied?.(); }
-        else setGpsStatus('acquiring');
-      },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
-    );
-    return () => { clearTimeout(staleTimer); navigator.geolocation.clearWatch(id); };
+    const onFix = (pos) => {
+      if (!aliveRef.current) return;
+      const r = runRef.current;
+      const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp || Date.now(), accuracy: pos.coords.accuracy };
+      const verdict = evaluateFix(r.lastFix, fix);
+      if (verdict.reason === 'accuracy') { armStale(); return; }
+      setGpsStatus('live');
+      armStale();
+      if (!verdict.accept) return;
+      const accrue = runningRef.current && phaseRef.current === 'run';
+      if (accrue && verdict.meters > 0) {
+        r.meters += verdict.meters;
+        const el = liveRunElapsedSec(r);
+        r.samples.push({ t: el, m: r.meters });
+        if (r.samples.length > SAMPLES_MAX) r.samples.shift();
+        const last = r.trace[r.trace.length - 1];
+        if (!last || el - last.t >= 3) r.trace.push({ t: Math.round(el * 10) / 10, d: +(r.meters / metersPerUnit(unit)).toFixed(4) });
+        r.route.push({ lat: fix.lat, lng: fix.lng, t: Math.round(el), m: Math.round(r.meters) });
+        if (r.route.length > ROUTE_SOFT_MAX) r.route = thinRoute(r.route, ROUTE_KEEP);
+        setMeters(r.meters);
+        setRoute(r.route.slice());
+        persist();
+      } else if (r.route.length === 0) {
+        r.route.push({ lat: fix.lat, lng: fix.lng, t: 0, m: 0 });
+      }
+      r.lastFix = fix;
+    };
+    const onErr = (err) => {
+      if (!aliveRef.current) return;
+      if (err && err.code === 1) { setGpsStatus('denied'); onGpsDenied?.(); }
+      else setGpsStatus('acquiring');
+    };
+    const watchOpts = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
+
+    let id = null;
+    const startWatch = () => {
+      if (id != null) return;
+      id = navigator.geolocation.watchPosition(onFix, onErr, watchOpts);
+    };
+    const stopWatch = () => {
+      if (id != null && navigator.geolocation) navigator.geolocation.clearWatch(id);
+      id = null;
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        acquireWakeLock();
+        stopWatch();
+        startWatch();
+      }
+    };
+
+    acquireWakeLock();
+    startWatch();
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearTimeout(staleTimer);
+      stopWatch();
+      releaseWakeLock();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useGps, phase === 'done']);
 

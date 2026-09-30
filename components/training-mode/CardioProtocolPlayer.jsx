@@ -8,7 +8,7 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import { ARCADE } from './ArcadeUI';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
-import { buildIntervalIntro, speakDuration } from './data/runCoach';
+import { buildIntervalIntro, speakDuration, evaluateFix } from './data/runCoach';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
 
@@ -29,16 +29,6 @@ function fmt(sec) {
   const m = Math.floor(s / 60);
   const r = s % 60;
   return `${m}:${r.toString().padStart(2, '0')}`;
-}
-
-// Great-circle distance between two lat/lng points, in meters.
-function haversineMeters(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const toRad = (d) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
 // Turns a protocol into an ordered list of countdown segments. Interval / Tabata
@@ -449,31 +439,93 @@ export default function CardioProtocolPlayer({
     onComplete({ completedTimeSeconds: totalElapsed, completed: true, ...extra });
   };
 
-  // Live GPS: start/stop watchPosition with the run. Reject sub-meter jitter and
-  // impossible jumps between fixes so the distance total stays honest.
+  // Live GPS. Two things a live-athlete found:
+  //  (1) The old filter dropped any single-fix delta > 75 m as "impossible",
+  //      but a phone that locked mid-run gives you a 200 m fix on the very
+  //      next unlock — still a real move, just spread over the lock period.
+  //      Swapped for evaluateFix() which checks speed (d/dt) with a real
+  //      timestamp, so a 200 m move over 45 s (~10 mph, running) is kept
+  //      and a 200 m move over 2 s (100 mph, a GPS jump) is rejected.
+  //  (2) A screen wake-lock is requested for the life of the run so the
+  //      phone won't sleep the tab in the first place — this is what
+  //      actually kept 1.4 mi from ever reaching the meter.
   useEffect(() => {
     if (!useGps || !distanceMode || !running) return undefined;
     if (typeof navigator === 'undefined' || !navigator.geolocation) return undefined;
-    const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude, longitude, speed } = pos.coords;
-        const prev = gpsRef.current.last;
-        if (prev) {
-          const d = haversineMeters(prev.lat, prev.lng, latitude, longitude);
-          if (d > 1 && d < 75) { gpsRef.current.meters += d; setGpsMeters(gpsRef.current.meters); }
+
+    let wakeLock = null;
+    const acquireWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator && !wakeLock) {
+          wakeLock = await navigator.wakeLock.request('screen');
         }
-        gpsRef.current.last = { lat: latitude, lng: longitude };
-        gpsRef.current.pts.push({ lat: latitude, lng: longitude });
-        if (gpsRef.current.pts.length > 240) gpsRef.current.pts.shift();
-        setGpsRoute(gpsRef.current.pts.slice());
-        if (typeof speed === 'number' && speed >= 0) setGpsSpeed(speed);
-        setGpsFix(true);
-      },
-      () => { setGpsFix(false); },
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 12000 },
-    );
-    gpsRef.current.watchId = id;
-    return () => { if (id != null && navigator.geolocation) navigator.geolocation.clearWatch(id); };
+      } catch { /* best effort — Safari, permissions, etc. */ }
+    };
+    const releaseWakeLock = () => {
+      if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+    };
+
+    let id = null;
+    const startWatch = () => {
+      if (id != null) return;
+      id = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, speed, accuracy } = pos.coords;
+          const t = pos.timestamp || Date.now();
+          const fix = { lat: latitude, lng: longitude, t, accuracy };
+          const verdict = evaluateFix(gpsRef.current.last, fix);
+          if (!verdict.accept) {
+            if (verdict.reason !== 'first' && verdict.reason !== 'jitter') {
+              // an 'accuracy' or 'jump' reject still counts as a live fix
+              setGpsFix(true);
+            }
+            if (verdict.reason === 'first') gpsRef.current.last = fix;
+            return;
+          }
+          if (verdict.meters > 0) {
+            gpsRef.current.meters += verdict.meters;
+            setGpsMeters(gpsRef.current.meters);
+          }
+          gpsRef.current.last = fix;
+          gpsRef.current.pts.push({ lat: latitude, lng: longitude });
+          if (gpsRef.current.pts.length > 240) gpsRef.current.pts.shift();
+          setGpsRoute(gpsRef.current.pts.slice());
+          if (typeof speed === 'number' && speed >= 0) setGpsSpeed(speed);
+          setGpsFix(true);
+        },
+        () => { setGpsFix(false); },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 12000 },
+      );
+      gpsRef.current.watchId = id;
+    };
+    const stopWatch = () => {
+      if (id != null && navigator.geolocation) navigator.geolocation.clearWatch(id);
+      id = null;
+    };
+
+    // Some browsers keep watchPosition registered while the tab is hidden
+    // but stop delivering fixes. On visibility flipping back to 'visible',
+    // reacquire the wake-lock (which the OS revokes on hide) and restart
+    // the watch so the next fix is treated as a fresh baseline. The
+    // haversine between the last accepted fix and the first post-resume
+    // fix still counts, provided evaluateFix accepts it.
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        acquireWakeLock();
+        stopWatch();
+        startWatch();
+      }
+    };
+
+    acquireWakeLock();
+    startWatch();
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stopWatch();
+      releaseWakeLock();
+    };
   }, [useGps, distanceMode, running]);
 
   // Random-interval surges: every 45–90s, call a 20–30s surge, then reschedule.
