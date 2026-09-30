@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronLeft } from 'lucide-react';
 import { C } from '../Styles';
@@ -17,6 +17,20 @@ const MACHINES = [
 ];
 
 const TAG_LABEL = { fighter: 'FIGHTER', classic: 'CLASSIC', screenshot: 'PROGRAMME' };
+const SHOWN = 4;
+
+// A hand of four programmes, freshly shuffled each time the popup opens, so
+// nobody has to read the whole library to get started. The one already chosen
+// always keeps its seat in the hand.
+function dealHand(programs, keepId) {
+  const pool = programs.filter(p => p.id !== keepId);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const keep = programs.find(p => p.id === keepId);
+  return (keep ? [keep, ...pool] : pool).slice(0, SHOWN);
+}
 
 // Centred, two-step: which machine, then FREE RUN or INTERVAL TRAINING — and
 // for intervals, which programme. Everything the athlete picks here is
@@ -26,10 +40,18 @@ export default function MachineChooserModal({ machine, mode, programId, onApply,
   const [pickMachine, setPickMachine] = useState(machine || 'treadmill');
   const [pickMode, setPickMode] = useState(mode || 'free');
   const [pickProgram, setPickProgram] = useState(programId || null);
+  const [showAll, setShowAll] = useState(false);
   const programs = programsFor(pickMachine);
-  const effProgram = pickProgram && programs.some(p => p.id === pickProgram) ? pickProgram : programs[0]?.id;
+  const hand = useMemo(() => dealHand(programs, programId), [pickMachine]); // eslint-disable-line react-hooks/exhaustive-deps
+  const shown = showAll ? programs : hand;
+  const effProgram = pickProgram && shown.some(p => p.id === pickProgram) ? pickProgram : shown[0]?.id;
 
   const apply = () => onApply({ machine: pickMachine, mode: pickMode, programId: pickMode === 'interval' ? effProgram : null });
+  // SURPRISE ME: one tap, a random programme, straight to the setup screen.
+  const surprise = () => {
+    const pick = programs[Math.floor(Math.random() * programs.length)];
+    onApply({ machine: pickMachine, mode: 'interval', programId: pick.id });
+  };
 
   return createPortal(
     <div onClick={onClose} role="dialog" aria-modal="true" aria-label="Choose a machine" style={{
@@ -105,7 +127,20 @@ export default function MachineChooserModal({ machine, mode, programId, onApply,
 
             {pickMode === 'interval' && (
               <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10, paddingRight: 2 }}>
-                {programs.map(p => {
+                <button type="button" onClick={surprise} style={{
+                  textAlign: 'left', padding: '10px 11px', borderRadius: 11, cursor: 'pointer',
+                  background: 'linear-gradient(90deg,rgba(124,58,237,0.45),rgba(88,28,135,0.25))',
+                  border: '1.5px solid rgba(176,106,255,0.8)', display: 'flex', alignItems: 'center', gap: 9,
+                }}>
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>🎲</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontFamily: HEAD, fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', color: '#fff' }}>SURPRISE ME</span>
+                    <span style={{ display: 'block', fontFamily: BODY, fontSize: 9.5, color: '#d8c8ff', marginTop: 2, lineHeight: 1.3 }}>Random programme. Just start.</span>
+                  </span>
+                  <span style={{ fontFamily: HEAD, fontSize: 14, color: '#c4b5fd' }}>›</span>
+                </button>
+                <div style={{ fontFamily: HEAD, fontSize: 8, fontWeight: 700, letterSpacing: '0.16em', color: C.muted, margin: '4px 2px 0' }}>{showAll ? 'ALL PROGRAMMES' : 'OR PICK ONE'}</div>
+                {shown.map(p => {
                   const on = effProgram === p.id;
                   return (
                     <button key={p.id} type="button" onClick={() => setPickProgram(p.id)} style={{
@@ -122,6 +157,12 @@ export default function MachineChooserModal({ machine, mode, programId, onApply,
                     </button>
                   );
                 })}
+                {!showAll && programs.length > SHOWN && (
+                  <button type="button" onClick={() => setShowAll(true)} style={{
+                    padding: '8px 0 2px', background: 'transparent', border: 'none', cursor: 'pointer',
+                    color: C.muted, fontFamily: HEAD, fontSize: 9, fontWeight: 700, letterSpacing: '0.14em',
+                  }}>SELECT MORE · {programs.length - SHOWN} OTHERS ›</button>
+                )}
               </div>
             )}
 
