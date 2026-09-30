@@ -419,40 +419,60 @@ export function playRiser() {
   duckAppAudio(800);
 }
 
-// Chase lost — the arcade "ghost caught" warble the owner picked from the
-// auditioned set: three square-wave steps down (C5 → G4 → C4) with a fast
-// vibrato on each. Synthesised, so it costs nothing in the bundle.
-export function playGhostCaught() {
+// Chase caught — a power-down: a sawtooth glide from 900 Hz to the floor with
+// the filter closing as it falls, a sub thud under it and a snap of noise on
+// the front. Synthesised in that spirit; not a sampled asset.
+export function playPowerDown() {
   const ctx = getCtx();
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
-  const steps = [520, 392, 262];
-  const stepDur = 0.22;
   const t0 = ctx.currentTime;
-  const vol = Math.max(0.0001, 0.35 * getCueGain());
+  const dur = 0.55;
+  const vol = Math.max(0.0001, 0.45 * getCueGain());
   const out = cueOut() || ctx.destination;
 
-  steps.forEach((f, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.value = 28;
-    lfoGain.gain.value = f * 0.06;
-    lfo.connect(lfoGain);
-    lfoGain.connect(osc.frequency);
-    osc.type = 'square';
-    osc.frequency.value = f;
-    osc.connect(gain);
-    gain.connect(out);
-    const t = t0 + i * stepDur;
-    gain.gain.setValueAtTime(vol, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + stepDur);
-    osc.start(t); lfo.start(t);
-    osc.stop(t + stepDur); lfo.stop(t + stepDur);
-  });
-  duckAppAudio(900);
+  // The glide.
+  const osc = ctx.createOscillator();
+  const filt = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(900, t0);
+  osc.frequency.exponentialRampToValueAtTime(45, t0 + dur);
+  filt.type = 'lowpass';
+  filt.Q.value = 0.7;
+  filt.frequency.setValueAtTime(2600, t0);
+  filt.frequency.exponentialRampToValueAtTime(420, t0 + dur);
+  gain.gain.setValueAtTime(vol, t0);
+  gain.gain.exponentialRampToValueAtTime(vol * 0.11, t0 + dur);
+  gain.gain.linearRampToValueAtTime(0.0001, t0 + dur + 0.02);
+  osc.connect(filt); filt.connect(gain); gain.connect(out);
+  osc.start(t0); osc.stop(t0 + dur + 0.03);
+
+  // The thud.
+  const thud = ctx.createOscillator();
+  const tg = ctx.createGain();
+  thud.type = 'sine';
+  thud.frequency.setValueAtTime(55, t0);
+  thud.frequency.exponentialRampToValueAtTime(30, t0 + 0.4);
+  tg.gain.setValueAtTime(vol * 1.6, t0);
+  tg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.45);
+  thud.connect(tg); tg.connect(out);
+  thud.start(t0); thud.stop(t0 + 0.46);
+
+  // The snap.
+  const len = Math.floor(ctx.sampleRate * 0.06);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-60 * i / ctx.sampleRate);
+  const src = ctx.createBufferSource();
+  const ng = ctx.createGain();
+  src.buffer = buf;
+  ng.gain.value = vol * 0.5;
+  src.connect(ng); ng.connect(out);
+  src.start(t0);
+
+  duckAppAudio(800);
 }
 
 // Chase escaped — a bright two-note ring chime, E6 up to B6, quick and clean.

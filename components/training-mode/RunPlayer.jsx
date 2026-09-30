@@ -9,7 +9,7 @@ import PocketMode, { PocketModeChip } from './shared/PocketMode';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
-import { playBell, playBeep, playRiser, playGhostCaught, playRingChime, unlockAudio } from './data/audioEngine';
+import { playBell, playBeep, playRiser, playPowerDown, playRingChime, unlockAudio } from './data/audioEngine';
 import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
@@ -694,7 +694,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           say(`Escaped. ${CHASE_XP} X P banked. Ease back.`);
         } else {
           c.fails += 1;
-          playGhostCaught();
+          playPowerDown();
           say("Chase lost. No bonus this time. Next one's yours. Ease back.");
         }
         setChaseFlash(v.pass ? 'pass' : 'fail');
