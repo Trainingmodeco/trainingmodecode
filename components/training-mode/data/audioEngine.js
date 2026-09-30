@@ -475,29 +475,50 @@ export function playPowerDown() {
   duckAppAudio(800);
 }
 
-// Chase escaped — a bright two-note ring chime, E6 up to B6, quick and clean.
-// Synthesised in that spirit; not a sampled asset.
-export function playRingChime() {
+// Chase escaped — a Genesis-style extra-life fanfare: a bright eight-note run
+// into a held chord, with a short echo. Synthesised in that spirit; not a
+// sampled asset.
+export function playExtraLife() {
   const ctx = getCtx();
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
   const t0 = ctx.currentTime;
-  const vol = Math.max(0.0001, 0.5 * getCueGain());
+  const vol = Math.max(0.0001, 0.28 * getCueGain());
   const out = cueOut() || ctx.destination;
-  [[1319, 0], [1976, 0.09]].forEach(([f, dt]) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = f;
-    osc.connect(gain);
-    gain.connect(out);
-    const t = t0 + dt;
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(vol, t + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-    osc.start(t);
-    osc.stop(t + 0.32);
-  });
-  duckAppAudio(500);
+
+  // Dry + a two-tap echo, the way the console mixed it.
+  const bus = ctx.createGain();
+  bus.gain.value = 1;
+  bus.connect(out);
+  const delay = ctx.createDelay(0.5);
+  delay.delayTime.value = 0.12;
+  const fb = ctx.createGain();
+  fb.gain.value = 0.3;
+  bus.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(out);
+
+  const tone = (freq, at, dur, decay, level) => {
+    [['square', 1, 1], ['sine', 2, 0.4]].forEach(([type, mul, amt]) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq * mul;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(level * amt, at + 0.004);
+      g.gain.setTargetAtTime(0.0001, at + 0.004, decay);
+      osc.connect(g); g.connect(bus);
+      osc.start(at); osc.stop(at + dur + decay * 3);
+    });
+  };
+
+  // B4 D5 E5 F#5 B5 A5 F#5 A5, then B5 D6 F#6 held.
+  const run = [493.88, 587.33, 659.25, 739.99, 987.77, 880, 739.99, 880];
+  run.forEach((f, i) => tone(f, t0 + i * 0.09, 0.085, 0.09, vol));
+  const chordAt = t0 + run.length * 0.09;
+  [987.77, 1174.66, 1479.98].forEach(f => tone(f, chordAt, 0.6, 0.18, vol * 0.5));
+
+  // Let the echo tail out, then close the bus.
+  bus.gain.setValueAtTime(1, chordAt + 0.8);
+  bus.gain.linearRampToValueAtTime(0.0001, chordAt + 1.1);
+  duckAppAudio(1600);
 }
