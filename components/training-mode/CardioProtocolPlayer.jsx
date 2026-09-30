@@ -3,12 +3,15 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { Play, Pause, Rewind, FastForward, Flag, SquarePen, Check } from 'lucide-react';
 import useMiniPlayer from './hooks/useMiniPlayer';
+import useWakeLock from './hooks/useWakeLock';
+import { waitForGpsLock } from './data/gpsLock';
+import PocketMode, { PocketModeChip } from './shared/PocketMode';
 import useCadence from './hooks/useCadence';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { ARCADE } from './ArcadeUI';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
-import { buildIntervalIntro, speakDuration, evaluateFix } from './data/runCoach';
+import { buildIntervalIntro, speakDuration, evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS } from './data/runCoach';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
 
@@ -235,8 +238,15 @@ export default function CardioProtocolPlayer({
   const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? segments[0].seconds);
   const [totalElapsed, setTotalElapsed] = useState(initialResumeData?.effElapsed ?? 0);
   const [running, setRunning] = useState(false);
+  // START waits for GPS on a distance run (see data/gpsLock); true while shown.
+  const [lockingGps, setLockingGps] = useState(false);
+  const [pocket, setPocket] = useState(false);
   const [done, setDone] = useState(false);
   const [showManual, setShowManual] = useState(manualOnly);
+  // Every running session keeps the screen awake, not only GPS distance runs:
+  // a Tabata or interval block (and the post-workout Cardio Finisher, which
+  // runs on this player) stopped its clock and voice when the phone slept.
+  useWakeLock(running && !done);
   const [starting, setStarting] = useState(initialResumeData ? false : (!!autoStart && !manualOnly));
   const firedRef = useRef(false);
   const tickRef = useRef(null);
@@ -419,6 +429,20 @@ export default function CardioProtocolPlayer({
         }
       } catch { /* start anyway */ }
       if (cancelled) return;
+      // Automatic GPS gate (owner call: no second tap). This player only
+      // watches GPS once the clock runs, so without the wait a cold chip
+      // lost the first stretch of every distance run.
+      if (useGps && distanceMode) {
+        const lock = waitForGpsLock({ isCancelled: () => cancelled });
+        const quick = await Promise.race([lock, delay(1500).then(() => 'slow')]);
+        if (quick === 'slow') {
+          setLockingGps(true);
+          if (voice) speakAsync('Locking GPS. You start the moment it is ready.').catch(() => {});
+          await lock;
+          setLockingGps(false);
+        }
+        if (cancelled) return;
+      }
       try { playBell(1); say('Go!', { rate: 1.1 }); } catch { /* ignore */ }
       setStarting(false);
       clockRef.current.startedAt = Date.now();
@@ -465,6 +489,8 @@ export default function CardioProtocolPlayer({
       if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
     };
 
+    // Weak-signal fallback (see runCoach GPS_RELAXED_ACCURACY_M).
+    let lastGoodAt = Date.now();
     let id = null;
     const startWatch = () => {
       if (id != null) return;
@@ -473,7 +499,9 @@ export default function CardioProtocolPlayer({
           const { latitude, longitude, speed, accuracy } = pos.coords;
           const t = pos.timestamp || Date.now();
           const fix = { lat: latitude, lng: longitude, t, accuracy };
-          const verdict = evaluateFix(gpsRef.current.last, fix);
+          const relaxed = Date.now() - lastGoodAt > GPS_WEAK_SIGNAL_MS;
+          if (!Number.isFinite(fix.accuracy) || fix.accuracy <= GPS_MAX_ACCURACY_M) lastGoodAt = Date.now();
+          const verdict = evaluateFix(gpsRef.current.last, fix, { relaxed });
           if (!verdict.accept) {
             if (verdict.reason !== 'first' && verdict.reason !== 'jitter') {
               // an 'accuracy' or 'jump' reject still counts as a live fix
@@ -619,7 +647,9 @@ export default function CardioProtocolPlayer({
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusDot, boxShadow: `0 0 8px ${statusDot}`, animation: usingRealGps || !useGps ? 'none' : 'cardio-ring-glow 1.4s ease-in-out infinite' }}/>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: statusColor, letterSpacing: '0.1em' }}>{statusText} · {String(methodLabel || 'RUN').toUpperCase()} · {simGoal} {unit}</span>
+          {useGps && <PocketModeChip onClick={() => setPocket(true)}/>}
         </div>
+        <PocketMode open={pocket} onClose={() => setPocket(false)}/>
 
         {/* Surge banner */}
         {surge && (
@@ -680,7 +710,7 @@ export default function CardioProtocolPlayer({
         <div style={{ display: 'flex', gap: 10, width: '100%' }}>
           <TrainingCTA
             variant={running ? 'violet' : 'gold'}
-            label={starting ? 'STARTING…' : running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
+            label={starting ? (lockingGps ? 'LOCKING GPS…' : 'STARTING…') : running ? 'PAUSE' : (totalElapsed > 0 ? 'RESUME' : 'START')}
             icon={running ? '❚❚' : '▶'}
             height={52}
             onClick={() => { if (!starting) toggleRunning(); }}

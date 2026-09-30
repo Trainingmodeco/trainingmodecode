@@ -41,8 +41,14 @@ jobs:
       - name: Cardio generator tests
         run: npm run -s test:cardio
 
+      - name: GPS fix filter tests
+        run: npm run -s test:gps
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
+
+      - name: Exercise library sanity
+        run: npm run -s check:exercises
 
       - name: Screen guides resolve
         run: npm run -s check:guides

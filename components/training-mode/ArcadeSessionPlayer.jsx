@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import StageChrome from './shared/StageChrome';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useWakeLock from './hooks/useWakeLock';
 import { StageClearFlash } from './shared/BattleHUD';
 import { Play, Pause, SkipForward, CircleCheck as CheckCircle, Clock } from 'lucide-react';
 import { C } from './Styles';
@@ -159,6 +160,9 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     ? (firstBlock === 'fit' ? 'fight' : 'fit')
     : null;
 
+  // A stage is a live workout from mount to exit: keep the screen awake so the
+  // benchmark clock and cardio blocks don't stall when the phone would sleep.
+  useWakeLock(true);
   const [currentBlock, setCurrentBlock] = useState(initialResumeData?.currentBlock ?? firstBlock);
   const [taskIdx, setTaskIdx] = useState(initialResumeData?.taskIdx ?? 0);
   const [timer, setTimer] = useState(initialResumeData?.timer ?? 0);

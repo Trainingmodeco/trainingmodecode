@@ -31,6 +31,7 @@ import TrainingCTA from './shared/TrainingCTA';
 import { loadStats, getLevel } from './data/userStats';
 import ModeTabs from './shared/ModeTabs';
 import { fitKitCSS, SetupHeader, SetupPage, GoldButton, HEAD, BODY, MUTED } from './shared/FitSetupKit';
+import { trackEvent } from './data/analytics';
 
 const GOLD = C.yellow;
 const VIOLET = '#b06aff';
@@ -581,7 +582,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                 autoStart
                 onState={onSessionState}
                 onGpsDenied={() => { if (!liveRestore) setPhase('gps'); }}
-                onComplete={(result) => { onSessionState?.(null); setLiveRestore(null); setPlayerResult(result); setPhase('summary'); }}
+                onComplete={(result) => { onSessionState?.(null); setLiveRestore(null); setPlayerResult(result); setPhase('summary'); trackEvent('session_complete', { mode: 'cardio', kind: 'run' }); }}
               />
             ) : (
             <CardioProtocolPlayer
@@ -608,7 +609,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
               deferManualLog={useDistanceGauge}
               onStateChange={reportProtocol}
               initialResumeData={resumeData?.protocol || null}
-              onComplete={(result) => { onSessionState?.(null); setPlayerResult(result); setPhase('summary'); }}
+              onComplete={(result) => { onSessionState?.(null); setPlayerResult(result); setPhase('summary'); trackEvent('session_complete', { mode: 'cardio', kind: 'protocol' }); }}
             />
             )}
           </div>
