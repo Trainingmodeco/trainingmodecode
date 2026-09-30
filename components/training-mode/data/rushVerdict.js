@@ -7,6 +7,11 @@
 // trust (phone on the floor, on the bag frame, in a locker), the rush is
 // BLIND: no XP either way, no popup. Nobody loses XP because the phone
 // could not track them.
+//
+// WIN-ONLY until a gym test proves a sensor counts a flurry honestly: a
+// detector that undercounts under continuous hitting could read a hard rush
+// as a slow one. A 'fail' is still recorded (the log says "slowed") but it
+// costs nothing, plays nothing and shows no plate.
 import { stakesFor } from './xpStakes';
 
 export const RUSH_PASS_FACTOR = 1.2;       // rush rate ≥ 1.2× baseline → pass
@@ -38,10 +43,10 @@ export function judgeRush({ motionSeen, baselineStrikes, baselineSec, rushStrike
 
 // Records one judged rush on the tally and returns the XP delta it carries.
 export function tallyRush(tally, judged, tier = 'normal', meta = {}) {
-  const { win, loss } = stakesFor(tier);
+  const { win } = stakesFor(tier);
   let xp = 0;
   if (judged.verdict === 'pass') { tally.passes += 1; xp = win; }
-  else if (judged.verdict === 'fail') { tally.fails += 1; xp = -loss; }
+  else if (judged.verdict === 'fail') { tally.fails += 1; xp = 0; }
   else if (judged.verdict === 'hold') tally.held += 1;
   else tally.blind += 1;
   tally.results.push({ ...meta, ...judged, xp });
@@ -52,7 +57,7 @@ export function rushSummary(tally, tier = 'normal') {
   const t = tally || newRushTally();
   const { win, loss } = stakesFor(tier);
   const won = t.passes * win;
-  const lost = t.fails * loss;
+  const lost = 0; // win-only: a slowed rush costs nothing
   return {
     passes: t.passes, fails: t.fails, held: t.held || 0, blind: t.blind || 0,
     attempts: t.passes + t.fails + (t.held || 0), won, lost, xp: won - lost, stakes: { win, loss },

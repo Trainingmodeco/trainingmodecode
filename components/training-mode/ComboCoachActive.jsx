@@ -8,7 +8,7 @@ import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, 
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
-import { playPowerDown, playExtraLife, playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
+import { playExtraLife, playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
 import { newRushTally, judgeRush, tallyRush, rushSummary } from './data/rushVerdict';
 import { cleanRoundXp } from './data/xpStakes';
 import { judgeRoundIntensity } from './data/roundIntensity';
@@ -276,10 +276,6 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       playExtraLife();
       fireVerdict({ pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
       if (cfg.voiceOn !== false) speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 });
-    } else if (judged.verdict === 'fail') {
-      playPowerDown();
-      fireVerdict({ pass: false, xp: -xp, banner: pickXpBanner('loss', { mode: 'fight', tier: verdictTier }) });
-      if (cfg.voiceOn !== false) speakAsync(`Rush fell off. Minus ${-xp} X P. Next one's yours.`, { priority: 2 });
     }
   };
   const closeRound = (isFinal) => {

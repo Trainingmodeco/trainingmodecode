@@ -7,6 +7,7 @@ import { judgeNegativeSplit } from '../components/training-mode/data/negativeSpl
 import { chaseXp, CHASE_XP } from '../components/training-mode/data/chase.js';
 import { pickXpBanner } from '../components/training-mode/data/xpBanners.js';
 import { judgeRoundIntensity } from '../components/training-mode/data/roundIntensity.js';
+import { createMicStrikeDetector } from '../components/training-mode/data/micStrikeDetector.js';
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -40,11 +41,11 @@ check('phone on the floor with motion flag but nothing counted never fails', jud
   const b = tallyRush(t, judgeRush({ ...live, rushStrikes: 6, rushSec: 10 }), 'normal');
   const c = tallyRush(t, judgeRush({ ...live, rushStrikes: 10, rushSec: 10 }), 'normal');
   const d = tallyRush(t, judgeRush({ ...live, motionSeen: false, rushStrikes: 10, rushSec: 10 }), 'normal');
-  check('tally deltas +10 / −5 / 0 / 0', a === 10 && b === -5 && c === 0 && d === 0, `${a} ${b} ${c} ${d}`);
+  check('win-only: tally deltas +10 / 0 / 0 / 0', a === 10 && b === 0 && c === 0 && d === 0, `${a} ${b} ${c} ${d}`);
   const s = rushSummary(t, 'normal');
   check('summary counts', s.passes === 1 && s.fails === 1 && s.held === 1 && s.blind === 1 && s.attempts === 3);
-  check('summary nets +5', s.xp === 5 && s.won === 10 && s.lost === 5);
-  check('summary at HARD nets +7', rushSummary(t, 'hard').xp === 15 - 8);
+  check('win-only: a slowed rush costs nothing', s.xp === 10 && s.won === 10 && s.lost === 0);
+  check('summary at HARD pays the HARD win', rushSummary(t, 'hard').xp === 15);
   check('empty summary is zero', rushSummary(null).xp === 0 && rushSummary(newRushTally()).attempts === 0);
 }
 
@@ -82,6 +83,33 @@ const trace = (segments) => { // [[secondsForHalf1], ...] → even-paced trace p
   check('baseline is the mean of the first two', judgeRoundIntensity({ ...ok, perRoundStrikes: [80, 120, 116] }).baseline === 100);
   const t = newRushTally(); tallyRush(t, judgeRush({ ...live, rushStrikes: 15, rushSec: 10 }), 'normal', { round: 2 });
   check('rush results carry the round for the log', rushSummary(t).results[0].round === 2 && rushSummary(t).results[0].verdict === 'pass');
+}
+
+// ── mic bag-hit detector ──────────────────────────────────────────────────
+{
+  // Synthetic mic frames every 10 ms: gym noise ~0.02, a thud = 0.5 decaying over ~60 ms.
+  const run = (hitTimesMs, totalMs, noise = 0.02, loud = 0.5) => {
+    const d = createMicStrikeDetector();
+    let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let t = 0; t <= totalMs; t += 10) {
+      let p = noise * (0.6 + rnd() * 0.8);
+      hitTimesMs.forEach(h => { const dt = t - h; if (dt >= 0 && dt < 60) p = Math.max(p, loud * Math.exp(-dt / 20)); });
+      d.onFrame(p, t);
+    }
+    return d.count;
+  };
+  const steady = Array.from({ length: 20 }, (_, i) => 1000 + i * 700);    // ~86/min
+  const flurry = Array.from({ length: 50 }, (_, i) => 1000 + i * 180);    // ~333/min, continuous
+  check('mic: quiet gym noise makes no hits', run([], 10000) === 0);
+  check('mic: counts steady hits exactly', run(steady, 16000) === 20, String(run(steady, 16000)));
+  check('mic: keeps counting a continuous flurry', run(flurry, 11000) >= 48, String(run(flurry, 11000)));
+  check('mic: one thud is one hit', run([1000], 3000) === 1);
+  check('mic: loud music floor does not trigger', run([], 10000, 0.15) === 0);
+  const d = createMicStrikeDetector();
+  for (let t = 0; t < 1000; t += 10) d.onFrame(0.02, t);
+  d.mute(1000, 300);
+  for (let t = 1000; t < 1300; t += 10) d.onFrame(0.6, t);
+  check('mic: muted window ignores the phone beep', d.count === 0);
 }
 
 // ── plate picks ───────────────────────────────────────────────────────────

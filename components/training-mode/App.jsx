@@ -5,6 +5,7 @@ import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuick
 import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
+import { consumeLabCode } from './data/strikeLab';
 import { completeCampLevel, markCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
@@ -546,6 +547,15 @@ export default function App() {
     try { sessionStorage.setItem('tm_challenge_seen', key); } catch { /* noop */ }
     clearChallengeFromURL();
     if (resolved) { setPendingChallenge(resolved); trackEvent('challenge_opened', { series: resolved.series.id, mode: resolved.mode }); }
+  }, []);
+
+  // Strike Lab — private diagnostics. Opens only from ?lab=<owner code>;
+  // the code is checked against a hash and stripped from the URL. Nothing in
+  // the app links here.
+  useEffect(() => {
+    let live = true;
+    consumeLabCode().then(ok => { if (live && ok) setScreen('strike_lab'); }).catch(() => {});
+    return () => { live = false; };
   }, []);
 
   // Returning from Stripe checkout (?checkout=success): re-sync the Pro

@@ -64,7 +64,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   // Live verdicts — what the rushes and clean rounds did to the number.
   const verdictLines = bonusXp !== 0 || rush?.attempts > 0 || cleanRounds > 0 ? (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginBottom: 6, font: "900 8.5px 'Orbitron',sans-serif", letterSpacing: '0.12em' }}>
-      {rush?.attempts > 0 && <span style={{ color: rush.xp >= 0 ? '#ffd27a' : '#ff9a9a' }}>⚡ RUSH {rush.passes}/{rush.attempts} · {rush.xp >= 0 ? '+' : '−'}{Math.abs(rush.xp)} XP</span>}
+      {rush?.attempts > 0 && <span style={{ color: '#ffd27a' }}>⚡ RUSH {rush.passes}/{rush.attempts} · +{rush.xp} XP</span>}
       {rush?.blind > 0 && rush?.attempts === 0 && <span style={{ color: '#9a90b8' }}>⚡ RUSH · PHONE COULD NOT SEE YOU</span>}
       {cleanRounds > 0 && <span style={{ color: '#8fe8ac' }}>✓ CLEAN ROUNDS {cleanRounds}/{completed} · +{cleanXp} XP</span>}
       {strong?.verdict === 'pass' && <span style={{ color: '#ffd27a' }}>🔥 STRONG FINISH · +{strong.xp} XP · {Math.round(strong.baseline / roundSecForRate * 60)}→{Math.round(strong.final / roundSecForRate * 60)}/MIN</span>}
@@ -79,7 +79,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
         <div key={i}>
           R{r.round || '?'} · {r.verdict === 'blind' ? 'phone could not see you' : `${perMin(r.baselineRate)} → ${perMin(r.rushRate)} strikes/min · `}
           {r.verdict === 'pass' && <span style={{ color: '#8fe8ac' }}>HELD +{r.xp}</span>}
-          {r.verdict === 'fail' && <span style={{ color: '#ff9a9a' }}>DROPPED −{-r.xp}</span>}
+          {r.verdict === 'fail' && <span>slowed · no loss</span>}
           {r.verdict === 'hold' && <span>held steady</span>}
         </div>
       ))}

@@ -49,6 +49,7 @@ import LevelUpReveal from './LevelUpReveal';
 
 // Code-split the heavy, rarely-first screens so they're not in the initial bundle.
 const TrainingArcade = lazy(() => import('./TrainingArcade'));
+const StrikeLab = lazy(() => import('./StrikeLab'));
 const TrainingCampMap = lazy(() => import('./TrainingCampMap'));
 const ArcadeSeriesIntroPage = lazy(() => import('./ArcadeSeriesIntroPage'));
 const ArcadeSeriesDetail = lazy(() => import('./ArcadeSeriesDetail'));
@@ -673,6 +674,9 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
         <Profile onHome={goHome} onBack={goHome} onSave={goHome} profile={profile} updateProfile={updateProfile} onBetaFeedback={goBetaFeedback} onPaywall={goPaywall} onGameLink={goGameLink} onSubscription={goSubscription} onNotifications={goNotifications} onReplayTour={startFeatureTour}/>
       </WithNav>
     );
+  }
+  if (screen === 'strike_lab') {
+    return <StrikeLab onExit={goHome} />;
   }
   if (screen === 'beta_feedback') {
     return (
