@@ -824,7 +824,7 @@ export default function App() {
       // Rush and clean-round verdicts from the block ride along. Nothing moves
       // on a session the integrity gate refused.
       const vs = fightSessionStats || {};
-      const verdictXp = (vs.rush?.xp || 0) + (vs.cleanRoundXp || 0);
+      const verdictXp = (vs.rush?.xp || 0) + (vs.cleanRoundXp || 0) + (vs.strongFinish?.xp || 0);
       const stagePlate = (cleared, awarded, done, total, diff, earned) => {
         if (!awarded) return { xp: earned, plate: null };
         let xp = earned + (verdictXp ? addBonusXp(verdictXp) : 0);
@@ -965,7 +965,7 @@ export default function App() {
       // Live verdicts (rushes held or dropped, clean rounds) ride the settled
       // number — the same helper the summary reads, so the two agree.
       const fs = fightSessionStats || {};
-      const bonusXp = (fs.rush?.xp || 0) + (fs.cleanRoundXp || 0);
+      const bonusXp = (fs.rush?.xp || 0) + (fs.cleanRoundXp || 0) + (fs.strongFinish?.xp || 0);
       const { xp } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight', bonusXp });
       addFightFocusSession(done, total, { justTrain, xp });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
@@ -978,7 +978,7 @@ export default function App() {
       const battle = c.ghost ? getLastBattle() : null;
       const challengeWin = battle?.ghost?.ghostId && battle.ghost.ghostId === c.ghost.ghostId
         ? settleChallenge('fight', c.ghost, battle.result?.outcome) : null;
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0 }, challengeWin });
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
     goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
@@ -988,7 +988,7 @@ export default function App() {
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
       const cs = fightSessionStats || {};
-      const bonusXp = (cs.rush?.xp || 0) + (cs.cleanRoundXp || 0);
+      const bonusXp = (cs.rush?.xp || 0) + (cs.cleanRoundXp || 0) + (cs.strongFinish?.xp || 0);
       const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo', bonusXp });
       addComboCoachSession(done, total, { xp });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
@@ -1016,7 +1016,7 @@ export default function App() {
         completedRounds: done,
         sessionSource: 'comboCoach',
         integrityResult,
-        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed, rush: cs.rush || null, cleanRounds: cs.cleanRounds || 0, cleanRoundXp: cs.cleanRoundXp || 0 },
+        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed, rush: cs.rush || null, cleanRounds: cs.cleanRounds || 0, cleanRoundXp: cs.cleanRoundXp || 0, strongFinish: cs.strongFinish || null },
       });
       routeAfterXp(beforeLevel, 'summary');
     },

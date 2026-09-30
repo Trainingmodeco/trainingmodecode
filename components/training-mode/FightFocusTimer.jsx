@@ -11,6 +11,7 @@ import Emoji from './shared/Emoji';
 import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudio } from './data/audioEngine';
 import { newRushTally, judgeRush, tallyRush, rushSummary } from './data/rushVerdict';
 import { cleanRoundXp } from './data/xpStakes';
+import { judgeRoundIntensity } from './data/roundIntensity';
 import { pickXpBanner, preloadXpBanners } from './data/xpBanners';
 import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
@@ -170,6 +171,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const lastVerdictThrownRef = useRef(0);
   const pausesThisRoundRef = useRef(0);
   const cleanRoundsRef = useRef(0);
+  const verdictRoundStrikesRef = useRef([]);
+  const verdictRoundStartRef = useRef(0);
+  const strongFinishRef = useRef(null);
   const [verdictFlash, fireVerdict] = useVerdictFlash();
   useEffect(() => { preloadXpBanners(); }, []);
   const verdictTier = cfg.difficulty;
@@ -181,7 +185,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       motionSeen: motionRef.current, baselineStrikes: baseStrikesRef.current, baselineSec: baseSecRef.current,
       rushStrikes: thrownRef.current - w.startCount, rushSec: elapsedNow - w.startSec,
     });
-    const xp = tallyRush(rushTallyRef.current, judged, verdictTier);
+    const xp = tallyRush(rushTallyRef.current, judged, verdictTier, { round: roundIdxRef.current + 1 });
     if (judged.verdict === 'pass') {
       playExtraLife();
       fireVerdict({ pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
@@ -193,13 +197,26 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     }
   };
   const closeRound = (isFinal) => {
-    if (pausesThisRoundRef.current !== 0) return;
-    cleanRoundsRef.current += 1;
-    if (!isFinal && cfg.voiceOn) speakAsync('Clean round. Plus five.', { priority: 1, dropIfBusy: true });
+    verdictRoundStrikesRef.current.push(thrownRef.current - verdictRoundStartRef.current);
+    verdictRoundStartRef.current = thrownRef.current;
+    if (pausesThisRoundRef.current === 0) {
+      cleanRoundsRef.current += 1;
+      if (!isFinal && cfg.voiceOn) speakAsync('Clean round. Plus five.', { priority: 1, dropIfBusy: true });
+    }
+    if (isFinal) {
+      // Strong finish — the last round against the first two (data/roundIntensity).
+      const sf = judgeRoundIntensity({ perRoundStrikes: verdictRoundStrikesRef.current, roundSec, motionSeen: motionRef.current, tier: verdictTier });
+      strongFinishRef.current = sf;
+      if (sf.verdict === 'pass') {
+        playExtraLife();
+        fireVerdict({ pass: true, xp: sf.xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
+      }
+    }
   };
   const verdictStats = () => ({
     rush: rushSummary(rushTallyRef.current, verdictTier),
     cleanRounds: cleanRoundsRef.current, cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
+    strongFinish: strongFinishRef.current,
   });
 
   useEffect(() => {
@@ -337,6 +354,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     lastVerdictThrownRef.current = thrownRef.current;
     pausesThisRoundRef.current = 0;
     rushWinRef.current = null;
+    verdictRoundStartRef.current = thrownRef.current;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
     if (keepRestoredClock.current) keepRestoredClock.current = false;

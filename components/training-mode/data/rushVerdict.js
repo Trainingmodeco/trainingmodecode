@@ -37,14 +37,14 @@ export function judgeRush({ motionSeen, baselineStrikes, baselineSec, rushStrike
 }
 
 // Records one judged rush on the tally and returns the XP delta it carries.
-export function tallyRush(tally, judged, tier = 'normal') {
+export function tallyRush(tally, judged, tier = 'normal', meta = {}) {
   const { win, loss } = stakesFor(tier);
   let xp = 0;
   if (judged.verdict === 'pass') { tally.passes += 1; xp = win; }
   else if (judged.verdict === 'fail') { tally.fails += 1; xp = -loss; }
   else if (judged.verdict === 'hold') tally.held += 1;
   else tally.blind += 1;
-  tally.results.push({ ...judged, xp });
+  tally.results.push({ ...meta, ...judged, xp });
   return xp;
 }
 
@@ -56,5 +56,6 @@ export function rushSummary(tally, tier = 'normal') {
   return {
     passes: t.passes, fails: t.fails, held: t.held || 0, blind: t.blind || 0,
     attempts: t.passes + t.fails + (t.held || 0), won, lost, xp: won - lost, stakes: { win, loss },
+    results: (t.results || []).slice(),
   };
 }

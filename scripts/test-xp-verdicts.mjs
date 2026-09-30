@@ -6,6 +6,7 @@ import { judgeRush, tallyRush, newRushTally, rushSummary, RUSH_MIN_BASELINE_SEC 
 import { judgeNegativeSplit } from '../components/training-mode/data/negativeSplit.js';
 import { chaseXp, CHASE_XP } from '../components/training-mode/data/chase.js';
 import { pickXpBanner } from '../components/training-mode/data/xpBanners.js';
+import { judgeRoundIntensity } from '../components/training-mode/data/roundIntensity.js';
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -67,6 +68,20 @@ const trace = (segments) => { // [[secondsForHalf1], ...] → even-paced trace p
   check('machine runs are ineligible', !judgeNegativeSplit({ trace: neg, totalDistance: 3, totalSec: 1140, unit: 'mi', gps: false }).eligible);
   check('km threshold is 3 km', judgeNegativeSplit({ trace: trace([[600, 1.6], [540, 1.6]]), totalDistance: 3.2, totalSec: 1140, unit: 'km', gps: true }).eligible);
   check('no trace is ineligible', !judgeNegativeSplit({ trace: [], totalDistance: 5, totalSec: 3000, unit: 'mi', gps: true }).eligible);
+}
+
+// ── round intensity (strong finish) ───────────────────────────────────────
+{
+  const ok = { roundSec: 180, motionSeen: true, tier: 'normal' };
+  check('strong finish passes at 1.2× the first two rounds', judgeRoundIntensity({ ...ok, perRoundStrikes: [100, 100, 90, 120] }).verdict === 'pass');
+  check('strong finish pays the tier win', judgeRoundIntensity({ ...ok, perRoundStrikes: [100, 100, 120], tier: 'hard' }).xp === 15);
+  check('a fade is a hold, never a loss', (() => { const r = judgeRoundIntensity({ ...ok, perRoundStrikes: [100, 100, 80] }); return r.verdict === 'hold' && r.xp === 0; })());
+  check('needs three rounds', judgeRoundIntensity({ ...ok, perRoundStrikes: [100, 130] }).verdict === 'blind');
+  check('blind without motion', judgeRoundIntensity({ ...ok, motionSeen: false, perRoundStrikes: [100, 100, 130] }).verdict === 'blind');
+  check('blind when the phone barely counted', judgeRoundIntensity({ ...ok, perRoundStrikes: [10, 10, 40] }).verdict === 'blind');
+  check('baseline is the mean of the first two', judgeRoundIntensity({ ...ok, perRoundStrikes: [80, 120, 116] }).baseline === 100);
+  const t = newRushTally(); tallyRush(t, judgeRush({ ...live, rushStrikes: 15, rushSec: 10 }), 'normal', { round: 2 });
+  check('rush results carry the round for the log', rushSummary(t).results[0].round === 2 && rushSummary(t).results[0].verdict === 'pass');
 }
 
 // ── plate picks ───────────────────────────────────────────────────────────

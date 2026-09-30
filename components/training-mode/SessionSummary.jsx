@@ -17,10 +17,13 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   const rush = fightStats?.rush || null;
   const cleanRounds = fightStats?.cleanRounds || 0;
   const cleanXp = fightStats?.cleanRoundXp || 0;
+  const strong = fightStats?.strongFinish || null;
+  const roundSecForRate = Math.max(1, (cfg.roundMin || 3) * 60);
+  const perMin = (rate) => Math.round((rate || 0) * 60);
   const { verdict, xp, bonusXp } = settleFightXp({
     completed, total: totalPlanned, difficulty: cfg.difficulty, integrityResult,
     mode: isCombo ? 'combo' : cfg.mode === 'Just Train' ? 'justTrain' : 'fight',
-    bonusXp: (rush?.xp || 0) + cleanXp,
+    bonusXp: (rush?.xp || 0) + cleanXp + (strong?.xp || 0),
   });
   const stoppedEarly = verdict.outcome !== 'pass';
   const displayRounds = rounds.slice(0, completed);
@@ -64,11 +67,29 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       {rush?.attempts > 0 && <span style={{ color: rush.xp >= 0 ? '#ffd27a' : '#ff9a9a' }}>⚡ RUSH {rush.passes}/{rush.attempts} · {rush.xp >= 0 ? '+' : '−'}{Math.abs(rush.xp)} XP</span>}
       {rush?.blind > 0 && rush?.attempts === 0 && <span style={{ color: '#9a90b8' }}>⚡ RUSH · PHONE COULD NOT SEE YOU</span>}
       {cleanRounds > 0 && <span style={{ color: '#8fe8ac' }}>✓ CLEAN ROUNDS {cleanRounds}/{completed} · +{cleanXp} XP</span>}
+      {strong?.verdict === 'pass' && <span style={{ color: '#ffd27a' }}>🔥 STRONG FINISH · +{strong.xp} XP · {Math.round(strong.baseline / roundSecForRate * 60)}→{Math.round(strong.final / roundSecForRate * 60)}/MIN</span>}
+      {strong?.verdict === 'hold' && <span style={{ color: '#9a90b8' }}>FINISH {Math.round(strong.baseline / roundSecForRate * 60)}→{Math.round(strong.final / roundSecForRate * 60)}/MIN</span>}
     </div>
   ) : null;
-  const recap = displayRounds.length > 0 || verdictLines ? (
+  // The rush log — how each rush was tracked, so a verdict is never a mystery:
+  // the round, the athlete's rate before the call, the rate during it.
+  const rushLog = rush?.results?.length ? (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 6, font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', letterSpacing: '0.04em' }}>
+      {rush.results.slice(0, 4).map((r, i) => (
+        <div key={i}>
+          R{r.round || '?'} · {r.verdict === 'blind' ? 'phone could not see you' : `${perMin(r.baselineRate)} → ${perMin(r.rushRate)} strikes/min · `}
+          {r.verdict === 'pass' && <span style={{ color: '#8fe8ac' }}>HELD +{r.xp}</span>}
+          {r.verdict === 'fail' && <span style={{ color: '#ff9a9a' }}>DROPPED −{-r.xp}</span>}
+          {r.verdict === 'hold' && <span>held steady</span>}
+        </div>
+      ))}
+      {rush.results.length > 4 && <div>+{rush.results.length - 4} more</div>}
+    </div>
+  ) : null;
+  const recap = displayRounds.length > 0 || verdictLines || rushLog ? (
     <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '9px 12px' }}>
       {verdictLines}
+      {rushLog}
       <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.16em', marginBottom: 6 }}>ROUND RECAP</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {displayRounds.slice(0, RECAP_MAX).map((r, i) => (
