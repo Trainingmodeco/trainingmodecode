@@ -149,7 +149,14 @@ const TOUR_KEY = 'trainingModeTourComplete';
 migrateArcadeIds();
 
 const PAUSED_SESSION_KEY = 'trainingModePausedSession';
-const PAUSED_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+// A paused session older than this gets dropped instead of offered as
+// "Continue." Ninety minutes is a middle-ground between the athlete's
+// 1-2 hour ask and what other fitness apps do: Peloton auto-ends after
+// 2 h idle, Fitbod at 3 h, Nike Run Club auto-pauses at 15 min but the
+// session itself persists. Ninety minutes catches "left it up overnight"
+// cleanly and still gives room for a legitimately long session — a 60
+// min strength block plus a stretch and a shower is under it.
+const PAUSED_SESSION_MAX_AGE_MS = 90 * 60 * 1000;
 // How often a running session writes itself to storage. The OS can kill a
 // backgrounded PWA without warning (memory pressure during a phone call is the
 // common one), and no lifecycle event is guaranteed to fire first — so the
@@ -438,6 +445,30 @@ export default function App() {
   }, []);
   const discardAltSession = useCallback(() => {
     setPausedSlots(list => { const next = list.slice(0, 1); savePausedSessions(next); return next; });
+  }, []);
+
+  // Prune stale paused sessions on visibility → 'visible' and once a minute
+  // while the app is open. loadPausedSessions already applies the age
+  // filter on cold boot; this is the live-app equivalent so an athlete who
+  // left the app open on Home doesn't keep seeing a stale Continue card
+  // for a session they last touched 90 minutes ago.
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const prune = () => {
+      setPausedSlots(list => {
+        const fresh = list.filter(x => x && x.timestamp && Date.now() - x.timestamp <= PAUSED_SESSION_MAX_AGE_MS);
+        if (fresh.length === list.length) return list;   // nothing to do, keep same ref
+        savePausedSessions(fresh);
+        return fresh;
+      });
+    };
+    const onVisibility = () => { if (document.visibilityState === 'visible') prune(); };
+    const timer = setInterval(prune, 60_000);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   // Boot: a session the OS interrupted comes straight back INTO its player,
