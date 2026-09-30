@@ -1527,6 +1527,30 @@
     "size": 50244,
     "sha1": "174848479fd142b23b128fc15cc032cfbf877348"
   },
+  "static/xp/fail-blaze.webp": {
+    "size": 93918,
+    "sha1": "745388cb1c860ad0dfd52599ffc8f86f3de8961e"
+  },
+  "static/xp/fail-gloves.webp": {
+    "size": 92534,
+    "sha1": "094d7d396485134ef9a6f5aa23c13010188a6619"
+  },
+  "static/xp/fail-reaper.webp": {
+    "size": 108444,
+    "sha1": "edcd8b683d62d22356ff98fbca048ca6f0d9b798"
+  },
+  "static/xp/gain-blaze.webp": {
+    "size": 99678,
+    "sha1": "122c41c0702d37e4167207ff16ab5f17293dc085"
+  },
+  "static/xp/gain-crown.webp": {
+    "size": 87542,
+    "sha1": "86e3d76aa9773f1e6d74fbfcbb42d5776e3a005e"
+  },
+  "static/xp/gain-iron.webp": {
+    "size": 79656,
+    "sha1": "9142dad2bbc97bed86a037e536465e0662ed6083"
+  },
   "training-arcade/results/mission-validation-failed-red.png": {
     "size": 208676,
     "sha1": "005669d383405346ff06476fb6eafc20be7a02e1"

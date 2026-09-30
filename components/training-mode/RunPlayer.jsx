@@ -10,6 +10,8 @@ import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudio } from './data/audioEngine';
+import { xpBannerFor, preloadXpBanners } from './data/xpBanners';
+import SafeImage from './SafeImage';
 import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
@@ -168,6 +170,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // a sprint window is open; a 4-second pass/fail flash after it closes.
   const [chaseUi, setChaseUi] = useState(null);
   const [chaseFlash, setChaseFlash] = useState(null);
+  useEffect(() => { if (chaseMode) preloadXpBanners(); }, [chaseMode]);
   const [progIdx, setProgIdx] = useState(restore?.programIdx ?? -1);
   const aliveRef = useRef(true);
   const runningRef = useRef(running);
@@ -698,7 +701,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           playPowerDown();
           say(`Caught. ${stakes.loss} X P gone. Next one's yours. Ease back.`);
         }
-        setChaseFlash(v.pass ? { pass: true, xp: stakes.win } : { pass: false, xp: stakes.loss });
+        setChaseFlash(v.pass
+          ? { pass: true, xp: stakes.win, banner: xpBannerFor('gain', c.passes - 1) }
+          : { pass: false, xp: stakes.loss, banner: xpBannerFor('loss', c.fails - 1) });
         setTimeout(() => setChaseFlash(null), 3500);
         c.activeUntilSec = null;
         c.leadInAtSec = null;
@@ -1071,21 +1076,21 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ffd0b0', letterSpacing: '0.1em', marginTop: 3 }}>BEAT {fmtPace(chaseUi.requiredPaceSec, unit)} · YOU WERE {fmtPace(chaseUi.baselinePaceSec, unit)}</div>
         </div>
       )}
-      {/* THE VERDICT — a small popup over the HUD for a few seconds after a chase closes. */}
+      {/* THE VERDICT — the XP plate pops over the HUD for a few seconds after a chase closes,
+          the amount set in the plate's empty panel. */}
       {!chaseUi && chaseFlash && (
-        <div role="status" style={{ position: 'fixed', left: 0, right: 0, top: '38%', zIndex: 60, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{
-            minWidth: 190, padding: '12px 20px 13px', borderRadius: 16, textAlign: 'center',
-            background: chaseFlash.pass ? 'linear-gradient(180deg,rgba(20,60,32,0.96),rgba(6,22,12,0.96))' : 'linear-gradient(180deg,rgba(70,16,20,0.96),rgba(26,6,10,0.96))',
-            border: `1.5px solid ${chaseFlash.pass ? 'rgba(74,222,128,0.8)' : 'rgba(248,113,113,0.75)'}`,
-            boxShadow: chaseFlash.pass ? '0 0 34px rgba(34,197,94,0.35)' : '0 0 34px rgba(239,68,68,0.3)',
-            animation: 'tm-chase-pop 0.35s cubic-bezier(0.2,1.4,0.4,1)',
-          }}>
-            <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: chaseFlash.pass ? '#8fe8ac' : '#ff9a9a' }}>{chaseFlash.pass ? '⚡ ESCAPED' : '💀 CAUGHT'}</div>
-            <div style={{ fontFamily: mono, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 4, color: chaseFlash.pass ? '#ffd27a' : '#ff8a8a' }}>{chaseFlash.pass ? '+' : '−'}{chaseFlash.xp} XP</div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: chaseFlash.pass ? '#c9f5d6' : '#ffd0d0', marginTop: 3 }}>{chaseFlash.pass ? 'Banked. Ease back.' : "Next one's yours."}</div>
+        <div role="status" style={{ position: 'fixed', left: 0, right: 0, top: '30%', zIndex: 60, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div style={{ position: 'relative', width: 'min(72vw, 300px)', animation: 'tm-chase-pop 0.38s cubic-bezier(0.2,1.4,0.4,1)', filter: chaseFlash.pass ? 'drop-shadow(0 0 22px rgba(124,58,237,0.55))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.5))' }}>
+            <SafeImage src={chaseFlash.banner.src} alt={chaseFlash.pass ? 'XP gained' : 'XP failed'} loading="eager" style={{ display: 'block', width: '100%', height: 'auto' }} />
+            <div style={{
+              position: 'absolute', left: `${(1 - chaseFlash.banner.panel.w) * 50}%`, width: `${chaseFlash.banner.panel.w * 100}%`,
+              top: `${chaseFlash.banner.panel.cy * 100}%`, transform: 'translateY(-50%)', textAlign: 'center',
+              fontFamily: mono, fontWeight: 900, fontSize: 'clamp(18px, 6.4vw, 27px)', lineHeight: 1, letterSpacing: '0.04em',
+              color: chaseFlash.pass ? '#ffd84a' : '#ff3b3b',
+              textShadow: chaseFlash.pass ? '0 0 10px rgba(255,200,60,0.55), 0 2px 0 #7a4b00' : '0 0 10px rgba(255,60,60,0.6), 0 2px 0 #5a0000',
+            }}>{chaseFlash.pass ? '+' : '−'}{chaseFlash.xp} XP</div>
           </div>
-          <style>{`@keyframes tm-chase-pop{0%{transform:scale(0.6);opacity:0}100%{transform:scale(1);opacity:1}}`}</style>
+          <style>{`@keyframes tm-chase-pop{0%{transform:scale(0.55);opacity:0}100%{transform:scale(1);opacity:1}}`}</style>
         </div>
       )}
 
