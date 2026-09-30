@@ -8,7 +8,7 @@ Plus two small session-lifecycle changes (paused-session TTL, GPS gap
 detector). Nothing else.**
 
 Run this in the revamp app repo. It brings the revamp up to the state
-that shipped to `apptrainingmode.com` at commit `df94bc6` on
+that shipped to `apptrainingmode.com` at commit `3dd63cc` on
 `trainingmodeco/trainingmodecode`, branch `app`.
 
 Every path, constant and string here was verified against the working
@@ -17,7 +17,7 @@ before writing — the revamp must match them line-close, not paraphrase.
 Where this prompt and the source disagree, the source wins.
 
 **Reference source** — read from `trainingmodeco/trainingmodecode`,
-branch `app`, at commit `df94bc6`:
+branch `app`, at commit `3dd63cc`:
 
 | Purpose | Path |
 |---|---|
@@ -49,7 +49,7 @@ branch `app`, at commit `df94bc6`:
 | Paused-session TTL | `components/training-mode/App.jsx` (`PAUSED_SESSION_MAX_AGE_MS`) |
 | GPS gap detector (data only, whispered footnote) | `RunPlayer.jsx`, `CardioProtocolPlayer.jsx`, `CardioSummary.jsx` |
 | Plate art (six WebP, 640 px, alpha) | `public/static/xp/gain-crown.webp`, `gain-blaze.webp`, `gain-iron.webp`, `fail-blaze.webp`, `fail-gloves.webp`, `fail-reaper.webp` |
-| Tests | `scripts/test-run-intervals.mjs` (494), `scripts/test-xp-verdicts.mjs` (45) |
+| Tests | `scripts/test-run-intervals.mjs` (495), `scripts/test-xp-verdicts.mjs` (51) |
 
 **Ledger of commits this prompt combines** (oldest first):
 
@@ -67,6 +67,7 @@ branch `app`, at commit `df94bc6`:
 | `092bffb` | XP plates: smaller, dead centre, 2.5 s, picked per mode and tier |
 | `e676b51` | Live XP verdicts: rushes, clean rounds, stage stakes, negative splits |
 | `df94bc6` | Strong finish verdict, and a rush log on the summary |
+| `3dd63cc` | Rush verdicts go win-only (plus a private diagnostics screen that is **not** ported, see §9) |
 
 Copy the six plate images byte-for-byte; do not regenerate them.
 
@@ -326,9 +327,15 @@ records `{ round, verdict, baselineRate, rushRate, ratio, xp }`.
 `rushSummary(tally, tier)` → `{ passes, fails, held, blind, attempts, won,
 lost, xp, stakes, results }`.
 
+**Rush verdicts are WIN-ONLY.** A `fail` is still counted and logged,
+but `tallyRush` returns `0` for it, `rushSummary.lost` is always `0`, and
+nothing plays, shows or is spoken. Reason: most athletes put the phone on
+the floor or the bag frame, and a detector that undercounts a continuous
+flurry could read the hardest rush as a slow one. Losses stay off until a
+sensor is proven in the gym.
+
 On pass: `playExtraLife()`, crown plate, coach "Rush held. Plus {xp} X P."
-On fail: `playPowerDown()`, gloves plate, "Rush fell off. Minus {xp} X P.
-Next one's yours."
+On fail: nothing.
 
 ### 6.2 Clean rounds — Fight Focus, Combo Coach, Combat Conditioning
 
@@ -354,11 +361,11 @@ Both timers return `{ thrown, motionUsed, rush, cleanRounds, cleanRoundXp,
 strongFinish }`. `App.goSummary` / `goComboEnd`:
 `bonusXp = rush.xp + cleanRoundXp + strongFinish.xp` → `settleFightXp`.
 `SessionSummary` recomputes with the same `bonusXp` and shows, above the
-round recap: `⚡ RUSH a/b · ±N XP`, `⚡ RUSH · PHONE COULD NOT SEE YOU`
+round recap: `⚡ RUSH a/b · +N XP`, `⚡ RUSH · PHONE COULD NOT SEE YOU`
 (all blind), `✓ CLEAN ROUNDS a/b · +N XP`, `🔥 STRONG FINISH · +N XP ·
 62→78/MIN` (or a muted `FINISH 62→58/MIN` on a hold), then the **rush
 log**: one line per rush, `R2 · 60 → 96 strikes/min · HELD +10` /
-`DROPPED −5` / `held steady` / `phone could not see you`, capped at 4.
+`slowed · no loss` / `held steady` / `phone could not see you`, capped at 4.
 
 ### 6.5 Camp / Arcade stage stakes (`App.goCampComplete`, `ScreenRouter`)
 
@@ -399,11 +406,12 @@ and the trace has ≥ 4 points. Pass when second half ≤ 99% of the first →
 
 Port both suites verbatim and wire them into the check chain:
 
-- `scripts/test-run-intervals.mjs` — 494 checks (effort bands, chase
+- `scripts/test-run-intervals.mjs` — 495 checks (effort bands, chase
   scheduling and judging, programme library, tier aliases).
-- `scripts/test-xp-verdicts.mjs` — 45 checks (stakes, rush verdicts
-  incl. every blind case, tally and summary, negative splits, round
-  intensity, plate picks).
+- `scripts/test-xp-verdicts.mjs` — 51 checks (stakes, rush verdicts
+  incl. every blind case and win-only tally, negative splits, round
+  intensity, plate picks, mic detector).
+- `scripts/test-run-intervals.mjs` checks count: 495.
 
 `package.json`: `"test:intervals"`, `"test:xp"` (both with
 `--import ./scripts/extensionless-loader-register.mjs`), added to
@@ -428,8 +436,9 @@ Port both suites verbatim and wire them into the check chain:
    segment card with SET / LEFT, athlete moves the belt.
 7. Plate: 230 px, dead centre, gone after 2.5 s, amount inside the panel.
 8. Fight Focus with Rush Mode and the phone in the pocket: a rush that
-   speeds up pops the crown and speaks "+10"; the summary rush log shows
-   the before/after strikes per minute.
+   speeds up pops the crown and speaks "+10"; a rush that slows shows
+   nothing and costs nothing; the summary rush log shows the before/after
+   strikes per minute for both.
 9. Fight Focus with the phone on a table: every rush reads "phone could
    not see you"; **XP never goes down.**
 10. Pausing mid-round forfeits that round's +5; an unpaused round says
@@ -440,3 +449,15 @@ Port both suites verbatim and wire them into the check chain:
 13. A session the integrity gate refuses banks nothing, plates nothing.
 14. Paused session older than 90 minutes is gone on the next visibility change.
 15. `check:all` green, including both new suites.
+
+---
+
+## 9. Do NOT port
+
+- `components/training-mode/StrikeLab.jsx`, `data/strikeLab.js`, and the
+  `consumeLabCode` effect in `App.jsx` plus the `strike_lab` route in
+  `ScreenRouter.jsx`. This is the owner's private diagnostics screen. It
+  stays in the app repo only.
+- `data/micStrikeDetector.js` is test-only and not wired into any session.
+  Port it only if you want its tests to run; do not use it anywhere yet.
+
