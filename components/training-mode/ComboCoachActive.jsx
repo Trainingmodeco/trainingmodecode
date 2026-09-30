@@ -8,7 +8,11 @@ import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, 
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
-import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
+import { playPowerDown, playExtraLife, playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
+import { newRushTally, judgeRush, tallyRush, rushSummary } from './data/rushVerdict';
+import { cleanRoundXp } from './data/xpStakes';
+import { pickXpBanner, preloadXpBanners } from './data/xpBanners';
+import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { createRushCaller } from './data/rushMoves';
 import VoiceMixer from './shared/VoiceMixer';
@@ -240,9 +244,53 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const motionRef = useRef(false);
   thrownRef.current = strike.count;
   motionRef.current = strike.motionSeen;
+
+  // Live verdicts — each rush judged against the athlete's own pre-rush strike
+  // rate (data/rushVerdict: blind when the phone cannot see them, so nobody
+  // loses XP to a phone on the floor), and clean rounds: bell to bell with no
+  // pause (data/xpStakes). Both ride the settled session XP.
+  const rushTallyRef = useRef(newRushTally());
+  const rushWinRef = useRef(null);
+  const baseSecRef = useRef(0);
+  const baseStrikesRef = useRef(0);
+  const lastVerdictThrownRef = useRef(0);
+  const pausesThisRoundRef = useRef(0);
+  const cleanRoundsRef = useRef(0);
+  const [verdictFlash, fireVerdict] = useVerdictFlash();
+  useEffect(() => { preloadXpBanners(); }, []);
+  const verdictTier = cfg.difficulty;
+  const closeRush = (elapsedNow) => {
+    const w = rushWinRef.current;
+    if (!w) return;
+    rushWinRef.current = null;
+    const judged = judgeRush({
+      motionSeen: motionRef.current, baselineStrikes: baseStrikesRef.current, baselineSec: baseSecRef.current,
+      rushStrikes: thrownRef.current - w.startCount, rushSec: elapsedNow - w.startSec,
+    });
+    const xp = tallyRush(rushTallyRef.current, judged, verdictTier);
+    if (judged.verdict === 'pass') {
+      playExtraLife();
+      fireVerdict({ pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
+      if (cfg.voiceOn !== false) speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 });
+    } else if (judged.verdict === 'fail') {
+      playPowerDown();
+      fireVerdict({ pass: false, xp: -xp, banner: pickXpBanner('loss', { mode: 'fight', tier: verdictTier }) });
+      if (cfg.voiceOn !== false) speakAsync(`Rush fell off. Minus ${-xp} X P. Next one's yours.`, { priority: 2 });
+    }
+  };
+  const closeRound = (isFinal) => {
+    if (pausesThisRoundRef.current !== 0) return;
+    cleanRoundsRef.current += 1;
+    if (!isFinal && cfg.voiceOn !== false) speakAsync('Clean round. Plus five.', { priority: 1, dropIfBusy: true });
+  };
+  const verdictStats = () => ({
+    rush: rushSummary(rushTallyRef.current, verdictTier),
+    cleanRounds: cleanRoundsRef.current, cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
+  });
   const sessionStats = () => ({
     strikes: totalStrikesRef.current, peakStreak: peakStreakRef.current,
     thrown: thrownRef.current, motionUsed: motionRef.current,
+    ...verdictStats(),
   });
 
   const phaseRef     = useRef('round');
@@ -340,6 +388,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     lastBeepSecondRef.current = null;
     roundStartBellPlayedRef.current = false;
     roundEndBellPlayedRef.current = false;
+    baseSecRef.current = 0;
+    baseStrikesRef.current = 0;
+    lastVerdictThrownRef.current = thrownRef.current;
+    pausesThisRoundRef.current = 0;
+    rushWinRef.current = null;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
     if (keepRestoredClock.current) keepRestoredClock.current = false;
@@ -399,12 +452,20 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
   useEffect(() => {
     if (doneRef.current || remaining > 0) {
+      if (phaseRef.current === 'round' && !doneRef.current) {
+        if (!rushRef.current) {
+          baseSecRef.current += 1;
+          baseStrikesRef.current += thrownRef.current - lastVerdictThrownRef.current;
+        }
+        lastVerdictThrownRef.current = thrownRef.current;
+      }
       if (phaseRef.current === 'round' && cfg.rushMode) {
         const elapsed = roundSec - remaining;
         const wantRush = isRushAt(cfg.rushPattern || 'endRound', elapsed, remaining, roundSec, roundIdxRef.current);
         if (wantRush && !rushRef.current) {
           setRush(true);
           setShowRushOverlay(true);
+          rushWinRef.current = { startCount: thrownRef.current, startSec: elapsed };
           // Only speak the rush cue in a gap between combos so it never clips
           // a combo call; if a combo is mid-speech we retry on the next tick.
           if (cfg.voiceOn !== false && !rushSpoken.current && !isSpeakingCombo.current) {
@@ -420,6 +481,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           setRush(false);
           setShowRushOverlay(false);
           rushSpoken.current = false;
+          closeRush(elapsed);
           // "Rush mode complete" only makes sense if there's session left —
           // at the final bell the bell itself is the closing statement.
           const moreToCome = remaining > 3 || roundIdxRef.current + 1 < totalRounds;
@@ -469,6 +531,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (phaseRef.current === 'round') {
       integrity.completeUnit();
       setRush(false);
+      closeRush(roundSec);
+      closeRound(roundIdxRef.current + 1 >= totalRounds);
       lastRushCountdownSecond.current = null;
       if (roundIdxRef.current + 1 >= totalRounds) {
         if (!roundEndBellPlayedRef.current) {
@@ -622,6 +686,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (roundIdx + 1 < totalRounds) {
       integrity.completeUnit();
       setRush(false);
+      closeRush(roundSec - remainingRef.current);
+      closeRound(false);
       setPhase('round');
       integrity.startUnit('rounds');
       setRoundIdx(i => i + 1);
@@ -635,6 +701,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (!paused) {
       cancelSpeech();
       integrity.pause();
+      if (phaseRef.current === 'round') pausesThisRoundRef.current += 1;
     } else {
       integrity.resume();
     }
@@ -709,6 +776,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
       <RushPersistentEffects active={rush} remaining={remaining} />
       {showRushOverlay && <RushOverlay onDone={() => setShowRushOverlay(false)} />}
+      <XpVerdictPlate flash={verdictFlash} />
 
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',

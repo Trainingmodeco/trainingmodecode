@@ -11,6 +11,8 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudio } from './data/audioEngine';
 import { pickXpBanner, preloadXpBanners } from './data/xpBanners';
+import { judgeNegativeSplit } from './data/negativeSplit';
+import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
 import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
@@ -168,8 +170,8 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // The live chase: { until, windowSec, requiredPaceSec, baselinePaceSec } while
   // a sprint window is open; a 4-second pass/fail flash after it closes.
   const [chaseUi, setChaseUi] = useState(null);
-  const [chaseFlash, setChaseFlash] = useState(null);
-  useEffect(() => { if (chaseMode) preloadXpBanners(); }, [chaseMode]);
+  const [chaseFlash, setChaseFlash] = useVerdictFlash();
+  useEffect(() => { if (chaseMode || (!noDistance && !machine)) preloadXpBanners(); }, [chaseMode, noDistance, machine]);
   const [progIdx, setProgIdx] = useState(restore?.programIdx ?? -1);
   const aliveRef = useRef(true);
   const runningRef = useRef(running);
@@ -303,6 +305,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const d = (completed && !freeRun) ? Math.max(finalDist, goal) : finalDist;
     const isComplete = completed || freeRun;
     const chase = chaseMode ? { ...chaseSummary(r.chase, r.cfg.effortTier), results: (r.chase?.results || []).slice() } : null;
+    // Negative split — second half faster than the first, GPS runs of two
+    // miles or more. A flat bonus, never a loss.
+    const negSplit = judgeNegativeSplit({ trace: r.trace, totalDistance: d, totalSec: el, unit, gps: !noDistance && !machine && !estimating });
+    const bonuses = negSplit.pass ? [{ id: 'negative-split', label: 'NEGATIVE SPLIT', xp: negSplit.xp }] : [];
+    if (negSplit.pass) setChaseFlash({ pass: true, xp: negSplit.xp, banner: pickXpBanner('gain', { mode: 'cardio', tier: r.cfg.effortTier }) });
     const res = {
       completed: isComplete,
       freeRun,
@@ -333,6 +340,8 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       gaps: r.gaps.slice(),
       totalGapMs: r.totalGapMs,
       chase,
+      negativeSplit: negSplit.eligible ? { pass: negSplit.pass, firstHalfSec: negSplit.firstHalfSec, secondHalfSec: negSplit.secondHalfSec } : null,
+      bonuses,
       program: program ? {
         id: program.id, label: program.label, machine: program.machine, tier: program.tier,
         totalSec: program.totalSec, completedSec: Math.min(Math.round(el), program.totalSec), completed,
@@ -378,7 +387,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     } else {
       say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.${chaseLine}`);
     }
-  }, [estimating, machine, measuring, goal, unit, report, say, ghost, freeRun, chaseMode, program, noDistance]);
+  }, [estimating, machine, measuring, goal, unit, report, say, ghost, freeRun, chaseMode, program, noDistance, setChaseFlash]);
 
   // ── Intro: speak the brief, then GO ───────────────────────────────────────
   useEffect(() => {
@@ -704,7 +713,6 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         setChaseFlash(v.pass
           ? { pass: true, xp: stakes.win, banner: pickXpBanner('gain', plate) }
           : { pass: false, xp: stakes.loss, banner: pickXpBanner('loss', plate) });
-        setTimeout(() => setChaseFlash(null), 2500);
         c.activeUntilSec = null;
         c.leadInAtSec = null;
         c.nextAtSec = nextChaseAt(sec);
@@ -954,6 +962,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         </div>
         {result.beatElite && <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', textShadow: '0 0 12px rgba(253,224,71,0.6)' }}>★ ELITE TIME ★</div>}
         {!!result.chase?.xp && <div style={{ marginTop: 8, fontFamily: mono, fontSize: 9.5, fontWeight: 900, color: result.chase.xp > 0 ? '#ffd27a' : '#ff9a9a', letterSpacing: '0.14em' }}>⚡ {result.chase.xp > 0 ? `+${result.chase.xp} XP CHASE BONUS` : `−${-result.chase.xp} XP · CAUGHT ${result.chase.fails}×`}</div>}
+        {(result.bonuses || []).map(b => (
+          <div key={b.id} style={{ marginTop: 6, fontFamily: mono, fontSize: 9.5, fontWeight: 900, color: '#ffd27a', letterSpacing: '0.14em' }}>
+            ⚡ +{b.xp} XP {b.label}{b.id === 'negative-split' && result.negativeSplit ? ` · ${fmtClock(result.negativeSplit.firstHalfSec)} → ${fmtClock(result.negativeSplit.secondHalfSec)}` : ''}
+          </div>
+        ))}
         {result.route?.length >= 2 && (
           <div style={{ width: '100%', marginTop: 12 }}>
             <RouteMap route={result.route} height={160} unit={unit} targetPaceSec={run.cfg.targetPaceSec} label="WHERE YOU RAN" />
@@ -1076,24 +1089,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ffd0b0', letterSpacing: '0.1em', marginTop: 3 }}>BEAT {fmtPace(chaseUi.requiredPaceSec, unit)} · YOU WERE {fmtPace(chaseUi.baselinePaceSec, unit)}</div>
         </div>
       )}
-      {/* THE VERDICT — the XP plate pops dead centre for two and a half seconds after a
-          chase closes, the amount set in the plate's empty panel. Long enough to read,
-          short enough to keep the eyes on the run. */}
-      {!chaseUi && chaseFlash && (
-        <div role="status" style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{ position: 'relative', width: 'min(56vw, 230px)', animation: 'tm-chase-pop 0.38s cubic-bezier(0.2,1.4,0.4,1)', filter: chaseFlash.pass ? 'drop-shadow(0 0 22px rgba(124,58,237,0.55))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.5))' }}>
-            <SafeImage src={chaseFlash.banner.src} alt={chaseFlash.pass ? 'XP gained' : 'XP failed'} loading="eager" style={{ display: 'block', width: '100%', height: 'auto' }} />
-            <div style={{
-              position: 'absolute', left: `${(1 - chaseFlash.banner.panel.w) * 50}%`, width: `${chaseFlash.banner.panel.w * 100}%`,
-              top: `${chaseFlash.banner.panel.cy * 100}%`, transform: 'translateY(-50%)', textAlign: 'center',
-              fontFamily: mono, fontWeight: 900, fontSize: 'clamp(15px, 5vw, 21px)', lineHeight: 1, letterSpacing: '0.04em',
-              color: chaseFlash.pass ? '#ffd84a' : '#ff3b3b',
-              textShadow: chaseFlash.pass ? '0 0 10px rgba(255,200,60,0.55), 0 2px 0 #7a4b00' : '0 0 10px rgba(255,60,60,0.6), 0 2px 0 #5a0000',
-            }}>{chaseFlash.pass ? '+' : '−'}{chaseFlash.xp} XP</div>
-          </div>
-          <style>{`@keyframes tm-chase-pop{0%{transform:scale(0.55);opacity:0}100%{transform:scale(1);opacity:1}}`}</style>
-        </div>
-      )}
+      {/* THE VERDICT — the XP plate, dead centre for a moment after a chase closes
+          (and at the finish line on a negative split). */}
+      {!chaseUi && <XpVerdictPlate flash={chaseFlash} />}
 
       {/* THE PROGRAMME — what to set now, how long it lasts, what comes next. */}
       {program && progSeg && (

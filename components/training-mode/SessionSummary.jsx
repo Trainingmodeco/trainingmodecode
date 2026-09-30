@@ -14,9 +14,13 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   // Settled by the same helper App.jsx banks with, so the number shown is the
   // number saved.
   const isCombo = cfg.mode === 'Combo Coach';
-  const { verdict, xp } = settleFightXp({
+  const rush = fightStats?.rush || null;
+  const cleanRounds = fightStats?.cleanRounds || 0;
+  const cleanXp = fightStats?.cleanRoundXp || 0;
+  const { verdict, xp, bonusXp } = settleFightXp({
     completed, total: totalPlanned, difficulty: cfg.difficulty, integrityResult,
     mode: isCombo ? 'combo' : cfg.mode === 'Just Train' ? 'justTrain' : 'fight',
+    bonusXp: (rush?.xp || 0) + cleanXp,
   });
   const stoppedEarly = verdict.outcome !== 'pass';
   const displayRounds = rounds.slice(0, completed);
@@ -54,8 +58,17 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   // LT-5 — one tight line per round, capped, so a 12-round session can't push
   // the outcome screen past a single viewport.
   const RECAP_MAX = 3;
-  const recap = displayRounds.length > 0 ? (
+  // Live verdicts — what the rushes and clean rounds did to the number.
+  const verdictLines = bonusXp !== 0 || rush?.attempts > 0 || cleanRounds > 0 ? (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginBottom: 6, font: "900 8.5px 'Orbitron',sans-serif", letterSpacing: '0.12em' }}>
+      {rush?.attempts > 0 && <span style={{ color: rush.xp >= 0 ? '#ffd27a' : '#ff9a9a' }}>⚡ RUSH {rush.passes}/{rush.attempts} · {rush.xp >= 0 ? '+' : '−'}{Math.abs(rush.xp)} XP</span>}
+      {rush?.blind > 0 && rush?.attempts === 0 && <span style={{ color: '#9a90b8' }}>⚡ RUSH · PHONE COULD NOT SEE YOU</span>}
+      {cleanRounds > 0 && <span style={{ color: '#8fe8ac' }}>✓ CLEAN ROUNDS {cleanRounds}/{completed} · +{cleanXp} XP</span>}
+    </div>
+  ) : null;
+  const recap = displayRounds.length > 0 || verdictLines ? (
     <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 11, padding: '9px 12px' }}>
+      {verdictLines}
       <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.16em', marginBottom: 6 }}>ROUND RECAP</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {displayRounds.slice(0, RECAP_MAX).map((r, i) => (

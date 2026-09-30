@@ -9,6 +9,8 @@
 // All pure. The player owns the clock and the samples; this file decides when
 // a chase can start, how long it runs, and whether it was won.
 
+import { XP_STAKES_BY_TIER, stakesFor } from './xpStakes';
+
 export const CHASE_FIRST_MIN_SEC = 240;   // never before four minutes in
 export const CHASE_FIRST_MAX_SEC = 360;
 export const CHASE_GAP_MIN_SEC = 180;     // then every three to six minutes
@@ -19,16 +21,11 @@ export const CHASE_THRESHOLD = 0.15;      // 15% faster than the baseline
 export const CHASE_BASELINE_WINDOW_SEC = 60;
 export const CHASE_TAIL_GUARD_SEC = 120;  // none in the last two minutes of a targeted run
 export const CHASE_MIN_WINDOW_METERS = 20; // below this the window pace is noise
-// XP per chase, by effort tier. Escapes pay more than forfeits cost, so a
-// mixed run still comes out ahead; HARD raises both stakes.
-export const CHASE_XP_BY_TIER = {
-  easy:   { win: 8,  loss: 3 },
-  normal: { win: 10, loss: 5 },
-  hard:   { win: 15, loss: 8 },
-};
+// XP per chase, by effort tier — the shared stakes table (data/xpStakes).
+export const CHASE_XP_BY_TIER = XP_STAKES_BY_TIER;
 export const CHASE_XP = CHASE_XP_BY_TIER.normal.win;
 export function chaseXp(tier) {
-  return CHASE_XP_BY_TIER[String(tier || 'normal').toLowerCase()] || CHASE_XP_BY_TIER.normal;
+  return stakesFor(tier);
 }
 export const CHASE_LEAD_IN_SEC = 5;       // "Sprint in five" before the window opens
 

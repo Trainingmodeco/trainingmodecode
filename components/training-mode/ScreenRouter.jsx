@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback, lazy } from 'react';
 import SplashScreen from './SplashScreen';
+import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
 import Onboarding from './Onboarding';
 import Paywall from './Paywall';
 import GameLink from './GameLink';
@@ -209,6 +210,14 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
   );
 }
 
+// The stage's XP plate — crown on a clear, reaper on a stop — fired once when
+// the complete screen mounts.
+function StagePlate({ plate }) {
+  const [flash, fire] = useVerdictFlash();
+  useEffect(() => { if (plate) fire(plate); }, [plate, fire]);
+  return <XpVerdictPlate flash={flash} />;
+}
+
 export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
   const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete } = actions;
 
@@ -360,6 +369,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
               { label: 'HOME', onClick: goHome, kind: 'ghost' },
             ]}
           />
+          <StagePlate plate={r.plate} />
         </WithNav>
       );
     }
@@ -411,6 +421,7 @@ export default function ScreenRouter({ screen, disc, cfg, session, ghostLaunch, 
                 { label: 'HOME', onClick: goHome, kind: 'ghost' },
               ]}
         />
+        <StagePlate plate={r.plate} />
       </WithNav>
     );
   }

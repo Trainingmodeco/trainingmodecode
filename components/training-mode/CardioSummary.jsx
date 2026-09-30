@@ -130,7 +130,8 @@ export default function CardioSummary({
     const { xpEarned: earned } = logCardioSession(session, { awardXp });
     // Chase net — escapes pay, forfeits cost a little less (data/chase.js),
     // settled once here alongside the session's own XP.
-    const chaseXp = awardXp && runResult?.chase?.xp ? addRunBonus(runResult.chase.xp) : 0;
+    const bonusTotal = (runResult?.chase?.xp || 0) + (runResult?.bonuses || []).reduce((n, b) => n + (b.xp || 0), 0);
+    const chaseXp = awardXp && bonusTotal ? addRunBonus(bonusTotal) : 0;
     setXpEarned((earned || 0) + chaseXp);
     setSaved(session);
     setLogged(true);

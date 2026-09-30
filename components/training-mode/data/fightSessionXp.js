@@ -11,7 +11,9 @@ import { fightTimerXp, comboCoachXp } from './userStats';
 // level bar moves by.
 //
 // mode: 'fight' (Fight Focus) · 'justTrain' · 'combo' (Combo Coach)
-export function settleFightXp({ completed, total, difficulty, integrityResult, mode = 'fight' }) {
+// bonusXp: live-verdict XP from the session (rushes, clean rounds) — signed.
+// It rides the settled number, never a session the integrity gate refused.
+export function settleFightXp({ completed, total, difficulty, integrityResult, mode = 'fight', bonusXp = 0 }) {
   const done = Math.max(0, Number(completed) || 0);
   const planned = Math.max(1, Number(total) || 1);
   const baseXp = mode === 'combo'
@@ -21,5 +23,7 @@ export function settleFightXp({ completed, total, difficulty, integrityResult, m
   const rawXp = integrityResult?.awardXp
     ? calculatePartialXp(baseXp, integrityResult.validCompletedUnits, integrityResult.totalRequiredUnits)
     : (integrityResult ? 0 : baseXp);
-  return { verdict, baseXp, xp: xpForOutcome(verdict.outcome, rawXp) };
+  const refused = integrityResult && integrityResult.awardXp === false;
+  const bonus = refused || verdict.outcome === 'validation_failed' ? 0 : Math.round(Number(bonusXp) || 0);
+  return { verdict, baseXp, bonusXp: bonus, xp: Math.max(0, xpForOutcome(verdict.outcome, rawXp) + bonus) };
 }

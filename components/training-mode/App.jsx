@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
-import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, loadStats, getLevel } from './data/userStats';
+import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
+import { stakesFor } from './data/xpStakes';
+import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
 import { completeCampLevel, markCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
@@ -723,6 +725,7 @@ export default function App() {
       const beforeLevel = getLevel(loadStats().xp);
       dropPausedFor(screen); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
+      if (result.cleanRoundXp && result.integrityResult?.awardXp !== false) addBonusXp(result.cleanRoundXp);
       tryCompleteDailyMission('combatConditioning');
       trackEvent('session_complete', { mode: 'combatConditioning', drills: result.drillsCompleted });
       setCcResult(result);
@@ -814,8 +817,25 @@ export default function App() {
     // 2.4 — camp session finished (same onEnd shape as FightFocusTimer). Award
     // XP, then advance: single levels clear on a valid full completion; split
     // levels (L4–11) mark S1/S2 done independently and clear only at ✓✓.
-    goCampComplete: (rounds, c, completed, integrityResult) => {
+    goCampComplete: (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
+      // Stage stakes: a cleared stage pops the crown with the XP it earned; a
+      // stage the athlete stopped short of costs the tier's loss (the reaper).
+      // Rush and clean-round verdicts from the block ride along. Nothing moves
+      // on a session the integrity gate refused.
+      const vs = fightSessionStats || {};
+      const verdictXp = (vs.rush?.xp || 0) + (vs.cleanRoundXp || 0);
+      const stagePlate = (cleared, awarded, done, total, diff, earned) => {
+        if (!awarded) return { xp: earned, plate: null };
+        let xp = earned + (verdictXp ? addBonusXp(verdictXp) : 0);
+        if (cleared) return { xp, plate: { pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: diff }) } };
+        if (done < total) {
+          const loss = addBonusXp(-stakesFor(diff).loss);
+          xp += loss;
+          return { xp, plate: { pass: false, xp: -loss, banner: pickXpBanner('loss', { mode: 'fight', tier: diff, camp: true }) } };
+        }
+        return { xp, plate: null };
+      };
       dropPausedFor(screen); setResumeData(null);
       const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
       const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
@@ -844,7 +864,8 @@ export default function App() {
         // for its record pill, so a failed attempt has to leave a mark too.
         if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: validA, roundsDone: done, roundsTotal: total });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber });
-        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: xpA, integrityResult: irA, cleared: validA, stars: validA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA, achievements: unlockedA });
+        const stakedA = stagePlate(validA, awardedA, done, total, diffA, xpA);
+        setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: done, total, xpEarned: stakedA.xp, plate: stakedA.plate, integrityResult: irA, cleared: validA, stars: validA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, slot: 's1', sessionValid: validA, achievements: unlockedA });
         routeAfterXp(beforeLevel, 'camp_complete');
         return;
       }
@@ -878,7 +899,8 @@ export default function App() {
       // Item 13b — clearing L12 wins the title fight and finishes the camp.
       const titleWon = cleared && level === 12 && markCampComplete();
       trackEvent('session_complete', { mode: 'trainingCamp', level, slot: split ? slot : undefined, rounds: done });
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon });
+      const staked = stagePlate(cleared || sessionValid, awarded, done, total, diff, xpEarned);
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned: staked.xp, plate: staked.plate, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goCampMap: () => setScreen('training_camp'),
@@ -940,11 +962,14 @@ export default function App() {
       // the flat per-round rate (an early END used to save four times more
       // than the screen said).
       const justTrain = c.mode === 'Just Train';
-      const { xp } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight' });
+      // Live verdicts (rushes held or dropped, clean rounds) ride the settled
+      // number — the same helper the summary reads, so the two agree.
+      const fs = fightSessionStats || {};
+      const bonusXp = (fs.rush?.xp || 0) + (fs.cleanRoundXp || 0);
+      const { xp } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight', bonusXp });
       addFightFocusSession(done, total, { justTrain, xp });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
-      const fs = fightSessionStats || {};
       recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: justTrain ? 'justTrain' : 'fightFocus', rounds: done });
@@ -953,7 +978,7 @@ export default function App() {
       const battle = c.ghost ? getLastBattle() : null;
       const challengeWin = battle?.ghost?.ghostId && battle.ghost.ghostId === c.ghost.ghostId
         ? settleChallenge('fight', c.ghost, battle.result?.outcome) : null;
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed }, challengeWin });
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0 }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
     goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
@@ -962,13 +987,14 @@ export default function App() {
       dropPausedFor(screen); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
-      const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo' });
+      const cs = fightSessionStats || {};
+      const bonusXp = (cs.rush?.xp || 0) + (cs.cleanRoundXp || 0);
+      const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo', bonusXp });
       addComboCoachSession(done, total, { xp });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
       // 1.4 — when the accelerometer counted real thrown strikes, that number
       // (motion-verified) is the one that counts; otherwise the called count.
-      const cs = fightSessionStats || {};
       const strikeTotal = cs.motionUsed ? (cs.thrown || 0) : (cs.strikes || 0);
       recordFightSession({ rounds: done, strikes: strikeTotal, peakStreak: cs.peakStreak || 0 });
       tryCompleteDailyMission('comboCoach');
@@ -990,7 +1016,7 @@ export default function App() {
         completedRounds: done,
         sessionSource: 'comboCoach',
         integrityResult,
-        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed },
+        fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed, rush: cs.rush || null, cleanRounds: cs.cleanRounds || 0, cleanRoundXp: cs.cleanRoundXp || 0 },
       });
       routeAfterXp(beforeLevel, 'summary');
     },

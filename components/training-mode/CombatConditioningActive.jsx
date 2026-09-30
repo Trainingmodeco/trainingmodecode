@@ -6,6 +6,7 @@ import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import { cleanRoundXp } from './data/xpStakes';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
@@ -71,6 +72,10 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   const drillsCompletedRef = useRef(0);
   const doneRef = useRef(false);
   const pausedRef = useRef(false);
+  // Clean rounds — a circuit round with no pause in it pays a flat bonus
+  // (data/xpStakes). Counted here, settled by the host with the session XP.
+  const pausesThisRoundRef = useRef(0);
+  const cleanRoundsRef = useRef(0);
   const cadenceVersionRef = useRef(0);
   const cadenceRepRef = useRef(0);
   const cadenceMsRef = useRef(cadenceMs);
@@ -335,6 +340,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       const newRoundsCompleted = roundsCompletedRef.current + 1;
       setRoundsCompleted(newRoundsCompleted);
       roundsCompletedRef.current = newRoundsCompleted;
+      if (pausesThisRoundRef.current === 0) cleanRoundsRef.current += 1;
+      pausesThisRoundRef.current = 0;
 
       if (roundRef.current >= totalRounds) {
         finishMission(newRoundsCompleted, completedSoFar);
@@ -345,7 +352,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       // corner voice, so an athlete on the far side of the bag knows the
       // work window closed even if they missed the announcement.
       playBell(2);
-      speak(`Round ${roundRef.current} complete. Prepare for Round ${roundRef.current + 1}.`);
+      speak(`Round ${roundRef.current} complete.${pausesThisRoundRef.current === 0 ? ' Clean round. Plus five.' : ''} Prepare for Round ${roundRef.current + 1}.`);
       setPhase('resting');
       setRemaining(drill.restSeconds || 30);
       setDrillIdx(0);
@@ -398,6 +405,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         const newRoundsCompleted = roundsCompletedRef.current + 1;
         setRoundsCompleted(newRoundsCompleted);
         roundsCompletedRef.current = newRoundsCompleted;
+        if (pausesThisRoundRef.current === 0) cleanRoundsRef.current += 1;
+        pausesThisRoundRef.current = 0;
         if (roundRef.current >= totalRounds) {
           finishMission(newRoundsCompleted, drillsCompletedRef.current);
           return;
@@ -463,6 +472,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       cancelSpeech();
       setPaused(true);
       integrity.pause();
+      pausesThisRoundRef.current += 1;
     }
   };
 
@@ -488,6 +498,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         totalDrills: drills.length * totalRounds,
         completed: true,
         integrityResult,
+        cleanRounds: cleanRoundsRef.current,
+        cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
       });
     }, 1800);
   };
@@ -506,6 +518,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       totalDrills: drills.length * totalRounds,
       completed: false,
       integrityResult,
+      cleanRounds: cleanRoundsRef.current,
+      cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
     });
   };
 

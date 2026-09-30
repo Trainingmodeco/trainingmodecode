@@ -71,7 +71,8 @@ check('CHASE_XP is the NORMAL win', CHASE_XP === CHASE_XP_BY_TIER.normal.win && 
 check('HARD raises both stakes', chaseXp('hard').win > chaseXp('normal').win && chaseXp('hard').loss > chaseXp('normal').loss);
 check('EASY lowers both stakes', chaseXp('easy').win < chaseXp('normal').win && chaseXp('easy').loss < chaseXp('normal').loss);
 check('every tier: a win pays more than a loss costs', Object.values(CHASE_XP_BY_TIER).every(t => t.win > t.loss));
-check('unknown tier falls back to NORMAL', chaseXp('savage').win === 10 && chaseXp(null).loss === 5);
+check('unknown tier falls back to NORMAL', chaseXp('???').win === 10 && chaseXp(null).loss === 5);
+check('SAVAGE and Advanced count as HARD', chaseXp('savage').win === 15 && chaseXp('Advanced').loss === 8);
 check('summary at HARD', chaseSummary(st, 'hard').xp === 3 * 15 - 8);
 check('a fail-only run nets negative', chaseSummary({ passes: 0, fails: 2 }, 'normal').xp === -10);
 check('empty summary is zero', chaseSummary(newChaseState()).xp === 0 && chaseSummary(null).attempts === 0);

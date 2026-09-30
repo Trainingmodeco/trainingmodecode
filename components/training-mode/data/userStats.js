@@ -234,7 +234,14 @@ export function addComboBonus(xpAward) {
 // each). XP only, no session row: the run's own session row already counts
 // once, and a bonus must never inflate the weekly session tally.
 export function addRunBonus(xpAward) {
-  const xp = Math.round(Number(xpAward) || 0);
+  return addBonusXp(xpAward);
+}
+
+// Any live-verdict XP (chases, rushes, clean rounds, negative splits, camp
+// stage stakes): a signed delta on the total, no session row, never below
+// zero. Returns the delta actually applied.
+export function addBonusXp(delta) {
+  const xp = Math.round(Number(delta) || 0);
   if (!xp) return 0;
   const stats = loadStats();
   const before = stats.xp || 0;

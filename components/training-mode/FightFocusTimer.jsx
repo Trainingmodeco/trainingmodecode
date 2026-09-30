@@ -8,7 +8,11 @@ import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import Emoji from './shared/Emoji';
-import { playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
+import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudio } from './data/audioEngine';
+import { newRushTally, judgeRush, tallyRush, rushSummary } from './data/rushVerdict';
+import { cleanRoundXp } from './data/xpStakes';
+import { pickXpBanner, preloadXpBanners } from './data/xpBanners';
+import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
 import { nextCueDelaySec, RUSH_ACTIVATION, RUSH_COMPLETE } from './data/rushVoice';
 import { createRushCaller } from './data/rushMoves';
 import { BossHpBar } from './shared/BossFinale';
@@ -155,6 +159,49 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   thrownRef.current = strike.count;
   motionRef.current = strike.motionSeen;
 
+  // Live verdicts — each rush judged against the athlete's own pre-rush strike
+  // rate (data/rushVerdict: blind when the phone cannot see them, so nobody
+  // loses XP to a phone on the floor), and clean rounds: bell to bell with no
+  // pause (data/xpStakes). Both ride the settled session XP.
+  const rushTallyRef = useRef(newRushTally());
+  const rushWinRef = useRef(null);
+  const baseSecRef = useRef(0);
+  const baseStrikesRef = useRef(0);
+  const lastVerdictThrownRef = useRef(0);
+  const pausesThisRoundRef = useRef(0);
+  const cleanRoundsRef = useRef(0);
+  const [verdictFlash, fireVerdict] = useVerdictFlash();
+  useEffect(() => { preloadXpBanners(); }, []);
+  const verdictTier = cfg.difficulty;
+  const closeRush = (elapsedNow) => {
+    const w = rushWinRef.current;
+    if (!w) return;
+    rushWinRef.current = null;
+    const judged = judgeRush({
+      motionSeen: motionRef.current, baselineStrikes: baseStrikesRef.current, baselineSec: baseSecRef.current,
+      rushStrikes: thrownRef.current - w.startCount, rushSec: elapsedNow - w.startSec,
+    });
+    const xp = tallyRush(rushTallyRef.current, judged, verdictTier);
+    if (judged.verdict === 'pass') {
+      playExtraLife();
+      fireVerdict({ pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
+      if (cfg.voiceOn) speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 });
+    } else if (judged.verdict === 'fail') {
+      playPowerDown();
+      fireVerdict({ pass: false, xp: -xp, banner: pickXpBanner('loss', { mode: 'fight', tier: verdictTier }) });
+      if (cfg.voiceOn) speakAsync(`Rush fell off. Minus ${-xp} X P. Next one's yours.`, { priority: 2 });
+    }
+  };
+  const closeRound = (isFinal) => {
+    if (pausesThisRoundRef.current !== 0) return;
+    cleanRoundsRef.current += 1;
+    if (!isFinal && cfg.voiceOn) speakAsync('Clean round. Plus five.', { priority: 1, dropIfBusy: true });
+  };
+  const verdictStats = () => ({
+    rush: rushSummary(rushTallyRef.current, verdictTier),
+    cleanRounds: cleanRoundsRef.current, cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
+  });
+
   useEffect(() => {
     if (typeof onStateChange === 'function') {
       onStateChange({ phase, roundIdx, remaining, sessionElapsed });
@@ -275,7 +322,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', { ...vOpts, priority: 3, preempt: true }), 1400);
     }
     setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), { ...vOpts, priority: 3, preempt: true }); }, 400);
-    setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current }); }, ghostDelay);
+    setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current, ...verdictStats() }); }, ghostDelay);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghost, cfg, vOpts, flavored, packId, rounds, onEnd]);
 
   useEffect(() => {
@@ -284,6 +332,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     lastBeepSecondRef.current = null;
     roundStartBellPlayedRef.current = false;
     roundEndBellPlayedRef.current = false;
+    baseSecRef.current = 0;
+    baseStrikesRef.current = 0;
+    lastVerdictThrownRef.current = thrownRef.current;
+    pausesThisRoundRef.current = 0;
+    rushWinRef.current = null;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
     if (keepRestoredClock.current) keepRestoredClock.current = false;
@@ -346,6 +399,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         if (delta > 0) for (let i = 0; i < delta; i++) strikeTimesRef.current.push(workElapsedRef.current);
         lastThrownAtTickRef.current = thrownRef.current;
       }
+      if (phaseRef.current === 'round' && !doneRef.current) {
+        if (!rushRef.current) {
+          baseSecRef.current += 1;
+          baseStrikesRef.current += thrownRef.current - lastVerdictThrownRef.current;
+        }
+        lastVerdictThrownRef.current = thrownRef.current;
+      }
       // Boss finale — a block round can carry its own rush spec; it activates
       // the surge even when the athlete didn't toggle Rush Mode on.
       const roundRush = rounds[roundIdxRef.current]?.rush;
@@ -356,6 +416,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         if (wantRush && !rushRef.current) {
           setRush(true);
           setShowRushOverlay(true);
+          rushWinRef.current = { startCount: thrownRef.current, startSec: elapsed };
           if (cfg.voiceOn && !rushSpoken.current) {
             rushSpoken.current = true;
             playRiser();
@@ -367,6 +428,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           setRush(false);
           setShowRushOverlay(false);
           rushSpoken.current = false;
+          closeRush(elapsed);
           // "Rush mode complete" only makes sense if there's session left — at
           // the final bell the bell itself is the closing statement.
           const moreToCome = remaining > 3 || roundIdxRef.current + 1 < cfg.rounds;
@@ -447,6 +509,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     if (phaseRef.current === 'round') {
       integrity.completeUnit();
       setRush(false);
+      closeRush(roundSec);
+      closeRound(roundIdxRef.current + 1 >= cfg.rounds);
       lastRushCountdownSecond.current = null;
       if (roundIdxRef.current + 1 >= cfg.rounds) {
         if (!roundEndBellPlayedRef.current) {
@@ -550,6 +614,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     if (roundIdx + 1 < cfg.rounds) {
       integrity.completeUnit();
       setRush(false);
+      closeRush(roundSec - remaining);
+      closeRound(false);
       roundStartBellPlayedRef.current = false;
       roundEndBellPlayedRef.current = false;
       setPhase('round');
@@ -575,6 +641,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     if (!paused) {
       cancelSpeech();
       integrity.pause();
+      if (phaseRef.current === 'round') pausesThisRoundRef.current += 1;
     } else {
       integrity.resume();
     }
@@ -589,7 +656,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     roundVersion.current++;
     const completed = Math.min(phase === 'rest' ? roundIdx + 1 : roundIdx, cfg.rounds);
     const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
-    onEnd(rounds, cfg, completed, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current });
+    onEnd(rounds, cfg, completed, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current, ...verdictStats() });
   };
 
   // Floating mini-player — same painted window as Combo Coach.
@@ -686,6 +753,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
       <RushPersistentEffects active={rush} remaining={remaining} />
       {showRushOverlay && <RushOverlay onDone={() => setShowRushOverlay(false)} />}
+      <XpVerdictPlate flash={verdictFlash} />
       {slamOpen && (
         <BossSlam
           bossName={cfg.bossName} round={bossRevealIdx + 1} total={cfg.rounds}
