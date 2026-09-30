@@ -11,7 +11,6 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudio } from './data/audioEngine';
 import { xpBannerFor, preloadXpBanners } from './data/xpBanners';
-import SafeImage from './SafeImage';
 import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
