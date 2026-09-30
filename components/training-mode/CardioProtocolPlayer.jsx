@@ -276,7 +276,7 @@ export default function CardioProtocolPlayer({
 
   // Real GPS tracking (outdoor runs). Accumulates distance between fixes and keeps
   // a route trail; falls back to the simulation when GPS is unavailable/denied.
-  const gpsRef = useRef({ watchId: null, last: null, meters: 0, pts: [] });
+  const gpsRef = useRef({ watchId: null, last: null, meters: 0, pts: [], gaps: [], totalGapMs: 0 });
   const [gpsMeters, setGpsMeters] = useState(0);
   const [gpsFix, setGpsFix] = useState(false);
   const [gpsRoute, setGpsRoute] = useState([]);
@@ -460,7 +460,13 @@ export default function CardioProtocolPlayer({
     if (firedRef.current) return;
     firedRef.current = true;
     clearInterval(tickRef.current);
-    onComplete({ completedTimeSeconds: totalElapsed, completed: true, ...extra });
+    onComplete({
+      completedTimeSeconds: totalElapsed,
+      completed: true,
+      gaps: gpsRef.current.gaps.slice(),
+      totalGapMs: gpsRef.current.totalGapMs,
+      ...extra,
+    });
   };
 
   // Live GPS. Two things a live-athlete found:
@@ -537,8 +543,24 @@ export default function CardioProtocolPlayer({
     // the watch so the next fix is treated as a fresh baseline. The
     // haversine between the last accepted fix and the first post-resume
     // fix still counts, provided evaluateFix accepts it.
+    //
+    // Also record any hidden window >= 15 s so the completion event can
+    // carry it. Data only — no live UI.
+    let hiddenAt = null;
     const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now();
+        return;
+      }
       if (document.visibilityState === 'visible') {
+        if (hiddenAt) {
+          const gapMs = Date.now() - hiddenAt;
+          if (gapMs >= 15000) {
+            gpsRef.current.gaps.push({ durationMs: gapMs });
+            gpsRef.current.totalGapMs += gapMs;
+          }
+          hiddenAt = null;
+        }
         acquireWakeLock();
         stopWatch();
         startWatch();

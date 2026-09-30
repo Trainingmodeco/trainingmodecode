@@ -109,6 +109,11 @@ function newRun(cfg) {
     nextSurgeSec: null,
     surgeEndSec: null,
     hiddenGapNoted: false,
+    // Data only. Every time the tab goes hidden mid-run for more than the
+    // gap threshold, one entry lands here on visibility return. The summary
+    // reads totalGapMs to print a whispered footnote; no live UI shows.
+    gaps: [],
+    totalGapMs: 0,
   };
 }
 
@@ -274,6 +279,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       id: r.id,
       route: thinRoute(r.route, 200),
       calories: estimateCalories({ meters: d * metersPerUnit(unit), seconds: el }),
+      // Data-only bookkeeping for the summary's whispered footnote.
+      gaps: r.gaps.slice(),
+      totalGapMs: r.totalGapMs,
     };
     if (ghost && completed) {
       const delta = Math.round(el - ghost.totalSec);
@@ -593,21 +601,31 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elapsedSec, phase, running]);
 
-  // Coming back from being hidden: the clock ran, GPS did not. Say so once.
+  // Coming back from being hidden: the clock ran, GPS did not. Say so once,
+  // and record the gap so the summary can whisper it later. Any gap of at
+  // least 15 s counts — shorter than that is not a real backgrounded run,
+  // it is a notification or a quick tab switch.
   useEffect(() => {
     if (typeof document === 'undefined' || !useGps) return undefined;
     let hiddenAt = null;
     const onVis = () => {
       if (document.hidden) { hiddenAt = Date.now(); return; }
-      if (hiddenAt && runningRef.current && phaseRef.current === 'run' && Date.now() - hiddenAt > 15000) {
-        setCaption('Clock kept running while the app was away. GPS distance resumes from here.');
-        runRef.current.lastFix = null;
+      if (hiddenAt && runningRef.current && phaseRef.current === 'run') {
+        const gapMs = Date.now() - hiddenAt;
+        if (gapMs >= 15000) {
+          const r = runRef.current;
+          r.gaps.push({ atSec: Math.round(liveRunElapsedSec(r)), durationMs: gapMs });
+          r.totalGapMs += gapMs;
+          r.lastFix = null;
+          setCaption('Clock kept running while the app was away. GPS distance resumes from here.');
+          persist(true);
+        }
       }
       hiddenAt = null;
     };
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
-  }, [useGps]);
+  }, [useGps, persist]);
 
   // Unmount mid-run (the athlete tapped back, or navigated away): the run stays
   // live in storage with the clock running. Only a finished run stops the voice.
@@ -701,6 +719,14 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         )}
         {result.ghostRecorded && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#c9a6ff', letterSpacing: '0.12em' }}>👻 {result.newBest ? 'NEW BEST — SAVED AS YOUR GHOST' : 'SAVED AS YOUR LAST-RUN GHOST'}</div>
+        )}
+        {result.totalGapMs > 0 && (
+          // Whispered footnote — the athlete asked for this to be barely
+          // there. Only appears when there was a real off-screen gap, and
+          // even then it is 7 px, muted violet, one line, no icon.
+          <div style={{ marginTop: 6, fontFamily: mono, fontSize: 7, fontWeight: 500, color: '#6b6483', letterSpacing: '0.14em' }}>
+            {`off-screen ${Math.max(1, Math.round(result.totalGapMs / 1000))}s`}
+          </div>
         )}
         {result.splits.length > 0 && (
           <div style={{ width: '100%', marginTop: 12, borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.6)', padding: '8px 12px' }}>

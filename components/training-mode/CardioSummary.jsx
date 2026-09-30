@@ -230,6 +230,13 @@ export default function CardioSummary({
             targetPaceSec={runResult.targetSec && runResult.goal ? runResult.targetSec / runResult.goal : null}
             label="WHERE YOU RAN"
           />
+          {runResult.totalGapMs > 0 && (
+            // Whispered — appears only if the tab was hidden for a real
+            // window mid-run. One line, 7 px, muted violet.
+            <div style={{ marginTop: 4, fontFamily: ARCADE.fontHead, fontSize: 7, fontWeight: 500, color: '#6b6483', letterSpacing: '0.14em', textAlign: 'center' }}>
+              {`off-screen ${Math.max(1, Math.round(runResult.totalGapMs / 1000))}s`}
+            </div>
+          )}
         </div>
       )}
       {runResult?.splits?.length > 0 && (
