@@ -10,7 +10,7 @@ import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudio } from './data/audioEngine';
-import { xpBannerFor, preloadXpBanners } from './data/xpBanners';
+import { pickXpBanner, preloadXpBanners } from './data/xpBanners';
 import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
@@ -700,10 +700,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           playPowerDown();
           say(`Caught. ${stakes.loss} X P gone. Next one's yours. Ease back.`);
         }
+        const plate = { mode: 'cardio', tier: r.cfg.effortTier };
         setChaseFlash(v.pass
-          ? { pass: true, xp: stakes.win, banner: xpBannerFor('gain', c.passes - 1) }
-          : { pass: false, xp: stakes.loss, banner: xpBannerFor('loss', c.fails - 1) });
-        setTimeout(() => setChaseFlash(null), 3500);
+          ? { pass: true, xp: stakes.win, banner: pickXpBanner('gain', plate) }
+          : { pass: false, xp: stakes.loss, banner: pickXpBanner('loss', plate) });
+        setTimeout(() => setChaseFlash(null), 2500);
         c.activeUntilSec = null;
         c.leadInAtSec = null;
         c.nextAtSec = nextChaseAt(sec);
@@ -1075,16 +1076,17 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ffd0b0', letterSpacing: '0.1em', marginTop: 3 }}>BEAT {fmtPace(chaseUi.requiredPaceSec, unit)} · YOU WERE {fmtPace(chaseUi.baselinePaceSec, unit)}</div>
         </div>
       )}
-      {/* THE VERDICT — the XP plate pops over the HUD for a few seconds after a chase closes,
-          the amount set in the plate's empty panel. */}
+      {/* THE VERDICT — the XP plate pops dead centre for two and a half seconds after a
+          chase closes, the amount set in the plate's empty panel. Long enough to read,
+          short enough to keep the eyes on the run. */}
       {!chaseUi && chaseFlash && (
-        <div role="status" style={{ position: 'fixed', left: 0, right: 0, top: '30%', zIndex: 60, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{ position: 'relative', width: 'min(72vw, 300px)', animation: 'tm-chase-pop 0.38s cubic-bezier(0.2,1.4,0.4,1)', filter: chaseFlash.pass ? 'drop-shadow(0 0 22px rgba(124,58,237,0.55))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.5))' }}>
+        <div role="status" style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div style={{ position: 'relative', width: 'min(56vw, 230px)', animation: 'tm-chase-pop 0.38s cubic-bezier(0.2,1.4,0.4,1)', filter: chaseFlash.pass ? 'drop-shadow(0 0 22px rgba(124,58,237,0.55))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.5))' }}>
             <SafeImage src={chaseFlash.banner.src} alt={chaseFlash.pass ? 'XP gained' : 'XP failed'} loading="eager" style={{ display: 'block', width: '100%', height: 'auto' }} />
             <div style={{
               position: 'absolute', left: `${(1 - chaseFlash.banner.panel.w) * 50}%`, width: `${chaseFlash.banner.panel.w * 100}%`,
               top: `${chaseFlash.banner.panel.cy * 100}%`, transform: 'translateY(-50%)', textAlign: 'center',
-              fontFamily: mono, fontWeight: 900, fontSize: 'clamp(18px, 6.4vw, 27px)', lineHeight: 1, letterSpacing: '0.04em',
+              fontFamily: mono, fontWeight: 900, fontSize: 'clamp(15px, 5vw, 21px)', lineHeight: 1, letterSpacing: '0.04em',
               color: chaseFlash.pass ? '#ffd84a' : '#ff3b3b',
               textShadow: chaseFlash.pass ? '0 0 10px rgba(255,200,60,0.55), 0 2px 0 #7a4b00' : '0 0 10px rgba(255,60,60,0.6), 0 2px 0 #5a0000',
             }}>{chaseFlash.pass ? '+' : '−'}{chaseFlash.xp} XP</div>

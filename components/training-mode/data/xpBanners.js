@@ -17,10 +17,20 @@ export const XP_BANNERS = {
   ],
 };
 
-// The n-th verdict of a kind gets the n-th plate, round-robin.
-export function xpBannerFor(kind, n = 0) {
-  const list = XP_BANNERS[kind === 'loss' ? 'loss' : 'gain'];
-  return list[((Number(n) || 0) % list.length + list.length) % list.length];
+// Which plate for which moment:
+//   gain  · fit / cardio → iron (dumbbells); fight → crown; anything else → blaze
+//   loss  · fight → gloves; fit / cardio → blaze; a HARD-tier loss or a camp
+//           stage fail → reaper, the dramatic one
+export function pickXpBanner(kind, { mode = 'fit', tier = 'normal', camp = false } = {}) {
+  const fight = mode === 'fight';
+  const byId = (list, id) => list.find(b => b.id === id) || list[0];
+  if (kind === 'loss') {
+    if (camp || String(tier).toLowerCase() === 'hard') return byId(XP_BANNERS.loss, 'reaper');
+    return byId(XP_BANNERS.loss, fight ? 'gloves' : 'blaze');
+  }
+  if (fight) return byId(XP_BANNERS.gain, 'crown');
+  if (mode === 'fit' || mode === 'cardio') return byId(XP_BANNERS.gain, 'iron');
+  return byId(XP_BANNERS.gain, 'blaze');
 }
 
 // Warm the browser cache so the first popup does not appear as an empty box.
