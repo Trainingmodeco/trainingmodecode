@@ -7,7 +7,7 @@ import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
   CHASE_FIRST_MIN_SEC, CHASE_FIRST_MAX_SEC, CHASE_GAP_MIN_SEC, CHASE_GAP_MAX_SEC,
-  CHASE_WINDOW_MIN_SEC, CHASE_WINDOW_MAX_SEC, CHASE_XP, CHASE_TAIL_GUARD_SEC,
+  CHASE_WINDOW_MIN_SEC, CHASE_WINDOW_MAX_SEC, CHASE_XP, CHASE_XP_BY_TIER, chaseXp, CHASE_TAIL_GUARD_SEC,
 } from '../components/training-mode/data/chase.js';
 import {
   PROGRAMS, programById, programSeconds, programMinutes, expandProgram, segmentAt, programsFor,
@@ -66,7 +66,14 @@ check('slow beep every ten seconds', chaseBeepAt(40) === 'slow' && chaseBeepAt(3
 check('fast beep in the last five', chaseBeepAt(5) === 'fast' && chaseBeepAt(1) === 'fast' && chaseBeepAt(0) === null);
 const st = newChaseState(); st.passes = 3; st.fails = 1;
 const sum = chaseSummary(st);
-check('summary tallies XP at 15 a pass', sum.attempts === 4 && sum.xp === 3 * CHASE_XP);
+check('summary nets wins minus losses at NORMAL', sum.attempts === 4 && sum.won === 30 && sum.lost === 5 && sum.xp === 25);
+check('CHASE_XP is the NORMAL win', CHASE_XP === CHASE_XP_BY_TIER.normal.win && CHASE_XP === 10);
+check('HARD raises both stakes', chaseXp('hard').win > chaseXp('normal').win && chaseXp('hard').loss > chaseXp('normal').loss);
+check('EASY lowers both stakes', chaseXp('easy').win < chaseXp('normal').win && chaseXp('easy').loss < chaseXp('normal').loss);
+check('every tier: a win pays more than a loss costs', Object.values(CHASE_XP_BY_TIER).every(t => t.win > t.loss));
+check('unknown tier falls back to NORMAL', chaseXp('savage').win === 10 && chaseXp(null).loss === 5);
+check('summary at HARD', chaseSummary(st, 'hard').xp === 3 * 15 - 8);
+check('a fail-only run nets negative', chaseSummary({ passes: 0, fails: 2 }, 'normal').xp === -10);
 check('empty summary is zero', chaseSummary(newChaseState()).xp === 0 && chaseSummary(null).attempts === 0);
 
 // ── programme library ─────────────────────────────────────────────────────

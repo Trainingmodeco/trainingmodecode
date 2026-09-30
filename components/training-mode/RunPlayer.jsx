@@ -13,7 +13,7 @@ import { playBell, playBeep, playRiser, playPowerDown, playExtraLife, unlockAudi
 import {
   newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
-  CHASE_LEAD_IN_SEC, CHASE_BASELINE_WINDOW_SEC, CHASE_THRESHOLD, CHASE_XP,
+  CHASE_LEAD_IN_SEC, CHASE_BASELINE_WINDOW_SEC, CHASE_THRESHOLD, chaseXp,
 } from './data/chase';
 import { segmentAt } from './data/intervalPrograms';
 import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
@@ -300,7 +300,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     // goal to credit, and the athlete ending it IS completing it.
     const d = (completed && !freeRun) ? Math.max(finalDist, goal) : finalDist;
     const isComplete = completed || freeRun;
-    const chase = chaseMode ? { ...chaseSummary(r.chase), results: (r.chase?.results || []).slice() } : null;
+    const chase = chaseMode ? { ...chaseSummary(r.chase, r.cfg.effortTier), results: (r.chase?.results || []).slice() } : null;
     const res = {
       completed: isComplete,
       freeRun,
@@ -356,7 +356,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     clearLiveRun();
     report({ live: false, running: false });
     const chaseLine = chase && chase.attempts > 0
-      ? ` ${chase.passes} of ${chase.attempts} chases escaped${chase.xp > 0 ? `, ${chase.xp} bonus X P` : ''}.`
+      ? ` ${chase.passes} of ${chase.attempts} chases escaped${chase.xp > 0 ? `, ${chase.xp} bonus X P` : chase.xp < 0 ? `, ${-chase.xp} X P given up` : ''}.`
       : '';
     if (program) {
       playBell(3);
@@ -408,7 +408,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
             freeRun, targetPaceSec: run.cfg.targetPaceSec,
           });
           if (machine) intro.lines.push(`Set the machine to ${fmtSpeed(speedAt(run.speedSegs, 0))} ${speedUnitLabel(unit).toLowerCase()} and match the dial if you change it.`);
-          if (chaseMode) intro.lines.push(`Intervals are on. When I call a sprint, beat your own pace by ${Math.round(CHASE_THRESHOLD * 100)} percent to escape and bank ${CHASE_XP} X P.`);
+          if (chaseMode) intro.lines.push(`Intervals are on. When I call a sprint, beat your own pace by ${Math.round(CHASE_THRESHOLD * 100)} percent to escape and bank ${chaseXp(run.cfg.effortTier).win} X P. Get caught and it costs ${chaseXp(run.cfg.effortTier).loss}.`);
         }
         if (ghost) intro.lines.push(`Ghost mode. You are racing ${ghost.ownerId === 'me' ? 'your' : ghost.ownerName + "'s"} ${ghost.ownerId === 'me' ? 'own run' : 'run'}, ${speakDuration(ghost.totalSec)}. Beat it.`);
         for (const line of intro.lines) {
@@ -688,17 +688,18 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           baselinePaceSec: Math.round(c.baselinePaceSec), chasePaceSec: chasePaceSec ? Math.round(chasePaceSec) : null,
           pass: v.pass,
         });
+        const stakes = chaseXp(r.cfg.effortTier);
         if (v.pass) {
           c.passes += 1;
           playExtraLife();
-          say(`Escaped. ${CHASE_XP} X P banked. Ease back.`);
+          say(`Escaped. ${stakes.win} X P banked. Ease back.`);
         } else {
           c.fails += 1;
           playPowerDown();
-          say("Chase lost. No bonus this time. Next one's yours. Ease back.");
+          say(`Caught. ${stakes.loss} X P gone. Next one's yours. Ease back.`);
         }
-        setChaseFlash(v.pass ? 'pass' : 'fail');
-        setTimeout(() => setChaseFlash(null), 4000);
+        setChaseFlash(v.pass ? { pass: true, xp: stakes.win } : { pass: false, xp: stakes.loss });
+        setTimeout(() => setChaseFlash(null), 3500);
         c.activeUntilSec = null;
         c.leadInAtSec = null;
         c.nextAtSec = nextChaseAt(sec);
@@ -859,7 +860,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const progNext = program && progIdx >= 0 ? program.segments[progIdx + 1] : null;
   const progLeft = progSeg ? Math.max(0, progSeg.endSec - elapsedSec) : 0;
   const chaseLeft = chaseUi ? Math.max(0, chaseUi.until - elapsedSec) : 0;
-  const chaseTally = chaseMode ? chaseSummary(run.chase) : null;
+  const chaseTally = chaseMode ? chaseSummary(run.chase, run.cfg.effortTier) : null;
   // The bar: progress to the goal; on a free run, progress to the next split
   // (every half unit); on a programme, progress through the programme.
   const pct = program ? Math.min(100, (elapsedSec / program.totalSec) * 100)
@@ -947,7 +948,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           {result.calories ? <Stat label="KCAL EST" value={result.calories} color="#ff9a52" /> : null}
         </div>
         {result.beatElite && <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', textShadow: '0 0 12px rgba(253,224,71,0.6)' }}>★ ELITE TIME ★</div>}
-        {result.chase?.xp > 0 && <div style={{ marginTop: 8, fontFamily: mono, fontSize: 9.5, fontWeight: 900, color: '#ffd27a', letterSpacing: '0.14em' }}>⚡ +{result.chase.xp} XP CHASE BONUS</div>}
+        {!!result.chase?.xp && <div style={{ marginTop: 8, fontFamily: mono, fontSize: 9.5, fontWeight: 900, color: result.chase.xp > 0 ? '#ffd27a' : '#ff9a9a', letterSpacing: '0.14em' }}>⚡ {result.chase.xp > 0 ? `+${result.chase.xp} XP CHASE BONUS` : `−${-result.chase.xp} XP · CAUGHT ${result.chase.fails}×`}</div>}
         {result.route?.length >= 2 && (
           <div style={{ width: '100%', marginTop: 12 }}>
             <RouteMap route={result.route} height={160} unit={unit} targetPaceSec={run.cfg.targetPaceSec} label="WHERE YOU RAN" />
@@ -1070,11 +1071,21 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ffd0b0', letterSpacing: '0.1em', marginTop: 3 }}>BEAT {fmtPace(chaseUi.requiredPaceSec, unit)} · YOU WERE {fmtPace(chaseUi.baselinePaceSec, unit)}</div>
         </div>
       )}
+      {/* THE VERDICT — a small popup over the HUD for a few seconds after a chase closes. */}
       {!chaseUi && chaseFlash && (
-        <div style={{ width: '100%', borderRadius: 12, background: chaseFlash === 'pass' ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)', border: `1.5px solid ${chaseFlash === 'pass' ? 'rgba(34,197,94,0.65)' : 'rgba(239,68,68,0.6)'}`, padding: '8px 12px', marginBottom: 8, textAlign: 'center' }}>
-          <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 900, color: chaseFlash === 'pass' ? '#8fe8ac' : '#ff8a8a', letterSpacing: '0.12em' }}>
-            {chaseFlash === 'pass' ? `ESCAPED · +${CHASE_XP} XP` : 'CAUGHT · NO BONUS'}
-          </span>
+        <div role="status" style={{ position: 'fixed', left: 0, right: 0, top: '38%', zIndex: 60, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div style={{
+            minWidth: 190, padding: '12px 20px 13px', borderRadius: 16, textAlign: 'center',
+            background: chaseFlash.pass ? 'linear-gradient(180deg,rgba(20,60,32,0.96),rgba(6,22,12,0.96))' : 'linear-gradient(180deg,rgba(70,16,20,0.96),rgba(26,6,10,0.96))',
+            border: `1.5px solid ${chaseFlash.pass ? 'rgba(74,222,128,0.8)' : 'rgba(248,113,113,0.75)'}`,
+            boxShadow: chaseFlash.pass ? '0 0 34px rgba(34,197,94,0.35)' : '0 0 34px rgba(239,68,68,0.3)',
+            animation: 'tm-chase-pop 0.35s cubic-bezier(0.2,1.4,0.4,1)',
+          }}>
+            <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: chaseFlash.pass ? '#8fe8ac' : '#ff9a9a' }}>{chaseFlash.pass ? '⚡ ESCAPED' : '💀 CAUGHT'}</div>
+            <div style={{ fontFamily: mono, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 4, color: chaseFlash.pass ? '#ffd27a' : '#ff8a8a' }}>{chaseFlash.pass ? '+' : '−'}{chaseFlash.xp} XP</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: chaseFlash.pass ? '#c9f5d6' : '#ffd0d0', marginTop: 3 }}>{chaseFlash.pass ? 'Banked. Ease back.' : "Next one's yours."}</div>
+          </div>
+          <style>{`@keyframes tm-chase-pop{0%{transform:scale(0.6);opacity:0}100%{transform:scale(1);opacity:1}}`}</style>
         </div>
       )}
 

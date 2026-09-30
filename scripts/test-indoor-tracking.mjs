@@ -20,6 +20,17 @@ import {
   createCadenceMeter, strideFromSpeedAndCadence, cadenceVerdict, bandFor, strideIsPlausible,
 } from '../components/training-mode/data/cadence.js';
 
+// Deterministic noise. The simulations below draw random jitter, and an
+// unseeded run failed a tray-placement check roughly one time in ten with
+// the same code. Same seed, same samples, same verdict every time.
+let seed = 0x9e3779b9;
+Math.random = () => {
+  seed = (seed + 0x6D2B79F5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
 let pass = 0, fail = 0;
 const ok = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}${extra ? '  ' + extra : ''}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
 const near = (a, b, tol) => Math.abs(a - b) <= tol;

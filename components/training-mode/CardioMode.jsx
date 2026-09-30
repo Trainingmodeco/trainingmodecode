@@ -22,7 +22,7 @@ import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance } fro
 import { defaultSpeed, clampSpeed, speedUnitLabel, fmtSpeed } from './data/machineSpeed';
 import { effortPaceSec, effortSpeed, TIER_LABEL, EFFORT_TIERS } from './data/runEffort';
 import { programById, expandProgram, programMinutes } from './data/intervalPrograms';
-import { CHASE_XP } from './data/chase';
+import { chaseXp } from './data/chase';
 import DistanceTargetModal from './shared/DistanceTargetModal';
 import MachineChooserModal from './shared/MachineChooserModal';
 import SpeedDial from './shared/SpeedDial';
@@ -863,7 +863,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                   <span style={{ fontSize: 16, lineHeight: 1 }}>⚡</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', font: `700 11px ${HEAD}`, letterSpacing: '0.12em', color: chaseMode ? '#ffd0b0' : '#fff' }}>INTERVALS</span>
-                    <span style={{ display: 'block', font: `500 11px ${BODY}`, color: MUTED, marginTop: 1, lineHeight: 1.25 }}>Random sprint chases. Beat your own pace to escape — +{CHASE_XP} XP each.</span>
+                    <span style={{ display: 'block', font: `500 11px ${BODY}`, color: MUTED, marginTop: 1, lineHeight: 1.25 }}>Random sprint chases. Escape for +{chaseXp(effortTier).win} XP, caught costs {chaseXp(effortTier).loss}.</span>
                   </span>
                   <span aria-hidden="true" style={{ width: 36, height: 20, borderRadius: 99, flexShrink: 0, position: 'relative', background: chaseMode ? '#ff8a4a' : 'rgba(255,255,255,0.12)', transition: 'background .2s' }}>
                     <span style={{ position: 'absolute', top: 2, left: chaseMode ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left .2s' }}/>

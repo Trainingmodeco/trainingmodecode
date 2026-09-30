@@ -228,16 +228,19 @@ export function addComboBonus(xpAward) {
   return xpAward;
 }
 
-// Cardio run bonus — chases escaped on an INTERVALS run (data/chase.js, 15 XP
+// Cardio run bonus — chases on an INTERVALS run (data/chase.js: escapes pay,
+// forfeits cost a little less; net may be negative). Total XP never drops
+// below zero. Originally: chases escaped (15 XP
 // each). XP only, no session row: the run's own session row already counts
 // once, and a bonus must never inflate the weekly session tally.
 export function addRunBonus(xpAward) {
-  const xp = Math.max(0, Math.round(Number(xpAward) || 0));
+  const xp = Math.round(Number(xpAward) || 0);
   if (!xp) return 0;
   const stats = loadStats();
-  stats.xp += xp;
+  const before = stats.xp || 0;
+  stats.xp = Math.max(0, before + xp);
   saveStats(stats);
-  return xp;
+  return stats.xp - before;
 }
 
 // Practice Round (Simplify revamp) — the drill after a lesson. Logged as

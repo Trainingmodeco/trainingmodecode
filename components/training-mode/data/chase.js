@@ -19,7 +19,17 @@ export const CHASE_THRESHOLD = 0.15;      // 15% faster than the baseline
 export const CHASE_BASELINE_WINDOW_SEC = 60;
 export const CHASE_TAIL_GUARD_SEC = 120;  // none in the last two minutes of a targeted run
 export const CHASE_MIN_WINDOW_METERS = 20; // below this the window pace is noise
-export const CHASE_XP = 15;
+// XP per chase, by effort tier. Escapes pay more than forfeits cost, so a
+// mixed run still comes out ahead; HARD raises both stakes.
+export const CHASE_XP_BY_TIER = {
+  easy:   { win: 8,  loss: 3 },
+  normal: { win: 10, loss: 5 },
+  hard:   { win: 15, loss: 8 },
+};
+export const CHASE_XP = CHASE_XP_BY_TIER.normal.win;
+export function chaseXp(tier) {
+  return CHASE_XP_BY_TIER[String(tier || 'normal').toLowerCase()] || CHASE_XP_BY_TIER.normal;
+}
 export const CHASE_LEAD_IN_SEC = 5;       // "Sprint in five" before the window opens
 
 const rand = (rng, lo, hi) => lo + Math.round((rng ? rng() : Math.random()) * (hi - lo));
@@ -88,8 +98,11 @@ export function chaseBeepAt(remainingSec) {
   return null;
 }
 
-export function chaseSummary(state) {
+export function chaseSummary(state, tier = 'normal') {
   const passes = state?.passes || 0;
   const fails = state?.fails || 0;
-  return { passes, fails, attempts: passes + fails, xp: passes * CHASE_XP };
+  const { win, loss } = chaseXp(tier);
+  const won = passes * win;
+  const lost = fails * loss;
+  return { passes, fails, attempts: passes + fails, won, lost, xp: won - lost, tier: chaseXp(tier) };
 }
