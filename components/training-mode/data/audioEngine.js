@@ -418,3 +418,66 @@ export function playRiser() {
   osc.stop(t + 0.7);
   duckAppAudio(800);
 }
+
+// Chase lost — the arcade "ghost caught" warble the owner picked from the
+// auditioned set: three square-wave steps down (C5 → G4 → C4) with a fast
+// vibrato on each. Synthesised, so it costs nothing in the bundle.
+export function playGhostCaught() {
+  const ctx = getCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+  const steps = [520, 392, 262];
+  const stepDur = 0.22;
+  const t0 = ctx.currentTime;
+  const vol = Math.max(0.0001, 0.35 * getCueGain());
+  const out = cueOut() || ctx.destination;
+
+  steps.forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 28;
+    lfoGain.gain.value = f * 0.06;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    osc.type = 'square';
+    osc.frequency.value = f;
+    osc.connect(gain);
+    gain.connect(out);
+    const t = t0 + i * stepDur;
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + stepDur);
+    osc.start(t); lfo.start(t);
+    osc.stop(t + stepDur); lfo.stop(t + stepDur);
+  });
+  duckAppAudio(900);
+}
+
+// Chase escaped — a bright two-note ring chime, E6 up to B6, quick and clean.
+// Synthesised in that spirit; not a sampled asset.
+export function playRingChime() {
+  const ctx = getCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+  const t0 = ctx.currentTime;
+  const vol = Math.max(0.0001, 0.5 * getCueGain());
+  const out = cueOut() || ctx.destination;
+  [[1319, 0], [1976, 0.09]].forEach(([f, dt]) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = f;
+    osc.connect(gain);
+    gain.connect(out);
+    const t = t0 + dt;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    osc.start(t);
+    osc.stop(t + 0.32);
+  });
+  duckAppAudio(500);
+}

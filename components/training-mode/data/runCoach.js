@@ -101,10 +101,17 @@ export function speakPace(secPerUnit, unit = 'mi') {
 
 // "Cardio mode. GPS run, 3 miles. Target time, 30 minutes. Elite time, 20
 // minutes. Ready. Go." — the owner's exact shape.
-export function buildRunIntro({ methodLabel = 'Run', useGps = true, distance, unit = 'mi', targetSec, eliteSec }) {
+export function buildRunIntro({ methodLabel = 'Run', useGps = true, distance, unit = 'mi', targetSec, eliteSec, freeRun = false, targetPaceSec = null }) {
   // "Running" is the category name; the coach says "GPS run".
   const base = String(methodLabel || 'run').toLowerCase().replace(/^running$/, 'run');
   const method = useGps ? `GPS ${base}` : base;
+  // A free run has no distance and no finish time — the brief names the pace
+  // to hold and hands the end over to the athlete.
+  if (freeRun || !(distance > 0)) {
+    const parts = ['Cardio mode.', `${method}, free run. End it when you are done.`];
+    if (targetPaceSec > 0) parts.push(`Target pace, ${speakPace(targetPaceSec, unit)}.`);
+    return { lines: parts, ready: 'Ready.', go: 'Go!' };
+  }
   const parts = [
     'Cardio mode.',
     `${method}, ${speakDistance(distance, unit)}.`,
@@ -158,6 +165,20 @@ export function splitScript({ marker, unit, elapsedSec, paceSec, targetPaceSec, 
   const remaining = goal - marker;
   if (remaining > 0 && remaining <= 0.5 + 1e-9) lines.push(`${speakDistance(remaining, unit)} to go. Empty the tank.`);
   else if (Math.abs(marker - goal / 2) < 1e-9) lines.push('Halfway.');
+  return lines.join(' ');
+}
+
+// A split on a free run: no goal, so no "halfway" and no projected finish —
+// the marker, the clock, the pace, and how that pace sits against the target.
+export function freeRunSplitScript({ marker, unit, elapsedSec, paceSec, targetPaceSec }) {
+  const lines = [`${speakDistance(marker, unit)}.`, `${speakDuration(elapsedSec)}.`];
+  if (paceSec > 0) lines.push(`Pace ${speakPace(paceSec, unit)}.`);
+  if (paceSec > 0 && targetPaceSec > 0) {
+    const ratio = paceSec / targetPaceSec;
+    if (ratio < 0.94) lines.push('Ahead of your target pace.');
+    else if (ratio > 1.08) lines.push('Under your target pace. Pick it up.');
+    else lines.push('Right on pace.');
+  }
   return lines.join(' ');
 }
 

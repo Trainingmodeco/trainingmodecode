@@ -19,7 +19,12 @@ import { unlockAudio } from './data/audioEngine';
 import CardioSummary from './CardioSummary';
 import EmptyState from './EmptyState';
 import { equipmentById, equipmentInGroup, defaultEquipment, tracksDistance } from './data/cardioEquipment';
-import { defaultSpeed, clampSpeed, speedUnitLabel } from './data/machineSpeed';
+import { defaultSpeed, clampSpeed, speedUnitLabel, fmtSpeed } from './data/machineSpeed';
+import { effortPaceSec, effortSpeed, TIER_LABEL, EFFORT_TIERS } from './data/runEffort';
+import { programById, expandProgram, programMinutes } from './data/intervalPrograms';
+import { CHASE_XP } from './data/chase';
+import DistanceTargetModal from './shared/DistanceTargetModal';
+import MachineChooserModal from './shared/MachineChooserModal';
 import SpeedDial from './shared/SpeedDial';
 import IntervalQuickSet from './shared/IntervalQuickSet';
 import CardioSessionCard from './shared/CardioSessionCard';
@@ -225,9 +230,10 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   const [intervalMode, setIntervalMode] = useState(rs?.intervalMode ?? 'target'); // 'random' | 'target'
   const [cfgByStyle, setCfgByStyle] = useState(rs?.cfgByStyle ?? CFG_DEFAULTS);
   const [configOpen, setConfigOpen] = useState(false);
-  // 3 miles rather than 5 kilometres — the same run, named the way it is named
-  // here. A 5 in a miles field would be a much longer session than intended.
-  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? (entry?.goal > 0 ? Number(entry.goal) : 3));
+  // A run is FREE by default — no finish line, the athlete ends it. A distance
+  // target is opt-in through the DISTANCE popup. A ghost challenge from the
+  // hub arrives with its own distance, so that run has one from the start.
+  const [goalDistance, setGoalDistance] = useState(rs?.goalDistance ?? (entry?.goal > 0 ? Number(entry.goal) : null));
   // Miles is the default and the dominant unit — the athletes using this are in
   // the US. Kilometres stay one tap away, not the other way round.
   const [distanceUnit, setDistanceUnit] = useState(rs?.distanceUnit ?? (entry?.unit === 'km' ? 'km' : 'mi'));
@@ -251,8 +257,19 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   const [genSession, setGenSession] = useState(null);
   const [playerResult, setPlayerResult] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  // WALK is a run at a walking pace: same GPS, same map, a slower target.
-  const [walkMode, setWalkMode] = useState(!!rs?.walkMode);
+  // RUN or JOG: the effort band (data/runEffort.js — JOG 3–5 mph, RUN 6–8),
+  // and EASY / NORMAL / HARD for where in the band the target sits. Not
+  // everyone is a great runner and bodies differ; the tier is per session.
+  // Older setups saved walkMode; a walk is a jog now.
+  const [effortMode, setEffortMode] = useState(rs?.effortMode ?? (rs?.walkMode ? 'jog' : 'run'));
+  const [effortTier, setEffortTier] = useState(rs?.effortTier ?? 'normal');
+  // INTERVALS on an outdoor run — random sprint chases (data/chase.js).
+  const [chaseMode, setChaseMode] = useState(!!rs?.chaseMode);
+  // MACHINE: free run or a guided programme, and which programme.
+  const [machineMode, setMachineMode] = useState(rs?.machineMode ?? 'free');
+  const [programId, setProgramId] = useState(rs?.programId ?? null);
+  const [distanceOpen, setDistanceOpen] = useState(false);
+  const [machineOpen, setMachineOpen] = useState(false);
   // CUSTOMIZE — the protocol / goal / ghost / interval controls, collapsed.
   const [optionsOpen, setOptionsOpen] = useState(false);
   // A quick-start preset applies its setup, then starts on the next render
@@ -265,7 +282,10 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   const equipment = hasEquipment ? equipmentById(eqByGroup[categoryId]) : null;
   const cardioType = equipment ? equipment.cardioType : category.type;
   const method = getMethod(cardioType);
-  const methodLabel = walkMode && equipment?.tracking !== 'speed' ? 'Walk' : equipment ? equipment.methodLabel : category.methodLabel;
+  const methodLabel = effortMode === 'jog' && equipment?.tracking === 'gps' ? 'Jog' : equipment ? equipment.methodLabel : category.methodLabel;
+  // Which of the three popup machines the equipment is, if any. Derived from
+  // the equipment rather than stored, so there is one source of truth.
+  const effMachine = equipment?.id === 'treadmill' ? 'treadmill' : equipment?.id === 'bike' ? 'bike' : equipment?.id === 'rower' ? 'row' : null;
   const level = getLevel(loadStats().xp);
 
   // Whether a distance can be shown is now the EQUIPMENT's claim, not the
@@ -301,33 +321,43 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   const consoleUnit = equipment?.tracking === 'console' ? equipment.consoleUnit : null;
   const isRounds = categoryId === 'rounds';
   const activeFormat = formatById(roundFormat);
+  const isMachineAct = !isRounds && (categoryId === 'machine' || equipment?.id === 'treadmill');
+  // A guided programme runs on the three popup machines only, and only when
+  // INTERVAL TRAINING was chosen for it. Expanded here for this machine and
+  // effort tier, so the preview, the player and the announcer all agree.
+  const guided = isMachineAct && machineMode === 'interval' && !!effMachine;
+  const program = guided ? expandProgram(programById(programId), { machine: effMachine, tier: effortTier, unit: distanceUnit }) : null;
 
-
-  const sliderMax = distanceUnit === 'km' ? 10 : 6.5;
   const parsedCustomDist = parseFloat(customDistance);
-  const effGoalDistance = Number.isFinite(parsedCustomDist) && parsedCustomDist > 0 ? parsedCustomDist : goalDistance;
+  const effGoalDistance = Number.isFinite(parsedCustomDist) && parsedCustomDist > 0 ? parsedCustomDist : (goalDistance > 0 ? goalDistance : null);
   const parsedCustomMin = parseFloat(customTimeMin);
   const effGoalTime = Number.isFinite(parsedCustomMin) && parsedCustomMin > 0 ? Math.round(parsedCustomMin * 60) : goalTimeSeconds;
 
   const parsedTargetMin = parseFloat(customTargetMin);
   const customTargetSec = Number.isFinite(parsedTargetMin) && parsedTargetMin > 0 ? Math.round(parsedTargetMin * 60) : null;
-  // A brisk walk: 15:00 a mile (9:20 a kilometre) unless the athlete typed a target.
-  const walkTargetSec = walkMode ? Math.round(effGoalDistance * (distanceUnit === 'km' ? 560 : 900)) : null;
-  const autoPace = useDistanceGauge ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec ?? walkTargetSec) : null;
+  // The effort band sets the target pace — JOG or RUN, at EASY / NORMAL / HARD.
+  // With a distance target that pace also sets the target time (unless the
+  // athlete typed one); the elite time is the usual two-thirds rule.
+  const effortPace = effortPaceSec(effortMode === 'jog' ? 'jog' : 'run', effortTier, distanceUnit);
+  const hasGoal = useDistanceGauge && !program && effGoalDistance > 0;
+  const autoPace = hasGoal ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec ?? Math.round(effGoalDistance * effortPace)) : null;
   // The dial opens on whatever speed holds the target pace, so the common case
   // is zero taps — on the setup screen AND during the run.
   const effStartSpeed = usesMachine
-    ? clampSpeed(startSpeed ?? defaultSpeed(autoPace?.paceSecPerUnit, distanceUnit), distanceUnit)
+    ? clampSpeed(startSpeed ?? defaultSpeed(autoPace?.paceSecPerUnit ?? effortPace, distanceUnit), distanceUnit)
     : null;
   // Ghosts are bucketed by surface, so the treadmill ladder and the outdoor
   // ladder are separate. An indoor mile must never overwrite an outdoor best.
-  const ghostLast = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'last', surface) : null;
-  const ghostBest = useDistanceGauge ? getRunGhost(distanceUnit, effGoalDistance, 'best', surface) : null;
-  const ghostPick = !(usesGps || usesMachine) ? null : ghostChoice === 'best' ? ghostBest : ghostChoice === 'last' ? ghostLast : null;
+  // A free run has no distance bucket, so no ghost.
+  const ghostLast = hasGoal ? getRunGhost(distanceUnit, effGoalDistance, 'last', surface) : null;
+  const ghostBest = hasGoal ? getRunGhost(distanceUnit, effGoalDistance, 'best', surface) : null;
+  const ghostPick = !hasGoal || !(usesGps || usesMachine) ? null : ghostChoice === 'best' ? ghostBest : ghostChoice === 'last' ? ghostLast : null;
 
-  const displayStyleLabel = style === 'steady' ? 'Steady Pace'
-    : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
-      : 'Tabata';
+  const displayStyleLabel = program ? program.label
+    : chaseMode && usesGps ? 'Intervals'
+      : style === 'steady' ? (hasGoal ? 'Steady Pace' : 'Free Run')
+        : style === 'intervals' ? (intervalMode === 'random' ? 'Random Intervals' : 'Target Intervals')
+          : 'Tabata';
 
   // Tapping RUNNING or MACHINE opens its equipment screen; the other two select
   // directly, because there is nothing to disambiguate.
@@ -362,6 +392,27 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
     setEqByGroup(prev => ({ ...prev, [pickerGroup]: eqId }));
     setStartSpeed(null);
     setPickerGroup(null);
+    // Only the three popup machines run a guided programme.
+    if (!['treadmill', 'bike', 'rower'].includes(eqId)) setMachineMode('free');
+  };
+
+  // The MACHINE popup: which machine, FREE RUN or INTERVAL TRAINING, and the
+  // programme. A treadmill lives in the running group (it is a run, tracked
+  // from the belt); bike and rower in the machine group.
+  const applyMachine = ({ machine, mode, programId: pid }) => {
+    setMachineMode(mode);
+    setProgramId(pid);
+    setGenSession(null);
+    if (machine === 'treadmill') {
+      setCategoryId('running');
+      setEqByGroup(prev => ({ ...prev, running: 'treadmill' }));
+    } else {
+      setCategoryId('machine');
+      setEqByGroup(prev => ({ ...prev, machine: machine === 'row' ? 'rower' : 'bike' }));
+    }
+    setStyle('steady');
+    setStartSpeed(null);
+    setMachineOpen(false);
   };
 
   const pickProtocol = (id) => {
@@ -385,18 +436,20 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
       else { addonStyle = 'intervals'; intervals = cfgToIntervals(cfgByStyle.intervals); }
     } else if (style === 'tabata') { addonStyle = 'tabata'; intervals = cfgToIntervals(cfgByStyle.tabata); }
 
-    const dist = useDistanceGauge ? { value: effGoalDistance, unit: distanceUnit } : null;
+    const dist = hasGoal ? { value: effGoalDistance, unit: distanceUnit } : null;
     return {
       enabled: true,
       sourceMode: 'Cardio Mode',
       placement: 'standalone',
       cardioType,
       cardioLabel: methodLabel,
-      targetType: useDistanceGauge ? 'distance' : 'time',
-      targetTimeSeconds: effGoalTime,
+      // A free run and a guided programme have no distance target; the
+      // summary shows what was covered, not a goal.
+      targetType: hasGoal ? 'distance' : 'time',
+      targetTimeSeconds: program ? program.totalSec : effGoalTime,
       targetDistance: dist ? dist.value : null,
-      distanceUnit: dist ? dist.unit : 'mi',
-      paceTargetSeconds: autoPace ? autoPace.paceSecPerUnit : null,
+      distanceUnit,
+      paceTargetSeconds: autoPace ? autoPace.paceSecPerUnit : (useDistanceGauge ? effortPace : null),
       paceTargetLabel: autoPace ? autoPace.paceLabel : null,
       targetSeconds: autoPace ? autoPace.totalSec : null,
       eliteSeconds: autoPace ? autoPace.eliteSec : null,
@@ -417,7 +470,8 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   const setupSnapRef = useRef(null);
   setupSnapRef.current = {
     categoryId, style, intervalMode, cfgByStyle, goalDistance, distanceUnit,
-    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, eqByGroup, walkMode,
+    customDistance, goalTimeSeconds, customTimeMin, customTargetMin, eqByGroup,
+    effortMode, effortTier, chaseMode, machineMode, programId,
   };
   const reportProtocol = useCallback((st) => {
     onSessionState?.({ live: true, protocol: st, setup: setupSnapRef.current });
@@ -550,16 +604,23 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
     const player = cardioAddonToPlayer(addon);
     // A restored run carries its own config; a fresh one takes the setup's.
     const runCfg = liveRestore?.cfg || {
-      goal: addon.targetDistance, unit: addon.distanceUnit,
-      targetSec: addon.targetSeconds, eliteSec: addon.eliteSeconds,
-      targetPaceSec: addon.paceTargetSeconds, elitePaceSec: addon.elitePaceSeconds,
-      methodLabel, useGps: usesGps, randomSurges: addon.randomSurges,
-      speedSource: usesMachine ? 'machine' : null,
-      startSpeed: effStartSpeed,
+      goal: hasGoal ? effGoalDistance : null, unit: distanceUnit,
+      targetSec: autoPace?.totalSec ?? null, eliteSec: autoPace?.eliteSec ?? null,
+      targetPaceSec: autoPace?.paceSecPerUnit ?? effortPace, elitePaceSec: autoPace?.elitePaceSecPerUnit ?? null,
+      methodLabel, useGps: usesGps, randomSurges: false,
+      // A guided treadmill or bike programme still integrates distance from
+      // the dial; the rower has no dial and no distance we can stand behind.
+      speedSource: usesMachine || (program && effMachine !== 'row') ? 'machine' : null,
+      startSpeed: program ? (program.segments[0]?.speed ?? effStartSpeed) : effStartSpeed,
       cadenceKind,
       ghost: ghostPick,
+      effortMode, effortTier,
+      chaseMode: chaseMode && usesGps && !program,
+      program,
+      machineKind: effMachine,
+      noDistance: !!program && effMachine === 'row',
     };
-    const isRun = liveRestore ? true : useDistanceGauge;
+    const isRun = liveRestore ? true : (useDistanceGauge || !!program);
     return (
       <PhoneFrame useBrandBg>
         <Embers count={2}/>
@@ -654,43 +715,54 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   // control the old screen stacked in the open — protocol, goal distance,
   // target pace, ghost, interval setup — is still here, under CUSTOMIZE,
   // collapsed until asked for.
-  const act = isRounds ? 'intervals' : categoryId === 'machine' ? 'machine' : walkMode ? 'walk' : 'run';
+  // RUN and JOG are outdoors on GPS — the effort band is the difference.
+  // MACHINE opens the popup (treadmill / bike / row). ROUNDS is the
+  // bodyweight timer with the session generator.
+  const act = isRounds ? 'rounds' : isMachineAct ? 'machine' : effortMode === 'jog' ? 'jog' : 'run';
   const ACTS = [
     { id: 'run', label: 'RUN', icon: <path d="M11 4a2 2 0 1 0 4 0a2 2 0 1 0-4 0M9 21l3-6 3 2v4M6 12l3-4 4 1 3 3 3 1M12 15l-2-4"/> },
-    { id: 'walk', label: 'WALK', icon: <path d="M11 4a2 2 0 1 0 4 0a2 2 0 1 0-4 0M10 21l2-7 3 3v4M8 11l3-3 3 2 2 3M12 14l-1-4"/> },
+    { id: 'jog', label: 'JOG', icon: <path d="M11 4a2 2 0 1 0 4 0a2 2 0 1 0-4 0M10 21l2-7 3 3v4M8 11l3-3 3 2 2 3M12 14l-1-4"/> },
     { id: 'machine', label: 'MACHINE', icon: <path d="M3 18h18M5 18l3-9h7l2 4h2M8 9V5h3M17 13v5"/> },
-    { id: 'intervals', label: 'INTERVALS', icon: <path d="M5 20V14M10 20V8M15 20V11M20 20V4"/> },
+    { id: 'rounds', label: 'ROUNDS', icon: <path d="M5 20V14M10 20V8M15 20V11M20 20V4"/> },
   ];
   const selectAct = (id) => {
-    if (id === 'intervals') { setWalkMode(false); selectCategory('rounds'); return; }
-    setWalkMode(id === 'walk');
-    setCategoryId(id === 'machine' ? 'machine' : 'running');
-    if (id === 'walk') setStyle('steady');
-    else if (style === 'intervals' && intervalMode === 'target' && isRounds) setStyle('steady');
+    if (id === 'rounds') { selectCategory('rounds'); return; }
+    if (id === 'machine') { setMachineOpen(true); return; }
+    setEffortMode(id);
+    setCategoryId('running');
+    setEqByGroup(prev => ({ ...prev, running: 'gps-run' }));
+    setStyle('steady');
   };
   const actLabel = ACTS.find(a => a.id === act)?.label || 'CARDIO';
   const showMap = usesGps;
   const timerTotal = isRounds
     ? (genSession ? intervalTotal(sessionToIntervalConfig(genSession, cfg.warmupMin)) : cfgTargetSeconds(cfg))
-    : useDistanceGauge ? (autoPace?.totalSec || effGoalTime) : showConfigCard ? cfgTargetSeconds(cfg) : effGoalTime;
+    : program ? program.totalSec
+      : hasGoal ? (autoPace?.totalSec || 0)
+        : useDistanceGauge ? 0
+          : showConfigCard ? cfgTargetSeconds(cfg) : effGoalTime;
   const optionsSummary = isRounds
     ? `${activeFormat.label}${genSession ? ' · session built' : ''}`
-    : `${displayStyleLabel} · ${useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : `${Math.round(effGoalTime / 60)} min`}${equipment ? ` · ${equipment.label}` : ''}${ghostPick ? ' · 👻 ghost' : ''}`;
+    : `${displayStyleLabel} · ${program ? `${programMinutes(programById(programId))} min` : hasGoal ? `${effGoalDistance} ${distanceUnit}` : useDistanceGauge ? 'no target' : `${Math.round(effGoalTime / 60)} min`}${equipment ? ` · ${equipment.label}` : ''}${ghostPick ? ' · 👻 ghost' : ''}`;
+  // The chips under the activity tiles: the speed each tier means for the
+  // current band, so EASY / NORMAL / HARD is a number and not a mood.
+  const bandMode = effortMode === 'jog' ? 'jog' : 'run';
+  const tierHint = (t) => `${fmtSpeed(effortSpeed(bandMode, t, distanceUnit))} ${speedUnitLabel(distanceUnit).toLowerCase()}`;
+  const machineName = effMachine === 'treadmill' ? 'TREADMILL' : effMachine === 'bike' ? 'BIKE' : effMachine === 'row' ? 'ROW' : (equipment?.label || 'MACHINE');
 
   // Quick-start presets: apply the setup, then the effect below starts it.
   const runPreset = (id) => {
     setGenSession(null);
     if (id === 'treadmill') {
-      setWalkMode(false); setCategoryId('running');
+      setEffortMode('run'); setCategoryId('running');
       setEqByGroup(prev => ({ ...prev, running: 'treadmill' }));
-      setStyle('intervals'); setIntervalMode('target');
-      setCfgByStyle(prev => ({ ...prev, intervals: { warmupMin: 3, workSec: 60, restSec: 60, rounds: 8, cooldownMin: 0 } }));
+      setStyle('steady'); setMachineMode('interval'); setProgramId('rise-shine-20');
     } else if (id === 'outdoor') {
-      setWalkMode(false); setCategoryId('running');
+      setEffortMode('run'); setCategoryId('running');
       setEqByGroup(prev => ({ ...prev, running: 'gps-run' }));
-      setStyle('steady'); setDistanceUnit('mi'); setGoalDistance(3); setCustomDistance('');
+      setStyle('steady'); setDistanceUnit('mi'); setGoalDistance(3); setCustomDistance(''); setChaseMode(false);
     } else {
-      setWalkMode(false); setCategoryId('rounds');
+      setCategoryId('rounds');
       setStyle('intervals'); setIntervalMode('target');
       setRoundFormat('tabata'); applyFormat('tabata');
       setGenSession(generateCardioSession({ level, moveCount: 5 }));
@@ -763,6 +835,79 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
             })}
           </div>
 
+          {/* Effort, then the one row that matters for the activity: the
+              INTERVALS toggle outdoors, the machine + mode row indoors, and
+              the optional DISTANCE target for anything that measures one. */}
+          {!isRounds && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div role="radiogroup" aria-label="Effort" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
+                {EFFORT_TIERS.map(t => {
+                  const on = effortTier === t;
+                  return (
+                    <button key={t} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="cm-opt" onClick={() => setEffortTier(t)} style={{
+                      minHeight: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer',
+                      background: on ? 'rgba(253,224,71,0.12)' : '#110E1C', border: on ? `1.5px solid ${ARCADE.goldBorder}` : '1px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '0 4px',
+                    }}>
+                      <span style={{ font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: on ? GOLD : '#CFC9E4' }}>{TIER_LABEL[t]}</span>
+                      <span style={{ font: `600 9px ${BODY}`, color: MUTED, whiteSpace: 'nowrap' }}>{tierHint(t)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {!isMachineAct ? (
+                <button type="button" role="switch" aria-checked={chaseMode ? 'true' : 'false'} className="cm-opt" onClick={() => setChaseMode(v => !v)} style={{
+                  minHeight: 46, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  background: chaseMode ? 'rgba(255,138,74,0.1)' : '#110E1C', border: chaseMode ? '1.5px solid rgba(255,138,74,0.6)' : '1px solid rgba(255,255,255,0.09)', color: '#fff',
+                }}>
+                  <span style={{ fontSize: 16, lineHeight: 1 }}>⚡</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', font: `700 11px ${HEAD}`, letterSpacing: '0.12em', color: chaseMode ? '#ffd0b0' : '#fff' }}>INTERVALS</span>
+                    <span style={{ display: 'block', font: `500 11px ${BODY}`, color: MUTED, marginTop: 1, lineHeight: 1.25 }}>Random sprint chases. Beat your own pace to escape — +{CHASE_XP} XP each.</span>
+                  </span>
+                  <span aria-hidden="true" style={{ width: 36, height: 20, borderRadius: 99, flexShrink: 0, position: 'relative', background: chaseMode ? '#ff8a4a' : 'rgba(255,255,255,0.12)', transition: 'background .2s' }}>
+                    <span style={{ position: 'absolute', top: 2, left: chaseMode ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left .2s' }}/>
+                  </span>
+                </button>
+              ) : (
+                <button type="button" className="cm-opt" onClick={() => setMachineOpen(true)} style={{
+                  minHeight: 46, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  background: '#110E1C', border: `1px solid ${program ? 'rgba(157,108,255,0.55)' : 'rgba(255,255,255,0.09)'}`, color: '#fff',
+                }}>
+                  <span style={{ fontSize: 16, lineHeight: 1 }}>{equipment?.icon || '⚙️'}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', font: `700 11px ${HEAD}`, letterSpacing: '0.12em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{machineName} · {program ? 'INTERVALS' : 'FREE RUN'}</span>
+                    <span style={{ display: 'block', font: `500 11px ${BODY}`, color: MUTED, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {program ? `${program.label} · ${programMinutes(programById(programId))} min · announcer-led` : 'Your pace. End it when you are done.'}
+                    </span>
+                  </span>
+                  {effMachine && (
+                    <span onClick={(e) => { e.stopPropagation(); setEffortMode(m => (m === 'jog' ? 'run' : 'jog')); }} role="button" aria-label="Switch pace band" style={{
+                      font: `700 9px ${HEAD}`, letterSpacing: '0.1em', color: '#C4A8FF', padding: '5px 8px', borderRadius: 8, border: '1px solid rgba(157,108,255,0.45)', flexShrink: 0,
+                    }}>{effortMode === 'jog' ? 'JOG' : 'RUN'} ⇄</span>
+                  )}
+                  <span style={{ font: `700 14px ${HEAD}`, color: '#7D7799' }}>›</span>
+                </button>
+              )}
+
+              {(usesGps || (usesMachine && !program)) && (
+                <button type="button" className="cm-opt" data-guide="cm-goal" onClick={() => setDistanceOpen(true)} style={{
+                  minHeight: 44, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  background: '#110E1C', border: `1px solid ${hasGoal ? ARCADE.goldBorder : 'rgba(255,255,255,0.09)'}`, color: '#fff',
+                }}>
+                  <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: MUTED, width: 92, flexShrink: 0 }}>DISTANCE</span>
+                  <span style={{ flex: 1, font: `600 15px ${BODY}`, color: hasGoal ? GOLD : '#fff' }}>{hasGoal ? `${effGoalDistance} ${distanceUnit}` : 'Free run · no target'}</span>
+                  {hasGoal ? (
+                    <span onClick={(e) => { e.stopPropagation(); setGoalDistance(null); setCustomDistance(''); }} role="button" aria-label="Clear distance target" style={{ font: `700 9px ${HEAD}`, letterSpacing: '0.1em', color: MUTED, padding: '5px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.14)', flexShrink: 0 }}>CLEAR</span>
+                  ) : (
+                    <span style={{ font: `700 9px ${HEAD}`, letterSpacing: '0.1em', color: '#C4A8FF', flexShrink: 0 }}>SET</span>
+                  )}
+                  <span style={{ font: `700 14px ${HEAD}`, color: '#7D7799' }}>›</span>
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Preview panel + stats */}
           <div style={{ flexShrink: 0, borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(157,108,255,0.45)', background: '#0B0916' }}>
             <div style={{ position: 'relative', height: 140 }}>
@@ -784,7 +929,9 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                       <span style={{ fontSize: 15, lineHeight: 1 }}>👻</span>GHOST RUN · {fmtRunClock(ghostPick.totalSec)}
                     </div>
                   )}
-                  <div style={{ position: 'absolute', right: 10, bottom: 8, font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: '#7D7799' }}>{autoPace ? `TARGET ${autoPace.paceLabel}` : 'ROUTE MAP'}</div>
+                  <div style={{ position: 'absolute', right: 10, bottom: 8, font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: '#7D7799' }}>
+                    {autoPace ? `TARGET ${autoPace.paceLabel}` : `${chaseMode ? 'CHASES ON · ' : 'FREE RUN · '}TARGET ${fmtClock(effortPace)} /${distanceUnit}`}
+                  </div>
                 </>
               ) : (
                 <>
@@ -796,8 +943,8 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                         <circle cx="62" cy="62" r="44" fill="none" stroke="rgba(242,190,69,.55)" strokeWidth="1.5" strokeDasharray="2 6"/>
                       </svg>
                       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                        <span style={{ font: `700 26px ${HEAD}`, lineHeight: 1, color: '#fff' }}>{fmtClock(timerTotal)}</span>
-                        <span style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: '#C4A8FF' }}>{isRounds ? (genSession ? 'SESSION' : 'ROUNDS') : 'COUNTDOWN'}</span>
+                        <span style={{ font: `700 ${timerTotal ? 26 : 18}px ${HEAD}`, lineHeight: 1, color: '#fff' }}>{timerTotal ? fmtClock(timerTotal) : 'FREE'}</span>
+                        <span style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: '#C4A8FF' }}>{isRounds ? (genSession ? 'SESSION' : 'ROUNDS') : program ? 'GUIDED' : timerTotal ? 'COUNTDOWN' : 'NO TARGET'}</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
@@ -805,10 +952,11 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                       <span style={{ font: `700 14px ${HEAD}`, lineHeight: 1.2, color: '#fff', maxWidth: 150 }}>
                         {isRounds
                           ? (genSession ? `${genSession.moves.length} moves · ${activeFormat.label}` : `${activeFormat.label}`)
-                          : `${equipment?.label || 'Machine'} · ${useDistanceGauge ? `${effGoalDistance} ${distanceUnit}` : `${Math.round(effGoalTime / 60)} min`}`}
+                          : program ? program.label
+                            : `${equipment?.label || 'Machine'} · ${hasGoal ? `${effGoalDistance} ${distanceUnit}` : useDistanceGauge ? 'free run' : `${Math.round(effGoalTime / 60)} min`}`}
                       </span>
                       <span style={{ font: `500 12px ${BODY}`, color: MUTED, maxWidth: 150, lineHeight: 1.3 }}>
-                        {isRounds ? 'The coach calls every switch.' : 'No GPS needed. Log the console at the end.'}
+                        {isRounds ? 'The coach calls every switch.' : program ? (effMachine === 'treadmill' ? 'The announcer calls every belt speed.' : 'The announcer calls every effort change.') : 'No GPS needed. Log the console at the end.'}
                       </span>
                     </div>
                   </div>
@@ -862,7 +1010,25 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
               borderRadius: ARCADE.radius.md, border: `1px solid ${ARCADE.violetBorderSoft}`,
               background: 'rgba(10,2,22,0.7)', padding: '8px 10px', marginBottom: 8,
             }}>
-              {equipment.tracking === 'speed' ? (
+              {equipment.tracking === 'speed' && program ? (
+                <>
+                  <div style={{ ...sectionLabel, marginBottom: 6 }}>THE PROGRAMME</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {program.segments.slice(0, 14).map((s, i) => (
+                      <span key={i} style={{
+                        padding: '3px 7px', borderRadius: 99,
+                        background: s.kind === 'sprint' ? 'rgba(253,224,71,0.14)' : s.kind === 'hard' ? 'rgba(255,138,74,0.14)' : 'rgba(176,106,255,0.12)',
+                        border: `1px solid ${s.kind === 'sprint' ? 'rgba(253,224,71,0.45)' : s.kind === 'hard' ? 'rgba(255,138,74,0.45)' : 'rgba(176,106,255,0.32)'}`,
+                        fontFamily: ARCADE.fontHead, fontSize: 7.5, fontWeight: 800, letterSpacing: '0.06em', color: '#e6d4ff',
+                      }}>{s.label} {Math.round(s.seconds / 60) >= 1 ? `${Math.round(s.seconds / 60)}m` : `${s.seconds}s`}{s.speed ? ` · ${fmtSpeed(s.speed)}` : ''}</span>
+                    ))}
+                    {program.segments.length > 14 && <span style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, alignSelf: 'center' }}>+{program.segments.length - 14} more</span>}
+                  </div>
+                  <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 6, lineHeight: 1.3 }}>
+                    Speeds are for {TIER_LABEL[effortTier].toLowerCase()} {effortMode}. Five seconds before every change the announcer tells you what to set; you move the {equipment.id === 'treadmill' ? 'belt' : 'console'}.
+                  </div>
+                </>
+              ) : equipment.tracking === 'speed' ? (
                 <>
                   <div style={{ ...sectionLabel, marginBottom: 7 }}>
                     STARTING {speedUnitLabel(distanceUnit)}
@@ -961,7 +1127,11 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
             </>
           )}
 
-          <div data-guide="cm-protocol" style={{ display: isRounds ? 'none' : 'block' }}>
+          {/* The protocol chips (steady / intervals / tabata on the timed
+              player) remain for the machines without a distance — elliptical,
+              stairs, a free rower. Everything that measures distance is a
+              free run, a targeted run, or a guided programme now. */}
+          <div data-guide="cm-protocol" style={{ display: (isRounds || distanceCapable || program) ? 'none' : 'block' }}>
           <div style={sectionLabel}>PROTOCOL</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: style === 'intervals' ? 8 : 14 }}>
             {PROTOCOLS.map(p => (
@@ -999,42 +1169,11 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
 
           </div>
 
-          {/* GOAL — distance slider (design 12a) */}
-          {useDistanceGauge && (
+          {/* GOAL — the target pace card and the ghost, once a distance is set
+              from the DISTANCE row above. The slider moved into that popup. */}
+          {hasGoal && (
             <>
-              <div data-guide="cm-goal">
-              <div style={sectionLabel}>GOAL DISTANCE</div>
-              <div style={{ borderRadius: 11, border: `1px solid ${ARCADE.violetBorderSoft}`, background: 'rgba(8,2,18,0.5)', padding: '8px 12px 9px', marginBottom: 9 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
-                  <div style={{ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: 19, color: '#fff', flexShrink: 0 }}>
-                    {customDistance ? parsedCustomDist : goalDistance}<span style={{ fontSize: 11, color: GOLD, marginLeft: 3 }}>{distanceUnit}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ display: 'flex', gap: 3 }}>
-                      {['mi', 'km'].map(u => (
-                        <button key={u} onClick={() => { setDistanceUnit(u); setGoalDistance(u === 'km' ? 5 : 3); setCustomDistance(''); }} style={{
-                          padding: '3px 10px', borderRadius: 7, cursor: 'pointer',
-                          background: distanceUnit === u ? 'rgba(253,224,71,0.12)' : 'rgba(6,0,16,0.7)',
-                          border: distanceUnit === u ? `1.5px solid ${ARCADE.goldBorder}` : `1px solid ${ARCADE.violetBorderSoft}`,
-                          color: distanceUnit === u ? GOLD : C.muted, fontFamily: ARCADE.fontHead, fontSize: 9, fontWeight: 700,
-                        }}>{u.toUpperCase()}</button>
-                      ))}
-                    </div>
-                    <input
-                      type="number" inputMode="decimal" min="0" step="0.1" placeholder={`+${distanceUnit}`}
-                      value={customDistance} onChange={e => setCustomDistance(e.target.value)}
-                      style={{ width: 60, padding: '4px 8px', borderRadius: 7, background: 'rgba(6,0,16,0.7)', border: `1px solid ${ARCADE.violetBorderSoft}`, color: C.text, fontFamily: ARCADE.fontBody, fontSize: 11, fontWeight: 600, outline: 'none' }}
-                    />
-                  </div>
-                </div>
-                <input
-                  type="range" min={distanceUnit === 'km' ? 1 : 0.5} max={sliderMax} step={distanceUnit === 'km' ? 0.5 : 0.25}
-                  value={Math.min(goalDistance, sliderMax)}
-                  onChange={e => { setGoalDistance(parseFloat(e.target.value)); setCustomDistance(''); }}
-                  style={{ width: '100%', accentColor: GOLD, cursor: 'pointer', display: 'block' }}
-                />
-              </div>
-
+              <div>
               {autoPace && (
                 <div style={{ borderRadius: 10, border: '1px solid rgba(176,106,255,0.35)', background: 'rgba(176,106,255,0.06)', padding: '8px 12px', marginBottom: 9 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1161,12 +1300,6 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
             </>
           )}
 
-          {/* Random-intervals note */}
-          {style === 'intervals' && intervalMode === 'random' && (
-            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 10.5, color: C.muted, marginBottom: 8, lineHeight: 1.4 }}>
-              We&apos;ll throw in surprise pace surges a few times — hold each surge until the coach calls it off.
-            </div>
-          )}
             </div>
           )}
 
@@ -1175,7 +1308,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
             <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Quick start presets</span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
               {[
-                { id: 'treadmill', title: 'TREADMILL INTERVALS', sub: '20 min · 8 × 1:00', img: '/static/fitmode/cardio-mode-banner.webp', pos: '12% 50%', border: 'rgba(157,108,255,0.45)' },
+                { id: 'treadmill', title: 'TREADMILL INTERVALS', sub: '20 min · guided', img: '/static/fitmode/cardio-mode-banner.webp', pos: '12% 50%', border: 'rgba(157,108,255,0.45)' },
                 { id: 'outdoor', title: 'OUTDOOR RUN', sub: '3 mi · GPS', img: '/static/revamp/cardio-banner.webp', pos: '78% 40%', border: 'rgba(61,123,255,0.5)' },
                 { id: 'blast', title: 'CARDIO BLAST', sub: 'Tabata · 5 moves', img: '/static/revamp/cardio-blast.webp', pos: '100% 0%', border: 'rgba(242,190,69,0.55)' },
               ].map(p => (
@@ -1194,6 +1327,26 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
       </SetupPage>
       {configOpen && (
         <ConfigModal styleId={style} cfg={cfg} onChange={setCfg} onClose={() => setConfigOpen(false)}/>
+      )}
+      {distanceOpen && (
+        <DistanceTargetModal
+          value={effGoalDistance || 0}
+          unit={distanceUnit}
+          onUnit={(u) => { setDistanceUnit(u); setCustomDistance(''); }}
+          onApply={(v) => { setGoalDistance(v); setCustomDistance(''); setDistanceOpen(false); }}
+          onClear={() => { setGoalDistance(null); setCustomDistance(''); setDistanceOpen(false); }}
+          onClose={() => setDistanceOpen(false)}
+        />
+      )}
+      {machineOpen && (
+        <MachineChooserModal
+          machine={effMachine}
+          mode={machineMode}
+          programId={programId}
+          onApply={applyMachine}
+          onMore={() => { setMachineOpen(false); setCategoryId('machine'); setPickerGroup('machine'); }}
+          onClose={() => setMachineOpen(false)}
+        />
       )}
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.cardio_mode} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>

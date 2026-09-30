@@ -3,6 +3,7 @@ import { C } from './Styles';
 import { CircleCheck as CheckCircle } from 'lucide-react';
 import { ARCADE, ArcadeHudPanel, ArcadeSectionLabel, ArcadePrimaryButton, ArcadeSecondaryButton, ArcadeStatusChip } from './ArcadeUI';
 import { createCardioSession, logCardioSession } from './data/cardioSessions';
+import { addRunBonus } from './data/userStats';
 import { logRun } from './data/runLog';
 import { surfaceOf } from './data/runGhosts';
 import { settleChallenge } from './data/ghostChallenges';
@@ -127,7 +128,11 @@ export default function CardioSummary({
       runId,
     });
     const { xpEarned: earned } = logCardioSession(session, { awardXp });
-    setXpEarned(earned || 0);
+    // Chase bonus — escapes on an INTERVALS run (15 XP each), awarded once
+    // here alongside the session's own XP. Forfeits earn nothing; nothing is
+    // ever subtracted.
+    const chaseXp = awardXp && runResult?.chase?.xp > 0 ? addRunBonus(runResult.chase.xp) : 0;
+    setXpEarned((earned || 0) + chaseXp);
     setSaved(session);
     setLogged(true);
   }
@@ -201,9 +206,26 @@ export default function CardioSummary({
           Target: {targetDistance}
         </p>
       )}
+      {runResult?.program && (
+        <p style={{ fontFamily: ARCADE.fontHead, fontSize: 8.5, fontWeight: 700, color: '#c9a6ff', letterSpacing: '0.12em', margin: '0 0 12px', textAlign: 'center' }}>
+          {runResult.program.label} · {String(runResult.program.machine).toUpperCase()} · {String(runResult.program.tier).toUpperCase()} · {formatClock(runResult.program.completedSec)} OF {formatClock(runResult.program.totalSec)}
+        </p>
+      )}
+      {runResult && !targetDistance && !runResult.program && runResult.freeRun && (
+        <p style={{ fontFamily: ARCADE.fontHead, fontSize: 8.5, fontWeight: 700, color: '#c9a6ff', letterSpacing: '0.12em', margin: '0 0 12px', textAlign: 'center' }}>
+          FREE RUN{runResult.effortMode ? ` · ${String(runResult.effortMode).toUpperCase()} · ${String(runResult.effortTier || 'normal').toUpperCase()}` : ''}
+        </p>
+      )}
       {runResult && (
-        <div style={{ width: '100%', maxWidth: 340, borderRadius: 12, border: `1px solid ${runResult.beatElite ? 'rgba(253,224,71,0.5)' : 'rgba(168,85,247,0.3)'}`, background: 'rgba(8,2,18,0.6)', padding: '10px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
-          <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS TARGET</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatTarget ? '#8fe8ac' : '#ff9a52' }}>{runResult.completedTimeSeconds - runResult.targetSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.targetSec))}</div></div>
+        <div style={{ width: '100%', maxWidth: 340, borderRadius: 12, border: `1px solid ${runResult.beatElite ? 'rgba(253,224,71,0.5)' : 'rgba(168,85,247,0.3)'}`, background: 'rgba(8,2,18,0.6)', padding: '10px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-around', textAlign: 'center', flexWrap: 'wrap', gap: '8px 10px' }}>
+          {runResult.targetSec != null ? (
+            <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS TARGET</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatTarget ? '#8fe8ac' : '#ff9a52' }}>{runResult.completedTimeSeconds - runResult.targetSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.targetSec))}</div></div>
+          ) : (runResult.avgPaceSec && runResult.targetPaceSec ? (
+            <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS TARGET PACE</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.avgPaceSec <= runResult.targetPaceSec ? '#8fe8ac' : '#ff9a52' }}>{runResult.avgPaceSec - runResult.targetPaceSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.avgPaceSec - runResult.targetPaceSec))}</div></div>
+          ) : null)}
+          {runResult.chase?.attempts > 0 ? (
+            <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>⚡ CHASES</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.chase.passes > 0 ? ARCADE.gold : '#ff9a52' }}>{runResult.chase.passes}/{runResult.chase.attempts}{runResult.chase.xp > 0 ? ` · +${runResult.chase.xp} XP` : ''}</div></div>
+          ) : null}
           {runResult.eliteSec ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>VS ELITE</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.beatElite ? ARCADE.gold : '#c9a6ff' }}>{runResult.completedTimeSeconds - runResult.eliteSec <= 0 ? '−' : '+'}{formatClock(Math.abs(runResult.completedTimeSeconds - runResult.eliteSec))}</div></div> : null}
           {runResult.ghost ? <div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 7, color: C.muted, letterSpacing: '0.14em' }}>👻 GHOST</div><div style={{ fontFamily: ARCADE.fontHead, fontSize: 13, fontWeight: 900, color: runResult.ghost.outcome === 'victory' ? '#8fe8ac' : runResult.ghost.outcome === 'defeat' ? '#ff8a8a' : ARCADE.gold }}>{runResult.ghost.outcome === 'victory' ? 'BEATEN' : runResult.ghost.outcome === 'defeat' ? 'WON' : 'DRAW'}</div></div> : null}
           {/* Three states, not two. A machine run is MEASURED — from the

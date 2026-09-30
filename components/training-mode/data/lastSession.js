@@ -85,10 +85,16 @@ export function describeSession(last) {
     case 'cardio': {
       const st = c.setup || {};
       const kind = CARDIO_KIND[st.categoryId] || 'Cardio';
-      const detail = st.categoryId === 'running' && st.style === 'steady' && st.goalDistance
-        ? `${st.goalDistance} ${st.distanceUnit || 'mi'}`
-        : (CARDIO_STYLE[st.style] || null);
-      return { mode: 'fit', title: st.walkMode ? 'Walk' : 'Cardio', sub: [st.walkMode ? null : kind, detail].filter(Boolean).join(' · ') || 'Cardio', diff: null, time: null };
+      // A guided programme names itself; a targeted run names its distance;
+      // a free run says so. Older snapshots carried walkMode — a walk is a jog.
+      const jog = st.effortMode === 'jog' || !!st.walkMode;
+      const guided = st.machineMode === 'interval' && st.programId;
+      const detail = guided
+        ? String(st.programId).replace(/-/g, ' ').toUpperCase()
+        : st.categoryId === 'running' && st.style === 'steady'
+          ? (st.goalDistance ? `${st.goalDistance} ${st.distanceUnit || 'mi'}${st.chaseMode ? ' · Intervals' : ''}` : `Free run${st.chaseMode ? ' · Intervals' : ''}`)
+          : (CARDIO_STYLE[st.style] || null);
+      return { mode: 'fit', title: jog ? 'Jog' : 'Cardio', sub: [jog ? null : kind, detail].filter(Boolean).join(' · ') || 'Cardio', diff: st.effortTier ? titleCase(st.effortTier) : null, time: null };
     }
     default:
       return null;

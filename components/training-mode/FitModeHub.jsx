@@ -189,7 +189,7 @@ export default function FitModeHub({
               <span style={{ display: 'block', font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.04em', color: '#fff' }}>Cardio</span>
               {/* Machine, not Cycle — the indoor option covers bike, rower and
                   elliptical, and "Cycle" undersold it. */}
-              <span style={{ display: 'block', fontSize: 14, color: MUTED, marginTop: 2 }}>Run · Walk · Machine · GPS</span>
+              <span style={{ display: 'block', fontSize: 14, color: MUTED, marginTop: 2 }}>Run · Jog · Machine · GPS</span>
             </span>
             <span style={{ height: 44, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 6, color: VIOLET, font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em' }}>
               <Play size={13} fill="currentColor" strokeWidth={0}/>START

@@ -228,6 +228,18 @@ export function addComboBonus(xpAward) {
   return xpAward;
 }
 
+// Cardio run bonus — chases escaped on an INTERVALS run (data/chase.js, 15 XP
+// each). XP only, no session row: the run's own session row already counts
+// once, and a bonus must never inflate the weekly session tally.
+export function addRunBonus(xpAward) {
+  const xp = Math.max(0, Math.round(Number(xpAward) || 0));
+  if (!xp) return 0;
+  const stats = loadStats();
+  stats.xp += xp;
+  saveStats(stats);
+  return xp;
+}
+
 // Practice Round (Simplify revamp) — the drill after a lesson. Logged as
 // 'Practice', which the tier and Progress splits already count as Fight.
 // The XP is decided by the round's level (data/practiceRound xpFor).

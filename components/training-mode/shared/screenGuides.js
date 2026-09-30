@@ -240,7 +240,7 @@ export const SCREEN_GUIDES = {
 
   cardio_mode: [
     { target: null, title: '🏃 CARDIO MODE', body: 'This screen sets up a pure cardio session — pick how you move, the protocol, and your goal. We set your pace.' },
-    { target: 'cm-method', title: 'ACTIVITY', body: 'How you move: RUN or WALK outdoors on GPS (or on a treadmill — pick that under CUSTOMIZE), MACHINE for a bike, rower, elliptical or stairs, or INTERVALS — fight rounds, Tabata or your own, with the coach calling every switch.' },
+    { target: 'cm-method', title: 'ACTIVITY', body: 'How you move: RUN or JOG outdoors on GPS — pick EASY, NORMAL or HARD under it, and switch INTERVALS on for random sprint chases. MACHINE opens treadmill, bike or rower, free or with a guided programme the announcer calls. ROUNDS is fight rounds, Tabata or your own, with the coach calling every switch.' },
     { target: 'cm-start', title: 'THE PREVIEW', body: 'The panel shows what you are about to do: the route map for a GPS run, or the timer for everything else, with the target pace or the total time on it. The stats underneath fill in once you start.' },
     { target: 'cm-options', title: 'CUSTOMIZE', body: 'Everything else lives here, folded away: where you are running, the protocol, the goal distance or time, your target pace, and a ghost to race. The one-line summary on the row says what is set.' },
     { target: 'cm-protocol', title: 'PROTOCOL', body: 'STEADY holds one pace the whole way. INTERVALS and TABATA alternate hard work with recovery.' },

@@ -9,7 +9,13 @@ import PocketMode, { PocketModeChip } from './shared/PocketMode';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
-import { playBell, unlockAudio } from './data/audioEngine';
+import { playBell, playBeep, playRiser, playGhostCaught, playRingChime, unlockAudio } from './data/audioEngine';
+import {
+  newChaseState, firstChaseAt, nextChaseAt, chaseWindow, canStartChase,
+  chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
+  CHASE_LEAD_IN_SEC, CHASE_BASELINE_WINDOW_SEC, CHASE_THRESHOLD, CHASE_XP,
+} from './data/chase';
+import { segmentAt } from './data/intervalPrograms';
 import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
 import { recordRunGhost, ghostDistanceAt, ghostTimeAt, ghostArt } from './data/runGhosts';
 import { thinRoute } from './data/geoRoute';
@@ -24,8 +30,8 @@ import {
   defaultSpeed, fmtSpeed, speedUnitLabel, applyMachineCorrection,
 } from './data/machineSpeed';
 import {
-  metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance,
-  buildRunIntro, crossedMarkers, crossedTenths, splitScript, finishScript,
+  metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance, speakPace,
+  buildRunIntro, crossedMarkers, crossedTenths, splitScript, freeRunSplitScript, finishScript,
   paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
   evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS, rollingPaceSec, projectedFinish,
   ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
@@ -114,6 +120,12 @@ function newRun(cfg) {
     // reads totalGapMs to print a whispered footnote; no live UI shows.
     gaps: [],
     totalGapMs: 0,
+    // INTERVALS on an outdoor run: the chase engine's state (data/chase.js).
+    chase: newChaseState(),
+    // A guided machine programme: which segment the announcer is on, and the
+    // last segment it pre-called five seconds early.
+    programIdx: -1,
+    programPreSaid: -1,
   };
 }
 
@@ -122,7 +134,18 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   if (!runRef.current) runRef.current = restore ? { ...newRun(cfg), ...restore, cfg: restore.cfg || cfg } : newRun(cfg);
   const run = runRef.current;
   const unit = run.cfg.unit || 'mi';
-  const goal = run.cfg.goal || 3;
+  // A null goal is a FREE RUN: no finish line, the athlete ends it when they
+  // are done. `goal` is only ever a number where a finish exists.
+  const goal = run.cfg.goal > 0 ? run.cfg.goal : null;
+  const freeRun = !goal;
+  // A guided machine programme (data/intervalPrograms.js, already expanded
+  // for this machine and effort tier). The announcer is the coach for it.
+  const program = run.cfg.program || null;
+  // INTERVALS on an outdoor run — the chase. Never on top of a programme.
+  const chaseMode = !!run.cfg.chaseMode && !program;
+  // The rower: a guided programme with no distance we can stand behind. Time
+  // is the hero; the console's metres are typed in at the end.
+  const noDistance = !!run.cfg.noDistance;
   const useGps = !!run.cfg.useGps;
   const ghost = run.cfg.ghost || null;
 
@@ -141,6 +164,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const [tickKey, setTickKey] = useState(0);
   const [result, setResult] = useState(null);
   const [consoleDist, setConsoleDist] = useState('');
+  // The live chase: { until, windowSec, requiredPaceSec, baselinePaceSec } while
+  // a sprint window is open; a 4-second pass/fail flash after it closes.
+  const [chaseUi, setChaseUi] = useState(null);
+  const [chaseFlash, setChaseFlash] = useState(null);
+  const [progIdx, setProgIdx] = useState(restore?.programIdx ?? -1);
   const aliveRef = useRef(true);
   const runningRef = useRef(running);
   const phaseRef = useRef(phase);
@@ -185,14 +213,15 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const speedNow = machine ? speedAt(run.speedSegs, elapsedSec) : 0;
   const machineDist = machine ? distanceFromSpeed(run.speedSegs, elapsedSec) : 0;
   // Estimating is now the LAST resort, not the indoor default.
-  const estimating = !machine && (!useGps || (gpsStatus !== 'live' && meters === 0));
+  const estimating = !noDistance && !machine && (!useGps || (gpsStatus !== 'live' && meters === 0));
   // Distance is MEASURED when it came from satellites or from the machine —
   // the distinction everything downstream keys off: whether the pace coach may
   // speak, whether splits mean anything, whether this becomes a ghost.
-  const measuring = machine || usingGps;
-  const dist = machine
-    ? machineDist
-    : (estimating ? Math.min(goal, elapsedSec / (run.cfg.targetPaceSec || 600)) : gpsDist);
+  const measuring = !noDistance && (machine || usingGps);
+  const estDist = elapsedSec / (run.cfg.targetPaceSec || 600);
+  const dist = noDistance ? 0
+    : machine ? machineDist
+      : (estimating ? (freeRun ? estDist : Math.min(goal, estDist)) : gpsDist);
 
   // Cadence, from the accelerometer. The speed is handed over for the stride
   // cross-check — a rate that implies an impossible stride is not shown.
@@ -219,12 +248,22 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     r.startedAt = Date.now();
     r.pausedAt = null;
     r.nextSurgeSec = r.cfg.randomSurges ? 45 + Math.round(Math.random() * 45) : null;
+    if (chaseMode) {
+      if (!r.chase || !Array.isArray(r.chase.results)) r.chase = newChaseState();
+      r.chase.nextAtSec = firstChaseAt();
+    }
+    if (program) {
+      // The intro already spoke segment 0's line, so the tick must not repeat it.
+      r.programIdx = 0;
+      r.programPreSaid = -1;
+      setProgIdx(0);
+    }
     setPhase('run');
     setRunning(true);
     setNow(Date.now());
     persist(true);
     report({ live: true, running: true });
-  }, [persist, report]);
+  }, [persist, report, chaseMode, program]);
 
   const pauseRun = useCallback(() => {
     const r = runRef.current;
@@ -253,24 +292,33 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const r = runRef.current;
     if (phaseRef.current === 'done') return;
     const el = liveRunElapsedSec(r);
-    const finalDist = machine
-      ? distanceFromSpeed(r.speedSegs, el)
-      : (estimating ? Math.min(goal, el / (r.cfg.targetPaceSec || 600)) : r.meters / metersPerUnit(unit));
-    const d = completed ? Math.max(finalDist, goal) : finalDist;
+    const rawEst = el / (r.cfg.targetPaceSec || 600);
+    const finalDist = noDistance ? 0
+      : machine ? distanceFromSpeed(r.speedSegs, el)
+        : (estimating ? (freeRun ? rawEst : Math.min(goal, rawEst)) : r.meters / metersPerUnit(unit));
+    // A targeted run that finished is credited its goal; a free run has no
+    // goal to credit, and the athlete ending it IS completing it.
+    const d = (completed && !freeRun) ? Math.max(finalDist, goal) : finalDist;
+    const isComplete = completed || freeRun;
+    const chase = chaseMode ? { ...chaseSummary(r.chase), results: (r.chase?.results || []).slice() } : null;
     const res = {
-      completed,
+      completed: isComplete,
+      freeRun,
+      effortMode: r.cfg.effortMode || null,
+      effortTier: r.cfg.effortTier || null,
       completedTimeSeconds: Math.round(el),
       completedDistance: +d.toFixed(2),
       distanceUnit: unit,
-      gps: !machine && !estimating,
+      gps: !noDistance && !machine && !estimating,
       measured: measuring,
       surface: machine ? 'machine' : 'gps',
       machineSpeed: machine ? speedAt(r.speedSegs, el) : null,
       avgPaceSec: d > 0.05 ? el / d : null,
-      targetSec: r.cfg.targetSec,
-      eliteSec: r.cfg.eliteSec,
-      beatTarget: completed && el <= r.cfg.targetSec,
-      beatElite: completed && !!r.cfg.eliteSec && el <= r.cfg.eliteSec,
+      targetPaceSec: r.cfg.targetPaceSec || null,
+      targetSec: r.cfg.targetSec ?? null,
+      eliteSec: r.cfg.eliteSec ?? null,
+      beatTarget: isComplete && r.cfg.targetSec != null && el <= r.cfg.targetSec,
+      beatElite: isComplete && !!r.cfg.eliteSec && el <= r.cfg.eliteSec,
       splits: r.splits.slice(),
       goal,
       trace: r.trace.slice(),
@@ -282,15 +330,21 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       // Data-only bookkeeping for the summary's whispered footnote.
       gaps: r.gaps.slice(),
       totalGapMs: r.totalGapMs,
+      chase,
+      program: program ? {
+        id: program.id, label: program.label, machine: program.machine, tier: program.tier,
+        totalSec: program.totalSec, completedSec: Math.min(Math.round(el), program.totalSec), completed,
+      } : null,
     };
-    if (ghost && completed) {
+    if (ghost && completed && !freeRun) {
       const delta = Math.round(el - ghost.totalSec);
       res.ghost = { ownerName: ghost.ownerName, ghostTotalSec: ghost.totalSec, delta, outcome: Math.abs(delta) < 2 ? 'draw' : delta < 0 ? 'victory' : 'defeat' };
     }
-    // Every MEASURED finish becomes a ghost for next time (MY LAST, and MY BEST
-    // when it is the fastest at this distance) — bucketed by surface, so an
-    // indoor run never overwrites an outdoor best.
-    if (completed && measuring) {
+    // Every MEASURED finish at a set distance becomes a ghost for next time
+    // (MY LAST, and MY BEST when it is the fastest at this distance) —
+    // bucketed by surface, so an indoor run never overwrites an outdoor best.
+    // A free run has no distance bucket, so it is logged but never a ghost.
+    if (completed && measuring && !freeRun) {
       const rec = recordRunGhost(res);
       res.ghostRecorded = !!rec.ghost;
       res.newBest = rec.newBest;
@@ -298,17 +352,31 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     setPhase('done');
     setRunning(false);
     setResult(res);
+    setChaseUi(null);
     clearLiveRun();
     report({ live: false, running: false });
-    if (completed) {
+    const chaseLine = chase && chase.attempts > 0
+      ? ` ${chase.passes} of ${chase.attempts} chases escaped${chase.xp > 0 ? `, ${chase.xp} bonus X P` : ''}.`
+      : '';
+    if (program) {
+      playBell(3);
+      say(completed
+        ? `Programme complete. ${noDistance ? speakDuration(el) : `${speakDistance(d, unit)} in ${speakDuration(el)}`}. Good work.`
+        : `Programme ended at ${speakDuration(el)}.${noDistance ? '' : ` ${speakDistance(d, unit)}.`}`);
+    } else if (freeRun) {
+      playBell(3);
+      const avg = d > 0.05 ? ` Average pace ${speakPace(el / d, unit)}.` : '';
+      say(`Run complete. ${speakDistance(d, unit)} in ${speakDuration(el)}.${avg}${chaseLine}`);
+    } else if (completed) {
       playBell(3);
       const lines = [finishScript({ dist: d, unit, elapsedSec: el, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec })];
       if (res.ghost) lines.push(ghostFinishLine({ elapsedSec: el, ghostTotalSec: ghost.totalSec, ownerName: ghost.ownerName }));
+      if (chaseLine) lines.push(chaseLine.trim());
       say(lines.join(' '));
     } else {
-      say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.`);
+      say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.${chaseLine}`);
     }
-  }, [estimating, machine, measuring, goal, unit, report, say, ghost]);
+  }, [estimating, machine, measuring, goal, unit, report, say, ghost, freeRun, chaseMode, program, noDistance]);
 
   // ── Intro: speak the brief, then GO ───────────────────────────────────────
   useEffect(() => {
@@ -320,8 +388,28 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       try {
         unlockAudio();
         await primeSpeech();
-        const intro = buildRunIntro({ methodLabel: run.cfg.methodLabel, useGps, distance: goal, unit, targetSec: run.cfg.targetSec, eliteSec: run.cfg.eliteSec });
-        if (machine) intro.lines.push(`Set the machine to ${fmtSpeed(speedAt(run.speedSegs, 0))} ${speedUnitLabel(unit).toLowerCase()} and match the dial if you change it.`);
+        let intro;
+        if (program) {
+          // A guided programme briefs itself: what it is, how long, and the
+          // first segment's own instruction (the belt speed on a treadmill).
+          const where = program.machine === 'row' ? 'Rower' : program.machine === 'bike' ? 'Bike' : 'Treadmill';
+          intro = {
+            lines: [
+              'Cardio mode.',
+              `${where} intervals. ${String(program.label).toLowerCase()}, ${speakDuration(program.totalSec)}.`,
+              program.segments[0]?.start || 'Warm up first.',
+            ],
+            ready: 'Ready.', go: 'Go!',
+          };
+        } else {
+          intro = buildRunIntro({
+            methodLabel: run.cfg.methodLabel, useGps, distance: goal, unit,
+            targetSec: run.cfg.targetSec, eliteSec: run.cfg.eliteSec,
+            freeRun, targetPaceSec: run.cfg.targetPaceSec,
+          });
+          if (machine) intro.lines.push(`Set the machine to ${fmtSpeed(speedAt(run.speedSegs, 0))} ${speedUnitLabel(unit).toLowerCase()} and match the dial if you change it.`);
+          if (chaseMode) intro.lines.push(`Intervals are on. When I call a sprint, beat your own pace by ${Math.round(CHASE_THRESHOLD * 100)} percent to escape and bank ${CHASE_XP} X P.`);
+        }
         if (ghost) intro.lines.push(`Ghost mode. You are racing ${ghost.ownerId === 'me' ? 'your' : ghost.ownerName + "'s"} ${ghost.ownerId === 'me' ? 'own run' : 'run'}, ${speakDuration(ghost.totalSec)}. Beat it.`);
         for (const line of intro.lines) {
           if (cancelled) return;
@@ -500,10 +588,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       try { navigator.vibrate?.(30); } catch { /* ignore */ }
     }
 
-    // Goal first — the finish call outranks a split on the same tick.
-    if (dist >= goal - 1e-9) { finishRun(true); return; }
+    // Goal first — the finish call outranks a split on the same tick. A free
+    // run has no goal; it ends when the athlete says so.
+    if (!freeRun && dist >= goal - 1e-9) { finishRun(true); return; }
 
-    const markers = crossedMarkers(prev, dist, 0.5).filter(m => m < goal - 1e-9 && !r.markersDone.includes(m));
+    const markers = crossedMarkers(prev, dist, 0.5).filter(m => (freeRun || m < goal - 1e-9) && !r.markersDone.includes(m));
     if (markers.length) {
       const marker = markers[markers.length - 1];
       const pace = machine
@@ -513,10 +602,14 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
       r.lastSplitSec = elapsedSec;
       playBell(1);
-      const split = splitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec, goal, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec });
-      const gl = ghost && measuring ? ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker: ghostTimeAt(ghost, marker) }) : '';
-      say(gl ? `${split} ${gl}` : split);
       persist(true);
+      // Mid-chase the countdown owns the voice; the split is banked, not spoken.
+      if (r.chase?.activeUntilSec != null) return;
+      const split = freeRun
+        ? freeRunSplitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec })
+        : splitScript({ marker, unit, elapsedSec, paceSec: pace, targetPaceSec: r.cfg.targetPaceSec, goal, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec });
+      const gl = ghost && measuring && !freeRun ? ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker: ghostTimeAt(ghost, marker) }) : '';
+      say(gl ? `${split} ${gl}` : split);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dist, phase, running]);
@@ -537,6 +630,125 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     if (machine) {
       const last = r.trace[r.trace.length - 1];
       if (!last || sec - last.t >= 3) r.trace.push({ t: sec, d: +machineDist.toFixed(4) });
+    }
+
+    // ── Guided programme: the announcer IS the coach ────────────────────────
+    // Every change is pre-called five seconds early ("Sprint coming. Set
+    // 10.0. Five seconds.") and then called on the second ("Go. 40
+    // seconds."). The athlete moves the belt themselves. Sprints get a
+    // double bell and a three-beep countdown out. When the last segment
+    // ends the run is complete. The generic pace coach stays quiet
+    // underneath — two voices telling you what to do is one too many.
+    if (program) {
+      const idx = segmentAt(program, sec);
+      if (idx === -1) { finishRun(true); return; }
+      const cur = program.segments[idx];
+      const next = program.segments[idx + 1];
+      if (idx !== r.programIdx) {
+        r.programIdx = idx;
+        setProgIdx(idx);
+        playBell(cur.kind === 'sprint' ? 2 : 1);
+        say(cur.start);
+        r.lastCueSec = sec;
+        persist(true);
+        return;
+      }
+      if (next && next.pre && r.programPreSaid !== next.index && sec >= next.startSec - CHASE_LEAD_IN_SEC) {
+        r.programPreSaid = next.index;
+        playBeep();
+        say(next.pre);
+        r.lastCueSec = sec;
+        return;
+      }
+      const left = cur.endSec - sec;
+      if (cur.kind === 'sprint' && left > 0 && left <= 3) playBeep();
+      return;
+    }
+
+    // ── The chase (INTERVALS on an outdoor run) ─────────────────────────────
+    // Zombies-Run shape: a random call every few minutes, a 40–60 s window,
+    // and you escape by running 15% faster than your own last minute. Escape
+    // banks bonus XP; getting caught forfeits it — nothing is taken away.
+    if (chaseMode) {
+      const c = r.chase;
+      if (c.activeUntilSec != null) {
+        const left = c.activeUntilSec - sec;
+        if (left > 0) {
+          const b = chaseBeepAt(left);
+          if (b) playBeep();
+          return;
+        }
+        // Window closed — judge it against the minute before the call.
+        const chasePaceSec = chasePaceFromWindow({
+          startMeters: c.startMeters, endMeters: r.meters, seconds: c.windowSec, metersPerUnitValue: metersPerUnit(unit),
+        });
+        const v = evaluateChase({ baselinePaceSec: c.baselinePaceSec, chasePaceSec });
+        c.results.push({
+          atSec: c.startSec, windowSec: c.windowSec,
+          baselinePaceSec: Math.round(c.baselinePaceSec), chasePaceSec: chasePaceSec ? Math.round(chasePaceSec) : null,
+          pass: v.pass,
+        });
+        if (v.pass) {
+          c.passes += 1;
+          playRingChime();
+          say(`Escaped. ${CHASE_XP} X P banked. Ease back.`);
+        } else {
+          c.fails += 1;
+          playGhostCaught();
+          say("Chase lost. No bonus this time. Next one's yours. Ease back.");
+        }
+        setChaseFlash(v.pass ? 'pass' : 'fail');
+        setTimeout(() => setChaseFlash(null), 4000);
+        c.activeUntilSec = null;
+        c.leadInAtSec = null;
+        c.nextAtSec = nextChaseAt(sec);
+        setChaseUi(null);
+        r.lastCueSec = sec;
+        persist(true);
+        return;
+      }
+      if (c.nextAtSec != null) {
+        const baseline = rollingPaceSec(r.samples, elapsedSec, unit, CHASE_BASELINE_WINDOW_SEC);
+        const remainingSec = freeRun ? null : Math.max(0, goal - dist) * (baseline || r.cfg.targetPaceSec || 600);
+        if (!c.pendingWindowSec) c.pendingWindowSec = chaseWindow();
+        const windowSec = c.pendingWindowSec;
+        // "Sprint in five" — only once we know there will be a sprint.
+        if (c.leadInAtSec == null && baseline > 0 && sec >= c.nextAtSec - CHASE_LEAD_IN_SEC && sec < c.nextAtSec
+          && canStartChase({ nowSec: c.nextAtSec, nextAtSec: c.nextAtSec, baselinePaceSec: baseline, remainingSec, windowSec })) {
+          c.leadInAtSec = sec;
+          playRiser();
+          say('Sprint in five. Get ready.');
+          r.lastCueSec = sec;
+          return;
+        }
+        if (canStartChase({ nowSec: sec, nextAtSec: c.nextAtSec, baselinePaceSec: baseline, remainingSec, windowSec })) {
+          c.windowSec = windowSec;
+          c.pendingWindowSec = null;
+          c.activeUntilSec = sec + windowSec;
+          c.startSec = sec;
+          c.startMeters = r.meters;
+          c.baselinePaceSec = baseline;
+          c.leadInAtSec = null;
+          setChaseUi({ until: c.activeUntilSec, windowSec, requiredPaceSec: baseline * (1 - CHASE_THRESHOLD), baselinePaceSec: baseline });
+          playBell(1);
+          say(`Sprint! ${windowSec} seconds. Go!`);
+          r.lastCueSec = sec;
+          persist(true);
+          return;
+        }
+        if (sec >= c.nextAtSec) {
+          if (!(baseline > 0)) {
+            // No minute of GPS to judge against yet — try again shortly.
+            c.nextAtSec = sec + 30;
+            c.leadInAtSec = null;
+          } else {
+            // Too close to the finish for a window plus the tail guard: the
+            // chases are over for this run.
+            c.nextAtSec = null;
+            c.leadInAtSec = null;
+          }
+        }
+      }
     }
 
     // Surges (random intervals): call it, hold it, call it off.
@@ -638,14 +850,28 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const curPace = machine ? paceFromSpeed(speedNow)
     : usingGps ? (rollingPaceSec(run.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null))
       : (running ? run.cfg.targetPaceSec : null);
-  const projected = projectedFinish(dist, elapsedSec, goal);
-  const vsTarget = projected != null ? projected - run.cfg.targetSec : null;
+  // A projected finish needs a finish. Free runs and programmes have none.
+  const projected = (!freeRun && !program) ? projectedFinish(dist, elapsedSec, goal) : null;
+  const vsTarget = projected != null && run.cfg.targetSec != null ? projected - run.cfg.targetSec : null;
   const vsElite = projected != null && run.cfg.eliteSec ? projected - run.cfg.eliteSec : null;
-  const pct = Math.min(100, (dist / goal) * 100);
-  const ghostDistNow = ghost && phase === 'run' ? ghostDistanceAt(ghost, elapsedSec) : null;
-  const ghostGapNow = ghost && phase === 'run' ? ghostGap({ myDist: dist, ghostDist: ghostDistNow, paceSec: curPace }) : null;
+  // Programme position, the live chase, and the running chase tally.
+  const progSeg = program && progIdx >= 0 ? program.segments[progIdx] : null;
+  const progNext = program && progIdx >= 0 ? program.segments[progIdx + 1] : null;
+  const progLeft = progSeg ? Math.max(0, progSeg.endSec - elapsedSec) : 0;
+  const chaseLeft = chaseUi ? Math.max(0, chaseUi.until - elapsedSec) : 0;
+  const chaseTally = chaseMode ? chaseSummary(run.chase) : null;
+  // The bar: progress to the goal; on a free run, progress to the next split
+  // (every half unit); on a programme, progress through the programme.
+  const pct = program ? Math.min(100, (elapsedSec / program.totalSec) * 100)
+    : freeRun ? Math.min(100, ((dist % 0.5) / 0.5) * 100)
+      : Math.min(100, (dist / goal) * 100);
+  const ghostDistNow = ghost && goal && phase === 'run' ? ghostDistanceAt(ghost, elapsedSec) : null;
+  const ghostGapNow = ghost && goal && phase === 'run' ? ghostGap({ myDist: dist, ghostDist: ghostDistNow, paceSec: curPace }) : null;
   const ghostState = ghostGapNow ? ghostVerdict(ghostGapNow, unit) : null;
-  const verdictNow = measuring ? paceVerdict(curPace, run.cfg.targetPaceSec) : 'unknown';
+  // On a programme the pace verdict is against THIS segment's target, not the
+  // session's effort pace — a recovery jog is "on" at recovery speed.
+  const paceRef = progSeg?.speed ? 3600 / progSeg.speed : run.cfg.targetPaceSec;
+  const verdictNow = measuring ? paceVerdict(curPace, paceRef) : 'unknown';
   const paceColor = verdictNow === 'on' ? '#8fe8ac' : verdictNow === 'fast' ? '#c9a6ff' : verdictNow === 'unknown' ? '#fff' : '#ff9a52';
   const gpsLabel = machine ? `${fmtSpeed(speedNow)} ${speedUnitLabel(unit)}`
     : !useGps ? 'PACE TRACK'
@@ -656,22 +882,28 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // Floating mini-player: distance in the ring (WORK swaps the clock for a
   // number), elapsed and pace on the right, tenths as the segmented row.
   const miniFrame = useCallback(() => {
-    const tenths = Math.max(1, Math.round(goal * 10));
+    // A free run's ring fills to the next whole unit; a programme's fills to
+    // its end.
+    const goalUnits = goal || Math.max(1, Math.ceil(dist + 1e-9));
+    const tenths = Math.max(1, Math.round(goalUnits * 10));
     const doneTenths = Math.min(tenths, Math.floor(dist * 10 + 1e-9));
+    const head = program ? program.label : `${String(run.cfg.methodLabel || 'RUN').toUpperCase()} ${goal ? `${goal} ${unit.toUpperCase()}` : 'FREE RUN'}`;
     return {
       phase: phase === 'run' && running ? 'work' : 'paused',
       clock: fmtClock(elapsedSec),
       reps: +dist.toFixed(2),
       repsLabel: unit.toUpperCase(),
-      progress: Math.min(1, dist / goal),
+      progress: program ? Math.min(1, elapsedSec / program.totalSec) : Math.min(1, dist / goalUnits),
       exIdx: Math.min(tenths, doneTenths + 1),
       exTotal: tenths,
-      name: `${fmtClock(elapsedSec)} · ${String(run.cfg.methodLabel || 'RUN').toUpperCase()} ${goal} ${unit.toUpperCase()}`,
-      prescription: `PACE ${curPace ? fmtClock(curPace) : '--:--'} /${unit} · TARGET ${fmtClock(run.cfg.targetSec)}`,
-      nextName: run.cfg.eliteSec ? `ELITE ${fmtClock(run.cfg.eliteSec)}` : null,
+      name: `${fmtClock(elapsedSec)} · ${head}`,
+      prescription: program && progSeg
+        ? `${progSeg.label} · ${progSeg.target} · ${fmtClock(progLeft)} LEFT`
+        : `PACE ${curPace ? fmtClock(curPace) : '--:--'} /${unit} · TARGET ${run.cfg.targetSec != null ? fmtClock(run.cfg.targetSec) : fmtPace(run.cfg.targetPaceSec, unit)}`,
+      nextName: program ? (progNext ? `NEXT ${progNext.label}` : null) : run.cfg.eliteSec ? `ELITE ${fmtClock(run.cfg.eliteSec)}` : null,
       segments: Array.from({ length: tenths }, (_, i) => (i < doneTenths ? 'done' : i === doneTenths ? 'current' : 'todo')),
     };
-  }, [phase, running, elapsedSec, dist, goal, unit, curPace, run.cfg]);
+  }, [phase, running, elapsedSec, dist, goal, unit, curPace, run.cfg, program, progSeg, progNext, progLeft]);
   const mini = useMiniPlayer(miniFrame, phase !== 'done');
 
   // Calories burned so far. An estimate from mass, distance and time — no heart
@@ -691,16 +923,31 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const avg = result.avgPaceSec;
     return (
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 0' }}>
-        <div style={{ fontFamily: mono, fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: '0.22em', marginBottom: 6 }}>{result.completed ? 'GOAL REACHED' : 'RUN ENDED'}</div>
-        <div style={{ fontFamily: mono, fontSize: 52, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{result.completedDistance.toFixed(2)}<span style={{ fontSize: 14, color: GOLD, marginLeft: 6 }}>{unit.toUpperCase()}</span></div>
-        <div style={{ fontFamily: mono, fontSize: 28, fontWeight: 900, color: GOLD, marginTop: 8 }}>{fmtClock(result.completedTimeSeconds)}</div>
+        <div style={{ fontFamily: mono, fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: '0.22em', marginBottom: 6 }}>
+          {result.program ? (result.completed ? 'PROGRAMME COMPLETE' : 'PROGRAMME ENDED') : result.freeRun ? 'RUN COMPLETE' : result.completed ? 'GOAL REACHED' : 'RUN ENDED'}
+        </div>
+        {!noDistance && (
+          <div style={{ fontFamily: mono, fontSize: 52, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{result.completedDistance.toFixed(2)}<span style={{ fontSize: 14, color: GOLD, marginLeft: 6 }}>{unit.toUpperCase()}</span></div>
+        )}
+        <div style={{ fontFamily: mono, fontSize: noDistance ? 52 : 28, fontWeight: 900, color: GOLD, marginTop: 8 }}>{fmtClock(result.completedTimeSeconds)}</div>
+        {result.program && (
+          <div style={{ marginTop: 6, fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#c9a6ff', letterSpacing: '0.12em' }}>
+            {result.program.label} · {String(result.program.machine).toUpperCase()} · {String(result.program.tier).toUpperCase()} · {fmtClock(result.program.completedSec)} OF {fmtClock(result.program.totalSec)}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Stat label="AVG PACE" value={avg ? fmtPace(avg, unit) : '--'} />
-          <Stat label="VS TARGET" value={fmtSignedDelta(result.completedTimeSeconds - result.targetSec)} color={result.beatTarget ? '#8fe8ac' : '#ff9a52'} />
+          {!noDistance && <Stat label="AVG PACE" value={avg ? fmtPace(avg, unit) : '--'} />}
+          {result.targetSec != null ? (
+            <Stat label="VS TARGET" value={fmtSignedDelta(result.completedTimeSeconds - result.targetSec)} color={result.beatTarget ? '#8fe8ac' : '#ff9a52'} />
+          ) : (!noDistance && avg && result.targetPaceSec ? (
+            <Stat label="VS TARGET PACE" value={fmtSignedDelta(avg - result.targetPaceSec)} color={avg <= result.targetPaceSec ? '#8fe8ac' : '#ff9a52'} />
+          ) : null)}
           {result.eliteSec ? <Stat label="VS ELITE" value={fmtSignedDelta(result.completedTimeSeconds - result.eliteSec)} color={result.beatElite ? '#8fe8ac' : '#c9a6ff'} /> : null}
+          {result.chase?.attempts > 0 ? <Stat label="CHASES" value={`${result.chase.passes}/${result.chase.attempts}`} color={result.chase.passes > 0 ? GOLD : '#ff9a52'} /> : null}
           {result.calories ? <Stat label="KCAL EST" value={result.calories} color="#ff9a52" /> : null}
         </div>
         {result.beatElite && <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: '0.16em', textShadow: '0 0 12px rgba(253,224,71,0.6)' }}>★ ELITE TIME ★</div>}
+        {result.chase?.xp > 0 && <div style={{ marginTop: 8, fontFamily: mono, fontSize: 9.5, fontWeight: 900, color: '#ffd27a', letterSpacing: '0.14em' }}>⚡ +{result.chase.xp} XP CHASE BONUS</div>}
         {result.route?.length >= 2 && (
           <div style={{ width: '100%', marginTop: 12 }}>
             <RouteMap route={result.route} height={160} unit={unit} targetPaceSec={run.cfg.targetPaceSec} label="WHERE YOU RAN" />
@@ -803,7 +1050,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
         <span style={{ width: 7, height: 7, borderRadius: '50%', background: gpsDot, boxShadow: `0 0 8px ${gpsDot}`, animation: gpsStatus === 'acquiring' ? 'run-pulse 1.2s ease-in-out infinite' : 'none' }}/>
         <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: gpsStatus === 'live' ? '#8fe8ac' : '#ffd27a', letterSpacing: '0.1em' }}>
-          {gpsLabel} · {String(run.cfg.methodLabel || 'RUN').toUpperCase()} · {goal} {unit}
+          {gpsLabel} · {program ? program.label : `${String(run.cfg.methodLabel || 'RUN').toUpperCase()} · ${goal ? `${goal} ${unit}` : 'FREE RUN'}`}
         </span>
         {useGps && <PocketModeChip onClick={() => setPocket(true)}/>}
       </div>
@@ -815,21 +1062,67 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         </div>
       )}
 
-      {/* DISTANCE — the hero. Ticks gold at every tenth. */}
-      <div style={{ ...label, marginBottom: 2 }}>{estimating ? 'DISTANCE · EST' : machine ? 'DISTANCE · MACHINE' : 'DISTANCE'}</div>
-      <div key={tickKey} style={{ fontFamily: mono, fontSize: 66, fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.01em', animation: tickKey ? 'run-tick 0.7s ease-out' : 'none', textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>
-        {dist.toFixed(2)}<span style={{ fontSize: 16, color: GOLD, marginLeft: 6, letterSpacing: '0.08em' }}>{unit.toUpperCase()}</span>
-      </div>
+      {/* THE CHASE — the sprint window with its countdown and the pace to beat,
+          then a four-second verdict. */}
+      {chaseUi && (
+        <div style={{ width: '100%', borderRadius: 12, background: 'rgba(255,138,74,0.16)', border: '1.5px solid rgba(255,138,74,0.7)', padding: '8px 12px', marginBottom: 8, textAlign: 'center', animation: 'run-pulse 0.7s ease-in-out infinite', boxShadow: '0 0 18px rgba(255,138,74,0.25)' }}>
+          <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 900, color: '#ff8a4a', letterSpacing: '0.12em' }}>⚡ SPRINT — {Math.ceil(chaseLeft)}s</div>
+          <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ffd0b0', letterSpacing: '0.1em', marginTop: 3 }}>BEAT {fmtPace(chaseUi.requiredPaceSec, unit)} · YOU WERE {fmtPace(chaseUi.baselinePaceSec, unit)}</div>
+        </div>
+      )}
+      {!chaseUi && chaseFlash && (
+        <div style={{ width: '100%', borderRadius: 12, background: chaseFlash === 'pass' ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)', border: `1.5px solid ${chaseFlash === 'pass' ? 'rgba(34,197,94,0.65)' : 'rgba(239,68,68,0.6)'}`, padding: '8px 12px', marginBottom: 8, textAlign: 'center' }}>
+          <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 900, color: chaseFlash === 'pass' ? '#8fe8ac' : '#ff8a8a', letterSpacing: '0.12em' }}>
+            {chaseFlash === 'pass' ? `ESCAPED · +${CHASE_XP} XP` : 'CAUGHT · NO BONUS'}
+          </span>
+        </div>
+      )}
+
+      {/* THE PROGRAMME — what to set now, how long it lasts, what comes next. */}
+      {program && progSeg && (
+        <div style={{ width: '100%', borderRadius: 12, background: progSeg.kind === 'sprint' ? 'rgba(253,224,71,0.1)' : progSeg.kind === 'hard' ? 'rgba(255,138,74,0.1)' : 'rgba(176,106,255,0.1)', border: `1.5px solid ${progSeg.kind === 'sprint' ? 'rgba(253,224,71,0.6)' : progSeg.kind === 'hard' ? 'rgba(255,138,74,0.55)' : 'rgba(176,106,255,0.5)'}`, padding: '8px 12px', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+            <span style={{ fontFamily: mono, fontSize: 12, fontWeight: 900, color: progSeg.kind === 'sprint' ? GOLD : '#fff', letterSpacing: '0.1em' }}>{progSeg.label}</span>
+            <span style={{ fontFamily: mono, fontSize: 18, fontWeight: 900, color: progSeg.kind === 'sprint' ? GOLD : '#c9a6ff', lineHeight: 1 }}>{fmtClock(progLeft)}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 3 }}>
+            <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 800, color: '#e6d4ff', letterSpacing: '0.06em' }}>{progSeg.speed ? `SET ${progSeg.target}` : String(progSeg.target).toUpperCase()}</span>
+            <span style={{ fontFamily: mono, fontSize: 7.5, fontWeight: 700, color: '#8b83a8', letterSpacing: '0.1em' }}>{progNext ? `NEXT · ${progNext.label} ${progNext.speed ? fmtSpeed(progNext.speed) : ''}` : 'LAST SEGMENT'} · {progIdx + 1}/{program.segments.length}</span>
+          </div>
+        </div>
+      )}
+
+      {/* DISTANCE — the hero. Ticks gold at every tenth. The rower has no
+          distance to show, so the clock takes its place. */}
+      {!noDistance && (
+        <>
+          <div style={{ ...label, marginBottom: 2 }}>{estimating ? 'DISTANCE · EST' : machine ? 'DISTANCE · MACHINE' : 'DISTANCE'}</div>
+          <div key={tickKey} style={{ fontFamily: mono, fontSize: 66, fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.01em', animation: tickKey ? 'run-tick 0.7s ease-out' : 'none', textShadow: '0 0 16px rgba(168,85,247,0.4)' }}>
+            {dist.toFixed(2)}<span style={{ fontSize: 16, color: GOLD, marginLeft: 6, letterSpacing: '0.08em' }}>{unit.toUpperCase()}</span>
+          </div>
+        </>
+      )}
 
       {/* TIME — counts up from zero. */}
-      <div style={{ fontFamily: mono, fontSize: 34, fontWeight: 900, color: running ? GOLD : '#c4b5fd', marginTop: 6, lineHeight: 1, textShadow: '0 0 12px rgba(253,224,71,0.3)' }}>{fmtClock(elapsedSec)}</div>
+      <div style={{ fontFamily: mono, fontSize: noDistance ? 66 : 34, fontWeight: 900, color: running ? GOLD : '#c4b5fd', marginTop: 6, lineHeight: 1, textShadow: '0 0 12px rgba(253,224,71,0.3)' }}>{fmtClock(elapsedSec)}</div>
       <div style={{ ...label, marginTop: 3 }}>{phase === 'intro' ? (lockingGps ? 'LOCKING GPS…' : 'STARTING…') : running ? 'ELAPSED' : phase === 'ready' ? 'READY' : 'PAUSED'}</div>
 
       {/* Pace + targets */}
       <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 12 }}>
-        <Chip label="PACE" value={curPace ? fmtClock(curPace) : '--:--'} sub={`/${unit}`} color={paceColor} />
-        <Chip label="TARGET" value={fmtClock(run.cfg.targetSec)} sub={fmtPace(run.cfg.targetPaceSec, unit)} color="#fff" />
-        {run.cfg.eliteSec ? <Chip label="ELITE" value={fmtClock(run.cfg.eliteSec)} sub={fmtPace(run.cfg.elitePaceSec, unit)} color={GOLD} /> : null}
+        {!noDistance && <Chip label="PACE" value={curPace ? fmtClock(curPace) : '--:--'} sub={`/${unit}`} color={paceColor} />}
+        {program && progSeg ? (
+          <>
+            <Chip label="SET" value={progSeg.speed ? fmtSpeed(progSeg.speed) : progSeg.label} sub={progSeg.speed ? `${speedUnitLabel(unit)}${progSeg.incline ? ` · ${progSeg.incline}%` : ''}` : String(progSeg.target).toUpperCase()} color={progSeg.kind === 'sprint' ? GOLD : '#fff'} />
+            <Chip label="LEFT" value={fmtClock(progLeft)} sub={progNext ? `NEXT ${progNext.label}` : 'LAST ONE'} color="#c9a6ff" />
+          </>
+        ) : freeRun ? (
+          <Chip label="TARGET PACE" value={fmtPace(run.cfg.targetPaceSec, unit)} sub={run.cfg.effortTier ? `${String(run.cfg.effortMode || 'run').toUpperCase()} · ${String(run.cfg.effortTier).toUpperCase()}` : 'HOLD IT'} color="#fff" />
+        ) : (
+          <>
+            <Chip label="TARGET" value={fmtClock(run.cfg.targetSec)} sub={fmtPace(run.cfg.targetPaceSec, unit)} color="#fff" />
+            {run.cfg.eliteSec ? <Chip label="ELITE" value={fmtClock(run.cfg.eliteSec)} sub={fmtPace(run.cfg.elitePaceSec, unit)} color={GOLD} /> : null}
+          </>
+        )}
       </div>
       {cadence.rate != null && (
         <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 6 }}>
@@ -842,16 +1135,17 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           {stride != null && <Chip label="STRIDE" value={stride.toFixed(2)} sub="METRES" color="#fff" />}
         </div>
       )}
-      {(projected != null || kcal != null) && (
+      {(vsTarget != null || kcal != null || (chaseTally && chaseTally.attempts > 0)) && (
         <div style={{ display: 'flex', gap: 14, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {projected != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>}
-          {projected != null && vsElite != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsElite <= 0 ? GOLD : '#9a90b8' }}>{fmtSignedDelta(vsElite)} VS ELITE</span>}
-          {kcal != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ff9a52' }}>🔥 {kcal} KCAL EST</span>}
+          {vsTarget != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsTarget <= 0 ? '#8fe8ac' : '#ff9a52' }}>{fmtSignedDelta(vsTarget)} VS TARGET</span>}
+          {vsTarget != null && vsElite != null && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: vsElite <= 0 ? GOLD : '#9a90b8' }}>{fmtSignedDelta(vsElite)} VS ELITE</span>}
+          {chaseTally && chaseTally.attempts > 0 && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ffd27a' }}>⚡ CHASES {chaseTally.passes}/{chaseTally.attempts} · +{chaseTally.xp} XP</span>}
+          {kcal != null && !noDistance && <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, color: '#ff9a52' }}>🔥 {kcal} KCAL EST</span>}
         </div>
       )}
 
       {/* Ghost race strip: who is ahead, by how much, and the ghost's art */}
-      {ghost && phase === 'run' && (
+      {ghost && goal && phase === 'run' && (
         <div style={{ width: '100%', marginTop: 10, borderRadius: 12, border: `1.5px solid ${ghostState === 'lead' ? 'rgba(34,197,94,0.6)' : ghostState === 'trail' ? 'rgba(239,68,68,0.6)' : 'rgba(253,224,71,0.5)'}`, background: 'rgba(14,4,28,0.85)', padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <SafeImage src={ghostArt(ghost)} alt="" style={{ width: 38, height: 38, borderRadius: 9, objectFit: 'cover', objectPosition: 'center 20%', opacity: 0.85, filter: 'saturate(0.7)' }}/>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -870,19 +1164,28 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         </div>
       )}
 
-      {/* Progress to goal with tenth ticks */}
-      <div style={{ width: '100%', marginTop: 10 }}>
-        <div style={{ position: 'relative', height: 8, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-          <div style={{ width: `${Math.max(2, pct)}%`, height: '100%', background: surge ? 'linear-gradient(90deg,#f59e0b,#ff8a4a)' : 'linear-gradient(90deg,#7c3aed,#c9a6ff)', transition: 'width 0.5s linear' }}/>
-          {Array.from({ length: Math.max(0, Math.round(goal * 10) - 1) }, (_, i) => (i + 1) / 10).map(m => (
-            <span key={m} style={{ position: 'absolute', left: `${(m / goal) * 100}%`, top: 0, bottom: 0, width: 1, background: Number.isInteger(Math.round(m * 10) / 10 * 2) ? 'rgba(253,224,71,0.55)' : 'rgba(255,255,255,0.14)' }}/>
-          ))}
+      {/* Progress: to the goal with tenth ticks; through the programme with a
+          tick per segment (gold for sprints); to the next split on a free run. */}
+      {(program || !noDistance) && (
+        <div style={{ width: '100%', marginTop: 10 }}>
+          <div style={{ position: 'relative', height: 8, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+            <div style={{ width: `${Math.max(2, pct)}%`, height: '100%', background: (surge || chaseUi) ? 'linear-gradient(90deg,#f59e0b,#ff8a4a)' : 'linear-gradient(90deg,#7c3aed,#c9a6ff)', transition: 'width 0.5s linear' }}/>
+            {program
+              ? program.segments.slice(1).map(s => (
+                <span key={s.index} style={{ position: 'absolute', left: `${(s.startSec / program.totalSec) * 100}%`, top: 0, bottom: 0, width: 1, background: s.kind === 'sprint' ? 'rgba(253,224,71,0.7)' : s.kind === 'hard' ? 'rgba(255,138,74,0.55)' : 'rgba(255,255,255,0.14)' }}/>
+              ))
+              : freeRun
+                ? [20, 40, 60, 80].map(p => <span key={p} style={{ position: 'absolute', left: `${p}%`, top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.14)' }}/>)
+                : Array.from({ length: Math.max(0, Math.round(goal * 10) - 1) }, (_, i) => (i + 1) / 10).map(m => (
+                  <span key={m} style={{ position: 'absolute', left: `${(m / goal) * 100}%`, top: 0, bottom: 0, width: 1, background: Number.isInteger(Math.round(m * 10) / 10 * 2) ? 'rgba(253,224,71,0.55)' : 'rgba(255,255,255,0.14)' }}/>
+                ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+            <span style={label}>{program ? fmtClock(elapsedSec) : '0'}</span>
+            <span style={label}>{program ? fmtClock(program.totalSec) : freeRun ? `NEXT SPLIT · ${((Math.floor(dist / 0.5 + 1e-9) + 1) * 0.5).toFixed(1)} ${unit.toUpperCase()}` : `${goal} ${unit.toUpperCase()}`}</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-          <span style={label}>0</span>
-          <span style={label}>{goal} {unit.toUpperCase()}</span>
-        </div>
-      </div>
+      )}
 
       {/* The map — the ground actually covered, drawn to scale and coloured by
           the pace run on each stretch. */}
@@ -900,9 +1203,9 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       )}
 
       {/* Coach line — the last thing the voice said */}
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 99, background: surge ? 'rgba(255,138,74,0.12)' : 'rgba(34,197,94,0.1)', border: `1px solid ${surge ? 'rgba(255,138,74,0.4)' : 'rgba(34,197,94,0.3)'}`, padding: '6px 14px', marginTop: 10, marginBottom: 12, maxWidth: '100%' }}>
-        <span style={{ fontSize: 11 }}>{surge ? '🔥' : '🗣'}</span>
-        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: surge ? '#ffd0b0' : '#c9f5d6', lineHeight: 1.3 }}>{caption}</span>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 99, background: (surge || chaseUi) ? 'rgba(255,138,74,0.12)' : 'rgba(34,197,94,0.1)', border: `1px solid ${(surge || chaseUi) ? 'rgba(255,138,74,0.4)' : 'rgba(34,197,94,0.3)'}`, padding: '6px 14px', marginTop: 10, marginBottom: 12, maxWidth: '100%' }}>
+        <span style={{ fontSize: 11 }}>{chaseUi ? '⚡' : surge ? '🔥' : '🗣'}</span>
+        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, fontWeight: 600, color: (surge || chaseUi) ? '#ffd0b0' : '#c9f5d6', lineHeight: 1.3 }}>{caption}</span>
       </div>
 
       {/* Controls */}
@@ -927,9 +1230,15 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       {machine && phase !== 'ready' && (
         <div style={{ width: '100%', marginTop: 10, borderRadius: 12, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.6)', padding: '8px 10px' }}>
           <SpeedDial speed={speedNow} unit={unit} onChange={changeSpeed} compact />
-          <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 6, textAlign: 'center', lineHeight: 1.35 }}>
-            Match this to the machine. Distance is tracked from it.
-          </div>
+          {program && progSeg?.speed && Math.abs(speedNow - progSeg.speed) > 0.15 ? (
+            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: '#ffd27a', marginTop: 6, textAlign: 'center', lineHeight: 1.35, fontWeight: 700 }}>
+              Belt at {fmtSpeed(speedNow)} — the programme says {fmtSpeed(progSeg.speed)}. Set it, then match the dial.
+            </div>
+          ) : (
+            <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9, color: C.muted, marginTop: 6, textAlign: 'center', lineHeight: 1.35 }}>
+              Match this to the machine. Distance is tracked from it.
+            </div>
+          )}
         </div>
       )}
 
@@ -948,7 +1257,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         </div>
       )}
 
-      {estimating && phase === 'run' && (
+      {estimating && !noDistance && phase === 'run' && (
         <div style={{ fontFamily: ARCADE.fontBody, fontSize: 9.5, color: C.muted, marginTop: 8, textAlign: 'center', lineHeight: 1.35 }}>
           {useGps ? 'No GPS fix yet — distance is estimated at your target pace until one arrives.' : 'No GPS on this method — distance is estimated at your target pace.'}
         </div>
