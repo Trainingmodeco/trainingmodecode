@@ -19,6 +19,7 @@ import GuidePreview from './shared/GuidePreview';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ChallengeShareModal from './shared/ChallengeShareModal';
 import { seriesTint, tintFilter } from './data/seriesTint';
+import { conceptSagaProgress } from './data/concepts/saga';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -62,7 +63,7 @@ function getStageObjectives(stage) {
 }
 
 export default function ArcadeSeriesDetail({ onHome, series, onBack, onStartStage, onPaywall, arcadeSettings }) {
-  const progress = getSeriesProgress(series.id);
+  const progress = series.conceptId ? conceptSagaProgress(series.conceptId) : getSeriesProgress(series.id);
 
   if (!isSeriesPlayable(series)) {
     return (
@@ -126,7 +127,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   // 2.10 — v2 campaigns: ENTER STAGE opens a per-stage selection modal (path +
   // difficulty) before the timer, instead of starting straight away.
   const [selectFor, setSelectFor] = useState(null);
-  const [selMode, setSelMode] = useState('fight');
+  // Path chosen in the stage pop-up (FIT / FIGHT / BOTH) — remembered between stages.
+  const [selMode, setSelMode] = useState(() => (series.modeOptions?.includes('both') ? 'both' : (series.modeOptions?.[0] || 'fight')));
+  const pathModes = series.modeOptions && series.modeOptions.length > 1 ? series.modeOptions : null;
   // ND-06 — a flagged PAR-Q softly steers the arcade to Easy too (same as
   // Training Camp); nothing is locked, the athlete can change it right here.
   const [selDiff, setSelDiff] = useState(() => (loadParq().anyYes ? 'easy' : 'normal'));
@@ -257,6 +260,14 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     // Paywall gate: name the stage in the overlay so the ask is specific to
     // what they were about to do, not a generic upsell.
     if (selectedGated) { setProGateOpen(true); return; }
+    // Sagas with paths pick FIT / FIGHT / BOTH right in this pop-up and go —
+    // stages get harder as you climb, so there is no difficulty step.
+    if (pathModes) {
+      setOpenInfo(null);
+      setActiveChallenge({ seriesId: series.id, stageId: selected.id, selectedMode: selMode, lastPlayedAt: Date.now() });
+      onStartStage(series, selected, selMode, null, { difficulty: 'normal', voiceCoach: true, sound: 'on' });
+      return;
+    }
     // 2.10 — v2 campaign: choose PATH + DIFFICULTY per stage first.
     if (series.v2Campaign) {
       const modes = series.modeOptions || ['fight'];
@@ -346,7 +357,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     : null;
   // With a baseline, the objectives list must quote the SCALED totals — a
   // "100 Push-Ups" row above a "40 push-ups" target would contradict itself.
-  const objectives = (selected ? getStageObjectives(selected) : []).map(o => {
+  const pathObjectives = selected && pathModes
+    ? (selected.pathItems?.[selMode]?.items?.slice(0, 4).map(label => ({ label, detail: '' }))
+      || (selected.mission ? [{ label: selected.mission, detail: '' }] : []))
+    : null;
+  const objectives = (pathObjectives || (selected ? getStageObjectives(selected) : [])).map(o => {
     if (!baselineTargets || !baselineTargets.scaled) return o;
     const swap = [['Push-Ups', 'pushUps'], ['Squats', 'squats'], ['Sit-Ups', 'sitUps']]
       .find(([name]) => o.label.endsWith(name));
@@ -674,7 +689,28 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                 </div>
               )}
 
-              {/* Star goals */}
+              {/* Path: FIT / FIGHT / BOTH — one star for each path cleared */}
+              {pathModes ? (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 7, color: 'rgba(200,170,255,0.7)', letterSpacing: '0.16em', marginBottom: 4 }}>CHOOSE YOUR PATH</div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {pathModes.map(m => {
+                      const on = selMode === m;
+                      const done = (compData?.paths || []).includes(m);
+                      const ac = m === 'fit' ? '#2dd4bf' : m === 'both' ? '#a855f7' : '#fde047';
+                      return (
+                        <button key={m} type="button" onClick={() => setSelMode(m)} style={{
+                          flex: 1, padding: '7px 2px 6px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
+                          background: on ? `${ac}22` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${on ? ac : 'rgba(255,255,255,0.14)'}`,
+                        }}>
+                          <div style={{ fontSize: 8, color: done ? GOLD : 'rgba(255,255,255,0.28)' }}>★</div>
+                          <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9, letterSpacing: '0.08em', color: on ? ac : 'rgba(230,215,255,0.8)', marginTop: 1 }}>{m === 'both' ? 'BOTH' : m.toUpperCase()}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
               <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
                 {starGoals.map(t => (
                   <div key={t.n} style={{ flex: 1, textAlign: 'center', padding: '5px 0 4px', borderRadius: 8, background: 'rgba(253,224,71,0.05)', border: '1px solid rgba(253,224,71,0.16)' }}>
@@ -685,6 +721,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
                   </div>
                 ))}
               </div>
+              )}
 
               {canEnter && selectedGated && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, padding: '6px 9px', borderRadius: 8, background: 'rgba(253,224,71,0.09)', border: '1px solid rgba(253,224,71,0.4)' }}>

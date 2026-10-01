@@ -6,13 +6,13 @@ import ArcadeBackdrop from './shared/ArcadeBackdrop';
 import { Star, Lock, ChevronLeft, ChevronRight, Gamepad2 } from 'lucide-react';
 import { C } from './Styles';
 import { VISIBLE_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
+import { conceptSagasForCarousel, conceptSagaProgress } from './data/concepts/saga';
 import { getSeriesProgress } from './data/arcadeProgress';
 import { loadStats, getLevel } from './data/userStats';
 import { decodeChallenge, resolveChallenge } from './data/challengeCodes';
 import CodeEntryModal from './shared/CodeEntryModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
-import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
 // Full-bleed saga poster art (918x1713), one per visible series.
 const POSTER_MAP = {
@@ -60,7 +60,7 @@ function StarRow({ count = 0, size = 11 }) {
   );
 }
 
-export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode, onStartGuide, onOpenConcept }) {
+export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode, onStartGuide }) {
   // Paste a friend's challenge code to jump into the exact stage they set.
   // (window.prompt is unsupported on RN Web — use an in-app modal.)
   const [codeOpen, setCodeOpen] = useState(false);
@@ -74,7 +74,8 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
     onChallengeCode?.(resolved);
     return true;
   };
-  const series = VISIBLE_ARCADE_SERIES;
+  // Concept-drop sagas lead the carousel while they are featured.
+  const series = useMemo(() => [...conceptSagasForCarousel(), ...VISIBLE_ARCADE_SERIES], []);
   const n = series.length;
   // Infinite loop: render 3 copies and silently recenter to the middle copy once
   // the scroll settles, so a swipe past either end wraps seamlessly. `active` is a
@@ -235,9 +236,6 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
           </div>
         </div>
 
-        {/* The featured concept drop's gauntlet, when one is live. */}
-        <div style={{ margin: '4px 14px 2px', flexShrink: 0 }}><ConceptFeatureCard mode="arcade" onOpen={onOpenConcept}/></div>
-
         {/* Carousel */}
         <div data-guide="ar-carousel" style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
           <div
@@ -253,8 +251,8 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
             {slides.map((s, i) => {
               const playable = isSeriesPlayable(s);
               const isActive = i === active;
-              const poster = POSTER_MAP[s.id];
-              const prog = getSeriesProgress(s.id);
+              const poster = POSTER_MAP[s.id] || s.poster;
+              const prog = s.conceptId ? conceptSagaProgress(s.conceptId) : getSeriesProgress(s.id);
               const stageCount = s.stages?.length || 0;
               const cleared = Object.values(prog.completedStages || {}).filter(x => x.completed).length;
               const status = !playable ? 'locked' : cleared >= stageCount && stageCount > 0 ? 'complete' : cleared > 0 ? 'progress' : 'new';

@@ -687,6 +687,7 @@ export default function ScreenRouter({ conceptView, screen, disc, cfg, session, 
           onBack={back}
           onStartFit={startConceptFit}
           onStartFight={startConceptFight}
+          onOpenGauntlet={actions.goConceptSaga}
           onPaywall={goPaywall}
         />
       </WithNav>
@@ -717,7 +718,7 @@ export default function ScreenRouter({ conceptView, screen, disc, cfg, session, 
   if (screen === 'arcade') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <TrainingArcade onOpenConcept={(tab) => goConcept(tab, null, 'arcade')} onHome={goHome} onBack={goHome} onSelectSeries={goArcadeSeries} onChallengeCode={actions.startChallenge} onStartGuide={actions.startArcadeGuide}/>
+        <TrainingArcade onHome={goHome} onBack={goHome} onSelectSeries={goArcadeSeries} onChallengeCode={actions.startChallenge} onStartGuide={actions.startArcadeGuide}/>
       </WithNav>
     );
   }

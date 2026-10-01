@@ -84,7 +84,13 @@ export function completeStage(seriesId, stageId, xpReward, badge, title, statRew
     entry.bestTimeSeconds = prev.bestTimeSeconds;
     if (Number.isFinite(prev.lastTimeSeconds)) entry.lastTimeSeconds = prev.lastTimeSeconds;
   }
-  if (Number.isFinite(result.stars) && result.stars > 0) {
+  // Paths cleared (fit / fight / both) — one star each.
+  const paths = Array.isArray(prev.paths) ? [...prev.paths] : [];
+  if (result.path && !paths.includes(result.path)) paths.push(result.path);
+  if (paths.length) entry.paths = paths;
+  if (result.path) {
+    entry.stars = Math.max(prev.stars || 0, Math.min(3, paths.length));
+  } else if (Number.isFinite(result.stars) && result.stars > 0) {
     entry.stars = Math.max(prev.stars || 0, Math.min(3, Math.round(result.stars)));
   } else if (prev.stars) {
     entry.stars = prev.stars;

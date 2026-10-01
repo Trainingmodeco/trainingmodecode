@@ -39,7 +39,8 @@ import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
-import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview } from './data/concepts';
+import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview, entryFor as conceptEntryFor, stageCfg as conceptStageCfg } from './data/concepts';
+import { conceptSaga } from './data/concepts/saga';
 import HauntWelcome from './HauntWelcome';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
 import GhostChallenge from './GhostChallenge';
@@ -660,7 +661,9 @@ export default function App() {
     goTrainingArcade: () => setScreen('arcade'),
     // 2.10 — playable series (the two originals + the v2 campaigns) go straight
     // to the stage ladder; unfinished placeholders still show the intro page.
-    goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen((series?.v2Campaign || ['one-punch-protocol', 'demon-back-protocol'].includes(series?.id)) ? 'arcade_series' : 'arcade_intro'); },
+    goArcadeSeries: (series) => { setArcadeSeries(series); setArcadeSettings(null); setScreen((series?.v2Campaign || series?.conceptId || ['one-punch-protocol', 'demon-back-protocol'].includes(series?.id)) ? 'arcade_series' : 'arcade_intro'); },
+    // A concept's gauntlet saga, by concept id (concept page / Arcade strip).
+    goConceptSaga: (conceptId) => { const s = conceptSaga(conceptId); if (s) actions.goArcadeSeries(s); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
@@ -668,12 +671,21 @@ export default function App() {
       if (series?.id) rememberSession('arcade', { seriesId: series.id, title: series.title || null, stageNumber: stage?.stageNumber || null, mode: mode || null, settings: settings || null });
       // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
       // old player). PATH → fit/fight/full arc; difficulty → easy/normal/hard.
+      // A concept saga stage runs the concept's own stations for the chosen path.
+      if (series?.conceptId) {
+        const entry = conceptEntryFor(series.conceptId);
+        if (!entry) return;
+        const idx = Math.max(0, (stage?.stageNumber || 1) - 1);
+        const arc = mode === 'both' ? 'hybrid' : (mode === 'fit' ? 'fit' : 'fight');
+        actions.startConceptFight(conceptStageCfg(entry.concept, idx, { arc }), entry.concept.fight.discipline);
+        return;
+      }
       if (series?.v2Campaign) {
         const campaignId = series.v2Campaign;
         const path = mode === 'both' ? 'full_arc' : (mode === 'fit' ? 'fit' : 'fight');
         const diff = ['easy', 'normal', 'hard'].includes(settings?.difficulty) ? settings.difficulty : 'normal';
         const stageNumber = stage?.stageNumber || 1;
-        const arcade = { campaignId, seriesId: series.id, stageId: stage.id, stageNumber, campaignName: series.title };
+        const arcade = { campaignId, seriesId: series.id, stageId: stage.id, stageNumber, campaignName: series.title, path: mode === 'both' ? 'both' : mode };
         // Spec 22 — each campaign speaks with its assigned voice pack.
         const voicePack = packIdForCampaign(campaignId);
         // Spec 27 — layer the Arcade session standard onto the cfg: a FIT stage
@@ -875,7 +887,7 @@ export default function App() {
         // Record the clear + ★ in arcadeProgress (the store the ladder reads) so
         // the stage unlocks the next node and earns stars. Stars = difficulty.
         const starsA = STAR_BY_DIFF[diffA] || 2;
-        if (validA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
+        if (validA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA, path: a.path || 'fight' });
         // Boss runs record win OR loss — the Answer-the-Bell gate reads this
         // for its record pill, so a failed attempt has to leave a mark too.
         if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: validA, roundsDone: done, roundsTotal: total });
@@ -943,7 +955,7 @@ export default function App() {
           : [];
         // FULL ARC does both blocks → completion-quality bonus of +1 star (cap 3).
         const starsA = Math.min(3, (STAR_BY_DIFF[diffA] || 2) + 1);
-        if (bothValidA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA });
+        if (bothValidA && a.seriesId) completeArcadeStage(a.seriesId, a.stageId, 0, null, null, null, { stars: starsA, path: 'both' });
         if (a.seriesId && bossMultA > 1) recordBossAttempt(a.seriesId, a.stageId, { cleared: bothValidA, roundsDone: s.done + f.done, roundsTotal: s.total + f.total });
         trackEvent('session_complete', { mode: 'arcade', campaign: a.campaignId, stage: a.stageNumber, format: 'full' });
         setCampResult({ arcade: true, campaignId: a.campaignId, campaignName: a.campaignName, stageNumber: a.stageNumber, level: a.stageNumber, difficulty: diffA, discipline: 'Arcade', rounds: s.done + f.done, total: s.total + f.total, xpEarned: xpA, integrityResult: null, cleared: bothValidA, stars: bothValidA ? starsA : 0, unlockedTo: nextStage && nextStage > a.stageNumber ? nextStage : null, split: false, sessionValid: bothValidA, achievements: unlockedA });

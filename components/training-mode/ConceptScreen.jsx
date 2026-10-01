@@ -3,7 +3,7 @@ import SafeImage from './SafeImage';
 import ProGateOverlay from './shared/ProGateOverlay';
 import {
   featuredEntry, entryFor, vaultEntries, loadProgress, setPrefs, status, canPlay, rewardState, claimReward,
-  fitTrainingDays, fitTotal, fightTotal, stagePlayable, ARCS, arcStages, arcsCleared, fitDayCfg, fightDayCfg, stageCfg, fmtEnd, daysLeft, windowState,
+  fitTrainingDays, fitTotal, fightTotal, fitDayCfg, fightDayCfg, fmtEnd, daysLeft, windowState,
 } from './data/concepts';
 import { addBonusXp } from './data/userStats';
 
@@ -53,13 +53,12 @@ function DayRow({ n, label, focus, body, state, accent }) {
   );
 }
 
-export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, onStartFit, onStartFight, onPaywall }) {
+export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, onStartFit, onStartFight, onPaywall, onOpenGauntlet }) {
   const entry = useMemo(() => (conceptId ? entryFor(conceptId) : featuredEntry()), [conceptId]);
   const [tab, setTab] = useState(initialTab);
   const [progress, setProgress] = useState(() => (entry ? loadProgress(entry.concept.id) : null));
   const [gate, setGate] = useState(false);
   const [claimed, setClaimed] = useState(null);
-  const [pickStage, setPickStage] = useState(null); // stage index whose arc picker is open
 
   if (!entry) {
     return (
@@ -79,7 +78,6 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
   const guard = (fn) => () => { if (!play) { setGate(true); return; } fn(); };
   const startFit = guard(() => onStartFit?.(fitDayCfg(c, { tier, home: progress.home })));
   const startFight = guard(() => onStartFight?.(fightDayCfg(c, { tier }), c.fight.discipline));
-  const startStage = (i, arc) => guard(() => { setPickStage(null); onStartFight?.(stageCfg(c, i, { tier, arc }), c.fight.discipline); })();
   const claim = () => {
     const xp = addBonusXp(c.reward.xp);
     setProgress(claimReward(c.id));
@@ -139,7 +137,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
             const on = tab === t.id;
             const sub = t.id === 'fit' ? `${progress.fitDone}/${fitTotal(c)}` : t.id === 'fight' ? `${progress.fightDone}/${fightTotal(c)}` : `${progress.cleared.length}/${c.arcade.stages.length}`;
             return (
-              <button key={t.id} type="button" onClick={() => setTab(t.id)} style={{
+              <button key={t.id} type="button" onClick={() => (t.id === 'arcade' && onOpenGauntlet ? (play ? onOpenGauntlet(c.id) : setGate(true)) : setTab(t.id))} style={{
                 padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
                 background: on ? `${t.color}22` : 'rgba(255,255,255,0.03)', border: `1.5px solid ${on ? t.color : 'rgba(255,255,255,0.12)'}`,
               }}>
@@ -202,67 +200,6 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>{fightRows}</div>
           </>
         )}
-        {tab === 'arcade' && (
-          <>
-            <div style={{ margin: '2px 0 8px', font: `600 11.5px ${B}`, color: '#cfc3e8' }}>Tap a stage, pick your arc. <b style={{ color: GOLD }}>The boss unlocks</b> after the Fit or Fight program.</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {c.arcade.stages.map((s, i) => {
-                const cleared = progress.cleared.includes(i);
-                const open = stagePlayable(c, i, progress);
-                return (
-                  <button key={i} type="button" disabled={!open} onClick={() => setPickStage(i)} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', cursor: open ? 'pointer' : 'default',
-                    padding: s.boss ? '10px 12px' : '8px 12px', borderRadius: 11, color: '#fff',
-                    background: s.boss ? 'linear-gradient(90deg,rgba(120,20,140,.5),rgba(40,6,60,.8))' : 'rgba(16,4,30,0.85)',
-                    border: `1px solid ${s.boss ? 'rgba(253,224,71,0.5)' : 'rgba(168,85,247,0.25)'}`, opacity: open ? 1 : 0.75,
-                  }}>
-                    <div style={{ flex: '0 0 26px', textAlign: 'center', font: `900 13px ${H}`, color: cleared ? '#86efac' : s.boss ? GOLD : MUTED }}>{cleared ? '✓' : !open ? '🔒' : i + 1}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ font: `900 11px ${H}`, letterSpacing: '0.05em', color: s.boss ? GOLD : '#fff' }}>{s.title} <span style={{ color: MUTED, fontWeight: 700, fontSize: 8.5 }}>· {s.format}</span></div>
-                      <div style={{ display: 'flex', gap: 4, marginTop: 3 }}>
-                        {ARCS.map(a => {
-                          const done = arcsCleared(progress, i).includes(a.id);
-                          return <span key={a.id} style={{ font: `800 7px ${H}`, letterSpacing: '0.1em', padding: '2px 5px', borderRadius: 4, color: done ? '#86efac' : MUTED, border: `1px solid ${done ? 'rgba(34,197,94,0.55)' : 'rgba(255,255,255,0.12)'}` }}>{done ? '✓ ' : ''}{a.label.split(' ')[0]}</span>;
-                        })}
-                      </div>
-                      {s.boss && !open && <div style={{ font: `800 7.5px ${H}`, letterSpacing: '0.14em', color: c.accent, marginTop: 3 }}>FINISH THE FIT OR FIGHT PROGRAM TO UNLOCK</div>}
-                    </div>
-                    {open && !cleared && <span style={{ font: `900 9px ${H}`, color: '#1e1400', background: GOLD, padding: '6px 9px', borderRadius: 7 }}>GO</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {pickStage != null && (
-          <div role="dialog" aria-modal="true" onClick={() => setPickStage(null)} style={{ position: 'fixed', inset: 0, zIndex: 950, background: 'rgba(5,0,12,0.78)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#0e0420', borderRadius: '18px 18px 0 0', border: '1px solid rgba(168,85,247,0.35)', padding: '14px 16px calc(20px + env(safe-area-inset-bottom,0px))' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <div style={{ font: `900 13px ${H}`, letterSpacing: '0.08em', color: GOLD }}>STAGE {pickStage + 1} · CHOOSE YOUR ARC</div>
-                <button type="button" onClick={() => setPickStage(null)} aria-label="Close" style={{ background: 'none', border: 0, color: MUTED, fontSize: 16, cursor: 'pointer' }}>✕</button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {ARCS.map(a => {
-                  const st = arcStages(c, a.id)[pickStage];
-                  const done = arcsCleared(progress, pickStage).includes(a.id);
-                  const col = a.id === 'fit' ? '#b58cff' : a.id === 'fight' ? '#60a5fa' : GOLD;
-                  return (
-                    <button key={a.id} type="button" onClick={() => startStage(pickStage, a.id)} style={{ textAlign: 'left', padding: '10px 12px', borderRadius: 12, cursor: 'pointer', color: '#fff', background: `${col}14`, border: `1.5px solid ${col}88` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 }}>
-                        <span style={{ font: `900 12px ${H}`, letterSpacing: '0.08em', color: col }}>{done ? '✓ ' : ''}{a.label}</span>
-                        <span style={{ font: `700 9px ${H}`, color: MUTED }}>{a.sub}</span>
-                      </div>
-                      <div style={{ font: `900 11px ${H}`, marginTop: 4 }}>{st.title} <span style={{ color: MUTED, fontSize: 8.5 }}>· {st.format}</span></div>
-                      <div style={{ font: `600 11px ${B}`, color: '#cfc3e8', marginTop: 2, lineHeight: 1.3 }}>{st.items.join(' · ')}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
         {vault.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ font: `800 8.5px ${H}`, letterSpacing: '0.16em', color: MUTED, marginBottom: 6 }}>CONCEPT VAULT · PRO</div>

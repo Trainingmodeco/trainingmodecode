@@ -183,5 +183,22 @@ check('Shoto home swaps sandbag and med-ball moves', homeShoto.some(e => e.name 
 check('no character names in Shoto', !/\b(Ryu|Ken|Akuma|Hadoken|Shoryuken|Tatsumaki)\b/i.test(JSON.stringify(SHOTO)));
 check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 && C.bossIndex(SHOTO) === 9);
 
+// ── concept sagas on the Arcade ladder ──────────────────────────────────────
+{
+  const S = await import('../components/training-mode/data/concepts/saga.js');
+  const sg = S.conceptSaga('shoto');
+  check('saga: 10 stages, boss last, three paths', sg.stages.length === 10 && sg.stages[9].isFinalRound && sg.modeOptions.join() === 'fit,fight,both');
+  check('saga: each stage lists every path', sg.stages.every(st => ['fit', 'fight', 'both'].every(m => st.pathItems[m].items.length >= 2)));
+  reset();
+  const c1 = C.stageCfg(SHOTO, 0, { arc: 'fight' }); C.recordConceptSession(c1, c1.rounds, c1.rounds);
+  const c2 = C.stageCfg(SHOTO, 0, { arc: 'hybrid' }); C.recordConceptSession(c2, c2.rounds, c2.rounds);
+  const lp = S.conceptSagaProgress('shoto').completedStages['shoto-stg-1'];
+  check('ladder progress: stars = paths cleared', lp.completed && lp.stars === 2 && lp.paths.join() === 'fight,both');
+  const AP = await import('../components/training-mode/data/arcadeProgress.js');
+  AP.completeStage('x', 's1', 0, null, null, null, { path: 'fit' }); AP.completeStage('x', 's1', 0, null, null, null, { path: 'fit' }); AP.completeStage('x', 's1', 0, null, null, null, { path: 'both' });
+  const e = AP.getSeriesProgress('x').completedStages.s1;
+  check('saga stars: one per distinct path', e.stars === 2 && e.paths.join() === 'fit,both');
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
