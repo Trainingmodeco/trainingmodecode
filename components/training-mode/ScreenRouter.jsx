@@ -693,7 +693,7 @@ export default function ScreenRouter({ conceptView, screen, disc, cfg, session, 
     );
   }
   if (screen === 'strike_lab') {
-    return <StrikeLab onExit={goHome} />;
+    return <StrikeLab onExit={goHome} onOpenConcept={(id) => goConcept('fit', id, 'home')} />;
   }
   if (screen === 'beta_feedback') {
     return (

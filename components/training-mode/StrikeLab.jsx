@@ -5,7 +5,7 @@ import { judgeRush } from './data/rushVerdict';
 import { loadLabLog, saveLabLog } from './data/strikeLab';
 import { playBeep, unlockAudio } from './data/audioEngine';
 import useWakeLock from './hooks/useWakeLock';
-import { isOwnerPreview, setOwnerPreview } from './data/concepts';
+import { isOwnerPreview, setOwnerPreview, CONCEPT_SCHEDULE } from './data/concepts';
 
 // STRIKE LAB — private diagnostics, opened only with the owner's code
 // (data/strikeLab). Runs the app's accelerometer strike detector and the
@@ -35,7 +35,7 @@ const btn = (bg, fg = '#fff') => ({
   font: `800 11px ${mono}`, letterSpacing: '0.1em', cursor: 'pointer',
 });
 
-export default function StrikeLab({ onExit }) {
+export default function StrikeLab({ onExit, onOpenConcept }) {
   const [placement, setPlacement] = useState('POCKET');
   const [target, setTarget] = useState(20);
   const [factor, setFactor] = useState(MIC_DEFAULTS.factor);
@@ -248,6 +248,15 @@ export default function StrikeLab({ onExit }) {
       <button type="button" onClick={() => { setOwnerPreview(!preview); setPreview(!preview); }} style={{ ...btn(preview ? 'rgba(232,121,249,0.16)' : 'rgba(255,255,255,0.04)', preview ? '#f0abfc' : '#9a90b8'), width: '100%', marginBottom: 12, borderColor: preview ? 'rgba(232,121,249,0.6)' : 'rgba(255,255,255,0.12)' }}>
         {preview ? '◆ CONCEPT PREVIEW ON · unreleased drops visible' : 'CONCEPT PREVIEW OFF'}
       </button>
+      {preview && onOpenConcept && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: -4, marginBottom: 12 }}>
+          {CONCEPT_SCHEDULE.map(e => (
+            <button key={e.concept.id} type="button" onClick={() => onOpenConcept(e.concept.id)} style={{ ...btn('rgba(255,255,255,0.04)', '#f5d0fe'), padding: '8px 10px', fontSize: 9 }}>
+              OPEN {e.concept.title} · {e.start.slice(5)}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 1. sensors */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>

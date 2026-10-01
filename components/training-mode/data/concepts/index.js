@@ -13,16 +13,19 @@
 import { FIT_MODE_EXERCISES } from '../../fit-mode/fitModeExerciseData';
 import { isPro } from '../entitlements';
 import { ULTRA_EGO, ULTRA_EGO_EXERCISES } from './ultraEgo';
+import { SHOTO, SHOTO_EXERCISES } from './shoto';
 
 const KEY = 'tm_concepts_v1';
 export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
 
 // The release calendar. Dates are inclusive, local time.
+// Keep it in date order: owner preview features the first upcoming drop.
 export const CONCEPT_SCHEDULE = [
+  { concept: SHOTO, start: '2026-10-19', end: '2026-11-30' },
   { concept: ULTRA_EGO, start: '2026-12-01', end: '2027-01-31' },
 ];
 
-const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES];
+const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES];
 
 // ── time ────────────────────────────────────────────────────────────────────
 const dayStart = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 0, 0, 0, 0).getTime(); };
@@ -92,7 +95,7 @@ function markStarted(id, now) { return update(id, p => (p.startedAt ? p : { ...p
 // ── structure ───────────────────────────────────────────────────────────────
 export function fitTrainingDays(concept) { return concept.fit.days.filter(d => !d.rest); }
 export function fitTotal(concept) { return fitTrainingDays(concept).length * concept.fit.weeks; }
-export function fightTotal(concept) { return concept.fight.days.length; }
+export function fightTotal(concept) { return concept.fight.days.length * (concept.fight.weeks || 1); }
 export function bossIndex(concept) { return concept.arcade.stages.findIndex(s => s.boss); }
 
 export function status(concept, progress = loadProgress(concept.id)) {
@@ -106,7 +109,8 @@ export function status(concept, progress = loadProgress(concept.id)) {
     fitComplete, fightComplete, arcadeComplete, bossUnlocked,
     fitWeek: Math.min(concept.fit.weeks, Math.floor(progress.fitDone / trainDays.length) + 1),
     fitNext: fitComplete ? null : progress.fitDone % trainDays.length,
-    fightNext: fightComplete ? null : progress.fightDone,
+    fightNext: fightComplete ? null : progress.fightDone % concept.fight.days.length,
+    fightWeek: Math.min(concept.fight.weeks || 1, Math.floor(progress.fightDone / concept.fight.days.length) + 1),
     partsDone: [fitComplete, fightComplete, arcadeComplete].filter(Boolean).length,
   };
 }
@@ -136,7 +140,7 @@ export function claimReward(id, now = Date.now()) {
 
 // ── Fit ─────────────────────────────────────────────────────────────────────
 const LIB = new Map([...FIT_MODE_EXERCISES, ...EXTRA_EXERCISES].map(e => [e.name.toLowerCase(), e]));
-const WEIGHTED = new Set(['dumbbell', 'barbell', 'kettlebell']);
+const WEIGHTED = new Set(['dumbbell', 'barbell', 'kettlebell', 'medball', 'sandbag']);
 const TIER = {
   easy: { sets: -1, reps: 0.75 },
   normal: { sets: 0, reps: 1 },
@@ -216,15 +220,17 @@ const FIGHT_DIFF = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
 
 export function fightDayCfg(concept, { tier = 'normal', now = Date.now() } = {}) {
   const prog = loadProgress(concept.id);
-  const idx = Math.min(prog.fightDone, fightTotal(concept) - 1);
+  const idx = Math.min(prog.fightDone, fightTotal(concept) - 1) % concept.fight.days.length;
   const day = concept.fight.days[idx];
+  const rest = day.restSec ?? concept.fight.restSec;
   markStarted(concept.id, now);
   return {
     difficulty: FIGHT_DIFF[tier] || 'Normal', mode: 'Fight Focus',
-    rounds: day.rounds.length, roundMin: concept.fight.roundMin, restSec: concept.fight.restSec,
+    rounds: day.rounds.length, roundMin: concept.fight.roundMin, restSec: rest,
     voiceOn: true, encouragement: 'normal', warmupMin: 3,
     rushMode: !!day.rush, rushPattern: 'perMin10', rushMix: 'explosive',
-    blockRounds: day.rounds.map(r => ({ round_title: r.title, coach_prompt: r.prompt })),
+    // Combos are called by the timer on a 7–11 s cadence (comma-separated words).
+    blockRounds: day.rounds.map(r => ({ round_title: r.title, coach_prompt: r.prompt, ...(r.combos?.length ? { combos: r.combos } : {}) })),
     archetypeName: `${concept.title} · ${day.label}`,
     conceptId: concept.id, conceptKind: 'fight', conceptSeq: prog.fightDone,
   };

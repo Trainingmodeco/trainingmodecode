@@ -94,9 +94,10 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
     const state = doneThisWeek ? 'done' : st.fitNext === trainIdx ? 'next' : '';
     return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={d.exercises.map(e => (progress.home && e.swap && e.equip !== 'bodyweight' && e.equip !== 'bar' ? e.swap : e.name)).join(' · ')} />;
   });
+  const fightInWeek = st.fightComplete ? c.fight.days.length : progress.fightDone % c.fight.days.length;
   const fightRows = c.fight.days.map((d, i) => (
     <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} accent="#93c5fd"
-      state={i < progress.fightDone ? 'done' : i === st.fightNext ? 'next' : ''}
+      state={i < fightInWeek ? 'done' : i === st.fightNext ? 'next' : ''}
       body={d.rounds.map(r => r.title).join(' · ')} />
   ));
 
@@ -193,7 +194,10 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
         )}
         {tab === 'fight' && (
           <>
-            <div style={{ margin: '2px 0 8px', font: `600 11.5px ${B}`, color: '#93a4c8' }}>{c.fight.discipline} · {c.fight.roundMin}:00 rounds · runs on the Fight Focus timer, the coach calls every round.</div>
+            <div style={{ margin: '2px 0 8px', font: `600 11.5px ${B}`, color: '#93a4c8' }}>
+              {(c.fight.weeks || 1) > 1 && <b style={{ color: '#c4b5fd' }}>{st.fightComplete ? 'PROGRAM COMPLETE · ' : `WEEK ${st.fightWeek} OF ${c.fight.weeks} · `}</b>}
+              {c.fight.discipline} · {c.fight.roundMin}:00 rounds · runs on the Fight Focus timer, the coach calls every round.
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>{fightRows}</div>
           </>
         )}

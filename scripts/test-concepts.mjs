@@ -9,6 +9,7 @@ globalThis.localStorage = {
 };
 const C = await import('../components/training-mode/data/concepts/index.js');
 const { ULTRA_EGO: UE } = await import('../components/training-mode/data/concepts/ultraEgo.js');
+const { SHOTO } = await import('../components/training-mode/data/concepts/shoto.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -24,9 +25,14 @@ check('live on end day', C.windowState(entry, at('2027-01-31')) === 'live');
 check('vault after end', C.windowState(entry, at('2027-02-01')) === 'vault');
 reset();
 check('not featured before release for users', C.featuredEntry(at('2026-10-15'), false) === null);
-check('owner preview features the upcoming drop', C.featuredEntry(at('2026-10-15'), true)?.concept.id === 'ultra-ego');
+check('owner preview features the next drop (Shoto)', C.featuredEntry(at('2026-10-15'), true)?.concept.id === 'shoto');
+check('owner preview after Shoto features Ultra Ego', C.featuredEntry(at('2026-11-30') + 13 * 3600 * 1000, true)?.concept.id === 'ultra-ego');
 check('featured while live', C.featuredEntry(at('2026-12-10'), false)?.concept.id === 'ultra-ego');
-check('vault lists it after the window', C.vaultEntries(at('2027-03-01')).length === 1);
+check('Shoto live on Oct 19', C.featuredEntry(at('2026-10-19'), false)?.concept.id === 'shoto');
+check('Shoto still live Nov 30, Ultra Ego from Dec 1', C.featuredEntry(at('2026-11-30'), false)?.concept.id === 'shoto' && C.featuredEntry(at('2026-12-01'), false)?.concept.id === 'ultra-ego');
+check('schedule in date order, no overlap', C.CONCEPT_SCHEDULE.every((e, i, a) => i === 0 || e.start > a[i - 1].end));
+check('vault lists both past drops, oldest first', C.vaultEntries(at('2027-03-01')).map(e => e.concept.id).join() === 'shoto,ultra-ego');
+check('Shoto in the vault while Ultra Ego is live', C.vaultEntries(at('2026-12-10')).map(e => e.concept.id).join() === 'shoto');
 check('days left on the last day is 1', C.daysLeft(entry, at('2027-01-31')) === 1);
 
 // ── access ──────────────────────────────────────────────────────────────────
@@ -122,7 +128,30 @@ check('pop-up due when live and unseen', C.duePopup(at('2026-12-02'))?.concept.i
 C.markPopupSeen('ultra-ego');
 check('pop-up shows once', C.duePopup(at('2026-12-03')) === null);
 reset();
-check('no pop-up before release', C.duePopup(at('2026-10-20')) === null);
+check('no pop-up before any release', C.duePopup(at('2026-10-10')) === null);
+
+// ── Shoto ───────────────────────────────────────────────────────────────────
+reset();
+check('Shoto fit: 3 training days a week, 12 sessions', C.fitTrainingDays(SHOTO).length === 3 && C.fitTotal(SHOTO) === 12);
+check('Shoto fight: 4 days × 2 weeks', C.fightTotal(SHOTO) === 8);
+const sf = C.fightDayCfg(SHOTO, { now: at('2026-10-20') });
+check('Shoto fight day 1 calls combos', sf.blockRounds.every(r => Array.isArray(r.combos) && r.combos.length >= 3) && sf.blockRounds[0].combos[0] === 'Jab, cross, double-hand push');
+check('Shoto fight discipline is Kickboxing', SHOTO.fight.discipline === 'Kickboxing');
+for (let i = 0; i < 2; i++) C.recordConceptSession(C.fightDayCfg(SHOTO), 5, 5);
+const k3 = C.fightDayCfg(SHOTO);
+check('pressure day: rush on, 30 s rest', k3.rushMode === true && k3.restSec === 30);
+C.recordConceptSession(k3, 5, 5);
+const k4 = C.fightDayCfg(SHOTO);
+check('practice day: light, some rounds without combos', k4.rounds === 4 && k4.blockRounds.some(r => !r.combos));
+C.recordConceptSession(k4, 4, 4);
+let ss = C.status(SHOTO);
+check('week 2 starts back on day 1', ss.fightNext === 0 && ss.fightWeek === 2 && !ss.fightComplete);
+for (let i = 0; i < 4; i++) { const c = C.fightDayCfg(SHOTO); C.recordConceptSession(c, c.rounds, c.rounds); }
+check('two weeks completes Shoto Fight', C.status(SHOTO).fightComplete);
+const homeShoto = C.fitDayExercises(SHOTO, 0, { home: true });
+check('Shoto home swaps sandbag and med-ball moves', homeShoto.some(e => e.name === 'Burpees') && homeShoto.some(e => e.name === 'Explosive Push-Ups') && !homeShoto.some(e => /Sandbag|Med-Ball/.test(e.name)));
+check('no character names in Shoto', !/\b(Ryu|Ken|Akuma|Hadoken|Shoryuken|Tatsumaki)\b/i.test(JSON.stringify(SHOTO)));
+check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 && C.bossIndex(SHOTO) === 9);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
