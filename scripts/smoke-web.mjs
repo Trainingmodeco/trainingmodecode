@@ -106,6 +106,13 @@ await check('arcade', async () => { await home(); await page.locator('text=ARCAD
 // click can time out on actionability, and this test is about mounting, so
 // the element is clicked directly.
 await check('arcade saga', async () => { const hit = await page.evaluate(() => { const b = [...document.querySelectorAll('button,[role="button"]')].find((x) => /\bSTART\b[\s\S]*CLEARED/.test(x.innerText)); if (b) b.click(); return !!b; }); if (!hit) throw new Error('no START badge on the carousel'); await S(2500); }, /STAGE|CLIMB/i);
+// Concept drops are hidden from users until their window, so these run with
+// the owner's preview flag on.
+const preview = async () => { await home(); await page.evaluate(() => localStorage.setItem('tm_owner_preview', '1')); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
+await check('concept drop pop-up + page', async () => { await preview(); await btn(/START THE REGIME/).click({ timeout: 5000 }); await S(1500); }, /WEEK 1 OF 4/);
+await check('concept fit day start', async () => { await btn(/^▶ START /).click({ timeout: 4000 }); await S(2500); }, /NECK CURLS/i);
+await check('concept fight day start', async () => { await preview(); await page.locator('button[aria-label="Close"]').first().click({ timeout: 3000 }).catch(() => {}); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); await page.locator('button', { hasText: 'CONCEPT PROGRAM' }).first().click({ timeout: 4000 }); await S(1500); await btn(/START DAY 1/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
+await check('concept gauntlet stage start', async () => { await preview(); await page.locator('button[aria-label="Close"]').first().click({ timeout: 3000 }).catch(() => {}); await page.locator('[data-guide="home-arcade"]').first().click({ timeout: 5000 }); await S(2500); await page.locator('button', { hasText: 'GAUNTLET' }).first().click({ timeout: 4000 }); await S(1500); await page.locator('button', { hasText: 'AWAKENING' }).first().click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
 await check('progress', async () => { await home(); await btn(/^PROGRESS$/).click({ timeout: 4000 }); await S(1500); }, /PROGRESS|XP/i);
 await check('profile', async () => { await home(); await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500); }, /PROFILE/);
 
