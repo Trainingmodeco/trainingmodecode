@@ -47,7 +47,7 @@ export const SHOTO = {
     poster: '/static/concepts/shoto/poster.webp',
     wide: '/static/concepts/shoto/wide.webp',
     card: '/static/concepts/shoto/card.webp',
-    // arcade: silhouette Arcade banner (Ryu charging a Hadouken) — pending art
+    arcade: '/static/series/posters/shoto.webp', // silhouette Arcade banner
   },
 
   // Fit: the three conditioning blocks, Mon / Wed / Fri, 4 weeks. The

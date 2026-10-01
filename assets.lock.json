@@ -988,44 +988,48 @@
     "sha1": "885483d215893d8886606c859a82b2c04298f2f1"
   },
   "static/series/posters/demon-back.png": {
-    "size": 636307,
-    "sha1": "579fc7d7e074873aa737a509781f37947cba6860"
+    "size": 671896,
+    "sha1": "a374df24d0632f859beab8eb241b5be529dde735"
   },
   "static/series/posters/demon-back.webp": {
-    "size": 82266,
-    "sha1": "f5a4c823f1cedf1246be46331fd8ae1a178a3d8d"
+    "size": 286082,
+    "sha1": "43970e579249d1d355fdbeedbb9f0a0f51449d36"
   },
   "static/series/posters/grappler-protocol.png": {
-    "size": 670582,
-    "sha1": "917b4332d87b4038ff10c7a1b3e30cba62f82691"
+    "size": 568052,
+    "sha1": "1c46bd001409b778ad51b627da997af80ebdd560"
   },
   "static/series/posters/grappler-protocol.webp": {
-    "size": 78610,
-    "sha1": "7482f4c2f3d662f5c7754b00844c95ec90bc8d39"
+    "size": 182062,
+    "sha1": "e7c00fba8413cfdc8f7b167322edb62cd9db1769"
   },
   "static/series/posters/hero-hunter.png": {
-    "size": 232895,
-    "sha1": "71eda2bb63da7c271fa476b14ef9f1e6c9046e85"
+    "size": 631120,
+    "sha1": "187f7ed4e17e7e817dc53ad7fada8580fb597750"
   },
   "static/series/posters/hero-hunter.webp": {
-    "size": 115844,
-    "sha1": "14b6a2a32916f63cfbc0f5678ee3ba12f5fa6df4"
+    "size": 235896,
+    "sha1": "aa91409da8f90dc9f9211edb8daa0d177c1708cd"
   },
   "static/series/posters/hyperbolic-gravity.png": {
-    "size": 732274,
-    "sha1": "c00e7bbaa3dd3d609e79c61366edf2850be25bba"
+    "size": 613021,
+    "sha1": "c5f7a80de079bfb0afb57f13b0a7aba43c80d523"
   },
   "static/series/posters/hyperbolic-gravity.webp": {
-    "size": 114330,
-    "sha1": "4d59d859b92da307b6cd1a054463a5ebedc58641"
+    "size": 249488,
+    "sha1": "5b973bbf205be66be4f88cf52a581be12f160489"
   },
   "static/series/posters/one-punch.png": {
-    "size": 611105,
-    "sha1": "d2e405d2a719a88ae8c948be8895d7a24dc347d2"
+    "size": 556200,
+    "sha1": "8ea2c1c3bf71f8663d478fdbfdf6398fc29c6f64"
   },
   "static/series/posters/one-punch.webp": {
-    "size": 89700,
-    "sha1": "000acd264689365670ae40c63dc37185d7e4d4d3"
+    "size": 205960,
+    "sha1": "f65a448717511e6d7f89226638aabec9d8ad7d26"
+  },
+  "static/series/posters/shoto.webp": {
+    "size": 286066,
+    "sha1": "2b6fc1d3ee7d07103a706bbc12d5002550836c90"
   },
   "static/series/posters/struggler-protocol.png": {
     "size": 636052,
@@ -1036,44 +1040,44 @@
     "sha1": "f9344cbe68303333b2bd04b4bf0a45779a496eb4"
   },
   "static/series/posters/the-contender.png": {
-    "size": 720375,
-    "sha1": "8433e88f364397929af6c39a6e0af2986e846b06"
+    "size": 595330,
+    "sha1": "00fe62685f8b612c7a6c709cab8683686689ed98"
   },
   "static/series/posters/the-contender.webp": {
-    "size": 116100,
-    "sha1": "c8526b4de11aa68a3add8b81aed4dcca8ae4d353"
+    "size": 255108,
+    "sha1": "3e53e92d099c683f3e9ba733a68347aa19292ec6"
   },
   "static/series/posters/the-dragon.png": {
-    "size": 719212,
-    "sha1": "b310a9a67d4c55ea458d14ba31a35600e2796584"
+    "size": 623533,
+    "sha1": "a327665a2ae003bd2fbe72ec90c88fb87f7a08f4"
   },
   "static/series/posters/the-dragon.webp": {
-    "size": 113254,
-    "sha1": "36118077ed11cd99107a298ce8bdd1a2028eff65"
+    "size": 248040,
+    "sha1": "a3845bd27939ff0bc0d44f019df33675fe5a6ceb"
   },
   "static/series/posters/the-wall-crawler.png": {
-    "size": 700686,
-    "sha1": "b2c186c14e3b0c7808685851061ca6fc14e12608"
+    "size": 662107,
+    "sha1": "c1099e5a7146eedc26393dfb1b89f0df8c71a2c9"
   },
   "static/series/posters/the-wall-crawler.webp": {
-    "size": 109220,
-    "sha1": "6cb3c98f6bb2187cc7520b6901b3251398ce4ff1"
+    "size": 276460,
+    "sha1": "29b68148dac2ad872799de876ab58fb7c9ccf549"
   },
   "static/series/posters/ultra-ego.png": {
-    "size": 618320,
-    "sha1": "61d24fb4a6f05088b38335798967092b43acf00d"
+    "size": 543952,
+    "sha1": "fcb5764c321a3a7a7217758d15f46cf2cd3ecb1c"
   },
   "static/series/posters/ultra-ego.webp": {
-    "size": 81678,
-    "sha1": "bc126f6a63b3aeed210875dba7e33f6931e78286"
+    "size": 199420,
+    "sha1": "0af2f47e1e35770ad0a21f15f033ecccd155a295"
   },
   "static/series/posters/ultra-instinct.png": {
-    "size": 579321,
-    "sha1": "a0360d3099d239d4b8f475f40b9f7de33fa18958"
+    "size": 536871,
+    "sha1": "3c3f877926a5071cdb210208abd9129b4c60d0ce"
   },
   "static/series/posters/ultra-instinct.webp": {
-    "size": 75220,
-    "sha1": "da413bbd7181c73fa5b2bb2255518ca7c52c7111"
+    "size": 173730,
+    "sha1": "a7dfbaf2f9e07eaba56e645b00d92dac6c09c5eb"
   },
   "static/series/stage-bg/stage-1.webp": {
     "size": 40208,

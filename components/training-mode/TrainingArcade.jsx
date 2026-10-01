@@ -14,7 +14,7 @@ import CodeEntryModal from './shared/CodeEntryModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
 
-// Full-bleed saga poster art (918x1713), one per visible series.
+// Full-bleed saga poster art (2:3, no title — the card prints it), one per visible series.
 const POSTER_MAP = {
   'one-punch-protocol': '/static/series/posters/one-punch.png',
   'gravity-chamber-protocol': '/static/series/posters/hyperbolic-gravity.png',
@@ -30,6 +30,10 @@ const POSTER_MAP = {
   'the-wall-crawler': '/static/series/posters/the-wall-crawler.png',
   'the-dragon': '/static/series/posters/the-dragon.png',
 };
+
+// Older banners with the title baked into the art; skip the printed title
+// until their titleless versions land.
+const TITLED_POSTERS = new Set(['struggler-protocol', 'vigilante-protocol', 'blue-blur-protocol']);
 
 const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'MAX', 'CHAMPION'];
 const TEAL = '#5eead4';
@@ -265,7 +269,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
                   className="saga-slide"
                   onClick={() => (isActive ? enter(s, i) : scrollToDisplay(i))}
                   style={{
-                    flex: '0 0 auto', height: '100%', maxHeight: 424, aspectRatio: '0.6',
+                    flex: '0 0 auto', height: '100%', maxHeight: 424, aspectRatio: '2 / 3',
                     padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
                     transform: isActive ? 'scale(1)' : 'scale(0.82)',
                     opacity: isActive ? 1 : 0.42,
@@ -285,7 +289,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
                   }}>
                     {poster ? (
                       <SafeImage src={poster} alt={s.title} loading="lazy" decoding="async"
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 28%', filter: playable ? 'none' : 'grayscale(0.65) brightness(0.5)' }} />
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', filter: playable ? 'none' : 'grayscale(0.65) brightness(0.5)' }} />
                     ) : (
                       <>
                         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 40%, rgba(60,20,90,0.6), rgba(8,1,18,0.96) 72%)' }} />
@@ -316,8 +320,11 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
                       </>
                     )}
 
-                    {/* Bottom info strip — poster art carries the title */}
+                    {/* Bottom info strip — title printed here, not baked into the art */}
                     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '40px 12px 11px', background: 'linear-gradient(to top, rgba(4,0,10,0.96) 0%, rgba(4,0,10,0.82) 42%, rgba(4,0,10,0.35) 74%, transparent 100%)' }}>
+                      {poster && !TITLED_POSTERS.has(s.id) && (
+                        <div className="saga-title" style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontStyle: 'italic', fontSize: (s.title || '').length > 12 ? 20 : 26, lineHeight: 1.02, letterSpacing: '0.01em', textAlign: 'center', marginBottom: 8, textTransform: 'uppercase', background: 'linear-gradient(180deg,#fff6c2 0%,#fde047 38%,#f59e0b 70%,#b45309 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.9)) drop-shadow(0 0 12px rgba(168,85,247,0.55))' }}>{s.title}</div>
+                      )}
                       {playable ? (
                         <>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 7 }}>
