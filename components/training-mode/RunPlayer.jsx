@@ -171,7 +171,6 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // a sprint window is open; a 4-second pass/fail flash after it closes.
   const [chaseUi, setChaseUi] = useState(null);
   const [chaseFlash, setChaseFlash] = useVerdictFlash();
-  useEffect(() => { if (chaseMode || (!noDistance && !machine)) preloadXpBanners(); }, [chaseMode, noDistance, machine]);
   const [progIdx, setProgIdx] = useState(restore?.programIdx ?? -1);
   const aliveRef = useRef(true);
   const runningRef = useRef(running);
@@ -214,6 +213,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   const gpsDist = meters / metersPerUnit(unit);
   const usingGps = useGps && gpsStatus === 'live';
   const machine = run.cfg.speedSource === 'machine';
+  // Warm the XP plate art for runs that can earn a verdict. This sits AFTER
+  // `machine` on purpose: reading a const above its declaration throws
+  // ("Cannot access 'machine' before initialization") and took the whole run
+  // screen down on every GPS start.
+  useEffect(() => { if (chaseMode || (!noDistance && !machine)) preloadXpBanners(); }, [chaseMode, noDistance, machine]);
   const speedNow = machine ? speedAt(run.speedSegs, elapsedSec) : 0;
   const machineDist = machine ? distanceFromSpeed(run.speedSegs, elapsedSec) : 0;
   // Estimating is now the LAST resort, not the indoor default.

@@ -10,8 +10,9 @@
     "optimize:images": "node scripts/optimize-images.mjs",
     "check:assets": "node scripts/check-public-assets.mjs",
     "check:guides": "node scripts/check-guides.mjs",
+    "smoke:web": "node scripts/smoke-web.mjs",
     "check:exercises": "node --import ./scripts/extensionless-loader-register.mjs scripts/check-exercise-data.mjs",
-    "check:all": "tsc --noEmit && expo lint && node scripts/test-indoor-tracking.mjs && npm run -s test:cardio && npm run -s test:gps && npm run -s test:intervals && npm run -s test:xp && npm run -s audit:cc && node scripts/check-guides.mjs && npm run -s check:exercises && npm run -s build:web",
+    "check:all": "tsc --noEmit && expo lint && node scripts/test-indoor-tracking.mjs && npm run -s test:cardio && npm run -s test:gps && npm run -s test:intervals && npm run -s test:xp && npm run -s audit:cc && node scripts/check-guides.mjs && npm run -s check:exercises && npm run -s build:web && npm run -s smoke:web",
     "lock:assets": "node scripts/lock-assets.mjs --write",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
@@ -55,6 +56,7 @@
     "cross-env": "^10.1.0",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~10.0.0",
+    "playwright-core": "^1.62.0",
     "sharp": "^0.35.3",
     "typescript": "~5.9.2"
   }
