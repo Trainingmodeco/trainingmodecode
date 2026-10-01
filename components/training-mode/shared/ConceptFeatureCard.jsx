@@ -20,7 +20,7 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
         position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%', height: 50, padding: '0 12px', border: 0, cursor: 'pointer',
         borderRadius: 12, overflow: 'hidden', color: '#fff', textAlign: 'left', background: '#0c0218', boxShadow: `0 0 0 1.5px ${c.accent}aa, 0 0 18px ${c.accent}44`, ...style,
       }}>
-        <SafeImage src={c.art.card} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }} />
+        <SafeImage src={c.art.card} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 30%', opacity: 0.5 }} />
         <span style={{ position: 'relative', padding: '3px 8px', borderRadius: 99, background: c.accent, color: '#2a0034', font: `800 7.5px ${H}`, letterSpacing: '0.14em', whiteSpace: 'nowrap' }}>◆ NEW</span>
         <span style={{ position: 'relative', flex: 1, minWidth: 0, font: `900 12px ${H}`, letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title} GAUNTLET</span>
         <span style={{ position: 'relative', font: `800 9px ${H}`, letterSpacing: '0.1em', color: GOLD, whiteSpace: 'nowrap' }}>{prog.cleared.length}/{c.arcade.stages.length} ›</span>
