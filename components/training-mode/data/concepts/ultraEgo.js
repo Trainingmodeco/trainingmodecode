@@ -147,6 +147,30 @@ export const ULTRA_EGO = {
   // open to everyone; the boss unlocks when the athlete finishes the Fit OR
   // the Fight program.
   arcade: {
+    fit: [
+        { title: 'AWAKENING', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['200 m run', '15 dive bomber push-ups', '20 squats'] },
+        { title: 'PLANTED', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 kettlebell swings', '10 goblet squats', '30 s plank'] },
+        { title: 'THICK NECK', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['25 neck curls front', '25 neck curls back', '12 shrugs or hanging shrugs'] },
+        { title: 'SEES RED', format: 'EMOM 10 min', plan: { rounds: 10, len: 60, rest: 5 }, items: ['6 burpees', '8 jump squats'] },
+        { title: 'IRON BACK', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['8 pull-ups or 12 inverted rows', '10 bent-over rows', '10 false-grip body rows'] },
+        { title: 'BRACE', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['60 s plank', '15 wall-ball throws or squat thrusts', '15 V-ups'] },
+        { title: 'DESTROYER LEGS', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 goblet squats', '20 jump lunges', '200 m run'] },
+        { title: 'NO RETREAT', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['slam ball or burpees', 'mountain climbers'] },
+        { title: 'PRIDE', format: '5 × 3:00', plan: { rounds: 5, len: 180, rest: 60 }, items: ['1:00 push-up ladder', '1:00 kettlebell swings', '1:00 tiger push-ups'] },
+        { title: 'BOSS · ULTRA EGO', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['1 km run', '50 kettlebell swings', '40 dive bombers', '30 pull-ups or 45 inverted rows', '20 goblet squats', '3:00 max burpees'] },
+      ],
+      fight: [
+        { title: 'AWAKENING', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['1:00 planted jab-cross', '1:00 power hooks', '1:00 teep and push'] },
+        { title: 'PLANTED', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['20 power straights', '10 rear kicks each side', '10 squats'] },
+        { title: 'BRACE FOR IMPACT', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['1:00 body shots', '1:00 slip and roll', '15 sit-ups'] },
+        { title: 'SEES RED', format: 'EMOM 10 min', plan: { rounds: 10, len: 60, rest: 5 }, items: ['6 knees each side', 'jab, cross, hook, low kick'] },
+        { title: 'WALK THEM DOWN', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['forward-only shadowboxing', '3-strike chains', '10 push-ups'] },
+        { title: 'ROLL & ANSWER', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['1:00 slip and roll', '20 counter straights', '1:00 check and kick'] },
+        { title: 'KNEES IN RANGE', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['20 clinch knees', '10 elbows each side', '10 sprawls'] },
+        { title: 'NO RETREAT', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['bag flurry', 'teep and push'] },
+        { title: 'PRIDE', format: '5 × 3:00', plan: { rounds: 5, len: 180, rest: 60 }, items: ['1:00 combo chains', '1:00 kicks off the hands', '1:00 elbow-knee'] },
+        { title: 'BOSS · ULTRA EGO', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['100 straights', '60 low kicks', '40 knees', '30 elbows', '20 sprawls', '3:00 all-out bag'] },
+      ],
     stages: [
       { title: 'AWAKENING', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['200 m run', '15 dive bomber push-ups', '1:00 shadowbox'] },
       { title: 'PLANTED', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 kettlebell swings', '20 power straights', '10 burpees'] },

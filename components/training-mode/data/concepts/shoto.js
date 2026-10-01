@@ -169,6 +169,30 @@ export const SHOTO = {
   },
 
   arcade: {
+    fit: [
+        { title: 'WARRIOR BASE', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 squat jumps', '12 push-ups', '30 s plank'] },
+        { title: 'RISING DRAGON', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 alternating squat to press', '10 pull-ups or inverted rows', '15 sit-ups'] },
+        { title: 'THE FIREBALL', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 med-ball throws or explosive push-ups', '10 burpees', '20 lunges'] },
+        { title: 'BLAZING FEET', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['1:00 jump rope or jumping jacks', '20 skater hops', '30 s high knees'] },
+        { title: 'TUCK & SPIN', format: 'EMOM 10 min', plan: { rounds: 10, len: 60, rest: 5 }, items: ['4 burpee tuck jumps', '4 × 180° tuck jumps'] },
+        { title: 'HURRICANE LEGS', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['12 rotational jump squats', '20 jump lunges', '10 broad jumps'] },
+        { title: 'DEMON STEP', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['mountain climbers', 'squat thrusts'] },
+        { title: 'IRON BODY', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 burpee pull-ups or burpees', '50 ft sandbag carry or 30 s bear crawl', '15 med-ball slams or burpees'] },
+        { title: 'NO MERCY', format: '5 × 3:00', plan: { rounds: 5, len: 180, rest: 60 }, items: ['1:00 dive bomber push-ups', '1:00 jump squats', '1:00 plank'] },
+        { title: 'BOSS · THE DEMON WITHIN', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['1 km run', '50 med-ball slams or burpees', '40 jump lunges', '30 explosive push-ups', '20 alternating squat to press', '3:00 max burpees'] },
+      ],
+      fight: [
+        { title: 'STANCE & STRIKE', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['1:00 jab-cross', '1:00 straight punches from a front stance', '1:00 stance reset footwork'] },
+        { title: 'CONTROLLED POWER', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['20 power straights', '10 rear kicks each side', '10 squats'] },
+        { title: 'THE FIREBALL', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 double-hand pushes, every third with a counter', '1:00 jab, cross, hook', '10 push-ups'] },
+        { title: 'BLAZING FISTS', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['1:00 Dutch combos ending in a low kick', '30 s speed straights', '30 s angle footwork'] },
+        { title: 'DASH & STRIKE', format: 'EMOM 10 min', plan: { rounds: 10, len: 60, rest: 5 }, items: ['dash in: jab, cross, hook, low kick', '3 sprawls'] },
+        { title: 'SPINNING FLAME', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['10 spinning back kicks each side', '1:00 roundhouse chains', '10 jump squats'] },
+        { title: 'DEMON STEP', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['forward-pressure bag flurry', 'fake teep slides'] },
+        { title: 'IRON ELBOWS', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['20 elbows', '20 knees', '1:00 Superman punch, hook, low kick'] },
+        { title: 'SUPER METER', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['round 1 Rising Dragon', 'round 2 Dragon Storm', 'round 3 Demon Barrage'] },
+        { title: 'BOSS · THE DEMON WITHIN', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['100 straights', '50 low kicks', '40 knees', '30 elbows', '20 spinning back kicks', '3:00 Demon Barrage on the bag'] },
+      ],
     stages: [
       { title: 'STANCE & STRIKE', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['50 straight punches', '10 squat jumps', '1:00 jab-cross on the bag'] },
       { title: 'CONTROLLED POWER', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 alternating squat to press', '12 med-ball throws or explosive push-ups', '20 power straights'] },

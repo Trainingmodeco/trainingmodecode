@@ -78,7 +78,7 @@ export function loadProgress(id) {
   return {
     fitDone: p.fitDone || 0, fightDone: p.fightDone || 0, cleared: Array.isArray(p.cleared) ? p.cleared : [],
     startedAt: p.startedAt || null, popupSeen: !!p.popupSeen, rewardClaimedAt: p.rewardClaimedAt || null,
-    tier: p.tier || 'normal', home: !!p.home,
+    tier: p.tier || 'normal', home: !!p.home, clearedBy: p.clearedBy || {},
   };
 }
 function update(id, fn) {
@@ -241,6 +241,20 @@ export function fightDayCfg(concept, { tier = 'normal', now = Date.now() } = {})
   };
 }
 
+// The gauntlet's three arcs: same 10-stage ladder, three ways to play it.
+export const ARCS = [
+  { id: 'fit', label: 'TRAINING ARC', sub: 'Fitness only' },
+  { id: 'fight', label: 'TOURNAMENT ARC', sub: 'Striking, a little fitness' },
+  { id: 'hybrid', label: 'FINAL ARC', sub: 'Fit × fight, both' },
+];
+export function arcStages(concept, arc = 'hybrid') {
+  return (arc === 'fit' || arc === 'fight') && concept.arcade[arc] ? concept.arcade[arc] : concept.arcade.stages;
+}
+export function arcsCleared(progress, stageIdx) {
+  const by = progress.clearedBy || {};
+  return ARCS.filter(a => (by[a.id] || []).includes(stageIdx)).map(a => a.id);
+}
+
 export function stagePlayable(concept, stageIdx, progress = loadProgress(concept.id)) {
   const stage = concept.arcade.stages[stageIdx];
   if (!stage) return false;
@@ -248,8 +262,9 @@ export function stagePlayable(concept, stageIdx, progress = loadProgress(concept
   return true;
 }
 
-export function stageCfg(concept, stageIdx, { tier = 'normal', now = Date.now() } = {}) {
-  const stage = concept.arcade.stages[stageIdx];
+export function stageCfg(concept, stageIdx, { tier = 'normal', now = Date.now(), arc = 'hybrid' } = {}) {
+  const stage = arcStages(concept, arc)[stageIdx];
+  const arcLabel = ARCS.find(a => a.id === arc)?.label || 'FINAL ARC';
   const { rounds, len, rest } = stage.plan;
   const list = stage.items.join(' · ');
   markStarted(concept.id, now);
@@ -262,8 +277,8 @@ export function stageCfg(concept, stageIdx, { tier = 'normal', now = Date.now() 
       coach_prompt: stage.boss ? `For time: ${list}. Tap finish when the last rep is done.` : `${list}. Finish the station, rest what is left.`,
       length_sec: len, rest_sec: rest,
     })),
-    archetypeName: `${concept.title} GAUNTLET · ${stage.title}`,
-    conceptId: concept.id, conceptKind: 'arcade', conceptStage: stageIdx,
+    archetypeName: `${concept.title} · ${arcLabel} · ${stage.title}`,
+    conceptId: concept.id, conceptKind: 'arcade', conceptStage: stageIdx, conceptArc: arc,
   };
 }
 
@@ -280,7 +295,14 @@ export function recordConceptSession(cfg, done, total) {
     return update(cfg.conceptId, p => (p.fightDone === cfg.conceptSeq ? { ...p, fightDone: p.fightDone + 1 } : p));
   }
   if (cfg.conceptKind === 'arcade' && d >= t) {
-    return update(cfg.conceptId, p => (p.cleared.includes(cfg.conceptStage) ? p : { ...p, cleared: [...p.cleared, cfg.conceptStage] }));
+    // A stage counts as cleared in any arc; each arc keeps its own marks.
+    return update(cfg.conceptId, p => {
+      const arc = cfg.conceptArc || 'hybrid';
+      const by = { ...(p.clearedBy || {}) };
+      by[arc] = (by[arc] || []).includes(cfg.conceptStage) ? by[arc] : [...(by[arc] || []), cfg.conceptStage];
+      const cleared = p.cleared.includes(cfg.conceptStage) ? p.cleared : [...p.cleared, cfg.conceptStage];
+      return { ...p, cleared, clearedBy: by };
+    });
   }
   return loadProgress(cfg.conceptId);
 }

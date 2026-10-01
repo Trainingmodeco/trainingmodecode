@@ -162,6 +162,24 @@ check('Shoto home swaps sandbag and med-ball moves', homeShoto.some(e => e.name 
   check('Ryu fit has the squat to press', C.fitDayExercises(SHOTO, 0).some(e => e.name === 'Alternating Squat to Press'));
   check('Ken fit has the 180 tuck jump', C.fitDayExercises(SHOTO, 1).some(e => e.name === '180° Tuck Jumps'));
 }
+{
+  for (const c of [SHOTO, UE]) {
+    for (const arc of ['fit', 'fight', 'hybrid']) {
+      const st = C.arcStages(c, arc);
+      check(`${c.id} ${arc}: 10 stages, boss last, all planned`, st.length === 10 && st[9].boss && st.every(x => x.plan && x.items.length >= 2));
+    }
+  }
+  check('arc tracks are different content', C.arcStages(SHOTO, 'fit')[0].items.join() !== C.arcStages(SHOTO, 'fight')[0].items.join());
+  check('fitness arc has no strikes', C.arcStages(UE, 'fit').every(x => !/jab|cross|hook|kick|knee|elbow|straight|bag/i.test(x.items.join(' '))));
+  reset();
+  const a1 = C.stageCfg(UE, 0, { arc: 'fight' });
+  check('stage cfg carries the arc', a1.conceptArc === 'fight' && /TOURNAMENT ARC/.test(a1.archetypeName));
+  C.recordConceptSession(a1, a1.rounds, a1.rounds);
+  const pr = C.loadProgress('ultra-ego');
+  check('clearing in one arc marks that arc only', pr.cleared.includes(0) && C.arcsCleared(pr, 0).join() === 'fight');
+  const a2 = C.stageCfg(UE, 0, { arc: 'fit' }); C.recordConceptSession(a2, a2.rounds, a2.rounds);
+  check('a second arc adds its mark, stage counted once', C.arcsCleared(C.loadProgress('ultra-ego'), 0).join() === 'fit,fight' && C.loadProgress('ultra-ego').cleared.length === 1);
+}
 check('no character names in Shoto', !/\b(Ryu|Ken|Akuma|Hadoken|Shoryuken|Tatsumaki)\b/i.test(JSON.stringify(SHOTO)));
 check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 && C.bossIndex(SHOTO) === 9);
 
