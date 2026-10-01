@@ -1120,13 +1120,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           {allDone ? 'COMPLETE WORKOUT' : 'START'}
         </button>
 
-        <div data-guide="fw-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
-          <button onClick={regenerate} className="wo-ghost" style={{
+        <div data-guide="fw-actions" style={{ display: 'grid', gridTemplateColumns: cfg.conceptId ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
+          {/* A concept day is a set program — no regenerating it into something else. */}
+          {!cfg.conceptId && <button onClick={regenerate} className="wo-ghost" style={{
             ...CHF, height: 44, cursor: 'pointer', background: '#110E1C', border: '1px solid rgba(255,255,255,0.12)', color: '#fff',
             font: `600 13px ${HEAD}`, letterSpacing: '0.12em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
             <RotateCcw size={16} color={GOLD}/> REGENERATE
-          </button>
+          </button>}
           <button onClick={() => setSaveOpen(true)} className="wo-ghost" style={{
             ...CHF, height: 44, cursor: 'pointer', background: '#110E1C', color: savedFlash ? '#4ade80' : '#fff',
             border: `1px solid ${savedFlash ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.12)'}`,
