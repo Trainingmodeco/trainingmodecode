@@ -161,15 +161,20 @@ if (existsSync(indexPath)) {
   // was a no-op and a JS crash in the field was invisible. Injected here, in
   // the pipeline that reaches production, with the domain the app is actually
   // served from. Plausible ignores localhost on its own.
-  if (!html.includes('plausible.io/js/script.js')) {
+  if (!html.includes('plausible.io/js/')) {
     const observ = [
-      // Queue shim: events fired before the script loads are replayed by it.
-      '<script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>',
-      '<script defer data-domain="apptrainingmode.com" src="https://plausible.io/js/script.js"></script>',
+      // The site-specific snippet from the owner's Plausible account
+      // (apptrainingmode.com), verbatim: the async script plus its inline
+      // stub, which queues events fired before the script loads.
+      '<script async src="https://plausible.io/js/pa-7d3Zk5sxJ2vgZHF_-M1j2.js"></script>',
+      '<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>',
       // Crash reporter: the first three uncaught errors / rejections per page
       // load become a `js_error` event with the message and route, so a crash
       // wave shows up in Plausible within minutes even without Sentry.
-      `<script>(function(){var n=0;function r(k,m,s){if(!m||n++>=3)return;try{window.plausible&&window.plausible("js_error",{props:{kind:k,message:String(m||"").slice(0,120),source:String(s||"").split("/").pop().slice(0,60),path:location.pathname,build:"${buildId}"}})}catch(e){}}addEventListener("error",function(e){r("error",e&&e.message,e&&e.filename)},true);addEventListener("unhandledrejection",function(e){var x=e&&e.reason;r("rejection",x&&(x.message||x),x&&x.stack)})})();</script>`,
+      // It covers the BOOT window only: once the app is running, its own
+      // reporter (data/analytics.js, "App Error" with the screen name) sets
+      // window.__tmAppErrors and takes over, so no error is counted twice.
+      `<script>(function(){var n=0;function r(k,m,s){if(window.__tmAppErrors||!m||n++>=3)return;try{window.plausible&&window.plausible("js_error",{props:{kind:k,message:String(m||"").slice(0,120),source:String(s||"").split("/").pop().slice(0,60),path:location.pathname,build:"${buildId}"}})}catch(e){}}addEventListener("error",function(e){r("error",e&&e.message,e&&e.filename)},true);addEventListener("unhandledrejection",function(e){var x=e&&e.reason;r("rejection",x&&(x.message||x),x&&x.stack)})})();</script>`,
     ];
     // Full error reporting when a Sentry DSN is set at build time (Netlify env
     // var SENTRY_DSN). Optional: without it the Plausible reporter above still runs.

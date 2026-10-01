@@ -52,6 +52,9 @@ let installed = false;
 export function installErrorReporting() {
   if (installed || typeof window === 'undefined') return;
   installed = true;
+  // From here the app reports errors itself (with the screen); the boot-time
+  // js_error reporter injected by scripts/copy-public-assets.mjs stands down.
+  window.__tmAppErrors = true;
   window.addEventListener('error', (e) => {
     // A failed <img>/<script> load fires 'error' without an Error object;
     // images already have fallbacks (SafeImage), so only real script errors count.
