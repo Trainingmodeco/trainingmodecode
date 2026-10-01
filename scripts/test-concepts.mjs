@@ -135,7 +135,7 @@ reset();
 check('Shoto fit: 3 training days a week, 12 sessions', C.fitTrainingDays(SHOTO).length === 3 && C.fitTotal(SHOTO) === 12);
 check('Shoto fight: 4 days × 2 weeks', C.fightTotal(SHOTO) === 8);
 const sf = C.fightDayCfg(SHOTO, { now: at('2026-10-20') });
-check('Shoto fight day 1 calls combos', sf.blockRounds.every(r => Array.isArray(r.combos) && r.combos.length >= 3) && sf.blockRounds[0].combos[0] === 'Jab, cross, double-hand push');
+check('Shoto fight day 1 calls combos', sf.blockRounds.every(r => Array.isArray(r.combos) && r.combos.length >= 3) && sf.blockRounds[0].combos[0] === 'Jab, cross, push, counter cross');
 check('Shoto fight discipline is Kickboxing', SHOTO.fight.discipline === 'Kickboxing');
 for (let i = 0; i < 2; i++) C.recordConceptSession(C.fightDayCfg(SHOTO), 5, 5);
 const k3 = C.fightDayCfg(SHOTO);
