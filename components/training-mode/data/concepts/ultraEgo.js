@@ -17,12 +17,12 @@ export const ULTRA_EGO = {
   tagline: 'Power at all costs. Take the hit, give it back harder.',
   reward: { title: 'DESTROYER', xp: 500, frame: 'violet-aura' },
   accent: '#e879f9',
-  // Placeholders from the app's own art until the owner's original Ultra Ego
-  // art lands in public/static/concepts/ultra-ego/.
+  // Owner-supplied reference art, used for now (owner's call); swap for
+  // original art in public/static/concepts/ultra-ego/ when it is ready.
   art: {
-    poster: '/static/revamp/hub-fight-reveal.webp',
-    wide: '/static/revamp/hub-fit-reveal.webp',
-    card: '/static/hub/arcade-continue-bg.webp',
+    poster: '/static/concepts/ultra-ego/poster.webp',
+    wide: '/static/concepts/ultra-ego/wide.webp',
+    card: '/static/concepts/ultra-ego/card.webp',
   },
 
   fit: {
