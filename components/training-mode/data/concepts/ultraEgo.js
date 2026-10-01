@@ -23,6 +23,7 @@ export const ULTRA_EGO = {
     poster: '/static/concepts/ultra-ego/poster.webp',
     wide: '/static/concepts/ultra-ego/wide.webp',
     card: '/static/concepts/ultra-ego/card.webp', // the DESTROYER image, for the Arcade gauntlet
+    arcade: '/static/series/posters/ultra-ego.webp', // silhouette Arcade banner
   },
 
   fit: {

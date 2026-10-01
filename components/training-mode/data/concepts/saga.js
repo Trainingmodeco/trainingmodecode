@@ -36,7 +36,7 @@ export function conceptSaga(conceptId) {
     difficultyStars: 4,
     availableModes: ['fit', 'fight', 'both'],
     modeOptions: ['fit', 'fight', 'both'],
-    poster: c.art.card,
+    poster: c.art.arcade || c.art.card,
     rewards: { badge: `${c.title} Badge`, title: c.reward.title, xp: 500 },
     stages,
   };
