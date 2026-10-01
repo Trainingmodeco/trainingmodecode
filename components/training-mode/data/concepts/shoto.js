@@ -24,12 +24,11 @@ export const SHOTO = {
   tagline: 'Three styles. One path. Fundamentals, speed, pressure.',
   reward: { title: 'SHOTO MASTER', xp: 500, frame: 'crimson-gi' },
   accent: '#f97316',
-  // Placeholders from the app's own art until the owner's Shoto art lands
-  // in public/static/concepts/shoto/.
+  // Owner-generated art. The Arcade card is the Akuma / Ken / Ryu panel.
   art: {
-    poster: '/static/revamp/hub-fight-reveal.webp',
-    wide: '/static/revamp/combo-coach-banner.webp',
-    card: '/static/hub/arcade-continue-bg.webp',
+    poster: '/static/concepts/shoto/poster.webp',
+    wide: '/static/concepts/shoto/wide.webp',
+    card: '/static/concepts/shoto/card.webp',
   },
 
   // Fit: the three conditioning blocks, Mon / Wed / Fri, 4 weeks. The

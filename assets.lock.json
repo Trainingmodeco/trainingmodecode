@@ -531,13 +531,29 @@
     "size": 17988,
     "sha1": "1521bc8105b2f7d6e9e1b39e4e124b63dc62cc80"
   },
+  "static/concepts/shoto/card.webp": {
+    "size": 88988,
+    "sha1": "a557f8a74642a22be40419b3e8c9ce05c8d8b299"
+  },
+  "static/concepts/shoto/poster.webp": {
+    "size": 186402,
+    "sha1": "f12c6c2c66ae45bd03b116cd7ec5a708db346bea"
+  },
+  "static/concepts/shoto/wide.webp": {
+    "size": 168676,
+    "sha1": "b5842bb0d3101e1d36bcabb1229c8e0ccbb011b9"
+  },
+  "static/concepts/ultra-ego/card.webp": {
+    "size": 204878,
+    "sha1": "bd99ff0906a50b3aba4adf8f667f17bd829e8b63"
+  },
   "static/concepts/ultra-ego/poster.webp": {
-    "size": 50894,
-    "sha1": "19417cfd4ae4846d47ce8ec1820c1cb3efc863a7"
+    "size": 213364,
+    "sha1": "3d9313b21645e15cc43038e22f1459af43ef9d82"
   },
   "static/concepts/ultra-ego/wide.webp": {
-    "size": 69166,
-    "sha1": "7902d54675c8165c6442bbfd9b613ddc636b43e6"
+    "size": 228210,
+    "sha1": "df66abc1ce082b17749967308c7e0c5434e2cae6"
   },
   "static/discipline/boxing.webp": {
     "size": 7430,
