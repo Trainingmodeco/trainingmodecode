@@ -172,7 +172,7 @@ export const SHOTO = {
     stages: [
       { title: 'STANCE & STRIKE', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['50 straight punches', '10 squat jumps', '1:00 jab-cross on the bag'] },
       { title: 'CONTROLLED POWER', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 alternating squat to press', '12 med-ball throws or explosive push-ups', '20 power straights'] },
-      { title: 'THE FIREBALL', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 double-hand bag pushes or chest passes', '10 burpees', '1:00 rear kicks'] },
+      { title: 'THE FIREBALL', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 bag push and counters, or chest passes', '10 burpees', '1:00 rear kicks'] },
       { title: 'BLAZING FEET', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['1:00 bounce footwork', '30 speed knees', '20 low kicks'] },
       { title: 'DASH & STRIKE', format: 'EMOM 10 min', plan: { rounds: 10, len: 60, rest: 5 }, items: ['4 burpee tuck jumps', 'jab, cross, hook, kick'] },
       { title: 'SPINNING FLAME', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['10 med-ball slams', '10 roundhouse kicks each side', '6 controlled 180° jump squats'] },
