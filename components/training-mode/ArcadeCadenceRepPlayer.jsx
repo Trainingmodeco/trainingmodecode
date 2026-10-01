@@ -334,7 +334,7 @@ export default function ArcadeCadenceRepPlayer({
   }, []);
 
   const cadenceLabel = cadenceMs <= 1000 ? 'FAST' : cadenceMs <= 1500 ? 'QUICK' : cadenceMs <= 2500 ? 'MODERATE' : 'SLOW';
-  const chromeTitle = (series?.title || 'ONE PUNCH PROTOCOL').toUpperCase();
+  const chromeTitle = (series?.title || 'ONE HUNDRED').toUpperCase();
   const chromeSub = `Stage ${stage?.stageNumber || ''} · ${stage?.title || ''}`;
   const stageBg = `/static/series/stage-bg/stage-${Math.min(Math.max(stage?.stageNumber || 1, 1), 10)}.webp`;
 

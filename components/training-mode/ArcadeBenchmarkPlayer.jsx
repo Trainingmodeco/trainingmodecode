@@ -541,7 +541,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
   }, []);
 
   const chrome = (children) => (
-    <StageChrome title={(series?.title || 'ONE PUNCH PROTOCOL').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
+    <StageChrome title={(series?.title || 'ONE HUNDRED').toUpperCase()} subtitle={`Stage ${stage?.stageNumber || 1} · ${stage?.title || ''}`} onHome={onHome} onBack={handleStop} bgImage={stageBg}>
       <style dangerouslySetInnerHTML={{ __html: BENCHMARK_STYLES }}/>
       {children}
       {confirmStop && (
@@ -661,7 +661,7 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
           <div style={{
             fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700,
             color: GOLD, letterSpacing: '0.2em', marginBottom: 8,
-          }}>ONE PUNCH PROTOCOL</div>
+          }}>ONE HUNDRED</div>
           <div style={{
             fontFamily: "'Orbitron',sans-serif", fontSize: 20, fontWeight: 900,
             color: C.text, letterSpacing: '0.08em', marginBottom: 6,

@@ -297,7 +297,7 @@ const DEMON_BACK_STAGES = [
         { id: 'dbf-g4', type: 'rounds', title: 'Defensive Burnout', instructions: 'Slip, roll, pivot. Stay moving the entire round.', rounds: 1, durationSeconds: 120, restSeconds: 0, equipment: 'None' },
       ],
     },
-    rewards: { xp: 500, badge: 'Demon Back Badge', title: 'Back Breaker' },
+    rewards: { xp: 500, badge: "Demon's Son Badge", title: 'Back Breaker' },
   },
 ];
 
@@ -528,9 +528,9 @@ const ONE_PUNCH_STAGES = [
     rewards: { xp: 300, statRewards: { strength: 35, endurance: 45, discipline: 25 } },
   },
   {
-    id: 'op-stage-6', stageNumber: 6, title: 'Standard One Punch Protocol',
+    id: 'op-stage-6', stageNumber: 6, title: 'The Standard Hundred',
     focus: 'The true base protocol: 100 push-ups, 100 squats, 100 sit-ups, 10km cardio',
-    announcerIntro: 'Stage 6. Standard One Punch Protocol. The full base protocol. 100 push-ups, 100 squats, 100 sit-ups, and a 10 kilometer run.',
+    announcerIntro: 'Stage 6. The Standard Hundred. The full base protocol. 100 push-ups, 100 squats, 100 sit-ups, and a 10 kilometer run.',
     stageType: 'cadenceCircuit',
     scoringType: 'completion',
     isFinalRound: false,
@@ -729,9 +729,9 @@ const ONE_PUNCH_STAGES = [
     rewards: { xp: 450, statRewards: { strength: 50, endurance: 60, discipline: 35, cardio: 30 } },
   },
   {
-    id: 'op-stage-10', stageNumber: 10, title: 'Final Boss — One Punch Gauntlet',
+    id: 'op-stage-10', stageNumber: 10, title: 'Final Boss — The Hundred Gauntlet',
     focus: '200 push-ups, 200 squats, 200 sit-ups, 60 minutes cardio, back-balance inserts',
-    announcerIntro: 'Final Boss. One Punch Gauntlet. 200 push-ups, 200 squats, 200 sit-ups, and 40 minutes of cardio. Survive the rounds. Control your pace.',
+    announcerIntro: 'Final Boss. The Hundred Gauntlet. 200 push-ups, 200 squats, 200 sit-ups, and 40 minutes of cardio. Survive the rounds. Control your pace.',
     stageType: 'bossCircuit',
     scoringType: 'partialCompletion',
     isFinalRound: true,
@@ -785,7 +785,7 @@ const ONE_PUNCH_STAGES = [
       insertAfterRounds: [2, 4, 6, 8],
       options: BACK_BALANCE_OPTIONS,
     },
-    rewards: { xp: 500, badge: 'One Punch Badge', title: 'Endurance Hero', statRewards: { strength: 60, endurance: 80, discipline: 50, cardio: 40, balance: 30 } },
+    rewards: { xp: 500, badge: 'One Hundred Badge', title: 'Endurance Hero', statRewards: { strength: 60, endurance: 80, discipline: 50, cardio: 40, balance: 30 } },
   },
 ];
 
@@ -826,13 +826,13 @@ const MYTHIC_BOSS_STAGE = {
     options: CARDIO_OPTIONS,
     speedBoosts: { enabled: true, minBoosts: 5, maxBoosts: 6, minDurationSeconds: 30, maxDurationSeconds: 60 },
   },
-  rewards: { xp: 1000, badge: 'Limit Breaker Badge', title: 'One Punch Legend', statRewards: { strength: 100, endurance: 120, discipline: 80, cardio: 60 } },
+  rewards: { xp: 1000, badge: 'Limit Breaker Badge', title: 'Hundred Legend', statRewards: { strength: 100, endurance: 120, discipline: 80, cardio: 60 } },
 };
 
 export const TRAINING_ARCADE_SERIES = [
   {
     id: 'one-punch-protocol',
-    title: 'One Punch Protocol',
+    title: 'One Hundred',
     subtitle: 'Cadence Rep Endurance Challenge',
     description: 'A bodyweight arcade series built around high-rep discipline, controlled cadence, cardio, and mental toughness. Complete each stage by following the rep count, pacing, rest intervals, and cardio demands.',
     status: 'active',
@@ -856,7 +856,7 @@ export const TRAINING_ARCADE_SERIES = [
     restOptions: ['short', 'normal', 'extended'],
     soundOptions: ['on', 'off'],
     statRewards: { endurance: 3, discipline: 2, strength: 2 },
-    rewards: { badge: 'One Punch Badge', title: 'Endurance Rookie', statBoost: 'Strength + Endurance + Cardio', xp: 500 },
+    rewards: { badge: 'One Hundred Badge', title: 'Endurance Rookie', statBoost: 'Strength + Endurance + Cardio', xp: 500 },
     stages: ONE_PUNCH_STAGES,
     mythicBoss: MYTHIC_BOSS_STAGE,
     cardioOptions: CARDIO_OPTIONS,
@@ -885,7 +885,7 @@ export const TRAINING_ARCADE_SERIES = [
   },
   {
     id: 'demon-back-protocol',
-    title: 'Demon Back Protocol',
+    title: "The Demon's Son",
     subtitle: 'Hybrid Strength + Combat',
     description: 'A hybrid strength and combat-conditioning workout series inspired by extreme anime-style training. Build pulling strength, grip, back endurance, core durability, and fight-ready conditioning.',
     status: 'active',
@@ -901,7 +901,7 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { strength: 4, grip: 3, endurance: 3 },
-    rewards: { badge: 'Demon Back Badge', title: 'Back Breaker', statBoost: 'Strength + Endurance' },
+    rewards: { badge: "Demon's Son Badge", title: 'Back Breaker', statBoost: 'Strength + Endurance' },
     stages: DEMON_BACK_STAGES,
   },
   {
@@ -1076,7 +1076,7 @@ export const TRAINING_ARCADE_SERIES = [
   },
   {
     id: 'the-wall-crawler',
-    title: 'The Wall-Crawler',
+    title: 'Web Climber',
     subtitle: 'Reflex & Agility Protocol',
     description: 'Original agility-inspired series — calisthenics, plyometrics, reaction drills, and bodyweight control for a fast, springy athlete.',
     status: 'comingSoon',
@@ -1092,7 +1092,7 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { agility: 4, speed: 3, endurance: 3 },
-    rewards: { badge: 'Wall-Crawler Badge', title: 'Reflex Master', statBoost: 'Agility + Speed' },
+    rewards: { badge: 'Web Climber Badge', title: 'Reflex Master', statBoost: 'Agility + Speed' },
     stages: [],
   },
   {
