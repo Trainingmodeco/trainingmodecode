@@ -56,3 +56,9 @@ jobs:
       # Also checks every referenced image exists and matches assets.lock.json.
       - name: Web build
         run: npm run -s build:web
+
+      # Mounts every mode of the PRODUCTION bundle in headless Chrome and fails
+      # on the runtime-error screen or any uncaught error — the class of bug
+      # tsc, lint and the unit tests cannot see.
+      - name: Runtime smoke test (production build)
+        run: npm run -s smoke:web
