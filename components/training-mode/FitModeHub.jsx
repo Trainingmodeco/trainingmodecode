@@ -12,6 +12,7 @@ import { loadStats } from './data/userStats';
 import { getFitMiniSuggestion } from './data/recommendations';
 import { quickMissionConfig, surpriseQuickMission, quickMissionLine } from './data/quickMissionConfig';
 import { hasAnyRunGhost } from './data/runGhosts';
+import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
 // Fit Mode — the Simplify revamp layout.
 //
@@ -42,7 +43,7 @@ const hubCSS = `
 
 export default function FitModeHub({
   onHome, onBack, onFightMode, onWorkoutBuilder, onQuickMission, onStartQuickMission,
-  onCombatConditioning, onCardioMode, onGhostMode, onPrograms,
+  onCombatConditioning, onCardioMode, onGhostMode, onPrograms, onOpenConcept,
 }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [surprise, setSurprise] = useState(null);
@@ -173,6 +174,8 @@ export default function FitModeHub({
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
             }}><SlidersHorizontal size={15}/>ADJUST</button>
           </div>
+
+          <ConceptFeatureCard mode="fit" onOpen={onOpenConcept} style={{ marginTop: 'clamp(8px, 2dvh, 16px)', flexShrink: 0 }}/>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'clamp(8px, 2dvh, 16px)', flexShrink: 0 }}>
             {ROWS.map(row)}

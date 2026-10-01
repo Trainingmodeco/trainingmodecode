@@ -12,6 +12,7 @@ import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
+import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
 // Fight Mode hub — the Simplify revamp layout, royal blue and gold.
 //
@@ -66,7 +67,7 @@ const hubCSS = `
 .fh-q:hover, .fh-q:focus-visible { color: #F2BE45 !important; }
 `;
 
-export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp }) {
+export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp, onOpenConcept }) {
   const profile = loadProfile();
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
   const needsGate = isBeginner && !hasCompletedFirstLesson();
@@ -126,6 +127,8 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
         <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', padding: '10px 14px 0', paddingBottom: 'calc(max(96px, 15dvh, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))' }}>
 
         <DisciplineTabs value={disc} onChange={pickDisc} guide="fh-disciplines" style={{ marginBottom: 12 }}/>
+
+        <ConceptFeatureCard mode="fight" onOpen={onOpenConcept} style={{ marginBottom: 8, flexShrink: 0 }}/>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
           {BANNERS.map(b => (

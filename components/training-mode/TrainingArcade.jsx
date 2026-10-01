@@ -12,6 +12,7 @@ import { decodeChallenge, resolveChallenge } from './data/challengeCodes';
 import CodeEntryModal from './shared/CodeEntryModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
+import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
 // Full-bleed saga poster art (918x1713), one per visible series.
 const POSTER_MAP = {
@@ -59,7 +60,7 @@ function StarRow({ count = 0, size = 11 }) {
   );
 }
 
-export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode, onStartGuide }) {
+export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode, onStartGuide, onOpenConcept }) {
   // Paste a friend's challenge code to jump into the exact stage they set.
   // (window.prompt is unsupported on RN Web — use an in-app modal.)
   const [codeOpen, setCodeOpen] = useState(false);
@@ -233,6 +234,9 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
             {totalCleared}<span style={{ fontSize: 9, color: 'rgba(200,170,255,0.55)' }}> /{totalStages} STAGES</span>
           </div>
         </div>
+
+        {/* The featured concept drop's gauntlet, when one is live. */}
+        <div style={{ margin: '4px 14px 2px', flexShrink: 0 }}><ConceptFeatureCard mode="arcade" onOpen={onOpenConcept}/></div>
 
         {/* Carousel */}
         <div data-guide="ar-carousel" style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>

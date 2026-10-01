@@ -16,6 +16,7 @@ import { loadLastSession, describeSession, programFor } from './data/lastSession
 import { surpriseQuickMission, quickMissionConfig } from './data/quickMissionConfig';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './data/ghostChallenges';
+import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
 // Home — the Simplify revamp hub.
 //
@@ -84,7 +85,7 @@ export default function HomeDashboard({
   onPractice, onFightFocus, onQuickMission, onStartQuickMission, onFitSetup, onComboCoach, onJustTrain, onPrograms,
   onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
-  pausedAlt, onResumeAlt, onDiscardAlt,
+  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept,
 }) {
   const [stats, setStats] = useState(() => loadStats());
   const [helpOpen, setHelpOpen] = useState(false);
@@ -354,6 +355,9 @@ export default function HomeDashboard({
             </div>
           )}
         </div>
+
+        {/* The featured concept drop, when one is live. */}
+        <ConceptFeatureCard mode="home" onOpen={onOpenConcept} style={{ flexShrink: 0 }}/>
 
         {/* The two modes. Silhouettes until pointed at, then the art. */}
         <div data-guide="home-modes" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, flexShrink: 0 }}>

@@ -5,6 +5,7 @@ import { judgeRush } from './data/rushVerdict';
 import { loadLabLog, saveLabLog } from './data/strikeLab';
 import { playBeep, unlockAudio } from './data/audioEngine';
 import useWakeLock from './hooks/useWakeLock';
+import { isOwnerPreview, setOwnerPreview } from './data/concepts';
 
 // STRIKE LAB — private diagnostics, opened only with the owner's code
 // (data/strikeLab). Runs the app's accelerometer strike detector and the
@@ -49,6 +50,7 @@ export default function StrikeLab({ onExit }) {
   const [accelLevel, setAccelLevel] = useState(0);
   const [log, setLog] = useState(loadLabLog);
   const [copied, setCopied] = useState(false);
+  const [preview, setPreview] = useState(isOwnerPreview);
 
   const accelDet = useRef(createStrikeDetector());
   const micDet = useRef(createMicStrikeDetector());
@@ -241,6 +243,11 @@ export default function StrikeLab({ onExit }) {
         </div>
         <button type="button" onClick={onExit} style={btn('transparent', '#c4b5fd')}>EXIT</button>
       </div>
+
+      {/* Owner preview of unreleased concept drops, on this phone only. */}
+      <button type="button" onClick={() => { setOwnerPreview(!preview); setPreview(!preview); }} style={{ ...btn(preview ? 'rgba(232,121,249,0.16)' : 'rgba(255,255,255,0.04)', preview ? '#f0abfc' : '#9a90b8'), width: '100%', marginBottom: 12, borderColor: preview ? 'rgba(232,121,249,0.6)' : 'rgba(255,255,255,0.12)' }}>
+        {preview ? '◆ CONCEPT PREVIEW ON · unreleased drops visible' : 'CONCEPT PREVIEW OFF'}
+      </button>
 
       {/* 1. sensors */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>

@@ -38,6 +38,8 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import PracticeInvite from './PracticeInvite';
+import ConceptDropPopup from './shared/ConceptDropPopup';
+import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview } from './data/concepts';
 import HauntWelcome from './HauntWelcome';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
 import GhostChallenge from './GhostChallenge';
@@ -262,6 +264,9 @@ export default function App() {
   const [showParqGate, setShowParqGate] = useState(false);
   // Practice posters: 'intro' once after first-run setup, 'weekly' on open.
   const [practiceInvite, setPracticeInvite] = useState(null);
+  // Concept drops: the page being viewed ({ id, tab, from }) and the once-per-drop pop-up.
+  const [conceptView, setConceptView] = useState(null);
+  const [conceptPopup, setConceptPopup] = useState(null);
   // Ghost challenge screen: { view: 'challenge' | 'haunt', challenge?, ghost?, xpLine? }.
   const [ghostView, setGhostView] = useState(null);
   // The challenge Fight Focus setup was opened for (null = a plain setup).
@@ -554,7 +559,8 @@ export default function App() {
   // the app links here.
   useEffect(() => {
     let live = true;
-    consumeLabCode().then(ok => { if (live && ok) setScreen('strike_lab'); }).catch(() => {});
+    // Unlocking the lab also turns on owner preview of unreleased concept drops on this phone.
+    consumeLabCode().then(ok => { if (live && ok) { setOwnerPreview(true); setScreen('strike_lab'); } }).catch(() => {});
     return () => { live = false; };
   }, []);
 
@@ -962,6 +968,10 @@ export default function App() {
       setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: s.done + f.done, total: s.total + f.total, xpEarned, integrityResult: null, cleared, unlockedTo, split: false, sessionValid: s.valid || f.valid, achievements: unlockedC, titleWon });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
+    // Concept drops: the concept page, and its sessions on the existing players.
+    goConcept:     (tab = 'fit', id = null, from = 'home') => { setConceptView({ id, tab, from }); setScreen('concept'); },
+    startConceptFit:   (c) => actions.goFitWorkout(c),
+    startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
     goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
@@ -972,6 +982,7 @@ export default function App() {
       // the flat per-round rate (an early END used to save four times more
       // than the screen said).
       const justTrain = c.mode === 'Just Train';
+      recordConceptSession(c, done, total);
       // Live verdicts (rushes held or dropped, clean rounds) ride the settled
       // number — the same helper the summary reads, so the two agree.
       const fs = fightSessionStats || {};
@@ -1036,6 +1047,7 @@ export default function App() {
       dropPausedFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);
       if (dayCounts(done, total)) completeProgramDay(c?.programId ? c : fitCfg);
+      recordConceptSession(c?.conceptId ? c : fitCfg, done, total);
       tryCompleteDailyMission('fitMode');
       trackEvent('session_complete', { mode: 'fitMode', exercises: done });
       setFitCfg(c);
@@ -1128,6 +1140,9 @@ export default function App() {
       if (haunt) { markChallengeSeen(); setGhostView({ view: 'challenge', challenge: haunt }); return; }
       const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
       if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
+      // A new concept drop, once per drop per phone.
+      const drop = dueConceptPopup();
+      if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); return; }
       const cb = dueComeback();
       if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
       // The weekly practice reminder, at most once a week, on opening the app.
@@ -1241,6 +1256,13 @@ export default function App() {
           onRemind={() => { remindComebackNextWeek(comeback.view); setComeback(null); }}
         />
       )}
+      {conceptPopup && (
+        <ConceptDropPopup
+          entry={conceptPopup}
+          onStart={() => { const id = conceptPopup.concept.id; setConceptPopup(null); actions.goConcept('fit', id, 'home'); }}
+          onClose={() => setConceptPopup(null)}
+        />
+      )}
       {practiceInvite && (
         <PracticeInvite
           view={practiceInvite}
@@ -1263,7 +1285,7 @@ export default function App() {
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
             arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
-            campCtx={campCtx} campResult={campResult}
+            campCtx={campCtx} campResult={campResult} conceptView={conceptView}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
             pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}
