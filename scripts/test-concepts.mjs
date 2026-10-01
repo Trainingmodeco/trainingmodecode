@@ -150,6 +150,18 @@ for (let i = 0; i < 4; i++) { const c = C.fightDayCfg(SHOTO); C.recordConceptSes
 check('two weeks completes Shoto Fight', C.status(SHOTO).fightComplete);
 const homeShoto = C.fitDayExercises(SHOTO, 0, { home: true });
 check('Shoto home swaps sandbag and med-ball moves', homeShoto.some(e => e.name === 'Burpees') && homeShoto.some(e => e.name === 'Explosive Push-Ups') && !homeShoto.some(e => /Sandbag|Med-Ball/.test(e.name)));
+{
+  const { SUPERS } = await import('../components/training-mode/data/concepts/shoto.js');
+  reset();
+  const days = [0, 1, 2].map(() => { const c = C.fightDayCfg(SHOTO); C.recordConceptSession(c, c.rounds, c.rounds); return c; });
+  const supers = days.map(d => d.blockRounds.filter(r => r.super));
+  check('each style day has exactly one super, on its last round', supers.every((x, i) => x.length === 1 && days[i].blockRounds.at(-1).super));
+  check('supers run as a 30 s rush', supers.flat().every(r => r.rush?.pattern === 'end30'));
+  check('three supers by style', supers.map(x => x[0].super.name).join() === [SUPERS.ryu.name, SUPERS.ken.name, SUPERS.akuma.name].join());
+  check('demon barrage opens with the sliding fake teep', SUPERS.akuma.calls[0].startsWith('Sliding fake teep'));
+  check('Ryu fit has the squat to press', C.fitDayExercises(SHOTO, 0).some(e => e.name === 'Alternating Squat to Press'));
+  check('Ken fit has the 180 tuck jump', C.fitDayExercises(SHOTO, 1).some(e => e.name === '180° Tuck Jumps'));
+}
 check('no character names in Shoto', !/\b(Ryu|Ken|Akuma|Hadoken|Shoryuken|Tatsumaki)\b/i.test(JSON.stringify(SHOTO)));
 check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 && C.bossIndex(SHOTO) === 9);
 

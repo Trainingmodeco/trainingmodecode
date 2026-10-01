@@ -145,6 +145,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const phaseRef     = useRef('round');
   const roundIdxRef  = useRef(0);
   const rushRef      = useRef(false);
+  const supIdxRef    = useRef(0);
   const doneRef      = useRef(false);
 
   useEffect(() => { phaseRef.current    = phase;    }, [phase]);
@@ -434,9 +435,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           if (cfg.voiceOn && !rushSpoken.current) {
             rushSpoken.current = true;
             playRiser();
-            speakAsync(RUSH_ACTIVATION, { priority: 3, preempt: true });
+            // A SUPER (concept rounds) names itself and calls its one combo.
+            const sup = rounds[roundIdxRef.current]?.super;
+            speakAsync(sup ? `Super! ${sup.name}!` : RUSH_ACTIVATION, { priority: 3, preempt: true });
             rushVoice.current.reset();
-            rushCueIn.current = nextCueDelaySec();
+            rushCueIn.current = sup ? 2 : nextCueDelaySec();
           }
         } else if (!wantRush && rushRef.current) {
           setRush(false);
@@ -455,7 +458,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           rushCueIn.current -= 1;
           const inFinalCountdown = rushPatternNow.startsWith('end') && remaining <= 10;
           if (rushCueIn.current <= 0) {
-            if (!inFinalCountdown && remaining > 3) {
+            const sup = rounds[roundIdxRef.current]?.super;
+            if (sup && remaining > 3) {
+              // Supers keep calling through the final count — the combo IS the finish.
+              const styled = formatCall(sup.calls[supIdxRef.current % sup.calls.length], loadUserProfile()?.callStyle);
+              supIdxRef.current += 1;
+              setCurCombo(styled.display);
+              speakAsync(styled.speech, { priority: 2, dropIfBusy: true });
+              rushCueIn.current = sup.every || 5;
+            } else if (!inFinalCountdown && remaining > 3) {
               speakAsync(rushVoice.current.nextLine(), { priority: 1, dropIfBusy: true });
               rushCueIn.current = nextCueDelaySec();
             } else {
@@ -471,7 +482,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         phaseRef.current === 'round' && (cfg.rushMode || roundRush) && rushRef.current &&
         rushPatternNow.startsWith('end') &&
         remaining >= 1 && remaining <= countFrom &&
-        cfg.voiceOn && lastRushCountdownSecond.current !== remaining
+        cfg.voiceOn && !rounds[roundIdxRef.current]?.super && lastRushCountdownSecond.current !== remaining
       ) {
         lastRushCountdownSecond.current = remaining;
         speakAsync(String(remaining), { priority: 3, preempt: true });

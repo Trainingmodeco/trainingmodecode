@@ -230,7 +230,12 @@ export function fightDayCfg(concept, { tier = 'normal', now = Date.now() } = {})
     voiceOn: true, encouragement: 'normal', warmupMin: 3,
     rushMode: !!day.rush, rushPattern: 'perMin10', rushMix: 'explosive',
     // Combos are called by the timer on a 7–11 s cadence (comma-separated words).
-    blockRounds: day.rounds.map(r => ({ round_title: r.title, coach_prompt: r.prompt, ...(r.combos?.length ? { combos: r.combos } : {}) })),
+    blockRounds: day.rounds.map(r => ({
+      round_title: r.title, coach_prompt: r.prompt,
+      ...(r.combos?.length ? { combos: r.combos } : {}),
+      // A super is a 30 s rush at the end of the round with its own calls.
+      ...(r.super ? { super: r.super, rush: { pattern: 'end30' } } : {}),
+    })),
     archetypeName: `${concept.title} · ${day.label}`,
     conceptId: concept.id, conceptKind: 'fight', conceptSeq: prog.fightDone,
   };
