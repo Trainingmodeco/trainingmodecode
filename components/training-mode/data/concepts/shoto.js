@@ -10,7 +10,7 @@
 //
 // Character names stay out of the app (they belong to Capcom); the styles
 // carry the identity. Special-move themes → real movements (owner's table):
-//   fireball        FIT med-ball throw          FIGHT push the bag (or opponent) back, counter as it returns
+//   fireball        FIT med-ball throw          FIGHT double-hand push; push the bag back and counter as it returns
 //   rising uppercut FIT squat to press          FIGHT explosive uppercut
 //   hurricane kick  FIT 180°/360° jump or tuck  FIGHT spinning back kick
 //                                               (advanced: the real kick on the bag)
@@ -112,7 +112,7 @@ export const SHOTO = {
         label: RYU, focus: '2 SHADOW · 3 BAG',
         rounds: [
           { title: 'Shadow · Stance and Straight Lines', prompt: 'Stay balanced. Reset your stance after every combination.',
-            combos: ['Jab, cross, push, counter cross', 'Jab, cross, high kick, low kick', 'Parry, cross, hook, spinning back kick', 'Jab, cross, duck, uppercut, side step', 'Hook, rear kick, push, counter'] },
+            combos: ['Jab, cross, double-hand push', 'Jab, cross, high kick, low kick', 'Parry, cross, hook, spinning back kick', 'Jab, cross, duck, uppercut, side step', 'Hook, rear kick, double-hand push, counter cross'] },
           { title: 'Shadow · Fundamentals With Feints', prompt: 'Short bursts, hard strikes, a clean reset every time.',
             combos: ['Double jab, cross, feint, jump knee', 'Low kick, cross, spinning backfist', 'Feint kick, jumping roundhouse, sweep', 'Cross, hook, spinning back kick, step punch', 'Rising uppercut, jab, cross, guard'] },
           { title: 'Bag · Clean Entries', prompt: 'Clean boxing entries, strong karate finishes.',
@@ -120,7 +120,7 @@ export const SHOTO = {
           { title: 'Bag · Strong Finishes', prompt: 'Composed pace. Make the last strike the hardest.',
             combos: ['Double jab, cross, rear kick', 'Low kick, cross, hook', 'Cross, lead hook, rear roundhouse', 'Jab, cross, knee'] },
           { title: 'Bag · Controlled Power', prompt: 'Every strike intentional. The last 30 seconds is your super.',
-            combos: ['Hook, rear kick, cross', 'Jab, cross, push, counter', 'Cross, hook, roundhouse', 'Jab, rear body kick'],
+            combos: ['Hook, rear kick, cross', 'Jab, cross, double-hand push', 'Double-hand push, counter cross, hook', 'Cross, hook, roundhouse', 'Jab, rear body kick'],
             super: SUPERS.ryu },
         ],
       },
@@ -144,9 +144,9 @@ export const SHOTO = {
         label: AKUMA, focus: '2 SHADOW · 3 BAG', rush: true, restSec: 30,
         rounds: [
           { title: 'Shadow · Forward Pressure', prompt: 'Advance during every combination. Take their space.',
-            combos: ['Dash jab, step cross, spinning back kick', 'Cross, jump in, hook, push, counter', 'Jab, low kick, overhand, side step', 'Jab, cross, duck, uppercut, spinning elbow', 'Sliding fake teep, rear elbow'] },
+            combos: ['Dash jab, step cross, spinning back kick', 'Cross, jump in, hook, double-hand push', 'Jab, low kick, overhand, side step', 'Jab, cross, duck, uppercut, spinning elbow', 'Sliding fake teep, rear elbow'] },
           { title: 'Shadow · Speed and Power', prompt: 'Hard basic shots, fast. Long chains, all forward.',
-            combos: ['Dash, low kick, cross, uppercut', 'Fake teep slide forward, fake teep slide back, cross', 'Hook, elbow, elbow, knee', 'Jab, hook, low kick, cross', 'Jump knee, hook, low kick, push, counter'] },
+            combos: ['Dash, low kick, cross, uppercut', 'Fake teep slide forward, fake teep slide back, cross', 'Hook, elbow, elbow, knee', 'Jab, hook, low kick, cross', 'Jump knee, hook, low kick, double-hand push, counter'] },
           { title: 'Bag · Power Combinations', prompt: 'Heavy shots. Plant and hit through the bag.',
             combos: ['Dash, cross, rear kick, elbow', 'Cross, uppercut, cross', 'Hook, jump knee, hook', 'Jumping fake teep, rear elbow'] },
           { title: 'Bag · Close Range', prompt: 'Elbows and knees. Stay on top of it.',
@@ -172,7 +172,7 @@ export const SHOTO = {
     stages: [
       { title: 'STANCE & STRIKE', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['50 straight punches', '10 squat jumps', '1:00 jab-cross on the bag'] },
       { title: 'CONTROLLED POWER', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 alternating squat to press', '12 med-ball throws or explosive push-ups', '20 power straights'] },
-      { title: 'THE FIREBALL', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 bag push and counters, or chest passes', '10 burpees', '1:00 rear kicks'] },
+      { title: 'THE FIREBALL', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['15 double-hand pushes, every third with a counter, or chest passes', '10 burpees', '1:00 rear kicks'] },
       { title: 'BLAZING FEET', format: '4 × 2:30', plan: { rounds: 4, len: 150, rest: 45 }, items: ['1:00 bounce footwork', '30 speed knees', '20 low kicks'] },
       { title: 'DASH & STRIKE', format: 'EMOM 10 min', plan: { rounds: 10, len: 60, rest: 5 }, items: ['4 burpee tuck jumps', 'jab, cross, hook, kick'] },
       { title: 'SPINNING FLAME', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['10 med-ball slams', '10 roundhouse kicks each side', '6 controlled 180° jump squats'] },
