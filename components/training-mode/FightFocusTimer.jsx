@@ -31,6 +31,7 @@ import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
 import { isRushAt, rushPatternLabel } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
+import { nextSwitchCall, switchGapSec } from './data/multiOpponent';
 import { formatCall } from './data/strikeNumbering';
 import { loadProfile as loadUserProfile } from './data/userProfile';
 import CoachCaption from './CoachCaption';
@@ -246,6 +247,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const comboIdxRef = useRef(0);
   const comboRoundRef = useRef(-1);
   const lastComboAtRef = useRef(-999);
+  const switchRoundRef = useRef(-1);
+  const lastSwitchAtRef = useRef(0);
 
   // Ghost Battles — record this session's pace (strike timestamps in WORK
   // seconds + per-round totals) so a verified run becomes a ghost; when
@@ -518,6 +521,21 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             const styled = formatCall(call, loadUserProfile()?.callStyle);
             setCurCombo(styled.display);
             if (cfg.voiceOn) speakAsync(styled.speech, { ...vOpts, priority: 2 });
+          }
+        }
+        // Multiple opponents: on a cadence, pivot to the next bag / opponent.
+        if (curR?.multi) {
+          if (switchRoundRef.current !== roundIdxRef.current) {
+            switchRoundRef.current = roundIdxRef.current;
+            lastSwitchAtRef.current = 0;
+          }
+          const el = roundSec - remaining;
+          if (el >= 6 && remaining > 5 && !rushRef.current && el - lastSwitchAtRef.current >= switchGapSec(diff) && el !== lastComboAtRef.current) {
+            lastSwitchAtRef.current = el;
+            const sw = nextSwitchCall();
+            setCurCombo(sw.display);
+            setTimeout(() => setCurCombo(c => (c === sw.display ? null : c)), 2500);
+            if (cfg.voiceOn) speakAsync(sw.speech, { ...vOpts, priority: 2, preempt: true });
           }
         }
       }

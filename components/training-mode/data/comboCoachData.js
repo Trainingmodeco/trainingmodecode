@@ -136,6 +136,9 @@ const COMBO_POOL = [
   // Advanced
   { id: 'mma-23', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Jab Cross Fake Shot Flying Knee', category: 'elite', coachingCue: 'The highlight reel.' },
   { id: 'mma-24', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Sprawl Cross Hook Level Change Ground Pound Pass', category: 'elite', coachingCue: 'Full MMA chain.' },
+  { id: 'mma-69', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Jab Cross Spinning Back Elbow', category: 'elite', coachingCue: 'Step across, turn your back, lead with the elbow.' },
+  { id: 'mma-70', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Lead Hook Low Kick Spinning Backfist', category: 'elite', coachingCue: 'Let the kick turn you into the spin.' },
+  { id: 'mma-71', discipline: 'mma', minDifficulty: 'hard', comboText: 'Jab Cross Spinning Backfist', category: 'elite', coachingCue: 'Only spin when your base is set.' },
   { id: 'mma-25', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Low Kick Jab Overhand Clinch Knee Knee Elbow', category: 'elite', coachingCue: 'Every weapon flows.' },
   { id: 'mma-26', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Feint Shot Overhand Hook Body Kick Level Change', category: 'elite', coachingCue: 'Keep them guessing the level.' },
   { id: 'mma-27', discipline: 'mma', minDifficulty: 'advanced', comboText: 'Clinch Knee Push Cross Hook Roundhouse Sprawl', category: 'elite', coachingCue: 'Full range combat flow.' },
@@ -328,7 +331,7 @@ export const ADVANCED_STRIKES = {
   boxing: ['Bolo Punch', 'Check Hook', 'Shovel Hook', 'Overhand'],
   kickboxing: ['Spinning Back Kick', 'Tornado Kick', 'Question Mark Kick', 'Axe Kick', 'Superman Punch', 'Spinning Backfist', 'Flying Knee', 'Hook Kick'],
   'muay-thai': ['Spinning Back Elbow', 'Spinning Back Kick', 'Question Mark Kick', 'Flying Knee', 'Jumping Elbow', 'Axe Kick', 'Spinning Heel Kick'],
-  mma: ['Spinning Back Kick', 'Spinning Backfist', 'Superman Punch', 'Flying Knee', 'Question Mark Kick', 'Wheel Kick', 'Oblique Kick'],
+  mma: ['Spinning Back Kick', 'Spinning Backfist', 'Spinning Back Elbow', 'Superman Punch', 'Flying Knee', 'Question Mark Kick', 'Wheel Kick', 'Oblique Kick'],
 };
 
 export default COMBO_POOL;

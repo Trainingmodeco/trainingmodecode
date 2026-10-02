@@ -1,3 +1,5 @@
+import { MULTI_TITLE, MULTI_PROMPT } from './multiOpponent';
+
 const FIGHT_FOCUS_POOL = [
   // ======================== BOXING (20) ========================
   { id: 'box-01', discipline: 'boxing', minDifficulty: 'easy', title: 'Jab Control', description: 'Establish distance and rhythm with the jab.', coachingCue: 'Snap it back fast. Double up when they hesitate.', sampleCommands: ['Jab', 'Double Jab', 'Jab to body'] },
@@ -132,6 +134,17 @@ FIGHT_FOCUS_POOL.push(
   { id: 'kb-sp', discipline: 'kickboxing', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Switch your feet. Lead with the right, kick with the left.', sampleCommands: ['Southpaw Jab', 'Southpaw Low Kick'] },
   { id: 'mt-sp', discipline: 'muay-thai', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Mirror everything. Left roundhouse becomes your power kick.', sampleCommands: ['Southpaw Teep', 'Southpaw Roundhouse'] },
   { id: 'mma-sp', discipline: 'mma', minDifficulty: 'easy', title: 'Southpaw Round', description: 'Fight the entire round in southpaw stance.', coachingCue: 'Switch stance. Watch your lead leg — it is exposed now.', sampleCommands: ['Southpaw Jab Cross', 'Southpaw Low Kick'] },
+);
+
+// ── Multiple opponents ─────────────────────────────────────────────────────
+// A hard-tier round in every discipline: work one target, then on SWITCH pivot
+// to the next bag (or the next imagined opponent). The timer calls the switch.
+FIGHT_FOCUS_POOL.push(
+  ...['boxing', 'kickboxing', 'muay-thai', 'mma'].map(discipline => ({
+    id: `${discipline}-multi`, discipline, minDifficulty: 'hard', multi: true,
+    title: MULTI_TITLE, description: 'Strike one target, then pivot to the next on the switch call.',
+    coachingCue: MULTI_PROMPT, sampleCommands: ['Combo', 'Switch', 'Combo'],
+  })),
 );
 
 export default FIGHT_FOCUS_POOL;

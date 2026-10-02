@@ -22,7 +22,7 @@ export const DISCIPLINE_STRIKES = {
   boxing: BOX,
   kickboxing: KICK,
   'muay-thai': [...KICK, 'Knee', 'Elbow', 'Flying Knee'],
-  mma: [...KICK, 'Knee', 'Elbow', 'Superman Punch', 'Spinning Backfist', 'Question Mark Kick'],
+  mma: [...KICK, 'Knee', 'Elbow', 'Superman Punch', 'Spinning Backfist', 'Spinning Back Elbow', 'Question Mark Kick'],
 };
 
 // Every strike the game knows (union of all vocabularies), lowercased — a move

@@ -32,6 +32,7 @@ import TrainingCTA from './shared/TrainingCTA';
 import { disciplineSlug, countStrikes } from './data/arsenal';
 import { formatCall, callStyleOf } from './data/strikeNumbering';
 import { loadProfile } from './data/userProfile';
+import { comboCoachMultiRound, switchEveryCombos, nextSwitchCall, MULTI_ANNOUNCE } from './data/multiOpponent';
 
 // 1.3 — defense calls mixed between combos (shown in violet). Check is a
 // kick-sport defense; Sprawl is MMA's takedown answer.
@@ -165,6 +166,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     [discipline, cfg.customCombos],
   );
   const comboIndexRef = useRef(0);
+  const switchInRef = useRef(switchEveryCombos(cfg.difficulty));
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? 'round');
   const [roundIdx, setRoundIdx] = useState(initialResumeData?.roundIdx ?? 0);
@@ -177,7 +179,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     return out;
   }, [roundPlans, roundIdx, moveLabCalls, pool]);
   // Each round starts its own plan from the top.
-  useEffect(() => { comboIndexRef.current = 0; }, [roundIdx]);
+  useEffect(() => { comboIndexRef.current = 0; switchInRef.current = switchEveryCombos(cfg.difficulty); }, [roundIdx, cfg.difficulty]);
   const [remaining, setRemaining] = useState(initialResumeData?.remaining ?? roundSec);
   const [paused, setPaused] = useState(!!initialPaused);
   const [rush, setRush] = useState(false);
@@ -196,6 +198,10 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const defenseCadence = defenseCadenceFor(cfg.mode, cfg.difficulty);
   const defenseInRef = useRef(defenseCadence ? rollCadence(defenseCadence) : Infinity);
   const defensePool = DEFENSE_CALLS[disciplineSlug(discipline)] || DEFENSE_CALLS.boxing;
+  // Multiple opponents (Hard/Advanced, 3+ rounds): one round where every few
+  // combos the coach calls SWITCH — pivot to the other bag / next opponent.
+  const multiRound = comboCoachMultiRound(cfg.difficulty, totalRounds);
+  const [isSwitch, setIsSwitch] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   // "End session?" holds the clock and the calls while it asks; CANCEL hands
   // them back as they were.
@@ -380,10 +386,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (aborted()) return;
 
     setCountdown(`ROUND ${rIdx + 1}`);
-    setCountdownSub(`${discipline} \u2022 ${speedLabel}`);
+    const multi = rIdx === multiRound;
+    setCountdownSub(multi ? 'MULTIPLE OPPONENTS' : `${discipline} \u2022 ${speedLabel}`);
     // "3.5s" is a label, not a sentence — the coach says the cadence in words.
     const speedSpoken = /^\d/.test(String(speedLabel)) ? `${parseFloat(speedLabel)} second cadence` : `${speedLabel} speed`;
-    await speakOrDelay(`Round ${rIdx + 1}. ${discipline}. ${speedSpoken}.`, 1200, { voice });
+    await speakOrDelay(multi ? `Round ${rIdx + 1}. ${MULTI_ANNOUNCE}` : `Round ${rIdx + 1}. ${discipline}. ${speedSpoken}.`, 1200, { voice });
     if (aborted()) return;
 
     setCountdown('GO');
@@ -393,7 +400,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     setCountdown(null);
     setCountdownSub('');
-  }, [discipline, speedLabel, cfg.voiceOn]);
+  }, [discipline, speedLabel, cfg.voiceOn, multiRound]);
 
   useEffect(() => {
     rushSpoken.current = false;
@@ -566,7 +573,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         }
         setPhase('rest');
         setRemaining(restSec);
-        setTimeout(() => { if (cfg.voiceOn !== false) speakAsync('Rest.', { priority: 2 }); }, 400);
+        const nextMulti = roundIdxRef.current + 1 === multiRound;
+        setTimeout(() => { if (cfg.voiceOn !== false) speakAsync(nextMulti ? 'Rest. Up next: multiple opponents.' : 'Rest.', { priority: 2 }); }, 400);
       }
     } else {
       setPhase('round');
@@ -588,12 +596,33 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     const loop = async () => {
       while (active && comboLoopRef.current && !pausedRef.current) {
+        if (roundIdxRef.current === multiRound && !rushRef.current && switchInRef.current <= 0) {
+          const sw = nextSwitchCall();
+          switchInRef.current = switchEveryCombos(cfg.difficulty);
+          setIsDefense(false); setIsSwitch(true);
+          setCurrentCombo({ display: sw.display, speech: sw.speech, segments: null });
+          setCallTick(t => t + 1);
+          await delay(300);
+          if (!active || pausedRef.current) break;
+          let swMs = 0;
+          if (cfg.voiceOn !== false && remainingRef.current > 3) {
+            isSpeakingCombo.current = true;
+            const t0 = Date.now();
+            await speakAsync(sw.speech, { rate: Math.min(voiceRate + 0.1, 1.3), priority: 2 });
+            swMs = Date.now() - t0;
+            isSpeakingCombo.current = false;
+          }
+          if (!active || pausedRef.current) break;
+          // Time to turn and square up before the next combo.
+          await delay(Math.max(cadenceMs * 0.6 - swMs, 700));
+          continue;
+        }
         // 1.3 — on cadence, a defense call fires instead (violet, quick).
         const defenseNow = defenseCadence && !rushRef.current && defenseInRef.current <= 0;
         if (defenseNow) {
           const call = defensePool[Math.floor(Math.random() * defensePool.length)];
           defenseInRef.current = rollCadence(defenseCadence);
-          setIsDefense(true);
+          setIsDefense(true); setIsSwitch(false);
           setCurrentCombo({ display: `${call.toUpperCase()}!`, speech: call, segments: null });
           setCallTick(t => t + 1);
           await delay(300);
@@ -618,9 +647,10 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         const idx = comboIndexRef.current % roundCalls.length;
         comboIndexRef.current++;
         defenseInRef.current--;
+        switchInRef.current--;
         const next = roundCalls[idx];
         const styled = formatCall(next, callStyle);
-        setIsDefense(false);
+        setIsDefense(false); setIsSwitch(false);
         setCurrentCombo(styled);
         setCallTick(t => t + 1);
         streakRef.current++;
@@ -659,7 +689,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       cancelSpeech();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, paused, countdown, done, cadenceMs, voiceRate, roundCalls]);
+  }, [phase, paused, countdown, done, cadenceMs, voiceRate, roundCalls, multiRound]);
 
   // Reset streak on pause
   useEffect(() => {
@@ -894,8 +924,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
                 <div className="anim-fade-up" key={callTick} style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
                   fontSize: isDefense ? 34 : (currentCombo?.display || '').length > 20 ? 22 : 28,
-                  color: isDefense ? '#a855f7' : '#fde047', lineHeight: 1.2, textAlign: 'center',
-                  textShadow: isDefense ? '0 0 22px rgba(168,85,247,0.65)' : '0 0 18px rgba(253,224,71,0.4)',
+                  color: isSwitch ? '#5eead4' : isDefense ? '#a855f7' : '#fde047', lineHeight: 1.2, textAlign: 'center',
+                  textShadow: isSwitch ? '0 0 22px rgba(94,234,212,0.6)' : isDefense ? '0 0 22px rgba(168,85,247,0.65)' : '0 0 18px rgba(253,224,71,0.4)',
                   maxWidth: 280,
                 }}>
                   {/* NUMBERS style renders an all-numeric call (formatCall only

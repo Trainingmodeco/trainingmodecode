@@ -225,6 +225,7 @@ export function generateFightFocusSession({ discipline, difficulty, rounds }) {
       coach_prompt: f.coachingCue,
       description: f.description,
       session_type: 'Technical',
+      ...(f.multi ? { multi: true } : {}),
     }));
   }
 
@@ -240,6 +241,7 @@ export function generateFightFocusSession({ discipline, difficulty, rounds }) {
     coach_prompt: f.coachingCue,
     description: f.description,
     session_type: 'Technical',
+    ...(f.multi ? { multi: true } : {}),
   }));
 }
 
