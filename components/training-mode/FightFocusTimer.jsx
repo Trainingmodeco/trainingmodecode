@@ -998,8 +998,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           })}
         </div>
 
-        {/* Up next chip (design 13a) */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 7 }}>
+        {/* Up next chip (design 13a) — during rest the UP NEXT card below says it in full. */}
+        {!(phase === 'rest' && rounds[roundIdx + 1]) && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 7 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(79,140,255,0.1)', border: '1px solid rgba(79,140,255,0.35)', borderRadius: 99, padding: '7px 15px' }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8, fontWeight: 700, color: '#7fb0ff', letterSpacing: '0.08em' }}>UP NEXT</span>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 800, color: '#fff' }}>
@@ -1010,7 +1010,27 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
                   : 'FINAL ROUND'}
             </span>
           </div>
-        </div>
+        </div>}
+
+        {/* Rest: the next round's focus, so the fighter can read what the
+            coach just announced (it was voice-only before). */}
+        {phase === 'rest' && rounds[roundIdx + 1] && (
+          <div className="anim-fade-up" style={{
+            textAlign: 'center', marginBottom: 6, padding: '10px 16px', borderRadius: 10,
+            background: 'rgba(10,0,20,0.7)', border: '1px solid rgba(79,140,255,0.4)',
+            width: '100%', maxWidth: 340,
+          }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 9, fontWeight: 700, color: '#7fb0ff', letterSpacing: '0.14em' }}>UP NEXT · ROUND {roundIdx + 2}</div>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, color: '#fff', fontSize: 15, letterSpacing: '0.08em', marginTop: 5 }}>
+              {(rounds[roundIdx + 1].round_title || 'Free flow').toUpperCase()}
+            </div>
+            {(rounds[roundIdx + 1].coach_prompt || rounds[roundIdx + 1].description) && (
+              <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 500, color: C.faint, marginTop: 5 }}>
+                {rounds[roundIdx + 1].description && rounds[roundIdx + 1].description !== rounds[roundIdx + 1].coach_prompt ? `${rounds[roundIdx + 1].description} ` : ''}{rounds[roundIdx + 1].coach_prompt || ''}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Focus command card */}
         {cur && phase === 'round' && countdown === null && (

@@ -102,3 +102,12 @@ a new imagined opponent. Strikes come in streams, one target at a time.
    multiple opponents"; round 3 opens with the announcement and shows a
    teal SWITCH call after every 3 combos. Normal difficulty never has it.
 4. MMA advanced calls can include the spinning back elbow.
+
+## 6. Fight Focus — UP NEXT card during rest (commit after `ae18348`)
+
+The rest line was voice-only ("Rest. Up next: <title>"). During rest,
+`FightFocusTimer` now shows an **UP NEXT** card where the round's focus card
+sits: `UP NEXT · ROUND N` (blue `#7fb0ff`, Orbitron 9 px), the next round's
+title (Orbitron 800, 15 px, uppercase), and its description + coach prompt
+(Rajdhani 13 px; description omitted when it equals the prompt). Blue border
+`rgba(79,140,255,0.4)`. The small UP NEXT chip is hidden while the card shows.
