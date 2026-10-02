@@ -150,7 +150,18 @@ export default function StrikeLab({ onExit, onOpenConcept }) {
     setLog(next); saveLabLog(next);
   };
 
-  const startCount = () => {
+  // Starting a test switches on whichever sensor is still off, so a run is
+  // never recorded blind (both reset on every page reload).
+  const ensureSensors = async () => {
+    const jobs = [];
+    if (motionState === 'off') jobs.push(enableMotion());
+    if (micState === 'off') jobs.push(enableMic());
+    await Promise.all(jobs);
+    audio.current.ctx?.resume?.().catch?.(() => {});
+  };
+
+  const startCount = async () => {
+    await ensureSensors();
     unlockAudio(); zero(); cue();
     startedAt.current = performance.now();
     setRunning('count');
@@ -161,7 +172,8 @@ export default function StrikeLab({ onExit, onOpenConcept }) {
     setRunning(null);
   };
 
-  const startRush = () => {
+  const startRush = async () => {
+    await ensureSensors();
     unlockAudio(); zero();
     phaseMarks.current = [];
     setRunning('rush');
