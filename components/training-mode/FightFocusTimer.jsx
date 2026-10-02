@@ -31,11 +31,14 @@ import { getCoachCopy } from './data/coachCopy';
 import { RushOverlay, RushPersistentEffects, RushTimerAura, RushGlowBurst } from './RushEffects';
 import { isRushAt, rushPatternLabel } from './shared/rushSchedule';
 import { scheduleEncouragements, pickEncouragement } from './data/coachEncouragement';
-import { nextSwitchCall, switchGapSec } from './data/multiOpponent';
+import { nextSwitchCall, switchGapSec, SWITCH_CALLS } from './data/multiOpponent';
 import { formatCall } from './data/strikeNumbering';
 import { loadProfile as loadUserProfile } from './data/userProfile';
 import CoachCaption from './CoachCaption';
 import TrainingCTA from './shared/TrainingCTA';
+
+// The switch calls render big and teal, not as a gold combo line.
+const SWITCH_DISPLAYS = new Set(SWITCH_CALLS.map(c => c.display));
 
 const GOLD = C.gold;
 const RING_SIZE = 394;
@@ -1023,7 +1026,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
               {cur.coach_prompt}
             </div>
             {curCombo && (
-              <div className="anim-fade-up" style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, color: '#ffd75e', fontSize: 14, marginTop: 6, letterSpacing: '0.06em' }}>
+              <div className="anim-fade-up" key={curCombo} style={SWITCH_DISPLAYS.has(curCombo)
+                ? { fontFamily: "'Orbitron',sans-serif", fontWeight: 900, color: '#5eead4', fontSize: 22, marginTop: 8, letterSpacing: '0.04em', textShadow: '0 0 18px rgba(94,234,212,0.6)' }
+                : { fontFamily: "'Orbitron',sans-serif", fontWeight: 800, color: '#ffd75e', fontSize: 14, marginTop: 6, letterSpacing: '0.06em' }}>
                 {curCombo.toUpperCase()}
               </div>
             )}

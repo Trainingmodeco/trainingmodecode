@@ -58,7 +58,8 @@ a new imagined opponent. Strikes come in streams, one target at a time.
   block: when `rounds[i].multi`, from 6 s into the round, while more than
   5 s remain and no rush is on, every `switchGapSec(diff)` seconds (and not
   in the same second as a combo call): show the switch call in the combo
-  line, clear it after 2.5 s if nothing replaced it, and speak it with
+  line — rendered big and teal (22 px Orbitron 900, `#5eead4`, glow) when
+  the line is a switch call — clear it after 2.5 s if nothing replaced it, and speak it with
   `priority: 2, preempt: true`. Refs: `switchRoundRef`, `lastSwitchAtRef`
   (reset when the round changes).
 - Any block round (camp, arcade, concept) may set `multi: true` and gets
