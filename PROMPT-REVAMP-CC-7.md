@@ -114,5 +114,6 @@ drop's user-facing text.
 - `saga.js` `retiredSagaIds(now)`: once a drop is live (or in the vault) the
   saga it replaces leaves the carousel — flow-state → `flow-state-protocol`,
   one-hundred → `one-punch-protocol`, night-vigilante → `vigilante-protocol` —
-  unless the player already cleared a stage there. TrainingArcade filters
+  unless the player is Pro or already cleared a stage there; ultra-ego →
+  `destroyer-protocol` (Dec 1) is retired the same way. TrainingArcade filters
   `VISIBLE_ARCADE_SERIES` with it.

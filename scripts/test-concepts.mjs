@@ -292,10 +292,12 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
 {
   reset();
   const S2 = await import('../components/training-mode/data/concepts/saga.js');
-  check('old sagas stay before their drops', S2.retiredSagaIds(at('2026-10-20')).size === 0);
-  check('Flow State saga retires Feb 1', S2.retiredSagaIds(at('2027-02-01')).has('flow-state-protocol') && !S2.retiredSagaIds(at('2027-02-01')).has('one-punch-protocol'));
-  check('all three retired by Aug 2027', ['flow-state-protocol', 'one-punch-protocol', 'vigilante-protocol'].every(id => S2.retiredSagaIds(at('2027-08-02')).has(id)));
-  check('kept for someone with progress', !S2.retiredSagaIds(at('2027-04-02'), id => id === 'one-punch-protocol').has('one-punch-protocol'));
+  check('old sagas stay before their drops', S2.retiredSagaIds(at('2026-10-20'), () => false, false).size === 0);
+  check('Flow State saga retires Feb 1', S2.retiredSagaIds(at('2027-02-01'), () => false, false).has('flow-state-protocol') && !S2.retiredSagaIds(at('2027-02-01'), () => false, false).has('one-punch-protocol'));
+  check('all three retired by Aug 2027', ['flow-state-protocol', 'one-punch-protocol', 'vigilante-protocol'].every(id => S2.retiredSagaIds(at('2027-08-02'), () => false, false).has(id)));
+  check('The Destroyer retires Dec 1', !S2.retiredSagaIds(at('2026-11-30'), () => false, false).has('destroyer-protocol') && S2.retiredSagaIds(at('2026-12-01'), () => false, false).has('destroyer-protocol'));
+  check('Pro keeps every old saga', S2.retiredSagaIds(at('2027-08-02'), () => false, true).size === 0);
+  check('kept for someone with progress', !S2.retiredSagaIds(at('2027-04-02'), id => id === 'one-punch-protocol', false).has('one-punch-protocol'));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
