@@ -14,6 +14,7 @@ import { FIT_MODE_EXERCISES } from '../../fit-mode/fitModeExerciseData';
 import { isPro } from '../entitlements';
 import { ULTRA_EGO, ULTRA_EGO_EXERCISES } from './ultraEgo';
 import { SHOTO, SHOTO_EXERCISES } from './shoto';
+import { NIGHT_VIGILANTE, NIGHT_VIGILANTE_EXERCISES } from './nightVigilante';
 
 const KEY = 'tm_concepts_v1';
 export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
@@ -23,9 +24,11 @@ export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
 export const CONCEPT_SCHEDULE = [
   { concept: SHOTO, start: '2026-10-19', end: '2026-11-30' },
   { concept: ULTRA_EGO, start: '2026-12-01', end: '2027-01-31' },
+  // Over Batman Day (third Saturday of September: Sep 18, 2027).
+  { concept: NIGHT_VIGILANTE, start: '2027-08-01', end: '2027-09-30' },
 ];
 
-const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES];
+const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES, ...NIGHT_VIGILANTE_EXERCISES];
 
 // ── time ────────────────────────────────────────────────────────────────────
 const dayStart = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 0, 0, 0, 0).getTime(); };
@@ -148,6 +151,9 @@ const TIER = {
 };
 
 export function scaleRow(row, tier = 'normal') {
+  // A tier's own alternate (row.easy / row.hard) is already written for that
+  // tier — use its numbers as they are.
+  if (row.fixed) return { ...row, sets: Math.max(1, row.sets || 3) };
   const t = TIER[tier] || TIER.normal;
   const sets = Math.max(2, (row.sets || 3) + t.sets);
   const out = { ...row, sets };
@@ -192,8 +198,12 @@ export function fitDayExercises(concept, dayIdx, { tier = 'normal', home = false
   const day = fitTrainingDays(concept)[dayIdx];
   if (!day) return [];
   return day.exercises.map((r, i) => {
-    let row = r;
-    if (home && WEIGHTED.has(r.equip) && r.swap) row = { ...r, name: r.swap, equip: 'bodyweight', note: `Home swap for ${r.name}.` };
+    // Tier alternate first (row.easy = the beginner version, row.hard = the
+    // advanced one), then the home version of whatever that left.
+    const alt = r[tier];
+    let row = alt ? { ...r, ...alt, fixed: true } : r;
+    if (home && row.home) row = { ...row, ...row.home, note: row.home.note || `Home version of ${row.name}.` };
+    else if (home && WEIGHTED.has(row.equip) && row.swap) row = { ...row, name: row.swap, equip: 'bodyweight', note: `Home swap for ${row.name}.` };
     return toPlayerExercise(scaleRow(row, tier), i);
   });
 }
@@ -223,19 +233,30 @@ export function fightDayCfg(concept, { tier = 'normal', now = Date.now() } = {})
   const idx = Math.min(prog.fightDone, fightTotal(concept) - 1) % concept.fight.days.length;
   const day = concept.fight.days[idx];
   const rest = day.restSec ?? concept.fight.restSec;
+  // A beginner tier (fight.easy) may run fewer, shorter rounds; the last
+  // round (it carries the super) always stays.
+  const easy = tier === 'easy' ? concept.fight.easy : null;
+  const max = easy?.maxRounds;
+  const rounds = max && day.rounds.length > max ? [...day.rounds.slice(0, max - 1), day.rounds[day.rounds.length - 1]] : day.rounds;
   markStarted(concept.id, now);
   return {
     difficulty: FIGHT_DIFF[tier] || 'Normal', mode: 'Fight Focus',
-    rounds: day.rounds.length, roundMin: concept.fight.roundMin, restSec: rest,
+    rounds: rounds.length, roundMin: easy?.roundMin ?? concept.fight.roundMin, restSec: rest,
     voiceOn: true, encouragement: 'normal', warmupMin: 3,
     rushMode: !!day.rush, rushPattern: 'perMin10', rushMix: 'explosive',
     // Combos are called by the timer on a 7–11 s cadence (comma-separated words).
-    blockRounds: day.rounds.map(r => ({
-      round_title: r.title, coach_prompt: r.prompt,
-      ...(r.combos?.length ? { combos: r.combos } : {}),
-      // A super is a 30 s rush at the end of the round with its own calls.
-      ...(r.super ? { super: r.super, rush: { pattern: 'end30' } } : {}),
-    })),
+    blockRounds: rounds.map(r => {
+      const combos = (tier === 'easy' && r.easyCombos) || r.combos;
+      const sup = r.super && tier === 'easy' && r.super.easy ? { ...r.super, ...r.super.easy } : r.super;
+      return {
+        round_title: r.title, coach_prompt: r.prompt,
+        ...(combos?.length ? { combos } : {}),
+        // A super is a 30 s rush at the end of the round with its own calls.
+        ...(sup ? { super: sup, rush: { pattern: 'end30' } } : {}),
+        // Multiple opponents: the timer calls SWITCH / PIVOT on a cadence.
+        ...(r.multi ? { multi: true } : {}),
+      };
+    }),
     archetypeName: `${concept.title} · ${day.label}`,
     conceptId: concept.id, conceptKind: 'fight', conceptSeq: prog.fightDone,
   };
@@ -262,20 +283,27 @@ export function stagePlayable(concept, stageIdx, progress = loadProgress(concept
   return true;
 }
 
-export function stageCfg(concept, stageIdx, { tier = 'normal', now = Date.now(), arc = 'hybrid' } = {}) {
+// A stage's stations for a tier: the beginner list when the stage has one.
+export function stageItems(stage, tier = 'normal') {
+  return (tier === 'easy' && stage.easyItems) || stage.items;
+}
+
+export function stageCfg(concept, stageIdx, { tier = null, now = Date.now(), arc = 'hybrid' } = {}) {
   const stage = arcStages(concept, arc)[stageIdx];
   const arcLabel = ARCS.find(a => a.id === arc)?.label || 'FINAL ARC';
   const { rounds, len, rest } = stage.plan;
-  const list = stage.items.join(' · ');
+  const t = tier || loadProgress(concept.id).tier || 'normal';
+  const list = stageItems(stage, t).join(' · ');
   markStarted(concept.id, now);
   return {
-    difficulty: FIGHT_DIFF[tier] || 'Normal', mode: 'Fight Focus',
+    difficulty: FIGHT_DIFF[t] || 'Normal', mode: 'Fight Focus',
     rounds, roundMin: Math.max(1, Math.round(len / 60)), restSec: rest,
     voiceOn: true, encouragement: 'normal', warmupMin: 3, rushMode: false,
     blockRounds: Array.from({ length: rounds }, (_, i) => ({
       round_title: rounds > 1 ? `${stage.title} · ${i + 1}/${rounds}` : stage.title,
       coach_prompt: stage.boss ? `For time: ${list}. Tap finish when the last rep is done.` : `${list}. Finish the station, rest what is left.`,
       length_sec: len, rest_sec: rest,
+      ...(stage.multi ? { multi: true } : {}),
     })),
     archetypeName: `${concept.title} · ${arcLabel} · ${stage.title}`,
     conceptId: concept.id, conceptKind: 'arcade', conceptStage: stageIdx, conceptArc: arc,

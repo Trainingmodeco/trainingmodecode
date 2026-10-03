@@ -10,6 +10,7 @@ globalThis.localStorage = {
 const C = await import('../components/training-mode/data/concepts/index.js');
 const { ULTRA_EGO: UE } = await import('../components/training-mode/data/concepts/ultraEgo.js');
 const { SHOTO } = await import('../components/training-mode/data/concepts/shoto.js');
+const { NIGHT_VIGILANTE: NV } = await import('../components/training-mode/data/concepts/nightVigilante.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -198,6 +199,43 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   AP.completeStage('x', 's1', 0, null, null, null, { path: 'fit' }); AP.completeStage('x', 's1', 0, null, null, null, { path: 'fit' }); AP.completeStage('x', 's1', 0, null, null, null, { path: 'both' });
   const e = AP.getSeriesProgress('x').completedStages.s1;
   check('saga stars: one per distinct path', e.stars === 2 && e.paths.join() === 'fit,both');
+}
+
+// ── Night Vigilante: tiers with real alternates, home versions, multi rounds ─
+{
+  reset();
+  const nv = C.entryFor('night-vigilante');
+  check('NV scheduled over Batman Day (Sep 18 2027)', nv && C.windowState(nv, at('2027-09-18')) === 'live' && C.windowState(nv, at('2027-07-31')) === 'upcoming');
+  check('NV fit: 5 training days a week, 20 sessions', C.fitTrainingDays(NV).length === 5 && C.fitTotal(NV) === 20);
+  check('NV fight: 4 days × 4 weeks, MMA', C.fightTotal(NV) === 16 && NV.fight.discipline === 'MMA');
+  check('NV tier labels', NV.tierLabels.easy === 'ROOKIE' && NV.tierLabels.hard === 'ELITE');
+  const rings = (tier, home = false) => C.fitDayExercises(NV, 1, { tier, home }).map(e => e.name);
+  check('rookie gets the beginner gymnastics rungs', rings('easy').join() === 'Lying Rope Pulls,Pull-Up Negatives,Bench Dips,Box Step-Ups,Lying Leg Raises,Crunches', rings('easy').join());
+  check('normal gets the standard rungs', rings('normal').slice(0, 3).join() === 'Rope Climb,Low-Ring Muscle-Up Transitions,Ring Support Hold');
+  check('elite gets the advanced skills', rings('hard').slice(0, 3).join() === 'Legless Rope Climb,Strict Muscle-Ups,Ring Dips');
+  check('home swaps the rope and rings', rings('normal', true).slice(0, 3).join() === 'Towel Pull-Ups,Table-Row Negatives,Chair Dips');
+  const neg = C.fitDayExercises(NV, 1, { tier: 'easy' })[1];
+  check('a rookie alternate keeps its own numbers', neg.sets === 5 && neg.reps === '5');
+  const climb = (tier, home = false) => C.fitDayExercises(NV, 3, { tier, home }).map(e => e.name);
+  check('the climb: hang circuit at the gym, grip circuit at home', climb('normal').includes('Monkey Bar Traverse') && climb('normal', true).includes('Farmer Hold') && climb('normal', true).includes('Towel Wrings'));
+  check('no bouldering anywhere', !JSON.stringify(NV).toLowerCase().includes('boulder'));
+  check('clean and jerk → dumbbell for rookies', C.fitDayExercises(NV, 0, { tier: 'easy' })[0].name === 'Dumbbell Hang Clean and Press');
+  const allFight = NV.fight.days.flatMap(d => d.rounds);
+  check('multiple-opponents rounds in the fight program', allFight.filter(r => r.multi).length >= 5);
+  for (let i = 0; i < 2; i++) { const c = C.fightDayCfg(NV); C.recordConceptSession(c, c.rounds, c.rounds); }
+  const mo = C.fightDayCfg(NV);
+  check('day 3 is multiple opponents and the timer gets multi', mo.archetypeName.includes('MULTIPLE OPPONENTS') && mo.blockRounds.filter(r => r.multi).length === 4);
+  const rk = C.fightDayCfg(NV, { tier: 'easy' });
+  check('rookie fight: 3 × 2:00, super kept', rk.rounds === 3 && rk.roundMin === 2 && !!rk.blockRounds[2].super && rk.blockRounds[2].super.calls[0] === 'Jab, cross, dash out');
+  check('rookie combos are the simple ones', rk.blockRounds[0].combos.every(x => !/spinning|level change/i.test(x)));
+  check('every combo ends or flows with movement somewhere', allFight.some(r => (r.combos || []).some(x => /dash/.test(x))));
+  check('NV arcade: 3 arcs × 10, boss last', ['fit', 'fight', 'hybrid'].every(a => C.arcStages(NV, a).length === 10 && C.arcStages(NV, a)[9].boss));
+  C.setPrefs('night-vigilante', { tier: 'easy' });
+  const st = C.stageCfg(NV, 1, { arc: 'fit' });
+  check('rookie arcade stage uses the beginner stations', st.blockRounds[0].coach_prompt.includes('ring rows'));
+  const ms = C.stageCfg(NV, 4, { arc: 'hybrid' });
+  check('a multi arcade stage carries multi to the timer', ms.blockRounds.every(r => r.multi));
+  check('NV is not the owner-preview feature before Shoto/UE end', C.featuredEntry(at('2026-10-15'), true)?.concept.id === 'shoto');
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -3,7 +3,7 @@ import SafeImage from './SafeImage';
 import ProGateOverlay from './shared/ProGateOverlay';
 import {
   featuredEntry, entryFor, vaultEntries, loadProgress, setPrefs, status, canPlay, rewardState, claimReward,
-  fitTrainingDays, fitTotal, fightTotal, fitDayCfg, fightDayCfg, fmtEnd, daysLeft, windowState,
+  fitTrainingDays, fitTotal, fightTotal, fitDayCfg, fightDayCfg, fmtEnd, daysLeft, windowState, fitDayExercises,
 } from './data/concepts';
 import { addBonusXp } from './data/userStats';
 
@@ -91,7 +91,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
     trainIdx += 1;
     const doneThisWeek = (progress.fitDone % trainDays.length) > trainIdx || st.fitComplete;
     const state = doneThisWeek ? 'done' : st.fitNext === trainIdx ? 'next' : '';
-    return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={d.exercises.map(e => (progress.home && e.swap && e.equip !== 'bodyweight' && e.equip !== 'bar' ? e.swap : e.name)).join(' · ')} />;
+    return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={fitDayExercises(c, trainIdx, { tier, home: progress.home }).map(e => e.name).join(' · ')} />;
   });
   const fightInWeek = st.fightComplete ? c.fight.days.length : progress.fightDone % c.fight.days.length;
   const fightRows = c.fight.days.map((d, i) => (
@@ -168,7 +168,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
             <button key={t} type="button" onClick={() => prefs({ tier: t })} style={{
               padding: '8px 0', borderRadius: 9, cursor: 'pointer', font: `800 10px ${H}`, letterSpacing: '0.12em',
               background: tier === t ? 'rgba(253,224,71,0.14)' : 'transparent', border: `1px solid ${tier === t ? GOLD : 'rgba(255,255,255,0.12)'}`, color: tier === t ? GOLD : '#bfb2da',
-            }}>{t.toUpperCase()}</button>
+            }}>{(c.tierLabels?.[t] || t).toUpperCase()}</button>
           ))}
         </div>
         {tab === 'fit' && (

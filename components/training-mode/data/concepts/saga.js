@@ -2,7 +2,7 @@
 // ladder. The ladder pop-up offers FIT / FIGHT / BOTH per stage; the stage
 // then runs that path's stations (data/concepts stageCfg). Stages unlock in
 // order and get harder as you climb — no difficulty picker.
-import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry } from './index';
+import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems } from './index';
 
 const ARC_OF = { fit: 'fit', fight: 'fight', both: 'hybrid' };
 const MODE_OF = { fit: 'fit', fight: 'fight', hybrid: 'both' };
@@ -13,6 +13,7 @@ export function conceptSaga(conceptId) {
   const entry = entryFor(conceptId);
   if (!entry) return null;
   const c = entry.concept;
+  const tier = loadProgress(c.id).tier || 'normal';
   const stages = c.arcade.stages.map((s, i) => ({
     id: `${c.id}-stg-${i + 1}`,
     stageNumber: i + 1,
@@ -22,7 +23,7 @@ export function conceptSaga(conceptId) {
     // What each path runs at this stage — the pop-up lists the chosen one.
     pathItems: Object.fromEntries(['fit', 'fight', 'both'].map(m => {
       const st = arcStages(c, ARC_OF[m])[i];
-      return [m, { format: st.format, items: st.items }];
+      return [m, { format: st.format, items: stageItems(st, tier) }];
     })),
   }));
   return {
