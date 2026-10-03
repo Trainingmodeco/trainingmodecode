@@ -29,7 +29,7 @@ check('not featured before release for users', C.featuredEntry(at('2026-10-15'),
 check('owner preview features the next drop (Shoto)', C.featuredEntry(at('2026-10-15'), true)?.concept.id === 'shoto');
 check('owner preview after Shoto features Ultra Ego', C.featuredEntry(at('2026-11-30') + 13 * 3600 * 1000, true)?.concept.id === 'ultra-ego');
 check('featured while live', C.featuredEntry(at('2026-12-10'), false)?.concept.id === 'ultra-ego');
-check('Shoto live on Oct 19', C.featuredEntry(at('2026-10-19'), false)?.concept.id === 'shoto');
+check('Shoto not live Oct 22, live Oct 23', C.featuredEntry(at('2026-10-22'), false) === null && C.featuredEntry(at('2026-10-23'), false)?.concept.id === 'shoto');
 check('Shoto still live Nov 30, Ultra Ego from Dec 1', C.featuredEntry(at('2026-11-30'), false)?.concept.id === 'shoto' && C.featuredEntry(at('2026-12-01'), false)?.concept.id === 'ultra-ego');
 check('schedule in date order, no overlap', C.CONCEPT_SCHEDULE.every((e, i, a) => i === 0 || e.start > a[i - 1].end));
 check('vault lists both past drops, oldest first', C.vaultEntries(at('2027-03-01')).map(e => e.concept.id).join() === 'shoto,ultra-ego');

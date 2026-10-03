@@ -591,6 +591,18 @@
     "size": 228210,
     "sha1": "df66abc1ce082b17749967308c7e0c5434e2cae6"
   },
+  "static/concepts/warrior-queen/card.webp": {
+    "size": 181292,
+    "sha1": "fcaeb545b269a1f1fb7ced7696dd813ba9e3ac3a"
+  },
+  "static/concepts/warrior-queen/poster.webp": {
+    "size": 181292,
+    "sha1": "fcaeb545b269a1f1fb7ced7696dd813ba9e3ac3a"
+  },
+  "static/concepts/warrior-queen/wide.webp": {
+    "size": 157170,
+    "sha1": "83895250c7606fbb66259dcf01aaad27819f71b8"
+  },
   "static/discipline/boxing.webp": {
     "size": 7430,
     "sha1": "ad11dea44ab229f3e613ae0a221003e2a8ad73ab"
@@ -1118,6 +1130,10 @@
   "static/series/posters/ultra-instinct.webp": {
     "size": 173730,
     "sha1": "a7dfbaf2f9e07eaba56e645b00d92dac6c09c5eb"
+  },
+  "static/series/posters/warrior-queen.webp": {
+    "size": 304064,
+    "sha1": "96c79a270658fc0d886d0cb3d4dfadc10ef4d07d"
   },
   "static/series/stage-bg/stage-1.webp": {
     "size": 40208,

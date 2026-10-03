@@ -25,7 +25,7 @@ export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
 // The release calendar. Dates are inclusive, local time.
 // Keep it in date order: owner preview features the first upcoming drop.
 export const CONCEPT_SCHEDULE = [
-  { concept: SHOTO, start: '2026-10-19', end: '2026-11-30' },
+  { concept: SHOTO, start: '2026-10-23', end: '2026-11-30' }, // a week after the Street Fighter film (Oct 16)
   { concept: ULTRA_EGO, start: '2026-12-01', end: '2027-01-31' },
   { concept: FLOW_STATE, start: '2027-02-01', end: '2027-03-31' },
   { concept: ONE_HUNDRED, start: '2027-04-01', end: '2027-05-31' },
