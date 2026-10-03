@@ -157,7 +157,8 @@ const WEIGHTED = new Set(['dumbbell', 'barbell', 'kettlebell', 'medball', 'sandb
 const TIER = {
   easy: { sets: -1, reps: 0.75 },
   normal: { sets: 0, reps: 1 },
-  hard: { sets: 1, reps: 1.15 },
+  // HARD adds reps (and hold time), not sets, so a day keeps its length.
+  hard: { sets: 0, reps: 1.3, secs: 1.1 },
 };
 
 export function scaleRow(row, tier = 'normal') {
@@ -168,7 +169,8 @@ export function scaleRow(row, tier = 'normal') {
   const sets = Math.max(2, (row.sets || 3) + t.sets);
   const out = { ...row, sets };
   if (row.reps) out.reps = Math.max(4, Math.round(row.reps * t.reps));
-  if (row.seconds) out.seconds = Math.max(15, Math.round(row.seconds * t.reps));
+  // Timed work grows less than reps on HARD, so the day stays near its length.
+  if (row.seconds) out.seconds = Math.max(15, Math.round(row.seconds * (t.secs ?? t.reps) / 5) * 5);
   return out;
 }
 

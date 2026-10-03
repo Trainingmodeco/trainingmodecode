@@ -74,7 +74,7 @@ const home = C.fitDayExercises(UE, 0, { home: true });
 check('home swaps the barbell press for pike push-ups', home.some(e => e.name === 'Pike Push-Ups') && !home.some(e => e.name.includes('Military')));
 const easy = C.scaleRow({ sets: 4, reps: 8 }, 'easy'), hard = C.scaleRow({ sets: 4, reps: 8 }, 'hard');
 check('easy drops a set and reps', easy.sets === 3 && easy.reps === 6);
-check('hard adds a set and reps', hard.sets === 5 && hard.reps === 9);
+check('hard adds reps, not sets', hard.sets === 4 && hard.reps === 10);
 check('never below 2 sets', C.scaleRow({ sets: 2, reps: 25 }, 'easy').sets === 2);
 
 // ── completion counting ─────────────────────────────────────────────────────

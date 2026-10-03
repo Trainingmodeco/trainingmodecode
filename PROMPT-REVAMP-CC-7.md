@@ -280,3 +280,9 @@ rows for Hindu Squats, the two kick drills and Shadowboxing; the exerciseInfo
   Hindu Push-Ups 3×12 r45 · Hindu Squats 2×25 r45 · Horse Stance 2×45s r30 ·
   Hip Mobility 2×45s r15 · Front & Side Kicks 3×20 r30 · Roundhouse Kicks
   3×16 r30 · Shadowboxing 2×90s r30 → ~34 min on NORMAL.
+
+## 15. HARD adds reps, not sets (thirteenth commit)
+`TIER.hard = { sets: 0, reps: 1.3, secs: 1.1 }` (was +1 set, ×1.15 reps).
+Timed work scales by `secs` (falls back to `reps`) and rounds to 5 s. Rows that
+carry their own `hard` / `easy` alternate are unchanged (used as written).
+Shoto Practice: EASY ~26 min, NORMAL ~34, HARD ~38 (was ~51).
