@@ -137,5 +137,5 @@ Replace `public/static/concepts/warrior-queen/` with the files at `40e5007`:
   feature cards.
 - `wide.webp` — the owner's wide sunset art (1200×675), the concept page header
   on the FIT tab.
-- The Arcade banner `series/posters/warrior-queen.webp` is **unchanged**.
+- `series/posters/warrior-queen.webp` is **replaced** with the warrior-woman silhouette (bracers crossed, shield); the earlier file was the dragon fighter by mistake.
 Run `npm run lock:assets` after copying. No code changes.
