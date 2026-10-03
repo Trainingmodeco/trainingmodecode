@@ -187,3 +187,11 @@ Run `npm run lock:assets` after copying. No code changes.
   `clamp(48px, 6.6dvh, 56px)` tall.
 - **ConceptFeatureCard** in the Fit and Fight hubs is 88 px tall (was 112) with a 19 px title.
   The Fight hub's card margin matches its 7 px banner gap.
+
+## 11. Shoto: four Fit days (ninth commit)
+The first optional SHOTO PRACTICE rest day becomes a training day, TECHNIQUE
+CONDITIONING: jump rope (home: high knees), shadowbox stance transitions, horse
+stance hold, alternating front kicks, roundhouse kick drill, Hindu push-ups,
+fighter hip mobility. The library rows are added to `SHOTO_EXERCISES`. Shoto Fit
+is now 4 days × 4 weeks = 16, matching Fight's 4 days a week, so the Arcade
+opens after 4 workouts like the other drops.

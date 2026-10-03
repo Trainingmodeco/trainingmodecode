@@ -82,7 +82,21 @@ export const SHOTO = {
           { name: '180° Tuck Jumps', sets: 3, reps: 8, rest: 60, equip: 'bodyweight', note: 'The hurricane kick: knees up, turn 180 in the air, land facing back. Alternate directions.' },
         ],
       },
-      { rest: true, label: 'SHOTO PRACTICE', focus: 'OPTIONAL', intro: 'Optional, 20–30 easy minutes: stance transitions, jab-cross and roundhouse mechanics, spinning-kick practice, mobility. Not another war.' },
+      // The fourth day: fight training as conditioning — stance, kicks and
+      // footwork drilled for reps, so Fit has four days like Fight.
+      {
+        label: 'SHOTO PRACTICE', focus: 'TECHNIQUE CONDITIONING',
+        intro: 'Fight training for the legs and lungs. Clean technique first, then speed. Not another war.',
+        exercises: [
+          { name: 'Jump Rope', sets: 3, seconds: 90, rest: 45, equip: 'rope', note: 'Light on the balls of the feet. No rope: bounce in place.', home: { name: 'High Knees', seconds: 60 } },
+          { name: 'Shadowbox Stance Transitions', sets: 3, seconds: 60, rest: 30, equip: 'bodyweight', note: 'Front stance, back stance, fighting stance. Jab-cross from each. Balanced every time.' },
+          { name: 'Horse Stance Hold', sets: 3, seconds: 45, rest: 45, equip: 'bodyweight', note: 'Feet wide, thighs near parallel, back straight. Breathe slow.' },
+          { name: 'Alternating Front Kicks', sets: 3, reps: 20, rest: 45, equip: 'bodyweight', note: 'Chamber the knee, snap the kick, chamber back. Ten each leg.' },
+          { name: 'Roundhouse Kick Drill', sets: 3, reps: 16, rest: 60, equip: 'bodyweight', note: 'Pivot the base foot, turn the hip over. Eight each side, hands up.' },
+          { name: 'Hindu Push-Ups', sets: 3, reps: 12, rest: 60, equip: 'bodyweight', note: 'Hips high, dive through, look up. Smooth.' },
+          { name: 'Fighter Hip Mobility', sets: 2, seconds: 60, rest: 20, equip: 'bodyweight', note: 'Hip circles, deep lunge rocks, leg swings. Open the kicks up.' },
+        ],
+      },
       {
         label: AKUMA, focus: 'HARD CONDITIONING',
         intro: 'The hardest day of the three. Minimal wasted motion. Take space and keep working.',
@@ -210,6 +224,13 @@ export const SHOTO = {
 };
 
 export const SHOTO_EXERCISES = [
+  { name: 'Jump Rope', primaryMuscle: 'Full Body', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Light on the balls of the feet.' },
+  { name: 'Shadowbox Stance Transitions', primaryMuscle: 'Full Body', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Front, back, fighting stance. Jab-cross from each.' },
+  { name: 'Horse Stance Hold', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Wide, low, back straight.' },
+  { name: 'Alternating Front Kicks', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2, coachNote: 'Chamber, snap, chamber back.' },
+  { name: 'Roundhouse Kick Drill', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2.5, coachNote: 'Pivot, turn the hip over, hands up.' },
+  { name: 'Hindu Push-Ups', primaryMuscle: 'Chest', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 3, coachNote: 'Hips high, dive through, look up.' },
+  { name: 'Fighter Hip Mobility', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Circles, lunge rocks, leg swings.' },
   { name: 'Alternating Squat to Press', primaryMuscle: 'Shoulders', equipment: 'Weighted', voiceCountingType: 'rep_count', voiceCadenceSeconds: 3, coachNote: 'Drive up out of the squat and press overhead. Alternate hands.' },
   { name: '180° Tuck Jumps', primaryMuscle: 'Full Body', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 3, coachNote: 'Knees up, turn 180, land soft.' },
   { name: 'Rotational Jump Squats', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 3, coachNote: 'Squat, jump, turn 180. 360 only if you land it clean.' },

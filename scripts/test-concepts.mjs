@@ -149,7 +149,9 @@ check('no pop-up before any release', C.duePopup(at('2026-10-10')) === null);
 
 // ── Shoto ───────────────────────────────────────────────────────────────────
 reset();
-check('Shoto fit: 3 training days a week, 12 sessions', C.fitTrainingDays(SHOTO).length === 3 && C.fitTotal(SHOTO) === 12);
+check('Shoto fit: 4 training days a week (incl. Shoto Practice), 16 sessions', C.fitTrainingDays(SHOTO).length === 4 && C.fitTotal(SHOTO) === 16);
+check('Shoto Practice is fight training', C.fitDayExercises(SHOTO, 2).some(e => e.name === 'Roundhouse Kick Drill'));
+check('Shoto: fit and fight weeks match', C.fitTrainingDays(SHOTO).length === SHOTO.fight.days.length);
 check('Shoto fight: 4 days × 2 weeks', C.fightTotal(SHOTO) === 8);
 const sf = C.fightDayCfg(SHOTO, { now: at('2026-10-20') });
 check('Shoto fight day 1 calls combos', sf.blockRounds.every(r => Array.isArray(r.combos) && r.combos.length >= 3) && sf.blockRounds[0].combos[0] === 'Jab, cross, double-hand push');
