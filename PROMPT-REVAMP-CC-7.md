@@ -286,3 +286,7 @@ rows for Hindu Squats, the two kick drills and Shadowboxing; the exerciseInfo
 Timed work scales by `secs` (falls back to `reps`) and rounds to 5 s. Rows that
 carry their own `hard` / `easy` alternate are unchanged (used as written).
 Shoto Practice: EASY ~26 min, NORMAL ~34, HARD ~38 (was ~51).
+
+## 16. Tier chips: ROOKIE / NORMAL / ELITE for every drop (fourteenth commit)
+ConceptScreen falls back to `TIER_LABELS = { easy: 'ROOKIE', normal: 'NORMAL', hard: 'ELITE' }`
+when a drop sets no `tierLabels` (Shoto and Ultra Ego showed EASY / HARD).

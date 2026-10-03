@@ -18,6 +18,8 @@ const H = "'Orbitron',sans-serif";
 const B = "'Rajdhani',sans-serif";
 const GOLD = '#fde047';
 const MUTED = '#9a90b8';
+// Every drop names its tiers the same way unless it sets its own.
+const TIER_LABELS = { easy: 'ROOKIE', normal: 'NORMAL', hard: 'ELITE' };
 const TABS = [
   { id: 'fit', label: 'FIT', color: '#b58cff' },
   { id: 'fight', label: 'FIGHT', color: '#60a5fa' },
@@ -183,7 +185,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
             <button key={t} type="button" onClick={() => prefs({ tier: t })} style={{
               padding: '8px 0', borderRadius: 9, cursor: 'pointer', font: `800 10px ${H}`, letterSpacing: '0.12em',
               background: tier === t ? 'rgba(253,224,71,0.14)' : 'transparent', border: `1px solid ${tier === t ? GOLD : 'rgba(255,255,255,0.12)'}`, color: tier === t ? GOLD : '#bfb2da',
-            }}>{(c.tierLabels?.[t] || t).toUpperCase()}</button>
+            }}>{(c.tierLabels?.[t] || TIER_LABELS[t]).toUpperCase()}</button>
           ))}
         </div>
         {tab === 'fit' && (
