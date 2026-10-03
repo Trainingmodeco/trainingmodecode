@@ -290,3 +290,11 @@ Shoto Practice: EASY ~26 min, NORMAL ~34, HARD ~38 (was ~51).
 ## 16. Tier chips: ROOKIE / NORMAL / ELITE for every drop (fourteenth commit)
 ConceptScreen falls back to `TIER_LABELS = { easy: 'ROOKIE', normal: 'NORMAL', hard: 'ELITE' }`
 when a drop sets no `tierLabels` (Shoto and Ultra Ego showed EASY / HARD).
+
+## 17. Paywall line + concept analytics (fifteenth commit)
+- Paywall `BENEFITS` gains "Every past concept drop in the Vault" — the gate is
+  real (`canPlay` → `isPro()` for vault drops).
+- Plausible events: `concept_popup {concept}` (drop pop-up shown),
+  `concept_open {tab, from}` (concept page opened), `concept_session
+  {concept, kind, done, total}` (every Fit / Fight / Arcade session that
+  reports back, in `recordConceptSession`).

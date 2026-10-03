@@ -12,6 +12,7 @@
 // This module is pure data + rules. Screens call it; it never renders.
 import { FIT_MODE_EXERCISES } from '../../fit-mode/fitModeExerciseData';
 import { isPro } from '../entitlements';
+import { trackEvent } from '../analytics';
 import { loadRuns, runMeters } from '../runLog';
 import { ULTRA_EGO, ULTRA_EGO_EXERCISES } from './ultraEgo';
 import { SHOTO, SHOTO_EXERCISES } from './shoto';
@@ -421,6 +422,7 @@ export function stageCfg(concept, stageIdx, { tier = null, now = Date.now(), arc
 // only when every round is done.
 export function recordConceptSession(cfg, done, total) {
   if (!cfg?.conceptId) return null;
+  trackEvent('concept_session', { concept: cfg.conceptId, kind: cfg.conceptKind, done: Number(done) || 0, total: Number(total) || 0 });
   const d = Number(done) || 0, t = Math.max(1, Number(total) || 1);
   if (cfg.conceptKind === 'fit' && d >= Math.ceil(t * 0.75)) {
     return update(cfg.conceptId, p => (p.fitDone === cfg.conceptSeq ? { ...p, fitDone: p.fitDone + 1 } : p));

@@ -981,7 +981,7 @@ export default function App() {
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     // Concept drops: the concept page, and its sessions on the existing players.
-    goConcept:     (tab = 'fit', id = null, from = 'home') => { setConceptView({ id, tab, from }); setScreen('concept'); },
+    goConcept:     (tab = 'fit', id = null, from = 'home') => { setConceptView({ id, tab, from }); setScreen('concept'); trackEvent('concept_open', { tab, from }); },
     // A concept run day opens Cardio Mode with its distance set; the run counts
     // once the concept page sees it in the run log (settleConceptRun).
     startConceptFit:   (c) => (c?.conceptRun ? actions.goCardioMode({ goal: c.goal, unit: c.unit }) : actions.goFitWorkout(c)),
@@ -1156,7 +1156,7 @@ export default function App() {
       if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
       // A new concept drop, once per drop per phone.
       const drop = dueConceptPopup();
-      if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); return; }
+      if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); trackEvent('concept_popup', { concept: drop.concept.id }); return; }
       const cb = dueComeback();
       if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
       // The weekly practice reminder, at most once a week, on opening the app.

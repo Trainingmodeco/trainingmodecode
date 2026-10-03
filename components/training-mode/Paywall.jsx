@@ -17,6 +17,7 @@ const BENEFITS = [
   'Training Camp levels 4-12',
   'Unlimited saved Builder routines',
   'Full session length in Combo Coach & Fight Focus',
+  'Every past concept drop in the Vault',
 ];
 
 export default function Paywall({ onClose }) {
