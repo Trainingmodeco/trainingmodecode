@@ -257,3 +257,13 @@ opens after 4 workouts like the other drops.
 `ULTRA_EGO.fight.weeks = 4`: the five-day rotation repeats for 4 weeks
 (20 sessions; was 5). The concept page shows WEEK N OF 4 on FIGHT, and the reward
 needs all 20 sessions. Tests: 169.
+
+## 13. Exercise info for concept moves + Shoto day 6 (eleventh commit)
+- `data/exerciseInfo.js`: new families at the **top** of `FAMILIES` so concept
+  moves stop matching broader ones by name — jump-rope, kick (front kick /
+  roundhouse / kick drill / teep), stance-hold (horse stance), shadowbox,
+  mobility, neck (neck curls), muscle-up, glute-kickback, cardio-machine
+  (bike or row / rower / stair climb), ywt. ("Jump Rope" was showing jump-squat
+  cues; "Neck Curls" biceps-curl cues.)
+- Shoto's remaining optional rest day is renamed ACTIVE RECOVERY so "Shoto
+  Practice" appears once.

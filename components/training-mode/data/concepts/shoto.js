@@ -109,7 +109,7 @@ export const SHOTO = {
           { name: 'Rotational Jump Squats', sets: 3, reps: 10, rest: 60, equip: 'bodyweight', note: 'Squat, jump and turn 180. Go 360 only if you land it clean.' },
         ],
       },
-      { rest: true, label: 'SHOTO PRACTICE', focus: 'OPTIONAL', intro: 'Light technical work or full rest. Make the next week better.' },
+      { rest: true, label: 'ACTIVE RECOVERY', focus: 'OPTIONAL', intro: 'Light technical work or full rest. Make the next week better.' },
       { rest: true, label: 'REST', focus: 'REST', intro: 'Full rest.' },
     ],
   },

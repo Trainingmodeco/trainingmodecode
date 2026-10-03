@@ -13,6 +13,125 @@
 import { FIT_MODE_EXERCISES } from '../fit-mode/fitModeExerciseData';
 
 const FAMILIES = [
+  // Concept-drop movements whose names would otherwise match a broader
+  // family by accident ("Jump Rope" is not a jump squat, "Neck Curls" are not
+  // biceps curls). Most specific first, so they sit at the top.
+  {
+    id: 'jump-rope',
+    test: /jump rope/i,
+    cues: [
+      'Elbows close to the ribs, turn the rope with the wrists.',
+      'Small hops on the balls of the feet, just high enough to clear it.',
+      'Knees soft, land quiet.',
+      'Find a rhythm you can breathe to.',
+    ],
+    mistakes: ['Jumping too high and landing heavy.', 'Swinging the rope with the whole arm.'],
+    easier: 'High Knees', harder: 'Mountain Climbers',
+  },
+  {
+    id: 'kick',
+    test: /front kick|roundhouse|kick drill|teep/i,
+    cues: [
+      'Hands up by the face the whole time.',
+      'Lift the knee first (chamber), then kick.',
+      'Turn the standing foot and the hip into the kick.',
+      'Bring the leg back the way it went out, land in stance.',
+    ],
+    mistakes: ['Dropping the hands as you kick.', 'Kicking from a straight leg with no chamber.'],
+    easier: null, harder: null,
+  },
+  {
+    id: 'stance-hold',
+    test: /horse stance/i,
+    cues: [
+      'Feet wide, toes forward or slightly out.',
+      'Sit down until the thighs are near level with the floor.',
+      'Back straight, chest up, knees pushed out over the toes.',
+      'Breathe slow and hold still.',
+    ],
+    mistakes: ['Knees caving in.', 'Leaning forward to take the load off the legs.'],
+    easier: 'Wall Sit', harder: null,
+  },
+  {
+    id: 'shadowbox',
+    test: /shadowbox|shadow box/i,
+    cues: [
+      'Fighting stance, hands up, chin down.',
+      'Throw each strike at real speed, snap it back to guard.',
+      'Reset your stance after every combination.',
+      'Breathe out on every strike.',
+    ],
+    mistakes: ['Hands dropping between strikes.', 'Feet planted flat and square.'],
+    easier: null, harder: null,
+  },
+  {
+    id: 'mobility',
+    test: /mobility|hip opener/i,
+    cues: [
+      'Slow, controlled circles and swings — no bouncing.',
+      'Go only as far as feels easy, then a little more each rep.',
+      'Breathe out as you move into the stretch.',
+    ],
+    mistakes: ['Rushing through it.', 'Forcing range that is not there yet.'],
+    easier: null, harder: null,
+  },
+  {
+    id: 'neck',
+    test: /neck curl/i,
+    cues: [
+      'Lie on a bench with the head off the end.',
+      'Move only the head and neck, slow and controlled.',
+      'Bodyweight only until it feels easy.',
+    ],
+    mistakes: ['Jerking the head.', 'Going past neutral on the way back.'],
+    easier: null, harder: null,
+  },
+  {
+    id: 'muscle-up',
+    test: /muscle-up/i,
+    cues: [
+      'Start from a dead hang, false grip if on rings.',
+      'Pull hard to the lower chest, not just the chin.',
+      'Roll the wrists over the bar or rings fast.',
+      'Press out to straight arms on top.',
+    ],
+    mistakes: ['Kipping wildly before the pull is strong enough.', 'Chicken-winging one arm over at a time.'],
+    easier: 'Pull-Up Negatives', harder: null,
+  },
+  {
+    id: 'glute-kickback',
+    test: /glute kickback/i,
+    cues: [
+      'Hips square, belly braced.',
+      'Drive the heel back and up, squeezing the glute.',
+      'Stop before the low back arches.',
+      'Lower slowly.',
+    ],
+    mistakes: ['Arching the low back to lift higher.', 'Swinging the leg instead of squeezing.'],
+    easier: null, harder: null,
+  },
+  {
+    id: 'cardio-machine',
+    test: /bike or row|rower|stair climb/i,
+    cues: [
+      'Settle into a pace you could talk at.',
+      'Rower: legs, then body, then arms — and back in reverse.',
+      'Keep a steady rhythm the whole time.',
+    ],
+    mistakes: ['Starting too fast and fading.', 'Rowing with the arms only.'],
+    easier: null, harder: null,
+  },
+  {
+    id: 'ywt',
+    test: /y-w-t/i,
+    cues: [
+      'Lie face down or hinge forward, arms long.',
+      'Lift the arms into a Y, then a W, then a T.',
+      'Squeeze the shoulder blades, thumbs up.',
+    ],
+    mistakes: ['Shrugging up to the ears.', 'Using momentum.'],
+    easier: null, harder: null,
+  },
   {
     id: 'scapular-push-up',
     test: /scapular push/i,
