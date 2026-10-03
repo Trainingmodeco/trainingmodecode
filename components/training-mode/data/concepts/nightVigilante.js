@@ -92,6 +92,7 @@ export const NIGHT_VIGILANTE = {
     poster: '/static/concepts/night-vigilante/poster.webp',
     wide: '/static/concepts/night-vigilante/wide.webp',
     card: '/static/concepts/night-vigilante/card.webp',
+    arcade: '/static/series/posters/night-vigilante.webp', // silhouette Arcade banner
   },
 
   // Fit: his week, 4 weeks. Wednesday is the long run (Cardio Mode);

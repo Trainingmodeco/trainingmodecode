@@ -105,3 +105,14 @@ and arcade data), badge "Speed Demon Badge".
 
 **Tests:** `test-concepts` 149, including a franchise-name guard over every
 drop's user-facing text.
+
+## 5. Art + retiring the old sagas (third commit)
+- New titleless banners: `series/posters/struggler-protocol.{png,webp}`,
+  `blue-blur.{png,webp}` (Speed Demon), new `night-vigilante.webp`
+  (Night Vigilante `art.arcade`). `TITLED_POSTERS` is now only
+  `vigilante-protocol`. Night Vigilante poster/card/wide replaced.
+- `saga.js` `retiredSagaIds(now)`: once a drop is live (or in the vault) the
+  saga it replaces leaves the carousel — flow-state → `flow-state-protocol`,
+  one-hundred → `one-punch-protocol`, night-vigilante → `vigilante-protocol` —
+  unless the player already cleared a stage there. TrainingArcade filters
+  `VISIBLE_ARCADE_SERIES` with it.

@@ -3,6 +3,7 @@
 // then runs that path's stations (data/concepts stageCfg). Stages unlock in
 // order and get harder as you climb — no difficulty picker.
 import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems } from './index';
+import { getSeriesProgress } from '../arcadeProgress';
 
 const ARC_OF = { fit: 'fit', fight: 'fight', both: 'hybrid' };
 const MODE_OF = { fit: 'fit', fight: 'fight', hybrid: 'both' };
@@ -60,6 +61,18 @@ export function conceptSagaProgress(conceptId) {
 
 // Sagas shown in the Arcade carousel: the featured drop (live, or the owner's
 // preview), then vault drops this athlete can still play.
+// Older Arcade sagas a drop replaces. Once the drop goes live they leave the
+// carousel — except for anyone who already cleared a stage in them.
+const REPLACES = { 'flow-state': 'flow-state-protocol', 'one-hundred': 'one-punch-protocol', 'night-vigilante': 'vigilante-protocol' };
+export function retiredSagaIds(now = Date.now(), hasProgress = sagaHasProgress) {
+  return new Set(CONCEPT_SCHEDULE
+    .filter(e => REPLACES[e.concept.id] && windowState(e, now) !== 'upcoming' && !hasProgress(REPLACES[e.concept.id]))
+    .map(e => REPLACES[e.concept.id]));
+}
+function sagaHasProgress(id) {
+  return Object.values(getSeriesProgress(id).completedStages || {}).some(x => x?.completed);
+}
+
 export function conceptSagasForCarousel(now = Date.now()) {
   const out = [];
   const f = featuredEntry(now);

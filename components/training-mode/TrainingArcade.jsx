@@ -6,7 +6,7 @@ import ArcadeBackdrop from './shared/ArcadeBackdrop';
 import { Star, Lock, ChevronLeft, ChevronRight, Gamepad2 } from 'lucide-react';
 import { C } from './Styles';
 import { VISIBLE_ARCADE_SERIES, isSeriesPlayable } from './data/trainingArcadeData';
-import { conceptSagasForCarousel, conceptSagaProgress } from './data/concepts/saga';
+import { conceptSagasForCarousel, conceptSagaProgress, retiredSagaIds } from './data/concepts/saga';
 import { getSeriesProgress } from './data/arcadeProgress';
 import { loadStats, getLevel } from './data/userStats';
 import { decodeChallenge, resolveChallenge } from './data/challengeCodes';
@@ -33,7 +33,7 @@ const POSTER_MAP = {
 
 // Older banners with the title baked into the art; skip the printed title
 // until their titleless versions land.
-const TITLED_POSTERS = new Set(['struggler-protocol', 'vigilante-protocol', 'blue-blur-protocol']);
+const TITLED_POSTERS = new Set(['vigilante-protocol']);
 
 const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'MAX', 'CHAMPION'];
 const TEAL = '#5eead4';
@@ -79,7 +79,7 @@ export default function TrainingArcade({ onBack, onSelectSeries, onChallengeCode
     return true;
   };
   // Concept-drop sagas lead the carousel while they are featured.
-  const series = useMemo(() => [...conceptSagasForCarousel(), ...VISIBLE_ARCADE_SERIES], []);
+  const series = useMemo(() => { const retired = retiredSagaIds(); return [...conceptSagasForCarousel(), ...VISIBLE_ARCADE_SERIES.filter(s => !retired.has(s.id))]; }, []);
   const n = series.length;
   // Infinite loop: render 3 copies and silently recenter to the middle copy once
   // the scroll settles, so a swipe past either end wraps seamlessly. `active` is a

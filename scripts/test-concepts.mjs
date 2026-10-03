@@ -289,5 +289,14 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   check('a 9.5 km run counts the 10K', C.settleConceptRun('one-hundred', [{ at: at('2027-04-07') + 3600e3, distance: 9.5, unit: 'km' }]).fitDone === 3);
 }
 
+{
+  reset();
+  const S2 = await import('../components/training-mode/data/concepts/saga.js');
+  check('old sagas stay before their drops', S2.retiredSagaIds(at('2026-10-20')).size === 0);
+  check('Flow State saga retires Feb 1', S2.retiredSagaIds(at('2027-02-01')).has('flow-state-protocol') && !S2.retiredSagaIds(at('2027-02-01')).has('one-punch-protocol'));
+  check('all three retired by Aug 2027', ['flow-state-protocol', 'one-punch-protocol', 'vigilante-protocol'].every(id => S2.retiredSagaIds(at('2027-08-02')).has(id)));
+  check('kept for someone with progress', !S2.retiredSagaIds(at('2027-04-02'), id => id === 'one-punch-protocol').has('one-punch-protocol'));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
