@@ -195,3 +195,8 @@ stance hold, alternating front kicks, roundhouse kick drill, Hindu push-ups,
 fighter hip mobility. The library rows are added to `SHOTO_EXERCISES`. Shoto Fit
 is now 4 days × 4 weeks = 16, matching Fight's 4 days a week, so the Arcade
 opens after 4 workouts like the other drops.
+
+## 12. Ultra Ego: four weeks of Fight (tenth commit)
+`ULTRA_EGO.fight.weeks = 4`: the five-day rotation repeats for 4 weeks
+(20 sessions; was 5). The concept page shows WEEK N OF 4 on FIGHT, and the reward
+needs all 20 sessions. Tests: 169.

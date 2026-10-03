@@ -90,6 +90,8 @@ export const ULTRA_EGO = {
     blurb: 'Pressure fighting. Absorb, plant, answer back harder.',
     roundMin: 3,
     restSec: 60,
+    // Four weeks of the five-day rotation, matching the Fit program's length.
+    weeks: 4,
     days: [
       {
         label: 'GROUNDED POWER', focus: '5 × 3:00 BAG',

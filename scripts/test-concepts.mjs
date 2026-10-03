@@ -50,7 +50,7 @@ check('vault: starting after the window does not count', !C.canPlay(entry, at('2
 // ── structure + status ──────────────────────────────────────────────────────
 check('fit has 4 training days a week', C.fitTrainingDays(UE).length === 4);
 check('fit total is 16 sessions over 4 weeks', C.fitTotal(UE) === 16);
-check('fight is 5 days', C.fightTotal(UE) === 5);
+check('fight is 5 days × 4 weeks', C.fightTotal(UE) === 20);
 check('boss is the last stage', C.bossIndex(UE) === 9);
 check('every fight day has 5 rounds', UE.fight.days.every(d => d.rounds.length === 5));
 check('every stage has a plan', UE.arcade.stages.every(s => s.plan && s.plan.rounds >= 1 && s.plan.len > 0));
@@ -97,7 +97,10 @@ check('fight cfg: timer fields', f.rounds === 5 && f.roundMin === 3 && f.restSec
 check('fight day 2 turns rush on', C.loadProgress('ultra-ego').fightDone === 0 && UE.fight.days[1].rush === true);
 for (let i = 0; i < 5; i++) C.recordConceptSession(C.fightDayCfg(UE), 5, 5);
 st = C.status(UE);
-check('five fight days completes Fight', st.fightComplete && st.fightNext === null);
+check('one week of fight is not the whole program', !st.fightComplete && st.fightWeek === 2 && st.fightNext === 0);
+for (let i = 0; i < 15; i++) C.recordConceptSession(C.fightDayCfg(UE), 5, 5);
+st = C.status(UE);
+check('four weeks of fight completes Fight', st.fightComplete && st.fightNext === null);
 check('finishing Fight marks the boss unlockable', st.bossUnlocked);
 
 // ── arcade ──────────────────────────────────────────────────────────────────
@@ -130,7 +133,7 @@ check('a full stage clears', C.loadProgress('ultra-ego').cleared.includes(3));
 
 // ── reward ──────────────────────────────────────────────────────────────────
 reset();
-store.set('tm_concepts_v1', JSON.stringify({ 'ultra-ego': { fitDone: 16, fightDone: 5, cleared: [9] } }));
+store.set('tm_concepts_v1', JSON.stringify({ 'ultra-ego': { fitDone: 16, fightDone: 20, cleared: [9] } }));
 check('all three done: reward ready in window', C.rewardState(entry, at('2026-12-20')) === 'ready');
 check('all three done after window: expired', C.rewardState(entry, at('2027-02-10')) === 'expired');
 C.claimReward('ultra-ego', at('2026-12-20'));
