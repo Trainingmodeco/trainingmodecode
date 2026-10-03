@@ -44,7 +44,9 @@ export const modeTabsCSS = `
 .mt-tab.fight.on .mt-bar { background: linear-gradient(90deg,#2458E0,#8FB4FF 50%,#2458E0); box-shadow: 0 0 10px #3D7BFF; }
 `;
 
-export default function ModeTabs({ active, onFit, onFight, style }) {
+// `subs` (optional) puts a small count under each label, e.g. a concept
+// drop's sessions done: { fit: '3/16', fight: '1/8' }.
+export default function ModeTabs({ active, onFit, onFight, style, subs = null }) {
   // Each tab is its own guide anchor: the intro tour used to spotlight the two
   // mode cards on "Choose Your Path", and those steps need somewhere to land.
   const tab = (id, label, onClick) => (
@@ -55,7 +57,10 @@ export default function ModeTabs({ active, onFit, onFight, style }) {
       aria-current={active === id ? 'page' : undefined}
       style={{ font: 'inherit' }}
     >
-      <span>{label}</span>
+      <span style={subs ? { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.05 } : undefined}>
+        {label}
+        {subs?.[id] && <small style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', opacity: 0.75, marginTop: 2 }}>{subs[id]}</small>}
+      </span>
       <i className="mt-bar" aria-hidden="true"/>
     </button>
   );

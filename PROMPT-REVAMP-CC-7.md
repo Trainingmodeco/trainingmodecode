@@ -139,3 +139,22 @@ Replace `public/static/concepts/warrior-queen/` with the files at `40e5007`:
   on the FIT tab.
 - `series/posters/warrior-queen.webp` is **replaced** with the warrior-woman silhouette (bracers crossed, shield); the earlier file was the dragon fighter by mistake.
 Run `npm run lock:assets` after copying. No code changes.
+
+## 8. Concept page layout = the hubs (sixth commit)
+- **Tabs:** the 3-box FIT / FIGHT / ARCADE grid is replaced by the hubs' own
+  `ModeTabs` (FIT MODE / FIGHT MODE). `ModeTabs` gains an optional
+  `subs={{ fit, fight }}` that prints sessions done under each label
+  ("0/16", "8/8 ✓"). The tab opens on whichever hub the athlete came from
+  (Fit hub card → FIT, Fight hub card → FIGHT; Home → FIT) — unchanged routing.
+- **Discipline:** on FIGHT, the hubs' `DisciplineTabs` row shows the drop's
+  discipline selected (read-only, `pointerEvents: none`).
+- **Arcade:** a full-width ARCADE row under the tabs, `0/10 stages`, dimmed
+  with 🔒 "Finish Fit or Fight to unlock" until `status(c).bossUnlocked`
+  (Fit OR Fight program complete); then gold "Open the gauntlet ›".
+  `conceptSaga()` is `status: 'locked', lockNote: 'FINISH FIT OR FIGHT'` until
+  then, so the Training Arcade card is locked too (TrainingArcade prints
+  `🔒 ${lockNote}`).
+- **Gym / Bodyweight:** the home toggle reads GYM · BODYWEIGHT.
+- **Fight day rows** are short: the day name, its focus in lower case
+  ("blocks · parries · counters") and `N ROUNDS` — no round list.
+- Smoke test: the gauntlet step seeds a finished Fit program first.

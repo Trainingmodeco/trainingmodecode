@@ -2,7 +2,7 @@
 // ladder. The ladder pop-up offers FIT / FIGHT / BOTH per stage; the stage
 // then runs that path's stations (data/concepts stageCfg). Stages unlock in
 // order and get harder as you climb — no difficulty picker.
-import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems } from './index';
+import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems, status } from './index';
 import { getSeriesProgress } from '../arcadeProgress';
 import { isPro } from '../entitlements';
 
@@ -34,7 +34,9 @@ export function conceptSaga(conceptId) {
     title: c.title,
     subtitle: `${c.title} Gauntlet · Concept Drop`,
     description: c.tagline,
-    status: 'active', isActive: true, isImported: true,
+    // The gauntlet opens once the Fit or the Fight program is done.
+    ...(status(c).bossUnlocked ? { status: 'active', isActive: true } : { status: 'locked', isActive: false, lockNote: 'FINISH FIT OR FIGHT' }),
+    isImported: true,
     type: 'Fit / Fight / Hybrid',
     difficultyStars: 4,
     availableModes: ['fit', 'fight', 'both'],

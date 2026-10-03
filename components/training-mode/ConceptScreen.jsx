@@ -7,6 +7,8 @@ import {
   settleConceptRun, runTarget, ladderState, ladderHit, ladderStep,
 } from './data/concepts';
 import { addBonusXp } from './data/userStats';
+import ModeTabs from './shared/ModeTabs';
+import DisciplineTabs from './shared/DisciplineTabs';
 
 // A concept drop's home: one page, three tabs — FIT (the weekly program),
 // FIGHT (five days of called rounds), ARCADE (the 10-stage gauntlet). The
@@ -101,11 +103,15 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
     return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={fitDayExercises(c, trainIdx, { tier, home: progress.home, progress }).map(e => e.name).join(' · ')} />;
   });
   const fightInWeek = st.fightComplete ? c.fight.days.length : progress.fightDone % c.fight.days.length;
+  // Fight days stay short: the day and what it trains. The rounds and combos
+  // are called on the timer.
   const fightRows = c.fight.days.map((d, i) => (
-    <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} accent="#93c5fd"
+    <DayRow key={i} n={i + 1} label={d.label} focus={`${d.rounds.length} ROUNDS`} accent="#93c5fd"
       state={i < fightInWeek ? 'done' : i === st.fightNext ? 'next' : ''}
-      body={d.rounds.map(r => r.title).join(' · ')} />
+      body={(d.focus || '').toLowerCase().replace(/ · /g, ' · ')} />
   ));
+  // The gauntlet opens once the Fit or the Fight program is complete.
+  const arcadeOpen = st.bossUnlocked;
 
   const nextFitDay = st.fitNext != null ? trainDays[st.fitNext] : null;
   const nextFightDay = st.fightNext != null ? c.fight.days[st.fightNext] : null;
@@ -137,23 +143,24 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
       </div>
 
       <div style={{ padding: '6px 16px 0' }}>
-        {/* parts done + reward */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 10 }}>
-          {TABS.map(t => {
-            const done = t.id === 'fit' ? st.fitComplete : t.id === 'fight' ? st.fightComplete : st.arcadeComplete;
-            const on = tab === t.id;
-            const sub = t.id === 'fit' ? `${progress.fitDone}/${fitTotal(c)}` : t.id === 'fight' ? `${progress.fightDone}/${fightTotal(c)}` : `${progress.cleared.length}/${c.arcade.stages.length}`;
-            return (
-              <button key={t.id} type="button" onClick={() => (t.id === 'arcade' && onOpenGauntlet ? (play ? onOpenGauntlet(c.id) : setGate(true)) : setTab(t.id))} style={{
-                padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
-                background: on ? `${t.color}22` : 'rgba(255,255,255,0.03)', border: `1.5px solid ${on ? t.color : 'rgba(255,255,255,0.12)'}`,
-              }}>
-                <div style={{ font: `900 12px ${H}`, letterSpacing: '0.12em', color: on ? t.color : '#d8ccf0' }}>{done ? '✓ ' : ''}{t.label}</div>
-                <div style={{ font: `700 10px ${B}`, color: MUTED, marginTop: 1 }}>{sub}</div>
-              </button>
-            );
-          })}
-        </div>
+        {/* The same FIT MODE / FIGHT MODE tabs as the hubs, with sessions done. */}
+        <ModeTabs active={tab === 'fight' ? 'fight' : 'fit'} onFit={() => setTab('fit')} onFight={() => setTab('fight')}
+          subs={{ fit: `${progress.fitDone}/${fitTotal(c)}${st.fitComplete ? ' ✓' : ''}`, fight: `${progress.fightDone}/${fightTotal(c)}${st.fightComplete ? ' ✓' : ''}` }}
+          style={{ marginBottom: 8 }}/>
+        {tab === 'fight' && (
+          <DisciplineTabs value={c.fight.discipline} onChange={() => {}} style={{ marginBottom: 10, pointerEvents: 'none' }}/>
+        )}
+        {/* Arcade: dimmed until the Fit or the Fight program is done. */}
+        <button type="button" aria-label="Arcade gauntlet" disabled={!arcadeOpen} onClick={() => (play ? onOpenGauntlet?.(c.id) : setGate(true))} style={{
+          width: '100%', marginBottom: 10, padding: '9px 12px', borderRadius: 12, cursor: arcadeOpen ? 'pointer' : 'default',
+          display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
+          background: arcadeOpen ? 'linear-gradient(90deg,rgba(253,224,71,0.16),rgba(40,6,60,.6))' : 'rgba(255,255,255,0.03)',
+          border: `1.5px solid ${arcadeOpen ? GOLD : 'rgba(255,255,255,0.1)'}`, opacity: arcadeOpen ? 1 : 0.5,
+        }}>
+          <span style={{ font: `900 12px ${H}`, letterSpacing: '0.14em', color: arcadeOpen ? GOLD : '#bfb2da' }}>{arcadeOpen ? '▶' : '🔒'} ARCADE</span>
+          <span style={{ font: `700 11px ${B}`, color: MUTED }}>{progress.cleared.length}/{c.arcade.stages.length} stages</span>
+          <span style={{ marginLeft: 'auto', font: `700 10.5px ${B}`, color: arcadeOpen ? '#fde68a' : MUTED }}>{arcadeOpen ? (st.arcadeComplete ? '✓ cleared' : 'Open the gauntlet ›') : 'Finish Fit or Fight to unlock'}</span>
+        </button>
 
         {reward === 'ready' && (
           <button type="button" onClick={claim} style={{ width: '100%', marginBottom: 10, padding: '11px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${GOLD}`, background: 'linear-gradient(90deg,rgba(120,20,140,.6),rgba(40,6,60,.85))', color: GOLD, font: `900 12px ${H}`, letterSpacing: '0.12em' }}>
@@ -180,7 +187,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
         </div>
         {tab === 'fit' && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {[[false, 'GYM'], [true, 'HOME · NO WEIGHTS']].map(([h, l]) => (
+            {[[false, 'GYM'], [true, 'BODYWEIGHT']].map(([h, l]) => (
               <button key={l} type="button" onClick={() => prefs({ home: h })} style={{
                 flex: 1, padding: '7px 0', borderRadius: 9, cursor: 'pointer', font: `800 9px ${H}`, letterSpacing: '0.12em',
                 background: progress.home === h ? 'rgba(181,140,255,0.16)' : 'transparent', border: `1px solid ${progress.home === h ? '#b58cff' : 'rgba(255,255,255,0.12)'}`, color: progress.home === h ? '#e9d5ff' : '#9a90b8',
