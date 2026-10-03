@@ -267,3 +267,12 @@ needs all 20 sessions. Tests: 169.
   cues; "Neck Curls" biceps-curl cues.)
 - Shoto's remaining optional rest day is renamed ACTIVE RECOVERY so "Shoto
   Practice" appears once.
+
+## 14. Shoto Practice: the owner's nine moves (twelfth commit)
+Shoto's day 4 (SHOTO PRACTICE · TECHNIQUE CONDITIONING) is, in order: Jump Rope
+3×90s (bodyweight: High Knees 60s) · Man Makers 3×8 (dumbbell; bodyweight:
+Burpees) · Hindu Push-Ups 3×12 · Hindu Squats 3×25 · Horse Stance Hold 3×45s ·
+Fighter Hip Mobility 2×60s · Alternating Front and Side Kicks 3×20 ·
+Alternating Roundhouse Kicks 3×16 · Shadowboxing 3×90s. New `SHOTO_EXERCISES`
+rows for Hindu Squats, the two kick drills and Shadowboxing; the exerciseInfo
+`kick` family also matches "side kick". Tests: 170.

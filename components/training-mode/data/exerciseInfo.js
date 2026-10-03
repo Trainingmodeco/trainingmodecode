@@ -30,7 +30,7 @@ const FAMILIES = [
   },
   {
     id: 'kick',
-    test: /front kick|roundhouse|kick drill|teep/i,
+    test: /front kick|side kick|front and side kicks|roundhouse|kick drill|teep/i,
     cues: [
       'Hands up by the face the whole time.',
       'Lift the knee first (chamber), then kick.',

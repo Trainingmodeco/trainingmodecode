@@ -89,12 +89,14 @@ export const SHOTO = {
         intro: 'Fight training for the legs and lungs. Clean technique first, then speed. Not another war.',
         exercises: [
           { name: 'Jump Rope', sets: 3, seconds: 90, rest: 45, equip: 'rope', note: 'Light on the balls of the feet. No rope: bounce in place.', home: { name: 'High Knees', seconds: 60 } },
-          { name: 'Shadowbox Stance Transitions', sets: 3, seconds: 60, rest: 30, equip: 'bodyweight', note: 'Front stance, back stance, fighting stance. Jab-cross from each. Balanced every time.' },
-          { name: 'Horse Stance Hold', sets: 3, seconds: 45, rest: 45, equip: 'bodyweight', note: 'Feet wide, thighs near parallel, back straight. Breathe slow.' },
-          { name: 'Alternating Front Kicks', sets: 3, reps: 20, rest: 45, equip: 'bodyweight', note: 'Chamber the knee, snap the kick, chamber back. Ten each leg.' },
-          { name: 'Roundhouse Kick Drill', sets: 3, reps: 16, rest: 60, equip: 'bodyweight', note: 'Pivot the base foot, turn the hip over. Eight each side, hands up.' },
+          { name: 'Man Makers', sets: 3, reps: 8, rest: 75, equip: 'dumbbell', swap: 'Burpees', note: 'Push-up, row each side, jump the feet in, clean and press. Bodyweight: burpees.' },
           { name: 'Hindu Push-Ups', sets: 3, reps: 12, rest: 60, equip: 'bodyweight', note: 'Hips high, dive through, look up. Smooth.' },
+          { name: 'Hindu Squats', sets: 3, reps: 25, rest: 45, equip: 'bodyweight', note: 'Up on the toes at the bottom, arms swing back and forward. Steady rhythm.' },
+          { name: 'Horse Stance Hold', sets: 3, seconds: 45, rest: 45, equip: 'bodyweight', note: 'Feet wide, thighs near parallel, back straight. Breathe slow.' },
           { name: 'Fighter Hip Mobility', sets: 2, seconds: 60, rest: 20, equip: 'bodyweight', note: 'Hip circles, deep lunge rocks, leg swings. Open the kicks up.' },
+          { name: 'Alternating Front and Side Kicks', sets: 3, reps: 20, rest: 45, equip: 'bodyweight', note: 'Front kick, then side kick, same leg; switch. Chamber every kick. Ten each leg.' },
+          { name: 'Alternating Roundhouse Kicks', sets: 3, reps: 16, rest: 60, equip: 'bodyweight', note: 'Pivot the base foot, turn the hip over, hands up. Alternate legs.' },
+          { name: 'Shadowboxing', sets: 3, seconds: 90, rest: 45, equip: 'bodyweight', note: 'Move and strike: jab-cross, kicks, stance switches. Stay light.' },
         ],
       },
       {
@@ -225,10 +227,11 @@ export const SHOTO = {
 
 export const SHOTO_EXERCISES = [
   { name: 'Jump Rope', primaryMuscle: 'Full Body', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Light on the balls of the feet.' },
-  { name: 'Shadowbox Stance Transitions', primaryMuscle: 'Full Body', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Front, back, fighting stance. Jab-cross from each.' },
   { name: 'Horse Stance Hold', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Wide, low, back straight.' },
-  { name: 'Alternating Front Kicks', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2, coachNote: 'Chamber, snap, chamber back.' },
-  { name: 'Roundhouse Kick Drill', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2.5, coachNote: 'Pivot, turn the hip over, hands up.' },
+  { name: 'Hindu Squats', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2, coachNote: 'Up on the toes at the bottom, arms swing.' },
+  { name: 'Alternating Front and Side Kicks', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2.5, coachNote: 'Front kick, side kick, switch legs.' },
+  { name: 'Alternating Roundhouse Kicks', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 2.5, coachNote: 'Pivot, turn the hip over, hands up.' },
+  { name: 'Shadowboxing', primaryMuscle: 'Full Body', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Move and strike, stay light.' },
   { name: 'Hindu Push-Ups', primaryMuscle: 'Chest', equipment: 'Bodyweight', voiceCountingType: 'rep_count', voiceCadenceSeconds: 3, coachNote: 'Hips high, dive through, look up.' },
   { name: 'Fighter Hip Mobility', primaryMuscle: 'Legs', equipment: 'Bodyweight', voiceCountingType: 'manual_only', coachNote: 'Circles, lunge rocks, leg swings.' },
   { name: 'Alternating Squat to Press', primaryMuscle: 'Shoulders', equipment: 'Weighted', voiceCountingType: 'rep_count', voiceCadenceSeconds: 3, coachNote: 'Drive up out of the squat and press overhead. Alternate hands.' },

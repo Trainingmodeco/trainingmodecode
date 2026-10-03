@@ -153,7 +153,8 @@ check('no pop-up before any release', C.duePopup(at('2026-10-10')) === null);
 // ── Shoto ───────────────────────────────────────────────────────────────────
 reset();
 check('Shoto fit: 4 training days a week (incl. Shoto Practice), 16 sessions', C.fitTrainingDays(SHOTO).length === 4 && C.fitTotal(SHOTO) === 16);
-check('Shoto Practice is fight training', C.fitDayExercises(SHOTO, 2).some(e => e.name === 'Roundhouse Kick Drill'));
+check('Shoto Practice is the owner\'s 9 moves', C.fitDayExercises(SHOTO, 2).map(e => e.name).join() === 'Jump Rope,Man Makers,Hindu Push-Ups,Hindu Squats,Horse Stance Hold,Fighter Hip Mobility,Alternating Front and Side Kicks,Alternating Roundhouse Kicks,Shadowboxing');
+check('Shoto Practice bodyweight: man makers → burpees', C.fitDayExercises(SHOTO, 2, { home: true })[1].name === 'Burpees');
 check('Shoto: fit and fight weeks match', C.fitTrainingDays(SHOTO).length === SHOTO.fight.days.length);
 check('Shoto fight: 4 days × 2 weeks', C.fightTotal(SHOTO) === 8);
 const sf = C.fightDayCfg(SHOTO, { now: at('2026-10-20') });
