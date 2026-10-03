@@ -267,9 +267,9 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
 {
   reset();
   const ids = C.CONCEPT_SCHEDULE.map(e => e.concept.id);
-  check('five drops in order', ids.join() === 'shoto,ultra-ego,flow-state,one-hundred,night-vigilante', ids.join());
+  check('six drops in order', ids.join() === 'shoto,ultra-ego,flow-state,one-hundred,warrior-queen,night-vigilante', ids.join());
   check('Flow State Feb–Mar, One Hundred Apr–May', C.windowState(C.entryFor('flow-state'), at('2027-02-01')) === 'live' && C.windowState(C.entryFor('one-hundred'), at('2027-05-31')) === 'live');
-  const BANNED = /goku|vegeta|saiyan|dragon ball|ultra instinct|ultra ego|saitama|one[- ]punch|garou|batman|gotham|serious (punch|series)|normal punches|ryu\b|ken\b|akuma|capcom|street fighter/i;
+  const BANNED = /goku|vegeta|saiyan|dragon ball|ultra instinct|ultra ego|saitama|wonder woman|diana|themyscira|amazon|lasso|one[- ]punch|garou|batman|gotham|serious (punch|series)|normal punches|ryu\b|ken\b|akuma|capcom|street fighter/i;
   for (const e of C.CONCEPT_SCHEDULE) {
     const c = e.concept;
     const { art, ...shown } = c;

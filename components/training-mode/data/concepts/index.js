@@ -18,6 +18,7 @@ import { SHOTO, SHOTO_EXERCISES } from './shoto';
 import { NIGHT_VIGILANTE, NIGHT_VIGILANTE_EXERCISES } from './nightVigilante';
 import { FLOW_STATE, FLOW_STATE_EXERCISES } from './flowState';
 import { ONE_HUNDRED, ONE_HUNDRED_EXERCISES } from './oneHundred';
+import { WARRIOR_QUEEN, WARRIOR_QUEEN_EXERCISES } from './warriorQueen';
 
 const KEY = 'tm_concepts_v1';
 export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
@@ -29,11 +30,12 @@ export const CONCEPT_SCHEDULE = [
   { concept: ULTRA_EGO, start: '2026-12-01', end: '2027-01-31' },
   { concept: FLOW_STATE, start: '2027-02-01', end: '2027-03-31' },
   { concept: ONE_HUNDRED, start: '2027-04-01', end: '2027-05-31' },
+  { concept: WARRIOR_QUEEN, start: '2027-06-01', end: '2027-07-31' },
   // Over Batman Day (third Saturday of September: Sep 18, 2027).
   { concept: NIGHT_VIGILANTE, start: '2027-08-01', end: '2027-09-30' },
 ];
 
-const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES, ...NIGHT_VIGILANTE_EXERCISES, ...FLOW_STATE_EXERCISES, ...ONE_HUNDRED_EXERCISES];
+const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES, ...NIGHT_VIGILANTE_EXERCISES, ...FLOW_STATE_EXERCISES, ...ONE_HUNDRED_EXERCISES, ...WARRIOR_QUEEN_EXERCISES];
 
 // ── time ────────────────────────────────────────────────────────────────────
 const dayStart = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 0, 0, 0, 0).getTime(); };

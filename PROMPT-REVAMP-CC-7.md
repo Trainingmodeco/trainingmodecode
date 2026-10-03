@@ -117,3 +117,14 @@ drop's user-facing text.
   unless the player is Pro or already cleared a stage there; ultra-ego →
   `destroyer-protocol` (Dec 1) is retired the same way. TrainingArcade filters
   `VISIBLE_ARCADE_SERIES` with it.
+
+## 6. Warrior Queen + Shoto date (fourth commit)
+- Shoto window now **2026-10-23 → 2026-11-30** (a week after the film's Oct 16 release).
+- **Warrior Queen** (`warriorQueen.js`, copy verbatim) — **2027-06-01 → 2027-07-31**,
+  filling the sixth slot. Fit: THE FORGE, THE SCULPTOR, BATTLE DAY (metcon + core
+  circuits), THE HEROIC BUILD; a 7-rung pull-up ladder. Fight: Kickboxing —
+  SHIELD & BRACERS, THE BIND, POWER KICKS, THE BATTLEFIELD (multiple opponents);
+  super **Bracer Storm**. Arcade: THE SHORE … BOSS · THE TITAN. Art in
+  `public/static/concepts/warrior-queen/` and `series/posters/warrior-queen.webp`.
+- Tests: 159; the franchise guard now also blocks Wonder Woman / Diana /
+  Themyscira / Amazon / lasso.
