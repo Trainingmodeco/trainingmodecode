@@ -356,11 +356,35 @@ export function arcsCleared(progress, stageIdx) {
   return ARCS.filter(a => (by[a.id] || []).includes(stageIdx)).map(a => a.id);
 }
 
+// ── Arcade gate ────────────────────────────────────────────────────────────
+// The gauntlet opens after the first week of either program (Fit or Fight).
+// From there each stage needs more workouts: stage n opens at
+// openAt + (n − 1) × perStage Fit + Fight sessions (concept.arcade.workoutsPerStage,
+// default 1). The boss also needs one full program (Fit or Fight) finished.
+export function arcadeGate(concept, progress = loadProgress(concept.id)) {
+  const fitWeek = fitTrainingDays(concept).length;
+  const fightWeek = concept.fight.days.length;
+  const workouts = progress.fitDone + progress.fightDone;
+  const open = progress.fitDone >= fitWeek || progress.fightDone >= fightWeek;
+  const openAt = Math.min(fitWeek, fightWeek);
+  const per = concept.arcade.workoutsPerStage || 1;
+  const need = (i) => openAt + i * per;
+  const st = status(concept, progress);
+  const b = bossIndex(concept);
+  let allowed = 0;
+  if (open) {
+    while (allowed < concept.arcade.stages.length && workouts >= need(allowed) && !(allowed === b && !st.bossUnlocked)) allowed++;
+  }
+  const nextIdx = allowed < concept.arcade.stages.length ? allowed : -1;
+  const nextNote = !open ? `Finish week 1 of Fit or Fight`
+    : nextIdx < 0 ? null
+      : nextIdx === b && !st.bossUnlocked && workouts >= need(nextIdx) ? 'Boss opens when the Fit or Fight program is done'
+        : `Stage ${nextIdx + 1} in ${need(nextIdx) - workouts} more workout${need(nextIdx) - workouts === 1 ? '' : 's'}`;
+  return { open, workouts, openAt, per, need, allowed, nextIdx, nextNote };
+}
+
 export function stagePlayable(concept, stageIdx, progress = loadProgress(concept.id)) {
-  const stage = concept.arcade.stages[stageIdx];
-  if (!stage) return false;
-  if (stage.boss) return status(concept, progress).bossUnlocked;
-  return true;
+  return stageIdx < arcadeGate(concept, progress).allowed;
 }
 
 // A stage's stations for a tier: the beginner list when the stage has one.

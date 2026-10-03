@@ -4,7 +4,7 @@ import ProGateOverlay from './shared/ProGateOverlay';
 import {
   featuredEntry, entryFor, vaultEntries, setPrefs, status, canPlay, rewardState, claimReward,
   fitTrainingDays, fitTotal, fightTotal, fitDayCfg, fightDayCfg, fmtEnd, daysLeft, windowState, fitDayExercises,
-  settleConceptRun, runTarget, ladderState, ladderHit, ladderStep,
+  settleConceptRun, runTarget, ladderState, ladderHit, ladderStep, arcadeGate,
 } from './data/concepts';
 import { addBonusXp } from './data/userStats';
 import ModeTabs from './shared/ModeTabs';
@@ -110,8 +110,9 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
       state={i < fightInWeek ? 'done' : i === st.fightNext ? 'next' : ''}
       body={(d.focus || '').toLowerCase().replace(/ · /g, ' · ')} />
   ));
-  // The gauntlet opens once the Fit or the Fight program is complete.
-  const arcadeOpen = st.bossUnlocked;
+  // The gauntlet opens after week 1 of Fit or Fight; stages follow workouts.
+  const agate = arcadeGate(c, progress);
+  const arcadeOpen = agate.open;
 
   const nextFitDay = st.fitNext != null ? trainDays[st.fitNext] : null;
   const nextFightDay = st.fightNext != null ? c.fight.days[st.fightNext] : null;
@@ -150,7 +151,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
         {tab === 'fight' && (
           <DisciplineTabs value={c.fight.discipline} onChange={() => {}} style={{ marginBottom: 10, pointerEvents: 'none' }}/>
         )}
-        {/* Arcade: dimmed until the Fit or the Fight program is done. */}
+        {/* Arcade: dimmed until week 1 of Fit or Fight is done. */}
         <button type="button" aria-label="Arcade gauntlet" disabled={!arcadeOpen} onClick={() => (play ? onOpenGauntlet?.(c.id) : setGate(true))} style={{
           width: '100%', marginBottom: 10, padding: '9px 12px', borderRadius: 12, cursor: arcadeOpen ? 'pointer' : 'default',
           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
@@ -158,8 +159,8 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
           border: `1.5px solid ${arcadeOpen ? GOLD : 'rgba(255,255,255,0.1)'}`, opacity: arcadeOpen ? 1 : 0.5,
         }}>
           <span style={{ font: `900 12px ${H}`, letterSpacing: '0.14em', color: arcadeOpen ? GOLD : '#bfb2da' }}>{arcadeOpen ? '▶' : '🔒'} ARCADE</span>
-          <span style={{ font: `700 11px ${B}`, color: MUTED }}>{progress.cleared.length}/{c.arcade.stages.length} stages</span>
-          <span style={{ marginLeft: 'auto', font: `700 10.5px ${B}`, color: arcadeOpen ? '#fde68a' : MUTED }}>{arcadeOpen ? (st.arcadeComplete ? '✓ cleared' : 'Open the gauntlet ›') : 'Finish Fit or Fight to unlock'}</span>
+          <span style={{ font: `700 11px ${B}`, color: MUTED }}>{progress.cleared.length}/{c.arcade.stages.length} · {agate.allowed} open</span>
+          <span style={{ marginLeft: 'auto', font: `700 10.5px ${B}`, color: arcadeOpen ? '#fde68a' : MUTED }}>{st.arcadeComplete ? '✓ cleared' : agate.nextNote || 'Open the gauntlet ›'}</span>
         </button>
 
         {reward === 'ready' && (

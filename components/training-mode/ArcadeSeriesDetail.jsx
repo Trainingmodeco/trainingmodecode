@@ -112,13 +112,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   ), [progress]);
 
   const highestUnlocked = useMemo(() => {
+    let n = stages.length;
     for (let i = 1; i < stages.length; i++) {
       const prev = stages[i - 1];
       const prevData = progress.completedStages[prev.id];
-      if (!prevData || !prevData.completed) return i;
+      if (!prevData || !prevData.completed) { n = i; break; }
     }
-    return stages.length;
-  }, [stages, progress]);
+    // A concept gauntlet also gates stages on workouts done (series.maxUnlocked).
+    return Number.isFinite(series.maxUnlocked) ? Math.min(n, series.maxUnlocked) : n;
+  }, [stages, progress, series.maxUnlocked]);
 
   // Modal state: { idx, top, side ('L'|'R'|'C'), notchY, notch ('side'|'top'|'bottom') }
   const [openInfo, setOpenInfo] = useState(null);
@@ -225,7 +227,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     if (!accessible(idx)) {
       // Locked: brief shake + unlock hint toast instead of the modal.
       setShakeIdx(idx);
-      setToast(idx === mythicIdx ? 'CLEAR ALL STAGES TO UNLOCK' : `CLEAR STAGE ${(nodes[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
+      const byWorkouts = Number.isFinite(series.maxUnlocked) && idx >= series.maxUnlocked && (idx === 0 || completedSet.has(nodes[idx - 1]?.id));
+      setToast(idx === mythicIdx ? 'CLEAR ALL STAGES TO UNLOCK' : byWorkouts && series.gateNote ? series.gateNote.toUpperCase() : `CLEAR STAGE ${(nodes[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
       clearTimeout(shakeTimer.current); clearTimeout(toastTimer.current);
       shakeTimer.current = setTimeout(() => setShakeIdx(null), 500);
       toastTimer.current = setTimeout(() => setToast(null), 1800);

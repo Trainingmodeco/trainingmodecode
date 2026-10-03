@@ -2,7 +2,7 @@
 // ladder. The ladder pop-up offers FIT / FIGHT / BOTH per stage; the stage
 // then runs that path's stations (data/concepts stageCfg). Stages unlock in
 // order and get harder as you climb — no difficulty picker.
-import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems, status } from './index';
+import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems, arcadeGate } from './index';
 import { getSeriesProgress } from '../arcadeProgress';
 import { isPro } from '../entitlements';
 
@@ -16,6 +16,7 @@ export function conceptSaga(conceptId) {
   if (!entry) return null;
   const c = entry.concept;
   const tier = loadProgress(c.id).tier || 'normal';
+  const gate = arcadeGate(c);
   const stages = c.arcade.stages.map((s, i) => ({
     id: `${c.id}-stg-${i + 1}`,
     stageNumber: i + 1,
@@ -35,7 +36,10 @@ export function conceptSaga(conceptId) {
     subtitle: `${c.title} Gauntlet · Concept Drop`,
     description: c.tagline,
     // The gauntlet opens once the Fit or the Fight program is done.
-    ...(status(c).bossUnlocked ? { status: 'active', isActive: true } : { status: 'locked', isActive: false, lockNote: 'FINISH FIT OR FIGHT' }),
+    // Opens after week 1 of Fit or Fight; each stage then needs more workouts.
+    ...(gate.open ? { status: 'active', isActive: true } : { status: 'locked', isActive: false, lockNote: 'FINISH WEEK 1' }),
+    maxUnlocked: gate.allowed,
+    gateNote: gate.nextNote,
     isImported: true,
     type: 'Fit / Fight / Hybrid',
     difficultyStars: 4,

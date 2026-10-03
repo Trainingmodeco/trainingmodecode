@@ -98,11 +98,27 @@ check('fight day 2 turns rush on', C.loadProgress('ultra-ego').fightDone === 0 &
 for (let i = 0; i < 5; i++) C.recordConceptSession(C.fightDayCfg(UE), 5, 5);
 st = C.status(UE);
 check('five fight days completes Fight', st.fightComplete && st.fightNext === null);
-check('finishing Fight unlocks the boss', st.bossUnlocked && C.stagePlayable(UE, 9));
+check('finishing Fight marks the boss unlockable', st.bossUnlocked);
 
 // ── arcade ──────────────────────────────────────────────────────────────────
 reset();
-check('stages 1-9 open from day one', [0, 1, 2, 3, 4, 5, 6, 7, 8].every(i => C.stagePlayable(UE, i)));
+check('arcade is closed on day one', !C.arcadeGate(UE).open && !C.stagePlayable(UE, 0));
+{
+  const { WARRIOR_QUEEN: WQ } = await import('../components/training-mode/data/concepts/warriorQueen.js');
+  const set = (fitDone, fightDone) => store.set('tm_concepts_v1', JSON.stringify({ 'warrior-queen': { fitDone, fightDone } }));
+  set(3, 0); check('3 fit sessions: still closed', !C.arcadeGate(WQ).open && C.arcadeGate(WQ).nextNote === 'Finish week 1 of Fit or Fight');
+  set(4, 0); let g = C.arcadeGate(WQ);
+  check('week 1 of Fit opens stage 1 only', g.open && g.allowed === 1 && g.nextNote === 'Stage 2 in 1 more workout', g.nextNote);
+  set(0, 4); check('week 1 of Fight opens it too', C.arcadeGate(WQ).open && C.arcadeGate(WQ).allowed === 1);
+  set(4, 3); check('each workout opens one more stage', C.arcadeGate(WQ).allowed === 4);
+  set(9, 4); g = C.arcadeGate(WQ);
+  check('boss waits for a full program', g.allowed === 9 && g.nextNote === 'Boss opens when the Fit or Fight program is done', g.nextNote);
+  set(9, 8); check('full Fight program opens the boss', C.arcadeGate(WQ).allowed === 10 && C.stagePlayable(WQ, 9));
+  set(4, 0);
+  const sg = (await import('../components/training-mode/data/concepts/saga.js')).conceptSaga('warrior-queen');
+  check('the ladder gets the gate', sg.status === 'active' && sg.maxUnlocked === 1 && /Stage 2/.test(sg.gateNote));
+  reset();
+}
 check('boss locked from day one', !C.stagePlayable(UE, 9));
 const s4 = C.stageCfg(UE, 3);
 check('EMOM stage: 10 one-minute rounds', s4.blockRounds.length === 10 && s4.blockRounds[0].length_sec === 60);

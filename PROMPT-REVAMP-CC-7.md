@@ -158,3 +158,20 @@ Run `npm run lock:assets` after copying. No code changes.
 - **Fight day rows** are short: the day name, its focus in lower case
   ("blocks · parries · counters") and `N ROUNDS` — no round list.
 - Smoke test: the gauntlet step seeds a finished Fit program first.
+
+## 9. Arcade gate by workouts (seventh commit) — replaces §8's "Arcade after a full program"
+`arcadeGate(concept, progress)` in `data/concepts/index.js`:
+- **Opens** after week 1 of either program: `fitDone ≥ fit training days per week`
+  OR `fightDone ≥ fight days per week`.
+- **Stages follow workouts:** stage n needs `openAt + (n − 1) × perStage` Fit +
+  Fight sessions, where `openAt = min(fit week, fight week)` and `perStage =
+  arcade.workoutsPerStage || 1`. The **boss** also needs one full program done.
+- Returns `{ open, workouts, allowed, nextIdx, nextNote }`; `nextNote` is
+  "Finish week 1 of Fit or Fight" / "Stage N in X more workout(s)" / "Boss opens
+  when the Fit or Fight program is done". `stagePlayable` = `idx < allowed`.
+- `conceptSaga` → `status` active once open (`lockNote: 'FINISH WEEK 1'` before),
+  plus `maxUnlocked: allowed` and `gateNote`. `ArcadeSeriesDetail`'s
+  `highestUnlocked` is capped by `series.maxUnlocked`; tapping a stage held back
+  by workouts toasts the `gateNote`.
+- ConceptScreen ARCADE row: `cleared/10 · N open` and the `nextNote`.
+- Tests: 166.
