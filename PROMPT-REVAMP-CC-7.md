@@ -128,3 +128,14 @@ drop's user-facing text.
   `public/static/concepts/warrior-queen/` and `series/posters/warrior-queen.webp`.
 - Tests: 159; the franchise guard now also blocks Wonder Woman / Diana /
   Themyscira / Amazon / lasso.
+
+## 7. Warrior Queen art (fifth commit, `40e5007`)
+Replace `public/static/concepts/warrior-queen/` with the files at `40e5007`:
+- `poster.webp` and `card.webp` — the owner's portrait art (760×1140): the
+  warrior on the sea cliff with spear and round shield at sunset. Used by the
+  drop pop-up, the concept page header (FIGHT tab), and the Home / Fit / Fight
+  feature cards.
+- `wide.webp` — the owner's wide sunset art (1200×675), the concept page header
+  on the FIT tab.
+- The Arcade banner `series/posters/warrior-queen.webp` is **unchanged**.
+Run `npm run lock:assets` after copying. No code changes.
