@@ -276,3 +276,7 @@ Fighter Hip Mobility 2×60s · Alternating Front and Side Kicks 3×20 ·
 Alternating Roundhouse Kicks 3×16 · Shadowboxing 3×90s. New `SHOTO_EXERCISES`
 rows for Hindu Squats, the two kick drills and Shadowboxing; the exerciseInfo
 `kick` family also matches "side kick". Tests: 170.
+- **Fit to 35 min (follow-up):** Jump Rope 2×90s r30 · Man Makers 3×8 r60 ·
+  Hindu Push-Ups 3×12 r45 · Hindu Squats 2×25 r45 · Horse Stance 2×45s r30 ·
+  Hip Mobility 2×45s r15 · Front & Side Kicks 3×20 r30 · Roundhouse Kicks
+  3×16 r30 · Shadowboxing 2×90s r30 → ~34 min on NORMAL.
