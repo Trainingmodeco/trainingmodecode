@@ -22,7 +22,7 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
   const cta = st.partsDone ? 'CONTINUE ›' : 'START ›';
   return (
     <button type="button" onClick={() => onOpen?.(mode === 'home' ? 'fit' : mode)} style={{
-      position: 'relative', display: 'block', width: '100%', height: mode === 'home' ? 92 : 112, padding: 0, border: 0, cursor: 'pointer',
+      position: 'relative', display: 'block', width: '100%', height: mode === 'home' ? 92 : 88, padding: 0, border: 0, cursor: 'pointer',
       borderRadius: 14, overflow: 'hidden', textAlign: 'left', color: '#fff', background: '#0c0218',
       boxShadow: `0 0 0 1.5px ${ring}aa, 0 0 22px ${ring}44`, ...style,
     }}>
@@ -32,7 +32,7 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
         <span style={{ display: 'inline-block', padding: '4px 9px', borderRadius: 99, background: ring, color: fight ? '#03122e' : '#2a0034', font: `800 8.5px ${H}`, letterSpacing: '0.14em' }}>
           ◆ {mode === 'home' ? 'NEW DROP' : 'CONCEPT PROGRAM'}
         </span>
-        <div style={{ font: `900 ${mode === 'home' ? 20 : 21}px ${H}`, letterSpacing: '0.04em', marginTop: 5 }}>{title}</div>
+        <div style={{ font: `900 ${mode === 'home' ? 20 : 19}px ${H}`, letterSpacing: '0.04em', marginTop: 4 }}>{title}</div>
         <div style={{ font: `600 12px ${B}`, color: fight ? '#cfe0ff' : '#f0d6ff', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 70 }}>{sub}</div>
       </div>
       <div style={{ position: 'absolute', right: 12, bottom: 10, textAlign: 'right' }}>

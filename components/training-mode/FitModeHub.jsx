@@ -81,11 +81,13 @@ export default function FitModeHub({
     { n: '03', key: 'programs', title: 'Programs', sub: 'Follow a plan', onClick: onPrograms },
   ].filter(r => r.onClick);
 
+  // One gap between every block on the hub, so the stack reads evenly.
+  const GAP = 'clamp(8px, 1.4dvh, 12px)';
   const row = (r) => (
     <button
       key={r.key} type="button" className="fm-row" data-guide={'fit-' + r.key} onClick={r.onClick}
       style={{
-        height: 'clamp(50px, 7.4dvh, 60px)', borderRadius: 14, background: '#0E0B18', border: '1px solid rgba(255,255,255,0.08)',
+        height: 'clamp(48px, 6.6dvh, 56px)', borderRadius: 14, background: '#0E0B18', border: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', alignItems: 'center', gap: 14, padding: '0 16px', cursor: 'pointer',
         textAlign: 'left', width: '100%', flexShrink: 0, WebkitTapHighlightColor: 'transparent',
       }}
@@ -126,14 +128,14 @@ export default function FitModeHub({
 
           {/* Today's mission — the one thing on this screen with a gold button. */}
           <section className="fm-hero" data-guide="fit-today" style={{
-            position: 'relative', height: 'clamp(168px, 22dvh, 180px)', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
+            position: 'relative', height: 'clamp(118px, 15.5dvh, 134px)', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
           }}>
             {/* Real art, not the page background: with app-bg here the card
                 read as empty, which beta called "the banner is missing". */}
             <SafeImage src="/static/fitmode/banner-gym-mission.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '70% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.8) 52%, rgba(7,6,12,0.18) 100%)' }}/>
-            <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Today&apos;s mission</span>
                 {/* Ghost is a state of today's mission now, not a separate row
@@ -149,40 +151,44 @@ export default function FitModeHub({
                   </button>
                 )}
               </div>
-              <h1 style={{ margin: 0, font: "700 22px 'Chakra Petch',sans-serif", lineHeight: 1.05, maxWidth: 270, color: '#fff' }}>{title}</h1>
-              <div style={{ fontSize: 13, color: MUTED }}>{line}</div>
+              <h1 style={{ margin: 0, font: "700 19px 'Chakra Petch',sans-serif", lineHeight: 1.08, color: '#fff', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h1>
               <div style={{ flexGrow: 1 }}/>
-              <button type="button" className="fm-go" onClick={startPick} style={{
-                height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
-                font: "700 16px 'Chakra Petch',sans-serif", letterSpacing: '0.2em',
-                boxShadow: '0 0 28px rgba(242,190,69,0.35)',
-              }}><Play size={17} fill="currentColor" strokeWidth={0}/>START</button>
+              {/* The detail line and a compact START share the bottom row, so the
+                  card stays short now that the drop card sits below it. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: MUTED, lineHeight: 1.2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{line}</div>
+                <button type="button" className="fm-go" onClick={startPick} style={{
+                  height: 40, padding: '0 18px', borderRadius: 11, border: 'none', cursor: 'pointer', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
+                  font: "700 14px 'Chakra Petch',sans-serif", letterSpacing: '0.18em',
+                  boxShadow: '0 0 22px rgba(242,190,69,0.35), inset 0 1px 0 rgba(255,255,255,0.6)',
+                }}><Play size={14} fill="currentColor" strokeWidth={0}/>START</button>
+              </div>
             </div>
           </section>
 
           {/* SURPRISE ME at the far left, ADJUST at the far right — the design
               parks them at the card's corners, not side by side in the middle. */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px', marginTop: 4, flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px', marginTop: 2, marginBottom: -6, flexShrink: 0 }}>
             <button type="button" className="fm-quiet" onClick={() => setSurprise(surpriseQuickMission())} style={{
-              height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
+              height: 32, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
             }}><Shuffle size={15}/>SURPRISE ME</button>
             <button type="button" className="fm-quiet" onClick={onQuickMission} style={{
-              height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
+              height: 32, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
             }}><SlidersHorizontal size={15}/>ADJUST</button>
           </div>
 
-          <ConceptFeatureCard mode="fit" onOpen={onOpenConcept} style={{ marginTop: 'clamp(8px, 2dvh, 16px)', flexShrink: 0 }}/>
+          <ConceptFeatureCard mode="fit" onOpen={onOpenConcept} style={{ marginTop: GAP, flexShrink: 0 }}/>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'clamp(8px, 2dvh, 16px)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GAP, marginTop: GAP, flexShrink: 0 }}>
             {ROWS.map(row)}
           </div>
 
           <button type="button" className="fm-row" data-guide="fit-cardio" onClick={onCardioMode} style={{
-            marginTop: 'clamp(6px, 1.5dvh, 12px)', height: 'clamp(50px, 7.4dvh, 60px)', flexShrink: 0, borderRadius: 14, background: '#0E0B18',
+            marginTop: GAP, height: 'clamp(48px, 6.6dvh, 56px)', flexShrink: 0, borderRadius: 14, background: '#0E0B18',
             border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 14,
             padding: '0 8px 0 16px', cursor: 'pointer', textAlign: 'left', width: '100%',
             WebkitTapHighlightColor: 'transparent',

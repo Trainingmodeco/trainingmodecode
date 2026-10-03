@@ -128,7 +128,7 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
 
         <DisciplineTabs value={disc} onChange={pickDisc} guide="fh-disciplines" style={{ marginBottom: 12 }}/>
 
-        <ConceptFeatureCard mode="fight" onOpen={onOpenConcept} style={{ marginBottom: 8, flexShrink: 0 }}/>
+        <ConceptFeatureCard mode="fight" onOpen={onOpenConcept} style={{ marginBottom: 7, flexShrink: 0 }}/>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
           {BANNERS.map(b => (

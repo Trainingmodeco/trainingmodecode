@@ -175,3 +175,15 @@ Run `npm run lock:assets` after copying. No code changes.
   by workouts toasts the `gateNote`.
 - ConceptScreen ARCADE row: `cleared/10 · N open` and the `nextNote`.
 - Tests: 166.
+
+## 10. Fit hub spacing (eighth commit)
+- **Today's mission card:** `clamp(118px, 15.5dvh, 134px)` tall (was 168–180).
+  Title 19 px, two-line clamp. The detail line and a compact gold START
+  (40 px tall, 0 18 px padding, 14 px Chakra Petch, inner highlight) share
+  the bottom row instead of a full-width 44 px button.
+- **SURPRISE ME / ADJUST:** 32 px tall, tucked under the card (`marginBottom: -6`).
+- **One gap for the stack:** `GAP = clamp(8px, 1.4dvh, 12px)` between the
+  concept card, the rows and Cardio. Rows and Cardio are
+  `clamp(48px, 6.6dvh, 56px)` tall.
+- **ConceptFeatureCard** in the Fit and Fight hubs is 88 px tall (was 112) with a 19 px title.
+  The Fight hub's card margin matches its 7 px banner gap.
