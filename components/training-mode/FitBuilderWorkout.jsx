@@ -250,7 +250,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // Rounds only apply to circuits (3+ moves); a 2-move superset runs the
   // exercises' own set count.
   const [linkingIdx, setLinkingIdx] = useState(null);   // row whose ⛓ is glowing
-  const [chainRounds, setChainRounds] = useState({});   // chainId -> rounds (2–5)
+  // A concept day can arrive with its circuits already chained (cfg.chainRounds).
+  const [chainRounds, setChainRounds] = useState(() => cfg.chainRounds || {});   // chainId -> rounds (2–5)
   const chainSeq = useRef(0);
   const lastChainTap = useRef({ idx: -1, at: 0 });
   // Which round of the running chain we're on (a superset's rounds are the

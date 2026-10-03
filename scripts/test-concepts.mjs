@@ -206,17 +206,17 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   reset();
   const nv = C.entryFor('night-vigilante');
   check('NV scheduled over Batman Day (Sep 18 2027)', nv && C.windowState(nv, at('2027-09-18')) === 'live' && C.windowState(nv, at('2027-07-31')) === 'upcoming');
-  check('NV fit: 5 training days a week, 20 sessions', C.fitTrainingDays(NV).length === 5 && C.fitTotal(NV) === 20);
+  check('NV fit: 6 training days a week incl. the long run, 24 sessions', C.fitTrainingDays(NV).length === 6 && C.fitTotal(NV) === 24);
   check('NV fight: 4 days × 4 weeks, MMA', C.fightTotal(NV) === 16 && NV.fight.discipline === 'MMA');
   check('NV tier labels', NV.tierLabels.easy === 'ROOKIE' && NV.tierLabels.hard === 'ELITE');
   const rings = (tier, home = false) => C.fitDayExercises(NV, 1, { tier, home }).map(e => e.name);
-  check('rookie gets the beginner gymnastics rungs', rings('easy').join() === 'Lying Rope Pulls,Pull-Up Negatives,Bench Dips,Box Step-Ups,Lying Leg Raises,Crunches', rings('easy').join());
+  check('rookie gets the beginner gymnastics rungs', rings('easy').join() === 'Lying Rope Pulls,Ring Rows,Bench Dips,Box Step-Ups,Lying Leg Raises,Crunches', rings('easy').join());
   check('normal gets the standard rungs', rings('normal').slice(0, 3).join() === 'Rope Climb,Low-Ring Muscle-Up Transitions,Ring Support Hold');
   check('elite gets the advanced skills', rings('hard').slice(0, 3).join() === 'Legless Rope Climb,Strict Muscle-Ups,Ring Dips');
-  check('home swaps the rope and rings', rings('normal', true).slice(0, 3).join() === 'Towel Pull-Ups,Table-Row Negatives,Chair Dips');
+  check('home swaps the rope and rings', rings('normal', true).slice(0, 3).join() === 'Towel Pull-Ups,Table-Row Negatives,Chair Support Hold', rings('normal', true).slice(0, 3).join());
   const neg = C.fitDayExercises(NV, 1, { tier: 'easy' })[1];
-  check('a rookie alternate keeps its own numbers', neg.sets === 5 && neg.reps === '5');
-  const climb = (tier, home = false) => C.fitDayExercises(NV, 3, { tier, home }).map(e => e.name);
+  check('a rookie rung keeps its own numbers', neg.name === 'Ring Rows' && neg.sets === 3 && neg.reps === '12');
+  const climb = (tier, home = false) => C.fitDayExercises(NV, 4, { tier, home }).map(e => e.name);
   check('the climb: hang circuit at the gym, grip circuit at home', climb('normal').includes('Monkey Bar Traverse') && climb('normal', true).includes('Farmer Hold') && climb('normal', true).includes('Towel Wrings'));
   check('no bouldering anywhere', !JSON.stringify(NV).toLowerCase().includes('boulder'));
   check('clean and jerk → dumbbell for rookies', C.fitDayExercises(NV, 0, { tier: 'easy' })[0].name === 'Dumbbell Hang Clean and Press');
@@ -235,7 +235,58 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   check('rookie arcade stage uses the beginner stations', st.blockRounds[0].coach_prompt.includes('ring rows'));
   const ms = C.stageCfg(NV, 4, { arc: 'hybrid' });
   check('a multi arcade stage carries multi to the timer', ms.blockRounds.every(r => r.multi));
+  // Skill ladders: two hits move a rung up; ↓ steps down; the day follows.
+  reset(); C.setPrefs('night-vigilante', { tier: 'easy' });
+  const mu = () => C.ladderState(NV, { tier: 'easy' }).find(l => l.id === 'muscle-up');
+  check('ladder starts at the tier rung', mu().rung.name === 'Ring Rows' && mu().idx === 2 && mu().target === '3 × 12');
+  C.ladderHit(NV, 'muscle-up', 'easy');
+  check('one hit is not enough', mu().idx === 2 && mu().hits === 1);
+  C.ladderHit(NV, 'muscle-up', 'easy');
+  check('two hits move up a rung', mu().idx === 3 && mu().hits === 0 && mu().rung.name === 'Band-Assisted Pull-Ups');
+  check('the Fit day runs the new rung', C.fitDayExercises(NV, 1, { tier: 'easy' })[1].name === 'Band-Assisted Pull-Ups');
+  C.ladderStep(NV, 'muscle-up', -1, 'easy');
+  check('step down', mu().idx === 2);
+  // Metcon circuit: chained in the player, rounds by tier.
+  reset();
+  const f0 = C.fitDayCfg(NV, { tier: 'easy' });
+  check('metcon rows are one chain', f0.savedExercises.filter(e => e._chain === 'concept-metcon').length === 3 && f0.chainRounds['concept-metcon'] === 3);
+  check('elite metcon is 5 rounds', C.fitDayCfg(NV, { tier: 'hard' }).chainRounds['concept-metcon'] === 5);
+  // Long run day: opens Cardio Mode, counts when a long-enough run is logged.
+  reset();
+  store.set('tm_concepts_v1', JSON.stringify({ 'night-vigilante': { fitDone: 3 } }));
+  const rc = C.fitDayCfg(NV, { tier: 'normal', now: at('2027-08-04') });
+  check('the long run day is a Cardio Mode run', rc.conceptRun && rc.goal === 4 && rc.unit === 'mi');
+  check('a short run does not count', C.settleConceptRun('night-vigilante', [{ at: at('2027-08-04') + 3600e3, distance: 2, unit: 'mi' }]).fitDone === 3);
+  check('an old run does not count', C.settleConceptRun('night-vigilante', [{ at: at('2027-08-03'), distance: 5, unit: 'mi' }]).fitDone === 3);
+  check('a long-enough run counts once', C.settleConceptRun('night-vigilante', [{ at: at('2027-08-04') + 3600e3, distance: 3.7, unit: 'mi' }]).fitDone === 4
+    && C.settleConceptRun('night-vigilante', [{ at: at('2027-08-04') + 3600e3, distance: 9, unit: 'mi' }]).fitDone === 4);
   check('NV is not the owner-preview feature before Shoto/UE end', C.featuredEntry(at('2026-10-15'), true)?.concept.id === 'shoto');
+}
+
+// ── Every drop: shape, no franchise names in what users see ────────────────
+{
+  reset();
+  const ids = C.CONCEPT_SCHEDULE.map(e => e.concept.id);
+  check('five drops in order', ids.join() === 'shoto,ultra-ego,flow-state,one-hundred,night-vigilante', ids.join());
+  check('Flow State Feb–Mar, One Hundred Apr–May', C.windowState(C.entryFor('flow-state'), at('2027-02-01')) === 'live' && C.windowState(C.entryFor('one-hundred'), at('2027-05-31')) === 'live');
+  const BANNED = /goku|vegeta|saiyan|dragon ball|ultra instinct|ultra ego|saitama|one[- ]punch|garou|batman|gotham|serious (punch|series)|normal punches|ryu\b|ken\b|akuma|capcom|street fighter/i;
+  for (const e of C.CONCEPT_SCHEDULE) {
+    const c = e.concept;
+    const { art, ...shown } = c;
+    const txt = JSON.stringify(shown).replace(/"(id|accent|frame)":"[^"]*"/g, '');
+    check(`${c.id}: no franchise names in user text`, c.id === 'ultra-ego' || !BANNED.test(txt), (txt.match(BANNED) || [])[0]);
+    check(`${c.id}: arcade 3 × 10, boss last`, ['fit', 'fight', 'hybrid'].every(a => C.arcStages(c, a).length === 10 && C.arcStages(c, a)[9].boss));
+    check(`${c.id}: every training day builds`, C.fitTrainingDays(c).every((d, i) => d.run || C.fitDayExercises(c, i).length >= 4));
+    check(`${c.id}: every fight day builds with a super`, c.fight.days.every((d, i) => { store.set('tm_concepts_v1', JSON.stringify({ [c.id]: { fightDone: i } })); const f = C.fightDayCfg(c); return f.rounds >= 3 && f.blockRounds.some(r => r.super); }) || c.id === 'ultra-ego' || c.id === 'shoto');
+    reset();
+  }
+  const { ONE_HUNDRED: OH } = await import('../components/training-mode/data/concepts/oneHundred.js');
+  const push = (tier) => C.fitDayExercises(OH, 0, { tier }).slice(0, 10).reduce((n, e) => n + e.sets * Number(e.reps), 0);
+  check('One Hundred push day: 300 / 600 / 1000 reps', push('easy') === 300 && push('normal') === 600 && push('hard') === 1000, `${push('easy')}/${push('normal')}/${push('hard')}`);
+  store.set('tm_concepts_v1', JSON.stringify({ 'one-hundred': { fitDone: 2 } }));
+  const tk = C.fitDayCfg(OH, { tier: 'hard', now: at('2027-04-07') });
+  check('One Hundred 10K is a 10 km Cardio Mode run for elite', tk.conceptRun && tk.goal === 10 && tk.unit === 'km');
+  check('a 9.5 km run counts the 10K', C.settleConceptRun('one-hundred', [{ at: at('2027-04-07') + 3600e3, distance: 9.5, unit: 'km' }]).fitDone === 3);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

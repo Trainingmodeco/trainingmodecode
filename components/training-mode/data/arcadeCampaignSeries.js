@@ -14,7 +14,7 @@ const MAP = {
   ARC_GRAPPLER:          { id: 'grappler-protocol',           subtitle: 'Strongest Teen Protocol', stars: 5, type: 'Hybrid', title: 'The Grappler' },
   ARC_STRUGGLER:       { id: 'struggler-protocol',       subtitle: 'Greatsword Protocol', stars: 5, type: 'Hybrid', title: 'The Struggler' },
   ARC_GRAVITY:       { id: 'gravity-chamber-protocol', subtitle: 'Tempo Protocol',          stars: 4, type: 'Fit', title: 'The Gravity Chamber' },
-  ARC_BLUEBLUR:         { id: 'blue-blur-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Blue Blur' },
+  ARC_BLUEBLUR:         { id: 'blue-blur-protocol', subtitle: 'Speed Protocol',          stars: 4, type: 'Fit / Cardio', title: 'Speed Demon' },
   // This campaign had no series entry at all, so a finished 10-stage campaign
   // was unreachable from the carousel. New id — no placeholder existed for it.
   ARC_MARTIALMONSTER:         { id: 'martial-monster-protocol',     subtitle: 'Martial Monster Protocol', stars: 4, type: 'Fit / Fight', title: 'Martial Monster' },

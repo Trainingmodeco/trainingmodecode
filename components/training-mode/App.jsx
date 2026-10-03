@@ -982,7 +982,9 @@ export default function App() {
     },
     // Concept drops: the concept page, and its sessions on the existing players.
     goConcept:     (tab = 'fit', id = null, from = 'home') => { setConceptView({ id, tab, from }); setScreen('concept'); },
-    startConceptFit:   (c) => actions.goFitWorkout(c),
+    // A concept run day opens Cardio Mode with its distance set; the run counts
+    // once the concept page sees it in the run log (settleConceptRun).
+    startConceptFit:   (c) => (c?.conceptRun ? actions.goCardioMode({ goal: c.goal, unit: c.unit }) : actions.goFitWorkout(c)),
     startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
     goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {

@@ -12,9 +12,12 @@
 // This module is pure data + rules. Screens call it; it never renders.
 import { FIT_MODE_EXERCISES } from '../../fit-mode/fitModeExerciseData';
 import { isPro } from '../entitlements';
+import { loadRuns, runMeters } from '../runLog';
 import { ULTRA_EGO, ULTRA_EGO_EXERCISES } from './ultraEgo';
 import { SHOTO, SHOTO_EXERCISES } from './shoto';
 import { NIGHT_VIGILANTE, NIGHT_VIGILANTE_EXERCISES } from './nightVigilante';
+import { FLOW_STATE, FLOW_STATE_EXERCISES } from './flowState';
+import { ONE_HUNDRED, ONE_HUNDRED_EXERCISES } from './oneHundred';
 
 const KEY = 'tm_concepts_v1';
 export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
@@ -24,11 +27,13 @@ export const OWNER_PREVIEW_KEY = 'tm_owner_preview';
 export const CONCEPT_SCHEDULE = [
   { concept: SHOTO, start: '2026-10-19', end: '2026-11-30' },
   { concept: ULTRA_EGO, start: '2026-12-01', end: '2027-01-31' },
+  { concept: FLOW_STATE, start: '2027-02-01', end: '2027-03-31' },
+  { concept: ONE_HUNDRED, start: '2027-04-01', end: '2027-05-31' },
   // Over Batman Day (third Saturday of September: Sep 18, 2027).
   { concept: NIGHT_VIGILANTE, start: '2027-08-01', end: '2027-09-30' },
 ];
 
-const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES, ...NIGHT_VIGILANTE_EXERCISES];
+const EXTRA_EXERCISES = [...ULTRA_EGO_EXERCISES, ...SHOTO_EXERCISES, ...NIGHT_VIGILANTE_EXERCISES, ...FLOW_STATE_EXERCISES, ...ONE_HUNDRED_EXERCISES];
 
 // ── time ────────────────────────────────────────────────────────────────────
 const dayStart = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 0, 0, 0, 0).getTime(); };
@@ -82,6 +87,7 @@ export function loadProgress(id) {
     fitDone: p.fitDone || 0, fightDone: p.fightDone || 0, cleared: Array.isArray(p.cleared) ? p.cleared : [],
     startedAt: p.startedAt || null, popupSeen: !!p.popupSeen, rewardClaimedAt: p.rewardClaimedAt || null,
     tier: p.tier || 'normal', home: !!p.home, clearedBy: p.clearedBy || {},
+    rungs: p.rungs || {}, ladderHits: p.ladderHits || {}, pendingRun: p.pendingRun || null,
   };
 }
 function update(id, fn) {
@@ -142,7 +148,9 @@ export function claimReward(id, now = Date.now()) {
 }
 
 // ── Fit ─────────────────────────────────────────────────────────────────────
-const LIB = new Map([...FIT_MODE_EXERCISES, ...EXTRA_EXERCISES].map(e => [e.name.toLowerCase(), e]));
+// The Fit library wins over a concept's own row of the same name (it carries
+// the real id and video); concept rows only fill the gaps.
+const LIB = new Map([...EXTRA_EXERCISES, ...FIT_MODE_EXERCISES].map(e => [e.name.toLowerCase(), e]));
 const WEIGHTED = new Set(['dumbbell', 'barbell', 'kettlebell', 'medball', 'sandbag']);
 const TIER = {
   easy: { sets: -1, reps: 0.75 },
@@ -194,18 +202,81 @@ export function toPlayerExercise(row, i) {
   };
 }
 
-export function fitDayExercises(concept, dayIdx, { tier = 'normal', home = false } = {}) {
+// ── Skill ladders ───────────────────────────────────────────────────────────
+// A concept may define `ladders: { id: { title, rungs: [row…], start: { easy,
+// normal, hard } } }`. A Fit row with `ladder: id` runs the athlete's current
+// rung: their saved rung, else the tier's starting rung. Hitting a rung's
+// target twice moves them up one (self-reported on the concept page).
+function rungIndex(concept, id, tier, progress) {
+  const l = concept.ladders?.[id];
+  if (!l) return -1;
+  const saved = progress?.rungs?.[id];
+  const i = Number.isInteger(saved) ? saved : (l.start?.[tier] ?? l.start?.normal ?? 0);
+  return Math.max(0, Math.min(l.rungs.length - 1, i));
+}
+export function rungTarget(r) {
+  return `${r.sets} × ${r.seconds ? `${r.seconds} s` : r.reps}`;
+}
+export function ladderState(concept, { tier = 'normal', progress = loadProgress(concept.id) } = {}) {
+  return Object.entries(concept.ladders || {}).map(([id, l]) => {
+    const idx = rungIndex(concept, id, tier, progress);
+    return { id, title: l.title, idx, total: l.rungs.length, rung: l.rungs[idx], next: l.rungs[idx + 1] || null, hits: progress.ladderHits?.[id] || 0, target: rungTarget(l.rungs[idx]) };
+  });
+}
+const HITS_TO_MOVE_UP = 2;
+export function ladderHit(concept, id, tier = 'normal') {
+  return update(concept.id, p => {
+    const idx = rungIndex(concept, id, tier, p);
+    const hits = (p.ladderHits?.[id] || 0) + 1;
+    const top = concept.ladders[id].rungs.length - 1;
+    const up = hits >= HITS_TO_MOVE_UP && idx < top;
+    return { ...p, rungs: { ...(p.rungs || {}), [id]: up ? idx + 1 : idx }, ladderHits: { ...(p.ladderHits || {}), [id]: up ? 0 : Math.min(hits, HITS_TO_MOVE_UP) } };
+  });
+}
+export function ladderStep(concept, id, dir, tier = 'normal') {
+  return update(concept.id, p => {
+    const idx = rungIndex(concept, id, tier, p);
+    const n = Math.max(0, Math.min(concept.ladders[id].rungs.length - 1, idx + (dir < 0 ? -1 : 1)));
+    return { ...p, rungs: { ...(p.rungs || {}), [id]: n }, ladderHits: { ...(p.ladderHits || {}), [id]: 0 } };
+  });
+}
+
+export function fitDayExercises(concept, dayIdx, { tier = 'normal', home = false, progress = loadProgress(concept.id) } = {}) {
   const day = fitTrainingDays(concept)[dayIdx];
-  if (!day) return [];
+  if (!day?.exercises) return [];
   return day.exercises.map((r, i) => {
-    // Tier alternate first (row.easy = the beginner version, row.hard = the
-    // advanced one), then the home version of whatever that left.
-    const alt = r[tier];
+    // A ladder row runs the athlete's rung; otherwise the tier alternate
+    // (row.easy = beginner, row.hard = advanced); then the home version.
+    const lad = r.ladder ? concept.ladders?.[r.ladder] : null;
+    const alt = lad ? lad.rungs[rungIndex(concept, r.ladder, tier, progress)] : r[tier];
     let row = alt ? { ...r, ...alt, fixed: true } : r;
     if (home && row.home) row = { ...row, ...row.home, note: row.home.note || `Home version of ${row.name}.` };
     else if (home && WEIGHTED.has(row.equip) && row.swap) row = { ...row, name: row.swap, equip: 'bodyweight', note: `Home swap for ${row.name}.` };
-    return toPlayerExercise(scaleRow(row, tier), i);
+    const ex = toPlayerExercise(scaleRow(row, tier), i);
+    // A circuit (row.circuit) chains its rows in the Fit player.
+    return r.circuit ? { ...ex, _chain: `concept-${r.circuit}` } : ex;
   });
+}
+
+// ── Run days ───────────────────────────────────────────────────────────────
+// A Fit day may be a run: `{ run: { km | mi: { easy, normal, hard } } }`,
+// each a number or a per-week array. It opens Cardio Mode with the distance
+// set and counts once a logged run after the start covers 90% of it.
+export function runTarget(concept, day, tier = 'normal', week = 1) {
+  const unit = day.run.mi ? 'mi' : 'km';
+  const t = (day.run[unit] || {})[tier] ?? (day.run[unit] || {}).normal;
+  const v = Array.isArray(t) ? t[Math.min(t.length, Math.max(1, week)) - 1] : t;
+  return { goal: Number(v) || 0, unit };
+}
+const M_PER = { km: 1000, mi: 1609.344 };
+export function settleConceptRun(conceptId, runs = loadRuns()) {
+  const p = loadProgress(conceptId);
+  const pr = p.pendingRun;
+  if (!pr || p.fitDone !== pr.seq) return p;
+  const need = pr.goal * M_PER[pr.unit] * 0.9;
+  const hit = runs.find(r => (r.at || 0) >= pr.at && runMeters(r) >= need);
+  if (!hit) return p;
+  return update(conceptId, q => ({ ...q, fitDone: q.fitDone === pr.seq ? q.fitDone + 1 : q.fitDone, pendingRun: null }));
 }
 
 // The cfg the Fit player takes (FitBuilderWorkout: savedExercises bypasses
@@ -216,7 +287,14 @@ export function fitDayCfg(concept, { tier = 'normal', home = false, now = Date.n
   const idx = st.fitNext ?? 0;
   const day = fitTrainingDays(concept)[idx];
   markStarted(concept.id, now);
+  if (day?.run) {
+    const t = runTarget(concept, day, tier, st.fitWeek);
+    update(concept.id, p => ({ ...p, pendingRun: { seq: prog.fitDone, at: now, ...t } }));
+    return { conceptRun: true, ...t, conceptId: concept.id, conceptKind: 'fit', conceptSeq: prog.fitDone, conceptDayLabel: day.label, conceptTitle: `${concept.title} · ${day.label}` };
+  }
+  const circuits = Object.fromEntries(Object.entries(day?.circuits || {}).map(([k, v]) => [`concept-${k}`, Math.max(2, Math.min(5, v[tier] ?? v.normal ?? 3))]));
   return {
+    chainRounds: circuits,
     muscleGroups: [], equipment: home ? 'Bodyweight' : 'Hybrid', difficulty: tier === 'hard' ? 'Hard' : tier === 'easy' ? 'Easy' : 'Normal',
     focus: 'Strength', duration: concept.fit.minutes, cardioAddon: null, addCardio: false,
     savedExercises: fitDayExercises(concept, idx, { tier, home }),

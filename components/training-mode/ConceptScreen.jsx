@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import SafeImage from './SafeImage';
 import ProGateOverlay from './shared/ProGateOverlay';
 import {
-  featuredEntry, entryFor, vaultEntries, loadProgress, setPrefs, status, canPlay, rewardState, claimReward,
+  featuredEntry, entryFor, vaultEntries, setPrefs, status, canPlay, rewardState, claimReward,
   fitTrainingDays, fitTotal, fightTotal, fitDayCfg, fightDayCfg, fmtEnd, daysLeft, windowState, fitDayExercises,
+  settleConceptRun, runTarget, ladderState, ladderHit, ladderStep,
 } from './data/concepts';
 import { addBonusXp } from './data/userStats';
 
@@ -56,7 +57,8 @@ function DayRow({ n, label, focus, body, state, accent }) {
 export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, onStartFit, onStartFight, onPaywall, onOpenGauntlet }) {
   const entry = useMemo(() => (conceptId ? entryFor(conceptId) : featuredEntry()), [conceptId]);
   const [tab, setTab] = useState(initialTab);
-  const [progress, setProgress] = useState(() => (entry ? loadProgress(entry.concept.id) : null));
+  // A run day counts once its run shows up in the run log — check on open.
+  const [progress, setProgress] = useState(() => (entry ? settleConceptRun(entry.concept.id) : null));
   const [gate, setGate] = useState(false);
   const [claimed, setClaimed] = useState(null);
 
@@ -85,13 +87,18 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
   };
 
   const trainDays = fitTrainingDays(c);
+  const ladders = ladderState(c, { tier, progress });
   let trainIdx = -1;
   const fitRows = c.fit.days.map((d, i) => {
     if (d.rest) return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} body={d.intro} state="rest" />;
     trainIdx += 1;
     const doneThisWeek = (progress.fitDone % trainDays.length) > trainIdx || st.fitComplete;
     const state = doneThisWeek ? 'done' : st.fitNext === trainIdx ? 'next' : '';
-    return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={fitDayExercises(c, trainIdx, { tier, home: progress.home }).map(e => e.name).join(' · ')} />;
+    if (d.run) {
+      const t = runTarget(c, d, tier, st.fitWeek);
+      return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={`${t.goal} ${t.unit} in Cardio Mode this week · ${d.intro}`} />;
+    }
+    return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={fitDayExercises(c, trainIdx, { tier, home: progress.home, progress }).map(e => e.name).join(' · ')} />;
   });
   const fightInWeek = st.fightComplete ? c.fight.days.length : progress.fightDone % c.fight.days.length;
   const fightRows = c.fight.days.map((d, i) => (
@@ -189,6 +196,23 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
               <span style={{ color: MUTED }}>{c.fit.days.length - trainDays.length} REST DAYS · ~{c.fit.minutes} MIN</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>{fitRows}</div>
+            {ladders.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ font: `800 8.5px ${H}`, letterSpacing: '0.16em', color: '#c4b5fd', marginBottom: 4 }}>SKILL LADDERS</div>
+                <div style={{ font: `600 11px ${B}`, color: MUTED, marginBottom: 8 }}>{'Hit a rung\'s target twice and you move up. Tap ✓ after a session where you hit it.'}</div>
+                {ladders.map(l => (
+                  <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(20,8,36,0.6)', marginBottom: 6 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ font: `900 10px ${H}`, letterSpacing: '0.1em', color: '#e9d5ff' }}>{l.title.toUpperCase()} · RUNG {l.idx + 1}/{l.total}</div>
+                      <div style={{ font: `700 12px ${B}`, color: '#fff', marginTop: 2 }}>{l.rung.name} <span style={{ color: GOLD }}>· {l.target}</span></div>
+                      <div style={{ font: `600 10.5px ${B}`, color: MUTED, marginTop: 1 }}>{l.next ? `Next: ${l.next.name}` : 'Top rung'} · {'●'.repeat(l.hits)}{'○'.repeat(2 - l.hits)}</div>
+                    </div>
+                    <button type="button" aria-label={`Rung down: ${l.title}`} disabled={l.idx === 0} onClick={() => setProgress(ladderStep(c, l.id, -1, tier))} style={{ width: 34, height: 34, borderRadius: 9, border: '1px solid rgba(255,255,255,0.14)', background: 'transparent', color: '#bfb2da', font: `900 14px ${H}`, cursor: 'pointer', opacity: l.idx === 0 ? 0.35 : 1 }}>↓</button>
+                    <button type="button" aria-label={`Hit the target: ${l.title}`} onClick={() => setProgress(ladderHit(c, l.id, tier))} style={{ height: 34, padding: '0 12px', borderRadius: 9, border: `1px solid ${GOLD}`, background: 'rgba(253,224,71,0.12)', color: GOLD, font: `900 10px ${H}`, letterSpacing: '0.1em', cursor: 'pointer' }}>✓ HIT</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
         {tab === 'fight' && (

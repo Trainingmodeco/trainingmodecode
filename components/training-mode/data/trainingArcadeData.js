@@ -1032,7 +1032,7 @@ export const TRAINING_ARCADE_SERIES = [
   },
   {
     id: 'blue-blur-protocol',
-    title: 'Blue Blur Speed Protocol',
+    title: 'Speed Demon',
     subtitle: 'Sprint, speed, and cardio training',
     description: 'Original speed-inspired cardio series built around intervals, sprints, jump rope, and conditioning.',
     status: 'comingSoon',
@@ -1048,7 +1048,7 @@ export const TRAINING_ARCADE_SERIES = [
     sourceWorkout: null,
     phases: [],
     statRewards: { speed: 4, agility: 3, endurance: 3 },
-    rewards: { badge: 'Blue Blur Badge', title: 'Speed Demon', statBoost: 'Speed + Agility' },
+    rewards: { badge: 'Speed Demon Badge', title: 'Speed Demon', statBoost: 'Speed + Agility' },
     stages: [],
   },
   // Coming-soon placeholders (archetype-safe originals). Fallback text cards
