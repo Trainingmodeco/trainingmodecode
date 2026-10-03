@@ -1,9 +1,66 @@
-# PROMPT REVAMP-CC-7 — Night Vigilante concept drop (+ concept engine: tier alternates, home versions, multi rounds)
+# PROMPT REVAMP-CC-7 — Six concept drops a year, the concept engine, the Arcade gate, and hub layout
 
-**Scope: the Night Vigilante drop and the engine changes it needs, on
-`trainingmodeco/trainingmodecode`, branch `app`. Run CC-5 and CC-6 first.**
-Read the source files below before writing — match them line-close. Where
-this prompt and the source disagree, the source wins.
+**Scope: everything on `trainingmodeco/trainingmodecode`, branch `app`, from
+`bdaad1c` (CC-6) up to `91adcce`. Run CC-5 and CC-6 first.**
+Read the source files before writing — match them line-close. Where this
+prompt and the source disagree, the source wins. Sections 1–3 are the first
+commit; sections 4–12 were added commit by commit and **override earlier
+sections where they say so** (e.g. §9 replaces §8's Arcade rule).
+
+## Summary — what the revamp gets
+
+**The year of drops** (`CONCEPT_SCHEDULE`, dates inclusive, local time):
+
+| Drop | Window | Fit | Fight | Super | Replaces saga |
+|---|---|---|---|---|---|
+| Shoto | 2026-10-23 → 11-30 | 4/wk × 4 | Kickboxing 4/wk × 2 | Rising Dragon / Dragon Storm / Demon Barrage | — |
+| Ultra Ego | 2026-12-01 → 2027-01-31 | 4/wk × 4 | Muay Thai 5/wk × 4 | — | The Destroyer |
+| Flow State | 2027-02-01 → 03-31 | 5/wk × 4 | Kickboxing 4/wk × 3 | Silver Flow | Flow State |
+| One Hundred | 2027-04-01 → 05-31 | 4/wk × 4 (incl. THE 10K run) | Boxing 4/wk × 2 | Limit Breaker | One Hundred (old One Punch) |
+| Warrior Queen | 2027-06-01 → 07-31 | 4/wk × 4 | Kickboxing 4/wk × 2 | Bracer Storm | — |
+| Night Vigilante | 2027-08-01 → 09-30 | 6/wk × 4 (incl. THE LONG NIGHT run) | MMA 4/wk × 4 | Nightfall | The Vigilante |
+
+Every drop: FIT · FIGHT · a 10-stage Arcade gauntlet on three paths
+(FIT / FIGHT / BOTH), tiers ROOKIE / NORMAL / ELITE, GYM / BODYWEIGHT.
+
+**Engine (`data/concepts/index.js`)**
+1. Tier alternates per Fit row (`row.easy` / `row.hard`, used as written) and
+   home versions (`row.home`) — §2.
+2. Rookie fight format (`fight.easy`), `easyCombos`, `super.easy`, multi rounds
+   and multi stages, tier-aware arcade stations (`easyItems`) — §2.
+3. Run days (Cardio Mode, counted from the run log), skill ladders (two hits →
+   next rung), circuits chained in the Fit player — §4.
+4. Arcade gate: opens after week 1 of Fit or Fight; one more workout per stage;
+   boss needs a full program — §9.
+5. Old sagas retire when their drop goes live, except Pro and anyone with
+   progress (`retiredSagaIds`, includes The Destroyer on Dec 1) — §5.
+6. Franchise-name guard over every drop's user text (`test-concepts`) — §4, §6.
+
+**Screens**
+- Concept page = the hubs: `ModeTabs` with session counts, the discipline row,
+  an ARCADE row (locked → "Stage N in X workouts"), short fight-day rows — §8, §9.
+- Fit hub: shorter Today's Mission card, compact START, one even gap — §10.
+- Arcade carousel: drop cards first, `lockNote`, workout-gated ladder — §5, §9.
+
+**Art** — `public/static/concepts/<id>/{poster,wide,card}.webp` for all six,
+silhouette banners in `public/static/series/posters/` (incl. new
+`night-vigilante`, `warrior-queen`, `struggler-protocol`, `blue-blur` =
+Speed Demon). Run `npm run lock:assets` after copying.
+
+**Tests** — `test-concepts` 169 checks; `smoke-web` drives a concept gauntlet
+stage (seeding a finished week first).
+
+**Acceptance (whole prompt)**
+1. `npm run check:all` passes.
+2. With the device clock at Jun 5 2027 (regular user): Warrior Queen pops up,
+   leads the Arcade, its page opens on the tab of the hub you came from, ARCADE
+   is locked until 4 workouts, then opens one stage per workout.
+3. Owner preview (Strike Lab code) opens any drop early, tagged
+   PREVIEW · NOT RELEASED.
+
+---
+
+## Reference files (first commit)
 
 | Purpose | Path |
 |---|---|
