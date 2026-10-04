@@ -1,5 +1,7 @@
 # PROMPT WEB-2 — the trainingmode.co landing page (supersedes WEB-1)
 
+> **Superseded by PROMPT-WEB-3** — the owner keeps the current site and merges updates. Use WEB-3.
+
 **Domain: `trainingmode.co` · the marketing page, not the app.**
 **The app lives at `apptrainingmode.com` (a PWA) — never re-implement it here.**
 
