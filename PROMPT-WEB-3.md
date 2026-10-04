@@ -3,12 +3,13 @@
 **Supersedes WEB-1 and WEB-2 for the site.** The owner wants to **keep the
 current site** — the `landing/` folder on branch
 `claude/training-mode-landing-redesign-qjfnuz` (commit `e1290b5`, deployed to
-Hostinger per `landing/DEPLOY.md`) — and only update it. **Do not change the
-layout, fonts, colours, hero, mode cards, Arcade, progress or community
-sections.** Every edit below reuses the site's own classes.
+Hostinger per `landing/DEPLOY.md`) — and only update it. **Keep the
+layout, fonts, colours, hero, gallery ("Every Screen Is a Stage"), progress
+and community sections.** Edits below reuse the site's own classes; §10–15
+(round 2) rework the modes, Arcade and Pro sections and add `features.html`.
 
 A ready-to-upload copy with all of these edits applied was given to the owner
-as `trainingmode-co-update.zip`. This prompt is the same change, step by step.
+as `trainingmode-co-update-v2.zip` (includes round 2). This prompt is the same change, step by step.
 
 ---
 
@@ -47,7 +48,7 @@ existing six.
 - Chip `Coming Soon · Game Launches 2026` → `In the Works`.
 - Copy: `…power your in-game fighter's stats, rank &amp; skins.` → `…power your in-game fighter.`
 
-## 5. Subscribe — the real Pro
+## 5. Subscribe — the real Pro (superseded by §13)
 - Lede → `Every Arcade saga and boss, the full Training Camp, and every past concept drop in the Vault. The current drop is always free.`
 - `Training Mode Plus` → `Training Mode Pro`.
 - Bullets → exactly the app's paywall (`Paywall.jsx` `BENEFITS`):
@@ -77,7 +78,7 @@ existing six.
 `.drop-calendar` (3 cols, 2 on ≤520 px, `.live` gold), `.price-row` (3 cols,
 `.best` gold). Copy the block from the zip; nothing existing changes.
 
-## 8. Owner decisions (not changed in this update)
+## 8. Owner decisions (resolved in round 2 — see §10)
 - **"Go To App" / Google Play buttons** point to
   `play.google.com/store/apps/details?id=app.trainingmode.pro`. Keep only if
   that listing is live; otherwise point them at `https://apptrainingmode.com/?src=site`
@@ -85,6 +86,55 @@ existing six.
 - **Newsletter form** — keep; confirm where it submits.
 - **Instagram** footer link is commented out — the handle is `trainingmode.co`
   (`https://www.instagram.com/trainingmode.co/`, same as the app); uncomment.
+
+## 10. Links, nav, socials (round 2)
+- Google Play is **not live**: every `play.google.com` link → `https://apptrainingmode.com/?src=site`
+  with `data-app-link`. Header button `Open App`; hero `Open the App`. The Play badge
+  becomes `<span class="store-button store-soon">Coming soon to Google Play</span>`
+  (App Store stays "coming soon") + `p.pwa-note` `Works now in your phone browser — add it to your Home Screen.`
+- Desktop and mobile nav: Home, Modes, Arcade, Drops, **Features** (`features.html`),
+  Community, Pro (`#subscribe`); the mobile nav ends with `Open the App`.
+- Footer: Instagram uncommented (`https://www.instagram.com/trainingmode.co/`);
+  add `Features` after Modes.
+
+## 11. Modes → app-style tabs (replaces "Two Core Modes. Two Ways to Bridge Them.")
+- Heading `Mode Select` / `Pick Your Mode.` / `Fit builds the body. Fight builds the skills. The Arcade turns both into a climb — every rep earns XP.`
+- `nav.mt[role=tablist][data-mode-tabs]` with three `button.mt-tab` (`fit on`, `fight`,
+  `arcade`; `data-mode`; `<span>LABEL</span><i class="mt-bar"></i>`). CSS is the app's
+  `shared/ModeTabs.jsx` `modeTabsCSS` (violet fit, blue fight) + a gold arcade variant.
+- `div.mode-stage` holds the three existing `mode-panel` cards (`data-mode-panel`;
+  fight/arcade `hidden`), image left / copy right on desktop, stacked on mobile.
+  Bullets — Fit: Quick Missions · Workout Builder · Programs · GPS & machine cardio.
+  Fight: Fight Focus rounds · Combo Coach · Multiple opponents · Training Camp.
+  Arcade: 10-stage sagas · Choose your path · Boss rounds · Concept drop gauntlets + `How the Arcade works ›`.
+- Combat Conditioning drops to one line under the tabs (`p.mode-extra`) linking `features.html#conditioning`.
+- JS: clicking a tab toggles `.on` / `aria-selected` and `hidden` on the panels.
+
+## 12. Arcade → "How the Arcade Works"
+Keep the poster. Copy: `Every saga is a ladder of ten stages. Clear one, the next opens. The boss waits at the top.`
+Replace the stage-card picker with `ol.how-steps`: `01 Pick a saga` · `02 Choose your path`
+(FIT / FIGHT / BOTH chips) · `03 Clear to climb` · `10 Beat the boss` (violet). Button
+`Enter the Arcade` (`data-app-link`).
+
+## 13. Pro — simple
+`Go Pro` / `Unlock the Whole Climb` / `The app is free to start, and the current drop is always free.`
+Card: three bullets (Every Arcade saga & boss · The full Training Camp · Every past
+concept drop), `p.price-line` `From $5.99/mo · $34.99/yr · $59 Founder lifetime`, one
+button `Get Pro in the App` (`?src=site-pro`). No price tiles.
+
+## 14. New page `features.html`
+Same header/footer as `index.html` (anchors → `index.html#…`). Hero `Everything in
+Training Mode`, then a sticky, scrollable slanted tab bar (`nav.dt[data-feat-tabs]`,
+the app's DisciplineTabs look) that highlights the section on screen. Six sections
+(`section.feat`, phone screenshot + copy + bullets, alternating sides):
+`#fit` (fit-hub) · `#fight` (fight-hub-new) · `#arcade` (arcade-ladder, 10-stage
+ladder strip, the 4 steps + concept-drop unlock rule) · `#camp` (12 levels, 1–3 free) ·
+`#conditioning` · `#ranks` (Ranks & XP, the five tier images Rookie → Champion).
+Closing CTA `Ready for Stage 1?` → app (`?src=site-features`). Add it to `sitemap.xml`.
+
+## 15. Done means (round 2)
+No `play.google.com` links; Instagram shows in the footer; the mode tabs switch
+panels; `features.html` tabs track scroll on mobile; no horizontal scroll at 390 px.
 
 ## 9. Done means
 - Visually identical to today except the chip, the new Drop section, three
