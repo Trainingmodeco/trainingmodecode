@@ -4,7 +4,7 @@ import { qrMatrix } from '../data/qrCode';
 // Renders a scannable QR for `value` as a crisp SVG (one <path> of dark modules
 // over a light quiet-zone background). Returns null if the value is too large
 // for the encoder's envelope (the caller then shows just the code/link).
-export default function QRCode({ value, size = 168, quiet = 4, dark = '#0a0014', light = '#ffffff' }) {
+export default function QRCode({ value, size = 168, quiet = 4, dark = '#0a0014', light = '#ffffff', style, label = 'Challenge QR code' }) {
   const mx = useMemo(() => qrMatrix(value), [value]);
   if (!mx) return null;
   const n = mx.size;
@@ -21,9 +21,9 @@ export default function QRCode({ value, size = 168, quiet = 4, dark = '#0a0014',
       height={size}
       viewBox={`0 0 ${dim} ${dim}`}
       shapeRendering="crispEdges"
-      style={{ display: 'block', borderRadius: 8 }}
+      style={{ display: 'block', borderRadius: 8, ...style }}
       role="img"
-      aria-label="Challenge QR code"
+      aria-label={label}
     >
       <rect width={dim} height={dim} fill={light} />
       <path d={d} fill={dark} />

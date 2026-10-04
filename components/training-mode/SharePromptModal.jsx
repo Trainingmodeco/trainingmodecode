@@ -3,6 +3,8 @@ import { Share2, X, QrCode, Copy } from 'lucide-react';
 import { C } from './Styles';
 import { buildShareText, copyShareText } from './data/shareUtils';
 import SafeImage from './SafeImage';
+import QRCode from './shared/QRCode';
+import { SHARE_URL } from './data/links';
 import ShareCardSheet from './ShareCardSheet';
 import { loadStats, getStreak, getLevel } from './data/userStats';
 import { getCurrentTier, tierImage } from './data/tiers';
@@ -137,15 +139,18 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
           background: 'rgba(10,0,20,0.6)', border: '1px solid rgba(253,224,71,0.1)',
           textAlign: 'center',
         }}>
-          <SafeImage
-            src="/social/qr-code-poster.png"
-            fallbackSrc="/social/qr-code-poster.svg"
-            alt="QR Code"
-            style={{ width: '100%', maxWidth: 180, height: 'auto', borderRadius: 8, objectFit: 'contain' }}
-          />
+          {/* The poster art is the frame; the QR itself is drawn live from
+              SHARE_URL so it always scans and always points where we choose.
+              (The baked-in QR in the art was decorative and did not scan.) */}
+          <div style={{ position: 'relative', width: '100%', maxWidth: 300, margin: '0 auto', aspectRatio: '1 / 1' }}>
+            <SafeImage src="/social/qr-code-poster.png" fallbackSrc="/social/qr-code-poster.svg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 8, objectFit: 'cover' }}/>
+            <div data-testid="share-qr" style={{ position: 'absolute', left: '31.5%', top: '37%', width: '37%', height: '37%', background: '#fff', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <QRCode value={SHARE_URL} size={200} quiet={2} label="Scan to join Training Mode" style={{ width: '94%', height: '94%' }} />
+            </div>
+          </div>
           <div style={{
             fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, marginTop: 6,
-          }}>Scan to join Training Mode</div>
+          }}>Scan to join Training Mode · {SHARE_URL.replace(/^https:\/\//, '').replace(/\/\?.*$/, '')}</div>
         </div>
       )}
 

@@ -6,6 +6,12 @@ export const BETA_APP_URL = PUBLIC_SITE_URL;
 // The official Training Mode Instagram (@trainingmode.co).
 export const INSTAGRAM_URL = 'https://www.instagram.com/trainingmode.co/';
 export const MARKETING_SITE_URL = 'https://trainingmode.co';
+// Where the share QR (and its "scan to join" link) sends people. ONE switch:
+// 'app'  → straight into the PWA (works today), 'site' → the trainingmode.co
+// landing page (use once PROMPT-WEB-1 is live). Override at build time with
+// EXPO_PUBLIC_SHARE_TARGET. ?src=qr lets Plausible count scans.
+const SHARE_TARGET = process.env.EXPO_PUBLIC_SHARE_TARGET || 'app';
+export const SHARE_URL = SHARE_TARGET === 'site' ? 'https://trainingmode.co/?src=qr' : 'https://apptrainingmode.com/?src=qr';
 
 export const PRIVACY_URL = 'https://apptrainingmode.com/privacy.html';
 export const WAITLIST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfcnxvfMVlaPoUQZJ3MkRA-Fgo_6QQIzNC40CLPOTckMuZUsQ/viewform?usp=header';
