@@ -19,7 +19,7 @@ const POSTER_MAP = {
   'one-punch-protocol': '/static/series/posters/one-punch.png',
   'gravity-chamber-protocol': '/static/series/posters/hyperbolic-gravity.png',
   'blue-blur-protocol': '/static/series/posters/blue-blur.png',
-  'vigilante-protocol': '/static/series/posters/dark-knight.png',
+  'vigilante-protocol': '/static/series/posters/night-vigilante.webp',
   'demon-back-protocol': '/static/series/posters/demon-back.png',
   'flow-state-protocol': '/static/series/posters/ultra-instinct.png',
   'destroyer-protocol': '/static/series/posters/ultra-ego.png',
@@ -33,7 +33,7 @@ const POSTER_MAP = {
 
 // Older banners with the title baked into the art; skip the printed title
 // until their titleless versions land.
-const TITLED_POSTERS = new Set(['vigilante-protocol']);
+const TITLED_POSTERS = new Set([]);
 
 const RANKS = ['ROOKIE', 'NOVICE', 'WARRIOR', 'MAX', 'CHAMPION'];
 const TEAL = '#5eead4';

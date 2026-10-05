@@ -28,7 +28,7 @@ const CRITICAL_ART = [
   '/static/fight-ring-bg.png',
   // Saga carousel posters
   '/static/series/posters/one-punch.png',
-  '/static/series/posters/dark-knight.png',
+  '/static/series/posters/night-vigilante.webp',
   '/static/series/posters/demon-back.png',
   '/static/series/posters/ultra-instinct.png',
   '/static/series/posters/ultra-ego.png',
