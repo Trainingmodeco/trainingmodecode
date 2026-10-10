@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>TM Game Prototype</title>
+<style>
+:root{ --void:#080012; --gold:#fde047; --violet:#a855f7; --violet-lt:#c99cff; --red:#ef4444; --green:#22c55e; --orange:#ff8a4a; --ink:#ece6f7; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;overflow:hidden;font-family:'Orbitron','Segoe UI',system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;background:var(--void);max-width:100%;max-height:100%}
+.overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(900px 500px at 50% 20%,#1d0b3a 0%,rgba(8,0,18,.96) 65%);color:var(--ink);text-align:center;padding:20px;z-index:10}
+.hide{display:none!important}
+h1{font-size:clamp(20px,5vw,40px);font-weight:900;letter-spacing:3px;color:var(--gold);text-shadow:0 0 24px rgba(253,224,71,.4),3px 3px 0 rgba(124,58,237,.7)}
+.sub{font-size:clamp(10px,2.2vw,14px);letter-spacing:4px;color:var(--violet-lt);font-weight:700}
+.tag{font-size:10px;letter-spacing:2px;color:#8f80ab;max-width:560px;line-height:1.7}
+.builds{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.bcard{width:230px;border:1.5px solid rgba(168,85,247,.4);border-radius:12px;background:rgba(8,2,18,.85);padding:12px 14px;cursor:pointer;text-align:left;transition:transform .1s, border-color .1s;color:var(--ink)}
+.bcard:hover,.bcard:active{transform:translateY(-2px);border-color:var(--gold)}
+.bcard h3{font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:2px}
+.bcard .who{font-size:10px;color:var(--violet-lt);letter-spacing:1px;margin-bottom:8px}
+.stat{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:1px;margin:3px 0;color:#cbb8ef}
+.stat b{width:64px;color:#8f80ab;font-weight:700}
+.bar{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+.chips{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:5px;border:1px solid}
+.perk{color:var(--gold);border-color:rgba(253,224,71,.5)} .weak{color:#ff8181;border-color:rgba(239,68,68,.5)}
+.keys{font-size:10px;letter-spacing:1.5px;color:#8f80ab;line-height:2}
+.keys b{color:var(--violet-lt)}
+.sim{position:fixed;top:8px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:2px;color:#6d5f8a;border:1px solid rgba(168,85,247,.3);border-radius:6px;padding:3px 8px;background:rgba(8,2,18,.7);z-index:11}
+#touch{position:fixed;inset:0;z-index:5;display:none}
+.stick{position:absolute;left:4vw;bottom:6vh;width:120px;height:120px;border-radius:50%;border:2px solid rgba(168,85,247,.35);background:rgba(168,85,247,.07)}
+.nub{position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;background:rgba(201,156,255,.35);transform:translate(-50%,-50%)}
+.btn{position:absolute;width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;letter-spacing:1px;color:#080012}
+#bAtk{right:5vw;bottom:7vh;background:radial-gradient(circle at 35% 30%,#fff4a8,var(--gold))}
+#bSpc{right:21vw;bottom:16vh;background:radial-gradient(circle at 35% 30%,#d8b4fe,var(--violet));color:#fff}
+.rrow{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin:4px 0}
+.rbox{min-width:90px}
+.rbox .k{font-size:9px;letter-spacing:2px;color:#8f80ab}
+.rbox .v{font-size:26px;font-weight:900;color:var(--gold)}
+.lesson{max-width:520px;border:1px solid rgba(168,85,247,.35);border-radius:10px;background:rgba(8,2,18,.85);padding:12px 16px;font-size:11px;line-height:1.8;letter-spacing:.5px;color:#d9c9f5;text-align:left}
+.lesson b{color:var(--gold)}
+.go{margin-top:6px;padding:12px 34px;border-radius:10px;border:none;background:linear-gradient(180deg,#ffef9a,var(--gold));color:#080012;font-family:inherit;font-weight:900;font-size:14px;letter-spacing:3px;cursor:pointer;box-shadow:0 0 24px rgba(253,224,71,.45)}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="480" height="270"></canvas></div>
+<div class="sim">SIMULATED PROFILE · PROTOTYPE · NOT GAME FOOTAGE OF FINAL ART</div>
+
+<div id="title" class="overlay">
+  <div class="sub">TRAINING MODE : THE GAME</div>
+  <h1>CITY RUN — ROUND ONE</h1>
+  <div class="tag">Your real training builds your fighter. Pick a build — both come from the app's actual stat engine. Same hero, different training history. Feel the difference.</div>
+  <div class="builds" id="buildCards"></div>
+  <div class="keys"><b>MOVE</b> WASD / ARROWS &nbsp; <b>ATTACK</b> J or Z &nbsp; <b>SPECIAL</b> K or X &nbsp; <b>PAUSE</b> P<br>On phone: stick + buttons appear automatically.</div>
+</div>
+
+<div id="result" class="overlay hide">
+  <div class="sub" id="rSub">STAGE CLEAR</div>
+  <h1 id="rRank">RANK A</h1>
+  <div class="rrow">
+    <div class="rbox"><div class="k">TIME</div><div class="v" id="rTime">0:00</div></div>
+    <div class="rbox"><div class="k">MAX COMBO</div><div class="v" id="rCombo">0</div></div>
+    <div class="rbox"><div class="k">HIT XP</div><div class="v" id="rXp">0</div></div>
+  </div>
+  <div class="lesson" id="rLesson"></div>
+  <button class="go" onclick="location.reload()">RUN IT BACK</button>
+</div>
+
+<div id="touch"><div class="stick" id="stick"><div class="nub" id="nub"></div></div><div class="btn" id="bAtk">PUNCH</div><div class="btn" id="bSpc">SPECIAL</div></div>
+
+<script>
+'use strict';
+/* ================= FIGHTER PROFILE ENGINE =================
+   Adapted from game-sync/fighterProfile.js (the app's real engine).
+   Same formulas, same TUNING — the prototype consumes its output. */
+const TUNING={STAT_FLOOR:15,STAT_CAP:100,SHARE_GAIN:170,VOLUME_GAIN:14,VOLUME_PIVOT_MIN:300,
+ DAMAGE_MULT:[0.7,1.8],STAMINA_SECONDS:[12,60],REGEN_PER_SEC:[0.5,3.0],HIT_XP_MULT:[1.0,2.5],COMBO_LENGTH:[3,12],COMBO_DAMAGE_MULT:[1.0,1.6]};
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)), lerp=(r,t)=>r[0]+(r[1]-r[0])*clamp(t,0,1);
+const SRC={strength:[['workoutBuilder',1],['combatConditioning',.5]],stamina:[['cardio',1],['combatConditioning',.5]],endurance:[['quickMission',1],['cardio',.25]],hitXp:[['fightFocus',1]],comboMastery:[['comboCoach',1],['practiceMode',.25]]};
+function computeProfile(s){
+  const f=s.features,tot=Object.values(f).reduce((a,x)=>a+(x.activeMinutes||0),0),sh={};
+  for(const k in f)sh[k]=tot?(f[k].activeMinutes||0)/tot:0;
+  const st={};
+  for(const k in SRC){let share=0,min=0;for(const[n,w]of SRC[k]){share+=(sh[n]||0)*w;min+=(f[n]?.activeMinutes||0)*w;}
+    st[k]=clamp(Math.round(TUNING.STAT_FLOOR+TUNING.SHARE_GAIN*share+TUNING.VOLUME_GAIN*Math.log1p(min/TUNING.VOLUME_PIVOT_MIN)/Math.LN2),TUNING.STAT_FLOOR,TUNING.STAT_CAP);}
+  const neg=(k)=>sh[k]<.06&&(f[k]?.activeMinutes||0)<45, perks=[],weaks=[];
+  if(st.strength>=70&&st.stamina<=35)perks.push('GLASS CANNON');
+  if(st.stamina>=70&&st.strength<=35)perks.push('MARATHON ENGINE');
+  if(st.strength>=60&&st.stamina>=60)perks.push('COMPLETE ATHLETE');
+  if(neg('cardio'))weaks.push('GASSES OUT'); if(neg('workoutBuilder'))weaks.push('PILLOW FISTS');
+  const moves=['jab','cross','shove',...(s.lessons||[])];
+  if(moves.length<=4)weaks.push('LIMITED ARSENAL');
+  return{name:s.name,who:s.who,stats:st,perks,weaks,moveList:moves,
+    dmg:lerp(TUNING.DAMAGE_MULT,st.strength/100),
+    stamMax:Math.round(lerp(TUNING.STAMINA_SECONDS,st.stamina/100)),
+    regen:lerp(TUNING.REGEN_PER_SEC,st.endurance/100),
+    hitXp:lerp(TUNING.HIT_XP_MULT,st.hitXp/100),
+    comboCap:Math.round(lerp(TUNING.COMBO_LENGTH,st.comboMastery/100)),
+    comboDmg:lerp(TUNING.COMBO_DAMAGE_MULT,st.comboMastery/100)};
+}
+const U=(m)=>({sessions:Math.ceil(m/30),activeMinutes:m});
+const BUILDS=[
+ computeProfile({name:'BUILD A — THE LIFTER',who:'Workout Builder every day. Skips cardio. Never opened Fight Mode.',
+  features:{workoutBuilder:U(900),quickMission:U(60),cardio:U(0),combatConditioning:U(0),fightFocus:U(0),comboCoach:U(0),practiceMode:U(0)},lessons:[]}),
+ computeProfile({name:'BUILD B — THE STRIKER',who:'Combo Coach + Practice Mode + cardio. Lifts… occasionally.',
+  features:{workoutBuilder:U(60),quickMission:U(90),cardio:U(300),combatConditioning:U(120),fightFocus:U(400),comboCoach:U(500),practiceMode:U(200)},lessons:['hook','uppercut','teep','knee']})];
+
+/* ================= AUDIO (synth, no assets) ================= */
+let AC=null; const au=()=>{if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC;};
+function sfx(type){const c=au();if(!c)return;const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);
+ if(type==='hit'){o.type='square';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(55,t+.09);g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);o.start(t);o.stop(t+.12);}
+ else if(type==='big'){o.type='sawtooth';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(40,t+.22);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);o.start(t);o.stop(t+.3);}
+ else if(type==='whiff'){o.type='triangle';o.frequency.setValueAtTime(700,t);o.frequency.exponentialRampToValueAtTime(220,t+.07);g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);o.start(t);o.stop(t+.09);}
+ else if(type==='bell'){o.type='sine';o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.start(t);o.stop(t+1);}
+ else if(type==='gas'){o.type='sine';o.frequency.setValueAtTime(300,t);o.frequency.linearRampToValueAtTime(120,t+.4);g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+.45);o.start(t);o.stop(t+.5);}
+ else if(type==='ko'){o.type='square';o.frequency.setValueAtTime(520,t);o.frequency.exponentialRampToValueAtTime(60,t+.5);g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+.55);o.start(t);o.stop(t+.6);}}
+
+/* ================= INPUT ================= */
+const keys={};
+addEventListener('keydown',e=>{keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.code==='KeyP')togglePause();});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+const touch={dx:0,dy:0,atk:false,spc:false,active:false};
+function setupTouch(){
+ const T=document.getElementById('touch');T.style.display='block';touch.active=true;
+ const stick=document.getElementById('stick'),nub=document.getElementById('nub');let sid=null;
+ const move=(t)=>{const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=t.clientX-cx,dy=t.clientY-cy;const d=Math.hypot(dx,dy),m=r.width/2;if(d>m){dx*=m/d;dy*=m/d;}nub.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;touch.dx=Math.abs(dx)>8?dx/m:0;touch.dy=Math.abs(dy)>8?dy/m:0;};
+ stick.addEventListener('pointerdown',e=>{sid=e.pointerId;move(e);});
+ addEventListener('pointermove',e=>{if(e.pointerId===sid)move(e);});
+ addEventListener('pointerup',e=>{if(e.pointerId===sid){sid=null;touch.dx=touch.dy=0;nub.style.transform='translate(-50%,-50%)';}});
+ const bind=(id,k)=>{const b=document.getElementById(id);b.addEventListener('pointerdown',e=>{e.preventDefault();touch[k]=true;au();});b.addEventListener('pointerup',()=>touch[k]=false);b.addEventListener('pointerleave',()=>touch[k]=false);};
+ bind('bAtk','atk');bind('bSpc','spc');
+}
+if('ontouchstart' in window||navigator.maxTouchPoints>0)addEventListener('pointerdown',function once(){setupTouch();removeEventListener('pointerdown',once);},{once:true});
+
+/* ================= GAME ================= */
+const cv=document.getElementById('game'),cx=cv.getContext('2d');
+function fit(){const w=innerWidth,h=innerHeight,s=Math.min(w/480,h/270);cv.style.width=480*s+'px';cv.style.height=270*s+'px';}
+addEventListener('resize',fit);fit();
+
+const W=480,H=270,FLOOR_TOP=175,FLOOR_BOT=255;
+let P=null,prof=null,ents=[],parts=[],texts=[],cam=0,shake=0,stop=0,state='title',paused=false;
+let waveIdx=0,lockX=-1,flex=null,t0=0,elapsed=0,maxCombo=0,hitXpTotal=0,dlg=null,dlgT=0;
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+const wm=(v,m)=>((v%m)+m)%m;
+
+/* ---- entity factory ---- */
+function makeFighter(o){return Object.assign({x:0,y:210,hp:100,hpMax:100,face:1,vx:0,vy:0,state:'idle',t:0,hitT:0,koT:0,w:14,atkT:0,combo:0,dead:false},o);}
+function startGame(bi){
+ prof=BUILDS[bi];au();sfx('bell');
+ P=makeFighter({x:60,y:215,kind:'hero',hp:120,hpMax:120,stam:prof.stamMax,stamMax:prof.stamMax,gassed:false,meter:0,spd:prof.stats.stamina>=60?1.15:1});
+ ents=[];parts=[];texts=[];cam=0;waveIdx=0;lockX=-1;flex=null;state='play';t0=performance.now();maxCombo=0;hitXpTotal=0;
+ document.getElementById('title').classList.add('hide');
+ say('COACH','City run. Two blocks, some knuckleheads, and your buddy FLEX at the park. Go.',3.2);
+}
+/* waves: trigger X, spawn list */
+const WAVES=[{x:150,n:3},{x:420,n:4},{x:720,boss:true}];
+function spawnWave(w){
+ if(w.boss){flex=makeFighter({x:cam+W+40,y:215,kind:'flex',hp:300,hpMax:300,w:24,stam:5,stamMax:5,phase:1,ai:0,gassed:false});ents.push(flex);
+   say('FLEX','Bro. BRO. I love you. But I can\'t let you pass without a pump check. It\'s the CODE.',3.6);sfx('bell');}
+ else for(let i=0;i<w.n;i++)ents.push(makeFighter({x:cam+W+30+i*34,y:rnd(185,245),kind:'grunt',hp:34,hpMax:34,pal:i%2,ai:rnd(0,2)}));
+}
+function say(who,txt,sec){dlg={who,txt};dlgT=sec;}
+
+/* ---- combat helpers ---- */
+function hitstop(f){stop=Math.max(stop,f);}
+function burst(x,y,c,n=6){for(let i=0;i<n;i++)parts.push({x,y,vx:rnd(-80,80),vy:rnd(-90,20),t:rnd(.2,.45),c});}
+function dmgText(x,y,s,c){texts.push({x,y,s,t:.7,c});}
+function attackBox(e,range){return{x:e.x+e.face*(e.w/2+range/2),y:e.y,rw:range,ry:14};}
+function inBox(b,e){return Math.abs(b.x-e.x)<(b.rw/2+e.w/2)&&Math.abs(b.y-e.y)<b.ry;}
+
+function playerAttack(special){
+ if(P.koT>0||P.atkT>0)return;
+ const gasMult=P.gassed?.45:1;
+ if(special){
+   if(prof.moveList.length<=4){dmgText(P.x-cam,P.y-60,'NO SPECIAL — TRAIN FIGHT MODE',' #ff8181');sfx('whiff');P.atkT=.3;return;}
+   if(P.stam<2.4){gasOut();return;}
+   P.stam-=2.4;P.atkT=.5;P.state='spc';
+   const b=attackBox(P,46);let hit=false;
+   for(const e of ents)if(!e.dead&&inBox(b,e)){hit=true;hurt(e,16*prof.dmg*gasMult,P.face,26);}
+   if(hit){hitstop(7);shake=7;sfx('big');}else sfx('whiff');
+ }else{
+   if(P.stam<=0.8){gasOut();}
+   P.stam=Math.max(0,P.stam-0.9);
+   P.combo=(P.comboT>0&&P.combo<prof.comboCap)?P.combo+1:1;P.comboT=.9;
+   const fin=P.combo>=Math.min(prof.comboCap,3)&&P.combo%3===0;
+   P.atkT=fin?.34:.22;P.state='atk';P.swing=P.combo%2;
+   const b=attackBox(P,26);let hit=false;
+   for(const e of ents)if(!e.dead&&inBox(b,e)){
+     hit=true;const cd=1+(prof.comboDmg-1)*Math.min(1,P.combo/prof.comboCap);
+     hurt(e,(fin?9:5)*prof.dmg*cd*gasMult,P.face,fin?20:7);
+   }
+   if(hit){hitstop(fin?6:3);shake=fin?6:3;sfx(fin?'big':'hit');
+     maxCombo=Math.max(maxCombo,P.combo);
+     const xp=Math.round(5*prof.hitXp);hitXpTotal+=xp;
+     if(P.combo>1)dmgText(P.x-cam,P.y-62,P.combo+' HITS','#fde047');
+   } else sfx('whiff');
+ }
+}
+function gasOut(){if(!P.gassed){P.gassed=true;sfx('gas');dmgText(P.x-cam,P.y-66,'GASSED!','#ff8a4a');}}
+function hurt(e,d,dir,kb){
+ e.hp-=d;e.hitT=.18;e.vx=dir*kb*6;burst(e.x-cam,e.y-26,e.kind==='flex'?'#ff8a4a':'#fde047');
+ dmgText(e.x-cam,e.y-54,Math.round(d),'#fff');
+ if(e.hp<=0&&!e.dead){e.dead=true;e.koT=1.2;sfx('ko');burst(e.x-cam,e.y-24,'#a855f7',12);
+   if(e.kind==='flex'){win();}}
+ else if(e.kind==='flex'&&e.phase===1&&e.hp<e.hpMax*.5){e.phase=2;e.stamMax=7;say('FLEX','PHASE TWO, BABY! THIS IS MY CARDIO!',2.4);}
+}
+function hurtPlayer(d,dir){
+ if(P.koT>0||P.hitT>0)return;
+ P.hp-=d;P.hitT=.3;P.vx=dir*120;shake=6;sfx('big');burst(P.x-cam,P.y-28,'#ef4444');
+ P.combo=0;
+ if(P.hp<=0){P.koT=99;state='lost';setTimeout(()=>showResult(false),1400);sfx('ko');}
+}
+function win(){state='won';say('FLEX','That\'s the most cardio I\'ve done in my LIFE. Respect. Hydrate or die-drate, king.',4);sfx('bell');setTimeout(()=>showResult(true),3200);}
+
+/* ---- update ---- */
+let last=performance.now();
+function loop(now){
+ requestAnimationFrame(loop);
+ let dt=Math.min(.033,(now-last)/1000);last=now;
+ if(paused||state==='title')return draw();
+ if(stop>0){stop--;return draw();}
+ if(state==='play'||state==='won'||state==='lost')elapsed=(now-t0)/1000;
+ if(dlgT>0){dlgT-=dt;if(dlgT<=0)dlg=null;}
+
+ /* player */
+ if(P&&P.koT<=0&&state==='play'){
+  let mx=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0)+touch.dx;
+  let my=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0)+touch.dy;
+  mx=clamp(mx,-1,1);my=clamp(my,-1,1);
+  const spd=(P.gassed?55:95)*P.spd;
+  if(P.atkT<=0){P.x+=mx*spd*dt;P.y+=my*spd*.8*dt;if(mx)P.face=mx>0?1:-1;P.state=mx||my?'walk':'idle';}
+  P.y=clamp(P.y,FLOOR_TOP+12,FLOOR_BOT);
+  P.x=Math.max(cam+10,P.x);if(lockX>0)P.x=Math.min(P.x,lockX-14);
+  if((keys.KeyJ||keys.KeyZ||touch.atk)&&!P._a){playerAttack(false);}P._a=keys.KeyJ||keys.KeyZ||touch.atk;
+  if((keys.KeyK||keys.KeyX||touch.spc)&&!P._s){playerAttack(true);}P._s=keys.KeyK||keys.KeyX||touch.spc;
+  P.atkT-=dt;P.comboT=(P.comboT||0)-dt;if(P.comboT<=0)P.combo=0;
+  P.hitT-=dt;P.vx*=.82;P.x+=P.vx*dt;
+  /* stamina */
+  P.stam=Math.min(P.stamMax,P.stam+prof.regen*dt*(P.state==='idle'?1.4:0.8));
+  if(P.gassed&&P.stam>P.stamMax*.35)P.gassed=false;
+  P.t+=dt;
+ }
+ /* camera + waves */
+ if(state==='play'){
+  const target=clamp(P.x-W*.35,0,2000);if(lockX<0)cam+=(target-cam)*.08;
+  if(waveIdx<WAVES.length&&P.x>WAVES[waveIdx].x){spawnWave(WAVES[waveIdx]);lockX=cam+W-6;waveIdx++;}
+  if(lockX>0&&ents.every(e=>e.dead)){lockX=-1;}
+ }
+ /* enemies */
+ for(const e of ents){
+  if(e.dead){e.koT-=dt;continue;}
+  e.hitT-=dt;e.vx*=.8;e.x+=e.vx*dt;e.t+=dt;
+  if(e.hitT>0||state!=='play')continue;
+  const dx=P.x-e.x,dy=P.y-e.y,dist=Math.abs(dx);
+  e.face=dx>0?1:-1;
+  if(e.kind==='grunt'){
+   e.ai-=dt;
+   if(dist>26||Math.abs(dy)>8){e.x+=Math.sign(dx)*42*dt;e.y+=Math.sign(dy)*30*dt;e.state='walk';}
+   else if(e.ai<=0){e.ai=rnd(.9,1.7);e.state='atk';e.atkT=.25;
+     if(dist<30&&Math.abs(dy)<12&&P.hitT<=0&&P.koT<=0)hurtPlayer(7,Math.sign(dx)*-1||1);}
+   e.atkT=(e.atkT||0)-dt;
+  }else if(e.kind==='flex'){
+   /* FLEX: bursts of heavy offense, then GASSES — the thesis as a boss */
+   if(e.gassed){e.gasT-=dt;e.state='gassed';
+     if(e.gasT<=0){e.gassed=false;e.stam=e.stamMax;say('FLEX','Okay. OKAY. Round two of the pump.',1.6);}continue;}
+   e.ai-=dt;
+   if(dist>34||Math.abs(dy)>10){e.x+=Math.sign(dx)*(e.phase===2?66:48)*dt;e.y+=Math.sign(dy)*34*dt;e.state='walk';}
+   else if(e.ai<=0){
+     e.ai=e.phase===2?.55:.8;e.state='atk';e.atkT=.3;e.stam-=1;
+     if(dist<40&&Math.abs(dy)<14&&P.hitT<=0&&P.koT<=0)hurtPlayer(e.phase===2?15:11,Math.sign(dx)*-1||1);
+     if(e.stam<=0){e.gassed=true;e.gasT=e.phase===2?2.2:3.2;sfx('gas');dmgText(e.x-cam,e.y-72,'FLEX IS GASSED — GO!','#22c55e');}
+   }
+   e.atkT=(e.atkT||0)-dt;
+  }
+ }
+ ents=ents.filter(e=>!e.dead||e.koT>0);
+ for(const p of parts){p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=240*dt;}parts=parts.filter(p=>p.t>0);
+ for(const t of texts)t.t-=dt;texts=texts.filter(t=>t.t>0);
+ if(shake>0)shake*=.85;
+ draw();
+}
+
+/* ---- drawing: chunky pixel puppets ---- */
+function px(x,y,w,h,c){cx.fillStyle=c;cx.fillRect(Math.round(x),Math.round(y),w,h);}
+function drawFighter(e){
+ const x=Math.round(e.x-cam),y=Math.round(e.y),f=e.face;
+ const bob=e.state==='walk'?Math.round(Math.sin(e.t*12)*1.5):0;
+ const flash=e.hitT>0&&Math.floor(e.hitT*30)%2===0;
+ const ko=e.dead||e.koT>5;
+ cx.save();cx.translate(x,y+bob);if(ko)cx.rotate(f*1.4);
+ const S={hero:{skin:'#8a5a33',top:'#15131a',acc:'#fde047',pant:'#15131a',big:false},
+          grunt:{skin:e.pal?'#c48a5a':'#8a5a33',top:e.pal?'#3b1d66':'#30323c',acc:'#6d5f8a',pant:'#23242c',big:false},
+          flex:{skin:'#c97a50',top:'#c97a50',acc:'#fde047',pant:'#fde047',big:true}}[e.kind];
+ const B=S.big?1.7:1;
+ const outline=(fn)=>{cx.fillStyle='#000';fn(2);fn(0);};
+ /* legs */
+ const step=e.state==='walk'?Math.sin(e.t*12)*3:0;
+ px(-5*B+step,-14*B,4*B,14*B,flash?'#fff':S.pant);px(1*B-step,-14*B,4*B,14*B,flash?'#fff':S.pant);
+ /* torso */
+ px(-7*B,-34*B,14*B,20*B,flash?'#fff':S.top);
+ if(e.kind==='hero'){px(-2, -30, 4, 5, '#fde047');} /* gold T */
+ if(e.kind==='flex'){px(-9*B,-36*B,5*B,14*B,flash?'#fff':S.skin);px(4*B,-36*B,5*B,14*B,flash?'#fff':S.skin);} /* huge delts */
+ /* arms / punch pose */
+ const punch=e.atkT>0;
+ if(punch){px(f>0?6*B:-16*B, -30*B, 12*B, 4*B, flash?'#fff':S.skin); if(e.kind==='hero')px(f>0?16:-20,-31,5,6,'#15131a');}
+ else{px(-9*B,-30*B,3*B,12*B,flash?'#fff':S.skin);px(6*B,-30*B,3*B,12*B,flash?'#fff':S.skin);}
+ /* head */
+ px(-4*B,-44*B,9*B,10*B,flash?'#fff':S.skin);
+ px(-4*B,-46*B,9*B,4*B,'#0c0a10'); /* hair */
+ if(e.kind==='hero')px(f>0?0:-2,-40,3,2,'#c99cff'); /* violet eye glow */
+ if(e.kind==='flex'&&e.state==='gassed'){cx.fillStyle='#8fd3ff';cx.fillRect(f*6,-48,2,2);cx.fillRect(f*8,-52,2,2);} /* sweat */
+ /* gassed slump tint */
+ if((e.gassed||e.kind==='hero'&&P.gassed&&e===P)){cx.globalAlpha=.25;px(-8*B,-46*B,17*B,46*B,'#ff8a4a');cx.globalAlpha=1;}
+ cx.restore();
+ /* shadow */
+ cx.globalAlpha=.3;cx.fillStyle='#000';cx.beginPath();cx.ellipse(x,y+2,10*B,3,0,0,7);cx.fill();cx.globalAlpha=1;
+}
+function drawBG(){
+ px(0,0,W,H,'#080012');
+ /* sky glow + skyline (far) */
+ for(let i=0;i<10;i++){const bx=wm(i*97-cam*.2,W+120)-60;px(bx,40+((i*37)%30),34,110,'#120627');px(bx+6,50+((i*53)%40),4,4,(i%3)?'#a855f7':'#fde047');}
+ /* mid: gym fronts + park */
+ for(let i=0;i<8;i++){const bx=wm(i*163-cam*.55,W+200)-100;px(bx,90,70,85,'#1b0b38');px(bx+8,100,54,8,i%2?'#a855f7':'#fde047');cx.globalAlpha=.25;px(bx+8,112,54,40,'#2a1a45');cx.globalAlpha=1;}
+ /* pull-up bar silhouette near boss zone */
+ const pb=720-cam*.9;px(pb,96,4,80,'#30323c');px(pb+60,96,4,80,'#30323c');px(pb,96,64,4,'#30323c');
+ /* floor */
+ px(0,FLOOR_TOP,W,H-FLOOR_TOP,'#0d0420');
+ for(let i=0;i<14;i++){const lx=wm(i*60-cam,W+60)-30;cx.globalAlpha=.2;px(lx,FLOOR_TOP,2,H-FLOOR_TOP,'#a855f7');cx.globalAlpha=1;}
+ px(0,FLOOR_TOP,W,3,'#2a1a45');
+ if(lockX>0){px(W-8,FLOOR_TOP-20,4,100,'#ef4444');px(4,FLOOR_TOP-20,4,100,'#ef4444');} /* wave lock posts */
+}
+function bar(x,y,w,h,v,c,bg){px(x,y,w,h,bg||'rgba(255,255,255,.1)');px(x,y,Math.max(0,Math.round(w*v)),h,c);cx.strokeStyle='rgba(168,85,247,.5)';cx.strokeRect(x+.5,y+.5,w,h);}
+function drawHUD(){
+ cx.font='bold 8px monospace';
+ /* player plate */
+ px(8,8,118,34,'rgba(8,2,18,.75)');
+ cx.fillStyle='#fde047';cx.fillText('TRAINEE · '+(prof.name.includes('A')?'LIFTER':'STRIKER'),12,17);
+ bar(12,21,108,6,P.hp/P.hpMax,'#22c55e');
+ bar(12,30,108,5,P.stam/P.stamMax,P.gassed?'#ef4444':'#ff8a4a');
+ cx.fillStyle=P.gassed?'#ff8181':'#8f80ab';cx.fillText(P.gassed?'GASSED!':'STAMINA',72,30+5);
+ /* perk chips */
+ let cxp=8;cx.font='bold 7px monospace';
+ for(const p of prof.perks){cx.fillStyle='#fde047';cx.fillText('★'+p,cxp,50);cxp+=p.length*5+14;}
+ for(const w of prof.weaks){cx.fillStyle='#ff8181';cx.fillText('⚠'+w,cxp,50);cxp+=w.length*5+14;}
+ /* combo */
+ if(P.combo>1){cx.font='bold 16px monospace';cx.fillStyle='#fde047';cx.save();cx.translate(W-70,70);cx.rotate(-.08);cx.fillText(P.combo+' HITS',0,0);cx.restore();cx.font='bold 8px monospace';}
+ /* boss bar */
+ if(flex&&!flex.dead){px(W/2-90,14,180,16,'rgba(8,2,18,.8)');cx.fillStyle='#ff8181';cx.font='bold 7px monospace';cx.fillText('👑 FLEX — "THE PUMP CHECK"  PH'+flex.phase,W/2-84,21);
+  bar(W/2-84,24,168,5,Math.max(0,flex.hp/flex.hpMax),'#ef4444');
+  bar(W/2-84,30,80,3,Math.max(0,flex.stam/flex.stamMax),flex.gassed?'#30323c':'#ff8a4a');}
+ /* dialogue */
+ if(dlg){const bw=Math.min(300,dlg.txt.length*5+20);px(W/2-bw/2,H-52,bw,36,'rgba(8,2,18,.9)');cx.strokeStyle='#a855f7';cx.strokeRect(W/2-bw/2+.5,H-52+.5,bw,36);
+  cx.fillStyle='#fde047';cx.fillText(dlg.who,W/2-bw/2+8,H-42);cx.fillStyle='#d9c9f5';
+  wrap(dlg.txt,W/2-bw/2+8,H-33,bw-16);}
+ if(paused){cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(0,0,W,H);cx.fillStyle='#fde047';cx.font='bold 14px monospace';cx.fillText('PAUSED',W/2-24,H/2);}
+}
+function wrap(t,x,y,w){const words=t.split(' ');let line='',yy=y;for(const wd of words){if((line+wd).length*5>w){cx.fillText(line,x,yy);line='';yy+=9;}line+=wd+' ';}cx.fillText(line,x,yy);}
+function draw(){
+ cx.save();if(shake>0.5)cx.translate(rnd(-shake,shake),rnd(-shake,shake));
+ drawBG();
+ const all=[...ents.filter(e=>e.dead),...[...ents.filter(e=>!e.dead),...(P?[P]:[])].sort((a,b)=>a.y-b.y)];
+ for(const e of all)drawFighter(e);
+ for(const p of parts){cx.globalAlpha=Math.min(1,p.t*3);px(p.x,p.y,3,3,p.c);cx.globalAlpha=1;}
+ cx.font='bold 9px monospace';
+ for(const t of texts){cx.globalAlpha=Math.min(1,t.t*2.5);cx.fillStyle=t.c;cx.fillText(t.s,t.x-String(t.s).length*2,t.y-(0.7-t.t)*30);cx.globalAlpha=1;}
+ cx.restore();
+ if(state!=='title')drawHUD();
+}
+function togglePause(){if(state==='play')paused=!paused;}
+
+/* ---- result ---- */
+function showResult(wonIt){
+ const r=document.getElementById('result');r.classList.remove('hide');
+ document.getElementById('rSub').textContent=wonIt?'STAGE CLEAR — CITY RUN':'MISSION FAILED';
+ const m=Math.floor(elapsed/60),s=Math.floor(elapsed%60);
+ document.getElementById('rTime').textContent=m+':'+String(s).padStart(2,'0');
+ document.getElementById('rCombo').textContent=maxCombo;
+ document.getElementById('rXp').textContent=hitXpTotal;
+ let rank='C';if(wonIt){rank=elapsed<120&&maxCombo>=6?'S':elapsed<160?'A':'B';}
+ document.getElementById('rRank').textContent=wonIt?('RANK '+rank):'KNOCKED OUT';
+ const L=document.getElementById('rLesson');
+ const isLifter=prof.name.includes('A');
+ L.innerHTML='<b>THE TRAINING DID THIS:</b><br>'+(isLifter
+  ?'Your <b>Workout Builder</b> grind gave you '+prof.dmg.toFixed(2)+'× damage — but skipping cardio left you a '+prof.stamMax+'-second gas tank and a '+prof.comboCap+'-hit combo cap, and no Fight Mode training means <b>no special move</b>. Do your cardio. Open Fight Mode. Your fighter will change.'
+  :'Your <b>Combo Coach</b> hours bought a '+prof.comboCap+'-hit chain and '+prof.comboDmg.toFixed(2)+'× combo damage, <b>Fight Focus</b> pays '+prof.hitXp.toFixed(1)+'× hit XP, and cardio gave you a '+prof.stamMax+'-second tank. But '+prof.dmg.toFixed(2)+'× base damage? <b>Pick up a barbell.</b>')
+  +'<br><span style="color:#8f80ab">Both builds were computed by the Training Mode app\'s real stat engine.</span>';
+}
+
+/* ---- title cards ---- */
+(function(){
+ const host=document.getElementById('buildCards');
+ BUILDS.forEach((b,i)=>{
+  const d=document.createElement('div');d.className='bcard';
+  const row=(k,v,c)=>'<div class="stat"><b>'+k+'</b><div class="bar"><i style="width:'+v+'%;background:'+c+'"></i></div></div>';
+  d.innerHTML='<h3>'+b.name+'</h3><div class="who">'+b.who+'</div>'
+   +row('STRENGTH',b.stats.strength,'#fde047')+row('STAMINA',b.stats.stamina,'#ff8a4a')
+   +row('ENDURANCE',b.stats.endurance,'#22c55e')+row('COMBO',b.stats.comboMastery,'#a855f7')+row('HIT XP',b.stats.hitXp,'#c99cff')
+   +'<div class="chips">'+b.perks.map(p=>'<span class="chip perk">★ '+p+'</span>').join('')+b.weaks.map(w=>'<span class="chip weak">⚠ '+w+'</span>').join('')+'</div>';
+  d.onclick=()=>startGame(i);host.appendChild(d);
+ });
+})();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
