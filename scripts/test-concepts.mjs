@@ -322,5 +322,27 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   check('kept for someone with progress', !S2.retiredSagaIds(at('2027-04-02'), id => id === 'one-punch-protocol', false).has('one-punch-protocol'));
 }
 
+{
+  // ── replaying a finished day ──────────────────────────────────────────────
+  reset();
+  for (let i = 0; i < 2; i++) C.recordConceptSession(C.fitDayCfg(SHOTO, { now: at('2026-10-24') }), 9, 9);
+  const days = C.fitTrainingDays(SHOTO);
+  const r0 = C.fitDayCfg(SHOTO, { day: 0, now: at('2026-10-25') });
+  check('replay: a finished fit day runs that day', r0.conceptReplay === true && r0.conceptDayLabel === days[0].label && r0.conceptSeq === null);
+  C.recordConceptSession(r0, 9, 9);
+  check('replay: a finished fit day never moves the program', C.loadProgress('shoto').fitDone === 2 && C.status(SHOTO).fitNext === 2);
+  const ahead = C.fitDayCfg(SHOTO, { day: 3, now: at('2026-10-25') });
+  check('replay: a day not reached yet runs the next day instead', !ahead.conceptReplay && ahead.conceptDayLabel === days[2].label && ahead.conceptSeq === 2);
+  const nx = C.fitDayCfg(SHOTO, { day: 2, now: at('2026-10-25') });
+  check('replay: picking the next day is a normal start', !nx.conceptReplay && nx.conceptSeq === 2);
+  C.recordConceptSession(C.fightDayCfg(SHOTO, { now: at('2026-10-25') }), 5, 5);
+  const fr = C.fightDayCfg(SHOTO, { day: 0, now: at('2026-10-26') });
+  check('replay: a finished fight day runs that day', fr.conceptReplay === true && fr.archetypeName.endsWith(SHOTO.fight.days[0].label));
+  C.recordConceptSession(fr, 5, 5);
+  check('replay: a finished fight day never moves the program', C.loadProgress('shoto').fightDone === 1);
+  check('replay: replays add no workouts toward arcade stages', C.loadProgress('shoto').fitDone + C.loadProgress('shoto').fightDone === 3);
+  check('replay: fight day 2 not done yet is not replayable', !C.fightReplayable(SHOTO, 1));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

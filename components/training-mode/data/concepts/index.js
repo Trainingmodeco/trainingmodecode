@@ -286,47 +286,63 @@ export function settleConceptRun(conceptId, runs = loadRuns()) {
 
 // The cfg the Fit player takes (FitBuilderWorkout: savedExercises bypasses
 // the generator). conceptSeq guards against double-counting on completion.
-export function fitDayCfg(concept, { tier = 'normal', home = false, now = Date.now() } = {}) {
+// `day` (a training-day index) replays a day already done at least once; it
+// earns the session's XP but never moves the program (conceptReplay). Any
+// other day — or none — runs the next one.
+export function fitReplayable(concept, day, progress = loadProgress(concept.id)) {
+  return day != null && day >= 0 && day < fitTrainingDays(concept).length && progress.fitDone > day;
+}
+export function fightReplayable(concept, day, progress = loadProgress(concept.id)) {
+  return day != null && day >= 0 && day < concept.fight.days.length && progress.fightDone > day;
+}
+
+export function fitDayCfg(concept, { tier = 'normal', home = false, now = Date.now(), day = null } = {}) {
   const prog = loadProgress(concept.id);
   const st = status(concept, prog);
-  const idx = st.fitNext ?? 0;
-  const day = fitTrainingDays(concept)[idx];
+  const replay = day !== st.fitNext && fitReplayable(concept, day, prog);
+  const idx = replay ? day : st.fitNext ?? 0;
+  const seq = replay ? null : prog.fitDone;
+  const tag = replay ? { conceptReplay: true } : {};
+  const dayRow = fitTrainingDays(concept)[idx];
   markStarted(concept.id, now);
-  if (day?.run) {
-    const t = runTarget(concept, day, tier, st.fitWeek);
-    update(concept.id, p => ({ ...p, pendingRun: { seq: prog.fitDone, at: now, ...t } }));
-    return { conceptRun: true, ...t, conceptId: concept.id, conceptKind: 'fit', conceptSeq: prog.fitDone, conceptDayLabel: day.label, conceptTitle: `${concept.title} · ${day.label}` };
+  if (dayRow?.run) {
+    const t = runTarget(concept, dayRow, tier, st.fitWeek);
+    // A replayed run is just a run: no pending target to settle.
+    if (!replay) update(concept.id, p => ({ ...p, pendingRun: { seq: prog.fitDone, at: now, ...t } }));
+    return { conceptRun: true, ...t, conceptId: concept.id, conceptKind: 'fit', conceptSeq: seq, ...tag, conceptDayLabel: dayRow.label, conceptTitle: `${concept.title} · ${dayRow.label}` };
   }
-  const circuits = Object.fromEntries(Object.entries(day?.circuits || {}).map(([k, v]) => [`concept-${k}`, Math.max(2, Math.min(5, v[tier] ?? v.normal ?? 3))]));
+  const circuits = Object.fromEntries(Object.entries(dayRow?.circuits || {}).map(([k, v]) => [`concept-${k}`, Math.max(2, Math.min(5, v[tier] ?? v.normal ?? 3))]));
   return {
     chainRounds: circuits,
     muscleGroups: [], equipment: home ? 'Bodyweight' : 'Hybrid', difficulty: tier === 'hard' ? 'Hard' : tier === 'easy' ? 'Easy' : 'Normal',
     focus: 'Strength', duration: concept.fit.minutes, cardioAddon: null, addCardio: false,
     savedExercises: fitDayExercises(concept, idx, { tier, home }),
-    conceptId: concept.id, conceptKind: 'fit', conceptSeq: prog.fitDone, conceptDayLabel: day?.label || null,
-    conceptTitle: `${concept.title} · ${day?.label || 'DAY'}`,
+    conceptId: concept.id, conceptKind: 'fit', conceptSeq: seq, ...tag, conceptDayLabel: dayRow?.label || null,
+    conceptTitle: `${concept.title} · ${dayRow?.label || 'DAY'}`,
   };
 }
 
 // ── Fight + Arcade (both run on the Fight Focus timer) ─────────────────────
 const FIGHT_DIFF = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
 
-export function fightDayCfg(concept, { tier = 'normal', now = Date.now() } = {}) {
+export function fightDayCfg(concept, { tier = 'normal', now = Date.now(), day = null } = {}) {
   const prog = loadProgress(concept.id);
-  const idx = Math.min(prog.fightDone, fightTotal(concept) - 1) % concept.fight.days.length;
-  const day = concept.fight.days[idx];
-  const rest = day.restSec ?? concept.fight.restSec;
+  const st = status(concept, prog);
+  const replay = day !== st.fightNext && fightReplayable(concept, day, prog);
+  const idx = replay ? day : Math.min(prog.fightDone, fightTotal(concept) - 1) % concept.fight.days.length;
+  const dayRow = concept.fight.days[idx];
+  const rest = dayRow.restSec ?? concept.fight.restSec;
   // A beginner tier (fight.easy) may run fewer, shorter rounds; the last
   // round (it carries the super) always stays.
   const easy = tier === 'easy' ? concept.fight.easy : null;
   const max = easy?.maxRounds;
-  const rounds = max && day.rounds.length > max ? [...day.rounds.slice(0, max - 1), day.rounds[day.rounds.length - 1]] : day.rounds;
+  const rounds = max && dayRow.rounds.length > max ? [...dayRow.rounds.slice(0, max - 1), dayRow.rounds[dayRow.rounds.length - 1]] : dayRow.rounds;
   markStarted(concept.id, now);
   return {
     difficulty: FIGHT_DIFF[tier] || 'Normal', mode: 'Fight Focus',
     rounds: rounds.length, roundMin: easy?.roundMin ?? concept.fight.roundMin, restSec: rest,
     voiceOn: true, encouragement: 'normal', warmupMin: 3,
-    rushMode: !!day.rush, rushPattern: 'perMin10', rushMix: 'explosive',
+    rushMode: !!dayRow.rush, rushPattern: 'perMin10', rushMix: 'explosive',
     // Combos are called by the timer on a 7–11 s cadence (comma-separated words).
     blockRounds: rounds.map(r => {
       const combos = (tier === 'easy' && r.easyCombos) || r.combos;
@@ -340,8 +356,9 @@ export function fightDayCfg(concept, { tier = 'normal', now = Date.now() } = {})
         ...(r.multi ? { multi: true } : {}),
       };
     }),
-    archetypeName: `${concept.title} · ${day.label}`,
-    conceptId: concept.id, conceptKind: 'fight', conceptSeq: prog.fightDone,
+    archetypeName: `${concept.title} · ${dayRow.label}`,
+    conceptId: concept.id, conceptKind: 'fight', conceptSeq: replay ? null : prog.fightDone,
+    ...(replay ? { conceptReplay: true } : {}),
   };
 }
 
@@ -422,7 +439,9 @@ export function stageCfg(concept, stageIdx, { tier = null, now = Date.now(), arc
 // only when every round is done.
 export function recordConceptSession(cfg, done, total) {
   if (!cfg?.conceptId) return null;
-  trackEvent('concept_session', { concept: cfg.conceptId, kind: cfg.conceptKind, done: Number(done) || 0, total: Number(total) || 0 });
+  trackEvent('concept_session', { concept: cfg.conceptId, kind: cfg.conceptKind, done: Number(done) || 0, total: Number(total) || 0, ...(cfg.conceptReplay ? { replay: 1 } : {}) });
+  // A replayed day already counted the first time.
+  if (cfg.conceptReplay) return loadProgress(cfg.conceptId);
   const d = Number(done) || 0, t = Math.max(1, Number(total) || 1);
   if (cfg.conceptKind === 'fit' && d >= Math.ceil(t * 0.75)) {
     return update(cfg.conceptId, p => (p.fitDone === cfg.conceptSeq ? { ...p, fitDone: p.fitDone + 1 } : p));

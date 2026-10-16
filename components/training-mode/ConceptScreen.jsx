@@ -4,7 +4,7 @@ import ProGateOverlay from './shared/ProGateOverlay';
 import {
   featuredEntry, entryFor, vaultEntries, setPrefs, status, canPlay, rewardState, claimReward,
   fitTrainingDays, fitTotal, fightTotal, fitDayCfg, fightDayCfg, fmtEnd, daysLeft, windowState, fitDayExercises,
-  settleConceptRun, runTarget, ladderState, ladderHit, ladderStep, arcadeGate,
+  settleConceptRun, runTarget, ladderState, ladderHit, ladderStep, arcadeGate, fitReplayable, fightReplayable,
 } from './data/concepts';
 import { addBonusXp } from './data/userStats';
 import ModeTabs from './shared/ModeTabs';
@@ -31,13 +31,17 @@ const chip = (bg, border, color) => ({
   background: bg, border: `1px solid ${border}`, color, font: `800 8.5px ${H}`, letterSpacing: '0.14em',
 });
 
-function DayRow({ n, label, focus, body, state, accent }) {
+// A day the athlete can start (the next one, or one already done) is a
+// button: tapping it picks that day for the START / REPLAY button below.
+function DayRow({ n, label, focus, body, state, accent, active, onPick, replay }) {
   const done = state === 'done', next = state === 'next', rest = state === 'rest', locked = state === 'locked';
+  const Tag = onPick ? 'button' : 'div';
   return (
-    <div style={{
-      display: 'flex', gap: 10, alignItems: 'stretch', borderRadius: 12, padding: '10px 12px',
-      background: 'rgba(14,4,28,0.86)', opacity: rest || locked ? 0.6 : 1,
-      border: `1px solid ${next ? GOLD : 'rgba(168,85,247,0.28)'}`, boxShadow: next ? '0 0 18px rgba(253,224,71,0.18)' : 'none',
+    <Tag {...(onPick ? { type: 'button', onClick: onPick, 'aria-pressed': !!active, 'aria-label': `${replay ? 'Replay' : 'Start'} ${label}` } : {})} style={{
+      display: 'flex', gap: 10, alignItems: 'stretch', borderRadius: 12, padding: '10px 12px', width: '100%', textAlign: 'left',
+      color: 'inherit', font: 'inherit', cursor: onPick ? 'pointer' : 'default',
+      background: active ? 'rgba(40,24,8,0.9)' : 'rgba(14,4,28,0.86)', opacity: rest || locked ? 0.6 : 1,
+      border: `1px solid ${active ? GOLD : 'rgba(168,85,247,0.28)'}`, boxShadow: active ? '0 0 18px rgba(253,224,71,0.18)' : 'none',
     }}>
       <div style={{
         flex: '0 0 38px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 9,
@@ -50,11 +54,11 @@ function DayRow({ n, label, focus, body, state, accent }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 }}>
           <div style={{ font: `900 12px ${H}`, letterSpacing: '0.05em', color: '#fff' }}>{label}</div>
-          <div style={{ font: `800 7.5px ${H}`, letterSpacing: '0.14em', color: next ? GOLD : accent || MUTED, whiteSpace: 'nowrap' }}>{focus}</div>
+          <div style={{ font: `800 7.5px ${H}`, letterSpacing: '0.14em', color: active ? GOLD : accent || MUTED, whiteSpace: 'nowrap' }}>{replay && active ? '↻ REPLAY' : focus}</div>
         </div>
         <div style={{ font: `600 11.5px ${B}`, color: '#bfb2da', marginTop: 3, lineHeight: 1.3 }}>{body}</div>
       </div>
-    </div>
+    </Tag>
   );
 }
 
@@ -65,6 +69,8 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
   const [progress, setProgress] = useState(() => (entry ? settleConceptRun(entry.concept.id) : null));
   const [gate, setGate] = useState(false);
   const [claimed, setClaimed] = useState(null);
+  // A finished day picked for a replay, per tab (null = the next day).
+  const [pick, setPick] = useState({ fit: null, fight: null });
 
   if (!entry) {
     return (
@@ -82,8 +88,11 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
   const prefs = (p) => setProgress(setPrefs(c.id, p));
 
   const guard = (fn) => () => { if (!play) { setGate(true); return; } fn(); };
-  const startFit = guard(() => onStartFit?.(fitDayCfg(c, { tier, home: progress.home })));
-  const startFight = guard(() => onStartFight?.(fightDayCfg(c, { tier }), c.fight.discipline));
+  const fitPick = fitReplayable(c, pick.fit, progress) && pick.fit !== st.fitNext ? pick.fit : null;
+  const fightPick = fightReplayable(c, pick.fight, progress) && pick.fight !== st.fightNext ? pick.fight : null;
+  const startFit = guard(() => onStartFit?.(fitDayCfg(c, { tier, home: progress.home, day: fitPick })));
+  const startFight = guard(() => onStartFight?.(fightDayCfg(c, { tier, day: fightPick }), c.fight.discipline));
+  const pickDay = (kind, i) => setPick(p => ({ ...p, [kind]: p[kind] === i ? null : i }));
   const claim = () => {
     const xp = addBonusXp(c.reward.xp);
     setProgress(claimReward(c.id));
@@ -98,31 +107,49 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
     trainIdx += 1;
     const doneThisWeek = (progress.fitDone % trainDays.length) > trainIdx || st.fitComplete;
     const state = doneThisWeek ? 'done' : st.fitNext === trainIdx ? 'next' : '';
+    const k = trainIdx;
+    const isNext = st.fitNext === k;
+    const tap = {
+      active: fitPick != null ? fitPick === k : isNext,
+      replay: !isNext && fitReplayable(c, k, progress),
+      onPick: isNext ? () => setPick(p => ({ ...p, fit: null })) : fitReplayable(c, k, progress) ? () => pickDay('fit', k) : undefined,
+    };
     if (d.run) {
       const t = runTarget(c, d, tier, st.fitWeek);
-      return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={`${t.goal} ${t.unit} in Cardio Mode this week · ${d.intro}`} />;
+      return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} {...tap} body={`${t.goal} ${t.unit} in Cardio Mode this week · ${d.intro}`} />;
     }
-    return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} body={fitDayExercises(c, trainIdx, { tier, home: progress.home, progress }).map(e => e.name).join(' · ')} />;
+    return <DayRow key={i} n={i + 1} label={d.label} focus={d.focus} state={state} {...tap} body={fitDayExercises(c, k, { tier, home: progress.home, progress }).map(e => e.name).join(' · ')} />;
   });
   const fightInWeek = st.fightComplete ? c.fight.days.length : progress.fightDone % c.fight.days.length;
   // Fight days stay short: the day and what it trains. The rounds and combos
   // are called on the timer.
-  const fightRows = c.fight.days.map((d, i) => (
-    <DayRow key={i} n={i + 1} label={d.label} focus={`${d.rounds.length} ROUNDS`} accent="#93c5fd"
-      state={i < fightInWeek ? 'done' : i === st.fightNext ? 'next' : ''}
-      body={(d.focus || '').toLowerCase().replace(/ · /g, ' · ')} />
-  ));
+  const fightRows = c.fight.days.map((d, i) => {
+    const isNext = i === st.fightNext;
+    const can = fightReplayable(c, i, progress);
+    return (
+      <DayRow key={i} n={i + 1} label={d.label} focus={`${d.rounds.length} ROUNDS`} accent="#93c5fd"
+        state={i < fightInWeek ? 'done' : isNext ? 'next' : ''}
+        active={fightPick != null ? fightPick === i : isNext} replay={!isNext && can}
+        onPick={isNext ? () => setPick(p => ({ ...p, fight: null })) : can ? () => pickDay('fight', i) : undefined}
+        body={(d.focus || '').toLowerCase().replace(/ · /g, ' · ')} />
+    );
+  });
   // The gauntlet opens after week 1 of Fit or Fight; stages follow workouts.
   const agate = arcadeGate(c, progress);
   const arcadeOpen = agate.open;
 
   const nextFitDay = st.fitNext != null ? trainDays[st.fitNext] : null;
   const nextFightDay = st.fightNext != null ? c.fight.days[st.fightNext] : null;
+  const replayNote = 'Replays earn XP. Your progress stays where it is.';
   const cta = tab === 'fit'
-    ? (st.fitComplete ? null : { label: `▶ START ${nextFitDay?.label || 'DAY'}`, onClick: startFit })
+    ? (fitPick != null ? { label: `↻ REPLAY ${trainDays[fitPick].label}`, onClick: startFit, note: replayNote }
+      : st.fitComplete ? null : { label: `▶ START ${nextFitDay?.label || 'DAY'}`, onClick: startFit })
     : tab === 'fight'
-      ? (st.fightComplete ? null : { label: `▶ START DAY ${(st.fightNext ?? 0) + 1} · ${nextFightDay?.label || ''}`, onClick: startFight })
+      ? (fightPick != null ? { label: `↻ REPLAY DAY ${fightPick + 1} · ${c.fight.days[fightPick].label}`, onClick: startFight, note: replayNote }
+        : st.fightComplete ? null : { label: `▶ START DAY ${(st.fightNext ?? 0) + 1} · ${nextFightDay?.label || ''}`, onClick: startFight })
       : null;
+  // Shown under the day list once there is something to replay.
+  const canReplay = tab === 'fit' ? progress.fitDone > 0 : progress.fightDone > 0;
   const tabColor = TABS.find(t => t.id === tab)?.color || GOLD;
   const vault = vaultEntries();
 
@@ -206,6 +233,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
               <span style={{ color: MUTED }}>{c.fit.days.length - trainDays.length} REST DAYS · ~{c.fit.minutes} MIN</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>{fitRows}</div>
+            {canReplay && <div style={{ marginTop: 7, font: `600 11px ${B}`, color: MUTED, textAlign: 'center' }}>Tap a finished day to do it again.</div>}
             {ladders.length > 0 && (
               <div style={{ marginTop: 14 }}>
                 <div style={{ font: `800 8.5px ${H}`, letterSpacing: '0.16em', color: '#c4b5fd', marginBottom: 4 }}>SKILL LADDERS</div>
@@ -232,6 +260,7 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
               {c.fight.discipline} · {c.fight.roundMin}:00 rounds · runs on the Fight Focus timer, the coach calls every round.
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>{fightRows}</div>
+            {canReplay && <div style={{ marginTop: 7, font: `600 11px ${B}`, color: MUTED, textAlign: 'center' }}>Tap a finished day to do it again.</div>}
           </>
         )}
         {vault.length > 0 && (
@@ -246,6 +275,11 @@ export default function ConceptScreen({ conceptId, initialTab = 'fit', onBack, o
 
       {cta && (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(64px + env(safe-area-inset-bottom,0px))', maxWidth: 440, margin: '0 auto', padding: '16px 16px 60px', background: 'linear-gradient(180deg,rgba(7,2,15,0),#07020f 22%)', zIndex: 5 }}>
+          {cta.note && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <span style={{ padding: '4px 10px', borderRadius: 99, background: 'rgba(7,2,15,0.94)', border: '1px solid rgba(253,224,71,0.35)', font: `600 11px ${B}`, color: '#fde68a' }}>{cta.note}</span>
+            </div>
+          )}
           <button type="button" onClick={cta.onClick} style={{
             width: '100%', height: 52, borderRadius: 12, border: 0, cursor: 'pointer', color: '#1e1400',
             background: 'linear-gradient(180deg,#ffe574,#e7a52a)', boxShadow: `0 6px 0 #8a5a00,0 0 26px ${tabColor}55`,
