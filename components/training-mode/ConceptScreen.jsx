@@ -37,7 +37,8 @@ function DayRow({ n, label, focus, body, state, accent, active, onPick, replay }
   const done = state === 'done', next = state === 'next', rest = state === 'rest', locked = state === 'locked';
   const Tag = onPick ? 'button' : 'div';
   return (
-    <Tag {...(onPick ? { type: 'button', onClick: onPick, 'aria-pressed': !!active, 'aria-label': `${replay ? 'Replay' : 'Start'} ${label}` } : {})} style={{
+    // The row's own text is its accessible name; only a replayable row toggles.
+    <Tag {...(onPick ? { type: 'button', onClick: onPick, ...(replay ? { 'aria-pressed': !!active } : {}) } : {})} style={{
       display: 'flex', gap: 10, alignItems: 'stretch', borderRadius: 12, padding: '10px 12px', width: '100%', textAlign: 'left',
       color: 'inherit', font: 'inherit', cursor: onPick ? 'pointer' : 'default',
       background: active ? 'rgba(40,24,8,0.9)' : 'rgba(14,4,28,0.86)', opacity: rest || locked ? 0.6 : 1,
