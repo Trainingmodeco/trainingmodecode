@@ -25,6 +25,8 @@ import ComboCoachSetup from './ComboCoachSetup';
 import ComboCoachActive from './ComboCoachActive';
 import FitModeHub from './FitModeHub';
 import ProgramsScreen from './ProgramsScreen';
+import TapesScreen from './TapesScreen';
+import { tapesEnabled } from './data/tapes';
 import CardioMode from './CardioMode';
 import FitBuilderSetup from './FitBuilderSetup';
 import FitBuilderWorkout from './FitBuilderWorkout';
@@ -220,8 +222,8 @@ function StagePlate({ plate }) {
   return <XpVerdictPlate flash={flash} />;
 }
 
-export default function ScreenRouter({ conceptView, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight } = actions;
+export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
+  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight, goTapes } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -263,7 +265,7 @@ export default function ScreenRouter({ conceptView, screen, disc, cfg, session, 
   if (screen === 'fight_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FightModeHub onOpenConcept={(tab) => goConcept(tab, null, 'fight')} onHome={goHome} onBack={goHome} onFitMode={goFitHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onJustTrain={goJustTrain} onTrainingCamp={goTrainingCamp}/>
+        <FightModeHub onTapes={tapesEnabled() ? () => goTapes('fight') : undefined} onOpenConcept={(tab) => goConcept(tab, null, 'fight')} onHome={goHome} onBack={goHome} onFitMode={goFitHub} onFightFocus={goSetup} onComboCoach={goComboSetup} onPractice={goPractice} onStartHere={goStartHere} onCombatConditioning={goCombatCondSetup} onJustTrain={goJustTrain} onTrainingCamp={goTrainingCamp}/>
       </WithNav>
     );
   }
@@ -561,7 +563,7 @@ export default function ScreenRouter({ conceptView, screen, disc, cfg, session, 
   if (screen === 'fit_hub') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <FitModeHub onOpenConcept={(tab) => goConcept(tab, null, 'fit')} onHome={goHome} onBack={goHome} onFightMode={goFightHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onStartQuickMission={goQuickMissionActive} onPrograms={goPrograms} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })}/>
+        <FitModeHub onTapes={tapesEnabled() ? () => goTapes('fit') : undefined} onOpenConcept={(tab) => goConcept(tab, null, 'fit')} onHome={goHome} onBack={goHome} onFightMode={goFightHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onStartQuickMission={goQuickMissionActive} onPrograms={goPrograms} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })}/>
       </WithNav>
     );
   }
@@ -693,8 +695,15 @@ export default function ScreenRouter({ conceptView, screen, disc, cfg, session, 
       </WithNav>
     );
   }
+  if (screen === 'tapes') {
+    return (
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+        <TapesScreen key={tapesFrom || 'all'} initialKind={tapesFrom} onBack={tapesFrom === 'fight' ? goFightHub : tapesFrom === 'fit' ? goFitHub : goHome}/>
+      </WithNav>
+    );
+  }
   if (screen === 'strike_lab') {
-    return <StrikeLab onExit={goHome} onOpenConcept={(id) => goConcept('fit', id, 'home')} />;
+    return <StrikeLab onExit={goHome} onOpenConcept={(id) => goConcept('fit', id, 'home')} onOpenTapes={() => goTapes('all')} />;
   }
   if (screen === 'beta_feedback') {
     return (

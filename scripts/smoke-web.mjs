@@ -73,6 +73,10 @@ const btn = (re) => page.getByRole('button', { name: re }).first();
 const boot = async () => {
   await page.goto(BASE + '?__reset=1', { waitUntil: 'networkidle' }); await S(2000);
   await page.mouse.click(195, 120); await S(1800);
+  // A live concept drop greets Home with its pop-up; it would sit over every
+  // button the checks tap.
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  await S(400);
 };
 const home = async () => { await boot(); };
 const fit = async () => { await home(); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200); };
@@ -101,17 +105,29 @@ await check('combo coach start', async () => { await fight(); await page.locator
 await check('training camp map', async () => { await fight(); await page.locator('.fb', { hasText: 'TRAINING CAMP' }).first().click(); await S(1800); }, /TRAINING CAMP/);
 await check('practice mode', async () => { await fight(); await page.locator('.ft.prac').click(); await S(1500); }, /PRACTICE MODE/);
 await check('combat conditioning start', async () => { await fight(); await page.locator('.ft.cond').click(); await S(1500); await page.locator('text=GAS TANK').first().click(); await S(600); await btn(/START CIRCUIT/).click({ timeout: 4000 }); await S(4000); }, /ROUND|DRILL|WARM/i);
-await check('arcade', async () => { await home(); await page.locator('text=ARCADE').first().click({ timeout: 5000 }); await S(3000); }, /TRAINING ARCADE/);
+// The hub's Arcade tile by its guide anchor: a live concept drop's card also says ARCADE.
+await check('arcade', async () => { await home(); await page.locator('[data-guide="home-arcade"]').first().click({ timeout: 5000 }); await S(3000); }, /TRAINING ARCADE/);
 // The START badge lives inside a scroll-snapping carousel card; a real-mouse
 // click can time out on actionability, and this test is about mounting, so
 // the element is clicked directly.
-await check('arcade saga', async () => { const hit = await page.evaluate(() => { const b = [...document.querySelectorAll('button,[role="button"]')].find((x) => /\bSTART\b[\s\S]*CLEARED/.test(x.innerText)); if (b) b.click(); return !!b; }); if (!hit) throw new Error('no START badge on the carousel'); await S(2500); }, /STAGE|CLIMB/i);
+// A live concept drop's gauntlet can sit first in the carousel, locked until
+// its first week is done — page past it to a saga that can START.
+await check('arcade saga', async () => {
+  let hit = false;
+  for (let i = 0; i < 8 && !hit; i++) {
+    hit = await page.evaluate(() => { const b = [...document.querySelectorAll('button,[role="button"]')].find((x) => /\bSTART\b[\s\S]*CLEARED/.test(x.innerText)); if (b) b.click(); return !!b; });
+    if (!hit) { await page.locator('button[aria-label="Next saga"]').click({ force: true, timeout: 3000 }); await S(900); }
+  }
+  if (!hit) throw new Error('no START badge on the carousel'); await S(2500);
+}, /STAGE|CLIMB/i);
 // Concept drops are hidden from users until their window, so these run with
 // the owner's preview flag on.
-const preview = async () => { await home(); await page.evaluate(() => localStorage.setItem('tm_owner_preview', '1')); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
+// boot() closed the pop-up (which marks it seen), so the drop's progress is reset to bring it back.
+const preview = async () => { await home(); await page.evaluate(() => { localStorage.setItem('tm_owner_preview', '1'); localStorage.removeItem('tm_concepts_v1'); }); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
 await check('concept drop pop-up + page', async () => { await preview(); await btn(/START THE REGIME/).click({ timeout: 5000 }); await S(1500); }, /WEEK 1 OF 4/);
 await check('concept fit day start', async () => { await btn(/^▶ START /).click({ timeout: 4000 }); await S(2500); }, /NECK CURLS|SQUAT JUMP/i);
 await check('concept fight day start', async () => { await preview(); await page.locator('button[aria-label="Close"]').first().click({ timeout: 3000 }).catch(() => {}); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); await page.locator('button', { hasText: 'CONCEPT PROGRAM' }).first().click({ timeout: 4000 }); await S(1500); await btn(/START DAY 1/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
+await check("coach's tapes shelf (owner-only)", async () => { await preview(); await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {}); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200); await page.locator('[data-guide="fit-tapes"]').click({ timeout: 4000 }); await S(1500); }, /COACH'S TAPES/);
 await check('concept gauntlet stage start', async () => { await preview(); await page.evaluate(() => localStorage.setItem('tm_concepts_v1', JSON.stringify({ shoto: { fitDone: 16, popupSeen: true } }))); await page.reload({ waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500); await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {}); await page.locator('[data-guide="home-arcade"]').first().click({ force: true, timeout: 5000 }); await S(2500); await page.evaluate(() => { const s = [...document.querySelectorAll('.saga-slide')].find((x) => x.style.opacity === '1'); s && s.click(); }); await S(2500); await page.locator('button').filter({ hasText: /GOT IT|LET'S GO|CLOSE/ }).first().click({ force: true, timeout: 1500 }).catch(() => {}); await S(600); await page.locator('.ladder-node').last().click({ force: true, timeout: 4000 }); await S(800); await page.locator('button').filter({ hasText: 'BOTH' }).last().click({ force: true, timeout: 3000 }); await page.locator('button').filter({ hasText: 'ENTER STAGE' }).first().click({ force: true, timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
 await check('progress', async () => { await home(); await btn(/^PROGRESS$/).click({ timeout: 4000 }); await S(1500); }, /PROGRESS|XP/i);
 await check('profile', async () => { await home(); await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500); }, /PROFILE/);

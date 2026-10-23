@@ -43,7 +43,7 @@ const hubCSS = `
 
 export default function FitModeHub({
   onHome, onBack, onFightMode, onWorkoutBuilder, onQuickMission, onStartQuickMission,
-  onCombatConditioning, onCardioMode, onGhostMode, onPrograms, onOpenConcept,
+  onCombatConditioning, onCardioMode, onGhostMode, onPrograms, onOpenConcept, onTapes,
 }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [surprise, setSurprise] = useState(null);
@@ -79,6 +79,8 @@ export default function FitModeHub({
     { n: '01', key: 'quick', title: 'Quick Mission', sub: 'Ready-made workout', onClick: onQuickMission },
     { n: '02', key: 'builder', title: 'Build Workout', sub: 'Customize everything', onClick: onWorkoutBuilder },
     { n: '03', key: 'programs', title: 'Programs', sub: 'Follow a plan', onClick: onPrograms },
+    // Coach's Tapes — only passed in while the shelf is owner-only (data/tapes).
+    { n: '04', key: 'tapes', title: "Coach's Tapes", sub: 'Follow along · on YouTube', onClick: onTapes, badge: 'NEW' },
   ].filter(r => r.onClick);
 
   // One gap between every block on the hub, so the stack reads evenly.
@@ -97,6 +99,7 @@ export default function FitModeHub({
         <span style={{ display: 'block', font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.04em', color: '#fff' }}>{r.title}</span>
         <span style={{ display: 'block', fontSize: 14, color: MUTED, marginTop: 2 }}>{r.sub}</span>
       </span>
+      {r.badge && <span style={{ padding: '2px 7px', borderRadius: 99, background: '#F2BE45', color: '#1a1204', font: "700 9.5px 'Chakra Petch',sans-serif", letterSpacing: '0.14em' }}>{r.badge}</span>}
       <ChevronRight size={18} color="#8E88A8"/>
     </button>
   );
@@ -105,9 +108,11 @@ export default function FitModeHub({
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
       <Embers count={3}/>
-      <div style={{
+      {/* Fixed-height on a tall phone; once the stack outgrows a short one
+          (Coach's Tapes adds a row) it scrolls rather than clipping Cardio. */}
+      <div className="no-scrollbar" style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-        height: '100dvh', boxSizing: 'border-box', overflow: 'hidden',
+        height: '100dvh', boxSizing: 'border-box', overflowY: 'auto', overflowX: 'hidden',
         paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom,0px))',
       }}>
         {/* Header */}

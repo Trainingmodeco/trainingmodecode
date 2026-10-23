@@ -35,7 +35,7 @@ const btn = (bg, fg = '#fff') => ({
   font: `800 11px ${mono}`, letterSpacing: '0.1em', cursor: 'pointer',
 });
 
-export default function StrikeLab({ onExit, onOpenConcept }) {
+export default function StrikeLab({ onExit, onOpenConcept, onOpenTapes }) {
   const [placement, setPlacement] = useState('POCKET');
   const [target, setTarget] = useState(20);
   const [factor, setFactor] = useState(MIC_DEFAULTS.factor);
@@ -260,6 +260,11 @@ export default function StrikeLab({ onExit, onOpenConcept }) {
       <button type="button" onClick={() => { setOwnerPreview(!preview); setPreview(!preview); }} style={{ ...btn(preview ? 'rgba(232,121,249,0.16)' : 'rgba(255,255,255,0.04)', preview ? '#f0abfc' : '#9a90b8'), width: '100%', marginBottom: 12, borderColor: preview ? 'rgba(232,121,249,0.6)' : 'rgba(255,255,255,0.12)' }}>
         {preview ? '◆ CONCEPT PREVIEW ON · unreleased drops visible' : 'CONCEPT PREVIEW OFF'}
       </button>
+      {preview && onOpenTapes && (
+        <button type="button" onClick={onOpenTapes} style={{ ...btn('rgba(242,190,69,0.12)', GOLD), width: '100%', marginTop: -4, marginBottom: 8, borderColor: 'rgba(242,190,69,0.5)' }}>
+          {"📼 OPEN COACH'S TAPES · owner-only shelf"}
+        </button>
+      )}
       {preview && onOpenConcept && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: -4, marginBottom: 12 }}>
           {CONCEPT_SCHEDULE.map(e => (

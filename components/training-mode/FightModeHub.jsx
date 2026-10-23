@@ -32,6 +32,8 @@ const BANNERS = [
   { key: 'combo_coach', n: '03', title: 'COMBO COACH', sub: 'Called combos · Defense · Movement · Footwork', art: '/static/revamp/combo-coach-banner.png', pos: '100% 35%', noShift: true, guide: 'fh-combo' },
   { key: 'training_camp', n: '04', title: 'TRAINING CAMP', sub: 'Structured fight progression · Stages · Title path', art: '/static/fight-hub/training-camp.webp', pos: '60% 50%', camp: true, guide: 'fh-camp', tour: 'mode-camp' },
 ];
+// Coach's Tapes — joins the ladder only while the shelf is owner-only (data/tapes).
+const TAPES_BANNER = { key: 'tapes', n: '05', title: "COACH'S TAPES", sub: 'Follow along · bag · shadow · on YouTube', art: '/static/hub/fight.webp', pos: '85% 40%', noShift: true, guide: 'fh-tapes', badge: 'NEW' };
 
 // Art sits dimmed and shifted toward blue until the row is pointed at, then
 // brightens and the border turns gold. The banners were painted violet for the
@@ -67,7 +69,7 @@ const hubCSS = `
 .fh-q:hover, .fh-q:focus-visible { color: #F2BE45 !important; }
 `;
 
-export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp, onOpenConcept }) {
+export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, onFightFocus, onComboCoach, onPractice, onStartHere, onCombatConditioning, onTrainingCamp, onOpenConcept, onTapes }) {
   const profile = loadProfile();
   const isBeginner = !profile?.experience || profile.experience === 'Beginner';
   const needsGate = isBeginner && !hasCompletedFirstLesson();
@@ -81,7 +83,9 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
 
   const campStage = Math.min(loadCampProgress(), 12);
 
+  const banners = onTapes ? [...BANNERS, TAPES_BANNER] : BANNERS;
   const goMode = async (key) => {
+    if (key === 'tapes') { onTapes?.(); return; }
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
     if (key === 'conditioning') { onCombatConditioning?.(); return; }
     if (key === 'practice') {
@@ -131,7 +135,7 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
         <ConceptFeatureCard mode="fight" onOpen={onOpenConcept} style={{ marginBottom: 7, flexShrink: 0 }}/>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
-          {BANNERS.map(b => (
+          {banners.map(b => (
             <button key={b.key} type="button" className={`fb${b.noShift ? ' no-shift' : ''}`} data-tour={b.tour} data-guide={b.guide} onClick={() => goMode(b.key)}>
               <SafeImage src={b.art} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: b.pos }}/>
               <div className="scrim"/>
@@ -149,6 +153,7 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
                     </span>
                   )}
                 </span>
+                {b.badge && <span style={{ padding: '2px 7px', borderRadius: 99, background: '#F2BE45', color: '#1a1204', font: "700 9.5px 'Chakra Petch',sans-serif", letterSpacing: '0.14em', flexShrink: 0 }}>{b.badge}</span>}
                 <ChevronRight className="fb-go" size={20} color="#8FB4FF"/>
               </div>
             </button>

@@ -47,6 +47,7 @@ export function getModeXp(stats) {
     const xp = s.xpEarned || 0;
     if (FIGHT_TYPES.has(s.type)) out.fightXp += xp;
     else if (FIT_TYPES.has(s.type)) out.fitXp += xp;
+    else if (s.type === "Coach's Tapes") { if (s.kind === 'fight') out.fightXp += xp; else out.fitXp += xp; }
     else if (s.type === 'Combat Conditioning') out.ccXp += xp;
   }
   return out;

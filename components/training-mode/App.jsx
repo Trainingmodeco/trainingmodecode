@@ -40,6 +40,7 @@ import { completePlanDay } from './data/workoutLibrary';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
 import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview, entryFor as conceptEntryFor, stageCfg as conceptStageCfg } from './data/concepts';
+import { tapesEnabled, pendingTape } from './data/tapes';
 import { conceptSaga } from './data/concepts/saga';
 import HauntWelcome from './HauntWelcome';
 import { shouldShowIntro, markIntroShown, shouldShowWeekly, markWeeklyShown } from './data/practiceInvite';
@@ -78,6 +79,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
 // both outside it — they rebuild from campCtx / cardioContext, which the
 // snapshot did not carry, so a camp round lost to a phone call was gone. Both
 // now stash with the context they need to come back.
+const TAPE_RETURN_SCREENS = new Set(['home', 'fit_hub', 'fight_hub']);
 const ACTIVE_SESSION_SCREENS = new Set([
   'timer', 'combo_active', 'qm_active', 'fit_workout', 'cc_active', 'arcade_session', 'cardio_mode',
   'camp_session', 'camp_full', 'cardio_finisher',
@@ -268,6 +270,8 @@ export default function App() {
   // Concept drops: the page being viewed ({ id, tab, from }) and the once-per-drop pop-up.
   const [conceptView, setConceptView] = useState(null);
   const [conceptPopup, setConceptPopup] = useState(null);
+  // Coach's Tapes: which hub opened the shelf ('fit' | 'fight' | 'all').
+  const [tapesFrom, setTapesFrom] = useState('all');
   // Ghost challenge screen: { view: 'challenge' | 'haunt', challenge?, ghost?, xpLine? }.
   const [ghostView, setGhostView] = useState(null);
   // The challenge Fight Focus setup was opened for (null = a plain setup).
@@ -445,6 +449,26 @@ export default function App() {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', stash);
+    };
+  }, [screen]);
+
+  // Coach's Tapes: back from YouTube — or a cold reload while a tape is
+  // pending — lands on the shelf so the clear can be claimed. From Home or a
+  // hub only, never out of a live session, and only on the way back in.
+  const tapeBootRef = useRef(true);
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const claim = () => {
+      if (document.visibilityState !== 'visible' || !TAPE_RETURN_SCREENS.has(screen)) return;
+      if (!tapesEnabled() || !pendingTape()) return;
+      setTapesFrom('all'); setScreen('tapes');
+    };
+    if (tapeBootRef.current && TAPE_RETURN_SCREENS.has(screen)) { tapeBootRef.current = false; claim(); }
+    document.addEventListener('visibilitychange', claim);
+    window.addEventListener('pageshow', claim);
+    return () => {
+      document.removeEventListener('visibilitychange', claim);
+      window.removeEventListener('pageshow', claim);
     };
   }, [screen]);
 
@@ -982,6 +1006,8 @@ export default function App() {
     },
     // Concept drops: the concept page, and its sessions on the existing players.
     goConcept:     (tab = 'fit', id = null, from = 'home') => { setConceptView({ id, tab, from }); setScreen('concept'); trackEvent('concept_open', { tab, from }); },
+    // Coach's Tapes: the shelf of follow-along videos (owner-only until data/tapes flips it on).
+    goTapes:       (from = 'all') => { pauseCurrentSession(); setTapesFrom(from); setScreen('tapes'); trackEvent('tapes_open', { from }); },
     // A concept run day opens Cardio Mode with its distance set; the run counts
     // once the concept page sees it in the run log (settleConceptRun).
     startConceptFit:   (c) => (c?.conceptRun ? actions.goCardioMode({ goal: c.goal, unit: c.unit }) : actions.goFitWorkout(c)),
@@ -1299,7 +1325,7 @@ export default function App() {
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
             arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}
-            campCtx={campCtx} campResult={campResult} conceptView={conceptView}
+            campCtx={campCtx} campResult={campResult} conceptView={conceptView} tapesFrom={tapesFrom}
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
             pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}

@@ -324,6 +324,26 @@ export function addHybridTrainingBonus() {
   return XP_HYBRID_BONUS;
 }
 
+// Coach's Tapes — a follow-along video on the coach's channel, settled by the
+// athlete on return (honor system; data/tapes caps it). `kind` says which
+// shelf it came from so the Fit / Fight split counts it.
+export function addTapeSession(tape, verdict, xpEarned, now = Date.now()) {
+  const stats = loadStats();
+  stats.xp += Math.max(0, Math.round(xpEarned) || 0);
+  stats.sessions.push({
+    id: makeId(),
+    type: "Coach's Tapes",
+    kind: tape.kind,
+    tapeId: tape.id,
+    completedAt: new Date(now).toISOString(),
+    completedCount: verdict === 'cleared' ? 1 : 0,
+    totalCount: 1,
+    xpEarned: Math.max(0, Math.round(xpEarned) || 0),
+  });
+  saveStats(stats);
+  return xpEarned;
+}
+
 export function getLevel(xp) {
   return Math.floor(xp / XP_PER_LEVEL) + 1;
 }
