@@ -3,7 +3,7 @@ import { ChevronLeft, Link2, Play, X } from 'lucide-react';
 import SafeImage from './SafeImage';
 import {
   TAPES, tapeVideoId, youtubeUrl, featuredTape, startTape, pendingTape, returnState, settleTape, quoteTape,
-  tapeCounts, tapeXp, setTapeLink, loadTapes, clearPending, clearedToday,
+  tapeCounts, tapeXp, setTapeLink, loadTapes, clearPending, clearedToday, markPendingSeen, snoozePending,
 } from './data/tapes';
 import { isOwnerPreview } from './data/concepts';
 import { endMiniPlayer } from './shared/miniPlayer';
@@ -25,6 +25,8 @@ const VIOLET = '#9D6CFF';
 const BLUE = '#3D7BFF';
 const MUTED = '#8E88A8';
 const NAV = 'calc(64px + env(safe-area-inset-bottom, 0px))';
+// The sheets sit above the row the BETA chip and the resume pill share.
+const SHEET_BOTTOM = 'calc(108px + env(safe-area-inset-bottom, 0px))';
 const SPIN_SENDOFF_MS = 2500;
 
 const css = `
@@ -70,7 +72,13 @@ function Disc({ tape, size, className = '', id = 'd' }) {
 }
 
 const chip = (text, color, border, bg) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', height: 20, padding: '0 8px', borderRadius: 99, font: `700 9px ${CP}`, letterSpacing: '0.12em', color, background: bg, border: `1px solid ${border}`, whiteSpace: 'nowrap' }}>{text}</span>
+  <span style={{ display: 'inline-block', maxWidth: '100%', boxSizing: 'border-box', lineHeight: '18px', padding: '0 8px', borderRadius: 99, font: `700 9px ${CP}`, letterSpacing: '0.12em', color, background: bg, border: `1px solid ${border}`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', verticalAlign: 'middle' }}>{text}</span>
+);
+const linkBtn = (onClick, label, text) => (
+  <button type="button" onClick={onClick} aria-label={label}
+    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 20, padding: '0 8px', borderRadius: 99, font: `700 9px ${CP}`, letterSpacing: '0.12em', color: '#f0abfc', background: 'rgba(232,121,249,0.1)', border: '1px solid rgba(232,121,249,0.45)', cursor: 'pointer' }}>
+    <Link2 size={10}/> {text}
+  </button>
 );
 
 export default function TapesScreen({ initialKind = 'all', onBack }) {
@@ -79,13 +87,16 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
   const [spin, setSpin] = useState(null);          // tape being sent off to YouTube
   const [pending, setPending] = useState(() => pendingTape());
   const [now, setNow] = useState(() => Date.now());
-  const [reward, setReward] = useState(null);      // { tape, verdict, xp, repeat }
+  const [reward, setReward] = useState(null);      // { tape, verdict, xp, reason }
   const [editing, setEditing] = useState(null);    // tape id whose link the owner is setting
   const [draft, setDraft] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const [returnAt, setReturnAt] = useState(() => Date.now());  // last time the athlete came back
   const owner = isOwnerPreview();
   const playAt = useRef(0);
 
   const refresh = useCallback(() => { setState(loadTapes()); setPending(pendingTape()); setNow(Date.now()); }, []);
+  const openEditor = (tape) => { setEditing(tape.id); setDraft(tapeVideoId(tape, state) ? youtubeUrl(tapeVideoId(tape, state)) : ''); setLinkError(''); };
 
   // Back from YouTube: drop the send-off, pick up the pending tape.
   useEffect(() => {
@@ -94,7 +105,7 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
     const back = () => {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
       if (Date.now() - playAt.current < 1500) return;
-      setSpin(null); refresh();
+      setSpin(null); setReturnAt(Date.now()); refresh();
     };
     document.addEventListener('visibilitychange', back);
     window.addEventListener('pageshow', back);
@@ -134,13 +145,23 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
     refresh();
     if (r && verdict !== 'skip') setReward(r);
   };
-  const saveLink = () => { setTapeLink(editing, draft); setEditing(null); setDraft(''); refresh(); };
+  // NOT YET keeps the tape pending: the bar comes back next time they return.
+  const snooze = () => { snoozePending(); refresh(); };
+  const saveLink = () => {
+    const res = setTapeLink(editing, draft);
+    if (res === null) { setLinkError('Not a YouTube link. Paste the video\u2019s share link.'); return; }
+    setEditing(null); setDraft(''); setLinkError(''); refresh();
+  };
 
   const featured = featuredTape(state);
   const rows = TAPES.filter(t => t !== featured && (filter === 'all' || t.kind === filter));
   const counts = tapeCounts(state);
-  const ret = pending ? returnState(pending, now) : null;
+  const snoozed = !!pending?.snoozedAt && returnAt <= pending.snoozedAt;
+  const ret = pending && !snoozed ? returnState(pending, now) : null;
   const quote = (verdict) => (pending ? quoteTape(pending.id, verdict, now, state) : 0);
+
+  // The bar has been seen: App stops pulling the athlete back here on every return.
+  useEffect(() => { if (ret) markPendingSeen(); }, [ret]);
 
   // PLAY is an <a>: the tap opens YouTube itself. No video yet → the owner
   // gets the link editor, everyone else sees it dimmed.
@@ -149,7 +170,7 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
     const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none', cursor: 'pointer', ...style };
     if (!vid) {
       return (
-        <button type="button" className="tp-play" aria-label={`${tape.title}: no video yet`} onClick={() => { if (owner) { setEditing(tape.id); setDraft(''); } }}
+        <button type="button" className="tp-play" aria-label={`${tape.title}: no video yet`} onClick={() => { if (owner) openEditor(tape); }}
           style={{ ...base, border: '1px dashed rgba(255,255,255,0.25)', background: 'transparent', color: MUTED, font: `700 ${round ? 12 : 11}px ${CP}`, letterSpacing: '0.1em' }}>
           {round ? <Link2 size={16}/> : 'NO VIDEO YET'}
         </button>
@@ -198,8 +219,9 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
           <div style={{ font: `900 10px ${OR}`, letterSpacing: '0.2em', color: GOLD }}>NEW THIS MONTH</div>
           <div style={{ font: `700 18px ${CP}`, marginTop: 3 }}>{featured.title}</div>
           <div style={{ font: `500 12px ${CP}`, color: '#bdb5d8', marginTop: 2 }}>{featured.meta} · {fmtLen(featured.minutes)} · +{tapeXp(featured)} XP</div>
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <PlayLink tape={featured} style={playStyle(true)}><Play size={13} fill="currentColor" strokeWidth={0}/>PLAY <span style={{ opacity: 0.7 }}>↗</span></PlayLink>
+            {owner && linkBtn(() => openEditor(featured), `Set the video link for ${featured.title}`, tapeVideoId(featured, state) ? 'LINK' : 'SET LINK')}
           </div>
         </div>
       </div>
@@ -221,12 +243,7 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
                 <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
                   {done && chip('✓ CLEARED', '#fff', 'rgba(34,197,94,0.9)', 'rgba(34,197,94,0.55)')}
                   {t.live && chip(t.live.toUpperCase(), '#c9b8ff', 'rgba(157,108,255,0.5)', 'transparent')}
-                  {owner && (
-                    <button type="button" onClick={() => { setEditing(t.id); setDraft(tapeVideoId(t, state) ? youtubeUrl(tapeVideoId(t, state)) : ''); }} aria-label={`Set the video link for ${t.title}`}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 20, padding: '0 8px', borderRadius: 99, font: `700 9px ${CP}`, letterSpacing: '0.12em', color: '#f0abfc', background: 'rgba(232,121,249,0.1)', border: '1px solid rgba(232,121,249,0.45)', cursor: 'pointer' }}>
-                      <Link2 size={10}/> {tapeVideoId(t, state) ? 'LINK' : 'SET LINK'}
-                    </button>
-                  )}
+                  {owner && linkBtn(() => openEditor(t), `Set the video link for ${t.title}`, tapeVideoId(t, state) ? 'LINK' : 'SET LINK')}
                 </div>
               </div>
               <PlayLink tape={t} round style={playStyle(false)}><Play size={15} fill="currentColor" strokeWidth={0}/></PlayLink>
@@ -249,7 +266,8 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
       {/* send-off: the tape you picked spins while YouTube opens */}
       {spin && (
         <div role="status" style={{ position: 'fixed', left: 0, right: 0, top: 0, bottom: NAV, zIndex: 40, background: 'rgba(4,2,10,0.96)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <Disc tape={spin} size={220} className="tp-spin tp-in" id="big"/>
+          {/* scale-in on the wrapper, the spin on the disc: one animation each */}
+          <div className="tp-in"><Disc tape={spin} size={220} className="tp-spin" id="big"/></div>
           <div style={{ marginTop: 18, font: `900 12px ${OR}`, letterSpacing: '0.24em', color: GOLD }}>NOW LOADING</div>
           <div style={{ font: `700 18px ${CP}`, marginTop: 4 }}>{spin.title}</div>
           <div style={{ font: `500 13px ${CP}`, color: '#ddd6f3', marginTop: 4 }}>Opening on YouTube…</div>
@@ -260,7 +278,7 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
 
       {/* comeback bar */}
       {ret && !spin && !reward && (
-        <div className="tp-bar" style={{ position: 'fixed', left: 0, right: 0, bottom: NAV, maxWidth: 440, margin: '0 auto', padding: '0 10px 10px', zIndex: 30 }}>
+        <div className="tp-bar" style={{ position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, maxWidth: 440, margin: '0 auto', padding: '0 10px', zIndex: 30 }}>
           <div style={{ borderRadius: 16, background: 'linear-gradient(180deg,#1d1236,#0e0820)', border: `1.5px solid ${GOLD}`, boxShadow: '0 -6px 24px rgba(0,0,0,0.6)', padding: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Disc tape={ret.tape} size={54} className="tp-down" id="bar"/>
@@ -269,7 +287,7 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
                 <div style={{ font: `700 15px ${CP}`, marginTop: 2 }}>{ret.tape.title} · did you finish it?</div>
                 <div style={{ font: `500 11.5px ${CP}`, color: '#9a93b8' }}>Away {ret.awayMin} min · tape is {fmtLen(ret.tape.minutes)}{clearedToday(ret.tape.id, now, state) ? ' · already cleared today' : ''}</div>
               </div>
-              <button type="button" onClick={() => settle('skip')} aria-label="Dismiss" style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#9a93b8', cursor: 'pointer', display: 'grid', placeItems: 'center' }}><X size={15}/></button>
+              <button type="button" onClick={snooze} aria-label="Not yet" style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#9a93b8', cursor: 'pointer', display: 'grid', placeItems: 'center' }}><X size={15}/></button>
             </div>
             <button type="button" disabled={!ret.canClear} onClick={() => settle('cleared')} style={{ width: '100%', height: 46, marginTop: 10, borderRadius: 12, border: 0, cursor: ret.canClear ? 'pointer' : 'default', background: ret.canClear ? 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)' : 'rgba(255,255,255,0.06)', color: ret.canClear ? '#1A1204' : '#7d76a0', font: `900 13px ${OR}`, letterSpacing: '0.1em' }}>
               {ret.canClear ? `✓ CLEARED · +${quote('cleared')} XP` : `CLEARED UNLOCKS IN ${ret.clearInMin} MIN`}
@@ -278,11 +296,14 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
               <button type="button" disabled={!ret.canPartial} onClick={() => settle('partial')} style={{ flex: 1, height: 38, borderRadius: 10, cursor: ret.canPartial ? 'pointer' : 'default', border: `1px solid ${ret.canPartial ? 'rgba(157,108,255,0.5)' : 'rgba(255,255,255,0.1)'}`, background: 'transparent', color: ret.canPartial ? '#c9b8ff' : '#5a5478', font: `700 11px ${CP}`, letterSpacing: '0.12em' }}>
                 {ret.canPartial ? `PARTIAL · +${quote('partial')} XP` : `PARTIAL IN ${ret.partialInMin} MIN`}
               </button>
-              <button type="button" onClick={() => settle('skip')} style={{ flex: 1, height: 38, borderRadius: 10, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#bdb5d8', font: `700 11px ${CP}`, letterSpacing: '0.12em' }}>NOT YET</button>
+              <button type="button" onClick={snooze} style={{ flex: 1, height: 38, borderRadius: 10, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#bdb5d8', font: `700 11px ${CP}`, letterSpacing: '0.12em' }}>NOT YET</button>
             </div>
-            {tapeVideoId(ret.tape, state) && (
-              <a href={youtubeUrl(tapeVideoId(ret.tape, state))} target="_blank" rel="noopener noreferrer" onClick={() => endMiniPlayer()} style={{ display: 'block', textAlign: 'center', marginTop: 8, font: `600 11px ${CP}`, color: '#ff9b9b', textDecoration: 'none' }}>Back to the video ↗</a>
-            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+              <button type="button" onClick={() => settle('skip')} style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', font: `600 11px ${CP}`, color: '#7d76a0' }}>{"Didn't do it"}</button>
+              {tapeVideoId(ret.tape, state) && (
+                <a href={youtubeUrl(tapeVideoId(ret.tape, state))} target="_blank" rel="noopener noreferrer" onClick={() => endMiniPlayer()} style={{ font: `600 11px ${CP}`, color: '#ff9b9b', textDecoration: 'none' }}>Back to the video ↗</a>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -293,10 +314,10 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
           <div style={{ position: 'relative' }}>
             <Disc tape={reward.tape} size={200} id="won"/>
             <div style={{ position: 'absolute', inset: -10, borderRadius: '50%', border: `3px solid ${GOLD}`, boxShadow: '0 0 40px rgba(242,190,69,0.7)' }}/>
-            <div className="tp-stamp" style={{ position: 'absolute', left: '50%', top: '50%', font: `900 ${reward.verdict === 'cleared' ? 26 : 22}px ${OR}`, letterSpacing: '0.12em', color: GOLD, border: `3px solid ${GOLD}`, padding: '4px 12px', borderRadius: 8, background: 'rgba(8,4,18,0.75)', textShadow: '0 0 14px rgba(242,190,69,0.8)', whiteSpace: 'nowrap' }}>{reward.verdict === 'cleared' ? 'CLEARED' : 'PARTIAL'}</div>
+            <div className="tp-stamp" style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%) rotate(-12deg)', font: `900 ${reward.verdict === 'cleared' ? 26 : 22}px ${OR}`, letterSpacing: '0.12em', color: GOLD, border: `3px solid ${GOLD}`, padding: '4px 12px', borderRadius: 8, background: 'rgba(8,4,18,0.75)', textShadow: '0 0 14px rgba(242,190,69,0.8)', whiteSpace: 'nowrap' }}>{reward.verdict === 'cleared' ? 'CLEARED' : 'PARTIAL'}</div>
           </div>
           <div style={{ marginTop: 26, font: `900 44px ${OR}`, color: '#fff', textShadow: '0 0 24px rgba(242,190,69,0.9)' }}>{reward.xp > 0 ? `+${reward.xp} XP` : 'LOGGED'}</div>
-          <div style={{ font: `600 13px ${CP}`, color: '#ddd6f3', marginTop: 6, textAlign: 'center' }}>{reward.xp > 0 ? `${reward.tape.title} · added to your Tapes shelf` : reward.repeat ? `${reward.tape.title} · XP is once per tape a day` : reward.tape.title}</div>
+          <div style={{ font: `600 13px ${CP}`, color: '#ddd6f3', marginTop: 6, textAlign: 'center' }}>{reward.xp > 0 ? `${reward.tape.title} · added to your Tapes shelf` : reward.reason === 'daily_cap' ? `${reward.tape.title} · two paid tapes a day, this one is logged` : reward.reason === 'repeat' ? `${reward.tape.title} · XP is once per tape a day` : reward.tape.title}</div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 18, padding: '10px 14px', borderRadius: 12, background: 'rgba(20,10,40,0.85)', border: '1px solid rgba(157,108,255,0.4)' }}>
             <span style={{ font: `700 11px ${CP}`, letterSpacing: '0.14em', color: '#c9b8ff' }}>{reward.tape.kind === 'fight' ? 'FIGHT TAPES' : 'FIT TAPES'}</span>
             <span style={{ width: 110, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}><span style={{ display: 'block', width: `${counts[reward.tape.kind].total ? (counts[reward.tape.kind].done / counts[reward.tape.kind].total) * 100 : 0}%`, height: '100%', background: `linear-gradient(90deg,${VIOLET},${GOLD})` }}/></span>
@@ -308,15 +329,16 @@ export default function TapesScreen({ initialKind = 'all', onBack }) {
 
       {/* owner: paste the video link */}
       {owner && editing && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: NAV, maxWidth: 440, margin: '0 auto', padding: '0 10px 10px', zIndex: 35 }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, maxWidth: 440, margin: '0 auto', padding: '0 10px', zIndex: 35 }}>
           <div style={{ borderRadius: 16, background: '#140d26', border: '1.5px solid rgba(232,121,249,0.6)', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)', padding: 12 }}>
             <div style={{ font: `900 10px ${OR}`, letterSpacing: '0.2em', color: '#f0abfc' }}>VIDEO LINK · {TAPES.find(t => t.id === editing)?.title}</div>
-            <input value={draft} onChange={e => setDraft(e.target.value)} placeholder="Paste the YouTube link" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+            <input value={draft} onChange={e => { setDraft(e.target.value); setLinkError(''); }} placeholder="Paste the YouTube link" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
               style={{ width: '100%', boxSizing: 'border-box', marginTop: 8, height: 42, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: '#0b0716', color: '#fff', padding: '0 12px', font: `600 14px ${CP}` }}/>
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <button type="button" onClick={saveLink} style={{ flex: 1.4, height: 40, borderRadius: 10, border: 0, cursor: 'pointer', background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204', font: `800 12px ${CP}`, letterSpacing: '0.12em' }}>{draft.trim() ? 'SAVE LINK' : 'CLEAR LINK'}</button>
-              <button type="button" onClick={() => setEditing(null)} style={{ flex: 1, height: 40, borderRadius: 10, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#bdb5d8', font: `700 11px ${CP}`, letterSpacing: '0.12em' }}>CANCEL</button>
+              <button type="button" onClick={() => { setEditing(null); setLinkError(''); }} style={{ flex: 1, height: 40, borderRadius: 10, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#bdb5d8', font: `700 11px ${CP}`, letterSpacing: '0.12em' }}>CANCEL</button>
             </div>
+            {linkError && <div role="alert" style={{ marginTop: 6, font: `600 11.5px ${CP}`, color: '#ff9b9b' }}>{linkError}</div>}
             <div style={{ marginTop: 6, font: `500 11px ${CP}`, color: '#7d76a0' }}>Saved on this phone only. Put the ID in data/tapes.js to ship it.</div>
           </div>
         </div>

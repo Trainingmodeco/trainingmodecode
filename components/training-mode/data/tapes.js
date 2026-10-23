@@ -8,6 +8,10 @@
 //
 // XP is the honor system, capped: once per tape a day, two paid clears a day.
 // It rewards the workout, never the view — nothing here keys off YouTube.
+//
+// Storage (tm_tapes_v1): links (owner-pasted video ids), pending (the tape
+// out on YouTube: at, seen, snoozedAt), log (settles, for the daily caps),
+// cleared (tape → first clear, never trimmed: it drives the shelf badges).
 import { isOwnerPreview } from './concepts';
 import { addTapeSession } from './userStats';
 import { trackEvent } from './analytics';
@@ -26,8 +30,8 @@ export const DAILY_PAID_CLEARS = 2;
 // a link on the phone (setTapeLink) without a release. `live` names the
 // in-app session a tape is the filmed version of.
 export const TAPES = [
-  { id: 'shadow-01', num: '#01', kind: 'fight', title: 'Kickboxing Basics', meta: 'Shadowboxing · 3 rounds', minutes: 22, gear: 'No gear', art: '/static/revamp/hub-fight-reveal.webp', pos: '50% 25%', youtubeId: '', live: 'Live version · 7-Day Shadowbox Mini' },
-  { id: 'bw-01', num: '#02', kind: 'fit', title: 'Deadly Seven', meta: 'Bodyweight · 7 × 7 × 7', minutes: 30, gear: 'No gear', art: '/static/revamp/hub-fit-reveal.webp', pos: '50% 22%', youtubeId: '', live: 'Live version · Quick Mission' },
+  { id: 'shadow-01', num: '#01', kind: 'fight', title: 'Kickboxing Basics', meta: 'Shadowboxing · 3 rounds', minutes: 22, gear: 'No gear', art: '/static/revamp/hub-fight-reveal.webp', pos: '50% 25%', youtubeId: '', live: 'Live · Shadowbox Mini' },
+  { id: 'bw-01', num: '#02', kind: 'fit', title: 'Deadly Seven', meta: 'Bodyweight · 7 × 7 × 7', minutes: 30, gear: 'No gear', art: '/static/revamp/hub-fit-reveal.webp', pos: '50% 22%', youtubeId: '', live: 'Live · Quick Mission' },
   { id: 'kb-01', num: '#03', kind: 'fit', title: 'The 300', meta: 'Kettlebell · 300 reps', minutes: 25, gear: '1 kettlebell', art: '/static/fitmode/banner-gym-quick.webp', pos: '40% 60%', youtubeId: '' },
   { id: 'bag-01', num: '#04', kind: 'fight', title: 'Heavy Bag: 6 Rounds', meta: 'Bag work · 6 rounds', minutes: 24, gear: 'Bag + gloves', art: '/static/hub/fight.webp', pos: '78% 45%', youtubeId: '' },
   { id: 'cal-01', num: '#05', kind: 'fit', title: 'Calisthenics Power', meta: 'Calisthenics · 4 rounds', minutes: 25, gear: 'Pull-up bar', art: '/static/hub/fit.webp', pos: '70% 50%', youtubeId: '' },
@@ -43,8 +47,8 @@ function load() {
   try {
     const raw = typeof localStorage === 'undefined' ? null : localStorage.getItem(KEY);
     const p = raw ? JSON.parse(raw) : null;
-    return { links: p?.links || {}, pending: p?.pending || null, log: Array.isArray(p?.log) ? p.log : [] };
-  } catch { return { links: {}, pending: null, log: [] }; }
+    return { links: p?.links || {}, pending: p?.pending || null, log: Array.isArray(p?.log) ? p.log : [], cleared: p?.cleared || {} };
+  } catch { return { links: {}, pending: null, log: [], cleared: {} }; }
 }
 function save(state) {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage full or blocked */ }
@@ -64,10 +68,15 @@ export function parseYoutubeId(input) {
 export function tapeVideoId(tape, state = load()) {
   return (tape && (state.links[tape.id] || tape.youtubeId)) || null;
 }
+// Returns the video id, '' when an empty input cleared the link, or null when
+// the input was not a YouTube link — in which case the stored link is kept.
 export function setTapeLink(id, input) {
-  const vid = parseYoutubeId(input);
+  const raw = String(input || '').trim();
   const s = load();
-  if (vid) s.links[id] = vid; else delete s.links[id];
+  if (!raw) { delete s.links[id]; save(s); return ''; }
+  const vid = parseYoutubeId(raw);
+  if (!vid) return null;
+  s.links[id] = vid;
   save(s);
   return vid;
 }
@@ -94,6 +103,12 @@ export function startTape(id, now = Date.now()) {
   return s.pending;
 }
 export function clearPending() { const s = load(); s.pending = null; save(s); }
+// The comeback bar was shown once: App stops routing to the shelf on every
+// return (a cold boot still does).
+export function markPendingSeen() { const s = load(); if (s.pending && !s.pending.seen) { s.pending.seen = true; save(s); } }
+// NOT YET: hide the bar until the athlete comes back again. The tape stays
+// pending, so finishing it later still pays.
+export function snoozePending(now = Date.now()) { const s = load(); if (s.pending) { s.pending.seen = true; s.pending.snoozedAt = now; save(s); } }
 
 export function pendingTape(now = Date.now()) {
   const s = load();
@@ -120,38 +135,46 @@ export function returnState(pending, now = Date.now()) {
   };
 }
 
+// Why the next settle would pay nothing: 'repeat' (this tape already paid
+// today), 'daily_cap' (two tapes already paid today), or null.
+export function capReason(id, now = Date.now(), state = load()) {
+  const today = dayKey(now);
+  const todays = state.log.filter(e => e.xp > 0 && dayKey(e.at) === today);
+  if (todays.some(e => e.id === id)) return 'repeat';
+  if (todays.length >= DAILY_PAID_CLEARS) return 'daily_cap';
+  return null;
+}
 // XP the next settle would pay, after the daily rules.
 export function quoteTape(id, verdict, now = Date.now(), state = load()) {
   const tape = tapeById(id);
-  if (!tape || verdict === 'skip') return 0;
-  const today = dayKey(now);
-  const todays = state.log.filter(e => e.xp > 0 && dayKey(e.at) === today);
-  if (todays.some(e => e.id === id)) return 0;             // once per tape a day
-  if (todays.length >= DAILY_PAID_CLEARS) return 0;         // two paid clears a day
+  if (!tape || verdict === 'skip' || capReason(id, now, state)) return 0;
   const full = tapeXp(tape);
   return verdict === 'cleared' ? full : Math.round(full * PARTIAL_SHARE);
 }
 
 // verdict: 'cleared' | 'partial' | 'skip'. Pays the XP (bonus lane, logged
 // as a Coach's Tapes session so it counts for level, streak and the split),
-// clears the pending record, returns what happened.
+// clears the pending record, returns what happened. 'skip' ("didn't do it")
+// only drops the pending record.
 export function settleTape(id, verdict, now = Date.now()) {
   const s = load();
   const tape = tapeById(id);
-  if (!tape) { s.pending = null; save(s); return null; }
-  const xp = quoteTape(id, verdict, now, s);
   s.pending = null;
+  if (!tape || verdict === 'skip') { save(s); return tape ? { tape, verdict: 'skip', xp: 0, reason: null } : null; }
+  const reason = capReason(id, now, s);
+  const xp = quoteTape(id, verdict, now, s);
   s.log.push({ id, at: now, verdict, xp });
   if (s.log.length > 400) s.log = s.log.slice(-400);
+  if (verdict === 'cleared' && !s.cleared[id]) s.cleared[id] = now;
   save(s);
-  if (verdict !== 'skip') addTapeSession(tape, verdict, xp, now);
+  addTapeSession(tape, verdict, xp, now);
   trackEvent('tape_clear', { tape: id, verdict, xp });
-  return { tape, verdict, xp, repeat: verdict !== 'skip' && xp === 0 };
+  return { tape, verdict, xp, reason: xp === 0 ? reason : null };
 }
 
 // Cleared tapes per shelf, for the set bars and badges.
 export function tapeCounts(state = load()) {
-  const cleared = new Set(state.log.filter(e => e.verdict === 'cleared').map(e => e.id));
+  const cleared = new Set(Object.keys(state.cleared));
   const by = (kind) => { const all = TAPES.filter(t => t.kind === kind); return { done: all.filter(t => cleared.has(t.id)).length, total: all.length }; };
   return { fit: by('fit'), fight: by('fight'), cleared };
 }

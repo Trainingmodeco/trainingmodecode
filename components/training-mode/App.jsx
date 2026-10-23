@@ -458,17 +458,22 @@ export default function App() {
   const tapeBootRef = useRef(true);
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const claim = () => {
+    // A pending tape whose bar was already shown (seen) stops pulling the
+    // athlete back on every app switch; a cold boot still lands them there.
+    const claim = (force) => {
       if (document.visibilityState !== 'visible' || !TAPE_RETURN_SCREENS.has(screen)) return;
-      if (!tapesEnabled() || !pendingTape()) return;
+      if (!tapesEnabled()) return;
+      const p = pendingTape();
+      if (!p || (p.seen && !force)) return;
       setTapesFrom('all'); setScreen('tapes');
     };
-    if (tapeBootRef.current && TAPE_RETURN_SCREENS.has(screen)) { tapeBootRef.current = false; claim(); }
-    document.addEventListener('visibilitychange', claim);
-    window.addEventListener('pageshow', claim);
+    const onReturn = () => claim(false);
+    if (tapeBootRef.current && TAPE_RETURN_SCREENS.has(screen)) { tapeBootRef.current = false; claim(true); }
+    document.addEventListener('visibilitychange', onReturn);
+    window.addEventListener('pageshow', onReturn);
     return () => {
-      document.removeEventListener('visibilitychange', claim);
-      window.removeEventListener('pageshow', claim);
+      document.removeEventListener('visibilitychange', onReturn);
+      window.removeEventListener('pageshow', onReturn);
     };
   }, [screen]);
 

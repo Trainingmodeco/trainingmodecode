@@ -52,8 +52,10 @@ const TROPHY_GROUPS = [
   ] },
 ];
 
-function category(type) {
-  const t = String(type || '').toLowerCase();
+function category(s) {
+  // A Coach's Tapes session carries the shelf it came from (same rule as tiers.getModeXp).
+  if (s?.type === "Coach's Tapes") return s.kind === 'fight' ? 'fight' : 'fit';
+  const t = String(s?.type || '').toLowerCase();
   if (/fight|combo|focus|practice/.test(t)) return 'fight';
   if (/cardio/.test(t)) return 'cardio';
   if (/arcade|stage/.test(t)) return 'arcade';
@@ -95,7 +97,7 @@ function ProgressDetail({ stats, rankName, level, onClose }) {
   const trend = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
   const counts = { fight: 0, fit: 0, cardio: 0, arcade: 0 };
-  rs.forEach(s => { counts[category(s.type)] += 1; });
+  rs.forEach(s => { counts[category(s)] += 1; });
   const totalC = Math.max(1, rs.length);
 
   return createPortal(
@@ -290,7 +292,7 @@ export default function ProgressScreen({ onHome, profile }) {
 
   // Training split.
   const counts = { fight: 0, fit: 0, cardio: 0, arcade: 0 };
-  sessions.forEach(s => { counts[category(s.type)] += 1; });
+  sessions.forEach(s => { counts[category(s)] += 1; });
   const totalC = Math.max(1, sessions.length);
 
   return (
