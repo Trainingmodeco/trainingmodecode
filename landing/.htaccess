@@ -1,0 +1,40 @@
+# Training Mode — Hostinger (Apache) config
+
+# ---------- custom error page ----------
+ErrorDocument 404 /404.html
+
+# ---------- redirects from the old multi-page site ----------
+# The previous build had separate pages; send their URLs (and any
+# indexed/bookmarked links to them) to the matching section of the
+# single-page site so nothing 404s.
+RewriteEngine On
+
+RewriteRule ^about/?$            /#modes      [R=301,L,NE]
+RewriteRule ^training-paths/?$   /#modes      [R=301,L,NE]
+RewriteRule ^modes/?$            /#modes      [R=301,L,NE]
+RewriteRule ^arcade/?$           /#arcade     [R=301,L,NE]
+RewriteRule ^try-beta/?$         /#home       [R=301,L,NE]
+RewriteRule ^beta/?$             /#home       [R=301,L,NE]
+RewriteRule ^founders-club/?$    /#subscribe  [R=301,L,NE]
+RewriteRule ^founders/?$         /#subscribe  [R=301,L,NE]
+RewriteRule ^investors/?$        /#community  [R=301,L,NE]
+RewriteRule ^contact/?$          /#community  [R=301,L,NE]
+RewriteRule ^community/?$        /#community  [R=301,L,NE]
+RewriteRule ^subscribe/?$        /#subscribe  [R=301,L,NE]
+RewriteRule ^progress/?$         /#progress   [R=301,L,NE]
+
+# ---------- compression ----------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+</IfModule>
+
+# ---------- caching ----------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp  "access plus 30 days"
+  ExpiresByType image/png   "access plus 30 days"
+  ExpiresByType font/woff2  "access plus 1 year"
+  ExpiresByType text/css    "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/x-icon "access plus 30 days"
+</IfModule>
