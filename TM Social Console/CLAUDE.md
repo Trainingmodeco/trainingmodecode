@@ -124,30 +124,29 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   Fight Focus timer (FightFocusTimer.jsx). The timer is a slim bar across the
   top, 10% of the height (the owner's call): gold FIGHT FOCUS title,
   ROUND / discipline / difficulty chips, round squares, the ring timer with the
-  app's ring art and clock. Opens with the app's 3-2-1-GO; each round opens
-  with the app's call screen (gold "ROUND 1", drill under it), the bell and the
-  coach's call in the app's voice. Each round is one stretch of a clip:
-  `{ "title", "src", "start", "end", "rate": 1, "clockFrom", "rushAt" }`; keep
-  strikes at real speed. `clockFrom` is the seconds left on the 3:00 clock
-  when the clip starts: spread them so the ring shows the app's colours
-  (violet over 1:00, amber under, red with FINAL 30). `rushAt` (seconds into
-  the round) fires the app's RUSH MODE screen with a shake and finishes the
-  round in RUSH (orange ring, ⚡ RUSH, embers, edge glow): the owner wants it
-  wherever they punch fast, so find the bursts with frame-difference motion
-  and fire it just before the peak. After the call, the app's focus card
-  shows the drill and a one-line coach `cue` (default: the first 2.2 s).
+  app's ring art and clock. **Dim only on the opening 3-2-1-GO; after that
+  every round snaps straight in** (the owner's call): "ROUND 1" in gold pops
+  up in the centre over the footage with no veil, the bell rings, the coach
+  calls the round in the app's voice, and the round's focus (drill + a
+  one-line coach `cue`) sits low on the screen as plain text, no box. Each
+  round is one stretch of a clip:
+  `{ "title", "src", "start", "end", "rate": 1, "clockFrom", "cue" }`; keep
+  strikes at real speed. A round lasts as long as its footage; calls that run
+  long wait for the previous one to finish. `clockFrom` is the seconds left on
+  the 3:00 clock when the clip starts: spread them so the ring shows the app's
+  colours (violet over 1:00, amber under, red with FINAL 30). **No RUSH
+  screens** unless the owner asks again (they took them out; `rushAt` still
+  fires the app's RUSH MODE screen and finishes the round in RUSH).
   **The owner may type round names onto their clips as reference labels:
-  use them for the round names and order, but never let them show.** Find
-  where and when each label sits (white pixels that hold still while the body
-  moves), cut rounds from clean stretches where you can (labels often appear
-  a few seconds after a cut), and otherwise set `card: { "y": <px>, "spans":
-  [[from, to], ...] }` so the card covers the label for every frame it is on
-  screen; a span that starts mid-round should start with `rushAt`, so the
-  RUSH screen covers the card cutting in. Check the frames where each card
-  ends. Aim for 40–45 s total; 5–7 rounds of about 6 s. Pick the most dynamic seconds (contact sheets at 2–4 fps; skip
-  walk-bys) and name each round for the drill actually on screen. The owner
-  wants it to look like the app: match the app's screens, colours, copy and
-  fonts (Press Start 2P is allowed here for the timer label).
+  use them for the round names and order, but never show them.** Find the
+  exact frames each label is on screen (white pixels that hold still while the
+  body moves) and cut every round from label-free stretches with a frame of
+  margin; labels often start a few seconds after a cut. Then scan the render
+  for the labels. Aim for 30–45 s total; 5–7 rounds of 2–6 s. Pick the most
+  dynamic seconds (contact sheets at 2–4 fps; skip walk-bys) and name each
+  round for the drill on screen. The owner wants it to look like the app:
+  match the app's screens, colours, copy and fonts (Press Start 2P is allowed
+  here for the timer label).
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
   climb, "where did you stall?", over a B-roll clip:
   `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX]`.

@@ -4,9 +4,9 @@
   "status": "rendered",
   "format": "FightFocusRounds",
   "createdAt": "2026-10-30",
-  "source": "Owner's second cut (two InShot clips, 720p, bag work, uploaded 2026-10-30) with the round names typed on as reference labels. Rounds follow the owner's labels and order; the app's focus card covers the typed labels.",
+  "source": "Owner's second cut (two InShot clips, 720p, bag work, uploaded 2026-10-30) with the round names typed on as reference labels. Rounds follow the owner's labels and order, cut only from stretches where no label is on screen.",
   "scheduledFor": null,
-  "coverFrame": 540,
+  "coverFrame": 600,
   "props": {
     "discipline": "Boxing",
     "hook": "The coach calls it. *You throw it.*",
@@ -14,8 +14,8 @@
       {
         "title": "Lead hand strikes",
         "src": "raw-footage/ff-best-part1.mp4",
-        "start": 2.6,
-        "end": 6.85,
+        "start": 4.5667,
+        "end": 6.8333,
         "rate": 1,
         "clockFrom": 168,
         "cue": "Lead hand only. Snap it back to your guard.",
@@ -25,7 +25,7 @@
       {
         "title": "Rear hand strikes",
         "src": "raw-footage/ff-best-part1.mp4",
-        "start": 8.4,
+        "start": 9.9,
         "end": 14.1,
         "rate": 1,
         "clockFrom": 131,
@@ -36,35 +36,21 @@
       {
         "title": "Short speed combos",
         "src": "raw-footage/ff-best-part1.mp4",
-        "start": 14.15,
-        "end": 21.75,
+        "start": 14.1667,
+        "end": 18.7,
         "rate": 1,
         "clockFrom": 96,
-        "rushAt": 4.5,
         "cue": "Short and sharp. Reset, then fire again.",
-        "card": {
-          "spans": [
-            [
-              0,
-              2.2
-            ],
-            [
-              4.5,
-              7.6
-            ]
-          ]
-        },
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-3.wav",
         "voiceSec": 2.71
       },
       {
         "title": "Nonstop striking",
         "src": "raw-footage/ff-best-part1.mp4",
-        "start": 24,
-        "end": 29.95,
+        "start": 25.4333,
+        "end": 29.9333,
         "rate": 1,
         "clockFrom": 58,
-        "rushAt": 3.4,
         "cue": "Don't stop. Keep the hands moving.",
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-4.wav",
         "voiceSec": 2.67
@@ -72,29 +58,19 @@
       {
         "title": "Speed and power hooks",
         "src": "raw-footage/ff-best-part2.mp4",
-        "start": 4.15,
-        "end": 12.15,
+        "start": 7.2333,
+        "end": 12.1333,
         "rate": 1,
         "clockFrom": 45,
-        "rushAt": 3.6,
         "cue": "Fast hooks, then sit down on them.",
-        "card": {
-          "y": 1146,
-          "spans": [
-            [
-              0,
-              3.1
-            ]
-          ]
-        },
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-5.wav",
         "voiceSec": 2.77
       },
       {
         "title": "Nonstop windshield wipers",
         "src": "raw-footage/ff-best-part2.mp4",
-        "start": 12.25,
-        "end": 17.8,
+        "start": 12.2,
+        "end": 17.8667,
         "rate": 1,
         "clockFrom": 27,
         "cue": "Left, right, left, right. Don't stop.",
@@ -140,13 +116,14 @@
   "posted": {},
   "notes": [
     "2026-10-30 owner's montage, cut to ~41s. Voice here is a robot placeholder; on the laptop `npm run voice` uses the app voice (Hazel/Zira). Owner approves before anything posts; TikTok goes out as Only me first.",
-    "2026-10-30 v3: owner's second cut with typed round labels. Labels are reference only; the focus card hides them (card.y / card.spans per round). Voice is still the cloud placeholder until `npm run voice` on the laptop."
+    "2026-10-30 v3: owner's second cut with typed round labels. Labels are reference only; the focus card hides them (card.y / card.spans per round). Voice is still the cloud placeholder until `npm run voice` on the laptop.",
+    "2026-10-30 v4 (owner): no RUSH screens; no box behind the focus text, which moves low; ROUND n stays in the centre; dim only on the 3-2-1, rounds snap in. With no box to hide the typed labels, rounds are cut around them (~32 s). Text-free exports from InShot would give back the labelled stretches (incl. the close-up flurry)."
   ],
   "voiceUsed": "espeak-ng en-gb (placeholder, not the app voice)",
   "exports": {
     "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
     "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
-    "seconds": 42.57
+    "seconds": 31.57
   },
-  "renderedAt": "2026-10-30T22:23:49.889Z"
+  "renderedAt": "2026-10-30T23:02:41.908Z"
 }

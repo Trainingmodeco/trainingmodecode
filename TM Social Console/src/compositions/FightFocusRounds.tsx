@@ -8,13 +8,13 @@ import { Slash } from '../parts/Hud';
 // timer (FightFocusTimer.jsx). The owner's footage fills the frame, uncropped;
 // the timer sits in a slim bar across the top (10% of the height: FIGHT FOCUS
 // title, ROUND / discipline / difficulty chips, round squares, the ring timer).
-// The session opens with the app's 3-2-1-GO and every round with its call
-// screen ("ROUND 1" in gold, the drill under it) while the coach says
-// "Round 1. Pendulum boxing." in the app's voice. Rounds with fast punching
-// fire the app's RUSH screen (RushEffects.jsx) at the burst and finish in
-// RUSH: orange ring, ⚡ RUSH, embers and edge glow. Under the call, the app's
-// focus card shows the drill and the coach's cue; it also covers the owner's
-// typed reference labels in the footage. No music (the owner adds it).
+// The session opens with the app's 3-2-1-GO over a dimmed screen; after that
+// each round snaps straight in (no dim): "ROUND 1" in gold in the centre, the
+// bell, the coach saying "Round 1. Pendulum boxing." in the app's voice, and
+// the round's focus (the drill and the coach's cue, as on the app's focus
+// card, as text without the card) low on the screen. A round can fire the
+// app's RUSH screen (RushEffects.jsx, `rushAt`) and finish in RUSH: orange
+// ring, ⚡ RUSH, embers and edge glow. No music (the owner adds it).
 export type Round = {
   title: string; // "Pendulum boxing"
   src: string; // footage; raw-footage/ files are staged by tools/render.mjs
@@ -27,11 +27,11 @@ export type Round = {
   rushAt?: number | null; // seconds into the round to fire RUSH (fast punching)
   voice?: string | null; // the spoken call (tools/voice.mjs)
   voiceSec?: number;
-  cue?: string; // the coach's line on the focus card ("Snap it back to your guard.")
-  // The focus card: centre y (px of the 1920 frame) and when it shows, in
-  // seconds into the round (default: the first 2.2 s). Put it over any text
-  // burned into the footage and keep it up for as long as that text shows.
-  card?: { y?: number; spans?: [number, number][] };
+  cue?: string; // the coach's line under the drill ("Snap it back to your guard.")
+  // Where the focus text sits (centre y, px of the 1920 frame) and when it
+  // shows, in seconds into the round (default: the whole round). It has no
+  // backing, so it can't hide text burned into the footage: cut around that.
+  focus?: { y?: number; spans?: [number, number][] };
 };
 
 export type FightFocusRoundsProps = {
@@ -51,7 +51,8 @@ const VOICE_AT = 10;
 // The timer bar: 10% of the frame, just under the platforms' top tabs.
 const BAR = { top: 118, height: 192 };
 const RUSH_SCREEN_FRAMES = 26;
-const CARD = { y: 972, width: 980, height: 250, spans: [[0, 2.2]] as [number, number][] };
+// The focus text: low, just above the platforms' caption zone (bottom ~350 px).
+const FOCUS_Y = 1440;
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 // The app's timer colours (FightFocusTimer.jsx).
@@ -60,18 +61,20 @@ const ringColor = (left: number, rush: boolean) => (left <= 30 ? '#ef4444' : rus
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 const plainText = (s: string) => s.replace(/\*/g, '');
 
-export const roundFrames = (r: Round) =>
-  Math.max(
-    CALL_FRAMES + 20,
-    Math.round(((r.end - r.start) / (r.rate ?? 1)) * FPS),
-    r.voice && r.voiceSec ? VOICE_AT + Math.ceil((r.voiceSec + 0.4) * FPS) : 0,
-  );
+// A round lasts as long as its footage (rounds can be shorter than their call,
+// so the footage never runs past a clean stretch into something unwanted).
+export const roundFrames = (r: Round) => Math.max(CALL_FRAMES + 20, Math.round(((r.end - r.start) / (r.rate ?? 1)) * FPS));
 
 export function roundsTimeline(p: FightFocusRoundsProps) {
   let from = INTRO_FRAMES;
+  let voiceFree = 0;
   const rounds = p.rounds.map((round, index) => {
     const len = roundFrames(round);
-    const s = { round, index, from, len };
+    // The call starts just after the bell, or once the previous call has
+    // finished, so calls never talk over each other.
+    const voiceFrom = Math.max(from + VOICE_AT, voiceFree);
+    if (round.voice && round.voiceSec) voiceFree = voiceFrom + Math.ceil((round.voiceSec + 0.15) * FPS);
+    const s = { round, index, from, len, voiceFrom };
     from += len;
     return s;
   });
@@ -97,7 +100,7 @@ const Footage: React.FC<{ src: string; start: number; rate?: number; focusX?: nu
         playbackRate={rate}
         style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${focusX}% ${focusY}%`, filter: 'saturate(0.9) contrast(1.06)' }}
       />
-      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(10,0,20,0.6) 0%, rgba(10,0,20,0) 22%, rgba(10,0,20,0) 82%, rgba(10,0,20,0.5) 100%)' }} />
+      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(10,0,20,0.35) 0%, rgba(10,0,20,0) 16%, rgba(10,0,20,0) 80%, rgba(10,0,20,0.3) 100%)' }} />
       {dim ? <AbsoluteFill style={{ background: '#000', opacity: dim }} /> : null}
     </div>
   );
@@ -276,62 +279,49 @@ const TimerBar: React.FC<{ n: number; total: number; discipline: string; difficu
   </div>
 );
 
-// The app's focus card (FightFocusTimer.jsx): dark card, border in the ring's
-// colour, the drill in Orbitron and the coach's cue under it. It cuts in (it
-// first shows under the call or RUSH screen) and fades out.
-const FocusCard: React.FC<{ n: number; title: string; cue?: string; y: number; spans: [number, number][]; color: string }> = ({
-  n,
-  title,
-  cue,
-  y,
-  spans,
-  color,
-}) => {
+// The round's focus, as on the app's focus card (FightFocusTimer.jsx): the
+// drill in Orbitron and the coach's cue under it, as text over the footage
+// (a dark shadow keeps it readable without a card).
+const FocusText: React.FC<{ title: string; cue?: string; y: number; spans?: [number, number][] }> = ({ title, cue, y, spans }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
-  const span = spans.find(([a, b]) => t >= a && t < b + 6 / fps);
-  if (!span) return null;
-  const opacity = interpolate(t, [span[1], span[1] + 6 / fps], [1, 0], clamp);
-  // Under the call screen only the dark card shows (it still hides the
-  // footage's text); the words come up once the call has gone.
-  const words = interpolate(frame, [CALL_FRAMES, CALL_FRAMES + 6], [0, 1], clamp);
+  const span = spans?.find(([a, b]) => t >= a && t < b + 6 / fps);
+  if (spans && !span) return null;
+  const opacity = span ? interpolate(t, [span[1], span[1] + 6 / fps], [1, 0], clamp) : 1;
+  const rise = spring({ frame: frame - Math.round((span?.[0] ?? 0) * fps), fps, config: { damping: 16, stiffness: 200 } });
   const label = title.toUpperCase();
   // One line, inside the platforms' safe width (text stays left of the right-hand buttons).
-  const size = Math.min(52, Math.floor(800 / (label.length * 0.9)));
+  const size = Math.min(54, Math.floor(800 / (label.length * 0.9)));
+  const shadow = '0 3px 10px rgba(0,0,0,0.95), 0 0 26px rgba(10,0,20,0.9)';
   return (
     <div
       style={{
         position: 'absolute',
-        left: (1080 - CARD.width) / 2,
-        width: CARD.width,
-        top: y - CARD.height / 2,
-        height: CARD.height,
-        borderRadius: 26,
-        background: 'rgba(10,0,20,0.94)',
-        backdropFilter: 'blur(14px)',
-        border: `2px solid ${color}77`,
-        boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 28px ${color}33`,
+        left: 0,
+        right: 0,
+        top: y - 70,
+        height: 140,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity,
+        gap: 12,
+        opacity: opacity * Math.min(1, rise * 1.4),
+        transform: `translateY(${(1 - rise) * 24}px)`,
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, opacity: words }}>
-        <div style={{ fontFamily: FONT.pixel, fontSize: 20, color: APP.work, letterSpacing: '0.14em' }}>ROUND {n} FOCUS</div>
-        <div style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: size, color: '#fff', letterSpacing: '0.1em', lineHeight: 1.1, whiteSpace: 'nowrap' }}>{label}</div>
-        {cue ? <div style={{ fontFamily: FONT.body, fontWeight: 500, fontSize: 38, color: 'rgba(255,255,255,0.62)', lineHeight: 1.15 }}>{cue}</div> : null}
+      <div style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: size, color: '#fff', letterSpacing: '0.1em', lineHeight: 1.1, whiteSpace: 'nowrap', textShadow: shadow }}>
+        {label}
       </div>
+      {cue ? <div style={{ fontFamily: FONT.body, fontWeight: 600, fontSize: 40, color: 'rgba(255,255,255,0.88)', lineHeight: 1.15, textShadow: shadow }}>{cue}</div> : null}
     </div>
   );
 };
 
 // The app's RUSH MODE screen (RushEffects.jsx): red-black veil, an orange
-// flash, the gradient title slamming in, the screen shaking. `lift` moves the
-// title up, clear of a focus card that is showing at the same time.
-const RushScreen: React.FC<{ lift?: number }> = ({ lift = 0 }) => {
+// flash, the gradient title slamming in, the screen shaking.
+const RushScreen: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const slam = spring({ frame, fps, config: { damping: 11, stiffness: 220 } });
@@ -342,7 +332,7 @@ const RushScreen: React.FC<{ lift?: number }> = ({ lift = 0 }) => {
     <AbsoluteFill style={{ opacity: out, alignItems: 'center', justifyContent: 'center' }}>
       <AbsoluteFill style={{ background: 'rgba(8,0,0,0.62)' }} />
       <AbsoluteFill style={{ background: 'radial-gradient(circle at center, rgba(255,140,0,0.45) 0%, transparent 60%)', opacity: flash }} />
-      <div style={{ transform: `translate(${shake}px, ${-lift}px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 60px' }}>
+      <div style={{ transform: `translateX(${shake}px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 60px' }}>
         <div
           style={{
             fontFamily: FONT.display,
@@ -443,6 +433,33 @@ const CallScreen: React.FC<{ big: string; sub?: string; size: number; color?: st
   );
 };
 
+// A round's call: "ROUND 1" in gold where the app puts it, popping in over the
+// footage with no veil, gone after the call.
+const RoundCall: React.FC<{ n: number }> = ({ n }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const pop = spring({ frame, fps, config: { damping: 12, stiffness: 240 } });
+  const out = interpolate(frame, [CALL_FRAMES - 4, CALL_FRAMES], [1, 0], clamp);
+  return (
+    <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          fontFamily: FONT.display,
+          fontWeight: 900,
+          fontSize: 124,
+          color: APP.gold,
+          lineHeight: 1,
+          textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 0 40px rgba(10,0,20,0.85), 0 0 70px rgba(253,224,71,0.45)',
+          transform: `scale(${1.25 - 0.25 * pop})`,
+          opacity: Math.min(1, pop * 1.5) * out,
+        }}
+      >
+        ROUND {n}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 // 3-2-1-GO, as the app counts a session in.
 const Intro: React.FC<{ p: FightFocusRoundsProps }> = ({ p }) => {
   const frame = useCurrentFrame();
@@ -472,17 +489,10 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
   const roundSec = p.roundSec ?? 180;
   const left = (r.clockFrom ?? roundSec) - frame / fps;
   const final = Math.ceil(left) <= 30;
-  const callOut = interpolate(frame, [CALL_FRAMES - 7, CALL_FRAMES], [1, 0], clamp);
   const rushFrom = r.rushAt != null ? Math.round(r.rushAt * fps) : null;
   const rush = rushFrom != null && frame >= rushFrom;
   const sinceRush = rushFrom != null ? frame - rushFrom : -1;
   const shake = sinceRush >= 0 && sinceRush < 12 ? Math.sin(sinceRush * 2.9) * (12 - sinceRush) * 1.6 : 0;
-  const cardY = r.card?.y ?? CARD.y;
-  const cardSpans = r.card?.spans ?? CARD.spans;
-  const rushT = rushFrom != null ? [rushFrom / fps, (rushFrom + RUSH_SCREEN_FRAMES) / fps] : null;
-  const cardInRush = rushT != null && cardSpans.some(([a, b]) => a < rushT[1] && b > rushT[0]);
-  // Lift the RUSH title so its bottom sits above the card (title block is ~240 px tall).
-  const rushLift = cardInRush ? Math.max(0, 960 + 130 - (cardY - CARD.height / 2 - 40)) : 0;
   return (
     <AbsoluteFill style={{ background: '#0a0014' }}>
       <Footage src={r.src} start={r.start} rate={r.rate} focusX={r.focusX} focusY={r.focusY} shake={shake} />
@@ -495,24 +505,15 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
           }}
         />
       ) : null}
-      <FocusCard n={n} title={r.title} cue={r.cue} y={cardY} spans={cardSpans} color={ringColor(Math.ceil(left), rush)} />
+      <FocusText title={r.title} cue={r.cue} y={r.focus?.y ?? FOCUS_Y} spans={r.focus?.spans} />
       <TimerBar n={n} total={total} discipline={p.discipline} difficulty={p.difficulty ?? 'Normal'} left={left} roundSec={roundSec} rush={rush} />
       {rushFrom != null ? (
         <Sequence from={rushFrom} durationInFrames={RUSH_SCREEN_FRAMES}>
-          <RushScreen lift={rushLift} />
+          <RushScreen />
         </Sequence>
       ) : null}
-      {frame < CALL_FRAMES ? (
-        <AbsoluteFill style={{ opacity: callOut }}>
-          <CallScreen big={`ROUND ${n}`} sub={r.title} size={116} />
-        </AbsoluteFill>
-      ) : null}
+      {frame < CALL_FRAMES ? <RoundCall n={n} /> : null}
       <Bell ring="single" volume={0.6} />
-      {r.voice ? (
-        <Sequence from={VOICE_AT}>
-          <Audio src={staticFile(r.voice)} />
-        </Sequence>
-      ) : null}
     </AbsoluteFill>
   );
 };
@@ -529,6 +530,13 @@ export const FightFocusRounds: React.FC<FightFocusRoundsProps> = (p) => {
           <RoundScene r={s.round} n={s.index + 1} total={rounds.length} p={p} />
         </Sequence>
       ))}
+      {rounds.map((s) =>
+        s.round.voice ? (
+          <Sequence key={`voice-${s.index}`} from={s.voiceFrom}>
+            <Audio src={staticFile(s.round.voice)} />
+          </Sequence>
+        ) : null,
+      )}
       <Sequence from={endFrom - 5} durationInFrames={11}>
         <Slash />
       </Sequence>
