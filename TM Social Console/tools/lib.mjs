@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -42,12 +43,37 @@ export function findPost(id) {
   return hit;
 }
 
-// Runs Remotion's bundled FFmpeg, so no separate FFmpeg install is needed.
+// FFmpeg and ffprobe: the system copy when one is installed (it has every
+// filter), else the copy bundled with Remotion, a slim build without some
+// filters (fps, select), so tools here stick to crop/scale and output options.
+// Both run directly, never through a shell: a shell would split Windows paths
+// with spaces ("TM APP 2026\TM Social Console").
+const require = createRequire(import.meta.url);
+const win = process.platform === 'win32';
+function locate(name) {
+  if (!process.env.TM_USE_BUNDLED_FFMPEG && spawnSync(name, ['-version'], { stdio: 'ignore' }).status === 0) {
+    return { cmd: name, env: process.env };
+  }
+  const suffix = { linux: '-gnu', win32: '-msvc' }[process.platform] ?? '';
+  const { dir } = require(`@remotion/compositor-${process.platform}-${process.arch}${suffix}`);
+  return {
+    cmd: path.join(dir, win ? `${name}.exe` : name),
+    env: { ...process.env, LD_LIBRARY_PATH: dir, DYLD_LIBRARY_PATH: dir },
+  };
+}
+
 export function ffmpeg(args, { quiet = true } = {}) {
-  const r = spawnSync('npx', ['remotion', 'ffmpeg', '-hide_banner', '-loglevel', quiet ? 'error' : 'info', '-y', ...args], {
-    cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32',
-  });
+  const { cmd, env } = locate('ffmpeg');
+  const r = spawnSync(cmd, ['-hide_banner', '-loglevel', quiet ? 'error' : 'info', '-y', ...args], { cwd: ROOT, env, stdio: 'inherit' });
   if (r.status !== 0) throw new Error(`ffmpeg failed: ${args.join(' ')}`);
+}
+
+// Returns ffprobe's stdout, trimmed.
+export function ffprobe(args) {
+  const { cmd, env } = locate('ffprobe');
+  const r = spawnSync(cmd, ['-v', 'error', ...args], { cwd: ROOT, env, encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`ffprobe failed: ${r.stderr || args.join(' ')}`);
+  return r.stdout.trim();
 }
 
 export const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);

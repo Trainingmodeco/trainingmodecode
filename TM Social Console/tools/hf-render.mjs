@@ -1,19 +1,28 @@
-// npm run hf:render -- [raw-footage/clip.mp4]
+// npm run hf:render -- [raw-footage/clip.mp4] [startSec] [focusX%]
 // Renders the HyperFrames Rank Ladder to exports/rank-ladder/video.mp4 with
-// the given clip as its background B-roll (muted, violet-toned). Without a
-// clip it reuses the last one (hyperframes/assets/broll.mp4).
+// the given clip as its background B-roll (muted, violet-toned). The clip is
+// cut from startSec and cropped to vertical around focusX (0 = left edge,
+// 100 = right; matters for landscape clips). Without a clip it reuses the
+// last one (hyperframes/assets/broll.mp4).
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { EXPORTS, ROOT } from './lib.mjs';
+import { EXPORTS, ROOT, ffmpeg, ffprobe } from './lib.mjs';
 
 const HF = path.join(ROOT, 'hyperframes');
 const broll = path.join(HF, 'assets', 'broll.mp4');
-const clip = process.argv[2];
+const [clip, start = '0', focus = '50'] = process.argv.slice(2);
 if (clip) {
   const src = path.resolve(ROOT, clip);
   if (!fs.existsSync(src)) throw new Error(`Not found: ${src}`);
-  fs.copyFileSync(src, broll);
+  const f = Math.min(100, Math.max(0, Number(focus))) / 100;
+  const [w, h] = ffprobe(['-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', src]).split(',').map(Number);
+  if (!w || !h) throw new Error(`Could not read the size of ${src}`);
+  // Vertical 9:16 window, numbers only so no shell quoting is involved.
+  const cw = Math.min(w, Math.round((h * 9) / 16 / 2) * 2);
+  const x = Math.round((w - cw) * f);
+  // 9.5s, 1080x1920, muted: what the composition plays.
+  ffmpeg(['-ss', start, '-i', src, '-t', '9.5', '-an', '-vf', `crop=${cw}:${h}:${x}:0,scale=1080:1920`, '-r', '30', '-g', '30', '-keyint_min', '30', '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', broll]);
 }
 if (!fs.existsSync(broll)) {
   console.error('Pick a background clip: npm run hf:render -- raw-footage/<clip>.mp4');
@@ -21,5 +30,7 @@ if (!fs.existsSync(broll)) {
 }
 const out = path.join(EXPORTS, 'rank-ladder', 'video.mp4');
 fs.mkdirSync(path.dirname(out), { recursive: true });
-const r = spawnSync('npx', ['hyperframes', 'render', '-o', out, '--quiet'], { cwd: HF, stdio: 'inherit', shell: process.platform === 'win32' });
+// Run the HyperFrames CLI with node directly (no shell: paths may hold spaces).
+const cli = path.join(ROOT, 'node_modules', 'hyperframes', 'bin', 'hyperframes.mjs');
+const r = spawnSync(process.execPath, [cli, 'render', '-o', out, '--quiet'], { cwd: HF, stdio: 'inherit' });
 process.exit(r.status ?? 1);

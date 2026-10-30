@@ -13,7 +13,7 @@ if (!urls.length) {
 const r = spawnSync(
   'yt-dlp',
   ['-f', 'bv*[height<=1920]+ba/b', '--merge-output-format', 'mp4', '--write-info-json', '--no-playlist', '-o', path.join(REFERENCES, '%(extractor)s-%(id)s.%(ext)s'), ...urls],
-  { stdio: 'inherit', shell: process.platform === 'win32' },
+  { stdio: 'inherit' },
 );
 if (r.error) {
   console.error('yt-dlp is not installed. Windows: winget install yt-dlp   Mac: brew install yt-dlp   Linux: pip install yt-dlp');

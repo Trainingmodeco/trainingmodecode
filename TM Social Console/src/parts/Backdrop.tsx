@@ -68,9 +68,10 @@ export const ArtLayer: React.FC<{ src: string; opacity?: number }> = ({ src, opa
 // The owner's footage behind a scene (B-roll): muted, slowed for weight, and
 // toned into the brand so text stays readable. Dark scenes get a violet
 // duotone; gold scenes a gold wash with the motion still showing through.
-export type Broll = { src: string; start: number; rate?: number };
+// focusX: where to centre a landscape clip in the vertical crop (0 = left edge, 100 = right).
+export type Broll = { src: string; start: number; rate?: number; focusX?: number };
 
-export const FootageLayer: React.FC<Broll & { tone?: Tone }> = ({ src, start, rate = 0.75, tone = 'dark' }) => {
+export const FootageLayer: React.FC<Broll & { tone?: Tone }> = ({ src, start, rate = 0.75, focusX = 50, tone = 'dark' }) => {
   const { fps } = useVideoConfig();
   const gold = tone === 'gold';
   return (
@@ -80,7 +81,14 @@ export const FootageLayer: React.FC<Broll & { tone?: Tone }> = ({ src, start, ra
         muted
         trimBefore={Math.round(start * fps)}
         playbackRate={rate}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1) contrast(1.25) brightness(1.05)', transform: 'scale(1.04)' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: `${focusX}% 50%`,
+          filter: 'grayscale(1) contrast(1.25) brightness(1.05)',
+          transform: 'scale(1.04)',
+        }}
       />
       {gold ? (
         <>

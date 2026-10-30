@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { getWhisperExecutablePath } from '@remotion/install-whisper-cpp/dist/install-whisper-cpp.js';
-import { BRAND, ROOT, WHISPER, readJson } from './lib.mjs';
+import { BRAND, ROOT, WHISPER, ffprobe, readJson } from './lib.mjs';
 
 const win = process.platform === 'win32';
-const run = (cmd, args) => spawnSync(cmd, args, { cwd: ROOT, encoding: 'utf8', shell: win });
+const run = (cmd, args) => spawnSync(cmd, args, { cwd: ROOT, encoding: 'utf8' });
 const firstLine = (r) => (r.stdout || r.stderr || '').split('\n').find(Boolean)?.trim() ?? '';
 
 const checks = [
@@ -15,10 +15,7 @@ const checks = [
     return [major >= 22, `node ${process.versions.node}`, 'Install Node 22 LTS from nodejs.org'];
   }],
   ['Packages', () => [fs.existsSync(path.join(ROOT, 'node_modules', 'remotion')), 'remotion + hyperframes installed', 'npm install']],
-  ['FFmpeg (bundled with Remotion)', () => {
-    const r = run('npx', ['remotion', 'ffmpeg', '-version']);
-    return [r.status === 0, firstLine(r).slice(0, 40), 'npm install'];
-  }],
+  ['FFmpeg for editing', () => [!!ffprobe(['-version']), ffprobe(['-version']).split('\n')[0].slice(0, 40), 'npm install']],
   ['Remotion browser', () => {
     if (process.env.REMOTION_BROWSER_EXECUTABLE) return [fs.existsSync(process.env.REMOTION_BROWSER_EXECUTABLE), `using ${process.env.REMOTION_BROWSER_EXECUTABLE}`, 'fix REMOTION_BROWSER_EXECUTABLE'];
     const dir = path.join(ROOT, 'node_modules', '.remotion');

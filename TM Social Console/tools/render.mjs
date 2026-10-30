@@ -4,10 +4,9 @@
 // then marks the post `rendered` so it shows up for approval.
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { bundle } from '@remotion/bundler';
 import { renderMedia, renderStill, selectComposition } from '@remotion/renderer';
-import { EXPORTS, ROOT, findPost, readJson, writeJson } from './lib.mjs';
+import { EXPORTS, ROOT, ffprobe, findPost, readJson, writeJson } from './lib.mjs';
 import { checkPost } from './check-copy.mjs';
 
 const id = process.argv[2];
@@ -44,10 +43,8 @@ if (post.format === 'FootageShort') {
   const src = path.resolve(ROOT, props.video);
   props.video = stage(props.video, post.id);
   if (!props.durationSec) {
-    const probe = spawnSync('npx', ['remotion', 'ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], {
-      cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32',
-    });
-    props.durationSec = Math.max(0, Number(probe.stdout.trim()) - (props.trimStartSec ?? 0));
+    const seconds = Number(ffprobe(['-show_entries', 'format=duration', '-of', 'csv=p=0', src]));
+    props.durationSec = Math.max(0, seconds - (props.trimStartSec ?? 0));
   }
   if (props.captionsFile) {
     props.captions = readJson(path.resolve(ROOT, props.captionsFile));

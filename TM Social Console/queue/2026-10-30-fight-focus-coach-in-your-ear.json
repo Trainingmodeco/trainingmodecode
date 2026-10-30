@@ -26,24 +26,28 @@
     ],
     "broll": [
       {
-        "src": "raw-footage/bag-work-reel1.mp4",
-        "start": 2.04,
-        "rate": 0.75
+        "src": "raw-footage/shadowbox-gym-img0204.mov",
+        "start": 9,
+        "rate": 0.8,
+        "focusX": 52
       },
       {
-        "src": "raw-footage/bag-work-reel1.mp4",
-        "start": 3.9,
-        "rate": 0.75
+        "src": "raw-footage/shadowbox-gym-img0204.mov",
+        "start": 11,
+        "rate": 0.8,
+        "focusX": 50
       },
       {
-        "src": "raw-footage/bag-work-reel1.mp4",
-        "start": 6.2,
-        "rate": 0.6
+        "src": "raw-footage/shadowbox-gym-img0204.mov",
+        "start": 1,
+        "rate": 1,
+        "focusX": 62
       },
       {
-        "src": "raw-footage/bag-work-reel1.mp4",
-        "start": 0,
-        "rate": 0.67
+        "src": "raw-footage/shadowbox-gym-img0204.mov",
+        "start": 5.5,
+        "rate": 1,
+        "focusX": 56
       }
     ]
   },
@@ -78,6 +82,6 @@
     "cover": "exports/2026-10-30-fight-focus-coach-in-your-ear/cover.jpg",
     "seconds": 18.93
   },
-  "renderedAt": "2026-10-30T01:59:46.497Z",
-  "brollSource": "Drive: reel 1.m4v (bag work, 2023 shoot). Bigger bag/shadowbox clips are over the Drive connector's 10 MB download limit."
+  "renderedAt": "2026-10-30T03:07:52.746Z",
+  "brollSource": "Drive (sempaiintraining): IMG_0204.mov, shadowboxing on the mats, 2022. v2 used reel 1.m4v (bag work); the owner asked for a different video."
 }

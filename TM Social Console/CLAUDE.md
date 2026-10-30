@@ -75,7 +75,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run queue -- posted <id> <platform> <url>` | record a live post |
 | `npm run check` | copy rules over the queue (+ report on the library) |
 | `npm run studio` | Remotion Studio: preview and tweak templates live |
-| `npm run hf:render -- raw-footage/clip.mp4` | renders the HyperFrames Rank Ladder over that clip |
+| `npm run hf:render -- raw-footage/clip.mp4 6 55` | renders the HyperFrames Rank Ladder over that clip (from 6s, crop centred at 55%) |
 | `npm run reference -- <url>` | saves a reference reel with yt-dlp |
 
 ## The loop
@@ -108,7 +108,8 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   top, STAGE CLEAR end card with the CTA. Length follows the words.
   **B-roll:** the owner wants their own footage (bag work, shadowboxing) behind
   the words whenever there is some. `broll` is one entry per scene (0 = hook):
-  `{ "src": "raw-footage/<clip>.mp4", "start": <sec>, "rate": 0.75 }`. Footage is
+  `{ "src": "raw-footage/<clip>.mp4", "start": <sec>, "rate": 0.75, "focusX": 50 }`
+  (`focusX` centres a landscape clip in the vertical crop: 0 = left, 100 = right). Footage is
   muted (the owner adds music later), slowed, and toned violet (gold on gold
   beats). Pick a different shot per scene: find cuts with
   `ffmpeg -i clip -vf "select='gt(scene,0.25)',showinfo" -f null -`, and make
@@ -118,7 +119,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 - **BossIntro**: 5s "STAGE 3 / LEG DAY / BOSS: 100 SQUATS / FIGHT!" hook.
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
   climb, "where did you stall?", over a B-roll clip:
-  `npm run hf:render -- raw-footage/<clip>.mp4`.
+  `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX]`.
 
 The bell is the app's own boxing bell (`src/parts/Bell.tsx`: single, double,
 triple).
