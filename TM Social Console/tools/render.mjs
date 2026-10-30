@@ -19,16 +19,30 @@ const { file, post } = findPost(id);
 
 const props = { ...post.props };
 
-// Footage lives in raw-footage/; Remotion can only load files under public/,
-// so the clip is copied into public/_work for the render.
+// Remotion only loads files under public/, so footage from raw-footage/ is
+// copied into public/_work (git-ignored) and the props point there.
+const work = path.join(ROOT, 'public', '_work');
+function stage(rel, name) {
+  const src = path.resolve(ROOT, rel);
+  if (!fs.existsSync(src)) throw new Error(`Footage not found: ${src}`);
+  fs.mkdirSync(work, { recursive: true });
+  const dest = `${name}${path.extname(src).toLowerCase()}`;
+  fs.copyFileSync(src, path.join(work, dest));
+  return `_work/${dest}`;
+}
+
+if (Array.isArray(props.broll)) {
+  const staged = new Map();
+  props.broll = props.broll.map((b) => {
+    if (!b || !b.src.startsWith('raw-footage/')) return b;
+    if (!staged.has(b.src)) staged.set(b.src, stage(b.src, `${post.id}-broll-${staged.size}`));
+    return { ...b, src: staged.get(b.src) };
+  });
+}
+
 if (post.format === 'FootageShort') {
   const src = path.resolve(ROOT, props.video);
-  if (!fs.existsSync(src)) throw new Error(`Footage not found: ${src}`);
-  const work = path.join(ROOT, 'public', '_work');
-  fs.mkdirSync(work, { recursive: true });
-  const dest = `${post.id}${path.extname(src).toLowerCase()}`;
-  fs.copyFileSync(src, path.join(work, dest));
-  props.video = `_work/${dest}`;
+  props.video = stage(props.video, post.id);
   if (!props.durationSec) {
     const probe = spawnSync('npx', ['remotion', 'ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], {
       cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32',

@@ -1,13 +1,14 @@
 import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from 'remotion';
 import { C, FPS } from '../brand';
-import { ArtLayer, Backdrop } from '../parts/Backdrop';
+import { ArtLayer, Backdrop, type Broll, FootageLayer } from '../parts/Backdrop';
 import { Bell } from '../parts/Bell';
 import { END_CARD_FRAMES, EndCard } from '../parts/EndCard';
 import { Hud, Slash } from '../parts/Hud';
 import { KineticText, plain } from '../parts/KineticText';
 
-// A motion-graphic short made from a script alone (no footage): the hook,
-// then one beat per card, then STAGE CLEAR and the sign-off.
+// A motion-graphic short made from a script: the hook, then one beat per
+// card, then STAGE CLEAR and the sign-off. Scenes can run the owner's footage
+// behind the words (`broll`), or app art, or the plain arcade stage.
 export type ScriptShortProps = {
   kicker: string; // top-left label, e.g. "FIGHT MODE"
   boss: string; // HP bar label, e.g. "FIGHT FOCUS"
@@ -19,6 +20,9 @@ export type ScriptShortProps = {
   artBeats?: number[]; // scenes (0 = hook) that show the art
   goldBeats?: number[]; // scenes that flip to the gold background
   voiceover?: string | null; // public/ path to a voiceover track
+  // Footage per scene (0 = hook), e.g. { src: "raw-footage/bag.mp4", start: 2, rate: 0.75 }.
+  // null leaves that scene on art / the arcade stage. tools/render.mjs stages raw-footage files.
+  broll?: (Broll | null)[];
 };
 
 // Reading time: about 2.7 words a second plus a beat to land, within limits.
@@ -38,9 +42,15 @@ export function scriptTimeline(p: ScriptShortProps) {
   return { scenes, endFrom: from, total: from + END_CARD_FRAMES };
 }
 
-const Scene: React.FC<{ text: string; first: boolean; gold: boolean; art?: string | null }> = ({ text, first, gold, art }) => (
+const Scene: React.FC<{ text: string; first: boolean; gold: boolean; art?: string | null; broll?: Broll | null }> = ({
+  text,
+  first,
+  gold,
+  art,
+  broll,
+}) => (
   <Backdrop tone={gold ? 'gold' : 'dark'}>
-    {art && !gold ? <ArtLayer src={art} /> : null}
+    {broll ? <FootageLayer {...broll} tone={gold ? 'gold' : 'dark'} /> : art && !gold ? <ArtLayer src={art} /> : null}
     <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', paddingBottom: 120 }}>
       <KineticText
         text={text}
@@ -52,6 +62,7 @@ const Scene: React.FC<{ text: string; first: boolean; gold: boolean; art?: strin
         stagger={first ? 4 : 3}
         // The hook is already landing on frame 0: that frame is the autoplay preview.
         delay={first ? -10 : 0}
+        shadow={!!broll && !gold}
       />
     </AbsoluteFill>
   </Backdrop>
@@ -67,7 +78,13 @@ export const ScriptShort: React.FC<ScriptShortProps> = (p) => {
     <AbsoluteFill style={{ background: C.bg }}>
       {scenes.map((s) => (
         <Sequence key={s.index} from={s.from} durationInFrames={s.len}>
-          <Scene text={s.text} first={s.index === 0} gold={goldBeats.includes(s.index)} art={artBeats.includes(s.index) ? p.art : null} />
+          <Scene
+            text={s.text}
+            first={s.index === 0}
+            gold={goldBeats.includes(s.index)}
+            art={artBeats.includes(s.index) ? p.art : null}
+            broll={p.broll?.[s.index] ?? null}
+          />
         </Sequence>
       ))}
       <Sequence from={0} durationInFrames={endFrom}>

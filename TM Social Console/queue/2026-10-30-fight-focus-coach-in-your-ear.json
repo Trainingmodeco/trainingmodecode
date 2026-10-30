@@ -23,6 +23,28 @@
     ],
     "goldBeats": [
       2
+    ],
+    "broll": [
+      {
+        "src": "raw-footage/bag-work-reel1.mp4",
+        "start": 2.04,
+        "rate": 0.75
+      },
+      {
+        "src": "raw-footage/bag-work-reel1.mp4",
+        "start": 3.9,
+        "rate": 0.75
+      },
+      {
+        "src": "raw-footage/bag-work-reel1.mp4",
+        "start": 6.2,
+        "rate": 0.6
+      },
+      {
+        "src": "raw-footage/bag-work-reel1.mp4",
+        "start": 0,
+        "rate": 0.67
+      }
     ]
   },
   "platforms": {
@@ -56,5 +78,6 @@
     "cover": "exports/2026-10-30-fight-focus-coach-in-your-ear/cover.jpg",
     "seconds": 18.93
   },
-  "renderedAt": "2026-10-30T01:51:15.508Z"
+  "renderedAt": "2026-10-30T01:59:46.497Z",
+  "brollSource": "Drive: reel 1.m4v (bag work, 2023 shoot). Bigger bag/shadowbox clips are over the Drive connector's 10 MB download limit."
 }

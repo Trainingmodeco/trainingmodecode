@@ -56,7 +56,7 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run render -- <id>` | make the video + cover |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
-| `npm run hf:render` | render the HyperFrames Rank Ladder |
+| `npm run hf:render -- raw-footage/clip.mp4` | render the Rank Ladder over a clip |
 | `npm run reference -- <url>` | save a reference reel to study |
 
 ## What's inside

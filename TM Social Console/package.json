@@ -19,7 +19,7 @@
     "captions": "node tools/captions.mjs",
     "render": "node tools/render.mjs",
     "reference": "node tools/reference.mjs",
-    "hf:render": "cd hyperframes && npx hyperframes render -o ../exports/rank-ladder/video.mp4",
+    "hf:render": "node tools/hf-render.mjs",
     "hf:preview": "cd hyperframes && npx hyperframes preview",
     "typecheck": "tsc --noEmit"
   },

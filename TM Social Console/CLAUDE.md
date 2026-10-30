@@ -30,15 +30,17 @@ boss). App: https://apptrainingmode.com · site: https://trainingmode.co.
    own data (`npm run sync` reads `../content-kit/content-kit.json`). If a
    script disagrees with it, the script is wrong. Known stale name:
    Strike Focus → **Fight Focus**.
-5. **Look: violet and gold arcade.** Two typefaces only: Orbitron for titles,
+5. **No music in renders.** The owner adds music on the platform or in their
+   editor. Keep only the app's bell; footage audio stays muted.
+6. **Look: violet and gold arcade.** Two typefaces only: Orbitron for titles,
    Rajdhani for everything else. Colors from `brand.json`. Keep text and HUD
    out of the bottom ~350px and right ~140px, where the platforms put their
    buttons and captions.
-6. **Reddit is never automated.** Write a draft per subreddit for the owner;
+7. **Reddit is never automated.** Write a draft per subreddit for the owner;
    they post it. Follow each sub's self-promo rules and the 10:1 rule.
-7. **References are for study.** Clips saved with `npm run reference` are
+8. **References are for study.** Clips saved with `npm run reference` are
    never reposted or re-cut into our posts.
-8. **Paid ads:** don't use art that looks like a recognizable franchise
+9. **Paid ads:** don't use art that looks like a recognizable franchise
    character, even though the app's own posters lean that way.
 
 ## Folder map
@@ -73,14 +75,16 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run queue -- posted <id> <platform> <url>` | record a live post |
 | `npm run check` | copy rules over the queue (+ report on the library) |
 | `npm run studio` | Remotion Studio: preview and tweak templates live |
-| `npm run hf:render` | renders the HyperFrames Rank Ladder |
+| `npm run hf:render -- raw-footage/clip.mp4` | renders the HyperFrames Rank Ladder over that clip |
 | `npm run reference -- <url>` | saves a reference reel with yt-dlp |
 
 ## The loop
 
 1. **Collect.** New clips arrive in the Google Drive folder
    **TM Social Console › raw footage** (the owner shares them there from
-   Google Photos) or straight into `raw-footage/` on the laptop. Ideas come from
+   Google Photos) or straight into `raw-footage/` on the laptop. The Drive
+   connector only downloads files up to 10 MB; bigger clips need the laptop
+   (Google Drive for desktop syncs them) or a trim to under 10 MB. Ideas come from
    `brain/scripts/library.json` (High priority first), the live concept drop
    (`brand.json` → `drops`, `status: "live"`), and `brain/formats.md`.
 2. **Write.** `npm run new -- <Format> "<title>"`, then fill `props` and a
@@ -99,14 +103,22 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 
 ## Templates
 
-- **ScriptShort**: motion graphic from a script alone: hook card, one card per
+- **ScriptShort**: motion graphic from a script: hook card, one card per
   beat (`goldBeats` flip to the gold inverse), boss HP bar draining across the
   top, STAGE CLEAR end card with the CTA. Length follows the words.
+  **B-roll:** the owner wants their own footage (bag work, shadowboxing) behind
+  the words whenever there is some. `broll` is one entry per scene (0 = hook):
+  `{ "src": "raw-footage/<clip>.mp4", "start": <sec>, "rate": 0.75 }`. Footage is
+  muted (the owner adds music later), slowed, and toned violet (gold on gold
+  beats). Pick a different shot per scene: find cuts with
+  `ffmpeg -i clip -vf "select='gt(scene,0.25)',showinfo" -f null -`, and make
+  sure `start + sceneSeconds × rate` stays inside the clip.
 - **FootageShort**: the owner's clip with the HUD, a title card, Whisper
   captions (spoken word turns gold) and the end card.
 - **BossIntro**: 5s "STAGE 3 / LEG DAY / BOSS: 100 SQUATS / FIGHT!" hook.
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
-  climb, "where did you stall?".
+  climb, "where did you stall?", over a B-roll clip:
+  `npm run hf:render -- raw-footage/<clip>.mp4`.
 
 The bell is the app's own boxing bell (`src/parts/Bell.tsx`: single, double,
 triple).
@@ -120,7 +132,7 @@ triple).
   Meta Business Suite (it schedules both), until the Meta API is set up.
 - **YouTube**: Claude in Chrome through YouTube Studio, until the YouTube Data
   API project is verified (unverified API uploads are forced private).
-- **Reddit**: drafts only (rule 6).
+- **Reddit**: drafts only (rule 7).
 - **ManyChat**: Instagram comments with TRAIN or BETA get the app link by DM
   (`brain/manychat.md`). Instagram/Facebook captions end with "Comment TRAIN".
 

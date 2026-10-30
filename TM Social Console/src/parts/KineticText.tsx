@@ -47,10 +47,12 @@ type Props = {
   hotChip?: string;
   stagger?: number;
   delay?: number;
+  // Soft drop shadow so words hold up over footage.
+  shadow?: boolean;
 };
 
 // Words land one after another with a springy pop; highlighted words glow.
-export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotChip, stagger = 3, delay = 0 }) => {
+export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotChip, stagger = 3, delay = 0, shadow = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const size = fitSize(text, face, max);
@@ -80,6 +82,7 @@ export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotC
               letterSpacing: face === 'display' ? '0.01em' : '0.02em',
               textTransform: 'uppercase',
               color,
+              textShadow: shadow ? `0 ${Math.round(size * 0.05)}px ${Math.round(size * 0.3)}px rgba(0,0,0,0.75)` : 'none',
               opacity: Math.min(1, s * 1.4),
               transform: `translateY(${(1 - s) * 46}px) scale(${0.72 + 0.28 * s})`,
             }}
@@ -89,7 +92,7 @@ export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotC
                 color: t.hot ? hot : color,
                 background: chip ? hotChip : 'transparent',
                 padding: chip ? `0 ${Math.round(size * 0.14)}px` : 0,
-                textShadow: t.hot && !chip ? `0 0 ${Math.round(size * 0.4)}px ${hot}99` : 'none',
+                textShadow: t.hot && !chip ? `0 0 ${Math.round(size * 0.4)}px ${hot}99` : undefined,
               }}
             >
               {t.text}

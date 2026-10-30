@@ -1,4 +1,4 @@
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Img, interpolate, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { C } from '../brand';
 
 export type Tone = 'dark' | 'gold';
@@ -61,6 +61,40 @@ export const ArtLayer: React.FC<{ src: string; opacity?: number }> = ({ src, opa
       <AbsoluteFill
         style={{ background: `linear-gradient(180deg, ${C.bg}e6 0%, ${C.bg}40 30%, ${C.bg}66 62%, ${C.bg}f2 100%)` }}
       />
+    </AbsoluteFill>
+  );
+};
+
+// The owner's footage behind a scene (B-roll): muted, slowed for weight, and
+// toned into the brand so text stays readable. Dark scenes get a violet
+// duotone; gold scenes a gold wash with the motion still showing through.
+export type Broll = { src: string; start: number; rate?: number };
+
+export const FootageLayer: React.FC<Broll & { tone?: Tone }> = ({ src, start, rate = 0.75, tone = 'dark' }) => {
+  const { fps } = useVideoConfig();
+  const gold = tone === 'gold';
+  return (
+    <AbsoluteFill>
+      <OffthreadVideo
+        src={staticFile(src)}
+        muted
+        trimBefore={Math.round(start * fps)}
+        playbackRate={rate}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1) contrast(1.25) brightness(1.05)', transform: 'scale(1.04)' }}
+      />
+      {gold ? (
+        <>
+          <AbsoluteFill style={{ background: C.gold, mixBlendMode: 'multiply' }} />
+          <AbsoluteFill style={{ background: C.gold, opacity: 0.6 }} />
+        </>
+      ) : (
+        <>
+          <AbsoluteFill style={{ background: C.violet, mixBlendMode: 'multiply', opacity: 0.9 }} />
+          <AbsoluteFill
+            style={{ background: `linear-gradient(180deg, ${C.bg}e6 0%, ${C.bg}66 28%, ${C.bg}80 58%, ${C.bg}f2 100%)` }}
+          />
+        </>
+      )}
     </AbsoluteFill>
   );
 };
