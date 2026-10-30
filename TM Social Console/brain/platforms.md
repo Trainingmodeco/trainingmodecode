@@ -4,7 +4,7 @@ Status as of 2026-10-30. Update this file when a connection changes.
 
 | Platform | Route | Status |
 |---|---|---|
-| TikTok | Higgsfield connector (`tiktok_*` tools) | Higgsfield connected (Ultra plan); **TikTok account not linked yet**: run `tiktok_connect` and open the link it returns |
+| TikTok | Higgsfield connector (`tiktok_*` tools): upload the video to Higgsfield, then `tiktok_prepare_publish` opens a publish form the owner confirms (needs a Claude app that shows MCP App forms); otherwise Claude in Chrome on tiktok.com | **linked** (active since 2026-10-30). Owner's rule: first posts go out as **Only me** (`SELF_ONLY`) or to TikTok drafts |
 | Instagram | Claude in Chrome → Meta Business Suite (laptop) | needs Claude in Chrome on the laptop |
 | Facebook | same as Instagram (Business Suite posts to both) | same |
 | YouTube | Claude in Chrome → YouTube Studio (laptop) | API later (below) |

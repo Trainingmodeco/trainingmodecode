@@ -53,7 +53,8 @@
   },
   "platforms": {
     "tiktok": {
-      "caption": "Shadowboxing alone? Fight Focus puts a coach in your ear 🥊 Voice-coached rounds, a real bell, rest, go again. Boxing, kickboxing, Muay Thai or MMA. Link in bio. #shadowboxing #boxingworkout #homeworkout #combatfitness #trainingmode"
+      "caption": "Shadowboxing alone? Fight Focus puts a coach in your ear 🥊 Voice-coached rounds, a real bell, rest, go again. Boxing, kickboxing, Muay Thai or MMA. Link in bio. #shadowboxing #boxingworkout #homeworkout #combatfitness #trainingmode",
+      "privacy": "SELF_ONLY"
     },
     "instagram": {
       "caption": "Shadowboxing alone? Get a coach in your ear. 🥊\n\nFight Focus runs voice-coached rounds on a real fight timer: the bell starts the round, the coach calls the work, you rest, you go again. Boxing, kickboxing, Muay Thai or MMA.\n\nComment TRAIN and I'll DM you the link.\n\n#shadowboxing #boxing #kickboxing #muaythai #homeworkout #combatfitness #trainingmode"
@@ -83,5 +84,8 @@
     "seconds": 18.93
   },
   "renderedAt": "2026-10-30T03:07:52.746Z",
-  "brollSource": "Drive (sempaiintraining): IMG_0204.mov, shadowboxing on the mats, 2022. v2 used reel 1.m4v (bag work); the owner asked for a different video."
+  "brollSource": "Drive (sempaiintraining): IMG_0204.mov, shadowboxing on the mats, 2022. v2 used reel 1.m4v (bag work); the owner asked for a different video.",
+  "notes": [
+    "2026-10-30 owner: TikTok as \"Only me\" first. Do not post anything until the owner says so (status stays rendered; not approved)."
+  ]
 }
