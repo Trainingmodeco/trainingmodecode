@@ -64,6 +64,10 @@ await renderMedia({
   inputProps: props,
   codec: 'h264',
   crf: 18,
+  // Standard TV-range yuv420p/BT.709: what Instagram, TikTok, YouTube and phone
+  // players expect (full-range yuvj420p can play back washed out or not at all).
+  pixelFormat: 'yuv420p',
+  colorSpace: 'bt709',
   audioCodec: 'aac',
   enforceAudioTrack: true,
   outputLocation: video,

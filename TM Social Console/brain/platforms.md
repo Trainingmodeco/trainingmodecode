@@ -10,7 +10,7 @@ Status as of 2026-10-30. Update this file when a connection changes.
 | YouTube | Claude in Chrome → YouTube Studio (laptop) | API later (below) |
 | Reddit | drafts only, owner posts | n/a |
 | ManyChat | Instagram comment → DM | account created; flow in `manychat.md` |
-| Google Drive | Drive connector (the Training Mode Google account) | connected; source of the scripts |
+| Google Drive | Drive connector (the Training Mode Google account) | connected; source of the scripts. Folder **TM Social Console** (raw footage / references / exports) is shared with the owner's photo account: clips shared from Google Photos land in *raw footage* |
 
 ## Video spec (one master fits all)
 

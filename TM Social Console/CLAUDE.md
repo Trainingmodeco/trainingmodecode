@@ -78,8 +78,9 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 
 ## The loop
 
-1. **Collect.** New clips arrive in `raw-footage/` (the owner drops them in,
-   or downloads them from their Google Drive / Google Photos). Ideas come from
+1. **Collect.** New clips arrive in the Google Drive folder
+   **TM Social Console › raw footage** (the owner shares them there from
+   Google Photos) or straight into `raw-footage/` on the laptop. Ideas come from
    `brain/scripts/library.json` (High priority first), the live concept drop
    (`brand.json` → `drops`, `status: "live"`), and `brain/formats.md`.
 2. **Write.** `npm run new -- <Format> "<title>"`, then fill `props` and a

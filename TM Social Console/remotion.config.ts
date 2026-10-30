@@ -6,6 +6,8 @@ Config.setVideoImageFormat('jpeg');
 Config.setJpegQuality(92);
 Config.setCodec('h264');
 Config.setCrf(18);
+Config.setPixelFormat('yuv420p');
+Config.setColorSpace('bt709');
 // Only for machines that can't download Remotion's browser (some cloud
 // sandboxes): point at an installed Chrome Headless Shell instead.
 if (process.env.REMOTION_BROWSER_EXECUTABLE) {
