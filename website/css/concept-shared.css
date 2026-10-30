@@ -1,0 +1,295 @@
+/* ============================================================================
+   concept-shared.css — trainingmode.co · Simplify concept (2026-10-04)
+   Shared by the HOME and FEATURES builders. Load order: fonts.css → site.css → THIS.
+   - site.css is never edited; every class here is tm-/stage- prefixed (no collisions
+     with .phone, .chip, .note, .dot … in site.css).
+   - Fonts: self-hosted only (css/fonts.css): 'Chakra Petch' 400/500/600/700,
+     'Rajdhani' 600/700, 'Orbitron' 700/800/900, 'Space Mono' 400/700. No Google Fonts.
+     The app's body font is Rajdhani 500 — 600 is the closest file on disk, use it.
+   - Values are lifted from the app: ModeTabs.jsx, DisciplineTabs.jsx, FightModeHub.jsx,
+     FitModeHub.jsx, FitSetupKit.jsx, HomeDashboard.jsx, PhoneFrame.jsx.
+   - RULE: nothing between .tm-tabs and the page root may be overflow:hidden —
+     the active tab's wings overhang the row by 17px on each side.
+   ========================================================================== */
+
+/* ---------- 1. TOKENS ------------------------------------------------------ */
+:root{
+  --tm-bg:#080012;               /* app body (Styles.js / PhoneFrame.jsx) */
+  --tm-card:#0E0B18;             /* hub rows, tiles, arcade steps */
+  --tm-card-fight:#070B1C;       /* fight hub banner row */
+  --tm-card-kit:#110E1C;         /* setup kit / ghost button */
+  --tm-hair:rgba(255,255,255,.08);
+  --tm-gold:#F2BE45; --tm-gold-rgb:242,190,69; --tm-gold-ink:#1A1204;
+  --tm-gold-fill:linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%);
+  --tm-violet:#9D6CFF; --tm-violet-rgb:157,108,255; --tm-violet-text:#C4A8FF;
+  --tm-blue:#3D7BFF;   --tm-blue-rgb:61,123,255;    --tm-blue-text:#8FB4FF;
+  --tm-cyan:#5FE3FF;   --tm-cyan-rgb:95,227,255;
+  --tm-red:#ef4444;    --tm-red-rgb:239,68,68;
+  --tm-muted:#A9A3C4; --tm-muted-fight:#A9B4D6; --tm-dim:#6F7699; --tm-num:#8E88A8;
+  --tm-head:'Chakra Petch',system-ui,sans-serif;   /* headings, labels, buttons */
+  --tm-body:'Rajdhani',sans-serif;                 /* sub-lines (app body font) */
+  --tm-disp:'Orbitron',sans-serif;                 /* stage numbers + arcade wordmark ONLY */
+  --tm-mono:'Space Mono',monospace;                /* site eyebrow voice (matches site.css) */
+  --tm-nav-h:78px;                                 /* sticky nav height → scroll-margin */
+}
+
+/* ---------- 2. STAGE SCAFFOLD (every home section = one full-viewport stage) --- */
+.stage{position:relative;display:flex;flex-direction:column;justify-content:center;
+  min-height:100vh;min-height:100svh;padding:calc(var(--tm-nav-h) + 24px) 24px 56px;
+  scroll-margin-top:var(--tm-nav-h);overflow:visible}
+.stage--short{min-height:60vh;min-height:60svh}            /* proof / join stages */
+.stage__inner{width:100%;max-width:1320px;margin:0 auto}
+.stage__grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center}
+/* "STAGE 01" plate — the app's "SELECTED · STAGE N" briefing voice */
+.stage__num{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;
+  font:700 11px/1 var(--tm-disp);letter-spacing:.3em;text-transform:uppercase;color:var(--tm-gold)}
+.stage__num::before{content:'';width:24px;height:2px;background:var(--tm-gold);box-shadow:0 0 8px rgba(var(--tm-gold-rgb),.6)}
+.stage__num small{font:400 11px var(--tm-mono);letter-spacing:.2em;color:var(--tm-dim)}  /* " · PICK YOUR MODE" */
+.tm-eyebrow{font:600 11px var(--tm-head);letter-spacing:.16em;text-transform:uppercase;color:var(--tm-muted)}
+.tm-col{width:100%;max-width:440px;margin:0 auto}        /* the app's column (COL_W = 440) */
+
+/* ---------- 3. MODE TAB SWITCHER  .tm-tabs > .tm-tab(--fit|--fight|--arcade).is-on ---
+   Markup: <nav class="tm-tabs" role="tablist">
+             <button class="tm-tab tm-tab--fit is-on" role="tab" aria-selected="true">
+               <span><i class="tm-tab__long">TRAINING </i>FIT MODE</span><i class="tm-tab__bar"></i></button> …
+   Wings: first tab wings right, last tab wings left, a middle tab wings BOTH ways. */
+.tm-tabs{position:relative;display:flex;height:56px;overflow:visible;
+  background:linear-gradient(180deg,#0F0D1C,#08070F);border:1px solid rgba(255,255,255,.07);border-radius:16px 16px 6px 6px}
+.tm-tab{position:relative;flex:1;height:100%;border:0;background:transparent;color:var(--tm-dim);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;
+  font:700 16px var(--tm-head);letter-spacing:.06em;text-transform:uppercase;
+  transition:color .2s ease;-webkit-tap-highlight-color:transparent}
+.tm-tab>span{position:relative;z-index:2}
+.tm-tab__bar{display:none;position:absolute;z-index:2;left:16%;right:16%;bottom:7px;height:3px;border-radius:2px;
+  background:var(--bar);box-shadow:0 0 10px var(--glow)}
+.tm-tab:hover:not(.is-on),.tm-tab:focus-visible:not(.is-on){color:#C9C4DE}
+.tm-tab:focus-visible{outline:2px solid var(--tm-gold);outline-offset:-3px}
+.tm-tab.is-on{color:#fff;z-index:1;border-radius:16px 16px 0 0;background:var(--fill);
+  box-shadow:inset 0 1.5px 0 var(--edge),0 -3px 18px rgba(var(--glow-rgb),.35)}
+.tm-tab.is-on .tm-tab__bar{display:block}
+.tm-tab.is-on::before,.tm-tab.is-on::after{content:'';position:absolute;top:0;bottom:0;width:34px;display:none;
+  background:var(--fill);border-top:1.5px solid var(--edge);box-sizing:border-box}
+.tm-tab.is-on:not(:first-child)::before{display:block;left:-17px;border-left:1.5px solid var(--edge);
+  border-top-left-radius:12px;transform:skewX(-30deg)}
+.tm-tab.is-on:not(:last-child)::after{display:block;right:-17px;border-right:1.5px solid var(--edge);
+  border-top-right-radius:12px;transform:skewX(30deg)}
+.tm-tab--fit   {--fill:linear-gradient(180deg,#3A2470 0%,#1A1034 55%,#120B24 100%);--edge:#B794FF;
+                --bar:linear-gradient(90deg,#6B3DF0,#C4A8FF 50%,#6B3DF0);--glow:#9D6CFF;--glow-rgb:157,108,255}
+.tm-tab--fight {--fill:linear-gradient(180deg,#16307A 0%,#0C1838 55%,#081026 100%);--edge:#7EA6FF;
+                --bar:linear-gradient(90deg,#2458E0,#8FB4FF 50%,#2458E0);--glow:#3D7BFF;--glow-rgb:61,123,255}
+.tm-tab--arcade{--fill:linear-gradient(180deg,#3A2A08 0%,#15100A 55%,#0A0806 100%);--edge:#F2BE45;
+                --bar:linear-gradient(90deg,#E0A21C,#5FE3FF 50%,#E0A21C);--glow:#5FE3FF;--glow-rgb:95,227,255}
+.tm-tab--arcade.is-on{color:var(--tm-gold)}
+/* panels: JS toggles [hidden]; without JS all panels stack (builders add class "js" to <html>) */
+.tm-panel[hidden]{display:none}
+html:not(.js) .tm-panel[hidden]{display:block}
+
+/* ---------- 4. DISCIPLINE STRIP  .tm-disc > .tm-disc__tab.is-boxing|… .is-on -----
+   Left edge slanted 16px (overlapping-card look). Outline = ::before (line colour),
+   fill = ::after inset 1.5px — no SVG needed. Glow = drop-shadow on the whole tab.
+   Markup: <div class="tm-disc" role="tablist" data-on="boxing">
+             <button class="tm-disc__tab is-boxing is-on" role="tab"><b>BOXING</b><i class="tm-disc__bar"></i></button> … */
+.tm-disc{display:flex;gap:3px;height:40px;border-bottom:1px solid rgba(var(--rgb-on,61,123,255),.3)}
+.tm-disc__tab{position:relative;flex:1;border:0;padding:0 0 0 10px;background:transparent;color:var(--tm-dim);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap;
+  font:700 11px var(--tm-head);letter-spacing:.1em;text-transform:uppercase;
+  transition:color .18s,filter .18s;-webkit-tap-highlight-color:transparent}
+.tm-disc__tab::before,.tm-disc__tab::after{content:'';position:absolute;inset:0;pointer-events:none;
+  clip-path:polygon(16px 0,100% 0,100% 100%,0 100%);background:rgba(var(--rgb),.24)}
+.tm-disc__tab::after{inset:1.5px 1.5px 0 1.5px;clip-path:polygon(15px 0,100% 0,100% 100%,0 100%);background:rgba(14,16,36,.55)}
+.tm-disc__tab>b{position:relative;z-index:1;font-weight:inherit}
+.tm-disc__bar{position:absolute;z-index:1;left:30%;right:18%;bottom:5px;height:2px;border-radius:2px;background:transparent}
+.tm-disc__tab.is-on{color:var(--text);filter:drop-shadow(0 0 5px rgba(var(--rgb),.7))}
+.tm-disc__tab.is-on::before{background:var(--line)}
+.tm-disc__tab.is-on::after{background:var(--bg)}
+.tm-disc__tab.is-on .tm-disc__bar{background:var(--bar);box-shadow:0 0 8px rgba(var(--rgb),.9)}
+.tm-disc__tab:hover:not(.is-on),.tm-disc__tab:focus-visible:not(.is-on){color:#fff}
+.tm-disc__tab:focus-visible{outline:2px solid var(--tm-gold);outline-offset:-2px}
+.tm-disc__tab:active{filter:brightness(1.15)}
+/* the four app disciplines (DisciplineTabs.jsx:31-52) */
+.is-boxing    {--bg:linear-gradient(180deg,#8E1420 0%,#4A0A12 60%,#2A060B 100%);--line:#FF8A8A;--rgb:255,90,90;  --text:#fff;   --bar:linear-gradient(90deg,#E0283A,#FFFFFF 50%,#E0283A)}
+.is-kickboxing{--bg:linear-gradient(180deg,#16307A 0%,#0C1838 60%,#081026 100%);--line:#F2BE45;--rgb:61,123,255; --text:#fff;   --bar:linear-gradient(90deg,#2458E0,#F2BE45 50%,#2458E0)}
+.is-muaythai  {--bg:linear-gradient(180deg,#3A2A08 0%,#15100A 60%,#0A0806 100%);--line:#F2BE45;--rgb:242,190,69; --text:#F2BE45;--bar:linear-gradient(90deg,#0A0806,#F2BE45 50%,#0A0806)}
+.is-mma       {--bg:linear-gradient(180deg,#26262B 0%,#101014 60%,#060608 100%);--line:#FFFFFF;--rgb:255,255,255;--text:#fff;   --bar:linear-gradient(90deg,#3A3A40,#FFFFFF 50%,#3A3A40)}
+/* features-page section tabs reuse the same strip with section tones */
+.is-fit   {--bg:linear-gradient(180deg,#3A2470 0%,#1A1034 60%,#120B24 100%);--line:#B794FF;--rgb:157,108,255;--text:#fff;   --bar:linear-gradient(90deg,#6B3DF0,#C4A8FF 50%,#6B3DF0)}
+.is-fight {--bg:linear-gradient(180deg,#16307A 0%,#0C1838 60%,#081026 100%);--line:#7EA6FF;--rgb:61,123,255; --text:#fff;   --bar:linear-gradient(90deg,#2458E0,#8FB4FF 50%,#2458E0)}
+.is-arcade{--bg:linear-gradient(180deg,#3A2A08 0%,#15100A 60%,#0A0806 100%);--line:#F2BE45;--rgb:95,227,255; --text:#5FE3FF;--bar:linear-gradient(90deg,#E0A21C,#5FE3FF 50%,#E0A21C)}
+.is-camp  {--bg:linear-gradient(180deg,#16307A 0%,#0C1838 60%,#081026 100%);--line:#F2BE45;--rgb:61,123,255; --text:#fff;   --bar:linear-gradient(90deg,#2458E0,#F2BE45 50%,#2458E0)}
+.is-cond  {--bg:linear-gradient(180deg,#8E1420 0%,#4A0A12 60%,#2A060B 100%);--line:#FF8A8A;--rgb:239,68,68;  --text:#fff;   --bar:linear-gradient(90deg,#E0283A,#FFFFFF 50%,#E0283A)}
+.is-ranks {--bg:linear-gradient(180deg,#3A2470 0%,#1A1034 60%,#120B24 100%);--line:#c084fc;--rgb:192,132,252;--text:#fff;   --bar:linear-gradient(90deg,#7C3AED,#c084fc 50%,#7C3AED)}
+/* strip hairline follows the selected tab: :has() + a data-on="" fallback set by JS */
+.tm-disc:has(.is-boxing.is-on),.tm-disc[data-on=boxing],.tm-disc[data-on=cond]        {--rgb-on:255,90,90}
+.tm-disc:has(.is-muaythai.is-on),.tm-disc[data-on=muaythai],.tm-disc[data-on=arcade]   {--rgb-on:242,190,69}
+.tm-disc:has(.is-mma.is-on),.tm-disc[data-on=mma]                                      {--rgb-on:255,255,255}
+.tm-disc:has(.is-fit.is-on),.tm-disc[data-on=fit],.tm-disc[data-on=ranks]              {--rgb-on:157,108,255}
+/* features page: sticky section strip under the nav, scrolls sideways on phones */
+.tm-disc--sections{position:sticky;top:var(--tm-nav-h);z-index:5;height:44px;gap:4px;
+  background:rgba(5,4,10,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tm-disc--sections .tm-disc__tab{min-width:120px;flex:1 0 auto;font-size:12px}
+
+/* ---------- 5. HUB BAND  .tm-band (fight hub row 01–04) + --fit + --step variants ---
+   Markup: <a class="tm-band" href="#">
+             <img class="tm-band__art" src="…" alt="">
+             <span class="tm-band__num">01</span>
+             <span class="tm-band__body"><span class="tm-band__title">JUST TRAIN</span><span class="tm-band__sub">…</span></span>
+             <svg class="tm-band__go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+           </a>
+   Art rests dim + hue-shifted toward blue (hub banners were painted violet); gold on hover. */
+.tm-bands{display:flex;flex-direction:column;gap:7px}
+.tm-band{position:relative;display:flex;align-items:center;gap:14px;min-height:64px;padding:0 12px 0 16px;
+  border-radius:14px;overflow:hidden;background:var(--tm-card-fight);border:1px solid rgba(var(--tm-blue-rgb),.4);
+  color:inherit;text-decoration:none;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .12s;
+  -webkit-tap-highlight-color:transparent}
+.tm-band__art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;
+  filter:hue-rotate(-48deg) saturate(1.15) brightness(.75);transition:opacity .25s,filter .25s,transform .25s}
+.tm-band--noshift .tm-band__art{filter:brightness(.75)}                   /* art already blue (Combo Coach) */
+.tm-band::before{content:'';position:absolute;inset:0;transition:opacity .25s;
+  background:linear-gradient(90deg,rgba(5,8,20,.97) 0%,rgba(5,8,20,.82) 50%,rgba(5,8,20,.15) 100%)}
+.tm-band__num{position:relative;align-self:flex-start;margin-top:12px;font:700 13px var(--tm-head);color:var(--tm-blue);transition:color .2s}
+.tm-band__body{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tm-band__title{font:700 17px var(--tm-head);letter-spacing:.08em;color:#fff;text-shadow:0 0 14px rgba(var(--tm-blue-rgb),.7)}
+.tm-band__sub{font:600 13px var(--tm-body);color:#C9D4EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm-band__go{position:relative;width:20px;height:20px;flex-shrink:0;color:var(--tm-blue-text);transition:color .2s}
+.tm-band:hover,.tm-band:focus-visible{border-color:var(--tm-gold);
+  box-shadow:0 0 0 1px rgba(var(--tm-gold-rgb),.35),0 0 22px rgba(var(--tm-blue-rgb),.55),0 0 14px rgba(var(--tm-gold-rgb),.3)}
+.tm-band:hover .tm-band__art,.tm-band:focus-visible .tm-band__art{opacity:1;filter:hue-rotate(-48deg) saturate(1.3) brightness(1.1);transform:scale(1.03)}
+.tm-band--noshift:hover .tm-band__art{filter:saturate(1.2) brightness(1.1)}
+.tm-band:hover::before,.tm-band:focus-visible::before{opacity:.75}
+.tm-band:hover .tm-band__num,.tm-band:hover .tm-band__go,.tm-band:focus-visible .tm-band__num,.tm-band:focus-visible .tm-band__go{color:var(--tm-gold)}
+.tm-band:active{transform:scale(.99)}
+/* Training Camp progress line: <span class="tm-band__prog" style="--pct:25%"><i><b></b></i>Stage 3 / 12</span> */
+.tm-band__prog{display:flex;align-items:center;gap:8px;font:600 11px var(--tm-body);color:var(--tm-gold)}
+.tm-band__prog i{display:block;width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}
+.tm-band__prog i b{display:block;height:100%;width:var(--pct,25%);background:var(--tm-gold)}
+/* --fit: the Fit hub's plain numbered rows (#0E0B18, hairline, violet glow, no art) */
+.tm-band--fit{min-height:58px;background:var(--tm-card);border-color:var(--tm-hair)}
+.tm-band--fit .tm-band__num{align-self:center;margin-top:0;font-weight:600;color:var(--tm-num);min-width:20px}
+.tm-band--fit .tm-band__title{letter-spacing:.04em;text-shadow:none}
+.tm-band--fit .tm-band__sub{font-size:14px;color:var(--tm-muted);white-space:normal}
+.tm-band--fit .tm-band__go{color:var(--tm-num)}
+.tm-band--fit:hover,.tm-band--fit:focus-visible{box-shadow:0 0 0 1px rgba(var(--tm-gold-rgb),.28),0 0 22px rgba(var(--tm-violet-rgb),.4)}
+/* --step: no art, gold number, wrapping sub — arcade "how a saga works" + features facts */
+.tm-band--step{align-items:flex-start;min-height:0;padding:14px 16px;cursor:default;background:var(--tm-card);border-color:var(--tm-hair)}
+.tm-band--step .tm-band__num{margin-top:2px;min-width:24px;color:var(--tm-gold)}
+.tm-band--step .tm-band__title{text-shadow:none}
+.tm-band--step .tm-band__sub{font-size:14px;line-height:1.45;white-space:normal;color:var(--tm-muted-fight)}
+.tm-band--step .tm-band__go{display:none}
+.tm-band--step:hover{box-shadow:0 0 0 1px rgba(var(--tm-gold-rgb),.28),0 0 18px rgba(var(--tm-gold-rgb),.18)}
+/* divider eyebrow between the ladder and the tiles ("SKILLS & CONDITIONING") */
+.tm-divider{display:flex;align-items:center;gap:10px;margin:14px 2px 8px}
+.tm-divider span{font:600 10px var(--tm-head);letter-spacing:.2em;text-transform:uppercase;color:var(--tm-dim)}
+.tm-divider i{flex:1;height:1px;background:linear-gradient(90deg,rgba(var(--tm-blue-rgb),.35),transparent)}
+
+/* ---------- 6. SQUARE TILE  .tm-tiles > .tm-tile(--prac default | --cond | --fact) ---
+   Markup: <a class="tm-tile" href="#"><img class="tm-tile__art" src="…" alt="">
+             <img class="tm-tile__book" src="…" alt="">   (practice only)
+             <span class="tm-tile__txt"><span class="tm-tile__row"><span class="tm-tile__title">PRACTICE</span><svg class="tm-tile__go" …/></span>
+             <span class="tm-tile__sub">Learn &amp; drill techniques</span></span></a> */
+.tm-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tm-tiles--3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tm-tile{position:relative;display:block;aspect-ratio:1.6/1;min-height:96px;border-radius:14px;overflow:hidden;
+  background:#0B0F1F;border:1px dashed rgba(143,180,255,.55);color:inherit;text-decoration:none;
+  transition:border-color .2s,box-shadow .2s,transform .12s;-webkit-tap-highlight-color:transparent}
+.tm-tile__art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;filter:brightness(.7) saturate(.85);
+  transition:opacity .25s,filter .25s,transform .25s}
+.tm-tile::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,20,.1) 0%,rgba(5,8,20,.85) 70%)}
+.tm-tile__book{position:absolute;top:3px;left:50%;width:60px;height:60px;transform:translateX(-50%);object-fit:contain;
+  filter:drop-shadow(0 0 8px rgba(168,85,247,.6));transition:transform .25s,filter .25s}
+.tm-tile__txt{position:absolute;left:12px;right:10px;bottom:10px;display:flex;flex-direction:column;gap:2px}
+.tm-tile__row{display:flex;align-items:center;gap:6px}
+.tm-tile__title{flex:1;font:700 14px var(--tm-head);letter-spacing:.08em;color:#fff}
+.tm-tile__go{width:16px;height:16px;flex-shrink:0;color:var(--tm-blue-text);transition:color .2s}
+.tm-tile__sub{font:600 12px var(--tm-body);color:var(--tm-muted-fight)}
+.tm-tile:hover,.tm-tile:focus-visible{border-color:var(--tm-gold);box-shadow:0 0 0 1px rgba(var(--tm-gold-rgb),.3),0 0 18px rgba(var(--tm-blue-rgb),.4)}
+.tm-tile:hover .tm-tile__art{opacity:.62;filter:brightness(.85) saturate(.95);transform:scale(1.03)}
+.tm-tile:hover .tm-tile__book{transform:translateX(-50%) scale(1.08);filter:drop-shadow(0 0 10px rgba(168,85,247,.8)) drop-shadow(0 0 6px rgba(var(--tm-gold-rgb),.5))}
+.tm-tile:hover .tm-tile__go{color:var(--tm-gold)}
+.tm-tile:active{transform:scale(.985)}
+.tm-tile--cond{background:#120A14;border:1px solid rgba(var(--tm-red-rgb),.45)}
+.tm-tile--cond .tm-tile__art{opacity:.45;filter:brightness(.7)}
+.tm-tile--cond::before{background:linear-gradient(180deg,rgba(18,6,10,.1) 0%,rgba(18,6,10,.85) 70%)}
+.tm-tile--cond .tm-tile__title{letter-spacing:.06em;color:var(--tm-red)}
+.tm-tile--cond .tm-tile__go{color:var(--tm-red)}
+.tm-tile--cond .tm-tile__sub{color:#D4B0B0}
+.tm-tile--cond:hover .tm-tile__art{opacity:.85;filter:brightness(1)}
+/* --fact: no art, solid hairline, text flows (stage 04 trio, features fact grids) */
+.tm-tile--fact{aspect-ratio:auto;min-height:0;padding:16px;background:var(--tm-card);border:1px solid var(--tm-hair)}
+.tm-tile--fact::before{display:none}
+.tm-tile--fact .tm-tile__txt{position:static;gap:6px}
+.tm-tile--fact .tm-tile__sub{font-size:14px;line-height:1.45}
+
+/* ---------- 7. BUTTONS  .tm-cta (chamfered gold) · .tm-ghost · .tm-link · .tm-chip ---- */
+.tm-cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 32px;border:0;cursor:pointer;
+  background:var(--tm-gold-fill);color:var(--tm-gold-ink);font:700 18px var(--tm-head);letter-spacing:.18em;text-transform:uppercase;
+  text-decoration:none;white-space:nowrap;transition:filter .18s ease,transform .1s ease;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.tm-cta svg{width:18px;height:18px;fill:currentColor}
+.tm-cta:hover,.tm-cta:focus-visible{filter:brightness(1.12)}
+.tm-cta:active{transform:scale(.98)}
+.tm-cta--block{display:flex;width:100%}
+/* clip-path clips box-shadow (same in the app) — the gold glow lives on this wrapper */
+.tm-cta-glow{display:inline-block;filter:drop-shadow(0 0 14px rgba(var(--tm-gold-rgb),.35));transition:filter .18s}
+.tm-cta-glow:hover{filter:drop-shadow(0 0 18px rgba(var(--tm-gold-rgb),.55))}
+.tm-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 22px;cursor:pointer;
+  background:var(--tm-card-kit);border:1px solid rgba(255,255,255,.12);color:#fff;text-decoration:none;
+  font:600 13px var(--tm-head);letter-spacing:.12em;text-transform:uppercase;transition:border-color .2s,background .2s;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.tm-ghost:hover,.tm-ghost:focus-visible{background:rgba(var(--tm-violet-rgb),.14);border-color:var(--tm-violet)}
+.tm-ghost svg{width:16px;height:16px;fill:currentColor}
+.tm-link{display:inline-block;font:600 11px var(--tm-head);letter-spacing:.16em;text-transform:uppercase;color:var(--tm-muted);
+  text-decoration:none;transition:color .2s}      /* quiet text link: "ALL FIT MODE FEATURES ›" */
+.tm-link:hover,.tm-link:focus-visible{color:#fff}
+.tm-chip{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:3px;background:#16131F;
+  border:1px solid rgba(var(--tm-violet-rgb),.55);color:var(--tm-violet-text);text-decoration:none;white-space:nowrap;
+  font:700 11px var(--tm-head);letter-spacing:.12em;text-transform:uppercase}   /* Instagram chip, fact chips */
+.tm-chip svg{width:14px;height:14px;fill:currentColor}
+.tm-chip--gold{border-color:rgba(var(--tm-gold-rgb),.55);color:var(--tm-gold)}
+.tm-chips{display:flex;flex-wrap:wrap;gap:8px}
+
+/* ---------- 8. PHONE FRAME  .tm-phone > img  (for the 1170×2532 screenshots) -------- */
+.tm-phone{display:block;box-sizing:border-box;margin:0 auto;padding:8px;aspect-ratio:1170/2532;
+  width:min(100%,calc(70vh * 1170 / 2532));max-height:70vh;border-radius:36px;
+  background:var(--tm-bg);border:1px solid var(--tm-hair);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 30px 60px rgba(0,0,0,.55),0 0 40px rgba(var(--tm-violet-rgb),.18)}
+.tm-phone img{display:block;width:100%;height:100%;object-fit:cover;border-radius:28px}
+.tm-phone--sm{width:min(100%,calc(40vh * 1170 / 2532));max-height:40vh}   /* second, smaller screenshot */
+.tm-phone--blue{box-shadow:0 0 0 1px rgba(0,0,0,.6),0 30px 60px rgba(0,0,0,.55),0 0 40px rgba(var(--tm-blue-rgb),.2)}
+
+/* ---------- 9. ARCADE WORDMARK (HomeDashboard.jsx:390-395) ----------------------- */
+.tm-wordmark{display:inline-flex;flex-direction:column;line-height:1}
+.tm-wordmark small{font:700 9px var(--tm-disp);letter-spacing:.42em;color:var(--tm-cyan)}
+.tm-wordmark b{font:italic 900 26px var(--tm-disp);letter-spacing:.04em;
+  background:linear-gradient(180deg,#FFF6C8 0%,#FDE047 45%,#E0A21C 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 10px rgba(253,224,71,.35)) drop-shadow(2px 2px 0 #4C1D95)}
+
+/* ---------- 10. RESPONSIVE ------------------------------------------------- */
+@media (max-width:1023px){
+  .stage__grid{grid-template-columns:1fr;gap:32px}
+}
+@media (max-width:768px){
+  .stage,.stage--short{min-height:0;padding:calc(var(--tm-nav-h) + 8px) 16px 56px}   /* auto height, generous padding */
+  .stage__num{margin-bottom:14px}
+  .tm-tabs{height:52px}
+  .tm-tab{font-size:14px;letter-spacing:.04em}
+  .tm-disc__tab{font-size:10px;letter-spacing:.08em}
+  .tm-disc--sections{top:var(--tm-nav-h);overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:16px;
+    scrollbar-width:none;margin:0 -16px;padding:0 16px}       /* strip bleeds to the gutters, no wings so overflow is safe */
+  .tm-disc--sections::-webkit-scrollbar{display:none}
+  .tm-disc--sections .tm-disc__tab{scroll-snap-align:start;min-width:132px}
+  .tm-tiles--3{grid-template-columns:1fr}
+  .tm-band__prog i{width:90px}
+  .tm-phone{width:min(100%,calc(60vh * 1170 / 2532));max-height:60vh}
+  .tm-cta{height:52px;padding:0 22px;font-size:16px;letter-spacing:.14em}
+  .tm-cta--mobile-block{display:flex;width:100%}
+}
+@media (max-width:480px){
+  .tm-tab__long{display:none}                  /* "TRAINING ARCADE" → "ARCADE" so three tabs fit at 390px */
+  .tm-tab{font-size:13px}
+}
+@media (hover:none){
+  .tm-band:active,.tm-tile:active,.tm-cta:active{transform:scale(.985)}
+}
+@media (prefers-reduced-motion:reduce){
+  .tm-band,.tm-band__art,.tm-band::before,.tm-tile,.tm-tile__art,.tm-tab,.tm-cta,.tm-ghost{transition:none}
+}

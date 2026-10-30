@@ -1,0 +1,3 @@
+# Store and check out every file exactly as written (no CRLF conversion): the deploy zip
+# ships the working tree as-is, and the edit scripts expect LF.
+* -text

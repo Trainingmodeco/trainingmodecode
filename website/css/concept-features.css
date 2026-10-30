@@ -1,0 +1,189 @@
+/* ============================================================================
+   concept-features.css — trainingmode.co · Simplify concept · FEATURES page only
+   Load order: fonts.css → site.css → concept-shared.css → THIS.
+   site.css and concept-shared.css are never edited; everything here is either a
+   new sec-/tm-shelf/tm-ladder/tm-phase/camp- class or a .page-features override.
+   ========================================================================== */
+
+/* ---------- 1. page tokens ------------------------------------------------- */
+/* site.css nav = 20px pad + 54px logo + 20px pad + 1px border on desktop, 12/54/12/1 on phones */
+.page-features{--tm-nav-h:95px;--tm-strip-h:44px}
+
+/* ---------- 2. nav: Instagram glyph ---------------------------------------- */
+.nav__ig{display:inline-flex;align-items:center;color:var(--muted);transition:color .2s ease}
+.nav__ig svg{width:17px;height:17px;display:block}
+.nav__ig:hover,.nav__ig:focus-visible{color:var(--text)}
+
+/* ---------- 3. head -------------------------------------------------------- */
+.feat-head{padding-bottom:22px;scroll-margin-top:var(--tm-nav-h)}
+.feat-head p{font-family:var(--tm-body);font-weight:600;font-size:17px;color:var(--tm-muted)}
+
+/* ---------- 4. console → one column; the section strip sticks for the whole list --- */
+.console--one{display:block;padding-top:6px}
+.tm-disc--sections{margin-bottom:20px}
+.tm-disc--sections .tm-disc__tab{text-decoration:none}
+.tm-disc--static{pointer-events:none;margin-bottom:16px}                 /* decorative discipline strips */
+.tm-disc--all{border-bottom-color:rgba(255,255,255,.18)}                 /* all four "on" = one header per discipline */
+
+/* ---------- 5. dossier chrome (site.css card, app tones) ------------------- */
+.page-features .dossier{overflow:visible;background:rgba(8,2,18,.78);border-color:rgba(var(--tone),.32);
+  scroll-margin-top:calc(var(--tm-nav-h) + var(--tm-strip-h) + 14px)}
+.page-features .dossier__banner{overflow:hidden;border-radius:17px 17px 0 0}
+.page-features .dossier__banner>img.base{filter:brightness(.6)}
+.page-features .dossier__banner>img.base--full{filter:brightness(.85)}
+.page-features .dossier--fight .dossier__banner>img.base{filter:brightness(.9) saturate(1.1);object-position:center 40%}   /* app art is dark already */
+.page-features .dossier__banner-grad{background:linear-gradient(180deg,transparent 40%,rgba(8,2,18,.95) 100%)}
+.dossier__banner-title--wordmark{align-items:center;gap:18px}
+.dossier__banner-title .tm-wordmark b{font-size:34px}
+.page-features .dossier__body{padding:30px 32px 34px}
+.page-features .stage__num{margin-bottom:14px;flex-wrap:wrap;row-gap:4px;white-space:nowrap}   /* "SECTION 05" never splits; the small may wrap */
+.page-features .stage__num small{white-space:normal}
+.page-features .dossier__h2{font-size:36px;line-height:1.02;letter-spacing:-.4px;margin-bottom:12px}
+.page-features .dossier__lead{font:600 17px/1.5 var(--tm-body);color:var(--tm-muted);max-width:640px;margin-bottom:22px}
+.dossier__lead--center{margin-left:auto;margin-right:auto}
+
+/* ---------- 6. copy | phones grid ------------------------------------------ */
+.sec__grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.78fr);gap:44px;align-items:start}
+.sec__grid--arcade{margin-top:28px}
+.sec__phones{position:sticky;top:calc(var(--tm-nav-h) + var(--tm-strip-h) + 24px);
+  display:flex;align-items:flex-end;justify-content:center;gap:18px;padding-top:8px}
+.sec__phones .tm-phone{margin:0;width:min(100%,calc(66vh * 1170 / 2532));max-height:66vh}
+.sec__phones .tm-phone--sm{width:min(100%,calc(40vh * 1170 / 2532));max-height:40vh}
+.tm-phone--red{box-shadow:0 0 0 1px rgba(0,0,0,.6),0 30px 60px rgba(0,0,0,.55),0 0 40px rgba(var(--tm-red-rgb),.18)}
+.sec__side{position:sticky;top:calc(var(--tm-nav-h) + var(--tm-strip-h) + 24px);display:flex;flex-direction:column;gap:26px}
+.sec__label{display:block;margin:0 0 10px;color:var(--tm-gold)}
+.sec__note{display:block;margin-top:18px;font:600 15px/1.6 var(--tm-body);letter-spacing:0;text-transform:none;color:var(--tm-muted)}
+.sec__note .tm-link{margin-left:6px}
+.sec__foot{margin-top:24px}
+.sec__foot--center{text-align:center}
+.sec__cta{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:28px}
+
+/* band variants used on this page */
+.tm-band--link{cursor:pointer}
+.tm-band--link .tm-band__go{display:block;align-self:center}
+.tm-band--step .tm-band__sub b,.tm-tile--fact .tm-tile__sub b{color:#fff;font-weight:700}
+.tm-gold{color:var(--tm-gold)}
+.sec__facts{margin-top:28px}
+
+/* ---------- 7. the shelf — CSS scroll-snap poster row, no JS -------------- */
+.tm-shelf-head{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}
+.tm-shelf-hint{color:var(--tm-gold)}
+.tm-shelf{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
+  padding:6px 4px 14px;margin:0 -4px;scrollbar-width:thin;scrollbar-color:rgba(var(--tm-gold-rgb),.45) transparent;-webkit-overflow-scrolling:touch}
+.tm-shelf::-webkit-scrollbar{height:6px}
+.tm-shelf::-webkit-scrollbar-thumb{background:rgba(var(--tm-gold-rgb),.45);border-radius:3px}
+.tm-poster{position:relative;flex:0 0 150px;width:150px;scroll-snap-align:start;color:inherit;text-decoration:none;transition:transform .18s ease}
+.tm-poster__img{display:block;width:150px;height:225px;object-fit:cover;object-position:center top;border-radius:12px;
+  border:1px solid rgba(255,255,255,.1);background:var(--tm-card)}
+.tm-poster.is-live .tm-poster__img{border-color:rgba(var(--tm-gold-rgb),.6);box-shadow:0 0 18px rgba(var(--tm-gold-rgb),.18)}
+.tm-poster.is-live:hover,.tm-poster.is-live:focus-visible{transform:translateY(-4px)}
+.tm-poster.is-live:hover .tm-poster__img{box-shadow:0 0 28px rgba(var(--tm-gold-rgb),.4)}
+.tm-poster.is-wip .tm-poster__img,.tm-poster.is-soon .tm-poster__img{opacity:.42;filter:grayscale(.35) brightness(.75)}
+.tm-poster__tag{position:absolute;top:8px;left:8px;padding:4px 7px;border-radius:3px;background:var(--tm-gold-fill);color:var(--tm-gold-ink);
+  font:700 9px var(--tm-head);letter-spacing:.16em;white-space:nowrap}
+.tm-poster__tag--dim{background:rgba(8,6,13,.88);border:1px solid rgba(255,255,255,.16);color:var(--tm-muted);letter-spacing:.1em;max-width:calc(100% - 16px)}
+.tm-poster__stars{position:absolute;top:8px;right:8px;font-size:11px;letter-spacing:1px;color:#fde047;text-shadow:0 0 6px rgba(253,224,71,.6)}
+.tm-poster__txt{display:flex;flex-direction:column;gap:3px;margin-top:9px}
+.tm-poster__txt b{font:700 12px/1.2 var(--tm-head);letter-spacing:.06em;color:#fff}
+.tm-poster__txt small{font:600 12px/1.3 var(--tm-body);color:var(--tm-muted)}
+.tm-poster.is-wip .tm-poster__txt b,.tm-poster.is-soon .tm-poster__txt b{color:var(--tm-muted)}
+
+/* ---------- 8. the ladder — ten nodes, you at 03, boss at 10 ---------------- */
+.sec__label--ladder{margin-top:30px}
+.tm-ladder{position:relative;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px;padding:6px 0 4px}
+.tm-ladder::before{content:'';position:absolute;left:5%;right:5%;top:25px;height:2px;
+  background:linear-gradient(90deg,#22c55e 0%,#22c55e 14%,var(--tm-gold) 24%,rgba(255,255,255,.16) 34%,rgba(255,255,255,.16) 88%,var(--tm-gold) 100%)}
+.tm-node{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.tm-node i{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;
+  background:var(--tm-card);border:2px dashed rgba(255,255,255,.22);color:var(--tm-dim)}
+.tm-node i svg{width:18px;height:18px}
+.tm-node b{font:700 12px var(--tm-head);letter-spacing:.1em;color:var(--tm-dim)}
+.tm-node small{font:600 10px var(--tm-body);letter-spacing:.08em;color:var(--tm-dim);text-transform:uppercase}
+.tm-node.is-clear i{border:2px solid rgba(34,197,94,.7);background:rgba(8,24,14,.95);color:#7ddca0}
+.tm-node.is-clear b{color:#7ddca0}
+.tm-node.is-clear small{color:#fde047;font-size:12px;letter-spacing:1px}
+.tm-node.is-clear small span{color:rgba(255,255,255,.28)}
+.tm-node.is-now i{border:2px solid var(--tm-gold);background:rgba(26,18,4,.95);color:var(--tm-gold);
+  box-shadow:0 0 18px rgba(var(--tm-gold-rgb),.55);animation:tm-pulse 2s ease-in-out infinite}
+.tm-node.is-now b,.tm-node.is-now small{color:var(--tm-gold)}
+.tm-node.is-boss i{border:2px solid var(--tm-gold);background:rgba(26,18,4,.95);color:var(--tm-gold);box-shadow:0 0 14px rgba(var(--tm-gold-rgb),.35)}
+.tm-node.is-boss b,.tm-node.is-boss small{color:var(--tm-gold)}
+
+/* ---------- 9. training camp: hub row + phases + styles -------------------- */
+.camp-col{margin:0}
+.camp-col .tm-band{margin-bottom:12px}
+.tm-phases{display:flex;flex-wrap:wrap;gap:6px}
+.tm-phase{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;border-radius:8px;
+  background:var(--tm-card);border:1px solid var(--tm-hair);font:700 10px var(--tm-head);letter-spacing:.1em;color:var(--tm-muted-fight);
+  text-align:center;white-space:nowrap}
+.tm-phase small{font:600 11px var(--tm-body);letter-spacing:.04em;color:var(--tm-dim)}
+.tm-phase.is-now{border-color:rgba(var(--tm-blue-rgb),.7);background:rgba(var(--tm-blue-rgb),.12);color:#fff;box-shadow:0 0 14px rgba(var(--tm-blue-rgb),.3)}
+.tm-phase.is-now small{color:var(--tm-blue-text)}
+.tm-phase.is-title{border-color:rgba(var(--tm-gold-rgb),.6);color:var(--tm-gold)}
+.tm-phase.is-title small{color:var(--tm-gold)}
+.camp-styles .sec__label{color:var(--tm-muted)}
+.camp-styles .tm-disc--static{margin-bottom:0}
+.camp-styles__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+.camp-styles__col{list-style:none;margin:0;padding:10px 6px 10px 12px;display:flex;flex-direction:column;gap:6px;
+  border-radius:0 0 8px 8px;background:rgba(var(--rgb),.07);border:1px solid rgba(var(--rgb),.22);border-top:0}
+.camp-styles__col li{font:600 13px/1.25 var(--tm-body);color:#D8DCEA}
+.camp-styles__col li::before{content:'▸ ';color:var(--line)}
+
+/* ---------- 10. conditioning: the site's .circuit rows, app-toned ---------- */
+.page-features .circuits{max-width:none;gap:7px}
+.page-features .circuit{background:var(--tm-card);border-color:var(--tm-hair);border-radius:14px}
+.page-features .circuit__name{font-family:var(--tm-head);letter-spacing:.06em}
+.page-features .circuit__desc{font:600 13px var(--tm-body);color:var(--tm-muted-fight)}
+
+/* ---------- 11. ranks & xp ------------------------------------------------- */
+.page-features .dossier--prog{padding:34px 32px 36px;text-align:center}
+.page-features .dossier--prog .dossier__lead{margin:0 auto 22px}
+.page-features .secret-note{font:600 11px/1.6 var(--tm-head);letter-spacing:.14em;color:var(--tm-muted);margin:4px auto 14px;max-width:560px}
+.tm-bands--2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left;max-width:980px;margin:0 auto 24px}
+
+/* ---------- 12. closing CTA ------------------------------------------------ */
+.page-features .feat-cta{padding:30px 40px 70px}
+
+/* ---------- 13. responsive ------------------------------------------------- */
+@media (max-width:1023px){
+  .sec__copy .sec__foot{display:none}   /* stacked: the strip + nav navigate; this link landed mid-section */
+  .sec__grid{grid-template-columns:1fr;gap:30px}
+  .sec__phones,.sec__side{position:static}
+  .sec__phones{padding-top:4px}
+  .tm-ladder{grid-template-columns:repeat(5,minmax(0,1fr));gap:14px 8px}
+  .tm-ladder::before{display:none}
+}
+@media (max-width:768px){
+  #camp .dossier__banner,#combat .dossier__banner{aspect-ratio:3/1}   /* their art is 3:1 with the title baked in */
+  .page-features{--tm-nav-h:79px}
+  .feat-head{padding:22px 16px 16px}
+  .feat-head p{font-size:16px}
+  .console--one{padding:4px 16px 10px}
+  .tm-disc--sections{margin-bottom:16px}
+  .page-features .dossier__banner{aspect-ratio:2.4/1}
+  .page-features .dossier__banner-title{left:14px;right:14px;bottom:10px;gap:4px 10px}
+  .page-features .dossier__mode{font-size:12px;letter-spacing:2px}
+  .page-features .dossier__subtitle{font-size:8.5px;letter-spacing:1.5px}
+  .dossier__banner-title .tm-wordmark b{font-size:26px}
+  .page-features .dossier__body{padding:22px 16px 26px}
+  .page-features .dossier__h2{font-size:28px}
+  .page-features .dossier__lead{font-size:16px;margin-bottom:18px}
+  .sec__phones .tm-phone--sm{display:none}
+  .sec__phones .tm-phone{width:min(100%,calc(56vh * 1170 / 2532));max-height:56vh}
+  .tm-poster{flex-basis:120px;width:120px}
+  .tm-poster__img{width:120px;height:180px}
+  .tm-poster__tag--dim{font-size:8px;padding:3px 5px}
+  .tm-phase{flex:1 1 30%;white-space:normal}
+  .tm-disc--all .tm-disc__tab{font-size:9px;letter-spacing:.05em;padding-left:8px}
+  .camp-styles__col{padding:8px 4px 8px 8px}
+  .camp-styles__col li{font-size:12px}
+  .page-features .dossier--prog{padding:26px 16px 28px}
+  .tm-bands--2{grid-template-columns:1fr}
+  .page-features .progchips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .page-features .progchip{padding:12px 6px}
+  .page-features .progchip__t{font-size:14px}
+  .page-features .progchip__s{font-size:8.5px}
+  .sec__cta{gap:16px}
+  .sec__cta .tm-cta-glow,.sec__cta .tm-cta{width:100%}
+  .page-features .feat-cta{padding:20px 16px 60px}
+}
