@@ -1,0 +1,21 @@
+node_modules/
+# The owner's own scripts, imported from Google Drive. This repo is public, so
+# they stay on the owner's machines (re-import with Claude; see brain/README.md).
+brain/scripts/
+# whisper.cpp + model (npm run setup)
+whisper.cpp/
+# art, audio and fonts copied from the app (npm run sync)
+public/tm/
+public/_work/
+hyperframes/assets/
+hyperframes/ranks.js
+hyperframes/renders/
+# your media: kept on your machine / Drive, not in git
+raw-footage/*
+!raw-footage/README.md
+references/*
+!references/README.md
+exports/*
+!exports/README.md
+*.16k.wav
+hyperframes/.hyperframes/

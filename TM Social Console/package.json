@@ -1,0 +1,43 @@
+{
+  "name": "tm-social-console",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Training Mode's content console: script library, video editor, post queue and publisher.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "doctor": "node tools/doctor.mjs",
+    "sync": "node tools/sync-brand.mjs",
+    "setup": "npx remotion browser ensure && node tools/setup-whisper.mjs",
+    "studio": "remotion studio",
+    "queue": "node tools/queue.mjs",
+    "new": "node tools/queue.mjs new",
+    "approve": "node tools/queue.mjs approve",
+    "check": "node tools/check-copy.mjs",
+    "captions": "node tools/captions.mjs",
+    "render": "node tools/render.mjs",
+    "reference": "node tools/reference.mjs",
+    "hf:render": "cd hyperframes && npx hyperframes render -o ../exports/rank-ladder/video.mp4",
+    "hf:preview": "cd hyperframes && npx hyperframes preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.535",
+    "@remotion/captions": "4.0.535",
+    "@remotion/cli": "4.0.535",
+    "@remotion/fonts": "4.0.535",
+    "@remotion/install-whisper-cpp": "4.0.535",
+    "@remotion/renderer": "4.0.535",
+    "gsap": "3.14.2",
+    "hyperframes": "0.8.162",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.10",
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,849 @@
+{
+  "syncedAt": "2026-10-30",
+  "source": "npm run sync (tools/sync-brand.mjs) from ../content-kit — do not edit by hand",
+  "name": "Training Mode",
+  "coach": "Coach TM",
+  "appUrl": "https://apptrainingmode.com",
+  "siteUrl": "https://trainingmode.co",
+  "socials": {
+    "instagram": "https://www.instagram.com/trainingmode.co/",
+    "tiktok": "https://www.tiktok.com/@trainingmode.co",
+    "youtube": "https://www.youtube.com/@trainingmode.co",
+    "facebook": "https://www.facebook.com/trainingmode.co"
+  },
+  "colors": {
+    "background": "#080012",
+    "panel": "#180030",
+    "violet": "#a855f7",
+    "gold": "#fde047",
+    "red": "#ef4444",
+    "green": "#22c55e",
+    "text": "#f5e9ff",
+    "muted": "#c4a4d8"
+  },
+  "fonts": {
+    "display": "Orbitron",
+    "body": "Rajdhani"
+  },
+  "logos": {
+    "title-full": "tm/logos/title-full.webp",
+    "wordmark-full": "tm/logos/wordmark-full.webp",
+    "mark": "tm/logos/mark.webp",
+    "app-icon": "tm/logos/app-icon.webp"
+  },
+  "rules": {
+    "naming": "App names only. No franchise or character names, and no film references, in titles, on-screen text, captions or thumbnails.",
+    "neverSay": [
+      "Ryu",
+      "Ken",
+      "Akuma",
+      "Street Fighter",
+      "Goku",
+      "Vegeta",
+      "Dragon Ball",
+      "Ultra Instinct",
+      "Saitama",
+      "One Punch Man",
+      "Batman",
+      "Dark Knight",
+      "Gotham",
+      "Wonder Woman",
+      "Baki",
+      "Hanma",
+      "Sonic",
+      "Spider-Man",
+      "Guts",
+      "Berserk",
+      "Sparta"
+    ],
+    "xp": "The app rewards the workout, never views, likes, follows or subscribes. CTA: \"open the app and hit CLEARED\"."
+  },
+  "modes": {
+    "fit": [
+      "Quick Mission",
+      "Build Workout",
+      "Programs",
+      "Cardio (GPS + machines)"
+    ],
+    "fight": [
+      "Just Train",
+      "Fight Focus",
+      "Combo Coach",
+      "Training Camp (12 levels)",
+      "Practice",
+      "Combat Conditioning"
+    ],
+    "arcade": "10-stage sagas with a boss; pick FIT, FIGHT or BOTH on every stage."
+  },
+  "pro": {
+    "benefits": [
+      "All Arcade protocols & boss stages",
+      "Training Camp levels 4-12",
+      "Unlimited saved Builder routines",
+      "Full session length in Combo Coach & Fight Focus",
+      "Every past concept drop in the Vault"
+    ],
+    "prices": [
+      {
+        "id": "monthly",
+        "label": "MONTHLY",
+        "price": "$5.99",
+        "cadence": "/mo",
+        "note": "Cancel anytime"
+      },
+      {
+        "id": "annual",
+        "label": "ANNUAL",
+        "price": "$34.99",
+        "cadence": "/yr",
+        "note": "$2.92/mo · billed yearly"
+      },
+      {
+        "id": "founder",
+        "label": "FOUNDER",
+        "price": "$59",
+        "cadence": "once",
+        "note": "Lifetime · beta founders only"
+      }
+    ],
+    "freeAlways": "The current concept drop is always free."
+  },
+  "ranks": [
+    {
+      "id": "rookie",
+      "name": "Rookie",
+      "label": "Combat Rookie",
+      "xpFrom": 0,
+      "color": "#b87333",
+      "art": "tm/ranks/rookie.png"
+    },
+    {
+      "id": "novice",
+      "name": "Novice",
+      "label": "Combat Novice",
+      "xpFrom": 500,
+      "color": "#c0c0c0",
+      "art": "tm/ranks/novice.png"
+    },
+    {
+      "id": "warrior",
+      "name": "Warrior",
+      "label": "Combat Warrior",
+      "xpFrom": 1500,
+      "color": "#fde047",
+      "art": "tm/ranks/warrior.png"
+    },
+    {
+      "id": "elite",
+      "name": "Max",
+      "label": "Combat Max",
+      "xpFrom": 3500,
+      "color": "#60a5fa",
+      "art": "tm/ranks/elite.png"
+    },
+    {
+      "id": "champion",
+      "name": "Champion",
+      "label": "Combat Champion",
+      "xpFrom": 7000,
+      "color": "#c084fc",
+      "art": "tm/ranks/champion.png"
+    }
+  ],
+  "drops": [
+    {
+      "id": "shoto",
+      "title": "SHOTO",
+      "tagline": "Three styles. One path. Fundamentals, speed, pressure.",
+      "start": "2026-10-23",
+      "end": "2026-11-30",
+      "status": "live",
+      "reward": {
+        "title": "SHOTO MASTER",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "fitWeeks": 4,
+      "fitMinutesPerDay": 35,
+      "fightDiscipline": "Kickboxing",
+      "arcadeStages": [
+        "STANCE & STRIKE",
+        "CONTROLLED POWER",
+        "THE FIREBALL",
+        "BLAZING FEET",
+        "DASH & STRIKE",
+        "SPINNING FLAME",
+        "DEMON STEP",
+        "IRON BODY",
+        "NO MERCY",
+        "BOSS · THE DEMON WITHIN"
+      ],
+      "art": {
+        "poster": "tm/drops/shoto/poster.webp",
+        "wide": "tm/drops/shoto/wide.webp",
+        "card": "tm/drops/shoto/card.webp",
+        "arcade": "tm/drops/shoto/arcade.webp"
+      }
+    },
+    {
+      "id": "ultra-ego",
+      "title": "ULTRA EGO",
+      "tagline": "Power at all costs. Take the hit, give it back harder.",
+      "start": "2026-12-01",
+      "end": "2027-01-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "DESTROYER",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "fitWeeks": 4,
+      "fitMinutesPerDay": 45,
+      "fightDiscipline": "Muay Thai",
+      "arcadeStages": [
+        "AWAKENING",
+        "PLANTED",
+        "BRACE FOR IMPACT",
+        "SEES RED",
+        "IRON BACK",
+        "ROLL & ANSWER",
+        "DESTROYER LEGS",
+        "NO RETREAT",
+        "PRIDE",
+        "BOSS · ULTRA EGO"
+      ],
+      "art": {
+        "poster": "tm/drops/ultra-ego/poster.webp",
+        "wide": "tm/drops/ultra-ego/wide.webp",
+        "card": "tm/drops/ultra-ego/card.webp",
+        "arcade": "tm/drops/ultra-ego/arcade.webp"
+      }
+    },
+    {
+      "id": "flow-state",
+      "title": "FLOW STATE",
+      "tagline": "Move before you think. Slip, angle, counter, flow.",
+      "start": "2027-02-01",
+      "end": "2027-03-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "FLOW STATE",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "fitWeeks": 4,
+      "fitMinutesPerDay": 45,
+      "fightDiscipline": "Kickboxing",
+      "arcadeStages": [
+        "FIRST STEP",
+        "THE THOUSAND",
+        "LIGHT FEET",
+        "CUT THE ANGLE",
+        "SPARK",
+        "NO TOUCH",
+        "STILL WATER",
+        "COUNTER",
+        "SILVER EDGE",
+        "BOSS · EMPTY MIND"
+      ],
+      "art": {
+        "poster": "tm/drops/flow-state/poster.webp",
+        "wide": "tm/drops/flow-state/wide.webp",
+        "card": "tm/drops/flow-state/card.webp",
+        "arcade": "tm/drops/flow-state/arcade.webp"
+      }
+    },
+    {
+      "id": "one-hundred",
+      "title": "ONE HUNDRED",
+      "tagline": "100 push-ups. 100 sit-ups. 100 squats. Then run.",
+      "start": "2027-04-01",
+      "end": "2027-05-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "LIMIT BREAKER",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "fitWeeks": 4,
+      "fitMinutesPerDay": 60,
+      "fightDiscipline": "Boxing",
+      "arcadeStages": [
+        "DAY ONE",
+        "MORNING ROUTINE",
+        "THE SUPERMARKET SALE",
+        "NO AIR CONDITIONING",
+        "THE HILL",
+        "HALFWAY THERE",
+        "SIT-UP SUPREMACY",
+        "DAILY QUOTA",
+        "THREE YEARS LATER",
+        "BOSS · ONE HUNDRED"
+      ],
+      "art": {
+        "poster": "tm/drops/one-hundred/poster.webp",
+        "wide": "tm/drops/one-hundred/wide.webp",
+        "card": "tm/drops/one-hundred/card.webp",
+        "arcade": "tm/drops/one-hundred/arcade.webp"
+      }
+    },
+    {
+      "id": "warrior-queen",
+      "title": "WARRIOR QUEEN",
+      "tagline": "Built like a goddess, trained like a warrior. Lift, sculpt, fight.",
+      "start": "2027-06-01",
+      "end": "2027-07-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "WARRIOR QUEEN",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "fitWeeks": 4,
+      "fitMinutesPerDay": 50,
+      "fightDiscipline": "Kickboxing",
+      "arcadeStages": [
+        "THE SHORE",
+        "SHIELD WALL",
+        "SPEAR LINE",
+        "THE BRACERS",
+        "THE BIND",
+        "OLYMPIAN GAMES",
+        "THE CLIFFS",
+        "TEMPLE STEPS",
+        "THE BATTLEFIELD",
+        "BOSS · THE TITAN"
+      ],
+      "art": {
+        "poster": "tm/drops/warrior-queen/poster.webp",
+        "wide": "tm/drops/warrior-queen/wide.webp",
+        "card": "tm/drops/warrior-queen/card.webp",
+        "arcade": "tm/drops/warrior-queen/arcade.webp"
+      }
+    },
+    {
+      "id": "night-vigilante",
+      "title": "NIGHT VIGILANTE",
+      "tagline": "Before the mask: the training years. Run, lift, fight, climb.",
+      "start": "2027-08-01",
+      "end": "2027-09-30",
+      "status": "upcoming",
+      "reward": {
+        "title": "NIGHT VIGILANTE",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "fitWeeks": 4,
+      "fitMinutesPerDay": 60,
+      "fightDiscipline": "MMA",
+      "arcadeStages": [
+        "THE ROOFTOP",
+        "GRIP OF THE NIGHT",
+        "THE LEDGE",
+        "ROPE LINE",
+        "THE ALLEY",
+        "IRON CAGE",
+        "NIGHT RUN",
+        "THE CLIMB",
+        "NIGHT SHIFT",
+        "BOSS · THE MASK"
+      ],
+      "art": {
+        "poster": "tm/drops/night-vigilante/poster.webp",
+        "wide": "tm/drops/night-vigilante/wide.webp",
+        "card": "tm/drops/night-vigilante/card.webp",
+        "arcade": "tm/drops/night-vigilante/arcade.webp"
+      }
+    }
+  ],
+  "sagas": [
+    {
+      "id": "one-punch-protocol",
+      "title": "One Hundred",
+      "subtitle": "Cadence Rep Endurance Challenge",
+      "status": "open",
+      "retires": {
+        "on": "2027-04-01",
+        "replacedBy": "ONE HUNDRED"
+      },
+      "stages": [
+        "Hero Entry Test",
+        "10x10 Foundation",
+        "Pull Balance Foundation",
+        "5x20 Conditioning",
+        "2x50 Protocol",
+        "The Standard Hundred",
+        "Push-Up Style Protocol",
+        "Slow Burn Protocol",
+        "150 Rep Ascension",
+        "Final Boss — The Hundred Gauntlet"
+      ]
+    },
+    {
+      "id": "gravity-chamber-protocol",
+      "title": "The Gravity Chamber",
+      "subtitle": "Tempo Protocol",
+      "status": "open",
+      "retires": null,
+      "stages": [
+        "10x Gravity — Baseline",
+        "25x Gravity — Count Your Reps",
+        "50x Gravity — Find the Cadence",
+        "100x Gravity — Under Tension",
+        "200x Gravity — Slow Descent",
+        "300x Gravity — The Weight of Worlds",
+        "400x Gravity — Break the Rhythm",
+        "500x Gravity — Crushing Pressure",
+        "750x Gravity — Adaptation",
+        "1000x Gravity — The Chamber's Limit"
+      ]
+    },
+    {
+      "id": "martial-monster-protocol",
+      "title": "Martial Monster",
+      "subtitle": "Martial Monster Protocol",
+      "status": "open",
+      "retires": null,
+      "stages": [
+        "The Student",
+        "Fast Hands",
+        "Legs Drive the Punch",
+        "Dutch Rhythm",
+        "Centerline",
+        "Ballistic Power",
+        "The Hunter's Engine",
+        "Contrast",
+        "Real Evolution",
+        "The Martial Monster"
+      ]
+    },
+    {
+      "id": "destroyer-protocol",
+      "title": "The Destroyer",
+      "subtitle": "Destroyer Protocol",
+      "status": "open",
+      "retires": {
+        "on": "2026-12-01",
+        "replacedBy": "ULTRA EGO"
+      },
+      "stages": [
+        "Pride Awakens",
+        "Destroyer Frame — Upper and Lower Base",
+        "Immovable Force",
+        "Relentless Advance",
+        "Roll Through Fire",
+        "Titan Engine",
+        "No Hesitation",
+        "Ego Unleashed",
+        "Controlled Destruction — Calm Before the Storm",
+        "Destroyer's Trial"
+      ]
+    },
+    {
+      "id": "grappler-protocol",
+      "title": "The Grappler",
+      "subtitle": "Strongest Teen Protocol",
+      "status": "open",
+      "retires": null,
+      "stages": [
+        "The Iron Core",
+        "Fight the Phantom",
+        "Underground Arena",
+        "One-Punch Power",
+        "The Master's Fist",
+        "Iron Grip",
+        "Ground Flow",
+        "Raw Power — The Arena’s Strongest",
+        "The Primal Man — The Strongest Teen",
+        "The Ogre"
+      ]
+    },
+    {
+      "id": "struggler-protocol",
+      "title": "The Struggler",
+      "subtitle": "Greatsword Protocol",
+      "status": "locked",
+      "retires": null,
+      "stages": [
+        "The Sword Bigger Than Himself",
+        "Mercenary Camp",
+        "The Captain's Blade",
+        "The General's Blade — Precision and Tempo",
+        "The Veteran Mercenary",
+        "The Colossal Blade",
+        "The Immortal",
+        "The Longest Night — A Thousand Foes",
+        "Sacrifice",
+        "Trial of the Fury Armor"
+      ]
+    },
+    {
+      "id": "vigilante-protocol",
+      "title": "The Vigilante",
+      "subtitle": "Peak Human Protocol",
+      "status": "locked",
+      "retires": {
+        "on": "2027-08-01",
+        "replacedBy": "NIGHT VIGILANTE"
+      },
+      "stages": [
+        "The Making of a Man",
+        "Forge the Body",
+        "The Long Night",
+        "Balance and Control — The Escape",
+        "First Blood",
+        "The Art of War",
+        "Above the City",
+        "No Man's Land",
+        "The Vigilante Rises — Integration",
+        "Become the Shadow"
+      ]
+    },
+    {
+      "id": "flow-state-protocol",
+      "title": "Flow State",
+      "subtitle": "Flow State Protocol",
+      "status": "locked",
+      "retires": {
+        "on": "2027-02-01",
+        "replacedBy": "FLOW STATE"
+      },
+      "stages": [
+        "Awaken the Senses",
+        "A Thousand Fists — Feet Like Water",
+        "The Lean Frame",
+        "Angles of Attack",
+        "See It Coming",
+        "Instinct Engine",
+        "Strike the Opening",
+        "Silent Storm",
+        "Effortless Motion — Still Mind",
+        "Trial of Instinct"
+      ]
+    },
+    {
+      "id": "blue-blur-protocol",
+      "title": "Speed Demon",
+      "subtitle": "Speed Protocol",
+      "status": "locked",
+      "retires": null,
+      "stages": [
+        "Rolling Hills — Warm-Up & Form",
+        "Loop-de-Loop — Land, Stabilize & Build the Base",
+        "The Factory Line — First Hops",
+        "Night Circuit — Off the Line",
+        "Skyline Heights — Quick Feet",
+        "The Waterway — Spring Loaded",
+        "The Airship — Top Speed",
+        "The Caverns — Free Runner & Speed Combine",
+        "The Shoreline — Recovery Zone",
+        "Final Zone — The Blue Blur"
+      ]
+    },
+    {
+      "id": "demon-back-protocol",
+      "title": "The Demon's Son",
+      "subtitle": "Hybrid Strength + Combat",
+      "status": "locked",
+      "retires": null,
+      "stages": [
+        "Foundation Pull",
+        "Grip and Guard",
+        "Demon Volume",
+        "Pressure Round",
+        "Break the Limit",
+        "Iron Lats",
+        "Endless Cage",
+        "Titan Grip",
+        "Storm Pressure",
+        "Unbreakable",
+        "Demon Awakening",
+        "Final Round"
+      ]
+    },
+    {
+      "id": "the-contender",
+      "title": "The Contender",
+      "subtitle": "Sweet Science Protocol",
+      "status": "coming soon",
+      "retires": null,
+      "stages": []
+    },
+    {
+      "id": "the-wall-crawler",
+      "title": "Web Climber",
+      "subtitle": "Reflex & Agility Protocol",
+      "status": "coming soon",
+      "retires": null,
+      "stages": []
+    },
+    {
+      "id": "the-dragon",
+      "title": "The Dragon",
+      "subtitle": "Formless Water Protocol",
+      "status": "coming soon",
+      "retires": null,
+      "stages": []
+    }
+  ],
+  "tapes": [
+    {
+      "number": "#01",
+      "title": "Kickboxing Basics",
+      "shelf": "fight",
+      "minutes": 22,
+      "gear": "No gear",
+      "youtubeId": null
+    },
+    {
+      "number": "#02",
+      "title": "Deadly Seven",
+      "shelf": "fit",
+      "minutes": 30,
+      "gear": "No gear",
+      "youtubeId": null
+    },
+    {
+      "number": "#03",
+      "title": "The 300",
+      "shelf": "fit",
+      "minutes": 25,
+      "gear": "1 kettlebell",
+      "youtubeId": null
+    },
+    {
+      "number": "#04",
+      "title": "Heavy Bag: 6 Rounds",
+      "shelf": "fight",
+      "minutes": 24,
+      "gear": "Bag + gloves",
+      "youtubeId": null
+    },
+    {
+      "number": "#05",
+      "title": "Calisthenics Power",
+      "shelf": "fit",
+      "minutes": 25,
+      "gear": "Pull-up bar",
+      "youtubeId": null
+    },
+    {
+      "number": "#06",
+      "title": "Fight Conditioning",
+      "shelf": "fight",
+      "minutes": 20,
+      "gear": "No gear",
+      "youtubeId": null
+    }
+  ],
+  "workouts": [
+    {
+      "title": "MURPH",
+      "focus": "Full Body",
+      "minutes": 55,
+      "pro": false
+    },
+    {
+      "title": "HALF MURPH",
+      "focus": "Full Body",
+      "minutes": 28,
+      "pro": false
+    },
+    {
+      "title": "SALLY UP · SQUATS",
+      "focus": "Lower",
+      "minutes": 4,
+      "pro": false
+    },
+    {
+      "title": "SALLY UP · PUSH-UPS",
+      "focus": "Upper",
+      "minutes": 4,
+      "pro": false
+    },
+    {
+      "title": "DEADLY SEVEN",
+      "focus": "Full Body",
+      "minutes": 30,
+      "pro": false
+    },
+    {
+      "title": "5 MINUTES OF HELL · MMA",
+      "focus": "Combat",
+      "minutes": 6,
+      "pro": false
+    },
+    {
+      "title": "5 MINUTES OF HELL",
+      "focus": "Full Body",
+      "minutes": 6,
+      "pro": false
+    },
+    {
+      "title": "STRIKE FITNESS · EASY",
+      "focus": "Combat",
+      "minutes": 27,
+      "pro": false
+    },
+    {
+      "title": "STRIKE FITNESS · INTERMEDIATE",
+      "focus": "Combat",
+      "minutes": 27,
+      "pro": false
+    },
+    {
+      "title": "STRIKE FITNESS · ADVANCED",
+      "focus": "Combat",
+      "minutes": 35,
+      "pro": false
+    },
+    {
+      "title": "PUSH-UP DIVISION",
+      "focus": "Upper",
+      "minutes": 15,
+      "pro": false
+    },
+    {
+      "title": "3 LEVEL ABS",
+      "focus": "Core",
+      "minutes": 22,
+      "pro": false
+    },
+    {
+      "title": "FITNESS TEST",
+      "focus": "Full Body",
+      "minutes": 16,
+      "pro": false
+    },
+    {
+      "title": "BURPEE HELL",
+      "focus": "Full Body",
+      "minutes": 9,
+      "pro": true
+    },
+    {
+      "title": "LEGENDARY SQUAT",
+      "focus": "Lower",
+      "minutes": 32,
+      "pro": false
+    },
+    {
+      "title": "HERO TRAINING",
+      "focus": "Full Body",
+      "minutes": 27,
+      "pro": true
+    },
+    {
+      "title": "CHAOS ENGINE CIRCUIT",
+      "focus": "Full Body",
+      "minutes": 29,
+      "pro": true
+    }
+  ],
+  "programs": [
+    {
+      "title": "7-DAY SHADOWBOX MINI",
+      "meta": "Beginner · 7 days · no equipment",
+      "pro": false
+    },
+    {
+      "title": "BODYWEIGHT WEEK",
+      "meta": "All levels · 6 days · no equipment",
+      "pro": false
+    },
+    {
+      "title": "BODYWEIGHT CIRCUIT · BEGINNER",
+      "meta": "Beginner · 4 days · 40s on / 20s off",
+      "pro": false
+    },
+    {
+      "title": "BODYWEIGHT CIRCUIT · INTERMEDIATE",
+      "meta": "Intermediate · 4 days · 40s on / 20s off",
+      "pro": true
+    },
+    {
+      "title": "BODYWEIGHT CIRCUIT · ADVANCED",
+      "meta": "Advanced · 4 days · 40s on / 20s off",
+      "pro": true
+    },
+    {
+      "title": "SHADOWBOX ROUTINE · BOXING",
+      "meta": "Boxing · 2 days · 2:00 rounds",
+      "pro": false
+    },
+    {
+      "title": "SHADOWBOX ROUTINE · KICKBOXING",
+      "meta": "Kickboxing · 2 days · 2:00 rounds",
+      "pro": true
+    },
+    {
+      "title": "SHADOWBOX ROUTINE · MUAY THAI",
+      "meta": "Muay Thai · 2 days · 2:00 rounds",
+      "pro": true
+    },
+    {
+      "title": "SHADOWBOX ROUTINE · MMA",
+      "meta": "MMA · 2 days · 2:00 rounds",
+      "pro": true
+    },
+    {
+      "title": "THE GRAVITY CHAMBER",
+      "meta": "Intermediate · 4 days · slow tempo",
+      "pro": true
+    },
+    {
+      "title": "THE DESTROYER",
+      "meta": "Advanced · 5 days · gym or bodyweight",
+      "pro": true
+    },
+    {
+      "title": "FLOW STATE",
+      "meta": "Advanced · 4 days · strength, plyo, footwork",
+      "pro": true
+    },
+    {
+      "title": "THE MERCENARY",
+      "meta": "Advanced · 4 days · high rep, heavy, explosive",
+      "pro": true
+    },
+    {
+      "title": "THE HAWK",
+      "meta": "Intermediate · 3 days · high rep, kettlebell, upper body",
+      "pro": true
+    },
+    {
+      "title": "DARK FIST",
+      "meta": "Advanced · 2 days · shadow + bag",
+      "pro": true
+    },
+    {
+      "title": "THE WANDERER",
+      "meta": "Advanced · 2 days · shadow + bag",
+      "pro": true
+    }
+  ]
+}

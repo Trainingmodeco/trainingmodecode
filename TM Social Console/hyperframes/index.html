@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <!-- Rank Ladder: the app's five ranks climb in, Rookie to Champion, then
+         "where did you stall?" (an engagement post). Ranks come from
+         ranks.js, written by `npm run sync`. -->
+    <script src="assets/gsap.min.js"></script>
+    <script src="ranks.js"></script>
+    <style>
+      @font-face { font-family: Orbitron; src: url(assets/fonts/Orbitron.ttf); font-weight: 400 900; }
+      @font-face { font-family: Rajdhani; src: url(assets/fonts/Rajdhani-SemiBold.ttf); font-weight: 600; }
+      @font-face { font-family: Rajdhani; src: url(assets/fonts/Rajdhani-Bold.ttf); font-weight: 700; }
+      :root {
+        --bg: #080012;
+        --panel: #180030;
+        --violet: #a855f7;
+        --gold: #fde047;
+        --text: #f5e9ff;
+        --muted: #c4a4d8;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--bg); }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        font-family: Rajdhani, sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at 50% 22%, #a855f760 0%, #180030b0 34%, var(--bg) 72%);
+      }
+      .clip { position: absolute; inset: 0; }
+      #scan {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 6px);
+        opacity: 0.5;
+      }
+      #kicker {
+        position: absolute;
+        top: 150px;
+        width: 100%;
+        text-align: center;
+        font-weight: 700;
+        font-size: 38px;
+        letter-spacing: 0.4em;
+        color: var(--gold);
+      }
+      #title {
+        position: absolute;
+        top: 210px;
+        width: 100%;
+        text-align: center;
+        font-family: Orbitron, sans-serif;
+        font-weight: 900;
+        font-size: 104px;
+        text-shadow: 0 0 50px var(--violet), 0 8px 0 var(--violet);
+      }
+      .rank {
+        position: absolute;
+        left: 90px;
+        right: 90px;
+        height: 210px;
+        display: flex;
+        align-items: center;
+        gap: 34px;
+        padding: 0 34px 0 0;
+        background: linear-gradient(90deg, rgba(24, 0, 48, 0.95), rgba(24, 0, 48, 0.7));
+        border-left: 12px solid var(--c);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+      }
+      .rank img { width: 144px; height: 210px; object-fit: cover; object-position: top; }
+      .rank .name { font-family: Orbitron, sans-serif; font-weight: 900; font-size: 62px; color: var(--c); line-height: 1; }
+      .rank .label { font-weight: 700; font-size: 32px; letter-spacing: 0.22em; color: var(--muted); margin-top: 10px; }
+      .rank .xp { margin-left: auto; font-family: Orbitron, sans-serif; font-weight: 800; font-size: 38px; color: var(--gold); white-space: nowrap; }
+      #ask {
+        position: absolute;
+        top: 760px;
+        width: 100%;
+        text-align: center;
+        font-family: Orbitron, sans-serif;
+        font-weight: 900;
+        font-size: 96px;
+        line-height: 1.1;
+      }
+      #ask span { color: var(--gold); text-shadow: 0 0 40px var(--gold); }
+      #cta {
+        position: absolute;
+        top: 1060px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: Orbitron, sans-serif;
+        font-weight: 800;
+        font-size: 44px;
+        color: var(--bg);
+        background: var(--gold);
+        padding: 22px 44px;
+        white-space: nowrap;
+      }
+      #mark { position: absolute; top: 1240px; left: 435px; width: 210px; mix-blend-mode: lighten; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1080" data-height="1920">
+      <div id="scene" class="clip" data-start="0" data-duration="10" data-track-index="0">
+        <div id="kicker">TRAINING MODE · RANKS</div>
+        <h1 id="title">RANK LADDER</h1>
+        <div id="ladder"></div>
+        <div id="ask">WHERE DID<br />YOU <span>STALL?</span></div>
+        <div id="cta">COMMENT YOUR RANK</div>
+        <img id="mark" src="assets/mark.webp" alt="" />
+        <div id="scan"></div>
+      </div>
+      <audio id="bell" data-start="0" data-duration="2" data-media-start="0.1" data-volume="0.6" data-fade-out="0.5" data-track-index="1" src="assets/audio/bell-signals.mp3"></audio>
+      <audio id="bell-end" data-start="7.4" data-duration="2.4" data-media-start="17.85" data-volume="0.6" data-fade-out="0.5" data-track-index="2" src="assets/audio/bell-signals.mp3"></audio>
+    </div>
+    <script>
+      // Rookie at the bottom, Champion on top.
+      const ranks = window.TM_RANKS || [];
+      const ladder = document.getElementById('ladder');
+      // Bottom row stays above y=1560, clear of the platforms' caption and buttons.
+      const rowTop = (i) => 1340 - i * 230;
+      ranks.forEach((r, i) => {
+        const el = document.createElement('div');
+        el.className = 'rank';
+        el.id = `r${i}`;
+        el.style.setProperty('--c', r.color);
+        el.style.top = `${rowTop(i)}px`;
+        el.innerHTML = `<img src="${r.art}" alt=""><div><div class="name">${r.name.toUpperCase()}</div><div class="label">${r.label.toUpperCase()}</div></div><div class="xp">${r.xpFrom.toLocaleString('en-US')} XP</div>`;
+        ladder.appendChild(el);
+      });
+
+      const tl = gsap.timeline({ paused: true });
+      // Title is up from frame 0: that frame is the autoplay preview.
+      tl.from('#title', { scale: 1.25, duration: 0.5, ease: 'back.out(2)' }, 0);
+      ranks.forEach((_, i) => {
+        tl.from(`#r${i}`, { x: 1100, opacity: 0, duration: 0.45, ease: 'power3.out' }, 0.8 + i * 0.95);
+        tl.from(`#r${i}`, { scale: 1.06, duration: 0.3 }, 1.2 + i * 0.95);
+      });
+      tl.to(['#ladder', '#title', '#kicker'], { opacity: 0.18, duration: 0.4 }, 7.4);
+      tl.from('#ask', { opacity: 0, scale: 0.6, duration: 0.5, ease: 'back.out(2)' }, 7.5);
+      tl.from('#cta', { opacity: 0, y: 40, duration: 0.4 }, 8.0);
+      tl.from('#mark', { opacity: 0, y: 40, duration: 0.4 }, 8.3);
+      window.__timelines = window.__timelines || {};
+      window.__timelines['main'] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
