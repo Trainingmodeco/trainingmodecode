@@ -12,7 +12,9 @@ import { Slash } from '../parts/Hud';
 // screen ("ROUND 1" in gold, the drill under it) while the coach says
 // "Round 1. Pendulum boxing." in the app's voice. Rounds with fast punching
 // fire the app's RUSH screen (RushEffects.jsx) at the burst and finish in
-// RUSH: orange ring, ⚡ RUSH, embers and edge glow. No music (the owner adds it).
+// RUSH: orange ring, ⚡ RUSH, embers and edge glow. Under the call, the app's
+// focus card shows the drill and the coach's cue; it also covers the owner's
+// typed reference labels in the footage. No music (the owner adds it).
 export type Round = {
   title: string; // "Pendulum boxing"
   src: string; // footage; raw-footage/ files are staged by tools/render.mjs
@@ -25,6 +27,11 @@ export type Round = {
   rushAt?: number | null; // seconds into the round to fire RUSH (fast punching)
   voice?: string | null; // the spoken call (tools/voice.mjs)
   voiceSec?: number;
+  cue?: string; // the coach's line on the focus card ("Snap it back to your guard.")
+  // The focus card: centre y (px of the 1920 frame) and when it shows, in
+  // seconds into the round (default: the first 2.2 s). Put it over any text
+  // burned into the footage and keep it up for as long as that text shows.
+  card?: { y?: number; spans?: [number, number][] };
 };
 
 export type FightFocusRoundsProps = {
@@ -44,6 +51,7 @@ const VOICE_AT = 10;
 // The timer bar: 10% of the frame, just under the platforms' top tabs.
 const BAR = { top: 118, height: 192 };
 const RUSH_SCREEN_FRAMES = 26;
+const CARD = { y: 972, width: 980, height: 250, spans: [[0, 2.2]] as [number, number][] };
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 // The app's timer colours (FightFocusTimer.jsx).
@@ -268,9 +276,62 @@ const TimerBar: React.FC<{ n: number; total: number; discipline: string; difficu
   </div>
 );
 
+// The app's focus card (FightFocusTimer.jsx): dark card, border in the ring's
+// colour, the drill in Orbitron and the coach's cue under it. It cuts in (it
+// first shows under the call or RUSH screen) and fades out.
+const FocusCard: React.FC<{ n: number; title: string; cue?: string; y: number; spans: [number, number][]; color: string }> = ({
+  n,
+  title,
+  cue,
+  y,
+  spans,
+  color,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const span = spans.find(([a, b]) => t >= a && t < b + 6 / fps);
+  if (!span) return null;
+  const opacity = interpolate(t, [span[1], span[1] + 6 / fps], [1, 0], clamp);
+  // Under the call screen only the dark card shows (it still hides the
+  // footage's text); the words come up once the call has gone.
+  const words = interpolate(frame, [CALL_FRAMES, CALL_FRAMES + 6], [0, 1], clamp);
+  const label = title.toUpperCase();
+  // One line, inside the platforms' safe width (text stays left of the right-hand buttons).
+  const size = Math.min(52, Math.floor(800 / (label.length * 0.9)));
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: (1080 - CARD.width) / 2,
+        width: CARD.width,
+        top: y - CARD.height / 2,
+        height: CARD.height,
+        borderRadius: 26,
+        background: 'rgba(10,0,20,0.94)',
+        backdropFilter: 'blur(14px)',
+        border: `2px solid ${color}77`,
+        boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 28px ${color}33`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity,
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, opacity: words }}>
+        <div style={{ fontFamily: FONT.pixel, fontSize: 20, color: APP.work, letterSpacing: '0.14em' }}>ROUND {n} FOCUS</div>
+        <div style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: size, color: '#fff', letterSpacing: '0.1em', lineHeight: 1.1, whiteSpace: 'nowrap' }}>{label}</div>
+        {cue ? <div style={{ fontFamily: FONT.body, fontWeight: 500, fontSize: 38, color: 'rgba(255,255,255,0.62)', lineHeight: 1.15 }}>{cue}</div> : null}
+      </div>
+    </div>
+  );
+};
+
 // The app's RUSH MODE screen (RushEffects.jsx): red-black veil, an orange
-// flash, the gradient title slamming in, the screen shaking.
-const RushScreen: React.FC = () => {
+// flash, the gradient title slamming in, the screen shaking. `lift` moves the
+// title up, clear of a focus card that is showing at the same time.
+const RushScreen: React.FC<{ lift?: number }> = ({ lift = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const slam = spring({ frame, fps, config: { damping: 11, stiffness: 220 } });
@@ -281,7 +342,7 @@ const RushScreen: React.FC = () => {
     <AbsoluteFill style={{ opacity: out, alignItems: 'center', justifyContent: 'center' }}>
       <AbsoluteFill style={{ background: 'rgba(8,0,0,0.62)' }} />
       <AbsoluteFill style={{ background: 'radial-gradient(circle at center, rgba(255,140,0,0.45) 0%, transparent 60%)', opacity: flash }} />
-      <div style={{ transform: `translateX(${shake}px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 60px' }}>
+      <div style={{ transform: `translate(${shake}px, ${-lift}px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 60px' }}>
         <div
           style={{
             fontFamily: FONT.display,
@@ -310,6 +371,7 @@ const RushScreen: React.FC = () => {
             letterSpacing: '0.06em',
             marginTop: 20,
             textAlign: 'center',
+            textWrap: 'balance',
             textShadow: '0 0 18px rgba(255,200,100,0.5)',
             opacity: interpolate(frame, [6, 14], [0, 1], clamp),
           }}
@@ -415,6 +477,12 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
   const rush = rushFrom != null && frame >= rushFrom;
   const sinceRush = rushFrom != null ? frame - rushFrom : -1;
   const shake = sinceRush >= 0 && sinceRush < 12 ? Math.sin(sinceRush * 2.9) * (12 - sinceRush) * 1.6 : 0;
+  const cardY = r.card?.y ?? CARD.y;
+  const cardSpans = r.card?.spans ?? CARD.spans;
+  const rushT = rushFrom != null ? [rushFrom / fps, (rushFrom + RUSH_SCREEN_FRAMES) / fps] : null;
+  const cardInRush = rushT != null && cardSpans.some(([a, b]) => a < rushT[1] && b > rushT[0]);
+  // Lift the RUSH title so its bottom sits above the card (title block is ~240 px tall).
+  const rushLift = cardInRush ? Math.max(0, 960 + 130 - (cardY - CARD.height / 2 - 40)) : 0;
   return (
     <AbsoluteFill style={{ background: '#0a0014' }}>
       <Footage src={r.src} start={r.start} rate={r.rate} focusX={r.focusX} focusY={r.focusY} shake={shake} />
@@ -427,10 +495,11 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
           }}
         />
       ) : null}
+      <FocusCard n={n} title={r.title} cue={r.cue} y={cardY} spans={cardSpans} color={ringColor(Math.ceil(left), rush)} />
       <TimerBar n={n} total={total} discipline={p.discipline} difficulty={p.difficulty ?? 'Normal'} left={left} roundSec={roundSec} rush={rush} />
       {rushFrom != null ? (
         <Sequence from={rushFrom} durationInFrames={RUSH_SCREEN_FRAMES}>
-          <RushScreen />
+          <RushScreen lift={rushLift} />
         </Sequence>
       ) : null}
       {frame < CALL_FRAMES ? (

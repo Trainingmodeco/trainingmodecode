@@ -134,8 +134,17 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   the round) fires the app's RUSH MODE screen with a shake and finishes the
   round in RUSH (orange ring, ⚡ RUSH, embers, edge glow): the owner wants it
   wherever they punch fast, so find the bursts with frame-difference motion
-  and fire it just before the peak. Aim for 40–45 s total; 5–7 rounds of
-  about 6 s. Pick the most dynamic seconds (contact sheets at 2–4 fps; skip
+  and fire it just before the peak. After the call, the app's focus card
+  shows the drill and a one-line coach `cue` (default: the first 2.2 s).
+  **The owner may type round names onto their clips as reference labels:
+  use them for the round names and order, but never let them show.** Find
+  where and when each label sits (white pixels that hold still while the body
+  moves), cut rounds from clean stretches where you can (labels often appear
+  a few seconds after a cut), and otherwise set `card: { "y": <px>, "spans":
+  [[from, to], ...] }` so the card covers the label for every frame it is on
+  screen; a span that starts mid-round should start with `rushAt`, so the
+  RUSH screen covers the card cutting in. Check the frames where each card
+  ends. Aim for 40–45 s total; 5–7 rounds of about 6 s. Pick the most dynamic seconds (contact sheets at 2–4 fps; skip
   walk-bys) and name each round for the drill actually on screen. The owner
   wants it to look like the app: match the app's screens, colours, copy and
   fonts (Press Start 2P is allowed here for the timer label).
