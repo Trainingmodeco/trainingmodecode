@@ -12,10 +12,17 @@ export async function resolve(specifier, context, next) {
     if (!specifier.startsWith('.')) throw err;
     const base = context.parentURL ? new URL(specifier, context.parentURL) : null;
     if (!base) throw err;
-    for (const ext of ['.js', '.jsx', '.mjs', '/index.js']) {
+    for (const ext of ['.js', '.jsx', '.mjs', '.ts', '/index.js', '/index.ts']) {
       const candidate = fileURLToPath(base) + ext;
       if (existsSync(candidate)) return next(pathToFileURL(candidate).href, context);
     }
     throw err;
   }
+}
+
+// Metro imports JSON without an import attribute; node wants `with { type: 'json' }`.
+// (TypeScript files load through node's built-in type stripping.)
+export async function load(url, context, next) {
+  if (url.endsWith('.json')) return next(url, { ...context, importAttributes: { ...(context.importAttributes || {}), type: 'json' } });
+  return next(url, context);
 }

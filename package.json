@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "cross-env EXPO_NO_TELEMETRY=1 expo start",
     "dev:web": "cross-env EXPO_NO_TELEMETRY=1 expo start --web",
+    "website": "node scripts/serve-website.mjs",
     "build:web": "node scripts/check-public-assets.mjs && node scripts/lock-assets.mjs && node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && expo export --platform web && node scripts/copy-public-assets.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",
     "check:assets": "node scripts/check-public-assets.mjs",
@@ -22,6 +23,7 @@
     "test:xp": "node --import ./scripts/extensionless-loader-register.mjs scripts/test-xp-verdicts.mjs",
     "test:concepts": "node --import ./scripts/extensionless-loader-register.mjs scripts/test-concepts.mjs",
     "test:tapes": "node --import ./scripts/extensionless-loader-register.mjs scripts/test-tapes.mjs",
+    "content:kit": "node --import ./scripts/extensionless-loader-register.mjs scripts/content-kit.mjs",
     "test:cardio": "node --import ./scripts/extensionless-loader-register.mjs scripts/test-cardio-generator.mjs",
     "audit:cc": "node --import ./scripts/extensionless-loader-register.mjs scripts/audit-cc-generator.mjs",
     "audit:tap": "node scripts/audit-tap-targets.mjs"

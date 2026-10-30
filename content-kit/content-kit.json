@@ -1,0 +1,2439 @@
+{
+  "generatedAt": "2026-10-30",
+  "source": "npm run content:kit (scripts/content-kit.mjs) — do not edit by hand",
+  "brand": {
+    "name": "Training Mode",
+    "coach": "Coach TM",
+    "appUrl": "https://apptrainingmode.com",
+    "siteUrl": "https://trainingmode.co",
+    "socials": {
+      "instagram": "https://www.instagram.com/trainingmode.co/",
+      "tiktok": "https://www.tiktok.com/@trainingmode.co",
+      "youtube": "https://www.youtube.com/@trainingmode.co",
+      "facebook": "https://www.facebook.com/trainingmode.co"
+    },
+    "colors": {
+      "background": "#080012",
+      "panel": "#180030",
+      "violet": "#a855f7",
+      "gold": "#fde047",
+      "red": "#ef4444",
+      "green": "#22c55e",
+      "text": "#f5e9ff",
+      "muted": "#c4a4d8"
+    },
+    "fonts": {
+      "display": "Orbitron",
+      "ui": "Chakra Petch",
+      "body": "Rajdhani",
+      "pixel": "Press Start 2P"
+    },
+    "logos": [
+      {
+        "path": "/static/logo-title-full.webp",
+        "url": "https://apptrainingmode.com/static/logo-title-full.webp"
+      },
+      {
+        "path": "/static/logo-wordmark-full.webp",
+        "url": "https://apptrainingmode.com/static/logo-wordmark-full.webp"
+      },
+      {
+        "path": "/static/logo-mark.webp",
+        "url": "https://apptrainingmode.com/static/logo-mark.webp"
+      },
+      {
+        "path": "/static/app-icon.webp",
+        "url": "https://apptrainingmode.com/static/app-icon.webp"
+      }
+    ]
+  },
+  "rules": {
+    "naming": "App names only. No franchise or character names, and no film references, in titles, on-screen text, captions or thumbnails.",
+    "neverSay": [
+      "Ryu",
+      "Ken",
+      "Akuma",
+      "Street Fighter",
+      "Goku",
+      "Vegeta",
+      "Dragon Ball",
+      "Ultra Instinct",
+      "Saitama",
+      "One Punch Man",
+      "Batman",
+      "Dark Knight",
+      "Gotham",
+      "Wonder Woman",
+      "Baki",
+      "Hanma",
+      "Sonic",
+      "Spider-Man",
+      "Guts",
+      "Berserk",
+      "Sparta"
+    ],
+    "xp": "The app rewards the workout, never views, likes, follows or subscribes. CTA: \"open the app and hit CLEARED\"."
+  },
+  "modes": {
+    "fit": [
+      "Quick Mission",
+      "Build Workout",
+      "Programs",
+      "Cardio (GPS + machines)"
+    ],
+    "fight": [
+      "Just Train",
+      "Fight Focus",
+      "Combo Coach",
+      "Training Camp (12 levels)",
+      "Practice",
+      "Combat Conditioning"
+    ],
+    "arcade": "10-stage sagas with a boss; pick FIT, FIGHT or BOTH on every stage."
+  },
+  "pro": {
+    "benefits": [
+      "All Arcade protocols & boss stages",
+      "Training Camp levels 4-12",
+      "Unlimited saved Builder routines",
+      "Full session length in Combo Coach & Fight Focus",
+      "Every past concept drop in the Vault"
+    ],
+    "prices": [
+      {
+        "id": "monthly",
+        "label": "MONTHLY",
+        "price": "$5.99",
+        "cadence": "/mo",
+        "note": "Cancel anytime"
+      },
+      {
+        "id": "annual",
+        "label": "ANNUAL",
+        "price": "$34.99",
+        "cadence": "/yr",
+        "note": "$2.92/mo · billed yearly"
+      },
+      {
+        "id": "founder",
+        "label": "FOUNDER",
+        "price": "$59",
+        "cadence": "once",
+        "note": "Lifetime · beta founders only"
+      }
+    ],
+    "freeAlways": "The current concept drop is always free."
+  },
+  "ranks": [
+    {
+      "id": "rookie",
+      "name": "Rookie",
+      "label": "Combat Rookie",
+      "xpFrom": 0,
+      "color": "#b87333",
+      "art": {
+        "path": "/static/tiers/rookie-male.png",
+        "url": "https://apptrainingmode.com/static/tiers/rookie-male.png"
+      }
+    },
+    {
+      "id": "novice",
+      "name": "Novice",
+      "label": "Combat Novice",
+      "xpFrom": 500,
+      "color": "#c0c0c0",
+      "art": {
+        "path": "/static/tiers/novice-male.png",
+        "url": "https://apptrainingmode.com/static/tiers/novice-male.png"
+      }
+    },
+    {
+      "id": "warrior",
+      "name": "Warrior",
+      "label": "Combat Warrior",
+      "xpFrom": 1500,
+      "color": "#fde047",
+      "art": {
+        "path": "/static/tiers/warrior-male.png",
+        "url": "https://apptrainingmode.com/static/tiers/warrior-male.png"
+      }
+    },
+    {
+      "id": "elite",
+      "name": "Max",
+      "label": "Combat Max",
+      "xpFrom": 3500,
+      "color": "#60a5fa",
+      "art": {
+        "path": "/static/tiers/elite-male.png",
+        "url": "https://apptrainingmode.com/static/tiers/elite-male.png"
+      }
+    },
+    {
+      "id": "champion",
+      "name": "Champion",
+      "label": "Combat Champion",
+      "xpFrom": 7000,
+      "color": "#c084fc",
+      "art": {
+        "path": "/static/tiers/champion-male.png",
+        "url": "https://apptrainingmode.com/static/tiers/champion-male.png"
+      }
+    }
+  ],
+  "drops": [
+    {
+      "id": "shoto",
+      "title": "SHOTO",
+      "tagline": "Three styles. One path. Fundamentals, speed, pressure.",
+      "start": "2026-10-23",
+      "end": "2026-11-30",
+      "status": "live",
+      "reward": {
+        "title": "SHOTO MASTER",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "art": {
+        "poster": {
+          "path": "/static/concepts/shoto/poster.webp",
+          "url": "https://apptrainingmode.com/static/concepts/shoto/poster.webp"
+        },
+        "wide": {
+          "path": "/static/concepts/shoto/wide.webp",
+          "url": "https://apptrainingmode.com/static/concepts/shoto/wide.webp"
+        },
+        "card": {
+          "path": "/static/concepts/shoto/card.webp",
+          "url": "https://apptrainingmode.com/static/concepts/shoto/card.webp"
+        },
+        "arcade": {
+          "path": "/static/series/posters/shoto.webp",
+          "url": "https://apptrainingmode.com/static/series/posters/shoto.webp"
+        }
+      },
+      "fit": {
+        "weeks": 4,
+        "minutesPerDay": 35,
+        "days": [
+          {
+            "label": "PATH OF THE WARRIOR",
+            "focus": "CONTROLLED POWER",
+            "run": false,
+            "moves": [
+              "Squat Jump to Pull-Up",
+              "Sandbag Over-Shoulder Toss",
+              "Plank to Push-Up to Knee Tuck",
+              "Med-Ball Chest Pass",
+              "Alternating Squat to Press",
+              "Controlled Push-Ups"
+            ]
+          },
+          {
+            "label": "REST",
+            "rest": true
+          },
+          {
+            "label": "BLAZING FISTS",
+            "focus": "EXPLOSIVE SPEED",
+            "run": false,
+            "moves": [
+              "Burpee Tuck Jump Sprint",
+              "Medicine Ball Slams",
+              "Overhead Med-Ball Jump Throw",
+              "Speed Knees",
+              "Explosive Push-Ups",
+              "180° Tuck Jumps"
+            ]
+          },
+          {
+            "label": "SHOTO PRACTICE",
+            "focus": "TECHNIQUE CONDITIONING",
+            "run": false,
+            "moves": [
+              "Jump Rope",
+              "Man Makers",
+              "Hindu Push-Ups",
+              "Hindu Squats",
+              "Horse Stance Hold",
+              "Fighter Hip Mobility",
+              "Alternating Front and Side Kicks",
+              "Alternating Roundhouse Kicks",
+              "Shadowboxing"
+            ]
+          },
+          {
+            "label": "DEMON PRESSURE",
+            "focus": "HARD CONDITIONING",
+            "run": false,
+            "moves": [
+              "Burpee to Pull-Up",
+              "Sandbag Carry Sprint",
+              "Medicine Ball Slams",
+              "Dive Bomber Split-Kick Jump",
+              "Heavy Knees",
+              "Rotational Jump Squats"
+            ]
+          },
+          {
+            "label": "ACTIVE RECOVERY",
+            "rest": true
+          },
+          {
+            "label": "REST",
+            "rest": true
+          }
+        ]
+      },
+      "fight": {
+        "discipline": "Kickboxing",
+        "weeks": 2,
+        "roundMin": 3,
+        "days": [
+          {
+            "label": "PATH OF THE WARRIOR",
+            "focus": "2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · Stance and Straight Lines",
+              "Shadow · Fundamentals With Feints",
+              "Bag · Clean Entries",
+              "Bag · Strong Finishes",
+              "Bag · Controlled Power"
+            ]
+          },
+          {
+            "label": "BLAZING FISTS",
+            "focus": "2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · Fast Entries",
+              "Shadow · Angles and Chains",
+              "Bag · Dutch Combinations",
+              "Bag · Explosive Finishes",
+              "Bag · Blazing Round"
+            ]
+          },
+          {
+            "label": "DEMON PRESSURE",
+            "focus": "2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · Forward Pressure",
+              "Shadow · Speed and Power",
+              "Bag · Power Combinations",
+              "Bag · Close Range",
+              "Bag · Demon Round"
+            ]
+          },
+          {
+            "label": "SHOTO PRACTICE",
+            "focus": "LIGHT · TECHNICAL",
+            "rounds": [
+              "Stance Transitions",
+              "Jab-Cross Mechanics",
+              "Roundhouse Mechanics",
+              "Spinning Kick Practice"
+            ]
+          }
+        ]
+      },
+      "arcade": [
+        {
+          "stage": 1,
+          "title": "STANCE & STRIKE",
+          "boss": false,
+          "format": "3 × 3:00"
+        },
+        {
+          "stage": 2,
+          "title": "CONTROLLED POWER",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 3,
+          "title": "THE FIREBALL",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 4,
+          "title": "BLAZING FEET",
+          "boss": false,
+          "format": "4 × 2:30"
+        },
+        {
+          "stage": 5,
+          "title": "DASH & STRIKE",
+          "boss": false,
+          "format": "EMOM 10 min"
+        },
+        {
+          "stage": 6,
+          "title": "SPINNING FLAME",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 7,
+          "title": "DEMON STEP",
+          "boss": false,
+          "format": "8 × 30 s on / 30 s off"
+        },
+        {
+          "stage": 8,
+          "title": "IRON BODY",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 9,
+          "title": "NO MERCY",
+          "boss": false,
+          "format": "5 × 3:00"
+        },
+        {
+          "stage": 10,
+          "title": "BOSS · THE DEMON WITHIN",
+          "boss": true,
+          "format": "For time"
+        }
+      ]
+    },
+    {
+      "id": "ultra-ego",
+      "title": "ULTRA EGO",
+      "tagline": "Power at all costs. Take the hit, give it back harder.",
+      "start": "2026-12-01",
+      "end": "2027-01-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "DESTROYER",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "art": {
+        "poster": {
+          "path": "/static/concepts/ultra-ego/poster.webp",
+          "url": "https://apptrainingmode.com/static/concepts/ultra-ego/poster.webp"
+        },
+        "wide": {
+          "path": "/static/concepts/ultra-ego/wide.webp",
+          "url": "https://apptrainingmode.com/static/concepts/ultra-ego/wide.webp"
+        },
+        "card": {
+          "path": "/static/concepts/ultra-ego/card.webp",
+          "url": "https://apptrainingmode.com/static/concepts/ultra-ego/card.webp"
+        },
+        "arcade": {
+          "path": "/static/series/posters/ultra-ego.webp",
+          "url": "https://apptrainingmode.com/static/series/posters/ultra-ego.webp"
+        }
+      },
+      "fit": {
+        "weeks": 4,
+        "minutesPerDay": 45,
+        "days": [
+          {
+            "label": "NECK & SHOULDERS",
+            "focus": "BRACE",
+            "run": false,
+            "moves": [
+              "Neck Curls (Front)",
+              "Neck Curls (Back)",
+              "Barbell Overhead Press (Military Press)",
+              "Dumbbell Shrugs",
+              "Lateral Raises",
+              "Typewriter Push-Ups"
+            ]
+          },
+          {
+            "label": "BACK & LATS",
+            "focus": "PULL",
+            "run": false,
+            "moves": [
+              "Wide Grip Pull-Ups",
+              "Chin-Ups",
+              "Dumbbell Bent-Over Rows",
+              "Inverted Rows",
+              "False-Grip Body Rows"
+            ]
+          },
+          {
+            "label": "LEGS",
+            "focus": "BASE",
+            "run": false,
+            "moves": [
+              "Goblet Squats",
+              "Dumbbell Sumo Squats",
+              "Kettlebell Swings",
+              "Calf Raises"
+            ]
+          },
+          {
+            "label": "REST OR LIGHT CARDIO",
+            "rest": true
+          },
+          {
+            "label": "FULL-BODY BURNOUT",
+            "focus": "VOLUME",
+            "run": false,
+            "moves": [
+              "Dive Bomber Push-Ups",
+              "Jump Squats",
+              "Archer Pull-Ups",
+              "Tiger Push-Ups",
+              "V-Ups",
+              "Neck Curls (Front)"
+            ]
+          },
+          {
+            "label": "ACTIVE RECOVERY",
+            "rest": true
+          },
+          {
+            "label": "REST",
+            "rest": true
+          }
+        ]
+      },
+      "fight": {
+        "discipline": "Muay Thai",
+        "weeks": 4,
+        "roundMin": 3,
+        "days": [
+          {
+            "label": "GROUNDED POWER",
+            "focus": "5 × 3:00 BAG",
+            "rounds": [
+              "Planted Jab-Cross",
+              "Power Hooks",
+              "Teep and Push",
+              "Body Shots",
+              "Everything Planted"
+            ]
+          },
+          {
+            "label": "AGGRESSION",
+            "focus": "5 × 3:00 SHADOW",
+            "rounds": [
+              "Walk Them Down",
+              "Combo Chains",
+              "Kicks Off the Hands",
+              "Knees in Range",
+              "Ultra Ego"
+            ]
+          },
+          {
+            "label": "ROLL & ANSWER",
+            "focus": "5 × 3:00 BAG",
+            "rounds": [
+              "Slip and Roll",
+              "Roll Then Hook",
+              "Catch and Return",
+              "Check and Kick",
+              "Take It, Give It"
+            ]
+          },
+          {
+            "label": "NO RETREAT",
+            "focus": "PRESSURE CIRCUIT",
+            "rounds": [
+              "Forward Only",
+              "Slam and Strike",
+              "Sprawl and Brawl",
+              "Rope Burn",
+              "Last Stand"
+            ]
+          },
+          {
+            "label": "TECHNIQUE SHARPEN",
+            "focus": "5 × 3:00 COMBOS",
+            "rounds": [
+              "Clean Jab-Cross",
+              "Hook-Kick",
+              "Elbow Entries",
+              "Parry-Counter",
+              "Footwork Bag"
+            ]
+          }
+        ]
+      },
+      "arcade": [
+        {
+          "stage": 1,
+          "title": "AWAKENING",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 2,
+          "title": "PLANTED",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 3,
+          "title": "BRACE FOR IMPACT",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 4,
+          "title": "SEES RED",
+          "boss": false,
+          "format": "EMOM 10 min"
+        },
+        {
+          "stage": 5,
+          "title": "IRON BACK",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 6,
+          "title": "ROLL & ANSWER",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 7,
+          "title": "DESTROYER LEGS",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 8,
+          "title": "NO RETREAT",
+          "boss": false,
+          "format": "8 × 30 s on / 30 s off"
+        },
+        {
+          "stage": 9,
+          "title": "PRIDE",
+          "boss": false,
+          "format": "5 × 3:00"
+        },
+        {
+          "stage": 10,
+          "title": "BOSS · ULTRA EGO",
+          "boss": true,
+          "format": "For time"
+        }
+      ]
+    },
+    {
+      "id": "flow-state",
+      "title": "FLOW STATE",
+      "tagline": "Move before you think. Slip, angle, counter, flow.",
+      "start": "2027-02-01",
+      "end": "2027-03-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "FLOW STATE",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "art": {
+        "poster": {
+          "path": "/static/concepts/flow-state/poster.webp",
+          "url": "https://apptrainingmode.com/static/concepts/flow-state/poster.webp"
+        },
+        "wide": {
+          "path": "/static/concepts/flow-state/wide.webp",
+          "url": "https://apptrainingmode.com/static/concepts/flow-state/wide.webp"
+        },
+        "card": {
+          "path": "/static/concepts/flow-state/card.webp",
+          "url": "https://apptrainingmode.com/static/concepts/flow-state/card.webp"
+        },
+        "arcade": {
+          "path": "/static/series/posters/ultra-instinct.webp",
+          "url": "https://apptrainingmode.com/static/series/posters/ultra-instinct.webp"
+        }
+      },
+      "fit": {
+        "weeks": 4,
+        "minutesPerDay": 45,
+        "days": [
+          {
+            "label": "ROOTED",
+            "focus": "STRENGTH",
+            "run": false,
+            "moves": [
+              "Jumping Bar Squats",
+              "Jumping Muscle-Ups",
+              "Dumbbell Clean to Snatch",
+              "Flow Core Chain",
+              "Slow-Eccentric Push-Ups",
+              "Hollow Body Hold"
+            ]
+          },
+          {
+            "label": "SPARK",
+            "focus": "PLYOMETRICS",
+            "run": false,
+            "moves": [
+              "Burpee High Jumps",
+              "Uneven Platform Explosive Push-Ups",
+              "Ball Throw to Squat",
+              "Single-Arm Wall Ball to Sprawl",
+              "Lunge to Single-Leg Jump",
+              "Tennis Ball Wall Bounce"
+            ]
+          },
+          {
+            "label": "STILL MIND",
+            "rest": true
+          },
+          {
+            "label": "LIGHT FEET",
+            "focus": "AGILITY",
+            "run": false,
+            "moves": [
+              "Alternating Ladder Drills",
+              "Ickey Shuffle",
+              "Ali Shuffle",
+              "Lead-Foot In-and-Outs",
+              "Cone Angle Drill",
+              "Depth Jumps",
+              "Freestyle Footwork with Strikes"
+            ]
+          },
+          {
+            "label": "THE THOUSAND",
+            "focus": "HIGH VOLUME",
+            "run": false,
+            "moves": [
+              "Bodyweight Squats",
+              "Push-Ups",
+              "Inverted Rows",
+              "Dips",
+              "Tuck-Ins",
+              "Russian Twists",
+              "V-Ups"
+            ]
+          },
+          {
+            "label": "ONE BODY",
+            "focus": "FUNCTIONAL",
+            "run": false,
+            "moves": [
+              "Bulgarian Split Squat",
+              "Single-Arm Inverted Row with Reach",
+              "Shoulder Plate Rotations",
+              "Barbell Push-Out to Press",
+              "Kettlebell Around the World to High Catch",
+              "Weighted Turkish Get-Up"
+            ]
+          },
+          {
+            "label": "REST",
+            "rest": true
+          }
+        ]
+      },
+      "fight": {
+        "discipline": "Kickboxing",
+        "weeks": 3,
+        "roundMin": 3,
+        "days": [
+          {
+            "label": "ONE THOUSAND TIMES",
+            "focus": "REPETITION · 5 BAG",
+            "rounds": [
+              "Bag · One Strike: Hands",
+              "Bag · One Strike: Legs",
+              "Bag · One Combination",
+              "Bag · The Long Chain",
+              "Bag · No Thought"
+            ]
+          },
+          {
+            "label": "OFF THE LINE",
+            "focus": "ANGLES · 3 SHADOW · 2 BAG",
+            "rounds": [
+              "Shadow · Footwork Only",
+              "Shadow · Angle After the Combination",
+              "Shadow · Angle Inside the Combination",
+              "Bag · One Strike, Every Angle",
+              "Bag · Angle Strikes"
+            ]
+          },
+          {
+            "label": "UNTOUCHABLE",
+            "focus": "DODGE · COUNTER · 2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · Head Movement Only",
+              "Shadow · Slip and Return",
+              "Bag · Check and Return",
+              "Bag · Slip to Strike",
+              "Bag · Angle Counters"
+            ]
+          },
+          {
+            "label": "FLOW STATE",
+            "focus": "4 SHADOW · 2 FLOW BAG",
+            "rounds": [
+              "Flow · No Opponent",
+              "Flow · Slow Opponent",
+              "Flow · Moderate Pace",
+              "Flow · Moderate Pace, Deeper",
+              "Flow Bag · 30 to 40 Percent",
+              "Flow Bag · Silver Flow"
+            ]
+          }
+        ]
+      },
+      "arcade": [
+        {
+          "stage": 1,
+          "title": "FIRST STEP",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 2,
+          "title": "THE THOUSAND",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 3,
+          "title": "LIGHT FEET",
+          "boss": false,
+          "format": "4 × 2:30"
+        },
+        {
+          "stage": 4,
+          "title": "CUT THE ANGLE",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 5,
+          "title": "SPARK",
+          "boss": false,
+          "format": "EMOM 10 min"
+        },
+        {
+          "stage": 6,
+          "title": "NO TOUCH",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 7,
+          "title": "STILL WATER",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 8,
+          "title": "COUNTER",
+          "boss": false,
+          "format": "8 × 30 s on / 30 s off"
+        },
+        {
+          "stage": 9,
+          "title": "SILVER EDGE",
+          "boss": false,
+          "format": "5 × 3:00"
+        },
+        {
+          "stage": 10,
+          "title": "BOSS · EMPTY MIND",
+          "boss": true,
+          "format": "For time"
+        }
+      ]
+    },
+    {
+      "id": "one-hundred",
+      "title": "ONE HUNDRED",
+      "tagline": "100 push-ups. 100 sit-ups. 100 squats. Then run.",
+      "start": "2027-04-01",
+      "end": "2027-05-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "LIMIT BREAKER",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "art": {
+        "poster": {
+          "path": "/static/concepts/one-hundred/poster.webp",
+          "url": "https://apptrainingmode.com/static/concepts/one-hundred/poster.webp"
+        },
+        "wide": {
+          "path": "/static/concepts/one-hundred/wide.webp",
+          "url": "https://apptrainingmode.com/static/concepts/one-hundred/wide.webp"
+        },
+        "card": {
+          "path": "/static/concepts/one-hundred/card.webp",
+          "url": "https://apptrainingmode.com/static/concepts/one-hundred/card.webp"
+        },
+        "arcade": {
+          "path": "/static/series/posters/one-punch.webp",
+          "url": "https://apptrainingmode.com/static/series/posters/one-punch.webp"
+        }
+      },
+      "fit": {
+        "weeks": 4,
+        "minutesPerDay": 60,
+        "days": [
+          {
+            "label": "ONE HUNDRED PUSH",
+            "focus": "PUSH-UP MASTERY",
+            "run": false,
+            "moves": [
+              "Push-Ups",
+              "Diamond Push-Ups",
+              "Wide Push-Ups",
+              "Hindu Push-Ups",
+              "Clap Push-Ups",
+              "Shoulder Tap Push-Ups",
+              "Archer Push-Ups",
+              "Typewriter Push-Ups",
+              "Pike Push-Ups",
+              "Hero Push-Ups",
+              "Flutter Kicks",
+              "Dragon Flag Negatives"
+            ]
+          },
+          {
+            "label": "ONE HUNDRED SQUAT",
+            "focus": "LEG MASTERY",
+            "run": false,
+            "moves": [
+              "Air Squats",
+              "Sumo Squats",
+              "Jump Squats",
+              "Pause Squats",
+              "Bulgarian Split Squats",
+              "Wall Sit Calf Raises",
+              "Pulse Squats",
+              "Assisted Pistol Squats",
+              "Step-Through Lunges",
+              "Sissy Squats",
+              "Hollow Body Hold",
+              "Bicycle Crunches"
+            ]
+          },
+          {
+            "label": "THE 10K",
+            "focus": "CARDIO MODE",
+            "run": true,
+            "moves": []
+          },
+          {
+            "label": "ONE HUNDRED SIT-UP",
+            "focus": "CORE MASTERY",
+            "run": false,
+            "moves": [
+              "Sit-Ups",
+              "Crunches",
+              "Butterfly Sit-Ups",
+              "Tuck Sit-Ups",
+              "Weighted Sit-Ups",
+              "V-Ups",
+              "Cross-Body Sit-Ups",
+              "Feet-to-Ceiling Sit-Ups",
+              "Sit-Up Punches",
+              "Decline Sit-Ups",
+              "Max Plank",
+              "Mountain Climbers",
+              "Jumping Jacks",
+              "Push-Ups",
+              "Burpees"
+            ]
+          },
+          {
+            "label": "REST",
+            "rest": true
+          },
+          {
+            "label": "REST",
+            "rest": true
+          },
+          {
+            "label": "REST",
+            "rest": true
+          }
+        ]
+      },
+      "fight": {
+        "discipline": "Boxing",
+        "weeks": 2,
+        "roundMin": 3,
+        "days": [
+          {
+            "label": "ONE STRAIGHT",
+            "focus": "2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · The Straight",
+              "Shadow · Set It Up",
+              "Bag · Power Straights",
+              "Bag · Lead Hand Power",
+              "Bag · The Decisive Punch"
+            ]
+          },
+          {
+            "label": "THE COUNTER",
+            "focus": "2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · Slip and Fire",
+              "Shadow · Parry and Return",
+              "Bag · Counter Straights",
+              "Bag · Check Hook",
+              "Bag · Counter to Finish"
+            ]
+          },
+          {
+            "label": "BODY WORK",
+            "focus": "1 SHADOW · 4 BAG",
+            "rounds": [
+              "Shadow · Level Change",
+              "Bag · Liver Shot",
+              "Bag · Body Uppercuts",
+              "Bag · Downstairs, Upstairs",
+              "Bag · Body Finish"
+            ]
+          },
+          {
+            "label": "ALL-OUT SERIES",
+            "focus": "5 BAG · RUSH",
+            "rounds": [
+              "Bag · Straight Punches",
+              "Bag · Hundred Punches",
+              "Crowd · Switch and Strike",
+              "Bag · All-Out Pressure",
+              "Bag · Limit Breaker"
+            ]
+          }
+        ]
+      },
+      "arcade": [
+        {
+          "stage": 1,
+          "title": "DAY ONE",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 2,
+          "title": "MORNING ROUTINE",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 3,
+          "title": "THE SUPERMARKET SALE",
+          "boss": false,
+          "format": "5 × 2:00"
+        },
+        {
+          "stage": 4,
+          "title": "NO AIR CONDITIONING",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 5,
+          "title": "THE HILL",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 6,
+          "title": "HALFWAY THERE",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 7,
+          "title": "SIT-UP SUPREMACY",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 8,
+          "title": "DAILY QUOTA",
+          "boss": false,
+          "format": "4 × 3:00"
+        },
+        {
+          "stage": 9,
+          "title": "THREE YEARS LATER",
+          "boss": false,
+          "format": "5 × 3:00"
+        },
+        {
+          "stage": 10,
+          "title": "BOSS · ONE HUNDRED",
+          "boss": true,
+          "format": "For time"
+        }
+      ]
+    },
+    {
+      "id": "warrior-queen",
+      "title": "WARRIOR QUEEN",
+      "tagline": "Built like a goddess, trained like a warrior. Lift, sculpt, fight.",
+      "start": "2027-06-01",
+      "end": "2027-07-31",
+      "status": "upcoming",
+      "reward": {
+        "title": "WARRIOR QUEEN",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "art": {
+        "poster": {
+          "path": "/static/concepts/warrior-queen/poster.webp",
+          "url": "https://apptrainingmode.com/static/concepts/warrior-queen/poster.webp"
+        },
+        "wide": {
+          "path": "/static/concepts/warrior-queen/wide.webp",
+          "url": "https://apptrainingmode.com/static/concepts/warrior-queen/wide.webp"
+        },
+        "card": {
+          "path": "/static/concepts/warrior-queen/card.webp",
+          "url": "https://apptrainingmode.com/static/concepts/warrior-queen/card.webp"
+        },
+        "arcade": {
+          "path": "/static/series/posters/warrior-queen.webp",
+          "url": "https://apptrainingmode.com/static/series/posters/warrior-queen.webp"
+        }
+      },
+      "fit": {
+        "weeks": 4,
+        "minutesPerDay": 50,
+        "days": [
+          {
+            "label": "THE FORGE",
+            "focus": "POWER + STRENGTH",
+            "run": false,
+            "moves": [
+              "Deadlift",
+              "Front Squat",
+              "Alternating Dumbbell Snatch",
+              "Box Jumps",
+              "Push Press",
+              "Farmer Carry"
+            ]
+          },
+          {
+            "label": "THE SCULPTOR",
+            "focus": "GLUTES + CORE",
+            "run": false,
+            "moves": [
+              "Barbell Hip Thrusts",
+              "Bulgarian Split Squats",
+              "Hanging Leg Raises",
+              "Cable Glute Kickbacks",
+              "Side Plank with Reach-Under",
+              "Weighted Walking Lunges",
+              "Glute Bridge Hold",
+              "Russian Twists"
+            ]
+          },
+          {
+            "label": "REST",
+            "rest": true
+          },
+          {
+            "label": "BATTLE DAY",
+            "focus": "METCON + CORE",
+            "run": false,
+            "moves": [
+              "Dumbbell Thrusters",
+              "Kettlebell Swings",
+              "Jump Lunges",
+              "Burpee Broad Jumps",
+              "Jump Rope",
+              "Hanging Knee Raises",
+              "Dead Bugs",
+              "Cable Oblique Crunch"
+            ]
+          },
+          {
+            "label": "THE HEROIC BUILD",
+            "focus": "HYPERTROPHY",
+            "run": false,
+            "moves": [
+              "Wide-Grip Pull-Ups",
+              "Barbell Hip Thrusts",
+              "Incline Dumbbell Press",
+              "Pullover Crunch",
+              "Arnold Press",
+              "Single-Arm Kettlebell Swings",
+              "Reverse Lunge to Step-Up",
+              "Hollow Hold"
+            ]
+          },
+          {
+            "label": "ACTIVE REST",
+            "rest": true
+          },
+          {
+            "label": "REST",
+            "rest": true
+          }
+        ]
+      },
+      "fight": {
+        "discipline": "Kickboxing",
+        "weeks": 2,
+        "roundMin": 3,
+        "days": [
+          {
+            "label": "SHIELD & BRACERS",
+            "focus": "BLOCKS · PARRIES · COUNTERS",
+            "rounds": [
+              "Shadow · Shield Up",
+              "Shadow · Parry and Return",
+              "Bag · Block and Counter",
+              "Bag · Check and Counter",
+              "Bag · Bracer Storm"
+            ]
+          },
+          {
+            "label": "THE BIND",
+            "focus": "CLINCH · KNEES",
+            "rounds": [
+              "Shadow · Frame and Pull",
+              "Bag · Clinch Knees",
+              "Bag · Pull In and Finish",
+              "Bag · Catch and Turn",
+              "Bag · Bracer Storm"
+            ]
+          },
+          {
+            "label": "POWER KICKS",
+            "focus": "LOW · BODY · HIGH",
+            "rounds": [
+              "Shadow · Kick Mechanics",
+              "Bag · Low Kicks",
+              "Bag · Body Kicks",
+              "Bag · Spear Kicks",
+              "Bag · Bracer Storm"
+            ]
+          },
+          {
+            "label": "THE BATTLEFIELD",
+            "focus": "MULTIPLE OPPONENTS",
+            "rounds": [
+              "Shadow · See the Field",
+              "Multiple Opponents",
+              "Multiple Opponents · Shield Wall",
+              "Multiple Opponents · Clear the Lane",
+              "Multiple Opponents · Bracer Storm"
+            ]
+          }
+        ]
+      },
+      "arcade": [
+        {
+          "stage": 1,
+          "title": "THE SHORE",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 2,
+          "title": "SHIELD WALL",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 3,
+          "title": "SPEAR LINE",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 4,
+          "title": "THE BRACERS",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 5,
+          "title": "THE BIND",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 6,
+          "title": "OLYMPIAN GAMES",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 7,
+          "title": "THE CLIFFS",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 8,
+          "title": "TEMPLE STEPS",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 9,
+          "title": "THE BATTLEFIELD",
+          "boss": false,
+          "format": "4 × 3:00"
+        },
+        {
+          "stage": 10,
+          "title": "BOSS · THE TITAN",
+          "boss": true,
+          "format": "For time"
+        }
+      ]
+    },
+    {
+      "id": "night-vigilante",
+      "title": "NIGHT VIGILANTE",
+      "tagline": "Before the mask: the training years. Run, lift, fight, climb.",
+      "start": "2027-08-01",
+      "end": "2027-09-30",
+      "status": "upcoming",
+      "reward": {
+        "title": "NIGHT VIGILANTE",
+        "xp": 500
+      },
+      "tierLabels": {
+        "easy": "ROOKIE",
+        "normal": "NORMAL",
+        "hard": "ELITE"
+      },
+      "art": {
+        "poster": {
+          "path": "/static/concepts/night-vigilante/poster.webp",
+          "url": "https://apptrainingmode.com/static/concepts/night-vigilante/poster.webp"
+        },
+        "wide": {
+          "path": "/static/concepts/night-vigilante/wide.webp",
+          "url": "https://apptrainingmode.com/static/concepts/night-vigilante/wide.webp"
+        },
+        "card": {
+          "path": "/static/concepts/night-vigilante/card.webp",
+          "url": "https://apptrainingmode.com/static/concepts/night-vigilante/card.webp"
+        },
+        "arcade": {
+          "path": "/static/series/posters/night-vigilante.webp",
+          "url": "https://apptrainingmode.com/static/series/posters/night-vigilante.webp"
+        }
+      },
+      "fit": {
+        "weeks": 4,
+        "minutesPerDay": 60,
+        "days": [
+          {
+            "label": "THE FOUNDATION",
+            "focus": "LIFT + METCON",
+            "run": false,
+            "moves": [
+              "Clean and Jerk",
+              "Quarter-Mile Run",
+              "Kettlebell Swings",
+              "Pull-Ups",
+              "Flexibility Flow"
+            ]
+          },
+          {
+            "label": "THE RINGS",
+            "focus": "GYMNASTICS + PLYO",
+            "run": false,
+            "moves": [
+              "Rope Climb",
+              "Low-Ring Muscle-Up Transitions",
+              "Ring Support Hold",
+              "Box Jumps",
+              "Hanging Tuck Raises",
+              "Crunches"
+            ]
+          },
+          {
+            "label": "THE DEAD WEIGHT",
+            "focus": "POSTERIOR CHAIN",
+            "run": false,
+            "moves": [
+              "Deadlift",
+              "Light Deadlift",
+              "Rower",
+              "Yoga Flow"
+            ]
+          },
+          {
+            "label": "THE LONG NIGHT",
+            "focus": "CARDIO MODE",
+            "run": true,
+            "moves": []
+          },
+          {
+            "label": "THE CLIMB",
+            "focus": "LEGS + HANG + PARKOUR",
+            "run": false,
+            "moves": [
+              "Back Squat",
+              "Monkey Bar Traverse",
+              "Dead Hang",
+              "Hanging Knee Raises",
+              "Precision Jumps",
+              "Safety Vaults",
+              "Bear Crawl"
+            ]
+          },
+          {
+            "label": "REST",
+            "rest": true
+          },
+          {
+            "label": "THE GAUNTLET",
+            "focus": "FULL BODY",
+            "run": false,
+            "moves": [
+              "Back Squat",
+              "Push-Ups",
+              "Monkey Bar Traverse",
+              "L-Sit Hold",
+              "Crunches",
+              "Rower"
+            ]
+          }
+        ]
+      },
+      "fight": {
+        "discipline": "MMA",
+        "weeks": 4,
+        "roundMin": 3,
+        "days": [
+          {
+            "label": "THE FOUNDATION",
+            "focus": "2 SHADOW · 3 BAG",
+            "rounds": [
+              "Shadow · Strike and Leave",
+              "Shadow · Level Changes",
+              "Bag · Clean Entries",
+              "Bag · Power and Exit",
+              "Bag · Nightfall"
+            ]
+          },
+          {
+            "label": "BAG & TARGETS",
+            "focus": "6 BAG ROUNDS",
+            "rounds": [
+              "Bag · Target Practice",
+              "Bag · Dutch Hands to Legs",
+              "Bag · Elbows and Knees",
+              "Bag · Spinning Strikes",
+              "Bag · Speed Targets",
+              "Bag · Nightfall"
+            ]
+          },
+          {
+            "label": "MULTIPLE OPPONENTS",
+            "focus": "SWITCH · PIVOT",
+            "rounds": [
+              "Shadow · Footwork and Pivots",
+              "Multiple Opponents",
+              "Multiple Opponents · Turn and Spin",
+              "Multiple Opponents · Crowd",
+              "Multiple Opponents · Nightfall"
+            ]
+          },
+          {
+            "label": "BAG FINISHER",
+            "focus": "4 BAG · RUSH",
+            "rounds": [
+              "Bag · Pressure and Exit",
+              "Multiple Opponents",
+              "Bag · Volume",
+              "Bag · Nightfall"
+            ]
+          }
+        ]
+      },
+      "arcade": [
+        {
+          "stage": 1,
+          "title": "THE ROOFTOP",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 2,
+          "title": "GRIP OF THE NIGHT",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 3,
+          "title": "THE LEDGE",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 4,
+          "title": "ROPE LINE",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 5,
+          "title": "THE ALLEY",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 6,
+          "title": "IRON CAGE",
+          "boss": false,
+          "format": "4 rounds"
+        },
+        {
+          "stage": 7,
+          "title": "NIGHT RUN",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 8,
+          "title": "THE CLIMB",
+          "boss": false,
+          "format": "3 rounds"
+        },
+        {
+          "stage": 9,
+          "title": "NIGHT SHIFT",
+          "boss": false,
+          "format": "4 × 3:00"
+        },
+        {
+          "stage": 10,
+          "title": "BOSS · THE MASK",
+          "boss": true,
+          "format": "For time"
+        }
+      ]
+    }
+  ],
+  "tapes": [
+    {
+      "number": "#01",
+      "id": "shadow-01",
+      "title": "Kickboxing Basics",
+      "shelf": "fight",
+      "meta": "Shadowboxing · 3 rounds",
+      "minutes": 22,
+      "gear": "No gear",
+      "xp": 66,
+      "liveVersionOf": "Live · Shadowbox Mini",
+      "youtubeId": null,
+      "art": {
+        "path": "/static/revamp/hub-fight-reveal.webp",
+        "url": "https://apptrainingmode.com/static/revamp/hub-fight-reveal.webp"
+      }
+    },
+    {
+      "number": "#02",
+      "id": "bw-01",
+      "title": "Deadly Seven",
+      "shelf": "fit",
+      "meta": "Bodyweight · 7 × 7 × 7",
+      "minutes": 30,
+      "gear": "No gear",
+      "xp": 90,
+      "liveVersionOf": "Live · Quick Mission",
+      "youtubeId": null,
+      "art": {
+        "path": "/static/revamp/hub-fit-reveal.webp",
+        "url": "https://apptrainingmode.com/static/revamp/hub-fit-reveal.webp"
+      }
+    },
+    {
+      "number": "#03",
+      "id": "kb-01",
+      "title": "The 300",
+      "shelf": "fit",
+      "meta": "Kettlebell · 300 reps",
+      "minutes": 25,
+      "gear": "1 kettlebell",
+      "xp": 75,
+      "liveVersionOf": null,
+      "youtubeId": null,
+      "art": {
+        "path": "/static/fitmode/banner-gym-quick.webp",
+        "url": "https://apptrainingmode.com/static/fitmode/banner-gym-quick.webp"
+      }
+    },
+    {
+      "number": "#04",
+      "id": "bag-01",
+      "title": "Heavy Bag: 6 Rounds",
+      "shelf": "fight",
+      "meta": "Bag work · 6 rounds",
+      "minutes": 24,
+      "gear": "Bag + gloves",
+      "xp": 72,
+      "liveVersionOf": null,
+      "youtubeId": null,
+      "art": {
+        "path": "/static/hub/fight.webp",
+        "url": "https://apptrainingmode.com/static/hub/fight.webp"
+      }
+    },
+    {
+      "number": "#05",
+      "id": "cal-01",
+      "title": "Calisthenics Power",
+      "shelf": "fit",
+      "meta": "Calisthenics · 4 rounds",
+      "minutes": 25,
+      "gear": "Pull-up bar",
+      "xp": 75,
+      "liveVersionOf": null,
+      "youtubeId": null,
+      "art": {
+        "path": "/static/hub/fit.webp",
+        "url": "https://apptrainingmode.com/static/hub/fit.webp"
+      }
+    },
+    {
+      "number": "#06",
+      "id": "cond-01",
+      "title": "Fight Conditioning",
+      "shelf": "fight",
+      "meta": "Conditioning · 5 rounds",
+      "minutes": 20,
+      "gear": "No gear",
+      "xp": 60,
+      "liveVersionOf": null,
+      "youtubeId": null,
+      "art": {
+        "path": "/static/revamp/cardio-blast.webp",
+        "url": "https://apptrainingmode.com/static/revamp/cardio-blast.webp"
+      }
+    }
+  ],
+  "sagas": [
+    {
+      "id": "one-punch-protocol",
+      "title": "One Hundred",
+      "subtitle": "Cadence Rep Endurance Challenge",
+      "playable": true,
+      "status": "open",
+      "retires": {
+        "on": "2027-04-01",
+        "replacedBy": "ONE HUNDRED"
+      },
+      "stages": [
+        "Hero Entry Test",
+        "10x10 Foundation",
+        "Pull Balance Foundation",
+        "5x20 Conditioning",
+        "2x50 Protocol",
+        "The Standard Hundred",
+        "Push-Up Style Protocol",
+        "Slow Burn Protocol",
+        "150 Rep Ascension",
+        "Final Boss — The Hundred Gauntlet"
+      ],
+      "poster": {
+        "path": "/static/series/posters/one-punch.png",
+        "url": "https://apptrainingmode.com/static/series/posters/one-punch.png"
+      }
+    },
+    {
+      "id": "gravity-chamber-protocol",
+      "title": "The Gravity Chamber",
+      "subtitle": "Tempo Protocol",
+      "playable": true,
+      "status": "open",
+      "retires": null,
+      "stages": [
+        "10x Gravity — Baseline",
+        "25x Gravity — Count Your Reps",
+        "50x Gravity — Find the Cadence",
+        "100x Gravity — Under Tension",
+        "200x Gravity — Slow Descent",
+        "300x Gravity — The Weight of Worlds",
+        "400x Gravity — Break the Rhythm",
+        "500x Gravity — Crushing Pressure",
+        "750x Gravity — Adaptation",
+        "1000x Gravity — The Chamber's Limit"
+      ],
+      "poster": {
+        "path": "/static/series/posters/hyperbolic-gravity.png",
+        "url": "https://apptrainingmode.com/static/series/posters/hyperbolic-gravity.png"
+      }
+    },
+    {
+      "id": "martial-monster-protocol",
+      "title": "Martial Monster",
+      "subtitle": "Martial Monster Protocol",
+      "playable": true,
+      "status": "open",
+      "retires": null,
+      "stages": [
+        "The Student",
+        "Fast Hands",
+        "Legs Drive the Punch",
+        "Dutch Rhythm",
+        "Centerline",
+        "Ballistic Power",
+        "The Hunter's Engine",
+        "Contrast",
+        "Real Evolution",
+        "The Martial Monster"
+      ],
+      "poster": {
+        "path": "/static/series/posters/hero-hunter.png",
+        "url": "https://apptrainingmode.com/static/series/posters/hero-hunter.png"
+      }
+    },
+    {
+      "id": "destroyer-protocol",
+      "title": "The Destroyer",
+      "subtitle": "Destroyer Protocol",
+      "playable": true,
+      "status": "open",
+      "retires": {
+        "on": "2026-12-01",
+        "replacedBy": "ULTRA EGO"
+      },
+      "stages": [
+        "Pride Awakens",
+        "Destroyer Frame — Upper and Lower Base",
+        "Immovable Force",
+        "Relentless Advance",
+        "Roll Through Fire",
+        "Titan Engine",
+        "No Hesitation",
+        "Ego Unleashed",
+        "Controlled Destruction — Calm Before the Storm",
+        "Destroyer's Trial"
+      ],
+      "poster": {
+        "path": "/static/series/posters/ultra-ego.png",
+        "url": "https://apptrainingmode.com/static/series/posters/ultra-ego.png"
+      }
+    },
+    {
+      "id": "grappler-protocol",
+      "title": "The Grappler",
+      "subtitle": "Strongest Teen Protocol",
+      "playable": true,
+      "status": "open",
+      "retires": null,
+      "stages": [
+        "The Iron Core",
+        "Fight the Phantom",
+        "Underground Arena",
+        "One-Punch Power",
+        "The Master's Fist",
+        "Iron Grip",
+        "Ground Flow",
+        "Raw Power — The Arena’s Strongest",
+        "The Primal Man — The Strongest Teen",
+        "The Ogre"
+      ],
+      "poster": {
+        "path": "/static/series/posters/grappler-protocol.png",
+        "url": "https://apptrainingmode.com/static/series/posters/grappler-protocol.png"
+      }
+    },
+    {
+      "id": "struggler-protocol",
+      "title": "The Struggler",
+      "subtitle": "Greatsword Protocol",
+      "playable": false,
+      "status": "locked",
+      "retires": null,
+      "stages": [
+        "The Sword Bigger Than Himself",
+        "Mercenary Camp",
+        "The Captain's Blade",
+        "The General's Blade — Precision and Tempo",
+        "The Veteran Mercenary",
+        "The Colossal Blade",
+        "The Immortal",
+        "The Longest Night — A Thousand Foes",
+        "Sacrifice",
+        "Trial of the Fury Armor"
+      ],
+      "poster": {
+        "path": "/static/series/posters/struggler-protocol.png",
+        "url": "https://apptrainingmode.com/static/series/posters/struggler-protocol.png"
+      }
+    },
+    {
+      "id": "vigilante-protocol",
+      "title": "The Vigilante",
+      "subtitle": "Peak Human Protocol",
+      "playable": false,
+      "status": "locked",
+      "retires": {
+        "on": "2027-08-01",
+        "replacedBy": "NIGHT VIGILANTE"
+      },
+      "stages": [
+        "The Making of a Man",
+        "Forge the Body",
+        "The Long Night",
+        "Balance and Control — The Escape",
+        "First Blood",
+        "The Art of War",
+        "Above the City",
+        "No Man's Land",
+        "The Vigilante Rises — Integration",
+        "Become the Shadow"
+      ],
+      "poster": {
+        "path": "/static/series/posters/night-vigilante.webp",
+        "url": "https://apptrainingmode.com/static/series/posters/night-vigilante.webp"
+      }
+    },
+    {
+      "id": "flow-state-protocol",
+      "title": "Flow State",
+      "subtitle": "Flow State Protocol",
+      "playable": false,
+      "status": "locked",
+      "retires": {
+        "on": "2027-02-01",
+        "replacedBy": "FLOW STATE"
+      },
+      "stages": [
+        "Awaken the Senses",
+        "A Thousand Fists — Feet Like Water",
+        "The Lean Frame",
+        "Angles of Attack",
+        "See It Coming",
+        "Instinct Engine",
+        "Strike the Opening",
+        "Silent Storm",
+        "Effortless Motion — Still Mind",
+        "Trial of Instinct"
+      ],
+      "poster": {
+        "path": "/static/series/posters/ultra-instinct.png",
+        "url": "https://apptrainingmode.com/static/series/posters/ultra-instinct.png"
+      }
+    },
+    {
+      "id": "blue-blur-protocol",
+      "title": "Speed Demon",
+      "subtitle": "Speed Protocol",
+      "playable": false,
+      "status": "locked",
+      "retires": null,
+      "stages": [
+        "Rolling Hills — Warm-Up & Form",
+        "Loop-de-Loop — Land, Stabilize & Build the Base",
+        "The Factory Line — First Hops",
+        "Night Circuit — Off the Line",
+        "Skyline Heights — Quick Feet",
+        "The Waterway — Spring Loaded",
+        "The Airship — Top Speed",
+        "The Caverns — Free Runner & Speed Combine",
+        "The Shoreline — Recovery Zone",
+        "Final Zone — The Blue Blur"
+      ],
+      "poster": {
+        "path": "/static/series/posters/blue-blur.png",
+        "url": "https://apptrainingmode.com/static/series/posters/blue-blur.png"
+      }
+    },
+    {
+      "id": "demon-back-protocol",
+      "title": "The Demon's Son",
+      "subtitle": "Hybrid Strength + Combat",
+      "playable": false,
+      "status": "locked",
+      "retires": null,
+      "stages": [
+        "Foundation Pull",
+        "Grip and Guard",
+        "Demon Volume",
+        "Pressure Round",
+        "Break the Limit",
+        "Iron Lats",
+        "Endless Cage",
+        "Titan Grip",
+        "Storm Pressure",
+        "Unbreakable",
+        "Demon Awakening",
+        "Final Round"
+      ],
+      "poster": {
+        "path": "/static/series/posters/demon-back.png",
+        "url": "https://apptrainingmode.com/static/series/posters/demon-back.png"
+      }
+    },
+    {
+      "id": "the-contender",
+      "title": "The Contender",
+      "subtitle": "Sweet Science Protocol",
+      "playable": false,
+      "status": "coming soon",
+      "retires": null,
+      "stages": [],
+      "poster": {
+        "path": "/static/series/posters/the-contender.png",
+        "url": "https://apptrainingmode.com/static/series/posters/the-contender.png"
+      }
+    },
+    {
+      "id": "the-wall-crawler",
+      "title": "Web Climber",
+      "subtitle": "Reflex & Agility Protocol",
+      "playable": false,
+      "status": "coming soon",
+      "retires": null,
+      "stages": [],
+      "poster": {
+        "path": "/static/series/posters/the-wall-crawler.png",
+        "url": "https://apptrainingmode.com/static/series/posters/the-wall-crawler.png"
+      }
+    },
+    {
+      "id": "the-dragon",
+      "title": "The Dragon",
+      "subtitle": "Formless Water Protocol",
+      "playable": false,
+      "status": "coming soon",
+      "retires": null,
+      "stages": [],
+      "poster": {
+        "path": "/static/series/posters/the-dragon.png",
+        "url": "https://apptrainingmode.com/static/series/posters/the-dragon.png"
+      }
+    }
+  ],
+  "workouts": [
+    {
+      "id": "murph",
+      "title": "MURPH",
+      "tag": "Hero workout",
+      "focus": "Full Body",
+      "minutes": 55,
+      "needs": "Pull-up bar",
+      "lines": [
+        "Run — 1 mile",
+        "Pull-Ups — 100",
+        "Push-Ups — 200",
+        "Squats — 300",
+        "Run — 1 mile"
+      ],
+      "pro": false
+    },
+    {
+      "id": "half_murph",
+      "title": "HALF MURPH",
+      "tag": "Hero workout",
+      "focus": "Full Body",
+      "minutes": 28,
+      "needs": "Pull-up bar",
+      "lines": [
+        "Run — ½ mile",
+        "Pull-Ups — 50",
+        "Push-Ups — 100",
+        "Squats — 150",
+        "Run — ½ mile"
+      ],
+      "pro": false
+    },
+    {
+      "id": "sally_squats",
+      "title": "SALLY UP · SQUATS",
+      "tag": "Challenge",
+      "focus": "Lower",
+      "minutes": 4,
+      "needs": null,
+      "lines": [
+        "Squat — hold down · stand on UP",
+        "Holds — grow from 4s to 20s"
+      ],
+      "pro": false
+    },
+    {
+      "id": "sally_pushups",
+      "title": "SALLY UP · PUSH-UPS",
+      "tag": "Challenge",
+      "focus": "Upper",
+      "minutes": 4,
+      "needs": null,
+      "lines": [
+        "Push-Up — hold low · press on UP",
+        "Holds — grow from 4s to 20s"
+      ],
+      "pro": false
+    },
+    {
+      "id": "deadly_seven",
+      "title": "DEADLY SEVEN",
+      "tag": "Training Mode",
+      "focus": "Full Body",
+      "minutes": 30,
+      "needs": null,
+      "lines": [
+        "7 rounds — 7 moves × 7 reps",
+        "Burpees · Push-Ups · Jump Squats",
+        "Lunges · Sit-Ups · Mountain Climbers · Tuck Jumps"
+      ],
+      "pro": false
+    },
+    {
+      "id": "hell_mma",
+      "title": "5 MINUTES OF HELL · MMA",
+      "tag": "Training Mode",
+      "focus": "Combat",
+      "minutes": 6,
+      "needs": null,
+      "lines": [
+        "Sprawls — 1:00",
+        "Shadowbox Sprint — 1:00",
+        "Knee Strikes — 1:00",
+        "Ground & Pound — 1:00",
+        "Burpees — 1:00"
+      ],
+      "pro": false
+    },
+    {
+      "id": "hell_general",
+      "title": "5 MINUTES OF HELL",
+      "tag": "Training Mode",
+      "focus": "Full Body",
+      "minutes": 6,
+      "needs": null,
+      "lines": [
+        "Jumping Jacks — 1:00",
+        "Mountain Climbers — 1:00",
+        "Squat Jumps — 1:00",
+        "Push-Ups — 1:00",
+        "Burpees — 1:00"
+      ],
+      "pro": false
+    },
+    {
+      "id": "strike_fitness_easy",
+      "title": "STRIKE FITNESS · EASY",
+      "tag": "Day Zero",
+      "focus": "Combat",
+      "minutes": 27,
+      "needs": null,
+      "lines": [
+        "Push-Ups on Knees — 1:00",
+        "Jab — 1:00",
+        "Sumo Squat — 1:00",
+        "Cross — 1:00",
+        "Plank — 1:00",
+        "+ 3 more",
+        "× 2 rounds"
+      ],
+      "pro": false
+    },
+    {
+      "id": "strike_fitness_mid",
+      "title": "STRIKE FITNESS · INTERMEDIATE",
+      "tag": "Day Zero",
+      "focus": "Combat",
+      "minutes": 27,
+      "needs": null,
+      "lines": [
+        "Incline Push-Ups — 1:00",
+        "Hook — 1:00",
+        "Hip Hinge — 1:00",
+        "Uppercut — 1:00",
+        "Crunches — 1:00",
+        "+ 3 more",
+        "× 2 rounds"
+      ],
+      "pro": false
+    },
+    {
+      "id": "strike_fitness_adv",
+      "title": "STRIKE FITNESS · ADVANCED",
+      "tag": "Day Zero",
+      "focus": "Combat",
+      "minutes": 35,
+      "needs": null,
+      "lines": [
+        "T-Pose Push-Ups — 1:00",
+        "One-Two — 1:00",
+        "Sissy Squats — 1:00",
+        "Punch to Roundhouse Kick — 1:00",
+        "Crunches — 1:00",
+        "+ 3 more",
+        "× 2 rounds"
+      ],
+      "pro": false
+    },
+    {
+      "id": "pushup_division",
+      "title": "PUSH-UP DIVISION",
+      "tag": "Training Mode",
+      "focus": "Upper",
+      "minutes": 15,
+      "needs": null,
+      "lines": [
+        "Push-Ups — 30s",
+        "High Push-Ups — 30s",
+        "Wide Push-Ups — 30s",
+        "Pike Push-Ups — 30s",
+        "Archer Push-Ups — 30s",
+        "+ 9 more"
+      ],
+      "pro": false
+    },
+    {
+      "id": "abs_3_level",
+      "title": "3 LEVEL ABS",
+      "tag": "Training Mode",
+      "focus": "Core",
+      "minutes": 22,
+      "needs": null,
+      "lines": [
+        "3 Level Crunches — 40s",
+        "3 Level Bicycle Crunches — 40s",
+        "Indian Sit Crunches — 40s",
+        "Frog Tucks — 40s",
+        "Plank Tuck Crunch — 40s",
+        "+ 4 more",
+        "× 3 rounds"
+      ],
+      "pro": false
+    },
+    {
+      "id": "fitness_test",
+      "title": "FITNESS TEST",
+      "tag": "Assessment",
+      "focus": "Full Body",
+      "minutes": 16,
+      "needs": null,
+      "lines": [
+        "Push-Ups · Max Reps — 1:00",
+        "Air Squats · Max Reps — 1:00",
+        "Plank Hold — 1:00",
+        "Crunches · Max Reps — 1:00",
+        "Pull-Ups or Inverted Rows · Max Reps — 1:00",
+        "+ 1 more"
+      ],
+      "pro": false
+    },
+    {
+      "id": "burpee_hell",
+      "title": "BURPEE HELL",
+      "tag": "Training Mode",
+      "focus": "Full Body",
+      "minutes": 9,
+      "needs": null,
+      "lines": [
+        "Standard Burpees — 40s",
+        "Burpees with a Push-Up — 40s",
+        "Burpees with a Tuck Jump — 40s",
+        "Burpees with a Single-Leg Hop — 40s",
+        "Burpees with a Frog Jump — 40s",
+        "+ 4 more"
+      ],
+      "pro": true
+    },
+    {
+      "id": "legendary_squat",
+      "title": "LEGENDARY SQUAT",
+      "tag": "Training Mode",
+      "focus": "Lower",
+      "minutes": 32,
+      "needs": null,
+      "lines": [
+        "Bodyweight Squats — 30",
+        "Step-Through Lunges — 30s",
+        "Wall Sit Calf Raises — 30",
+        "Jump Lunges — 20",
+        "Frog Jumps — 12",
+        "+ 4 more",
+        "× 2 rounds"
+      ],
+      "pro": false
+    },
+    {
+      "id": "hero_training",
+      "title": "HERO TRAINING",
+      "tag": "Training Mode",
+      "focus": "Full Body",
+      "minutes": 27,
+      "needs": "Pull-up bar",
+      "lines": [
+        "Pull-Ups — 5 × 5",
+        "Pike Push-Ups — 4 × 12",
+        "Bulgarian Split Squats — 3 × 10",
+        "Wall Walks — 3 × 5",
+        "Plank and Jab-Cross — 4 × 40s",
+        "+ 1 more"
+      ],
+      "pro": true
+    },
+    {
+      "id": "chaos_engine",
+      "title": "CHAOS ENGINE CIRCUIT",
+      "tag": "Training Mode",
+      "focus": "Full Body",
+      "minutes": 29,
+      "needs": "Barbell · dumbbells · kettlebell",
+      "lines": [
+        "Barbell Deadlifts — 8",
+        "Dumbbell Clean and Press — 12",
+        "Kettlebell Goblet Squats — 15",
+        "Burpees — 10",
+        "Russian Twists — 24",
+        "+ 1 more",
+        "× 4 rounds"
+      ],
+      "pro": true
+    }
+  ],
+  "programs": [
+    {
+      "id": "shadowbox_mini",
+      "title": "7-DAY SHADOWBOX MINI",
+      "shelf": "fight",
+      "meta": "Beginner · 7 days · no equipment",
+      "blurb": "A week of kickboxing fundamentals: jab and footwork, jab-cross, kicks and knees, head movement, hooks and uppercuts, combos, then freestyle.",
+      "days": [
+        "JAB + FOOTWORK",
+        "JAB-CROSS + GUARD",
+        "KICKS + KNEES",
+        "SLIPS + WEAVES",
+        "HOOKS + UPPERCUTS",
+        "COMBO BURSTS",
+        "FREESTYLE"
+      ],
+      "pro": false
+    },
+    {
+      "id": "bodyweight_week",
+      "title": "BODYWEIGHT WEEK",
+      "shelf": "fit",
+      "meta": "All levels · 6 days · no equipment",
+      "blurb": "Six muscle days with sets and reps, no gear: chest, legs, back, hamstrings, arms and shoulders, calves and full body.",
+      "days": [
+        "CHEST + TRICEPS + CORE",
+        "LEGS + GLUTES + CORE",
+        "BACK + BICEPS",
+        "HAMSTRINGS + CORE",
+        "ARMS + SHOULDERS + CORE",
+        "CALVES + FULL BODY"
+      ],
+      "pro": false
+    },
+    {
+      "id": "bw_circuit_beginner",
+      "title": "BODYWEIGHT CIRCUIT · BEGINNER",
+      "shelf": "fit",
+      "meta": "Beginner · 4 days · 40s on / 20s off",
+      "blurb": "Compound circuits by muscle group — six moves per group, a transition move to finish each block — plus Burpee Hell on day four.",
+      "days": [
+        "CHEST + QUADS + TRICEPS",
+        "BACK + HAMSTRINGS + BICEPS",
+        "LEGS + SHOULDERS + ARMS",
+        "BURPEE HELL"
+      ],
+      "pro": false
+    },
+    {
+      "id": "bw_circuit_intermediate",
+      "title": "BODYWEIGHT CIRCUIT · INTERMEDIATE",
+      "shelf": "fit",
+      "meta": "Intermediate · 4 days · 40s on / 20s off",
+      "blurb": "Compound circuits by muscle group — six moves per group, a transition move to finish each block — plus Burpee Hell on day four.",
+      "days": [
+        "CHEST + QUADS + TRICEPS",
+        "BACK + HAMSTRINGS + BICEPS",
+        "LEGS + SHOULDERS + ARMS",
+        "BURPEE HELL"
+      ],
+      "pro": true
+    },
+    {
+      "id": "bw_circuit_advanced",
+      "title": "BODYWEIGHT CIRCUIT · ADVANCED",
+      "shelf": "fit",
+      "meta": "Advanced · 4 days · 40s on / 20s off",
+      "blurb": "Compound circuits by muscle group — six moves per group, a transition move to finish each block — plus Burpee Hell on day four.",
+      "days": [
+        "CHEST + QUADS + TRICEPS",
+        "BACK + HAMSTRINGS + BICEPS",
+        "LEGS + SHOULDERS + ARMS",
+        "BURPEE HELL"
+      ],
+      "pro": true
+    },
+    {
+      "id": "shadowbox_boxing",
+      "title": "SHADOWBOX ROUTINE · BOXING",
+      "shelf": "fight",
+      "meta": "Boxing · 2 days · 2:00 rounds",
+      "blurb": "Two full shadowboxing sessions: version one works each weapon and range, version two builds defense, feints and pace.",
+      "days": [
+        "VERSION I",
+        "VERSION II"
+      ],
+      "pro": false
+    },
+    {
+      "id": "shadowbox_kickboxing",
+      "title": "SHADOWBOX ROUTINE · KICKBOXING",
+      "shelf": "fight",
+      "meta": "Kickboxing · 2 days · 2:00 rounds",
+      "blurb": "Two full shadowboxing sessions: version one works each weapon and range, version two builds defense, feints and pace.",
+      "days": [
+        "VERSION I",
+        "VERSION II"
+      ],
+      "pro": true
+    },
+    {
+      "id": "shadowbox_muay_thai",
+      "title": "SHADOWBOX ROUTINE · MUAY THAI",
+      "shelf": "fight",
+      "meta": "Muay Thai · 2 days · 2:00 rounds",
+      "blurb": "Two full shadowboxing sessions: version one works each weapon and range, version two builds defense, feints and pace.",
+      "days": [
+        "VERSION I",
+        "VERSION II"
+      ],
+      "pro": true
+    },
+    {
+      "id": "shadowbox_mma",
+      "title": "SHADOWBOX ROUTINE · MMA",
+      "shelf": "fight",
+      "meta": "MMA · 2 days · 2:00 rounds",
+      "blurb": "Two full shadowboxing sessions: version one works each weapon and range, version two builds defense, feints and pace.",
+      "days": [
+        "VERSION I",
+        "VERSION II"
+      ],
+      "pro": true
+    },
+    {
+      "id": "gravity_chamber",
+      "title": "THE GRAVITY CHAMBER",
+      "shelf": "fit",
+      "meta": "Intermediate · 4 days · slow tempo",
+      "blurb": "Every set gets slower: one second up and down, then two, then three, until you can’t control it. Push, legs, core and pull days.",
+      "days": [
+        "PUSH",
+        "LEGS",
+        "CORE",
+        "SHOULDERS + PULL"
+      ],
+      "pro": true
+    },
+    {
+      "id": "the_destroyer",
+      "title": "THE DESTROYER",
+      "shelf": "fit",
+      "meta": "Advanced · 5 days · gym or bodyweight",
+      "blurb": "Weighted strength, bodyweight density and fight-ready calisthenics. Every weighted day lists its bodyweight swap.",
+      "days": [
+        "NECK + SHOULDERS",
+        "LEGS",
+        "LATS + UPPER BACK",
+        "HIGH-REP BODYWEIGHT",
+        "CARDIO RECOVERY"
+      ],
+      "pro": true
+    },
+    {
+      "id": "flow_state",
+      "title": "FLOW STATE",
+      "shelf": "fit",
+      "meta": "Advanced · 4 days · strength, plyo, footwork",
+      "blurb": "Build the body that reacts before it thinks: strength and control, explosive plyometrics, footwork and reflexes, then a high-volume hybrid.",
+      "days": [
+        "STRENGTH + CONTROL",
+        "PLYOMETRICS",
+        "FOOTWORK + REFLEXES",
+        "HIGH-VOLUME HYBRID"
+      ],
+      "pro": true
+    },
+    {
+      "id": "the_mercenary",
+      "title": "THE MERCENARY",
+      "shelf": "fit",
+      "meta": "Advanced · 4 days · high rep, heavy, explosive",
+      "blurb": "Train like you’re swinging a greatsword: high-rep calisthenics, heavy lifts, a kettlebell circuit and explosive jumps.",
+      "days": [
+        "CALISTHENICS POWER",
+        "HEAVY LIFTS",
+        "KETTLEBELL CIRCUIT",
+        "EXPLOSIVE"
+      ],
+      "pro": true
+    },
+    {
+      "id": "the_hawk",
+      "title": "THE HAWK",
+      "shelf": "fit",
+      "meta": "Intermediate · 3 days · high rep, kettlebell, upper body",
+      "blurb": "Warrior conditioning built on volume: high-rep legs, a kettlebell cycle and an upper-body day with a full-body complex to finish.",
+      "days": [
+        "HIGH-REP LEGS",
+        "KETTLEBELL CYCLE",
+        "UPPER BODY + COMPLEX"
+      ],
+      "pro": true
+    },
+    {
+      "id": "dark_fist",
+      "title": "DARK FIST",
+      "shelf": "fight",
+      "meta": "Advanced · 2 days · shadow + bag",
+      "blurb": "A fighting-game-inspired striking session: spinning kicks, jumping knees and demon-rush chains in the air, then on the bag, then a slam circuit.",
+      "days": [
+        "SHADOWBOXING",
+        "BAG WORK + SLAMS"
+      ],
+      "pro": true
+    },
+    {
+      "id": "the_wanderer",
+      "title": "THE WANDERER",
+      "shelf": "fight",
+      "meta": "Advanced · 2 days · shadow + bag",
+      "blurb": "A classic martial artist’s session: rising uppercuts, spinning heel kicks and chain combos, shadowboxed, then on the bag, then speed knees and sprints.",
+      "days": [
+        "SHADOWBOXING",
+        "BAG WORK + CIRCUIT"
+      ],
+      "pro": true
+    }
+  ]
+}
