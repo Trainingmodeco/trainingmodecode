@@ -49,7 +49,8 @@
         "rate": 1,
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-4.wav",
         "voiceSec": 2.21,
-        "clockFrom": 58
+        "clockFrom": 58,
+        "rushAt": 2.6
       },
       {
         "title": "Speed combos",
@@ -59,7 +60,8 @@
         "rate": 1,
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-5.wav",
         "voiceSec": 2.47,
-        "clockFrom": 44
+        "clockFrom": 44,
+        "rushAt": 1.6
       },
       {
         "title": "Power combos",
@@ -69,7 +71,8 @@
         "rate": 1,
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-6.wav",
         "voiceSec": 2.4,
-        "clockFrom": 24
+        "clockFrom": 24,
+        "rushAt": 2.8
       }
     ],
     "cta": "Link in bio",
@@ -117,5 +120,5 @@
     "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
     "seconds": 40.9
   },
-  "renderedAt": "2026-10-30T19:15:58.597Z"
+  "renderedAt": "2026-10-30T19:27:47.991Z"
 }
