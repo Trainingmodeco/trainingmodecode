@@ -31,6 +31,27 @@ video and caption uses the app's real names, ranks, drops and colors.
    `setup` downloads Remotion's browser and Whisper (about 200 MB). `doctor`
    should show all ✓.
 
+## Get clips from your phone / Google Photos
+
+Google Photos can't be connected to Claude directly, so clips go through the
+shared Drive folder **TM Social Console › raw footage**:
+
+1. **Phone:** open the folder link
+   (https://drive.google.com/drive/folders/1757yh44bvNfuaMklKBWzpHTkpEViosN0)
+   in the Drive app → **+** → **Upload** → pick the videos (Google Photos shows
+   up in the picker). Or from Google Photos: select videos → **Share** →
+   **Drive** → choose the Training Mode account → My Drive › TM Social Console ›
+   raw footage.
+2. **Laptop, once:** install **Google Drive for desktop** and sign in with the
+   Training Mode Google account, then link the folder into the console
+   (PowerShell, inside `TM Social Console`; change `G:` if Drive uses another
+   letter):
+   ```
+   New-Item -ItemType Junction -Path "raw-footage\drive" -Target "G:\My Drive\TM Social Console\raw footage"
+   ```
+   Every clip you upload from your phone then shows up in
+   `raw-footage\drive\`, any size.
+
 ## Use it with Claude
 
 Open the Claude desktop app → **Code** → **Local** → pick the

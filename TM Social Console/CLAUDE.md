@@ -82,9 +82,10 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 
 1. **Collect.** New clips arrive in the Google Drive folder
    **TM Social Console › raw footage** (the owner shares them there from
-   Google Photos) or straight into `raw-footage/` on the laptop. The Drive
-   connector only downloads files up to 10 MB; bigger clips need the laptop
-   (Google Drive for desktop syncs them) or a trim to under 10 MB. Ideas come from
+   Google Photos) or straight into `raw-footage/` on the laptop. On the laptop
+   that Drive folder is linked in as `raw-footage/drive/` (Google Drive for
+   desktop + a junction, see README), so use clips from there at any size.
+   In a cloud session the Drive connector only downloads files up to 10 MB. Ideas come from
    `brain/scripts/library.json` (High priority first), the live concept drop
    (`brand.json` → `drops`, `status: "live"`), and `brain/formats.md`.
 2. **Write.** `npm run new -- <Format> "<title>"`, then fill `props` and a
