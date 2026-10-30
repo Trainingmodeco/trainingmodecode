@@ -1,0 +1,121 @@
+{
+  "id": "2026-10-30-fight-focus-boxing-rounds",
+  "title": "Fight Focus: boxing rounds",
+  "status": "rendered",
+  "format": "FightFocusRounds",
+  "createdAt": "2026-10-30",
+  "source": "Owner's montage (two InShot clips, 720p, bag work in a Muay Thai gym, uploaded 2026-10-30), cut into the owner's round list in the app's wording (\"Round 1. Pendulum boxing.\"). Round 6 named from the footage.",
+  "scheduledFor": null,
+  "coverFrame": 140,
+  "props": {
+    "discipline": "Boxing",
+    "hook": "The coach calls it. *You throw it.*",
+    "rounds": [
+      {
+        "title": "Pendulum boxing",
+        "src": "raw-footage/ff-montage-part1.mp4",
+        "start": 17.4,
+        "end": 23.4,
+        "rate": 1,
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-1.wav",
+        "voiceSec": 2.57,
+        "clockFrom": 167
+      },
+      {
+        "title": "Single lead hand striking",
+        "src": "raw-footage/ff-montage-part1.mp4",
+        "start": 0.2,
+        "end": 5.6,
+        "rate": 1,
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-2.wav",
+        "voiceSec": 3.09,
+        "clockFrom": 132
+      },
+      {
+        "title": "Rear hand striking",
+        "src": "raw-footage/ff-montage-part1.mp4",
+        "start": 10.8,
+        "end": 16.8,
+        "rate": 1,
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-3.wav",
+        "voiceSec": 2.64,
+        "clockFrom": 95
+      },
+      {
+        "title": "Speed hooks",
+        "src": "raw-footage/ff-montage-part1.mp4",
+        "start": 28.2,
+        "end": 34.2,
+        "rate": 1,
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-4.wav",
+        "voiceSec": 2.21,
+        "clockFrom": 58
+      },
+      {
+        "title": "Speed combos",
+        "src": "raw-footage/ff-montage-part2.mp4",
+        "start": 29.5,
+        "end": 35.5,
+        "rate": 1,
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-5.wav",
+        "voiceSec": 2.47,
+        "clockFrom": 44
+      },
+      {
+        "title": "Power combos",
+        "src": "raw-footage/ff-montage-part2.mp4",
+        "start": 17,
+        "end": 23,
+        "rate": 1,
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-6.wav",
+        "voiceSec": 2.4,
+        "clockFrom": 24
+      }
+    ],
+    "cta": "Link in bio",
+    "intro": {
+      "src": "raw-footage/ff-montage-part2.mp4",
+      "start": 30,
+      "rate": 1
+    },
+    "difficulty": "Normal",
+    "roundSec": 180
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "6 rounds of Fight Focus 🥊 Pendulum boxing, lead hand, rear hand, speed hooks, speed combos, power combos. The coach calls every round, you throw it. Link in bio. #boxing #heavybag #boxingworkout #muaythai #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "6 rounds. The coach calls it, you throw it. 🥊\n\nFight Focus runs voice-coached boxing rounds on a real fight timer: pendulum boxing, lead hand, rear hand, speed hooks, speed combos, power combos.\n\nComment TRAIN and I'll DM you the link.\n\n#boxing #heavybag #boxingworkout #muaythai #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "6 rounds of Fight Focus 🥊 The coach calls every round, you throw it: pendulum boxing, lead hand, rear hand, speed hooks, speed combos, power combos. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "6 boxing rounds on the heavy bag, called by the coach 🥊 #shorts",
+      "description": "Fight Focus in Training Mode: voice-coached boxing rounds on a real fight timer. Pendulum boxing, single lead hand, rear hand, speed hooks, speed combos, power combos.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "boxing",
+        "heavy bag",
+        "boxing workout",
+        "bag work",
+        "fight timer",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-10-30 owner's montage, cut to ~41s. Voice here is a robot placeholder; on the laptop `npm run voice` uses the app voice (Hazel/Zira). Owner approves before anything posts; TikTok goes out as Only me first."
+  ],
+  "voiceUsed": "espeak-ng en-gb (placeholder, not the app voice)",
+  "exports": {
+    "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
+    "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
+    "seconds": 40.9
+  },
+  "renderedAt": "2026-10-30T19:15:58.597Z"
+}

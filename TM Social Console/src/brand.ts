@@ -21,6 +21,8 @@ export const C = {
 export const FONT = {
   display: 'Orbitron, sans-serif',
   body: 'Rajdhani, sans-serif',
+  // Only for recreating the app's own screens (the Fight Focus timer's label).
+  pixel: "'Press Start 2P', monospace",
 };
 
 export const FPS = 30;
@@ -34,4 +36,5 @@ export const loadBrandFonts = () =>
     loadFont({ family: 'Rajdhani', url: staticFile('fonts/Rajdhani-Medium.ttf'), weight: '500' }),
     loadFont({ family: 'Rajdhani', url: staticFile('fonts/Rajdhani-SemiBold.ttf'), weight: '600' }),
     loadFont({ family: 'Rajdhani', url: staticFile('fonts/Rajdhani-Bold.ttf'), weight: '700' }),
+    loadFont({ family: 'Press Start 2P', url: staticFile('fonts/PressStart2P.ttf'), weight: '400' }),
   ]));

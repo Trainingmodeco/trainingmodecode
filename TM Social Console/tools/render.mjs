@@ -18,32 +18,9 @@ const { file, post } = findPost(id);
 
 const props = { ...post.props };
 
-// Remotion only loads files under public/, so footage from raw-footage/ is
-// copied into public/_work (git-ignored) and the props point there.
-const work = path.join(ROOT, 'public', '_work');
-function stage(rel, name) {
-  const src = path.resolve(ROOT, rel);
-  if (!fs.existsSync(src)) throw new Error(`Footage not found: ${src}`);
-  fs.mkdirSync(work, { recursive: true });
-  const dest = `${name}${path.extname(src).toLowerCase()}`;
-  fs.copyFileSync(src, path.join(work, dest));
-  return `_work/${dest}`;
-}
-
-if (Array.isArray(props.broll)) {
-  const staged = new Map();
-  props.broll = props.broll.map((b) => {
-    if (!b || !b.src.startsWith('raw-footage/')) return b;
-    if (!staged.has(b.src)) staged.set(b.src, stage(b.src, `${post.id}-broll-${staged.size}`));
-    return { ...b, src: staged.get(b.src) };
-  });
-}
-
 if (post.format === 'FootageShort') {
-  const src = path.resolve(ROOT, props.video);
-  props.video = stage(props.video, post.id);
   if (!props.durationSec) {
-    const seconds = Number(ffprobe(['-show_entries', 'format=duration', '-of', 'csv=p=0', src]));
+    const seconds = Number(ffprobe(['-show_entries', 'format=duration', '-of', 'csv=p=0', path.resolve(ROOT, props.video)]));
     props.durationSec = Math.max(0, seconds - (props.trimStartSec ?? 0));
   }
   if (props.captionsFile) {
@@ -59,6 +36,32 @@ if (problems.length) {
   console.error(`Not rendering ${id}; fix the copy first:\n${problems.map((p) => `  - ${p}`).join('\n')}`);
   process.exit(1);
 }
+
+// Remotion only loads files under public/, so every raw-footage/ file a post
+// uses (clips, B-roll, voice calls) is copied into public/_work (git-ignored)
+// and the props point there.
+const work = path.join(ROOT, 'public', '_work');
+const staged = new Map();
+function stage(rel) {
+  if (!staged.has(rel)) {
+    const src = path.resolve(ROOT, rel);
+    if (!fs.existsSync(src)) throw new Error(`Footage not found: ${src}`);
+    fs.mkdirSync(work, { recursive: true });
+    const dest = `${post.id}-${staged.size}${path.extname(src).toLowerCase()}`;
+    fs.copyFileSync(src, path.join(work, dest));
+    staged.set(rel, `_work/${dest}`);
+  }
+  return staged.get(rel);
+}
+const stageAll = (v) =>
+  typeof v === 'string'
+    ? v.startsWith('raw-footage/') ? stage(v) : v
+    : Array.isArray(v)
+      ? v.map(stageAll)
+      : v && typeof v === 'object'
+        ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, stageAll(x)]))
+        : v;
+Object.assign(props, stageAll(props));
 
 const outDir = path.join(EXPORTS, post.id);
 fs.mkdirSync(outDir, { recursive: true });

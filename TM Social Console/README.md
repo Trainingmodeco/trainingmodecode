@@ -74,6 +74,7 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run queue` | what's drafted, rendered, approved, posted |
 | `npm run new -- ScriptShort "Title"` | start a post |
 | `npm run captions -- raw-footage/clip.mp4` | Whisper captions |
+| `npm run voice -- <id>` | coach calls in the app's voice |
 | `npm run render -- <id>` | make the video + cover |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
@@ -85,7 +86,8 @@ in Chrome. Claude uploads approved videos there for you.
 - `brain/`: your Drive scripts as a searchable library, the content formats,
   platform setup, ManyChat flow.
 - `src/`: video templates (Remotion): **ScriptShort** (motion graphic from a
-  script), **FootageShort** (your clip + captions + HUD), **BossIntro**.
+  script), **FootageShort** (your clip + captions + HUD), **BossIntro**,
+  **FightFocusRounds** (your training footage cut into called rounds).
 - `hyperframes/`: HTML video templates (HyperFrames): **Rank Ladder**.
 - `queue/`: one file per post with its captions for every platform.
 - `raw-footage/`, `references/`, `exports/`: your media (kept out of git).

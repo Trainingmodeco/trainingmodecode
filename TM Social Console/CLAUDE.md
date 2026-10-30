@@ -69,6 +69,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run queue` | lists posts and their status |
 | `npm run new -- ScriptShort "Title"` | starts a post (also `FootageShort`, `BossIntro`) |
 | `npm run captions -- raw-footage/clip.mp4` | Whisper word-by-word captions → `clip.captions.json` + `.srt` |
+| `npm run voice -- <id>` | speaks the post's coach calls ("Round 1. Pendulum boxing.") in the app's voice → WAVs the render uses |
 | `npm run render -- <id>` | renders `exports/<id>/video.mp4` + `cover.jpg`, status → rendered |
 | `npm run approve -- <id>` | owner's OK only; status → approved |
 | `npm run queue -- reject <id> "why"` | back to the drawing board |
@@ -118,12 +119,31 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 - **FootageShort**: the owner's clip with the HUD, a title card, Whisper
   captions (spoken word turns gold) and the end card.
 - **BossIntro**: 5s "STAGE 3 / LEG DAY / BOSS: 100 SQUATS / FIGHT!" hook.
+- **FightFocusRounds**: the owner's training footage dressed as the app's
+  real Fight Focus timer screen (FightFocusTimer.jsx): the top third is the
+  timer (gold FIGHT FOCUS title, ROUND / discipline / difficulty chips, the
+  ring timer with the app's ring art, WORK label and clock, numbered round
+  squares) and the footage plays below. Opens with the app's 3-2-1-GO; each
+  round opens with the app's call screen (gold "ROUND 1", drill under it), the
+  bell and the coach's call in the app's voice. Each round is one stretch of a
+  clip: `{ "title", "src", "start", "end", "rate": 1, "clockFrom" }`; keep
+  strikes at real speed. `clockFrom` is the seconds left on the 3:00 clock
+  when the clip starts: spread them so the ring shows the app's colours
+  (violet over 1:00, amber under, red with FINAL 30). Aim for 40–45 s total;
+  5–7 rounds of about 6 s. Pick the most dynamic seconds (contact sheets at
+  2–4 fps; skip walk-bys) and name each round for the drill actually on screen.
+  The owner wants it to look like the app: match the app's screens, colours
+  and fonts (Press Start 2P is allowed here for the WORK label).
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
   climb, "where did you stall?", over a B-roll clip:
   `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX]`.
 
 The bell is the app's own boxing bell (`src/parts/Bell.tsx`: single, double,
-triple).
+triple). The coach voice is the app's: it speaks through the device's built-in
+voice, female and British first (voiceCoach.js). `npm run voice` uses the same
+order on Windows (Hazel, Susan, Sonia, then Zira); in a Linux cloud session it
+can only make a robotic espeak placeholder, so final voice renders happen on
+the laptop.
 
 ## Publishing routes (see brain/platforms.md for setup state)
 

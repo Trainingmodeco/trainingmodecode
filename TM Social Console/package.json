@@ -17,6 +17,7 @@
     "approve": "node tools/queue.mjs approve",
     "check": "node tools/check-copy.mjs",
     "captions": "node tools/captions.mjs",
+    "voice": "node tools/voice.mjs",
     "render": "node tools/render.mjs",
     "reference": "node tools/reference.mjs",
     "hf:render": "node tools/hf-render.mjs",

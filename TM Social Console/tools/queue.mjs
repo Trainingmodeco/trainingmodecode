@@ -1,5 +1,5 @@
 // npm run queue                       list every post and its status
-// npm run new -- <format> "<title>"   start a post (ScriptShort | FootageShort | BossIntro)
+// npm run new -- <format> "<title>"   start a post (ScriptShort | FootageShort | BossIntro | FightFocusRounds)
 // npm run approve -- <id>             owner's OK: the rendered video may go live
 // npm run queue -- reject <id> "why"  send it back
 // npm run queue -- posted <id> <platform> <url>   record a live post
@@ -20,6 +20,12 @@ const TEMPLATES = {
   ScriptShort: { kicker: 'Fight Mode', boss: 'Fight Focus', hook: '', beats: [], cta: 'Link in bio', art: null, artBeats: [0], goldBeats: [] },
   FootageShort: { video: 'raw-footage/<file>.mp4', trimStartSec: 0, durationSec: null, captionsFile: 'raw-footage/<file>.captions.json', kicker: 'Fight Mode', boss: '', title: '', cta: 'Link in bio' },
   BossIntro: { stage: 'Stage 1', title: '', boss: '', callout: 'FIGHT!', art: null },
+  FightFocusRounds: {
+    discipline: 'Boxing',
+    hook: 'The coach calls it. *You throw it.*',
+    rounds: [{ title: '', src: 'raw-footage/<file>.mp4', start: 0, end: 8, rate: 1, focusX: 50, voice: null }],
+    cta: 'Link in bio',
+  },
 };
 
 function list() {

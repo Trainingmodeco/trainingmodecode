@@ -65,15 +65,24 @@ export const ArtLayer: React.FC<{ src: string; opacity?: number }> = ({ src, opa
   );
 };
 
-// The owner's footage behind a scene (B-roll): muted, slowed for weight, and
-// toned into the brand so text stays readable. Dark scenes get a violet
-// duotone; gold scenes a gold wash with the motion still showing through.
-// focusX: where to centre a landscape clip in the vertical crop (0 = left edge, 100 = right).
+// The owner's footage behind a scene: muted and toned into the brand so text
+// stays readable. `duotone` (B-roll under words): greyscale, violet, gold on
+// gold beats. `light` (footage as the star, e.g. Fight Focus rounds): colour
+// kept, a violet wash, dark top and bottom for the HUD and platform buttons.
+// focusX: where to centre a landscape clip in the vertical crop (0 = left, 100 = right).
 export type Broll = { src: string; start: number; rate?: number; focusX?: number };
 
-export const FootageLayer: React.FC<Broll & { tone?: Tone }> = ({ src, start, rate = 0.75, focusX = 50, tone = 'dark' }) => {
+export const FootageLayer: React.FC<Broll & { tone?: Tone; grade?: 'duotone' | 'light' }> = ({
+  src,
+  start,
+  rate = 0.75,
+  focusX = 50,
+  tone = 'dark',
+  grade = 'duotone',
+}) => {
   const { fps } = useVideoConfig();
   const gold = tone === 'gold';
+  const light = grade === 'light';
   return (
     <AbsoluteFill>
       <OffthreadVideo
@@ -86,11 +95,18 @@ export const FootageLayer: React.FC<Broll & { tone?: Tone }> = ({ src, start, ra
           height: '100%',
           objectFit: 'cover',
           objectPosition: `${focusX}% 50%`,
-          filter: 'grayscale(1) contrast(1.25) brightness(1.05)',
+          filter: light ? 'saturate(0.75) contrast(1.12) brightness(0.97)' : 'grayscale(1) contrast(1.25) brightness(1.05)',
           transform: 'scale(1.04)',
         }}
       />
-      {gold ? (
+      {light ? (
+        <>
+          <AbsoluteFill style={{ background: C.violet, mixBlendMode: 'multiply', opacity: 0.35 }} />
+          <AbsoluteFill
+            style={{ background: `linear-gradient(180deg, ${C.bg}d9 0%, ${C.bg}00 30%, ${C.bg}00 68%, ${C.bg}c0 100%)` }}
+          />
+        </>
+      ) : gold ? (
         <>
           <AbsoluteFill style={{ background: C.gold, mixBlendMode: 'multiply' }} />
           <AbsoluteFill style={{ background: C.gold, opacity: 0.6 }} />

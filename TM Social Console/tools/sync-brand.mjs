@@ -60,6 +60,10 @@ const brand = {
   programs: kit.programs.map((p) => ({ title: p.title, meta: p.meta, pro: p.pro })),
 };
 
+// The Fight Focus timer's own art, for videos that recreate the app's screen.
+art({ path: '/static/ring-fight.webp' }, 'ui/ring-fight');
+art({ path: '/static/brand/background-w-logo.webp' }, 'ui/brand-bg');
+
 // The app's boxing bell (single, double and triple ring; see src/parts/Bell.tsx).
 art({ path: '/audio/boxing-bell-signals.mp3' }, 'audio/bell-signals');
 

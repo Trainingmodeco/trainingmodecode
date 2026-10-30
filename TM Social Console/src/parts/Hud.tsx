@@ -87,6 +87,100 @@ export const Hud: React.FC<{ kicker: string; boss: string; counter?: string; pro
   );
 };
 
+// Fight Focus round HUD: section label and round count up top, the round
+// clock draining like the app's fight timer, and the drill name chip.
+export const RoundHud: React.FC<{
+  kicker: string;
+  round: number;
+  total: number;
+  title: string;
+  progress: number;
+  secondsLeft: number;
+  titleIn: number;
+}> = ({ kicker, round, total, title, progress, secondsLeft, titleIn }) => {
+  const left = Math.max(0, 1 - progress);
+  const s = Math.max(0, Math.ceil(secondsLeft));
+  const clock = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <Corner top left color={C.gold} />
+      <Corner top color={C.gold} />
+      <Corner left color={C.gold} />
+      <Corner color={C.gold} />
+      <div
+        style={{
+          position: 'absolute',
+          top: 150,
+          left: 90,
+          right: 90,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontFamily: FONT.body,
+          fontWeight: 700,
+          fontSize: 38,
+          letterSpacing: '0.3em',
+          color: C.gold,
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ width: 18, height: 18, background: C.red, boxShadow: `0 0 18px ${C.red}` }} />
+          {kicker.toUpperCase()}
+        </span>
+        <span style={{ fontFamily: FONT.display, letterSpacing: '0.12em', fontSize: 32 }}>
+          R{round}/{total}
+        </span>
+      </div>
+      <div style={{ position: 'absolute', top: 214, left: 90, right: 90 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            fontFamily: FONT.body,
+            fontWeight: 700,
+            fontSize: 28,
+            letterSpacing: '0.24em',
+            color: C.muted,
+            marginBottom: 8,
+          }}
+        >
+          <span>ROUND {round}</span>
+          <span style={{ fontFamily: FONT.display, fontSize: 34, letterSpacing: '0.06em', color: C.text }}>{clock}</span>
+        </div>
+        <div style={{ height: 26, border: `4px solid ${C.gold}`, background: 'rgba(0,0,0,0.55)', padding: 3 }}>
+          <div
+            style={{
+              height: '100%',
+              width: `${left * 100}%`,
+              background: `repeating-linear-gradient(90deg, transparent 0 46px, rgba(0,0,0,0.35) 46px 50px), linear-gradient(90deg, ${C.red}, #ff7a59)`,
+              boxShadow: `0 0 18px ${C.red}aa`,
+            }}
+          />
+        </div>
+        <div
+          style={{
+            marginTop: 22,
+            display: 'inline-block',
+            fontFamily: FONT.display,
+            fontWeight: 800,
+            fontSize: 40,
+            letterSpacing: '0.04em',
+            color: C.gold,
+            background: 'rgba(8,0,18,0.78)',
+            borderLeft: `8px solid ${C.gold}`,
+            padding: '10px 22px',
+            opacity: titleIn,
+            transform: `translateX(${(1 - titleIn) * -40}px)`,
+          }}
+        >
+          {title.toUpperCase()}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 // Gold blade that sweeps across on every cut.
 export const Slash: React.FC = () => {
   const frame = useCurrentFrame();

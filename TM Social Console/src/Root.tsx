@@ -1,6 +1,7 @@
 import { Composition } from 'remotion';
 import { FPS, HEIGHT, loadBrandFonts, WIDTH } from './brand';
 import { BOSS_INTRO_FRAMES, BossIntro, type BossIntroProps } from './compositions/BossIntro';
+import { FightFocusRounds, type FightFocusRoundsProps, roundsTimeline } from './compositions/FightFocusRounds';
 import { FootageShort, footageFrames, type FootageShortProps } from './compositions/FootageShort';
 import { ScriptShort, scriptTimeline, type ScriptShortProps } from './compositions/ScriptShort';
 import { END_CARD_FRAMES } from './parts/EndCard';
@@ -35,6 +36,18 @@ const footageDefaults: FootageShortProps = {
   cta: 'Link in bio',
 };
 
+const roundsDefaults: FightFocusRoundsProps = {
+  discipline: 'Boxing',
+  difficulty: 'Normal',
+  roundSec: 180,
+  hook: 'The coach calls it. *You throw it.*',
+  rounds: [
+    { title: 'Pendulum boxing', src: 'sample/footage.mp4', start: 0, end: 6 },
+    { title: 'Single lead hand striking', src: 'sample/footage.mp4', start: 6, end: 12 },
+  ],
+  cta: 'Link in bio',
+};
+
 export const Root: React.FC = () => (
   <>
     <Composition
@@ -57,6 +70,16 @@ export const Root: React.FC = () => (
       durationInFrames={300}
       defaultProps={footageDefaults}
       calculateMetadata={({ props }) => ({ durationInFrames: footageFrames(props) + END_CARD_FRAMES })}
+    />
+    <Composition
+      id="FightFocusRounds"
+      component={FightFocusRounds}
+      width={WIDTH}
+      height={HEIGHT}
+      fps={FPS}
+      durationInFrames={300}
+      defaultProps={roundsDefaults}
+      calculateMetadata={({ props }) => ({ durationInFrames: roundsTimeline(props).total })}
     />
   </>
 );
