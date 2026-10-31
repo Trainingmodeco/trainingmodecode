@@ -39,7 +39,7 @@ Higgsfield history.
 | Vlad | `e5666b9c-99a2-4fac-8b4e-abee078b186d` | 5.4 s |
 | Sterling | `dc382508-c8bd-443c-8cb2-46e57b8d2e6f` | 4.9 s |
 
-Picked: _not yet_.
+Picked: **Gideon** (2026-10-31).
 
 ## Making a post's lines
 
