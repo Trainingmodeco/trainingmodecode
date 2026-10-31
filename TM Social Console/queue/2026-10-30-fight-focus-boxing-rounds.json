@@ -25,23 +25,8 @@
             "x": 62,
             "y": 45,
             "push": 0.05
-          },
-          {
-            "at": 1.75,
-            "scale": 1.75,
-            "x": 63,
-            "y": 41,
-            "push": 0.05
-          },
-          {
-            "at": 3.4,
-            "scale": 1.2,
-            "x": 60,
-            "y": 45
           }
-        ],
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-1.wav",
-        "voiceSec": 2.73
+        ]
       },
       {
         "title": "Nonstop striking",
@@ -55,19 +40,10 @@
           {
             "at": 0,
             "x": 60,
-            "y": 45,
-            "push": 0.04
-          },
-          {
-            "at": 3.3,
-            "scale": 1.7,
-            "x": 66,
             "y": 28,
-            "push": 0.05
+            "push": 0.04
           }
-        ],
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-2.wav",
-        "voiceSec": 2.61
+        ]
       },
       {
         "title": "Rear hand strikes",
@@ -83,17 +59,8 @@
             "x": 55,
             "y": 45,
             "push": 0.05
-          },
-          {
-            "at": 2,
-            "scale": 1.6,
-            "x": 55,
-            "y": 42,
-            "push": 0.04
           }
-        ],
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-3.wav",
-        "voiceSec": 2.55
+        ]
       },
       {
         "title": "Speed and power hooks",
@@ -109,24 +76,8 @@
             "x": 55,
             "y": 45,
             "push": 0.05
-          },
-          {
-            "at": 1.9,
-            "scale": 1.8,
-            "x": 57,
-            "y": 39,
-            "push": 0.04
-          },
-          {
-            "at": 3.5,
-            "scale": 1.25,
-            "x": 55,
-            "y": 44,
-            "push": 0.06
           }
-        ],
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-4.wav",
-        "voiceSec": 2.7
+        ]
       },
       {
         "title": "Nonstop windshield wipers",
@@ -160,22 +111,13 @@
             "push": 0.05
           },
           {
-            "at": 3.4,
-            "scale": 1.9,
-            "x": 50,
-            "y": 38,
-            "push": 0.05
-          },
-          {
             "at": 5.4667,
             "x": 47,
             "y": 28,
             "push": 0.3,
             "instant": true
           }
-        ],
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-5.wav",
-        "voiceSec": 3.18
+        ]
       }
     ],
     "cta": "Link in bio",
@@ -220,13 +162,13 @@
     "2026-10-30 v4 (owner): no RUSH screens; no box behind the focus text, which moves low; ROUND n stays in the centre; dim only on the 3-2-1, rounds snap in. With no box to hide the typed labels, rounds are cut around them (~32 s). Text-free exports from InShot would give back the labelled stretches (incl. the close-up flurry).",
     "2026-10-31 v5 (owner): lead hand round out (too short); RUSH back on the windshield wipers only, with a snap close-up; the round ends when the owner stops (clock 0:00, final bell, freeze on them catching their breath) and goes to STAGE CLEAR before they walk off; push-ins and snap close-ups through every round.",
     "2026-10-31 owner's round order: speed combos, nonstop striking, rear hand, power hooks, windshield wipers last.",
-    "2026-10-31: owner wants an arcade announcer voice (Higgsfield) instead of the robotic placeholder. 8 auditions made (brain/voices.md); waiting on the owner to pick one. Finale starts 0.8 s earlier so the call finishes before Rush mode!; the last call reads FINAL ROUND."
+    "2026-10-31: owner wants an arcade announcer voice (Higgsfield) instead of the robotic placeholder. 8 auditions made (brain/voices.md); waiting on the owner to pick one. Finale starts 0.8 s earlier so the call finishes before Rush mode!; the last call reads FINAL ROUND.",
+    "2026-10-31 owner: snap close-ups out (slow push-ins only). Robotic placeholder voice removed; preview has the bells only until the announcer lines are in."
   ],
-  "voiceUsed": "espeak-ng en-gb (placeholder, not the app voice)",
   "exports": {
     "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
     "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
-    "seconds": 29.83
+    "seconds": 30.63
   },
-  "renderedAt": "2026-10-31T00:20:48.567Z"
+  "renderedAt": "2026-10-31T05:15:23.021Z"
 }

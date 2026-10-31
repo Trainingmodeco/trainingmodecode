@@ -137,14 +137,14 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   colours (violet over 1:00, amber under, red with FINAL 30). **RUSH only on
   the finale** (the owner's call): `rushAt` fires the app's RUSH MODE screen
   just before the last burst and finishes the round in RUSH.
-  **Camera moves keep it from looking static** (the owner asked): `shots`,
-  e.g. `[{ "at": 0, "x": 55, "y": 45, "push": 0.05 }, { "at": 2, "scale":
-  1.7, "x": 55, "y": 40 }]`, a slow push-in plus one snap close-up
-  (1.6–1.9×) per round on the owner's upper body, and a snap close-up on
-  their face when RUSH fires. The footage is 720p, so stay at 2× or under.
-  Check every close-up frame: the face must stay in frame and below the timer
-  bar. When the owner's head is near the top, keep `y` under `50 / scale` so
-  the zoom pins to the top edge and pushes their head down.
+  **Camera: slow push-ins only** (the owner's call; they took the snap
+  close-ups out): one `shots` entry per round, e.g.
+  `[{ "at": 0, "x": 55, "y": 45, "push": 0.05 }]`, so the frame creeps in
+  about 5% a second and never sits still. `shots` can also snap to a close-up
+  (`"scale": 1.7` at a later `at`); don't, unless the owner asks again. Check
+  the frames: the face must stay in frame and below the timer bar. When the
+  owner's head is near the top, keep `y` under `50 / scale` so the zoom pins
+  to the top edge and pushes their head down.
   **End on the owner stopping** (their call): the last round's `clockFrom`
   is the time to the stop, so the clock hits 0:00, the final bell rings and
   the round is over; `cuts` adds the moment they stop and `hold` freezes on it
