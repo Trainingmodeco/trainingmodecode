@@ -140,16 +140,18 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   **Camera: slow push-ins only** (the owner's call; they took the snap
   close-ups out): one `shots` entry per round, e.g.
   `[{ "at": 0, "x": 55, "y": 45, "push": 0.05 }]`, so the frame creeps in
-  about 5% a second and never sits still. `shots` can also snap to a close-up
+  about 1.5% a second (`push` 0.015; the owner wants it very slow) and never
+  sits still. `shots` can also snap to a close-up
   (`"scale": 1.7` at a later `at`); don't, unless the owner asks again. Check
   the frames: the face must stay in frame and below the timer bar. When the
   owner's head is near the top, keep `y` under `50 / scale` so the zoom pins
   to the top edge and pushes their head down.
-  **End on the owner stopping** (their call): the last round's `clockFrom`
-  is the time to the stop, so the clock hits 0:00, the final bell rings and
-  the round is over; `cuts` adds the moment they stop and `hold` freezes on it
-  (with a slow push-in shot marked `instant`); then STAGE CLEAR. Never show
-  them walking off.
+  **End on the owner stopping, then let it play** (the owner's call): the last
+  round's `clockFrom` is the time to the stop, so the clock hits 0:00 and the
+  final bell rings as they stop; `cuts` adds the stop and the walk-off, and the
+  footage keeps playing (wide, no zoom) until they leave the frame, then
+  STAGE CLEAR. No freeze-frame (`hold`): the owner found the frozen pose
+  awkward.
   **The owner may type round names onto their clips as reference labels:
   use them for the round names and order, but never show them.** Find the
   exact frames each label is on screen (white pixels that hold still while the

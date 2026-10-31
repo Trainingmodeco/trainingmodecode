@@ -559,9 +559,10 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
   const { fps } = useVideoConfig();
   const roundSec = p.roundSec ?? 180;
   const len = roundFrames(r);
-  const left = Math.max(0, (r.clockFrom ?? roundSec) - frame / fps);
-  const over = left <= 0; // the clock ran out inside this round: the round is done
+  // Counted in whole frames, so 0:00 lands exactly on the frame the bell rings.
   const zeroAt = r.clockFrom != null ? Math.round(r.clockFrom * fps) : null;
+  const left = zeroAt != null ? Math.max(0, (zeroAt - frame) / fps) : roundSec - frame / fps;
+  const over = left <= 0; // the clock ran out inside this round: the round is done
   const final = Math.ceil(left) <= 30;
   const rushFrom = r.rushAt != null ? Math.round(r.rushAt * fps) : null;
   const rush = rushFrom != null && frame >= rushFrom && !over;

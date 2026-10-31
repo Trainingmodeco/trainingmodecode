@@ -24,7 +24,7 @@
             "at": 0,
             "x": 62,
             "y": 45,
-            "push": 0.05
+            "push": 0.015
           }
         ]
       },
@@ -41,7 +41,7 @@
             "at": 0,
             "x": 60,
             "y": 28,
-            "push": 0.04
+            "push": 0.012
           }
         ]
       },
@@ -58,7 +58,7 @@
             "at": 0,
             "x": 55,
             "y": 45,
-            "push": 0.05
+            "push": 0.015
           }
         ]
       },
@@ -75,7 +75,7 @@
             "at": 0,
             "x": 55,
             "y": 45,
-            "push": 0.05
+            "push": 0.015
           }
         ]
       },
@@ -91,10 +91,9 @@
         "cuts": [
           {
             "start": 20.9333,
-            "end": 21.0667
+            "end": 22.6
           }
         ],
-        "hold": 1.4,
         "focus": {
           "spans": [
             [
@@ -108,13 +107,13 @@
             "at": 0,
             "x": 52,
             "y": 45,
-            "push": 0.05
+            "push": 0.015
           },
           {
             "at": 5.4667,
-            "x": 47,
-            "y": 28,
-            "push": 0.3,
+            "x": 50,
+            "y": 50,
+            "push": 0,
             "instant": true
           }
         ]
@@ -163,12 +162,13 @@
     "2026-10-31 v5 (owner): lead hand round out (too short); RUSH back on the windshield wipers only, with a snap close-up; the round ends when the owner stops (clock 0:00, final bell, freeze on them catching their breath) and goes to STAGE CLEAR before they walk off; push-ins and snap close-ups through every round.",
     "2026-10-31 owner's round order: speed combos, nonstop striking, rear hand, power hooks, windshield wipers last.",
     "2026-10-31: owner wants an arcade announcer voice (Higgsfield) instead of the robotic placeholder. 8 auditions made (brain/voices.md); waiting on the owner to pick one. Finale starts 0.8 s earlier so the call finishes before Rush mode!; the last call reads FINAL ROUND.",
-    "2026-10-31 owner: snap close-ups out (slow push-ins only). Robotic placeholder voice removed; preview has the bells only until the announcer lines are in."
+    "2026-10-31 owner: snap close-ups out (slow push-ins only). Robotic placeholder voice removed; preview has the bells only until the announcer lines are in.",
+    "2026-10-31 owner: no freeze at the end; the round still ends as they stop, then the video plays on as they walk off, into STAGE CLEAR. Push-ins about 3x slower."
   ],
   "exports": {
     "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
     "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
-    "seconds": 30.63
+    "seconds": 30.77
   },
-  "renderedAt": "2026-10-31T05:15:23.021Z"
+  "renderedAt": "2026-10-31T15:03:19.470Z"
 }
