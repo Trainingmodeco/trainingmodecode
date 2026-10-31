@@ -4,7 +4,7 @@
   "status": "rendered",
   "format": "ScriptShort",
   "createdAt": "2026-10-30",
-  "source": "brain/scripts production schedule, Post #6 \"What Is Fight Mode?\", rewritten to today's app: Strike Focus is now Fight Focus, and the Fight Focus lines come from the app's own screen guide.",
+  "source": "brain/scripts production schedule, Post #6 \"What Is Fight Mode?\", rewritten to today's app: Strike Focus is now Fight Focus, and the Fight Focus lines come from the app's own screen guide. B-roll: the owner's shadowboxing clip (2026-10-31), zoomed in and head-tracked.",
   "scheduledFor": null,
   "coverFrame": 60,
   "props": {
@@ -26,28 +26,28 @@
     ],
     "broll": [
       {
-        "src": "raw-footage/shadowbox-gym-img0204.mov",
-        "start": 9,
-        "rate": 0.8,
-        "focusX": 52
-      },
-      {
-        "src": "raw-footage/shadowbox-gym-img0204.mov",
-        "start": 11,
+        "src": "raw-footage/new-a-0902.tracked.mp4",
+        "start": 0.2,
         "rate": 0.8,
         "focusX": 50
       },
       {
-        "src": "raw-footage/shadowbox-gym-img0204.mov",
-        "start": 1,
-        "rate": 1,
-        "focusX": 62
+        "src": "raw-footage/new-a-0902.tracked.mp4",
+        "start": 3.2,
+        "rate": 0.8,
+        "focusX": 50
       },
       {
-        "src": "raw-footage/shadowbox-gym-img0204.mov",
-        "start": 5.5,
+        "src": "raw-footage/new-a-0902.tracked.mp4",
+        "start": 8.2,
         "rate": 1,
-        "focusX": 56
+        "focusX": 50
+      },
+      {
+        "src": "raw-footage/new-a-0902.tracked.mp4",
+        "start": 20,
+        "rate": 1,
+        "focusX": 50
       }
     ]
   },
@@ -83,9 +83,10 @@
     "cover": "exports/2026-10-30-fight-focus-coach-in-your-ear/cover.jpg",
     "seconds": 18.93
   },
-  "renderedAt": "2026-10-30T03:07:52.746Z",
+  "renderedAt": "2026-10-31T16:36:19.072Z",
   "brollSource": "Drive (sempaiintraining): IMG_0204.mov, shadowboxing on the mats, 2022. v2 used reel 1.m4v (bag work); the owner asked for a different video.",
   "notes": [
-    "2026-10-30 owner: TikTok as \"Only me\" first. Do not post anything until the owner says so (status stays rendered; not approved)."
+    "2026-10-30 owner: TikTok as \"Only me\" first. Do not post anything until the owner says so (status stays rendered; not approved).",
+    "2026-10-31 owner: new B-roll (their own clip), zoomed in more and tracking their head; same look and text."
   ]
 }

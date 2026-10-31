@@ -19,3 +19,5 @@ exports/*
 !exports/README.md
 *.16k.wav
 hyperframes/.hyperframes/
+# pose model for tools/track-head.py (downloads on first use)
+models/

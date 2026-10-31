@@ -65,8 +65,8 @@
       {
         "title": "Speed and power hooks",
         "src": "raw-footage/ff-best-part2.mp4",
-        "start": 7.2333,
-        "end": 12.1333,
+        "start": 0.6,
+        "end": 4.1667,
         "rate": 1,
         "clockFrom": 45,
         "cue": "Fast hooks, then sit down on them.",
@@ -76,6 +76,12 @@
             "x": 55,
             "y": 45,
             "push": 0.015
+          }
+        ],
+        "cuts": [
+          {
+            "start": 7.8,
+            "end": 10.3333
           }
         ]
       },
@@ -122,7 +128,7 @@
     "cta": "Link in bio",
     "intro": {
       "src": "raw-footage/ff-best-part2.mp4",
-      "start": 0.6,
+      "start": 10.4,
       "rate": 1
     },
     "difficulty": "Normal",
@@ -164,14 +170,15 @@
     "2026-10-31: owner wants an arcade announcer voice (Higgsfield) instead of the robotic placeholder. 8 auditions made (brain/voices.md); waiting on the owner to pick one. Finale starts 0.8 s earlier so the call finishes before Rush mode!; the last call reads FINAL ROUND.",
     "2026-10-31 owner: snap close-ups out (slow push-ins only). Robotic placeholder voice removed; preview has the bells only until the announcer lines are in.",
     "2026-10-31 owner: no freeze at the end; the round still ends as they stop, then the video plays on as they walk off, into STAGE CLEAR. Push-ins about 3x slower.",
-    "2026-10-31: owner picked Gideon. The 7 lines are made on Higgsfield (raw-footage/voice/<id>/higgsfield.json, not in git); waiting on the download (cloud hosts blocked)."
+    "2026-10-31: owner picked Gideon. The 7 lines are made on Higgsfield (raw-footage/voice/<id>/higgsfield.json, not in git); waiting on the download (cloud hosts blocked).",
+    "2026-10-31 owner: the fast striking that was hidden behind the 3-2-1 (clip 2's start) now opens the speed and power hooks round."
   ],
   "exports": {
     "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
     "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
-    "seconds": 30.77
+    "seconds": 31.97
   },
-  "renderedAt": "2026-10-31T15:03:19.470Z",
+  "renderedAt": "2026-10-31T16:33:54.027Z",
   "announcer": {
     "engine": "higgsfield",
     "voice": "Gideon"

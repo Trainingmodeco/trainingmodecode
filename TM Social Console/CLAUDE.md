@@ -78,6 +78,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run studio` | Remotion Studio: preview and tweak templates live |
 | `npm run hf:render -- raw-footage/clip.mp4 6 55` | renders the HyperFrames Rank Ladder over that clip (from 6s, crop centred at 55%) |
 | `npm run reference -- <url>` | saves a reference reel with yt-dlp |
+| `npm run track -- raw-footage/clip.mp4 --zoom 2 --head 0.33` | zooms in and follows the owner's head (MediaPipe pose) → `clip.tracked.mp4` (1080×1920, 30 fps, same timing) + `clip.track.json` |
 
 ## The loop
 
@@ -113,7 +114,10 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   `{ "src": "raw-footage/<clip>.mp4", "start": <sec>, "rate": 0.75, "focusX": 50 }`
   (`focusX` centres a landscape clip in the vertical crop: 0 = left, 100 = right). Footage is
   muted (the owner adds music later), slowed, and toned violet (gold on gold
-  beats). Pick a different shot per scene: find cuts with
+  beats). **The owner wants their B-roll zoomed in and following them:** run
+  `npm run track` on a wide clip first (zoom 2 for a full-body shot, 1.5 when
+  they're already close; `--head 0.33` keeps headroom under the HUD) and use
+  the `.tracked.mp4` with `focusX` 50. Same for the Rank Ladder clip. Pick a different shot per scene: find cuts with
   `ffmpeg -i clip -vf "select='gt(scene,0.25)',showinfo" -f null -`, and make
   sure `start + sceneSeconds × rate` stays inside the clip.
 - **FootageShort**: the owner's clip with the HUD, a title card, Whisper
