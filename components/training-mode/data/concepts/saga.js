@@ -4,7 +4,7 @@
 // order and get harder as you climb — no difficulty picker.
 import { CONCEPT_SCHEDULE, entryFor, windowState, canPlay, loadProgress, arcStages, arcsCleared, featuredEntry, stageItems, arcadeGate } from './index';
 import { getSeriesProgress } from '../arcadeProgress';
-import { isPro } from '../entitlements';
+import { isPro, paywallActive } from '../entitlements';
 
 const ARC_OF = { fit: 'fit', fight: 'fight', both: 'hybrid' };
 const MODE_OF = { fit: 'fit', fight: 'fight', hybrid: 'both' };
@@ -70,9 +70,11 @@ export function conceptSagaProgress(conceptId) {
 // preview), then vault drops this athlete can still play.
 // Older Arcade sagas a drop replaces. Once the drop goes live they leave the
 // carousel — except for Pro (the vault keeps everything) and anyone who
-// already cleared a stage in them.
+// already cleared a stage in them. Only paying Pro counts: while the paywall
+// is off everyone is Pro, and the old sagas would never retire (two "The
+// Destroyer" cards from Dec 1).
 const REPLACES = { 'ultra-ego': 'destroyer-protocol', 'flow-state': 'flow-state-protocol', 'one-hundred': 'one-punch-protocol', 'night-vigilante': 'vigilante-protocol' };
-export function retiredSagaIds(now = Date.now(), hasProgress = sagaHasProgress, pro = isPro()) {
+export function retiredSagaIds(now = Date.now(), hasProgress = sagaHasProgress, pro = paywallActive() && isPro()) {
   if (pro) return new Set();
   return new Set(CONCEPT_SCHEDULE
     .filter(e => REPLACES[e.concept.id] && windowState(e, now) !== 'upcoming' && !hasProgress(REPLACES[e.concept.id]))

@@ -319,6 +319,7 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   check('all three retired by Aug 2027', ['flow-state-protocol', 'one-punch-protocol', 'vigilante-protocol'].every(id => S2.retiredSagaIds(at('2027-08-02'), () => false, false).has(id)));
   check('The Destroyer retires Dec 1', !S2.retiredSagaIds(at('2026-11-30'), () => false, false).has('destroyer-protocol') && S2.retiredSagaIds(at('2026-12-01'), () => false, false).has('destroyer-protocol'));
   check('Pro keeps every old saga', S2.retiredSagaIds(at('2027-08-02'), () => false, true).size === 0);
+  check('free beta (paywall off): The Destroyer still retires Dec 1', S2.retiredSagaIds(at('2026-12-01'), () => false).has('destroyer-protocol'));
   check('kept for someone with progress', !S2.retiredSagaIds(at('2027-04-02'), id => id === 'one-punch-protocol', false).has('one-punch-protocol'));
 }
 
