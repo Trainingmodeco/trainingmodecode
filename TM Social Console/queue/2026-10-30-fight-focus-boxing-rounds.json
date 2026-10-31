@@ -6,20 +6,67 @@
   "createdAt": "2026-10-30",
   "source": "Owner's second cut (two InShot clips, 720p, bag work, uploaded 2026-10-30) with the round names typed on as reference labels. Rounds follow the owner's labels and order, cut only from stretches where no label is on screen.",
   "scheduledFor": null,
-  "coverFrame": 600,
+  "coverFrame": 720,
   "props": {
     "discipline": "Boxing",
     "hook": "The coach calls it. *You throw it.*",
     "rounds": [
       {
-        "title": "Lead hand strikes",
+        "title": "Short speed combos",
         "src": "raw-footage/ff-best-part1.mp4",
-        "start": 4.5667,
-        "end": 6.8333,
+        "start": 14.1667,
+        "end": 18.7,
         "rate": 1,
-        "clockFrom": 168,
-        "cue": "Lead hand only. Snap it back to your guard.",
+        "clockFrom": 131,
+        "cue": "Short and sharp. Reset, then fire again.",
+        "shots": [
+          {
+            "at": 0,
+            "x": 62,
+            "y": 45,
+            "push": 0.05
+          },
+          {
+            "at": 1.75,
+            "scale": 1.75,
+            "x": 63,
+            "y": 41,
+            "push": 0.05
+          },
+          {
+            "at": 3.4,
+            "scale": 1.2,
+            "x": 60,
+            "y": 45
+          }
+        ],
         "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-1.wav",
+        "voiceSec": 2.73
+      },
+      {
+        "title": "Nonstop striking",
+        "src": "raw-footage/ff-best-part1.mp4",
+        "start": 25.4333,
+        "end": 29.9333,
+        "rate": 1,
+        "clockFrom": 96,
+        "cue": "Don't stop. Keep the hands moving.",
+        "shots": [
+          {
+            "at": 0,
+            "x": 60,
+            "y": 45,
+            "push": 0.04
+          },
+          {
+            "at": 3.3,
+            "scale": 1.7,
+            "x": 66,
+            "y": 28,
+            "push": 0.05
+          }
+        ],
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-2.wav",
         "voiceSec": 2.61
       },
       {
@@ -28,32 +75,25 @@
         "start": 9.9,
         "end": 14.1,
         "rate": 1,
-        "clockFrom": 131,
-        "cue": "Turn the hip. Straight back to your guard.",
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-2.wav",
-        "voiceSec": 2.56
-      },
-      {
-        "title": "Short speed combos",
-        "src": "raw-footage/ff-best-part1.mp4",
-        "start": 14.1667,
-        "end": 18.7,
-        "rate": 1,
-        "clockFrom": 96,
-        "cue": "Short and sharp. Reset, then fire again.",
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-3.wav",
-        "voiceSec": 2.71
-      },
-      {
-        "title": "Nonstop striking",
-        "src": "raw-footage/ff-best-part1.mp4",
-        "start": 25.4333,
-        "end": 29.9333,
-        "rate": 1,
         "clockFrom": 58,
-        "cue": "Don't stop. Keep the hands moving.",
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-4.wav",
-        "voiceSec": 2.67
+        "cue": "Turn the hip. Straight back to your guard.",
+        "shots": [
+          {
+            "at": 0,
+            "x": 55,
+            "y": 45,
+            "push": 0.05
+          },
+          {
+            "at": 2,
+            "scale": 1.6,
+            "x": 55,
+            "y": 42,
+            "push": 0.04
+          }
+        ],
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-3.wav",
+        "voiceSec": 2.55
       },
       {
         "title": "Speed and power hooks",
@@ -63,19 +103,79 @@
         "rate": 1,
         "clockFrom": 45,
         "cue": "Fast hooks, then sit down on them.",
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-5.wav",
-        "voiceSec": 2.77
+        "shots": [
+          {
+            "at": 0,
+            "x": 55,
+            "y": 45,
+            "push": 0.05
+          },
+          {
+            "at": 1.9,
+            "scale": 1.8,
+            "x": 57,
+            "y": 39,
+            "push": 0.04
+          },
+          {
+            "at": 3.5,
+            "scale": 1.25,
+            "x": 55,
+            "y": 44,
+            "push": 0.06
+          }
+        ],
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-4.wav",
+        "voiceSec": 2.7
       },
       {
         "title": "Nonstop windshield wipers",
         "src": "raw-footage/ff-best-part2.mp4",
-        "start": 12.2,
+        "start": 13.2,
         "end": 17.8667,
         "rate": 1,
-        "clockFrom": 27,
+        "clockFrom": 4.6667,
+        "rushAt": 2.6,
         "cue": "Left, right, left, right. Don't stop.",
-        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-6.wav",
-        "voiceSec": 3.14
+        "cuts": [
+          {
+            "start": 20.9333,
+            "end": 21.0667
+          }
+        ],
+        "hold": 1.4,
+        "focus": {
+          "spans": [
+            [
+              0,
+              4.4667
+            ]
+          ]
+        },
+        "shots": [
+          {
+            "at": 0,
+            "x": 52,
+            "y": 45,
+            "push": 0.05
+          },
+          {
+            "at": 2.6,
+            "scale": 1.9,
+            "x": 50,
+            "y": 38,
+            "push": 0.05
+          },
+          {
+            "at": 4.6667,
+            "x": 47,
+            "y": 28,
+            "push": 0.3,
+            "instant": true
+          }
+        ],
+        "voice": "raw-footage/voice/2026-10-30-fight-focus-boxing-rounds/call-5.wav",
+        "voiceSec": 3.18
       }
     ],
     "cta": "Link in bio",
@@ -89,18 +189,18 @@
   },
   "platforms": {
     "tiktok": {
-      "caption": "6 rounds of Fight Focus 🥊 Lead hand, rear hand, short speed combos, nonstop striking, speed and power hooks, windshield wipers. The coach calls every round, you throw it. Link in bio. #boxing #heavybag #boxingworkout #muaythai #trainingmode",
+      "caption": "5 rounds of Fight Focus 🥊 Short speed combos, nonstop striking, rear hand, speed and power hooks, windshield wipers. The coach calls every round, you throw it. Link in bio. #boxing #heavybag #boxingworkout #muaythai #trainingmode",
       "privacy": "SELF_ONLY"
     },
     "instagram": {
-      "caption": "6 rounds. The coach calls it, you throw it. 🥊\n\nFight Focus runs voice-coached boxing rounds on a real fight timer: lead hand, rear hand, short speed combos, nonstop striking, speed and power hooks, windshield wipers.\n\nComment TRAIN and I'll DM you the link.\n\n#boxing #heavybag #boxingworkout #muaythai #combatfitness #trainingmode"
+      "caption": "5 rounds. The coach calls it, you throw it. 🥊\n\nFight Focus runs voice-coached boxing rounds on a real fight timer: short speed combos, nonstop striking, rear hand, speed and power hooks, windshield wipers.\n\nComment TRAIN and I'll DM you the link.\n\n#boxing #heavybag #boxingworkout #muaythai #combatfitness #trainingmode"
     },
     "facebook": {
-      "caption": "6 rounds of Fight Focus 🥊 The coach calls every round, you throw it: lead hand, rear hand, short speed combos, nonstop striking, speed and power hooks, windshield wipers. Comment TRAIN for the link."
+      "caption": "5 rounds of Fight Focus 🥊 The coach calls every round, you throw it: short speed combos, nonstop striking, rear hand, speed and power hooks, windshield wipers. Comment TRAIN for the link."
     },
     "youtube": {
-      "title": "6 boxing rounds on the heavy bag, called by the coach 🥊 #shorts",
-      "description": "Fight Focus in Training Mode: voice-coached boxing rounds on a real fight timer. Lead hand, rear hand, short speed combos, nonstop striking, speed and power hooks, windshield wipers.\n\nTrain: https://apptrainingmode.com",
+      "title": "5 boxing rounds on the heavy bag, called by the coach 🥊 #shorts",
+      "description": "Fight Focus in Training Mode: voice-coached boxing rounds on a real fight timer. Short speed combos, nonstop striking, rear hand, speed and power hooks, windshield wipers.\n\nTrain: https://apptrainingmode.com",
       "tags": [
         "boxing",
         "heavy bag",
@@ -117,13 +217,15 @@
   "notes": [
     "2026-10-30 owner's montage, cut to ~41s. Voice here is a robot placeholder; on the laptop `npm run voice` uses the app voice (Hazel/Zira). Owner approves before anything posts; TikTok goes out as Only me first.",
     "2026-10-30 v3: owner's second cut with typed round labels. Labels are reference only; the focus card hides them (card.y / card.spans per round). Voice is still the cloud placeholder until `npm run voice` on the laptop.",
-    "2026-10-30 v4 (owner): no RUSH screens; no box behind the focus text, which moves low; ROUND n stays in the centre; dim only on the 3-2-1, rounds snap in. With no box to hide the typed labels, rounds are cut around them (~32 s). Text-free exports from InShot would give back the labelled stretches (incl. the close-up flurry)."
+    "2026-10-30 v4 (owner): no RUSH screens; no box behind the focus text, which moves low; ROUND n stays in the centre; dim only on the 3-2-1, rounds snap in. With no box to hide the typed labels, rounds are cut around them (~32 s). Text-free exports from InShot would give back the labelled stretches (incl. the close-up flurry).",
+    "2026-10-31 v5 (owner): lead hand round out (too short); RUSH back on the windshield wipers only, with a snap close-up; the round ends when the owner stops (clock 0:00, final bell, freeze on them catching their breath) and goes to STAGE CLEAR before they walk off; push-ins and snap close-ups through every round.",
+    "2026-10-31 owner's round order: speed combos, nonstop striking, rear hand, power hooks, windshield wipers last."
   ],
   "voiceUsed": "espeak-ng en-gb (placeholder, not the app voice)",
   "exports": {
     "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
     "cover": "exports/2026-10-30-fight-focus-boxing-rounds/cover.jpg",
-    "seconds": 31.57
+    "seconds": 29.83
   },
-  "renderedAt": "2026-10-30T23:02:41.908Z"
+  "renderedAt": "2026-10-31T00:20:48.567Z"
 }

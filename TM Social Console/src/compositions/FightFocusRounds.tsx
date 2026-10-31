@@ -1,4 +1,4 @@
-import { AbsoluteFill, Audio, Img, interpolate, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Audio, Freeze, Img, interpolate, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { C, FONT, FPS } from '../brand';
 import { Bell } from '../parts/Bell';
 import { END_CARD_FRAMES, EndCard } from '../parts/EndCard';
@@ -12,9 +12,12 @@ import { Slash } from '../parts/Hud';
 // each round snaps straight in (no dim): "ROUND 1" in gold in the centre, the
 // bell, the coach saying "Round 1. Pendulum boxing." in the app's voice, and
 // the round's focus (the drill and the coach's cue, as on the app's focus
-// card, as text without the card) low on the screen. A round can fire the
-// app's RUSH screen (RushEffects.jsx, `rushAt`) and finish in RUSH: orange
-// ring, ⚡ RUSH, embers and edge glow. No music (the owner adds it).
+// card, as text without the card) low on the screen. Camera moves (`shots`)
+// push in slowly or snap to close-ups so the footage never sits still. A
+// round can fire the app's RUSH screen (RushEffects.jsx, `rushAt`) and finish
+// in RUSH: orange ring, ⚡ RUSH, embers and edge glow. When the clock reaches
+// 0:00 inside a round, the round is over: the bell rings and the footage can
+// freeze on the owner's last moment (`hold`). No music (the owner adds it).
 export type Round = {
   title: string; // "Pendulum boxing"
   src: string; // footage; raw-footage/ files are staged by tools/render.mjs
@@ -32,7 +35,17 @@ export type Round = {
   // shows, in seconds into the round (default: the whole round). It has no
   // backing, so it can't hide text burned into the footage: cut around that.
   focus?: { y?: number; spans?: [number, number][] };
+  cuts?: { src?: string; start: number; end: number }[]; // more stretches, cut straight on after this one
+  hold?: number; // seconds to freeze on the last frame (after the round's work is over)
+  shots?: Shot[];
 };
+
+// A camera move inside a round. From `at` (seconds into the round) the frame
+// snaps (a quick 4-frame punch) to `scale` (1 = the full frame) centred on
+// x/y (% of the frame, kept inside it), then pushes in by `push` per second;
+// `instant` skips the punch (for a shot that starts on a cut). Before the
+// first shot the frame is full and still.
+export type Shot = { at: number; scale?: number; x?: number; y?: number; push?: number; instant?: boolean };
 
 export type FightFocusRoundsProps = {
   discipline: string; // "Boxing"
@@ -61,9 +74,37 @@ const ringColor = (left: number, rush: boolean) => (left <= 30 ? '#ef4444' : rus
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 const plainText = (s: string) => s.replace(/\*/g, '');
 
-// A round lasts as long as its footage (rounds can be shorter than their call,
-// so the footage never runs past a clean stretch into something unwanted).
-export const roundFrames = (r: Round) => Math.max(CALL_FRAMES + 20, Math.round(((r.end - r.start) / (r.rate ?? 1)) * FPS));
+// The round's footage: its own stretch, then any `cuts`, each with its length
+// and where it starts in the round.
+const stretches = (r: Round) => {
+  let from = 0;
+  return [{ src: r.src, start: r.start, end: r.end }, ...(r.cuts ?? [])].map((c) => {
+    const len = Math.round(((c.end - c.start) / (r.rate ?? 1)) * FPS);
+    const g = { src: c.src ?? r.src, start: c.start, len, from };
+    from += len;
+    return g;
+  });
+};
+
+// A round lasts as long as its footage plus any hold (rounds can be shorter
+// than their call, so the footage never runs past a clean stretch into
+// something unwanted).
+export const roundFrames = (r: Round) =>
+  Math.max(CALL_FRAMES + 20, stretches(r).reduce((n, g) => n + g.len, 0) + Math.round((r.hold ?? 0) * FPS));
+
+const SNAP_FRAMES = 4;
+const shotAt = (s: Shot | undefined, t: number) =>
+  s ? { k: (s.scale ?? 1) + (s.push ?? 0) * Math.max(0, t - s.at), x: s.x ?? 50, y: s.y ?? 50 } : { k: 1, x: 50, y: 50 };
+const camera = (shots: Shot[] | undefined, t: number, fps: number) => {
+  const list = shots ?? [];
+  const i = list.reduce((last, s, j) => (s.at <= t ? j : last), -1);
+  const cur = shotAt(list[i], t);
+  const p = i >= 0 && list[i].at > 0 && !list[i].instant ? ((t - list[i].at) * fps) / SNAP_FRAMES : 1;
+  if (p >= 1) return cur;
+  const prev = shotAt(list[i - 1], list[i].at);
+  const e = 1 - (1 - p) ** 3;
+  return { k: prev.k + (cur.k - prev.k) * e, x: prev.x + (cur.x - prev.x) * e, y: prev.y + (cur.y - prev.y) * e };
+};
 
 export function roundsTimeline(p: FightFocusRoundsProps) {
   let from = INTRO_FRAMES;
@@ -81,25 +122,43 @@ export function roundsTimeline(p: FightFocusRoundsProps) {
   return { rounds, endFrom: from, total: from + END_CARD_FRAMES };
 }
 
-const Footage: React.FC<{ src: string; start: number; rate?: number; focusX?: number; focusY?: number; dim?: number; shake?: number }> = ({
-  src,
-  start,
-  rate = 1,
-  focusX = 50,
-  focusY = 50,
-  dim = 0,
-  shake = 0,
-}) => {
-  const { fps } = useVideoConfig();
+const Footage: React.FC<{
+  src: string;
+  start: number;
+  rate?: number;
+  focusX?: number;
+  focusY?: number;
+  dim?: number;
+  shake?: number;
+  cam?: { k: number; x: number; y: number };
+  freezeAt?: number;
+}> = ({ src, start, rate = 1, focusX = 50, focusY = 50, dim = 0, shake = 0, cam = { k: 1, x: 50, y: 50 }, freezeAt }) => {
+  const { fps, width: W, height: H } = useVideoConfig();
+  // Zoom from the top-left corner, then slide so x/y sits in the middle,
+  // without ever showing past the frame's edges (a shake adds 4% headroom).
+  const k = cam.k * (shake ? 1.04 : 1);
+  const tx = Math.min(0, Math.max(W - k * W, W / 2 - (k * cam.x * W) / 100 + shake));
+  const ty = Math.min(0, Math.max(H - k * H, H / 2 - (k * cam.y * H) / 100 - shake * 0.6));
+  const video = (
+    <OffthreadVideo
+      src={staticFile(src)}
+      muted
+      trimBefore={Math.round(start * fps)}
+      playbackRate={rate}
+      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${focusX}% ${focusY}%`, filter: 'saturate(0.9) contrast(1.06)' }}
+    />
+  );
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#000', transform: `translate(${shake}px, ${-shake * 0.6}px) scale(${shake ? 1.03 : 1})` }}>
-      <OffthreadVideo
-        src={staticFile(src)}
-        muted
-        trimBefore={Math.round(start * fps)}
-        playbackRate={rate}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${focusX}% ${focusY}%`, filter: 'saturate(0.9) contrast(1.06)' }}
-      />
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#000' }}>
+      <div style={{ position: 'absolute', inset: 0, transformOrigin: '0 0', transform: `translate(${tx}px, ${ty}px) scale(${k})` }}>
+        {freezeAt != null ? (
+          <Freeze frame={freezeAt} active={(f) => f >= freezeAt}>
+            {video}
+          </Freeze>
+        ) : (
+          video
+        )}
+      </div>
       <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(10,0,20,0.35) 0%, rgba(10,0,20,0) 16%, rgba(10,0,20,0) 80%, rgba(10,0,20,0.3) 100%)' }} />
       {dim ? <AbsoluteFill style={{ background: '#000', opacity: dim }} /> : null}
     </div>
@@ -487,17 +546,29 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const roundSec = p.roundSec ?? 180;
-  const left = (r.clockFrom ?? roundSec) - frame / fps;
+  const len = roundFrames(r);
+  const left = Math.max(0, (r.clockFrom ?? roundSec) - frame / fps);
+  const over = left <= 0; // the clock ran out inside this round: the round is done
+  const zeroAt = r.clockFrom != null ? Math.round(r.clockFrom * fps) : null;
   const final = Math.ceil(left) <= 30;
   const rushFrom = r.rushAt != null ? Math.round(r.rushAt * fps) : null;
-  const rush = rushFrom != null && frame >= rushFrom;
+  const rush = rushFrom != null && frame >= rushFrom && !over;
   const sinceRush = rushFrom != null ? frame - rushFrom : -1;
   const shake = sinceRush >= 0 && sinceRush < 12 ? Math.sin(sinceRush * 2.9) * (12 - sinceRush) * 1.6 : 0;
+  const cam = camera(r.shots, frame / fps, fps);
+  const segs = stretches(r);
   return (
     <AbsoluteFill style={{ background: '#0a0014' }}>
-      <Footage src={r.src} start={r.start} rate={r.rate} focusX={r.focusX} focusY={r.focusY} shake={shake} />
+      {segs.map((g, i) => {
+        const last = i === segs.length - 1;
+        return (
+          <Sequence key={i} from={g.from} durationInFrames={last ? len - g.from : g.len}>
+            <Footage src={g.src} start={g.start} rate={r.rate} focusX={r.focusX} focusY={r.focusY} shake={shake} cam={cam} freezeAt={last && r.hold ? g.len - 1 : undefined} />
+          </Sequence>
+        );
+      })}
       {rush ? <RushGlow /> : null}
-      {final && !rush ? (
+      {final && !rush && !over ? (
         <AbsoluteFill
           style={{
             background: 'radial-gradient(ellipse at center, rgba(239,68,68,0.16) 0%, transparent 70%)',
@@ -514,6 +585,11 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
       ) : null}
       {frame < CALL_FRAMES ? <RoundCall n={n} /> : null}
       <Bell ring="single" volume={0.6} />
+      {zeroAt != null && zeroAt < len ? (
+        <Sequence from={zeroAt}>
+          <Bell ring={n === total ? 'triple' : 'double'} volume={0.7} />
+        </Sequence>
+      ) : null}
     </AbsoluteFill>
   );
 };

@@ -134,15 +134,29 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   strikes at real speed. A round lasts as long as its footage; calls that run
   long wait for the previous one to finish. `clockFrom` is the seconds left on
   the 3:00 clock when the clip starts: spread them so the ring shows the app's
-  colours (violet over 1:00, amber under, red with FINAL 30). **No RUSH
-  screens** unless the owner asks again (they took them out; `rushAt` still
-  fires the app's RUSH MODE screen and finishes the round in RUSH).
+  colours (violet over 1:00, amber under, red with FINAL 30). **RUSH only on
+  the finale** (the owner's call): `rushAt` fires the app's RUSH MODE screen
+  just before the last burst and finishes the round in RUSH.
+  **Camera moves keep it from looking static** (the owner asked): `shots`,
+  e.g. `[{ "at": 0, "x": 55, "y": 45, "push": 0.05 }, { "at": 2, "scale":
+  1.7, "x": 55, "y": 40 }]`, a slow push-in plus one snap close-up
+  (1.6–1.9×) per round on the owner's upper body, and a snap close-up on
+  their face when RUSH fires. The footage is 720p, so stay at 2× or under.
+  Check every close-up frame: the face must stay in frame and below the timer
+  bar. When the owner's head is near the top, keep `y` under `50 / scale` so
+  the zoom pins to the top edge and pushes their head down.
+  **End on the owner stopping** (their call): the last round's `clockFrom`
+  is the time to the stop, so the clock hits 0:00, the final bell rings and
+  the round is over; `cuts` adds the moment they stop and `hold` freezes on it
+  (with a slow push-in shot marked `instant`); then STAGE CLEAR. Never show
+  them walking off.
   **The owner may type round names onto their clips as reference labels:
   use them for the round names and order, but never show them.** Find the
   exact frames each label is on screen (white pixels that hold still while the
   body moves) and cut every round from label-free stretches with a frame of
   margin; labels often start a few seconds after a cut. Then scan the render
-  for the labels. Aim for 30–45 s total; 5–7 rounds of 2–6 s. Pick the most
+  for the labels. Aim for 30–45 s total; 5–7 rounds of 4–6 s (the owner cut a
+  2 s round as too short). Use the owner's round order when they give one. Pick the most
   dynamic seconds (contact sheets at 2–4 fps; skip walk-bys) and name each
   round for the drill on screen. The owner wants it to look like the app:
   match the app's screens, colours, copy and fonts (Press Start 2P is allowed
