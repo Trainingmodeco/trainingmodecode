@@ -296,7 +296,7 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
     const c = e.concept;
     const { art, ...shown } = c;
     const txt = JSON.stringify(shown).replace(/"(id|accent|frame)":"[^"]*"/g, '');
-    check(`${c.id}: no franchise names in user text`, c.id === 'ultra-ego' || !BANNED.test(txt), (txt.match(BANNED) || [])[0]);
+    check(`${c.id}: no franchise names in user text`, !BANNED.test(txt), (txt.match(BANNED) || [])[0]);
     check(`${c.id}: arcade 3 × 10, boss last`, ['fit', 'fight', 'hybrid'].every(a => C.arcStages(c, a).length === 10 && C.arcStages(c, a)[9].boss));
     check(`${c.id}: every training day builds`, C.fitTrainingDays(c).every((d, i) => d.run || C.fitDayExercises(c, i).length >= 4));
     check(`${c.id}: every fight day builds with a super`, c.fight.days.every((d, i) => { store.set('tm_concepts_v1', JSON.stringify({ [c.id]: { fightDone: i } })); const f = C.fightDayCfg(c); return f.rounds >= 3 && f.blockRounds.some(r => r.super); }) || c.id === 'ultra-ego' || c.id === 'shoto');

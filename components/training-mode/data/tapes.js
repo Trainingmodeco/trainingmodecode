@@ -32,7 +32,7 @@ export const DAILY_PAID_CLEARS = 2;
 export const TAPES = [
   { id: 'shadow-01', num: '#01', kind: 'fight', title: 'Kickboxing Basics', meta: 'Shadowboxing · 3 rounds', minutes: 22, gear: 'No gear', art: '/static/revamp/hub-fight-reveal.webp', pos: '50% 25%', youtubeId: '', live: 'Live · Shadowbox Mini' },
   { id: 'bw-01', num: '#02', kind: 'fit', title: 'Deadly Seven', meta: 'Bodyweight · 7 × 7 × 7', minutes: 30, gear: 'No gear', art: '/static/revamp/hub-fit-reveal.webp', pos: '50% 22%', youtubeId: '', live: 'Live · Quick Mission' },
-  { id: 'kb-01', num: '#03', kind: 'fit', title: 'The 300', meta: 'Kettlebell · 300 reps', minutes: 25, gear: '1 kettlebell', art: '/static/fitmode/banner-gym-quick.webp', pos: '40% 60%', youtubeId: '' },
+  { id: 'kb-01', num: '#03', kind: 'fit', title: 'One-Bell 300', meta: 'Kettlebell · 300 reps', minutes: 25, gear: '1 kettlebell', art: '/static/fitmode/banner-gym-quick.webp', pos: '40% 60%', youtubeId: '' },
   { id: 'bag-01', num: '#04', kind: 'fight', title: 'Heavy Bag: 6 Rounds', meta: 'Bag work · 6 rounds', minutes: 24, gear: 'Bag + gloves', art: '/static/hub/fight.webp', pos: '78% 45%', youtubeId: '' },
   { id: 'cal-01', num: '#05', kind: 'fit', title: 'Calisthenics Power', meta: 'Calisthenics · 4 rounds', minutes: 25, gear: 'Pull-up bar', art: '/static/hub/fit.webp', pos: '70% 50%', youtubeId: '' },
   { id: 'cond-01', num: '#06', kind: 'fight', title: 'Fight Conditioning', meta: 'Conditioning · 5 rounds', minutes: 20, gear: 'No gear', art: '/static/revamp/cardio-blast.webp', pos: '70% 40%', youtubeId: '' },

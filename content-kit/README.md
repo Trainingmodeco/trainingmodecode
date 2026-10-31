@@ -1,6 +1,6 @@
 # Training Mode content kit
 
-Generated 2026-10-30 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
+Generated 2026-10-31 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
 
 ## Rules
 
@@ -12,7 +12,7 @@ Generated 2026-10-30 from the app's own data by `npm run content:kit`. Don't edi
 | Drop | Window | Status | Tagline | Limited title |
 |---|---|---|---|---|
 | SHOTO | 2026-10-23 → 2026-11-30 | live | Three styles. One path. Fundamentals, speed, pressure. | SHOTO MASTER (+500 XP) |
-| ULTRA EGO | 2026-12-01 → 2027-01-31 | upcoming | Power at all costs. Take the hit, give it back harder. | DESTROYER (+500 XP) |
+| THE DESTROYER | 2026-12-01 → 2027-01-31 | upcoming | Power at all costs. Take the hit, give it back harder. | DESTROYER (+500 XP) |
 | FLOW STATE | 2027-02-01 → 2027-03-31 | upcoming | Move before you think. Slip, angle, counter, flow. | FLOW STATE (+500 XP) |
 | ONE HUNDRED | 2027-04-01 → 2027-05-31 | upcoming | 100 push-ups. 100 sit-ups. 100 squats. Then run. | LIMIT BREAKER (+500 XP) |
 | WARRIOR QUEEN | 2027-06-01 → 2027-07-31 | upcoming | Built like a goddess, trained like a warrior. Lift, sculpt, fight. | WARRIOR QUEEN (+500 XP) |
@@ -24,7 +24,7 @@ Generated 2026-10-30 from the app's own data by `npm run content:kit`. Don't edi
 |---|---|---|---|---|---|
 | #01 | Kickboxing Basics | fight | 22 min | No gear | not up yet |
 | #02 | Deadly Seven | fit | 30 min | No gear | not up yet |
-| #03 | The 300 | fit | 25 min | 1 kettlebell | not up yet |
+| #03 | One-Bell 300 | fit | 25 min | 1 kettlebell | not up yet |
 | #04 | Heavy Bag: 6 Rounds | fight | 24 min | Bag + gloves | not up yet |
 | #05 | Calisthenics Power | fit | 25 min | Pull-up bar | not up yet |
 | #06 | Fight Conditioning | fight | 20 min | No gear | not up yet |
@@ -36,7 +36,7 @@ Generated 2026-10-30 from the app's own data by `npm run content:kit`. Don't edi
 | One Hundred | Cadence Rep Endurance Challenge | open | 2027-04-01 → ONE HUNDRED |
 | The Gravity Chamber | Tempo Protocol | open | — |
 | Martial Monster | Martial Monster Protocol | open | — |
-| The Destroyer | Destroyer Protocol | open | 2026-12-01 → ULTRA EGO |
+| The Destroyer | Destroyer Protocol | open | 2026-12-01 → THE DESTROYER |
 | The Grappler | Strongest Teen Protocol | open | — |
 | The Struggler | Greatsword Protocol | locked | — |
 | The Vigilante | Peak Human Protocol | locked | 2027-08-01 → NIGHT VIGILANTE |

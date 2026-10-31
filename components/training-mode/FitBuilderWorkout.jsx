@@ -78,7 +78,7 @@ function muscleLabel(ex, color) {
 }
 
 function buildTitle(cfg) {
-  // A concept day names itself ("ULTRA EGO · LEGS").
+  // A concept day names itself ("THE DESTROYER · LEGS").
   if (cfg.conceptTitle) return cfg.conceptTitle;
   const mg = cfg.muscleGroups || [];
   const upper = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps'];
