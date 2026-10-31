@@ -25,6 +25,10 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
     return sessionRef.current?.completeUnit() || null;
   }, []);
 
+  const claimWork = useCallback((slotKey, minSeconds) => {
+    sessionRef.current?.claimWork(slotKey, minSeconds);
+  }, []);
+
   const skipUnit = useCallback(() => {
     sessionRef.current?.skipUnit();
   }, []);
@@ -70,6 +74,7 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
   return {
     startUnit,
     completeUnit,
+    claimWork,
     skipUnit,
     pause,
     resume,

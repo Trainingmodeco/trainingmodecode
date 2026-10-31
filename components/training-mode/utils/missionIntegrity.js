@@ -1,3 +1,5 @@
+import { estimateQuickMissionSeconds } from '../fit-mode/quickMissionGenerator';
+
 const INTEGRITY_LOG_KEY = 'tm_integrity_log';
 
 // --- Validity Statuses ---
@@ -71,6 +73,24 @@ export const MODE_RULES = {
   },
 };
 
+// Quick Mission runs anything from a 5-minute generated circuit to a 55-minute
+// Murph, and one ROUND is one unit, so a flat 600 s cap expired every long
+// named workout and Program day (one round each) while waving a tapped-through
+// Murph past the 8 s floor. The cap now follows this mission's own round
+// estimate, with room for a slow honest athlete; the floor follows the work
+// each round actually claims (claimWork below), so it scales the same way.
+const QM_MAX_ROUND_MARGIN = 3;
+
+export function quickMissionRules(mission) {
+  const base = MODE_RULES.quickMission;
+  const rounds = Math.max(1, Number(mission?.rounds) || 1);
+  const roundSeconds = mission ? estimateQuickMissionSeconds(mission) / rounds : 0;
+  return {
+    ...base,
+    maxValidSeconds: Math.max(base.maxValidSeconds, Math.round(roundSeconds * QM_MAX_ROUND_MARGIN)),
+  };
+}
+
 // --- Session Tracker Class ---
 export class IntegritySession {
   constructor(mode, totalUnits, rules) {
@@ -127,6 +147,8 @@ export class IntegritySession {
       idleElapsedSeconds: 0,
       minValidSeconds: this.rules.minValidSeconds,
       maxValidSeconds: this.rules.maxValidSeconds,
+      claimedWork: {},
+      claimedSeconds: 0,
       validityStatus: VALIDITY.INCOMPLETE,
       _pausedAt: null,
     };
@@ -141,21 +163,48 @@ export class IntegritySession {
     if (!unit || unit.completedAt) return null;
 
     unit.completedAt = Date.now();
-    const totalMs = unit.completedAt - unit.startedAt;
-    const pausedMs = unit.pausedElapsedSeconds * 1000;
-    unit.activeElapsedSeconds = Math.max(0, (totalMs - pausedMs) / 1000);
+    this._measureUnit(unit);
 
     unit.validityStatus = this._validateUnit(unit);
     this.lastUserActionAt = Date.now();
     return unit;
   }
 
+  _measureUnit(unit) {
+    const totalMs = unit.completedAt - unit.startedAt;
+    const pausedMs = unit.pausedElapsedSeconds * 1000;
+    unit.activeElapsedSeconds = Math.max(0, (totalMs - pausedMs) / 1000);
+    unit.claimedSeconds = Object.values(unit.claimedWork || {}).reduce((s, v) => s + v, 0);
+  }
+
+  // A unit that closes WITHOUT completing (SKIP on a round's last slot, END
+  // mid-round) still answers for the work it claimed. Otherwise tapping DONE
+  // through a round and then skipping, or ending on, its last slot would
+  // never be checked at all. Units with no claims (every mode but Quick
+  // Mission) close with `status` exactly as before.
+  _closeUnit(unit, status) {
+    unit.completedAt = Date.now();
+    this._measureUnit(unit);
+    unit.validityStatus = unit.claimedSeconds > 0 && unit.activeElapsedSeconds < unit.claimedSeconds
+      ? VALIDITY.TOO_FAST
+      : status;
+  }
+
+  // The runner claims each piece of work as it finishes inside the current unit
+  // (a Quick Mission slot), with the least active time that work can honestly
+  // take. The unit can't be valid in less time than its claims add up to, so
+  // the floor grows with the round: a one-minute circuit and a Murph are each
+  // held to their own work. Keyed by slot, so a rewound-and-redone slot counts
+  // once; skipped work claims nothing.
+  claimWork(slotKey, minSeconds) {
+    const unit = this.units[this.currentUnitIndex];
+    if (!unit || unit.completedAt) return;
+    unit.claimedWork[slotKey] = Math.max(0, Number(minSeconds) || 0);
+  }
+
   skipUnit() {
     const unit = this.units[this.currentUnitIndex];
-    if (unit && !unit.completedAt) {
-      unit.completedAt = Date.now();
-      unit.validityStatus = VALIDITY.SKIPPED;
-    }
+    if (unit && !unit.completedAt) this._closeUnit(unit, VALIDITY.SKIPPED);
   }
 
   pauseSession() {
@@ -223,17 +272,15 @@ export class IntegritySession {
     this.missionEndedAt = Date.now();
 
     const unit = this.units[this.currentUnitIndex];
-    if (unit && !unit.completedAt) {
-      unit.completedAt = Date.now();
-      unit.validityStatus = VALIDITY.INCOMPLETE;
-    }
+    if (unit && !unit.completedAt) this._closeUnit(unit, VALIDITY.INCOMPLETE);
 
     return calculateMissionIntegrity(this, motion);
   }
 
   _validateUnit(unit) {
     if (unit.validityStatus === VALIDITY.SUSPICIOUS) return VALIDITY.SUSPICIOUS;
-    if (unit.activeElapsedSeconds < unit.minValidSeconds) return VALIDITY.TOO_FAST;
+    const floor = Math.max(unit.minValidSeconds, unit.claimedSeconds || 0);
+    if (unit.activeElapsedSeconds < floor) return VALIDITY.TOO_FAST;
     if (unit.activeElapsedSeconds > unit.maxValidSeconds) return VALIDITY.EXPIRED;
     if (unit.idleElapsedSeconds > this.rules.maxIdleSeconds) return VALIDITY.IDLE_TIMEOUT;
     return VALIDITY.VALID;

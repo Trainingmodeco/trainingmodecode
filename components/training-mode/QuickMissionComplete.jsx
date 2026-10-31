@@ -1,5 +1,5 @@
 import MissionComplete from './shared/MissionComplete';
-import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
+import { settleQuickMissionXp } from './data/quickMissionXp';
 
 // Quick Mission complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
@@ -8,15 +8,12 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const { completed, roundsCompleted, totalRounds, exercisesCompleted, totalExercises, mission, integrityResult } = result;
   // Item 9 — the engine decides the outcome, so this mode can end on
   // fail / validation_failed and not only success / partial.
-  const verdict = resolveOutcome({
-    completed: exercisesCompleted, total: totalExercises, difficulty: mission.difficulty, integrityResult,
+  // Beta ND-05 — ONE XP figure: the same settle App.jsx banked with, so the
+  // number here is the number the level bar moved by. Real anti-cheat zeroes
+  // both via the verdict.
+  const { verdict, xp } = settleQuickMissionXp({
+    exercisesCompleted, totalExercises, completed, difficulty: mission.difficulty, integrityResult,
   });
-  // Beta ND-05 — ONE XP figure. The stats bank credits completed exercises
-  // (the End dialog's promise), so the screen shows the same number instead
-  // of re-gating it through the integrity ratio and displaying 0 above a
-  // level bar that just moved. Real anti-cheat still zeroes via the verdict.
-  const baseXp = exercisesCompleted * 15 + (completed ? 30 : 0);
-  const xp = xpForOutcome(verdict.outcome, baseXp);
 
   return (
     <MissionComplete

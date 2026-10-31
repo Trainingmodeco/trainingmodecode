@@ -9,6 +9,7 @@
 // Exercise extras the timer understands:
 //   unit  — the word after the target instead of REPS ("MILE", "HALF MILE")
 //   calls — [{ t, say }]: the coach speaks `say` `t` seconds into a timed move
+//   estSec — seconds a distance move takes, for the timing estimate
 //
 // Murph and Half Murph follow the published hero workout. Sally Up uses the
 // challenge's idea — hold at the bottom until UP — on our own call pattern
@@ -39,7 +40,9 @@ function sallyCalls() {
 
 function murph({ half = false } = {}) {
   const rounds = half ? 10 : 20;
-  const run = half ? reps('Half Mile Run', 1, { unit: 'HALF MILE' }) : reps('Mile Run', 1, { unit: 'MILE' });
+  // estSec: a ten-minute mile, so the timing estimate (and the integrity
+  // layer's cap and floor built on it) doesn't treat a run as one 2-second rep.
+  const run = half ? reps('Half Mile Run', 1, { unit: 'HALF MILE', estSec: 300 }) : reps('Mile Run', 1, { unit: 'MILE', estSec: 600 });
   const exercises = [{ ...run, rest: 30 }];
   for (let r = 0; r < rounds; r += 1) {
     exercises.push(reps('Pull-Ups', 5), reps('Push-Ups', 10), reps('Squats', 15, { rest: r === rounds - 1 ? 30 : 10 }));

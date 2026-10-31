@@ -149,10 +149,17 @@ export function addFitModeSession(exercisesCompleted, totalExercises, difficulty
   return xpEarned;
 }
 
-export function addQuickMissionSession(exercisesCompleted, totalExercises, completed) {
+// Quick Mission's own rate: every completed exercise, plus the finish bonus.
+export function quickMissionXp(exercisesCompleted, completed) {
+  return (Math.max(0, Number(exercisesCompleted) || 0) * XP_PER_FIT_EXERCISE) + (completed ? XP_FIT_FULL_BONUS : 0);
+}
+
+// `xp` is the settled amount from data/quickMissionXp (integrity verdict
+// applied), the same figure the complete screen shows; without it the flat
+// rate is banked.
+export function addQuickMissionSession(exercisesCompleted, totalExercises, completed, { xp } = {}) {
   const stats = loadStats();
-  const xpEarned = (exercisesCompleted * XP_PER_FIT_EXERCISE) +
-    (completed ? XP_FIT_FULL_BONUS : 0);
+  const xpEarned = typeof xp === 'number' ? xp : quickMissionXp(exercisesCompleted, completed);
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),

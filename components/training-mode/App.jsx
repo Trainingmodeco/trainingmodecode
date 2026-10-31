@@ -5,6 +5,7 @@ import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuick
 import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
+import { settleQuickMissionXp } from './data/quickMissionXp';
 import { consumeLabCode } from './data/strikeLab';
 import { completeCampLevel, markCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
@@ -662,7 +663,11 @@ export default function App() {
       const beforeLevel = getLevel(loadStats().xp);
       dropPausedFor(screen);
       setResumeData(null);
-      addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed);
+      // Bank what the complete screen will show: the integrity verdict's
+      // number, not the flat rate (a refused run used to read 0 XP while the
+      // full amount was banked).
+      const { xp } = settleQuickMissionXp({ ...result, difficulty: result.mission?.difficulty });
+      addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed, { xp });
       // A plan day only moves the rotation on once it is (mostly) done — quit
       // halfway and the same day is still up next.
       if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);

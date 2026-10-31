@@ -7,13 +7,14 @@ import { ChevronLeft, Pause, Play, SkipForward, Square, RotateCcw } from 'lucide
 import { C } from './Styles';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
+import { quickMissionRules } from './utils/missionIntegrity';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay, setVoiceGender } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
-import { generateQuickMission } from './fit-mode/quickMissionGenerator';
+import { generateQuickMission, slotFloorSeconds } from './fit-mode/quickMissionGenerator';
 import { getCoachCopy } from './data/coachCopy';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -104,8 +105,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const [mission] = useState(() => initialResumeData?.mission || missionCfg.mission || generateQuickMission(missionCfg));
   const allExercises = useMemo(() => [...mission.exercises, ...mission.finisherExercises], [mission]);
 
-  const integrity = useIntegritySession('quickMission', missionCfg.rounds || 1);
+  // One integrity unit per ROUND of this mission, with a cap sized to this
+  // mission's round: a named classic or Program day is one long round, and the
+  // flat 600 s cap used to expire every honest Murph. (The count came from
+  // missionCfg.rounds, which nothing sets, so it was always 1.)
+  const integrityRules = useMemo(() => quickMissionRules(mission), [mission]);
+  const integrity = useIntegritySession('quickMission', mission.rounds || 1, integrityRules);
   const integrityStartedRef = useRef(false);
+  // A resumed session is a fresh integrity session. The slot that was mid-work
+  // when it paused spent part of its time in the old one, so it claims nothing
+  // here. (Paused during a rest, the next slot hadn't started: it claims.)
+  const resumedSlotRef = useRef(initialResumeData?.phase === 'work'
+    ? `${initialResumeData.round ?? 1}:${initialResumeData.exIdx ?? 0}` : null);
   const [rapidWarning, setRapidWarning] = useState(null);
 
   const [phase, setPhase] = useState(initialResumeData?.phase ?? (initialPaused ? 'work' : 'intro'));
@@ -230,6 +241,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   };
 
   const completeExercise = () => {
+    // The finished screen waits 1.8 s before handing over, with DONE still on
+    // it: every extra tap finished the mission again and banked it again.
+    if (doneRef.current) return;
     stopCadence();
     const idx = exIdxRef.current;
     const currentRound = roundRef.current;
@@ -238,6 +252,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
     setExercisesCompleted(c => c + 1);
     integrity.recordAction('complete');
+    // The round is held to the work it claims: a tapped-through Murph can't
+    // finish its one round in two minutes and still verify.
+    const slot = `${currentRound}:${idx}`;
+    if (slot === resumedSlotRef.current) resumedSlotRef.current = null;
+    else integrity.claimWork(slot, slotFloorSeconds(ex));
 
     if (nextIdx >= allExercises.length) {
       integrity.completeUnit();
@@ -288,6 +307,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   };
 
   const skipExercise = () => {
+    if (doneRef.current) return;
     stopCadence();
     cancelSpeech();
     const actionResult = integrity.recordAction('skip');
@@ -492,6 +512,14 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
   useEffect(() => {
     if (!initialPaused) runIntro();
+    else if (!integrityStartedRef.current) {
+      // A session resumed from Home never runs the intro, so it used to have
+      // no unit and was never verified at all. The round it resumes into
+      // starts now, paused: its clock counts from the athlete's RESUME.
+      integrityStartedRef.current = true;
+      integrity.startUnit('rounds');
+      integrity.pause();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => { versionRef.current++; cadenceVersionRef.current++; cancelSpeech(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -605,6 +633,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
   const finishMission = (finalRounds) => {
     stopCadence();
+    doneRef.current = true; // now, not after the next render: a tap can land first
     setDone(true);
     playBell(3);
     if (voiceOn) {

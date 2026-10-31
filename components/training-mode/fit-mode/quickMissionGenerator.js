@@ -150,9 +150,31 @@ function pickFocused(pool, tag, count) {
   return [...primary, ...secondary, ...filler].slice(0, count);
 }
 
+// The work part of a slot at the coach's pace. A move measured in distance
+// (Murph's mile, tapped DONE at the finish) carries its own estimate: one
+// "rep" of it is not two seconds.
+function workSeconds(ex) {
+  if (ex.mode === 'timed') return ex.work || 0;
+  if (ex.estSec) return ex.estSec;
+  return (ex.reps || 1) * CADENCE_SEC;
+}
+
 function slotSeconds(ex) {
-  const work = ex.mode === 'timed' ? ex.work : ex.reps * CADENCE_SEC;
-  return INTRO_SEC + work + ex.rest;
+  return INTRO_SEC + workSeconds(ex) + (ex.rest || 0);
+}
+
+// The least time a FINISHED slot's work can honestly take; the integrity layer
+// holds each round to the sum of these (utils/missionIntegrity claimWork). A
+// timed move only finishes when its clock runs out (SKIP claims nothing), so
+// nearly all of its window. A counted rep at half a second, a quarter of the
+// coach's count and under the fastest cadence the slider allows, so a quick
+// athlete tapping DONE early never trips it. A distance at half its estimate.
+// Rest and the intro line can be skipped honestly, so they never count.
+export function slotFloorSeconds(ex) {
+  if (!ex) return 0;
+  if (ex.mode === 'timed') return (ex.work || 0) * 0.9;
+  if (ex.estSec) return ex.estSec * 0.5;
+  return (ex.reps || 1) * 0.5;
 }
 
 export function estimateQuickMissionSeconds(mission) {
