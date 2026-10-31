@@ -56,6 +56,9 @@ export type FightFocusRoundsProps = {
   rounds: Round[];
   cta: string;
   url?: string;
+  rushVoice?: string | null; // the announcer's "Rush mode!" when RUSH fires
+  rushVoiceSec?: number;
+  clearVoice?: string | null; // the announcer's "Stage clear!" on the end card
 };
 
 export const INTRO_FRAMES = 60;
@@ -115,7 +118,13 @@ export function roundsTimeline(p: FightFocusRoundsProps) {
     // finished, so calls never talk over each other.
     const voiceFrom = Math.max(from + VOICE_AT, voiceFree);
     if (round.voice && round.voiceSec) voiceFree = voiceFrom + Math.ceil((round.voiceSec + 0.15) * FPS);
-    const s = { round, index, from, len, voiceFrom };
+    // "Rush mode!" goes with the RUSH screen, or straight after the call.
+    let rushVoiceFrom: number | null = null;
+    if (round.rushAt != null && p.rushVoice) {
+      rushVoiceFrom = Math.max(from + Math.round(round.rushAt * FPS), voiceFree);
+      voiceFree = rushVoiceFrom + Math.ceil(((p.rushVoiceSec ?? 1) + 0.15) * FPS);
+    }
+    const s = { round, index, from, len, voiceFrom, rushVoiceFrom };
     from += len;
     return s;
   });
@@ -492,20 +501,23 @@ const CallScreen: React.FC<{ big: string; sub?: string; size: number; color?: st
   );
 };
 
-// A round's call: "ROUND 1" in gold where the app puts it, popping in over the
-// footage with no veil, gone after the call.
-const RoundCall: React.FC<{ n: number }> = ({ n }) => {
+// A round's call: "ROUND 1" ("FINAL ROUND" for the last) in gold where the
+// app puts it, popping in over the footage with no veil, gone after the call.
+const RoundCall: React.FC<{ label: string }> = ({ label }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const pop = spring({ frame, fps, config: { damping: 12, stiffness: 240 } });
   const out = interpolate(frame, [CALL_FRAMES - 4, CALL_FRAMES], [1, 0], clamp);
+  // One line, inside the frame (Orbitron 900 runs about 0.82 em a letter).
+  const size = Math.min(124, Math.floor(900 / (label.length * 0.82)));
   return (
     <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center' }}>
       <div
         style={{
           fontFamily: FONT.display,
           fontWeight: 900,
-          fontSize: 124,
+          fontSize: size,
+          whiteSpace: 'nowrap',
           color: APP.gold,
           lineHeight: 1,
           textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 0 40px rgba(10,0,20,0.85), 0 0 70px rgba(253,224,71,0.45)',
@@ -513,7 +525,7 @@ const RoundCall: React.FC<{ n: number }> = ({ n }) => {
           opacity: Math.min(1, pop * 1.5) * out,
         }}
       >
-        ROUND {n}
+        {label}
       </div>
     </AbsoluteFill>
   );
@@ -583,7 +595,7 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
           <RushScreen />
         </Sequence>
       ) : null}
-      {frame < CALL_FRAMES ? <RoundCall n={n} /> : null}
+      {frame < CALL_FRAMES ? <RoundCall label={n === total && total > 1 ? 'FINAL ROUND' : `ROUND ${n}`} /> : null}
       <Bell ring="single" volume={0.6} />
       {zeroAt != null && zeroAt < len ? (
         <Sequence from={zeroAt}>
@@ -613,6 +625,18 @@ export const FightFocusRounds: React.FC<FightFocusRoundsProps> = (p) => {
           </Sequence>
         ) : null,
       )}
+      {rounds.map((s) =>
+        s.rushVoiceFrom != null && p.rushVoice ? (
+          <Sequence key={`rush-${s.index}`} from={s.rushVoiceFrom}>
+            <Audio src={staticFile(p.rushVoice)} />
+          </Sequence>
+        ) : null,
+      )}
+      {p.clearVoice ? (
+        <Sequence from={endFrom + 6}>
+          <Audio src={staticFile(p.clearVoice)} />
+        </Sequence>
+      ) : null}
       <Sequence from={endFrom - 5} durationInFrames={11}>
         <Slash />
       </Sequence>

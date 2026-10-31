@@ -9,6 +9,14 @@
 //   macOS    `say` with a UK female voice
 //   Linux    espeak-ng (a robotic placeholder, for previews only)
 // Set TM_VOICE=Name to force a voice (comma-separated list, first match wins).
+//
+// The announcer (the owner's pick for social videos, 2026-10-31): when
+// raw-footage/voice/<id>/higgsfield.json exists, the lines come from Higgsfield
+// instead (Seed Audio, one of its preset voices, made by Claude). The file is
+// kept out of git, since the links carry the owner's account:
+//   { "voice": "Gideon", "lines": { "round-1": { "text": "...", "url": "..." },
+//     ..., "rush": { ... }, "clear": { ... } } }
+// Each line is downloaded, its silences trimmed, and given an arena echo.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -35,6 +43,7 @@ function callsFor(p) {
 }
 
 const dir = path.join(ROOT, 'raw-footage', 'voice', post.id);
+const hfSpec = path.join(dir, 'higgsfield.json');
 fs.mkdirSync(dir, { recursive: true });
 const jobs = callsFor(post).map((c, i) => ({ ...c, out: path.join(dir, `call-${i + 1}.wav`) }));
 const prefer = (process.env.TM_VOICE || 'Hazel,Susan,Sonia,Zira').split(',').map((s) => s.trim()).filter(Boolean);
@@ -86,6 +95,44 @@ function speakMac() {
   return voice?.name ?? 'system default';
 }
 
+// Trim the silences, add weight and an arena echo, and level it.
+const ARENA = [
+  'silenceremove=start_periods=1:start_threshold=-45dB',
+  'areverse',
+  'silenceremove=start_periods=1:start_threshold=-45dB',
+  'areverse',
+  'highpass=f=70',
+  'equalizer=f=140:t=q:w=1:g=3',
+  'acompressor=threshold=-20dB:ratio=4:attack=5:release=150:makeup=3',
+  'apad=pad_dur=0.35',
+  'aecho=0.9:0.7:60|130:0.3|0.15',
+  'alimiter=limit=0.9',
+].join(',');
+
+async function announcer() {
+  const spec = JSON.parse(fs.readFileSync(hfSpec, 'utf8'));
+  // The round calls, then the RUSH and STAGE CLEAR lines if there are any.
+  const extra = [
+    { key: 'rush', out: path.join(dir, 'rush.wav'), save: (rel, sec) => Object.assign(post.props, { rushVoice: rel, rushVoiceSec: +sec.toFixed(2) }) },
+    { key: 'clear', out: path.join(dir, 'clear.wav'), save: (rel) => Object.assign(post.props, { clearVoice: rel }) },
+  ].filter((e) => spec.lines[e.key]);
+  jobs.forEach((j, i) => Object.assign(j, { key: `round-${i + 1}` }));
+  jobs.push(...extra);
+  for (const j of jobs) {
+    const line = spec.lines[j.key];
+    if (!line) throw new Error(`${path.basename(hfSpec)} has no "${j.key}" line`);
+    j.text = line.text;
+    const src = j.out.replace(/\.wav$/, '.src.wav');
+    if (!fs.existsSync(src)) {
+      const res = await fetch(line.url).catch((e) => ({ ok: false, status: e.message }));
+      if (!res.ok) throw new Error(`Couldn't download "${line.text}" (${res.status}). In a cloud session, allow Higgsfield's hosts in the environment's network settings.`);
+      fs.writeFileSync(src, Buffer.from(await res.arrayBuffer()));
+    }
+    ffmpeg(['-i', src, '-af', ARENA, '-ac', '1', '-ar', '48000', j.out]);
+  }
+  return `Higgsfield ${spec.voice} (arcade announcer)`;
+}
+
 function speakEspeak() {
   for (const j of jobs) {
     const r = spawnSync('espeak-ng', ['-v', 'en-gb+f3', '-s', '160', '-w', j.out, j.text]);
@@ -94,7 +141,13 @@ function speakEspeak() {
   return 'espeak-ng en-gb (placeholder, not the app voice)';
 }
 
-const used = process.platform === 'win32' ? speakWindows() : process.platform === 'darwin' ? speakMac() : speakEspeak();
+const used = fs.existsSync(hfSpec)
+  ? await announcer()
+  : process.platform === 'win32'
+    ? speakWindows()
+    : process.platform === 'darwin'
+      ? speakMac()
+      : speakEspeak();
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
 for (const j of jobs) {
   if (!fs.existsSync(j.out)) throw new Error(`No audio written for "${j.text}"`);

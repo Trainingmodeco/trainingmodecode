@@ -69,7 +69,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run queue` | lists posts and their status |
 | `npm run new -- ScriptShort "Title"` | starts a post (also `FootageShort`, `BossIntro`) |
 | `npm run captions -- raw-footage/clip.mp4` | Whisper word-by-word captions → `clip.captions.json` + `.srt` |
-| `npm run voice -- <id>` | speaks the post's coach calls ("Round 1. Pendulum boxing.") in the app's voice → WAVs the render uses |
+| `npm run voice -- <id>` | the post's spoken calls → WAVs the render uses: the Higgsfield announcer when `raw-footage/voice/<id>/higgsfield.json` exists (brain/voices.md), else the app's device voice |
 | `npm run render -- <id>` | renders `exports/<id>/video.mp4` + `cover.jpg`, status → rendered |
 | `npm run approve -- <id>` | owner's OK only; status → approved |
 | `npm run queue -- reject <id> "why"` | back to the drawing board |
@@ -166,11 +166,15 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX]`.
 
 The bell is the app's own boxing bell (`src/parts/Bell.tsx`: single, double,
-triple). The coach voice is the app's: it speaks through the device's built-in
-voice, female and British first (voiceCoach.js). `npm run voice` uses the same
-order on Windows (Hazel, Susan, Sonia, then Zira); in a Linux cloud session it
-can only make a robotic espeak placeholder, so final voice renders happen on
-the laptop.
+triple). **The voice on social videos is an arcade fight announcer** (the
+owner's call; the robotic placeholder is out): deep, booming, hyped, made on
+Higgsfield with one of its preset voices, plus "Rush mode!" on the RUSH screen
+and "Stage clear!" on the end card. It is our own voice in that spirit, never
+a clone or imitation of a real announcer or game. How to make the lines, the
+auditions and the voice the owner picked: `brain/voices.md`. The app's own
+coach voice (device speech, female and British first, voiceCoach.js) is the
+fallback when a post has no announcer lines; in a Linux cloud session that
+fallback is only an espeak placeholder.
 
 ## Publishing routes (see brain/platforms.md for setup state)
 
