@@ -128,7 +128,7 @@ export function roundsTimeline(p: FightFocusRoundsProps) {
     from += len;
     return s;
   });
-  return { rounds, endFrom: from, total: from + END_CARD_FRAMES };
+  return { rounds, endFrom: from, voiceFree, total: from + END_CARD_FRAMES };
 }
 
 const Footage: React.FC<{
@@ -608,7 +608,7 @@ const RoundScene: React.FC<{ r: Round; n: number; total: number; p: FightFocusRo
 };
 
 export const FightFocusRounds: React.FC<FightFocusRoundsProps> = (p) => {
-  const { rounds, endFrom } = roundsTimeline(p);
+  const { rounds, endFrom, voiceFree } = roundsTimeline(p);
   return (
     <AbsoluteFill style={{ background: C.bg }}>
       <Sequence from={0} durationInFrames={INTRO_FRAMES}>
@@ -634,7 +634,7 @@ export const FightFocusRounds: React.FC<FightFocusRoundsProps> = (p) => {
         ) : null,
       )}
       {p.clearVoice ? (
-        <Sequence from={endFrom + 6}>
+        <Sequence from={Math.max(endFrom + 6, voiceFree)}>
           <Audio src={staticFile(p.clearVoice)} />
         </Sequence>
       ) : null}

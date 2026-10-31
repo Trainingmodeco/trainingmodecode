@@ -171,7 +171,8 @@
     "2026-10-31 owner: snap close-ups out (slow push-ins only). Robotic placeholder voice removed; preview has the bells only until the announcer lines are in.",
     "2026-10-31 owner: no freeze at the end; the round still ends as they stop, then the video plays on as they walk off, into STAGE CLEAR. Push-ins about 3x slower.",
     "2026-10-31: owner picked Gideon. The 7 lines are made on Higgsfield (raw-footage/voice/<id>/higgsfield.json, not in git); waiting on the download (cloud hosts blocked).",
-    "2026-10-31 owner: the fast striking that was hidden behind the 3-2-1 (clip 2's start) now opens the speed and power hooks round."
+    "2026-10-31 owner: the fast striking that was hidden behind the 3-2-1 (clip 2's start) now opens the speed and power hooks round.",
+    "2026-10-31: owner picked take A of the designed announcer; all 7 lines cloned from it, sped up (raw-footage/voice/<id>/higgsfield.json). The RUSH cue in this cut is the short \"RUSH MODE! ACTIVATED!\"; the full line waits for text-free clips."
   ],
   "exports": {
     "video": "exports/2026-10-30-fight-focus-boxing-rounds/video.mp4",
@@ -181,6 +182,6 @@
   "renderedAt": "2026-10-31T16:33:54.027Z",
   "announcer": {
     "engine": "higgsfield",
-    "voice": "Gideon"
+    "voice": "designed from the owner's brief (take A), cloned per line; brain/voices.md"
   }
 }

@@ -7,10 +7,12 @@ follows them. The templates use the tracked clip like any other footage, so
 their looks (violet tone, text, HUD) stay as they are.
 
   python tools/track-head.py raw-footage/clip.mp4 [--zoom 1.8] [--head 0.3]
-                             [--from 0] [--to 12.5] [--smooth 0.35]
+                             [--from 0] [--to 12.5] [--smooth 0.35] [--fps 30]
 
-Writes raw-footage/clip.tracked.mp4 (1080x1920, 30 fps, no audio; times match
+Writes raw-footage/clip.tracked.mp4 (1080x1920, --fps, no audio; times match
 the source from --from) and clip.track.json (the head and crop per frame).
+For slow motion, track a 59/60 fps clip with --fps 60: played at half speed
+every frame is still a real one.
 Needs: pip install mediapipe (opencv comes with it) and ffmpeg on the PATH.
 The pose model downloads to models/ on first use.
 """
@@ -29,7 +31,8 @@ ROOT = Path(__file__).resolve().parent.parent
 MODEL = ROOT / 'models' / 'pose_landmarker_full.task'
 MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task'
 HEAD = [0, 2, 5, 7, 8]  # nose, eyes, ears
-OUT_W, OUT_H, OUT_FPS = 1080, 1920, 30
+OUT_W, OUT_H = 1080, 1920
+OUT_FPS = 30
 
 
 def model():
@@ -105,7 +108,10 @@ def main():
     ap.add_argument('--from', dest='t0', type=float, default=0.0)
     ap.add_argument('--to', dest='t1', type=float, default=None)
     ap.add_argument('--smooth', type=float, default=0.35, help='camera smoothing, seconds')
+    ap.add_argument('--fps', type=int, default=30, help='output frame rate (60 for smooth slow motion)')
     a = ap.parse_args()
+    global OUT_FPS
+    OUT_FPS = a.fps
 
     src = Path(a.clip)
     frames, times = read_frames(src, a.t0, a.t1)
@@ -142,7 +148,7 @@ def main():
     enc.stdin.close()
     if enc.wait() != 0:
         raise SystemExit('ffmpeg failed')
-    meta = {'source': src.name, 'from': a.t0, 'zoom': a.zoom, 'head': a.head, 'smooth': a.smooth, 'frames': track}
+    meta = {'source': src.name, 'from': a.t0, 'fps': OUT_FPS, 'zoom': a.zoom, 'head': a.head, 'smooth': a.smooth, 'frames': track}
     src.with_name(src.stem + '.track.json').write_text(json.dumps(meta))
     print(f'-> {out}  (times match the source from {a.t0}s)')
 

@@ -169,7 +169,11 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   here for the timer label).
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
   climb, "where did you stall?", over a B-roll clip:
-  `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX]`.
+  `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX] [rate]`.
+  **The owner wants their striking in dramatic slow motion behind it** (rate
+  0.5). Track the clip first at 60 fps (`npm run track -- clip --fps 60
+  --from <sec>`, phones shoot 59/60 fps) so every slowed frame is a real one,
+  then render the tracked clip from 0 at rate 0.5.
 
 The bell is the app's own boxing bell (`src/parts/Bell.tsx`: single, double,
 triple). **The voice on social videos is an arcade fight announcer** (the

@@ -79,7 +79,7 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run render -- <id>` | make the video + cover |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
-| `npm run hf:render -- raw-footage/clip.mp4` | render the Rank Ladder over a clip |
+| `npm run hf:render -- raw-footage/clip.mp4 9 50 0.5` | render the Rank Ladder over a clip (from 9 s, centred, at half speed) |
 | `npm run reference -- <url>` | save a reference reel to study |
 
 Head tracking (`npm run track`) needs Python once: `winget install
