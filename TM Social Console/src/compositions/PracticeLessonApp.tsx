@@ -97,9 +97,11 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
   let mark: { x: number; y: number; color: string } | null = null;
   let landed = false;
   let seqFrom = 0; // where the marker's and the text's pop-in start, in composition frames
+  let beatFrom = 0; // the beat's first frame: its clip is timed from there, not from the video's start
   const zoomOf = (z?: number) => z ?? p.zoom ?? 1.3;
 
   if (beat.kind === 'name') {
+    beatFrom = tl.name.from;
     const cam = camera(1, p.focus ?? bodyCentre(pose, p.repAt + beat.local / fps), view, srcSize);
     clip = <Clip src={p.src} start={p.repAt} cam={cam} srcSize={srcSize} />;
   } else if (beat.kind === 'cue') {
@@ -110,6 +112,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
     const landAt = Math.round(((cue.at - start) / SLOW) * fps);
     landed = beat.local >= landAt;
     seqFrom = tl.cues[beat.i].from + landAt;
+    beatFrom = tl.cues[beat.i].from;
     const m = cue.point ?? (cue.mark ? markPoint(at(pose, t), cue.mark, p.stance ?? 'orthodox') : null);
     // The view is tighter than a phone's, so frame between the body and the marked point.
     const body = bodyCentre(pose, t);
@@ -122,6 +125,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
     const FREEZE = 90;
     const fixing = beat.local >= FREEZE;
     seqFrom = tl.watch.from;
+    beatFrom = tl.watch.from;
     const fixStart = Math.max(0, w.fixAt ?? w.at - 0.6);
     const t = fixing ? fixStart + ((beat.local - FREEZE) / fps) * 0.5 : w.at;
     const cam = camera(zoomOf(w.zoom), w.focus ?? p.focus ?? bodyCentre(pose, t), view, srcSize);
@@ -139,7 +143,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
     <AbsoluteFill style={{ background: P.ground, color: P.text, fontFamily: F.body }}>
       {/* the clip */}
       <div style={{ position: 'absolute', left: 0, top: 0, width: view.w, height: view.h, overflow: 'hidden', background: '#000' }}>
-        {clip}
+        <Sequence from={beatFrom} layout="none">{clip}</Sequence>
         {redIn ? <AbsoluteFill style={{ boxShadow: 'inset 0 0 160px rgba(239,68,68,0.55)', opacity: redIn }} /> : null}
         {mark ? (
           <Sequence from={seqFrom} layout="none">
