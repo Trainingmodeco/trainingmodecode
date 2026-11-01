@@ -264,7 +264,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       setRoundsCompleted(newRoundsCompleted);
 
       if (currentRound >= mission.rounds) {
-        finishMission(newRoundsCompleted);
+        finishMission(newRoundsCompleted, true);
         return;
       }
       setRound(r => r + 1);
@@ -325,7 +325,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       const newRoundsCompleted = roundsCompletedRef.current + 1;
       setRoundsCompleted(newRoundsCompleted);
       if (currentRound >= mission.rounds) {
-        finishMission(newRoundsCompleted);
+        finishMission(newRoundsCompleted, false);
         return;
       }
       setRound(r => r + 1);
@@ -631,7 +631,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
   useAutoPauseOnHidden(!paused && !done, handlePauseToggle, integrity);
 
-  const finishMission = (finalRounds) => {
+  // lastCounted: the final move was DONE (counted), not SKIPPED.
+  const finishMission = (finalRounds, lastCounted) => {
     stopCadence();
     doneRef.current = true; // now, not after the next render: a tap can land first
     setDone(true);
@@ -640,13 +641,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       setTimeout(() => speakAsync(getCoachCopy('sessionComplete')), 400);
     }
     const integrityResult = integrity.finalize();
+    // Counted NOW: a DONE on the last move is still pending in state, so the
+    // ref lags by one. It used to be read 1.8 s later, after the re-render had
+    // caught the ref up, plus one: every finish paid one move extra (and a
+    // SKIPPED last move was paid as done).
+    const exercisesCompleted = exercisesCompletedRef.current + (lastCounted ? 1 : 0);
     setTimeout(() => {
       stopVoiceSession();
       onEnd({
         completed: true,
         roundsCompleted: finalRounds,
         totalRounds: mission.rounds,
-        exercisesCompleted: exercisesCompletedRef.current + 1,
+        exercisesCompleted,
         totalExercises: allExercises.length * mission.rounds,
         mission,
         integrityResult,
