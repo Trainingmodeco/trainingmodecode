@@ -33,6 +33,7 @@ import FitBuilderWorkout from './FitBuilderWorkout';
 import FitWorkoutComplete from './FitWorkoutComplete';
 import QuickMissionSetup from './QuickMissionSetup';
 import QuickMissionActive from './QuickMissionActive';
+import QuickMissionSolo from './QuickMissionSolo';
 import QuickMissionComplete from './QuickMissionComplete';
 import CombatConditioningSetup from './CombatConditioningSetup';
 import CombatConditioningActive from './CombatConditioningActive';
@@ -626,9 +627,14 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'qm_active' && qmCfg) {
+    // SOLO runs on the same screen id, so pause / autosave / Continue all work
+    // unchanged. Routed on the cfg and the stash, never on the v2 flag: a SOLO
+    // stash must come back into SOLO even if preview was turned off since
+    // (QuickMissionActive would hang on a SOLO stash's phase).
+    const Runner = qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <QuickMissionActive missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

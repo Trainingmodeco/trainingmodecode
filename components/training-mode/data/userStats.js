@@ -149,7 +149,9 @@ export function addFitModeSession(exercisesCompleted, totalExercises, difficulty
   return xpEarned;
 }
 
-export function addQuickMissionSession(exercisesCompleted, totalExercises, completed) {
+// `meta` (optional): extra fields for the row, e.g. a v2 guided run's
+// { mode, missionId, level, scaled, swaps }. It never changes the XP.
+export function addQuickMissionSession(exercisesCompleted, totalExercises, completed, meta) {
   const stats = loadStats();
   const xpEarned = (exercisesCompleted * XP_PER_FIT_EXERCISE) +
     (completed ? XP_FIT_FULL_BONUS : 0);
@@ -161,6 +163,38 @@ export function addQuickMissionSession(exercisesCompleted, totalExercises, compl
     completedCount: exercisesCompleted,
     totalCount: totalExercises,
     xpEarned,
+    ...(meta && typeof meta === 'object' ? meta : {}),
+  });
+  saveStats(stats);
+  return xpEarned;
+}
+
+// Quick Mission SOLO: one clock, the athlete's own score. The XP is settled
+// before it gets here (data/missionSolo settleSoloXp), so this banks what it
+// is given. `type` stays 'Quick Mission' so every tally that counts Quick
+// Missions (tiers, Progress, nudges) counts SOLO runs too.
+export function addQuickMissionSoloSession(m) {
+  const stats = loadStats();
+  const xpEarned = Math.max(0, Math.round(m?.xpEarned) || 0);
+  stats.xp += xpEarned;
+  stats.sessions.push({
+    id: makeId(),
+    type: 'Quick Mission',
+    mode: 'solo',
+    completedAt: new Date().toISOString(),
+    completedCount: m.completedCount,
+    totalCount: m.totalCount,
+    xpEarned,
+    missionId: m.missionId,
+    format: m.format,
+    score: m.score ?? null,
+    elapsedSec: m.elapsedSec,
+    pausedSec: m.pausedSec,
+    hiddenSec: m.hiddenSec,
+    level: m.level,
+    scaled: !!m.scaled,
+    swaps: m.swaps || [],
+    completed: !!m.completed,
   });
   saveStats(stats);
   return xpEarned;

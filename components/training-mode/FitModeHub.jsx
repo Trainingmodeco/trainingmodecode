@@ -12,6 +12,7 @@ import { loadStats } from './data/userStats';
 import { getFitMiniSuggestion } from './data/recommendations';
 import { quickMissionConfig, surpriseQuickMission, quickMissionLine } from './data/quickMissionConfig';
 import { hasAnyRunGhost } from './data/runGhosts';
+import { qmV2Enabled } from './data/qmV2';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
 // Fit Mode — the Simplify revamp layout.
@@ -53,6 +54,8 @@ export default function FitModeHub({
   // there is a recorded run to race. With none, Cardio Mode's own ghost
   // picker is where you'd start one anyway.
   const [hasGhost] = useState(() => hasAnyRunGhost());
+  // Quick Mission v2 (owner-only until it ships): read once per mount.
+  const v2 = useState(() => qmV2Enabled())[0];
 
   // The same engine Home uses for TODAY'S BOUT, asked for its fit-side pick.
   // Held in state so a re-render never swaps the card out from under a tap.
@@ -66,7 +69,7 @@ export default function FitModeHub({
   const mission = surprise
     || (pick?.actionType === 'quickMission' ? quickMissionConfig(pick.actionPayload || {}) : null);
   const title = surprise ? 'Surprise Mission' : (pick?.title || 'Quick Mission');
-  const line = mission ? quickMissionLine(mission) : (pick?.subtitle || '');
+  const line = mission ? quickMissionLine(mission, { v2 }) : (pick?.subtitle || '');
 
   const startPick = () => {
     if (mission) onStartQuickMission?.(mission);
@@ -76,7 +79,7 @@ export default function FitModeHub({
   };
 
   const ROWS = [
-    { n: '01', key: 'quick', title: 'Quick Mission', sub: 'Ready-made workout', onClick: onQuickMission },
+    { n: '01', key: 'quick', title: 'Quick Mission', sub: v2 ? 'Short notice · any gear · any room' : 'Ready-made workout', onClick: onQuickMission },
     { n: '02', key: 'builder', title: 'Build Workout', sub: 'Customize everything', onClick: onWorkoutBuilder },
     { n: '03', key: 'programs', title: 'Programs', sub: 'Follow a plan', onClick: onPrograms },
     // Coach's Tapes — only passed in while the shelf is owner-only (data/tapes).
@@ -212,7 +215,7 @@ export default function FitModeHub({
         </div>
       </div>
 
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fit_hub} onClose={() => setHelpOpen(false)}/>}
+      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES[v2 ? 'fit_hub_v2' : 'fit_hub']} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

@@ -404,7 +404,7 @@ export function leadLine(slot, ctx = {}) {
   if (hasList(slot)) {
     if (isTimed(slot)) return `${prefix}${slot.sayLead || 'AMRAP'}. ${spokenDuration(slot.work)}. ${cap(listSpoken(slot.list))}.`;
     const side = slot.sideSay ? `${cap(slot.sideSay)}. ` : '';
-    // DROP-A NOTE: a complex with a manual step is never counted, so it gets the manual line (no Drop A complex has one).
+    // A complex with a manual step is never counted, so it gets the manual line (no Drop A complex has one).
     const tail = isCounted(slot) ? 'Ready? On my count.' : MANUAL_LINE;
     return `${prefix}${cap(listSpoken(slot.list))}. ${side}${tail}`;
   }

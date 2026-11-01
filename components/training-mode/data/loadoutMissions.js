@@ -608,7 +608,7 @@ export function altAllowed(mission, swapKey, alt, { gear = gearProfile() } = {})
   if (!allowedGear(mission.loadout, gear).has(move.gear)) return false;                        // 1 · gear
   const others = allItems(mission).filter(it => it.swapKey !== swapKey);
   if (others.some(it => it.moveId === alt.id)) return false;                                   // 2 · not another row's move
-  // DROP-A NOTE: rule 3 reads the AUTHORED slot mode, so a shadowbox minute swapped to row calories can still swap back.
+  // Rule 3 reads the AUTHORED slot mode, so a shadowbox minute swapped to row calories can still swap back.
   if (move.timedOnly) {                                                                        // 3 · timed-only: plain timed slots
     const base = baseOf(mission);
     const plain = base.filter(sl => !hasList(sl) && sl.swapKey === swapKey);
@@ -616,7 +616,7 @@ export function altAllowed(mission, swapKey, alt, { gear = gearProfile() } = {})
     if (inList || !plain.length || plain.some(sl => sl.mode !== 'timed')) return false;
   }
   if (mission.level === 'beginner' && move.flyingKnee) return false;                           // 4 · no flying knees for beginners
-  // DROP-A NOTE: rule 5 looks at the OTHER keys, so swapping a flying knee itself onto a jump move stays possible.
+  // Rule 5 looks at the OTHER keys, so swapping a flying knee itself onto a jump move stays possible.
   if (move.jumps && others.some(it => moveById(it.moveId)?.flyingKnee)) return false;          // 5 · landing budget
   if (move.jumps && mission.quiet) return false;                                               // 6 · quiet room
   if ((mission.excludeAlts || []).includes(alt.id)) return false;                              // 7 · level exclusions
@@ -723,12 +723,25 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
     if (!m.gearBanner) m.gearBanner = `No ${GEAR_WORD[base.gear] || base.gear} in your gear. Using ${moveById(alt.id).name}. Tap the swap icon to change.`;
   });
 
-  // The user's picks, in card order. Invalid ones (say, after a level change) drop silently.
-  rowItems(m).forEach(({ item }) => {
-    const to = swaps?.[item.swapKey];
-    if (typeof to !== 'string' || to === item.moveId) return;
-    if (isSwapAllowed(m, item.swapKey, to, { gear })) m = swapMissionMove(m, item.swapKey, to, { gear });
-  });
+  // The user's picks, in the order they were made (the map's insertion order),
+  // so the rebuild replays what SOLO applied live. A pick can depend on an
+  // earlier one: Back Squats → Front Squats is only legal once the front-squat
+  // row has moved off that move (rule 2). In card order such a pick was
+  // checked too early and dropped. A pick that fails is retried after every
+  // pass that applied something, so the result never hangs on the order
+  // either. What still fails (say, after a level change) drops silently.
+  let pending = Object.entries(swaps || {}).filter(([, to]) => typeof to === 'string');
+  for (let applied = true; applied && pending.length;) {
+    applied = false;
+    pending = pending.filter(([key, to]) => {
+      const item = rowItems(m).find(r => r.item.swapKey === key)?.item;
+      if (!item || to === item.moveId) return false;
+      if (!isSwapAllowed(m, key, to, { gear })) return true;
+      m = swapMissionMove(m, key, to, { gear });
+      applied = true;
+      return false;
+    });
+  }
   return m;
 }
 function withDefault(mission, swapKey, moveId) {
@@ -924,7 +937,7 @@ export function emptyShelfCopy({ loadout = 'all', theme = 'all' } = {}) {
   const lo = loadoutLabel(loadout);
   if (theme !== 'all') {
     const th = (themeLabel(theme) || String(theme)).toLowerCase();
-    // DROP-A NOTE: no SHOW NO GEAR button when NO GEAR is already the loadout (it would do nothing; never empty in Drop A).
+    // No SHOW NO GEAR button when NO GEAR is already the loadout (it would do nothing; never empty in Drop A).
     return { text: `No ${th} missions for ${lo} yet.`, action: loadout === 'none' ? null : { label: 'SHOW NO GEAR', loadout: 'none' } };
   }
   return { text: `No ${lo} missions yet. Try MIXED, or SURPRISE ME for a no-gear mission.`, action: null };

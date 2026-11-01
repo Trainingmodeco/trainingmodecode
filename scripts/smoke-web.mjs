@@ -81,6 +81,10 @@ const boot = async () => {
 const home = async () => { await boot(); };
 const fit = async () => { await home(); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200); };
 const fight = async () => { await home(); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); };
+// The owner's preview flag (Strike Lab): concept drops, Coach's Tapes and
+// Quick Mission v2 show only with it on. boot() closed the concept pop-up
+// (which marks it seen), so the drop's progress is reset to bring it back.
+const preview = async () => { await home(); await page.evaluate(() => { localStorage.setItem('tm_owner_preview', '1'); localStorage.removeItem('tm_concepts_v1'); }); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
 
 async function check(name, fn, expectRe) {
   step = name;
@@ -95,6 +99,45 @@ async function check(name, fn, expectRe) {
 await check('home', async () => { await home(); }, /FIT MODE/);
 await check('fit hub', async () => { await fit(); }, /Quick Mission/);
 await check('quick mission start', async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1200); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WORK|EXERCISE/);
+
+// Quick Mission v2 ships behind data/qmV2 (owner preview until the flag
+// flips). The shelf check reads the flag, so it never needs editing when the
+// owner turns v2 on for everyone.
+const V2_PUBLIC = /QM_V2_FOR_EVERYONE\s*=\s*true/.test(
+  fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'components', 'training-mode', 'data', 'qmV2.js'), 'utf8'));
+const quick = async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200); };
+// Every owner check starts clean: preview() boots with wiped storage.
+const ownerQuick = async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+};
+// MISSION SELECT / Classics chips are role="radio". Their names can carry a
+// PRO or SOLO pill, so the patterns are anchored at the start only.
+const chip = (re) => page.getByRole('radio', { name: re });
+await check('quick mission: v2 shelf matches the flag', async () => {
+  await quick();
+  if (!V2_PUBLIC && /MISSION SELECT|LOADOUT|Short notice/.test(await text())) throw new Error('v2 shelf showing while QM_V2_FOR_EVERYONE is false');
+}, V2_PUBLIC ? /MISSION SELECT/ : /Classics/i);
+await check('quick mission: weighted classic starts weighted', async () => { await quick(); await chip(/^CHAOS ENGINE/).click({ timeout: 4000 }); await S(500); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
+await check('quick mission: murph starts', async () => { await quick(); await chip(/^MURPH$/).click({ timeout: 4000 }); await S(500); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
+await check('owner: quick mission v2 shelf', async () => {
+  await ownerQuick();
+  if (!/LOADOUT/.test(await text())) throw new Error('no LOADOUT row');
+}, /MISSION SELECT/);
+await check('owner: quick mission swap sheet', async () => {
+  await ownerQuick(); await chip(/^TUTORIAL STAGE/).click({ timeout: 4000 }); await S(600);
+  await page.locator('button[aria-label="Swap Sprawls"]').click({ timeout: 4000 }); await S(800);
+}, /SWAP: SPRAWLS/);
+await page.locator('button[aria-label="Close"]').first().click({ timeout: 1500 }).catch(() => {});
+await check('owner: one-bell guided start', async () => { await ownerQuick(); await chip(/^ONE-BELL 300/).click({ timeout: 4000 }); await S(600); await btn(/^START$/).click({ timeout: 4000 }); await S(5000); }, /ROUND|GET READY|PREPARING/);
+await check('owner: turbo solo start', async () => {
+  await ownerQuick(); await chip(/^TURBO BUTTON/).click({ timeout: 4000 }); await S(600);
+  await page.locator('[data-guide="qm-mode"]').getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
+}, /SOLO/);
 await check('build workout generate + start', async () => { await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200); await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /EXERCISE|SET|REPS/i);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
@@ -122,8 +165,6 @@ await check('arcade saga', async () => {
 }, /STAGE|CLIMB/i);
 // Concept drops are hidden from users until their window, so these run with
 // the owner's preview flag on.
-// boot() closed the pop-up (which marks it seen), so the drop's progress is reset to bring it back.
-const preview = async () => { await home(); await page.evaluate(() => { localStorage.setItem('tm_owner_preview', '1'); localStorage.removeItem('tm_concepts_v1'); }); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
 await check('concept drop pop-up + page', async () => { await preview(); await btn(/START THE REGIME/).click({ timeout: 5000 }); await S(1500); }, /WEEK 1 OF 4/);
 await check('concept fit day start', async () => { await btn(/^▶ START /).click({ timeout: 4000 }); await S(2500); }, /NECK CURLS|SQUAT JUMP/i);
 await check('concept fight day start', async () => { await preview(); await page.locator('button[aria-label="Close"]').first().click({ timeout: 3000 }).catch(() => {}); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); await page.locator('button', { hasText: 'CONCEPT PROGRAM' }).first().click({ timeout: 4000 }); await S(1500); await btn(/START DAY 1/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);

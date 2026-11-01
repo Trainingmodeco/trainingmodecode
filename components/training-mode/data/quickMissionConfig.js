@@ -31,7 +31,8 @@ export function surpriseQuickMission() {
 }
 
 // "12 min · Easy · Full Body · Bodyweight" — the line the Fit hub prints under
-// a mission, so what it says is what START runs.
-export function quickMissionLine(cfg) {
-  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · Bodyweight`;
+// a mission, so what it says is what START runs. Quick Mission v2 says
+// "No gear" instead, the word its LOADOUT row uses.
+export function quickMissionLine(cfg, { v2 = false } = {}) {
+  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · ${v2 ? 'No gear' : 'Bodyweight'}`;
 }

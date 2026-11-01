@@ -142,7 +142,7 @@ check('11 tutorial standard cadences', tutCad('standard', 'teep') === 3000 && tu
 check('11 tutorial elite cadences and the burnout', tutCad('elite', 'sprawl') === 2500 && tutCad('elite', 'hindu-squat') === 2000
   && built.tutorial_stage.elite.exercises[5].count === false && built.tutorial_stage.elite.exercises[5].name === 'One-Two Burnout');
 const steelSum = (m) => m.exercises[0].list.reduce((n, st) => n + st.reps * st.cadenceMs, 0);
-// DROP-A NOTE: the spec reads `pace.standard.setSec`; 7.1 says each level's Σ matches the setSec of its OWN tier.
+// Spec test 11 reads `pace.standard.setSec`, but 7.1 says each level's Σ matches the setSec of its OWN tier.
 check('11 steel complex counts 12 / 15 / 18 s, each level matching its own tier',
   steelSum(built.steel_plating.elite) === 12000 && steelSum(built.steel_plating.standard) === 15000 && steelSum(built.steel_plating.beginner) === 18000
   && LEVELS.every(lv => built.steel_plating[lv].pace[lv].setSec === steelSum(built.steel_plating[lv]) / 1000));
@@ -259,6 +259,20 @@ const boHeels = build('best_of_3', { swaps: { squat: 'heels-down-hindu-squat' } 
 check('25 chain: BEST OF 3 squats → heels-down Hindu squats keeps 10', keyItems(boHeels, 'squat')[0].moveId === 'heels-down-hindu-squat' && keyItems(boHeels, 'squat')[0].reps === 10);
 const roomDiamond = build('room_12', { swaps: { 'push-up': 'diamond-push-up' } });
 check('25 chain: diamond push-ups offer push-ups only', eq(L.swapOptions(roomDiamond, 'push-up').map(o => o.id), ['push-up']));
+// A pick that only became legal after another row moved off its move (rule 2):
+// Setup's rebuild from the map must keep it, whatever order the map holds.
+const hitFront = L.swapMissionMove(hit, 'front-squat', 'plate-goblet-squat');
+const hitLive = L.swapMissionMove(hitFront, 'back-squat', 'bb-front-squat');
+check('25 chain: a pick freed by another row sticks, SOLO and Setup agree',
+  L.swapOptions(hitFront, 'back-squat').some(o => o.id === 'bb-front-squat')
+  && keyItems(hitLive, 'back-squat')[0].moveId === 'bb-front-squat'
+  && eq(build('hit_combo_21', { swaps: { 'front-squat': 'plate-goblet-squat', 'back-squat': 'bb-front-squat' } }), hitLive)
+  && eq(build('hit_combo_21', { swaps: { 'back-squat': 'bb-front-squat', 'front-squat': 'plate-goblet-squat' } }), hitLive));
+const tutLive = ['reverse-lunge-knee-drive', 'reverse-lunge', 'air-squat', 'hindu-squat']
+  .reduce((m, id) => L.swapMissionMove(m, 'teep', id), L.swapMissionMove(build('tutorial_stage'), 'hindu-squat', 'heels-down-hindu-squat'));
+check('25 chain: TUTORIAL teep → Hindu squats after the squat row moved off them',
+  keyItems(tutLive, 'teep')[0].moveId === 'hindu-squat'
+  && eq(build('tutorial_stage', { swaps: { 'hindu-squat': 'heels-down-hindu-squat', teep: 'hindu-squat' } }), tutLive));
 
 const room = build('room_12');
 const roomReach = L.reachableMoves(room, 'lunge');

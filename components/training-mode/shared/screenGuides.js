@@ -212,6 +212,20 @@ export const SCREEN_GUIDES = {
     { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card — timer, coach, and all.' },
   ],
 
+  // Quick Mission v2 (owner-only until it ships; data/qmV2). The setup screen
+  // drops the qm-mode and qm-level steps when the card is not a v2 mission,
+  // since those anchors only exist on a v2 card.
+  quick_mission_setup_v2: [
+    { target: null, title: '⏱️ QUICK MISSION', body: 'Short notice? This is your list. Pick what you have with you (no gear, one bell, one bar) and every mission is one tap away: at home, in a hotel room, at the gym.' },
+    { target: 'qm-length', title: 'THE MISSION CARD', body: 'LOADOUT is what you need, MISSION is what you do, SCORE is how it counts. Every move has a swap icon for an easier, harder or no-gear version. Swaps never cost XP; the run is marked SCALED.' },
+    { target: 'qm-mode', title: 'GUIDED · SOLO', body: 'GUIDED: the coach runs the session and calls every move. SOLO: the whole workout on one screen with one clock, at your own pace.' },
+    { target: 'qm-level', title: 'LEVEL', body: 'BEGINNER, STANDARD or ELITE changes the work and the count. Start at STANDARD.' },
+    { target: 'qm-intensity', title: 'SURPRISE ME · ADJUST', body: 'SURPRISE ME deals a different mission, always with no gear. ADJUST opens focus, length and intensity, and the card rebuilds as you pick.' },
+    { target: 'qm-classics', title: 'LOADOUT · MISSION SELECT', body: 'Pick a LOADOUT, then a mission. THEME narrows it to striking, burpee or high-rep missions. The classics are here too: Murph, Sally Up, Deadly Seven.' },
+    { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission. Flip the switch to set it up; EDIT changes it.' },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card, in GUIDED or SOLO.' },
+  ],
+
   combat_conditioning_setup: [
     { target: null, title: '🔥 COMBAT CONDITIONING', body: 'This screen builds a fight-pace circuit — explosive, athletic conditioning that trains your gas tank.' },
     { target: 'ccs-discipline', title: 'DISCIPLINE', body: 'Your fight base — drills lean toward the striking style you pick. It is the same choice as on the Fight Mode hub.' },
@@ -281,3 +295,9 @@ export const SCREEN_GUIDES = {
     { target: 'qma-back', title: '‹ BACK BUTTON', body: 'The top-left arrow does the same thing as STOP — it asks you to confirm before ending, so a stray tap never wipes your progress.' },
   ],
 };
+
+// The Fit hub's guide while Quick Mission v2 is on (data/qmV2): the same steps,
+// with the Quick Mission row describing the loadout shelf.
+SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-quick'
+  ? { ...s, body: 'Short-notice missions for whatever you have: no gear, one bell, one bar. Pick a loadout, pick a mission, START.' }
+  : s));
