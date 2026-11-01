@@ -3,6 +3,7 @@ import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from './shared/sessionOu
 import { FORMAT_LABEL } from './data/loadoutMissions';
 import { formatScore } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
+import { quickMissionXp } from './data/userStats';
 
 // Quick Mission complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
@@ -24,7 +25,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   // of re-gating it through the integrity ratio and displaying 0 above a
   // level bar that just moved. Real anti-cheat still zeroes via the verdict.
   // SOLO shows the number App banked from its settle.
-  const baseXp = exercisesCompleted * 15 + (completed ? 30 : 0);
+  const baseXp = quickMissionXp(exercisesCompleted, totalExercises, completed);
   const xp = solo ? (result.xpEarned || 0) : xpForOutcome(verdict.outcome, baseXp);
   const preset = solo ? OUTCOME_PRESET[SOLO_PRESET[result.settle?.outcome] || 'fail'] : verdict.preset;
 

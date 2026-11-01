@@ -149,12 +149,20 @@ export function addFitModeSession(exercisesCompleted, totalExercises, difficulty
   return xpEarned;
 }
 
+// A guided Quick Mission's XP: 15 per exercise done, plus the finish bonus
+// only when nothing was skipped. A run that reached the end by skipping a
+// move still pays its exercises, but not the bonus. The complete screen
+// shows this same figure.
+export function quickMissionXp(exercisesCompleted, totalExercises, completed) {
+  const full = completed && exercisesCompleted >= totalExercises;
+  return (exercisesCompleted * XP_PER_FIT_EXERCISE) + (full ? XP_FIT_FULL_BONUS : 0);
+}
+
 // `meta` (optional): extra fields for the row, e.g. a v2 guided run's
 // { mode, missionId, level, scaled, swaps }. It never changes the XP.
 export function addQuickMissionSession(exercisesCompleted, totalExercises, completed, meta) {
   const stats = loadStats();
-  const xpEarned = (exercisesCompleted * XP_PER_FIT_EXERCISE) +
-    (completed ? XP_FIT_FULL_BONUS : 0);
+  const xpEarned = quickMissionXp(exercisesCompleted, totalExercises, completed);
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),

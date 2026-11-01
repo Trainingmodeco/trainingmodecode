@@ -8,6 +8,7 @@ import { chaseXp, CHASE_XP } from '../components/training-mode/data/chase.js';
 import { pickXpBanner } from '../components/training-mode/data/xpBanners.js';
 import { judgeRoundIntensity } from '../components/training-mode/data/roundIntensity.js';
 import { createMicStrikeDetector } from '../components/training-mode/data/micStrikeDetector.js';
+import { quickMissionXp } from '../components/training-mode/data/userStats.js';
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -118,6 +119,12 @@ check('cardio gain is iron', pickXpBanner('gain', { mode: 'cardio' }).id === 'ir
 check('fight loss is the gloves', pickXpBanner('loss', { mode: 'fight' }).id === 'gloves');
 check('camp stage loss is the reaper', pickXpBanner('loss', { mode: 'fight', camp: true }).id === 'reaper');
 check('HARD loss is the reaper', pickXpBanner('loss', { mode: 'cardio', tier: 'hard' }).id === 'reaper');
+
+// Quick Mission: the finish bonus pays only when nothing was skipped.
+check('quick mission: full run pays the bonus', quickMissionXp(10, 10, true) === 180);
+check('quick mission: skipped last move, no bonus', quickMissionXp(9, 10, true) === 135);
+check('quick mission: skipped middle move, no bonus', quickMissionXp(9, 10, true) === 9 * 15);
+check('quick mission: early stop, no bonus', quickMissionXp(4, 10, false) === 60);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
