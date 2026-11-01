@@ -1,0 +1,128 @@
+{
+  "id": "2026-11-01-practice-boxing-stance",
+  "title": "Practice: Boxing Stance",
+  "status": "rendered",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-01",
+  "source": "Practice Mode tutorial, lesson 1 of the Boxing Fundamentals Path (practiceLessons.js › boxing_stance: its steps and calls). Footage: the owner's stance clip from Angel's camera, deblurred (tools/deblur.py), raw-footage/blurry-angel.deblur.mp4.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Boxing",
+    "technique": "Boxing Stance",
+    "number": "1",
+    "badge": "Lesson 1 of 7",
+    "level": "Beginner",
+    "description": "Learn your base, guard, and foot position.",
+    "stance": "orthodox",
+    "hook": "WEAK PUNCHES?|*FIX YOUR FEET.*",
+    "hookSub": "The boxing stance. 20 seconds.",
+    "src": "raw-footage/blurry-angel.deblur.mp4",
+    "slowSrc": "raw-footage/blurry-angel.deblur.x60.mp4",
+    "pose": "raw-footage/blurry-angel.deblur.pose.json",
+    "hookAt": 9.6,
+    "repAt": 6,
+    "cues": [
+      {
+        "text": "Feet shoulder-width, lead foot forward",
+        "at": 7,
+        "mark": "leadFoot",
+        "label": "LEAD FOOT",
+        "say": "Coach: \"Left foot forward if you're right-handed. Toes toward your target.\"",
+        "zoom": 2.2,
+        "focus": [
+          0.5,
+          0.85
+        ]
+      },
+      {
+        "text": "Knees slightly bent. Stay light.",
+        "at": 8.6,
+        "mark": "leadKnee",
+        "label": "KNEES",
+        "say": "Coach: \"Soft knees. Weight on the balls of your feet.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "Hands up. Chin down. Eyes forward.",
+        "at": 10.4,
+        "mark": "chin",
+        "label": "CHIN",
+        "say": "Coach: \"Elbows close to the ribs. Your chin hides behind your hands.\""
+      }
+    ],
+    "watch": {
+      "text": "Standing up too tall",
+      "fix": "Knees soft, weight forward",
+      "at": 2.6,
+      "fixAt": 7.6,
+      "mark": "rearKnee",
+      "label": "LOCKED",
+      "say": "Coach: \"Straight legs can't move or punch. Sink an inch.\"",
+      "zoom": 1.6,
+      "focus": [
+        0.5,
+        0.7
+      ]
+    },
+    "drill": {
+      "calls": [
+        "STANCE",
+        "STEP FORWARD",
+        "STEP BACK",
+        "HANDS UP"
+      ],
+      "start": 9.5,
+      "cue": "Move forward and back",
+      "label": "DRILL · 30 SECONDS"
+    },
+    "next": {
+      "number": "2",
+      "name": "Guard + Footwork",
+      "description": "Protect yourself and move with balance.",
+      "level": "Beginner"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Weak punches? Fix your feet 🥊 The boxing stance: feet shoulder-width with the lead foot forward, knees slightly bent, hands up and chin down. Watch for standing up too tall. Lesson 1 of 7 in Practice Mode. Link in bio. #boxing #boxingstance #boxingforbeginners #learnboxing #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Weak punches? Fix your feet. 🥊\n\nThe boxing stance, lesson 1 of 7:\n1. Feet shoulder-width, lead foot forward\n2. Knees slightly bent, stay light\n3. Hands up, chin down, eyes forward\nWatch for: standing up too tall.\n\nPractice Mode in Training Mode teaches the fundamentals step by step, then the coach drills each one with you.\n\nComment TRAIN and I'll DM you the link.\n\n#boxing #boxingstance #boxingforbeginners #learnboxing #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Weak punches? Fix your feet 🥊 The boxing stance: feet shoulder-width with the lead foot forward, knees slightly bent, hands up and chin down. Watch for standing up too tall. Lesson 1 of 7 in Practice Mode. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Weak punches? Fix your feet. The boxing stance 🥊 #shorts",
+      "description": "Practice Mode in Training Mode, lesson 1 of 7: the boxing stance. Feet shoulder-width with the lead foot forward, knees slightly bent, hands up and chin down. Watch for standing up too tall. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "boxing",
+        "boxing stance",
+        "boxing for beginners",
+        "learn boxing",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-01 lesson 1 of the Fundamentals Path, from the deblurred camera clip (the owner's phone covers the punches). No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ],
+  "exports": {
+    "video": "exports/2026-11-01-practice-boxing-stance/video.mp4",
+    "cover": "exports/2026-11-01-practice-boxing-stance/cover.jpg",
+    "seconds": 32
+  },
+  "renderedAt": "2026-11-01T18:57:17.845Z"
+}

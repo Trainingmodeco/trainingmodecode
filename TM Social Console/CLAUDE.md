@@ -177,7 +177,8 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   speed; `hook` is two lines split on `|`, `*gold*`), NAME (`repAt`), three
   CUES (each `at` = the clip second the cue belongs to; shown at 0.4× from
   0.9 s before it, the marker and card landing on that frame), WATCH (`at`
-  = the frame to freeze with the fault marked, then the fix at 0.5×), DRILL
+  = the frame to freeze with the fault marked, then the fix at 0.5× from
+  `fixAt`, so the fix can come from a different moment of the clip), DRILL
   (`start`, 6 s at real speed, the ring calling `calls`), NEXT. Slow motion:
   make a 75 fps copy first (`ffmpeg -i clip.mp4 -vf minterpolate=fps=75:
   mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1 -an clip.x75.mp4`) and set
@@ -186,8 +187,10 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   follow the body; where the model loses the body (the owner half out of
   frame confuses it: check with a landmark overlay), pin `point: [x, y]` by
   hand from a gridded frame. The camera zooms (`zoom` 1.45) on the body
-  (`focus` fixes its centre; a cue can override `zoom`/`focus` so a low mark
-  stays clear of the card). Look: the app's Practice screens (Chakra Petch,
+  (`focus` fixes its centre; a cue or the watch beat can override
+  `zoom`/`focus`: a feet cue wants a tight low frame, `zoom` 2.2 and `focus`
+  [0.5, 0.85]; knees 1.6 and [0.5, 0.7]; a mark that still lands low flips
+  the cue card to the top of the frame by itself). Look: the app's Practice screens (Chakra Petch,
   Barlow, Orbitron numbers; gold #F2BE45, violet #B794FF, red ✕, green ✓).
   Voice: none yet; the coach lines show as captions (`say`) until the owner
   settles the voice. Finished tutorials also fill the app's empty

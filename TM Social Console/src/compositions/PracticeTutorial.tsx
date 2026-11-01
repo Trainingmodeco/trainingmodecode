@@ -39,7 +39,8 @@ export type PracticeTutorialProps = {
   hookAt: number; // seconds into the clip: the hook beat plays from here at full speed
   repAt: number; // the NAME beat's clean rep plays from here
   cues: Cue[]; // `at` = the frame the cue belongs to, in clip seconds
-  watch: { text: string; fix: string; at: number; mark?: Mark; point?: [number, number]; label?: string; say?: string };
+  // `fixAt`: where the correct version plays from (default: just before `at`).
+  watch: { text: string; fix: string; at: number; fixAt?: number; mark?: Mark; point?: [number, number]; label?: string; say?: string; zoom?: number; focus?: [number, number] };
   drill: { calls: string[]; start: number; cue?: string; label?: string };
   next?: { number?: string | null; name: string; description?: string; level?: string } | null;
   cta?: string;
@@ -308,6 +309,8 @@ const CueBeat: React.FC<{ p: PracticeTutorialProps; cue: Cue; i: number; pose: P
   const m = cue.point ?? (cue.mark ? markPoint(at(pose, t), cue.mark, p.stance ?? 'orthodox') : null);
   const s = m ? toScreen(cam, m) : null;
   const landed = frame >= landAt;
+  // A low mark (feet, knees) would sit under the card: the card moves to the top.
+  const cardUp = s != null && s.y > HEIGHT - 330 - 340;
   return (
     <AbsoluteFill>
       <Footage src={src} start={start} rate={SLOW} cam={cam} />
@@ -317,7 +320,7 @@ const CueBeat: React.FC<{ p: PracticeTutorialProps; cue: Cue; i: number; pose: P
           <Marker x={s.x} y={s.y} label={cue.label} />
         </Sequence>
       ) : null}
-      <div style={{ position: 'absolute', left: 50, right: 140, bottom: 330, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ position: 'absolute', left: 50, right: 140, ...(cardUp ? { top: 290 } : { bottom: 330 }), display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ fontFamily: F.head, fontWeight: 700, fontSize: 24, letterSpacing: '0.18em', color: P.lilac }}>KEY POINT {i + 1} OF {Math.min(3, p.cues.length)}</div>
         {landed ? (
           <Sequence from={landAt} layout="none">
@@ -346,9 +349,9 @@ const Watch: React.FC<{ p: PracticeTutorialProps; pose: Pose | null }> = ({ p, p
   const frame = useCurrentFrame();
   const FREEZE = 90; // then the fix plays at half speed
   const w = p.watch;
-  const fixStart = Math.max(0, w.at - 0.6);
+  const fixStart = Math.max(0, w.fixAt ?? w.at - 0.6);
   const t = frame < FREEZE ? w.at : fixStart + ((frame - FREEZE) / FPS) * 0.5;
-  const cam = camera(p.zoom ?? 1.45, p.focus ?? bodyCentre(pose, t));
+  const cam = camera(w.zoom ?? p.zoom ?? 1.45, w.focus ?? p.focus ?? bodyCentre(pose, t));
   const m = w.point ?? (w.mark ? markPoint(at(pose, w.at), w.mark, p.stance ?? 'orthodox') : null);
   const s = m ? toScreen(cam, m) : null;
   const redIn = interpolate(frame, [0, 8], [0, 1], clamp);
