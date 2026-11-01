@@ -42,3 +42,23 @@ inbox keeps up. Reddit: at most 1 a week, value first.
 First second, on screen, under 8 words, a problem or a dare: "Shadowboxing
 alone?", "Your workout is the boss.", "Where did you stall?". One idea per
 post. Highlight one or two words with `*stars*`.
+
+## Practice tutorial (designed 2026-11-01, template not built yet)
+
+One technique per video for the app's Practice Mode, 32 s for the feeds and a
+20–30 s cut for the app's Technique Library (`practiceData.js`: every move
+already carries a description, level, 3 cues, 3 mistakes and `next`; its
+lesson card has an empty `videoUrl`). The words on screen are the app's own.
+Six beats: HOOK 0–2 s (the problem in one line over the move at full speed) ·
+NAME 2–4 s (gym-number tile, name, level) · THREE CUES 4–16 s (0.4× slow
+motion, the cue landing on the frame it matters, a marker on the body part,
+one cue at a time, numbered like the app's key points) · WATCH FOR 16–22 s
+(freeze, red ✕ on the fault, then the fix in green) · DRILL 22–28 s (real
+speed, the Practice Round ring calling "20 slow, 20 fast") · NEXT UP 28–32 s
+(the move ticked, the next named, OPEN PRACTICE MODE). Look: the app's
+Practice screens (ground #0A0716, violet #B794FF, gold #F2BE45, red #EF4444,
+green #4ADE80; Chakra Petch names and labels, Orbitron numbers and calls,
+Barlow cues; gold clip-corner button; violet ring timer). Design canvas:
+https://claude.ai/artifact/KMkYzevv2EQmgMD86tqiKx. Owner decisions pending:
+voice (coach reads cues; announcer on DRILL), the in-app 16:9 cut, filming
+one wrong rep per move. Footage: raw-footage/practice/p1–p7 (ring, 2026-10-31).
