@@ -37,4 +37,10 @@ export const loadBrandFonts = () =>
     loadFont({ family: 'Rajdhani', url: staticFile('fonts/Rajdhani-SemiBold.ttf'), weight: '600' }),
     loadFont({ family: 'Rajdhani', url: staticFile('fonts/Rajdhani-Bold.ttf'), weight: '700' }),
     loadFont({ family: 'Press Start 2P', url: staticFile('fonts/PressStart2P.ttf'), weight: '400' }),
+    // The app's Practice screens (PracticeMode.jsx): only for recreating them.
+    loadFont({ family: 'Chakra Petch', url: staticFile('fonts/ChakraPetch-SemiBold.ttf'), weight: '600' }),
+    loadFont({ family: 'Chakra Petch', url: staticFile('fonts/ChakraPetch-Bold.ttf'), weight: '700' }),
+    loadFont({ family: 'Barlow', url: staticFile('fonts/Barlow-Medium.ttf'), weight: '500' }),
+    loadFont({ family: 'Barlow', url: staticFile('fonts/Barlow-SemiBold.ttf'), weight: '600' }),
+    loadFont({ family: 'Barlow', url: staticFile('fonts/Barlow-Bold.ttf'), weight: '700' }),
   ]));

@@ -22,6 +22,7 @@
     "reference": "node tools/reference.mjs",
     "hf:render": "node tools/hf-render.mjs",
     "track": "python tools/track-head.py",
+    "pose": "python tools/pose.py",
     "hf:preview": "cd hyperframes && npx hyperframes preview",
     "typecheck": "tsc --noEmit"
   },

@@ -1,5 +1,5 @@
 // npm run queue                       list every post and its status
-// npm run new -- <format> "<title>"   start a post (ScriptShort | FootageShort | BossIntro | FightFocusRounds)
+// npm run new -- <format> "<title>"   start a post (ScriptShort | FootageShort | BossIntro | FightFocusRounds | PracticeTutorial)
 // npm run approve -- <id>             owner's OK: the rendered video may go live
 // npm run queue -- reject <id> "why"  send it back
 // npm run queue -- posted <id> <platform> <url>   record a live post
@@ -25,6 +25,34 @@ const TEMPLATES = {
     hook: 'The coach calls it. *You throw it.*',
     rounds: [{ title: '', src: 'raw-footage/<file>.mp4', start: 0, end: 8, rate: 1, focusX: 50, voice: null }],
     cta: 'Link in bio',
+  },
+  // One technique from the app's Practice Mode (practiceData.js holds its
+  // cues, mistakes and `next`). `at` times are seconds into the clip; run
+  // tools/pose.py on the clip first so markers follow the body.
+  PracticeTutorial: {
+    discipline: 'Boxing',
+    technique: '',
+    number: null,
+    badge: 'Punch',
+    level: 'Beginner',
+    description: '',
+    stance: 'orthodox',
+    hook: 'LINE ONE|*LINE TWO.*',
+    hookSub: "Here's the fix. 20 seconds.",
+    src: 'raw-footage/<file>.mp4',
+    slowSrc: null,
+    pose: 'raw-footage/<file>.pose.json',
+    hookAt: 0,
+    repAt: 0,
+    cues: [
+      { text: '', at: 0, mark: 'hips', label: 'HIP' },
+      { text: '', at: 0, mark: 'rearFoot', label: 'BACK FOOT' },
+      { text: '', at: 0, mark: 'chin', label: 'CHIN' },
+    ],
+    watch: { text: '', fix: '', at: 0, mark: 'rearShoulder', label: 'SHOULDER' },
+    drill: { calls: [], start: 0, cue: '' },
+    next: { number: null, name: '', description: '', level: 'Beginner' },
+    cta: 'OPEN PRACTICE MODE',
   },
 };
 

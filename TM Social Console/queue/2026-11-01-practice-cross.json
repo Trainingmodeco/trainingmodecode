@@ -1,0 +1,131 @@
+{
+  "id": "2026-11-01-practice-cross",
+  "title": "Practice: Cross",
+  "status": "rendered",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-01",
+  "source": "Practice Mode tutorial sample (the designed format, brain/formats.md). Words from the app's Technique Library (practiceData.js: Muay Thai › Cross). Footage: the owner's clip 7 (ring, 2026-10-31), raw-footage/practice/p7.mp4.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Cross",
+    "number": "2",
+    "badge": "Punch",
+    "level": "Beginner",
+    "description": "Rear-hand power punch",
+    "stance": "orthodox",
+    "hook": "YOUR CROSS HAS|*NO POWER.*",
+    "hookSub": "Here's the fix. 20 seconds.",
+    "src": "raw-footage/practice/p7.mp4",
+    "slowSrc": "raw-footage/practice/p7.x75.mp4",
+    "pose": null,
+    "hookAt": 0.3,
+    "repAt": 0.45,
+    "cues": [
+      {
+        "text": "Rotate the hip",
+        "at": 0.92,
+        "point": [
+          0.24,
+          0.5
+        ],
+        "label": "HIP",
+        "say": "Coach: \"The punch starts at the hip, not the arm.\""
+      },
+      {
+        "text": "Drive off the back foot",
+        "at": 1,
+        "point": [
+          0.12,
+          0.685
+        ],
+        "label": "BACK FOOT",
+        "say": "Coach: \"Heel up. Push the floor away.\"",
+        "zoom": 1.3,
+        "focus": [
+          0.26,
+          0.56
+        ]
+      },
+      {
+        "text": "Tuck the chin",
+        "at": 1.03,
+        "point": [
+          0.24,
+          0.375
+        ],
+        "label": "CHIN",
+        "say": "Coach: \"Chin behind the shoulder the whole way.\""
+      }
+    ],
+    "watch": {
+      "text": "Telegraphing with the shoulder",
+      "fix": "The shoulder waits for the hip",
+      "at": 0.85,
+      "point": [
+        0.29,
+        0.4
+      ],
+      "label": "SHOULDER",
+      "say": "Coach: \"If the shoulder moves first, they see it coming.\""
+    },
+    "drill": {
+      "calls": [
+        "CROSS",
+        "CROSS × 2",
+        "JAB → CROSS"
+      ],
+      "start": 0,
+      "cue": "Rotate the hip"
+    },
+    "next": {
+      "number": "3",
+      "name": "Lead Hook",
+      "description": "Short-range angle punch",
+      "level": "Beginner"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.5,
+    "focus": [
+      0.26,
+      0.5
+    ]
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Your cross has no power. Here's the fix 🥊 Rotate the hip, drive off the back foot, tuck the chin. Watch for: telegraphing with the shoulder. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #boxing #muaythai #cross #boxingtechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Your cross has no power. Here's the fix. 🥊\n\n1. Rotate the hip\n2. Drive off the back foot\n3. Tuck the chin\nWatch for: telegraphing with the shoulder.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#boxing #muaythai #cross #boxingtechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Your cross has no power. Here's the fix 🥊 Rotate the hip, drive off the back foot, tuck the chin, and watch for telegraphing with the shoulder. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Your cross has no power. Here's the fix 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the cross, step by step. Rotate the hip, drive off the back foot, tuck the chin. Watch for telegraphing with the shoulder. Then drill it in a Practice Round with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "boxing",
+        "muay thai",
+        "cross",
+        "boxing technique",
+        "how to punch",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-01 the first Practice tutorial, as the sample of the designed format. No voice yet (the coach lines are shown as captions). Owner approves before anything posts; TikTok as Only me first."
+  ],
+  "exports": {
+    "video": "exports/2026-11-01-practice-cross/video.mp4",
+    "cover": "exports/2026-11-01-practice-cross/cover.jpg",
+    "seconds": 32
+  },
+  "renderedAt": "2026-11-01T08:20:23.480Z"
+}

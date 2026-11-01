@@ -52,7 +52,7 @@ brand/brand.json     app facts: colors, ranks, drops, sagas, Pro, rules (synced)
 brain/               knowledge: scripts library, formats, platforms, ManyChat
   scripts/           the owner's Drive scripts as markdown + library.json
 queue/<id>.json      one file per post: props, captions per platform, status
-src/                 Remotion templates (ScriptShort, FootageShort, BossIntro)
+src/                 Remotion templates (ScriptShort, FootageShort, BossIntro, FightFocusRounds, PracticeTutorial)
 hyperframes/         HyperFrames HTML templates (Rank Ladder)
 tools/               the npm scripts below
 raw-footage/         owner's clips (not in git)
@@ -79,6 +79,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run hf:render -- raw-footage/clip.mp4 6 55` | renders the HyperFrames Rank Ladder over that clip (from 6s, crop centred at 55%) |
 | `npm run reference -- <url>` | saves a reference reel with yt-dlp |
 | `npm run track -- raw-footage/clip.mp4 --zoom 2 --head 0.33` | zooms in and follows the owner's head (MediaPipe pose) → `clip.tracked.mp4` (1080×1920, 30 fps, same timing) + `clip.track.json` |
+| `npm run pose -- raw-footage/clip.mp4` | body landmarks per frame (MediaPipe) → `clip.pose.json`, for the Practice tutorial's markers; it also prints each hand's and foot's reach per 0.1 s, so a strike's extension frame is a peak |
 
 ## The loop
 
@@ -167,6 +168,29 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   round for the drill on screen. The owner wants it to look like the app:
   match the app's screens, colours, copy and fonts (Press Start 2P is allowed
   here for the timer label).
+- **PracticeTutorial**: one technique from the app's Practice Mode, 32 s
+  (brain/formats.md has the design; the canvas is linked there). The words are
+  the app's own: copy `cues` (3), `mistakes` (pick one) and `next` from
+  `../components/training-mode/practiceData.js`, the gym number from
+  `strikeNumbering.js` (punches only). Beats: HOOK (`hookAt`, 2 s at full
+  speed; `hook` is two lines split on `|`, `*gold*`), NAME (`repAt`), three
+  CUES (each `at` = the clip second the cue belongs to; shown at 0.4× from
+  0.9 s before it, the marker and card landing on that frame), WATCH (`at`
+  = the frame to freeze with the fault marked, then the fix at 0.5×), DRILL
+  (`start`, 6 s at real speed, the ring calling `calls`), NEXT. Slow motion:
+  make a 75 fps copy first (`ffmpeg -i clip.mp4 -vf minterpolate=fps=75:
+  mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1 -an clip.x75.mp4`) and set
+  `slowSrc`, so every slowed frame is a real one. Markers: run `npm run pose`
+  and use `mark` (hips, rearFoot, chin, rearShoulder, leadHand …) so they
+  follow the body; where the model loses the body (the owner half out of
+  frame confuses it: check with a landmark overlay), pin `point: [x, y]` by
+  hand from a gridded frame. The camera zooms (`zoom` 1.45) on the body
+  (`focus` fixes its centre; a cue can override `zoom`/`focus` so a low mark
+  stays clear of the card). Look: the app's Practice screens (Chakra Petch,
+  Barlow, Orbitron numbers; gold #F2BE45, violet #B794FF, red ✕, green ✓).
+  Voice: none yet; the coach lines show as captions (`say`) until the owner
+  settles the voice. Finished tutorials also fill the app's empty
+  `videoUrl` slots.
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
   climb, "where did you stall?", over a B-roll clip:
   `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX] [rate]`.

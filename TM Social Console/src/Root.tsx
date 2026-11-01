@@ -3,6 +3,7 @@ import { FPS, HEIGHT, loadBrandFonts, WIDTH } from './brand';
 import { BOSS_INTRO_FRAMES, BossIntro, type BossIntroProps } from './compositions/BossIntro';
 import { FightFocusRounds, type FightFocusRoundsProps, roundsTimeline } from './compositions/FightFocusRounds';
 import { FootageShort, footageFrames, type FootageShortProps } from './compositions/FootageShort';
+import { PracticeTutorial, type PracticeTutorialProps, tutorialTimeline } from './compositions/PracticeTutorial';
 import { ScriptShort, scriptTimeline, type ScriptShortProps } from './compositions/ScriptShort';
 import { END_CARD_FRAMES } from './parts/EndCard';
 
@@ -48,6 +49,28 @@ const roundsDefaults: FightFocusRoundsProps = {
   cta: 'Link in bio',
 };
 
+const tutorialDefaults: PracticeTutorialProps = {
+  discipline: 'Muay Thai',
+  technique: 'Cross',
+  number: '2',
+  badge: 'Punch',
+  level: 'Beginner',
+  description: 'Rear-hand power punch',
+  hook: 'YOUR CROSS HAS|*NO POWER.*',
+  hookSub: "Here's the fix. 20 seconds.",
+  src: 'sample/footage.mp4',
+  hookAt: 0,
+  repAt: 0,
+  cues: [
+    { text: 'Rotate the hip', at: 1, mark: 'hips', label: 'HIP' },
+    { text: 'Drive off the back foot', at: 1, mark: 'rearFoot', label: 'BACK FOOT' },
+    { text: 'Tuck the chin', at: 1, mark: 'chin', label: 'CHIN' },
+  ],
+  watch: { text: 'Telegraphing with the shoulder', fix: 'The shoulder waits for the hip', at: 1, mark: 'rearShoulder', label: 'SHOULDER' },
+  drill: { calls: ['CROSS', 'CROSS × 2', 'JAB → CROSS'], start: 0 },
+  next: { number: '3', name: 'Lead Hook', description: 'Short-range angle punch', level: 'Beginner' },
+};
+
 export const Root: React.FC = () => (
   <>
     <Composition
@@ -80,6 +103,16 @@ export const Root: React.FC = () => (
       durationInFrames={300}
       defaultProps={roundsDefaults}
       calculateMetadata={({ props }) => ({ durationInFrames: roundsTimeline(props).total })}
+    />
+    <Composition
+      id="PracticeTutorial"
+      component={PracticeTutorial}
+      width={WIDTH}
+      height={HEIGHT}
+      fps={FPS}
+      durationInFrames={960}
+      defaultProps={tutorialDefaults}
+      calculateMetadata={({ props }) => ({ durationInFrames: tutorialTimeline(props).total })}
     />
   </>
 );

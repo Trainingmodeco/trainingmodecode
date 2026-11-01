@@ -76,6 +76,7 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run captions -- raw-footage/clip.mp4` | Whisper captions |
 | `npm run voice -- <id>` | the announcer's calls (or the app's voice) |
 | `npm run track -- raw-footage/clip.mp4 --zoom 2` | zoom in on you and follow your head → `clip.tracked.mp4` |
+| `npm run pose -- raw-footage/clip.mp4` | find your body in every frame → `clip.pose.json` (the Practice tutorials' markers) |
 | `npm run render -- <id>` | make the video + cover |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
@@ -92,7 +93,8 @@ downloads itself the first time.
   platform setup, ManyChat flow.
 - `src/`: video templates (Remotion): **ScriptShort** (motion graphic from a
   script), **FootageShort** (your clip + captions + HUD), **BossIntro**,
-  **FightFocusRounds** (your training footage cut into called rounds).
+  **FightFocusRounds** (your training footage cut into called rounds),
+  **PracticeTutorial** (one technique from Practice Mode, 32 s).
 - `hyperframes/`: HTML video templates (HyperFrames): **Rank Ladder**.
 - `queue/`: one file per post with its captions for every platform.
 - `raw-footage/`, `references/`, `exports/`: your media (kept out of git).
