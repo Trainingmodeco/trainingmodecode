@@ -26,6 +26,7 @@ const A = await import(path.join(TM, 'data/trainingArcadeData.js'));
 const { VISIBLE_TIERS, tierImage } = await import(path.join(TM, 'data/tiers.js'));
 const { NAMED_WORKOUTS } = await import(path.join(TM, 'data/namedWorkouts.js'));
 const { PLAN_PROGRAMS } = await import(path.join(TM, 'data/workoutLibrary.js'));
+const LM = await import(path.join(TM, 'data/loadoutMissions.js'));
 const { C: COLORS } = await import(path.join(TM, 'Styles.js'));
 
 // Values that live inside components (not exported); read from source so they
@@ -97,6 +98,12 @@ const kit = {
   tapes: TAPES.map(t => ({ number: t.num, id: t.id, title: t.title, shelf: t.kind, meta: t.meta, minutes: t.minutes, gear: t.gear, xp: tapeXp(t), liveVersionOf: t.live || null, youtubeId: t.youtubeId || null, art: asset(t.art) })),
   sagas,
   workouts: NAMED_WORKOUTS.map(w => ({ id: w.id, title: w.title, tag: w.tag, focus: w.focus, minutes: w.estMin, needs: w.needs || null, lines: (w.lines || []).map(([a, b]) => (b ? `${a} — ${b}` : a)), pro: !!w.pro })),
+  // Quick Mission's loadout missions, as the card shows them at STANDARD with
+  // no swaps. `captionAka` is the well-known name: captions only, never on screen.
+  missions: LM.LOADOUT_MISSIONS.map((d) => {
+    const c = LM.missionCardModel(LM.buildLoadoutMission(d.id, { gear: null }), { gear: null });
+    return { id: d.id, title: c.title, loadout: c.loadoutLine, format: LM.FORMAT_LABEL[d.format] || d.format, mission: c.missionLine, score: c.scoreLine, tags: c.tags, themes: d.themes || [], moves: c.rows.map(r => `${r.dose} ${r.name}`.trim()), levels: LM.levelsOf(d), guided: d.guided !== false, captionAka: d.knownAs || null };
+  }),
   programs: PLAN_PROGRAMS.map(p => ({ id: p.id, title: p.title, shelf: p.category, meta: p.meta, blurb: p.blurb, days: (p.days || []).map(d => d.label), pro: !!p.pro })),
 };
 
@@ -113,10 +120,11 @@ for (const s of sagas) md.push(`| ${s.title} | ${s.subtitle} | ${s.status} | ${s
 md.push('', '## Pro', '', ...kit.pro.prices.map(p => `- ${p.label}: ${p.price} ${p.cadence} (${p.note})`), '', ...kit.pro.benefits.map(b => `- ${b}`), `- ${kit.pro.freeAlways}`);
 md.push('', '## Ranks', '', ...kit.ranks.map(r => `- ${r.name} (${r.label}) from ${r.xpFrom} XP`));
 md.push('', '## Named workouts', '', ...kit.workouts.map(w => `- ${w.title} · ${w.focus} · ~${w.minutes} min${w.pro ? ' · Pro' : ''}`));
+md.push('', '## Quick Mission loadout missions', '', '| Mission | Loadout | Mission line | Score | Themes |', '|---|---|---|---|---|', ...kit.missions.map(m => `| ${m.title} | ${m.loadout} | ${m.mission} | ${m.score} | ${m.themes.join(', ') || '—'} |`));
 md.push('', '## Programs', '', ...kit.programs.map(p => `- ${p.title} · ${p.meta}${p.pro ? ' · Pro' : ''}`), '');
 
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'content-kit.json'), JSON.stringify(kit, null, 2) + '\n');
 fs.writeFileSync(path.join(OUT, 'README.md'), md.join('\n'));
 const missing = [...drops.flatMap(d => Object.values(d.art)), ...kit.tapes.map(t => t.art), ...sagas.map(s => s.poster), ...kit.ranks.map(r => r.art)].filter(a => a && !exists(a.path));
-console.log(`content kit: ${drops.length} drops · ${kit.tapes.length} tapes · ${sagas.length} sagas · ${kit.workouts.length} workouts · ${kit.programs.length} programs${missing.length ? ` · ${missing.length} missing asset(s): ${missing.map(a => a.path).join(', ')}` : ''}`);
+console.log(`content kit: ${drops.length} drops · ${kit.tapes.length} tapes · ${sagas.length} sagas · ${kit.workouts.length} workouts · ${kit.missions.length} missions · ${kit.programs.length} programs${missing.length ? ` · ${missing.length} missing asset(s): ${missing.map(a => a.path).join(', ')}` : ''}`);

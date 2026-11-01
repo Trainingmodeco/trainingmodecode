@@ -1,6 +1,6 @@
 # Training Mode content kit
 
-Generated 2026-10-31 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
+Generated 2026-11-01 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
 
 ## Rules
 
@@ -87,6 +87,22 @@ Generated 2026-10-31 from the app's own data by `npm run content:kit`. Don't edi
 - LEGENDARY SQUAT · Lower · ~32 min
 - HERO TRAINING · Full Body · ~27 min · Pro
 - CHAOS ENGINE CIRCUIT · Full Body · ~29 min · Pro
+
+## Quick Mission loadout missions
+
+| Mission | Loadout | Mission line | Score | Themes |
+|---|---|---|---|---|
+| IRON CLOCK 16 | 1 BARBELL + PLATES | EMOM 16 · 4 LIFTS · REST THE REST OF EACH MINUTE | MINUTES HELD, OUT OF 16 | — |
+| ONE-BELL 300 | 1 KETTLEBELL (OR 1 DUMBBELL) | 300 REPS · 5 ROUNDS FOR TIME · CAP 30:00 | TIME, OR REPS AT THE CAP | — |
+| FIVE ROUND BOUT | 1 BARBELL, OR 2 DUMBBELLS OR 2 KETTLEBELLS | 5 × 3:00 AMRAP · 1:00 REST · 3 POWER CLEANS · 6 PUSH-UPS · 9 AIR SQUATS | ROUNDS + REPS, ALL BLOCKS ADDED | striking |
+| BEST OF 3 | NO GEAR | 3 × 3:00 AMRAP · 1:00 REST · 5 SPRAWLS · 10 SQUATS · 10 ONE-TWOS | ROUNDS + REPS, ALL 3 ROUNDS ADDED | striking |
+| STEEL PLATING | 1 KETTLEBELL (OR 1 DUMBBELL) · CHECK THE CEILING | EMOM 20 · 2 CLEANS + 1 PRESS + 3 FRONT SQUATS · ALTERNATE ARMS | MINUTES HELD, OUT OF 20 | — |
+| CHECKPOINT 20 | 1 KETTLEBELL · ROWER OPTIONAL | EMOM 20 · SWINGS · PUSH-UPS · GOBLET SQUATS · SHADOWBOX | CHECKPOINTS CLEARED, OUT OF 20 | striking |
+| ROOM 12 | NO GEAR · 2 × 1.5 M OF FLOOR | AMRAP 12 · 8 PUSH-UPS · 12 REVERSE LUNGES · 16 CLIMBERS · 8 V-UPS | ROUNDS + REPS | — |
+| 21-HIT COMBO | 1 BARBELL + BUMPER PLATES · 2 × 2 M | AMRAP 15 · 3 EACH OF 7 LIFTS · 21 REPS A ROUND | ROUNDS + REPS | — |
+| TUTORIAL STAGE | NO GEAR · 2 × 2 M, A STRIDE CLEAR BEHIND YOU | 3 ROUNDS × 2:00 · TEEP · ONE-TWO · SPRAWL · HINDU SQUAT | SPRAWLS + HINDU SQUATS | striking |
+| TURBO BUTTON | NO GEAR · AN ARM'S LENGTH CLEAR EACH SIDE | 2 BLOCKS × 8 × 20/10 · 1:00 BETWEEN | LOWEST SPRAWLS + KICKS + HINDU PUSH-UPS | striking |
+| QUOTA 300 | NO GEAR · 2 × 1 M OF FLOOR | EMOM 15 · 10 BURPEES EVERY MINUTE · 150 | MINUTES HELD | burpees |
 
 ## Programs
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-31",
+  "generatedAt": "2026-11-01",
   "source": "npm run content:kit (scripts/content-kit.mjs) — do not edit by hand",
   "brand": {
     "name": "Training Mode",
@@ -1584,7 +1584,7 @@
       "minutes": 25,
       "gear": "1 kettlebell",
       "xp": 75,
-      "liveVersionOf": null,
+      "liveVersionOf": "Live · Quick Mission",
       "youtubeId": null,
       "art": {
         "path": "/static/fitmode/banner-gym-quick.webp",
@@ -2215,6 +2215,445 @@
         "× 4 rounds"
       ],
       "pro": true
+    }
+  ],
+  "missions": [
+    {
+      "id": "iron_clock_16",
+      "title": "IRON CLOCK 16",
+      "loadout": "1 BARBELL + PLATES",
+      "format": "EMOM",
+      "mission": "EMOM 16 · 4 LIFTS · REST THE REST OF EACH MINUTE",
+      "score": "MINUTES HELD, OUT OF 16",
+      "tags": [
+        "~16 MIN",
+        "NORMAL"
+      ],
+      "themes": [],
+      "moves": [
+        "10 Deadlifts",
+        "10 Bent-Over Rows",
+        "8 Front Squats",
+        "8 Push Press"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "Empty bar 20/15 kg · 8 / 8 / 6 / 6 · 12 min"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "35/25 kg · 10 / 10 / 8 / 8 · 16 min"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "50/35 kg · 10 / 10 / 8 / 8 · 16 min · elite count"
+        }
+      ],
+      "guided": true,
+      "captionAka": null
+    },
+    {
+      "id": "one_bell_300",
+      "title": "ONE-BELL 300",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL)",
+      "format": "FOR TIME",
+      "mission": "300 REPS · 5 ROUNDS FOR TIME · CAP 30:00",
+      "score": "TIME, OR REPS AT THE CAP",
+      "tags": [
+        "~20 MIN",
+        "HARD",
+        "HOTEL OK"
+      ],
+      "themes": [],
+      "moves": [
+        "10 Kettlebell Swings",
+        "10 (5/side) Kettlebell Cleans",
+        "10 (5/side) Kettlebell Presses",
+        "10 (5/side) Kettlebell Rows",
+        "10 (5/leg) Goblet Reverse Lunges",
+        "10 Push-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "Half loadout · 3 rounds · 12/8 kg · cap 20:00"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "5 rounds · M 20 / W 12 kg · cap 30:00"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "5 rounds · 24/16 kg · cap 30:00"
+        }
+      ],
+      "guided": true,
+      "captionAka": null
+    },
+    {
+      "id": "five_round_bout",
+      "title": "FIVE ROUND BOUT",
+      "loadout": "1 BARBELL, OR 2 DUMBBELLS OR 2 KETTLEBELLS",
+      "format": "AMRAP",
+      "mission": "5 × 3:00 AMRAP · 1:00 REST · 3 POWER CLEANS · 6 PUSH-UPS · 9 AIR SQUATS",
+      "score": "ROUNDS + REPS, ALL BLOCKS ADDED",
+      "tags": [
+        "~19 MIN",
+        "HARD",
+        "HOTEL OK"
+      ],
+      "themes": [
+        "striking"
+      ],
+      "moves": [
+        "3 Power Cleans",
+        "6 Push-Ups",
+        "9 Air Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "3 × 3:00 · DB cleans 10/7 kg · incline push-ups · bench squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "5 × 3:00 · 43/29 kg bar or 2 × 16/12 kg bells"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "5 × 3:00 · 60/43 kg bar"
+        }
+      ],
+      "guided": true,
+      "captionAka": "The Chief"
+    },
+    {
+      "id": "best_of_3",
+      "title": "BEST OF 3",
+      "loadout": "NO GEAR",
+      "format": "AMRAP",
+      "mission": "3 × 3:00 AMRAP · 1:00 REST · 5 SPRAWLS · 10 SQUATS · 10 ONE-TWOS",
+      "score": "ROUNDS + REPS, ALL 3 ROUNDS ADDED",
+      "tags": [
+        "~11 MIN",
+        "NORMAL",
+        "HOTEL OK"
+      ],
+      "themes": [
+        "striking"
+      ],
+      "moves": [
+        "5 Sprawls",
+        "10 Air Squats",
+        "10 One-Two"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "3 × 2:00 · squat thrusts, no hop"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 × 3:00 · sprawls · squats · one-twos"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "3 × 3:00 · burpees · jump squats"
+        }
+      ],
+      "guided": true,
+      "captionAka": null
+    },
+    {
+      "id": "steel_plating",
+      "title": "STEEL PLATING",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · CHECK THE CEILING",
+      "format": "EMOM",
+      "mission": "EMOM 20 · 2 CLEANS + 1 PRESS + 3 FRONT SQUATS · ALTERNATE ARMS",
+      "score": "MINUTES HELD, OUT OF 20",
+      "tags": [
+        "~20 MIN",
+        "HARD",
+        "HOTEL OK"
+      ],
+      "themes": [],
+      "moves": [
+        "2 Kettlebell Cleans",
+        "1 Kettlebell Presses",
+        "3 Kettlebell Front Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "EMOM 10 · 12/8 kg · hang cleans · goblet squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "EMOM 20 · a bell you can press 5-6 times"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "EMOM 20 · two bells, every minute"
+        }
+      ],
+      "guided": true,
+      "captionAka": "Armor Building Complex (Dan John), single-bell EMOM version"
+    },
+    {
+      "id": "checkpoint_20",
+      "title": "CHECKPOINT 20",
+      "loadout": "1 KETTLEBELL · ROWER OPTIONAL",
+      "format": "EMOM",
+      "mission": "EMOM 20 · SWINGS · PUSH-UPS · GOBLET SQUATS · SHADOWBOX",
+      "score": "CHECKPOINTS CLEARED, OUT OF 20",
+      "tags": [
+        "~20 MIN",
+        "NORMAL",
+        "HOTEL OK"
+      ],
+      "themes": [
+        "striking"
+      ],
+      "moves": [
+        "15 Kettlebell Swings",
+        "12 Push-Ups",
+        "12 Goblet Squats",
+        "40s Air Boxing Combos"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "EMOM 12 · 3 rounds · 12/8 kg · knee push-ups"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "EMOM 20 · 5 rounds · 24/16 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "EMOM 24 · 6 rounds · 24/16 kg"
+        }
+      ],
+      "guided": true,
+      "captionAka": null
+    },
+    {
+      "id": "room_12",
+      "title": "ROOM 12",
+      "loadout": "NO GEAR · 2 × 1.5 M OF FLOOR",
+      "format": "AMRAP",
+      "mission": "AMRAP 12 · 8 PUSH-UPS · 12 REVERSE LUNGES · 16 CLIMBERS · 8 V-UPS",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~12 MIN",
+        "NORMAL",
+        "HOTEL OK",
+        "QUIET"
+      ],
+      "themes": [],
+      "moves": [
+        "8 Push-Ups",
+        "12 (6/leg) Reverse Lunges",
+        "16 (8/leg) Mountain Climbers",
+        "8 V-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 10 · incline push-ups · crunches"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 12 · no jumping"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 12 · diamond push-ups · split squats"
+        }
+      ],
+      "guided": true,
+      "captionAka": null
+    },
+    {
+      "id": "hit_combo_21",
+      "title": "21-HIT COMBO",
+      "loadout": "1 BARBELL + BUMPER PLATES · 2 × 2 M",
+      "format": "AMRAP",
+      "mission": "AMRAP 15 · 3 EACH OF 7 LIFTS · 21 REPS A ROUND",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~15 MIN",
+        "HARD",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "3 Dead-Stop Barbell Rows",
+        "3 Clean and Press",
+        "3 Push Press",
+        "3 Back Squats",
+        "3 Hang Power Cleans",
+        "3 Front Squats",
+        "3 Deadlifts"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 10 · empty bar · no behind-the-neck"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 15 · 35/25 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 15 · 50/35 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": null
+    },
+    {
+      "id": "tutorial_stage",
+      "title": "TUTORIAL STAGE",
+      "loadout": "NO GEAR · 2 × 2 M, A STRIDE CLEAR BEHIND YOU",
+      "format": "INTERVALS",
+      "mission": "3 ROUNDS × 2:00 · TEEP · ONE-TWO · SPRAWL · HINDU SQUAT",
+      "score": "SPRAWLS + HINDU SQUATS",
+      "tags": [
+        "~8 MIN",
+        "EASY"
+      ],
+      "themes": [
+        "striking"
+      ],
+      "moves": [
+        "30s Lunge to Teep",
+        "30s One-Two",
+        "30s Sprawls",
+        "30s Hindu Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "3 × 2:00 · 0:20 work, 0:10 reset · step-back sprawls · heels-down squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 × 2:00 · four 0:30 blocks"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "3 × 3:00 · adds knee strikes and a one-two burnout"
+        }
+      ],
+      "guided": true,
+      "captionAka": null
+    },
+    {
+      "id": "turbo_button",
+      "title": "TURBO BUTTON",
+      "loadout": "NO GEAR · AN ARM'S LENGTH CLEAR EACH SIDE",
+      "format": "INTERVALS",
+      "mission": "2 BLOCKS × 8 × 20/10 · 1:00 BETWEEN",
+      "score": "LOWEST SPRAWLS + KICKS + HINDU PUSH-UPS",
+      "tags": [
+        "~9 MIN",
+        "NORMAL"
+      ],
+      "themes": [
+        "striking"
+      ],
+      "moves": [
+        "4 × 20s Windshield Wiper Punches",
+        "4 × 20s Sprawls",
+        "4 × 20s Switch Kicks",
+        "4 × 20s Hindu Push-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 blocks × 8 × 15/15 · step-back sprawls · knee Hindu push-ups"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "2 blocks × 8 × 20/10 · 1:00 between"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "2 blocks × 8 × 20/10 · elite count"
+        }
+      ],
+      "guided": true,
+      "captionAka": "Tabata-style intervals (20 s on / 10 s off x 8 per 4:00 block)"
+    },
+    {
+      "id": "quota_300",
+      "title": "QUOTA 300",
+      "loadout": "NO GEAR · 2 × 1 M OF FLOOR",
+      "format": "EMOM",
+      "mission": "EMOM 15 · 10 BURPEES EVERY MINUTE · 150",
+      "score": "MINUTES HELD",
+      "tags": [
+        "~15 MIN",
+        "HARD"
+      ],
+      "themes": [
+        "burpees"
+      ],
+      "moves": [
+        "10 Burpees"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "ROOKIE 90 · 6 a minute for 15 min"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "CONTENDER 150 · 10 a minute for 15 min"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "FULL 300 · 30 min · after you hold CONTENDER 150"
+        }
+      ],
+      "guided": true,
+      "captionAka": "Burpee EMOM (10 burpees every minute)"
     }
   ],
   "programs": [
