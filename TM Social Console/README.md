@@ -77,6 +77,7 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run voice -- <id>` | the announcer's calls (or the app's voice) |
 | `npm run track -- raw-footage/clip.mp4 --zoom 2` | zoom in on you and follow your head → `clip.tracked.mp4` |
 | `npm run pose -- raw-footage/clip.mp4` | find your body in every frame → `clip.pose.json` (the Practice tutorials' markers) |
+| `npm run deblur -- raw-footage/clip.mp4 --sigma 2` | fix soft-focus footage (deconvolution) → `clip.deblur.mp4` at 1080p |
 | `npm run render -- <id>` | make the video + cover |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |

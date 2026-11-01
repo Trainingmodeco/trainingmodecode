@@ -80,6 +80,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run reference -- <url>` | saves a reference reel with yt-dlp |
 | `npm run track -- raw-footage/clip.mp4 --zoom 2 --head 0.33` | zooms in and follows the owner's head (MediaPipe pose) → `clip.tracked.mp4` (1080×1920, 30 fps, same timing) + `clip.track.json` |
 | `npm run pose -- raw-footage/clip.mp4` | body landmarks per frame (MediaPipe) → `clip.pose.json`, for the Practice tutorial's markers; it also prints each hand's and foot's reach per 0.1 s, so a strike's extension frame is a peak |
+| `npm run deblur -- raw-footage/clip.mp4 --sigma 2 --iters 12` | fixes evenly soft (missed-focus) footage with Richardson-Lucy deconvolution on the luma, then denoise, 1080×1920 and light CAS → `clip.deblur.mp4`. Not for motion blur. Test sigma on one frame first (1.6–2.4 for a soft 720p phone clip; higher rings). Plain `unsharp`/`cas` barely help such footage; FSRCNN upscaling does nothing for it |
 
 ## The loop
 
