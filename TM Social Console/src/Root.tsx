@@ -4,6 +4,7 @@ import { BOSS_INTRO_FRAMES, BossIntro, type BossIntroProps } from './composition
 import { FightFocusRounds, type FightFocusRoundsProps, roundsTimeline } from './compositions/FightFocusRounds';
 import { FootageShort, footageFrames, type FootageShortProps } from './compositions/FootageShort';
 import { PracticeTutorial, type PracticeTutorialProps, tutorialTimeline } from './compositions/PracticeTutorial';
+import { PracticeLessonApp, lessonTimeline } from './compositions/PracticeLessonApp';
 import { ScriptShort, scriptTimeline, type ScriptShortProps } from './compositions/ScriptShort';
 import { END_CARD_FRAMES } from './parts/EndCard';
 
@@ -113,6 +114,16 @@ export const Root: React.FC = () => (
       durationInFrames={960}
       defaultProps={tutorialDefaults}
       calculateMetadata={({ props }) => ({ durationInFrames: tutorialTimeline(props).total })}
+    />
+    <Composition
+      id="PracticeLessonApp"
+      component={PracticeLessonApp}
+      width={1920}
+      height={1080}
+      fps={FPS}
+      durationInFrames={690}
+      defaultProps={tutorialDefaults}
+      calculateMetadata={({ props }) => ({ durationInFrames: lessonTimeline(props).total })}
     />
   </>
 );

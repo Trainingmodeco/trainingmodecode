@@ -50,17 +50,17 @@ export type PracticeTutorialProps = {
 
 export const BEATS = { hook: 60, name: 60, cue: 120, watch: 180, drill: 180, next: 120 };
 export const SLOW = 0.4;
-const CUE_LEAD = 0.9; // seconds of the move shown before the cue's frame
+export const CUE_LEAD = 0.9; // seconds of the move shown before the cue's frame
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 // The app's Practice palette (PracticeMode.jsx / PracticeRound.jsx).
-const P = {
+export const P = {
   ground: '#07060C', card: '#0F0B1F', deep: '#0A0716', violet: '#B794FF', violetLine: 'rgba(168,85,247,0.5)',
   gold: '#F2BE45', goldHi: '#FFE9A8', goldLo: '#C98A1C', red: '#EF4444', redSoft: '#F87171', green: '#4ADE80',
   lilac: '#C4A8FF', text: '#fff', soft: '#CFC9E4', muted: '#A9A3C4',
 };
-const F = { head: "'Chakra Petch', sans-serif", body: 'Barlow, sans-serif', num: 'Orbitron, sans-serif' };
-const LEVEL: Record<string, string> = { Beginner: P.green, Intermediate: P.gold, Advanced: P.redSoft };
+export const F = { head: "'Chakra Petch', sans-serif", body: 'Barlow, sans-serif', num: 'Orbitron, sans-serif' };
+export const LEVEL: Record<string, string> = { Beginner: P.green, Intermediate: P.gold, Advanced: P.redSoft };
 
 export function tutorialTimeline(p: PracticeTutorialProps) {
   const n = Math.max(1, Math.min(3, p.cues.length));
@@ -74,11 +74,11 @@ export function tutorialTimeline(p: PracticeTutorialProps) {
 }
 
 // ── body landmarks ────────────────────────────────────────────────────────────
-type Pt = [number, number] | null;
-type PoseFrame = { t: number } & Record<string, Pt | number>;
-type Pose = { fps: number; frames: PoseFrame[] };
+export type Pt = [number, number] | null;
+export type PoseFrame = { t: number } & Record<string, Pt | number>;
+export type Pose = { fps: number; frames: PoseFrame[] };
 
-const usePose = (path?: string | null) => {
+export const usePose = (path?: string | null) => {
   const [pose, setPose] = useState<Pose | null>(null);
   useEffect(() => {
     if (!path) return;
@@ -94,13 +94,13 @@ const usePose = (path?: string | null) => {
   return pose;
 };
 
-const at = (pose: Pose | null, t: number) => (pose ? pose.frames[Math.max(0, Math.min(pose.frames.length - 1, Math.round(t * pose.fps)))] : null);
+export const at = (pose: Pose | null, t: number) => (pose ? pose.frames[Math.max(0, Math.min(pose.frames.length - 1, Math.round(t * pose.fps)))] : null);
 const pt = (f: PoseFrame | null, k: string): [number, number] | null => (f && Array.isArray(f[k]) ? (f[k] as [number, number]) : null);
 const mid = (a: [number, number] | null, b: [number, number] | null): [number, number] | null =>
   a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] : a ?? b;
 
 // Where a mark sits in the frame (fractions), for this stance.
-function markPoint(f: PoseFrame | null, mark: Mark, stance: 'orthodox' | 'southpaw'): [number, number] | null {
+export function markPoint(f: PoseFrame | null, mark: Mark, stance: 'orthodox' | 'southpaw'): [number, number] | null {
   const lead = stance === 'orthodox' ? 'l' : 'r';
   const rear = stance === 'orthodox' ? 'r' : 'l';
   switch (mark) {
@@ -121,7 +121,7 @@ function markPoint(f: PoseFrame | null, mark: Mark, stance: 'orthodox' | 'southp
 }
 
 // The body's centre over ±0.4 s, so the camera glides instead of jittering.
-function bodyCentre(pose: Pose | null, t: number): [number, number] {
+export function bodyCentre(pose: Pose | null, t: number): [number, number] {
   if (!pose) return [0.5, 0.5];
   const xs: number[] = [], ys: number[] = [];
   for (let dt = -0.4; dt <= 0.4; dt += 1 / pose.fps) {
@@ -167,19 +167,19 @@ const Footage: React.FC<{ src: string; start: number; rate?: number; cam?: Cam; 
 };
 
 // ── pieces of the app's Practice screens ──────────────────────────────────────
-const Chip: React.FC<{ children: React.ReactNode; color?: string; line?: string; size?: number }> = ({ children, color = P.lilac, line, size = 22 }) => (
+export const Chip: React.FC<{ children: React.ReactNode; color?: string; line?: string; size?: number }> = ({ children, color = P.lilac, line, size = 22 }) => (
   <span style={{ fontFamily: F.head, fontWeight: 700, fontSize: size, letterSpacing: '0.14em', padding: `${size * 0.5}px ${size * 0.85}px`, borderRadius: 12, border: `2px solid ${line ?? color}99`, color, background: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
     {children}
   </span>
 );
 
-const Tile: React.FC<{ mark: string; size: number; color?: string; glow?: boolean }> = ({ mark, size, color = P.gold, glow = true }) => (
+export const Tile: React.FC<{ mark: string; size: number; color?: string; glow?: boolean }> = ({ mark, size, color = P.gold, glow = true }) => (
   <div style={{ width: size, height: size, borderRadius: size * 0.18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10,7,22,0.92)', border: `${Math.max(3, size * 0.04)}px solid ${color}DD`, boxShadow: glow ? `0 0 ${size * 0.3}px ${color}55` : 'none', fontFamily: mark.length > 2 ? F.head : F.num, fontWeight: 900, fontSize: mark.length > 2 ? size * 0.3 : size * 0.48, color }}>
     {mark}
   </div>
 );
 
-const tileMark = (p: PracticeTutorialProps) => p.number ?? p.technique.split(/[\s-]+/).map((w) => w[0]).join('').slice(0, 3).toUpperCase();
+export const tileMark = (p: PracticeTutorialProps) => p.number ?? p.technique.split(/[\s-]+/).map((w) => w[0]).join('').slice(0, 3).toUpperCase();
 
 // Top bar on the cue and watch beats: tile, name, the three progress segments.
 const TopBar: React.FC<{ p: PracticeTutorialProps; step: number; right?: React.ReactNode }> = ({ p, step, right }) => (
@@ -210,7 +210,7 @@ const Progress: React.FC = () => {
 };
 
 // A ring on the body part with a short line and a label.
-const Marker: React.FC<{ x: number; y: number; label?: string; color?: string; size?: number }> = ({ x, y, label, color = P.gold, size = 150 }) => {
+export const Marker: React.FC<{ x: number; y: number; label?: string; color?: string; size?: number }> = ({ x, y, label, color = P.gold, size = 150 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const pop = spring({ frame, fps, config: { damping: 11, stiffness: 240 } });
@@ -236,7 +236,7 @@ const gold = (s: string) =>
     part.startsWith('*') ? <span key={i} style={{ color: P.gold }}>{part.slice(1, -1)}</span> : <span key={i}>{part}</span>,
   );
 
-const Rise: React.FC<{ delay?: number; children: React.ReactNode; style?: React.CSSProperties }> = ({ delay = 0, children, style }) => {
+export const Rise: React.FC<{ delay?: number; children: React.ReactNode; style?: React.CSSProperties }> = ({ delay = 0, children, style }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const s = spring({ frame: frame - delay, fps, config: { damping: 14, stiffness: 190 } });

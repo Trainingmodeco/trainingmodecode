@@ -10,6 +10,9 @@ import { EXPORTS, ROOT, ffprobe, findPost, readJson, writeJson } from './lib.mjs
 import { checkPost } from './check-copy.mjs';
 
 const id = process.argv[2];
+// A second argument renders another composition of the same post (e.g. the
+// 16:9 in-app cut, PracticeLessonApp) to exports/<id>/<composition>.mp4.
+const variant = process.argv[3] || null;
 if (!id) {
   console.error('Usage: npm run render -- <post-id>   (ids: npm run queue)');
   process.exit(1);
@@ -68,9 +71,9 @@ fs.mkdirSync(outDir, { recursive: true });
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
 console.log(`bundling templates…`);
 const serveUrl = await bundle({ entryPoint: path.join(ROOT, 'src', 'index.ts') });
-const composition = await selectComposition({ serveUrl, id: post.format, inputProps: props, browserExecutable });
+const composition = await selectComposition({ serveUrl, id: variant ?? post.format, inputProps: props, browserExecutable });
 
-const video = path.join(outDir, 'video.mp4');
+const video = path.join(outDir, variant ? `${variant}.mp4` : 'video.mp4');
 let last = -1;
 await renderMedia({
   serveUrl,
@@ -95,11 +98,12 @@ console.log('');
 
 // Cover: the moment the hook has fully landed (or the title card).
 const coverFrame = Math.min(composition.durationInFrames - 1, post.coverFrame ?? 50);
-const cover = path.join(outDir, 'cover.jpg');
+const cover = path.join(outDir, variant ? `${variant}-cover.jpg` : 'cover.jpg');
 await renderStill({ serveUrl, composition, inputProps: props, frame: coverFrame, output: cover, imageFormat: 'jpeg', jpegQuality: 90, browserExecutable });
 
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
-post.exports = { video: rel(video), cover: rel(cover), seconds: +(composition.durationInFrames / composition.fps).toFixed(2) };
+const made = { video: rel(video), cover: rel(cover), seconds: +(composition.durationInFrames / composition.fps).toFixed(2) };
+post.exports = variant ? { ...(post.exports ?? {}), [variant]: made } : { ...(post.exports ?? {}), ...made };
 post.renderedAt = new Date().toISOString();
 if (['idea', 'draft', 'rejected'].includes(post.status)) post.status = 'rendered';
 // A re-render invalidates an earlier approval: the owner approves what ships.
@@ -108,5 +112,5 @@ if (post.status === 'approved') {
   post.approvedAt = null;
 }
 writeJson(file, post);
-console.log(`rendered ${post.id}: ${post.exports.video} (${post.exports.seconds}s) + ${post.exports.cover}`);
+console.log(`rendered ${post.id}${variant ? ` (${variant})` : ''}: ${made.video} (${made.seconds}s) + ${made.cover}`);
 console.log(`next: watch it, then  npm run approve -- ${post.id}`);

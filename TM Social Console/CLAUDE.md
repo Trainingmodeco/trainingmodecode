@@ -193,8 +193,17 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   the cue card to the top of the frame by itself). Look: the app's Practice screens (Chakra Petch,
   Barlow, Orbitron numbers; gold #F2BE45, violet #B794FF, red ✕, green ✓).
   Voice: none yet; the coach lines show as captions (`say`) until the owner
-  settles the voice. Finished tutorials also fill the app's empty
-  `videoUrl` slots.
+  settles the voice. **The in-app cut** (the lesson card's player is 16:9 and
+  ~390 px wide on a phone): `npm run render -- <id> PracticeLessonApp` renders
+  the same post as 1920×1080, 23 s (NAME, three KEY POINTS, WATCH FOR; no
+  hook, drill or end card: the card around the player already has those),
+  with big type in a panel. A horizontal clip (the owner's camera shoots
+  16:9) fills the frame with the panel over its right third; a vertical clip
+  sits at 3:4 on the left, never blown up. Set `srcSize` when the clip isn't
+  1080×1920. **Never zoom the camera's horizontal clips into vertical for the
+  app**: the crop uses a third of the pixels and magnifies the softness; ask
+  for the camera's original file (not an InShot export) and use it as shot.
+  Finished tutorials fill the app's empty `videoUrl` slots.
 - **Rank Ladder** (HyperFrames, `hyperframes/index.html`): Rookie → Champion
   climb, "where did you stall?", over a B-roll clip:
   `npm run hf:render -- raw-footage/<clip>.mp4 [startSec] [focusX] [rate]`.

@@ -122,7 +122,12 @@
   "exports": {
     "video": "exports/2026-11-01-practice-boxing-stance/video.mp4",
     "cover": "exports/2026-11-01-practice-boxing-stance/cover.jpg",
-    "seconds": 32
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-01-practice-boxing-stance/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-01-practice-boxing-stance/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
   },
-  "renderedAt": "2026-11-01T18:57:17.845Z"
+  "renderedAt": "2026-11-01T21:25:58.377Z"
 }
