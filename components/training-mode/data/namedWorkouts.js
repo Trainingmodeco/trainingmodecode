@@ -54,6 +54,8 @@ export const NAMED_WORKOUTS = [
     title: 'MURPH',
     tag: 'Hero workout',
     focus: 'Full Body',
+    loadout: 'mixed',
+    themes: ['century'],
     estMin: 55,
     needs: 'Pull-up bar',
     lines: [['Run', '1 mile'], ['Pull-Ups', '100'], ['Push-Ups', '200'], ['Squats', '300'], ['Run', '1 mile']],
@@ -65,6 +67,8 @@ export const NAMED_WORKOUTS = [
     title: 'HALF MURPH',
     tag: 'Hero workout',
     focus: 'Full Body',
+    loadout: 'mixed',
+    themes: ['century'],
     estMin: 28,
     needs: 'Pull-up bar',
     lines: [['Run', '½ mile'], ['Pull-Ups', '50'], ['Push-Ups', '100'], ['Squats', '150'], ['Run', '½ mile']],
@@ -76,6 +80,8 @@ export const NAMED_WORKOUTS = [
     title: 'SALLY UP · SQUATS',
     tag: 'Challenge',
     focus: 'Lower',
+    loadout: 'none',
+    themes: [],
     estMin: 4,
     lines: [['Squat', 'hold down · stand on UP'], ['Holds', 'grow from 4s to 20s']],
     note: 'Sink on DOWN and hold at the bottom until the coach says UP. Never fully rest.',
@@ -86,6 +92,8 @@ export const NAMED_WORKOUTS = [
     title: 'SALLY UP · PUSH-UPS',
     tag: 'Challenge',
     focus: 'Upper',
+    loadout: 'none',
+    themes: [],
     estMin: 4,
     lines: [['Push-Up', 'hold low · press on UP'], ['Holds', 'grow from 4s to 20s']],
     note: 'Lower on DOWN and hold an inch off the floor until UP. Knees down is fine — keep holding.',
@@ -96,6 +104,8 @@ export const NAMED_WORKOUTS = [
     title: 'DEADLY SEVEN',
     tag: 'Training Mode',
     focus: 'Full Body',
+    loadout: 'none',
+    themes: [],
     estMin: 30,
     lines: [['7 rounds', '7 moves × 7 reps'], ['Burpees · Push-Ups · Jump Squats', ''], ['Lunges · Sit-Ups · Mountain Climbers · Tuck Jumps', '']],
     note: 'Seven moves, seven reps, seven rounds. 20 seconds between rounds.',
@@ -113,6 +123,8 @@ export const NAMED_WORKOUTS = [
     title: '5 MINUTES OF HELL · MMA',
     tag: 'Training Mode',
     focus: 'Combat',
+    loadout: 'none',
+    themes: ['striking'],
     estMin: 6,
     lines: [['Sprawls', '1:00'], ['Shadowbox Sprint', '1:00'], ['Knee Strikes', '1:00'], ['Ground & Pound', '1:00'], ['Burpees', '1:00']],
     note: 'Five straight minutes, all-out. Three seconds to switch — no rest.',
@@ -123,6 +135,8 @@ export const NAMED_WORKOUTS = [
     title: '5 MINUTES OF HELL',
     tag: 'Training Mode',
     focus: 'Full Body',
+    loadout: 'none',
+    themes: [],
     estMin: 6,
     lines: [['Jumping Jacks', '1:00'], ['Mountain Climbers', '1:00'], ['Squat Jumps', '1:00'], ['Push-Ups', '1:00'], ['Burpees', '1:00']],
     note: 'Five straight minutes, all-out. Three seconds to switch — no rest.',
@@ -130,8 +144,26 @@ export const NAMED_WORKOUTS = [
   },
 ];
 
+// Quick Mission v2 shelf tags for the library sessions: the LOADOUT they need
+// and the THEME rows they show under (data/loadoutMissions).
+const LIBRARY_TAGS = {
+  strike_fitness_easy: { loadout: 'none', themes: ['striking'] },
+  strike_fitness_mid: { loadout: 'none', themes: ['striking'] },
+  strike_fitness_adv: { loadout: 'none', themes: ['striking'] },
+  pushup_division: { loadout: 'none', themes: [] },
+  abs_3_level: { loadout: 'none', themes: [] },
+  fitness_test: { loadout: 'none', themes: [] },
+  burpee_hell: { loadout: 'none', themes: ['burpees'] },
+  legendary_squat: { loadout: 'none', themes: ['century'] }, // 284 counted reps over 2 rounds
+  hero_training: { loadout: 'mixed', themes: [] },
+  chaos_engine: { loadout: 'mixed', themes: [] },
+};
+
 // The owner's own sessions (data/workoutLibrary) join the classics.
-NAMED_WORKOUTS.push(...LIBRARY_CLASSICS);
+NAMED_WORKOUTS.push(...LIBRARY_CLASSICS.map(w => ({ ...w, ...LIBRARY_TAGS[w.id] })));
+
+// id → { loadout, themes } for every classic.
+export const CLASSIC_TAGS = Object.fromEntries(NAMED_WORKOUTS.map(w => [w.id, { loadout: w.loadout, themes: w.themes }]));
 
 export const namedWorkoutById = (id) => NAMED_WORKOUTS.find(w => w.id === id) || null;
 
