@@ -1100,7 +1100,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         completed: true,
         roundsCompleted: finalRounds,
         totalRounds: mission.rounds,
-        exercisesCompleted: exercisesCompletedRef.current + 1,
+        // Read after the 1.8 s bell: the last completion has rendered and the
+        // ref already counts it (a skipped last move was never counted).
+        // The old "+ 1" paid every finished run one exercise (15 XP) extra.
+        exercisesCompleted: exercisesCompletedRef.current,
         totalExercises: allExercises.length * mission.rounds,
         mission,
         integrityResult,
