@@ -440,6 +440,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
   // opts (v2 only): { afterTime } from a minute window that ran out.
   const completeExercise = (opts) => {
+    // A second DONE (or a late cadence beat) after the last move must not
+    // count again or end the run twice.
+    if (doneRef.current) return;
     stopCadence();
     const idx = exIdxRef.current;
     const currentRound = roundRef.current;
@@ -503,6 +506,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   };
 
   const skipExercise = () => {
+    if (doneRef.current) return;
     stopCadence();
     cancelSpeech();
     const actionResult = integrity.recordAction('skip');
@@ -1087,6 +1091,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   useAutoPauseOnHidden(!paused && !done, handlePauseToggle, integrity);
 
   const finishMission = (finalRounds) => {
+    // Set at once, not after the next render: a second tap inside the 1.8 s
+    // bell used to bank the whole session twice.
+    if (doneRef.current) return;
+    doneRef.current = true;
     stopCadence();
     setDone(true);
     playBell(3);
@@ -1156,7 +1164,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // count (done early = more rest); elsewhere it hides once counting starts.
   const showDoneV2 = phase === 'work' && currentEx.mode === 'reps' && (!currentCounted
     || (currentEx.window != null ? !paused : (!cadenceActive && cadenceRep === 0 && !paused)));
-  const showDone = v2 ? showDoneV2 : (showDoneButton || showManualDone);
+  const showDone = !done && (v2 ? showDoneV2 : (showDoneButton || showManualDone));
 
   // v2 on-screen extras. A catalog slot prints its card dose ('10 (5/side)',
   // '3:00', '2 + 1 + 3'); anything else today's dose plus its unit.
