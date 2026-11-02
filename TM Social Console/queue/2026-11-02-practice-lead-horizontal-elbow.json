@@ -1,7 +1,7 @@
 {
   "id": "2026-11-02-practice-lead-horizontal-elbow",
   "title": "Practice: Lead Horizontal Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-02",
   "source": "Practice Mode tutorial. The owner named clip 2 the horizontal elbow. Words from the app: the Technique Library entry (practiceData.js › Muay Thai › Lead Horizontal Elbow: cues, mistakes, next) and the Muay Thai path's Elbow lesson (practiceLessons.js › mt_elbow: calls), which this video also serves. Thai: Sok Tat (ศอกตัด), the cutting elbow. Footage: raw-footage/practice/p2.mp4 (ring, 2026-10-31): two reps facing the camera, then two from a 45° angle that show the swing-through.",
@@ -107,5 +107,16 @@
   "posted": {},
   "notes": [
     "2026-11-02 cut from clip 2 at the owner's word. The first half faces the camera (reps land at 0.75 s and 2.75 s), the second half is a 45° angle (4.6 s, 6.5 s) and gives the swing-through. Markers follow the body (pose found in every frame). No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-02-practice-lead-horizontal-elbow/video.mp4",
+    "cover": "exports/2026-11-02-practice-lead-horizontal-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-02-practice-lead-horizontal-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-02-practice-lead-horizontal-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-02T22:08:40.060Z"
 }
