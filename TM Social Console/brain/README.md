@@ -10,6 +10,7 @@ What the console knows. Read the file that fits the job.
 | `formats.md` | repeatable post types, which template makes each, drop calendar, cadence, hooks |
 | `platforms.md` | where each platform's posts go, connection status, caption style, video spec |
 | `manychat.md` | Instagram comment → DM flow and its copy |
+| `shoot-list.md` | what the Practice tutorials still need on film, and how to shoot it so the cut works |
 
 `scripts/` is **not in git**: the app repo is public and these are the
 owner's private Drive docs. It comes with the console zip, or Claude can
