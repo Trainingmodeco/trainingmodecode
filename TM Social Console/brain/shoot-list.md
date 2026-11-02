@@ -4,9 +4,9 @@ What the Practice tutorials still need on film, and how to shoot it so the
 cut works (the pipeline finds your body with MediaPipe and zooms on feet,
 knees, hips, hands and chin, so the whole body has to be in frame and sharp).
 
-Status 2026-11-02 (owner): the punches from the camera are soft, so they get
-refilmed. The kicks, knees and elbows are clear and come as they are. Saturday:
-the four stances.
+Status 2026-11-02 (owner): the kicks, knees and elbows are all good (filmed,
+clear). Still to film: the punches (the camera's were soft), the special moves,
+and the four stances (Saturday).
 
 ## Every clip
 
@@ -47,11 +47,13 @@ The words on screen come from the app's lesson (practiceLessons.js: `steps`
 and `calls`), so the clip only has to show them; nothing is written for the
 shoot.
 
-## Kicks, knees, elbows (filmed, clear)
+## Kicks, knees, elbows: done
 
-Per technique the cut wants: three reps facing the camera, one at 45°, one
-slow, and one wrong rep followed by the fix. Without the wrong rep the WATCH
-FOR beat freezes a frame of the right rep behind a red ring, which is weaker.
+Filmed and clear; nothing to reshoot. Per technique the cut wants three reps
+facing the camera, one at 45°, one slow, and one wrong rep followed by the
+fix; where a clip lacks the wrong rep, the WATCH FOR beat freezes a frame of
+the right rep behind a red ring, which is weaker. Send them named or with the
+order in the message.
 
 Where each one goes:
 
@@ -70,3 +72,22 @@ exist in all four paths, so one clip per stance (jab × 3, cross × 3, jab-cross
 × 3, wrong rep + fix) covers Boxing › Jab, Cross, Jab-Cross; Kickboxing › Jab,
 Cross; Muay Thai › Jab + Cross; MMA › Jab + Cross. Shoot them in that
 discipline's stance so the feet match the lesson.
+
+## Special moves (refilm)
+
+The SHOTO drop's special-move themes, as the real movements the app teaches
+(data/concepts/shoto.js). Each is a short tutorial of its own, same five
+pieces as a strike: three reps facing the camera, one at 45°, one slow, one
+wrong rep then the fix. The spinning moves need the most room behind you.
+
+| Special (theme) | What to film |
+|---|---|
+| Fireball | double-hand push: push the bag back, counter as it returns |
+| Rising uppercut | explosive rear uppercut (and the gazelle uppercut from the Rising Dragon super) |
+| Hurricane kick | spinning back kick (the real kick on the bag for the advanced cut) |
+| Raging demon | sliding fake teep forward and back, fake teep to rear elbow |
+| Super moves | switch kick, spinning back elbow, sliding fake teep: the pieces of Dragon Storm and Demon Barrage not covered above |
+
+Film them in the Muay Thai or kickboxing stance; the cut names the real
+movement on screen, never the character or the game.
+
