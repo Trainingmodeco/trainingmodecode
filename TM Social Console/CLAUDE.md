@@ -52,7 +52,8 @@ brand/brand.json     app facts: colors, ranks, drops, sagas, Pro, rules (synced)
 brain/               knowledge: scripts library, formats, platforms, ManyChat
   scripts/           the owner's Drive scripts as markdown + library.json
 queue/<id>.json      one file per post: props, captions per platform, status
-src/                 Remotion templates (ScriptShort, FootageShort, BossIntro, FightFocusRounds, PracticeTutorial)
+src/                 Remotion templates (ScriptShort, FootageShort, BossIntro, FightFocusRounds, PracticeTutorial, PracticeLessonApp)
+public/brand/        the TM "T" marks (violet, gold) the in-app cut sets behind its panel
 hyperframes/         HyperFrames HTML templates (Rank Ladder)
 tools/               the npm scripts below
 raw-footage/         owner's clips (not in git)
@@ -200,7 +201,10 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   with big type in a panel. A horizontal clip (the owner's camera shoots
   16:9) fills the frame with the panel over its right third; a vertical clip
   sits at 3:4 on the left, never blown up. Set `srcSize` when the clip isn't
-  1080×1920. **Never zoom the camera's horizontal clips into vertical for the
+  1080×1920. The TM "T" sits dimly behind the panel's text (`logo`: 'violet'
+  by default, which the owner picked over 'gold'; 'none' leaves it out; the
+  marks are `public/brand/logo-t-*.png`, cut from the owner's neon logo).
+  **Never zoom the camera's horizontal clips into vertical for the
   app**: the crop uses a third of the pixels and magnifies the softness; ask
   for the camera's original file (not an InShot export) and use it as shot.
   Finished tutorials fill the app's empty `videoUrl` slots.

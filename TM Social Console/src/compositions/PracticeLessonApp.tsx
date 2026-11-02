@@ -1,4 +1,4 @@
-import { AbsoluteFill, Freeze, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Freeze, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { FPS } from '../brand';
 import { CUE_LEAD, Chip, F, LEVEL, Marker, P, Rise, SLOW, Tile, at, bodyCentre, markPoint, tileMark, usePose, type Cue, type PracticeTutorialProps } from './PracticeTutorial';
 
@@ -10,14 +10,17 @@ import { CUE_LEAD, Chip, F, LEVEL, Marker, P, Rise, SLOW, Tile, at, bodyCentre, 
 // POINTS 5 s each in slow motion with the marker, WATCH FOR 6 s.
 // A horizontal clip fills the frame with a translucent panel on the right; a
 // vertical clip sits on the left at 3:4 (no blow-up) beside a solid panel.
-// Same props as PracticeTutorial, plus `srcSize` (the clip's pixel size).
-export type PracticeLessonAppProps = PracticeTutorialProps & { srcSize?: [number, number] };
+// Same props as PracticeTutorial, plus `srcSize` (the clip's pixel size) and
+// `logo`: the TM "T" sits dimly behind the panel's text (violet by default,
+// gold as the alternative, 'none' to leave it out).
+export type PracticeLessonAppProps = PracticeTutorialProps & { srcSize?: [number, number]; logo?: 'violet' | 'gold' | 'none' };
 
 export const APP_BEATS = { name: 60, cue: 150, watch: 180 };
 const W = 1920, H = 1080;
 const PANEL_SPLIT = 1110; // the panel beside a vertical clip
 const PANEL_OVER = 760; // the panel over a horizontal clip
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
+const LOGO_DIM = { violet: 0.16, gold: 0.11 } as const; // how much of the mark shows through
 
 export function lessonTimeline(p: PracticeLessonAppProps) {
   const n = Math.max(1, Math.min(3, p.cues.length));
@@ -59,6 +62,11 @@ const Segments: React.FC<{ step: number; n: number }> = ({ step, n }) => (
       <span key={i} style={{ width: 96, height: 12, borderRadius: 6, background: i <= step ? P.gold : 'rgba(255,255,255,0.18)', boxShadow: i === step ? `0 0 16px ${P.gold}` : 'none', opacity: i < step ? 0.75 : 1 }} />
     ))}
   </div>
+);
+
+// The TM mark behind the panel: large, centred, faint, so the text reads over it.
+const Logo: React.FC<{ kind: 'violet' | 'gold'; dim: number }> = ({ kind, dim }) => (
+  <Img src={staticFile(`brand/logo-t-${kind}.png`)} style={{ position: 'absolute', left: '50%', top: '50%', width: 760, transform: 'translate(-50%, -50%)', opacity: dim, pointerEvents: 'none' }} />
 );
 
 const Head: React.FC<{ p: PracticeLessonAppProps; small?: boolean }> = ({ p, small }) => (
@@ -136,6 +144,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
       : <Clip src={p.src} start={w.at} cam={cam} srcSize={srcSize} freeze cold />;
   }
 
+  const logo = p.logo ?? 'violet';
   const fixing = beat.kind === 'watch' && beat.local >= 90;
   const redIn = beat.kind === 'watch' && !fixing ? interpolate(beat.local, [0, 8], [0, 1], clamp) : 0;
 
@@ -154,7 +163,9 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
       </div>
 
       {/* the panel */}
-      <div style={{ position: 'absolute', right: 0, top: 0, width: panelW, height: H, boxSizing: 'border-box', padding: '64px 70px 60px', display: 'flex', flexDirection: 'column', gap: 30, background: split ? `linear-gradient(180deg, #1B0F3A 0%, ${P.ground} 70%)` : 'transparent', borderLeft: split ? `2px solid ${P.violetLine}` : 'none' }}>
+      <div style={{ position: 'absolute', right: 0, top: 0, width: panelW, height: H, overflow: 'hidden', background: split ? `linear-gradient(180deg, #1B0F3A 0%, ${P.ground} 70%)` : 'transparent', borderLeft: split ? `2px solid ${P.violetLine}` : 'none' }}>
+        {logo !== 'none' ? <Logo kind={logo} dim={split ? LOGO_DIM[logo] : LOGO_DIM[logo] * 0.7} /> : null}
+      <div style={{ position: 'absolute', inset: 0, boxSizing: 'border-box', padding: '64px 70px 60px', display: 'flex', flexDirection: 'column', gap: 30 }}>
         {beat.kind === 'name' ? (
           <>
             <Rise><Tile mark={tileMark(p)} size={170} /></Rise>
@@ -220,6 +231,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
             <Segments step={n} n={n} />
           </>
         )}
+      </div>
       </div>
     </AbsoluteFill>
   );
