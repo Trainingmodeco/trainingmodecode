@@ -162,6 +162,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
               <div style={{ fontFamily: F.head, fontWeight: 700, fontSize: 74, letterSpacing: '0.08em', lineHeight: 1.05 }}>{p.technique.toUpperCase()}</div>
             </Rise>
             {p.description ? <Rise delay={9}><div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 40, color: P.soft, lineHeight: 1.25 }}>{p.description}</div></Rise> : null}
+            {p.alias ? <Rise delay={11}><div style={{ fontFamily: F.head, fontWeight: 600, fontSize: 38, color: P.lilac, letterSpacing: '0.12em' }}>{p.alias}</div></Rise> : null}
             <Rise delay={13} style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <Chip size={20} color="#fff" line="rgba(255,255,255,0.4)">{p.discipline.toUpperCase()}</Chip>
               {p.badge ? <Chip size={20}>{p.badge.toUpperCase()}</Chip> : null}

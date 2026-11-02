@@ -1,0 +1,124 @@
+{
+  "id": "2026-11-02-practice-lead-diagonal-elbow",
+  "title": "Practice: Lead Diagonal Elbow",
+  "status": "rendered",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-02",
+  "source": "Practice Mode tutorial. The owner identified the clip as a diagonal elbow (Thai: Sok Chieng, ศอกเฉียง); the move was added to the app's Technique Library (practiceData.js › Muay Thai › Lead Diagonal Elbow) and its cues, mistakes and next come from there. Footage: the owner's clip 8 (ring, 2026-10-31), raw-footage/practice/p8.mp4; three reps facing the camera, the turned-away part left out.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Lead Diagonal Elbow",
+    "number": null,
+    "badge": "Elbow",
+    "level": "Intermediate",
+    "description": "The diagonal cutting elbow",
+    "stance": "orthodox",
+    "hook": "STOP WINDING UP|*YOUR ELBOW.*",
+    "hookSub": "Lead diagonal elbow. Sok Chieng. 20 seconds.",
+    "src": "raw-footage/practice/p8.mp4",
+    "slowSrc": "raw-footage/practice/p8.x75.mp4",
+    "pose": "raw-footage/practice/p8.pose.json",
+    "hookAt": 0.3,
+    "repAt": 2.1,
+    "cues": [
+      {
+        "text": "Close the distance first",
+        "at": 0.95,
+        "mark": "leadFoot",
+        "label": "STEP IN",
+        "say": "Coach: \"Elbows land at hugging range. Step in, then throw.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.68
+        ]
+      },
+      {
+        "text": "Cut down and across at an angle",
+        "at": 3,
+        "mark": "leadElbow",
+        "label": "DOWN & ACROSS",
+        "say": "Coach: \"High to low, across the face. That angle is what cuts.\""
+      },
+      {
+        "text": "Strike with the tip, hip behind it",
+        "at": 5.3,
+        "mark": "leadElbow",
+        "label": "THE TIP",
+        "say": "Coach: \"The point of the elbow, and turn the hip into it.\""
+      }
+    ],
+    "watch": {
+      "text": "Too much wind-up",
+      "fix": "Short and tight from the guard",
+      "at": 0.75,
+      "fixAt": 2.6,
+      "mark": "leadElbow",
+      "label": "WIND-UP",
+      "say": "Coach: \"A big wind-up tells them it's coming. It leaves from where your hand already is.\""
+    },
+    "drill": {
+      "calls": [
+        "ELBOW",
+        "ELBOW × 2",
+        "CROSS → ELBOW"
+      ],
+      "start": 0.2,
+      "cue": "Very close range only"
+    },
+    "next": {
+      "number": "4",
+      "name": "Rear Hook",
+      "description": "Rear-side hook punch",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "ศอกเฉียง · SOK CHIENG"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop winding up your elbow 🥊 Lead diagonal elbow, Sok Chieng: close the distance first, cut down and across at an angle, strike with the tip with the hip behind it. Watch for too much wind-up. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #sokchieng #elbow #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop winding up your elbow. 🥊\n\nLead diagonal elbow (Sok Chieng, ศอกเฉียง):\n1. Close the distance first\n2. Cut down and across at an angle\n3. Strike with the tip, hip behind it\nWatch for: too much wind-up.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #sokchieng #elbow #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop winding up your elbow 🥊 Lead diagonal elbow, Sok Chieng: close the distance first, cut down and across at an angle, strike with the tip with the hip behind it. Watch for too much wind-up. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop winding up your elbow. Lead diagonal elbow (Sok Chieng) 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the lead diagonal elbow, Sok Chieng (ศอกเฉียง), step by step. Close the distance first, cut down and across at an angle, strike with the tip with the hip behind it. Watch for too much wind-up. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "sok chieng",
+        "diagonal elbow",
+        "elbow strike",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-02 the first elbow tutorial, from clip 8. Markers follow the body (pose found in every frame). No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-02 owner: it is a diagonal elbow (Sok Chieng), not horizontal. Renamed; the move was added to the app library so the words come from the app."
+  ],
+  "renderedAt": "2026-11-02T05:34:39.647Z",
+  "exports": {
+    "video": "exports/2026-11-02-practice-lead-diagonal-elbow/video.mp4",
+    "cover": "exports/2026-11-02-practice-lead-diagonal-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-02-practice-lead-diagonal-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-02-practice-lead-diagonal-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  }
+}

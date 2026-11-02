@@ -308,7 +308,7 @@ export const TECHNIQUES = [
   },
 
   // ── Muay Thai / Strikes ───────────────────────────────────────────────────
-  // Order: Jab, Lead Teep, Cross, Rear Teep, Lead Hook, Lead Horizontal Elbow,
+  // Order: Jab, Lead Teep, Cross, Rear Teep, Lead Hook, Lead Horizontal Elbow, Lead Diagonal Elbow,
   // Rear Hook, Rear Roundhouse Kick, Lead Uppercut, Lead Knee, Rear Uppercut,
   // Rear Knee, Lead Spear Elbow, Rear Spear Elbow, Check, Clinch Entry
   {
@@ -357,6 +357,14 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Close the distance first', 'Strike with the tip of the elbow', 'Swing through the target'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Leaving chin exposed'],
+    next: 'Lead Diagonal Elbow', locked: true,
+  },
+  {
+    discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Diagonal Elbow',
+    description: 'Sok Chieng: the diagonal cutting elbow',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    cues: ['Close the distance first', 'Cut down and across at an angle', 'Strike with the tip, hip behind it'],
+    mistakes: ['Too much wind-up', 'Striking with the forearm', 'Dropping the rear hand'],
     next: 'Rear Hook', locked: true,
   },
   {

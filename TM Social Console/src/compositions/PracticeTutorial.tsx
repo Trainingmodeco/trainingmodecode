@@ -26,6 +26,7 @@ export type Cue = { text: string; at: number; mark?: Mark; point?: [number, numb
 export type PracticeTutorialProps = {
   discipline: string; // "Muay Thai"
   technique: string; // "Cross"
+  alias?: string; // another name for it, e.g. the Thai one: "ศอกเฉียง · SOK CHIENG" (Chakra Petch carries Thai)
   number?: string | null; // the gym number (1 = jab, 2 = cross); null for kicks
   badge?: string; // PUNCH / KICK / KNEE / ELBOW / DEFENSE / FOOTWORK
   level?: 'Beginner' | 'Intermediate' | 'Advanced';
@@ -286,6 +287,7 @@ const Name: React.FC<{ p: PracticeTutorialProps }> = ({ p }) => (
       <Rise delay={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
         <div style={{ fontFamily: F.head, fontWeight: 700, fontSize: 92, letterSpacing: '0.08em', lineHeight: 1, textAlign: 'center', textShadow: '0 4px 20px rgba(0,0,0,0.85)' }}>{p.technique.toUpperCase()}</div>
         {p.description ? <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 38, color: P.soft, textAlign: 'center' }}>{p.description}</div> : null}
+        {p.alias ? <div style={{ fontFamily: F.head, fontWeight: 600, fontSize: 36, color: P.lilac, letterSpacing: '0.12em', textAlign: 'center', marginTop: 6 }}>{p.alias}</div> : null}
       </Rise>
       <Rise delay={10} style={{ display: 'flex', gap: 14 }}>
         <Chip color="#fff" line="rgba(255,255,255,0.4)">{p.discipline.toUpperCase()}</Chip>
