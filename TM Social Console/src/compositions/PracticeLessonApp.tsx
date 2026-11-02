@@ -66,7 +66,7 @@ const Segments: React.FC<{ step: number; n: number }> = ({ step, n }) => (
 
 // The TM mark behind the panel: large, centred, faint, so the text reads over it.
 const Logo: React.FC<{ kind: 'violet' | 'gold'; dim: number }> = ({ kind, dim }) => (
-  <Img src={staticFile(`brand/logo-t-${kind}.png`)} style={{ position: 'absolute', left: '50%', top: '50%', width: 760, transform: 'translate(-50%, -50%)', opacity: dim, pointerEvents: 'none' }} />
+  <Img src={staticFile(`brand/logo-t-${kind}.png`)} style={{ position: 'absolute', left: '50%', top: '50%', width: 600, transform: 'translate(-50%, -50%)', opacity: dim, pointerEvents: 'none' }} />
 );
 
 const Head: React.FC<{ p: PracticeLessonAppProps; small?: boolean }> = ({ p, small }) => (
