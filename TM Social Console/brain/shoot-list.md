@@ -51,19 +51,21 @@ shoot.
 
 | Clip | What the owner says it is | Status |
 |---|---|---|
-| 1 | spinning back elbow (Sok Klap), Claude's reading | cut |
-| 2 | lead horizontal elbow (Sok Tat), owner's word | cut |
-| 3 | rear horizontal elbow with a step (Sok Tat), Claude's reading | cut |
-| 4 | uppercut elbow (Sok Ngat), Claude's reading | cut |
-| 5 | jumping elbow, three short joined shots | alternate to 16 |
-| 6 | chopping elbow, both hands raised, Claude's reading | alternate to 7 |
-| 7 | chopping elbow (Sok Sap), Claude's reading; body at the frame edge for 2 s | cut |
+| 1 | spinning back elbow (Sok Klap) | cut |
+| 2 | lead hook elbow (Sok Tat; the owner says hook, not horizontal) | cut |
+| 3 | rear hook elbow (Sok Tat) | cut |
+| 4 | lead uppercut elbow (Sok Ngat); 6 is a second take | cut |
+| 7 | rear diagonal elbow (Sok Chieng: high to low at 45°); 9 and 10 look like other takes | cut |
 | 8 | lead diagonal elbow (Sok Chieng), owner's word | cut |
-| 9, 10 | lunging elbows with a deep step | alternates (horizontal / chop) |
-| 11, 12, 14, 15, 17 | spinning elbows and rear-view takes | alternates to 1 |
-| 13 | horizontal elbows with a step, facing the camera | alternate to 2 / 3 |
-| 16 | jumping elbow with a rear-knee drive (Sok Kratod), Claude's reading, one shot | cut |
-| 18 | a high raised elbow facing the camera (uppercut or chop) | alternate to 4 / 7 |
+| 16 | tomahawk elbow (Sok Sap, the jumping one); 5, 11 and 17 are other takes | cut |
+| 18 | rear uppercut elbow (Sok Ngat) | cut |
+| 13, 15 | the spear elbows? 15 has a lead-arm thrust from a turned stance, 13 a rear-arm drive forward and up; the owner names them | to name |
+| 12, 14 | spinning or rear-view takes | alternates |
+
+The owner's full elbow list (2026-11-03): lead and rear spear, lead and rear
+uppercut, lead and rear hook, lead and rear diagonal, one spinning back,
+tomahawk (the jumping one); maybe an elbow to the body. All are Technique
+Library entries except the body elbow.
 | 19 | lead side kick (karate: yoko geri) | filed 2026-11-03 |
 | 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi, the advancing side thrust kick) | filed 2026-11-03 |
 | 21 | machine gun kick (Thai: te rua, เตะรัว, rapid-fire kicks) | filed 2026-11-03 |
