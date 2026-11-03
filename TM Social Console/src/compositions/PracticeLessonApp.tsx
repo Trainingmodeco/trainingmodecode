@@ -114,7 +114,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
     clip = <Clip src={p.src} start={p.repAt} cam={cam} srcSize={srcSize} />;
   } else if (beat.kind === 'cue') {
     const cue: Cue = p.cues[beat.i];
-    const lead = CUE_LEAD + 0.3;
+    const lead = cue.lead ?? CUE_LEAD + 0.3;
     const start = Math.max(0, cue.at - lead);
     const t = start + (beat.local / fps) * SLOW;
     const landAt = Math.round(((cue.at - start) / SLOW) * fps);

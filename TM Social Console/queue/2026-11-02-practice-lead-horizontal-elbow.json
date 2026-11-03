@@ -21,7 +21,7 @@
     "slowSrc": "raw-footage/practice/p2.x75.mp4",
     "pose": "raw-footage/practice/p2.pose.json",
     "hookAt": 0.2,
-    "repAt": 2.1,
+    "repAt": 1.8,
     "cues": [
       {
         "text": "Close the distance first",
@@ -44,17 +44,18 @@
       },
       {
         "text": "Swing through the target",
-        "at": 4.6,
+        "at": 4.7,
         "mark": "leadElbow",
         "label": "SWING THROUGH",
-        "say": "Coach: \"Don't stop at the face. The hip turns and the elbow keeps going.\""
+        "say": "Coach: \"Don't stop at the face. The hip turns and the elbow keeps going.\"",
+        "lead": 0.6
       }
     ],
     "watch": {
       "text": "Too much wind-up",
       "fix": "Short and tight from the guard",
       "at": 2.5,
-      "fixAt": 2.55,
+      "fixAt": 2.4,
       "mark": "leadElbow",
       "label": "WIND-UP",
       "say": "Coach: \"If they see it coming, it's gone. It leaves from the guard, no backswing.\""
@@ -106,7 +107,8 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-02 cut from clip 2 at the owner's word. The first half faces the camera (reps land at 0.75 s and 2.75 s), the second half is a 45° angle (4.6 s, 6.5 s) and gives the swing-through. Markers follow the body (pose found in every frame). No voice yet. Owner approves before anything posts; TikTok as Only me first."
+    "2026-11-02 cut from clip 2 at the owner's word. The first half faces the camera (reps land at 0.75 s and 2.75 s), the second half is a 45° angle (4.6 s, 6.5 s) and gives the swing-through. Markers follow the body (pose found in every frame). No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 owner: a shot bleeds into the next around 1–3 s of the in-app cut. Clip 2 changes shot at 3.95 s; the name beat (repAt 2.1 + 2 s) ran over it. repAt 1.8, fixAt 2.4 and key point 3 with its own 0.6 s lead-in keep every beat on one side of the cut."
   ],
   "exports": {
     "video": "exports/2026-11-02-practice-lead-horizontal-elbow/video.mp4",

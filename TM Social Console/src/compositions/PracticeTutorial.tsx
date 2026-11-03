@@ -22,7 +22,7 @@ export type Mark =
 // of frame confuses the model).
 // `zoom` and `focus` override the composition's camera for this cue (a low
 // mark, like a foot, needs a wider or lower frame to stay clear of the card).
-export type Cue = { text: string; at: number; mark?: Mark; point?: [number, number]; label?: string; say?: string; voice?: string | null; voiceSec?: number; zoom?: number; focus?: [number, number] };
+export type Cue = { text: string; at: number; lead?: number; mark?: Mark; point?: [number, number]; label?: string; say?: string; voice?: string | null; voiceSec?: number; zoom?: number; focus?: [number, number] };
 export type PracticeTutorialProps = {
   discipline: string; // "Muay Thai"
   technique: string; // "Cross"
@@ -304,7 +304,7 @@ const Name: React.FC<{ p: PracticeTutorialProps }> = ({ p }) => (
 const CueBeat: React.FC<{ p: PracticeTutorialProps; cue: Cue; i: number; pose: Pose | null }> = ({ p, cue, i, pose }) => {
   const frame = useCurrentFrame();
   const src = p.slowSrc ?? p.src;
-  const start = Math.max(0, cue.at - CUE_LEAD);
+  const start = Math.max(0, cue.at - (cue.lead ?? CUE_LEAD)); // `lead`: a cue's own lead-in, for when a shot change sits inside the default one
   const t = start + (frame / FPS) * SLOW; // the clip time on screen now
   const landAt = Math.round(((cue.at - start) / SLOW) * FPS); // the frame the cue belongs to
   const cam = camera(cue.zoom ?? p.zoom ?? 1.45, cue.focus ?? p.focus ?? bodyCentre(pose, t));

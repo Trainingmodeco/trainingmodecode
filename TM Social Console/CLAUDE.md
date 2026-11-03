@@ -180,7 +180,13 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   0.9 s before it, the marker and card landing on that frame), WATCH (`at`
   = the frame to freeze with the fault marked, then the fix at 0.5× from
   `fixAt`, so the fix can come from a different moment of the clip), DRILL
-  (`start`, 6 s at real speed, the ring calling `calls`), NEXT. Slow motion:
+  (`start`, 6 s at real speed, the ring calling `calls`), NEXT. **Keep every
+  beat on one side of a shot change** (the owner saw one shot bleed into the
+  next): when a clip switches angle, as an InShot join does, find the second
+  of the switch and check each beat's stretch of the clip (NAME = `repAt` +
+  2 s; a cue = 0.9 s before `at` to 1.6 s after its start, 2 s in the in-app
+  cut, which leads by 1.2 s; the fix = `fixAt` + 1.5 s); a cue that must start
+  right after a switch sets its own `lead` (seconds before `at`). Slow motion:
   make a 75 fps copy first (`ffmpeg -i clip.mp4 -vf minterpolate=fps=75:
   mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1 -an clip.x75.mp4`) and set
   `slowSrc`, so every slowed frame is a real one. Markers: run `npm run pose`
