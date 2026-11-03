@@ -1,0 +1,113 @@
+{
+  "id": "2026-11-03-practice-lead-side-kick",
+  "title": "Practice: Lead Side Kick",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Kickboxing › Lead Side Kick: cues, mistakes, next). Karate name yoko geri (横蹴り); the thrusting version is yoko geri kekomi. Footage: the owner's clip 19 (ring, 2026-11-02), raw-footage/practice/p19.mp4, four shots joined in InShot (cuts at 4.99, 7.57 and 11.93 s): three kicks facing the camera, one from behind at 45°.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Kickboxing",
+    "technique": "Lead Side Kick",
+    "number": null,
+    "badge": "Kick",
+    "level": "Intermediate",
+    "description": "Lateral thrust kick from the lead leg",
+    "stance": "orthodox",
+    "hook": "STOP KICKING WITH|*YOUR TOES.*",
+    "hookSub": "Lead side kick. Yoko geri. 20 seconds.",
+    "src": "raw-footage/practice/p19.mp4",
+    "slowSrc": "raw-footage/practice/p19.x75.mp4",
+    "pose": "raw-footage/practice/p19.pose.json",
+    "hookAt": 5.05,
+    "repAt": 1.5,
+    "cues": [
+      {
+        "text": "Chamber at the hip",
+        "at": 2.6,
+        "mark": "leadKnee",
+        "label": "CHAMBER",
+        "say": "Coach: \"Knee up to the hip first. The chamber is the kick.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.62
+        ]
+      },
+      {
+        "text": "Thrust heel-first",
+        "at": 5.98,
+        "lead": 0.75,
+        "mark": "leadFoot",
+        "label": "HEEL",
+        "say": "Coach: \"Push the heel out, toes pulled back. Toes break. Heels don't.\""
+      },
+      {
+        "text": "Lean away for power",
+        "at": 13.6,
+        "lead": 0.9,
+        "mark": "chin",
+        "label": "LEAN",
+        "say": "Coach: \"Your body goes the other way. That lean is the range and the power.\""
+      }
+    ],
+    "watch": {
+      "text": "Kicking with the toe",
+      "fix": "Heel first, toes pulled back",
+      "at": 2.93,
+      "fixAt": 12.95,
+      "mark": "leadFoot",
+      "label": "TOES",
+      "say": "Coach: \"Land on the toes and you break them. Pull them back and drive the heel.\""
+    },
+    "drill": {
+      "calls": [
+        "SIDE KICK",
+        "SIDE KICK × 2",
+        "JAB → SIDE KICK"
+      ],
+      "start": 0.4,
+      "cue": "Lead leg, heel first"
+    },
+    "next": {
+      "name": "Rear Side Kick",
+      "description": "Lateral thrust kick from the rear leg",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "横蹴り · YOKO GERI"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop kicking with your toes 🦶 Lead side kick, yoko geri: chamber at the hip, thrust heel-first, lean away for power. Watch for kicking with the toe. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #kickboxing #sidekick #yokogeri #kickboxingtechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop kicking with your toes. 🦶\n\nLead side kick (yoko geri, 横蹴り):\n1. Chamber at the hip\n2. Thrust heel-first\n3. Lean away for power\nWatch for: kicking with the toe.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#kickboxing #sidekick #yokogeri #kickboxingtechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop kicking with your toes 🦶 Lead side kick, yoko geri: chamber at the hip, thrust heel-first, lean away for power. Watch for kicking with the toe. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop kicking with your toes. Lead side kick (yoko geri) 🦶 #shorts",
+      "description": "Practice Mode in Training Mode: the lead side kick, yoko geri (横蹴り), step by step. Chamber at the hip, thrust heel-first, lean away for power. Watch for kicking with the toe. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "kickboxing",
+        "side kick",
+        "yoko geri",
+        "karate kick",
+        "kickboxing technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 19. Shots: front 0–4.99, front 4.99–7.57, front 7.57–11.93, behind at 45° 11.93–14.85; every slow beat stays inside one shot (key point 2 and 3 set their own lead-in). The drill runs 0.4–6.4 across the first join, a same-angle cut between two kicks at real speed. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}

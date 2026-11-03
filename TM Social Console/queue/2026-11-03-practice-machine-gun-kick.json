@@ -1,0 +1,111 @@
+{
+  "id": "2026-11-03-practice-machine-gun-kick",
+  "title": "Practice: Machine Gun Kick",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. Added to the app's Technique Library as Muay Thai › Machine Gun Kick (cues, mistakes, next from there). Thai: te rua (เตะรัว), rapid-fire kicks. Footage: the owner's clip 21 (ring, 2026-11-02), raw-footage/practice/p21.mp4, two shots joined in InShot (cut at 5.93 s): single kicks facing the camera, then the burst from a 45° angle (kicks at about 7.2, 8.6, 9.6, 10.8, 11.7 and 12.8 s).",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Machine Gun Kick",
+    "number": null,
+    "badge": "Kick",
+    "level": "Advanced",
+    "description": "Rapid-fire roundhouse kicks off the same leg",
+    "stance": "orthodox",
+    "hook": "STOP RESETTING|*BETWEEN KICKS.*",
+    "hookSub": "Machine gun kick. Te rua. 20 seconds.",
+    "src": "raw-footage/practice/p21.mp4",
+    "slowSrc": "raw-footage/practice/p21.x75.mp4",
+    "pose": "raw-footage/practice/p21.pose.json",
+    "hookAt": 9.0,
+    "repAt": 9.3,
+    "cues": [
+      {
+        "text": "Land and reload off the same foot",
+        "at": 10.2,
+        "mark": "rearFoot",
+        "label": "RELOAD",
+        "say": "Coach: \"The foot touches down and comes straight back up. No reset.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "The hip drives every kick",
+        "at": 10.8,
+        "mark": "hips",
+        "label": "HIP",
+        "say": "Coach: \"Each kick is a hip turn, not a leg swing. Turn it over every time.\""
+      },
+      {
+        "text": "Hands stay up between kicks",
+        "at": 11.7,
+        "mark": "rearHand",
+        "label": "HANDS",
+        "say": "Coach: \"Three kicks is three chances to get hit. The guard stays home.\""
+      }
+    ],
+    "watch": {
+      "text": "Resetting the foot too far back",
+      "fix": "Touch down and go again",
+      "at": 3.1,
+      "fixAt": 9.9,
+      "mark": "rearFoot",
+      "label": "RESET",
+      "say": "Coach: \"Step all the way back to stance and the next kick is a second away. Touch and go.\""
+    },
+    "drill": {
+      "calls": [
+        "ROUNDHOUSE × 3",
+        "MACHINE GUN",
+        "JAB → MACHINE GUN"
+      ],
+      "start": 7.0,
+      "cue": "Same leg, no reset"
+    },
+    "next": {
+      "name": "Lead Uppercut",
+      "description": "Close-range rising punch",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "เตะรัว · TE RUA"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop resetting between kicks 🦵 Machine gun kick, te rua: land and reload off the same foot, the hip drives every kick, hands stay up between kicks. Watch for resetting the foot too far back. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #machinegunkick #terua #roundhouse #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop resetting between kicks. 🦵\n\nMachine gun kick (te rua, เตะรัว):\n1. Land and reload off the same foot\n2. The hip drives every kick\n3. Hands stay up between kicks\nWatch for: resetting the foot too far back.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #machinegunkick #terua #roundhouse #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop resetting between kicks 🦵 Machine gun kick, te rua: land and reload off the same foot, the hip drives every kick, hands stay up between kicks. Watch for resetting the foot too far back. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop resetting between kicks. The machine gun kick (te rua) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the machine gun kick, te rua (เตะรัว), step by step. Land and reload off the same foot, the hip drives every kick, hands stay up between kicks. Watch for resetting the foot too far back. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "machine gun kick",
+        "te rua",
+        "roundhouse kick",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 21. Shots: front 0–5.93 (single kicks with a full reset: the WATCH FOR freeze at 3.1 is one), 45° 5.93–13.64 (the burst: hook, name, all three key points, the fix and the drill live here, so no beat crosses the join). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}

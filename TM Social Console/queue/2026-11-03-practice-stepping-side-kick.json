@@ -1,0 +1,117 @@
+{
+  "id": "2026-11-03-practice-stepping-side-kick",
+  "title": "Practice: Stepping Side Kick",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The owner's \"marching forward side kick\", added to the app's Technique Library as Kickboxing › Stepping Side Kick (cues, mistakes, next from there). Karate name tsugi-ashi yoko geri kekomi: the shuffle step (rear foot up to the front foot) into the side thrust kick. Footage: the owner's clip 20 (ring, 2026-11-02), raw-footage/practice/p20.mp4, one shot, three reps at about 0.95, 4.1 and 7.6 s.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Kickboxing",
+    "technique": "Stepping Side Kick",
+    "number": null,
+    "badge": "Kick",
+    "level": "Intermediate",
+    "description": "The advancing side thrust kick",
+    "stance": "orthodox",
+    "hook": "TOO FAR AWAY|*TO KICK?*",
+    "hookSub": "Stepping side kick. Tsugi-ashi yoko geri kekomi. 20 seconds.",
+    "src": "raw-footage/practice/p20.mp4",
+    "slowSrc": "raw-footage/practice/p20.x75.mp4",
+    "pose": "raw-footage/practice/p20.pose.json",
+    "hookAt": 3.0,
+    "repAt": 3.2,
+    "cues": [
+      {
+        "text": "Shuffle the rear foot up first",
+        "at": 0.5,
+        "mark": "rearFoot",
+        "label": "SHUFFLE",
+        "say": "Coach: \"Back foot up to the front foot. That shuffle is what closes the gap.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "Chamber as you step",
+        "at": 3.95,
+        "mark": "leadKnee",
+        "label": "CHAMBER",
+        "say": "Coach: \"The knee comes up as the step lands, not after it.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.62
+        ]
+      },
+      {
+        "text": "Thrust the heel, hips behind it",
+        "at": 7.6,
+        "mark": "leadFoot",
+        "label": "HEEL",
+        "say": "Coach: \"Drive the heel through and push the hips in behind it.\""
+      }
+    ],
+    "watch": {
+      "text": "Kicking before the step lands",
+      "fix": "Step first, then the kick",
+      "at": 3.55,
+      "fixAt": 3.3,
+      "mark": "rearFoot",
+      "label": "THE STEP",
+      "say": "Coach: \"Kick early and you're off balance with no reach. Land the shuffle, then fire.\""
+    },
+    "drill": {
+      "calls": [
+        "STEP → SIDE KICK",
+        "STEP → SIDE KICK × 2",
+        "JAB → STEP → SIDE KICK"
+      ],
+      "start": 2.5,
+      "cue": "Close the gap first"
+    },
+    "next": {
+      "name": "Spinning Back Kick",
+      "description": "The spinning back heel kick",
+      "level": "Advanced"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "継ぎ足横蹴り · TSUGI-ASHI YOKO GERI"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Too far away to kick? 🦶 Stepping side kick, tsugi-ashi yoko geri kekomi: shuffle the rear foot up first, chamber as you step, thrust the heel with the hips behind it. Watch for kicking before the step lands. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #kickboxing #sidekick #yokogeri #karate #kickboxingtechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Too far away to kick? 🦶\n\nStepping side kick (tsugi-ashi yoko geri kekomi, 継ぎ足横蹴り):\n1. Shuffle the rear foot up first\n2. Chamber as you step\n3. Thrust the heel, hips behind it\nWatch for: kicking before the step lands.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#kickboxing #sidekick #yokogeri #karate #kickboxingtechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Too far away to kick? 🦶 Stepping side kick, tsugi-ashi yoko geri kekomi: shuffle the rear foot up first, chamber as you step, thrust the heel with the hips behind it. Watch for kicking before the step lands. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Too far away to kick? The stepping side kick (tsugi-ashi yoko geri) 🦶 #shorts",
+      "description": "Practice Mode in Training Mode: the stepping side kick, tsugi-ashi yoko geri kekomi (継ぎ足横蹴り), step by step. Shuffle the rear foot up first, chamber as you step, thrust the heel with the hips behind it. Watch for kicking before the step lands. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "kickboxing",
+        "side kick",
+        "stepping side kick",
+        "yoko geri",
+        "karate kick",
+        "kickboxing technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 20, one shot, no joins. Key point 1 on the first rep's step, 2 on the second rep's chamber, 3 on the third rep's extension; the fix plays the second rep from the step. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}
