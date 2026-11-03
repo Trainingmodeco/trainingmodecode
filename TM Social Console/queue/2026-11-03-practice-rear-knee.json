@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-rear-knee",
   "title": "Practice: Rear Knee",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Muay Thai › Rear Knee: cues, mistakes, next); the same video serves the Kickboxing and MMA Rear Knee entries and the Muay Thai path's Knee lesson. Thai: khao trong (เข่าตรง), the straight knee. Footage: the owner's clip 26 (ring, 2026-11-03), raw-footage/practice/p26.mp4, three shots joined in InShot (soft joins at 2.93 and 5.5 s, found by the body jumping across the frame): a step in and a rear knee at 1.3, 4.0, 6.2 and 8.8 s, all facing the camera.",
@@ -67,7 +67,7 @@
         "REAR KNEE × 2",
         "JAB → REAR KNEE"
       ],
-      "start": 0.0,
+      "start": 0,
       "rate": 0.9,
       "cue": "Close range, hips through"
     },
@@ -110,5 +110,16 @@
   "posted": {},
   "notes": [
     "2026-11-03 cut from clip 26 at the owner's word. Shots: 0–2.93 (name, key point 3), 2.93–5.5 (hook, key point 1 with a 0.55 s lead-in, the fix), 5.5–9.52 (key point 2 with a 0.6 s lead-in, the WATCH FOR freeze on the last knee). The drill runs the first two shots at 0.9× across the 2.93 join, between the first knee landing and the next step-in. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-rear-knee/video.mp4",
+    "cover": "exports/2026-11-03-practice-rear-knee/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-rear-knee/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-rear-knee/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T17:08:35.370Z"
 }
