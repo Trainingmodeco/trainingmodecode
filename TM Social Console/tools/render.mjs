@@ -104,6 +104,9 @@ await renderStill({ serveUrl, composition, inputProps: props, frame: coverFrame,
 // Remotion leaves its webpack bundle in the temp folder (hundreds of MB per
 // render); drop it now that the frames are out, or a day's renders fill the disk.
 fs.rmSync(serveUrl, { recursive: true, force: true });
+// The staged copies are only for this render (the bundle copies public/, so
+// leftovers make every later bundle bigger); the next render stages afresh.
+for (const rel of staged.values()) fs.rmSync(path.join(ROOT, 'public', rel), { force: true });
 
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
 const made = { video: rel(video), cover: rel(cover), seconds: +(composition.durationInFrames / composition.fps).toFixed(2) };

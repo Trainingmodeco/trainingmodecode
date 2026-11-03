@@ -493,6 +493,14 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
+    next: 'Roundhouse Knee', locked: true,
+  },
+  {
+    discipline: 'Muay Thai', category: 'Strikes', name: 'Roundhouse Knee',
+    description: 'Khao khong: the curving knee, disguised as a low roundhouse kick',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    cues: ['Start it like a low kick', 'Turn the knee in over the top', 'Drive the point into the ribs'],
+    mistakes: ['Lifting the knee too early', 'Kneeing with the thigh, not the point', 'Dropping the hands'],
     next: 'Lead Spear Elbow', locked: true,
   },
   {

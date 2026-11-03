@@ -1,0 +1,111 @@
+{
+  "id": "2026-11-03-practice-roundhouse-knee",
+  "title": "Practice: Roundhouse Knee",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The owner's roundhouse knee: a knee disguised as a low roundhouse kick. Added to the app's Technique Library as Muay Thai › Roundhouse Knee (cues, mistakes, next from there). Thai: khao khong (เข่าโค้ง), the curving knee. Footage: the owner's clip 27 (ring, 2026-11-03), raw-footage/practice/p27.mp4, one shot: three rear-leg roundhouse knees facing the camera (the leg swings out low at about 0.6, 3.4 and 6.3 s, the knee turns in at 0.85, 3.6 and 6.6 s), then a lead-leg knee at 9.4 s that the cut leaves out.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Roundhouse Knee",
+    "number": null,
+    "badge": "Knee",
+    "level": "Intermediate",
+    "description": "The curving knee, disguised as a low roundhouse kick",
+    "stance": "orthodox",
+    "hook": "MAKE THEM CHECK|*THE WRONG KICK.*",
+    "hookSub": "Roundhouse knee. Khao khong. 20 seconds.",
+    "src": "raw-footage/practice/p27.mp4",
+    "slowSrc": "raw-footage/practice/p27.x75.mp4",
+    "pose": "raw-footage/practice/p27.pose.json",
+    "hookAt": 6.1,
+    "repAt": 3.2,
+    "cues": [
+      {
+        "text": "Start it like a low kick",
+        "at": 0.62,
+        "mark": "rearFoot",
+        "label": "LOW KICK",
+        "say": "Coach: \"The rear leg swings out low, exactly like your low kick. They drop to check it.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.72
+        ]
+      },
+      {
+        "text": "Turn the knee in over the top",
+        "at": 3.62,
+        "mark": "rearKnee",
+        "label": "TURN IN",
+        "say": "Coach: \"Halfway through, the knee lifts and curves in over their check.\""
+      },
+      {
+        "text": "Drive the point into the ribs",
+        "at": 6.75,
+        "mark": "rearKnee",
+        "label": "RIBS",
+        "say": "Coach: \"The point of the knee lands on the ribs, hip turned in behind it.\""
+      }
+    ],
+    "watch": {
+      "text": "Lifting the knee too early",
+      "fix": "Swing it out low first, then turn it in",
+      "at": 3.6,
+      "fixAt": 6.1,
+      "mark": "rearKnee",
+      "label": "TOO EARLY",
+      "say": "Coach: \"Lift the knee from the start and it's just a knee. The low swing is the disguise.\""
+    },
+    "drill": {
+      "calls": [
+        "ROUNDHOUSE KNEE",
+        "ROUNDHOUSE KNEE × 2",
+        "JAB → ROUNDHOUSE KNEE"
+      ],
+      "start": 0.0,
+      "cue": "Sell the low kick first"
+    },
+    "next": {
+      "name": "Lead Spear Elbow",
+      "description": "Downward spearing elbow from the lead side",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "เข่าโค้ง · KHAO KHONG"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Make them check the wrong kick 🦵 Roundhouse knee, khao khong: start it like a low kick, turn the knee in over the top, drive the point into the ribs. Watch for lifting the knee too early. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #knee #khaokhong #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Make them check the wrong kick. 🦵\n\nRoundhouse knee (khao khong, เข่าโค้ง):\n1. Start it like a low kick\n2. Turn the knee in over the top\n3. Drive the point into the ribs\nWatch for: lifting the knee too early.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #knee #khaokhong #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Make them check the wrong kick 🦵 Roundhouse knee, khao khong: start it like a low kick, turn the knee in over the top, drive the point into the ribs. Watch for lifting the knee too early. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Make them check the wrong kick. The roundhouse knee (khao khong) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the roundhouse knee, khao khong (เข่าโค้ง), a knee disguised as a low roundhouse kick, step by step. Start it like a low kick, turn the knee in over the top, drive the point into the ribs. Watch for lifting the knee too early. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "knee strike",
+        "khao khong",
+        "roundhouse knee",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 27 at the owner's word (a knee disguised as a low roundhouse kick). One shot, no joins. Key point 1 on the first rep's low swing, 2 on the second rep's turn-in, 3 on the third rep's knee across; the WATCH FOR freeze is the second rep's knee rising, the fix the full third rep. The lead-leg knee at 9.4 s is left out. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}
