@@ -260,6 +260,14 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Shuffle the rear foot up first', 'Chamber as you step', 'Thrust the heel, hips behind it'],
     mistakes: ['Kicking before the step lands', 'Telegraphing the shuffle', 'Dropping the hands on the step'],
+    next: 'Spinning Back Kick', locked: true,
+  },
+  {
+    discipline: 'Kickboxing', category: 'Strikes', name: 'Spinning Back Kick',
+    description: 'Ushiro geri: the spinning back heel kick',
+    level: 'Advanced', duration: '20–30 sec', videoUrl: '',
+    cues: ['Look over the shoulder first', 'Chamber tight as you turn', 'Drive the heel straight back'],
+    mistakes: ['Spinning without spotting the target', 'Kicking in an arc instead of straight', 'Finishing with your back turned'],
     next: 'Low Kick', locked: true,
   },
   {
