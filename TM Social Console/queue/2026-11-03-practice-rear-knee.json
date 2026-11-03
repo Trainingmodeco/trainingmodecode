@@ -121,5 +121,16 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T17:08:35.370Z"
+  "renderedAt": "2026-11-03T17:08:35.370Z",
+  "app": {
+    "slots": [
+      "Kickboxing › Rear Knee",
+      "Muay Thai › Rear Knee",
+      "MMA › Rear Knee",
+      "lesson:mt_knee"
+    ],
+    "video": "/static/practice/rear-knee.mp4",
+    "poster": "/static/practice/rear-knee.webp",
+    "publishedAt": "2026-11-03T21:41:35.386Z"
+  }
 }

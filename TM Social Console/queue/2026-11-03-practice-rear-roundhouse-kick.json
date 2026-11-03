@@ -121,5 +121,17 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T17:24:38.849Z"
+  "renderedAt": "2026-11-03T17:24:38.849Z",
+  "app": {
+    "slots": [
+      "Kickboxing › Rear Roundhouse Kick",
+      "Muay Thai › Rear Roundhouse Kick",
+      "MMA › Rear Roundhouse Kick",
+      "lesson:kb_roundhouse",
+      "lesson:mt_roundhouse"
+    ],
+    "video": "/static/practice/rear-roundhouse-kick.mp4",
+    "poster": "/static/practice/rear-roundhouse-kick.webp",
+    "publishedAt": "2026-11-03T21:41:14.119Z"
+  }
 }

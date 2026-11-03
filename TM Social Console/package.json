@@ -25,7 +25,8 @@
     "pose": "python tools/pose.py",
     "deblur": "python tools/deblur.py",
     "hf:preview": "cd hyperframes && npx hyperframes preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "app-video": "node tools/app-video.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",

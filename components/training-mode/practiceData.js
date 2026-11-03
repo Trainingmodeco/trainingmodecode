@@ -185,7 +185,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Switch Kick',
     description: 'Te salap: switch stance to disguise the rear kick',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/switch-kick.mp4',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
     next: 'Rear Hook', locked: true,
@@ -201,7 +201,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Roundhouse Kick',
     description: 'Te tat: rear-leg power kick to body or head',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-roundhouse-kick.mp4',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
     next: 'Lead Uppercut', locked: true,
@@ -233,7 +233,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Knee',
     description: 'Rear-leg knee strike with power',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-knee.mp4',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
     next: 'Lead Side Kick', locked: true,
@@ -241,7 +241,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Side Kick',
     description: 'Yoko geri: lateral thrust kick from the lead leg',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-side-kick.mp4',
     cues: ['Chamber at the hip', 'Thrust heel-first', 'Lean away for power'],
     mistakes: ['Kicking with the toe', 'Not chambering', 'No lean for range'],
     next: 'Rear Side Kick', locked: true,
@@ -257,7 +257,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Stepping Side Kick',
     description: 'Tsugi-ashi yoko geri kekomi: the advancing side thrust kick',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/stepping-side-kick.mp4',
     cues: ['Shuffle the rear foot up first', 'Chamber as you step', 'Thrust the heel, hips behind it'],
     mistakes: ['Kicking before the step lands', 'Telegraphing the shuffle', 'Dropping the hands on the step'],
     next: 'Spinning Back Kick', locked: true,
@@ -265,7 +265,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Spinning Back Kick',
     description: 'Ushiro geri: the spinning back heel kick',
-    level: 'Advanced', duration: '20–30 sec', videoUrl: '',
+    level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/spinning-back-kick.mp4',
     cues: ['Look over the shoulder first', 'Chamber tight as you turn', 'Drive the heel straight back'],
     mistakes: ['Spinning without spotting the target', 'Kicking in an arc instead of straight', 'Finishing with your back turned'],
     next: 'Low Kick', locked: true,
@@ -370,7 +370,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Hook Elbow',
     description: 'Sok Tat: the hook elbow from the lead side',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-hook-elbow.mp4',
     cues: ['Close the distance first', 'Strike with the tip of the elbow', 'Swing through the target'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Leaving chin exposed'],
     next: 'Lead Diagonal Elbow', locked: true,
@@ -378,7 +378,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Diagonal Elbow',
     description: 'Sok Chieng: the diagonal cutting elbow',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-diagonal-elbow.mp4',
     cues: ['Close the distance first', 'Cut down and across at an angle', 'Strike with the tip, hip behind it'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Dropping the rear hand'],
     next: 'Rear Hook Elbow', locked: true,
@@ -386,7 +386,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Hook Elbow',
     description: 'Sok Tat: the hook elbow from the rear side',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-hook-elbow.mp4',
     cues: ['Step in as the elbow comes up', 'Slash level across the face', 'Shoulder covers the chin'],
     mistakes: ['Winding up behind the head', 'Striking with the forearm', 'Staying out of range'],
     next: 'Lead Uppercut Elbow', locked: true,
@@ -394,7 +394,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Uppercut Elbow',
     description: 'Sok Ngat: the rising elbow under the chin, lead side',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-uppercut-elbow.mp4',
     cues: ['Drop the hand, point the elbow up', 'Drive up through the legs', 'Hand finishes past your ear'],
     mistakes: ['Lifting with the shoulder only', 'Leaning back as it rises', 'Reaching from too far'],
     next: 'Rear Uppercut Elbow', locked: true,
@@ -402,7 +402,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Uppercut Elbow',
     description: 'Sok Ngat: the rising elbow under the chin, rear side',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-uppercut-elbow.mp4',
     cues: ['Drop the hand, point the elbow up', 'Drive up through the legs', 'Hand finishes past your ear'],
     mistakes: ['Lifting with the shoulder only', 'Leaning back as it rises', 'Reaching from too far'],
     next: 'Rear Diagonal Elbow', locked: true,
@@ -410,7 +410,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Diagonal Elbow',
     description: 'Sok Chieng: the diagonal cutting elbow from the rear side',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-diagonal-elbow.mp4',
     cues: ['Close the distance first', 'Cut down and across at an angle', 'Strike with the tip, hip behind it'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Dropping the lead hand'],
     next: 'Tomahawk Elbow', locked: true,
@@ -418,7 +418,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Tomahawk Elbow',
     description: 'Sok Sap: the jumping tomahawk elbow, chopped down from above',
-    level: 'Advanced', duration: '20–30 sec', videoUrl: '',
+    level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/tomahawk-elbow.mp4',
     cues: ['Drive the knee up to jump', 'Elbow high at the top of the jump', 'Land it on the way down'],
     mistakes: ['Jumping without the knee drive', 'Striking before the top of the jump', 'Landing off balance'],
     next: 'Spinning Back Elbow', locked: true,
@@ -426,7 +426,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Spinning Back Elbow',
     description: 'Sok Klap: the spinning back elbow',
-    level: 'Advanced', duration: '20–30 sec', videoUrl: '',
+    level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/spinning-back-elbow.mp4',
     cues: ['Step across to start the turn', 'Spot the target over your shoulder', 'Whip the elbow through on the turn'],
     mistakes: ['Spinning blind', 'Leaning away as you turn', 'Arm wide instead of tight'],
     next: 'Rear Hook', locked: true,
@@ -442,7 +442,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Roundhouse Kick',
     description: 'Te tat: full-rotation shin kick with power',
-    level: 'Beginner', duration: '20–30 sec', videoUrl: '',
+    level: 'Beginner', duration: '20–30 sec', videoUrl: '/static/practice/rear-roundhouse-kick.mp4',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
     next: 'Switch Kick', locked: true,
@@ -450,7 +450,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Switch Kick',
     description: 'Te salap: switch stance to disguise the rear kick',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/switch-kick.mp4',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
     next: 'Machine Gun Kick', locked: true,
@@ -458,7 +458,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Machine Gun Kick',
     description: 'Te rua: rapid-fire roundhouse kicks off the same leg',
-    level: 'Advanced', duration: '20–30 sec', videoUrl: '',
+    level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/machine-gun-kick.mp4',
     cues: ['Land and reload off the same foot', 'The hip drives every kick', 'Hands stay up between kicks'],
     mistakes: ['Resetting the foot too far back', 'Swinging the arm instead of turning the hip', 'Losing balance on the base leg'],
     next: 'Lead Uppercut', locked: true,
@@ -482,7 +482,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Shuffle Knee',
     description: 'Khao yao: the long lead knee off a shuffle step',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-shuffle-knee.mp4',
     cues: ['Shuffle the rear foot up', 'Drive the hip forward', 'Spear with the point of the knee'],
     mistakes: ['No hip drive', 'Kneeing with the kneecap', 'Hands drop on the shuffle'],
     next: 'Rear Uppercut', locked: true,
@@ -498,7 +498,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Knee',
     description: 'Khao trong: rear-leg knee strike with full hip drive',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-knee.mp4',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
     next: 'Roundhouse Knee', locked: true,
@@ -506,7 +506,7 @@ export const TECHNIQUES = [
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Roundhouse Knee',
     description: 'Khao khong: the curving knee, disguised as a low roundhouse kick',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/roundhouse-knee.mp4',
     cues: ['Start it like a low kick', 'Turn the knee in over the top', 'Drive the point into the ribs'],
     mistakes: ['Lifting the knee too early', 'Kneeing with the thigh, not the point', 'Dropping the hands'],
     next: 'Lead Spear Elbow', locked: true,
@@ -644,7 +644,7 @@ export const TECHNIQUES = [
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Roundhouse Kick',
     description: 'Te tat: full-rotation shin kick to body or head',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-roundhouse-kick.mp4',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
     next: 'Switch Kick', locked: true,
@@ -652,7 +652,7 @@ export const TECHNIQUES = [
   {
     discipline: 'MMA', category: 'Strikes', name: 'Switch Kick',
     description: 'Te salap: switch stance to disguise the rear kick',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/switch-kick.mp4',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
     next: 'Lead Uppercut', locked: true,
@@ -684,7 +684,7 @@ export const TECHNIQUES = [
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Knee',
     description: 'Rear-leg knee strike with full hip drive',
-    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-knee.mp4',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
     next: 'Overhand', locked: true,

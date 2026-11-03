@@ -121,5 +121,14 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T14:30:41.950Z"
+  "renderedAt": "2026-11-03T14:30:41.950Z",
+  "app": {
+    "slots": [
+      "Muay Thai › Lead Hook Elbow",
+      "lesson:mt_elbow"
+    ],
+    "video": "/static/practice/lead-hook-elbow.mp4",
+    "poster": "/static/practice/lead-hook-elbow.webp",
+    "publishedAt": "2026-11-03T21:38:51.200Z"
+  }
 }

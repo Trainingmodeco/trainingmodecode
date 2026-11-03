@@ -119,5 +119,13 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T14:35:41.590Z"
+  "renderedAt": "2026-11-03T14:35:41.590Z",
+  "app": {
+    "slots": [
+      "Muay Thai › Rear Hook Elbow"
+    ],
+    "video": "/static/practice/rear-hook-elbow.mp4",
+    "poster": "/static/practice/rear-hook-elbow.webp",
+    "publishedAt": "2026-11-03T21:39:02.348Z"
+  }
 }

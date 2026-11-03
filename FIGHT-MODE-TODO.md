@@ -331,6 +331,20 @@ HOW MUCH TO MAKE (guidance):
       strikesThrown persisted to tm_integrity_log. Unit-tested (8 cases:
       on-floor zero = no penalty, tiny count = no penalty, verified bonus,
       boundaries, "never emits low"). Real-device calibration pending a phone.
+- [x] 1.7 Practice tutorials on the lesson card (Nov 3). The card's 16:9
+      player plays the move's tutorial when its entry has a `videoUrl`
+      (poster beside it as .webp, muted, inline, native controls after the
+      gold play button); moves without one keep the read-aloud guide. Library
+      tiles with a video show a small ▶ by the level.
+      → 17 of the owner's tutorials (8 elbows, 6 kicks, 3 knees) fill 23
+        Technique Library entries and 4 path lessons (kb_roundhouse,
+        mt_roundhouse, mt_knee, mt_elbow); files in public/static/practice/
+        (~1 MB each, 21 MB total), made by the TM Social Console's
+        `npm run app-video`. The service worker leaves .mp4 to the network
+        (video streams in byte ranges; the Cache API refuses partial
+        responses). Smoke: "practice tutorial plays" (Muay Thai › Rear Knee).
+      Still to film: stances, punches, teeps, low kick, clinch knees,
+        specials (TM Social Console › brain/shoot-list.md).
 
 ## PHASE 2 — TRAINING CAMP + ARCADE v2 (protocol-driven; PRO tier)
 > PROTOCOL LANDED Jul 21 (`protocol-src/` on `app`, merged via PR #2 from the

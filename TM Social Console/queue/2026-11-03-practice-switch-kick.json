@@ -123,5 +123,15 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T17:20:16.779Z"
+  "renderedAt": "2026-11-03T17:20:16.779Z",
+  "app": {
+    "slots": [
+      "Kickboxing › Switch Kick",
+      "Muay Thai › Switch Kick",
+      "MMA › Switch Kick"
+    ],
+    "video": "/static/practice/switch-kick.mp4",
+    "poster": "/static/practice/switch-kick.webp",
+    "publishedAt": "2026-11-03T21:41:03.600Z"
+  }
 }

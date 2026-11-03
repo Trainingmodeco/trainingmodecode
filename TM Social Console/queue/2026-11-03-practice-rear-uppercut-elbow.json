@@ -118,5 +118,13 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T15:03:14.145Z"
+  "renderedAt": "2026-11-03T15:03:14.145Z",
+  "app": {
+    "slots": [
+      "Muay Thai › Rear Uppercut Elbow"
+    ],
+    "video": "/static/practice/rear-uppercut-elbow.mp4",
+    "poster": "/static/practice/rear-uppercut-elbow.webp",
+    "publishedAt": "2026-11-03T21:39:23.811Z"
+  }
 }

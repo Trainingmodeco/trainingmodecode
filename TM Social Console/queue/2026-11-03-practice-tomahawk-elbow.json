@@ -119,5 +119,13 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T14:52:09.505Z"
+  "renderedAt": "2026-11-03T14:52:09.505Z",
+  "app": {
+    "slots": [
+      "Muay Thai › Tomahawk Elbow"
+    ],
+    "video": "/static/practice/tomahawk-elbow.mp4",
+    "poster": "/static/practice/tomahawk-elbow.webp",
+    "publishedAt": "2026-11-03T21:39:58.500Z"
+  }
 }

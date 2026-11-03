@@ -121,5 +121,13 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T17:34:27.396Z"
+  "renderedAt": "2026-11-03T17:39:05.317Z",
+  "app": {
+    "slots": [
+      "Muay Thai › Lead Shuffle Knee"
+    ],
+    "video": "/static/practice/lead-shuffle-knee.mp4",
+    "poster": "/static/practice/lead-shuffle-knee.webp",
+    "publishedAt": "2026-11-03T21:41:24.218Z"
+  }
 }

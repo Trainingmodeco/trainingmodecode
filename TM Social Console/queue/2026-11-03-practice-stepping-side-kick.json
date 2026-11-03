@@ -130,5 +130,13 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T02:03:55.951Z"
+  "renderedAt": "2026-11-03T02:03:55.951Z",
+  "app": {
+    "slots": [
+      "Kickboxing › Stepping Side Kick"
+    ],
+    "video": "/static/practice/stepping-side-kick.mp4",
+    "poster": "/static/practice/stepping-side-kick.webp",
+    "publishedAt": "2026-11-03T21:40:30.910Z"
+  }
 }
