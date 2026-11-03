@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-rear-uppercut-elbow",
   "title": "Practice: Rear Uppercut Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The owner's rear uppercut elbow. Words from the app's Technique Library (practiceData.js › Muay Thai › Rear Uppercut Elbow). Thai: Sok Ngat (ศอกงัด). Footage: the owner's clip 18 (ring, 2026-10-31), raw-footage/practice/p18.mp4, one shot, four reps with the rear elbow rising at about 0.8, 2.8, 4.7 and 6.6 s.",
@@ -20,8 +20,8 @@
     "src": "raw-footage/practice/p18.mp4",
     "slowSrc": "raw-footage/practice/p18.x75.mp4",
     "pose": "raw-footage/practice/p18.pose.json",
-    "hookAt": 2.0,
-    "repAt": 4.0,
+    "hookAt": 2,
+    "repAt": 4,
     "cues": [
       {
         "text": "Drop the hand, point the elbow up",
@@ -107,5 +107,16 @@
   "posted": {},
   "notes": [
     "2026-11-03 cut from clip 18 after the owner's list of the elbows (the rear arm rises in this one; clip 4 is the lead). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-rear-uppercut-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-rear-uppercut-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-rear-uppercut-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-rear-uppercut-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T15:03:14.145Z"
 }
