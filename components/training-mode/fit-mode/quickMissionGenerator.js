@@ -7,6 +7,12 @@
 // that made a 5-minute mission run eleven. Every move now carries the focus
 // it serves, and the exercise count, rounds and rest are solved against the
 // minutes asked for, using the same per-rep cadence the timer counts at.
+//
+// WEIGHTED and HYBRID (the setup screen's GEAR key): a loaded move gets its
+// own table (fewer reps, longer rest), is flagged isWeighted so the timer
+// never counts it (the set ends on DONE, at the athlete's pace) and is timed
+// at a controlled pace plus the pick-up, so "About N min" stays honest. A
+// hybrid alternates a loaded move with a bodyweight one.
 
 // tags: upper · lower · core · combat · full. A move can serve several.
 const BODYWEIGHT_POOL = [
@@ -80,7 +86,7 @@ const WEIGHTED_POOL = [
   { name: 'Thrusters', tags: ['full', 'combat'] },
   { name: 'Dumbbell Snatch', tags: ['full', 'combat'] },
   { name: 'Weighted Punches', tags: ['combat', 'upper'], timed: true },
-];
+].map(m => ({ ...m, loaded: true }));
 
 const HYBRID_POOL = [...BODYWEIGHT_POOL, ...WEIGHTED_POOL];
 
@@ -95,13 +101,29 @@ const DIFFICULTY_CONFIG = {
   Hard:     { repsMin: 14, repsMax: 20, workMin: 40, workMax: 50, rest: 20 },
   Advanced: { repsMin: 18, repsMax: 25, workMin: 45, workMax: 60, rest: 15 },
 };
+// The bodyweight table is for air squats and push-ups: HARD there is twenty
+// reps on twenty seconds of rest, which is the wrong prescription for a
+// deadlift or a clean and press. Harder here means more work and less rest,
+// but never past fifteen reps of a loaded move.
+const LOADED_CONFIG = {
+  Easy:     { repsMin: 8,  repsMax: 10, workMin: 20, workMax: 30, rest: 60 },
+  Normal:   { repsMin: 10, repsMax: 12, workMin: 30, workMax: 40, rest: 45 },
+  Hard:     { repsMin: 12, repsMax: 15, workMin: 40, workMax: 45, rest: 40 },
+  Advanced: { repsMin: 12, repsMax: 15, workMin: 40, workMax: 50, rest: 30 },
+};
 
 // What the timer actually spends per slot: the coach's intro line, then
 // either the count (one rep per cadence tick) or the work window, then rest.
+// A loaded set is not counted: it runs at a controlled pace and ends on DONE,
+// after the athlete has picked the weight up.
 const CADENCE_SEC = 2;
+const LOADED_REP_SEC = 3;
+const LOADED_SETUP_SEC = 5;
 const INTRO_SEC = 5;
 const REST_MIN = 15;
 const REST_MAX = 90;
+const LOADED_REST_MIN = 30;
+const LOADED_REST_MAX = 120;
 
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -125,8 +147,8 @@ function getPool(workoutType) {
 const FOCUS_TAG = { 'Upper': 'upper', 'Lower': 'lower', 'Core': 'core', 'Combat': 'combat' };
 
 // A full-body mission deals from each region in turn so six moves never come
-// out as four squats and two planks.
-function pickFullBody(pool, count) {
+// out as four squats and two planks. `offset` starts the turn elsewhere.
+function pickFullBody(pool, count, offset = 0) {
   const byTag = { upper: [], lower: [], core: [], full: [] };
   shuffle(pool).forEach(m => m.tags.forEach(t => { if (byTag[t]) byTag[t].push(m); }));
   const order = ['lower', 'upper', 'core', 'full'];
@@ -134,7 +156,7 @@ function pickFullBody(pool, count) {
   const used = new Set();
   let guard = 0;
   while (picked.length < count && guard++ < 60) {
-    const tag = order[picked.length % order.length];
+    const tag = order[(picked.length + offset) % order.length];
     const next = byTag[tag].find(m => !used.has(m.name)) || shuffle(pool).find(m => !used.has(m.name));
     if (!next) break;
     used.add(next.name);
@@ -150,9 +172,27 @@ function pickFocused(pool, tag, count) {
   return [...primary, ...secondary, ...filler].slice(0, count);
 }
 
+// Up to `count` moves for the type and focus. A hybrid takes a loaded move,
+// then a bodyweight one, in turn. On a full-body mission the bodyweight deal
+// starts on another region, so a pair is never two lower-body moves; a
+// bodyweight move the loaded list already has a version of ('Lunges' beside
+// 'Weighted Lunges') is left out.
+function pickMoves(workoutType, tag, count) {
+  const deal = (pool, offset) => (tag ? pickFocused(pool, tag, count) : pickFullBody(pool, count, offset));
+  if (workoutType !== 'Hybrid') return deal(getPool(workoutType), 0);
+  const loaded = deal(WEIGHTED_POOL, 0);
+  const bw = deal(BODYWEIGHT_POOL, 2).filter(m => !loaded.some(l => l.name.includes(m.name)));
+  const out = [];
+  for (let i = 0; out.length < count && (i < loaded.length || i < bw.length); i++) {
+    if (loaded[i]) out.push(loaded[i]);
+    if (bw[i] && out.length < count) out.push(bw[i]);
+  }
+  return out;
+}
+
 function slotSeconds(ex) {
-  const work = ex.mode === 'timed' ? ex.work : ex.reps * CADENCE_SEC;
-  return INTRO_SEC + work + ex.rest;
+  const work = ex.mode === 'timed' ? ex.work : ex.reps * (ex.isWeighted ? LOADED_REP_SEC : CADENCE_SEC);
+  return INTRO_SEC + (ex.isWeighted ? LOADED_SETUP_SEC : 0) + work + ex.rest;
 }
 
 export function estimateQuickMissionSeconds(mission) {
@@ -174,13 +214,25 @@ const TITLES = {
   'Combat': ['FIGHT CONDITIONING', 'STRIKE CIRCUIT', 'RING READY'],
 };
 const TYPE_TITLES = {
-  Weighted: ['IRON CIRCUIT', 'LOADED MISSION', 'HEAVY METAL', 'WEIGHT ROOM WAR'],
-  Hybrid: ['HYBRID HUSTLE', 'MIXED MISSION', 'FULL SPECTRUM', 'TOTAL ASSAULT'],
+  Weighted: {
+    'Full Body': ['IRON CIRCUIT', 'LOADED MISSION', 'HEAVY METAL', 'WEIGHT ROOM WAR'],
+    'Upper': ['IRON UPPER', 'PRESS & PULL', 'LOADED ARMS'],
+    'Lower': ['IRON LEGS', 'HINGE & SQUAT', 'LOADED LEG DAY'],
+    'Core': ['LOADED CORE', 'IRON MIDLINE', 'WEIGHTED ABS'],
+    'Combat': ['HEAVY HANDS', 'LOADED FIGHT CIRCUIT', 'IRON ROUNDS'],
+  },
+  Hybrid: {
+    'Full Body': ['HYBRID HUSTLE', 'MIXED MISSION', 'FULL SPECTRUM', 'TOTAL ASSAULT'],
+    'Upper': ['HYBRID UPPER', 'PUSH, PRESS & PULL', 'MIXED UPPER'],
+    'Lower': ['HYBRID LEGS', 'MIXED LEG DAY', 'SQUAT & SWING'],
+    'Core': ['HYBRID CORE', 'MIXED MIDLINE', 'CORE UNDER LOAD'],
+    'Combat': ['HYBRID FIGHT CIRCUIT', 'MIXED STRIKE CIRCUIT', 'RING READY HYBRID'],
+  },
 };
 
 export function generateQuickMission({ workoutType = 'Bodyweight', duration = 10, difficulty = 'Normal', format = 'Auto', cardioFinisher = false, focus = 'Full Body' } = {}) {
-  const pool = getPool(workoutType);
   const diffCfg = DIFFICULTY_CONFIG[difficulty] || DIFFICULTY_CONFIG.Normal;
+  const loadCfg = LOADED_CONFIG[difficulty] || LOADED_CONFIG.Normal;
   const mins = Math.max(3, Number(duration) || 10);
   const budget = mins * 60;
   const finisherBudget = cardioFinisher ? Math.min(120, budget * 0.2) : 0;
@@ -191,12 +243,15 @@ export function generateQuickMission({ workoutType = 'Bodyweight', duration = 10
 
   const build = (move) => {
     const useTimed = format === 'Timed' || (format === 'Auto' && !!move.timed);
-    if (useTimed) return { name: move.name, mode: 'timed', work: rand(diffCfg.workMin, diffCfg.workMax), rest: diffCfg.rest };
-    return { name: move.name, mode: 'reps', reps: rand(diffCfg.repsMin, diffCfg.repsMax), rest: diffCfg.rest };
+    const c = move.loaded ? loadCfg : diffCfg;
+    const ex = useTimed
+      ? { name: move.name, mode: 'timed', work: rand(c.workMin, c.workMax), rest: c.rest }
+      : { name: move.name, mode: 'reps', reps: rand(c.repsMin, c.repsMax), rest: c.rest };
+    return move.loaded ? { ...ex, isWeighted: true } : ex;
   };
 
   // Deal up to eight moves, then keep only as many as the minutes hold.
-  const dealt = (tag ? pickFocused(pool, tag, 8) : pickFullBody(pool, 8)).map(build);
+  const dealt = pickMoves(workoutType, tag, 8).map(build);
   const exercises = [];
   for (const ex of dealt) {
     const next = [...exercises, ex];
@@ -207,10 +262,14 @@ export function generateQuickMission({ workoutType = 'Bodyweight', duration = 10
   }
 
   // Close the remaining gap with rest: longer when the minutes are generous,
-  // shorter when the count already fills them. Never below 15 s.
+  // shorter when the count already fills them. Never below 15 s (30 s after
+  // a loaded set).
   const est = exercises.reduce((s, e) => s + slotSeconds(e), 0) * rounds;
   const perSlot = (mainBudget - est) / Math.max(1, exercises.length * rounds);
-  exercises.forEach(ex => { ex.rest = Math.round(Math.max(REST_MIN, Math.min(REST_MAX, ex.rest + perSlot)) / 5) * 5; });
+  exercises.forEach(ex => {
+    const [lo, hi] = ex.isWeighted ? [LOADED_REST_MIN, LOADED_REST_MAX] : [REST_MIN, REST_MAX];
+    ex.rest = Math.round(Math.max(lo, Math.min(hi, ex.rest + perSlot)) / 5) * 5;
+  });
 
   let finisherExercises = [];
   if (cardioFinisher) {
@@ -221,7 +280,8 @@ export function generateQuickMission({ workoutType = 'Bodyweight', duration = 10
     }));
   }
 
-  const titlePool = workoutType === 'Bodyweight' ? (TITLES[focus] || TITLES['Full Body']) : (TYPE_TITLES[workoutType] || TYPE_TITLES.Hybrid);
+  const typeTitles = workoutType === 'Bodyweight' ? TITLES : (TYPE_TITLES[workoutType] || TYPE_TITLES.Hybrid);
+  const titlePool = typeTitles[focus] || typeTitles['Full Body'];
   const title = titlePool[rand(0, titlePool.length - 1)];
 
   return {

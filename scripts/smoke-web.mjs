@@ -101,8 +101,8 @@ await check('fit hub', async () => { await fit(); }, /Quick Mission/);
 await check('quick mission start', async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1200); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WORK|EXERCISE/);
 
 // Quick Mission v2 ships behind data/qmV2 (owner preview until the flag
-// flips). The shelf check reads the flag, so it never needs editing when the
-// owner turns v2 on for everyone.
+// flips). The library check reads the flag, so it never needs editing when
+// the owner turns v2 on for everyone.
 const V2_PUBLIC = /QM_V2_FOR_EVERYONE\s*=\s*true/.test(
   fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'components', 'training-mode', 'data', 'qmV2.js'), 'utf8'));
 const quick = async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200); };
@@ -113,27 +113,55 @@ const ownerQuick = async () => {
   await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
 };
-// MISSION SELECT / Classics chips are role="radio". Their names can carry a
-// PRO or SOLO pill, so the patterns are anchored at the start only.
-const chip = (re) => page.getByRole('radio', { name: re });
-await check('quick mission: v2 shelf matches the flag', async () => {
-  await quick();
-  if (!V2_PUBLIC && /MISSION SELECT|LOADOUT|Short notice/.test(await text())) throw new Error('v2 shelf showing while QM_V2_FOR_EVERYONE is false');
-}, V2_PUBLIC ? /MISSION SELECT/ : /Classics/i);
-await check('quick mission: weighted classic starts weighted', async () => { await quick(); await chip(/^CHAOS ENGINE/).click({ timeout: 4000 }); await S(500); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
-await check('quick mission: murph starts', async () => { await quick(); await chip(/^MURPH$/).click({ timeout: 4000 }); await S(500); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
-await check('owner: quick mission v2 shelf', async () => {
-  await ownerQuick();
-  if (!/LOADOUT/.test(await text())) throw new Error('no LOADOUT row');
-}, /MISSION SELECT/);
+// The MISSION LIBRARY sheet (MissionLibrarySheet). Its rows are role="radio"
+// named by the title, plus a SOLO or PRO pill, so the patterns are anchored
+// at the start only. A row tap only highlights it; PUT ON CARD brings it to
+// the page card, the sheet's own START runs it.
+const sheet = () => page.getByRole('dialog', { name: 'Mission library' });
+const library = async () => { await page.locator('[data-guide="qm-library"]').click({ timeout: 4000 }); await S(700); };
+const pickRow = async (re) => { await library(); await sheet().getByRole('radio', { name: re }).click({ timeout: 4000 }); await S(300); };
+const putOnCard = async (re) => { await pickRow(re); await sheet().getByRole('button', { name: 'PUT ON CARD' }).click({ timeout: 4000 }); await S(600); };
+// The page's keys (GEAR · LEVEL · TIME · FOCUS) are radio strips.
+const key = (group, name) => page.locator('[data-guide="qm-keys"]').getByRole('radiogroup', { name: group }).getByRole('radio', { name, exact: true });
+await check('quick mission: library matches the flag', async () => {
+  await quick(); await library();
+  const t = await sheet().innerText();
+  if (V2_PUBLIC !== /MISSIONS\s*\d+/.test(t)) throw new Error(V2_PUBLIC ? 'no MISSIONS in the library' : 'v2 missions in the library while QM_V2_FOR_EVERYONE is false');
+}, /CLASSICS/);
+await check('quick mission: back closes the library first', async () => {
+  await quick(); await library();
+  await page.keyboard.press('Escape'); await S(400);
+  if (await sheet().count()) throw new Error('Escape left the library open');
+  // The header's back arrow sits under the sheet's backdrop: call it directly.
+  await library(); await page.evaluate(() => document.querySelector('button[aria-label="Back"]').click()); await S(500);
+  if (await sheet().count()) throw new Error('Back left the library open');
+}, /BUILD YOUR OWN/i);
+await check('quick mission: weighted classic starts weighted', async () => { await quick(); await pickRow(/^CHAOS ENGINE/); await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
+await check('quick mission: murph starts', async () => { await quick(); await putOnCard(/^MURPH$/); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
+await check('quick mission: WEIGHTED key starts a weighted mission', async () => {
+  await quick(); await key('Gear', 'WEIGHTED').click({ timeout: 4000 }); await S(400);
+  if (!/WEIGHTED/.test(await page.locator('[data-guide="qm-length"]').innerText())) throw new Error('the card is not a weighted mission');
+  await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
+  if (!/WEIGHTED/.test(await text())) throw new Error('no WEIGHTED on the status strip');
+}, /ROUND|GET READY|PREPARING|WORK/);
+await check('quick mission: keys are remembered', async () => {
+  await quick(); await key('Level', 'HARD').click({ timeout: 4000 }); await key('Time', '20').click({ timeout: 4000 }); await S(300);
+  await page.locator('button[aria-label="Back"]').click({ timeout: 3000 }); await S(800);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  if (await key('Level', 'HARD').getAttribute('aria-checked') !== 'true' || await key('Time', '20').getAttribute('aria-checked') !== 'true') throw new Error('the keys came back as the defaults');
+}, /20 MIN/i);
+await check('owner: quick mission library filters', async () => {
+  await ownerQuick(); await library();
+  if (!await sheet().getByRole('radiogroup', { name: 'Loadout' }).count()) throw new Error('no LOADOUT chips');
+}, /MISSIONS/);
 await check('owner: quick mission swap sheet', async () => {
-  await ownerQuick(); await chip(/^TUTORIAL STAGE/).click({ timeout: 4000 }); await S(600);
+  await ownerQuick(); await putOnCard(/^TUTORIAL STAGE/);
   await page.locator('button[aria-label="Swap Sprawls"]').click({ timeout: 4000 }); await S(800);
 }, /SWAP: SPRAWLS/);
 await page.locator('button[aria-label="Close"]').first().click({ timeout: 1500 }).catch(() => {});
-await check('owner: one-bell guided start', async () => { await ownerQuick(); await chip(/^ONE-BELL 300/).click({ timeout: 4000 }); await S(600); await btn(/^START$/).click({ timeout: 4000 }); await S(5000); }, /ROUND|GET READY|PREPARING/);
+await check('owner: one-bell guided start', async () => { await ownerQuick(); await putOnCard(/^ONE-BELL 300/); await btn(/^START$/).click({ timeout: 4000 }); await S(5000); }, /ROUND|GET READY|PREPARING/);
 await check('owner: turbo solo start', async () => {
-  await ownerQuick(); await chip(/^TURBO BUTTON/).click({ timeout: 4000 }); await S(600);
+  await ownerQuick(); await putOnCard(/^TURBO BUTTON/);
   await page.locator('[data-guide="qm-mode"]').getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');

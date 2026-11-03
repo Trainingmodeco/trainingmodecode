@@ -933,6 +933,26 @@ export function themeCounts(entries, loadout = 'all') {
   THEMES.forEach(th => { out[th.id] = filterShelf(within, { theme: th.id }).length; });
   return out;
 }
+// The Mission Library's LOADOUT chip counts, within the THEME picked (the
+// THEME counts are within the LOADOUT, above).
+export function loadoutCounts(entries, theme = 'all') {
+  const within = filterShelf(entries, { theme });
+  const out = {};
+  LOADOUTS.forEach(l => { out[l.id] = filterShelf(within, { loadout: l.id }).length; });
+  return out;
+}
+// "~16 MIN · BARBELL · EMOM" — a Mission Library row's second line: minutes
+// at `level` (the mission's default level when none is given), the loadout,
+// then the format (a classic has none, so its tag: HERO WORKOUT, CHALLENGE).
+export function shelfEntryLine(entry, { level } = {}) {
+  if (entry?.kind === 'v2') {
+    const def = missionDefById(entry.id);
+    const L = def?.levels?.[level] || def?.levels?.[def?.defaultLevel];
+    return [L ? `~${L.minutes} MIN` : null, loadoutLabel(entry.loadout), FORMAT_LABEL[def?.format] || null].filter(Boolean).join(' · ');
+  }
+  const w = NAMED_WORKOUTS.find(n => n.id === entry?.id);
+  return [w?.estMin ? `~${w.estMin} MIN` : null, loadoutLabel(entry?.loadout), w?.tag ? String(w.tag).toUpperCase() : null].filter(Boolean).join(' · ');
+}
 export function emptyShelfCopy({ loadout = 'all', theme = 'all' } = {}) {
   const lo = loadoutLabel(loadout);
   if (theme !== 'all') {
