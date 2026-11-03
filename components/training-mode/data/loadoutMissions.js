@@ -14,7 +14,8 @@
 //
 // Tiers: where the source gives Rx and Scaled loads, Rx is ELITE and Scaled is
 // STANDARD. Pace targets for TUTORIAL STAGE, TURBO BUTTON and QUOTA 300 come
-// from the source; the other eight are coach estimates (see each paceBasis).
+// from the source; the other eight launch missions are coach estimates (see
+// each paceBasis). Missions 12-26 are SOLO only for now (see their block).
 // `knownAs` is stored, never rendered.
 import {
   LEVELS, LEVEL_LABEL, GEAR_LABEL, GEAR_WORD, ALT_LABEL,
@@ -38,7 +39,7 @@ export const LOADOUT_GEAR = {
   none: ['none'],
   bell: ['none', 'bell', 'db', 'rower'],          // rower: CHECKPOINT 20's optional minute-4 swap
   barbell: ['none', 'barbell', 'plate'],
-  mixed: ['none', 'bell', 'db', 'barbell', 'plate', 'rower'],
+  mixed: ['none', 'bell', 'db', 'barbell', 'plate', 'rower', 'bar'], // bar: OXYGEN DEBT's and HOT LAPS' pull-ups
 };
 export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS' };
 export const GUIDED_HELP_AMRAP = 'The coach runs the clock and calls the time. The moves stay on screen.';
@@ -486,7 +487,549 @@ const QUOTA = {
   },
 };
 
-export const LOADOUT_MISSIONS = [IRON_CLOCK, ONE_BELL, FIVE_ROUND, BEST_OF_3, STEEL, CHECKPOINT, ROOM_12, HIT_COMBO, TUTORIAL, TURBO, QUOTA];
+// ── 12-26 · SOLO only for now (guided is coming) ───────────────────────────
+// The researched barbell, bell and mixed missions (missions/data2.json, with
+// catalog.json behind it), shipped the way 21-HIT COMBO is: guided: false,
+// and the card shows SOLO_ONLY_HELP. Tiers follow the rule above: Rx is
+// ELITE, Scaled STANDARD, the source's beginner option BEGINNER. A pace is a
+// coach estimate unless its paceBasis names a published range. Where SOLO
+// needed a different shape than the source's, the comment says so.
+const SOLO_COPY = { introSay: '', guidedHelp: '' }; // SOLO only; the card shows SOLO_ONLY_HELP
+// A ladder (a for-time workout whose rungs differ): one complex per rung, so
+// SOLO's + ROUND counts rungs and a capped run prefills the reps through them.
+const rungs = (counts, steps) => counts.map((n, i) => complex(`Rung ${i + 1}`, steps(n, i), { swapKey: 'rung' }));
+
+// ── 12 · HONOR ROUNDS ───────────────────────────────────────────────────────
+// A hero tribute workout, kept as written. Its 1 BELL / DB version is an
+// AMRAP 10, a format of its own, so it rides in `scale` rather than as a
+// level. BEGINNER opens on the source's technique-safe lifts (hang muscle
+// cleans, push presses): don't learn a clean or a jerk under a clock.
+const honor = (cleanId, jerkId) => [
+  r('bb-deadlift', 12, 0, { swapKey: 'deadlift' }), r(cleanId, 9, 0, { swapKey: 'clean' }), r(jerkId, 6, 0, { swapKey: 'jerk' }),
+];
+const HONOR = {
+  id: 'honor_rounds', launch: 12, title: 'HONOR ROUNDS', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'forTime',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: false, quiet: false, guided: false,
+  knownAs: 'DT (CrossFit Hero WOD honoring USAF SSgt Timothy P. Davis)',
+  loadoutLine: '1 BARBELL + BUMPER PLATES', scoreLine: 'TIME, OR REPS AT THE CAP (135 FINISHES)', scoreRule: { kind: 'time' },
+  scale: 'Lighter bar, or the beginner level. No barbell? The 1 BELL / DB version: AMRAP 10 of 12 deadlifts, 9 hang power cleans and 6 shoulder-to-overheads with 2 × 22.5/15 kg dumbbells, for 5+ rounds. Lighter: 2 × 15/10 kg, or one 16/12 kg bell.',
+  note: 'A tribute workout. Warm up 5 min, then 2 empty-bar rounds of 6 / 4 / 2, then build to the working bar. Drop the bar between moves rather than grind a rounded-back deadlift. Never been coached on the clean or the jerk? Hang Muscle Cleans and Push Press.',
+  ...SOLO_COPY,
+  paceBasis: 'Published ranges at the Rx bar: elite under 5 min, Rx 6-9, intermediate 10-14. The lighter levels are coach estimates.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '3 rounds · empty bar · hang muscle cleans · push presses', minutes: 6, load: '20/15 kg empty bar', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS FOR TIME · 12 DEADLIFTS · 9 HANG MUSCLE CLEANS · 6 PUSH PRESSES · CAP 20:00',
+      slots: honor('bb-hang-muscle-clean', 'bb-push-press'), pace: { elite: 180, standard: 360, beginner: 600 },
+    },
+    standard: {
+      detail: '5 rounds · 43/29 kg · cap 20:00', minutes: 12, load: '43/29 kg (95/65 lb)', rounds: 5, capSec: 1200,
+      missionLine: '5 ROUNDS FOR TIME · 12 DEADLIFTS · 9 HANG POWER CLEANS · 6 PUSH JERKS · CAP 20:00',
+      slots: honor('bb-hang-power-clean', 'bb-push-jerk'), pace: { elite: 240, standard: 720, beginner: 1080 },
+    },
+    elite: {
+      detail: '5 rounds · 70/47.5 kg · cap 20:00', minutes: 9, load: '70/47.5 kg (155/105 lb)', rounds: 5, capSec: 1200,
+      missionLine: '5 ROUNDS FOR TIME · 12 DEADLIFTS · 9 HANG POWER CLEANS · 6 PUSH JERKS · CAP 20:00',
+      slots: honor('bb-hang-power-clean', 'bb-push-jerk'), pace: { elite: 300, standard: 540, beginner: 840 },
+    },
+  },
+};
+
+// ── 13 · KO SPRINT 30 ───────────────────────────────────────────────────────
+// The source's technique-first version (EMOM 10 × 3 with the empty bar) is a
+// clock of its own, so it is in the note; its Hang Power Clean + Push Press
+// singles are the EASIER swap.
+const koSprint = () => [r('bb-clean-jerk', 30, 0, { swapKey: 'clean-jerk' })];
+const KO_SPRINT = {
+  id: 'ko_sprint_30', launch: 13, title: 'KO SPRINT 30', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'forTime',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: false, quiet: false, guided: false,
+  knownAs: "Grace (CrossFit 'Girl' benchmark; credit line / captions only)",
+  loadoutLine: '1 BARBELL + BUMPER PLATES', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
+  scale: 'Pick a bar you can finish in 3-6 min: a lighter bar, or the beginner level. Hotel gym: 30 alternating single-dumbbell clean and jerks.',
+  note: 'Warm up 8-10 min, with 3 sets of 3 clean and jerks climbing to the working bar. Never been coached on the clean and jerk? Hang Power Clean + Push Press singles, or skip the race: 3 empty-bar reps every minute for 10 min. Bumper plates: the reps come down from overhead.',
+  ...SOLO_COPY,
+  paceBasis: 'Published guidance: scale so all 30 finish inside 5 min; elite athletes finish under 2 at the Rx bar. The rest are coach estimates.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '30 reps · 34/25 kg · cap 10:00', minutes: 5, load: '34/25 kg (75/55 lb)', rounds: 1, capSec: 600,
+      missionLine: '30 CLEAN AND JERKS FOR TIME · CAP 10:00', slots: koSprint(), pace: { elite: 90, standard: 270, beginner: 420 },
+    },
+    standard: {
+      detail: '30 reps · 52/34 kg · cap 10:00', minutes: 5, load: '52/34 kg (115/75 lb)', rounds: 1, capSec: 600,
+      missionLine: '30 CLEAN AND JERKS FOR TIME · CAP 10:00', slots: koSprint(), pace: { elite: 105, standard: 300, beginner: 480 },
+    },
+    elite: {
+      detail: '30 reps · 61/43 kg · cap 10:00', minutes: 6, load: '61/43 kg (135/95 lb)', rounds: 1, capSec: 600,
+      missionLine: '30 CLEAN AND JERKS FOR TIME · CAP 10:00', slots: koSprint(), pace: { elite: 120, standard: 330, beginner: 540 },
+    },
+  },
+};
+
+// ── 14 · OVERHEAD RUSH ──────────────────────────────────────────────────────
+const rush = (liftId, lifts, burpeeId) => [r(liftId, lifts, 0, { swapKey: 'lift' }), r(burpeeId, 10, 0, { swapKey: 'burpee' })];
+const OVERHEAD_RUSH = {
+  id: 'overhead_rush', launch: 14, title: 'OVERHEAD RUSH', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'forTime',
+  difficulty: 'Hard', focus: 'Conditioning', workoutType: 'Weighted', hotel: false, quiet: false, guided: false,
+  knownAs: 'CrossFit Open 20.1 (captions only)',
+  loadoutLine: '1 BARBELL + BUMPER PLATES · 2 × 3 M OF FLOOR', scoreLine: 'TIME, OR REPS AT THE CAP (180 FINISHES)', scoreRule: { kind: 'time' },
+  scale: 'Lighter bar, or the beginner level. Step over the bar instead of jumping it. Hotel gym: one dumbbell, alternating ground-to-overheads, burpees over the dumbbell.',
+  note: 'Warm up 5 min, then 2 empty-bar rounds of 4 ground-to-overheads and 5 burpees. Clean and jerk or clean and press; snatch only if you are trained in it. Never been coached? Three steps: deadlift, hang muscle clean, push press.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: a round takes about 1:00-1:30 for most, under 50 s elite.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '6 rounds · 6 lifts · empty bar · step-over burpees', minutes: 8, load: '20/15 kg empty bar', rounds: 6, capSec: 900,
+      missionLine: '6 ROUNDS FOR TIME · 6 THREE-STEP GROUND-TO-OVERHEADS · 10 STEP-OVER BURPEES · CAP 15:00',
+      slots: rush('bb-g2oh-three-step', 6, 'bar-step-over-burpee'), pace: { elite: 300, standard: 480, beginner: 660 },
+    },
+    standard: {
+      detail: '10 rounds · 29/20 kg · stepping over the bar is fine', minutes: 12, load: '29/20 kg (65/45 lb)', rounds: 10, capSec: 900,
+      missionLine: '10 ROUNDS FOR TIME · 8 GROUND-TO-OVERHEADS · 10 BAR-FACING BURPEES · CAP 15:00',
+      slots: rush('bb-ground-to-overhead', 8, 'bar-facing-burpee'), pace: { elite: 450, standard: 720, beginner: 840 },
+    },
+    elite: {
+      detail: '10 rounds · 43/29 kg · cap 15:00', minutes: 13, load: '43/29 kg (95/65 lb)', rounds: 10, capSec: 900,
+      missionLine: '10 ROUNDS FOR TIME · 8 GROUND-TO-OVERHEADS · 10 BAR-FACING BURPEES · CAP 15:00',
+      slots: rush('bb-ground-to-overhead', 8, 'bar-facing-burpee'), pace: { elite: 480, standard: 780, beginner: 870 },
+    },
+  },
+};
+
+// ── 15 · BURNOUT 21 ─────────────────────────────────────────────────────────
+// The source has no cap; the 30:00 (BEGINNER 20:00) is the app's.
+const burnout = (burpeeId) => (n) => [s('bb-thruster', n, { swapKey: 'thruster' }), s(burpeeId, n, { swapKey: 'burpee' })];
+const BURNOUT = {
+  id: 'burnout_21', launch: 15, title: 'BURNOUT 21', tag: 'Barbell', loadout: 'barbell', themes: ['burpees'], format: 'forTime',
+  difficulty: 'Brutal', focus: 'Conditioning', workoutType: 'Weighted', hotel: false, quiet: false, guided: false,
+  knownAs: 'CrossFit Open 14.5 / 16.5 (captions only)',
+  loadoutLine: '1 BARBELL + PLATES · 2 × 3 M OF FLOOR', scoreLine: 'TIME, OR REPS AT THE CAP (168 FINISHES)', scoreRule: { kind: 'time' },
+  scale: 'Lighter bar (29/20 kg), or the beginner level: 15 down to 3 with the empty bar and step-over burpees. Hotel gym: dumbbell thrusters, burpees over the dumbbell.',
+  note: 'Warm up 5 min, then 2 rounds of 5 empty-bar thrusters and 5 burpees. Tap + ROUND after each rung. If the thruster turns into a back-arching press, split it: a front squat, then a push press.',
+  ...SOLO_COPY,
+  paceBasis: 'Published: elite times at the Rx bar were about 7:15-7:45, and a solid intermediate takes 15-22 min. The rest are coach estimates.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '15-12-9-6-3 · empty bar · step-over burpees · cap 20:00', minutes: 10, load: '20/15 kg empty bar', rounds: 1, capSec: 1200,
+      missionLine: '15-12-9-6-3 FOR TIME · THRUSTERS + STEP-OVER BURPEES · 90 REPS · CAP 20:00',
+      slots: rungs([15, 12, 9, 6, 3], burnout('bar-step-over-burpee')), pace: { elite: 240, standard: 600, beginner: 960 },
+    },
+    standard: {
+      detail: '21 down to 3 · 29/20 kg · cap 30:00', minutes: 16, load: '29/20 kg (65/45 lb)', rounds: 1, capSec: 1800,
+      missionLine: '21-18-15-12-9-6-3 FOR TIME · THRUSTERS + BAR-FACING BURPEES · 168 REPS · CAP 30:00',
+      slots: rungs([21, 18, 15, 12, 9, 6, 3], burnout('bar-facing-burpee')), pace: { elite: 420, standard: 960, beginner: 1500 },
+    },
+    elite: {
+      detail: '21 down to 3 · 43/29 kg · cap 30:00', minutes: 18, load: '43/29 kg (95/65 lb)', rounds: 1, capSec: 1800,
+      missionLine: '21-18-15-12-9-6-3 FOR TIME · THRUSTERS + BAR-FACING BURPEES · 168 REPS · CAP 30:00',
+      slots: rungs([21, 18, 15, 12, 9, 6, 3], burnout('bar-facing-burpee')), pace: { elite: 465, standard: 1080, beginner: 1620 },
+    },
+  },
+};
+
+// ── 16 · STANCE BREAKER 9 ───────────────────────────────────────────────────
+const stance = (sec, squatId, jumpId, lungeNote) => [amrap(sec, 0, [
+  s('bb-rdl', 8, { swapKey: 'rdl', note: 'Deadlift the bar up once, then hinge to knee height.' }), s(squatId, 8, { swapKey: 'squat' }),
+  s('reverse-lunge', 12, { swapKey: 'lunge', ...(lungeNote ? { note: lungeNote } : {}) }), s(jumpId, 8, { swapKey: 'jump' }),
+], [], { swapKey: 'block' })];
+const STANCE = {
+  id: 'stance_breaker_9', launch: 16, title: 'STANCE BREAKER 9', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'amrap',
+  difficulty: 'Normal', focus: 'Lower', workoutType: 'Weighted', hotel: false, quiet: false, guided: false, knownAs: '',
+  loadoutLine: '1 BARBELL + PLATES · NO RACK · 2 × 2 M', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Lighter bar (30/20 kg), or the beginner level. Have a rack? Back squats instead of Zercher squats. Hotel gym: 2 dumbbells, the same 4 moves.',
+  note: 'Warm up 3 min easy, then 1 round with the empty bar. No Olympic lifts and no rack: the bar comes off the floor once for the RDLs and rests in your elbows for the squats.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: about 4-6 rounds at 40/30 kg; one round takes about 100 s.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 6 · empty bar · plate goblet squats · air squats', minutes: 6, load: '20/15 kg empty bar · a 10 kg plate', rounds: 1,
+      missionLine: 'AMRAP 6 · 8 RDLS · 8 PLATE GOBLET SQUATS · 12 REVERSE LUNGES · 8 AIR SQUATS',
+      slots: stance(360, 'plate-goblet-squat', 'air-squat', 'Hold a chair if you need to.'), pace: { elite: 5, standard: 4, beginner: 3 },
+    },
+    standard: {
+      detail: 'AMRAP 9 · 30/20 kg', minutes: 9, load: '30/20 kg (66/44 lb)', rounds: 1,
+      missionLine: 'AMRAP 9 · 8 RDLS · 8 ZERCHER SQUATS · 12 REVERSE LUNGES · 8 JUMP SQUATS',
+      slots: stance(540, 'bb-zercher-squat', 'jump-squat'), pace: { elite: 7, standard: 6, beginner: 4 },
+    },
+    elite: {
+      detail: 'AMRAP 9 · 40/30 kg', minutes: 9, load: '40/30 kg (88/66 lb)', rounds: 1,
+      missionLine: 'AMRAP 9 · 8 RDLS · 8 ZERCHER SQUATS · 12 REVERSE LUNGES · 8 JUMP SQUATS',
+      slots: stance(540, 'bb-zercher-squat', 'jump-squat'), pace: { elite: 6, standard: 5, beginner: 4 },
+    },
+  },
+};
+
+// ── 17 · ROOKIE ROUND 8 ─────────────────────────────────────────────────────
+// The source is one level (the empty bar) with an easier and a level-up
+// option: those are BEGINNER and ELITE.
+const rookie = (sec, pushId) => [amrap(sec, 0, [
+  s('bb-bent-over-row', 8, { swapKey: 'row' }), s('bb-strict-press', 8, { swapKey: 'press', note: 'Pull the bar to the shoulders, no dip, then press.' }),
+  s(pushId, 8, { swapKey: 'push-up' }),
+], [], { swapKey: 'block' })];
+const ROOKIE = {
+  id: 'rookie_round_8', launch: 17, title: 'ROOKIE ROUND 8', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'amrap',
+  difficulty: 'Easy', focus: 'Upper', workoutType: 'Weighted', hotel: false, quiet: false, guided: false, knownAs: '',
+  loadoutLine: '1 BARBELL (THE EMPTY BAR IS FINE) · 2 × 2 M', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Easier: a broomstick or a 10 kg technique bar, incline push-ups, 5 min (the beginner level). Level up: a 30/20 kg bar. Hotel gym: 2 light dumbbells.',
+  note: 'Never touched a barbell? Start here: no Olympic lifts, nothing heavy. Flat back on the rows, glutes tight on the press, body in one line on the push-ups.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: about 6-8 rounds with the empty bar; one round takes about 60 s.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 5 · a broomstick or a 10 kg bar · incline push-ups', minutes: 5, load: 'A broomstick or a 10 kg technique bar', rounds: 1,
+      missionLine: 'AMRAP 5 · 8 BENT-OVER ROWS · 8 STRICT PRESSES · 8 INCLINE PUSH-UPS',
+      slots: rookie(300, 'incline-push-up'), pace: { elite: 6, standard: 5, beginner: 3 },
+    },
+    standard: {
+      detail: 'AMRAP 8 · the empty bar', minutes: 8, load: '20/15 kg empty bar', rounds: 1,
+      missionLine: 'AMRAP 8 · 8 BENT-OVER ROWS · 8 STRICT PRESSES · 8 PUSH-UPS',
+      slots: rookie(480, 'push-up'), pace: { elite: 9, standard: 7, beginner: 5 },
+    },
+    elite: {
+      detail: 'AMRAP 8 · 30/20 kg', minutes: 8, load: '30/20 kg (66/44 lb)', rounds: 1,
+      missionLine: 'AMRAP 8 · 8 BENT-OVER ROWS · 8 STRICT PRESSES · 8 PUSH-UPS',
+      slots: rookie(480, 'push-up'), pace: { elite: 8, standard: 6, beginner: 4 },
+    },
+  },
+};
+
+// ── 18 · FIRST BELL ─────────────────────────────────────────────────────────
+// One clock, two blocks of windows: a swing set every :30 (10 × 10 = 100 in
+// 5:00), the 10th set's restAfter for the 1:00 rest, then a get-up every
+// minute. The source's warm-up is in the note, off the clock. BEGINNER rests
+// as needed in the source; SOLO needs a fixed clock, so its sets get a full
+// minute each. The score is the windows held (the pass) and the bell, which
+// the level records.
+const firstBell = (swingId, window, getUpId) => [
+  ...Array.from({ length: 10 }, (_, i) => r(swingId, 10, 0, { swapKey: 'swing', window, prefix: window === 60 ? 'EVERY MIN' : 'EVERY :30', ...(i === 9 ? { restAfter: 60 } : {}) })),
+  ...Array.from({ length: 10 }, () => r(getUpId, 1, 0, { swapKey: 'get-up', window: 60, prefix: 'EVERY MIN', note: 'Switch sides every minute.' })),
+];
+const FIRST_BELL = {
+  id: 'first_bell', launch: 18, title: 'FIRST BELL', tag: 'Kettlebell', loadout: 'bell', themes: [], format: 'emom',
+  difficulty: 'Normal', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: false, guided: false,
+  knownAs: "Kettlebell Simple & Sinister, 'Simple' timed standard (Pavel Tsatsouline / StrongFirst)",
+  loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · 2 × 2 M, CLEAR IN FRONT', scoreLine: 'SETS HELD, OUT OF 20 · AND THE BELL YOU USED',
+  scoreRule: { kind: 'minutesHeld', label: 'SETS HELD' },
+  scale: 'The clock is a test, not the daily default. Move up one bell size only when the whole session feels easy inside the times. Dumbbell: swing one by the head; get-ups with a light one, wrist straight.',
+  note: 'Warm up 5 min first: 3 easy rounds of 5 prying goblet squats, 5 halos each way and 10 hip bridges, light bell. Switch arms every swing set. Get-ups: eyes on the bell, arm locked, never rush. Shoulder pain? Half get-ups, no weight.',
+  ...SOLO_COPY,
+  paceBasis: 'The pass: all 100 swings inside 5:00 and all 10 get-ups inside 10:00. Set times are the swing sets, a coach estimate.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'Two-hand swings, a minute a set · get-ups with a shoe on the fist', minutes: 21, load: 'Swings 16/12 kg (35/26 lb) · get-ups no weight', rounds: 1,
+      missionLine: '10 × 10 SWINGS, ONE SET A MINUTE · REST 1:00 · 10 GET-UPS, ONE A MINUTE',
+      slots: firstBell('kb-swing', 60, 'bw-turkish-get-up'),
+      pace: { elite: { held: 20, of: 20, setSec: 15 }, standard: { held: 20, of: 20, setSec: 18 }, beginner: { held: 18, of: 20, setSec: 23 } },
+    },
+    standard: {
+      detail: 'Swings M 24 / W 16 kg · get-ups M 16 / W 8 kg', minutes: 16, load: 'Swings M 24 kg / W 16 kg · get-ups M 16 kg / W 8 kg, or a shoe on the fist', rounds: 1,
+      missionLine: '100 SINGLE-ARM SWINGS IN 5:00 · REST 1:00 · 10 GET-UPS IN 10:00',
+      slots: firstBell('kb-one-arm-swing', 30, 'kb-turkish-get-up'),
+      pace: { elite: { held: 20, of: 20, setSec: 15 }, standard: { held: 20, of: 20, setSec: 18 }, beginner: { held: 17, of: 20, setSec: null } },
+    },
+    elite: {
+      detail: 'The full standard: swings M 32 / W 24 kg · get-ups M 32 / W 16 kg', minutes: 16, load: 'Swings M 32 kg / W 24 kg · get-ups M 32 kg / W 16 kg', rounds: 1,
+      missionLine: '100 SINGLE-ARM SWINGS IN 5:00 · REST 1:00 · 10 GET-UPS IN 10:00',
+      slots: firstBell('kb-one-arm-swing', 30, 'kb-turkish-get-up'),
+      pace: { elite: { held: 20, of: 20, setSec: 15 }, standard: { held: 20, of: 20, setSec: 18 }, beginner: { held: 16, of: 20, setSec: null } },
+    },
+  },
+};
+
+// ── 19 · CONTINUE? · BELL ───────────────────────────────────────────────────
+// The 10→1 ladder is ELITE (24/16 kg) and STANDARD (the scaled 16/12 kg); the
+// original 5→1 ladder is BEGINNER, with its own 10:00 cap.
+const stepDown = (top, pushId) => rungs(Array.from({ length: top }, (_, i) => top - i), (n) => [
+  s('kb-swing', 15, { swapKey: 'swing', note: 'Every rung.' }), s('goblet-squat', n, { swapKey: 'squat' }), s(pushId, n, { swapKey: 'push-up' }),
+]);
+const CONTINUE_BELL = {
+  id: 'continue_bell', launch: 19, title: 'CONTINUE? · BELL', tag: 'Kettlebell', loadout: 'bell', themes: [], format: 'forTime',
+  difficulty: 'Hard', focus: 'Conditioning', workoutType: 'Weighted', hotel: true, quiet: false, guided: false,
+  knownAs: 'Humane Burpee (Dan John), 10→1 variant',
+  loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A SWING LANE CLEAR OF THE TV', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
+  scale: 'Lighter bell (16/12 kg), or the beginner level: 5 rungs down to 1, and 10 swings if 15 breaks your form. Dumbbell: swings and goblet squats with one dumbbell.',
+  note: '15 swings every rung; only the squats and push-ups shrink, so it gets easier as you go. Tap + ROUND after each rung. Park the bell when your back rounds or the bell drifts forward: that is a rest, not a fail.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: 15 swings take about 25 s; the ladder runs about 10-14 min.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '5 down to 1 · 12/8 kg · incline push-ups · cap 10:00', minutes: 6, load: '12/8 kg (26/18 lb)', rounds: 1, capSec: 600,
+      missionLine: '15 SWINGS EVERY RUNG · SQUATS AND INCLINE PUSH-UPS 5 DOWN TO 1 · CAP 10:00',
+      slots: stepDown(5, 'incline-push-up'), pace: { elite: 240, standard: 360, beginner: 540 },
+    },
+    standard: {
+      detail: '10 down to 1 · 16/12 kg · cap 20:00', minutes: 13, load: '16/12 kg (35/26 lb)', rounds: 1, capSec: 1200,
+      missionLine: '15 SWINGS EVERY RUNG · SQUATS AND PUSH-UPS 10 DOWN TO 1 · CAP 20:00',
+      slots: stepDown(10, 'push-up'), pace: { elite: 540, standard: 780, beginner: 1080 },
+    },
+    elite: {
+      detail: '10 down to 1 · 24/16 kg · cap 20:00', minutes: 14, load: 'M 24 kg (53 lb) / W 16 kg (35 lb)', rounds: 1, capSec: 1200,
+      missionLine: '15 SWINGS EVERY RUNG · SQUATS AND PUSH-UPS 10 DOWN TO 1 · CAP 20:00',
+      slots: stepDown(10, 'push-up'), pace: { elite: 600, standard: 840, beginner: 1140 },
+    },
+  },
+};
+
+// ── 20 · CARRY-ON 15 ────────────────────────────────────────────────────────
+// The source gives one load range (M 16-22.5 / W 8-12 kg): its low end is
+// STANDARD, its top ELITE. quiet: nothing jumps, and nothing swings near the
+// furniture (no swap reaches a swing).
+const carryOn = (sec, n, lungeId, pushId) => [amrap(sec, 0, [
+  s('db-rdl', n, { swapKey: 'rdl' }), s('db-row', n, { swapKey: 'row', note: 'Brace a hand on the bed or the desk.' }),
+  s(lungeId, n, { swapKey: 'lunge' }), s(pushId, n, { swapKey: 'push-up' }),
+], [], { swapKey: 'block' })];
+const CARRY_ON = {
+  id: 'carry_on_15', launch: 20, title: 'CARRY-ON 15', tag: 'Hotel Room', loadout: 'bell', themes: [], format: 'amrap',
+  difficulty: 'Normal', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: true, guided: false, knownAs: '',
+  loadoutLine: '1 DUMBBELL OR KETTLEBELL · 2 M² OF FLOOR', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Beginner level: AMRAP 10 of 6 each, a light bell, incline push-ups and bodyweight lunges. No bell? A backpack of water bottles or books, about 8-10 kg, for the RDLs, rows and lunges.',
+  note: 'Built for a hotel room: nothing jumps, and nothing swings near the furniture. Incline push-ups go on the desk, not the soft bed.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: about 6-7 rounds for an intermediate; one round takes about 2:20.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 10 · 6 each · 8/5 kg · incline push-ups', minutes: 10, load: '8/5 kg (18/10 lb)', rounds: 1,
+      missionLine: 'AMRAP 10 · 6 RDLS · 6 ROWS · 6 REVERSE LUNGES · 6 INCLINE PUSH-UPS',
+      slots: carryOn(600, 6, 'reverse-lunge', 'incline-push-up'), pace: { elite: 10, standard: 8, beginner: 6 },
+    },
+    standard: {
+      detail: 'AMRAP 15 · M 16 kg / W 8 kg', minutes: 15, load: 'M 16 kg (35 lb) / W 8 kg (18 lb)', rounds: 1,
+      missionLine: 'AMRAP 15 · 10 RDLS · 10 ROWS · 10 GOBLET REVERSE LUNGES · 10 PUSH-UPS',
+      slots: carryOn(900, 10, 'kb-reverse-lunge', 'push-up'), pace: { elite: 8, standard: 6, beginner: 4 },
+    },
+    elite: {
+      detail: 'AMRAP 15 · M 22.5 kg / W 12 kg', minutes: 15, load: 'M 22.5 kg (50 lb) / W 12 kg (25 lb)', rounds: 1,
+      missionLine: 'AMRAP 15 · 10 RDLS · 10 ROWS · 10 GOBLET REVERSE LUNGES · 10 PUSH-UPS',
+      slots: carryOn(900, 10, 'kb-reverse-lunge', 'push-up'), pace: { elite: 7, standard: 6, beginner: 4 },
+    },
+  },
+};
+
+// ── 21 · SURGE 20/10 ────────────────────────────────────────────────────────
+// 20/10 timing, rotating three moves through 8 rounds. The score is each
+// move's lowest round, added (the TURBO BUTTON convention). Like every
+// interval clock, the last 0:10 rest is not run: 11:50.
+const surge = (work, rest, squatId) => [
+  t('kb-swing', work, rest, { swapKey: 'swing' }), t(squatId, work, rest, { swapKey: 'thruster' }), t('mountain-climber', work, rest, { swapKey: 'climber' }),
+];
+const SURGE = {
+  id: 'surge_20_10', launch: 21, title: 'SURGE 20/10', tag: 'Kettlebell', loadout: 'bell', themes: [], format: 'intervals',
+  difficulty: 'Hard', focus: 'Conditioning', workoutType: 'Weighted', hotel: true, quiet: false, guided: false,
+  knownAs: 'Tabata intervals (20 s on / 10 s off x 8), rotating',
+  loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE', scoreLine: 'LOWEST SWINGS + THRUSTERS + CLIMBERS',
+  scoreRule: { kind: 'reps', label: 'LOWEST SWINGS + THRUSTERS + CLIMBERS', keys: ['swing', 'thruster', 'climber'], agg: 'lowest' },
+  scale: 'Lighter bell (16/8 kg), or the beginner level: 15 on, 15 off for 6 rounds, with goblet squats for the thrusters. Dumbbell: swings and goblet thrusters with one dumbbell.',
+  note: 'Warm up 3 min first: halos, goblet squats, 10 easy swings. Max-effort intervals done cold are where backs get tweaked. Fast but crisp: fewer clean swings beat sloppy ones, so park the bell if your back rounds.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate from the count, with a fatigue drop. The 20 on, 10 off timing comes from a cycling study; this rotation is a gym variant.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '6 rounds · 0:15 on, 0:15 off · 12/8 kg · goblet squats', minutes: 9, load: '12/8 kg (26/18 lb)', rounds: 6,
+      missionLine: '6 ROUNDS · 0:15 ON, 0:15 OFF · SWINGS · GOBLET SQUATS · CLIMBERS',
+      slots: surge(15, 15, 'goblet-squat'), pace: { elite: 36, standard: 27, beginner: 22 },
+    },
+    standard: {
+      detail: '8 rounds · 0:20 on, 0:10 off · 16/8 kg', minutes: 12, load: '16/8 kg (35/18 lb)', rounds: 8,
+      missionLine: '8 ROUNDS · 0:20 ON, 0:10 OFF · SWINGS · GOBLET THRUSTERS · CLIMBERS',
+      slots: surge(20, 10, 'kb-goblet-thruster'), pace: { elite: 46, standard: 37, beginner: 29 },
+    },
+    elite: {
+      detail: '8 rounds · 0:20 on, 0:10 off · 20/12 kg', minutes: 12, load: 'M 20 kg (44 lb) / W 12 kg (26 lb)', rounds: 8,
+      missionLine: '8 ROUNDS · 0:20 ON, 0:10 OFF · SWINGS · GOBLET THRUSTERS · CLIMBERS',
+      slots: surge(20, 10, 'kb-goblet-thruster'), pace: { elite: 44, standard: 35, beginner: 27 },
+    },
+  },
+};
+
+// ── 22 · MIDLINE LOCK ───────────────────────────────────────────────────────
+// Loaded anti-movement core: no arching, leaning or twisting. ELITE is the
+// source's harder option (16/12 kg, a 3 s pause on every dead bug).
+const midline = (sec, bugId, pullId, bugNote) => [amrap(sec, 0, [
+  s(bugId, 10, { swapKey: 'dead-bug', ...(bugNote ? { note: bugNote } : {}) }), s('kb-suitcase-deadlift', 10, { swapKey: 'suitcase' }),
+  s(pullId, 10, { swapKey: 'pull-through' }), s('kb-halo', 10, { swapKey: 'halo', note: 'Five each way.' }),
+], [], { swapKey: 'block' })];
+const MIDLINE = {
+  id: 'midline_lock', launch: 22, title: 'MIDLINE LOCK', tag: 'Kettlebell', loadout: 'bell', themes: [], format: 'amrap',
+  difficulty: 'Easy', focus: 'Core', workoutType: 'Weighted', hotel: true, quiet: true, guided: false, knownAs: '',
+  loadoutLine: '1 LIGHT KETTLEBELL OR DUMBBELL · A MAT OF FLOOR', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Beginner level: bodyweight dead bugs, an 8 kg bell (or a water jug or backpack), knee plank pull-throughs, AMRAP 6. No bell? Backpack halos, and a loaded backpack for the rest.',
+  note: 'Here the core stops motion: no arching, leaning or twisting. Slow and controlled, ribs down. Clean rounds count, not fast ones.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: about 5 rounds; one slow round takes about 2 min.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 6 · bodyweight dead bugs · 8 kg · knee plank', minutes: 6, load: '8 kg (18 lb), or a water jug or backpack', rounds: 1,
+      missionLine: 'AMRAP 6 · 10 DEAD BUGS · 10 SUITCASE DEADLIFTS · 10 KNEE PULL-THROUGHS · 10 HALOS',
+      slots: midline(360, 'dead-bug', 'kb-knee-pull-through'), pace: { elite: 4, standard: 3, beginner: 2 },
+    },
+    standard: {
+      detail: 'AMRAP 10 · M 12-16 kg / W 8 kg', minutes: 10, load: 'M 12-16 kg (26-35 lb) / W 8 kg (18 lb)', rounds: 1,
+      missionLine: 'AMRAP 10 · 10 DEAD BUGS · 10 SUITCASE DEADLIFTS · 10 PULL-THROUGHS · 10 HALOS',
+      slots: midline(600, 'kb-dead-bug', 'kb-plank-pull-through'), pace: { elite: 6, standard: 5, beginner: 4 },
+    },
+    elite: {
+      detail: 'AMRAP 10 · 16/12 kg · a 3 s pause on every dead bug', minutes: 10, load: '16/12 kg (35/26 lb)', rounds: 1,
+      missionLine: 'AMRAP 10 · 10 PAUSED DEAD BUGS · 10 SUITCASE DEADLIFTS · 10 PULL-THROUGHS · 10 HALOS',
+      slots: midline(600, 'kb-dead-bug', 'kb-plank-pull-through', 'Pause 3 s at the bottom of every rep.'), pace: { elite: 5, standard: 4, beginner: 3 },
+    },
+  },
+};
+
+// ── 23 · LEG SWEEP ──────────────────────────────────────────────────────────
+// The bed is the bench. The source's load (M 16-22.5 / W 8-12 kg) is ELITE,
+// its scaled 8-12 kg STANDARD.
+const legSweep = (sec, splitId, thrustId) => [amrap(sec, 0, [
+  s(splitId, 12, { swapKey: 'split-squat' }), s(thrustId, 12, { swapKey: 'hip-thrust' }), s('kb-lateral-lunge', 10, { swapKey: 'lateral-lunge' }),
+], [], { swapKey: 'block' })];
+const LEG_SWEEP = {
+  id: 'leg_sweep', launch: 23, title: 'LEG SWEEP', tag: 'Hotel Room', loadout: 'bell', themes: [], format: 'amrap',
+  difficulty: 'Normal', focus: 'Lower', workoutType: 'Weighted', hotel: true, quiet: true, guided: false, knownAs: '',
+  loadoutLine: '1 DUMBBELL OR KETTLEBELL + A BED OR SOFA', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Lighter bell (8-12 kg), or the beginner level: split squats with the back foot on the floor and a hand on the wall, glute bridges on the floor, AMRAP 8.',
+  note: 'Use the bed or a wall-braced sofa, never a rolling desk chair. A towel under the dumbbell on the hip thrusts.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: about 4-5 rounds; one round takes about 2:20.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 8 · split squats · glute bridges · a light bell', minutes: 8, load: 'A light bell, 8 kg (18 lb), for the lateral lunges', rounds: 1,
+      missionLine: 'AMRAP 8 · 6/6 SPLIT SQUATS · 12 GLUTE BRIDGES · 10 LATERAL LUNGES',
+      slots: legSweep(480, 'split-squat', 'glute-bridge'), pace: { elite: 5, standard: 4, beginner: 3 },
+    },
+    standard: {
+      detail: 'AMRAP 12 · 8-12 kg', minutes: 12, load: '8-12 kg (18-25 lb)', rounds: 1,
+      missionLine: 'AMRAP 12 · 6/6 SPLIT SQUATS · 12 HIP THRUSTS · 10 LATERAL LUNGES',
+      slots: legSweep(720, 'kb-bulgarian-split-squat', 'db-hip-thrust'), pace: { elite: 7, standard: 5, beginner: 4 },
+    },
+    elite: {
+      detail: 'AMRAP 12 · M 16-22.5 kg / W 8-12 kg', minutes: 12, load: 'M 16-22.5 kg (35-50 lb) / W 8-12 kg (18-25 lb)', rounds: 1,
+      missionLine: 'AMRAP 12 · 6/6 SPLIT SQUATS · 12 HIP THRUSTS · 10 LATERAL LUNGES',
+      slots: legSweep(720, 'kb-bulgarian-split-squat', 'db-hip-thrust'), pace: { elite: 6, standard: 4, beginner: 3 },
+    },
+  },
+};
+
+// ── 24 · CHARGE UP 12 ───────────────────────────────────────────────────────
+// An ascending ladder on the AMRAP clock: both steps climb 2 a rung (`climb`),
+// + ROUND marks a rung, and the score is total reps: the source's 'rung + reps
+// into the next' as one number (through the 14s is 112). Paces are the
+// source's rung marks in reps; BEGINNER is its ROOKIE 8:00.
+const chargeUp = (sec) => [amrap(sec, 0, [
+  s('db-devil-press', 2, { swapKey: 'press' }), s('db-lateral-burpee-over', 2, { swapKey: 'burpee' }),
+], [], { swapKey: 'block', climb: 2 })];
+const CHARGE_UP = {
+  id: 'charge_up_12', launch: 24, title: 'CHARGE UP 12', tag: 'Dumbbell', loadout: 'bell', themes: ['burpees'], format: 'amrap',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: false, quiet: false, guided: false,
+  knownAs: "Ascending dumbbell / burpee ladder (inspired by CrossFit Open 17.1's dumbbell snatch and burpee box jump-over)",
+  loadoutLine: '1 HEX DUMBBELL · 2 × 2 M, ROOM TO PRESS OVERHEAD', scoreLine: 'TOTAL REPS: EVERY RUNG CLEARED, PLUS INTO THE NEXT',
+  scoreRule: { kind: 'reps', label: 'TOTAL REPS', keys: ['press', 'burpee'], agg: 'total' },
+  scale: 'Lighter bell first, then start the ladder at 1 and add 1 a rung. Step-back burpees for knees. No dumbbell: burpees and lateral burpees over a line. Harder: two dumbbells.',
+  note: 'Warm up 5 min: easy jacks, hip hinges, light deadlifts and hang clean and presses, 5 burpees, hops over a line. Tap + ROUND after each rung. Back rounding on the pull, or a soft lockout: a lighter bell. Never drop it from overhead. Dizziness, chest pain or sharp pain ends the run, and the score stands.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate from the rep times (devil press 4 / 6 / 9 s, burpee-over 3 / 4.5 / 6 s), plus a breath a rung.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 8 · 10/5 kg', minutes: 8, load: '10/5 kg (22/11 lb), or 15/10 kg', rounds: 1,
+      missionLine: 'AMRAP 8 LADDER · 2 + 2, THEN 4 + 4, +2 A RUNG',
+      slots: chargeUp(480), pace: { elite: 112, standard: 60, beginner: 40 },
+    },
+    standard: {
+      detail: 'AMRAP 12 · 15/10 kg', minutes: 12, load: '15/10 kg (35/22 lb)', rounds: 1,
+      missionLine: 'AMRAP 12 LADDER · 2 + 2, THEN 4 + 4, +2 A RUNG',
+      slots: chargeUp(720), pace: { elite: 180, standard: 112, beginner: 60 },
+    },
+    elite: {
+      detail: 'AMRAP 12 · 22.5/15 kg', minutes: 12, load: '22.5/15 kg (50/35 lb)', rounds: 1,
+      missionLine: 'AMRAP 12 LADDER · 2 + 2, THEN 4 + 4, +2 A RUNG',
+      slots: chargeUp(720), pace: { elite: 180, standard: 112, beginner: 60 },
+    },
+  },
+};
+
+// ── 25 · OXYGEN DEBT ────────────────────────────────────────────────────────
+// 21-15-9, a ladder of three rungs. STANDARD is the source's intermediate
+// (34/25 kg, 12-9-6 pull-ups). The 10:00 cap is a gym convention.
+const debt = (thrusters, pulls, pullId) => rungs(thrusters, (n, i) => [
+  s('bb-thruster', n, { swapKey: 'thruster' }), s(pullId, pulls[i], { swapKey: 'pull-up' }),
+]);
+const OXYGEN_DEBT = {
+  id: 'oxygen_debt', launch: 25, title: 'OXYGEN DEBT', tag: 'Sprint', loadout: 'mixed', themes: [], format: 'forTime',
+  difficulty: 'Brutal', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: false, guided: false, knownAs: 'Fran',
+  loadoutLine: '1 BARBELL + A PULL-UP BAR, OR 2 DUMBBELLS', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
+  scale: 'Lighter bar, or the beginner level: 15-12-9 with an empty bar or 2 light dumbbells, and jumping pull-ups. Dumbbells: 2 × 15/10 kg. No bar on the road: dumbbell bent-over rows, the same reps.',
+  note: 'A 5-8 min sprint, so start it warm: 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap + ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: 5-8 min for most; elite athletes finish in under 3.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '15-12-9 · empty bar or 2 × 5-7.5 kg · jumping pull-ups', minutes: 5, load: '20/15 kg empty bar, or 2 × 5-7.5 kg dumbbells', rounds: 1, capSec: 600,
+      missionLine: '15-12-9 FOR TIME · THRUSTERS · JUMPING PULL-UPS · CAP 10:00',
+      slots: debt([15, 12, 9], [15, 12, 9], 'jumping-pull-up'), pace: { elite: 150, standard: 300, beginner: 480 },
+    },
+    standard: {
+      detail: '21-15-9 · 34/25 kg · 12-9-6 pull-ups', minutes: 6, load: '34/25 kg (75/55 lb)', rounds: 1, capSec: 600,
+      missionLine: '21-15-9 THRUSTERS · 12-9-6 PULL-UPS · FOR TIME · CAP 10:00',
+      slots: debt([21, 15, 9], [12, 9, 6], 'pull-up'), pace: { elite: 180, standard: 330, beginner: 510 },
+    },
+    elite: {
+      detail: '21-15-9 · 43/29 kg', minutes: 6, load: '43/29 kg (95/65 lb)', rounds: 1, capSec: 600,
+      missionLine: '21-15-9 FOR TIME · THRUSTERS · PULL-UPS · CAP 10:00',
+      slots: debt([21, 15, 9], [21, 15, 9], 'pull-up'), pace: { elite: 180, standard: 360, beginner: 540 },
+    },
+  },
+};
+
+// ── 26 · HOT LAPS ───────────────────────────────────────────────────────────
+// The run is a manual DONE in metres; a capped score counts the swings and
+// pull-ups, never the metres. ELITE swings overhead as written; the other
+// levels swing to eye level (the source's rule for anyone uncoached).
+const laps = (metres, swingId, swings, pullId, pulls) => [
+  r('run', metres, 0, { swapKey: 'run' }), r(swingId, swings, 0, { swapKey: 'swing' }), r(pullId, pulls, 0, { swapKey: 'pull-up' }),
+];
+const HOT_LAPS = {
+  id: 'hot_laps', launch: 26, title: 'HOT LAPS', tag: 'Running', loadout: 'mixed', themes: [], format: 'forTime',
+  difficulty: 'Hard', focus: 'Conditioning', workoutType: 'Weighted', hotel: false, quiet: false, guided: false, knownAs: 'Helen',
+  loadoutLine: '1 KETTLEBELL + A PULL-UP BAR · A 400 M ROUTE OR A TREADMILL', scoreLine: 'TIME, OR SWINGS + PULL-UPS AT THE CAP', scoreRule: { kind: 'time' },
+  scale: 'Lighter bell, or the beginner level: 200 m, 15 swings at 12/8 kg, 9 jumping pull-ups. Travel: a treadmill, dumbbell swings, and single-arm rows for the pull-ups.',
+  note: 'Warm up 6-8 min: an easy 400 m jog, then 2 rounds of 10 swings to eye level and 5 pull-ups or ring rows. Never been coached on swings? Stop them at eye level: the overhead finish is where tired backs arch. Tap + ROUND after each lap.',
+  ...SOLO_COPY,
+  paceBasis: 'Coach estimate: 10-14 min for most; a 400 m run takes about 1:45-2:30.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '200 m · 15 swings at 12/8 kg · 9 jumping pull-ups', minutes: 8, load: '12/8 kg (26/18 lb)', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS FOR TIME · 200 M RUN · 15 SWINGS · 9 JUMPING PULL-UPS · CAP 20:00',
+      slots: laps(200, 'kb-swing', 15, 'jumping-pull-up', 9), pace: { elite: 330, standard: 480, beginner: 720 },
+    },
+    standard: {
+      detail: '400 m · 21 swings at 16/12 kg · 6 pull-ups', minutes: 11, load: '16/12 kg (35/26 lb)', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS FOR TIME · 400 M RUN · 21 SWINGS · 6 PULL-UPS · CAP 20:00',
+      slots: laps(400, 'kb-swing', 21, 'pull-up', 6), pace: { elite: 450, standard: 660, beginner: 960 },
+    },
+    elite: {
+      detail: '400 m · 21 overhead swings at 24/16 kg · 12 pull-ups', minutes: 12, load: '24/16 kg (53/35 lb)', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS FOR TIME · 400 M RUN · 21 AMERICAN SWINGS · 12 PULL-UPS · CAP 20:00',
+      slots: laps(400, 'kb-american-swing', 21, 'pull-up', 12), pace: { elite: 480, standard: 720, beginner: 1020 },
+    },
+  },
+};
+
+export const LOADOUT_MISSIONS = [
+  IRON_CLOCK, ONE_BELL, FIVE_ROUND, BEST_OF_3, STEEL, CHECKPOINT, ROOM_12, HIT_COMBO, TUTORIAL, TURBO, QUOTA,
+  HONOR, KO_SPRINT, OVERHEAD_RUSH, BURNOUT, STANCE, ROOKIE, FIRST_BELL, CONTINUE_BELL, CARRY_ON, SURGE, MIDLINE, LEG_SWEEP, CHARGE_UP, OXYGEN_DEBT, HOT_LAPS,
+];
 
 // Test-only: fixture defs (a box move, a flying knee) the unit tests build.
 // Never on the shelf.
@@ -515,8 +1058,10 @@ export function allowedGear(loadout, profile) {
 
 const clone = (o) => (o == null ? o : JSON.parse(JSON.stringify(o)));
 const hasList = (slot) => Array.isArray(slot?.list);
+// restAfter: an EMOM's rest after this window (FIRST BELL). climb: reps an
+// AMRAP block adds to every step each round (CHARGE UP 12). See missionSolo.
 const SLOT_KEYS = ['name', 'moveId', 'baseMoveId', 'defaultMoveId', 'swapKey', 'mode', 'reps', 'work', 'rest', 'window', 'cadenceMs', 'setupMs',
-  'unit', 'sides', 'list', 'calls', 'prefix', 'say', 'sayLead', 'sideSay', 'note', 'count', 'scaled'];
+  'unit', 'sides', 'list', 'calls', 'prefix', 'say', 'sayLead', 'sideSay', 'note', 'count', 'scaled', 'restAfter', 'climb'];
 const STEP_KEYS = ['name', 'moveId', 'baseMoveId', 'defaultMoveId', 'swapKey', 'reps', 'unit', 'sides', 'cadenceMs', 'say', 'note', 'noteIf', 'scaled'];
 // Only the fields a Slot / Step has, in one order, with no undefined noise.
 const pick = (src, keys) => {
@@ -525,6 +1070,8 @@ const pick = (src, keys) => {
   return o;
 };
 const countCol = (def, level) => def?.countAt?.[level] || level;
+// The display unit of a move counted in calories or metres (HOT LAPS' run).
+const UNIT_WORD = { cal: 'CAL', m: 'M' };
 
 // One authored slot or step at its base move, filled from the catalog.
 function baseStep(d, col, amrapStep) {
@@ -533,7 +1080,7 @@ function baseStep(d, col, amrapStep) {
     ...clone(d),
     name: d.name || move?.name || d.moveId,
     baseMoveId: d.moveId, defaultMoveId: d.moveId,
-    unit: move?.unit === 'cal' ? 'CAL' : undefined,
+    unit: UNIT_WORD[move?.unit],
     sides: amrapStep && d.sides !== null ? (d.sides || move?.sides) : undefined, // complex steps never carry sides
     cadenceMs: 'cadenceMs' in d ? d.cadenceMs : cadenceFor(d.moveId, col),
   }, STEP_KEYS);
@@ -550,7 +1097,7 @@ function baseSlot(d, col) {
     name: d.name || move?.name || d.moveId,
     baseMoveId: d.moveId, defaultMoveId: d.moveId,
     cadenceMs: 'cadenceMs' in d ? d.cadenceMs : cadenceFor(d.moveId, col),
-    unit: d.mode === 'reps' && move?.unit === 'cal' ? 'CAL' : undefined,
+    unit: d.mode === 'reps' ? UNIT_WORD[move?.unit] : undefined,
     sides: d.sides === null ? undefined : (d.sides || move?.sides),
   }, SLOT_KEYS);
 }
@@ -587,6 +1134,8 @@ const round5 = (n) => Math.round(n / 5) * 5;
 // count multiplier from the base (default 1).
 export function totalRepsForKey(mission, swapKey, moveId, x = 1) {
   const n = mission?.rounds || 1;
+  // A total-reps AMRAP (CHARGE UP 12) reads its pace in reps here, which only
+  // over-counts: the volume cap stays on the safe side.
   const amrapRounds = typeof mission?.pace?.elite === 'number' ? mission.pace.elite : n;
   let total = 0;
   baseOf(mission).forEach(slot => {
@@ -769,7 +1318,7 @@ function convert(b, toId, { x, col, level, step, amrapStep, defaultMoveId }) {
     out.reps = Math.max(1, Math.round((b.work * 1000) / estMsFor(toId)));
     out.work = undefined;
   }
-  out.unit = (step || out.mode === 'reps') && to.unit === 'cal' ? 'CAL' : undefined;
+  out.unit = step || out.mode === 'reps' ? UNIT_WORD[to.unit] : undefined;
   out.cadenceMs = cadenceFor(toId, col); // an authored cadenceMs belongs to the base move only
   if (out.calls && !to.callsOk) out.calls = undefined;
   out.sides = !step || amrapStep ? to.sides : undefined; // complex steps never carry sides
@@ -855,13 +1404,22 @@ export function swapOptions(mission, swapKey, { gear = gearProfile() } = {}) {
 }
 
 // ── the card ────────────────────────────────────────────────────────────────
+// A key that runs at different counts (a ladder's rungs) reads them all,
+// '21-18-15-12-9-6-3', or first→last past seven rungs ('10→1').
+const ladderDose = (items) => {
+  const v = items.map(it => (it.mode === 'timed' ? slotDose(it) : String(it.reps)));
+  return v.length <= 7 ? v.join('-') : `${v[0]}→${v[v.length - 1]}`;
+};
 export function cardRows(mission, { gear = gearProfile() } = {}) {
   return rowItems(mission).map(({ item, parent }, i) => {
     let dose = slotDose(item);
-    if (!parent) {
-      const occ = (mission.exercises || []).filter(sl => !hasList(sl) && sl.swapKey === item.swapKey).map(slotDose);
-      if (occ.length > 1 && occ.every(d => d === occ[0])) dose = `${occ.length} × ${occ[0]}`;
-    }
+    const occ = parent
+      ? (mission.exercises || []).flatMap(sl => (hasList(sl) ? sl.list.filter(st => st.swapKey === item.swapKey) : []))
+      : (mission.exercises || []).filter(sl => !hasList(sl) && sl.swapKey === item.swapKey);
+    const doses = occ.map(slotDose);
+    if (parent?.climb) dose = `${[0, 1, 2].map(k => item.reps + k * parent.climb).join(', ')}…`; // CHARGE UP 12: '2, 4, 6…'
+    else if (doses.some(d => d !== doses[0])) dose = ladderDose(occ);
+    else if (!parent && doses.length > 1) dose = `${doses.length} × ${doses[0]}`;
     const swapped = item.moveId !== item.baseMoveId;
     return {
       swapKey: item.swapKey,

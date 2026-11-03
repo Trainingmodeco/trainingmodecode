@@ -12,7 +12,7 @@ import {
 import { cardRows, swapMissionMove, gearProfile, FORMAT_LABEL } from './data/loadoutMissions';
 import {
   isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, paceTargets, prefillScore,
-  totalSlots, soloExpectedSec, soloFloorSec, formatScore,
+  totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
 } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 
@@ -74,14 +74,15 @@ function clockDraft(mission, roundTaps, blockTaps) {
       : { end: 'clock', rounds: pre?.rounds || 0, reps: 0 };
   }
   if (kind === 'minutesHeld') {
-    const of = Math.round(missionClockSec(mission) / 60);
+    const of = heldOf(mission);
     return { end: 'clock', minutesHeld: clampInt(pre, 0, of), of };
   }
   if (kind === 'reps') return { end: 'clock', reps: Math.max(0, Math.round(pre || 0)) };
   return { end: 'clock' };
 }
+// A ladder's taps are its rungs, so the prefill is the reps through them.
 function capDraft(mission, roundTaps) {
-  return { end: 'cap', reps: Math.min(repsPerRound(mission) * (mission.rounds || 1), roundTaps * repsPerRound(mission)) };
+  return { end: 'cap', reps: Math.min(repsPerRound(mission) * (mission.rounds || 1), repsThrough(mission, roundTaps)) };
 }
 
 // The Score object App stores (see the Drop A spec, 3.7).
@@ -201,6 +202,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const rpr = useMemo(() => repsPerRound(mission), [mission]);
   const clockSec = fixedClock ? missionClockSec(mission) : 0;
   const capSec = format === 'forTime' ? mission.capSec || 0 : 0;
+  const tapRounds = soloRounds(mission); // for time: a ladder counts its rungs
   const ticking = phase === 'running' || (phase === 'score' && scoreDraft?.end === 'finish' && scoreDraft.from === 'running');
 
   // What the interval and the visibility listener read (they outlive renders).
@@ -414,7 +416,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   let subLine = '';
   if (format === 'forTime') {
     bigClock = mmss(elapsedSec);
-    subLine = `CAP ${mmss(capSec)} · ROUND ${Math.min(roundTaps + 1, mission.rounds || 1)}/${mission.rounds || 1}`;
+    subLine = `CAP ${mmss(capSec)} · ROUND ${Math.min(roundTaps + 1, tapRounds)}/${tapRounds}`;
   } else if (format === 'amrap' && !multiBlock) {
     bigClock = mmss(totalLeft);
     subLine = `AMRAP ${Math.round(clockSec / 60)}`;
@@ -436,7 +438,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const tapsLive = phase === 'running' || phase === 'paused';
   const addRound = () => {
     if (!tapsLive) return;
-    if (format === 'forTime' && roundTaps >= (mission.rounds || 1)) return;
+    if (format === 'forTime' && roundTaps >= tapRounds) return;
     setRoundTaps(n => n + 1);
     if (multiBlock) setBlockTaps(list => list.map((v, i) => (i === block ? v + 1 : v)));
   };
@@ -643,7 +645,7 @@ function ScorePanel({ mission, draft, finishSec, rpr, onDraft, onSave, onNotYet 
       </>
     );
   } else if (rule.kind === 'minutesHeld') {
-    body = <ScoreStepper label="MINUTES HELD" value={draft.minutesHeld} max={draft.of} onChange={(v) => set({ minutesHeld: v })}/>;
+    body = <ScoreStepper label={rule.label || 'MINUTES HELD'} value={draft.minutesHeld} max={draft.of} onChange={(v) => set({ minutesHeld: v })}/>;
   } else if (rule.kind === 'reps') {
     body = <ScoreStepper label={rule.label || 'REPS'} name="reps" value={draft.reps} onChange={(v) => set({ reps: v })}/>;
   }

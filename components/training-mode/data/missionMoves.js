@@ -10,6 +10,8 @@
 //     push-up, dive bomber, sprawl, lunge to teep, knee strike, one-two,
 //     switch kick and roundhouse
 //   · catalog2.json libraryGaps: burpees and step-back sprawls
+//   · missions/data2.json (CHARGE UP 12's pace cars): the devil press and the
+//     burpee over the dumbbell
 //   · everything else (every kettlebell, dumbbell and barbell move, and the
 //     other bodyweight moves) is a COACH ESTIMATE, as is switchMs (3000 on
 //     every 'switch' move) and IRON CLOCK's setupMs in loadoutMissions
@@ -34,6 +36,7 @@ const mv = (id, name, say, pattern, gear, unit, cad, flags, cues, alts) => ({
   ...(flags.estMs ? { estMs: flags.estMs } : {}),
   ...(flags.sides ? { sides: flags.sides } : {}),
   ...(flags.sides === 'switch' ? { switchMs: 3000 } : {}), // coach estimate: time to pass the bell or bar to the other arm
+  ...(flags.sideWord ? { sideWord: flags.sideWord } : {}), // an alternating move done per hand, not per leg: '10 (5/side)'
   ...(flags.timedOnly ? { timedOnly: true } : {}),
   ...(flags.repsOnly ? { repsOnly: true } : {}),
   ...(flags.callsOk ? { callsOk: true } : {}),
@@ -305,11 +308,163 @@ export const MOVES = [
   mv('bb-muscle-clean-press', 'Muscle Clean and Strict Press', 'muscle clean and presses', 'clean', 'barbell', 'reps', [3.5, 4.5, 5.5], NONE,
     'Deadlift the bar to the hips. | Muscle it to the shoulders with no dip, then strict-press. | Lower with control.',
     [harder('bb-clean-press')]),
+
+  // ── the SOLO-only missions (HONOR ROUNDS → HOT LAPS) ──────────────────────
+  // Every cadence here is a COACH ESTIMATE except CHARGE UP 12's devil press
+  // and burpee-over (its researched pace cars; the beginner's 9 s press is
+  // held at the count's 6 s ceiling). Get-ups and the run are never counted
+  // (manual): estMs is one rep (one metre) for the estimates.
+  // barbell
+  mv('bb-push-jerk', 'Push Jerks', 'push jerks', 'press', 'barbell', 'reps', [1.75, 2.25, 2.75], { say1: 'push jerk' },
+    'Bar in the front rack, elbows up. | Dip, drive, then push yourself under the bar into a quarter squat, arms locked. | Stand tall before the next rep.',
+    [easier('bb-push-press', { stop: 'Never been coached?' })]),
+  mv('bb-clean-jerk', 'Clean and Jerks', 'clean and jerks', 'clean', 'barbell', 'reps', [4.0, 5.0, 6.0], { say1: 'clean and jerk' },
+    'Clean the bar to the shoulders and stand tall. | Dip and drive it overhead, press or jerk. | Lower to the shoulders, then the hips. Bumper plates if you drop it.',
+    [easier('bb-hang-clean-push-press', { stop: 'Never been coached?' }), easier('bb-clean-press')]),
+  mv('bb-hang-clean-push-press', 'Hang Power Clean + Push Press', 'hang cleans and push presses', 'clean', 'barbell', 'reps', [4.0, 5.0, 6.0], NONE,
+    'Bar at the hips, soft knees. | Hang power clean to the shoulders, then push-press it overhead. | One of each is one rep. Singles are fine.',
+    [easier('bb-muscle-clean-press'), harder('bb-clean-jerk')]),
+  mv('bb-ground-to-overhead', 'Ground-to-Overheads', 'ground-to-overheads', 'clean', 'barbell', 'reps', [3.5, 4.5, 5.5], { say1: 'ground-to-overhead' },
+    'Floor to locked out overhead, any way you like. | Clean and jerk, or clean and press. Snatch only if you are trained in it. | Feet and hips together at the top.',
+    [easier('bb-g2oh-three-step', { stop: 'Never been coached?' }), similar('bb-clean-press'), similar('bb-clean-jerk')]),
+  mv('bb-g2oh-three-step', 'Three-Step Ground-to-Overheads', 'three-step ground-to-overheads', 'clean', 'barbell', 'reps', [5.0, 5.5, 6.0], NONE,
+    'Deadlift the bar to the hips. | Hang muscle clean it to the shoulders, no dip under. | Push-press it overhead. Three clean steps.',
+    [harder('bb-ground-to-overhead')]),
+  mv('bar-facing-burpee', 'Bar-Facing Burpees', 'bar-facing burpees', 'burpee', 'barbell', 'reps', [3.5, 4.0, 5.0], { jumps: true },
+    'Chest to the floor, facing the bar. | Up, then a two-foot jump over the bar. | Land soft and face the bar for the next one.',
+    [easier('bar-step-over-burpee', { stop: 'Clipping the bar?' }), easier('step-back-burpee'), noGear('burpee')]),
+  mv('bar-step-over-burpee', 'Step-Over Burpees', 'step-over burpees', 'burpee', 'barbell', 'reps', [4.0, 4.5, 5.5], NONE,
+    'Chest to the floor, facing the bar. | Stand, then step over the bar one foot at a time. No jump. | Face the bar for the next one.',
+    [easier('step-back-burpee'), harder('bar-facing-burpee')]),
+  mv('bb-thruster', 'Thrusters', 'thrusters', 'squat', 'barbell', 'reps', [2.0, 2.5, 3.0], { say1: 'thruster' },
+    'Bar in the front rack, elbows up. | Front squat down, then drive up and press it overhead in one move. | Back arching on the press? Split it: a front squat, then a push press.',
+    [easier('bb-front-squat-push-press', { stop: 'Back arching on the press?' }), similar('db-thruster')]),
+  mv('bb-front-squat-push-press', 'Front Squat + Push Press', 'front squats and push presses', 'squat', 'barbell', 'reps', [3.5, 4.0, 4.5], NONE,
+    'Front squat and stand all the way up. | Reset, then push-press the bar overhead. | One of each is one rep.',
+    [harder('bb-thruster')]),
+  mv('bb-zercher-squat', 'Zercher Squats', 'Zercher squats', 'squat', 'barbell', 'reps', [2.25, 2.75, 3.25], NONE,
+    'Deadlift the bar, then rest it in the crooks of the elbows, hands together. | Sit straight down between the knees, chest up. | No rack needed. Have one? Back squats work too.',
+    [easier('plate-goblet-squat'), similar('bb-back-squat'), noGear('air-squat')]),
+
+  // kettlebell / dumbbell
+  mv('kb-one-arm-swing', 'Single-Arm Kettlebell Swings', 'single-arm swings', 'hinge', 'bell', 'reps', [1.5, 1.75, 2.25], NONE,
+    'One hand on the bell, hike it back between the legs. | Snap the hips; the bell floats to chest height. Shoulders square, no twist. | Switch arms every set.',
+    [easier('kb-swing'), similar('db-one-arm-swing')]),
+  mv('db-one-arm-swing', 'Single-Arm Dumbbell Swings', 'single-arm dumbbell swings', 'hinge', 'db', 'reps', [1.5, 1.75, 2.25], NONE,
+    'Hold one dumbbell by the head. | Same hip snap, to chest height. | Switch arms every set.',
+    [similar('kb-one-arm-swing'), easier('db-swing')]),
+  mv('kb-american-swing', 'American Swings', 'American swings', 'hinge', 'bell', 'reps', [1.75, 2.0, 2.5], NONE,
+    'The same hip snap as a swing to eye level. | Let the bell float all the way overhead, arms straight, ribs down. | Never been coached? Stop at eye level.',
+    [easier('kb-swing', { stop: 'Never been coached?' }), similar('db-swing')]),
+  mv('kb-turkish-get-up', 'Weighted Turkish Get-Up', 'get-ups', 'core', 'bell', 'reps', null, { estMs: 30000, say1: 'get-up' },
+    'Bell locked out over the shoulder, eyes on it the whole way. | Roll to the elbow, the hand, bridge, sweep the leg, stand. | Reverse every step to the floor. Never rush.',
+    [easier('half-get-up', { stop: 'Shoulder pain?' }), easier('bw-turkish-get-up'), similar('db-turkish-get-up')]),
+  mv('db-turkish-get-up', 'Dumbbell Turkish Get-Up', 'dumbbell get-ups', 'core', 'db', 'reps', null, { estMs: 30000, say1: 'dumbbell get-up' },
+    'A light dumbbell locked out over the shoulder, wrist straight. | The same steps up and back down, eyes on the bell.',
+    [similar('kb-turkish-get-up'), easier('bw-turkish-get-up')]),
+  mv('bw-turkish-get-up', 'Turkish Get-Up', 'get-ups', 'core', 'none', 'reps', null, { estMs: 25000, say1: 'get-up' },
+    'No weight: balance a shoe on the fist. | The same steps up and back down, arm locked, eyes on the shoe. | Smooth every step before you add a bell.',
+    [easier('half-get-up'), harder('kb-turkish-get-up')]),
+  mv('half-get-up', 'Half Turkish Get-Up', 'half get-ups', 'core', 'none', 'reps', null, { estMs: 15000, say1: 'half get-up' },
+    'No weight, arm locked to the ceiling. | Roll to the elbow, then up to the hand. | Reverse back to the floor, slowly.',
+    [harder('bw-turkish-get-up')]),
+  mv('db-rdl', 'Dumbbell Romanian Deadlifts', 'Romanian deadlifts', 'hinge', 'db', 'reps', [2.0, 2.5, 3.0], NONE,
+    'One dumbbell or kettlebell in both hands, soft knees. | Push the hips back; the bell slides down the thighs. | Stop when the back wants to round, then stand tall.',
+    [noGear('backpack-rdl')]),
+  mv('backpack-rdl', 'Backpack Romanian Deadlifts', 'backpack Romanian deadlifts', 'hinge', 'none', 'reps', [2.0, 2.5, 3.0], NONE,
+    'A backpack of water bottles or books, about 8-10 kg, held in front. | Hips back, flat back, then stand tall.',
+    [harder('db-rdl')]),
+  mv('kb-goblet-thruster', 'Goblet Thrusters', 'goblet thrusters', 'squat', 'bell', 'reps', [2.0, 2.5, 3.0], { say1: 'goblet thruster' },
+    'Bell or dumbbell at the chest, elbows in. | Squat, then drive up and press it overhead in one move. | Lower it to the chest as you sit into the next rep.',
+    [easier('goblet-squat'), noGear('air-squat')]),
+  mv('dead-bug', 'Dead Bugs', 'dead bugs', 'core', 'none', 'reps', [2.5, 3.0, 3.5], { sides: 'alternate', sideWord: 'side' },
+    'On your back, arms to the ceiling, knees over the hips. | Ribs down, low back flat. Lower the opposite arm and leg slowly. | Back to the middle, then the other side.',
+    [harder('kb-dead-bug')]),
+  mv('kb-dead-bug', 'Kettlebell Dead Bugs', 'dead bugs', 'core', 'bell', 'reps', [3.0, 3.5, 4.0], { sides: 'alternate', sideWord: 'side' },
+    'On your back, the bell pressed over the chest, knees over the hips. | Ribs down, low back flat. Lower one leg slowly toward the floor. | Bring it back and switch legs.',
+    [noGear('dead-bug')]),
+  mv('kb-suitcase-deadlift', 'Suitcase Deadlifts', 'suitcase deadlifts', 'hinge', 'bell', 'reps', [2.0, 2.5, 3.0], SW,
+    'Bell on the floor beside one foot. | Hips back, flat back, grab it and stand tall without leaning. | All on one side, then switch.',
+    [noGear('backpack-suitcase-deadlift')]),
+  mv('backpack-suitcase-deadlift', 'Backpack Suitcase Deadlifts', 'backpack suitcase deadlifts', 'hinge', 'none', 'reps', [2.0, 2.5, 3.0], SW,
+    'A loaded backpack by one strap, beside one foot. | Hips back, flat back, stand tall without leaning. | All on one side, then switch.',
+    [harder('kb-suitcase-deadlift')]),
+  mv('kb-plank-pull-through', 'Plank Pull-Throughs', 'pull-throughs', 'core', 'bell', 'reps', [2.0, 2.5, 3.0], { sides: 'alternate', sideWord: 'side' },
+    'High plank, feet wide, the bell beside one hand. | Reach under and drag it to the other side without twisting the hips. | Alternate hands.',
+    [easier('kb-knee-pull-through'), noGear('backpack-pull-through')]),
+  mv('kb-knee-pull-through', 'Knee Plank Pull-Throughs', 'knee plank pull-throughs', 'core', 'bell', 'reps', [2.0, 2.5, 3.0], { sides: 'alternate', sideWord: 'side' },
+    'Plank on the knees, hips in line, the bell beside one hand. | Drag it under to the other side. Hips stay square. | Alternate hands.',
+    [harder('kb-plank-pull-through'), noGear('backpack-pull-through')]),
+  mv('backpack-pull-through', 'Backpack Pull-Throughs', 'backpack pull-throughs', 'core', 'none', 'reps', [2.0, 2.5, 3.0], { sides: 'alternate', sideWord: 'side' },
+    'High plank, a loaded backpack beside one hand. | Drag it under to the other side without twisting. | Knees down if the hips sag.',
+    [harder('kb-plank-pull-through')]),
+  mv('kb-halo', 'Kettlebell Halos', 'halos', 'core', 'bell', 'reps', [2.0, 2.5, 3.0], NONE,
+    'Hold the bell upside down by the horns at the chest. | Circle it slowly around the head, close to the neck. | Ribs down, glutes tight. Half one way, half the other.',
+    [noGear('backpack-halo')]),
+  mv('backpack-halo', 'Backpack Halos', 'backpack halos', 'core', 'none', 'reps', [2.0, 2.5, 3.0], NONE,
+    'Hold a loaded backpack by the top handle at the chest. | Circle it slowly around the head. | Ribs down. Half one way, half the other.',
+    [harder('kb-halo')]),
+  mv('kb-bulgarian-split-squat', 'Goblet Bulgarian Split Squats', 'split squats', 'lunge', 'bell', 'reps', [2.5, 3.0, 3.5], SW,
+    'Rear foot on the bed edge or a wall-braced sofa, never a rolling chair. | Bell at the chest, sink straight down. | All on one leg, then switch.',
+    [easier('split-squat'), noGear('bulgarian-split-squat')]),
+  mv('split-squat', 'Split Squats', 'split squats', 'lunge', 'none', 'reps', [2.0, 2.5, 3.0], SW,
+    'Long stance, back foot on the floor, a hand on the wall. | Lower the back knee toward the floor, front shin upright. | All on one leg, then switch.',
+    [harder('bulgarian-split-squat'), harder('kb-bulgarian-split-squat')]),
+  mv('db-hip-thrust', 'Dumbbell Hip Thrusts', 'hip thrusts', 'hinge', 'db', 'reps', [2.0, 2.5, 3.0], NONE,
+    'Shoulders on the bed edge, the dumbbell on the hips over a towel. | Drive through the heels until the hips are level with the knees. | Squeeze a second, lower with control.',
+    [noGear('glute-bridge')]),
+  mv('glute-bridge', 'Glute Bridges', 'glute bridges', 'hinge', 'none', 'reps', [1.5, 2.0, 2.5], NONE,
+    'On your back, knees bent, feet flat. | Drive the hips up until the body is one line from the knees. | Squeeze, then lower slowly.',
+    [harder('db-hip-thrust')]),
+  mv('kb-lateral-lunge', 'Goblet Lateral Lunges', 'lateral lunges', 'lunge', 'bell', 'reps', [2.25, 2.75, 3.25], ALT,
+    'Bell at the chest, feet wide. | Sit back into one hip, that knee over the toes, the other leg straight. | Push back to the middle. Alternate.',
+    [noGear('lateral-lunge')]),
+  mv('lateral-lunge', 'Lateral Lunges', 'lateral lunges', 'lunge', 'none', 'reps', [2.0, 2.5, 3.0], ALT,
+    'Feet wide, hands at the chest. | Sit back into one hip, the other leg straight. | Push back to the middle. Alternate.',
+    [harder('kb-lateral-lunge')]),
+  mv('db-devil-press', 'Single-Arm Dumbbell Devil Presses', 'devil presses', 'burpee', 'db', 'reps', [4.0, 6.0, 6.0], { say1: 'devil press' },
+    'Hand on the bell, chest to the floor, then up with a flat back. | Swing it through and punch it overhead. Switch hands every rep. | Bring it to the shoulder, then the floor. Never drop it from overhead.',
+    [noGear('burpee'), noGear('backpack-devil-press'), easier('db-hang-clean-press', { stop: 'Low-back pain?' }), harder('double-db-devil-press')]),
+  mv('double-db-devil-press', 'Double Dumbbell Devil Presses', 'double devil presses', 'burpee', 'db', 'reps', [4.5, 6.0, 6.0], { say1: 'double devil press' },
+    'A second dumbbell: one in each hand. | Chest down, up with a flat back, both bells overhead in one swing. | Shoulders, then the floor.',
+    [easier('db-devil-press')]),
+  mv('backpack-devil-press', 'Backpack Devil Presses', 'backpack devil presses', 'burpee', 'none', 'reps', [4.0, 5.0, 6.0], { say1: 'backpack devil press' },
+    'A loaded backpack by the top handle. | Chest down, up, then swing it overhead. | Lower it to the chest, then the floor.',
+    [harder('db-devil-press')]),
+  mv('db-hang-clean-press', 'Dumbbell Hang Clean & Press', 'hang clean and presses', 'clean', 'db', 'reps', [3.0, 3.5, 4.0], { say1: 'hang clean and press' },
+    'Dumbbell at the hang, outside the knee. | Pop the hips, clean it to the shoulder, press it overhead. | No burpee, no pull from the floor. Switch hands every rep.',
+    [harder('db-devil-press'), noGear('backpack-devil-press')]),
+  mv('db-lateral-burpee-over', 'Lateral Burpees Over the Dumbbell', 'burpees over the bell', 'burpee', 'db', 'reps', [3.0, 4.5, 6.0], { jumps: true },
+    'A hex dumbbell on its side, lengthwise to you. A kettlebell? Jump a line beside it. | Chest down beside the bell, up, two-foot jump over it. | Land soft, drop on the other side.',
+    [noGear('lateral-burpee', { stop: 'Feet clipping the bell?' }), easier('step-back-burpee', { stop: 'Knee pain?' }), easier('squat-thrust')]),
+  mv('lateral-burpee', 'Lateral Burpees', 'lateral burpees', 'burpee', 'none', 'reps', [3.0, 4.0, 5.0], { jumps: true },
+    'Chest down beside a line on the floor. | Up, then a two-foot jump over the line. | Land soft, drop on the other side.',
+    [easier('step-back-burpee'), harder('db-lateral-burpee-over')]),
+
+  // mixed: bar and bells, a pull-up bar, a run
+  mv('db-thruster', 'Dumbbell Thrusters', 'dumbbell thrusters', 'squat', 'db', 'reps', [2.0, 2.5, 3.0], { say1: 'dumbbell thruster' },
+    'Two dumbbells at the shoulders, elbows up. | Squat, then drive up and press them overhead in one move. | Lower to the shoulders as you sit into the next rep.',
+    [similar('bb-thruster'), noGear('air-squat')]),
+  mv('pull-up', 'Pull-Ups', 'pull-ups', 'pull', 'bar', 'reps', [2.0, 2.5, 3.5], { say1: 'pull-up' },
+    'Dead hang, hands just outside the shoulders. | Pull the chin over the bar, then lower all the way. | Kip only if you already can: learning it tired is how shoulders get hurt.',
+    [easier('jumping-pull-up'), easier('ring-row'), similar('db-bent-over-row'), similar('db-row')]),
+  mv('jumping-pull-up', 'Jumping Pull-Ups', 'jumping pull-ups', 'pull', 'bar', 'reps', [2.0, 2.5, 3.0], { say1: 'jumping pull-up' },
+    'A bar low enough to stand under, or a box beneath it. | Jump and pull the chin over the bar. | Lower slowly: the way down does the work.',
+    [harder('pull-up'), similar('ring-row')]),
+  mv('ring-row', 'Ring Rows', 'ring rows', 'pull', 'bar', 'reps', [2.0, 2.5, 3.0], { say1: 'ring row' },
+    'Rings or a sturdy low bar, body in one line. | Pull the chest to the hands, then lower all the way. | Never row under a table: it can tip.',
+    [harder('pull-up'), similar('jumping-pull-up')]),
+  mv('db-bent-over-row', 'Dumbbell Bent-Over Rows', 'dumbbell rows', 'pull', 'db', 'reps', [1.75, 2.0, 2.5], NONE,
+    'A dumbbell in each hand, hinge to about 45 degrees, flat back. | Pull both to the hips. | Lower all the way.',
+    [easier('db-row'), harder('pull-up')]),
+  mv('run', 'Run', 'metres on the run', 'cardio', 'none', 'm', null, { repsOnly: true, estMs: 375 },
+    'Outside or on a treadmill. | Hard but steady: there is work waiting at the end. | Tap DONE when the distance is done.',
+    [similar('row-cal', { x: 0.0625 })]),
 ];
 
 const BY_ID = new Map(MOVES.map(m => [m.id, m]));
 // Test-only: fixture moves (a flying knee, a box move) the unit tests inject.
-// Never listed in MOVES, so the catalog checks only ever see the real 80.
+// Never listed in MOVES, so the catalog checks only ever see the real ones.
 const TEST_MOVES = new Map();
 export function _registerTestMoves(list) { (list || []).forEach(m => TEST_MOVES.set(m.id, m)); }
 
@@ -350,7 +505,7 @@ export function slotDose(slot) {
   if (hasList(slot)) return slot.list.map(slotDose).join(' + ');
   const reps = slot.reps;
   let out = slot.unit ? `${reps} ${slot.unit}` : `${reps}`;
-  if (slot.sides && reps % 2 === 0) out += slot.sides === 'switch' ? ` (${reps / 2}/side)` : ` (${reps / 2}/leg)`;
+  if (slot.sides && reps % 2 === 0) out += slot.sides === 'switch' ? ` (${reps / 2}/side)` : ` (${reps / 2}/${moveById(slot.moveId)?.sideWord || 'leg'})`;
   return out;
 }
 // The ungated UP NEXT card: today's format plus the unit ('1 MILE', '10 reps', '60s').

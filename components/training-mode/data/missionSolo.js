@@ -9,12 +9,21 @@
 import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL } from './missionMoves';
 import { MODE_RULES } from '../utils/missionIntegrity';
 
-// Seconds per unit when a rep is a distance or a calorie (Murph's mile).
-export const UNIT_SEC = { MILE: 600, 'HALF MILE': 300, KM: 375, CAL: 3.3 };
+// Seconds per unit when a rep is a distance or a calorie (Murph's mile; M is
+// HOT LAPS' 400 m, at the KM pace).
+export const UNIT_SEC = { MILE: 600, 'HALF MILE': 300, KM: 375, M: 0.375, CAL: 3.3 };
+// A distance is never a rep in a score (a capped HOT LAPS counts its swings
+// and pull-ups, not its metres).
+const DISTANCE = new Set(['MILE', 'HALF MILE', 'KM', 'M']);
 
 const allSlots = (mission) => [...(mission?.exercises || []), ...(mission?.finisherExercises || [])];
 const hasList = (slot) => Array.isArray(slot?.list);
 const rounds = (mission) => Math.max(1, mission?.rounds || 1);
+const scoredReps = (it) => (DISTANCE.has(it?.unit) ? 0 : it?.reps || 0);
+const sumReps = (list) => (list || []).reduce((s, x) => s + scoredReps(x), 0);
+// A ladder: a for-time mission whose every slot is a complex, one rung each
+// (21-15-9, BURNOUT 21, CONTINUE? · BELL). SOLO counts its rungs as rounds.
+const isLadder = (mission) => mission?.format === 'forTime' && allSlots(mission).length > 0 && allSlots(mission).every(hasList);
 
 // ── estimates ───────────────────────────────────────────────────────────────
 // The working seconds of one slot, without its rest.
@@ -53,11 +62,19 @@ export function qmTotalUnits(mission, resume = null) {
 
 // ── the clock ───────────────────────────────────────────────────────────────
 export function isFixedClock(format) { return format === 'emom' || format === 'amrap' || format === 'intervals'; }
+// An EMOM's windows are a minute unless a slot says otherwise (FIRST BELL's
+// swings: one set every :30), and a slot's `restAfter` puts a rest between
+// two blocks of windows (FIRST BELL's 1:00 before the get-ups). Like an
+// interval's last rest, a restAfter on the very last window is never run.
 export function missionClockSec(mission) {
   const f = mission?.format;
   if (f === 'forTime') return mission.capSec || 0;
   const slots = allSlots(mission);
-  if (f === 'emom') return rounds(mission) * slots.reduce((s, sl) => s + (sl.window || 60), 0);
+  if (f === 'emom') {
+    const perRound = slots.reduce((s, sl) => s + (sl.window || 60) + (sl.restAfter || 0), 0);
+    const finalRest = slots.length ? slots[slots.length - 1].restAfter || 0 : 0;
+    return rounds(mission) * perRound - finalRest;
+  }
   if (f === 'amrap' || f === 'intervals') {
     const perRound = slots.reduce((s, sl) => s + (sl.work || 0) + (sl.rest || 0), 0);
     const finalRest = slots.length ? slots[slots.length - 1].rest || 0 : 0;
@@ -69,6 +86,10 @@ export function missionClockSec(mission) {
 // SOLO's one clock, cut into segments. Segment = { kind: 'work'|'rest', sec,
 // label, swapKey|null, stepKeys, calls, block }. `block` is the 0-based round
 // index (an AMRAP block indexes blockTaps with it). Empty for forTime.
+//
+// EMOM labels count the windows of one length in a row: MIN 1…16 when every
+// window is a minute (every mission before FIRST BELL), SET 1…10 for :30
+// windows, and the count starts again after a length change or a restAfter.
 export function soloTimeline(mission) {
   const f = mission?.format;
   if (!isFixedClock(f)) return [];
@@ -76,20 +97,25 @@ export function soloTimeline(mission) {
   const n = rounds(mission);
   const out = [];
   const rest = (sec, block) => ({ kind: 'rest', sec, label: 'REST', swapKey: null, stepKeys: [], calls: [], block });
+  let run = { window: null, count: 0 };
   for (let r = 1; r <= n; r += 1) {
     slots.forEach((slot, i) => {
       const block = r - 1;
       const stepKeys = hasList(slot) ? slot.list.map(s => s.swapKey) : [];
       const calls = (slot.calls || []).map(c => ({ ...c }));
+      const last = r === n && i === slots.length - 1;
       if (f === 'emom') {
-        const m = (r - 1) * slots.length + i + 1;
+        const sec = slot.window || 60;
+        if (sec !== run.window) run = { window: sec, count: 0 };
+        run.count += 1;
+        const head = `${sec === 60 ? 'MIN' : 'SET'} ${run.count}`;
         const label = hasList(slot)
-          ? `MIN ${m} · ${String(slot.sideSay || slot.name || '').toUpperCase()}`
-          : `MIN ${m} · ${slotDose(slot)} ${slot.name}`;
-        out.push({ kind: 'work', sec: slot.window || 60, label, swapKey: hasList(slot) ? null : slot.swapKey ?? null, stepKeys, calls, block });
+          ? `${head} · ${String(slot.sideSay || slot.name || '').toUpperCase()}`
+          : `${head} · ${slotDose(slot)} ${slot.name}`;
+        out.push({ kind: 'work', sec, label, swapKey: hasList(slot) ? null : slot.swapKey ?? null, stepKeys, calls, block });
+        if (!last && (slot.restAfter || 0) > 0) { out.push(rest(slot.restAfter, block)); run = { window: null, count: 0 }; }
         return;
       }
-      const last = r === n && i === slots.length - 1;
       if (f === 'amrap' && hasList(slot)) {
         out.push({ kind: 'work', sec: slot.work || 0, label: n === 1 ? 'AMRAP' : `BLOCK ${r}/${n}`, swapKey: null, stepKeys, calls, block });
       } else {
@@ -112,23 +138,54 @@ export function segmentAt(timeline, elapsedSec) {
 
 // ── score and pace ──────────────────────────────────────────────────────────
 // Reps in one round of the score: one pass of the AMRAP list, or one round of
-// a for-time mission.
+// a for-time mission (a ladder's round is all its rungs). Distances never
+// count.
 export function repsPerRound(mission) {
   const slots = allSlots(mission);
-  const sum = (list) => list.reduce((s, x) => s + (x.reps || 0), 0);
   if (mission?.format === 'amrap') {
     const block = slots.find(hasList);
-    return block ? sum(block.list) : 0;
+    return block ? sumReps(block.list) : 0;
   }
-  return slots.reduce((s, sl) => s + (hasList(sl) ? sum(sl.list) : sl.mode === 'reps' ? sl.reps || 0 : 0), 0);
+  return slots.reduce((s, sl) => s + (hasList(sl) ? sumReps(sl.list) : sl.mode === 'reps' ? scoredReps(sl) : 0), 0);
+}
+// The rounds SOLO's + ROUND counts for a for-time mission: a ladder's rungs,
+// anything else its rounds.
+export function soloRounds(mission) {
+  return isLadder(mission) ? rounds(mission) * allSlots(mission).length : rounds(mission);
+}
+// The reps done after n of SOLO's rounds (the cap's prefill): n full rounds,
+// a ladder's first n rungs, or n rounds of an AMRAP whose every step climbs
+// by `climb` a round (CHARGE UP 12: 2 + 2, then 4 + 4…).
+export function repsThrough(mission, n) {
+  const k = Math.max(0, Math.floor(Number(n) || 0));
+  const slots = allSlots(mission);
+  if (isLadder(mission)) {
+    let total = 0;
+    for (let i = 0; i < k; i += 1) total += sumReps(slots[i % slots.length].list);
+    return total;
+  }
+  if (mission?.format === 'amrap') {
+    const block = slots.find(hasList);
+    if (!block) return 0;
+    return k * sumReps(block.list) + (block.climb || 0) * block.list.length * ((k * (k - 1)) / 2);
+  }
+  return k * repsPerRound(mission);
+}
+// The windows a minutesHeld score is out of: every EMOM window (FIRST BELL's
+// :30 sets count one each), else the clock's minutes.
+export function heldOf(mission) {
+  if (mission?.format === 'emom') return rounds(mission) * allSlots(mission).length;
+  return Math.round(missionClockSec(mission) / 60);
 }
 export function paceTargets(mission) {
   const pace = mission?.pace || {};
   const f = mission?.format;
+  const kind = mission?.scoreRule?.kind;
   return ['elite', 'standard', 'beginner'].map(tier => {
     const v = pace[tier];
     let text = '';
     if (f === 'forTime') text = `≤ ${mmss(v)}`;
+    else if (f === 'amrap' && kind === 'reps') text = tier === 'elite' ? `${v}+ reps` : `${v} reps`; // an AMRAP scored in total reps
     else if (f === 'amrap') text = tier === 'elite' ? `${v}+ rounds` : `${v} rounds`;
     else if (f === 'emom') text = `${v?.held}/${v?.of}${v?.setSec ? ` · sets ≤ ${v.setSec}s` : ''}`;
     else text = tier === 'elite' ? `${v}+` : `${v}`;
@@ -146,7 +203,9 @@ export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) 
     const blocks = Array.from({ length: n }, (_, b) => ({ rounds: blockTaps?.[b] ?? 0, reps: 0 }));
     return { blocks, rounds: blocks.reduce((s, b) => s + b.rounds, 0), reps: 0 };
   }
-  if (rule.kind === 'minutesHeld') return Math.round(missionClockSec(mission) / 60);
+  if (rule.kind === 'minutesHeld') return heldOf(mission);
+  // An AMRAP scored in total reps: the reps through the rounds tapped.
+  if (rule.kind === 'reps' && mission.format === 'amrap') return repsThrough(mission, roundTaps);
   if (rule.kind === 'reps') {
     const keys = rule.keys || [];
     const slots = allSlots(mission).filter(s => keys.includes(s.swapKey));
