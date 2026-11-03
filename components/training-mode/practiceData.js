@@ -469,6 +469,14 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pull the opponent in', 'Drive the hip forward', 'Target the body or head'],
     mistakes: ['No hip drive', 'Kneeing with the kneecap', 'Losing the clinch grip'],
+    next: 'Lead Shuffle Knee', locked: true,
+  },
+  {
+    discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Shuffle Knee',
+    description: 'Khao trong: the straight lead knee off a shuffle step',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    cues: ['Shuffle the rear foot up', 'Drive the hip forward', 'Spear with the point of the knee'],
+    mistakes: ['No hip drive', 'Kneeing with the kneecap', 'Hands drop on the shuffle'],
     next: 'Rear Uppercut', locked: true,
   },
   {

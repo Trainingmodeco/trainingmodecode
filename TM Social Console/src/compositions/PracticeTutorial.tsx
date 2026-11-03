@@ -42,7 +42,7 @@ export type PracticeTutorialProps = {
   cues: Cue[]; // `at` = the frame the cue belongs to, in clip seconds
   // `fixAt`: where the correct version plays from (default: just before `at`).
   watch: { text: string; fix: string; at: number; fixAt?: number; mark?: Mark; point?: [number, number]; label?: string; say?: string; zoom?: number; focus?: [number, number] };
-  drill: { calls: string[]; start: number; cue?: string; label?: string };
+  drill: { calls: string[]; start: number; cue?: string; label?: string; rate?: number }; // `rate` under 1 stretches a short clip over the 6 s drill (0.9 is invisible)
   next?: { number?: string | null; name: string; description?: string; level?: string } | null;
   cta?: string;
   zoom?: number; // the camera on the cue and watch beats, centred on the body (1 = full frame)
@@ -420,7 +420,7 @@ const Drill: React.FC<{ p: PracticeTutorialProps }> = ({ p }) => {
   const nextCall = calls[(i + 1) % calls.length];
   return (
     <AbsoluteFill>
-      <Footage src={p.src} start={p.drill.start} />
+      <Footage src={p.src} start={p.drill.start} rate={p.drill.rate ?? 1} />
       <TopBar p={p} step={3} right={<Chip size={20} color={P.gold}>{p.drill.label ?? 'DRILL · 20 SLOW · 20 FAST'}</Chip>} />
       <div style={{ position: 'absolute', left: 50, right: 140, bottom: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
         <Sequence from={i * per} layout="none" key={i}>
