@@ -8,7 +8,7 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import MoveSwapSheet, { MoveRow } from './shared/MoveSwapSheet';
 import MissionLibrarySheet, { CountPill } from './MissionLibrarySheet';
 import QuickMissionAdjustSheet from './QuickMissionAdjustSheet';
-import { Dices, Folder, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Folder, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   QM_FOCI, QM_INTENSITY, QM_TYPES, QM_LEVEL_WORD, QM_TIME_MIN, QM_TIME_MAX, QM_TIME_STEP, QM_TIME_TICKS,
   quickMissionConfig, loadQuickMissionKeys, saveQuickMissionKeys,
@@ -660,7 +660,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                     ...chf, width: 64, height: 50, flexShrink: 0, padding: 0, cursor: 'pointer',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
                     background: CARD, border: '1px solid rgba(157,108,255,0.5)', color: '#fff', font: `700 8px ${HEAD}`, letterSpacing: '0.12em',
-                  }}><Dices size={18} color={GOLD}/>SURPRISE</button>
+                  }}><span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1 }}>🎲</span>SURPRISE</button>
                 )}
               </div>
             </div>
