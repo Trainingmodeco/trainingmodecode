@@ -114,7 +114,12 @@
   "exports": {
     "video": "exports/2026-11-03-practice-spinning-back-kick/video.mp4",
     "cover": "exports/2026-11-03-practice-spinning-back-kick/cover.jpg",
-    "seconds": 32
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-spinning-back-kick/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-spinning-back-kick/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
   },
-  "renderedAt": "2026-11-03T17:28:19.766Z"
+  "renderedAt": "2026-11-03T17:29:52.139Z"
 }
