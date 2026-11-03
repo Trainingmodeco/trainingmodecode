@@ -180,7 +180,8 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   0.9 s before it, the marker and card landing on that frame), WATCH (`at`
   = the frame to freeze with the fault marked, then the fix at 0.5× from
   `fixAt`, so the fix can come from a different moment of the clip), DRILL
-  (`start`, 6 s at real speed, the ring calling `calls`), NEXT. **Keep every
+  (`start`, 6 s at real speed, the ring calling `calls`; a clip shorter than
+  6 s sets `drill.rate` 0.9 to stretch, which the eye doesn't catch), NEXT. **Keep every
   beat on one side of a shot change** (the owner saw one shot bleed into the
   next): when a clip switches angle, as an InShot join does, find the second
   of the switch and check each beat's stretch of the clip (NAME = `repAt` +
