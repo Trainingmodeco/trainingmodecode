@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-lead-uppercut-elbow",
   "title": "Practice: Lead Uppercut Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Lead Uppercut Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Ngat (ศอกงัด). Footage: the owner's clip 4 (ring, 2026-10-31), raw-footage/practice/p4.mp4. One shot; four reps with the lead elbow rising at about 0.65, 2.6, 4.5 and 6.85 s.",
@@ -108,5 +108,11 @@
   "notes": [
     "2026-11-03 cut from clip 4 (Claude's reading: the uppercut elbow; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
     "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Uppercut → lead uppercut (clip 4 is the lead arm; clip 18 is the rear)."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-lead-uppercut-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-lead-uppercut-elbow/cover.jpg",
+    "seconds": 32
+  },
+  "renderedAt": "2026-11-03T14:38:41.230Z"
 }

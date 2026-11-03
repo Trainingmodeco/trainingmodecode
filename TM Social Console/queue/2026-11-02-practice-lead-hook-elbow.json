@@ -1,7 +1,7 @@
 {
   "id": "2026-11-02-practice-lead-hook-elbow",
   "title": "Practice: Lead Hook Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-02",
   "source": "Practice Mode tutorial. The owner named clip 2 the horizontal elbow. Words from the app: the Technique Library entry (practiceData.js › Muay Thai › Lead Hook Elbow: cues, mistakes, next) and the Muay Thai path's Elbow lesson (practiceLessons.js › mt_elbow: calls), which this video also serves. Thai: Sok Tat (ศอกตัด), the cutting elbow. Footage: raw-footage/practice/p2.mp4 (ring, 2026-10-31): two reps facing the camera, then two from a 45° angle that show the swing-through.",
@@ -110,5 +110,16 @@
     "2026-11-02 cut from clip 2 at the owner's word. The first half faces the camera (reps land at 0.75 s and 2.75 s), the second half is a 45° angle (4.6 s, 6.5 s) and gives the swing-through. Markers follow the body (pose found in every frame). No voice yet. Owner approves before anything posts; TikTok as Only me first.",
     "2026-11-03 owner: a shot bleeds into the next around 1–3 s of the in-app cut. Clip 2 changes shot at 3.95 s; the name beat (repAt 2.1 + 2 s) ran over it. repAt 1.8, fixAt 2.4 and key point 3 with its own 0.6 s lead-in keep every beat on one side of the cut.",
     "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Lead horizontal → lead hook."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-02-practice-lead-hook-elbow/video.mp4",
+    "cover": "exports/2026-11-02-practice-lead-hook-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-02-practice-lead-hook-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-02-practice-lead-hook-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T14:30:41.950Z"
 }

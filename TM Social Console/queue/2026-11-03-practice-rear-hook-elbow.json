@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-rear-hook-elbow",
   "title": "Practice: Rear Hook Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Rear Hook Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Tat (ศอกตัด). Footage: the owner's clip 3 (ring, 2026-10-31), raw-footage/practice/p3.mp4. One shot; lead and rear elbows alternate, the rear-side reps land at about 4.2, 6.0 and 8.4 s.",
@@ -108,5 +108,16 @@
   "notes": [
     "2026-11-03 cut from clip 3 (Claude's reading: the stepping horizontal elbow from the rear side; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
     "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Rear horizontal → rear hook."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-rear-hook-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-rear-hook-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-rear-hook-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-rear-hook-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T14:35:41.590Z"
 }
