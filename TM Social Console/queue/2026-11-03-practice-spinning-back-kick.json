@@ -1,0 +1,114 @@
+{
+  "id": "2026-11-03-practice-spinning-back-kick",
+  "title": "Practice: Spinning Back Kick",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The owner's spinning back heel kick. Words from the app's Technique Library (practiceData.js › Kickboxing › Spinning Back Kick: cues, mistakes, next). Karate: ushiro geri (後ろ蹴り); Thai: te klap lang (เตะกลับหลัง). Footage: the owner's clip 22 (ring, 2026-11-02), raw-footage/practice/p22.mp4, two shots joined in InShot (cut at 7.0 s): a slow rep with a long hold facing away (turn at 1.0 s, kick at 4.3–4.9 s), then one at full speed (spin at 9.4 s, kick at 9.8–10.1 s).",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Kickboxing",
+    "technique": "Spinning Back Kick",
+    "number": null,
+    "badge": "Kick",
+    "level": "Advanced",
+    "description": "The spinning back heel kick",
+    "stance": "orthodox",
+    "hook": "THE KICK THAT|*COMES FROM BEHIND.*",
+    "hookSub": "Spinning back kick. Ushiro geri. 20 seconds.",
+    "src": "raw-footage/practice/p22.mp4",
+    "slowSrc": "raw-footage/practice/p22.x75.mp4",
+    "pose": "raw-footage/practice/p22.pose.json",
+    "hookAt": 8.9,
+    "repAt": 3.4,
+    "cues": [
+      {
+        "text": "Look over the shoulder first",
+        "at": 9.5,
+        "mark": "nose",
+        "label": "SPOT",
+        "say": "Coach: \"The head turns first. Find the target over your shoulder before the leg moves.\""
+      },
+      {
+        "text": "Chamber tight as you turn",
+        "at": 4.45,
+        "point": [
+          0.3,
+          0.57
+        ],
+        "label": "CHAMBER",
+        "say": "Coach: \"Knee up and tight to the body as you come round. A loose leg swings wide.\""
+      },
+      {
+        "text": "Drive the heel straight back",
+        "at": 4.72,
+        "mark": "leadFoot",
+        "label": "HEEL",
+        "say": "Coach: \"Straight back like a mule kick, heel first. Not an arc.\"",
+        "zoom": 1.2,
+        "focus": [
+          0.5,
+          0.5
+        ]
+      }
+    ],
+    "watch": {
+      "text": "Spinning without spotting the target",
+      "fix": "Eyes on the target, then kick",
+      "at": 9.75,
+      "fixAt": 4.0,
+      "mark": "nose",
+      "label": "SPOT",
+      "say": "Coach: \"Spin blind and you kick air, or a counter. Eyes first, heel second.\""
+    },
+    "drill": {
+      "calls": [
+        "SPINNING BACK KICK",
+        "JAB → SPINNING BACK KICK",
+        "LOW KICK → SPINNING BACK KICK"
+      ],
+      "start": 5.0,
+      "cue": "Spot, chamber, heel"
+    },
+    "next": {
+      "name": "Low Kick",
+      "description": "Rear roundhouse to the lead leg",
+      "level": "Beginner"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "後ろ蹴り · USHIRO GERI"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "The kick that comes from behind 🦵 Spinning back kick, ushiro geri: look over the shoulder first, chamber tight as you turn, drive the heel straight back. Watch for spinning without spotting the target. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #kickboxing #spinningbackkick #ushirogeri #karate #kickboxingtechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "The kick that comes from behind. 🦵\n\nSpinning back kick (ushiro geri, 後ろ蹴り; Thai: te klap lang):\n1. Look over the shoulder first\n2. Chamber tight as you turn\n3. Drive the heel straight back\nWatch for: spinning without spotting the target.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#kickboxing #spinningbackkick #ushirogeri #karate #kickboxingtechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "The kick that comes from behind 🦵 Spinning back kick, ushiro geri: look over the shoulder first, chamber tight as you turn, drive the heel straight back. Watch for spinning without spotting the target. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "The kick that comes from behind. The spinning back kick (ushiro geri) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the spinning back kick, ushiro geri (後ろ蹴り), step by step. Look over the shoulder first, chamber tight as you turn, drive the heel straight back. Watch for spinning without spotting the target. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "kickboxing",
+        "spinning back kick",
+        "ushiro geri",
+        "karate kick",
+        "kickboxing technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 22 (filed earlier, cut now so every clip the owner sent has its tutorial). Shots: 0–7.0 (name, key points 2 and 3, the fix), 7.0–11.3 (hook, key point 1, the WATCH FOR freeze). The tracker mixes up the knees during the chamber, so key point 2 is pinned by hand; the kicking foot and the head track fine. The drill runs 5–11 s across the join at real speed. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}

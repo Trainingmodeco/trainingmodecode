@@ -92,7 +92,7 @@ sits on disk once.
 | 19 | lead side kick (karate: yoko geri) | cut |
 | 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi) | cut |
 | 21 | machine gun kick (Thai: te rua, เตะรัว) | cut |
-| 22 | spinning back heel kick (karate: ushiro geri; Thai: te klap lang, เตะกลับหลัง) | filed, not cut yet |
+| 22 | spinning back heel kick (karate: ushiro geri; Thai: te klap lang, เตะกลับหลัง); a join at 7.0 s | cut |
 | 23 | switch kick (Thai: te salap, เตะสลับ); Kickboxing, Muay Thai and MMA | cut |
 | 24 | rear roundhouse kick (Thai: te tat, เตะตัด); Kickboxing, Muay Thai and MMA; a soft InShot join at 5.63 s | cut |
 | 25 | lead shuffle knee (Thai: khao yao, เข่ายาว, the long knee); 5.6 s, two reps | cut |
