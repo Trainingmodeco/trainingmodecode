@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-machine-gun-kick",
   "title": "Practice: Machine Gun Kick",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. Added to the app's Technique Library as Muay Thai › Machine Gun Kick (cues, mistakes, next from there). Thai: te rua (เตะรัว), rapid-fire kicks. Footage: the owner's clip 21 (ring, 2026-11-02), raw-footage/practice/p21.mp4, two shots joined in InShot (cut at 5.93 s): single kicks facing the camera, then the burst from a 45° angle (kicks at about 7.2, 8.6, 9.6, 10.8, 11.7 and 12.8 s).",
@@ -20,7 +20,7 @@
     "src": "raw-footage/practice/p21.mp4",
     "slowSrc": "raw-footage/practice/p21.x75.mp4",
     "pose": "raw-footage/practice/p21.pose.json",
-    "hookAt": 9.0,
+    "hookAt": 9,
     "repAt": 9.3,
     "cues": [
       {
@@ -57,7 +57,11 @@
       "fixAt": 9.9,
       "mark": "rearFoot",
       "label": "RESET",
-      "say": "Coach: \"Step all the way back to stance and the next kick is a second away. Touch and go.\""
+      "say": "Coach: \"Step all the way back to stance and the next kick is a second away. Touch and go.\"",
+      "point": [
+        0.54,
+        0.77
+      ]
     },
     "drill": {
       "calls": [
@@ -65,7 +69,7 @@
         "MACHINE GUN",
         "JAB → MACHINE GUN"
       ],
-      "start": 7.0,
+      "start": 7,
       "cue": "Same leg, no reset"
     },
     "next": {
@@ -106,6 +110,18 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-03 cut from clip 21. Shots: front 0–5.93 (single kicks with a full reset: the WATCH FOR freeze at 3.1 is one), 45° 5.93–13.64 (the burst: hook, name, all three key points, the fix and the drill live here, so no beat crosses the join). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+    "2026-11-03 cut from clip 21. Shots: front 0–5.93 (single kicks with a full reset: the WATCH FOR freeze at 3.1 is one), 45° 5.93–13.64 (the burst: hook, name, all three key points, the fix and the drill live here, so no beat crosses the join). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 the pose model loses the body in the front shot (0–8.6 s), so the WATCH FOR marker at 3.1 s is pinned by hand on the rear foot (point [0.54, 0.77]); the key points sit in the 45° shot where the landmarks hold."
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-machine-gun-kick/video.mp4",
+    "cover": "exports/2026-11-03-practice-machine-gun-kick/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-machine-gun-kick/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-machine-gun-kick/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T01:57:47.883Z"
 }

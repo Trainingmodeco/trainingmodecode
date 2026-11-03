@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-stepping-side-kick",
   "title": "Practice: Stepping Side Kick",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The owner's \"marching forward side kick\", added to the app's Technique Library as Kickboxing › Stepping Side Kick (cues, mistakes, next from there). Karate name tsugi-ashi yoko geri kekomi: the shuffle step (rear foot up to the front foot) into the side thrust kick. Footage: the owner's clip 20 (ring, 2026-11-02), raw-footage/practice/p20.mp4, one shot, three reps at about 0.95, 4.1 and 7.6 s.",
@@ -20,7 +20,7 @@
     "src": "raw-footage/practice/p20.mp4",
     "slowSrc": "raw-footage/practice/p20.x75.mp4",
     "pose": "raw-footage/practice/p20.pose.json",
-    "hookAt": 3.0,
+    "hookAt": 3,
     "repAt": 3.2,
     "cues": [
       {
@@ -62,7 +62,12 @@
       "fixAt": 3.3,
       "mark": "rearFoot",
       "label": "THE STEP",
-      "say": "Coach: \"Kick early and you're off balance with no reach. Land the shuffle, then fire.\""
+      "say": "Coach: \"Kick early and you're off balance with no reach. Land the shuffle, then fire.\"",
+      "zoom": 1.6,
+      "focus": [
+        0.5,
+        0.72
+      ]
     },
     "drill": {
       "calls": [
@@ -112,6 +117,18 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-03 cut from clip 20, one shot, no joins. Key point 1 on the first rep's step, 2 on the second rep's chamber, 3 on the third rep's extension; the fix plays the second rep from the step. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+    "2026-11-03 cut from clip 20, one shot, no joins. Key point 1 on the first rep's step, 2 on the second rep's chamber, 3 on the third rep's extension; the fix plays the second rep from the step. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 watch beat framed lower (zoom 1.6, focus [0.5, 0.72]) so the rear foot sits clear of the bottom edge."
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-stepping-side-kick/video.mp4",
+    "cover": "exports/2026-11-03-practice-stepping-side-kick/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-stepping-side-kick/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-stepping-side-kick/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T01:53:48.117Z"
 }

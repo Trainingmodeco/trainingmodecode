@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-lead-side-kick",
   "title": "Practice: Lead Side Kick",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Kickboxing › Lead Side Kick: cues, mistakes, next). Karate name yoko geri (横蹴り); the thrusting version is yoko geri kekomi. Footage: the owner's clip 19 (ring, 2026-11-02), raw-footage/practice/p19.mp4, four shots joined in InShot (cuts at 4.99, 7.57 and 11.93 s): three kicks facing the camera, one from behind at 45°.",
@@ -109,5 +109,16 @@
   "posted": {},
   "notes": [
     "2026-11-03 cut from clip 19. Shots: front 0–4.99, front 4.99–7.57, front 7.57–11.93, behind at 45° 11.93–14.85; every slow beat stays inside one shot (key point 2 and 3 set their own lead-in). The drill runs 0.4–6.4 across the first join, a same-angle cut between two kicks at real speed. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-lead-side-kick/video.mp4",
+    "cover": "exports/2026-11-03-practice-lead-side-kick/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-lead-side-kick/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-lead-side-kick/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T01:49:35.138Z"
 }
