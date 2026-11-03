@@ -101,6 +101,10 @@ const coverFrame = Math.min(composition.durationInFrames - 1, post.coverFrame ??
 const cover = path.join(outDir, variant ? `${variant}-cover.jpg` : 'cover.jpg');
 await renderStill({ serveUrl, composition, inputProps: props, frame: coverFrame, output: cover, imageFormat: 'jpeg', jpegQuality: 90, browserExecutable });
 
+// Remotion leaves its webpack bundle in the temp folder (hundreds of MB per
+// render); drop it now that the frames are out, or a day's renders fill the disk.
+fs.rmSync(serveUrl, { recursive: true, force: true });
+
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
 const made = { video: rel(video), cover: rel(cover), seconds: +(composition.durationInFrames / composition.fps).toFixed(2) };
 post.exports = variant ? { ...(post.exports ?? {}), [variant]: made } : { ...(post.exports ?? {}), ...made };
