@@ -18,13 +18,14 @@ import {
 //
 // The Workout Map's tall floating sheet (floatPanel, portalled so it rests on
 // the tab bar instead of under it). The header says what it is: MISSION
-// LIBRARY · 28 and one line, "Ready-made workouts. Tap one to see it on top,
+// LIBRARY · 43 and one line, "Ready-made workouts. Tap one to see it on top,
 // then START." Only the list scrolls: the header, the pinned preview of the
 // highlighted mission, the LOADOUT / THEME chips and the footer stay put.
 // Tapping a row only highlights it. PUT ON CARD hands it to the page, where
 // its card opens to every move and its swaps, with LEVEL and GUIDED / SOLO
-// behind ADJUST; START runs it from here, in the remembered run mode at its
-// default level, the one the preview and the row show. The preview is
+// behind ADJUST; START runs it from here, in the remembered run mode (SOLO
+// for a SOLO-only mission) at its default level, the one the preview and the
+// row show. The preview is
 // read-only, so nothing in here ever opens a second sheet.
 //
 // The filters are the shelf prefs MISSION SELECT used (tm_qm_shelf_v1), so
@@ -187,7 +188,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
           ...floatPanel(VIOLET, { wide: true }), height: 'calc(100% - 56px)', outline: 'none',
           display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'ml-up 0.26s ease',
         }}>
-          {/* Header: the grab bar (swipe down closes), MISSION LIBRARY · 28
+          {/* Header: the grab bar (swipe down closes), MISSION LIBRARY · 43
               beside the X, and its line under both, the panel's full width,
               so it fits on one line on a 412px phone. The X hangs into the
               padding around its row rather than making it taller. */}

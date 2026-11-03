@@ -515,7 +515,7 @@ const HONOR = {
   scale: 'Lighter bar, or the beginner level. No barbell? The 1 BELL / DB version: AMRAP 10 of 12 deadlifts, 9 hang power cleans and 6 shoulder-to-overheads with 2 × 22.5/15 kg dumbbells, for 5+ rounds. Lighter: 2 × 15/10 kg, or one 16/12 kg bell.',
   note: 'A tribute workout. Warm up 5 min, then 2 empty-bar rounds of 6 / 4 / 2, then build to the working bar. Drop the bar between moves rather than grind a rounded-back deadlift. Never been coached on the clean or the jerk? Hang Muscle Cleans and Push Press.',
   ...SOLO_COPY,
-  paceBasis: 'Published ranges at the Rx bar: elite under 5 min, Rx 6-9, intermediate 10-14. The lighter levels are coach estimates.',
+  paceBasis: 'Published ranges at 70/47.5 kg: elite under 5 min, 6-9 for most, 10-14 intermediate. The lighter levels are coach estimates.',
   defaultLevel: 'standard',
   levels: {
     beginner: {
@@ -549,7 +549,7 @@ const KO_SPRINT = {
   scale: 'Pick a bar you can finish in 3-6 min: a lighter bar, or the beginner level. Hotel gym: 30 alternating single-dumbbell clean and jerks.',
   note: 'Warm up 8-10 min, with 3 sets of 3 clean and jerks climbing to the working bar. Never been coached on the clean and jerk? Hang Power Clean + Push Press singles, or skip the race: 3 empty-bar reps every minute for 10 min. Bumper plates: the reps come down from overhead.',
   ...SOLO_COPY,
-  paceBasis: 'Published guidance: scale so all 30 finish inside 5 min; elite athletes finish under 2 at the Rx bar. The rest are coach estimates.',
+  paceBasis: 'Published guidance: scale so all 30 finish inside 5 min; elite athletes finish under 2 at 61/43 kg. The rest are coach estimates.',
   defaultLevel: 'standard',
   levels: {
     beginner: {
@@ -609,7 +609,7 @@ const BURNOUT = {
   scale: 'Lighter bar (29/20 kg), or the beginner level: 15 down to 3 with the empty bar and step-over burpees. Hotel gym: dumbbell thrusters, burpees over the dumbbell.',
   note: 'Warm up 5 min, then 2 rounds of 5 empty-bar thrusters and 5 burpees. Tap + ROUND after each rung. If the thruster turns into a back-arching press, split it: a front squat, then a push press.',
   ...SOLO_COPY,
-  paceBasis: 'Published: elite times at the Rx bar were about 7:15-7:45, and a solid intermediate takes 15-22 min. The rest are coach estimates.',
+  paceBasis: 'Published: elite times at 43/29 kg were about 7:15-7:45, and a solid intermediate takes 15-22 min. The rest are coach estimates.',
   defaultLevel: 'standard',
   levels: {
     beginner: {

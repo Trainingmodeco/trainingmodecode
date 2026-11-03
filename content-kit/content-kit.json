@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01",
+  "generatedAt": "2026-11-03",
   "source": "npm run content:kit (scripts/content-kit.mjs) — do not edit by hand",
   "brand": {
     "name": "Training Mode",
@@ -2654,6 +2654,586 @@
       ],
       "guided": true,
       "captionAka": "Burpee EMOM (10 burpees every minute)"
+    },
+    {
+      "id": "honor_rounds",
+      "title": "HONOR ROUNDS",
+      "loadout": "1 BARBELL + BUMPER PLATES",
+      "format": "FOR TIME",
+      "mission": "5 ROUNDS FOR TIME · 12 DEADLIFTS · 9 HANG POWER CLEANS · 6 PUSH JERKS · CAP 20:00",
+      "score": "TIME, OR REPS AT THE CAP (135 FINISHES)",
+      "tags": [
+        "~12 MIN",
+        "HARD",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "12 Deadlifts",
+        "9 Hang Power Cleans",
+        "6 Push Jerks"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "3 rounds · empty bar · hang muscle cleans · push presses"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "5 rounds · 43/29 kg · cap 20:00"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "5 rounds · 70/47.5 kg · cap 20:00"
+        }
+      ],
+      "guided": false,
+      "captionAka": "DT (CrossFit Hero WOD honoring USAF SSgt Timothy P. Davis)"
+    },
+    {
+      "id": "ko_sprint_30",
+      "title": "KO SPRINT 30",
+      "loadout": "1 BARBELL + BUMPER PLATES",
+      "format": "FOR TIME",
+      "mission": "30 CLEAN AND JERKS FOR TIME · CAP 10:00",
+      "score": "TIME, OR REPS AT THE CAP",
+      "tags": [
+        "~5 MIN",
+        "HARD",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "30 Clean and Jerks"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "30 reps · 34/25 kg · cap 10:00"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "30 reps · 52/34 kg · cap 10:00"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "30 reps · 61/43 kg · cap 10:00"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Grace (CrossFit 'Girl' benchmark; credit line / captions only)"
+    },
+    {
+      "id": "overhead_rush",
+      "title": "OVERHEAD RUSH",
+      "loadout": "1 BARBELL + BUMPER PLATES · 2 × 3 M OF FLOOR",
+      "format": "FOR TIME",
+      "mission": "10 ROUNDS FOR TIME · 8 GROUND-TO-OVERHEADS · 10 BAR-FACING BURPEES · CAP 15:00",
+      "score": "TIME, OR REPS AT THE CAP (180 FINISHES)",
+      "tags": [
+        "~12 MIN",
+        "HARD",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "8 Ground-to-Overheads",
+        "10 Bar-Facing Burpees"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "6 rounds · 6 lifts · empty bar · step-over burpees"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "10 rounds · 29/20 kg · stepping over the bar is fine"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "10 rounds · 43/29 kg · cap 15:00"
+        }
+      ],
+      "guided": false,
+      "captionAka": "CrossFit Open 20.1 (captions only)"
+    },
+    {
+      "id": "burnout_21",
+      "title": "BURNOUT 21",
+      "loadout": "1 BARBELL + PLATES · 2 × 3 M OF FLOOR",
+      "format": "FOR TIME",
+      "mission": "21-18-15-12-9-6-3 FOR TIME · THRUSTERS + BAR-FACING BURPEES · 168 REPS · CAP 30:00",
+      "score": "TIME, OR REPS AT THE CAP (168 FINISHES)",
+      "tags": [
+        "~16 MIN",
+        "BRUTAL",
+        "SOLO ONLY"
+      ],
+      "themes": [
+        "burpees"
+      ],
+      "moves": [
+        "21-18-15-12-9-6-3 Thrusters",
+        "21-18-15-12-9-6-3 Bar-Facing Burpees"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "15-12-9-6-3 · empty bar · step-over burpees · cap 20:00"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "21 down to 3 · 29/20 kg · cap 30:00"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "21 down to 3 · 43/29 kg · cap 30:00"
+        }
+      ],
+      "guided": false,
+      "captionAka": "CrossFit Open 14.5 / 16.5 (captions only)"
+    },
+    {
+      "id": "stance_breaker_9",
+      "title": "STANCE BREAKER 9",
+      "loadout": "1 BARBELL + PLATES · NO RACK · 2 × 2 M",
+      "format": "AMRAP",
+      "mission": "AMRAP 9 · 8 RDLS · 8 ZERCHER SQUATS · 12 REVERSE LUNGES · 8 JUMP SQUATS",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~9 MIN",
+        "NORMAL",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "8 Romanian Deadlifts",
+        "8 Zercher Squats",
+        "12 (6/leg) Reverse Lunges",
+        "8 Jump Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 6 · empty bar · plate goblet squats · air squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 9 · 30/20 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 9 · 40/30 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": null
+    },
+    {
+      "id": "rookie_round_8",
+      "title": "ROOKIE ROUND 8",
+      "loadout": "1 BARBELL (THE EMPTY BAR IS FINE) · 2 × 2 M",
+      "format": "AMRAP",
+      "mission": "AMRAP 8 · 8 BENT-OVER ROWS · 8 STRICT PRESSES · 8 PUSH-UPS",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~8 MIN",
+        "EASY",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "8 Bent-Over Rows",
+        "8 Strict Press",
+        "8 Push-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 5 · a broomstick or a 10 kg bar · incline push-ups"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 8 · the empty bar"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 8 · 30/20 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": null
+    },
+    {
+      "id": "first_bell",
+      "title": "FIRST BELL",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · 2 × 2 M, CLEAR IN FRONT",
+      "format": "EMOM",
+      "mission": "100 SINGLE-ARM SWINGS IN 5:00 · REST 1:00 · 10 GET-UPS IN 10:00",
+      "score": "SETS HELD, OUT OF 20 · AND THE BELL YOU USED",
+      "tags": [
+        "~16 MIN",
+        "NORMAL",
+        "HOTEL OK",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "10 × 10 Single-Arm Kettlebell Swings",
+        "10 × 1 Weighted Turkish Get-Up"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "Two-hand swings, a minute a set · get-ups with a shoe on the fist"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "Swings M 24 / W 16 kg · get-ups M 16 / W 8 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "The full standard: swings M 32 / W 24 kg · get-ups M 32 / W 16 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Kettlebell Simple & Sinister, 'Simple' timed standard (Pavel Tsatsouline / StrongFirst)"
+    },
+    {
+      "id": "continue_bell",
+      "title": "CONTINUE? · BELL",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · A SWING LANE CLEAR OF THE TV",
+      "format": "FOR TIME",
+      "mission": "15 SWINGS EVERY RUNG · SQUATS AND PUSH-UPS 10 DOWN TO 1 · CAP 20:00",
+      "score": "TIME, OR REPS AT THE CAP",
+      "tags": [
+        "~13 MIN",
+        "HARD",
+        "HOTEL OK",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "15 Kettlebell Swings",
+        "10→1 Goblet Squats",
+        "10→1 Push-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "5 down to 1 · 12/8 kg · incline push-ups · cap 10:00"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "10 down to 1 · 16/12 kg · cap 20:00"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "10 down to 1 · 24/16 kg · cap 20:00"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Humane Burpee (Dan John), 10→1 variant"
+    },
+    {
+      "id": "carry_on_15",
+      "title": "CARRY-ON 15",
+      "loadout": "1 DUMBBELL OR KETTLEBELL · 2 M² OF FLOOR",
+      "format": "AMRAP",
+      "mission": "AMRAP 15 · 10 RDLS · 10 ROWS · 10 GOBLET REVERSE LUNGES · 10 PUSH-UPS",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~15 MIN",
+        "NORMAL",
+        "HOTEL OK",
+        "QUIET",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "10 Dumbbell Romanian Deadlifts",
+        "10 (5/side) Single-Arm Dumbbell Rows",
+        "10 (5/leg) Goblet Reverse Lunges",
+        "10 Push-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 10 · 6 each · 8/5 kg · incline push-ups"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 15 · M 16 kg / W 8 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 15 · M 22.5 kg / W 12 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": null
+    },
+    {
+      "id": "surge_20_10",
+      "title": "SURGE 20/10",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE",
+      "format": "INTERVALS",
+      "mission": "8 ROUNDS · 0:20 ON, 0:10 OFF · SWINGS · GOBLET THRUSTERS · CLIMBERS",
+      "score": "LOWEST SWINGS + THRUSTERS + CLIMBERS",
+      "tags": [
+        "~12 MIN",
+        "HARD",
+        "HOTEL OK",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "20s Kettlebell Swings",
+        "20s Goblet Thrusters",
+        "20s Mountain Climbers"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "6 rounds · 0:15 on, 0:15 off · 12/8 kg · goblet squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "8 rounds · 0:20 on, 0:10 off · 16/8 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "8 rounds · 0:20 on, 0:10 off · 20/12 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Tabata intervals (20 s on / 10 s off x 8), rotating"
+    },
+    {
+      "id": "midline_lock",
+      "title": "MIDLINE LOCK",
+      "loadout": "1 LIGHT KETTLEBELL OR DUMBBELL · A MAT OF FLOOR",
+      "format": "AMRAP",
+      "mission": "AMRAP 10 · 10 DEAD BUGS · 10 SUITCASE DEADLIFTS · 10 PULL-THROUGHS · 10 HALOS",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~10 MIN",
+        "EASY",
+        "HOTEL OK",
+        "QUIET",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "10 (5/side) Kettlebell Dead Bugs",
+        "10 (5/side) Suitcase Deadlifts",
+        "10 (5/side) Plank Pull-Throughs",
+        "10 Kettlebell Halos"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 6 · bodyweight dead bugs · 8 kg · knee plank"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 10 · M 12-16 kg / W 8 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 10 · 16/12 kg · a 3 s pause on every dead bug"
+        }
+      ],
+      "guided": false,
+      "captionAka": null
+    },
+    {
+      "id": "leg_sweep",
+      "title": "LEG SWEEP",
+      "loadout": "1 DUMBBELL OR KETTLEBELL + A BED OR SOFA",
+      "format": "AMRAP",
+      "mission": "AMRAP 12 · 6/6 SPLIT SQUATS · 12 HIP THRUSTS · 10 LATERAL LUNGES",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~12 MIN",
+        "NORMAL",
+        "HOTEL OK",
+        "QUIET",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "12 (6/side) Goblet Bulgarian Split Squats",
+        "12 Dumbbell Hip Thrusts",
+        "10 (5/leg) Goblet Lateral Lunges"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 8 · split squats · glute bridges · a light bell"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 12 · 8-12 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 12 · M 16-22.5 kg / W 8-12 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": null
+    },
+    {
+      "id": "charge_up_12",
+      "title": "CHARGE UP 12",
+      "loadout": "1 HEX DUMBBELL · 2 × 2 M, ROOM TO PRESS OVERHEAD",
+      "format": "AMRAP",
+      "mission": "AMRAP 12 LADDER · 2 + 2, THEN 4 + 4, +2 A RUNG",
+      "score": "TOTAL REPS: EVERY RUNG CLEARED, PLUS INTO THE NEXT",
+      "tags": [
+        "~12 MIN",
+        "HARD",
+        "SOLO ONLY"
+      ],
+      "themes": [
+        "burpees"
+      ],
+      "moves": [
+        "2, 4, 6… Single-Arm Dumbbell Devil Presses",
+        "2, 4, 6… Lateral Burpees Over the Dumbbell"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 8 · 10/5 kg"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 12 · 15/10 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 12 · 22.5/15 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Ascending dumbbell / burpee ladder (inspired by CrossFit Open 17.1's dumbbell snatch and burpee box jump-over)"
+    },
+    {
+      "id": "oxygen_debt",
+      "title": "OXYGEN DEBT",
+      "loadout": "1 BARBELL + A PULL-UP BAR, OR 2 DUMBBELLS",
+      "format": "FOR TIME",
+      "mission": "21-15-9 THRUSTERS · 12-9-6 PULL-UPS · FOR TIME · CAP 10:00",
+      "score": "TIME, OR REPS AT THE CAP",
+      "tags": [
+        "~6 MIN",
+        "BRUTAL",
+        "HOTEL OK",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "21-15-9 Thrusters",
+        "12-9-6 Pull-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "15-12-9 · empty bar or 2 × 5-7.5 kg · jumping pull-ups"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "21-15-9 · 34/25 kg · 12-9-6 pull-ups"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "21-15-9 · 43/29 kg"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Fran"
+    },
+    {
+      "id": "hot_laps",
+      "title": "HOT LAPS",
+      "loadout": "1 KETTLEBELL + A PULL-UP BAR · A 400 M ROUTE OR A TREADMILL",
+      "format": "FOR TIME",
+      "mission": "3 ROUNDS FOR TIME · 400 M RUN · 21 SWINGS · 6 PULL-UPS · CAP 20:00",
+      "score": "TIME, OR SWINGS + PULL-UPS AT THE CAP",
+      "tags": [
+        "~11 MIN",
+        "HARD",
+        "SOLO ONLY"
+      ],
+      "themes": [],
+      "moves": [
+        "400 M Run",
+        "21 Kettlebell Swings",
+        "6 Pull-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "200 m · 15 swings at 12/8 kg · 9 jumping pull-ups"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "400 m · 21 swings at 16/12 kg · 6 pull-ups"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "400 m · 21 overhead swings at 24/16 kg · 12 pull-ups"
+        }
+      ],
+      "guided": false,
+      "captionAka": "Helen"
     }
   ],
   "programs": [
