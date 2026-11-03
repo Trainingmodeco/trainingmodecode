@@ -546,6 +546,25 @@ export const MOVES = [
   mv('kb-one-arm-high-pull', 'One-Arm High Pulls', 'one-arm high pulls', 'clean', 'bell', 'reps', [1.75, 2.0, 2.5], { say1: 'one-arm high pull' },
     'One hand on the bell. Hike it back like a swing. | Snap the hips, then pull the elbow high and back. The bell stops at the chest. | Let it fall back into the next hike.',
     [easier('db-rdl'), harder('kb-snatch'), noGear('backpack-rdl')]),
+
+  // ── UPPER LOWER DIPS and OVERTIME 20 ──────────────────────────────────────
+  // Every dip stops at 90° at the elbow. A shoulder pinch is the stop rule:
+  // incline push-ups, offered first on every dip row. NO GEAR: a fixed bench,
+  // a sturdy chair against a wall, or parallel bars. Coach estimates.
+  mv('bench-dip-bent', 'Bent-Knee Bench Dips', 'bench dips', 'push', 'none', 'reps', [1.75, 2.0, 2.5], { say1: 'bench dip' },
+    'Hands on the edge of a fixed bench, or a sturdy chair against a wall. Fingers forward. | Knees bent, feet flat, hips close to the edge. | Lower until the elbows reach 90°, no deeper. Press back up.',
+    [easier('incline-push-up', { stop: 'Shoulder pinch?' }), harder('bench-dip')]),
+  mv('bench-dip', 'Bench Dips', 'bench dips', 'push', 'none', 'reps', [1.75, 2.0, 2.5], { say1: 'bench dip' },
+    'Hands on the edge of a fixed bench, or a sturdy chair against a wall. Fingers forward. | Legs out straight, heels down, hips close to the edge. | Lower until the elbows reach 90°, no deeper. Press back up.',
+    [easier('incline-push-up', { stop: 'Shoulder pinch?' }), easier('bench-dip-bent'), harder('parallel-bar-dip')]),
+  mv('parallel-bar-dip', 'Parallel-Bar Dips', 'dips', 'push', 'none', 'reps', [1.75, 2.25, 2.75], { say1: 'dip' },
+    'Straight arms on parallel bars or a dip station, shoulders down. | Lean a little forward and lower until the elbows reach 90°. No deeper. | Press back to straight arms.',
+    [easier('incline-push-up', { stop: 'Shoulder pinch?' }), easier('bench-dip')]),
+  // A no-bar pull. Only OVERTIME 20 offers it (its own extra alts), so no
+  // other mission's swaps change.
+  mv('door-frame-row', 'Door Frame Rows', 'door frame rows', 'pull', 'none', 'reps', [2.0, 2.5, 3.0], { say1: 'door frame row' },
+    'Stand in a solid door frame, a hand on each side at chest height, toes near the threshold. | Lean back to straight arms, body in one line. | Pull the chest to the frame, lower slowly. Feet closer in is harder. | A solid frame only. Never pull on the door itself.',
+    [harder('jumping-pull-up'), harder('pull-up')]),
 ];
 
 const BY_ID = new Map(MOVES.map(m => [m.id, m]));
@@ -663,6 +682,8 @@ export function shortRestLine(next) { return `Next: ${spokenMove(next)}.`; }
 // A block that chains straight on from the last one in an until-the-bell-is-
 // down mission (NO CONTINUES): 'Switch: left arm.'
 export function switchLine(slot) { return `Switch: ${spokenMove(slot)}.`; }
+// The same chain when the run counts rounds (UPPER LOWER DIPS): 'Round 4.'
+export function roundLine(n) { return `Round ${n}.`; }
 export function restOpener({ restSec, roundEnd, completedRound, format, tip = null }) {
   const base = format !== 'emom' && roundEnd
     ? `Round ${completedRound} complete. Rest. ${secondsPhrase(restSec)}.`

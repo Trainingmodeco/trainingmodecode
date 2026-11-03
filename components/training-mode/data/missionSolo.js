@@ -8,6 +8,7 @@
 //     the honor-system XP settle.
 import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL } from './missionMoves';
 import { MODE_RULES } from '../utils/missionIntegrity';
+import { resolveOutcome, xpForOutcome } from '../shared/sessionOutcome';
 
 // Seconds per unit when a rep is a distance or a calorie (Murph's mile; M is
 // HOT LAPS' 400 m, at the KM pace).
@@ -68,6 +69,28 @@ export function downScore(mission, { sets = 0, reps = 0, end = 'down', timeSec =
 }
 export const DOWN_NO_SET_MESSAGE = 'Finish one set to earn XP.';
 export const DOWN_STOP_MESSAGE = 'Ended with no score. I PUT IT DOWN saves your sets.';
+// The words an until-down run uses. NO CONTINUES counts SETS and ends on I PUT
+// IT DOWN; a mission with downUnit 'round' (UPPER LOWER DIPS) counts ROUNDS and
+// ends on I'M DONE. Same engine, same score, same XP.
+const DOWN_COPY = {
+  set: {
+    one: 'set', many: 'sets', ONE: 'SET', MANY: 'SETS', tag: 'S', done: 'I PUT IT DOWN', ask: 'BELL DOWN?', askName: 'Bell down',
+    noScore: DOWN_NO_SET_MESSAGE, stop: DOWN_STOP_MESSAGE,
+    stopSolo: 'Bell on the floor? Tap I PUT IT DOWN instead: it saves your sets. END saves nothing.',
+    stopGuided: 'Bell on the floor? Tap I PUT IT DOWN instead: it finishes the run with your sets.',
+    capSay: 'Time. Park the bell.', doneSay: 'Bell down.',
+  },
+  round: {
+    one: 'round', many: 'rounds', ONE: 'ROUND', MANY: 'ROUNDS', tag: 'R', done: "I'M DONE", ask: 'DONE?', askName: 'Done',
+    noScore: 'Finish one round to earn XP.', stop: "Ended with no score. I'M DONE saves your rounds.",
+    stopSolo: "Can't finish a round? Tap I'M DONE instead: it saves your rounds. END saves nothing.",
+    stopGuided: "Can't finish a round? Tap I'M DONE instead: it finishes the run with your rounds.",
+    capSay: 'Time.', doneSay: 'Done.',
+  },
+};
+export function downCopy(mission) { return mission?.downUnit === 'round' ? DOWN_COPY.round : DOWN_COPY.set; }
+// '1 set', '6 rounds'.
+export function downCount(mission, n) { const c = downCopy(mission); return `${n} ${n === 1 ? c.one : c.many}`; }
 // The XP for an untilDown run: 15 a set done plus the finish bonus, the
 // same as a guided run that finished every slot it ran.
 export function downXp(sets) { return sets > 0 ? 15 * sets + 30 : 0; }
@@ -234,7 +257,7 @@ export function paceTargets(mission) {
   return ['elite', 'standard', 'beginner'].map(tier => {
     const v = pace[tier];
     let text = '';
-    if (isUntilDown(mission)) text = tier === 'elite' ? `${v}+ sets` : `${v} sets`;
+    if (isUntilDown(mission)) text = tier === 'elite' ? `${v}+ ${downCopy(mission).many}` : `${v} ${downCopy(mission).many}`;
     else if (f === 'forTime') text = `≤ ${mmss(v)}`;
     else if (f === 'amrap' && kind === 'reps') text = tier === 'elite' ? `${v}+ reps` : `${v} reps`; // an AMRAP scored in total reps
     else if (f === 'amrap') text = tier === 'elite' ? `${v}+ rounds` : `${v} rounds`;
@@ -273,8 +296,41 @@ export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) 
 }
 
 // ── XP ──────────────────────────────────────────────────────────────────────
+// One rule for every v2 Quick Mission run, GUIDED and SOLO: 15 XP a slot
+// done, or, on a fixed clock (EMOM, AMRAP, intervals), about 10 XP a minute
+// worked when that is more, plus the 30 finish bonus when the run finished
+// with nothing skipped. Rests are not work. So a single-block AMRAP no
+// longer pays a flat 45: CARRY-ON 15 pays 180, ROOM 12 150, OVERTIME 20 230
+// (STANDARD). A mission of many short slots (TURBO BUTTON, every EMOM) still
+// pays by its slots, which is more. A generated mission or a classic never
+// reaches the minute rule (no v2 flag): it pays 15 a slot, as before.
+export const XP_PER_SLOT = 15;
+export const XP_FINISH = 30;
+export const XP_PER_MIN = 10;
 export function totalSlots(mission) { return allSlots(mission).length * (mission?.rounds || 1); }
-export function fullRunXp(mission) { return 15 * totalSlots(mission) + 30; }
+// A v2 mission on a fixed clock: it pays by the time worked.
+export function paysByTime(mission) { return mission?.v2 === true && !isUntilDown(mission) && isFixedClock(mission?.format); }
+// The work seconds of the clock up to upToSec (all of it by default): every
+// EMOM window, AMRAP block and interval, never a rest.
+export function workSecOf(mission, upToSec = Infinity) {
+  let start = 0;
+  let out = 0;
+  for (const seg of soloTimeline(mission)) {
+    if (start >= upToSec) break;
+    if (seg.kind === 'work') out += Math.min(seg.sec, upToSec - start);
+    start += seg.sec;
+  }
+  return out;
+}
+export function minutesXp(sec) { return Math.round((XP_PER_MIN * Math.max(0, Number(sec) || 0)) / 60); }
+// slots × ratio at 15 each (ratio: SOLO's share of a stopped run), or the
+// minutes worked at 10 each on a clock, whichever is more, + the bonus.
+export function missionXp(mission, { slots = 0, ratio = 1, workedSec = 0, full = false } = {}) {
+  const bySlots = Math.round(XP_PER_SLOT * Math.max(0, slots) * ratio);
+  const byTime = paysByTime(mission) ? minutesXp(Math.min(Math.max(0, Number(workedSec) || 0), workSecOf(mission))) : 0;
+  return Math.max(bySlots, byTime) + (full ? XP_FINISH : 0);
+}
+export function fullRunXp(mission) { return missionXp(mission, { slots: totalSlots(mission), workedSec: workSecOf(mission), full: true }); }
 export function soloExpectedSec(mission) {
   if (isUntilDown(mission)) return mission.capSec || 0;
   if (isFixedClock(mission?.format)) return missionClockSec(mission);
@@ -290,13 +346,14 @@ export function soloFloorSec(mission) {
 export const TOO_FAST_MESSAGE = "Faster than elite pace, so this one can't count.";
 export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
 
-// SOLO is honor-system: the floor is the check. Swaps never change totalSlots,
-// so they never change XP.
+// SOLO is honor-system: the floor is the check. Swaps never change totalSlots
+// or the clock, so they never change XP. A stopped clock pays the minutes it
+// ran (the work in them); a finish pays the whole clock.
 export function settleSoloXp(result) {
   const mission = result?.mission || {};
   if (isUntilDown(mission)) return settleDown(result, mission);
   const slots = result?.mission ? totalSlots(mission) : (result?.totalSlots || 0);
-  const full = 15 * slots + 30;
+  const full = missionXp(mission, { slots, workedSec: workSecOf(mission), full: true });
   const format = result?.format || mission.format;
   const elapsed = Math.max(0, Math.floor(result?.elapsedSec || 0));
   const expected = soloExpectedSec(mission);
@@ -307,23 +364,86 @@ export function settleSoloXp(result) {
     return elapsed >= soloFloorSec(mission) ? pass : { xp: 0, outcome: 'too_fast', ratio, message: TOO_FAST_MESSAGE };
   }
   if (isFixedClock(format) && elapsed >= soloFloorSec(mission)) return pass;
-  if (ratio >= 0.25) return { xp: Math.round(15 * slots * ratio), outcome: 'partial', ratio, message: null };
+  if (ratio >= 0.25) return { xp: missionXp(mission, { slots, ratio, workedSec: workSecOf(mission, elapsed) }), outcome: 'partial', ratio, message: null };
   return { xp: 0, outcome: 'none', ratio, message: EARLY_MESSAGE };
+}
+// GUIDED, a v2 mission: the XP App banks and the complete screen shows, from
+// this one call, so the two never disagree. On a clock the work done is
+// measured in time (the runner reports workedSec): the minute rule pays it
+// and the verdict reads the share of the clock worked. Anything else reads
+// its slots, as before. A generated mission or a classic never comes here.
+export function settleGuidedXp(result) {
+  const mission = result?.mission || {};
+  const done = Math.max(0, Math.floor(Number(result?.exercisesCompleted) || 0));
+  const total = Math.max(0, Number(result?.totalExercises) || 0);
+  const full = !!result?.completed && done >= total;
+  const timed = paysByTime(mission);
+  const clockWork = timed ? workSecOf(mission) : 0;
+  const worked = timed ? Math.min(clockWork, Math.max(0, Math.floor(Number(result?.workedSec) || 0))) : 0;
+  const base = missionXp(mission, { slots: done, workedSec: worked, full });
+  const verdict = resolveOutcome({
+    completed: timed ? worked : done, total: timed ? clockWork : total, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null,
+  });
+  return { mode: 'guided', xp: xpForOutcome(verdict.outcome, base), base, outcome: verdict.outcome, verdict, workedSec: worked };
 }
 // untilDown: I PUT IT DOWN (or the cap) is a finish, paid per set done. A
 // STOP is a quit with no score, so it pays nothing: the button that saves
 // the sets is right there.
 function settleDown(result, mission) {
   const elapsed = Math.max(0, Math.floor(result?.elapsedSec || 0));
-  if (!result?.completed || !result?.score) return { xp: 0, outcome: 'none', ratio: 0, credited: 0, message: DOWN_STOP_MESSAGE };
+  const copy = downCopy(mission);
+  if (!result?.completed || !result?.score) return { xp: 0, outcome: 'none', ratio: 0, credited: 0, message: copy.stop };
   const sets = Math.min(totalSlots(mission), Math.max(0, Math.floor(result.score.sets || 0)));
   const credited = Math.min(sets, Math.floor(elapsed / soloSetFloorSec(mission)));
-  if (credited <= 0) return { xp: 0, outcome: sets > 0 ? 'too_fast' : 'none', ratio: 0, credited: 0, message: sets > 0 ? TOO_FAST_MESSAGE : DOWN_NO_SET_MESSAGE };
+  if (credited <= 0) return { xp: 0, outcome: sets > 0 ? 'too_fast' : 'none', ratio: 0, credited: 0, message: sets > 0 ? TOO_FAST_MESSAGE : copy.noScore };
   return {
     xp: downXp(credited), outcome: 'pass', ratio: 1, credited,
-    message: credited < sets ? `Faster than elite pace, so ${credited} of ${sets} sets count.` : null,
+    message: credited < sets ? `Faster than elite pace, so ${credited} of ${sets} ${copy.many} count.` : null,
   };
 }
+// ── the round timer (SOLO) ──────────────────────────────────────────────────
+// Every SOLO mission that counts its own rounds (an AMRAP, a for-time
+// mission, an until-down run) has the ROUND button: a tap is a split, the
+// clock (ms) at the tap and the AMRAP block it fell in ({ at, block }). The
+// tap counts exactly what + ROUND counted (a ladder's rung, NO CONTINUES'
+// set); the split only adds its time. An EMOM or an interval clock has no
+// ROUND button: its rounds are the clock's.
+export function hasRoundTimer(mission) { return mission?.format === 'amrap' || mission?.format === 'forTime' || isUntilDown(mission); }
+// Where block b's work starts on the clock, in seconds (0 for one block).
+function blockStartSec(mission, b) {
+  let start = 0;
+  for (const seg of soloTimeline(mission)) {
+    if (seg.kind === 'work' && seg.block === b) return start;
+    start += seg.sec;
+  }
+  return 0;
+}
+// The rounds the splits make: { n, atSec, lapSec, block }. n counts within
+// its block, atSec is the clock at the tap, lapSec the round's own time (from
+// the last tap in the same block, or the block's start), so the laps of one
+// block add up to its last tap. Bad entries are skipped.
+export function roundSplits(mission, splits) {
+  const last = new Map();
+  const count = new Map();
+  const out = [];
+  (Array.isArray(splits) ? splits : []).forEach(sp => {
+    const atMs = Number(sp?.at);
+    if (!Number.isFinite(atMs) || atMs < 0) return;
+    const block = Number.isInteger(sp?.block) && sp.block >= 0 ? sp.block : 0;
+    const atSec = Math.floor(atMs / 1000);
+    const from = last.has(block) ? last.get(block) : blockStartSec(mission, block);
+    last.set(block, atSec);
+    count.set(block, (count.get(block) || 0) + 1);
+    out.push({ n: count.get(block), atSec, lapSec: Math.max(0, atSec - from), block });
+  });
+  return out;
+}
+// 'R1 2:00 · R2 4:00 · R3 8:00': each round's own time. `tag` 'S' for sets.
+export function splitsLine(rounds, { tag = 'R', last = Infinity } = {}) {
+  const list = Array.isArray(rounds) ? rounds : [];
+  return list.slice(Math.max(0, list.length - last)).map(r => `${tag}${r.n} ${mmss(r.lapSec)}`).join(' · ');
+}
+
 // '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '—'
 export function formatScore(score) {
   if (!score) return '—';

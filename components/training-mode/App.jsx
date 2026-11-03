@@ -38,7 +38,7 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
-import { settleSoloXp } from './data/missionSolo';
+import { settleSoloXp, settleGuidedXp, roundSplits, hasRoundTimer } from './data/missionSolo';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
 import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview, entryFor as conceptEntryFor, stageCfg as conceptStageCfg } from './data/concepts';
@@ -690,26 +690,33 @@ export default function App() {
         // system), and the screen shows exactly the XP banked here. v2
         // missions are never plan days, so there is no completePlanDay.
         const settle = settleSoloXp(result);
+        // The round timer's splits travel with the result and the row.
+        const splits = hasRoundTimer(result.mission) ? roundSplits(result.mission, result.splits) : null;
         const xp = addQuickMissionSoloSession({
           xpEarned: settle.xp, missionId: result.missionId, format: result.format, score: result.score,
           elapsedSec: result.elapsedSec, pausedSec: result.pausedSec, hiddenSec: result.hiddenSec,
           level: result.level, scaled: result.scaled, swaps: result.swaps, completed: result.completed,
-          completedCount: result.exercisesCompleted, totalCount: result.totalSlots,
+          completedCount: result.exercisesCompleted, totalCount: result.totalSlots, splits,
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
-        setQmResult({ ...result, xpEarned: xp, settle });
+        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits });
       } else {
-        // A v2 GUIDED run tags its row with the mission it ran; the XP is unchanged.
+        // A v2 GUIDED run tags its row with the mission it ran.
         // An until-the-bell-is-down run (NO CONTINUES) also stores its score (sets + reps, and the time).
         const meta = qmCfg?.v2 ? { mode: 'guided', missionId: qmCfg.missionId, level: qmCfg.level, scaled: !!qmCfg.scaled, swaps: qmCfg.swaps || [], ...(result?.score ? { score: result.score, elapsedSec: result.elapsedSec } : {}) } : undefined;
-        addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed, meta);
+        // A v2 mission settles once (data/missionSolo settleGuidedXp): a clock
+        // pays the minutes worked, and the complete screen shows this same
+        // number. A generated mission or a classic banks as before.
+        const settle = result?.mission?.v2 === true ? settleGuidedXp(result) : null;
+        const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
+          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : meta, settle ? settle.xp : undefined);
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
         tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
-        setQmResult(result);
+        setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
       }
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {

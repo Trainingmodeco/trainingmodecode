@@ -16,7 +16,8 @@
 // STANDARD. Pace targets for TUTORIAL STAGE, TURBO BUTTON and QUOTA 300 come
 // from the source; the other eight launch missions are coach estimates (see
 // each paceBasis). Missions 12-26 are SOLO only for now (see their block);
-// 27-29 are the owner's own, GUIDED and SOLO. `knownAs` is stored, never
+// 27-30 are the owner's own, GUIDED and SOLO, and 31 (OVERTIME 20) is a
+// verified catalog mission, GUIDED and SOLO. `knownAs` is stored, never
 // rendered; `origin` marks a Coach TM original.
 import {
   LEVELS, LEVEL_LABEL, GEAR_LABEL, GEAR_WORD, ALT_LABEL,
@@ -42,8 +43,9 @@ export const LOADOUT_GEAR = {
   barbell: ['none', 'barbell', 'plate'],
   mixed: ['none', 'bell', 'db', 'barbell', 'plate', 'rower', 'bar'], // bar: OXYGEN DEBT's and HOT LAPS' pull-ups
 };
-// maxSets: NO CONTINUES, sets until the bell touches the floor (untilDown).
-export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS', maxSets: 'MAX SETS' };
+// maxSets: NO CONTINUES, sets until the bell touches the floor; maxRounds:
+// UPPER LOWER DIPS, rounds until one can't be finished (both untilDown).
+export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS', maxSets: 'MAX SETS', maxRounds: 'MAX ROUNDS' };
 export const GUIDED_HELP_AMRAP = 'The coach runs the clock and calls the time. The moves stay on screen.';
 export const SOLO_HELP = 'Your pace. The whole workout on one screen, one clock.';
 export const SOLO_ONLY_HELP = 'SOLO only for now. Guided is coming.';
@@ -1203,10 +1205,105 @@ const NO_CONTINUES = {
   },
 };
 
+// ── 30 · UPPER LOWER DIPS ───────────────────────────────────────────────────
+// The owner's own: 8 dips, then 16 squats, and round again until the dips or
+// the squats can't be finished. It runs on NO CONTINUES' until-down engine,
+// counting ROUNDS (downUnit 'round'): GUIDED counts every dip and squat and
+// calls each round; SOLO taps ROUND after each one (the round timer keeps
+// the splits). I'M DONE ends it as a finish, and the 30:00 cap ends it the
+// same way. 60 rounds is more than any 30:00 run reaches at the count, so
+// the cap always comes first. NO GEAR: the dips go on a fixed bench, a
+// sturdy chair against a wall, or parallel bars. Every dip stops at 90°; a
+// shoulder pinch is the stop rule (incline push-ups, first on every dip
+// row). ELITE's jump squats are the coach's call; in a vest, air squats.
+// The squat row stays a squat: no swap walks on to the sprawl and burpee family.
+const ULD_OUT = ['squat-thrust', 'sprawl', 'step-back-sprawl', 'level-change-drop', 'burpee', 'step-back-burpee', 'burpee-tuck-jump', 'hindu-squat-knee-strike'];
+const uld = (dipId, squatId, dipExtra = {}) => [complex('Dips + Squats', [
+  s(dipId, 8, { swapKey: 'dip', ...dipExtra }), s(squatId, 16, { swapKey: 'squat' }),
+], { swapKey: 'round', say: 'dips and squats', setupMs: 2000 })];
+const UPPER_LOWER_DIPS = {
+  id: 'upper_lower_dips', launch: 30, title: 'UPPER LOWER DIPS', tag: 'Bodyweight', loadout: 'none', themes: ['century'], format: 'maxRounds',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Bodyweight', hotel: false, quiet: false, guided: true, ...OWN,
+  untilDown: true, downUnit: 'round',
+  safety: 'Dips stop when your elbows reach 90°. Never sink deeper. Shoulder pinch? Stop the dips.',
+  loadoutLine: 'NO GEAR · A FIXED BENCH, A STURDY CHAIR OR PARALLEL BARS FOR THE DIPS', scoreLine: 'ROUNDS + REPS, AND THE TIME', scoreRule: { kind: 'setsReps', label: 'ROUNDS + REPS' },
+  scale: "Beginner level: bent-knee bench dips. Shoulder pinch on any dip? Swap to incline push-ups. ELITE is the coach's call: bar dips and jump squats. In a 9/6 kg (20/14 lb) vest, do air squats, not jump squats.",
+  note: "Warm up 3 min: arm circles, 10 slow squats, 5 incline push-ups. One round is 8 dips, then 16 squats. Go again until you can't finish the dips or the squats, then tap I'M DONE. Never dip on a chair with wheels. The clock stops at 30:00.",
+  introSay: "Upper lower dips. Eight dips, sixteen squats, and round again. When you can't finish a round, tap I'm done.",
+  guidedHelp: "The coach counts every dip and squat and calls each round. Tap I'M DONE when you can't finish one.",
+  paceBasis: 'Coach estimate: a round takes about 50 s at the count. The dips usually end it.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '8 bent-knee bench dips · 16 squats', minutes: 7, rounds: 60, capSec: 1800, excludeAlts: ULD_OUT,
+      missionLine: "8 BENT-KNEE BENCH DIPS · 16 SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      slots: uld('bench-dip-bent', 'air-squat'), pace: { elite: 14, standard: 9, beginner: 5 },
+    },
+    standard: {
+      detail: '8 bench or bar dips · 16 squats', minutes: 7, rounds: 60, capSec: 1800, excludeAlts: ULD_OUT,
+      missionLine: "8 BENCH OR BAR DIPS · 16 SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      slots: uld('bench-dip', 'air-squat', baseNote('dip', 'bench-dip', 'Parallel bars? Swap to bar dips.')), pace: { elite: 12, standard: 8, beginner: 5 },
+    },
+    elite: {
+      detail: '8 bar dips · 16 jump squats', minutes: 5, rounds: 60, capSec: 1800, excludeAlts: ULD_OUT,
+      missionLine: "8 PARALLEL-BAR DIPS · 16 JUMP SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      slots: uld('parallel-bar-dip', 'jump-squat'), pace: { elite: 10, standard: 6, beginner: 4 },
+    },
+  },
+};
+
+// ── 31 · OVERTIME 20 ────────────────────────────────────────────────────────
+// A well-known bodyweight benchmark, kept as published: AMRAP 20 of 5
+// pull-ups, 10 push-ups and 15 squats, in order (knownAs: captions only).
+// STANDARD is the published workout, ELITE adds the source's 9/6 kg vest,
+// BEGINNER is its lower-volume 12-minute version (3 / 6 / 9). The scaled
+// moves the source gives an intermediate (jumping pull-ups, knee push-ups)
+// are the EASIER swaps. NO GEAR: a pull-up bar is optional, so gearPlus lets
+// the bar moves in, and a solid door frame is the no-bar swap: altsPlus adds
+// Door Frame Rows to the bar moves for this mission only, so no other
+// mission's swaps change. GUIDED runs it like ROOM 12: one AMRAP block, the
+// coach on the clock. Pace: the source's published guide for the 20-minute
+// version at STANDARD; the vest and 12-minute marks are coach estimates.
+const C1200 = [{ t: 600, say: 'Halfway.' }, { t: 1140, say: 'One minute.' }, { t: 1190, say: 'Ten seconds.' }];
+const DOOR = [{ id: 'door-frame-row', kind: 'no-gear' }];
+const overtime = (sec, calls, pullId, pushId, n) => [amrap(sec, 0, [
+  s(pullId, n, { swapKey: 'pull' }), s(pushId, 2 * n, { swapKey: 'push-up' }), s('air-squat', 3 * n, { swapKey: 'squat' }),
+], calls, { swapKey: 'block' })];
+const OVERTIME = {
+  id: 'overtime_20', launch: 31, title: 'OVERTIME 20', tag: 'Bodyweight', loadout: 'none', themes: [], format: 'amrap',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Bodyweight', hotel: true, quiet: true, guided: true, knownAs: 'Cindy',
+  gearPlus: ['bar'], altsPlus: { 'pull-up': DOOR, 'jumping-pull-up': DOOR, 'ring-row': DOOR },
+  loadoutLine: 'NO GEAR · A PULL-UP BAR, OR A SOLID DOOR FRAME', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Beginner level: AMRAP 12 of 3 door frame rows, 6 incline push-ups and 9 squats. No bar? Swap the pull-ups to door frame rows. Easier: jumping pull-ups and knee push-ups. No kipping until you can do 5 strict pull-ups.',
+  note: 'Warm up 3 min: march in place, arm circles, 5 door frame rows, 10 squats, 5 push-ups. Go in order: pull-ups, push-ups, squats, then round again. Incline push-ups go on a desk or counter, not the soft bed.',
+  introSay: 'Overtime twenty. Five pull-ups, ten push-ups, fifteen squats. As many rounds as you can.',
+  guidedHelp: GUIDED_HELP_AMRAP,
+  paceBasis: 'Published guide for the 20-minute version, and sources disagree: beginner 8-12 rounds, intermediate 13-18, advanced 19-23, elite 24+. The vest and 12-minute marks are coach estimates. Your last score is the real benchmark.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 12 · 3 door frame rows · 6 incline push-ups · 9 squats', minutes: 12, rounds: 1,
+      missionLine: 'AMRAP 12 · 3 DOOR FRAME ROWS · 6 INCLINE PUSH-UPS · 9 SQUATS',
+      slots: overtime(720, C720, 'door-frame-row', 'incline-push-up', 3), pace: { elite: 18, standard: 12, beginner: 8 },
+    },
+    standard: {
+      detail: 'AMRAP 20 · 5 pull-ups · 10 push-ups · 15 squats', minutes: 20, rounds: 1,
+      missionLine: 'AMRAP 20 · 5 PULL-UPS · 10 PUSH-UPS · 15 SQUATS',
+      slots: overtime(1200, C1200, 'pull-up', 'push-up', 5), pace: { elite: 24, standard: 13, beginner: 8 },
+    },
+    elite: {
+      detail: 'AMRAP 20 · 9/6 kg vest', minutes: 20, load: '9/6 kg (20/14 lb) vest', rounds: 1,
+      loadoutLine: 'A 9/6 KG VEST · A PULL-UP BAR, OR A SOLID DOOR FRAME',
+      missionLine: 'AMRAP 20 · 5 PULL-UPS · 10 PUSH-UPS · 15 SQUATS · IN A VEST',
+      slots: overtime(1200, C1200, 'pull-up', 'push-up', 5), pace: { elite: 20, standard: 12, beginner: 7 },
+    },
+  },
+};
+
 export const LOADOUT_MISSIONS = [
   IRON_CLOCK, ONE_BELL, FIVE_ROUND, BEST_OF_3, STEEL, CHECKPOINT, ROOM_12, HIT_COMBO, TUTORIAL, TURBO, QUOTA,
   HONOR, KO_SPRINT, OVERHEAD_RUSH, BURNOUT, STANCE, ROOKIE, FIRST_BELL, CONTINUE_BELL, CARRY_ON, SURGE, MIDLINE, LEG_SWEEP, CHARGE_UP, OXYGEN_DEBT, HOT_LAPS,
-  BAR_FIGHT, TOUCH_THE_SKY, NO_CONTINUES,
+  BAR_FIGHT, TOUCH_THE_SKY, NO_CONTINUES, UPPER_LOWER_DIPS, OVERTIME,
 ];
 
 // Test-only: fixture defs (a box move, a flying knee) the unit tests build.
@@ -1230,8 +1327,17 @@ export function gearProfile() {
   if (loadEquipment().has('HEAVY_BAG')) out.add('bag');
   return out;
 }
-export function allowedGear(loadout, profile) {
-  return new Set([...(LOADOUT_GEAR[loadout] || ['none']), ...(profile || [])]);
+// `plus`: gear one mission lets in on top of its loadout (OVERTIME 20's
+// optional pull-up bar, def.gearPlus).
+export function allowedGear(loadout, profile, plus = null) {
+  return new Set([...(LOADOUT_GEAR[loadout] || ['none']), ...(profile || []), ...(plus || [])]);
+}
+// A move's alts in this mission: the catalog's, plus any the mission adds
+// for itself (def.altsPlus: OVERTIME 20's door frame rows on the bar moves).
+function altsOf(mission, moveId) {
+  const own = moveById(moveId)?.alts || [];
+  const plus = mission?.altsPlus?.[moveId];
+  return Array.isArray(plus) && plus.length ? [...own, ...plus.filter(a => !own.some(o => o.id === a.id))] : own;
 }
 
 const clone = (o) => (o == null ? o : JSON.parse(JSON.stringify(o)));
@@ -1334,7 +1440,7 @@ export function totalRepsForKey(mission, swapKey, moveId, x = 1) {
 export function altAllowed(mission, swapKey, alt, { gear = gearProfile() } = {}) {
   const move = moveById(alt?.id);
   if (!mission || !move) return false;
-  if (!allowedGear(mission.loadout, gear).has(move.gear)) return false;                        // 1 · gear
+  if (!allowedGear(mission.loadout, gear, mission.gearPlus).has(move.gear)) return false;      // 1 · gear
   const others = allItems(mission).filter(it => it.swapKey !== swapKey);
   if (others.some(it => it.moveId === alt.id)) return false;                                   // 2 · not another row's move
   // Rule 3 reads the AUTHORED slot mode, so a shadowbox minute swapped to row calories can still swap back.
@@ -1366,7 +1472,7 @@ function walkAlts(mission, swapKey, allow) {
   while (queue.length) {
     const id = queue.shift();
     const { x } = out.get(id);
-    (moveById(id)?.alts || []).forEach(alt => {
+    altsOf(mission, id).forEach(alt => {
       if (out.has(alt.id)) return;
       const ax = x * (alt.x ?? 1);
       if (!allow({ ...alt, x: ax })) return;
@@ -1436,7 +1542,10 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
     // Only on the missions that have them, so every other mission builds as before.
     ...(def.origin ? { origin: def.origin } : {}),
     ...(def.untilDown ? { untilDown: true } : {}),
+    ...(def.downUnit ? { downUnit: def.downUnit } : {}),
     ...(def.safety ? { safety: def.safety } : {}),
+    ...(def.gearPlus ? { gearPlus: [...def.gearPlus] } : {}),
+    ...(def.altsPlus ? { altsPlus: clone(def.altsPlus) } : {}),
   };
   m = resolveNotes(m);
   m.exercises = m.exercises.map(slot => (slot.window ? { ...slot, rest: windowRest(slot, estimateWorkSeconds(slot)) } : slot));
@@ -1444,11 +1553,11 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
 
   // Gear defaults: a base move whose gear the viewer lacks opens on its first
   // allowed alt (a NO GEAR one first). The card shows a banner, not SCALED.
-  const allowed = allowedGear(def.loadout, gear);
+  const allowed = allowedGear(def.loadout, gear, def.gearPlus);
   rowItems(m).forEach(({ item }) => {
     const base = moveById(item.baseMoveId);
     if (!base || allowed.has(base.gear)) return;
-    const ok = base.alts.filter(a => altAllowed(m, item.swapKey, a, { gear }));
+    const ok = altsOf(m, item.baseMoveId).filter(a => altAllowed(m, item.swapKey, a, { gear }));
     const alt = ok.find(a => a.kind === 'no-gear') || ok[0];
     if (!alt) return;
     m = withDefault(m, item.swapKey, alt.id);
@@ -1574,7 +1683,7 @@ export function swapOptions(mission, swapKey, { gear = gearProfile() } = {}) {
   if (!first || !current) return [];
   const reach = reachableMoves(mission, swapKey, { gear });
   const curX = reach.get(first.moveId)?.x ?? 1;
-  const ok = current.alts.filter(a => a.id !== first.moveId && altAllowed(mission, swapKey, { ...a, x: curX * (a.x ?? 1) }, { gear }));
+  const ok = altsOf(mission, first.moveId).filter(a => a.id !== first.moveId && altAllowed(mission, swapKey, { ...a, x: curX * (a.x ?? 1) }, { gear }));
   const ordered = [...ok.filter(a => a.stop), ...ok.filter(a => !a.stop)].slice(0, 4);
   const doseFrom = slotDose(first);
   return ordered.map(a => {

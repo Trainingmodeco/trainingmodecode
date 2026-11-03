@@ -160,9 +160,12 @@ export function quickMissionXp(exercisesCompleted, totalExercises, completed) {
 
 // `meta` (optional): extra fields for the row, e.g. a v2 guided run's
 // { mode, missionId, level, scaled, swaps }. It never changes the XP.
-export function addQuickMissionSession(exercisesCompleted, totalExercises, completed, meta) {
+// `xpSettled` (optional): a v2 run's XP, settled before it gets here
+// (data/missionSolo settleGuidedXp), banked as given. Without it the XP is
+// quickMissionXp, as before (generated missions and the classics).
+export function addQuickMissionSession(exercisesCompleted, totalExercises, completed, meta, xpSettled) {
   const stats = loadStats();
-  const xpEarned = quickMissionXp(exercisesCompleted, totalExercises, completed);
+  const xpEarned = Number.isFinite(xpSettled) ? Math.max(0, Math.round(xpSettled)) : quickMissionXp(exercisesCompleted, totalExercises, completed);
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),
@@ -203,6 +206,9 @@ export function addQuickMissionSoloSession(m) {
     scaled: !!m.scaled,
     swaps: m.swaps || [],
     completed: !!m.completed,
+    // The round timer's splits ({ n, atSec, lapSec, block }), when the
+    // mission has one (data/missionSolo roundSplits).
+    ...(Array.isArray(m.splits) ? { splits: m.splits.map(r => ({ n: r.n, atSec: r.atSec, lapSec: r.lapSec, block: r.block })) } : {}),
   });
   saveStats(stats);
   return xpEarned;
