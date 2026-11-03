@@ -344,7 +344,8 @@ HOW MUCH TO MAKE (guidance):
         (video streams in byte ranges; the Cache API refuses partial
         responses). Smoke: "practice tutorial plays" (Muay Thai › Rear Knee).
       Still to film: stances, punches, teeps, low kick, clinch knees,
-        specials (TM Social Console › brain/shoot-list.md).
+        specials. Delivered by the console chat; the two chats share what
+        each needs in HANDOFF.md.
 
 ## PHASE 2 — TRAINING CAMP + ARCADE v2 (protocol-driven; PRO tier)
 > PROTOCOL LANDED Jul 21 (`protocol-src/` on `app`, merged via PR #2 from the
