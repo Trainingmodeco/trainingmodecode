@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-chopping-elbow",
   "title": "Practice: Chopping Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Chopping Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Sap (ศอกสับ). Footage: the owner's clip 7 (ring, 2026-10-31), raw-footage/practice/p7.mp4. One shot; the owner starts at the frame's edge and steps in, so the cut uses the reps from 2 s on (chops at about 2.4, 4.0 and 5.6 s).",
@@ -20,7 +20,7 @@
     "src": "raw-footage/practice/p7.mp4",
     "slowSrc": "raw-footage/practice/p7.x75.mp4",
     "pose": "raw-footage/practice/p7.pose.json",
-    "hookAt": 3.0,
+    "hookAt": 3,
     "repAt": 3.1,
     "cues": [
       {
@@ -32,7 +32,7 @@
       },
       {
         "text": "Drop your weight into it",
-        "at": 4.0,
+        "at": 4,
         "mark": "hips",
         "label": "WEIGHT",
         "say": "Coach: \"Sink as it falls. Your body weight comes down with the elbow.\""
@@ -48,7 +48,7 @@
     "watch": {
       "text": "Swinging it wide",
       "fix": "Straight up, straight down",
-      "at": 2.3,
+      "at": 3.95,
       "fixAt": 5.1,
       "mark": "rearElbow",
       "label": "WIDE",
@@ -60,7 +60,7 @@
         "CHOP × 2",
         "JAB → CHOP"
       ],
-      "start": 2.0,
+      "start": 2,
       "cue": "Very close range only"
     },
     "next": {
@@ -101,6 +101,18 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-03 cut from clip 7 (Claude's reading: the downward chopping elbow; the owner names the clip at approval). The body sits at the frame's edge for the first 2 s, so every beat starts after that. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+    "2026-11-03 cut from clip 7 (Claude's reading: the downward chopping elbow; the owner names the clip at approval). The body sits at the frame's edge for the first 2 s, so every beat starts after that. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 WATCH FOR freeze moved to 3.95 s, where the elbow is out wide mid-swing (at 2.3 s it was still down by the hip)."
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-chopping-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-chopping-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-chopping-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-chopping-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T06:38:19.576Z"
 }

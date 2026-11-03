@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-spinning-back-elbow",
   "title": "Practice: Spinning Back Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Spinning Back Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Klap (ศอกกลับ). Footage: the owner's clip 1 (ring, 2026-10-31), raw-footage/practice/p1.mp4. One shot; three spins, the elbow landing at about 2.1, 5.2 and 7.9 s.",
@@ -65,7 +65,7 @@
         "SPINNING ELBOW × 2",
         "CROSS → SPINNING ELBOW"
       ],
-      "start": 3.0,
+      "start": 3,
       "cue": "Commit to the turn"
     },
     "next": {
@@ -107,5 +107,16 @@
   "posted": {},
   "notes": [
     "2026-11-03 cut from clip 1 (Claude's reading: the spinning back elbow, the clearest of the six spinning takes; clips 11, 12, 14, 15 and 17 stay as alternates; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-spinning-back-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-spinning-back-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-spinning-back-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-spinning-back-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T06:30:50.075Z"
 }
