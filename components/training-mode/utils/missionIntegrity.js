@@ -219,6 +219,21 @@ export class IntegritySession {
     return { idle: false };
   }
 
+  // A run with no set length (Quick Mission's NO CONTINUES: until the bell
+  // touches the floor). The athlete ending it IS the finish, so the session
+  // is judged on the units it actually ran: the unit in progress closes as
+  // done when it holds finished work (keepCurrent), else it is dropped. Only
+  // that mission's runner calls this.
+  endRunHere(keepCurrent) {
+    const unit = this.units[this.currentUnitIndex];
+    if (unit && !unit.completedAt) {
+      if (unit._pausedAt) { unit.pausedElapsedSeconds += (Date.now() - unit._pausedAt) / 1000; unit._pausedAt = null; }
+      if (keepCurrent) this.completeUnit();
+      else { this.units.splice(this.currentUnitIndex, 1); this.currentUnitIndex = this.units.length - 1; }
+    }
+    this.totalUnits = Math.max(1, this.units.length);
+  }
+
   finalize(motion) {
     this.missionEndedAt = Date.now();
 

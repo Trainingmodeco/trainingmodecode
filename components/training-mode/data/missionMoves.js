@@ -486,6 +486,66 @@ export const MOVES = [
   mv('high-knees', 'High Knees', 'high knees', 'cardio', 'none', 'reps', [0.5, 0.6, 0.75], ALT,
     'Run in place, knees to hip height. | Light on the balls of the feet, arms driving. | Count each leg.',
     [easier('standing-knee-drive'), similar('mountain-climber')]),
+
+  // ── the owner's three (BAR FIGHT, TOUCH THE SKY, NO CONTINUES) ───────────
+  // Coach TM originals. Every cadence here is a COACH ESTIMATE. The bar
+  // drills are speed work with a light bar: core braced, shoulders down, the
+  // elbows never snapped straight. No existing move's alts changed, so no
+  // earlier mission's swaps did either.
+  // barbell: BAR FIGHT
+  mv('bb-punch-out', 'Explosive Front Presses', 'explosive front presses', 'punch', 'barbell', 'reps', [1.0, 1.25, 1.5], { say1: 'explosive front press' },
+    'Light bar at the chest, overhand grip, elbows tucked. | Punch it straight out fast, then snap it back to the chest. | Core braced, shoulders down. Never lock the elbows hard.',
+    [easier('plate-punch-out'), noGear('one-two', { stop: 'Shoulder pinch?' })]),
+  mv('plate-punch-out', 'Plate Punch-Outs', 'plate punch-outs', 'punch', 'plate', 'reps', [1.0, 1.25, 1.5], { say1: 'plate punch-out' },
+    'Hold a light plate by the edges at the chest. | Punch it straight out fast, then snap it back. | Core braced, shoulders down.',
+    [harder('bb-punch-out'), noGear('one-two')]),
+  mv('bb-explosive-press', 'Explosive Overhead Presses', 'explosive overhead presses', 'press', 'barbell', 'reps', [1.5, 1.75, 2.0], { say1: 'explosive overhead press' },
+    'Bar on the front of the shoulders, elbows just ahead of the bar. | Dip and drive with the legs like a jump, and punch the bar overhead. | Ribs down at the top, then straight back to the shoulders.',
+    [easier('plate-push-press'), similar('bb-push-press'), noGear('pike-push-up')]),
+  mv('plate-push-press', 'Plate Push Presses', 'plate push presses', 'press', 'plate', 'reps', [1.5, 1.75, 2.0], { say1: 'plate push press' },
+    'Hold a plate by the edges at the chest. | Dip and drive with the legs, and punch it overhead. | Ribs down, then back to the chest.',
+    [harder('bb-explosive-press'), noGear('pike-push-up')]),
+  mv('bb-uppercut', 'Barbell Uppercuts', 'barbell uppercuts', 'punch', 'barbell', 'reps', [1.25, 1.5, 2.0], { say1: 'barbell uppercut' },
+    'Light bar at the chest, underhand grip, hands narrow. | Turn the hip and drive the bar up and out in an uppercut path, to chin height. | Back to the chest, then turn the other hip. Core braced.',
+    [easier('plate-uppercut'), noGear('alt-uppercut')]),
+  mv('plate-uppercut', 'Plate Uppercuts', 'plate uppercuts', 'punch', 'plate', 'reps', [1.25, 1.5, 2.0], { say1: 'plate uppercut' },
+    'Hold a light plate by the edges at the chest. | Turn the hip and drive it up and out to chin height. | Alternate the hip turn. Core braced.',
+    [harder('bb-uppercut'), noGear('alt-uppercut')]),
+  mv('alt-uppercut', 'Uppercuts', 'uppercuts', 'punch', 'none', 'reps', [0.9, 1.0, 1.25], { sides: 'alternate', sideWord: 'side', say1: 'uppercut' },
+    'Stance, hands up, knees soft. | Dip, turn the hip and drive the fist up to chin height. | Hand back to the chin. Alternate sides.',
+    [similar('one-two'), harder('plate-uppercut'), harder('bb-uppercut')]),
+  mv('bb-explosive-front-squat', 'Explosive Front Squats', 'explosive front squats', 'squat', 'barbell', 'reps', [1.75, 2.0, 2.5], { say1: 'explosive front squat' },
+    'Bar in the front rack, elbows high. | Sit down under control, then drive up fast onto the toes. | Heels back down, chest tall. No hop below ELITE.',
+    [easier('plate-goblet-squat'), similar('bb-front-squat'), harder('bb-front-squat-hop'), noGear('air-squat')]),
+  mv('bb-front-squat-hop', 'Front Squat Hops', 'front squat hops', 'squat', 'barbell', 'reps', [2.0, 2.25, 2.5], { jumps: true, say1: 'front squat hop' },
+    'The same explosive front squat, then a small hop off the toes. | Elbows high, the bar stays on the shoulders. | Land soft and quiet into the next rep.',
+    [easier('bb-explosive-front-squat'), noGear('jump-squat')]),
+  mv('explosive-shadowbox', 'Explosive Shadowboxing', 'explosive shadowboxing', 'punch', 'none', 'secs', null, { timedOnly: true },
+    'Set the bar down first and step away from it. | Fast 1-2s, hooks and uppercuts, full speed, hands back to the chin. | Keep the feet moving. Never snap the elbow straight.',
+    [easier('air-boxing'), similar('one-two'), harder('bag-speed-punches')]),
+  // barbell: TOUCH THE SKY
+  mv('bb-front-rack-good-morning', 'Front-Rack Good Mornings', 'good mornings', 'hinge', 'barbell', 'reps', [2.5, 3.0, 3.5], { say1: 'good morning' },
+    'The bar stays in the front rack, elbows up. | Soft knees, push the hips back, chest up, back flat. Stop at about 45 degrees. | Low back rounding? Stop the round and set the bar down.',
+    [easier('bb-rdl', { stop: 'Low back rounding?' }), noGear('backpack-rdl')]),
+  // kettlebell: NO CONTINUES (none of them sets the bell down)
+  mv('kb-two-hand-row', 'Two-Hand Rows', 'two-hand rows', 'pull', 'bell', 'reps', [1.75, 2.0, 2.5], { say1: 'two-hand row' },
+    'Both hands on the handle, hinge to about 45 degrees, back flat. | Row the bell to the belly button, elbows back. | Lower it to arm length. It never touches the floor.',
+    [similar('db-row'), noGear('backpack-row')]),
+  mv('kb-two-hand-high-pull', 'Two-Hand High Pulls', 'two-hand high pulls', 'clean', 'bell', 'reps', [1.75, 2.0, 2.5], { say1: 'two-hand high pull' },
+    'Both hands on the handle. Hike it back like a swing. | Snap the hips, then pull the elbows high and wide. The bell stops at the chest. | Let it fall back into the next hike.',
+    [easier('db-rdl'), similar('kb-one-arm-high-pull'), noGear('backpack-rdl')]),
+  mv('kb-horn-press', 'Two-Hand Presses', 'two-hand presses', 'press', 'bell', 'reps', [2.0, 2.5, 3.0], { say1: 'two-hand press' },
+    'Hold the bell by the horns at the chest, elbows in. | Press it straight up, biceps by the ears, glutes tight. | No leaning back. Lower to the chest under control.',
+    [easier('kb-halo'), similar('db-press'), noGear('pike-push-up')]),
+  mv('kb-snatch', 'Kettlebell Snatches', 'snatches', 'clean', 'bell', 'reps', [1.75, 2.25, 2.75], { say1: 'snatch' },
+    'Hike the bell back, snap the hips, and pull it close up the body. | Punch the hand through at the top so it lands soft on the forearm, arm locked. | Drop it back into the hike. Bell banging the wrist? High pulls.',
+    [easier('kb-one-arm-high-pull', { stop: 'Bell banging the wrist?' }), easier('kb-clean'), similar('db-snatch')]),
+  mv('db-snatch', 'Dumbbell Snatches', 'dumbbell snatches', 'clean', 'db', 'reps', [1.75, 2.25, 2.75], { say1: 'dumbbell snatch' },
+    'Dumbbell at the hang between the knees, back flat. | Jump the hips, pull it close, and punch it overhead, arm locked. | Lower it to the shoulder, then the hang.',
+    [similar('kb-snatch'), easier('kb-one-arm-high-pull')]),
+  mv('kb-one-arm-high-pull', 'One-Arm High Pulls', 'one-arm high pulls', 'clean', 'bell', 'reps', [1.75, 2.0, 2.5], { say1: 'one-arm high pull' },
+    'One hand on the bell. Hike it back like a swing. | Snap the hips, then pull the elbow high and back. The bell stops at the chest. | Let it fall back into the next hike.',
+    [easier('db-rdl'), harder('kb-snatch'), noGear('backpack-rdl')]),
 ];
 
 const BY_ID = new Map(MOVES.map(m => [m.id, m]));
@@ -600,6 +660,9 @@ export function chainedLine(slot, { legacyCounted = false } = {}) {
   return `${cap(spokenMove(slot))}. ${MANUAL_LINE}`;
 }
 export function shortRestLine(next) { return `Next: ${spokenMove(next)}.`; }
+// A block that chains straight on from the last one in an until-the-bell-is-
+// down mission (NO CONTINUES): 'Switch: left arm.'
+export function switchLine(slot) { return `Switch: ${spokenMove(slot)}.`; }
 export function restOpener({ restSec, roundEnd, completedRound, format, tip = null }) {
   const base = format !== 'emom' && roundEnd
     ? `Round ${completedRound} complete. Rest. ${secondsPhrase(restSec)}.`

@@ -633,6 +633,13 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               <h1 style={{ margin: 0, font: `700 23px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 320 }}>{title}</h1>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>
               <ol id="qm-moves" style={listStyle}>{moves}</ol>
+              {/* A mission's safety line (NO CONTINUES), big, open or closed. */}
+              {card?.safety && (
+                <div role="note" style={{
+                  padding: '9px 11px', borderRadius: 10, background: 'rgba(242,190,69,0.12)', border: '1.5px solid rgba(242,190,69,0.6)',
+                  font: `700 13px ${BODY}`, color: '#fff', lineHeight: 1.35,
+                }}>{card.safety}</div>
+              )}
 
               {open && (
                 <>

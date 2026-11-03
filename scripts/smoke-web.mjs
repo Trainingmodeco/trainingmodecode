@@ -278,6 +278,36 @@ await check('owner: turbo solo start', async () => {
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /SOLO/);
+// The owner's own workouts. BAR FIGHT runs GUIDED (the clean slate's mode):
+// SKIP the brief, and GET READY names its first bar drill.
+await check('owner: BAR FIGHT guided start', async () => {
+  await ownerQuick(); await putOnCard(/^BAR FIGHT/);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
+  const t = await text();
+  if (!/BAR FIGHT/.test(t) || !/GET READY/.test(t) || !/Explosive Front Presses/i.test(t)) throw new Error('GET READY does not lead into the explosive front presses');
+}, /ROUND 1\/4/);
+// NO CONTINUES in SOLO: a count-up clock to the 30:00 cap, the safety line,
+// + SET, and I PUT IT DOWN ends it as a finish that saves sets + reps.
+await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () => {
+  await ownerQuick(); await putOnCard(/^NO CONTINUES/);
+  if (!/Park the bell between your feet/.test(await card().innerText())) throw new Error('no safety line on the card');
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  let t = await text();
+  if (!/CAP 30:00 · SET 1 · BOTH HANDS/.test(t) || !/I PUT IT DOWN/.test(t) || !/Park the bell between your feet/.test(t)) throw new Error('not the until-down SOLO screen');
+  await btn(/^\+ SET$/).click({ timeout: 4000 }); await S(400);
+  if (!/SETS 1/.test(await text()) || !/SET 2 · LEFT ARM/.test(await text())) throw new Error('+ SET did not count a set');
+  await S(10000); // past one set's honest floor, so the set pays
+  await btn(/^I PUT IT DOWN$/).click({ timeout: 4000 }); await S(800);
+  t = await text();
+  if (!/YOUR SCORE/.test(t) || !/SETS\s*\n?\s*1/.test(t) || !/NOT YET/.test(t)) throw new Error('I PUT IT DOWN did not open the sets score');
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3000);
+  t = await text();
+  if (!/1 \+ 0/.test(t)) throw new Error('the saved score is not 1 + 0');
+}, /SESSION COMPLETE/);
 // A SOLO-only library mission starts SOLO from the sheet's own START, whatever
 // the remembered run mode (GUIDED on a clean slate).
 await check('quick mission: library BARBELL → HONOR ROUNDS starts SOLO', async () => {

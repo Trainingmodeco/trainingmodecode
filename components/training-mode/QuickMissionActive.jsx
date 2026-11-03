@@ -21,11 +21,11 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSetupKit';
 import { qmV2Enabled } from './data/qmV2';
-import { qmTotalUnits, qmIntegrityRules } from './data/missionSolo';
+import { qmTotalUnits, qmIntegrityRules, isUntilDown, repsPerSet } from './data/missionSolo';
 import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
   leadLine, shortRestLine, restScript, getReadySeconds, workStartLine, skipRestTarget,
-  countBeats, paceBeats, nearEndUpNextAt, windowRest, swappedInLine,
+  countBeats, paceBeats, nearEndUpNextAt, windowRest, swappedInLine, switchLine, mmss,
 } from './data/missionMoves';
 
 const GOLD = C.yellow;
@@ -115,6 +115,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // previewed, so what you saw is what you run.
   const [mission] = useState(() => initialResumeData?.mission || missionCfg.mission || generateQuickMission(missionCfg));
   const allExercises = useMemo(() => [...mission.exercises, ...mission.finisherExercises], [mission]);
+  // v2 · until the bell is down (NO CONTINUES, mission.untilDown): the
+  // blocks cycle with no set length until the athlete taps I PUT IT DOWN,
+  // which FINISHES the run with the sets done; the mission's capSec ends it
+  // the same way. A run clock counts its unpaused time. Every untilDown
+  // branch below is off for every other mission.
+  const untilDown = v2 && isUntilDown(mission);
+  const runClockRef = useRef({ ms: Math.max(0, Number(initialResumeData?.runMs) || 0), at: null });
+  const runStartedRef = useRef((Number(initialResumeData?.runMs) || 0) > 0);
+  const [runSec, setRunSec] = useState(() => Math.floor(runClockRef.current.ms / 1000));
+  const runMsNow = () => { const c = runClockRef.current; return c.ms + (c.at != null ? Date.now() - c.at : 0); };
+  const runClockStart = () => { const c = runClockRef.current; if (c.at == null) c.at = Date.now(); };
+  const runClockStop = () => { const c = runClockRef.current; if (c.at != null) { c.ms += Date.now() - c.at; c.at = null; } };
 
   // Sized to the mission, not the config (which never set rounds): one unit a
   // round, and a time limit from the unit-aware estimate, so a 55-minute Murph
@@ -150,6 +162,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const [exercisesCompleted, setExercisesCompleted] = useState(initialResumeData?.exercisesCompleted ?? 0);
   const [roundsCompleted, setRoundsCompleted] = useState(initialResumeData?.roundsCompleted ?? 0);
   const [cadenceRep, setCadenceRep] = useState(0);
+  const cadenceRepRef = useRef(0);
+  useEffect(() => { cadenceRepRef.current = cadenceRep; }, [cadenceRep]);
   const [cadenceActive, setCadenceActive] = useState(false);
   const [cadenceMs, setCadenceMs] = useState(missionCfg.cadenceMs || CADENCE_PRESETS.moderate);
   const [cadencePreset, setCadencePreset] = useState(missionCfg.cadencePreset || 'moderate');
@@ -204,9 +218,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind });
+      // runMs: only an untilDown run has a run clock to bring back.
+      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, ...(untilDown ? { runMs: Math.round(runMsNow()) } : {}) });
     }
-  }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange, mission, restTotal, restKind]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange, mission, restTotal, restKind, runSec]);
 
   // Fix 4: voice from config, not profile
   const voiceOn = missionCfg.voiceOn !== false;
@@ -239,14 +255,15 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       progress: total ? 1 - secs / total : 0,
       exIdx: exIdx + 1,
       exTotal: allExercises.length,
-      setIdx: round,
-      setTotal: mission.rounds || 1,
+      // untilDown has no round count to show: the set it is on.
+      setIdx: untilDown ? null : round,
+      setTotal: untilDown ? null : mission.rounds || 1,
       name: resting ? (v2 && restKind === 'lead' ? 'GET READY' : 'REST') : (currentEx?.name || 'QUICK MISSION'),
-      prescription: 'ROUND ' + round + '/' + (mission.rounds || 1),
+      prescription: untilDown ? `SET ${exercisesCompleted + 1}` : 'ROUND ' + round + '/' + (mission.rounds || 1),
       nextName: next?.name || null,
       segments: allExercises.map((_, i) => (i < exIdx ? 'done' : i === exIdx ? 'current' : 'todo')),
     };
-  }, [phase, paused, remaining, cadenceRep, exIdx, round, allExercises, currentEx, mission.rounds, v2, restTotal, restKind]);
+  }, [phase, paused, remaining, cadenceRep, exIdx, round, allExercises, currentEx, mission.rounds, v2, restTotal, restKind, untilDown, exercisesCompleted]);
   const mini = useMiniPlayer(miniFrame, !done);
 
   // Fix 1: Refs for action functions to prevent stale closures in cadence loops
@@ -306,7 +323,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const planRest = (restSec, { kind = 'rest', roundEnd = false, completedRound = 0, nextIdx, nextRound }) => {
     const next = allExercises[nextIdx];
     const lead = leadLine(next, {
-      round: nextRound, idx: nextIdx, rounds: mission.rounds, slotsPerRound: allExercises.length,
+      // untilDown: the blocks just cycle; there is no 'Round 4.' to call.
+      round: nextRound, idx: nextIdx, rounds: untilDown ? 1 : mission.rounds, slotsPerRound: allExercises.length,
       format: mission.format, legacyCounted: legacyCountedFor(next),
     });
     const sec = kind === 'lead' ? getReadySeconds(lead) : restSec;
@@ -356,7 +374,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     if (!ex) return;
     if (ex.mode === 'reps') {
       if (!isCatalogSlot(ex) && !isCadenceEligible(ex, countCfg)) return;
-      const beats = countBeats(ex, { next: nextSlotOf(exIdxRef.current, roundRef.current) });
+      // untilDown: the next block starts at once with its own 'Switch: …', so
+      // the final beat carries no 'Up next'.
+      const beats = countBeats(ex, { next: untilDown ? null : nextSlotOf(exIdxRef.current, roundRef.current) });
       if (beats) runCount(beats, fromRep);
       return;
     }
@@ -384,10 +404,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     setCadenceStep(null);
     if (ex.mode === 'timed') setRemaining(ex.work);
     setTickEpoch(e => e + 1);
+    if (untilDown) runStartedRef.current = true;
     // Paused (a SKIP mid-pause chained in): RESUME starts the count.
     if (pausedRef.current) return;
+    if (untilDown) runClockStart();
     if (voiceOn) {
-      const line = workStartLine(ex, { announcedBy, legacyCounted: legacyCountedFor(ex) });
+      // untilDown: a block that chained on from the last one is a switch.
+      const line = untilDown && !announcedBy ? switchLine(ex) : workStartLine(ex, { announcedBy, legacyCounted: legacyCountedFor(ex) });
       if (line) speakAsync(line);
     }
     if (moveVersionRef.current !== version) return;
@@ -586,6 +609,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   useEffect(() => { completeExerciseRef.current = completeExercise; });
   useEffect(() => { moveToNextRef.current = v2 ? moveToNextV2 : moveToNext; });
   useEffect(() => { skipExerciseRef.current = skipExercise; });
+  const endDownRef = useRef(null);
+  useEffect(() => { endDownRef.current = endDown; });
 
   const startCadence = (exercise) => {
     const version = ++cadenceVersionRef.current;
@@ -1010,6 +1035,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     stopCadence();
     setPaused(true);
     integrity.pause();
+    if (untilDown) runClockStop();
     if (v2) {
       pausedRef.current = true;
       // The minute window counts only unpaused work.
@@ -1052,6 +1078,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const handleResume = () => {
     setPaused(false);
     integrity.resume();
+    if (untilDown && runStartedRef.current) runClockStart();
     if (v2) {
       pausedRef.current = false;
       if (pauseStartRef.current != null) {
@@ -1091,6 +1118,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   useAutoPauseOnHidden(!paused && !done, handlePauseToggle, integrity);
 
   const finishMission = (finalRounds) => {
+    // untilDown: running out of rounds (the backstop) ends it like the cap.
+    if (untilDown) { endDown('cap'); return; }
     // Set at once, not after the next render: a second tap inside the 1.8 s
     // bell used to bank the whole session twice.
     if (doneRef.current) return;
@@ -1118,6 +1147,80 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       });
     }, 1800);
   };
+
+  // untilDown: I PUT IT DOWN ('down') or the cap ('cap'). A FINISHED run:
+  // completed, every set it ran counted, so the XP is 15 a set plus the
+  // finish bonus and the verdict is a pass. Nothing finished yet is a plain
+  // END. The score (sets + reps into the next, and the time) travels with
+  // the result. The sets are read after the 1.8 s bell, like finishMission,
+  // so a block that completed on this same tick is in them.
+  const endDown = (why) => {
+    if (doneRef.current) return;
+    if (exercisesCompletedRef.current <= 0) { handleEndConfirm(); return; }
+    doneRef.current = true;
+    const reps = phaseRef.current === 'work' ? cadenceRepRef.current : 0;
+    runClockStop();
+    stopCadence();
+    cancelSpeech();
+    versionRef.current++;
+    moveVersionRef.current++;
+    setDone(true);
+    setConfirmEnd(false);
+    playBell(3);
+    const n = exercisesCompletedRef.current;
+    if (voiceOn) speakAsync(why === 'cap' ? 'Time. Park the bell.' : `Bell down. ${n} ${n === 1 ? 'set' : 'sets'}.`);
+    integrity.getSession()?.endRunHere(exIdxRef.current > 0);
+    const integrityResult = integrity.finalize();
+    const elapsedSec = Math.floor(runMsNow() / 1000);
+    setTimeout(() => {
+      stopVoiceSession();
+      const sets = exercisesCompletedRef.current;
+      onEnd({
+        completed: true,
+        roundsCompleted: roundsCompletedRef.current,
+        totalRounds: mission.rounds,
+        exercisesCompleted: sets,
+        totalExercises: sets,
+        mission,
+        integrityResult,
+        untilDown: why,
+        elapsedSec,
+        score: { kind: 'setsReps', sets, reps, timeSec: elapsedSec, value: sets * repsPerSet(mission) + reps, ...(why === 'cap' ? { capped: true } : {}) },
+      });
+    }, 1800);
+  };
+
+  // I PUT IT DOWN holds the run (the count and the run clock stop) and asks.
+  // NOT YET picks it up again only if it was running.
+  const [downAsk, setDownAsk] = useState(false);
+  const downWasPausedRef = useRef(false);
+  const askDown = () => {
+    if (doneRef.current) return;
+    downWasPausedRef.current = pausedRef.current;
+    if (!pausedRef.current) handlePause();
+    setDownAsk(true);
+  };
+  const cancelDown = () => {
+    setDownAsk(false);
+    if (!downWasPausedRef.current) handleResume();
+  };
+  const confirmDown = () => { setDownAsk(false); endDown('down'); };
+
+  // untilDown: the run clock on screen, and the safety cap.
+  useEffect(() => {
+    if (!untilDown || done) return undefined;
+    const capMs = (mission.capSec || 0) * 1000;
+    const id = setInterval(() => {
+      const ms = runMsNow();
+      setRunSec(Math.floor(ms / 1000));
+      if (capMs > 0 && ms >= capMs && !doneRef.current) {
+        if (voiceOn) speakAsync('Time.', { preempt: true, priority: 3 });
+        endDownRef.current?.('cap');
+      }
+    }, 500);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [untilDown, done]);
 
   const handleEndConfirm = () => {
     stopCadence();
@@ -1237,10 +1340,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           background: 'rgba(15,5,30,0.7)', border: '1px solid rgba(253,224,71,0.15)',
         }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: '0.1em' }}>
-            {minuteLabel || <>ROUND {round}/{mission.rounds}</>}
+            {untilDown ? `SET ${exercisesCompleted + 1}` : (minuteLabel || <>ROUND {round}/{mission.rounds}</>)}
           </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted }}>
-            {workoutType.toUpperCase()}
+          <span role={untilDown ? 'timer' : undefined} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>
+            {untilDown ? `${mmss(runSec)} / ${mmss(mission.capSec || 0)}` : workoutType.toUpperCase()}
           </span>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted }}>
             {v2Mission && mission.levelLabel ? mission.levelLabel : missionCfg.difficulty.toUpperCase()}
@@ -1368,7 +1471,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.muted, letterSpacing: '0.15em' }}>
-                    {minuteLabel || <>EXERCISE {exIdx + 1}/{allExercises.length}</>}
+                    {untilDown ? `BLOCK ${exIdx + 1}/${allExercises.length}` : (minuteLabel || <>EXERCISE {exIdx + 1}/{allExercises.length}</>)}
                   </span>
                   {phase === 'work' && currentEx.mode === 'reps' && (
                     <span style={{
@@ -1404,6 +1507,12 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                     })}
                   </div>
                 )}
+                {untilDown && mission.safety && phase === 'work' && (
+                  <div role="note" style={{
+                    marginTop: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(253,224,71,0.1)', border: '1.5px solid rgba(253,224,71,0.55)',
+                    font: `700 13px ${BODY}`, color: '#fff', lineHeight: 1.35,
+                  }}>{mission.safety}</div>
+                )}
                 {currentEx.isFinisher && (
                   <div style={{
                     display: 'inline-block', marginTop: 6,
@@ -1425,6 +1534,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             font: `600 11px ${HEAD}`, letterSpacing: '0.08em', color: '#4f8cff',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>UP NEXT · {String(upNextInWork.name || '').toUpperCase()} · {doseOf(upNextInWork)}</div>
+        )}
+
+        {/* untilDown: the end of the run, above the controls so it is on
+            screen. It holds the count and asks first (NOT YET takes it
+            back), so a mis-tap never ends a run. */}
+        {untilDown && !done && phase !== 'intro' && (
+          <button type="button" onClick={askDown} style={{
+            width: '100%', maxWidth: 360, height: 56, marginBottom: 14, borderRadius: 14, cursor: 'pointer',
+            background: 'rgba(239,68,68,0.16)', border: '1.5px solid rgba(239,68,68,0.75)', color: '#fff',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, letterSpacing: '0.14em',
+          }}>I PUT IT DOWN</button>
         )}
 
         {/* Controls */}
@@ -1532,7 +1652,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             <div style={{
               fontFamily: "'Rajdhani',sans-serif", fontSize: 14, fontWeight: 500,
               color: C.muted, lineHeight: 1.5, marginBottom: 24,
-            }}>Only completed exercises will count toward your stats.</div>
+            }}>{untilDown
+              ? 'Bell on the floor? Tap I PUT IT DOWN instead: it finishes the run with your sets.'
+              : 'Only completed exercises will count toward your stats.'}</div>
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setConfirmEnd(false)} style={{
                 flex: 1, padding: '12px 0', borderRadius: 10,
@@ -1546,6 +1668,32 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                 color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
               }}>END MISSION</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* untilDown: BELL DOWN? SAVE ends the run as a finish with its sets. */}
+      {downAsk && !done && (
+        <div role="dialog" aria-label="Bell down" style={{
+          position: 'absolute', inset: 0, zIndex: 200, background: 'rgba(5,0,15,0.88)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)',
+        }}>
+          <div style={{ background: 'rgba(15,5,30,0.95)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 16, padding: '28px 24px', textAlign: 'center', maxWidth: 300, width: '85%' }}>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, color: '#fff', letterSpacing: '0.12em', marginBottom: 12 }}>BELL DOWN?</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 15, fontWeight: 500, color: C.muted, lineHeight: 1.45, marginBottom: 22 }}>
+              {exercisesCompleted > 0
+                ? `That ends the run with ${exercisesCompleted} ${exercisesCompleted === 1 ? 'set' : 'sets'}${cadenceRep > 0 ? ` + ${cadenceRep}` : ''}.`
+                : 'No set is finished yet, so the run ends with no score.'}
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button type="button" onClick={cancelDown} style={{
+                flex: 1, minHeight: 44, borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+                color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
+              }}>NOT YET</button>
+              <button type="button" onClick={confirmDown} style={{
+                flex: 1, minHeight: 44, borderRadius: 10, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)',
+                color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
+              }}>{exercisesCompleted > 0 ? 'SAVE' : 'END'}</button>
             </div>
           </div>
         </div>

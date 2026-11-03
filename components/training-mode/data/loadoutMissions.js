@@ -15,8 +15,9 @@
 // Tiers: where the source gives Rx and Scaled loads, Rx is ELITE and Scaled is
 // STANDARD. Pace targets for TUTORIAL STAGE, TURBO BUTTON and QUOTA 300 come
 // from the source; the other eight launch missions are coach estimates (see
-// each paceBasis). Missions 12-26 are SOLO only for now (see their block).
-// `knownAs` is stored, never rendered.
+// each paceBasis). Missions 12-26 are SOLO only for now (see their block);
+// 27-29 are the owner's own, GUIDED and SOLO. `knownAs` is stored, never
+// rendered; `origin` marks a Coach TM original.
 import {
   LEVELS, LEVEL_LABEL, GEAR_LABEL, GEAR_WORD, ALT_LABEL,
   moveById, cadenceFor, estMsFor, slotDose, windowRest, rowItems,
@@ -41,7 +42,8 @@ export const LOADOUT_GEAR = {
   barbell: ['none', 'barbell', 'plate'],
   mixed: ['none', 'bell', 'db', 'barbell', 'plate', 'rower', 'bar'], // bar: OXYGEN DEBT's and HOT LAPS' pull-ups
 };
-export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS' };
+// maxSets: NO CONTINUES, sets until the bell touches the floor (untilDown).
+export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS', maxSets: 'MAX SETS' };
 export const GUIDED_HELP_AMRAP = 'The coach runs the clock and calls the time. The moves stay on screen.';
 export const SOLO_HELP = 'Your pace. The whole workout on one screen, one clock.';
 export const SOLO_ONLY_HELP = 'SOLO only for now. Guided is coming.';
@@ -1047,9 +1049,162 @@ const HOT_LAPS = {
   },
 };
 
+// ── 27-29 · the owner's own workouts ───────────────────────────────────────
+// Coach TM originals, owner-approved designs: `origin` says so (the content
+// kit reads it), and there is no knownAs. GUIDED and SOLO. Every pace target
+// is a coach estimate (see each paceBasis).
+const OWN = { knownAs: '', origin: 'Coach TM original' };
+
+// ── 27 · BAR FIGHT ──────────────────────────────────────────────────────────
+// Four 0:30 bar drills, each with a 0:05 switch, then the bar goes down for
+// the shadowbox, then 0:30 of rest. Scored the TURBO BUTTON way: each punch's
+// lowest round, added, from the pace count. ELITE's heavier bar counts at the
+// standard column, so its clock-end prefill (44) stays under its own elite
+// mark. Only ELITE may hop on the squats: below it, no swap reaches a jump.
+const barFight = (shadowSec) => [
+  t('bb-punch-out', 30, 5, { swapKey: 'front-press' }), t('bb-explosive-press', 30, 5, { swapKey: 'overhead-press' }),
+  t('bb-uppercut', 30, 5, { swapKey: 'uppercut' }), t('bb-explosive-front-squat', 30, 5, { swapKey: 'front-squat' }),
+  t('explosive-shadowbox', shadowSec, 30, { swapKey: 'shadowbox' }),
+];
+const NO_HOP = ['bb-front-squat-hop', 'jump-squat'];
+const BAR_FIGHT = {
+  id: 'bar_fight', launch: 27, title: 'BAR FIGHT', tag: 'Striking', loadout: 'barbell', themes: ['striking'], format: 'intervals',
+  difficulty: 'Normal', focus: 'Combat', workoutType: 'Weighted', hotel: false, quiet: false, guided: true, ...OWN,
+  countAt: { elite: 'standard' },
+  loadoutLine: '1 LIGHT BARBELL · 2 × 2 M, CLEAR IN FRONT', scoreLine: 'LOWEST FRONT PRESSES + UPPERCUTS',
+  scoreRule: { kind: 'reps', label: 'LOWEST FRONT PRESSES + UPPERCUTS', keys: ['front-press', 'uppercut'], agg: 'lowest' },
+  scale: 'Lighter bar, a broomstick or 2 light dumbbells, or the beginner level. Sore shoulders: Plate Punch-Outs or One-Twos.',
+  note: 'Warm up 3 min: easy shadowboxing, arm circles, 10 empty-bar front squats. Light and fast: if the bar slows down, it is too heavy. Core braced, shoulders down, never lock the elbows hard. Set the bar down before you shadowbox. Only ELITE may add a small hop on the squats.',
+  introSay: 'Bar fight. Four fast bar drills, then drop the bar and shadowbox. Light bar, fast hands.',
+  tips: ['Shoulders down, core braced.', 'Light bar, fast hands.'],
+  guidedHelp: 'The coach sets the pace on every bar drill and calls each switch.',
+  paceBasis: "Coach estimate from the count (front press 1.25 s, uppercut 1.5 s; beginner 1.5 / 2.0 s), with a fatigue drop. The score is each punch's lowest round, added.",
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '3 rounds · a light bar 7-11 kg · 0:30 shadowbox', minutes: 10, load: 'Light bar 7-11 kg (15-25 lb), a broomstick or 2 light dumbbells', rounds: 3,
+      missionLine: '3 ROUNDS · 4 × 0:30 BAR DRILLS · 0:30 SHADOWBOX · 0:30 REST', excludeAlts: NO_HOP,
+      slots: barFight(30), pace: { elite: 40, standard: 34, beginner: 28 },
+    },
+    standard: {
+      detail: '4 rounds · the empty bar · 0:45 shadowbox', minutes: 14, load: 'Empty bar 20/15 kg (45/35 lb)', rounds: 4,
+      missionLine: '4 ROUNDS · 4 × 0:30 BAR DRILLS · 0:45 SHADOWBOX · 0:30 REST', excludeAlts: NO_HOP,
+      slots: barFight(45), pace: { elite: 48, standard: 42, beginner: 34 },
+    },
+    elite: {
+      detail: '5 rounds · the bar + 2.5 kg a side · 1:00 shadowbox · a hop is allowed', minutes: 19, load: 'Empty bar + 2.5 kg (5 lb) a side', rounds: 5, difficulty: 'Hard',
+      missionLine: '5 ROUNDS · 4 × 0:30 BAR DRILLS · 1:00 SHADOWBOX · 0:30 REST',
+      slots: barFight(60), pace: { elite: 46, standard: 40, beginner: 32 },
+    },
+  },
+};
+
+// ── 28 · TOUCH THE SKY ──────────────────────────────────────────────────────
+// A barbell complex, down the lifts and back up, without setting the bar
+// down: one complex a round, 2:00 of rest after it. Scored on time with the
+// rests in it, because SOLO runs a for-time clock cleanly (count-up, + ROUND,
+// FINISH, reps at the cap) and has no way to mark a round held or broken.
+// The count is a strength cadence, the level's own (ELITE's heavier bar at
+// the standard column); rep 1 includes setting up over the bar.
+const sky = (n) => [complex('Touch the Sky', [
+  s('bb-deadlift', n, { swapKey: 'deadlift' }), s('bb-hang-power-clean', n, { swapKey: 'clean' }), s('bb-front-rack-good-morning', n, { swapKey: 'good-morning' }),
+  s('bb-front-squat', n, { swapKey: 'front-squat' }), s('bb-strict-press', n, { swapKey: 'press' }), s('bb-front-squat', n, { swapKey: 'front-squat' }),
+  s('bb-front-rack-good-morning', n, { swapKey: 'good-morning' }), s('bb-hang-power-clean', n, { swapKey: 'clean' }), s('bb-deadlift', n, { swapKey: 'deadlift' }),
+], { swapKey: 'complex', rest: 120, setupMs: 3000 })];
+const TOUCH_THE_SKY = {
+  id: 'touch_the_sky', launch: 28, title: 'TOUCH THE SKY', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'forTime',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: false, quiet: false, guided: true, ...OWN,
+  countAt: { elite: 'standard' },
+  loadoutLine: '1 BARBELL + PLATES · 2 × 2 M', scoreLine: 'TIME WITH THE RESTS, OR REPS AT THE CAP (135 FINISHES)', scoreRule: { kind: 'time' },
+  scale: 'Lighter bar, or the beginner level: 2 rounds of 3 each. Never been coached on the clean? Hang Muscle Cleans. Good mornings feel wrong? Romanian Deadlifts.',
+  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for 5. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Rest 2:00 between rounds: the clock keeps running.",
+  introSay: "Touch the sky. Five of each, down the lifts and back up. Don't put the bar down until the round is done.",
+  tips: ['Pick a load your press can handle for 5.', 'Chest up and soft knees on the good mornings.'],
+  guidedHelp: 'The coach counts every rep, calls each lift and times the rests.',
+  paceBasis: 'Coach estimate: a round takes about 2:00 at the count, faster at your own pace. Every time includes the 2:00 rests.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '2 rounds · 3 each · the empty bar · cap 15:00', minutes: 6, load: 'The empty bar, 20/15 kg (45/35 lb), or lighter', rounds: 2, capSec: 900,
+      missionLine: '2 ROUNDS FOR TIME · 27 REPS, BAR NEVER DOWN · 2:00 REST · CAP 15:00',
+      scoreLine: 'TIME WITH THE REST, OR REPS AT THE CAP (54 FINISHES)',
+      slots: sky(3), pace: { elite: 270, standard: 330, beginner: 420 },
+    },
+    standard: {
+      detail: '3 rounds · M 43 kg / W 30 kg · cap 20:00', minutes: 11, load: 'M 43 kg (95 lb) / W 30 kg (65 lb)', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS FOR TIME · 45 REPS, BAR NEVER DOWN · 2:00 REST · CAP 20:00',
+      slots: sky(5), pace: { elite: 570, standard: 660, beginner: 780 },
+    },
+    elite: {
+      detail: '4 rounds · M 57-66 kg / W 39-43 kg · cap 25:00', minutes: 15, load: 'M 57-66 kg (125-145 lb) / W 39-43 kg (85-95 lb)', rounds: 4, capSec: 1500,
+      missionLine: '4 ROUNDS FOR TIME · 45 REPS, BAR NEVER DOWN · 2:00 REST · CAP 25:00',
+      scoreLine: 'TIME WITH THE RESTS, OR REPS AT THE CAP (180 FINISHES)',
+      slots: sky(5), pace: { elite: 880, standard: 1000, beginner: 1160 },
+    },
+  },
+};
+
+// ── 29 · NO CONTINUES ───────────────────────────────────────────────────────
+// Max effort until the bell touches the floor (`untilDown`; see missionSolo).
+// A SET is one block: both hands, then the left arm, then the right, and
+// round again. The blocks chain with no rest; rep 1 of each includes the
+// hand switch. 30 rounds (90 sets) is more than any 30:00 run reaches at
+// the count, so the safety cap always ends the run first. No swap may take
+// the bell out of the hand: that is the bell touching the floor, the end of
+// the run. So the moves that start from the floor and every no-gear move
+// (a backpack, a push-up, a bridge) are never offered. A dumbbell for the
+// bell is fine. Where that leaves a row with no easier swap (the swings, the
+// rows), the lighter option is a lighter bell: the scale line.
+const NC_FLOOR = [
+  'kb-deadlift', 'kb-suitcase-deadlift', 'backpack-suitcase-deadlift', 'backpack-row', 'backpack-rdl', 'backpack-halo',
+  'pike-push-up', 'incline-push-up', 'knee-push-up', 'push-up', 'diamond-push-up', 'glute-bridge', 'hip-thrust', 'db-hip-thrust',
+];
+const ncBoth = (n) => [
+  s('kb-swing', n, { swapKey: 'swing2', name: 'Two-Hand Swings', say: 'swings' }), s('kb-two-hand-row', n, { swapKey: 'row2', say: 'rows' }),
+  s('kb-two-hand-high-pull', n, { swapKey: 'pull2', say: 'high pulls' }), s('kb-horn-press', n, { swapKey: 'press2', say: 'presses', note: 'By the horns.' }),
+];
+const ncArm = (n, pullId) => [
+  s('kb-one-arm-swing', n, { swapKey: 'swing1', say: 'swings', note: 'All four on the left arm, then the right.' }), s('kb-row', n, { swapKey: 'row1', name: 'One-Arm Rows' }),
+  s(pullId, n, { swapKey: 'snatch', ...(pullId === 'kb-one-arm-high-pull' ? { say: 'high pulls' } : {}) }), s('kb-press', n, { swapKey: 'press1', name: 'One-Arm Presses' }),
+];
+const ncBlock = (name, say, list) => complex(name, list, { swapKey: 'block', sideSay: say, say, setupMs: 2000 });
+const noContinues = (n, pullId) => [ncBlock('Both Hands', 'both hands', ncBoth(n)), ncBlock('Left Arm', 'left arm', ncArm(n, pullId)), ncBlock('Right Arm', 'right arm', ncArm(n, pullId))];
+const NO_CONTINUES = {
+  id: 'no_continues', launch: 29, title: 'NO CONTINUES', tag: 'Kettlebell', loadout: 'bell', themes: [], format: 'maxSets',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: false, guided: true, ...OWN,
+  untilDown: true,
+  safety: 'Grip starting to open? Park the bell between your feet. Never let it fly.',
+  loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE', scoreLine: 'SETS + REPS, AND THE TIME', scoreRule: { kind: 'setsReps', label: 'SETS + REPS' },
+  scale: 'Lighter bell, or the beginner level (one-arm high pulls for the snatches). Dumbbell: hold it by one end for the two-hand moves.',
+  note: 'Warm up 3 min: halos, goblet squats, 10 easy swings. A set is one block: both hands, then the left arm, then the right. The run ends when the bell touches the floor: tap I PUT IT DOWN. The clock stops at 30:00.',
+  introSay: 'No continues. Both hands, left arm, right arm, and keep cycling. When your grip starts to open, park the bell between your feet.',
+  guidedHelp: 'The coach counts every rep and calls each switch. Tap I PUT IT DOWN when the bell touches the floor.',
+  paceBasis: "Coach estimate: a set takes about 25 s at the count (45 s at ELITE's 5 reps). Grip, not lungs, usually ends it.",
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '3 each · 12/8 kg · one-arm high pulls', minutes: 6, load: '12/8 kg (26/18 lb)', rounds: 30, capSec: 1800,
+      missionLine: 'BOTH HANDS · LEFT ARM · RIGHT ARM · 3 EACH · UNTIL THE BELL TOUCHES THE FLOOR',
+      excludeAlts: [...NC_FLOOR, 'kb-snatch', 'db-snatch'], // the beginner pulls high; no swap brings the snatch in
+      slots: noContinues(3, 'kb-one-arm-high-pull'), pace: { elite: 15, standard: 10, beginner: 6 },
+    },
+    standard: {
+      detail: '3 each · 16/12 kg', minutes: 5, load: '16/12 kg (35/26 lb)', rounds: 30, capSec: 1800,
+      missionLine: 'BOTH HANDS · LEFT ARM · RIGHT ARM · 3 EACH · UNTIL THE BELL TOUCHES THE FLOOR', excludeAlts: NC_FLOOR,
+      slots: noContinues(3, 'kb-snatch'), pace: { elite: 12, standard: 8, beginner: 5 },
+    },
+    elite: {
+      detail: '5 each · 24/16 kg', minutes: 7, load: '24/16 kg (53/35 lb)', rounds: 30, capSec: 1800,
+      missionLine: 'BOTH HANDS · LEFT ARM · RIGHT ARM · 5 EACH · UNTIL THE BELL TOUCHES THE FLOOR', excludeAlts: NC_FLOOR,
+      slots: noContinues(5, 'kb-snatch'), pace: { elite: 9, standard: 6, beginner: 4 },
+    },
+  },
+};
+
 export const LOADOUT_MISSIONS = [
   IRON_CLOCK, ONE_BELL, FIVE_ROUND, BEST_OF_3, STEEL, CHECKPOINT, ROOM_12, HIT_COMBO, TUTORIAL, TURBO, QUOTA,
   HONOR, KO_SPRINT, OVERHEAD_RUSH, BURNOUT, STANCE, ROOKIE, FIRST_BELL, CONTINUE_BELL, CARRY_ON, SURGE, MIDLINE, LEG_SWEEP, CHARGE_UP, OXYGEN_DEBT, HOT_LAPS,
+  BAR_FIGHT, TOUCH_THE_SKY, NO_CONTINUES,
 ];
 
 // Test-only: fixture defs (a box move, a flying knee) the unit tests build.
@@ -1276,6 +1431,10 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
     scaled: false,
     swaps: [],
     gearBanner: null,
+    // Only on the missions that have them, so every other mission builds as before.
+    ...(def.origin ? { origin: def.origin } : {}),
+    ...(def.untilDown ? { untilDown: true } : {}),
+    ...(def.safety ? { safety: def.safety } : {}),
   };
   m = resolveNotes(m);
   m.exercises = m.exercises.map(slot => (slot.window ? { ...slot, rest: windowRest(slot, estimateWorkSeconds(slot)) } : slot));
@@ -1440,8 +1599,12 @@ export function cardRows(mission, { gear = gearProfile() } = {}) {
       ? (mission.exercises || []).flatMap(sl => (hasList(sl) ? sl.list.filter(st => st.swapKey === item.swapKey) : []))
       : (mission.exercises || []).filter(sl => !hasList(sl) && sl.swapKey === item.swapKey);
     const doses = occ.map(slotDose);
+    // A key that comes round twice inside one complex (TOUCH THE SKY's way
+    // down and back up): '2 × 5'.
+    const inList = parent ? parent.list.filter(st => st.swapKey === item.swapKey).length : 0;
     if (parent?.climb) dose = `${[0, 1, 2].map(k => item.reps + k * parent.climb).join(', ')}…`; // CHARGE UP 12: '2, 4, 6…'
     else if (doses.some(d => d !== doses[0])) dose = ladderDose(occ);
+    else if (inList > 1) dose = `${inList} × ${doses[0]}`;
     else if (!parent && doses.length > 1) dose = `${doses.length} × ${doses[0]}`;
     const swapped = item.moveId !== item.baseMoveId;
     return {
@@ -1484,6 +1647,7 @@ export function missionCardModel(mission, { gear = gearProfile() } = {}) {
     banner: mission.gearBanner || null,
     soloOnly: !mission.guided,
     guidedHelp: mission.guidedHelp || '',
+    ...(mission.safety ? { safety: mission.safety } : {}), // NO CONTINUES: shown big on the card and through the run
   };
 }
 

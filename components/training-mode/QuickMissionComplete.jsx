@@ -32,7 +32,9 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const subtitle = solo
     ? `${FORMAT_LABEL[result.format || mission.format] || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · Solo`
     : `${mission.workoutType} · ${mission.difficulty} · Quick Mission`;
-  const stats = solo
+  // A guided run until the bell is down (NO CONTINUES) has a score of its own.
+  const scored = solo || (!!result.untilDown && !!result.score);
+  const stats = scored
     ? [
       { value: formatScore(result.score), label: 'SCORE', color: GOLD },
       { value: mmss(result.elapsedSec || 0), label: 'TIME', color: '#fff' },

@@ -13,6 +13,7 @@ import { cardRows, swapMissionMove, gearProfile, FORMAT_LABEL } from './data/loa
 import {
   isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, paceTargets, prefillScore,
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
+  isUntilDown, repsPerSet, setBlock,
 } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 
@@ -42,7 +43,7 @@ const clampInt = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(v) |
 // Every bell and beep of the run, as moments on the clock (ms). Segment 0's
 // start is the end of GET READY, which rings its own bell.
 function soloCues(mission, timeline) {
-  if (mission.format === 'forTime') {
+  if (mission.format === 'forTime' || isUntilDown(mission)) {
     const cap = mission.capSec || 0;
     return cap > 60 ? [{ at: (cap - 60) * 1000, kind: 'warn' }] : [];
   }
@@ -80,6 +81,11 @@ function clockDraft(mission, roundTaps, blockTaps) {
   if (kind === 'reps') return { end: 'clock', reps: Math.max(0, Math.round(pre || 0)) };
   return { end: 'clock' };
 }
+// Until the bell is down (NO CONTINUES): I PUT IT DOWN ('down') or the
+// safety cap ('cap') opens the panel on the sets tapped.
+function downDraft(mission, roundTaps, end, from) {
+  return { end, sets: clampInt(roundTaps, 0, totalSlots(mission)), reps: 0, ...(from ? { from } : {}) };
+}
 // A ladder's taps are its rungs, so the prefill is the reps through them.
 function capDraft(mission, roundTaps) {
   return { end: 'cap', reps: Math.min(repsPerRound(mission) * (mission.rounds || 1), repsThrough(mission, roundTaps)) };
@@ -90,6 +96,11 @@ function scoreFromDraft(mission, draft, finishSec) {
   if (!draft) return null;
   const rule = mission.scoreRule || {};
   const rpr = repsPerRound(mission);
+  if (isUntilDown(mission)) {
+    if (draft.end !== 'down' && draft.end !== 'cap') return null;
+    const timeSec = draft.end === 'cap' ? mission.capSec || 0 : finishSec;
+    return { kind: 'setsReps', sets: draft.sets, reps: draft.reps, timeSec, value: draft.sets * repsPerSet(mission) + draft.reps, ...(draft.end === 'cap' ? { capped: true } : {}) };
+  }
   if (draft.end === 'finish') return { kind: 'time', timeSec: finishSec, value: finishSec };
   if (draft.end === 'cap') return { kind: 'time', capped: true, reps: draft.reps, value: draft.reps };
   if (rule.kind === 'roundsReps') {
@@ -127,20 +138,24 @@ function startState(resume, mission) {
   const base = { roundTaps, blockTaps, finishSec: null, scoreDraft: null };
   const draft = resume.scoreDraft && typeof resume.scoreDraft === 'object' ? resume.scoreDraft : null;
 
+  // I PUT IT DOWN waits like FINISH: NOT YET can still take it back.
+  const held = draft?.end === 'finish' || draft?.end === 'down';
   if (resume.phase === 'score' && draft) {
-    if (draft.end !== 'finish') {
+    if (!held) {
       return { ...base, phase: 'score', scoreDraft: draft, clock: { ...clock(elapsedMs, ms(resume.pausedMs), ms(resume.hiddenMs), false), over: true } };
     }
     if (Number.isFinite(resume.finishSec)) {
       // FINISH was tapped: the panel waits, the clock held (NOT YET → paused).
-      return { ...base, phase: 'score', finishSec: resume.finishSec, scoreDraft: { end: 'finish', from: 'paused' }, clock: clock(elapsedMs, ms(resume.pausedMs), ms(resume.hiddenMs), true) };
+      const scoreDraft = draft.end === 'down' ? { ...draft, from: 'paused' } : { end: 'finish', from: 'paused' };
+      return { ...base, phase: 'score', finishSec: resume.finishSec, scoreDraft, clock: clock(elapsedMs, ms(resume.pausedMs), ms(resume.hiddenMs), true) };
     }
   }
 
   const capMs = (mission.format === 'forTime' ? mission.capSec || 0 : missionClockSec(mission)) * 1000;
   if (capMs > 0 && elapsedMs >= capMs) {
     elapsedMs = capMs;
-    const scoreDraft = mission.format === 'forTime' ? capDraft(mission, roundTaps) : clockDraft(mission, roundTaps, blockTaps);
+    const scoreDraft = isUntilDown(mission) ? downDraft(mission, roundTaps, 'cap')
+      : mission.format === 'forTime' ? capDraft(mission, roundTaps) : clockDraft(mission, roundTaps, blockTaps);
     return { ...base, phase: 'score', scoreDraft, clock: { ...clock(elapsedMs, ms(resume.pausedMs), ms(resume.hiddenMs), false), over: true } };
   }
   return { ...base, phase: 'paused', clock: clock(elapsedMs, ms(resume.pausedMs), ms(resume.hiddenMs), true) };
@@ -193,7 +208,11 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const clockRef = useRef(init.clock);
 
   const format = mission.format;
-  const fixedClock = isFixedClock(format);
+  // NO CONTINUES: no set length, a count-up clock to the safety cap, + SET
+  // taps and I PUT IT DOWN, which finishes the run (see data/missionSolo).
+  const down = isUntilDown(mission);
+  const countUp = format === 'forTime' || down;
+  const fixedClock = isFixedClock(format) && !down;
   const multiBlock = isMultiBlock(mission);
   const timeline = useMemo(() => soloTimeline(mission), [mission]);
   const cues = useMemo(() => soloCues(mission, timeline), [mission, timeline]);
@@ -201,14 +220,14 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const pace = useMemo(() => paceTargets(mission), [mission]);
   const rpr = useMemo(() => repsPerRound(mission), [mission]);
   const clockSec = fixedClock ? missionClockSec(mission) : 0;
-  const capSec = format === 'forTime' ? mission.capSec || 0 : 0;
-  const tapRounds = soloRounds(mission); // for time: a ladder counts its rungs
-  const ticking = phase === 'running' || (phase === 'score' && scoreDraft?.end === 'finish' && scoreDraft.from === 'running');
+  const capSec = countUp ? mission.capSec || 0 : 0;
+  const tapRounds = soloRounds(mission); // for time: a ladder counts its rungs; until down: sets
+  const ticking = phase === 'running' || (phase === 'score' && (scoreDraft?.end === 'finish' || scoreDraft?.end === 'down') && scoreDraft.from === 'running');
 
   // What the interval and the visibility listener read (they outlive renders).
   const liveRef = useRef(null);
   useEffect(() => {
-    liveRef.current = { mission, cues, phase, ticking, finishSec, roundTaps, blockTaps, format, clockMs: clockSec * 1000, capMs: capSec * 1000 };
+    liveRef.current = { mission, cues, phase, ticking, finishSec, roundTaps, blockTaps, format, countUp, clockMs: clockSec * 1000, capMs: capSec * 1000 };
   });
 
   // The cap or the fixed clock ran out: the clock stops there, the bell rings
@@ -219,7 +238,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     playBell(3);
     setConfirmStop(false);
     setSwapKeyOpen(null);
-    setScoreDraft(kind === 'cap' ? capDraft(L.mission, L.roundTaps) : clockDraft(L.mission, L.roundTaps, L.blockTaps));
+    setScoreDraft(kind !== 'cap' ? clockDraft(L.mission, L.roundTaps, L.blockTaps)
+      : isUntilDown(L.mission) ? downDraft(L.mission, L.roundTaps, 'cap') : capDraft(L.mission, L.roundTaps));
     setPhase('score');
   }, []);
 
@@ -237,8 +257,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     c.lastAt = now;
     if (typeof document !== 'undefined' && document.hidden && c.hiddenAt == null) c.hiddenAt = now;
     let end = null;
-    if (L.format === 'forTime') {
-      // While FINISH waits on the panel the cap does not end the run.
+    if (L.countUp) {
+      // While FINISH (or I PUT IT DOWN) waits on the panel the cap does not end the run.
       if (L.finishSec == null && L.capMs > 0 && next >= L.capMs) { next = L.capMs; end = 'cap'; }
     } else if (L.clockMs > 0 && next >= L.clockMs) { next = L.clockMs; end = 'clock'; }
     c.elapsedMs = next;
@@ -329,7 +349,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     c.over = true;
     closePause();
     if (c.hiddenAt != null) { c.hiddenMs += Date.now() - c.hiddenAt; c.hiddenAt = null; }
-    const slots = totalSlots(mission);
+    // Until down, the run is as long as the athlete lasted: its slots are the sets done.
+    const slots = down ? Math.max(0, score?.sets || 0) : totalSlots(mission);
     const expected = soloExpectedSec(mission);
     const sec = Math.max(0, Math.floor(elapsedSec));
     stopVoiceSession();
@@ -340,7 +361,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       roundTaps, blockTaps: blockTaps ? [...blockTaps] : null,
       score, totalSlots: slots,
       roundsCompleted: 0, totalRounds: mission.rounds,
-      exercisesCompleted: completed ? slots : Math.round(slots * (expected > 0 ? Math.min(1, sec / expected) : 0)),
+      exercisesCompleted: completed || down ? slots : Math.round(slots * (expected > 0 ? Math.min(1, sec / expected) : 0)),
       totalExercises: slots,
       integrityResult: null,
     });
@@ -373,6 +394,18 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     setScoreDraft(null);
     setPhase(back);
   };
+  // I PUT IT DOWN (until down): the bell touched the floor, so the run is
+  // over and the time is taken now. Like FINISH, the clock runs on under the
+  // panel, so NOT YET (a mis-tap) loses nothing.
+  const handleDown = () => {
+    if (phase !== 'running' && phase !== 'paused') return;
+    if (phase === 'running' && tick()) return;
+    setFinishSec(Math.floor(clockRef.current.elapsedMs / 1000));
+    setScoreDraft(downDraft(mission, roundTaps, 'down', phase));
+    setSwapKeyOpen(null);
+    setConfirmStop(false);
+    setPhase('score');
+  };
 
   // END in the STOP confirm. Past 95% of a fixed clock it counts as finished
   // and goes to the score; otherwise the run ends here with no score.
@@ -397,7 +430,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     const d = scoreDraft;
     if (!d) return;
     const score = scoreFromDraft(mission, d, finishSec);
-    if (d.end === 'finish') finish({ completed: true, score, elapsedSec: finishSec });
+    if (d.end === 'finish' || d.end === 'down') finish({ completed: true, score, elapsedSec: finishSec });
     else if (d.end === 'cap') finish({ completed: true, capped: true, score, elapsedSec: capSec });
     else finish({ completed: true, score, elapsedSec: clockRef.current.elapsedMs / 1000 });
   };
@@ -414,7 +447,12 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 
   let bigClock = mmss(segLeft);
   let subLine = '';
-  if (format === 'forTime') {
+  // Until down: the block the next set is (BOTH HANDS, LEFT ARM, RIGHT ARM).
+  const nextBlock = down ? setBlock(mission, roundTaps) : null;
+  if (down) {
+    bigClock = mmss(elapsedSec);
+    subLine = `CAP ${mmss(capSec)} · SET ${roundTaps + 1} · ${String(nextBlock?.sideSay || nextBlock?.name || '').toUpperCase()}`;
+  } else if (format === 'forTime') {
     bigClock = mmss(elapsedSec);
     subLine = `CAP ${mmss(capSec)} · ROUND ${Math.min(roundTaps + 1, tapRounds)}/${tapRounds}`;
   } else if (format === 'amrap' && !multiBlock) {
@@ -434,11 +472,11 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     ? seg.calls.filter(q => q.t <= elapsedF - at.startSec).pop()?.say || null
     : null;
 
-  const showRounds = (format === 'amrap' || format === 'forTime') && !inRest;
+  const showRounds = (format === 'amrap' || countUp) && !inRest;
   const tapsLive = phase === 'running' || phase === 'paused';
   const addRound = () => {
     if (!tapsLive) return;
-    if (format === 'forTime' && roundTaps >= tapRounds) return;
+    if (countUp && roundTaps >= tapRounds) return;
     setRoundTaps(n => n + 1);
     if (multiBlock) setBlockTaps(list => list.map((v, i) => (i === block ? v + 1 : v)));
   };
@@ -451,9 +489,11 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     setRoundTaps(n => Math.max(0, n - 1));
   };
 
-  const highlightOf = (row) => (phase !== 'score' && seg?.kind === 'work'
-    ? row.swapKey === seg.swapKey || seg.stepKeys.includes(row.swapKey)
-    : false);
+  const highlightOf = (row) => {
+    if (phase === 'score') return false;
+    if (down) return !!nextBlock?.list?.some(st => st.swapKey === row.swapKey);
+    return seg?.kind === 'work' ? row.swapKey === seg.swapKey || seg.stepKeys.includes(row.swapKey) : false;
+  };
   const onPick = (moveId) => {
     const key = swapKeyOpen;
     setSwapKeyOpen(null);
@@ -510,7 +550,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                   <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textAlign: 'center' }}>{subLine}</div>
                   {call && <div style={{ font: `700 28px ${HEAD}`, letterSpacing: '0.12em', color: GOLD, textTransform: 'uppercase', marginTop: 2 }}>{call}</div>}
                   {phase === 'paused' && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>PAUSED</div>}
-                  {format !== 'forTime' && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.14em', color: MUTED }}>ELAPSED {mmss(elapsedSec)}</div>}
+                  {!countUp && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.14em', color: MUTED }}>ELAPSED {mmss(elapsedSec)}</div>}
                 </>
               )}
             </div>
@@ -519,16 +559,29 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
             {showRounds && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <button type="button" aria-label="Undo round" onClick={undoRound} disabled={!tapsLive || roundTaps <= 0} style={{
+                  <button type="button" aria-label={down ? 'Undo set' : 'Undo round'} onClick={undoRound} disabled={!tapsLive || roundTaps <= 0} style={{
                     width: 44, height: 44, flexShrink: 0, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
                     background: CARD, border: '1px solid rgba(255,255,255,0.14)', color: '#fff',
                     cursor: tapsLive && roundTaps > 0 ? 'pointer' : 'default', opacity: tapsLive && roundTaps > 0 ? 1 : 0.45,
                   }}><Minus size={18}/></button>
-                  <GoldButton label="+ ROUND" height={56} onClick={addRound} disabled={!tapsLive} style={{ flex: 1, width: 'auto', minWidth: 0 }}/>
+                  <GoldButton label={down ? '+ SET' : '+ ROUND'} height={56} onClick={addRound} disabled={!tapsLive} style={{ flex: 1, width: 'auto', minWidth: 0 }}/>
                 </div>
                 <div style={{ textAlign: 'center', font: `600 12px ${HEAD}`, letterSpacing: '0.14em', color: '#fff' }}>
-                  {multiBlock ? `ROUNDS ${blockTaps?.[block] ?? 0} · TOTAL ${roundTaps}` : `ROUNDS ${roundTaps}`}
+                  {down ? `SETS ${roundTaps}` : multiBlock ? `ROUNDS ${blockTaps?.[block] ?? 0} · TOTAL ${roundTaps}` : `ROUNDS ${roundTaps}`}
                 </div>
+              </div>
+            )}
+
+            {/* Until down: the end of the run and the safety line sit right
+                under + SET, on screen without a scroll. */}
+            {down && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button type="button" onClick={handleDown} disabled={!tapsLive} style={{
+                  height: 60, borderRadius: 14, width: '100%', cursor: tapsLive ? 'pointer' : 'default', opacity: tapsLive ? 1 : 0.45,
+                  background: 'rgba(239,68,68,0.16)', border: '1.5px solid rgba(239,68,68,0.75)', color: '#fff',
+                  font: `700 18px ${HEAD}`, letterSpacing: '0.16em',
+                }}>I PUT IT DOWN</button>
+                {mission.safety && <SafetyLine text={mission.safety}/>}
               </div>
             )}
 
@@ -591,10 +644,23 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
             <GhostButton label="END" onClick={handleStopEnd} style={{ border: `1px solid ${RED_BORDER}`, color: '#FCA5A5' }}/>
           </div>
         )}>
-          <div style={{ font: `500 14px ${BODY}`, color: '#E6E2F5', lineHeight: 1.45 }}>XP counts once you pass a quarter of the mission.</div>
+          <div style={{ font: `500 14px ${BODY}`, color: '#E6E2F5', lineHeight: 1.45 }}>{down
+            ? 'Bell on the floor? Tap I PUT IT DOWN instead: it saves your sets. END saves nothing.'
+            : 'XP counts once you pass a quarter of the mission.'}</div>
         </Modal>
       )}
     </PhoneFrame>
+  );
+}
+
+// The mission's safety line, big, for as long as the run is on screen
+// (NO CONTINUES: park the bell before the grip goes).
+function SafetyLine({ text }) {
+  return (
+    <div role="note" style={{
+      padding: '10px 12px', borderRadius: 12, background: 'rgba(242,190,69,0.12)', border: '1.5px solid rgba(242,190,69,0.6)',
+      font: `700 14px ${BODY}`, color: '#fff', lineHeight: 1.35, textAlign: 'center',
+    }}>{text}</div>
   );
 }
 
@@ -610,6 +676,18 @@ function ScorePanel({ mission, draft, finishSec, rpr, onDraft, onSave, onNotYet 
   let body = null;
   if (!draft) {
     body = null;
+  } else if (isUntilDown(mission) && (draft.end === 'down' || draft.end === 'cap')) {
+    // Sets done, the reps into the next one, and the time it lasted.
+    body = (
+      <>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: draft.end === 'cap' ? GOLD : MUTED }}>{draft.end === 'cap' ? 'TIME CAP' : 'TIME'}</span>
+          <span style={{ font: `700 44px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{mmss(score?.timeSec ?? 0)}</span>
+        </div>
+        <ScoreStepper label="SETS" name="sets" value={draft.sets} max={totalSlots(mission)} onChange={(v) => set({ sets: v })}/>
+        <ScoreStepper label="REPS INTO THE NEXT" name="reps" value={draft.reps} max={Math.max(0, repsPerSet(mission) - 1)} onChange={(v) => set({ reps: v })}/>
+      </>
+    );
   } else if (draft.end === 'finish') {
     body = (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -655,7 +733,7 @@ function ScorePanel({ mission, draft, finishSec, rpr, onDraft, onSave, onNotYet 
       <div style={{ font: `700 17px ${HEAD}`, letterSpacing: '0.12em', color: '#fff' }}>YOUR SCORE</div>
       {body}
       <GoldButton label="SAVE" height={56} onClick={onSave}/>
-      {draft?.end === 'finish' && <GhostButton label="NOT YET" onClick={onNotYet}/>}
+      {(draft?.end === 'finish' || draft?.end === 'down') && <GhostButton label="NOT YET" onClick={onNotYet}/>}
     </section>
   );
 }

@@ -1,7 +1,8 @@
 // Quick Mission v2: the gate, the move catalog, the 11 launch missions, the
-// 15 SOLO-only missions (12-26), the shelf, swaps and safety, the voice and
-// timing helpers, integrity sizing (ungated fix a), SOLO maths, shelf prefs
-// and the tape line. Run with `npm run test:missions`.
+// 15 SOLO-only missions (12-26), the owner's three (27-29), the shelf, swaps
+// and safety, the voice and timing helpers, integrity sizing (ungated fix a),
+// SOLO maths, the until-the-bell-is-down end, shelf prefs and the tape line.
+// Run with `npm run test:missions`.
 import { isDeepStrictEqual } from 'node:util';
 import { createHash } from 'node:crypto';
 
@@ -20,6 +21,7 @@ const N = await import('../components/training-mode/data/namedWorkouts.js');
 const T = await import('../components/training-mode/data/tapes.js');
 const I = await import('../components/training-mode/utils/missionIntegrity.js');
 const O = await import('../components/training-mode/shared/sessionOutcome.js');
+const US = await import('../components/training-mode/data/userStats.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -43,7 +45,7 @@ reset();
 // ── catalog ─────────────────────────────────────────────────────────────────
 const PATTERNS = ['hinge', 'squat', 'lunge', 'push', 'pull', 'press', 'clean', 'sprawl', 'burpee', 'punch', 'kick', 'knee', 'core', 'cardio'];
 const ids = M.MOVES.map(m => m.id);
-check('3 135 unique move ids', M.MOVES.length === 135 && new Set(ids).size === 135, `${M.MOVES.length}`);
+check('3 152 unique move ids', M.MOVES.length === 152 && new Set(ids).size === 152, `${M.MOVES.length}`);
 const badField = M.MOVES.filter(m => {
   const cadOk = m.cadence === null || (['elite', 'standard', 'beginner'].every(l => Number.isInteger(m.cadence[l]) && m.cadence[l] >= 500 && m.cadence[l] <= 6000) && Object.keys(m.cadence).length === 3);
   const manual = m.cadence === null && (m.unit === 'reps' || m.unit === 'cal');
@@ -83,7 +85,11 @@ const SOLO_IDS = ['honor_rounds', 'ko_sprint_30', 'overhead_rush', 'burnout_21',
   'first_bell', 'continue_bell', 'carry_on_15', 'surge_20_10', 'midline_lock', 'leg_sweep', 'charge_up_12', 'oxygen_debt', 'hot_laps'];
 const SOLO_TITLES = ['HONOR ROUNDS', 'KO SPRINT 30', 'OVERHEAD RUSH', 'BURNOUT 21', 'STANCE BREAKER 9', 'ROOKIE ROUND 8',
   'FIRST BELL', 'CONTINUE? · BELL', 'CARRY-ON 15', 'SURGE 20/10', 'MIDLINE LOCK', 'LEG SWEEP', 'CHARGE UP 12', 'OXYGEN DEBT', 'HOT LAPS'];
-check('8 26 defs, ids and titles in launch order', eq(L.LOADOUT_MISSIONS.map(d => d.id), [...IDS, ...SOLO_IDS]) && eq(L.LOADOUT_MISSIONS.map(d => d.title), [...TITLES, ...SOLO_TITLES])
+// 27-29: the owner's own workouts, GUIDED and SOLO.
+const OWN_IDS = ['bar_fight', 'touch_the_sky', 'no_continues'];
+const OWN_TITLES = ['BAR FIGHT', 'TOUCH THE SKY', 'NO CONTINUES'];
+const ALL_IDS = [...IDS, ...SOLO_IDS, ...OWN_IDS];
+check('8 29 defs, ids and titles in launch order', eq(L.LOADOUT_MISSIONS.map(d => d.id), ALL_IDS) && eq(L.LOADOUT_MISSIONS.map(d => d.title), [...TITLES, ...SOLO_TITLES, ...OWN_TITLES])
   && L.LOADOUT_MISSIONS.every((d, i) => d.launch === i + 1));
 const soloOnlyDef = (id) => id === 'hit_combo_21' || SOLO_IDS.includes(id);
 check('8 only 21-HIT and 12-26 are SOLO only; guided help everywhere else', L.LOADOUT_MISSIONS.every(d => (soloOnlyDef(d.id) ? d.guided === false && d.guidedHelp === '' && d.introSay === '' : d.guided === true && d.guidedHelp.length > 0))
@@ -180,15 +186,15 @@ check('14 card copy: eyebrow, AMRAP names, no tape mention', IDS.every(id => L.m
 
 // ── shelf ───────────────────────────────────────────────────────────────────
 const shelf = L.shelfEntries();
-check('15 shelf: 43 entries, v2 first', shelf.length === 43 && shelf.slice(0, 26).every(e => e.kind === 'v2') && shelf.slice(26).every(e => e.kind === 'classic')
-  && eq(shelf.slice(0, 26).map(e => e.id), [...IDS, ...SOLO_IDS])
-  && shelf.slice(0, 26).every(e => e.soloOnly === soloOnlyDef(e.id)));
+check('15 shelf: 46 entries, v2 first', shelf.length === 46 && shelf.slice(0, 29).every(e => e.kind === 'v2') && shelf.slice(29).every(e => e.kind === 'classic')
+  && eq(shelf.slice(0, 29).map(e => e.id), ALL_IDS)
+  && shelf.slice(0, 29).every(e => e.soloOnly === soloOnlyDef(e.id)));
 const loCount = (lo) => L.filterShelf(shelf, { loadout: lo }).length;
-check('16 loadout counts', loCount('none') === 18 && loCount('bell') === 10 && loCount('barbell') === 8 && loCount('mixed') === 7,
+check('16 loadout counts', loCount('none') === 18 && loCount('bell') === 11 && loCount('barbell') === 10 && loCount('mixed') === 7,
   ['none', 'bell', 'barbell', 'mixed'].map(loCount).join('/'));
 const tAll = L.themeCounts(shelf, 'all');
-check('17 theme counts', tAll.all === 43 && tAll.striking === 9 && tAll.burpees === 5 && tAll.century === 3
-  && L.themeCounts(shelf, 'barbell').striking === 0 && L.themeCounts(shelf, 'bell').striking === 1
+check('17 theme counts', tAll.all === 46 && tAll.striking === 10 && tAll.burpees === 5 && tAll.century === 3
+  && L.themeCounts(shelf, 'barbell').striking === 1 && L.themeCounts(shelf, 'bell').striking === 1
   && L.themeCounts(shelf, 'barbell').burpees === 2 && L.themeCounts(shelf, 'bell').burpees === 1, show(tAll));
 const empty = L.emptyShelfCopy({ loadout: 'barbell', theme: 'striking' });
 check('18 empty shelf copy', empty.text === 'No striking missions for BARBELL yet.' && empty.action?.label === 'SHOW NO GEAR' && empty.action?.loadout === 'none');
@@ -613,7 +619,7 @@ SOLO_IDS.forEach(id => LEVELS.forEach(lv => {
     });
   });
 }));
-const NEW_MOVES = M.MOVES.slice(80);
+const NEW_MOVES = M.MOVES.slice(80, 135); // the 15 SOLO-only missions' entries (the owner's three: test 70)
 const usedIds = new Set(SOLO_IDS.flatMap(id => LEVELS.flatMap(lv => items(soloBuilt[id][lv]).map(it => it.moveId))));
 const fewAlts = [...new Set([...usedIds, ...NEW_MOVES.map(m => m.id)])].filter(id => M.moveById(id).alts.length < 2 || M.moveById(id).alts.length > 4);
 // Gear-aware, checked on what the swap sheet really offers in the mission's
@@ -741,6 +747,79 @@ check('58 the 11 launch missions: SOLO rounds and the cap prefill unchanged', ID
   const m = built[id][lv];
   return S.soloRounds(m) === (m.rounds || 1) && S.repsThrough(m, 2) === 2 * S.repsPerRound(m);
 })));
+// The 15 SOLO-only missions are pinned the same way (taken before the owner's
+// three and the until-down end went in), and all 26 pin their swaps (every
+// row's sheet and every move a swap can reach) and their guided voice (every
+// lead line, count, pace count, near-end call, chained line and rest script).
+// XP and clocks: tests 10 and 57.
+const TL_HASH_SOLO = {
+  honor_rounds: ['97d170e1550e', '97d170e1550e', '97d170e1550e'], ko_sprint_30: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
+  overhead_rush: ['97d170e1550e', '97d170e1550e', '97d170e1550e'], burnout_21: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
+  stance_breaker_9: ['4f66c727636a', '952cea759a44', '952cea759a44'], rookie_round_8: ['5c354a5f6746', 'dbcfd3cf60ce', 'dbcfd3cf60ce'],
+  first_bell: ['cd23ca176428', '454edd46e420', '454edd46e420'], continue_bell: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
+  carry_on_15: ['cf7a396a57bc', 'c13a0d9371cc', 'c13a0d9371cc'], surge_20_10: ['82ac51b7769a', '0188d571e3b2', '0188d571e3b2'],
+  midline_lock: ['75c573cef9a9', '79d2a47b62fe', '79d2a47b62fe'], leg_sweep: ['9a6e35b53fbe', 'eed79f7a325a', 'eed79f7a325a'],
+  charge_up_12: ['bdd0dc42d7b4', '0dec4763aa2a', '0dec4763aa2a'], oxygen_debt: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
+  hot_laps: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
+};
+const SWAP_HASH = {
+  iron_clock_16: ['c4eb35156843', '878aed9f4850', '878aed9f4850'], one_bell_300: ['05d24fc5fdf3', '9c03ca3beeed', '9c03ca3beeed'],
+  five_round_bout: ['ede729a589e4', '86ae049b827f', '86ae049b827f'], best_of_3: ['9b14b45e82e7', '1e4f6accc097', '3ecd1380be67'],
+  steel_plating: ['7650d66ef713', 'ad6b4d2b7920', 'ad6b4d2b7920'], checkpoint_20: ['77a9b618d50b', '7732b433ca59', '7732b433ca59'],
+  room_12: ['63e0854bdaa4', '24b3abc652d1', '2c6a18171413'], hit_combo_21: ['cf48670ebbbe', 'af368ec7152f', 'af368ec7152f'],
+  tutorial_stage: ['38a34a2be802', '002691d8bc61', '004d499be28d'], turbo_button: ['83764586c084', '0f2ffda5127f', '0f2ffda5127f'],
+  quota_300: ['edae56942522', 'd8d338028dbe', 'd8d338028dbe'], honor_rounds: ['a647f2df7b33', '46e6dcab8cdc', '46e6dcab8cdc'],
+  ko_sprint_30: ['91228de70fba', '036b12c9b662', '036b12c9b662'], overhead_rush: ['9f41b3d3404f', 'a69b304024a0', 'a69b304024a0'],
+  burnout_21: ['6fabff651400', '957550736aff', '957550736aff'], stance_breaker_9: ['60adc96c0bae', '5d3ef9e37cb1', '5d3ef9e37cb1'],
+  rookie_round_8: ['647b2c95998d', '39ac03a83d6c', '39ac03a83d6c'], first_bell: ['840101be78d9', '6e3db72c6fc1', '6e3db72c6fc1'],
+  continue_bell: ['88cc566a8519', '889947c12ae9', '889947c12ae9'], carry_on_15: ['802262a18bab', 'c28828f3a5d9', 'c28828f3a5d9'],
+  surge_20_10: ['a3a7cce9a316', '11491e0f929f', '11491e0f929f'], midline_lock: ['21e89f4bfdec', '34c2046e1429', '34c2046e1429'],
+  leg_sweep: ['9b64711ceb91', '90614a8297ac', '90614a8297ac'], charge_up_12: ['f42be06c792c', 'f42be06c792c', 'f42be06c792c'],
+  oxygen_debt: ['d5111087744e', '7742ffa03f6c', 'f5db11c79ca5'], hot_laps: ['029fecbf338a', '0a0bc70a019c', '49ead546e8b1'],
+};
+const VOICE_HASH = {
+  iron_clock_16: ['356b967744e8', '6d5c239d2bfc', '53e5f064ac17'], one_bell_300: ['d42b2642a649', '6db1051648d0', '564848192d56'],
+  five_round_bout: ['37b142748ca0', '799ea20b394c', '799ea20b394c'], best_of_3: ['dbf2ad2f830f', '7c5a3fa183de', '63cb8981d62c'],
+  steel_plating: ['4cc2e57e00ba', '552d8e7f0785', '1c3f2a4134cc'], checkpoint_20: ['f654b15728f5', '36daced529d4', 'd0260f37aba1'],
+  room_12: ['9c8f415ff7e9', 'ec23e2211e1a', '54146d90552d'], hit_combo_21: ['e74e5b145aed', '4b8bdd8c4217', '4b8bdd8c4217'],
+  tutorial_stage: ['2bc2df9e4372', 'c1f75ed7b6ee', 'a3c9111066b2'], turbo_button: ['1c2a2628c805', '9151311d4782', '7d4e61df0fc2'],
+  quota_300: ['f3d260bd72b0', 'a60d070908ef', '94bacfd85c4a'], honor_rounds: ['4b9fe94db39e', 'c281004689cc', '9e659ea33215'],
+  ko_sprint_30: ['1c3693f6b865', 'b72fb112f32c', '6ce583864f83'], overhead_rush: ['c4e034f90b72', 'bde3bebda235', '0652da16de55'],
+  burnout_21: ['42bfe1ccbc3d', '7f744877f698', '2148eabc85f9'], stance_breaker_9: ['703b350360b0', '1ea7f84d2c1e', '1ea7f84d2c1e'],
+  rookie_round_8: ['dc8d3f4bcff7', '71d9b6e8c855', '71d9b6e8c855'], first_bell: ['81d88a56be23', 'd4e92f114198', 'ef5a78f5eb51'],
+  continue_bell: ['ef59b503265d', '36aec6ae7cbe', 'd311b3666013'], carry_on_15: ['90a2c0b4086f', '65123920c752', '65123920c752'],
+  surge_20_10: ['92ac5424d5f4', '647484b5d919', '647484b5d919'], midline_lock: ['0115f51238fc', '5c7ba2acbb1d', '5c7ba2acbb1d'],
+  leg_sweep: ['15cf673663de', '95be09d12abc', '95be09d12abc'], charge_up_12: ['c3db233e0e02', '7d4e2e62a564', '7d4e2e62a564'],
+  oxygen_debt: ['61939f62a4e5', '0f90e3053f3d', '92902c2f9f79'], hot_laps: ['06917e62e76f', '70b8b60567c5', 'd7ec6f960329'],
+};
+const swapPrint = (m) => L.cardRows(m).map(r => ({ key: r.swapKey, opts: L.swapOptions(m, r.swapKey), reach: [...L.reachableMoves(m, r.swapKey).entries()] }));
+const voicePrint = (m) => {
+  const all = m.exercises;
+  const ctx = (round, idx) => ({ round, idx, rounds: m.rounds, slotsPerRound: all.length, format: m.format });
+  const out = [];
+  for (let round = 1; round <= m.rounds; round += 1) all.forEach((slot, idx) => {
+    const last = idx === all.length - 1;
+    const next = last ? (round < m.rounds ? all[0] : null) : all[idx + 1];
+    const restSec = slot.window ? M.windowRest(slot, S.estimateWorkSeconds(slot)) : slot.rest;
+    out.push([M.leadLine(slot, ctx(round, idx)), M.countBeats(slot, { next }), M.paceBeats(slot), M.nearEndUpNextAt(slot, next), M.chainedLine(slot),
+      next ? M.restScript({ restSec, roundEnd: last, completedRound: round, format: m.format, tips: m.tips, lead: M.leadLine(next, ctx(last ? round + 1 : round, last ? 0 : idx + 1)), short: M.shortRestLine(next) }) : null]);
+  });
+  return out;
+};
+const builtOf = (id, lv) => (IDS.includes(id) ? built[id][lv] : soloBuilt[id][lv]);
+const soloTlChanged = SOLO_IDS.flatMap(id => LEVELS.filter((lv, i) => hash(S.soloTimeline(soloBuilt[id][lv])) !== TL_HASH_SOLO[id][i]).map(lv => `${id}/${lv}`));
+const swapChanged = [...IDS, ...SOLO_IDS].flatMap(id => LEVELS.filter((lv, i) => hash(swapPrint(builtOf(id, lv))) !== SWAP_HASH[id][i]).map(lv => `${id}/${lv}`));
+const voiceChanged = [...IDS, ...SOLO_IDS].flatMap(id => LEVELS.filter((lv, i) => hash(voicePrint(builtOf(id, lv))) !== VOICE_HASH[id][i]).map(lv => `${id}/${lv}`));
+check('58 the 15 SOLO-only missions: timelines unchanged', soloTlChanged.length === 0, soloTlChanged.join(', '));
+check('58 all 26: swap sheets and reachable swaps unchanged', swapChanged.length === 0, swapChanged.join(', '));
+check('58 all 26: the guided voice unchanged', voiceChanged.length === 0, voiceChanged.join(', '));
+// The until-down end is behind the mission flag: no other mission carries it,
+// a safety line or an origin, and none runs the new format.
+const flagLeak = [...IDS, ...SOLO_IDS].flatMap(id => LEVELS.filter(lv => {
+  const m = builtOf(id, lv);
+  return 'untilDown' in m || 'safety' in m || 'origin' in m || m.format === 'maxSets' || S.isUntilDown(m) || 'safety' in L.missionCardModel(m);
+}).map(lv => `${id}/${lv}`));
+check('58 all 26: no until-down flag, safety line, origin or MAX SETS', flagLeak.length === 0, flagLeak.join(', '));
 
 // No franchise, benchmark or person names anywhere a viewer reads.
 const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];
@@ -752,7 +831,7 @@ const walkAll = (v, key) => {
   else if (Array.isArray(v)) v.forEach(x => walkAll(x));
   else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => walkAll(x, k));
 };
-[...IDS, ...SOLO_IDS].forEach(id => LEVELS.forEach(lv => {
+ALL_IDS.forEach(id => LEVELS.forEach(lv => {
   const m = build(id, { level: lv });
   walkAll(m); walkAll(L.missionCardModel(m)); walkAll(S.paceTargets(m)); walkAll(S.soloTimeline(m).map(seg => seg.label));
   L.cardRows(m).forEach(r => walkAll(L.swapOptions(m, r.swapKey)));
@@ -761,7 +840,8 @@ M.MOVES.forEach(m => { allStrings.push(m.name, m.say, ...(m.say1 ? [m.say1] : []
 L.shelfEntries().forEach(e => allStrings.push(e.title, L.shelfEntryLine(e)));
 const bannedAll = [...new Set(allStrings.filter(s => BANNED_ALL.some(b => b !== 'Chief' && s.toLowerCase().includes(b.toLowerCase())) || BANNED_WORDS.some(re => re.test(s))
   || knownAs.some(k => s.includes(k))))];
-check('59 no franchise, benchmark or person names in any user text', bannedAll.length === 0 && SOLO_IDS.filter(id => L.missionDefById(id).knownAs).length === 10, bannedAll.join(' | '));
+check('59 no franchise, benchmark or person names in any user text', bannedAll.length === 0 && SOLO_IDS.filter(id => L.missionDefById(id).knownAs).length === 10
+  && OWN_IDS.every(id => L.missionDefById(id).knownAs === ''), bannedAll.join(' | '));
 
 // Safety reaches the card and every swap: no flying knees for beginners, no
 // jumps in a QUIET mission, a warm-up where the source asks for one, and the
@@ -900,6 +980,242 @@ check('66 card copy fixes', ['2 × 22.5/15 kg (50/35 lb)', '2 × 15/10 kg (35/20
 check('66 short move names on FIRST BELL and CHARGE UP 12', LEVELS.every(lv => L.cardRows(soloBuilt.charge_up_12[lv]).every(r => r.name.length <= 21))
   && LEVELS.every(lv => L.cardRows(soloBuilt.first_bell[lv]).every(r => r.name.length <= 23)) && M.moveById('kb-one-arm-swing').name === 'One-Arm Swings',
   show(L.cardRows(soloBuilt.charge_up_12.standard).map(r => r.name)));
+
+// ── the owner's three (27-29) ───────────────────────────────────────────────
+reset();
+const ownBuilt = {};
+const ownProblems = [];
+const OWN_RULE = { bar_fight: 'reps', touch_the_sky: 'time', no_continues: 'setsReps' };
+for (const id of OWN_IDS) {
+  ownBuilt[id] = {};
+  const def = L.missionDefById(id);
+  if (!eq(Object.keys(def.levels).sort(), [...LEVELS].sort()) || def.defaultLevel !== 'standard' || def.workoutType !== 'Weighted'
+    || def.origin !== 'Coach TM original' || def.knownAs !== '' || def.guided !== true) ownProblems.push(`${id} def shape`);
+  for (const lv of LEVELS) {
+    const m = build(id, { level: lv });
+    ownBuilt[id][lv] = m;
+    const tag = `${id}/${lv}`;
+    if (!m) { ownProblems.push(`${tag} null`); continue; }
+    const card = L.missionCardModel(m);
+    if (m.guided !== true || card.soloOnly || card.tags.includes('SOLO ONLY') || !card.guidedHelp || !m.introSay || m.origin !== 'Coach TM original') ownProblems.push(`${tag} not guided`);
+    const its = items(m);
+    if (its.some(it => !M.moveById(it.moveId))) ownProblems.push(`${tag} unknown move`);
+    if (its.some(it => it.moveId !== it.baseMoveId || it.defaultMoveId !== it.baseMoveId) || m.scaled !== false || m.gearBanner !== null) ownProblems.push(`${tag} not at base`);
+    if (m.exercises.some(sl => !Array.isArray(sl.list) && !('cadenceMs' in sl))) ownProblems.push(`${tag} slot missing cadenceMs`);
+    if (m.exercises.some(sl => Array.isArray(sl.list) && sl.mode === 'reps' && sl.list.some(st => 'sides' in st || typeof st.cadenceMs !== 'number'))) ownProblems.push(`${tag} complex step`);
+    if (!eq(JSON.parse(JSON.stringify(m)), m)) ownProblems.push(`${tag} JSON round-trip`);
+    if (!LEVELS.every(t => typeof m.pace[t] === 'number')) ownProblems.push(`${tag} pace types`);
+    if (m.scoreRule.kind !== OWN_RULE[id]) ownProblems.push(`${tag} scoreRule`);
+    if ((m.format === 'forTime' || !!m.untilDown) !== (m.capSec > 0)) ownProblems.push(`${tag} capSec`);
+    if (!m.loadoutLine || !m.missionLine || !m.scoreLine || !m.scale || !m.note || !m.load || !m.levelDetail || !/^Coach estimate/.test(m.paceBasis)) ownProblems.push(`${tag} card copy`);
+    if (!/^Warm up \d/.test(card.note)) ownProblems.push(`${tag} warm-up`);
+  }
+}
+check('67 the owner\'s three build at every level: GUIDED, a Coach TM original, no knownAs', ownProblems.length === 0, ownProblems.join('; '));
+check('67 on the shelf: BAR FIGHT is barbell striking, all three GUIDED', eq(L.filterShelf(L.shelfEntries(), { loadout: 'barbell', theme: 'striking' }).map(e => e.id), ['bar_fight'])
+  && L.shelfEntries().filter(e => OWN_IDS.includes(e.id)).every(e => e.soloOnly === false)
+  && eq(OWN_IDS.map(id => L.shelfEntryLine(L.shelfEntries().find(e => e.id === id))), ['~14 MIN · BARBELL · INTERVALS', '~11 MIN · BARBELL · FOR TIME', '~5 MIN · 1 BELL / DB · MAX SETS']),
+  show(OWN_IDS.map(id => L.shelfEntryLine(L.shelfEntries().find(e => e.id === id)))));
+
+// Clocks, XP and timelines. NO CONTINUES' clock is its 30:00 safety cap, and
+// its full-run XP is only the backstop's ceiling (a real run pays per set).
+const OWN_CLOCKS = { bar_fight: [830, 570, 1120], touch_the_sky: [1200, 900, 1500], no_continues: [1800, 1800, 1800] };
+const OWN_XP = { bar_fight: [330, 255, 405], touch_the_sky: [75, 60, 90], no_continues: [1380, 1380, 1380] };
+const ownClockBad = [];
+OWN_IDS.forEach(id => ORDER.forEach((lv, i) => {
+  const m = ownBuilt[id][lv];
+  if (m.clockSec !== OWN_CLOCKS[id][i] || S.missionClockSec(m) !== OWN_CLOCKS[id][i] || S.fullRunXp(m) !== OWN_XP[id][i]) ownClockBad.push(`${id}/${lv} ${m.clockSec} ${S.fullRunXp(m)}`);
+}));
+check('68 the owner\'s three: clocks and full-run XP', ownClockBad.length === 0, ownClockBad.join(', '));
+const bf = ownBuilt.bar_fight.standard;
+const bfTl = S.soloTimeline(bf);
+check('68 BAR FIGHT: four 0:30 drills with 0:05 switches, the shadowbox, 0:30 rest', bfTl.length === 39 && bfTl.reduce((n, seg) => n + seg.sec, 0) === 830
+  && eq(bfTl.slice(0, 10).map(seg => `${seg.label}:${seg.sec}`), ['Explosive Front Presses:30', 'REST:5', 'Explosive Overhead Presses:30', 'REST:5', 'Barbell Uppercuts:30', 'REST:5', 'Explosive Front Squats:30', 'REST:5', 'Explosive Shadowboxing:45', 'REST:30'])
+  && LEVELS.every(lv => { const tl = S.soloTimeline(ownBuilt.bar_fight[lv]); return tl.reduce((n, seg) => n + seg.sec, 0) === ownBuilt.bar_fight[lv].clockSec && tl[tl.length - 1].kind === 'work'; })
+  && eq(LEVELS.map(lv => ownBuilt.bar_fight[lv].exercises[4].work), [30, 45, 60]) && eq(LEVELS.map(lv => ownBuilt.bar_fight[lv].rounds), [3, 4, 5])
+  && LEVELS.every(lv => Math.abs(ownBuilt.bar_fight[lv].clockSec - ownBuilt.bar_fight[lv].duration * 60) <= 60), show(bfTl.slice(0, 10)));
+check('68 TOUCH THE SKY and NO CONTINUES have no fixed timeline', LEVELS.every(lv => S.soloTimeline(ownBuilt.touch_the_sky[lv]).length === 0 && S.soloTimeline(ownBuilt.no_continues[lv]).length === 0
+  && ownBuilt.touch_the_sky[lv].duration * 60 <= ownBuilt.touch_the_sky[lv].capSec));
+
+// Pace: ordered in every level, honest across levels (test 55's rule: a
+// heavier for-time level is never faster, a heavier interval level never
+// scores more; NO CONTINUES runs one cap at every level, so a heavier bell
+// always means fewer sets), and BAR FIGHT's clock-end prefill (the pace
+// count) never beats its own elite mark.
+const ownPaceBad = [];
+OWN_IDS.forEach(id => {
+  const by = ownBuilt[id];
+  LEVELS.forEach(lv => {
+    const p = by[lv].pace;
+    const ok = by[lv].format === 'forTime' ? p.elite < p.standard && p.standard < p.beginner && p.beginner <= by[lv].capSec : p.elite > p.standard && p.standard > p.beginner && p.beginner > 0;
+    if (!ok || S.paceTargets(by[lv]).some(x => !x.text || /undefined|NaN/.test(x.text))) ownPaceBad.push(`${id}/${lv}`);
+  });
+  TIERS.forEach(t => {
+    if (by.standard.format === 'forTime' && !(by.beginner.pace[t] <= by.standard.pace[t] && by.standard.pace[t] <= by.elite.pace[t])) ownPaceBad.push(`${id} ${t}`);
+    if (by.standard.format === 'intervals' && !(by.elite.pace[t] <= by.standard.pace[t])) ownPaceBad.push(`${id} ${t} across`);
+    if (by.standard.untilDown && !(by.elite.pace[t] <= by.standard.pace[t] && by.standard.pace[t] <= by.beginner.pace[t])) ownPaceBad.push(`${id} ${t} across`);
+  });
+});
+check('69 the owner\'s three: pace ordered in every level and across levels', ownPaceBad.length === 0, ownPaceBad.join(', '));
+check('69 BAR FIGHT: lowest front presses + uppercuts from the count, under its own elite', eq(LEVELS.map(lv => S.prefillScore(ownBuilt.bar_fight[lv])), [35, 44, 44])
+  && LEVELS.every(lv => S.prefillScore(ownBuilt.bar_fight[lv]) <= ownBuilt.bar_fight[lv].pace.elite) && bf.scoreRule.agg === 'lowest' && eq(bf.scoreRule.keys, ['front-press', 'uppercut'])
+  && eq(S.paceTargets(bf).map(p => p.text), ['48+', '42', '34']) && keyItems(ownBuilt.bar_fight.elite, 'front-press')[0].cadenceMs === 1250);
+check('69 pace targets read: time with the rests, and sets', eq(S.paceTargets(ownBuilt.touch_the_sky.standard).map(p => p.text), ['≤ 9:30', '≤ 11:00', '≤ 13:00'])
+  && eq(S.paceTargets(ownBuilt.no_continues.standard).map(p => p.text), ['12+ sets', '8 sets', '5 sets']));
+
+// Swaps: every alt of every reachable move resolves; the new catalog entries
+// have 2-4 alts with cues and a count; every loaded row offers a lighter swap,
+// except NO CONTINUES' swings and rows, whose only lighter option is a lighter
+// bell (its easier swing and its backpack rows would put the bell down).
+const OWN_MOVES = M.MOVES.slice(135);
+const ownAltBad = [];
+OWN_IDS.forEach(id => LEVELS.forEach(lv => {
+  const m = ownBuilt[id][lv];
+  L.cardRows(m).forEach(r => {
+    if (!r.canSwap) ownAltBad.push(`${id}/${lv} ${r.swapKey} cannot swap`);
+    [r.moveId, ...L.reachableMoves(m, r.swapKey).keys()].forEach(mid => (M.moveById(mid)?.alts || [null]).forEach(a => { if (!a || !M.moveById(a.id)) ownAltBad.push(`${id}/${lv} ${mid}→${a?.id}`); }));
+    L.swapOptions(m, r.swapKey).forEach(o => { if (!M.moveById(o.id) || !o.cues.length) ownAltBad.push(`${id}/${lv} option ${o.id}`); });
+  });
+}));
+const ownMoveBad = OWN_MOVES.filter(mv => mv.alts.length < 2 || mv.alts.length > 4 || mv.cues.length < 2
+  || (!mv.timedOnly && !(mv.cadence && mv.cadence.elite <= mv.cadence.standard && mv.cadence.standard <= mv.cadence.beginner))
+  || (LOADED.includes(mv.gear) && !mv.alts.some(a => a.kind === 'easier' || a.kind === 'no-gear' || M.moveById(a.id).gear === 'none'))).map(mv => mv.id);
+const NC_HEAVY_ONLY = ['swing2', 'row2', 'swing1', 'row1'];
+const ownSheetBad = [];
+OWN_IDS.forEach(id => LEVELS.forEach(lv => {
+  const m = ownBuilt[id][lv];
+  L.cardRows(m).forEach(r => {
+    const lighter = L.swapOptions(m, r.swapKey).some(o => o.kind === 'easier' || o.kind === 'no-gear' || o.gear === 'none');
+    const exempt = id === 'no_continues' && NC_HEAVY_ONLY.includes(r.swapKey);
+    if (LOADED.includes(M.moveById(r.moveId).gear) && lighter === exempt) ownSheetBad.push(`${id}/${lv} ${r.swapKey}`);
+  });
+}));
+check('70 every move and every reachable alt resolves, every row can swap', ownAltBad.length === 0, ownAltBad.slice(0, 6).join(', '));
+check('70 17 new catalog entries: 2-4 alts, cues, a count per level, gear-aware', OWN_MOVES.length === 17 && ownMoveBad.length === 0
+  && OWN_MOVES.every(mv => mv.cues.every(c => c.length <= 140)), `${OWN_MOVES.length} ${ownMoveBad.join(',')}`);
+check('70 every loaded row offers a lighter swap (NO CONTINUES: a lighter bell for the swings and rows)', ownSheetBad.length === 0, ownSheetBad.join(', '));
+check('70 named swaps: hang muscle cleans, RDLs for the good mornings, a push press, plate and no-gear punches',
+  L.swapOptions(ownBuilt.touch_the_sky.standard, 'clean').find(o => o.id === 'bb-hang-muscle-clean')?.stop === 'Never been coached?'
+  && L.swapOptions(ownBuilt.touch_the_sky.standard, 'good-morning').find(o => o.id === 'bb-rdl')?.stop === 'Low back rounding?'
+  && L.swapOptions(ownBuilt.touch_the_sky.standard, 'press').some(o => o.id === 'bb-push-press')
+  && L.swapOptions(bf, 'front-press').find(o => o.id === 'one-two')?.stop === 'Shoulder pinch?' && L.swapOptions(bf, 'front-press').some(o => o.id === 'plate-punch-out')
+  && L.swapOptions(bf, 'uppercut').some(o => o.id === 'alt-uppercut') && L.swapOptions(ownBuilt.no_continues.standard, 'snatch')[0]?.stop === 'Bell banging the wrist?');
+
+// Safety. BAR FIGHT: no swap below ELITE reaches a jump; ELITE is offered the
+// hop. NO CONTINUES: no swap ever takes the bell out of the hand (a no-gear
+// move or one that starts from the floor), BEGINNER never reaches a snatch,
+// and its safety line is on the card.
+const jumpsAt = (lv) => L.cardRows(ownBuilt.bar_fight[lv]).flatMap(r => [...L.reachableMoves(ownBuilt.bar_fight[lv], r.swapKey).keys()].filter(k => M.moveById(k).jumps));
+const ncReach = (lv) => L.cardRows(ownBuilt.no_continues[lv]).flatMap(r => [...L.reachableMoves(ownBuilt.no_continues[lv], r.swapKey).keys()]);
+const FLOOR = ['kb-deadlift', 'kb-suitcase-deadlift', 'kb-plank-pull-through', 'kb-knee-pull-through', 'db-devil-press', 'db-hip-thrust', 'kb-turkish-get-up', 'db-turkish-get-up'];
+check('71 BAR FIGHT: no jump below ELITE, the hop offered at ELITE', jumpsAt('beginner').length === 0 && jumpsAt('standard').length === 0
+  && L.swapOptions(ownBuilt.bar_fight.elite, 'front-squat').find(o => o.id === 'bb-front-squat-hop')?.kind === 'harder'
+  && !L.isSwapAllowed(ownBuilt.bar_fight.standard, 'front-squat', 'bb-front-squat-hop') && M.moveById('bb-front-squat-hop').jumps === true, show(jumpsAt('standard')));
+check('71 NO CONTINUES: the bell never leaves the hand through a swap', LEVELS.every(lv => ncReach(lv).every(k => M.moveById(k).gear !== 'none' && !FLOOR.includes(k)))
+  && !ncReach('beginner').some(k => /snatch/.test(k)) && keyItems(ownBuilt.no_continues.beginner, 'snatch')[0].moveId === 'kb-one-arm-high-pull'
+  && keyItems(ownBuilt.no_continues.standard, 'snatch')[0].moveId === 'kb-snatch', show(ncReach('standard')));
+const ncCard = L.missionCardModel(ownBuilt.no_continues.standard);
+check('71 NO CONTINUES: the safety line on the card, only there', ncCard.safety === 'Grip starting to open? Park the bell between your feet. Never let it fly.'
+  && ownBuilt.no_continues.standard.safety === ncCard.safety && OWN_IDS.filter(id => L.missionCardModel(ownBuilt[id].standard).safety).length === 1
+  && /park the bell between your feet/i.test(ownBuilt.no_continues.standard.introSay));
+check('71 TOUCH THE SKY and BAR FIGHT: the card rules', /press can handle for 5/.test(ownBuilt.touch_the_sky.standard.note) && /Don't put the bar down inside a round/.test(ownBuilt.touch_the_sky.standard.note)
+  && /Low back rounding on the good mornings\? Stop the round/.test(ownBuilt.touch_the_sky.standard.note) && /Only ELITE may add a small hop/.test(bf.note)
+  && cueHas('bb-punch-out', 'Core braced, shoulders down') && cueHas('explosive-shadowbox', 'Set the bar down first'));
+
+// The guided voice: BAR FIGHT paces every bar drill and calls what is next;
+// TOUCH THE SKY counts all 45 reps at a strength cadence and calls each lift;
+// NO CONTINUES leads the first block and calls every switch after it.
+check('72 BAR FIGHT: leads, pace counts, near-end calls', M.leadLine(bf.exercises[0], ctxFor(bf, 1, 0)) === 'Round 1. Explosive front presses. 30 seconds.'
+  && eq(bf.exercises.map(M.paceBeats), [{ ms: 1250, n: 24 }, { ms: 1750, n: 17 }, { ms: 1500, n: 20 }, { ms: 2000, n: 15 }, null])
+  && bf.exercises.every((sl, i) => M.nearEndUpNextAt(sl, bf.exercises[(i + 1) % 5]) === 8)
+  && M.workStartLine(bf.exercises[1], { announcedBy: 'short' }) === 'Go.' && M.shortRestLine(bf.exercises[1]) === 'Next: explosive overhead presses.');
+const sky = ownBuilt.touch_the_sky.standard;
+const skyBeats = M.countBeats(sky.exercises[0], { next: sky.exercises[0] });
+check('72 TOUCH THE SKY: 45 counted reps, each lift called, 2:08 at the count', skyBeats.length === 45 && skyBeats.reduce((n, b) => n + b.ms, 0) === 128000
+  && eq(skyBeats.filter(b => /\. /.test(b.say)).map(b => b.say), ['5. Hang power cleans.', '5. Good mornings.', '5. Front squats.', '5. Strict presses.', '5. Front squats.', '5. Good mornings.', '5. Hang power cleans.', '5. Deadlifts.'])
+  && skyBeats[44].say === '5' && skyBeats[0].ms === 3000 + 2500 && M.countBeats(ownBuilt.touch_the_sky.beginner.exercises[0]).length === 27
+  && M.restScript({ restSec: 120, roundEnd: true, completedRound: 1, format: 'forTime', tips: sky.tips, lead: M.leadLine(sky.exercises[0], ctxFor(sky, 2, 0)), short: M.shortRestLine(sky.exercises[0]) }).opener === 'Round 1 complete. Rest. 120 seconds. Pick a load your press can handle for 5.',
+  show(skyBeats.filter(b => /\. /.test(b.say)).map(b => b.say)));
+check('72 TOUCH THE SKY: the card reads down and back', eq(doses(sky), ['2 × 5', '2 × 5', '2 × 5', '2 × 5', '5']) && eq(doses(ownBuilt.touch_the_sky.beginner), ['2 × 3', '2 × 3', '2 × 3', '2 × 3', '3'])
+  && S.soloRounds(sky) === 3 && S.repsPerRound(sky) === 45 && S.repsThrough(sky, 2) === 90 && sky.scoreLine.includes('(135 FINISHES)') && sky.exercises[0].rest === 120, show(doses(sky)));
+const nc = ownBuilt.no_continues.standard;
+const ncCtx = { round: 1, idx: 0, rounds: 1, slotsPerRound: 3, format: nc.format }; // the runner passes rounds: 1 (no 'Round 1.')
+const ncBeats = M.countBeats(nc.exercises[0], { next: null });
+check('72 NO CONTINUES: the first lead, the count, every switch', M.leadLine(nc.exercises[0], ncCtx) === '3 swings, 3 rows, 3 high pulls, 3 presses. Both hands. Ready? On my count.'
+  && eq(ncBeats.map(b => b.say), ['1', '2', '3. Rows.', '1', '2', '3. High pulls.', '1', '2', '3. Presses.', '1', '2', '3']) && ncBeats[0].ms === 2000 + 1750
+  && eq(nc.exercises.map(M.switchLine), ['Switch: both hands.', 'Switch: left arm.', 'Switch: right arm.']) && nc.exercises.every(sl => sl.rest === 0)
+  && M.countBeats(ownBuilt.no_continues.elite.exercises[1]).length === 20 && M.countBeats(ownBuilt.no_continues.beginner.exercises[2]).some(b => b.say === '3. High pulls.')
+  && eq(L.cardRows(nc).map(r => r.name), ['Two-Hand Swings', 'Two-Hand Rows', 'Two-Hand High Pulls', 'Two-Hand Presses', 'One-Arm Swings', 'One-Arm Rows', 'Kettlebell Snatches', 'One-Arm Presses']),
+  show(ncBeats.map(b => b.say)));
+// The same timing invariants as test 37, on the owner's three.
+const ownInv = [];
+OWN_IDS.forEach(id => LEVELS.forEach(lv => {
+  const m = ownBuilt[id][lv];
+  const ctx = (r, i) => ({ ...ctxFor(m, r, i), rounds: m.untilDown ? 1 : m.rounds });
+  const L0 = M.leadLine(m.exercises[0], ctx(1, 0));
+  const R = M.getReadySeconds(L0);
+  const at = M.announceAt(R, L0);
+  if (at === null || at - M.speechSeconds(L0) < 4 || at > R - 1) ownInv.push(`${id}/${lv} get ready`);
+  m.exercises.forEach((slot, idx) => {
+    const last = idx === m.exercises.length - 1;
+    const next = m.exercises[last ? 0 : idx + 1];
+    const lead = M.leadLine(next, ctx(last ? 2 : 1, last ? 0 : idx + 1));
+    const sc = M.restScript({ restSec: slot.rest, roundEnd: last, completedRound: 1, format: m.format, tips: m.tips, lead, short: M.shortRestLine(next) });
+    if (slot.rest >= 11 && !(sc.plan === 'long' && sc.leadAt - M.speechSeconds(sc.lead) >= 4 && slot.rest - M.speechSeconds(sc.opener) >= sc.leadAt)) ownInv.push(`${id}/${lv} s${idx} long`);
+    if (sc.plan === 'short' && sc.countdown && slot.rest - M.speechSeconds(sc.short) < 3) ownInv.push(`${id}/${lv} s${idx} short`);
+  });
+}));
+check('72 timing invariants on the owner\'s three', ownInv.length === 0, ownInv.join('; '));
+
+// NO CONTINUES: until the bell is down. One clock to the 30:00 cap, + SET
+// taps, and I PUT IT DOWN as a FINISH paid for the sets done.
+check('73 NO CONTINUES: the flag, the cap clock, sets and blocks', S.isUntilDown(nc) && nc.format === 'maxSets' && L.FORMAT_LABEL.maxSets === 'MAX SETS'
+  && OWN_IDS.filter(id => S.isUntilDown(ownBuilt[id].standard)).length === 1 && !S.isFixedClock(nc.format)
+  && S.missionClockSec(nc) === 1800 && S.soloExpectedSec(nc) === 1800 && S.repsPerSet(nc) === 12 && S.repsPerSet(ownBuilt.no_continues.elite) === 20
+  && eq([0, 1, 2, 3, 7].map(n => S.setBlock(nc, n).sideSay), ['both hands', 'left arm', 'right arm', 'both hands', 'left arm'])
+  && eq(S.prefillScore(nc, { roundTaps: 9 }), { sets: 9, reps: 0 }) && S.repsThrough(nc, 3) === 36 && S.soloRounds(nc) === 90
+  && S.formatScore({ kind: 'setsReps', sets: 9, reps: 4, timeSec: 372, value: 112 }) === '9 + 4' && S.soloFloorSec(nc) === 11 && S.soloSetFloorSec(ownBuilt.no_continues.elite) === 18);
+// The guided count can never run out of rounds before the cap: the cap ends it.
+const cycleSec = (m) => m.exercises.reduce((n, sl) => n + M.countBeats(sl).reduce((t, b) => t + b.ms, 0) / 1000, 0);
+check('73 NO CONTINUES: the 30:00 cap always comes before the last round', LEVELS.every(lv => cycleSec(ownBuilt.no_continues[lv]) * ownBuilt.no_continues[lv].rounds > 1800 && ownBuilt.no_continues[lv].capSec === 1800),
+  LEVELS.map(lv => cycleSec(ownBuilt.no_continues[lv])).join(' '));
+const downScore = (sets, reps = 0, timeSec = 0, capped = false) => ({ kind: 'setsReps', sets, reps, timeSec, value: sets * 12 + reps, ...(capped ? { capped: true } : {}) });
+const ncSettle = (o) => S.settleSoloXp({ mode: 'solo', mission: nc, format: nc.format, completed: false, stopped: false, capped: false, ...o });
+const nPut = ncSettle({ completed: true, score: downScore(10, 4, 300), elapsedSec: 300, totalSlots: 10 });
+const nFast = ncSettle({ completed: true, score: downScore(10, 0, 30), elapsedSec: 30 });
+const nZero = ncSettle({ completed: true, score: downScore(0, 5, 20), elapsedSec: 20 });
+const nStop = ncSettle({ stopped: true, score: null, elapsedSec: 400 });
+const nCap = ncSettle({ completed: true, capped: true, score: downScore(50, 0, 1800, true), elapsedSec: 1800 });
+const nOver = ncSettle({ completed: true, score: downScore(500, 0, 1800), elapsedSec: 1800 });
+check('74 NO CONTINUES SOLO: I PUT IT DOWN is a finish paid for the sets done', nPut.outcome === 'pass' && nPut.xp === 15 * 10 + 30 && nPut.message === null && nPut.credited === 10
+  && nFast.outcome === 'pass' && nFast.credited === 2 && nFast.xp === 60 && /2 of 10 sets/.test(nFast.message)
+  && nZero.xp === 0 && nZero.outcome === 'none' && nZero.message === S.DOWN_NO_SET_MESSAGE
+  && nStop.xp === 0 && nStop.outcome === 'none' && nStop.message === S.DOWN_STOP_MESSAGE
+  && nCap.outcome === 'pass' && nCap.xp === 15 * 50 + 30 && nOver.credited === 90 && nOver.xp === S.fullRunXp(nc),
+  show([nPut, nFast, nZero, nStop, nCap, nOver].map(x => `${x.outcome}:${x.xp}`)));
+check('74 NO CONTINUES GUIDED pays the same as SOLO: 15 a set plus the finish bonus', [1, 7, 12, 30].every(n => US.quickMissionXp(n, n, true) === S.downXp(n)) && S.downXp(0) === 0
+  && O.resolveOutcome({ completed: 9, total: 9, difficulty: 'Hard', integrityResult: null }).outcome === 'pass');
+// GUIDED: the integrity session is judged on the cycles the run actually ran.
+// The cycle the bell came down in counts when a block of it finished, and is
+// dropped when none did. Every other session is unchanged (endRunHere is
+// only called by the until-down runner).
+let clk = 1_800_000_000_000;
+const realNow2 = Date.now;
+Date.now = () => clk;
+const ncRules = S.qmIntegrityRules(nc);
+const cycles = (n, partSec, keep) => {
+  const sess = new I.IntegritySession('quickMission', S.qmTotalUnits(nc), ncRules);
+  for (let u = 0; u < n; u += 1) { sess.startUnit('rounds'); clk += 82_000; sess.completeUnit(); }
+  sess.startUnit('rounds'); clk += partSec * 1000;
+  sess.endRunHere(keep);
+  return sess.finalize();
+};
+const ir3 = cycles(3, 30, true);
+const ir2 = cycles(2, 3, false);
+Date.now = realNow2;
+check('74 NO CONTINUES GUIDED: a finished run whatever cycle it ended in', ir3.isFullyValid && ir3.totalRequiredUnits === 4 && ir3.validityStatus === 'complete' && ir3.awardXp
+  && ir2.isFullyValid && ir2.totalRequiredUnits === 2 && O.resolveOutcome({ completed: 7, total: 7, difficulty: 'Hard', integrityResult: ir3 }).outcome === 'pass'
+  && S.qmMaxValidSeconds(nc) === 600, show([ir3.validityStatus, ir3.totalRequiredUnits, ir2.validityStatus, ir2.totalRequiredUnits]));
 
 // ── prefs and tapes ─────────────────────────────────────────────────────────
 reset();

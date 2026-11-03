@@ -2254,7 +2254,8 @@
         }
       ],
       "guided": true,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "one_bell_300",
@@ -2295,7 +2296,8 @@
         }
       ],
       "guided": true,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "five_round_bout",
@@ -2335,7 +2337,8 @@
         }
       ],
       "guided": true,
-      "captionAka": "The Chief"
+      "captionAka": "The Chief",
+      "origin": null
     },
     {
       "id": "best_of_3",
@@ -2375,7 +2378,8 @@
         }
       ],
       "guided": true,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "steel_plating",
@@ -2413,7 +2417,8 @@
         }
       ],
       "guided": true,
-      "captionAka": "Armor Building Complex (Dan John), single-bell EMOM version"
+      "captionAka": "Armor Building Complex (Dan John), single-bell EMOM version",
+      "origin": null
     },
     {
       "id": "checkpoint_20",
@@ -2454,7 +2459,8 @@
         }
       ],
       "guided": true,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "room_12",
@@ -2494,7 +2500,8 @@
         }
       ],
       "guided": true,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "hit_combo_21",
@@ -2536,7 +2543,8 @@
         }
       ],
       "guided": false,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "tutorial_stage",
@@ -2576,7 +2584,8 @@
         }
       ],
       "guided": true,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "turbo_button",
@@ -2616,7 +2625,8 @@
         }
       ],
       "guided": true,
-      "captionAka": "Tabata-style intervals (20 s on / 10 s off x 8 per 4:00 block)"
+      "captionAka": "Tabata-style intervals (20 s on / 10 s off x 8 per 4:00 block)",
+      "origin": null
     },
     {
       "id": "quota_300",
@@ -2653,7 +2663,8 @@
         }
       ],
       "guided": true,
-      "captionAka": "Burpee EMOM (10 burpees every minute)"
+      "captionAka": "Burpee EMOM (10 burpees every minute)",
+      "origin": null
     },
     {
       "id": "honor_rounds",
@@ -2691,7 +2702,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "DT (CrossFit Hero WOD honoring USAF SSgt Timothy P. Davis)"
+      "captionAka": "DT (CrossFit Hero WOD honoring USAF SSgt Timothy P. Davis)",
+      "origin": null
     },
     {
       "id": "ko_sprint_30",
@@ -2727,7 +2739,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "Grace (CrossFit 'Girl' benchmark; credit line / captions only)"
+      "captionAka": "Grace (CrossFit 'Girl' benchmark; credit line / captions only)",
+      "origin": null
     },
     {
       "id": "overhead_rush",
@@ -2766,7 +2779,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "CrossFit Open 20.1 (captions only)"
+      "captionAka": "CrossFit Open 20.1 (captions only)",
+      "origin": null
     },
     {
       "id": "burnout_21",
@@ -2805,7 +2819,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "CrossFit Open 14.5 / 16.5 (captions only)"
+      "captionAka": "CrossFit Open 14.5 / 16.5 (captions only)",
+      "origin": null
     },
     {
       "id": "stance_breaker_9",
@@ -2844,7 +2859,8 @@
         }
       ],
       "guided": false,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "rookie_round_8",
@@ -2882,7 +2898,8 @@
         }
       ],
       "guided": false,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "first_bell",
@@ -2920,7 +2937,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "Kettlebell Simple & Sinister, 'Simple' timed standard (Pavel Tsatsouline / StrongFirst)"
+      "captionAka": "Kettlebell Simple & Sinister, 'Simple' timed standard (Pavel Tsatsouline / StrongFirst)",
+      "origin": null
     },
     {
       "id": "continue_bell",
@@ -2959,7 +2977,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "Humane Burpee (Dan John), 10→1 variant"
+      "captionAka": "Humane Burpee (Dan John), 10→1 variant",
+      "origin": null
     },
     {
       "id": "carry_on_15",
@@ -3000,7 +3019,8 @@
         }
       ],
       "guided": false,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "surge_20_10",
@@ -3039,7 +3059,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "Tabata intervals (20 s on / 10 s off x 8), rotating"
+      "captionAka": "Tabata intervals (20 s on / 10 s off x 8), rotating",
+      "origin": null
     },
     {
       "id": "midline_lock",
@@ -3080,7 +3101,8 @@
         }
       ],
       "guided": false,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "leg_sweep",
@@ -3120,7 +3142,8 @@
         }
       ],
       "guided": false,
-      "captionAka": null
+      "captionAka": null,
+      "origin": null
     },
     {
       "id": "charge_up_12",
@@ -3159,7 +3182,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "Ascending dumbbell / burpee ladder (inspired by CrossFit Open 17.1's dumbbell snatch and burpee box jump-over)"
+      "captionAka": "Ascending dumbbell / burpee ladder (inspired by CrossFit Open 17.1's dumbbell snatch and burpee box jump-over)",
+      "origin": null
     },
     {
       "id": "oxygen_debt",
@@ -3197,7 +3221,8 @@
         }
       ],
       "guided": false,
-      "captionAka": "Fran"
+      "captionAka": "Fran",
+      "origin": null
     },
     {
       "id": "hot_laps",
@@ -3235,7 +3260,134 @@
         }
       ],
       "guided": false,
-      "captionAka": "Helen"
+      "captionAka": "Helen",
+      "origin": null
+    },
+    {
+      "id": "bar_fight",
+      "title": "BAR FIGHT",
+      "loadout": "1 LIGHT BARBELL · 2 × 2 M, CLEAR IN FRONT",
+      "format": "INTERVALS",
+      "mission": "4 ROUNDS · 4 × 0:30 BAR DRILLS · 0:45 SHADOWBOX · 0:30 REST",
+      "score": "LOWEST FRONT PRESSES + UPPERCUTS",
+      "tags": [
+        "~14 MIN",
+        "NORMAL"
+      ],
+      "themes": [
+        "striking"
+      ],
+      "moves": [
+        "30s Explosive Front Presses",
+        "30s Explosive Overhead Presses",
+        "30s Barbell Uppercuts",
+        "30s Explosive Front Squats",
+        "45s Explosive Shadowboxing"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "3 rounds · a light bar 7-11 kg · 0:30 shadowbox"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "4 rounds · the empty bar · 0:45 shadowbox"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "5 rounds · the bar + 2.5 kg a side · 1:00 shadowbox · a hop is allowed"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "touch_the_sky",
+      "title": "TOUCH THE SKY",
+      "loadout": "1 BARBELL + PLATES · 2 × 2 M",
+      "format": "FOR TIME",
+      "mission": "3 ROUNDS FOR TIME · 45 REPS, BAR NEVER DOWN · 2:00 REST · CAP 20:00",
+      "score": "TIME WITH THE RESTS, OR REPS AT THE CAP (135 FINISHES)",
+      "tags": [
+        "~11 MIN",
+        "HARD"
+      ],
+      "themes": [],
+      "moves": [
+        "2 × 5 Deadlifts",
+        "2 × 5 Hang Power Cleans",
+        "2 × 5 Front-Rack Good Mornings",
+        "2 × 5 Front Squats",
+        "5 Strict Press"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 rounds · 3 each · the empty bar · cap 15:00"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 rounds · M 43 kg / W 30 kg · cap 20:00"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "4 rounds · M 57-66 kg / W 39-43 kg · cap 25:00"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "no_continues",
+      "title": "NO CONTINUES",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE",
+      "format": "MAX SETS",
+      "mission": "BOTH HANDS · LEFT ARM · RIGHT ARM · 3 EACH · UNTIL THE BELL TOUCHES THE FLOOR",
+      "score": "SETS + REPS, AND THE TIME",
+      "tags": [
+        "~5 MIN",
+        "HARD",
+        "HOTEL OK"
+      ],
+      "themes": [],
+      "moves": [
+        "3 Two-Hand Swings",
+        "3 Two-Hand Rows",
+        "3 Two-Hand High Pulls",
+        "3 Two-Hand Presses",
+        "3 One-Arm Swings",
+        "3 One-Arm Rows",
+        "3 Kettlebell Snatches",
+        "3 One-Arm Presses"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "3 each · 12/8 kg · one-arm high pulls"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 each · 16/12 kg"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "5 each · 24/16 kg"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
     }
   ],
   "programs": [

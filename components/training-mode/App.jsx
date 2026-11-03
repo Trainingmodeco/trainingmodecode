@@ -701,7 +701,8 @@ export default function App() {
         setQmResult({ ...result, xpEarned: xp, settle });
       } else {
         // A v2 GUIDED run tags its row with the mission it ran; the XP is unchanged.
-        const meta = qmCfg?.v2 ? { mode: 'guided', missionId: qmCfg.missionId, level: qmCfg.level, scaled: !!qmCfg.scaled, swaps: qmCfg.swaps || [] } : undefined;
+        // An until-the-bell-is-down run (NO CONTINUES) also stores its score (sets + reps, and the time).
+        const meta = qmCfg?.v2 ? { mode: 'guided', missionId: qmCfg.missionId, level: qmCfg.level, scaled: !!qmCfg.scaled, swaps: qmCfg.swaps || [], ...(result?.score ? { score: result.score, elapsedSec: result.elapsedSec } : {}) } : undefined;
         addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed, meta);
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.

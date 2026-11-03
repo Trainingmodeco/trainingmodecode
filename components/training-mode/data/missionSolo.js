@@ -27,6 +27,35 @@ const sumReps = (list) => (list || []).reduce((s, x) => s + scoredReps(x), 0);
 // (21-15-9, BURNOUT 21, CONTINUE? · BELL). SOLO counts its rungs as rounds.
 const isLadder = (mission) => mission?.format === 'forTime' && allSlots(mission).length > 0 && allSlots(mission).every(hasList);
 
+// ── until the bell is down (NO CONTINUES) ───────────────────────────────────
+// A mission flagged `untilDown` has no set length. A SET is one of its
+// blocks; the blocks cycle until the bell touches the floor and the athlete
+// taps I PUT IT DOWN, which FINISHES the run with the sets done (never a
+// quit, never a partial). capSec is a safety cap that ends it the same way.
+// Every untilDown branch below is the first thing its function checks, so a
+// mission without the flag never reaches one.
+export function isUntilDown(mission) { return mission?.untilDown === true; }
+// Reps in one set: the biggest block (they match unless a swap scaled one).
+export function repsPerSet(mission) {
+  return allSlots(mission).reduce((n, sl) => Math.max(n, hasList(sl) ? sumReps(sl.list) : scoredReps(sl)), 0);
+}
+// The block set n (0-based) runs: both hands, left arm, right arm, round again.
+export function setBlock(mission, n) {
+  const slots = allSlots(mission);
+  return slots.length ? slots[Math.max(0, Math.floor(Number(n) || 0)) % slots.length] : null;
+}
+// SOLO's honor-system floor for one set: half its reps at the elite count.
+// A run claiming more sets than its time allows is paid for the sets that fit.
+export function soloSetFloorSec(mission) {
+  const secs = allSlots(mission).map(sl => (hasList(sl) ? sl.list : [sl]).reduce((n, it) => n + (it.reps || 0) * estMsFor(it.moveId, 'elite') / 1000, 0));
+  return Math.max(1, Math.ceil(0.5 * (secs.length ? Math.min(...secs) : 0)));
+}
+export const DOWN_NO_SET_MESSAGE = 'Finish one set to earn XP.';
+export const DOWN_STOP_MESSAGE = 'Ended with no score. I PUT IT DOWN saves your sets.';
+// The XP for an untilDown run: 15 a set done plus the finish bonus, the
+// same as a guided run that finished every slot it ran.
+export function downXp(sets) { return sets > 0 ? 15 * sets + 30 : 0; }
+
 // ── estimates ───────────────────────────────────────────────────────────────
 // The working seconds of one slot, without its rest.
 export function estimateWorkSeconds(slot) {
@@ -69,6 +98,7 @@ export function isFixedClock(format) { return format === 'emom' || format === 'a
 // two blocks of windows (FIRST BELL's 1:00 before the get-ups). Like an
 // interval's last rest, a restAfter on the very last window is never run.
 export function missionClockSec(mission) {
+  if (isUntilDown(mission)) return mission.capSec || 0; // the safety cap
   const f = mission?.format;
   if (f === 'forTime') return mission.capSec || 0;
   const slots = allSlots(mission);
@@ -94,7 +124,7 @@ export function missionClockSec(mission) {
 // windows, and the count starts again after a length change or a restAfter.
 export function soloTimeline(mission) {
   const f = mission?.format;
-  if (!isFixedClock(f)) return [];
+  if (isUntilDown(mission) || !isFixedClock(f)) return [];
   const slots = allSlots(mission);
   const n = rounds(mission);
   const out = [];
@@ -153,6 +183,7 @@ export function repsPerRound(mission) {
 // The rounds SOLO's + ROUND counts for a for-time mission: a ladder's rungs,
 // anything else its rounds.
 export function soloRounds(mission) {
+  if (isUntilDown(mission)) return totalSlots(mission); // sets, up to the backstop
   return isLadder(mission) ? rounds(mission) * allSlots(mission).length : rounds(mission);
 }
 // The reps done after n of SOLO's rounds (the cap's prefill): n full rounds,
@@ -161,6 +192,7 @@ export function soloRounds(mission) {
 export function repsThrough(mission, n) {
   const k = Math.max(0, Math.floor(Number(n) || 0));
   const slots = allSlots(mission);
+  if (isUntilDown(mission)) return k * repsPerSet(mission);
   if (isLadder(mission)) {
     let total = 0;
     for (let i = 0; i < k; i += 1) total += sumReps(slots[i % slots.length].list);
@@ -186,7 +218,8 @@ export function paceTargets(mission) {
   return ['elite', 'standard', 'beginner'].map(tier => {
     const v = pace[tier];
     let text = '';
-    if (f === 'forTime') text = `≤ ${mmss(v)}`;
+    if (isUntilDown(mission)) text = tier === 'elite' ? `${v}+ sets` : `${v} sets`;
+    else if (f === 'forTime') text = `≤ ${mmss(v)}`;
     else if (f === 'amrap' && kind === 'reps') text = tier === 'elite' ? `${v}+ reps` : `${v} reps`; // an AMRAP scored in total reps
     else if (f === 'amrap') text = tier === 'elite' ? `${v}+ rounds` : `${v} rounds`;
     else if (f === 'emom') text = `${v?.held}/${v?.of}${v?.setSec ? ` · sets ≤ ${v.setSec}s` : ''}`;
@@ -199,6 +232,7 @@ export function paceTargets(mission) {
 const countedIn = (slot) => (typeof slot.cadenceMs === 'number' && slot.cadenceMs > 0 ? Math.floor(((slot.work || 0) * 1000) / slot.cadenceMs) : 0);
 export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) {
   const rule = mission?.scoreRule || {};
+  if (rule.kind === 'setsReps') return { sets: roundTaps, reps: 0 }; // untilDown: the + SET taps
   if (rule.kind === 'roundsReps') {
     const n = mission.rounds || 1;
     if (n <= 1) return { rounds: roundTaps, reps: 0 };
@@ -226,12 +260,14 @@ export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) 
 export function totalSlots(mission) { return allSlots(mission).length * (mission?.rounds || 1); }
 export function fullRunXp(mission) { return 15 * totalSlots(mission) + 30; }
 export function soloExpectedSec(mission) {
+  if (isUntilDown(mission)) return mission.capSec || 0;
   if (isFixedClock(mission?.format)) return missionClockSec(mission);
   const std = mission?.pace?.standard;
   const cap = mission?.capSec || 0;
   return typeof std === 'number' && cap ? Math.min(std, cap) : (std || cap || 0);
 }
 export function soloFloorSec(mission) {
+  if (isUntilDown(mission)) return soloSetFloorSec(mission);
   if (isFixedClock(mission?.format)) return Math.ceil(0.95 * missionClockSec(mission));
   return Math.ceil(0.5 * (mission?.pace?.elite || 0));
 }
@@ -242,6 +278,7 @@ export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
 // so they never change XP.
 export function settleSoloXp(result) {
   const mission = result?.mission || {};
+  if (isUntilDown(mission)) return settleDown(result, mission);
   const slots = result?.mission ? totalSlots(mission) : (result?.totalSlots || 0);
   const full = 15 * slots + 30;
   const format = result?.format || mission.format;
@@ -257,7 +294,21 @@ export function settleSoloXp(result) {
   if (ratio >= 0.25) return { xp: Math.round(15 * slots * ratio), outcome: 'partial', ratio, message: null };
   return { xp: 0, outcome: 'none', ratio, message: EARLY_MESSAGE };
 }
-// '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '—'
+// untilDown: I PUT IT DOWN (or the cap) is a finish, paid per set done. A
+// STOP is a quit with no score, so it pays nothing: the button that saves
+// the sets is right there.
+function settleDown(result, mission) {
+  const elapsed = Math.max(0, Math.floor(result?.elapsedSec || 0));
+  if (!result?.completed || !result?.score) return { xp: 0, outcome: 'none', ratio: 0, credited: 0, message: DOWN_STOP_MESSAGE };
+  const sets = Math.min(totalSlots(mission), Math.max(0, Math.floor(result.score.sets || 0)));
+  const credited = Math.min(sets, Math.floor(elapsed / soloSetFloorSec(mission)));
+  if (credited <= 0) return { xp: 0, outcome: sets > 0 ? 'too_fast' : 'none', ratio: 0, credited: 0, message: sets > 0 ? TOO_FAST_MESSAGE : DOWN_NO_SET_MESSAGE };
+  return {
+    xp: downXp(credited), outcome: 'pass', ratio: 1, credited,
+    message: credited < sets ? `Faster than elite pace, so ${credited} of ${sets} sets count.` : null,
+  };
+}
+// '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '—'
 export function formatScore(score) {
   if (!score) return '—';
   switch (score.kind) {
@@ -272,6 +323,7 @@ export function formatScore(score) {
     }
     case 'minutesHeld': return `${score.minutesHeld ?? score.value ?? 0}/${score.of ?? 0}`;
     case 'reps': return String(score.reps ?? score.value ?? 0);
+    case 'setsReps': return `${score.sets || 0} + ${score.reps || 0}`;
     default: return '—';
   }
 }
