@@ -50,6 +50,22 @@ export function soloSetFloorSec(mission) {
   const secs = allSlots(mission).map(sl => (hasList(sl) ? sl.list : [sl]).reduce((n, it) => n + (it.reps || 0) * estMsFor(it.moveId, 'elite') / 1000, 0));
   return Math.max(1, Math.ceil(0.5 * (secs.length ? Math.min(...secs) : 0)));
 }
+// The safety cap: the run clock (unpaused seconds) has reached capSec.
+// GUIDED and SOLO both end the run there, as a finish.
+export function downCapReached(mission, elapsedSec) {
+  const cap = mission?.capSec || 0;
+  return isUntilDown(mission) && cap > 0 && Number(elapsedSec) >= cap;
+}
+// The score an until-down run ends on, GUIDED and SOLO alike. end 'down' (I
+// PUT IT DOWN) keeps the time tapped; end 'cap' reads the cap. reps are the
+// reps into the next set, never a whole set.
+export function downScore(mission, { sets = 0, reps = 0, end = 'down', timeSec = 0 } = {}) {
+  const n = Math.max(0, Math.floor(Number(sets) || 0));
+  const r = Math.min(Math.max(0, repsPerSet(mission) - 1), Math.max(0, Math.floor(Number(reps) || 0)));
+  const capped = end === 'cap';
+  const t = capped ? mission?.capSec || 0 : Math.max(0, Math.floor(Number(timeSec) || 0));
+  return { kind: 'setsReps', sets: n, reps: r, timeSec: t, value: n * repsPerSet(mission) + r, ...(capped ? { capped: true } : {}) };
+}
 export const DOWN_NO_SET_MESSAGE = 'Finish one set to earn XP.';
 export const DOWN_STOP_MESSAGE = 'Ended with no score. I PUT IT DOWN saves your sets.';
 // The XP for an untilDown run: 15 a set done plus the finish bonus, the

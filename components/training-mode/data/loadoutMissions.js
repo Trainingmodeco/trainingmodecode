@@ -1056,14 +1056,16 @@ const HOT_LAPS = {
 const OWN = { knownAs: '', origin: 'Coach TM original' };
 
 // ── 27 · BAR FIGHT ──────────────────────────────────────────────────────────
-// Four 0:30 bar drills, each with a 0:05 switch, then the bar goes down for
-// the shadowbox, then 0:30 of rest. Scored the TURBO BUTTON way: each punch's
-// lowest round, added, from the pace count. ELITE's heavier bar counts at the
-// standard column, so its clock-end prefill (44) stays under its own elite
-// mark. Only ELITE may hop on the squats: below it, no swap reaches a jump.
+// The owner's round, as written: four 0:30 bar drills back to back (the
+// regrip is inside each 0:30), then the bar goes down for the shadowbox, then
+// 0:30 of rest, the round's only rest. Scored the TURBO BUTTON way: each
+// punch's lowest round, added, from the pace count. ELITE's heavier bar
+// counts at the standard column, so its clock-end prefill (44) stays under
+// its own elite mark. Only ELITE may hop on the squats: below it, no swap
+// reaches a jump.
 const barFight = (shadowSec) => [
-  t('bb-punch-out', 30, 5, { swapKey: 'front-press' }), t('bb-explosive-press', 30, 5, { swapKey: 'overhead-press' }),
-  t('bb-uppercut', 30, 5, { swapKey: 'uppercut' }), t('bb-explosive-front-squat', 30, 5, { swapKey: 'front-squat' }),
+  t('bb-punch-out', 30, 0, { swapKey: 'front-press' }), t('bb-explosive-press', 30, 0, { swapKey: 'overhead-press' }),
+  t('bb-uppercut', 30, 0, { swapKey: 'uppercut' }), t('bb-explosive-front-squat', 30, 0, { swapKey: 'front-squat' }),
   t('explosive-shadowbox', shadowSec, 30, { swapKey: 'shadowbox' }),
 ];
 const NO_HOP = ['bb-front-squat-hop', 'jump-squat'];
@@ -1077,22 +1079,22 @@ const BAR_FIGHT = {
   note: 'Warm up 3 min: easy shadowboxing, arm circles, 10 empty-bar front squats. Light and fast: if the bar slows down, it is too heavy. Core braced, shoulders down, never lock the elbows hard. Set the bar down before you shadowbox. Only ELITE may add a small hop on the squats.',
   introSay: 'Bar fight. Four fast bar drills, then drop the bar and shadowbox. Light bar, fast hands.',
   tips: ['Shoulders down, core braced.', 'Light bar, fast hands.'],
-  guidedHelp: 'The coach sets the pace on every bar drill and calls each switch.',
+  guidedHelp: 'The coach sets the pace on every bar drill and calls the next one.',
   paceBasis: "Coach estimate from the count (front press 1.25 s, uppercut 1.5 s; beginner 1.5 / 2.0 s), with a fatigue drop. The score is each punch's lowest round, added.",
   defaultLevel: 'standard',
   levels: {
     beginner: {
-      detail: '3 rounds · a light bar 7-11 kg · 0:30 shadowbox', minutes: 10, load: 'Light bar 7-11 kg (15-25 lb), a broomstick or 2 light dumbbells', rounds: 3,
+      detail: '3 rounds · a light bar 7-11 kg · 0:30 shadowbox', minutes: 9, load: 'Light bar 7-11 kg (15-25 lb), a broomstick or 2 light dumbbells', rounds: 3,
       missionLine: '3 ROUNDS · 4 × 0:30 BAR DRILLS · 0:30 SHADOWBOX · 0:30 REST', excludeAlts: NO_HOP,
       slots: barFight(30), pace: { elite: 40, standard: 34, beginner: 28 },
     },
     standard: {
-      detail: '4 rounds · the empty bar · 0:45 shadowbox', minutes: 14, load: 'Empty bar 20/15 kg (45/35 lb)', rounds: 4,
+      detail: '4 rounds · the empty bar · 0:45 shadowbox', minutes: 13, load: 'Empty bar 20/15 kg (45/35 lb)', rounds: 4,
       missionLine: '4 ROUNDS · 4 × 0:30 BAR DRILLS · 0:45 SHADOWBOX · 0:30 REST', excludeAlts: NO_HOP,
       slots: barFight(45), pace: { elite: 48, standard: 42, beginner: 34 },
     },
     elite: {
-      detail: '5 rounds · the bar + 2.5 kg a side · 1:00 shadowbox · a hop is allowed', minutes: 19, load: 'Empty bar + 2.5 kg (5 lb) a side', rounds: 5, difficulty: 'Hard',
+      detail: '5 rounds · the bar + 2.5 kg a side · 1:00 shadowbox · a hop is allowed', minutes: 17, load: 'Empty bar + 2.5 kg (5 lb) a side', rounds: 5, difficulty: 'Hard',
       missionLine: '5 ROUNDS · 4 × 0:30 BAR DRILLS · 1:00 SHADOWBOX · 0:30 REST',
       slots: barFight(60), pace: { elite: 46, standard: 40, beginner: 32 },
     },

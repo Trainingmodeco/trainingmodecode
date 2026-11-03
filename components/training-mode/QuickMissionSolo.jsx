@@ -13,7 +13,7 @@ import { cardRows, swapMissionMove, gearProfile, FORMAT_LABEL } from './data/loa
 import {
   isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, paceTargets, prefillScore,
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
-  isUntilDown, repsPerSet, setBlock,
+  isUntilDown, repsPerSet, setBlock, downScore,
 } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 
@@ -98,8 +98,7 @@ function scoreFromDraft(mission, draft, finishSec) {
   const rpr = repsPerRound(mission);
   if (isUntilDown(mission)) {
     if (draft.end !== 'down' && draft.end !== 'cap') return null;
-    const timeSec = draft.end === 'cap' ? mission.capSec || 0 : finishSec;
-    return { kind: 'setsReps', sets: draft.sets, reps: draft.reps, timeSec, value: draft.sets * repsPerSet(mission) + draft.reps, ...(draft.end === 'cap' ? { capped: true } : {}) };
+    return downScore(mission, { sets: draft.sets, reps: draft.reps, end: draft.end, timeSec: finishSec });
   }
   if (draft.end === 'finish') return { kind: 'time', timeSec: finishSec, value: finishSec };
   if (draft.end === 'cap') return { kind: 'time', capped: true, reps: draft.reps, value: draft.reps };

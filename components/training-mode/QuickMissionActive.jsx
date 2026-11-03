@@ -21,7 +21,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSetupKit';
 import { qmV2Enabled } from './data/qmV2';
-import { qmTotalUnits, qmIntegrityRules, isUntilDown, repsPerSet } from './data/missionSolo';
+import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached } from './data/missionSolo';
 import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
   leadLine, shortRestLine, restScript, getReadySeconds, workStartLine, skipRestTarget,
@@ -1185,7 +1185,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         integrityResult,
         untilDown: why,
         elapsedSec,
-        score: { kind: 'setsReps', sets, reps, timeSec: elapsedSec, value: sets * repsPerSet(mission) + reps, ...(why === 'cap' ? { capped: true } : {}) },
+        score: downScore(mission, { sets, reps, end: why, timeSec: elapsedSec }),
       });
     }, 1800);
   };
@@ -1209,14 +1209,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // untilDown: the run clock on screen, and the safety cap.
   useEffect(() => {
     if (!untilDown || done) return undefined;
-    const capMs = (mission.capSec || 0) * 1000;
     const id = setInterval(() => {
       const ms = runMsNow();
       setRunSec(Math.floor(ms / 1000));
-      if (capMs > 0 && ms >= capMs && !doneRef.current) {
-        if (voiceOn) speakAsync('Time.', { preempt: true, priority: 3 });
-        endDownRef.current?.('cap');
-      }
+      // endDown says 'Time. Park the bell.' itself.
+      if (downCapReached(mission, ms / 1000) && !doneRef.current) endDownRef.current?.('cap');
     }, 500);
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1507,12 +1504,6 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                     })}
                   </div>
                 )}
-                {untilDown && mission.safety && phase === 'work' && (
-                  <div role="note" style={{
-                    marginTop: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(253,224,71,0.1)', border: '1.5px solid rgba(253,224,71,0.55)',
-                    font: `700 13px ${BODY}`, color: '#fff', lineHeight: 1.35,
-                  }}>{mission.safety}</div>
-                )}
                 {currentEx.isFinisher && (
                   <div style={{
                     display: 'inline-block', marginTop: 6,
@@ -1534,6 +1525,15 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             font: `600 11px ${HEAD}`, letterSpacing: '0.08em', color: '#4f8cff',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>UP NEXT · {String(upNextInWork.name || '').toUpperCase()} · {doseOf(upNextInWork)}</div>
+        )}
+
+        {/* untilDown: the safety line, big, through every block and rest. */}
+        {untilDown && mission.safety && phase !== 'intro' && (
+          <div role="note" style={{
+            width: '100%', maxWidth: 360, marginBottom: 12, padding: '9px 12px', borderRadius: 12, textAlign: 'center',
+            background: 'rgba(253,224,71,0.1)', border: '1.5px solid rgba(253,224,71,0.55)',
+            font: `700 14px ${BODY}`, color: '#fff', lineHeight: 1.35,
+          }}>{mission.safety}</div>
         )}
 
         {/* untilDown: the end of the run, above the controls so it is on
