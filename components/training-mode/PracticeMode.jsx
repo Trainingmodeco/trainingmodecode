@@ -101,13 +101,17 @@ const label = { font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.16
 const Play = ({ size = 11, style }) => <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: size, height: size, fill: 'currentColor', ...style }}><path d="M7 4l13 8-13 8z"/></svg>;
 
 // ─── Lesson / technique card (centred modal) ──────────────────────────────────
-// The design draws a video player here. There are no lesson videos yet, so
-// the player area is the title card for the step-by-step guide, and its play
-// button reads the key points aloud — the guide it promises, for real.
+// The player area plays the move's tutorial when it has one (videoUrl: the
+// owner's 23 s in-app cut, poster beside it as .webp; made by the TM Social
+// Console's `npm run app-video`). Moves without one show the title card for
+// the step-by-step guide, and its play button reads the key points aloud.
 function DetailCard({ detail, profile, roundLine, onClose, onStartRound }) {
   const [activeCue, setActiveCue] = useState(-1);
   const [reading, setReading] = useState(false);
+  const [watching, setWatching] = useState(false);
+  const videoRef = useRef(null);
   const readingRef = useRef(false);
+  const video = detail.videoUrl || '';
   const keyPoints = useMemo(() => detail.keyPoints || [], [detail]);
   const mistakes = detail.mistakes || [];
 
@@ -136,7 +140,12 @@ function DetailCard({ detail, profile, roundLine, onClose, onStartRound }) {
     if (readingRef.current) { readingRef.current = false; setReading(false); setActiveCue(-1); }
   }, [keyPoints, profile, stopReading]);
 
-  const close = () => { stopReading(); onClose(); };
+  const watch = () => {
+    setWatching(true);
+    const v = videoRef.current;
+    if (v) v.play().catch(() => { /* the controls are up; a tap plays it */ });
+  };
+  const close = () => { stopReading(); videoRef.current?.pause(); onClose(); };
   const progress = reading && keyPoints.length ? ((activeCue + 1) / keyPoints.length) * 100 : 0;
 
   return createPortal(
@@ -153,15 +162,33 @@ function DetailCard({ detail, profile, roundLine, onClose, onStartRound }) {
           background: 'repeating-linear-gradient(135deg, #1A1030 0 16px, #150C28 16px 32px)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
+          {video && (
+            <video
+              ref={videoRef} src={video} poster={video.replace(/\.mp4$/, '.webp')}
+              preload="none" playsInline muted controls={watching}
+              aria-label={`${detail.title} tutorial`}
+              onPlay={() => setWatching(true)}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+            />
+          )}
+          {video && !watching && (
+            <button type="button" className="pm-gold" aria-label={`Watch the ${detail.title} tutorial`} onClick={watch} style={{
+              position: 'relative', width: 58, height: 58, borderRadius: '50%', border: 0, cursor: 'pointer', color: '#1A1204',
+              background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)', boxShadow: '0 0 24px rgba(242,190,69,.55)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Play size={22} style={{ marginLeft: 3 }}/>
+            </button>
+          )}
           <button type="button" className="pm-hit pm-txt" aria-label="Close" onClick={close} style={{
-            position: 'absolute', top: 8, right: 8, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,.5)',
+            position: 'absolute', zIndex: 1, top: 8, right: 8, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,.5)',
             border: '1px solid rgba(255,255,255,.18)', color: '#fff', cursor: 'pointer', fontSize: 14,
           }}>✕</button>
           <span style={{
-            position: 'absolute', top: 10, left: 10, font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
+            position: 'absolute', zIndex: 1, top: 10, left: 10, font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.14em',
             padding: '3px 7px', borderRadius: 5, border: '1px solid rgba(196,168,255,.6)', color: '#D2BCFF', background: 'rgba(0,0,0,.4)',
           }}>{detail.badge}</span>
-          {keyPoints.length > 0 && (
+          {!video && keyPoints.length > 0 && (
             <button type="button" className="pm-gold" aria-label={reading ? 'Stop the guide' : 'Play the step-by-step guide'} onClick={toggleRead} style={{
               width: 58, height: 58, borderRadius: '50%', border: 0, cursor: 'pointer', color: '#1A1204',
               background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)', boxShadow: '0 0 24px rgba(242,190,69,.55)',
@@ -172,13 +199,19 @@ function DetailCard({ detail, profile, roundLine, onClose, onStartRound }) {
                 : <Play size={22} style={{ marginLeft: 3 }}/>}
             </button>
           )}
-          <span style={{ font: "700 20px 'Chakra Petch',sans-serif", letterSpacing: '0.06em', textAlign: 'center', padding: '0 44px' }}>{detail.title.toUpperCase()}</span>
-          <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: '#C4A8FF' }}>
-            STEP-BY-STEP GUIDE · {keyPoints.length} STEPS
-          </span>
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, background: 'rgba(255,255,255,.1)' }}>
-            <div style={{ width: `${progress}%`, height: '100%', background: GOLD, transition: 'width .3s ease' }}/>
-          </div>
+          {!video && (
+            <>
+              <span style={{ font: "700 20px 'Chakra Petch',sans-serif", letterSpacing: '0.06em', textAlign: 'center', padding: '0 44px' }}>{detail.title.toUpperCase()}</span>
+              <span style={{ font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: '#C4A8FF' }}>
+                STEP-BY-STEP GUIDE · {keyPoints.length} STEPS
+              </span>
+            </>
+          )}
+          {(!video || (reading && !watching)) && (
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, background: 'rgba(255,255,255,.1)' }}>
+              <div style={{ width: `${progress}%`, height: '100%', background: GOLD, transition: 'width .3s ease' }}/>
+            </div>
+          )}
         </div>
 
         <div style={{ padding: '12px 14px 14px', display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto', minHeight: 0 }}>
@@ -314,7 +347,7 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
   const openBasic = useCallback((lesson, index) => {
     setDetail({
       kind: 'basic', lessonId: lesson.id, title: lesson.title, description: lesson.subtitle,
-      badge: `LESSON ${index + 1}`, keyPoints: lesson.steps, mistakes: [],
+      badge: `LESSON ${index + 1}`, keyPoints: lesson.steps, mistakes: [], videoUrl: lesson.videoUrl || '',
     });
     if (!mustDrill) completeBasic(lesson);
   }, [mustDrill, completeBasic]);
@@ -322,7 +355,7 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
   const openTechnique = useCallback((t) => {
     setDetail({
       kind: 'technique', title: t.name, description: t.description, badge: badgeForTech(t),
-      keyPoints: t.cues || [], mistakes: t.mistakes || [], category: t.category,
+      keyPoints: t.cues || [], mistakes: t.mistakes || [], category: t.category, videoUrl: t.videoUrl || '',
     });
   }, []);
 
@@ -483,7 +516,9 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
                   }}>{tileMark(t.name)}</span>
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                     <span style={{ font: "700 13px 'Chakra Petch',sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</span>
-                    <span style={{ font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color }}>{lvl}</span>
+                    <span style={{ font: "700 9px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', color }}>
+                      {lvl}{t.videoUrl && <span aria-label="has a video" style={{ color: '#C4A8FF' }}> · ▶</span>}
+                    </span>
                   </span>
                 </button>
               );

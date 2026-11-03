@@ -66,6 +66,10 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // Video streams in byte ranges (Safari plays video only from 206 partial
+  // responses) and the Cache API refuses partial responses, so the Practice
+  // tutorials (/static/practice/*.mp4) go straight to the network.
+  if (/\.(mp4|webm)$/i.test(url.pathname)) return;
 
   // Standalone documents (privacy.html, 404.html…) are NOT the SPA. Two bugs
   // lived here (beta ND-03): a failed fetch fell back to the cached app shell,

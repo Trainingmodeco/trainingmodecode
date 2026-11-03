@@ -18,7 +18,7 @@ import { chromium } from 'playwright-core';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 if (!fs.existsSync(path.join(ROOT, 'index.html'))) { console.error('smoke-web: dist/index.html missing — run build:web first'); process.exit(1); }
 
-const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ico': 'image/x-icon' };
+const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.mp4': 'video/mp4' };
 const server = http.createServer((req, res) => {
   let f = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]));
   if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) f = path.join(ROOT, 'index.html');
@@ -310,6 +310,21 @@ await check('fight focus start', async () => { await fight(); await page.locator
 await check('combo coach start', async () => { await fight(); await page.locator('.fb', { hasText: 'COMBO COACH' }).first().click(); await S(1200); await btn(/START COMBOS/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
 await check('training camp map', async () => { await fight(); await page.locator('.fb', { hasText: 'TRAINING CAMP' }).first().click(); await S(1800); }, /TRAINING CAMP/);
 await check('practice mode', async () => { await fight(); await page.locator('.ft.prac').click(); await S(1500); }, /PRACTICE MODE/);
+// A move with a tutorial (practiceData videoUrl) plays it on its card: Muay
+// Thai › Rear Knee is past the first six tiles, so SEE ALL opens the grid.
+await check('practice tutorial plays', async () => {
+  await fight(); await page.locator('.ft.prac').click(); await S(1500);
+  await page.getByRole('tab', { name: /MUAY THAI/i }).click({ timeout: 4000 }); await S(600);
+  await btn(/^SEE ALL/).click({ timeout: 4000 }); await S(400);
+  await page.locator('.pm-tile', { hasText: /^RK?\s*Rear Knee/ }).first().click({ timeout: 4000 }).catch(async () => {
+    await page.locator('.pm-tile', { hasText: 'Rear Knee' }).first().click({ timeout: 4000 });
+  });
+  await S(600);
+  await page.getByRole('button', { name: /Watch the Rear Knee tutorial/ }).click({ timeout: 4000 });
+  await S(2500);
+  const t = await page.evaluate(() => { const v = document.querySelector('video'); return v ? v.currentTime : -1; });
+  if (!(t > 0.5)) throw new Error(`the tutorial did not play (currentTime ${t})`);
+}, /KEY POINTS/);
 await check('combat conditioning start', async () => { await fight(); await page.locator('.ft.cond').click(); await S(1500); await page.locator('text=GAS TANK').first().click(); await S(600); await btn(/START CIRCUIT/).click({ timeout: 4000 }); await S(4000); }, /ROUND|DRILL|WARM/i);
 // The hub's Arcade tile by its guide anchor: a live concept drop's card also says ARCADE.
 await check('arcade', async () => { await home(); await page.locator('[data-guide="home-arcade"]').first().click({ timeout: 5000 }); await S(3000); }, /TRAINING ARCADE/);
