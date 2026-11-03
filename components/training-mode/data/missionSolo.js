@@ -443,6 +443,13 @@ export function splitsLine(rounds, { tag = 'R', last = Infinity } = {}) {
   const list = Array.isArray(rounds) ? rounds : [];
   return list.slice(Math.max(0, list.length - last)).map(r => `${tag}${r.n} ${mmss(r.lapSec)}`).join(' · ');
 }
+// A multi-block AMRAP's rounds, block by block: 'B1 R1 0:50 · R2 0:52 / B2 R1 0:55'.
+export function blockSplitsLine(rounds, { tag = 'R' } = {}) {
+  const list = Array.isArray(rounds) ? rounds : [];
+  const blocks = [...new Set(list.map(r => r.block))];
+  if (blocks.length <= 1) return splitsLine(list, { tag });
+  return blocks.map(b => `B${b + 1} ${splitsLine(list.filter(r => r.block === b), { tag })}`).join(' / ');
+}
 
 // '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '—'
 export function formatScore(score) {

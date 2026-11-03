@@ -298,8 +298,8 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
   if (!/CAP 30:00 · SET 1 · BOTH HANDS/.test(t) || !/I PUT IT DOWN/.test(t) || !/Park the bell between your feet/.test(t)) throw new Error('not the until-down SOLO screen');
-  await btn(/^\+ SET$/).click({ timeout: 4000 }); await S(400);
-  if (!/SETS 1/.test(await text()) || !/SET 2 · LEFT ARM/.test(await text())) throw new Error('+ SET did not count a set');
+  await btn(/^SET$/).click({ timeout: 4000 }); await S(400);
+  if (!/SETS 1/.test(await text()) || !/SET 2 · LEFT ARM/.test(await text())) throw new Error('SET did not count a set');
   await S(10000); // past one set's honest floor, so the set pays
   await btn(/^I PUT IT DOWN$/).click({ timeout: 4000 }); await S(800);
   t = await text();
@@ -308,6 +308,57 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
   t = await text();
   if (!/1 \+ 0/.test(t)) throw new Error('the saved score is not 1 + 0');
 }, /SESSION COMPLETE/);
+// UPPER LOWER DIPS in SOLO: the same until-failure engine counting ROUNDS.
+// Two ROUND taps take two splits, I'M DONE ends it as a finish, and the
+// complete screen shows the rounds, each round's time and the total.
+await check('owner: UPPER LOWER DIPS solo, two ROUND taps and I\'M DONE', async () => {
+  await ownerQuick(); await putOnCard(/^UPPER LOWER DIPS/);
+  if (!/elbows reach 90°/.test(await card().innerText())) throw new Error('no safety line on the card');
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  let t = await text();
+  if (!/CAP 30:00 · ROUND 1/.test(t) || !/I'M DONE/.test(t) || !/elbows reach 90°/.test(t)) throw new Error('not the until-failure SOLO screen');
+  await btn(/^ROUND$/).click({ timeout: 4000 }); await S(1500);
+  await btn(/^ROUND$/).click({ timeout: 4000 }); await S(400);
+  t = await text();
+  if (!/ROUND 3/.test(t) || !/ROUNDS 2/.test(t) || !/R1 0:0\d · R2 0:0\d/.test(t)) throw new Error('ROUND did not take two splits');
+  await S(38000); // past two rounds' honest floor (19 s each), so both pay
+  await btn(/^I'M DONE$/).click({ timeout: 4000 }); await S(800);
+  t = await text();
+  if (!/YOUR SCORE/.test(t) || !/ROUNDS\s*\n?\s*2/.test(t) || !/NOT YET/.test(t)) throw new Error("I'M DONE did not open the rounds score");
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3000);
+  t = await text();
+  if (!/2 \+ 0/.test(t) || !/ROUNDS 2/.test(t) || !/R1 0:0\d · R2 0:0\d/.test(t) || !/TOTAL 0:[3-5]\d/.test(t)) throw new Error('the complete screen does not show the score and the splits');
+}, /SESSION COMPLETE/);
+// GUIDED: the coach calls round 1, and I'M DONE sits on screen.
+await check('owner: UPPER LOWER DIPS guided start', async () => {
+  await ownerQuick(); await putOnCard(/^UPPER LOWER DIPS/);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
+  const t = await text();
+  if (!/GET READY/.test(t) || !/ROUND 1/.test(t) || !/I'M DONE/.test(t) || !/elbows reach 90°/.test(t)) throw new Error('GET READY does not lead into round 1');
+}, /UPPER LOWER DIPS/);
+// OVERTIME 20: GUIDED like the other AMRAPs, and SOLO has the round timer.
+await check('quick mission: OVERTIME 20 guided start', async () => {
+  await ownerQuick(); await putOnCard(/^OVERTIME 20/);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
+  if (!/GET READY/.test(await text())) throw new Error('no GET READY');
+}, /OVERTIME 20/);
+await check('quick mission: OVERTIME 20 solo shows the ROUND button', async () => {
+  await ownerQuick(); await putOnCard(/^OVERTIME 20/);
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  let t = await text();
+  if (!/OVERTIME 20/.test(t) || !/AMRAP 20/.test(t) || !/ROUND 1/.test(t) || !(await btn(/^ROUND$/).isVisible())) throw new Error('no ROUND button on the SOLO screen');
+  await btn(/^ROUND$/).click({ timeout: 4000 }); await S(400);
+  t = await text();
+  if (!/ROUND 2/.test(t) || !/R1 0:0\d/.test(t) || !/ROUNDS 1/.test(t)) throw new Error('ROUND did not take a split');
+}, /SOLO/);
 // A SOLO-only library mission starts SOLO from the sheet's own START, whatever
 // the remembered run mode (GUIDED on a clean slate).
 await check('quick mission: library BARBELL → HONOR ROUNDS starts SOLO', async () => {

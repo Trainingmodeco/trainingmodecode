@@ -13,7 +13,7 @@ import { cardRows, swapMissionMove, gearProfile, FORMAT_LABEL } from './data/loa
 import {
   isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, paceTargets, prefillScore,
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
-  isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, splitsLine,
+  isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, splitsLine, blockSplitsLine,
 } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 
@@ -562,7 +562,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         {phase === 'score' ? (
           <ScorePanel
             mission={mission} draft={scoreDraft} finishSec={finishSec} rpr={rpr}
-            splitLine={splitsLine(roundsDone, { tag: down ? dc.tag : 'R' })}
+            splitLine={blockSplitsLine(roundsDone, { tag: down ? dc.tag : 'R' })}
             onDraft={setScoreDraft} onSave={handleSave} onNotYet={handleNotYet}
           />
         ) : (
