@@ -1,0 +1,112 @@
+{
+  "id": "2026-11-03-practice-tomahawk-elbow",
+  "title": "Practice: Tomahawk Elbow",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Tomahawk Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Kratod (ศอกกระโดด). Footage: the owner's clip 16 (ring, 2026-10-31), raw-footage/practice/p16.mp4. One shot, no joins; three jumps facing the camera at about 1.3, 4.8 and 9.0 s and one from behind at 11.3 s.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Tomahawk Elbow",
+    "number": null,
+    "badge": "Elbow",
+    "level": "Advanced",
+    "description": "The jumping tomahawk elbow, chopped down from above",
+    "stance": "orthodox",
+    "hook": "THE ELBOW THAT|*COMES FROM ABOVE.*",
+    "hookSub": "Tomahawk elbow. Sok Sap. 20 seconds.",
+    "src": "raw-footage/practice/p16.mp4",
+    "slowSrc": "raw-footage/practice/p16.x75.mp4",
+    "pose": "raw-footage/practice/p16.pose.json",
+    "hookAt": 3.6,
+    "repAt": 3.8,
+    "cues": [
+      {
+        "text": "Drive the knee up to jump",
+        "at": 4.7,
+        "mark": "rearKnee",
+        "label": "KNEE",
+        "say": "Coach: \"The rear knee drives up and takes you off the floor. That's the jump.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.62
+        ]
+      },
+      {
+        "text": "Elbow high at the top of the jump",
+        "at": 8.95,
+        "mark": "rearElbow",
+        "label": "TOP",
+        "say": "Coach: \"At the top, the elbow is already up and cocked. It comes down with you.\""
+      },
+      {
+        "text": "Land it on the way down",
+        "at": 1.4,
+        "mark": "rearElbow",
+        "label": "LAND",
+        "say": "Coach: \"The strike and the landing are one motion. Your weight falls into the elbow.\""
+      }
+    ],
+    "watch": {
+      "text": "Striking before the top of the jump",
+      "fix": "Wait for the top, then drop it",
+      "at": 4.6,
+      "fixAt": 8.6,
+      "mark": "rearElbow",
+      "label": "TOO EARLY",
+      "say": "Coach: \"Throw it on the way up and there's nothing behind it. Peak first, then drop it.\""
+    },
+    "drill": {
+      "calls": [
+        "TOMAHAWK",
+        "KNEE → TOMAHAWK",
+        "CROSS → TOMAHAWK"
+      ],
+      "start": 3.4,
+      "cue": "Close range, over the guard"
+    },
+    "next": {
+      "name": "Spinning Back Elbow",
+      "description": "The spinning back elbow",
+      "level": "Advanced"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "ศอกสับ · SOK SAP"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "The elbow that comes from above 🥊 Tomahawk Elbow, Sok Sap: drive the knee up to jump; elbow high at the top of the jump; land it on the way down. Watch for striking before the top of the jump. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #soksap #elbow #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "The elbow that comes from above. 🥊\n\nTomahawk Elbow (Sok Sap, ศอกสับ):\n1. Drive the knee up to jump\n2. Elbow high at the top of the jump\n3. Land it on the way down\nWatch for: striking before the top of the jump.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #soksap #elbow #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "The elbow that comes from above 🥊 Tomahawk Elbow, Sok Sap: drive the knee up to jump; elbow high at the top of the jump; land it on the way down. Watch for striking before the top of the jump. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "The elbow that comes from above. Tomahawk Elbow (Sok Sap) 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the tomahawk elbow, Sok Sap (ศอกสับ), step by step. Drive the knee up to jump. Elbow high at the top of the jump. Land it on the way down. Watch for striking before the top of the jump. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "sok sap",
+        "tomahawk elbow",
+        "elbow strike",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 16 (Claude's reading: the jumping elbow with a rear-knee drive; clip 5 shows the same move in three short joined shots and stays as an alternate; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Jumping → tomahawk."
+  ]
+}

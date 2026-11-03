@@ -1,0 +1,114 @@
+{
+  "id": "2026-11-02-practice-lead-hook-elbow",
+  "title": "Practice: Lead Hook Elbow",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-02",
+  "source": "Practice Mode tutorial. The owner named clip 2 the horizontal elbow. Words from the app: the Technique Library entry (practiceData.js › Muay Thai › Lead Hook Elbow: cues, mistakes, next) and the Muay Thai path's Elbow lesson (practiceLessons.js › mt_elbow: calls), which this video also serves. Thai: Sok Tat (ศอกตัด), the cutting elbow. Footage: raw-footage/practice/p2.mp4 (ring, 2026-10-31): two reps facing the camera, then two from a 45° angle that show the swing-through.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Lead Hook Elbow",
+    "number": null,
+    "badge": "Elbow",
+    "level": "Intermediate",
+    "description": "The hook elbow from the lead side",
+    "stance": "orthodox",
+    "hook": "STOP HITTING WITH|*YOUR FOREARM.*",
+    "hookSub": "Lead hook elbow. Sok Tat. 20 seconds.",
+    "src": "raw-footage/practice/p2.mp4",
+    "slowSrc": "raw-footage/practice/p2.x75.mp4",
+    "pose": "raw-footage/practice/p2.pose.json",
+    "hookAt": 0.2,
+    "repAt": 1.8,
+    "cues": [
+      {
+        "text": "Close the distance first",
+        "at": 0.55,
+        "mark": "leadFoot",
+        "label": "STEP IN",
+        "say": "Coach: \"An elbow needs hugging range. Get there first, then throw.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.68
+        ]
+      },
+      {
+        "text": "Strike with the tip of the elbow",
+        "at": 2.75,
+        "mark": "leadElbow",
+        "label": "THE TIP",
+        "say": "Coach: \"The point of the elbow does the cutting. Not the forearm.\""
+      },
+      {
+        "text": "Swing through the target",
+        "at": 4.7,
+        "mark": "leadElbow",
+        "label": "SWING THROUGH",
+        "say": "Coach: \"Don't stop at the face. The hip turns and the elbow keeps going.\"",
+        "lead": 0.6
+      }
+    ],
+    "watch": {
+      "text": "Too much wind-up",
+      "fix": "Short and tight from the guard",
+      "at": 2.5,
+      "fixAt": 2.4,
+      "mark": "leadElbow",
+      "label": "WIND-UP",
+      "say": "Coach: \"If they see it coming, it's gone. It leaves from the guard, no backswing.\""
+    },
+    "drill": {
+      "calls": [
+        "ELBOW",
+        "ELBOW × 2",
+        "CROSS → ELBOW"
+      ],
+      "start": 0.2,
+      "cue": "Very close range only"
+    },
+    "next": {
+      "name": "Lead Diagonal Elbow",
+      "description": "The diagonal cutting elbow",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "ศอกตัด · SOK TAT"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop hitting with your forearm 🥊 Lead Hook Elbow, Sok Tat: close the distance first; strike with the tip of the elbow; swing through the target. Watch for too much wind-up. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #soktat #elbow #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop hitting with your forearm. 🥊\n\nLead Hook Elbow (Sok Tat, ศอกตัด):\n1. Close the distance first\n2. Strike with the tip of the elbow\n3. Swing through the target\nWatch for: too much wind-up.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #soktat #elbow #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop hitting with your forearm 🥊 Lead Hook Elbow, Sok Tat: close the distance first; strike with the tip of the elbow; swing through the target. Watch for too much wind-up. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop hitting with your forearm. Lead Hook Elbow (Sok Tat) 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the lead hook elbow, Sok Tat (ศอกตัด), step by step. Close the distance first. Strike with the tip of the elbow. Swing through the target. Watch for too much wind-up. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "sok tat",
+        "lead hook elbow",
+        "elbow strike",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-02 cut from clip 2 at the owner's word. The first half faces the camera (reps land at 0.75 s and 2.75 s), the second half is a 45° angle (4.6 s, 6.5 s) and gives the swing-through. Markers follow the body (pose found in every frame). No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 owner: a shot bleeds into the next around 1–3 s of the in-app cut. Clip 2 changes shot at 3.95 s; the name beat (repAt 2.1 + 2 s) ran over it. repAt 1.8, fixAt 2.4 and key point 3 with its own 0.6 s lead-in keep every beat on one side of the cut.",
+    "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Lead horizontal → lead hook."
+  ]
+}

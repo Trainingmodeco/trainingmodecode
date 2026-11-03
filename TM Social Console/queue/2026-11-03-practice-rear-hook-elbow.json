@@ -1,0 +1,112 @@
+{
+  "id": "2026-11-03-practice-rear-hook-elbow",
+  "title": "Practice: Rear Hook Elbow",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Rear Hook Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Tat (ศอกตัด). Footage: the owner's clip 3 (ring, 2026-10-31), raw-footage/practice/p3.mp4. One shot; lead and rear elbows alternate, the rear-side reps land at about 4.2, 6.0 and 8.4 s.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Rear Hook Elbow",
+    "number": null,
+    "badge": "Elbow",
+    "level": "Intermediate",
+    "description": "The hook elbow from the rear side",
+    "stance": "orthodox",
+    "hook": "STOP WINDING UP|*BEHIND YOUR HEAD.*",
+    "hookSub": "Rear hook elbow. Sok Tat. 20 seconds.",
+    "src": "raw-footage/practice/p3.mp4",
+    "slowSrc": "raw-footage/practice/p3.x75.mp4",
+    "pose": "raw-footage/practice/p3.pose.json",
+    "hookAt": 5,
+    "repAt": 5.2,
+    "cues": [
+      {
+        "text": "Step in as the elbow comes up",
+        "at": 3.95,
+        "mark": "rearFoot",
+        "label": "STEP IN",
+        "say": "Coach: \"The rear foot steps as the elbow lifts. Arrive and strike together.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "Slash level across the face",
+        "at": 6,
+        "mark": "rearElbow",
+        "label": "LEVEL",
+        "say": "Coach: \"Flat and level, eyebrow height. The point does the cutting.\""
+      },
+      {
+        "text": "Shoulder covers the chin",
+        "at": 8.4,
+        "mark": "rearShoulder",
+        "label": "COVER",
+        "say": "Coach: \"As it swings, the shoulder rolls up and hides your chin.\""
+      }
+    ],
+    "watch": {
+      "text": "Winding up behind the head",
+      "fix": "Elbow comes up and straight across",
+      "at": 7.55,
+      "fixAt": 8.1,
+      "mark": "rearElbow",
+      "label": "WIND-UP",
+      "say": "Coach: \"Pull it behind your head and they see it a mile off. Up, then across. That's it.\""
+    },
+    "drill": {
+      "calls": [
+        "REAR ELBOW",
+        "REAR ELBOW × 2",
+        "JAB → REAR ELBOW"
+      ],
+      "start": 3.5,
+      "cue": "Very close range only"
+    },
+    "next": {
+      "name": "Lead Uppercut Elbow",
+      "description": "The rising elbow under the chin, lead side",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "ศอกตัด · SOK TAT"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop winding up behind your head 🥊 Rear Hook Elbow, Sok Tat: step in as the elbow comes up; slash level across the face; shoulder covers the chin. Watch for winding up behind the head. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #soktat #elbow #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop winding up behind your head. 🥊\n\nRear Hook Elbow (Sok Tat, ศอกตัด):\n1. Step in as the elbow comes up\n2. Slash level across the face\n3. Shoulder covers the chin\nWatch for: winding up behind the head.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #soktat #elbow #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop winding up behind your head 🥊 Rear Hook Elbow, Sok Tat: step in as the elbow comes up; slash level across the face; shoulder covers the chin. Watch for winding up behind the head. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop winding up behind your head. Rear Hook Elbow (Sok Tat) 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the rear hook elbow, Sok Tat (ศอกตัด), step by step. Step in as the elbow comes up. Slash level across the face. Shoulder covers the chin. Watch for winding up behind the head. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "sok tat",
+        "rear hook elbow",
+        "elbow strike",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 3 (Claude's reading: the stepping horizontal elbow from the rear side; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Rear horizontal → rear hook."
+  ]
+}
