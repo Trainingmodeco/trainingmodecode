@@ -1178,7 +1178,7 @@ const NO_CONTINUES = {
   safety: 'Grip starting to open? Park the bell between your feet. Never let it fly.',
   loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE', scoreLine: 'SETS + REPS, AND THE TIME', scoreRule: { kind: 'setsReps', label: 'SETS + REPS' },
   scale: 'Lighter bell, or the beginner level (one-arm high pulls for the snatches). Dumbbell: hold it by one end for the two-hand moves.',
-  note: 'Warm up 3 min: halos, goblet squats, 10 easy swings. A set is one block: both hands, then the left arm, then the right. The run ends when the bell touches the floor: tap I PUT IT DOWN. The clock stops at 30:00.',
+  note: 'Warm up 3 min: halos, goblet squats, 10 easy swings. Each block is a set: both hands, the left arm, the right arm, then round again. The run ends when the bell touches the floor: tap I PUT IT DOWN. The clock stops at 30:00.',
   introSay: 'No continues. Both hands, left arm, right arm, and keep cycling. When your grip starts to open, park the bell between your feet.',
   guidedHelp: 'The coach counts every rep and calls each switch. Tap I PUT IT DOWN when the bell touches the floor.',
   paceBasis: "Coach estimate: a set takes about 25 s at the count (45 s at ELITE's 5 reps). Grip, not lungs, usually ends it.",
