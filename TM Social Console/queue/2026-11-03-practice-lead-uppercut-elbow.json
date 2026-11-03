@@ -112,7 +112,12 @@
   "exports": {
     "video": "exports/2026-11-03-practice-lead-uppercut-elbow/video.mp4",
     "cover": "exports/2026-11-03-practice-lead-uppercut-elbow/cover.jpg",
-    "seconds": 32
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-lead-uppercut-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-lead-uppercut-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
   },
-  "renderedAt": "2026-11-03T14:38:41.230Z"
+  "renderedAt": "2026-11-03T14:42:49.380Z"
 }

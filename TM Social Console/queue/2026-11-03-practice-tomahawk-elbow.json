@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-tomahawk-elbow",
   "title": "Practice: Tomahawk Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Tomahawk Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Kratod (ศอกกระโดด). Footage: the owner's clip 16 (ring, 2026-10-31), raw-footage/practice/p16.mp4. One shot, no joins; three jumps facing the camera at about 1.3, 4.8 and 9.0 s and one from behind at 11.3 s.",
@@ -108,5 +108,16 @@
   "notes": [
     "2026-11-03 cut from clip 16 (Claude's reading: the jumping elbow with a rear-knee drive; clip 5 shows the same move in three short joined shots and stays as an alternate; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
     "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Jumping → tomahawk."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-tomahawk-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-tomahawk-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-tomahawk-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-tomahawk-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T14:52:09.505Z"
 }

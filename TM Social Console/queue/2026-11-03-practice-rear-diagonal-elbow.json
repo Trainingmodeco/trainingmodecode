@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-rear-diagonal-elbow",
   "title": "Practice: Rear Diagonal Elbow",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The owner's rear diagonal elbow: the elbow comes from high at an oblique, 45° line down. Words from the app's Technique Library (practiceData.js › Muay Thai › Rear Diagonal Elbow). Thai: Sok Chieng (ศอกเฉียง). Footage: the owner's clip 7 (ring, 2026-10-31), raw-footage/practice/p7.mp4; the rear-arm reps at about 3.7 and 5.25 s carry the key points; the body sits at the frame's edge for the first 2 s.",
@@ -20,7 +20,7 @@
     "src": "raw-footage/practice/p7.mp4",
     "slowSrc": "raw-footage/practice/p7.x75.mp4",
     "pose": "raw-footage/practice/p7.pose.json",
-    "hookAt": 3.0,
+    "hookAt": 3,
     "repAt": 4.6,
     "cues": [
       {
@@ -54,7 +54,7 @@
       "text": "Too much wind-up",
       "fix": "Short and tight from the guard",
       "at": 3.55,
-      "fixAt": 5.0,
+      "fixAt": 5,
       "mark": "rearElbow",
       "label": "WIND-UP",
       "say": "Coach: \"A big wind-up tells them it's coming. It leaves from where your hand already is.\""
@@ -109,5 +109,16 @@
     "2026-11-03 cut from clip 7 (Claude's reading: the downward chopping elbow; the owner names the clip at approval). The body sits at the frame's edge for the first 2 s, so every beat starts after that. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
     "2026-11-03 WATCH FOR freeze moved to 3.95 s, where the elbow is out wide mid-swing (at 2.3 s it was still down by the hip).",
     "2026-11-03 owner's list of the elbows (spear, uppercut, hook, diagonal × lead/rear; one spinning back; tomahawk = the jumping one): renamed from the owner's words. Chopping → rear diagonal; cues now the diagonal's, timed on the rear-arm reps."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-rear-diagonal-elbow/video.mp4",
+    "cover": "exports/2026-11-03-practice-rear-diagonal-elbow/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-rear-diagonal-elbow/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-rear-diagonal-elbow/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T14:47:24.334Z"
 }
