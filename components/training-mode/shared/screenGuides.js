@@ -185,7 +185,8 @@ export const SCREEN_GUIDES = {
     { target: 'fw-legend', title: '⛓ SUPERSETS & CIRCUITS', body: 'Double-tap the ⛓ on an exercise and it starts glowing — now tap any other exercise to link them. Two moves is a SUPERSET, three or more is a CIRCUIT with a rounds setting you can step up or down. Linked moves run back-to-back with NO rest between them; the rest comes once at the end of each round. Tap ✕ on the bracket to unlink and get plain rows back.' },
     { target: 'fw-row', title: 'SETS · REPS · REST', body: 'The number on the right of a row is its dose — 4 × 8, or 3 × 40s for a hold. Tap it to change sets, reps or rest for that exercise, or leave it: you can also change any of them from inside the player before a set starts.' },
     { target: 'fw-actions', title: 'REGENERATE · SAVE ROUTINE', body: 'REGENERATE rolls a whole new workout from the same settings. SAVE ROUTINE keeps this exact list — exercises, sets, reps, chains and all — so you can run it again in one tap. Saved routines live under SAVED ROUTINES on the Build Workout screen, up to 10 of them.' },
-    { target: 'fw-start', title: '▶ START', body: 'Starts the session. First comes a 90-second warm-up — follow the coach or freestyle it — and then the guided workout takes over, calling every rep.' },
+    { target: 'fw-warmup', title: 'WARM-UP', body: 'OFF, 5 MIN or 10 MIN — what START runs first, remembered on this phone. It is one block on the ring timer: pick an idea (light run, jumping jacks, mobility, shadowbox) or do your own thing. Nothing is counted, it pays no XP, and SKIP → START WORKOUT takes you straight in.' },
+    { target: 'fw-start', title: '▶ START', body: 'Starts the session: the warm-up first if it is on (the button says how long), then the guided workout takes over, calling every rep.' },
   ],
 
   // The guided player. Two things here are genuinely new to a first-timer:
@@ -197,19 +198,39 @@ export const SCREEN_GUIDES = {
     { target: 'fg-display', title: 'THE COUNT', body: 'On rep exercises the coach counts every rep aloud and the number climbs with you. On holds and timed work it counts the seconds down instead. Finish early? Hit SET DONE and it moves on.' },
     { target: 'fg-adjust', title: 'ADJUST · SETS, REPS, REST', body: 'The gold pill under the name is this exercise\'s dose. Tap it between sets to change the sets, reps or rest — the defaults are a starting point, not a rule. It disappears while a set is running.' },
     { target: 'fg-controls', title: 'LEAVE THE APP, KEEP THE CLOCK', body: 'Step out to your music or a message and the set follows you as a small floating window — the count, the exercise, what is next. It pops up by itself when you leave, on phones that support it, and stays hidden until then, warm-up included. Nothing pauses while the window is up.' },
-    { target: 'fg-controls', title: 'THE CONTROLS', body: '⟲ REWIND replays the previous set. ⏸ pauses everything (leaving the app pauses it too). SKIP SET jumps to the next set — during rest it becomes SKIP REST. SKIP EXERCISE moves on without completing it. STOP ends the session and asks first; whatever you finished still counts.' },
-    { target: 'fg-map', title: '≡ THE WORKOUT MAP', body: 'Swipe this tab up — or tap it — for the map, and the workout pauses while it is open. You are NOT locked into the order: press and HOLD any exercise to start that one instead, HOLD + SWIPE to skip it, HOLD + DRAG to move it. Finished exercises lock so you cannot lose them. Closing the map counts you back in 3-2-1.' },
-    { target: 'fg-map', title: 'WHEN AN EXERCISE FINISHES', body: 'The map slides up on its own, your finished exercise locks with a ✓, and the next one glows. Swipe the map down to start it, or hold a different one if you would rather do that instead.' },
+    { target: 'fg-controls', title: 'THE CONTROLS', body: 'They stay in the same place the whole session. ⟲ REWIND replays the previous set. ⏸ pauses everything (leaving the app pauses it too). SKIP SET jumps to the next set — during rest it becomes SKIP REST; skip every set and the exercise counts as skipped, not done. SKIP EXERCISE moves on to the next one you have not done, and UNDO brings it back for a few seconds. STOP ends the session and asks first; whatever you finished still counts.' },
+    { target: 'fg-map', title: '≡ THE WORKOUT MAP', body: 'Swipe this tab up — or tap it — for the map, and the workout pauses while it is open. You are NOT locked into the order: TAP any exercise to start that one instead, HOLD + SWIPE to skip it (with an UNDO), HOLD + DRAG to move it. Finished exercises keep a gold ✓. A skipped one says SKIPPED · TAP TO DO IT — tap it whenever you are ready. Closing the map counts you back in 3-2-1.' },
+    { target: 'fg-map', title: 'WHEN AN EXERCISE FINISHES', body: 'The map slides up on its own, your finished exercise gets its ✓, and the next one glows. Tap ▶ START on it, or tap a different one if you would rather do that instead. Closing the map starts the glowing one too.' },
     { target: 'fg-header', title: '⛓ INSIDE A CHAIN', body: 'If you linked exercises, a ⛓ pill shows which move of the chain you are on. There is no rest between them — the coach says GO STRAIGHT IN and hands you the next one. The rest comes at the end of the round, and the counter tells you which round you are on.' },
   ],
 
+  // Quick Mission: the card, GEAR, TIME and the library row. The setup screen
+  // drops the qm-adjust step while the card is closed (ADJUST sits on the
+  // open card) and qm-surprise while a library mission is on it.
   quick_mission_setup: [
-    { target: null, title: '⏱️ QUICK MISSION', body: 'No planning needed — pick a time and intensity and the app builds the whole session for you.' },
-    { target: 'qm-length', title: "TODAY'S MISSION", body: 'The mission you would run right now: its name, every move and how many reps or seconds each gets. The line under the list is how long it really takes with the count and the rest included.' },
-    { target: 'qm-intensity', title: 'SURPRISE ME · ADJUST', body: 'SURPRISE ME deals a different mission. ADJUST opens the three choices — focus (upper, lower, core, combat or full body), length and intensity — and the card rebuilds as you pick.' },
-    { target: 'qm-classics', title: 'CLASSICS', body: 'The workouts people know by name — Murph, Half Murph, the Sally Up challenge, Deadly Seven and 5 Minutes of Hell. Tap one to put it on the card, then START. The coach calls every move; on a run, tap DONE when you are back.' },
-    { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission. Flip the switch to set it up; EDIT changes it.' },
-    { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card — timer, coach, and all.' },
+    { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
+    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: 'The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time.' },
+    { target: 'qm-expand', title: 'SEE ALL', body: 'Opens the card where it is: every move, how long it really takes with the rest, and ADJUST. SHOW LESS folds it back. The card stays open or closed for next time.' },
+    { target: 'qm-adjust', title: 'ADJUST', body: 'Level (easy, medium or hard), focus (the whole body or one area) and an optional cardio finisher. Then DONE. Your picks are kept for next time.' },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, timer, coach and all.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
+    { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
+    { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the knob sideways, tap a minute, or use the arrow keys. Longer workouts get more rounds and more moves.' },
+    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts, like Murph. Tap one to see it on top, then START, or PUT ON CARD to bring it here. The coach calls every move; on a run, tap DONE when you are back.' },
+  ],
+
+  // Quick Mission v2 (data/qmV2): the same steps, with the library's launch
+  // missions, their swaps and GUIDED · SOLO.
+  quick_mission_setup_v2: [
+    { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
+    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time. A library mission on the card has a ‹ TODAY to come back." },
+    { target: 'qm-expand', title: 'SEE ALL', body: "Opens the card where it is: every move, how long it really takes, and ADJUST. On a library mission every move has a swap icon; swaps never cost XP, the run is marked SCALED. SHOW LESS folds it back." },
+    { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, guided or solo where a mission has it (GUIDED: the coach calls every move; SOLO: the whole workout on one screen, one clock), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, in GUIDED or SOLO.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
+    { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
+    { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the knob sideways, tap a minute, or use the arrow keys. Longer workouts get more rounds and more moves.' },
+    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here.' },
   ],
 
   combat_conditioning_setup: [
@@ -281,3 +302,9 @@ export const SCREEN_GUIDES = {
     { target: 'qma-back', title: '‹ BACK BUTTON', body: 'The top-left arrow does the same thing as STOP — it asks you to confirm before ending, so a stray tap never wipes your progress.' },
   ],
 };
+
+// The Fit hub's guide while Quick Mission v2 is on (data/qmV2): the same steps,
+// with the Quick Mission row naming the Mission Library's missions.
+SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-quick'
+  ? { ...s, body: 'A quick workout without the planning: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
+  : s));

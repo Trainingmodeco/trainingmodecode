@@ -1,6 +1,9 @@
-// ULTRA EGO — concept drop #1. Power at all costs: the pressure fighter who
-// takes the hit and gives it back harder. Built from the owner's Ultra Ego
+// THE DESTROYER — concept drop #1. Power at all costs: the pressure fighter
+// who takes the hit and gives it back harder. Built from the owner's Ultra Ego
 // regime (Fit) and Striking Mode pt. 2 (Fight), plus a hybrid Arcade gauntlet.
+// "Ultra Ego" is the source's franchise name: it stays out of the app and only
+// goes in captions (owner's call). The id stays 'ultra-ego' so saved progress,
+// art paths and analytics keep working.
 //
 // Content only. data/concepts/index.js turns this into Fit days, Fight
 // rounds and Arcade stages; nothing here knows about screens.
@@ -13,7 +16,7 @@
 
 export const ULTRA_EGO = {
   id: 'ultra-ego',
-  title: 'ULTRA EGO',
+  title: 'THE DESTROYER',
   tagline: 'Power at all costs. Take the hit, give it back harder.',
   reward: { title: 'DESTROYER', xp: 500, frame: 'violet-aura' },
   accent: '#e879f9',
@@ -110,7 +113,7 @@ export const ULTRA_EGO = {
           { title: 'Combo Chains', prompt: 'Three-strike chains, then four, then five. Keep them coming.' },
           { title: 'Kicks Off the Hands', prompt: 'Jab-cross then the round kick. Every combination ends with a kick.' },
           { title: 'Knees in Range', prompt: 'Imagine the clinch. Pull down, knee, knee, push off.' },
-          { title: 'Ultra Ego', prompt: 'All of it, as fast and as hard as you can for the full three minutes.' },
+          { title: 'Destroyer Mode', prompt: 'All of it, as fast and as hard as you can for the full three minutes.' },
         ],
       },
       {
@@ -160,7 +163,7 @@ export const ULTRA_EGO = {
         { title: 'DESTROYER LEGS', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 goblet squats', '20 jump lunges', '200 m run'] },
         { title: 'NO RETREAT', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['slam ball or burpees', 'mountain climbers'] },
         { title: 'PRIDE', format: '5 × 3:00', plan: { rounds: 5, len: 180, rest: 60 }, items: ['1:00 push-up ladder', '1:00 kettlebell swings', '1:00 tiger push-ups'] },
-        { title: 'BOSS · ULTRA EGO', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['1 km run', '50 kettlebell swings', '40 dive bombers', '30 pull-ups or 45 inverted rows', '20 goblet squats', '3:00 max burpees'] },
+        { title: 'BOSS · THE DESTROYER', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['1 km run', '50 kettlebell swings', '40 dive bombers', '30 pull-ups or 45 inverted rows', '20 goblet squats', '3:00 max burpees'] },
       ],
       fight: [
         { title: 'AWAKENING', format: '3 × 3:00', plan: { rounds: 3, len: 180, rest: 60 }, items: ['1:00 planted jab-cross', '1:00 power hooks', '1:00 teep and push'] },
@@ -172,7 +175,7 @@ export const ULTRA_EGO = {
         { title: 'KNEES IN RANGE', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['20 clinch knees', '10 elbows each side', '10 sprawls'] },
         { title: 'NO RETREAT', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['bag flurry', 'teep and push'] },
         { title: 'PRIDE', format: '5 × 3:00', plan: { rounds: 5, len: 180, rest: 60 }, items: ['1:00 combo chains', '1:00 kicks off the hands', '1:00 elbow-knee'] },
-        { title: 'BOSS · ULTRA EGO', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['100 straights', '60 low kicks', '40 knees', '30 elbows', '20 sprawls', '3:00 all-out bag'] },
+        { title: 'BOSS · THE DESTROYER', format: 'For time', boss: true, plan: { rounds: 1, len: 1500, rest: 0 }, items: ['100 straights', '60 low kicks', '40 knees', '30 elbows', '20 sprawls', '3:00 all-out bag'] },
       ],
     stages: [
       { title: 'AWAKENING', format: '3 rounds', plan: { rounds: 3, len: 180, rest: 60 }, items: ['200 m run', '15 dive bomber push-ups', '1:00 shadowbox'] },
@@ -184,7 +187,7 @@ export const ULTRA_EGO = {
       { title: 'DESTROYER LEGS', format: '4 rounds', plan: { rounds: 4, len: 150, rest: 45 }, items: ['10 goblet squats', '20 alternating teeps', '200 m run'] },
       { title: 'NO RETREAT', format: '8 × 30 s on / 30 s off', plan: { rounds: 8, len: 30, rest: 30 }, items: ['slam ball or sprawls', 'bag flurry'] },
       { title: 'PRIDE', format: '5 × 3:00', plan: { rounds: 5, len: 180, rest: 60 }, items: ['1:00 bag', '1:00 push-up ladder', '1:00 clinch knees'] },
-      { title: 'BOSS · ULTRA EGO', format: 'For time', plan: { rounds: 1, len: 1500, rest: 0 }, boss: true, items: ['1 km run', '50 kettlebell swings', '100 straights', '40 sprawls', '20 pull-ups', '3:00 all-out bag'] },
+      { title: 'BOSS · THE DESTROYER', format: 'For time', plan: { rounds: 1, len: 1500, rest: 0 }, boss: true, items: ['1 km run', '50 kettlebell swings', '100 straights', '40 sprawls', '20 pull-ups', '3:00 all-out bag'] },
     ],
   },
 };

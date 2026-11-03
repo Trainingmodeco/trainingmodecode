@@ -1,0 +1,9 @@
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# deploy zips and test output never belong in the repo
+*.zip
+_tools/shots/
+node_modules/

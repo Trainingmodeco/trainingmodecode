@@ -1,0 +1,6 @@
+# Netlify build for trainingmode.co. There is no build step: the repo root is the site.
+# The command only strips repo-only files from the build copy so they are never published
+# (the deploy zip script skips the same files). _headers and _redirects stay and keep working.
+[build]
+  publish = "."
+  command = "rm -rf _tools README.md .gitignore .gitattributes"

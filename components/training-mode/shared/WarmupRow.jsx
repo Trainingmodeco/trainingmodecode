@@ -12,19 +12,37 @@ const KEY = (feature) => `tm_warmup_${feature}`;
 const clampMin = (n) => Math.max(0, Math.min(MAX_MIN, Math.round(n)));
 const fmtWarmup = (v) => (v <= 0 ? 'OFF' : `${v}:00`);
 
-export function loadWarmup(feature) {
+// `fallback` is what a feature gets before the athlete has ever chosen. The
+// Fight setups keep OFF; Build Workout starts at 5 minutes.
+export function loadWarmup(feature, fallback = 0) {
   try {
     const v = typeof localStorage !== 'undefined' ? localStorage.getItem(KEY(feature)) : null;
-    const n = v === null ? 0 : parseInt(v, 10);
-    return Number.isFinite(n) ? clampMin(n) : 0;
+    const n = v === null ? fallback : parseInt(v, 10);
+    return Number.isFinite(n) ? clampMin(n) : fallback;
   } catch {
-    return 0;
+    return fallback;
   }
 }
 
 export function saveWarmup(feature, minutes) {
   try {
     if (typeof localStorage !== 'undefined') localStorage.setItem(KEY(feature), String(minutes));
+  } catch {}
+}
+
+// The warm-up idea last picked under the ring (Build Workout's chips), per
+// feature like the length: tm_warmup_<feature>_pick.
+export function loadWarmupPick(feature) {
+  try {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem(`${KEY(feature)}_pick`) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveWarmupPick(feature, id) {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(`${KEY(feature)}_pick`, String(id));
   } catch {}
 }
 

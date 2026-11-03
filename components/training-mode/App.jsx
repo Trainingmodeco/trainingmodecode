@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
-import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
+import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addQuickMissionSoloSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
 import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
@@ -37,6 +37,8 @@ import { startCloudSync } from './data/cloudSync';
 import { rememberSession, loadLastSession, programFor } from './data/lastSession';
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
+import { qmV2Enabled } from './data/qmV2';
+import { settleSoloXp } from './data/missionSolo';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
 import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview, entryFor as conceptEntryFor, stageCfg as conceptStageCfg } from './data/concepts';
@@ -250,6 +252,21 @@ export default function App() {
       return next;
     });
   }, []);
+  // A session that ENDED (finished, or stopped to its summary) is gone for
+  // good: drop its slot and also the lifecycle saver's storage-only snapshot
+  // of it. The slot list usually lacks that snapshot (arriving on the screen
+  // already dropped the slot, and the saver never touches the list), so
+  // dropPausedFor alone left it in storage. The next launch then restored the
+  // finished run as a live one, and saving it again paid the XP twice.
+  // endedScreenRef stops the saver from writing it back before the screen
+  // changes; the saver clears it when a session screen mounts.
+  const endedScreenRef = useRef(null);
+  const endSessionFor = useCallback((scr) => {
+    endedScreenRef.current = scr;
+    const stored = loadPausedSessions();
+    if (stored.some(x => x.screen === scr)) savePausedSessions(stored.filter(x => x.screen !== scr));
+    dropPausedFor(scr);
+  }, [dropPausedFor]);
   const [resumeData, setResumeData] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
   const [showOffline, setShowOffline] = useState(false);
@@ -436,9 +453,11 @@ export default function App() {
   useEffect(() => {
     if (!ACTIVE_SESSION_SCREENS.has(screen)) return undefined;
     if (typeof document === 'undefined') return undefined;
+    endedScreenRef.current = null; // a new session on this screen
     const stash = () => {
       const snap = snapshotRef.current?.('lifecycle');
-      if (snap) stashPausedSession(snap);
+      // Never for a session that just ended (see endSessionFor).
+      if (snap && snap.screen !== endedScreenRef.current) stashPausedSession(snap);
     };
     const onVisibility = () => { if (document.hidden) stash(); };
     stash(); // close the gap between entering a session and the first tick
@@ -657,18 +676,40 @@ export default function App() {
     // Cardio records itself for Home's Continue card when a session starts.
     rememberCardio: (setup) => { rememberSession('cardio', { setup }); trackSessionStart('cardio', { kind: setup?.categoryId || null }); },
     goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => { rememberSession('quick_mission', c); trackSessionStart('quickMission', c?.mission?.planId ? { plan: c.mission.planId } : undefined); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active'); },
+    goQuickMissionActive: (c) => {
+      rememberSession('quick_mission', c);
+      trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : undefined);
+      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
+    },
     goQuickMissionComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
-      dropPausedFor(screen);
+      endSessionFor(screen);
       setResumeData(null);
-      addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed);
-      // A plan day only moves the rotation on once it is (mostly) done — quit
-      // halfway and the same day is still up next.
-      if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
-      tryCompleteDailyMission('quickMission');
-      trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
-      setQmResult(result);
+      if (result?.mode === 'solo') {
+        // SOLO has no integrity session: the floor rule settles it (honor
+        // system), and the screen shows exactly the XP banked here. v2
+        // missions are never plan days, so there is no completePlanDay.
+        const settle = settleSoloXp(result);
+        const xp = addQuickMissionSoloSession({
+          xpEarned: settle.xp, missionId: result.missionId, format: result.format, score: result.score,
+          elapsedSec: result.elapsedSec, pausedSec: result.pausedSec, hiddenSec: result.hiddenSec,
+          level: result.level, scaled: result.scaled, swaps: result.swaps, completed: result.completed,
+          completedCount: result.exercisesCompleted, totalCount: result.totalSlots,
+        });
+        if (xp > 0) tryCompleteDailyMission('quickMission');
+        trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
+        setQmResult({ ...result, xpEarned: xp, settle });
+      } else {
+        // A v2 GUIDED run tags its row with the mission it ran; the XP is unchanged.
+        const meta = qmCfg?.v2 ? { mode: 'guided', missionId: qmCfg.missionId, level: qmCfg.level, scaled: !!qmCfg.scaled, swaps: qmCfg.swaps || [] } : undefined;
+        addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed, meta);
+        // A plan day only moves the rotation on once it is (mostly) done — quit
+        // halfway and the same day is still up next.
+        if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
+        tryCompleteDailyMission('quickMission');
+        trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
+        setQmResult(result);
+      }
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {
         sessionStartLevelRef.current = beforeLevel;
@@ -768,7 +809,7 @@ export default function App() {
       setArcadeSettings(settings || arcadeSettings || null);
       setScreen('arcade_session');
     },
-    goArcadeComplete: () => { dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
+    goArcadeComplete: () => { endSessionFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
     goCombatCondActive: (config) => {
       rememberSession('cc', config);
       trackSessionStart('combatConditioning');
@@ -780,7 +821,7 @@ export default function App() {
     },
     goCombatCondComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
-      dropPausedFor(screen); setResumeData(null);
+      endSessionFor(screen); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
       if (result.cleanRoundXp && result.integrityResult?.awardXp !== false) addBonusXp(result.cleanRoundXp);
       tryCompleteDailyMission('combatConditioning');
@@ -831,6 +872,9 @@ export default function App() {
           actions.goComboActive(c);
           return true;
         case 'quick_mission':
+          // A v2 mission (GUIDED or SOLO) replays as itself, but only while
+          // v2 is on for this viewer; otherwise Setup opens instead.
+          if (c?.v2 && !qmV2Enabled()) { actions.goQuickMissionSetup(); return true; }
           actions.goQuickMissionActive(c);
           return true;
         case 'fit': {
@@ -893,7 +937,7 @@ export default function App() {
         }
         return { xp, plate: null };
       };
-      dropPausedFor(screen); setResumeData(null);
+      endSessionFor(screen); setResumeData(null);
       const total = c.rounds || (Array.isArray(rounds) ? rounds.length : 1);
       const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
       // 2.10 — arcade v2 stage completion reuses this pipeline but updates arcade
@@ -965,7 +1009,7 @@ export default function App() {
     // marks its slot; the level clears when both are ✓✓.
     goCampFullComplete: ({ skill, fit }) => {
       const beforeLevel = getLevel(loadStats().xp);
-      dropPausedFor(screen); setResumeData(null);
+      endSessionFor(screen); setResumeData(null);
       const s = skill || { total: 1, done: 0, valid: false };
       const f = fit || { total: 1, done: 0, valid: false };
       // 2.10 — FULL ARC arcade stage: both blocks over the shared runner.
@@ -1020,7 +1064,7 @@ export default function App() {
     goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
-      dropPausedFor(screen); setResumeData(null);
+      endSessionFor(screen); setResumeData(null);
       const total = c.rounds || rounds.length;
       const done = typeof completed === 'number' ? completed : rounds.length;
       // Bank what the summary will show — the outcome engine's number, not
@@ -1050,7 +1094,7 @@ export default function App() {
     goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
-      dropPausedFor(screen); setResumeData(null);
+      endSessionFor(screen); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
       const cs = fightSessionStats || {};
@@ -1089,7 +1133,7 @@ export default function App() {
     goFitWorkout:  (c) => { rememberSession('fit', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
       const beforeLevel = getLevel(loadStats().xp);
-      dropPausedFor(screen); setResumeData(null);
+      endSessionFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);
       if (dayCounts(done, total)) completeProgramDay(c?.programId ? c : fitCfg);
       recordConceptSession(c?.conceptId ? c : fitCfg, done, total);

@@ -77,19 +77,21 @@ export function Label({ children, right, style }) {
 }
 
 // A label over a chamfered radio strip. options: [{ id, label }] or strings.
-export function SegRow({ label, options, value, onPick, guide, height = 40, gap = 8 }) {
+// `right` sits opposite the label; `accent` (a #rrggbb) recolours the picked
+// segment, which is violet otherwise.
+export function SegRow({ label, options, value, onPick, guide, height = 40, gap = 8, right, accent }) {
   const opts = options.map(o => (typeof o === 'string' ? { id: o, label: o } : o));
   return (
     <div data-guide={guide} style={{ display: 'flex', flexDirection: 'column', gap }}>
-      {label && <Label>{label}</Label>}
+      {label && <Label right={right}>{label}</Label>}
       <div role="radiogroup" aria-label={label} style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
         {opts.map(o => {
           const on = o.id === value;
           return (
             <button key={o.id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-seg" onClick={() => onPick(o.id)} style={{
               flex: 1, height, border: 'none', cursor: 'pointer', font: `600 12px ${HEAD}`, letterSpacing: '0.1em',
-              color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
-              boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none', whiteSpace: 'nowrap', padding: 0,
+              color: on ? '#fff' : MUTED, background: on ? (accent ? `${accent}33` : 'rgba(157,108,255,0.24)') : 'transparent',
+              boxShadow: on ? `inset 0 0 0 1px ${accent || VIOLET}` : 'none', whiteSpace: 'nowrap', padding: 0,
             }}>{o.label}</button>
           );
         })}

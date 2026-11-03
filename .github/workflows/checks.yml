@@ -44,6 +44,9 @@ jobs:
       - name: GPS fix filter tests
         run: npm run -s test:gps
 
+      - name: Quick Mission tests
+        run: npm run -s test:missions
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 

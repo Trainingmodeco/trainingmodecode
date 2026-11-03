@@ -296,7 +296,7 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
     const c = e.concept;
     const { art, ...shown } = c;
     const txt = JSON.stringify(shown).replace(/"(id|accent|frame)":"[^"]*"/g, '');
-    check(`${c.id}: no franchise names in user text`, c.id === 'ultra-ego' || !BANNED.test(txt), (txt.match(BANNED) || [])[0]);
+    check(`${c.id}: no franchise names in user text`, !BANNED.test(txt), (txt.match(BANNED) || [])[0]);
     check(`${c.id}: arcade 3 × 10, boss last`, ['fit', 'fight', 'hybrid'].every(a => C.arcStages(c, a).length === 10 && C.arcStages(c, a)[9].boss));
     check(`${c.id}: every training day builds`, C.fitTrainingDays(c).every((d, i) => d.run || C.fitDayExercises(c, i).length >= 4));
     check(`${c.id}: every fight day builds with a super`, c.fight.days.every((d, i) => { store.set('tm_concepts_v1', JSON.stringify({ [c.id]: { fightDone: i } })); const f = C.fightDayCfg(c); return f.rounds >= 3 && f.blockRounds.some(r => r.super); }) || c.id === 'ultra-ego' || c.id === 'shoto');
@@ -319,6 +319,7 @@ check('Shoto gauntlet: 10 stages, boss last', SHOTO.arcade.stages.length === 10 
   check('all three retired by Aug 2027', ['flow-state-protocol', 'one-punch-protocol', 'vigilante-protocol'].every(id => S2.retiredSagaIds(at('2027-08-02'), () => false, false).has(id)));
   check('The Destroyer retires Dec 1', !S2.retiredSagaIds(at('2026-11-30'), () => false, false).has('destroyer-protocol') && S2.retiredSagaIds(at('2026-12-01'), () => false, false).has('destroyer-protocol'));
   check('Pro keeps every old saga', S2.retiredSagaIds(at('2027-08-02'), () => false, true).size === 0);
+  check('free beta (paywall off): The Destroyer still retires Dec 1', S2.retiredSagaIds(at('2026-12-01'), () => false).has('destroyer-protocol'));
   check('kept for someone with progress', !S2.retiredSagaIds(at('2027-04-02'), id => id === 'one-punch-protocol', false).has('one-punch-protocol'));
 }
 

@@ -5,7 +5,7 @@ import { acquireMiniPlayer, releaseMiniPlayer, endMiniPlayer, miniPlayerSupporte
 // why the window is a painted canvas rather than real interface).
 //
 // The window is shared, not owned. A session spans more than one component —
-// the Workout Builder runs a 90-second warm-up gate and THEN mounts the guided
+// the Workout Builder runs its ring-timer warm-up and THEN mounts the guided
 // player — and if each mount owned its own window, that hand-off would close it
 // mid-session. Android needs a fresh user gesture to reopen, which the athlete
 // cannot give while they are looking at another app. So each component acquires

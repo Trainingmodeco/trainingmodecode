@@ -5,7 +5,7 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ["dist/*", "TM Social Console/**"],
+    ignores: ["dist/*", "website/*", "TM Social Console/**"],
   },
   {
     rules: {

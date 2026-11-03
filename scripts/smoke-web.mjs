@@ -81,6 +81,10 @@ const boot = async () => {
 const home = async () => { await boot(); };
 const fit = async () => { await home(); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200); };
 const fight = async () => { await home(); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); };
+// The owner's preview flag (Strike Lab): concept drops, Coach's Tapes and
+// Quick Mission v2 show only with it on. boot() closed the concept pop-up
+// (which marks it seen), so the drop's progress is reset to bring it back.
+const preview = async () => { await home(); await page.evaluate(() => { localStorage.setItem('tm_owner_preview', '1'); localStorage.removeItem('tm_concepts_v1'); }); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
 
 async function check(name, fn, expectRe) {
   step = name;
@@ -95,7 +99,209 @@ async function check(name, fn, expectRe) {
 await check('home', async () => { await home(); }, /FIT MODE/);
 await check('fit hub', async () => { await fit(); }, /Quick Mission/);
 await check('quick mission start', async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1200); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WORK|EXERCISE/);
-await check('build workout generate + start', async () => { await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200); await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /EXERCISE|SET|REPS/i);
+
+// Quick Mission v2 ships behind data/qmV2 (owner preview until the flag
+// flips). The library check reads the flag, so it never needs editing when
+// the owner turns v2 on for everyone.
+const V2_PUBLIC = /QM_V2_FOR_EVERYONE\s*=\s*true/.test(
+  fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'components', 'training-mode', 'data', 'qmV2.js'), 'utf8'));
+const quick = async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200); };
+// Every owner check starts clean: preview() boots with wiped storage.
+const ownerQuick = async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+};
+// The MISSION LIBRARY sheet (MissionLibrarySheet). Its rows are role="radio"
+// named by the title, plus a SOLO or PRO pill, so the patterns are anchored
+// at the start only. A row tap only highlights it; PUT ON CARD brings it to
+// the page card, the sheet's own START runs it.
+const sheet = () => page.getByRole('dialog', { name: 'Mission library' });
+const library = async () => { await page.locator('[data-guide="qm-library"]').click({ timeout: 4000 }); await S(700); };
+const pickRow = async (re) => { await library(); await sheet().getByRole('radio', { name: re }).click({ timeout: 4000 }); await S(300); };
+const putOnCard = async (re) => { await pickRow(re); await sheet().getByRole('button', { name: 'PUT ON CARD' }).click({ timeout: 4000 }); await S(600); };
+// The page: the card (▾ SEE ALL opens it in place, ADJUST sits on the open
+// card), GEAR (a radio strip) and TIME (a range input, 10 to 60 by 5).
+const card = () => page.locator('[data-guide="qm-card"]');
+const gearKey = (name) => page.locator('[data-guide="qm-gear"]').getByRole('radio', { name, exact: true });
+const slider = () => page.locator('[data-guide="qm-time"] input[type="range"]');
+const expand = async () => { if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') { await page.locator('[data-guide="qm-expand"]').click({ timeout: 4000 }); await S(600); } };
+const adjustSheet = () => page.getByRole('dialog', { name: 'Adjust' });
+const adjust = async () => { await expand(); await page.locator('[data-guide="qm-adjust"]').click({ timeout: 4000 }); await S(500); };
+const done = async () => { await adjustSheet().getByRole('button', { name: /DONE/ }).click({ timeout: 4000 }); await S(400); };
+const timeTo = async (mins) => {
+  await slider().focus();
+  for (let i = 0; i < 12; i++) {
+    const v = Number(await slider().inputValue());
+    if (v === mins) return;
+    await page.keyboard.press(v < mins ? 'ArrowRight' : 'ArrowLeft'); await S(80);
+  }
+  throw new Error(`TIME never reached ${mins}`);
+};
+await check('quick mission: library matches the flag', async () => {
+  await quick(); await library();
+  const t = await sheet().innerText();
+  if (V2_PUBLIC !== /MISSIONS\s*\d+/.test(t)) throw new Error(V2_PUBLIC ? 'no MISSIONS in the library' : 'v2 missions in the library while QM_V2_FOR_EVERYONE is false');
+  if (!/MISSION LIBRARY · \d+/.test(t) || !/Ready-made workouts\./.test(t)) throw new Error('the library header is not MISSION LIBRARY · n with its line');
+}, /CLASSICS/);
+await check('quick mission: back closes the library first', async () => {
+  await quick(); await library();
+  // A modal: Tab never reaches the page behind it, and closing hands focus
+  // back to the folder row.
+  for (let i = 0; i < 30; i++) {
+    await page.keyboard.press('Tab');
+    if (!await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))) throw new Error(`Tab ${i + 1} left the library`);
+  }
+  await page.keyboard.press('Escape'); await S(400);
+  if (await sheet().count()) throw new Error('Escape left the library open');
+  if (await page.evaluate(() => document.activeElement?.getAttribute('data-guide')) !== 'qm-library') throw new Error('focus did not come back to MISSION LIBRARY');
+  // The header's back arrow sits under the sheet's backdrop: call it directly.
+  await library(); await page.evaluate(() => document.querySelector('button[aria-label="Back"]').click()); await S(500);
+  if (await sheet().count()) throw new Error('Back left the library open');
+}, /MISSION LIBRARY/);
+await check('quick mission: the first page is the card, GEAR, TIME and the library', async () => {
+  await quick();
+  const t = await page.evaluate(() => document.querySelector('.no-scrollbar').innerText);
+  if (/BUILD YOUR OWN|ADD CARDIO|FOCUS|LEVEL/.test(t)) throw new Error('the old keys or ADD CARDIO are still on the page');
+  if (await card().locator('ol > li').count() !== 3) throw new Error('the closed card does not list 3 moves');
+  if (await slider().getAttribute('aria-valuetext') !== '20 minutes') throw new Error('TIME does not open on 20 minutes');
+  if ((await slider().boundingBox()).height < 44) throw new Error('the TIME slider is under 44px tall');
+}, /SEE ALL \d+ MOVES|SEE MORE/);
+await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => {
+  await quick();
+  const n = Number((await page.locator('[data-guide="qm-expand"]').innerText()).match(/\d+/)?.[0] || 3);
+  await expand();
+  if (await card().locator('ol > li').count() !== n) throw new Error(`the open card does not list all ${n} moves`);
+  if (!/about \d+ min/.test(await card().innerText())) throw new Error('no "about N min" line on the open card');
+  await adjust();
+  if (!await adjustSheet().count()) throw new Error('ADJUST did not open its sheet');
+  for (let i = 0; i < 16; i++) {
+    await page.keyboard.press('Tab');
+    if (!await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))) throw new Error(`Tab ${i + 1} left ADJUST`);
+  }
+  await adjustSheet().getByRole('radiogroup', { name: 'Focus' }).getByRole('radio', { name: 'UPPER', exact: true }).click({ timeout: 4000 });
+  await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  if (await adjustSheet().count()) throw new Error('DONE left ADJUST open');
+  if (await page.evaluate(() => document.activeElement?.getAttribute('data-guide')) !== 'qm-adjust') throw new Error('focus did not come back to ADJUST');
+  const c = await card().innerText();
+  if (!/UPPER/i.test(c) || !/HARD/.test(c)) throw new Error('the card did not rebuild for UPPER · HARD');
+  await page.locator('[data-guide="qm-expand"]').click({ timeout: 4000 }); await S(400);
+  if (await card().locator('ol > li').count() !== 3) throw new Error('SHOW LESS did not fold the card');
+}, /SEE ALL|SEE MORE/);
+await check('quick mission: TIME 45 and WEIGHTED start a weighted mission', async () => {
+  await quick(); await timeTo(45); await gearKey('WEIGHTED').click({ timeout: 4000 }); await S(400);
+  const c = await card().innerText();
+  if (!/45 MIN/i.test(c) || !/WEIGHTED/.test(c)) throw new Error('the card is not a 45-minute weighted mission');
+  if (await slider().getAttribute('aria-valuetext') !== '45 minutes') throw new Error('TIME does not say 45 minutes');
+  await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
+  if (!/WEIGHTED/.test(await text())) throw new Error('no WEIGHTED on the status strip');
+}, /ROUND|GET READY|PREPARING|WORK/);
+// TIME on a touch screen: a swipe up or down that starts on the slider is a
+// page scroll and changes nothing (not the minutes, the saved keys or a
+// library mission on the card); a sideways drag from the knob sets it.
+await check('quick mission: a scroll on TIME stays a scroll, a sideways drag sets it', async () => {
+  await quick(); await putOnCard(V2_PUBLIC ? /^ONE-BELL 300/ : /^HALF MURPH/);
+  const picked = await card().locator('h1').innerText();
+  const cdp = await page.context().newCDPSession(page);
+  const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  const gesture = async (x0, y0, x1, y1) => {
+    await touch('touchStart', x0, y0);
+    for (let i = 1; i <= 10; i++) { await touch('touchMove', x0 + (x1 - x0) * i / 10, y0 + (y1 - y0) * i / 10); await S(16); }
+    await touch('touchEnd'); await S(500);
+  };
+  const minute = async (v) => { const b = await slider().boundingBox(); return { x: b.x + 14 + (v - 10) / 50 * (b.width - 28), y: b.y + b.height / 2 }; };
+  const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('tm_qm_keys_v1') || '{}').duration);
+  let p = await minute(50);
+  await gesture(p.x, p.y, p.x, p.y - 160);
+  if (await slider().inputValue() !== '20' || (await saved()) !== undefined) throw new Error('a swipe up on TIME changed or saved it');
+  if (await card().locator('h1').innerText() !== picked) throw new Error('a swipe up on TIME dropped the library mission');
+  p = await minute(50);
+  await gesture(p.x, p.y, p.x, p.y + 160);
+  if (await slider().inputValue() !== '20' || await card().locator('h1').innerText() !== picked) throw new Error('a swipe down on TIME changed it');
+  const from = await minute(20), to = await minute(45);
+  await gesture(from.x, from.y, to.x, to.y);
+  if (await slider().inputValue() !== '45' || (await saved()) !== 45) throw new Error('a sideways drag did not set and save 45');
+  if (await card().locator('h1').innerText() === picked) throw new Error('a new TIME kept the library mission');
+}, /45 MIN/);
+// ADD CARDIO runs after the mission, so switching it on keeps the card's moves.
+await check('quick mission: ADD CARDIO keeps the moves', async () => {
+  await quick(); await expand();
+  const before = await card().locator('ol').innerText();
+  await adjust();
+  await adjustSheet().getByRole('switch', { name: 'Add cardio' }).click({ timeout: 4000 }); await S(600);
+  await btn(/ADD TO WORKOUT/).click({ timeout: 4000 }); await S(600);
+  if (await adjustSheet().getByRole('switch', { name: 'Add cardio' }).getAttribute('aria-checked') !== 'true') throw new Error('ADD CARDIO did not switch on');
+  await done();
+  if (await card().locator('ol').innerText() !== before) throw new Error('ADD CARDIO dealt new moves');
+}, /\+ CARDIO/);
+await check('quick mission: choices are remembered, SURPRISE is not', async () => {
+  await quick(); await timeTo(30);
+  await adjust(); await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await done();
+  // SURPRISE keeps GEAR and TIME and is not a choice: a choice made after it
+  // saves only itself.
+  await page.locator('[data-guide="qm-surprise"]').click({ timeout: 3000 }); await S(300);
+  if (!/30 MIN/i.test(await card().innerText())) throw new Error('SURPRISE changed the TIME');
+  await gearKey('HYBRID').click({ timeout: 4000 }); await S(300);
+  await page.locator('button[aria-label="Back"]').click({ timeout: 3000 }); await S(800);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  if (await slider().inputValue() !== '30' || await gearKey('HYBRID').getAttribute('aria-checked') !== 'true') throw new Error('GEAR or TIME came back as the defaults');
+  if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') throw new Error('the open card came back closed');
+  await adjust();
+  if (await adjustSheet().getByRole('radio', { name: 'HARD', exact: true }).getAttribute('aria-checked') !== 'true') throw new Error('LEVEL came back as the default or the SURPRISE roll');
+}, /HARD/);
+await check('quick mission: weighted classic starts weighted', async () => { await quick(); await pickRow(/^CHAOS ENGINE/); await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
+await check('quick mission: murph starts', async () => { await quick(); await putOnCard(/^MURPH$/); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
+await check('quick mission: library pick + START', async () => {
+  await quick(); await pickRow(V2_PUBLIC ? /^BEST OF 3/ : /^HALF MURPH/);
+  if (!/ON TOP/.test(await sheet().innerText())) throw new Error('the picked row is not on top');
+  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4500);
+}, /ROUND|GET READY|PREPARING|EXERCISE/);
+await check('owner: quick mission library filters', async () => {
+  await ownerQuick(); await library();
+  if (!await sheet().getByRole('radiogroup', { name: 'Loadout' }).count()) throw new Error('no LOADOUT chips');
+}, /MISSIONS/);
+await check('owner: quick mission swap sheet', async () => {
+  await ownerQuick(); await putOnCard(/^TUTORIAL STAGE/);
+  if (await page.locator('button[aria-label="Swap Sprawls"]').count()) throw new Error('a swap on the closed card');
+  await expand();
+  await page.locator('button[aria-label="Swap Sprawls"]').click({ timeout: 4000 }); await S(800);
+}, /SWAP: SPRAWLS/);
+await page.locator('button[aria-label="Close"]').first().click({ timeout: 1500 }).catch(() => {});
+await check('owner: one-bell guided start', async () => { await ownerQuick(); await putOnCard(/^ONE-BELL 300/); await btn(/^START$/).click({ timeout: 4000 }); await S(5000); }, /ROUND|GET READY|PREPARING/);
+await check('owner: turbo solo start', async () => {
+  await ownerQuick(); await putOnCard(/^TURBO BUTTON/);
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
+}, /SOLO/);
+// A SOLO-only library mission starts SOLO from the sheet's own START, whatever
+// the remembered run mode (GUIDED on a clean slate).
+await check('quick mission: library BARBELL → HONOR ROUNDS starts SOLO', async () => {
+  await ownerQuick(); await library();
+  await sheet().getByRole('radiogroup', { name: 'Loadout' }).getByRole('radio', { name: /^BARBELL/ }).click({ timeout: 4000 }); await S(400);
+  if (await sheet().getByRole('radio', { name: /^IRON CLOCK 16/ }).count() !== 1 || await sheet().getByRole('radio', { name: /^BEST OF 3/ }).count()) throw new Error('BARBELL did not filter the list');
+  await sheet().getByRole('radio', { name: /^HONOR ROUNDS SOLO$/ }).click({ timeout: 4000 }); await S(300);
+  if (!/HONOR ROUNDS/.test(await sheet().locator('[aria-live="polite"]').innerText())) throw new Error('HONOR ROUNDS is not on top');
+  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(7000);
+  const t = await text();
+  if (!/HONOR ROUNDS/.test(t) || !/FINISH/.test(t) || !/STOP/.test(t) || !/CAP 20:00/.test(t)) throw new Error('not the SOLO screen for HONOR ROUNDS');
+}, /SOLO/);
+// START opens the ring warm-up (5 MIN until the athlete picks). Its SKIP is
+// clicked for real, so the check fails if anything covers it: the old warm-up's
+// SKIP sat under the tab bar, and this check still passed because the workout
+// list stayed rendered beneath the overlay.
+await check('build workout generate + start', async () => {
+  await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200);
+  await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000);
+  // START primes the voice first (a couple of seconds headless), then opens it.
+  await btn(/^START/).click({ timeout: 4000 });
+  await page.getByText('WARM UP · WORKOUT').first().waitFor({ timeout: 8000 }).catch(() => { throw new Error('START did not open the ring warm-up'); });
+  await btn(/^SKIP → START WORKOUT$/).click({ timeout: 4000 }); await S(3000);
+}, /GUIDED WORKOUT/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);
@@ -122,8 +328,6 @@ await check('arcade saga', async () => {
 }, /STAGE|CLIMB/i);
 // Concept drops are hidden from users until their window, so these run with
 // the owner's preview flag on.
-// boot() closed the pop-up (which marks it seen), so the drop's progress is reset to bring it back.
-const preview = async () => { await home(); await page.evaluate(() => { localStorage.setItem('tm_owner_preview', '1'); localStorage.removeItem('tm_concepts_v1'); }); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
 await check('concept drop pop-up + page', async () => { await preview(); await btn(/START THE REGIME/).click({ timeout: 5000 }); await S(1500); }, /WEEK 1 OF 4/);
 await check('concept fit day start', async () => { await btn(/^▶ START /).click({ timeout: 4000 }); await S(2500); }, /NECK CURLS|SQUAT JUMP/i);
 await check('concept fight day start', async () => { await preview(); await page.locator('button[aria-label="Close"]').first().click({ timeout: 3000 }).catch(() => {}); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); await page.locator('button', { hasText: 'CONCEPT PROGRAM' }).first().click({ timeout: 4000 }); await S(1500); await btn(/START DAY 1/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
