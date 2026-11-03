@@ -180,6 +180,8 @@ export const Tile: React.FC<{ mark: string; size: number; color?: string; glow?:
   </div>
 );
 
+// A move taught in several disciplines lists them as "Kickboxing · Muay Thai · MMA"; each gets its own chip.
+export const disciplines = (p: PracticeTutorialProps) => p.discipline.split(/\s*·\s*/).filter(Boolean);
 export const tileMark = (p: PracticeTutorialProps) => p.number ?? p.technique.split(/[\s-]+/).map((w) => w[0]).join('').slice(0, 3).toUpperCase();
 
 // Top bar on the cue and watch beats: tile, name, the three progress segments.
@@ -252,7 +254,7 @@ const Hook: React.FC<{ p: PracticeTutorialProps }> = ({ p }) => {
       <Footage src={p.src} start={p.hookAt} />
       <div style={{ position: 'absolute', left: 50, top: 136, display: 'flex', gap: 14 }}>
         <Chip>PRACTICE MODE</Chip>
-        <Chip color="#fff" line="rgba(255,255,255,0.4)">{p.discipline.toUpperCase()}</Chip>
+        {disciplines(p).map((d) => <Chip key={d} color="#fff" line="rgba(255,255,255,0.4)">{d.toUpperCase()}</Chip>)}
       </div>
       <div style={{ position: 'absolute', left: 50, right: 140, top: 1020, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <Rise delay={-6}>
@@ -289,8 +291,8 @@ const Name: React.FC<{ p: PracticeTutorialProps }> = ({ p }) => (
         {p.description ? <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 38, color: P.soft, textAlign: 'center' }}>{p.description}</div> : null}
         {p.alias ? <div style={{ fontFamily: F.head, fontWeight: 600, fontSize: 36, color: P.lilac, letterSpacing: '0.12em', textAlign: 'center', marginTop: 6 }}>{p.alias}</div> : null}
       </Rise>
-      <Rise delay={10} style={{ display: 'flex', gap: 14 }}>
-        <Chip color="#fff" line="rgba(255,255,255,0.4)">{p.discipline.toUpperCase()}</Chip>
+      <Rise delay={10} style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 900 }}>
+        {disciplines(p).map((d) => <Chip key={d} color="#fff" line="rgba(255,255,255,0.4)">{d.toUpperCase()}</Chip>)}
         {p.badge ? <Chip>{p.badge.toUpperCase()}</Chip> : null}
         {p.level ? <Chip color={LEVEL[p.level] ?? P.gold}>{p.level.toUpperCase()}</Chip> : null}
       </Rise>

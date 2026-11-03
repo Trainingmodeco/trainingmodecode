@@ -200,10 +200,10 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Roundhouse Kick',
-    description: 'Rear-leg power kick to body or head',
+    description: 'Te tat: rear-leg power kick to body or head',
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
-    cues: ['Load the hip back', 'Pivot hard on the base foot', 'Strike with the shin'],
-    mistakes: ['No hip rotation', 'Kicking with the foot', 'Slow return'],
+    cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
+    mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
     next: 'Lead Uppercut', locked: true,
   },
   {
@@ -445,6 +445,14 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
+    next: 'Switch Kick', locked: true,
+  },
+  {
+    discipline: 'Muay Thai', category: 'Strikes', name: 'Switch Kick',
+    description: 'Te salap: switch stance to disguise the rear kick',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
+    mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
     next: 'Machine Gun Kick', locked: true,
   },
   {
@@ -635,10 +643,18 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Roundhouse Kick',
-    description: 'Full-rotation shin kick to body or head',
+    description: 'Te tat: full-rotation shin kick to body or head',
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
+    next: 'Switch Kick', locked: true,
+  },
+  {
+    discipline: 'MMA', category: 'Strikes', name: 'Switch Kick',
+    description: 'Te salap: switch stance to disguise the rear kick',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
+    mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
     next: 'Lead Uppercut', locked: true,
   },
   {

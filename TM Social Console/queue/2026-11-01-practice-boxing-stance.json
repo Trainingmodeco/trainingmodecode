@@ -1,7 +1,7 @@
 {
   "id": "2026-11-01-practice-boxing-stance",
   "title": "Practice: Boxing Stance",
-  "status": "rendered",
+  "status": "rejected",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-01",
   "source": "Practice Mode tutorial, lesson 1 of the Boxing Fundamentals Path (practiceLessons.js › boxing_stance: its steps and calls). Footage: the owner's stance clip from Angel's camera, deblurred (tools/deblur.py), raw-footage/blurry-angel.deblur.mp4.",
@@ -117,7 +117,8 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-01 lesson 1 of the Fundamentals Path, from the deblurred camera clip (the owner's phone covers the punches). No voice yet. Owner approves before anything posts; TikTok as Only me first."
+    "2026-11-01 lesson 1 of the Fundamentals Path, from the deblurred camera clip (the owner's phone covers the punches). No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 rejected: Owner: too blurry, take it out for now; the four stances get filmed again on Saturday."
   ],
   "exports": {
     "video": "exports/2026-11-01-practice-boxing-stance/video.mp4",

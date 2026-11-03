@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-lead-shuffle-knee",
   "title": "Practice: Lead Shuffle Knee",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The owner's lead shuffle knee, added to the app's Technique Library as Muay Thai › Lead Shuffle Knee (cues, mistakes, next from there; the existing Lead Knee entry is the clinch knee, so the shuffle got its own). Thai: khao yao (เข่ายาว), the long knee: a straight knee thrown with a step from range. Footage: the owner's clip 25 (ring, 2026-11-03), raw-footage/practice/p25.mp4, one shot of 5.6 s with two reps: a shuffle into the knee at 0.9 s, a second at 4.3 s.",
@@ -21,7 +21,7 @@
     "slowSrc": "raw-footage/practice/p25.x75.mp4",
     "pose": "raw-footage/practice/p25.pose.json",
     "hookAt": 3.3,
-    "repAt": 0.0,
+    "repAt": 0,
     "cues": [
       {
         "text": "Shuffle the rear foot up",
@@ -65,7 +65,7 @@
         "SHUFFLE KNEE × 2",
         "JAB → SHUFFLE KNEE"
       ],
-      "start": 0.0,
+      "start": 0,
       "rate": 0.9,
       "cue": "Close the gap first"
     },
@@ -109,5 +109,16 @@
   "notes": [
     "2026-11-03 cut from clip 25 at the owner's word. One shot of 5.6 s with two reps, so the beats share footage: key points 1 and 3 on the first rep (shuffle, then the knee's point), key point 2 and the WATCH FOR freeze on the second, the fix from the first. The drill runs the whole clip at 0.9× to fill its 6 s. In the second rep the shuffle switches the feet, so the right knee fires; the words still hold. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
     "2026-11-03 Thai name: khao yao (the long knee, thrown with a step from range) fits the shuffle knee better than khao trong, which is the plain straight knee; the rear knee takes khao trong."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-lead-shuffle-knee/video.mp4",
+    "cover": "exports/2026-11-03-practice-lead-shuffle-knee/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-lead-shuffle-knee/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-lead-shuffle-knee/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T17:03:17.145Z"
 }

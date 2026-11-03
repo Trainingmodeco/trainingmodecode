@@ -8,7 +8,7 @@
   "scheduledFor": null,
   "coverFrame": 30,
   "props": {
-    "discipline": "Kickboxing",
+    "discipline": "Kickboxing · Muay Thai · MMA",
     "technique": "Switch Kick",
     "number": null,
     "badge": "Kick",
@@ -21,7 +21,7 @@
     "slowSrc": "raw-footage/practice/p23.x75.mp4",
     "pose": "raw-footage/practice/p23.pose.json",
     "hookAt": 3.4,
-    "repAt": 4.0,
+    "repAt": 4,
     "cues": [
       {
         "text": "Small hop to switch",
@@ -68,7 +68,7 @@
         "SWITCH KICK × 2",
         "JAB → SWITCH KICK"
       ],
-      "start": 0.0,
+      "start": 0,
       "cue": "Switch and kick as one"
     },
     "next": {
@@ -83,24 +83,25 @@
   },
   "platforms": {
     "tiktok": {
-      "caption": "Hide your rear kick 🦵 Switch kick, te salap: small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #kickboxing #switchkick #tesalap #muaythai #kickboxingtechnique #trainingmode",
+      "caption": "Hide your rear kick 🦵 Switch kick, te salap: small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #kickboxing #switchkick #tesalap #muaythai #kickboxingtechnique #mma #trainingmode",
       "privacy": "SELF_ONLY"
     },
     "instagram": {
-      "caption": "Hide your rear kick. 🦵\n\nSwitch kick (te salap, เตะสลับ):\n1. Small hop to switch\n2. Disguise the switch\n3. Kick immediately after switch\nWatch for: a big telegraphing hop.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#kickboxing #switchkick #tesalap #muaythai #kickboxingtechnique #combatfitness #trainingmode"
+      "caption": "Hide your rear kick. 🦵\n\nSwitch kick (te salap, เตะสลับ):\n1. Small hop to switch\n2. Disguise the switch\n3. Kick immediately after switch\nWatch for: a big telegraphing hop.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#kickboxing #switchkick #tesalap #muaythai #kickboxingtechnique #combatfitness #mma #trainingmode"
     },
     "facebook": {
       "caption": "Hide your rear kick 🦵 Switch kick, te salap: small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
     },
     "youtube": {
       "title": "Hide your rear kick. The switch kick (te salap) 🦵 #shorts",
-      "description": "Practice Mode in Training Mode: the switch kick, te salap (เตะสลับ), step by step. Small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "description": "Practice Mode in Training Mode: the switch kick, te salap (เตะสลับ), step by step. Small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. The same move in Kickboxing, Muay Thai and MMA. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
       "tags": [
         "kickboxing",
         "switch kick",
         "te salap",
         "muay thai",
         "kickboxing technique",
+        "mma",
         "training mode"
       ]
     },
@@ -109,6 +110,18 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-03 cut from clip 23 at the owner's word. Shots: front 0–6.27 (hook, name, key points 1–2, the fix and the drill), 45° 6.27–12.39 (key point 3 and the WATCH FOR freeze), so no beat crosses the join. The body tracker is unreliable in the first second, so key point 1's marker is pinned by hand on the feet. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+    "2026-11-03 cut from clip 23 at the owner's word. Shots: front 0–6.27 (hook, name, key points 1–2, the fix and the drill), 45° 6.27–12.39 (key point 3 and the WATCH FOR freeze), so no beat crosses the join. The body tracker is unreliable in the first second, so key point 1's marker is pinned by hand on the feet. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 owner: the roundhouse and the switch kick are not just Muay Thai; they're Kickboxing, Muay Thai and MMA. Discipline now lists all three (one chip each); the app has the move in all three disciplines with the same words."
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-switch-kick/video.mp4",
+    "cover": "exports/2026-11-03-practice-switch-kick/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-switch-kick/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-switch-kick/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T16:52:58.329Z"
 }

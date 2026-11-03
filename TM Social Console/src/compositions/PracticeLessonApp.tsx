@@ -1,6 +1,6 @@
 import { AbsoluteFill, Freeze, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { FPS } from '../brand';
-import { CUE_LEAD, Chip, F, LEVEL, Marker, P, Rise, SLOW, Tile, at, bodyCentre, markPoint, tileMark, usePose, type Cue, type PracticeTutorialProps } from './PracticeTutorial';
+import { CUE_LEAD, Chip, F, LEVEL, Marker, P, Rise, SLOW, Tile, at, bodyCentre, disciplines, markPoint, tileMark, usePose, type Cue, type PracticeTutorialProps } from './PracticeTutorial';
 
 // The in-app cut of a Practice tutorial: 16:9 (1920×1080) for the lesson
 // card's player (PracticeMode.jsx DetailCard, which is 16:9 and only ~390 px
@@ -75,7 +75,7 @@ const Head: React.FC<{ p: PracticeLessonAppProps; small?: boolean }> = ({ p, sma
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
       <div style={{ fontFamily: F.head, fontWeight: 700, fontSize: small ? 40 : 52, letterSpacing: '0.08em', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.technique.toUpperCase()}</div>
       <div style={{ display: 'flex', gap: 10 }}>
-        <Chip size={17} color="#fff" line="rgba(255,255,255,0.4)">{p.discipline.toUpperCase()}</Chip>
+        {disciplines(p).map((d) => <Chip key={d} size={17} color="#fff" line="rgba(255,255,255,0.4)">{d.toUpperCase()}</Chip>)}
         {p.badge ? <Chip size={17}>{p.badge.toUpperCase()}</Chip> : null}
         {p.level ? <Chip size={17} color={LEVEL[p.level] ?? P.gold}>{p.level.toUpperCase()}</Chip> : null}
       </div>
@@ -175,7 +175,7 @@ export const PracticeLessonApp: React.FC<PracticeLessonAppProps> = (p) => {
             {p.description ? <Rise delay={9}><div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 40, color: P.soft, lineHeight: 1.25 }}>{p.description}</div></Rise> : null}
             {p.alias ? <Rise delay={11}><div style={{ fontFamily: F.head, fontWeight: 600, fontSize: 38, color: P.lilac, letterSpacing: '0.12em' }}>{p.alias}</div></Rise> : null}
             <Rise delay={13} style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <Chip size={20} color="#fff" line="rgba(255,255,255,0.4)">{p.discipline.toUpperCase()}</Chip>
+              {disciplines(p).map((d) => <Chip key={d} size={20} color="#fff" line="rgba(255,255,255,0.4)">{d.toUpperCase()}</Chip>)}
               {p.badge ? <Chip size={20}>{p.badge.toUpperCase()}</Chip> : null}
               {p.level ? <Chip size={20} color={LEVEL[p.level] ?? P.gold}>{p.level.toUpperCase()}</Chip> : null}
             </Rise>

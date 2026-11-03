@@ -1,7 +1,7 @@
 {
   "id": "2026-11-01-practice-cross",
   "title": "Practice: Cross",
-  "status": "rendered",
+  "status": "rejected",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-01",
   "source": "Practice Mode tutorial sample (the designed format, brain/formats.md). Words from the app's Technique Library (practiceData.js: Muay Thai › Cross). Footage: the owner's clip 7 (ring, 2026-10-31), raw-footage/practice/p7.mp4.",
@@ -120,7 +120,8 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-01 the first Practice tutorial, as the sample of the designed format. No voice yet (the coach lines are shown as captions). Owner approves before anything posts; TikTok as Only me first."
+    "2026-11-01 the first Practice tutorial, as the sample of the designed format. No voice yet (the coach lines are shown as captions). Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 rejected: Owner: take out duplicates. This sample used clip 7, the same footage as the Rear Diagonal Elbow, and was labeled as a cross."
   ],
   "exports": {
     "video": "exports/2026-11-01-practice-cross/video.mp4",

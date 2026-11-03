@@ -4,9 +4,34 @@ What the Practice tutorials still need on film, and how to shoot it so the
 cut works (the pipeline finds your body with MediaPipe and zooms on feet,
 knees, hips, hands and chin, so the whole body has to be in frame and sharp).
 
-Status 2026-11-02 (owner): the kicks, knees and elbows are all good (filmed,
-clear). Still to film: the punches (the camera's were soft), the special moves,
-and the four stances (Saturday).
+## Still to film (the owner's list, 2026-11-03)
+
+| What | When | Notes |
+|---|---|---|
+| Four stances: boxing, kickboxing, Muay Thai, MMA | Saturday | lesson 1 of each path; the deblurred boxing stance was taken out as too blurry |
+| All the punches | Saturday | jab, cross, lead and rear hook, lead and rear uppercut, overhand, body jab, body cross; one clip per stance (below) |
+| Flying knee | | special move; Thai khao loi (เข่าลอย) |
+| Hurricane kick | | special move: the jumping spinning kick (the spinning back kick, clip 22, is already filed) |
+| Spinning back fist | | special move |
+| Double-hand punch | | special move: the SHOTO fireball theme (data/concepts/shoto.js) |
+| Fake teep to sliding elbow | | special move: the SHOTO demon theme, sliding fake teep into the rear elbow |
+| Spinning jump kick | optional | the owner: not necessary, but can do it |
+| Clinch knee | | fills the Lead Knee entries, which are the clinch knee (pull the opponent in) |
+| Clinch side knee | | the owner's clinch oblique or transverse knee, coming out to the side in the clinch; Thai khao tat (เข่าตัด), the horizontal knee; name to confirm |
+| Lead and rear spear elbow | | unless clips 13 and 15 are them: the owner names them |
+| Elbow to the body | maybe | the owner isn't sure it's filmed |
+
+Also in the app with no footage yet, not on the owner's list: lead and rear
+teep, low kick, rear side kick, check (all in Kickboxing, Muay Thai and/or
+MMA), Muay Thai clinch entry, the MMA grappling entries (sprawl, level
+change, basic shoot entry, ground-and-pound posture), and every Defense and
+Footwork entry.
+
+## Taken out
+
+- **Boxing stance** (Angel's camera, deblurred): too blurry; re-shot Saturday.
+- **Practice: Cross** sample: it used clip 7, the same footage as the Rear
+  Diagonal Elbow, labeled as a cross.
 
 ## Every clip
 
@@ -49,6 +74,9 @@ shoot.
 
 ## Clips on file (raw-footage/practice, not in git)
 
+The raw-footage copies are hard links to the owner's uploads, so each clip
+sits on disk once.
+
 | Clip | What the owner says it is | Status |
 |---|---|---|
 | 1 | spinning back elbow (Sok Klap) | cut |
@@ -56,51 +84,29 @@ shoot.
 | 3 | rear hook elbow (Sok Tat) | cut |
 | 4 | lead uppercut elbow (Sok Ngat); 6 is a second take | cut |
 | 7 | rear diagonal elbow (Sok Chieng: high to low at 45°); 9 and 10 look like other takes | cut |
-| 8 | lead diagonal elbow (Sok Chieng), owner's word | cut |
+| 8 | lead diagonal elbow (Sok Chieng) | cut |
 | 16 | tomahawk elbow (Sok Sap, the jumping one); 5, 11 and 17 are other takes | cut |
 | 18 | rear uppercut elbow (Sok Ngat) | cut |
-| 13, 15 | the spear elbows? 15 has a lead-arm thrust from a turned stance, 13 a rear-arm drive forward and up; the owner names them | to name |
+| 13, 15 | the spear elbows? 15 has a lead-arm thrust from a turned stance, 13 a rear-arm drive forward and up | to name |
 | 12, 14 | spinning or rear-view takes | alternates |
+| 19 | lead side kick (karate: yoko geri) | cut |
+| 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi) | cut |
+| 21 | machine gun kick (Thai: te rua, เตะรัว) | cut |
+| 22 | spinning back heel kick (karate: ushiro geri; Thai: te klap lang, เตะกลับหลัง) | filed, not cut yet |
+| 23 | switch kick (Thai: te salap, เตะสลับ); Kickboxing, Muay Thai and MMA | cut |
+| 24 | rear roundhouse kick (Thai: te tat, เตะตัด); Kickboxing, Muay Thai and MMA; a soft InShot join at 5.63 s | cut |
+| 25 | lead shuffle knee (Thai: khao yao, เข่ายาว, the long knee); 5.6 s, two reps | cut |
+| 26 | rear knee (Thai: khao trong, เข่าตรง); soft joins at 2.93 and 5.5 s | cut |
+| 27 | roundhouse knee, disguised as a low roundhouse kick (Thai: khao khong, เข่าโค้ง) | cut |
 
-The owner's full elbow list (2026-11-03): lead and rear spear, lead and rear
-uppercut, lead and rear hook, lead and rear diagonal, one spinning back,
-tomahawk (the jumping one); maybe an elbow to the body. All are Technique
-Library entries except the body elbow.
-| 19 | lead side kick (karate: yoko geri) | filed 2026-11-03 |
-| 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi, the advancing side thrust kick) | filed 2026-11-03 |
-| 21 | machine gun kick (Thai: te rua, เตะรัว, rapid-fire kicks) | filed 2026-11-03 |
-| 22 | spinning back heel kick (karate: ushiro geri; Thai: te klap lang, เตะกลับหลัง) | filed 2026-11-03 |
-| 23 | switch kick (Thai: te salap, เตะสลับ), owner's word | cut |
-| 24 | rear roundhouse kick (Thai: te tat, เตะตัด), owner's word; a soft InShot join at 5.63 s that scene detection misses | cut |
-| 25 | lead shuffle knee (Thai: khao yao, เข่ายาว, the long knee), owner's word; 5.6 s, two reps | cut |
-| 26 | rear knee (Thai: khao trong, เข่าตรง), owner's word; soft joins at 2.93 and 5.5 s | cut |
-| 27 | roundhouse knee, disguised as a low roundhouse kick (Thai: khao khong, เข่าโค้ง), owner's word; one shot, a lead-leg knee at the end | cut |
+The owner's elbow list: lead and rear spear, lead and rear uppercut, lead and
+rear hook, lead and rear diagonal, one spinning back, tomahawk (the jumping
+one), maybe an elbow to the body.
 
-Clips 19–22 are in the app's Technique Library: Kickboxing › Lead Side Kick
-(now "Yoko geri: …"), Kickboxing › Stepping Side Kick (new), Kickboxing ›
-Spinning Back Kick (new), Muay Thai › Machine Gun Kick (new). The owner is sending the rest of the kicks as they
-load.
-
-## Kicks, knees, elbows: done
-
-Filmed and clear; nothing to reshoot. Per technique the cut wants three reps
-facing the camera, one at 45°, one slow, and one wrong rep followed by the
-fix; where a clip lacks the wrong rep, the WATCH FOR beat freezes a frame of
-the right rep behind a red ring, which is weaker. Send them named or with the
-order in the message.
-
-Where each one goes:
-
-| Clip | App lesson or Library entry |
-|---|---|
-| lead teep, rear teep | Kickboxing › Front Kick / Teep; Muay Thai › Teep; MMA › Teep or Low Kick |
-| rear roundhouse (clip 24, cut) | Kickboxing › Rear Roundhouse Kick; Muay Thai › Roundhouse Kick |
-| switch kick (clip 23, cut) | Kickboxing › Switch Kick |
-| low kick | MMA › Teep or Low Kick |
-| rear knee (clip 26, cut) | Muay Thai › Knee (lesson); Rear Knee entries in Kickboxing, Muay Thai, MMA |
-| lead knee | Lead Knee entries (the clinch knee) |
-| lead shuffle knee (clip 25, cut) | Muay Thai › Lead Shuffle Knee (new entry) |
-| elbows (horizontal, diagonal, uppercut, spinning…) | Muay Thai › Elbow (lesson) and the Technique Library entries (Lead Diagonal Elbow is cut) |
+Per technique the cut wants three reps facing the camera, one at 45°, one
+slow, and one wrong rep followed by the fix; where a clip lacks the wrong
+rep, the WATCH FOR beat freezes a frame of the right rep behind a red ring,
+which is weaker. Send them named or with the order in the message.
 
 ## Punches (refilm)
 
@@ -110,21 +116,19 @@ exist in all four paths, so one clip per stance (jab × 3, cross × 3, jab-cross
 Cross; Muay Thai › Jab + Cross; MMA › Jab + Cross. Shoot them in that
 discipline's stance so the feet match the lesson.
 
-## Special moves (refilm)
+## Special moves
 
 The SHOTO drop's special-move themes, as the real movements the app teaches
-(data/concepts/shoto.js). Each is a short tutorial of its own, same five
-pieces as a strike: three reps facing the camera, one at 45°, one slow, one
-wrong rep then the fix. The spinning moves need the most room behind you.
+(data/concepts/shoto.js), plus the owner's own specials. Each is a short
+tutorial of its own: three reps facing the camera, one at 45°, one slow, one
+wrong rep then the fix. The spinning and jumping moves need the most room.
+On screen the cut names the real movement only, never a character or a game.
 
-| Special (theme) | What to film |
+| Special | What to film |
 |---|---|
-| Fireball | double-hand push: push the bag back, counter as it returns |
-| Rising uppercut | explosive rear uppercut (and the gazelle uppercut from the Rising Dragon super) |
-| Hurricane kick | spinning back kick (the real kick on the bag for the advanced cut) |
-| Raging demon | sliding fake teep forward and back, fake teep to rear elbow |
-| Super moves | switch kick, spinning back elbow, sliding fake teep: the pieces of Dragon Storm and Demon Barrage not covered above |
-
-Film them in the Muay Thai or kickboxing stance; the cut names the real
-movement on screen, never the character or the game.
-
+| Double-hand punch (fireball theme) | both hands drive out together; push the bag back, counter as it returns |
+| Fake teep to sliding elbow (demon theme) | sliding fake teep forward and back, then the rear elbow |
+| Hurricane kick | the jumping spinning kick |
+| Flying knee | run or step, jump, the knee drives up |
+| Spinning back fist | step across, spin, the back of the fist on the turn |
+| Spinning jump kick | optional |
