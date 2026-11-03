@@ -90,6 +90,15 @@ const reducedMotion = () => { try { return !!window.matchMedia?.('(prefers-reduc
 // the card's ▾ toggle. The slider's rules name input[type=range] so they
 // outrank the app-wide range style in Styles.js.
 const QM_CSS = `
+.qm-dice { display: flex; align-items: flex-end; justify-content: center; height: 22px; }
+.qm-die { display: inline-block; font-size: 18px; line-height: 1; }
+.qm-die.a { transform: rotate(-14deg); }
+.qm-die.b { transform: rotate(16deg); margin-left: -3px; }
+@keyframes qm-roll-a { 0% { transform: rotate(-14deg); } 45% { transform: translate(-3px, -7px) rotate(-200deg); } 100% { transform: rotate(346deg); } }
+@keyframes qm-roll-b { 0% { transform: rotate(16deg); } 50% { transform: translate(3px, -9px) rotate(220deg); } 100% { transform: rotate(-344deg); } }
+.qm-rolling .qm-die.a { animation: qm-roll-a .55s cubic-bezier(.3,.7,.4,1); }
+.qm-rolling .qm-die.b { animation: qm-roll-b .62s cubic-bezier(.3,.7,.4,1); }
+@media (prefers-reduced-motion: reduce) { .qm-rolling .qm-die { animation: none; } }
 input[type=range].qm-range { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 44px; margin: 0; padding: 0; background: transparent; pointer-events: none; }
 input[type=range].qm-range::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, ${VIOLET}, ${GOLD}) 0 0 / calc(${THUMB / 2}px + var(--p) * (100% - ${THUMB}px)) 100% no-repeat, #1D1636; }
 input[type=range].qm-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: ${THUMB}px; height: ${THUMB}px; margin-top: -10px; border-radius: 50%; background: ${GOLD}; border: 3px solid #1A1204; box-shadow: 0 0 14px rgba(242,190,69,.7); }
@@ -329,7 +338,10 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // SURPRISE keeps GEAR and TIME (the two choices on the page) and deals a
   // new level, focus and moves. It is not a choice, so it is not saved: the
   // next visit opens on what the athlete picked.
+  // The two dice on SURPRISE roll on every tap (remounted by key).
+  const [roll, setRoll] = useState(0);
   const surprise = () => {
+    setRoll(r => r + 1);
     clearPick();
     let f = focus, i = difficulty;
     while (f === focus && i === difficulty) { f = rand(QM_FOCI); i = rand(QM_INTENSITY); }
@@ -660,7 +672,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                     ...chf, width: 64, height: 50, flexShrink: 0, padding: 0, cursor: 'pointer',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
                     background: CARD, border: '1px solid rgba(157,108,255,0.5)', color: '#fff', font: `700 8px ${HEAD}`, letterSpacing: '0.12em',
-                  }}><span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1 }}>🎲</span>SURPRISE</button>
+                  }}><span key={roll} aria-hidden="true" className={roll ? 'qm-dice qm-rolling' : 'qm-dice'}><span className="qm-die a">🎲</span><span className="qm-die b">🎲</span></span>SURPRISE</button>
                 )}
               </div>
             </div>
