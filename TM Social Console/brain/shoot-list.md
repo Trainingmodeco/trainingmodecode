@@ -74,6 +74,7 @@ Library entries except the body elbow.
 | 24 | rear roundhouse kick (Thai: te tat, เตะตัด), owner's word; a soft InShot join at 5.63 s that scene detection misses | cut |
 | 25 | lead shuffle knee (Thai: khao yao, เข่ายาว, the long knee), owner's word; 5.6 s, two reps | cut |
 | 26 | rear knee (Thai: khao trong, เข่าตรง), owner's word; soft joins at 2.93 and 5.5 s | cut |
+| 27 | roundhouse knee, disguised as a low roundhouse kick (Thai: khao khong, เข่าโค้ง), owner's word; one shot, a lead-leg knee at the end | cut |
 
 Clips 19–22 are in the app's Technique Library: Kickboxing › Lead Side Kick
 (now "Yoko geri: …"), Kickboxing › Stepping Side Kick (new), Kickboxing ›
