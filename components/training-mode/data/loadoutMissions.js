@@ -971,7 +971,7 @@ export function emptyShelfCopy({ loadout = 'all', theme = 'all' } = {}) {
     // No SHOW NO GEAR button when NO GEAR is already the loadout (it would do nothing; never empty in Drop A).
     return { text: `No ${th} missions for ${lo} yet.`, action: loadout === 'none' ? null : { label: 'SHOW NO GEAR', loadout: 'none' } };
   }
-  return { text: `No ${lo} missions yet. Try MIXED, or SURPRISE ME for a no-gear mission.`, action: null };
+  return { text: `No ${lo} missions yet. Try MIXED, or today's mission on the card.`, action: null };
 }
 
 export const SHELF_PREFS_KEY = 'tm_qm_shelf_v1';

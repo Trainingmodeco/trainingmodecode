@@ -121,12 +121,29 @@ const sheet = () => page.getByRole('dialog', { name: 'Mission library' });
 const library = async () => { await page.locator('[data-guide="qm-library"]').click({ timeout: 4000 }); await S(700); };
 const pickRow = async (re) => { await library(); await sheet().getByRole('radio', { name: re }).click({ timeout: 4000 }); await S(300); };
 const putOnCard = async (re) => { await pickRow(re); await sheet().getByRole('button', { name: 'PUT ON CARD' }).click({ timeout: 4000 }); await S(600); };
-// The page's keys (GEAR · LEVEL · TIME · FOCUS) are radio strips.
-const key = (group, name) => page.locator('[data-guide="qm-keys"]').getByRole('radiogroup', { name: group }).getByRole('radio', { name, exact: true });
+// The page: the card (▾ SEE ALL opens it in place, ADJUST sits on the open
+// card), GEAR (a radio strip) and TIME (a range input, 10 to 60 by 5).
+const card = () => page.locator('[data-guide="qm-card"]');
+const gearKey = (name) => page.locator('[data-guide="qm-gear"]').getByRole('radio', { name, exact: true });
+const slider = () => page.locator('[data-guide="qm-time"] input[type="range"]');
+const expand = async () => { if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') { await page.locator('[data-guide="qm-expand"]').click({ timeout: 4000 }); await S(600); } };
+const adjustSheet = () => page.getByRole('dialog', { name: 'Adjust' });
+const adjust = async () => { await expand(); await page.locator('[data-guide="qm-adjust"]').click({ timeout: 4000 }); await S(500); };
+const done = async () => { await adjustSheet().getByRole('button', { name: /DONE/ }).click({ timeout: 4000 }); await S(400); };
+const timeTo = async (mins) => {
+  await slider().focus();
+  for (let i = 0; i < 12; i++) {
+    const v = Number(await slider().inputValue());
+    if (v === mins) return;
+    await page.keyboard.press(v < mins ? 'ArrowRight' : 'ArrowLeft'); await S(80);
+  }
+  throw new Error(`TIME never reached ${mins}`);
+};
 await check('quick mission: library matches the flag', async () => {
   await quick(); await library();
   const t = await sheet().innerText();
   if (V2_PUBLIC !== /MISSIONS\s*\d+/.test(t)) throw new Error(V2_PUBLIC ? 'no MISSIONS in the library' : 'v2 missions in the library while QM_V2_FOR_EVERYONE is false');
+  if (!/MISSION LIBRARY · \d+/.test(t) || !/Ready-made workouts\./.test(t)) throw new Error('the library header is not MISSION LIBRARY · n with its line');
 }, /CLASSICS/);
 await check('quick mission: back closes the library first', async () => {
   await quick(); await library();
@@ -142,37 +159,84 @@ await check('quick mission: back closes the library first', async () => {
   // The header's back arrow sits under the sheet's backdrop: call it directly.
   await library(); await page.evaluate(() => document.querySelector('button[aria-label="Back"]').click()); await S(500);
   if (await sheet().count()) throw new Error('Back left the library open');
-}, /BUILD YOUR OWN/i);
-await check('quick mission: weighted classic starts weighted', async () => { await quick(); await pickRow(/^CHAOS ENGINE/); await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
-await check('quick mission: murph starts', async () => { await quick(); await putOnCard(/^MURPH$/); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
-await check('quick mission: WEIGHTED key starts a weighted mission', async () => {
-  await quick(); await key('Gear', 'WEIGHTED').click({ timeout: 4000 }); await S(400);
-  if (!/WEIGHTED/.test(await page.locator('[data-guide="qm-length"]').innerText())) throw new Error('the card is not a weighted mission');
+}, /MISSION LIBRARY/);
+await check('quick mission: the first page is the card, GEAR, TIME and the library', async () => {
+  await quick();
+  const t = await page.evaluate(() => document.querySelector('.no-scrollbar').innerText);
+  if (/BUILD YOUR OWN|ADD CARDIO|FOCUS|LEVEL/.test(t)) throw new Error('the old keys or ADD CARDIO are still on the page');
+  if (await card().locator('ol > li').count() !== 3) throw new Error('the closed card does not list 3 moves');
+  if (await slider().getAttribute('aria-valuetext') !== '20 minutes') throw new Error('TIME does not open on 20 minutes');
+  if ((await slider().boundingBox()).height < 44) throw new Error('the TIME slider is under 44px tall');
+}, /SEE ALL \d+ MOVES|SEE MORE/);
+await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => {
+  await quick();
+  const n = Number((await page.locator('[data-guide="qm-expand"]').innerText()).match(/\d+/)?.[0] || 3);
+  await expand();
+  if (await card().locator('ol > li').count() !== n) throw new Error(`the open card does not list all ${n} moves`);
+  if (!/about \d+ min/.test(await card().innerText())) throw new Error('no "about N min" line on the open card');
+  await adjust();
+  if (!await adjustSheet().count()) throw new Error('ADJUST did not open its sheet');
+  for (let i = 0; i < 16; i++) {
+    await page.keyboard.press('Tab');
+    if (!await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))) throw new Error(`Tab ${i + 1} left ADJUST`);
+  }
+  await adjustSheet().getByRole('radiogroup', { name: 'Focus' }).getByRole('radio', { name: 'UPPER', exact: true }).click({ timeout: 4000 });
+  await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  if (await adjustSheet().count()) throw new Error('DONE left ADJUST open');
+  if (await page.evaluate(() => document.activeElement?.getAttribute('data-guide')) !== 'qm-adjust') throw new Error('focus did not come back to ADJUST');
+  const c = await card().innerText();
+  if (!/UPPER/i.test(c) || !/HARD/.test(c)) throw new Error('the card did not rebuild for UPPER · HARD');
+  await page.locator('[data-guide="qm-expand"]').click({ timeout: 4000 }); await S(400);
+  if (await card().locator('ol > li').count() !== 3) throw new Error('SHOW LESS did not fold the card');
+}, /SEE ALL|SEE MORE/);
+await check('quick mission: TIME 45 and WEIGHTED start a weighted mission', async () => {
+  await quick(); await timeTo(45); await gearKey('WEIGHTED').click({ timeout: 4000 }); await S(400);
+  const c = await card().innerText();
+  if (!/45 MIN/i.test(c) || !/WEIGHTED/.test(c)) throw new Error('the card is not a 45-minute weighted mission');
+  if (await slider().getAttribute('aria-valuetext') !== '45 minutes') throw new Error('TIME does not say 45 minutes');
   await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
   if (!/WEIGHTED/.test(await text())) throw new Error('no WEIGHTED on the status strip');
 }, /ROUND|GET READY|PREPARING|WORK/);
-await check('quick mission: keys are remembered', async () => {
-  await quick(); await key('Level', 'HARD').click({ timeout: 4000 }); await key('Time', '20').click({ timeout: 4000 }); await S(300);
-  // SURPRISE's roll is not a choice: a key tapped after it saves only itself.
+await check('quick mission: choices are remembered, SURPRISE is not', async () => {
+  await quick(); await timeTo(30);
+  await adjust(); await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await done();
+  // SURPRISE keeps GEAR and TIME and is not a choice: a choice made after it
+  // saves only itself.
   await page.locator('[data-guide="qm-surprise"]').click({ timeout: 3000 }); await S(300);
-  await key('Gear', 'BODYWEIGHT').click({ timeout: 4000 }); await S(300);
+  if (!/30 MIN/i.test(await card().innerText())) throw new Error('SURPRISE changed the TIME');
+  await gearKey('HYBRID').click({ timeout: 4000 }); await S(300);
   await page.locator('button[aria-label="Back"]').click({ timeout: 3000 }); await S(800);
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
-  if (await key('Level', 'HARD').getAttribute('aria-checked') !== 'true' || await key('Time', '20').getAttribute('aria-checked') !== 'true') throw new Error('the keys came back as the defaults or the SURPRISE roll');
-}, /20 MIN/i);
+  if (await slider().inputValue() !== '30' || await gearKey('HYBRID').getAttribute('aria-checked') !== 'true') throw new Error('GEAR or TIME came back as the defaults');
+  if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') throw new Error('the open card came back closed');
+  await adjust();
+  if (await adjustSheet().getByRole('radio', { name: 'HARD', exact: true }).getAttribute('aria-checked') !== 'true') throw new Error('LEVEL came back as the default or the SURPRISE roll');
+}, /HARD/);
+await check('quick mission: weighted classic starts weighted', async () => { await quick(); await pickRow(/^CHAOS ENGINE/); await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
+await check('quick mission: murph starts', async () => { await quick(); await putOnCard(/^MURPH$/); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
+await check('quick mission: library pick + START', async () => {
+  await quick(); await pickRow(V2_PUBLIC ? /^BEST OF 3/ : /^HALF MURPH/);
+  if (!/ON TOP/.test(await sheet().innerText())) throw new Error('the picked row is not on top');
+  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4500);
+}, /ROUND|GET READY|PREPARING|EXERCISE/);
 await check('owner: quick mission library filters', async () => {
   await ownerQuick(); await library();
   if (!await sheet().getByRole('radiogroup', { name: 'Loadout' }).count()) throw new Error('no LOADOUT chips');
 }, /MISSIONS/);
 await check('owner: quick mission swap sheet', async () => {
   await ownerQuick(); await putOnCard(/^TUTORIAL STAGE/);
+  if (await page.locator('button[aria-label="Swap Sprawls"]').count()) throw new Error('a swap on the closed card');
+  await expand();
   await page.locator('button[aria-label="Swap Sprawls"]').click({ timeout: 4000 }); await S(800);
 }, /SWAP: SPRAWLS/);
 await page.locator('button[aria-label="Close"]').first().click({ timeout: 1500 }).catch(() => {});
 await check('owner: one-bell guided start', async () => { await ownerQuick(); await putOnCard(/^ONE-BELL 300/); await btn(/^START$/).click({ timeout: 4000 }); await S(5000); }, /ROUND|GET READY|PREPARING/);
 await check('owner: turbo solo start', async () => {
   await ownerQuick(); await putOnCard(/^TURBO BUTTON/);
-  await page.locator('[data-guide="qm-mode"]').getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /SOLO/);

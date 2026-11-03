@@ -125,6 +125,18 @@ const REST_MAX = 90;
 const LOADED_REST_MIN = 30;
 const LOADED_REST_MAX = 120;
 
+// Rounds and the most moves a round takes, by length. The setup screen's
+// TIME runs 10 to 60 minutes; the hub and Home still deal 5. Up to 35
+// minutes a round is up to eight moves; past that the mission gets a fifth
+// and a sixth round and up to ten moves, so 45 to 60 minutes is more work,
+// not a minute and a half of rest after every set.
+function roundsFor(mins) {
+  return mins <= 7 ? 1 : mins <= 15 ? 2 : mins <= 25 ? 3 : mins <= 35 ? 4 : mins <= 45 ? 5 : 6;
+}
+function movesFor(mins) {
+  return mins <= 35 ? 8 : 10;
+}
+
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -238,7 +250,8 @@ export function generateQuickMission({ workoutType = 'Bodyweight', duration = 10
   const finisherBudget = cardioFinisher ? Math.min(120, budget * 0.2) : 0;
   const mainBudget = budget - finisherBudget;
 
-  const rounds = mins <= 7 ? 1 : mins <= 15 ? 2 : mins <= 25 ? 3 : 4;
+  const rounds = roundsFor(mins);
+  const maxMoves = movesFor(mins);
   const tag = FOCUS_TAG[focus];
 
   const build = (move) => {
@@ -250,15 +263,16 @@ export function generateQuickMission({ workoutType = 'Bodyweight', duration = 10
     return move.loaded ? { ...ex, isWeighted: true } : ex;
   };
 
-  // Deal up to eight moves, then keep only as many as the minutes hold.
-  const dealt = pickMoves(workoutType, tag, 8).map(build);
+  // Deal up to the most moves the length takes, then keep only as many as
+  // the minutes hold.
+  const dealt = pickMoves(workoutType, tag, maxMoves).map(build);
   const exercises = [];
   for (const ex of dealt) {
     const next = [...exercises, ex];
     const est = next.reduce((s, e) => s + slotSeconds(e), 0) * rounds;
     if (exercises.length >= 3 && est > mainBudget * 1.05) break;
     exercises.push(ex);
-    if (exercises.length >= 8) break;
+    if (exercises.length >= maxMoves) break;
   }
 
   // Close the remaining gap with rest: longer when the minutes are generous,

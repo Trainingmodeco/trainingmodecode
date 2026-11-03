@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
-import { Folder, X, Check, ChevronRight } from 'lucide-react';
+import { X, Check, ChevronRight } from 'lucide-react';
 import { NAV_H } from './Styles';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
+import useSheetModal, { GRAB_BAR } from './shared/useSheetModal';
 import { GoldButton, GhostButton, Tag, HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD } from './shared/FitSetupKit';
 import { QM_LEVEL_WORD } from './data/quickMissionConfig';
 import { namedWorkoutById } from './data/namedWorkouts';
@@ -16,24 +17,26 @@ import {
 // through them).
 //
 // The Workout Map's tall floating sheet (floatPanel, portalled so it rests on
-// the tab bar instead of under it). Only the list scrolls: the header, the
-// pinned preview of the highlighted mission, the LOADOUT / THEME chips and
-// the footer stay put. Tapping a row only highlights it. PUT ON CARD hands it
-// to the page, where its card has every control (GUIDED / SOLO, LEVEL,
-// swaps); START runs it from here, in the remembered run mode at its default
-// level, the one the preview and the row show. The preview is read-only, so
-// nothing in here ever opens a second sheet.
+// the tab bar instead of under it). The header says what it is: MISSION
+// LIBRARY · 28 and one line, "Ready-made workouts. Tap one to see it on top,
+// then START." Only the list scrolls: the header, the pinned preview of the
+// highlighted mission, the LOADOUT / THEME chips and the footer stay put.
+// Tapping a row only highlights it. PUT ON CARD hands it to the page, where
+// its card opens to every move and its swaps, with LEVEL and GUIDED / SOLO
+// behind ADJUST; START runs it from here, in the remembered run mode at its
+// default level, the one the preview and the row show. The preview is
+// read-only, so nothing in here ever opens a second sheet.
 //
 // The filters are the shelf prefs MISSION SELECT used (tm_qm_shelf_v1), so
 // they come back from the last visit. They wrap rather than scroll sideways.
-// A modal: Tab stays inside, and closing hands focus back to the folder row.
+// A modal (shared/useSheetModal): Tab stays inside, Escape or a swipe down on
+// the grab bar closes it, and closing hands focus back to the folder row.
 const same = (a, b) => !!a && !!b && a.kind === b.kind && a.id === b.id;
 const keyOf = (e) => `${e.kind}-${e.id}`;
-// The page's MEDIUM for the stored NORMAL, as on the keys.
+// The page's MEDIUM for the stored NORMAL, as on the card.
 const levelTag = (t) => QM_LEVEL_WORD[t] || t;
 // The chips' short words ('1 BELL / DB' stays on the rows).
 const CHIP_WORD = { bell: 'BELL / DB' };
-const FOCUSABLE = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 // A short phone (360 x 740) keeps the list tall enough to browse: the preview
 // drops its MISSION line and its third move (the "+ N more" that counts them
@@ -48,7 +51,7 @@ const CSS = `
 @media (max-height: 760px) {
   .ml-move-3, .ml-more-3, .ml-line-MISSION { display: none !important; }
   .ml-more-2 { display: block !important; }
-  .ml-head { padding: 8px 12px 6px 14px !important; }
+  .ml-head { padding: 6px 12px 6px 14px !important; }
   .ml-preview { padding: 8px 12px !important; gap: 4px !important; }
   .ml-foot { padding: 8px 12px 10px !important; }
 }
@@ -166,30 +169,12 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
   const empty = list.length ? null : emptyShelfCopy({ loadout, theme });
 
   // Opened with a library mission on the card: start with its row in view.
-  // Focus moves into the sheet, and back to whatever opened it (the folder
-  // row) when it closes, however it closes.
   const rowRefs = useRef({});
-  const panelRef = useRef(null);
+  const { panelRef, trapTab, grabProps } = useSheetModal(onClose);
   useEffect(() => {
-    const opener = document.activeElement;
-    panelRef.current?.focus({ preventScroll: true });
     if (onTop) rowRefs.current[keyOf(onTop)]?.scrollIntoView({ block: 'center' });
-    return () => { if (opener?.isConnected) opener.focus?.({ preventScroll: true }); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-  // Tab and Shift+Tab wrap inside the sheet, never reaching the page behind it.
-  const trapTab = (e) => {
-    if (e.key !== 'Tab' || !panelRef.current) return;
-    const els = [...panelRef.current.querySelectorAll(FOCUSABLE)].filter(el => el.getClientRects().length);
-    if (!els.length) return;
-    const first = els[0], last = els[els.length - 1], at = document.activeElement;
-    if (e.shiftKey && (at === first || at === panelRef.current || !panelRef.current.contains(at))) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && (at === last || !panelRef.current.contains(at))) { e.preventDefault(); first.focus(); }
-  };
+  const count = (shelf || []).length;
 
   return (
     <OverlayPortal>
@@ -197,20 +182,24 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
         <style dangerouslySetInnerHTML={{ __html: CSS }}/>
         <div onClick={onClose} style={{ flex: 1, ...FLOAT_BACKDROP }}/>
         <div onClick={onClose} style={{ position: 'absolute', inset: 0 }}/>
-        <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Mission library" onKeyDown={trapTab} style={{
+        <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Mission library" aria-describedby="ml-sub" onKeyDown={trapTab} style={{
           ...floatPanel(VIOLET, { wide: true }), height: 'calc(100% - 56px)', outline: 'none',
           display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'ml-up 0.26s ease',
         }}>
-          {/* Header */}
-          <div className="ml-head" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 12px 10px 14px' }}>
-            <Folder size={18} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>
-            <span style={{ minWidth: 0, font: `700 14px ${HEAD}`, letterSpacing: '0.14em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>MISSION LIBRARY</span>
-            <CountPill n={(shelf || []).length}/>
-            <span style={{ flex: 1 }}/>
-            <button type="button" aria-label="Close" onClick={onClose} style={{
-              width: 36, height: 36, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', color: '#CFC9E4', cursor: 'pointer',
-            }}><X size={16}/></button>
+          {/* Header: the grab bar (swipe down closes), MISSION LIBRARY · 28
+              and what it is. */}
+          <div className="ml-head" {...grabProps} style={{ flexShrink: 0, padding: '8px 12px 10px 14px', touchAction: 'none' }}>
+            <div aria-hidden="true" style={{ ...GRAB_BAR, marginBottom: 6 }}/>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ font: `700 15px ${HEAD}`, letterSpacing: '0.14em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>MISSION LIBRARY · {count}</span>
+                <span id="ml-sub" style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>Ready-made workouts. Tap one to see it on top, then START.</span>
+              </span>
+              <button type="button" aria-label="Close" onClick={onClose} style={{
+                width: 36, height: 36, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', color: '#CFC9E4', cursor: 'pointer',
+              }}><X size={16}/></button>
+            </div>
           </div>
 
           {/* The highlighted mission, pinned. Read-only: its controls live on

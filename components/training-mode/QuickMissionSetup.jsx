@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, Fragment } from 'react';
+import { useState, useMemo, useRef, useEffect, Fragment } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
@@ -7,9 +7,11 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import MoveSwapSheet, { MoveRow } from './shared/MoveSwapSheet';
 import MissionLibrarySheet, { CountPill } from './MissionLibrarySheet';
-import { Shuffle, Folder, ChevronDown, ChevronLeft } from 'lucide-react';
+import QuickMissionAdjustSheet from './QuickMissionAdjustSheet';
+import { Dices, Folder, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
-  QM_LENGTHS, QM_FOCI, QM_INTENSITY, QM_TYPES, QM_LEVEL_WORD, quickMissionConfig, loadQuickMissionKeys, saveQuickMissionKeys,
+  QM_FOCI, QM_INTENSITY, QM_TYPES, QM_LEVEL_WORD, QM_TIME_MIN, QM_TIME_MAX, QM_TIME_STEP, QM_TIME_TICKS,
+  quickMissionConfig, loadQuickMissionKeys, saveQuickMissionKeys,
 } from './data/quickMissionConfig';
 import { generateQuickMission, estimateQuickMissionSeconds, quickMissionDose } from './fit-mode/quickMissionGenerator';
 import AddCardioSheet from './AddCardioSheet';
@@ -23,66 +25,78 @@ import {
   classicMeta, shelfEntries, loadShelfPrefs, saveShelfPrefs,
 } from './data/loadoutMissions';
 import {
-  fitKitCSS, SetupHeader, SetupPage, GoldButton, Tag, ChipGroup, CardioToggleCard, Label,
+  fitKitCSS, SetupHeader, SetupPage, GoldButton, Tag, Label,
   HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD, CARD, CARD_BORDER, chf,
 } from './shared/FitSetupKit';
 
-// Quick Mission — the mission first, then the keys, then the library.
+// Quick Mission: a quick workout without having to think too much (Build
+// Workout is for the specifics). Top to bottom, the page is:
 //
-// The card at the top is the mission START runs: today's mission, built by
-// the generator from the keys under it, with its name, its moves and their
-// doses. SURPRISE on the card deals a different one. BUILD YOUR OWN is the
-// keys themselves, on the page: GEAR (bodyweight / weighted / hybrid), LEVEL,
-// TIME and FOCUS. The card rebuilds on every tap and the keys are remembered
-// for the next visit. What the card shows is exactly what runs: the previewed
-// mission travels with the config.
+//   TODAY'S QUICK MISSION  the card START runs: its name, its tags, the first
+//                          three moves, ▾ SEE ALL, START and a small SURPRISE
+//   GEAR                   bodyweight / weighted / hybrid
+//   TIME                   a slider, 10 to 60 minutes in 5-minute steps
+//   MISSION LIBRARY        one row that opens the library sheet
 //
-// Everything else lives behind one folder row, MISSION LIBRARY: a sheet with
-// the launch missions and the classics in one vertical list
-// (MissionLibrarySheet). PUT ON CARD brings one back here, where a launch
-// mission's card carries its LOADOUT / MISSION / SCORE lines, a LEVEL, GUIDED
-// or SOLO, and a swap on every move; any key (or the card's own way back)
-// returns to today's mission. Everything on that card comes from
-// data/loadoutMissions; this screen only holds the choices. With the v2 gate
-// off (data/qmV2) the library holds only the classics.
+// ▾ SEE ALL opens the card where it is: every move (with a swap on a library
+// mission's), how long it really takes, an ADJUST row and ▴ SHOW LESS. The
+// page scrolls just enough to bring the open card into view, and the card
+// stays open or closed for the next visit. ADJUST is a sheet
+// (QuickMissionAdjustSheet) with LEVEL, FOCUS, GUIDED or SOLO where a mission
+// has it, and ADD CARDIO. GEAR, TIME, LEVEL and FOCUS are remembered per
+// viewer (tm_qm_keys_v1); SURPRISE re-rolls the level, the focus and the
+// moves with the same GEAR and TIME, and saves nothing. What the card shows is
+// exactly what runs: the previewed mission travels with the config.
+//
+// The MISSION LIBRARY sheet (MissionLibrarySheet) holds the launch missions
+// and the classics. PUT ON CARD brings one here, onto the same card: the
+// first moves, ▾ SEE ALL, ADJUST (its level, GUIDED or SOLO, cardio) and a
+// small ‹ TODAY back to today's mission; touching GEAR or TIME goes back too.
+// Everything on a library card comes from data/loadoutMissions; this screen
+// only holds the choices. With the v2 gate off (data/qmV2) the library holds
+// only the classics.
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const focusLabel = (f) => (f === 'FULL BODY' ? 'Full Body' : cap(f));
 const GENERATED = { kind: 'generated' };
-// The owner's words on the keys: MEDIUM for the stored 'NORMAL', on the keys
-// and on every card's tags.
+// The owner's words: MEDIUM for the stored 'NORMAL', on ADJUST and on every
+// card's tags.
 const LEVEL_WORD = QM_LEVEL_WORD;
 const levelTag = (t) => LEVEL_WORD[t] || t;
-const GEAR_TAG = { Bodyweight: 'NO GEAR', Weighted: 'WEIGHTED', Hybrid: 'HYBRID' };
-const CARD_MOVES = 5; // the rest fold into "+ N more", so the keys stay on screen
+const GEAR_TAG = { Weighted: 'WEIGHTED', Hybrid: 'HYBRID' };
+const CARD_MOVES = 3; // the closed card's moves; ▾ SEE ALL shows the rest
+const THUMB = 28;     // the TIME slider's knob, px
+const notes = (a) => /^[+×]\s/.test(a); // a classic's "+ 3 more" / "× 2 rounds" lines are notes, not moves
 
-// The page's own CSS. A key is 40px (SegRow's height) and its hit area
-// reaches into the strip's padding. A narrow phone (360px) sets the keys in
-// 11px so BODYWEIGHT and COMBAT fit, keeps the card's tags on one row and
-// drops the about line's tail; a short one (740px) lists four moves on
-// today's card (its "+ N more" swaps to count them) and packs the keys a
-// little closer, so the MISSION LIBRARY row reaches the fold.
+// The card stays open or closed for the next visit, per viewer.
+const OPEN_KEY = 'tm_qm_card_open_v1';
+function loadCardOpen() { try { return localStorage.getItem(OPEN_KEY) === '1'; } catch { return false; } }
+function saveCardOpen(open) { try { localStorage.setItem(OPEN_KEY, open ? '1' : '0'); } catch { /* storage full or blocked */ } }
+const reducedMotion = () => { try { return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
+
+// The page's own CSS: the TIME slider (a native range input, so it is a real
+// slider to a screen reader and the arrow keys; 44px tall for the thumb) and
+// the card's ▾ toggle. The slider's rules name input[type=range] so they
+// outrank the app-wide range style in Styles.js.
 const QM_CSS = `
-.qm-key { position: relative; }
-.qm-key::after { content: ''; position: absolute; top: -3px; bottom: -3px; left: 0; right: 0; }
-@media (max-width: 380px) {
-  .qm-key { font-size: 11px !important; letter-spacing: 0.06em !important; }
-  .qm-tags { gap: 4px !important; }
-  .qm-tags > span { padding: 5px 6px !important; letter-spacing: 0.1em !important; }
-  .qm-wide { display: none; }
-}
-@media (max-height: 760px) {
-  .qm-move-5, .qm-more-5 { display: none !important; }
-  .qm-more-4 { display: block !important; }
-  .qm-keys { gap: 4px !important; }
-}
+input[type=range].qm-range { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 44px; margin: 0; padding: 0; background: transparent; cursor: pointer; }
+input[type=range].qm-range::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, ${VIOLET}, ${GOLD}) 0 0 / calc(${THUMB / 2}px + var(--p) * (100% - ${THUMB}px)) 100% no-repeat, #1D1636; }
+input[type=range].qm-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: ${THUMB}px; height: ${THUMB}px; margin-top: -10px; border-radius: 50%; background: ${GOLD}; border: 3px solid #1A1204; box-shadow: 0 0 14px rgba(242,190,69,.7); }
+input[type=range].qm-range::-moz-range-track { height: 8px; border-radius: 4px; background: #1D1636; }
+input[type=range].qm-range::-moz-range-progress { height: 8px; border-radius: 4px; background: linear-gradient(90deg, ${VIOLET}, ${GOLD}); }
+input[type=range].qm-range::-moz-range-thumb { width: ${THUMB - 6}px; height: ${THUMB - 6}px; border-radius: 50%; background: ${GOLD}; border: 3px solid #1A1204; box-shadow: 0 0 14px rgba(242,190,69,.7); }
+input[type=range].qm-range:focus-visible { outline: none; }
+input[type=range].qm-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(242,190,69,.9); }
+input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(242,190,69,.9); }
+.qm-toggle { transition: color .18s ease; }
+.qm-toggle:hover, .qm-toggle:focus-visible { color: #fff !important; }
 `;
 
-// LOADOUT · value rows on a v2 card (and the classic card's one LOADOUT line).
+// LOADOUT · value rows on a library card (and the classic card's one LOADOUT line).
 function HeaderLines({ lines }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(64px, auto) 1fr', gap: '2px 10px', alignItems: 'baseline' }}>
-      {lines.map(([k, v]) => (
+      {lines.filter(([, v]) => v).map(([k, v]) => (
         <Fragment key={k}>
           <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{k}</span>
           <span style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff' }}>{v}</span>
@@ -92,26 +106,58 @@ function HeaderLines({ lines }) {
   );
 }
 
-// One key: its label in a 52px column, then the kit's chamfered radio strip
-// (SegRow's look; SegRow puts its label above, the keys want it beside).
-// The options share the strip equally, but never shrink below their word:
-// on a 360px phone BODYWEIGHT and COMBAT take a little more than the rest.
-// value null lights none (a library mission is on the card).
-function KeyRow({ label, options, value, onPick }) {
+// One quiet move row: number, name, dose. (A library mission's open card
+// uses MoveRow instead, for its swap; its closed card numbers in MoveRow's
+// gold, so opening it does not change the colour.)
+function PlainMove({ index, name, dose, finisher, gold }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ width: 52, flexShrink: 0, font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{label}</span>
-      <div role="radiogroup" aria-label={cap(label)} style={{ ...chf, flex: 1, minWidth: 0, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
-        {options.map(o => {
-          const on = o.id === value;
-          return (
-            <button key={o.id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-seg qm-key" onClick={() => onPick(o.id)} style={{
-              flex: '1 1 0', height: 40, border: 'none', cursor: 'pointer', font: `600 12px ${HEAD}`, letterSpacing: '0.08em',
-              color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
-              boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none', whiteSpace: 'nowrap', padding: '0 3px',
-            }}>{o.label}</button>
-          );
-        })}
+    <li style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 22, font: `500 14px ${BODY}`, color: finisher ? GOLD : '#fff' }}>
+      <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: finisher || gold ? GOLD : VIOLET }}>{finisher ? '❤' : String(index + 1).padStart(2, '0')}</span>
+      <span style={{ flex: 1, minWidth: 0, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
+      {dose && <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: finisher ? GOLD : '#CFC9E4', whiteSpace: 'nowrap' }}>{dose}</span>}
+    </li>
+  );
+}
+
+// GEAR: the kit's chamfered radio strip (SegRow's look, 44px). value null
+// lights none (a library mission is on the card).
+function GearRow({ value, onPick }) {
+  return (
+    <div role="radiogroup" aria-label="Gear" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
+      {QM_TYPES.map(t => {
+        const on = t === value;
+        return (
+          <button key={t} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-seg" onClick={() => onPick(t)} style={{
+            flex: '1 1 0', minWidth: 0, height: 44, border: 'none', cursor: 'pointer', padding: '0 3px', whiteSpace: 'nowrap',
+            font: `600 12px ${HEAD}`, letterSpacing: '0.1em',
+            color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
+            boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
+          }}>{t.toUpperCase()}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+// TIME: 10 to 60 minutes in 5-minute steps. The bubble rides the knob and
+// the marks sit where their minutes are on the track (the knob's centre runs
+// from half a knob in to half a knob short of the end).
+function TimeSlider({ value, onChange, onTouch, dim }) {
+  const at = (v) => (v - QM_TIME_MIN) / (QM_TIME_MAX - QM_TIME_MIN);
+  const left = (v) => `calc(${THUMB / 2}px + ${at(v)} * (100% - ${THUMB}px))`;
+  return (
+    <div style={{ position: 'relative', paddingTop: 18, opacity: dim ? 0.55 : 1, transition: 'opacity .2s ease' }}>
+      <span aria-hidden="true" style={{
+        position: 'absolute', top: 0, left: left(value), transform: 'translateX(-50%)', whiteSpace: 'nowrap',
+        padding: '3px 8px', borderRadius: 6, background: GOLD, color: '#1A1204', font: `700 12px ${HEAD}`, letterSpacing: '0.04em',
+      }}>{value} MIN</span>
+      <input type="range" className="qm-range" aria-label="Time" aria-valuetext={`${value} minutes`}
+        min={QM_TIME_MIN} max={QM_TIME_MAX} step={QM_TIME_STEP} value={value}
+        onChange={(e) => onChange(Number(e.target.value))} onPointerDown={onTouch} style={{ '--p': at(value) }}/>
+      <div aria-hidden="true" style={{ position: 'relative', height: 14, marginTop: -8 }}>
+        {QM_TIME_TICKS.map(t => (
+          <span key={t} style={{ position: 'absolute', top: 0, left: left(t), transform: 'translateX(-50%)', font: `600 11px ${HEAD}`, color: t === value ? '#fff' : '#7D7799' }}>{t}</span>
+        ))}
       </div>
     </div>
   );
@@ -119,17 +165,20 @@ function KeyRow({ label, options, value, onPick }) {
 
 export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart, onCardioOnly, onPaywall }) {
   const [helpOpen, setHelpOpen] = useState(false);
-  // The keys (GEAR · LEVEL · TIME · FOCUS), back from the last visit.
+  // GEAR · TIME (on the page) and LEVEL · FOCUS (behind ADJUST), back from
+  // the last visit.
   const [keys, setKeys] = useState(() => loadQuickMissionKeys());
   const { workoutType, difficulty, duration, focus } = keys;
   const [seed, setSeed] = useState(0);
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [open, setOpen] = useState(() => loadCardOpen());
   // What the card shows: the generated mission, a named classic (Murph,
   // Sally Up…) or a v2 launch mission. A library pick replaces the generated
-  // mission until a key, SURPRISE or the card's way back hands it back to
-  // the generator.
+  // mission until GEAR, TIME, SURPRISE or the card's way back hands it back
+  // to the generator.
   const [sel, setSel] = useState(GENERATED);
   const named = sel.kind === 'classic' ? namedWorkoutById(sel.id) : null;
   void onHome; void onCardioOnly;
@@ -147,10 +196,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // filter alike.
   const gear = useState(() => (v2 ? gearProfile() : null))[0];
   const [shelf] = useState(() => shelfEntries().filter(e => v2 || e.kind === 'classic'));
-  const missionCount = shelf.filter(e => e.kind === 'v2').length;
 
-  // The mission on the card. Regenerated whenever a key changes, or when
-  // SURPRISE bumps the seed with the same keys.
+  // The mission on the card. Regenerated whenever a choice changes, or when
+  // SURPRISE bumps the seed.
   const cfg = useMemo(() => quickMissionConfig({ duration, focus, difficulty, workoutType, cardioAddon }), [duration, focus, difficulty, workoutType, cardioAddon]);
   const mission = useMemo(() => generateQuickMission(cfg), [cfg, seed]); // eslint-disable-line react-hooks/exhaustive-deps
   const estMin = Math.max(1, Math.round(estimateQuickMissionSeconds(mission) / 60));
@@ -168,23 +216,50 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const hasSwaps = Object.keys(swaps).length > 0 && !!card?.rows.some(r => r.undoable);
 
   const clearPick = () => { setSel(GENERATED); setSwaps({}); };
-  // A key tap is a choice: it is saved, and it always brings today's mission
-  // back to the card. Only the tapped key joins the stored picks, so a
-  // SURPRISE roll still on screen is never saved with it.
+  // A choice is saved, and GEAR or TIME always brings today's mission back to
+  // the card. Only the changed choice joins the stored ones, so a SURPRISE
+  // roll still on screen is never saved with it.
   const pickKey = (patch) => {
-    clearPick();
     saveQuickMissionKeys({ ...loadQuickMissionKeys(), ...patch });
     setKeys(k => ({ ...k, ...patch }));
   };
-  // SURPRISE deals a new length, level and focus with the same GEAR (what you
-  // have with you is not a surprise). It is not a choice, so it is not saved:
-  // the next visit opens on the keys the athlete picked.
+  const pickPage = (patch) => { clearPick(); pickKey(patch); };
+  // SURPRISE keeps GEAR and TIME (the two choices on the page) and deals a
+  // new level, focus and moves. It is not a choice, so it is not saved: the
+  // next visit opens on what the athlete picked.
   const surprise = () => {
     clearPick();
-    let d = duration, f = focus, i = difficulty;
-    while (d === duration && f === focus && i === difficulty) { d = rand(QM_LENGTHS); f = rand(QM_FOCI); i = rand(QM_INTENSITY); }
-    setKeys(k => ({ ...k, duration: d, focus: f, difficulty: i })); setSeed(s => s + 1);
+    let f = focus, i = difficulty;
+    while (f === focus && i === difficulty) { f = rand(QM_FOCI); i = rand(QM_INTENSITY); }
+    setKeys(k => ({ ...k, focus: f, difficulty: i })); setSeed(s => s + 1);
   };
+
+  // ▾ SEE ALL / ▴ SHOW LESS. Opening scrolls the page just enough to bring
+  // the whole card into view (never past its top), smoothly unless the
+  // viewer asked for less motion.
+  const cardRef = useRef(null);
+  const adjustRef = useRef(null);
+  const scrollOnOpen = useRef(false);
+  const toggleOpen = () => {
+    const next = !open;
+    scrollOnOpen.current = next;
+    setOpen(next);
+    saveCardOpen(next);
+  };
+  useEffect(() => {
+    if (!open || !scrollOnOpen.current) return;
+    scrollOnOpen.current = false;
+    const el = cardRef.current;
+    const scroller = el?.closest('.no-scrollbar');
+    if (!el || !scroller) return;
+    const r = el.getBoundingClientRect();
+    const s = scroller.getBoundingClientRect();
+    const bottom = s.bottom - (parseFloat(getComputedStyle(scroller).paddingBottom) || 0);
+    const over = r.bottom + 12 - bottom;
+    const room = r.top - s.top - 8;
+    const by = Math.min(over, room);
+    if (by > 0) scroller.scrollBy({ top: by, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }, [open]);
 
   const savePrefs = (patch) => setPrefs(saveShelfPrefs(patch));
   // The level a launch mission's card opens on: the athlete's last pick for
@@ -233,7 +308,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
     const m = buildNamedMission(w.id);
     // The classic's own workoutType drives the brief, the prep lines and the
     // status strip; countType keeps the count exactly as before (bodyweight,
-    // whatever the GEAR key says).
+    // whatever GEAR says).
     onStart?.({ ...cfg, workoutType: m.workoutType, countType: 'Bodyweight', duration: m.duration, difficulty: 'Hard', focus: m.focus, mission: m });
   };
   const handleStart = () => {
@@ -246,7 +321,6 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // on top of it. PUT ON CARD also scrolls the page back up, so a short phone
   // shows the card from its top. START runs the mission's default level, the
   // one the sheet's preview shows.
-  const cardRef = useRef(null);
   const putOnCard = (entry) => {
     setLibraryOpen(false);
     if (entry.kind === 'v2') pickV2(entry.id); else pickClassic(entry.id);
@@ -262,161 +336,155 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
     const w = namedWorkoutById(entry.id);
     if (w) startClassic(w);
   };
-  // Back closes the library before it leaves the screen.
-  const back = () => { if (libraryOpen) setLibraryOpen(false); else onBack?.(); };
+  // Back closes a sheet before it leaves the screen.
+  const back = () => {
+    if (adjustOpen) setAdjustOpen(false);
+    else if (libraryOpen) setLibraryOpen(false);
+    else onBack?.();
+  };
 
-  const cardioSummary = cardioAddon ? summarizeCardioAddon(cardioAddon) : 'Finish with a run · off by default';
-
-  // Steps whose anchor is not on screen are skipped (a missing anchor stalls
-  // the guide): GUIDED · SOLO and LEVEL need a v2 card, SURPRISE today's
-  // mission.
-  const guideSteps = useMemo(() => {
-    const steps = v2 ? SCREEN_GUIDES.quick_mission_setup_v2 : SCREEN_GUIDES.quick_mission_setup;
-    return steps.filter(s => (s.target !== 'qm-mode' || !!card) && (s.target !== 'qm-level' || levels.length > 0) && (s.target !== 'qm-surprise' || !onLibrary));
-  }, [v2, card, levels, onLibrary]);
+  // ADD CARDIO lives in ADJUST. Its editor is a sheet of its own, so ADJUST
+  // steps aside while it is up and comes back when it closes.
+  const cardioFromAdjust = useRef(false);
+  const openCardio = () => { cardioFromAdjust.current = adjustOpen; setAdjustOpen(false); setCardioSheetOpen(true); };
+  const closeCardio = () => { setCardioSheetOpen(false); if (cardioFromAdjust.current) setAdjustOpen(true); cardioFromAdjust.current = false; };
+  const cardio = {
+    on: !!cardioAddon,
+    summary: cardioAddon ? summarizeCardioAddon(cardioAddon) : 'Finish with a run · off by default',
+    onToggle: () => { if (cardioAddon) setCardioAddon(null); else openCardio(); },
+    onEdit: openCardio,
+  };
 
   const classic = v2 && named ? classicMeta(named) : null;
   const movesAll = [...mission.exercises, ...mission.finisherExercises];
   const roundsWord = `${mission.rounds} ${mission.rounds === 1 ? 'round' : 'rounds'}`;
-  // How long it really takes, and how it runs: a loaded set is never counted,
-  // so it ends on DONE (the runner's safe-weight brief says the same). A
-  // narrow phone drops the bodyweight line's tail, never the safe-weight one.
-  const aboutLine = workoutType === 'Weighted'
-    ? `About ${estMin} min · ${roundsWord}. Pick a safe weight; tap DONE after each set.`
-    : workoutType === 'Hybrid'
-      ? `About ${estMin} min · ${roundsWord}. Pick a safe weight; tap DONE after a loaded set.`
-      : <>About {estMin} min · {roundsWord}<span className="qm-wide">, with the coach&apos;s count and rest</span>.</>;
-  const librarySub = v2
-    ? `${missionCount} missions · ${shelf.length - missionCount} classics · Murph, Sally Up, Best of 3`
-    : `${shelf.length} classics · Murph, Sally Up, Deadly Seven`;
+  const classicMoves = named ? named.lines.filter(([a]) => !notes(a)) : [];
+  const moveCount = card ? card.rows.length : named ? classicMoves.length : movesAll.length;
+  const hidden = moveCount > CARD_MOVES;
 
-  // A library mission's eyebrow, with the small way back to today's mission:
-  // short words, a 44px target (its margins keep the row 20px tall).
-  const libraryEyebrow = (text) => (
+  // ADJUST: what this mission lets you change.
+  const adjust = card
+    ? {
+      words: levels.length > 1 ? 'level, guided or solo, cardio' : 'guided or solo, cardio',
+      level: levels.length > 1 ? { options: levels.map(l => ({ id: l.id, label: l.label })), value: v2Mission.level, onPick: pickLevel, detail: v2Mission.levelDetail } : null,
+      focus: null,
+      how: { value: runMode, soloOnly: card.soloOnly, onPick: pickMode, help: card.soloOnly ? SOLO_ONLY_HELP : runMode === 'solo' ? SOLO_HELP : card.guidedHelp },
+    }
+    : named
+      ? { words: 'add cardio', level: null, focus: null, how: null }
+      : {
+        words: 'level, focus, cardio',
+        level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: (v) => pickKey({ difficulty: v }) },
+        focus: { options: QM_FOCI.map(f => ({ id: f, label: f === 'FULL BODY' ? 'FULL' : f })), value: focus, onPick: (v) => pickKey({ focus: v }) },
+        how: null,
+      };
+  const title = card ? card.title : named ? named.title : mission.title;
+
+  // Steps whose anchor is not on screen are skipped (a missing anchor stalls
+  // the guide): ADJUST needs the card open, SURPRISE today's mission.
+  const guideSteps = useMemo(() => {
+    const steps = v2 ? SCREEN_GUIDES.quick_mission_setup_v2 : SCREEN_GUIDES.quick_mission_setup;
+    return steps.filter(s => (s.target !== 'qm-adjust' || open) && (s.target !== 'qm-surprise' || !onLibrary));
+  }, [v2, open, onLibrary]);
+
+  // How long it really takes, and how it runs: a loaded set is never counted,
+  // so it ends on DONE (the runner's safe-weight brief says the same).
+  const summary = workoutType === 'Weighted'
+    ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after each set.`
+    : workoutType === 'Hybrid'
+      ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after a loaded set.`
+      : `${roundsWord} · about ${estMin} min with the coach's count and rest`;
+  const missionCount = shelf.filter(e => e.kind === 'v2').length;
+  const librarySub = missionCount
+    ? `${shelf.length} ready-made workouts: new missions and classics like Murph. Pick one and go.`
+    : `${shelf.length} ready-made workouts: classics like Murph. Pick one and go.`;
+
+  const muted = (children) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{children}</div>;
+  // An open library card's rows are MoveRow's 44px (the swap's target), so
+  // they need no gap of their own.
+  const listStyle = { listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: card && open ? 0 : open ? 4 : 3 };
+
+  // The eyebrow: TODAY'S QUICK MISSION, or a library mission's with the small
+  // way back to today's mission (short words, a 44px target; its margins keep
+  // the row 20px tall).
+  const eyebrow = onLibrary ? (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 20 }}>
-      <span style={{ minWidth: 0, font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span>
+      <span style={{ minWidth: 0, font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {card ? card.eyebrow : `Classic · ${named.tag}`}
+      </span>
       <button type="button" className="fk-quiet" onClick={clearPick} aria-label="Back to today's mission" style={{
         flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, height: 44, padding: '0 10px', margin: '-12px -10px -12px 0',
         background: 'transparent', border: 'none', cursor: 'pointer', font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: VIOLET_TEXT,
       }}><ChevronLeft size={14}/>TODAY</button>
     </div>
+  ) : (
+    <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.18em', textTransform: 'uppercase', color: GOLD }}>Today’s Quick Mission</span>
   );
 
-  const renderV2Card = () => (
+  const tags = card ? (
     <>
-      {libraryEyebrow(card.eyebrow)}
-      <h1 style={{ margin: 0, font: `700 21px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 300 }}>{card.title}</h1>
-      <div className="qm-tags" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <Tag>{card.tags[0]}</Tag>
-        {card.accentTag && <Tag accent>{card.accentTag}</Tag>}
-        {card.tags.slice(1).map(t => <Tag key={t} accent={t === 'SCALED'}>{levelTag(t)}</Tag>)}
-      </div>
-      <HeaderLines lines={[['LOADOUT', card.loadoutLine], ['MISSION', card.missionLine], ['SCORE', card.scoreLine]]}/>
+      <Tag>{card.tags[0]}</Tag>
+      {card.accentTag && <Tag accent>{card.accentTag}</Tag>}
+      {card.tags.slice(1).map(t => <Tag key={t} accent={t === 'SCALED'}>{levelTag(t)}</Tag>)}
+    </>
+  ) : named ? (
+    <>
+      <Tag>~{named.estMin} min</Tag>
+      <Tag accent>{named.focus}</Tag>
+      {classic?.accentTag && <Tag accent>{classic.accentTag}</Tag>}
+      {named.needs && <Tag>{named.needs}</Tag>}
+      {named.pro && <Tag>PRO</Tag>}
+    </>
+  ) : (
+    <>
+      <Tag>{duration} min</Tag>
+      <Tag>{LEVEL_WORD[difficulty]}</Tag>
+      <Tag accent>{focusLabel(focus)}</Tag>
+      {GEAR_TAG[workoutType] && <Tag>{GEAR_TAG[workoutType]}</Tag>}
+      {open && <Tag>{roundsWord}</Tag>}
+    </>
+  );
 
-      <div data-guide="qm-mode" style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 2 }}>
-        <div role="radiogroup" aria-label="Run mode" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
-          {['guided', 'solo'].map(id => {
-            const on = runMode === id;
-            const off = id === 'guided' && card.soloOnly;
-            return (
-              <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={off ? 'true' : undefined} className="fk-seg"
-                onClick={off ? undefined : () => pickMode(id)} style={{
-                  flex: 1, height: 36, border: 'none', padding: 0, cursor: off ? 'default' : 'pointer', whiteSpace: 'nowrap',
-                  font: `600 12px ${HEAD}`, letterSpacing: '0.14em', opacity: off ? 0.45 : 1,
-                  color: on ? GOLD : MUTED, background: on ? 'rgba(242,190,69,0.12)' : 'transparent',
-                  boxShadow: on ? `inset 0 0 0 1px ${GOLD}` : 'none',
-                }}>{id.toUpperCase()}</button>
-            );
-          })}
-        </div>
-        <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>
-          {card.soloOnly ? SOLO_ONLY_HELP : runMode === 'solo' ? SOLO_HELP : card.guidedHelp}
-        </div>
-      </div>
+  // The moves: the first three, or (open) all of them.
+  const moves = card ? (
+    open
+      ? card.rows.map((row, i) => <MoveRow key={row.swapKey} row={row} index={i} onSwap={(r) => setSwapKeyOpen(r.swapKey)} onUndo={undoSwap}/>)
+      : card.rows.slice(0, CARD_MOVES).map((row, i) => <PlainMove key={row.swapKey} index={i} name={row.name} dose={row.dose} gold/>)
+  ) : named ? (
+    open
+      ? named.lines.map(([a, b], i) => (notes(a)
+        ? <li key={i} style={{ paddingLeft: 28, font: `600 12px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>{a}</li>
+        : <PlainMove key={i} index={named.lines.slice(0, i).filter(([x]) => !notes(x)).length} name={a} dose={b} gold/>))
+      : classicMoves.slice(0, CARD_MOVES).map(([a, b], i) => <PlainMove key={i} index={i} name={a} dose={b} gold/>)
+  ) : (
+    (open ? movesAll : movesAll.slice(0, CARD_MOVES)).map((ex, i) => (
+      <PlainMove key={`${ex.name}-${i}`} index={i} name={ex.name} finisher={ex.isFinisher}
+        dose={open || ex.mode === 'timed' ? quickMissionDose(ex) : String(ex.reps)}/>
+    ))
+  );
 
-      {levels.length > 0 && (
-        <div data-guide="qm-level" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <ChipGroup ariaLabel="Level" options={levels.map(l => ({ id: l.id, label: l.label }))} value={v2Mission.level} onPick={pickLevel}/>
-          <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{v2Mission.levelDetail}</div>
-        </div>
-      )}
-
+  // The open card's lines under the moves.
+  const details = card ? (
+    <>
       {card.banner && (
         <div style={{ padding: '8px 10px', borderRadius: 10, background: 'rgba(157,108,255,0.12)', border: '1px solid rgba(157,108,255,0.4)', font: `500 12px ${BODY}`, color: '#fff', lineHeight: 1.4 }}>{card.banner}</div>
       )}
-
-      <ol style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {card.rows.map((row, i) => (
-          <MoveRow key={row.swapKey} row={row} index={i} onSwap={(r) => setSwapKeyOpen(r.swapKey)} onUndo={undoSwap}/>
-        ))}
-      </ol>
       {hasSwaps && (
         <button type="button" className="fk-quiet" onClick={() => setSwaps({})} style={{
           alignSelf: 'flex-start', height: 32, padding: 0, marginTop: -2, background: 'transparent', border: 'none', cursor: 'pointer',
           font: `700 11px ${HEAD}`, letterSpacing: '0.14em', color: VIOLET_TEXT,
         }}>RESET SWAPS</button>
       )}
-
-      <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>
-        <span style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.08em' }}>SCALE:</span> {card.scale}
-      </div>
-      {card.note && <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{card.note}</div>}
+      <HeaderLines lines={[['LOADOUT', card.loadoutLine], ['MISSION', card.missionLine], ['SCORE', card.scoreLine]]}/>
+      {card.scale && muted(<><span style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.08em' }}>SCALE:</span> {card.scale}</>)}
+      {card.note && muted(card.note)}
     </>
-  );
-
-  const renderClassicCard = () => (
+  ) : named ? (
     <>
-      {libraryEyebrow(`Classic · ${named.tag}`)}
-      <h1 style={{ margin: 0, font: `700 21px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 300 }}>{named.title}</h1>
-      <div className="qm-tags" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <Tag>~{named.estMin} min</Tag>
-        <Tag accent>{named.focus}</Tag>
-        {classic?.accentTag && <Tag accent>{classic.accentTag}</Tag>}
-        {named.needs && <Tag>{named.needs}</Tag>}
-        {named.pro && <Tag>PRO</Tag>}
-      </div>
       {classic && <HeaderLines lines={[['LOADOUT', classic.loadoutLabel]]}/>}
-      <ol style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {named.lines.map(([a, b], i) => /^[+×]\s/.test(a) ? (
-          // "+ 3 more" / "× 2 rounds" are notes on the list, not steps.
-          <li key={i} style={{ paddingLeft: 28, font: `600 12px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>{a}</li>
-        ) : (
-          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 13px ${BODY}`, color: '#fff' }}>
-            <span style={{ width: 18, font: `700 11px ${HEAD}`, color: GOLD }}>{String(i + 1).padStart(2, '0')}</span>
-            <span style={{ flex: 1, fontWeight: 600 }}>{a}</span>
-            {b && <span style={{ font: `600 12px ${HEAD}`, color: '#CFC9E4' }}>{b}</span>}
-          </li>
-        ))}
-      </ol>
-      <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{named.note}</div>
+      {muted(named.note)}
     </>
-  );
-
-  const renderTodayCard = () => (
-    <>
-      <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: VIOLET_TEXT }}>Today’s Quick Mission</span>
-      <h1 style={{ margin: 0, font: `700 21px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 300 }}>{mission.title}</h1>
-      <div className="qm-tags" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <Tag>{duration} min</Tag>
-        <Tag>{LEVEL_WORD[difficulty]}</Tag>
-        <Tag accent>{focusLabel(focus)}</Tag>
-        <Tag>{GEAR_TAG[workoutType]}</Tag>
-      </div>
-      <ol style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {movesAll.slice(0, CARD_MOVES).map((ex, i) => (
-          <li key={`${ex.name}-${i}`} className={`qm-move-${i + 1}`} style={{ display: 'flex', alignItems: 'center', gap: 10, font: `500 13px ${BODY}`, color: ex.isFinisher ? GOLD : '#fff' }}>
-            <span style={{ width: 18, font: `700 11px ${HEAD}`, color: ex.isFinisher ? GOLD : '#9D6CFF' }}>{ex.isFinisher ? '❤' : String(i + 1).padStart(2, '0')}</span>
-            <span style={{ flex: 1, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.name}</span>
-            <span style={{ font: `600 12px ${HEAD}`, color: ex.isFinisher ? GOLD : '#CFC9E4' }}>{quickMissionDose(ex)}</span>
-          </li>
-        ))}
-        {/* One "+ N more" per height: five moves shown, or four. */}
-        {movesAll.length > CARD_MOVES && <li className="qm-more-5" style={{ paddingLeft: 28, font: `600 12px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>+ {movesAll.length - CARD_MOVES} more</li>}
-        {movesAll.length > CARD_MOVES - 1 && <li className="qm-more-4" style={{ display: 'none', paddingLeft: 28, font: `600 12px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>+ {movesAll.length - CARD_MOVES + 1} more</li>}
-      </ol>
-      <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{aboutLine}</div>
-    </>
-  );
+  ) : muted(summary);
 
   return (
     <PhoneFrame useBrandBg>
@@ -428,71 +496,96 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0' }}>
           {/* The mission card — what START runs. */}
-          <section ref={cardRef} className="fk-hero" data-guide="qm-length" style={{
+          <section ref={cardRef} className="fk-hero" data-guide="qm-card" aria-label={title} style={{
             position: 'relative', borderRadius: 16, overflow: 'hidden', flexShrink: 0,
-            border: '1px solid rgba(157,108,255,0.35)', background: '#0D0A18',
+            border: '1px solid rgba(242,190,69,0.35)', background: '#0D0A18',
           }}>
             <SafeImage src="/static/fitmode/banner-gym-quick.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '55% 50%' }}/>
-            {/* A v2 card is long and carries doses and swap icons on its right
-                edge, so its scrim stays darker across the whole card. */}
-            <div style={{ position: 'absolute', inset: 0, background: card
-              ? 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.9) 55%, rgba(7,6,12,0.74) 100%)'
-              : 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.82) 55%, rgba(7,6,12,0.4) 100%)' }}/>
-            <div style={{ position: 'relative', padding: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {card ? renderV2Card() : named ? renderClassicCard() : renderTodayCard()}
-              <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+            {/* An open card is long and carries doses and swap icons on its
+                right edge, so its scrim stays darker across the whole card. */}
+            <div style={{ position: 'absolute', inset: 0, background: open
+              ? 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.9) 55%, rgba(7,6,12,0.78) 100%)'
+              : 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.86) 55%, rgba(7,6,12,0.55) 100%)' }}/>
+            <div style={{ position: 'relative', padding: '12px 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {eyebrow}
+              <h1 style={{ margin: 0, font: `700 23px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 320 }}>{title}</h1>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>
+              <ol id="qm-moves" style={listStyle}>{moves}</ol>
+
+              {open && (
+                <>
+                  {details}
+                  {/* ADJUST — level, focus, guided or solo, cardio: a sheet. */}
+                  <button ref={adjustRef} type="button" data-guide="qm-adjust" className="fk-row" onClick={() => setAdjustOpen(true)} aria-haspopup="dialog" aria-expanded={adjustOpen ? 'true' : 'false'} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 12px', width: '100%', boxSizing: 'border-box', marginTop: 2,
+                    borderRadius: 10, background: 'rgba(18,13,36,0.9)', border: '1px solid rgba(157,108,255,0.35)', textAlign: 'left', cursor: 'pointer',
+                  }}>
+                    <span style={{ flexShrink: 0, font: `700 12px ${HEAD}`, letterSpacing: '0.14em', color: VIOLET_TEXT }}>ADJUST</span>
+                    <span style={{ flex: 1, minWidth: 0, font: `500 12px ${BODY}`, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>· {adjust.words}</span>
+                    {cardioAddon && <span style={{ flexShrink: 0, font: `700 9px ${HEAD}`, letterSpacing: '0.12em', color: GOLD }}>+ CARDIO</span>}
+                    <ChevronRight size={16} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>
+                  </button>
+                </>
+              )}
+
+              {/* ▾ SEE ALL / ▴ SHOW LESS — one button, so focus stays on it. */}
+              <button type="button" data-guide="qm-expand" className="qm-toggle" onClick={toggleOpen} aria-expanded={open ? 'true' : 'false'} aria-controls="qm-moves" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, margin: '0 0 -4px', padding: 0, width: '100%',
+                background: 'transparent', border: 'none', borderTop: '1px dashed rgba(255,255,255,0.12)', cursor: 'pointer',
+                font: `700 12px ${HEAD}`, letterSpacing: '0.14em', color: VIOLET_TEXT,
+              }}>
+                <span aria-hidden="true" style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid rgba(157,108,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+                </span>
+                {open ? 'SHOW LESS' : hidden ? `SEE ALL ${moveCount} MOVES` : 'SEE MORE'}
+              </button>
+
+              <div style={{ display: 'flex', gap: 8 }}>
                 <div data-guide="qm-start" style={{ flex: 1, minWidth: 0 }}>
-                  <GoldButton label="START" icon="play" onClick={handleStart} height={46} style={{ fontSize: 18, letterSpacing: '0.2em' }}/>
+                  <GoldButton label="START" icon="play" onClick={handleStart} height={50} style={{ fontSize: 18, letterSpacing: '0.22em' }}/>
                 </div>
-                {/* SURPRISE — the randomizer, beside START on today's mission. */}
+                {/* SURPRISE — a different workout with the same GEAR and TIME. */}
                 {!onLibrary && (
                   <button type="button" data-guide="qm-surprise" className="fk-ghost" onClick={surprise} style={{
-                    ...chf, width: 64, height: 46, flexShrink: 0, padding: 0, cursor: 'pointer',
+                    ...chf, width: 64, height: 50, flexShrink: 0, padding: 0, cursor: 'pointer',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
-                    background: CARD, border: '1px solid rgba(255,255,255,0.12)', color: '#fff', font: `700 8px ${HEAD}`, letterSpacing: '0.12em',
-                  }}><Shuffle size={16} color={GOLD}/>SURPRISE</button>
+                    background: CARD, border: '1px solid rgba(157,108,255,0.5)', color: '#fff', font: `700 8px ${HEAD}`, letterSpacing: '0.12em',
+                  }}><Dices size={18} color={GOLD}/>SURPRISE</button>
                 )}
               </div>
             </div>
           </section>
 
-          {/* BUILD YOUR OWN — the keys. */}
-          <div data-guide="qm-keys" className="qm-keys" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* With a library mission on the card the keys light nothing:
-                they describe today's mission, and a tap brings it back. */}
-            <Label right={<span style={{ font: `500 12px ${BODY}`, color: MUTED }}>{onLibrary ? 'tap a key for today’s mission' : 'the card rebuilds as you tap'}</span>}>Build your own</Label>
-            <KeyRow label="GEAR" options={QM_TYPES.map(t => ({ id: t, label: t.toUpperCase() }))} value={onLibrary ? null : workoutType} onPick={(v) => pickKey({ workoutType: v })}/>
-            <KeyRow label="LEVEL" options={QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] }))} value={onLibrary ? null : difficulty} onPick={(v) => pickKey({ difficulty: v })}/>
-            <KeyRow label="TIME" options={QM_LENGTHS.map(l => ({ id: l, label: String(l) }))} value={onLibrary ? null : duration} onPick={(v) => pickKey({ duration: v })}/>
-            <KeyRow label="FOCUS" options={QM_FOCI.map(f => ({ id: f, label: f === 'FULL BODY' ? 'FULL' : f }))} value={onLibrary ? null : focus} onPick={(v) => pickKey({ focus: v })}/>
+          {/* GEAR and TIME — the page's two choices. With a library mission
+              on the card GEAR lights nothing and TIME dims: they describe
+              today's mission, and a touch brings it back. */}
+          <div data-guide="qm-gear" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+            <Label right={onLibrary ? <span style={{ font: `500 12px ${BODY}`, color: MUTED }}>for today’s mission</span> : null}>Gear</Label>
+            <GearRow value={onLibrary ? null : workoutType} onPick={(v) => pickPage({ workoutType: v })}/>
+          </div>
+          <div data-guide="qm-time" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
+            <Label>Time</Label>
+            <TimeSlider value={duration} dim={onLibrary} onChange={(v) => pickPage({ duration: v })} onTouch={onLibrary ? clearPick : undefined}/>
           </div>
 
           {/* MISSION LIBRARY — the folder: every launch mission and classic,
               in a sheet. */}
           <button type="button" data-guide="qm-library" className="fk-row" onClick={() => setLibraryOpen(true)} aria-haspopup="dialog" aria-expanded={libraryOpen ? 'true' : 'false'} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12, minHeight: 62, padding: '0 14px', width: '100%', boxSizing: 'border-box',
-            borderRadius: 14, background: '#0F0B1E', border: '1px solid rgba(157,108,255,0.3)', color: '#fff', textAlign: 'left', cursor: 'pointer',
+            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12, minHeight: 72, padding: '10px 14px', width: '100%', boxSizing: 'border-box', marginTop: 4,
+            borderRadius: 14, background: '#0F0B1E', border: '1px solid rgba(157,108,255,0.4)', color: '#fff', textAlign: 'left', cursor: 'pointer',
           }}>
             <span style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 10, background: 'rgba(157,108,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Folder size={18} color={VIOLET_TEXT}/>
             </span>
-            <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
               <span style={{ font: `700 15px ${HEAD}`, letterSpacing: '0.1em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>MISSION LIBRARY</span>
-              <span style={{ font: `500 12px ${BODY}`, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{librarySub}</span>
+              <span style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>{librarySub}</span>
             </span>
             <CountPill n={shelf.length}/>
             <ChevronDown size={18} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>
           </button>
-
-          <CardioToggleCard
-            guide="qm-cardio"
-            on={!!cardioAddon}
-            summary={cardioSummary}
-            onToggle={() => { if (cardioAddon) setCardioAddon(null); else setCardioSheetOpen(true); }}
-            onEdit={() => setCardioSheetOpen(true)}
-          />
         </div>
       </SetupPage>
 
@@ -502,12 +595,18 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
           onPutOnCard={putOnCard} onStart={startFromLibrary} onClose={() => setLibraryOpen(false)}
         />
       )}
+      {adjustOpen && (
+        <QuickMissionAdjustSheet
+          title={title} level={adjust.level} focus={adjust.focus} how={adjust.how} cardio={cardio}
+          returnFocus={adjustRef} onClose={() => setAdjustOpen(false)}
+        />
+      )}
       {cardioSheetOpen && (
         <AddCardioSheet
           context={{ source: 'Quick Mission', difficulty: cap(difficulty), durationMin: duration }}
           initialAddon={cardioAddon}
-          onAdd={(addon) => { setCardioAddon(addon); setCardioSheetOpen(false); }}
-          onClose={() => setCardioSheetOpen(false)}
+          onAdd={(addon) => { setCardioAddon(addon); closeCardio(); }}
+          onClose={closeCardio}
         />
       )}
       {v2Mission && swapKeyOpen && (

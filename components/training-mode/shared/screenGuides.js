@@ -204,31 +204,33 @@ export const SCREEN_GUIDES = {
     { target: 'fg-header', title: '⛓ INSIDE A CHAIN', body: 'If you linked exercises, a ⛓ pill shows which move of the chain you are on. There is no rest between them — the coach says GO STRAIGHT IN and hands you the next one. The rest comes at the end of the round, and the counter tells you which round you are on.' },
   ],
 
-  // The setup screen skips qm-surprise while a library mission is on the
-  // card (SURPRISE sits on today's mission only).
+  // Quick Mission: the card, GEAR, TIME and the library row. The setup screen
+  // drops the qm-adjust step while the card is closed (ADJUST sits on the
+  // open card) and qm-surprise while a library mission is on it.
   quick_mission_setup: [
-    { target: null, title: '⏱️ QUICK MISSION', body: 'Short notice? A mission is already built for you. START it, deal a different one, build your own with the keys, or pick a classic from the library.' },
-    { target: 'qm-length', title: "TODAY'S MISSION", body: 'The mission you would run right now: its name, its moves and how many reps or seconds each gets. The line under the list is how long it really takes with the rest included.' },
-    { target: 'qm-surprise', title: 'SURPRISE', body: 'Deals a different mission with your gear: a new length, level and focus.' },
-    { target: 'qm-keys', title: 'BUILD YOUR OWN', body: 'GEAR: bodyweight, weighted (dumbbells or a kettlebell) or a mix of both. LEVEL: easy, medium or hard. TIME: 5 to 30 minutes. FOCUS: the whole body or one area. The card rebuilds as you tap, and your keys are kept for next time. A weighted set ends when you tap DONE. While a classic is on the card the keys light nothing; a tap brings today\'s mission back.' },
-    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'The workouts people know by name: Murph, Half Murph, the Sally Up challenge, Deadly Seven and 5 Minutes of Hell. Tap one to preview it, then START, or PUT ON CARD to bring it here. The coach calls every move; on a run, tap DONE when you are back.' },
-    { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission. Flip the switch to set it up; EDIT changes it.' },
-    { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card — timer, coach, and all.' },
+    { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
+    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: 'The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time.' },
+    { target: 'qm-expand', title: 'SEE ALL', body: 'Opens the card where it is: every move, how long it really takes with the rest, and ADJUST. SHOW LESS folds it back. The card stays open or closed for next time.' },
+    { target: 'qm-adjust', title: 'ADJUST', body: 'Level (easy, medium or hard), focus (the whole body or one area) and an optional cardio finisher. Then DONE. Your picks are kept for next time.' },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, timer, coach and all.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
+    { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
+    { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the slider or use the arrow keys. Longer workouts get more rounds and more moves.' },
+    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts, like Murph. Tap one to see it on top, then START, or PUT ON CARD to bring it here. The coach calls every move; on a run, tap DONE when you are back.' },
   ],
 
-  // Quick Mission v2 (data/qmV2). The setup screen drops the qm-mode and
-  // qm-level steps when the card is not a v2 mission, since those anchors
-  // only exist on a v2 card, and qm-surprise while a library mission is up.
+  // Quick Mission v2 (data/qmV2): the same steps, with the library's launch
+  // missions, their swaps and GUIDED · SOLO.
   quick_mission_setup_v2: [
-    { target: null, title: '⏱️ QUICK MISSION', body: 'Short notice? A mission is already built for you. START it, deal a different one, build your own with the keys, or open the library: missions for no gear, one bell or one bar, and the classics.' },
-    { target: 'qm-length', title: 'THE MISSION CARD', body: "Today's mission: its moves, the reps or seconds each gets, and how long it really takes. A library mission on the card adds LOADOUT (what you need), MISSION (what you do) and SCORE (how it counts), with a swap icon on every move. Swaps never cost XP; the run is marked SCALED. ‹ TODAY, or any key, takes you back to today's mission." },
-    { target: 'qm-mode', title: 'GUIDED · SOLO', body: 'GUIDED: the coach runs the session and calls every move. SOLO: the whole workout on one screen with one clock, at your own pace.' },
-    { target: 'qm-level', title: 'LEVEL', body: 'BEGINNER, STANDARD or ELITE changes the work and the count. Start at STANDARD.' },
-    { target: 'qm-surprise', title: 'SURPRISE', body: 'Deals a different mission with your gear: a new length, level and focus.' },
-    { target: 'qm-keys', title: 'BUILD YOUR OWN', body: 'GEAR: bodyweight, weighted (dumbbells or a kettlebell) or a mix of both. LEVEL: easy, medium or hard. TIME: 5 to 30 minutes. FOCUS: the whole body or one area. The card rebuilds as you tap, and your keys are kept for next time. A weighted set ends when you tap DONE. While a library mission is on the card the keys light nothing; a tap brings today\'s mission back.' },
-    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Every mission in one list: the launch missions first, then the classics (Murph, Sally Up, Deadly Seven). LOADOUT and THEME narrow it. Tap a row to preview it at the top; START runs it straight away at its default level, PUT ON CARD brings it here with GUIDED · SOLO, LEVEL and swaps.' },
-    { target: 'qm-cardio', title: 'ADD CARDIO', body: 'Optional cardio finisher bolted onto the end of the mission. Flip the switch to set it up; EDIT changes it.' },
-    { target: 'qm-start', title: 'START', body: 'Runs exactly the mission on the card, in GUIDED or SOLO.' },
+    { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
+    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time. A library mission on the card has a ‹ TODAY to come back." },
+    { target: 'qm-expand', title: 'SEE ALL', body: "Opens the card where it is: every move, how long it really takes, and ADJUST. On a library mission every move has a swap icon; swaps never cost XP, the run is marked SCALED. SHOW LESS folds it back." },
+    { target: 'qm-adjust', title: 'ADJUST', body: 'Level, focus, guided or solo where a mission has it (GUIDED: the coach calls every move; SOLO: the whole workout on one screen, one clock), and an optional cardio finisher. Then DONE.' },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, in GUIDED or SOLO.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
+    { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
+    { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the slider or use the arrow keys. Longer workouts get more rounds and more moves.' },
+    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here.' },
   ],
 
   combat_conditioning_setup: [
@@ -302,7 +304,7 @@ export const SCREEN_GUIDES = {
 };
 
 // The Fit hub's guide while Quick Mission v2 is on (data/qmV2): the same steps,
-// with the Quick Mission row describing the loadout shelf.
+// with the Quick Mission row naming the Mission Library's missions.
 SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-quick'
-  ? { ...s, body: 'Short-notice missions for whatever you have: no gear, one bell, one bar. Pick a loadout, pick a mission, START.' }
+  ? { ...s, body: 'A quick workout without the planning: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
   : s));

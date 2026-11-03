@@ -1,8 +1,9 @@
-// The Quick Mission generator behind the setup screen's keys: every GEAR ×
-// LEVEL × TIME the screen offers, dealt many times, against the shape the
-// timer runs, the doses a loaded move may get and the minutes asked for.
-// Also the config the keys build and the keys' own storage. Run with
-// `npm run test:qm`.
+// The Quick Mission generator behind the setup screen: every GEAR × LEVEL ×
+// TIME × FOCUS the screen offers (TIME is the 10 to 60 minute slider, in
+// 5-minute steps, plus the 5 minutes the hub and Home still deal), dealt many
+// times, against the shape the timer runs, the doses a loaded move may get
+// and the minutes asked for. Also the config the screen builds and the
+// remembered choices. Run with `npm run test:qm`.
 import { register } from 'node:module';
 
 // data/quickMissionConfig takes CADENCE_PRESETS from shared/CadenceSlider.jsx,
@@ -49,15 +50,20 @@ check('5 the hub line prints the type', C.quickMissionLine(plain) === '12 min ·
 // ── keys storage ────────────────────────────────────────────────────────────
 store.clear();
 const def = C.loadQuickMissionKeys();
-check('6 no stored keys: the defaults', def.workoutType === 'Bodyweight' && def.difficulty === 'NORMAL' && def.duration === 10 && def.focus === 'FULL BODY');
-C.saveQuickMissionKeys({ workoutType: 'Weighted', difficulty: 'HARD', duration: 20, focus: 'UPPER' });
+check('6 no stored keys: the defaults (20 min, the mock-up)', def.workoutType === 'Bodyweight' && def.difficulty === 'NORMAL' && def.duration === 20 && def.focus === 'FULL BODY');
+C.saveQuickMissionKeys({ workoutType: 'Weighted', difficulty: 'HARD', duration: 45, focus: 'UPPER' });
 const back = C.loadQuickMissionKeys();
-check('7 saved keys come back', back.workoutType === 'Weighted' && back.difficulty === 'HARD' && back.duration === 20 && back.focus === 'UPPER');
-store.set(C.QM_KEYS_KEY, JSON.stringify({ workoutType: 'Cables', difficulty: 'MEDIUM', duration: 7, focus: 'LEGS' }));
+check('7 saved keys come back', back.workoutType === 'Weighted' && back.difficulty === 'HARD' && back.duration === 45 && back.focus === 'UPPER');
+store.set(C.QM_KEYS_KEY, JSON.stringify({ workoutType: 'Cables', difficulty: 'MEDIUM', duration: 'long', focus: 'LEGS' }));
 const junk = C.loadQuickMissionKeys();
-check('8 unreadable values fall back one by one', junk.workoutType === 'Bodyweight' && junk.difficulty === 'NORMAL' && junk.duration === 10 && junk.focus === 'FULL BODY');
+check('8 unreadable values fall back one by one', junk.workoutType === 'Bodyweight' && junk.difficulty === 'NORMAL' && junk.duration === 20 && junk.focus === 'FULL BODY');
 store.set(C.QM_KEYS_KEY, '{not json');
-check('9 corrupt storage falls back to the defaults', C.loadQuickMissionKeys().duration === 10);
+check('9 corrupt storage falls back to the defaults', C.loadQuickMissionKeys().duration === 20);
+// The old keys stored 5 to 30; a length lands on the nearest slider step.
+const snapped = [5, 7, 12, 30, 61, 90].map(d => { store.set(C.QM_KEYS_KEY, JSON.stringify({ duration: d })); return C.loadQuickMissionKeys().duration; });
+check('9b a stored length snaps onto the slider (10 to 60, steps of 5)', snapped.join() === '10,10,10,30,60,60', snapped.join());
+check('9c the slider runs 10 to 60 in 5-minute steps', C.QM_TIMES.length === 11 && C.QM_TIMES[0] === 10 && C.QM_TIMES[10] === 60 && C.QM_TIMES.every((t, i) => i === 0 || t - C.QM_TIMES[i - 1] === 5)
+  && C.QM_TIME_TICKS.every(t => C.QM_TIMES.includes(t)));
 const realLS = globalThis.localStorage;
 globalThis.localStorage = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); } };
 let threw = false;
@@ -65,10 +71,15 @@ try { C.loadQuickMissionKeys(); C.saveQuickMissionKeys({ duration: 5 }); } catch
 check('10 blocked storage never throws', !threw);
 globalThis.localStorage = realLS;
 
-// ── every key combination ───────────────────────────────────────────────────
+// ── every combination ───────────────────────────────────────────────────────
+// The slider's every step, and the 5 minutes the hub and Home may deal.
+const MINUTES = [...new Set([...C.QM_LENGTHS, ...C.QM_TIMES])].sort((a, b) => a - b);
 const problems = { shape: [], repeats: [], loaded: [], length: [], flags: [], cadence: [] };
+const restAt = {}; // average rest per type at each length
 let worst = { off: 0, at: '' };
-for (const type of TYPES) for (const level of LEVELS) for (const mins of C.QM_LENGTHS) for (const focus of C.QM_FOCI) {
+let combos = 0;
+for (const type of TYPES) for (const level of LEVELS) for (const mins of MINUTES) for (const focus of C.QM_FOCI) {
+  combos++;
   const cfg = C.quickMissionConfig({ duration: mins, difficulty: level, focus, workoutType: type });
   for (let i = 0; i < DEALS; i++) {
     const m = Q.generateQuickMission(cfg);
@@ -76,8 +87,8 @@ for (const type of TYPES) for (const level of LEVELS) for (const mins of C.QM_LE
     const ex = m.exercises || [];
     // Shape: what QuickMissionActive reads.
     const shapeOk = typeof m.title === 'string' && m.title.length > 0 && m.workoutType === type && m.duration === mins
-      && Array.isArray(m.finisherExercises) && isInt(m.rounds) && m.rounds >= 1 && m.rounds <= 4
-      && ex.length >= 3 && ex.length <= 8
+      && Array.isArray(m.finisherExercises) && isInt(m.rounds) && m.rounds >= 1 && m.rounds <= 6
+      && ex.length >= 3 && ex.length <= 10
       && ex.every(e => typeof e.name === 'string' && e.name && isInt(e.rest) && e.rest >= 15 && e.rest <= 120 && e.rest % 5 === 0
         && (e.mode === 'timed' ? isInt(e.work) && e.work >= 20 && e.work <= 60 : e.mode === 'reps' && isInt(e.reps) && e.reps >= 6 && e.reps <= 20));
     if (!shapeOk) problems.shape.push(`${at} ${JSON.stringify(m).slice(0, 160)}`);
@@ -102,9 +113,13 @@ for (const type of TYPES) for (const level of LEVELS) for (const mins of C.QM_LE
     const off = Math.abs(secs - mins * 60) / (mins * 60);
     if (off > worst.off) worst = { off, at: `${at} ${Math.round(secs)}s` };
     if (off > 0.3) problems.length.push(`${at} ${Math.round(secs)}s for ${mins * 60}s`);
+    const ra = (restAt[`${type}/${mins}`] ||= { sum: 0, n: 0 });
+    ex.forEach(e => { ra.sum += e.rest; ra.n++; });
   }
 }
+check(`10b every combination dealt: ${combos} (3 types × 3 levels × ${MINUTES.length} lengths × 5 focuses)`, combos === 3 * 3 * MINUTES.length * 5 && MINUTES.includes(10) && MINUTES.includes(60));
 const first = (list) => list.slice(0, 3).join(' | ');
+const many0 = (cfg, n) => Array.from({ length: n }, () => Q.generateQuickMission(C.quickMissionConfig(cfg)));
 check('11 every mission has the shape the timer runs', problems.shape.length === 0, first(problems.shape));
 check('12 no move repeats within a round', problems.repeats.length === 0, first(problems.repeats));
 check('13 loaded rep ranges and rests are sane (8-15 reps, 30 s+ rest)', problems.loaded.length === 0, first(problems.loaded));
@@ -112,6 +127,15 @@ check('14 Weighted flags every move, Hybrid some, Bodyweight none', problems.fla
 check('15 no loaded set is cadence-counted (it ends on DONE)', problems.cadence.length === 0, first(problems.cadence));
 check('16 estimated length within ±30% of TIME', problems.length.length === 0, first(problems.length));
 console.log(`       worst length: ${Math.round(worst.off * 100)}% off (${worst.at})`);
+// 45 to 60 minutes is more rounds and more moves, not long rests: the
+// average rest stays near the level's own (bodyweight 20-40 s, loaded
+// 40-60 s), never stretched to fill the time.
+const avgRest = (type, mins) => { const r = restAt[`${type}/${mins}`]; return r.sum / r.n; };
+const restOk = TYPES.every(type => [45, 50, 55, 60].every(mins => avgRest(type, mins) <= (type === 'Bodyweight' ? 45 : 60)));
+check('16b long missions keep sensible rests (45-60 min)', restOk,
+  TYPES.map(type => `${type} ${[45, 60].map(mins => Math.round(avgRest(type, mins))).join('/')}s`).join(' · '));
+const long = many0({ duration: 60, difficulty: 'NORMAL' }, 80);
+check('16c 60 minutes is more rounds and more moves than 30', long.every(m => m.rounds > 4) && Math.max(...long.map(m => m.exercises.length)) > 8);
 
 // ── a few specifics ─────────────────────────────────────────────────────────
 const many = (cfg, n = 200) => Array.from({ length: n }, () => Q.generateQuickMission(C.quickMissionConfig(cfg)));
