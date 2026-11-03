@@ -9,6 +9,10 @@ import { CADENCE_PRESETS } from '../shared/CadenceSlider';
 export const QM_LENGTHS = [5, 10, 15, 20, 30];
 export const QM_FOCI = ['FULL BODY', 'UPPER', 'LOWER', 'CORE', 'COMBAT'];
 export const QM_INTENSITY = ['EASY', 'NORMAL', 'HARD'];
+// The owner's words for the levels. 'NORMAL' stays the stored id (the
+// generator, DIFFICULTY_CONFIG and saved sessions read it); MEDIUM is what
+// the setup screen and its Mission Library print, on the keys and the tags.
+export const QM_LEVEL_WORD = { EASY: 'EASY', NORMAL: 'MEDIUM', HARD: 'HARD' };
 // The setup screen's GEAR key. Bodyweight is every caller's default, so the
 // hub, Home and Programs keep starting exactly what they did.
 export const QM_TYPES = ['Bodyweight', 'Weighted', 'Hybrid'];

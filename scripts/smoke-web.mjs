@@ -130,8 +130,15 @@ await check('quick mission: library matches the flag', async () => {
 }, /CLASSICS/);
 await check('quick mission: back closes the library first', async () => {
   await quick(); await library();
+  // A modal: Tab never reaches the page behind it, and closing hands focus
+  // back to the folder row.
+  for (let i = 0; i < 30; i++) {
+    await page.keyboard.press('Tab');
+    if (!await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))) throw new Error(`Tab ${i + 1} left the library`);
+  }
   await page.keyboard.press('Escape'); await S(400);
   if (await sheet().count()) throw new Error('Escape left the library open');
+  if (await page.evaluate(() => document.activeElement?.getAttribute('data-guide')) !== 'qm-library') throw new Error('focus did not come back to MISSION LIBRARY');
   // The header's back arrow sits under the sheet's backdrop: call it directly.
   await library(); await page.evaluate(() => document.querySelector('button[aria-label="Back"]').click()); await S(500);
   if (await sheet().count()) throw new Error('Back left the library open');
@@ -146,9 +153,12 @@ await check('quick mission: WEIGHTED key starts a weighted mission', async () =>
 }, /ROUND|GET READY|PREPARING|WORK/);
 await check('quick mission: keys are remembered', async () => {
   await quick(); await key('Level', 'HARD').click({ timeout: 4000 }); await key('Time', '20').click({ timeout: 4000 }); await S(300);
+  // SURPRISE's roll is not a choice: a key tapped after it saves only itself.
+  await page.locator('[data-guide="qm-surprise"]').click({ timeout: 3000 }); await S(300);
+  await key('Gear', 'BODYWEIGHT').click({ timeout: 4000 }); await S(300);
   await page.locator('button[aria-label="Back"]').click({ timeout: 3000 }); await S(800);
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
-  if (await key('Level', 'HARD').getAttribute('aria-checked') !== 'true' || await key('Time', '20').getAttribute('aria-checked') !== 'true') throw new Error('the keys came back as the defaults');
+  if (await key('Level', 'HARD').getAttribute('aria-checked') !== 'true' || await key('Time', '20').getAttribute('aria-checked') !== 'true') throw new Error('the keys came back as the defaults or the SURPRISE roll');
 }, /20 MIN/i);
 await check('owner: quick mission library filters', async () => {
   await ownerQuick(); await library();

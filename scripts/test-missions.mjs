@@ -203,6 +203,13 @@ check('19 every classic still builds; chaos engine is weighted', N.NAMED_WORKOUT
 }) && N.buildNamedMission('chaos_engine').workoutType === 'Weighted');
 check('19 classicMeta', eq(L.classicMeta(N.namedWorkoutById('hell_mma')), { loadout: 'none', loadoutLabel: 'NO GEAR', themes: ['striking'], accentTag: 'STRIKING' })
   && L.classicMeta(N.namedWorkoutById('murph')).loadoutLabel === 'MIXED');
+// The Mission Library's row line: minutes (at the default level), loadout,
+// then how it runs. A classic's tag (Training Mode, Day Zero) is not a format.
+const FORMATS = new Set([...Object.values(L.FORMAT_LABEL), 'FOR TIME', 'CHALLENGE', 'ROUNDS', 'NON-STOP', 'INTERVALS', 'CIRCUIT', 'TEST']);
+const rowLines = shelf.map(e => L.shelfEntryLine(e));
+check('19 library rows: minutes · loadout · format', rowLines.every(l => { const p = l.split(' · '); return p.length === 3 && /^~\d+ MIN$/.test(p[0]) && FORMATS.has(p[2]); })
+  && L.shelfEntryLine(shelf[0]) === '~16 MIN · BARBELL · EMOM' && L.shelfEntryLine({ kind: 'classic', id: 'murph', loadout: 'mixed' }) === '~55 MIN · MIXED · FOR TIME',
+  rowLines.filter(l => !FORMATS.has(l.split(' · ')[2])).join(' | '));
 
 // ── swaps ───────────────────────────────────────────────────────────────────
 reset();

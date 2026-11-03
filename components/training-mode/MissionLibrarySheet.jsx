@@ -4,6 +4,7 @@ import { NAV_H } from './Styles';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import { GoldButton, GhostButton, Tag, HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD } from './shared/FitSetupKit';
+import { QM_LEVEL_WORD } from './data/quickMissionConfig';
 import { namedWorkoutById } from './data/namedWorkouts';
 import {
   LOADOUTS, THEMES, buildLoadoutMission, missionCardModel, classicMeta,
@@ -19,33 +20,51 @@ import {
 // pinned preview of the highlighted mission, the LOADOUT / THEME chips and
 // the footer stay put. Tapping a row only highlights it. PUT ON CARD hands it
 // to the page, where its card has every control (GUIDED / SOLO, LEVEL,
-// swaps); START runs it from here, in the remembered run mode at the level
-// its card would open on. The preview is read-only, so nothing in here ever
-// opens a second sheet.
+// swaps); START runs it from here, in the remembered run mode at its default
+// level, the one the preview and the row show. The preview is read-only, so
+// nothing in here ever opens a second sheet.
 //
 // The filters are the shelf prefs MISSION SELECT used (tm_qm_shelf_v1), so
-// they come back from the last visit.
+// they come back from the last visit. They wrap rather than scroll sideways.
+// A modal: Tab stays inside, and closing hands focus back to the folder row.
 const same = (a, b) => !!a && !!b && a.kind === b.kind && a.id === b.id;
 const keyOf = (e) => `${e.kind}-${e.id}`;
+// The page's MEDIUM for the stored NORMAL, as on the keys.
+const levelTag = (t) => QM_LEVEL_WORD[t] || t;
+// The chips' short words ('1 BELL / DB' stays on the rows).
+const CHIP_WORD = { bell: 'BELL / DB' };
+const FOCUSABLE = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
+// A short phone (360 x 740) keeps the list tall enough to browse: the preview
+// drops its MISSION line and its third move (the "+ N more" that counts them
+// swaps with it), and the header, preview and footer pack a little tighter.
+// A chip's hit area reaches into the gap around it.
 const CSS = `
 @keyframes ml-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 .ml-row { transition: border-color .18s ease, background .18s ease; }
 .ml-row:not([aria-checked="true"]):hover, .ml-row:not([aria-checked="true"]):focus-visible { border-color: ${VIOLET} !important; background: rgba(157,108,255,.12) !important; }
-@media (max-height: 760px) { .ml-move-3 { display: none !important; } }
+.ml-chip { position: relative; }
+.ml-chip::after { content: ''; position: absolute; top: -2px; bottom: -2px; left: 0; right: 0; }
+@media (max-height: 760px) {
+  .ml-move-3, .ml-more-3, .ml-line-MISSION { display: none !important; }
+  .ml-more-2 { display: block !important; }
+  .ml-head { padding: 8px 12px 6px 14px !important; }
+  .ml-preview { padding: 8px 12px !important; gap: 4px !important; }
+  .ml-foot { padding: 8px 12px 10px !important; }
+}
 `;
 
-// What the pinned preview shows: the card's own words, at the level START
-// would run.
-function previewOf(entry, { gear, levelFor }) {
+// What the pinned preview shows: the card's own words, at the default level
+// START runs.
+function previewOf(entry, { gear }) {
   if (!entry) return null;
   if (entry.kind === 'v2') {
-    const m = buildLoadoutMission(entry.id, { level: levelFor(entry.id), gear });
+    const m = buildLoadoutMission(entry.id, { gear });
     if (!m) return null;
     const card = missionCardModel(m, { gear });
     return {
       eyebrow: card.eyebrow, title: card.title,
-      tags: [{ t: card.tags[0] }, card.accentTag && { t: card.accentTag, accent: true }, ...card.tags.slice(1).map(t => ({ t, accent: t === 'SCALED' }))].filter(Boolean),
+      tags: [{ t: card.tags[0] }, card.accentTag && { t: card.accentTag, accent: true }, ...card.tags.slice(1).map(t => ({ t: levelTag(t), accent: t === 'SCALED' }))].filter(Boolean),
       lines: [['LOADOUT', card.loadoutLine], ['MISSION', card.missionLine]],
       moves: card.rows.map(r => [r.name, r.dose]),
     };
@@ -71,20 +90,22 @@ export function CountPill({ n }) {
 }
 
 // A LOADOUT / THEME chip: the kit's violet radio chip, compact, dimmed (still
-// tappable) when its count is 0.
-function FilterChip({ on, dim, onClick, children }) {
+// tappable) when its count is 0. The count is quieter than the word.
+function FilterChip({ on, dim, onClick, label, count }) {
   return (
-    <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-chip" onClick={onClick} style={{
-      flexShrink: 0, height: 32, padding: '0 10px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
+    <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-chip ml-chip" onClick={onClick} style={{
+      flexShrink: 0, height: 34, padding: '0 6px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
       background: on ? 'rgba(157,108,255,0.22)' : '#16131F', border: `1px solid ${on ? 'rgba(157,108,255,0.55)' : 'transparent'}`,
-      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.12em', opacity: dim ? 0.45 : 1,
-    }}>{children}</button>
+      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.04em', opacity: dim ? 0.45 : 1,
+    }}>{label}{count != null && <span style={{ opacity: 0.6 }}> {count}</span>}</button>
   );
 }
 
+// Every chip in view: the five LOADOUT chips just fit a 412px phone, and a
+// narrower one wraps them instead of hiding any off the edge.
 function ChipRow({ label, children }) {
   return (
-    <div className="no-scrollbar" role="radiogroup" aria-label={label} style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
+    <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
       {children}
     </div>
   );
@@ -106,22 +127,24 @@ function MissionRow({ entry, index, on, line, onPick, rowRef }) {
           <span style={{ minWidth: 0, font: `700 13px ${HEAD}`, letterSpacing: '0.1em', color: on ? GOLD : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.title}</span>
           {entry.soloOnly && pill('SOLO', '#9D6CFF', '#0D0A18')}
           {entry.pro && pill('PRO', GOLD, '#1A1204')}
+          {/* ON TOP rides the title line, so the line under it keeps its
+              format word on a narrow phone. */}
+          {on && (
+            <span style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 4, font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: GOLD }}>
+              <Check size={14} strokeWidth={3}/>ON TOP
+            </span>
+          )}
         </span>
         <span style={{ font: `500 12px ${BODY}`, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line}</span>
       </span>
-      {on ? (
-        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: GOLD }}>
-          <Check size={14} strokeWidth={3}/>ON TOP
-        </span>
-      ) : <ChevronRight size={16} color="#7D7799" style={{ flexShrink: 0 }}/>}
+      {!on && <ChevronRight size={16} color="#7D7799" style={{ flexShrink: 0 }}/>}
     </button>
   );
 }
 
 // shelf: shelfEntries() (the page decides what is on it); onTop: the entry
-// the page card shows, if any; levelFor(id): the level that mission's card
-// opens on; gear: gearProfile().
-export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPutOnCard, onStart, onClose }) {
+// the page card shows, if any; gear: gearProfile().
+export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, onStart, onClose }) {
   const [prefs] = useState(() => loadShelfPrefs());
   const [loadout, setLoadout] = useState(prefs.loadout);
   const [theme, setTheme] = useState(prefs.theme);
@@ -135,7 +158,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
   // The highlighted row, or the list's first when a filter hid it (it comes
   // back highlighted if the filter does).
   const current = list.find(e => same(e, highlight)) || list[0] || null;
-  const preview = useMemo(() => previewOf(current, { gear, levelFor }), [current, gear, levelFor]);
+  const preview = useMemo(() => previewOf(current, { gear }), [current, gear]);
   const groups = [
     { id: 'v2', label: 'MISSIONS', rows: list.filter(e => e.kind === 'v2') },
     { id: 'classic', label: 'CLASSICS', rows: list.filter(e => e.kind === 'classic') },
@@ -143,17 +166,30 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
   const empty = list.length ? null : emptyShelfCopy({ loadout, theme });
 
   // Opened with a library mission on the card: start with its row in view.
+  // Focus moves into the sheet, and back to whatever opened it (the folder
+  // row) when it closes, however it closes.
   const rowRefs = useRef({});
   const panelRef = useRef(null);
   useEffect(() => {
+    const opener = document.activeElement;
     panelRef.current?.focus({ preventScroll: true });
     if (onTop) rowRefs.current[keyOf(onTop)]?.scrollIntoView({ block: 'center' });
+    return () => { if (opener?.isConnected) opener.focus?.({ preventScroll: true }); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+  // Tab and Shift+Tab wrap inside the sheet, never reaching the page behind it.
+  const trapTab = (e) => {
+    if (e.key !== 'Tab' || !panelRef.current) return;
+    const els = [...panelRef.current.querySelectorAll(FOCUSABLE)].filter(el => el.getClientRects().length);
+    if (!els.length) return;
+    const first = els[0], last = els[els.length - 1], at = document.activeElement;
+    if (e.shiftKey && (at === first || at === panelRef.current || !panelRef.current.contains(at))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (at === last || !panelRef.current.contains(at))) { e.preventDefault(); first.focus(); }
+  };
 
   return (
     <OverlayPortal>
@@ -161,12 +197,12 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
         <style dangerouslySetInnerHTML={{ __html: CSS }}/>
         <div onClick={onClose} style={{ flex: 1, ...FLOAT_BACKDROP }}/>
         <div onClick={onClose} style={{ position: 'absolute', inset: 0 }}/>
-        <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Mission library" style={{
+        <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Mission library" onKeyDown={trapTab} style={{
           ...floatPanel(VIOLET, { wide: true }), height: 'calc(100% - 56px)', outline: 'none',
           display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'ml-up 0.26s ease',
         }}>
           {/* Header */}
-          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 12px 10px 14px' }}>
+          <div className="ml-head" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 12px 10px 14px' }}>
             <Folder size={18} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>
             <span style={{ minWidth: 0, font: `700 14px ${HEAD}`, letterSpacing: '0.14em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>MISSION LIBRARY</span>
             <CountPill n={(shelf || []).length}/>
@@ -179,7 +215,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
 
           {/* The highlighted mission, pinned. Read-only: its controls live on
               the page card. */}
-          <div aria-live="polite" style={{
+          <div aria-live="polite" className="ml-preview" style={{
             flexShrink: 0, margin: '0 12px', padding: '10px 12px', borderRadius: 14, boxSizing: 'border-box',
             background: 'linear-gradient(180deg, #0D0A18 0%, #120D22 100%)', border: '1px solid rgba(157,108,255,0.35)',
             display: 'flex', flexDirection: 'column', gap: 6,
@@ -194,8 +230,8 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(60px, auto) 1fr', gap: '2px 10px', alignItems: 'baseline' }}>
                   {preview.lines.map(([k, v]) => (
                     <Fragment key={k}>
-                      <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{k}</span>
-                      <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff', lineHeight: 1.3 }}>{v}</span>
+                      <span className={`ml-line-${k}`} style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{k}</span>
+                      <span className={`ml-line-${k}`} style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff', lineHeight: 1.3 }}>{v}</span>
                     </Fragment>
                   ))}
                 </div>
@@ -207,8 +243,12 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
                       {b && <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: '#CFC9E4', whiteSpace: 'nowrap' }}>{b}</span>}
                     </li>
                   ))}
+                  {/* One "+ N more" per height: three moves shown, or two. */}
                   {preview.moves.length > 3 && (
-                    <li style={{ paddingLeft: 28, font: `600 11px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>+ {preview.moves.length - 3} more</li>
+                    <li className="ml-more-3" style={{ paddingLeft: 28, font: `600 11px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>+ {preview.moves.length - 3} more</li>
+                  )}
+                  {preview.moves.length > 2 && (
+                    <li className="ml-more-2" style={{ display: 'none', paddingLeft: 28, font: `600 11px ${HEAD}`, letterSpacing: '0.06em', color: MUTED }}>+ {preview.moves.length - 2} more</li>
                   )}
                 </ol>
               </>
@@ -218,17 +258,16 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
           </div>
 
           {/* LOADOUT · THEME */}
-          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px 6px' }}>
+          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5, padding: '10px 12px 6px' }}>
             <ChipRow label="Loadout">
               {LOADOUTS.map(l => (
-                <FilterChip key={l.id} on={l.id === loadout} dim={lCounts[l.id] === 0} onClick={() => pickLoadout(l.id)}>{l.label} {lCounts[l.id]}</FilterChip>
+                <FilterChip key={l.id} on={l.id === loadout} dim={lCounts[l.id] === 0} onClick={() => pickLoadout(l.id)} label={CHIP_WORD[l.id] || l.label} count={lCounts[l.id]}/>
               ))}
             </ChipRow>
             <ChipRow label="Theme">
               {THEMES.map(th => (
-                <FilterChip key={th.id} on={th.id === theme} dim={tCounts[th.id] === 0} onClick={() => pickTheme(th.id)}>
-                  {th.id === 'all' ? 'ANY THEME' : `${th.label} ${tCounts[th.id]}`}
-                </FilterChip>
+                <FilterChip key={th.id} on={th.id === theme} dim={tCounts[th.id] === 0} onClick={() => pickTheme(th.id)}
+                  label={th.id === 'all' ? 'ANY' : th.label} count={th.id === 'all' ? null : tCounts[th.id]}/>
               ))}
             </ChipRow>
           </div>
@@ -250,7 +289,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
                   <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }}/>
                 </div>
                 {g.rows.map((e, i) => (
-                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level: e.kind === 'v2' ? levelFor(e.id) : undefined })}
+                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e)}
                     onPick={() => setHighlight(e)} rowRef={(el) => { rowRefs.current[keyOf(e)] = el; }}/>
                 ))}
               </div>
@@ -264,7 +303,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, levelFor, onPu
           </div>
 
           {/* PUT ON CARD · START, pinned. */}
-          <div style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)', gap: 10, padding: '10px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="ml-foot" style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)', gap: 10, padding: '10px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
             <GhostButton label="PUT ON CARD" height={48} onClick={current ? () => onPutOnCard?.(current) : undefined}
               style={{ fontSize: 12, opacity: current ? 1 : 0.45, cursor: current ? 'pointer' : 'default' }}/>
             <GoldButton label="START" icon="play" height={48} disabled={!current} onClick={() => current && onStart?.(current)} style={{ fontSize: 16, letterSpacing: '0.2em' }}/>

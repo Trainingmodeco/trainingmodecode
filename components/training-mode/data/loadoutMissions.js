@@ -941,9 +941,20 @@ export function loadoutCounts(entries, theme = 'all') {
   LOADOUTS.forEach(l => { out[l.id] = filterShelf(within, { loadout: l.id }).length; });
   return out;
 }
+// A classic's format word on its library row, the way a launch mission's
+// row ends on EMOM or AMRAP. Its tag (Training Mode, Day Zero) says where it
+// comes from, not how it runs.
+const CLASSIC_FORMAT = {
+  murph: 'FOR TIME', half_murph: 'FOR TIME',
+  sally_squats: 'CHALLENGE', sally_pushups: 'CHALLENGE',
+  deadly_seven: 'ROUNDS', hell_mma: 'NON-STOP', hell_general: 'NON-STOP',
+  strike_fitness_easy: 'INTERVALS', strike_fitness_mid: 'INTERVALS', strike_fitness_adv: 'INTERVALS',
+  pushup_division: 'INTERVALS', abs_3_level: 'CIRCUIT', fitness_test: 'TEST', burpee_hell: 'INTERVALS',
+  legendary_squat: 'CIRCUIT', hero_training: 'CIRCUIT', chaos_engine: 'CIRCUIT',
+};
 // "~16 MIN · BARBELL · EMOM" — a Mission Library row's second line: minutes
 // at `level` (the mission's default level when none is given), the loadout,
-// then the format (a classic has none, so its tag: HERO WORKOUT, CHALLENGE).
+// then the format.
 export function shelfEntryLine(entry, { level } = {}) {
   if (entry?.kind === 'v2') {
     const def = missionDefById(entry.id);
@@ -951,7 +962,7 @@ export function shelfEntryLine(entry, { level } = {}) {
     return [L ? `~${L.minutes} MIN` : null, loadoutLabel(entry.loadout), FORMAT_LABEL[def?.format] || null].filter(Boolean).join(' · ');
   }
   const w = NAMED_WORKOUTS.find(n => n.id === entry?.id);
-  return [w?.estMin ? `~${w.estMin} MIN` : null, loadoutLabel(entry?.loadout), w?.tag ? String(w.tag).toUpperCase() : null].filter(Boolean).join(' · ');
+  return [w?.estMin ? `~${w.estMin} MIN` : null, loadoutLabel(entry?.loadout), CLASSIC_FORMAT[entry?.id] || null].filter(Boolean).join(' · ');
 }
 export function emptyShelfCopy({ loadout = 'all', theme = 'all' } = {}) {
   const lo = loadoutLabel(loadout);
