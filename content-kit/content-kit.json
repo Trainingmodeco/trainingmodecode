@@ -2663,7 +2663,7 @@
       "mission": "5 ROUNDS FOR TIME · 12 DEADLIFTS · 9 HANG POWER CLEANS · 6 PUSH JERKS · CAP 20:00",
       "score": "TIME, OR REPS AT THE CAP (135 FINISHES)",
       "tags": [
-        "~12 MIN",
+        "~8 MIN",
         "HARD",
         "SOLO ONLY"
       ],
@@ -2713,7 +2713,7 @@
         {
           "id": "beginner",
           "label": "BEGINNER",
-          "detail": "30 reps · 34/25 kg · cap 10:00"
+          "detail": "30 hang power clean + push press singles · 34/25 kg · cap 10:00"
         },
         {
           "id": "standard",
@@ -2741,7 +2741,9 @@
         "HARD",
         "SOLO ONLY"
       ],
-      "themes": [],
+      "themes": [
+        "burpees"
+      ],
       "moves": [
         "8 Ground-to-Overheads",
         "10 Bar-Facing Burpees"
@@ -2887,8 +2889,8 @@
       "title": "FIRST BELL",
       "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · 2 × 2 M, CLEAR IN FRONT",
       "format": "EMOM",
-      "mission": "100 SINGLE-ARM SWINGS IN 5:00 · REST 1:00 · 10 GET-UPS IN 10:00",
-      "score": "SETS HELD, OUT OF 20 · AND THE BELL YOU USED",
+      "mission": "100 ONE-ARM SWINGS IN 5:00 · REST 1:00 · 10 GET-UPS IN 10:00",
+      "score": "SETS HELD, OUT OF 20",
       "tags": [
         "~16 MIN",
         "NORMAL",
@@ -2897,7 +2899,7 @@
       ],
       "themes": [],
       "moves": [
-        "10 × 10 Single-Arm Kettlebell Swings",
+        "10 × 10 One-Arm Swings",
         "10 × 1 Weighted Turkish Get-Up"
       ],
       "levels": [
@@ -3109,7 +3111,7 @@
         {
           "id": "standard",
           "label": "STANDARD",
-          "detail": "AMRAP 12 · 8-12 kg"
+          "detail": "AMRAP 12 · M 8-12 kg / W 6-8 kg"
         },
         {
           "id": "elite",
@@ -3136,14 +3138,14 @@
         "burpees"
       ],
       "moves": [
-        "2, 4, 6… Single-Arm Dumbbell Devil Presses",
-        "2, 4, 6… Lateral Burpees Over the Dumbbell"
+        "2, 4, 6… Devil Presses",
+        "2, 4, 6… Burpees Over the Bell"
       ],
       "levels": [
         {
           "id": "beginner",
           "label": "BEGINNER",
-          "detail": "AMRAP 8 · 10/5 kg"
+          "detail": "AMRAP 8 · 15/10 kg or 10/5 kg"
         },
         {
           "id": "standard",

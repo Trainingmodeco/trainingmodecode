@@ -12,14 +12,16 @@ import { MODE_RULES } from '../utils/missionIntegrity';
 // Seconds per unit when a rep is a distance or a calorie (Murph's mile; M is
 // HOT LAPS' 400 m, at the KM pace).
 export const UNIT_SEC = { MILE: 600, 'HALF MILE': 300, KM: 375, M: 0.375, CAL: 3.3 };
-// A distance is never a rep in a score (a capped HOT LAPS counts its swings
-// and pull-ups, not its metres).
+// A distance is never a rep in a score, and neither is a slot authored
+// `scored: false` (HOT LAPS' run row), whatever move a swap puts in it: a
+// capped HOT LAPS counts its swings and pull-ups, never its metres, rowed
+// calories or high knees.
 const DISTANCE = new Set(['MILE', 'HALF MILE', 'KM', 'M']);
 
 const allSlots = (mission) => [...(mission?.exercises || []), ...(mission?.finisherExercises || [])];
 const hasList = (slot) => Array.isArray(slot?.list);
 const rounds = (mission) => Math.max(1, mission?.rounds || 1);
-const scoredReps = (it) => (DISTANCE.has(it?.unit) ? 0 : it?.reps || 0);
+const scoredReps = (it) => (it?.scored === false || DISTANCE.has(it?.unit) ? 0 : it?.reps || 0);
 const sumReps = (list) => (list || []).reduce((s, x) => s + scoredReps(x), 0);
 // A ladder: a for-time mission whose every slot is a complex, one rung each
 // (21-15-9, BURNOUT 21, CONTINUE? · BELL). SOLO counts its rungs as rounds.
@@ -138,8 +140,8 @@ export function segmentAt(timeline, elapsedSec) {
 
 // ── score and pace ──────────────────────────────────────────────────────────
 // Reps in one round of the score: one pass of the AMRAP list, or one round of
-// a for-time mission (a ladder's round is all its rungs). Distances never
-// count.
+// a for-time mission (a ladder's round is all its rungs). Distances and
+// `scored: false` slots never count.
 export function repsPerRound(mission) {
   const slots = allSlots(mission);
   if (mission?.format === 'amrap') {
