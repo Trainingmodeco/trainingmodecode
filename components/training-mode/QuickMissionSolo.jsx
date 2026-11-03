@@ -215,7 +215,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const clockRef = useRef(init.clock);
 
   const format = mission.format;
-  // NO CONTINUES: no set length, a count-up clock to the safety cap, + SET
+  // NO CONTINUES: no set length, a count-up clock to the safety cap, SET
   // taps and I PUT IT DOWN, which finishes the run (see data/missionSolo).
   const down = isUntilDown(mission);
   // Its words: NO CONTINUES' SET and I PUT IT DOWN, or ROUND and I'M DONE.
@@ -599,7 +599,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
             )}
 
             {/* Until down: the end of the run and the safety line sit right
-                under + SET, on screen without a scroll. */}
+                under SET, on screen without a scroll. */}
             {down && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button type="button" onClick={handleDown} disabled={!tapsLive} style={{

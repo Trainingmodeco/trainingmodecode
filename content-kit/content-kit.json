@@ -3388,6 +3388,85 @@
       "guided": true,
       "captionAka": null,
       "origin": "Coach TM original"
+    },
+    {
+      "id": "upper_lower_dips",
+      "title": "UPPER LOWER DIPS",
+      "loadout": "NO GEAR · A FIXED BENCH, A STURDY CHAIR OR PARALLEL BARS FOR THE DIPS",
+      "format": "MAX ROUNDS",
+      "mission": "8 BENCH OR BAR DIPS · 16 SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      "score": "ROUNDS + REPS, AND THE TIME",
+      "tags": [
+        "~7 MIN",
+        "HARD"
+      ],
+      "themes": [
+        "century"
+      ],
+      "moves": [
+        "8 Bench Dips",
+        "16 Air Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "8 bent-knee bench dips · 16 squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "8 bench or bar dips · 16 squats"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "8 bar dips · 16 jump squats"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "overtime_20",
+      "title": "OVERTIME 20",
+      "loadout": "NO GEAR · A PULL-UP BAR, OR A SOLID DOOR FRAME",
+      "format": "AMRAP",
+      "mission": "AMRAP 20 · 5 PULL-UPS · 10 PUSH-UPS · 15 SQUATS",
+      "score": "ROUNDS + REPS",
+      "tags": [
+        "~20 MIN",
+        "HARD",
+        "HOTEL OK",
+        "QUIET"
+      ],
+      "themes": [],
+      "moves": [
+        "5 Pull-Ups",
+        "10 Push-Ups",
+        "15 Air Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "AMRAP 12 · 3 door frame rows · 6 incline push-ups · 9 squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "AMRAP 20 · 5 pull-ups · 10 push-ups · 15 squats"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "AMRAP 20 · 9/6 kg vest"
+        }
+      ],
+      "guided": true,
+      "captionAka": "Cindy",
+      "origin": null
     }
   ],
   "programs": [

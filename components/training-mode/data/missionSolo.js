@@ -219,7 +219,7 @@ export function repsPerRound(mission) {
   }
   return slots.reduce((s, sl) => s + (hasList(sl) ? sumReps(sl.list) : sl.mode === 'reps' ? scoredReps(sl) : 0), 0);
 }
-// The rounds SOLO's + ROUND counts for a for-time mission: a ladder's rungs,
+// The rounds SOLO's ROUND tap counts for a for-time mission: a ladder's rungs,
 // anything else its rounds.
 export function soloRounds(mission) {
   if (isUntilDown(mission)) return totalSlots(mission); // sets, up to the backstop
@@ -271,7 +271,7 @@ export function paceTargets(mission) {
 const countedIn = (slot) => (typeof slot.cadenceMs === 'number' && slot.cadenceMs > 0 ? Math.floor(((slot.work || 0) * 1000) / slot.cadenceMs) : 0);
 export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) {
   const rule = mission?.scoreRule || {};
-  if (rule.kind === 'setsReps') return { sets: roundTaps, reps: 0 }; // untilDown: the + SET taps
+  if (rule.kind === 'setsReps') return { sets: roundTaps, reps: 0 }; // untilDown: the SET (ROUND) taps
   if (rule.kind === 'roundsReps') {
     const n = mission.rounds || 1;
     if (n <= 1) return { rounds: roundTaps, reps: 0 };

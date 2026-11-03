@@ -924,11 +924,17 @@ const pinChanged = (pins, print) => {
 };
 const soloMathChanged = pinChanged(SOLO_HASH, soloPrint);
 const settleChanged = pinChanged(SETTLE_HASH, settlePrint);
-const builtChanged = pinChanged(BUILT_HASH, (m) => m);
-const cardChanged = pinChanged(CARD_HASH, (m) => L.missionCardModel(m));
+// The one deliberate copy change since these pins: the ROUND button took
+// over from + ROUND, so five notes now say 'Tap ROUND after each rung' (lap).
+// The pin reads them back the old way; nothing else may differ.
+const pinNote = (v) => (typeof v?.note === 'string' ? { ...v, note: v.note.replace('Tap ROUND after each', 'Tap + ROUND after each') } : v);
+const builtChanged = pinChanged(BUILT_HASH, (m) => pinNote(m));
+const cardChanged = pinChanged(CARD_HASH, (m) => pinNote(L.missionCardModel(m)));
+const tapNotes = L.LOADOUT_MISSIONS.filter(d => /Tap ROUND after each/.test(d.note)).map(d => d.id);
 check('58 all 26: SOLO clocks, pace, prefills, floors and integrity sizing unchanged', soloMathChanged.length === 0, soloMathChanged.join(', '));
 check('58 all 26: the six settles as pinned (XP by time on the ten AMRAPs only)', settleChanged.length === 0, settleChanged.join(', '));
 check('58 all 26: the built mission and its card unchanged', builtChanged.length === 0 && cardChanged.length === 0, `${builtChanged.join(', ')} ${cardChanged.join(', ')}`);
+check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`)), show(tapNotes));
 
 // No franchise, benchmark or person names anywhere a viewer reads.
 const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];

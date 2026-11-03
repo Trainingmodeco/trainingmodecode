@@ -1,7 +1,7 @@
 import MissionComplete from './shared/MissionComplete';
 import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from './shared/sessionOutcome';
 import { FORMAT_LABEL } from './data/loadoutMissions';
-import { formatScore, splitsLine, downCopy, isUntilDown } from './data/missionSolo';
+import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 import { quickMissionXp } from './data/userStats';
 
@@ -47,10 +47,16 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       { value: mmss(result.elapsedSec || 0), label: 'TIME', color: '#fff' },
       { value: mission.levelLabel, label: 'LEVEL', color: '#fff' },
     ]
-    : [
-      { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
-      { value: String(exercisesCompleted), label: 'EXERCISES', color: '#fff' },
-    ];
+    : guidedSettle && paysByTime(mission)
+      // On a clock the XP is the time worked, so the screen shows it.
+      ? [
+        { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
+        { value: mmss(guidedSettle.workedSec || 0), label: 'WORKED', color: '#fff' },
+      ]
+      : [
+        { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
+        { value: String(exercisesCompleted), label: 'EXERCISES', color: '#fff' },
+      ];
 
   return (
     <MissionComplete

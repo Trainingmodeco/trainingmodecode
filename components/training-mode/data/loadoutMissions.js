@@ -501,7 +501,7 @@ const QUOTA = {
 // needed a different shape than the source's, the comment says so.
 const SOLO_COPY = { introSay: '', guidedHelp: '' }; // SOLO only; the card shows SOLO_ONLY_HELP
 // A ladder (a for-time workout whose rungs differ): one complex per rung, so
-// SOLO's + ROUND counts rungs and a capped run prefills the reps through them.
+// SOLO's ROUND tap counts rungs and a capped run prefills the reps through them.
 const rungs = (counts, steps) => counts.map((n, i) => complex(`Rung ${i + 1}`, steps(n, i), { swapKey: 'rung' }));
 // A step note that holds only for the row's base move: a swap clears it.
 const baseNote = (key, moveId, then) => ({ noteIf: { key, is: moveId, then, else: null } });
@@ -621,7 +621,7 @@ const BURNOUT = {
   knownAs: 'CrossFit Open 14.5 / 16.5 (captions only)',
   loadoutLine: '1 BARBELL + PLATES · 2 × 3 M OF FLOOR', scoreLine: 'TIME, OR REPS AT THE CAP (168 FINISHES)', scoreRule: { kind: 'time' },
   scale: 'Lighter bar (29/20 kg), or the beginner level: 15 down to 3 with the empty bar and step-over burpees. Hotel gym: dumbbell thrusters, burpees over the dumbbell.',
-  note: 'Warm up 5 min, then 2 rounds of 5 empty-bar thrusters and 5 burpees. Tap + ROUND after each rung. If the thruster turns into a back-arching press, split it: a front squat, then a push press.',
+  note: 'Warm up 5 min, then 2 rounds of 5 empty-bar thrusters and 5 burpees. Tap ROUND after each rung. If the thruster turns into a back-arching press, split it: a front squat, then a push press.',
   ...SOLO_COPY,
   paceBasis: 'Published: elite times at 43/29 kg were about 7:15-7:45. The rest are coach estimates (a solid intermediate: about 15-22 min).',
   defaultLevel: 'standard',
@@ -769,7 +769,7 @@ const CONTINUE_BELL = {
   knownAs: 'Humane Burpee (Dan John), 10→1 variant',
   loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A SWING LANE CLEAR OF THE TV', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bell (16/12 kg), or the beginner level: 5 rungs down to 1, and 10 swings if 15 breaks your form. Dumbbell: swings and goblet squats with one dumbbell.',
-  note: '15 swings every rung; only the squats and push-ups shrink, so it gets easier as you go. Tap + ROUND after each rung. Park the bell when your back rounds or the bell drifts forward: that is a rest, not a fail.',
+  note: '15 swings every rung; only the squats and push-ups shrink, so it gets easier as you go. Tap ROUND after each rung. Park the bell when your back rounds or the bell drifts forward: that is a rest, not a fail.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 15 swings take about 25 s; the ladder runs about 10-14 min.',
   defaultLevel: 'standard',
@@ -942,7 +942,7 @@ const LEG_SWEEP = {
 
 // ── 24 · CHARGE UP 12 ───────────────────────────────────────────────────────
 // An ascending ladder on the AMRAP clock: both steps climb 2 a rung (`climb`),
-// + ROUND marks a rung, and the score is total reps: the source's 'rung + reps
+// A ROUND tap marks a rung, and the score is total reps: the source's 'rung + reps
 // into the next' as one number (through the 14s is 112). Paces are the
 // source's rung marks in reps; BEGINNER is its ROOKIE 8:00. The source sets
 // its elite and standard marks (the 18s, the 14s) at the Rx bell and its
@@ -958,7 +958,7 @@ const CHARGE_UP = {
   loadoutLine: '1 HEX DUMBBELL · 2 × 2 M, ROOM TO PRESS OVERHEAD', scoreLine: 'TOTAL REPS: EVERY RUNG CLEARED, PLUS INTO THE NEXT',
   scoreRule: { kind: 'reps', label: 'TOTAL REPS', keys: ['press', 'burpee'], agg: 'total' },
   scale: 'Lighter bell first, then start the ladder at 1 and add 1 a rung. Step-back burpees for knees. No dumbbell: burpees and lateral burpees over a line. Harder: two dumbbells.',
-  note: 'Warm up 5 min: easy jacks, hip hinges, light deadlifts and hang clean and presses, 5 burpees, hops over a line. Tap + ROUND after each rung. Back rounding on the pull, or a soft lockout: a lighter bell. Never drop it from overhead. Dizziness, chest pain or sharp pain ends the run, and the score stands.',
+  note: 'Warm up 5 min: easy jacks, hip hinges, light deadlifts and hang clean and presses, 5 burpees, hops over a line. Tap ROUND after each rung. Back rounding on the pull, or a soft lockout: a lighter bell. Never drop it from overhead. Dizziness, chest pain or sharp pain ends the run, and the score stands.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate from the rep times (devil press 4 / 6 / 9 s, burpee-over 3 / 4.5 / 6 s), plus a breath a rung. The elite and standard marks (the 18s, the 14s) were set with the heavier bell and hold for both 12:00 levels. The beginner mark is the 10s at 15/10 kg, the 8s with the heavier bell.',
   defaultLevel: 'standard',
@@ -992,7 +992,7 @@ const OXYGEN_DEBT = {
   difficulty: 'Brutal', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: false, guided: false, knownAs: 'Fran',
   loadoutLine: '1 BARBELL + A PULL-UP BAR, OR 2 DUMBBELLS', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bar, or the beginner level: 15-12-9 with an empty bar or 2 light dumbbells, and jumping pull-ups. Dumbbells: 2 × 15/10 kg. No bar on the road: dumbbell bent-over rows, the same reps.',
-  note: 'Warm up 8-10 min first; this is a 5-8 min sprint. 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap + ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
+  note: 'Warm up 8-10 min first; this is a 5-8 min sprint. 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 5-8 min for most; elite athletes finish in under 3.',
   defaultLevel: 'standard',
@@ -1028,7 +1028,7 @@ const HOT_LAPS = {
   difficulty: 'Hard', focus: 'Conditioning', workoutType: 'Weighted', hotel: false, quiet: false, guided: false, knownAs: 'Helen',
   loadoutLine: '1 KETTLEBELL + A PULL-UP BAR · A 400 M ROUTE OR A TREADMILL', scoreLine: 'TIME, OR SWINGS + PULL-UPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bell, or the beginner level: 200 m, 15 swings at 12/8 kg, 9 jumping pull-ups. Travel: a treadmill, dumbbell swings, and single-arm rows for the pull-ups.',
-  note: 'Warm up 6-8 min: an easy 400 m jog, then 2 rounds of 10 swings to eye level and 5 pull-ups or ring rows. Never been coached on swings? Stop them at eye level: the overhead finish is where tired backs arch. Tap + ROUND after each lap.',
+  note: 'Warm up 6-8 min: an easy 400 m jog, then 2 rounds of 10 swings to eye level and 5 pull-ups or ring rows. Never been coached on swings? Stop them at eye level: the overhead finish is where tired backs arch. Tap ROUND after each lap.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 10-14 min for most; a 400 m run takes about 1:45-2:30.',
   defaultLevel: 'standard',
@@ -1106,7 +1106,7 @@ const BAR_FIGHT = {
 // ── 28 · TOUCH THE SKY ──────────────────────────────────────────────────────
 // A barbell complex, down the lifts and back up, without setting the bar
 // down: one complex a round, 2:00 of rest after it. Scored on time with the
-// rests in it, because SOLO runs a for-time clock cleanly (count-up, + ROUND,
+// rests in it, because SOLO runs a for-time clock cleanly (count-up, ROUND,
 // FINISH, reps at the cap) and has no way to mark a round held or broken.
 // The count is a strength cadence, the level's own (ELITE's heavier bar at
 // the standard column); rep 1 includes setting up over the bar.
