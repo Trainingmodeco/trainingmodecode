@@ -1,0 +1,114 @@
+{
+  "id": "2026-11-03-practice-switch-kick",
+  "title": "Practice: Switch Kick",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Kickboxing › Switch Kick: cues, mistakes, next). Thai: te salap (เตะสลับ), the switch kick. Footage: the owner's clip 23 (ring, 2026-11-03), raw-footage/practice/p23.mp4, two shots joined in InShot (cut at 6.27 s): two switch kicks facing the camera (0.8 and 4.8 s), one from 45° (10.3 s).",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Kickboxing",
+    "technique": "Switch Kick",
+    "number": null,
+    "badge": "Kick",
+    "level": "Intermediate",
+    "description": "Switch stance to disguise the rear kick",
+    "stance": "orthodox",
+    "hook": "HIDE YOUR|*REAR KICK.*",
+    "hookSub": "Switch kick. Te salap. 20 seconds.",
+    "src": "raw-footage/practice/p23.mp4",
+    "slowSrc": "raw-footage/practice/p23.x75.mp4",
+    "pose": "raw-footage/practice/p23.pose.json",
+    "hookAt": 3.4,
+    "repAt": 4.0,
+    "cues": [
+      {
+        "text": "Small hop to switch",
+        "at": 0.5,
+        "point": [
+          0.5,
+          0.7
+        ],
+        "label": "SWITCH",
+        "say": "Coach: \"Feet swap in a hop no higher than a step. Rear foot forward, lead foot back.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "Disguise the switch",
+        "at": 4.5,
+        "mark": "hips",
+        "label": "STAY LEVEL",
+        "say": "Coach: \"Head and hips stay level. If you bob, they read the kick.\""
+      },
+      {
+        "text": "Kick immediately after switch",
+        "at": 10.33,
+        "mark": "leadFoot",
+        "label": "KICK",
+        "say": "Coach: \"The switch and the kick are one beat. Land, and the shin is already on its way.\""
+      }
+    ],
+    "watch": {
+      "text": "Big telegraphing hop",
+      "fix": "Small, quick switch",
+      "at": 10.05,
+      "fixAt": 4.3,
+      "mark": "leadFoot",
+      "label": "BIG HOP",
+      "say": "Coach: \"A big hop is a flashing sign that says kick. Keep it small and fast.\""
+    },
+    "drill": {
+      "calls": [
+        "SWITCH KICK",
+        "SWITCH KICK × 2",
+        "JAB → SWITCH KICK"
+      ],
+      "start": 0.0,
+      "cue": "Switch and kick as one"
+    },
+    "next": {
+      "name": "Rear Hook",
+      "description": "Rear-side hook punch",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "เตะสลับ · TE SALAP"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Hide your rear kick 🦵 Switch kick, te salap: small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #kickboxing #switchkick #tesalap #muaythai #kickboxingtechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Hide your rear kick. 🦵\n\nSwitch kick (te salap, เตะสลับ):\n1. Small hop to switch\n2. Disguise the switch\n3. Kick immediately after switch\nWatch for: a big telegraphing hop.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#kickboxing #switchkick #tesalap #muaythai #kickboxingtechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Hide your rear kick 🦵 Switch kick, te salap: small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Hide your rear kick. The switch kick (te salap) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the switch kick, te salap (เตะสลับ), step by step. Small hop to switch, disguise the switch, kick immediately after the switch. Watch for a big telegraphing hop. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "kickboxing",
+        "switch kick",
+        "te salap",
+        "muay thai",
+        "kickboxing technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 23 at the owner's word. Shots: front 0–6.27 (hook, name, key points 1–2, the fix and the drill), 45° 6.27–12.39 (key point 3 and the WATCH FOR freeze), so no beat crosses the join. The body tracker is unreliable in the first second, so key point 1's marker is pinned by hand on the feet. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}

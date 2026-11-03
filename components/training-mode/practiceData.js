@@ -184,7 +184,7 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Switch Kick',
-    description: 'Switch stance to disguise rear kick',
+    description: 'Te salap: switch stance to disguise the rear kick',
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
