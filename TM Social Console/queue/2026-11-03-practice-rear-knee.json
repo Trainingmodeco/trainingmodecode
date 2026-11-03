@@ -1,0 +1,114 @@
+{
+  "id": "2026-11-03-practice-rear-knee",
+  "title": "Practice: Rear Knee",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Muay Thai › Rear Knee: cues, mistakes, next); the same video serves the Kickboxing and MMA Rear Knee entries and the Muay Thai path's Knee lesson. Thai: khao trong (เข่าตรง), the straight knee. Footage: the owner's clip 26 (ring, 2026-11-03), raw-footage/practice/p26.mp4, three shots joined in InShot (soft joins at 2.93 and 5.5 s, found by the body jumping across the frame): a step in and a rear knee at 1.3, 4.0, 6.2 and 8.8 s, all facing the camera.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Rear Knee",
+    "number": null,
+    "badge": "Knee",
+    "level": "Intermediate",
+    "description": "Rear-leg knee strike with full hip drive",
+    "stance": "orthodox",
+    "hook": "THE KNEE THAT|*FOLDS THEM.*",
+    "hookSub": "Rear knee. Khao trong. 20 seconds.",
+    "src": "raw-footage/practice/p26.mp4",
+    "slowSrc": "raw-footage/practice/p26.x75.mp4",
+    "pose": "raw-footage/practice/p26.pose.json",
+    "hookAt": 3.3,
+    "repAt": 0.3,
+    "cues": [
+      {
+        "text": "Step in to close distance",
+        "at": 3.55,
+        "lead": 0.55,
+        "mark": "leadFoot",
+        "label": "STEP IN",
+        "say": "Coach: \"Knees land close. Step the lead foot in first, then the knee comes.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "Drive the hip through",
+        "at": 6.2,
+        "lead": 0.6,
+        "mark": "hips",
+        "label": "HIPS",
+        "say": "Coach: \"The hip pushes forward and the knee rides it. Lean back a touch for the drive.\""
+      },
+      {
+        "text": "Target the body",
+        "at": 1.3,
+        "mark": "rearKnee",
+        "label": "TARGET",
+        "say": "Coach: \"Ribs, liver, solar plexus. The point of the knee into the body.\""
+      }
+    ],
+    "watch": {
+      "text": "No hip drive",
+      "fix": "Hips through, not just knee up",
+      "at": 8.7,
+      "fixAt": 3.6,
+      "mark": "hips",
+      "label": "HIPS",
+      "say": "Coach: \"Lift the knee without the hip and it's a tap. Push the hips through and it folds them.\""
+    },
+    "drill": {
+      "calls": [
+        "REAR KNEE",
+        "REAR KNEE × 2",
+        "JAB → REAR KNEE"
+      ],
+      "start": 0.0,
+      "rate": 0.9,
+      "cue": "Close range, hips through"
+    },
+    "next": {
+      "name": "Lead Spear Elbow",
+      "description": "Downward spearing elbow from the lead side",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "เข่าตรง · KHAO TRONG"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "The knee that folds them 🦵 Rear knee, khao trong: step in to close distance, drive the hip through, target the body. Watch for no hip drive. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #knee #khaotrong #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "The knee that folds them. 🦵\n\nRear knee (khao trong, เข่าตรง):\n1. Step in to close distance\n2. Drive the hip through\n3. Target the body\nWatch for: no hip drive.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #knee #khaotrong #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "The knee that folds them 🦵 Rear knee, khao trong: step in to close distance, drive the hip through, target the body. Watch for no hip drive. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "The knee that folds them. Rear knee (khao trong) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the rear knee, khao trong (เข่าตรง), step by step. Step in to close distance, drive the hip through, target the body. Watch for no hip drive. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "knee strike",
+        "khao trong",
+        "rear knee",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 26 at the owner's word. Shots: 0–2.93 (name, key point 3), 2.93–5.5 (hook, key point 1 with a 0.55 s lead-in, the fix), 5.5–9.52 (key point 2 with a 0.6 s lead-in, the WATCH FOR freeze on the last knee). The drill runs the first two shots at 0.9× across the 2.93 join, between the first knee landing and the next step-in. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}

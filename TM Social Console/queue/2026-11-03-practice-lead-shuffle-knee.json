@@ -4,7 +4,7 @@
   "status": "draft",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
-  "source": "Practice Mode tutorial. The owner's lead shuffle knee, added to the app's Technique Library as Muay Thai › Lead Shuffle Knee (cues, mistakes, next from there; the existing Lead Knee entry is the clinch knee, so the shuffle got its own). Thai: khao trong (เข่าตรง), the straight knee. Footage: the owner's clip 25 (ring, 2026-11-03), raw-footage/practice/p25.mp4, one shot of 5.6 s with two reps: a shuffle into the knee at 0.9 s, a second at 4.3 s.",
+  "source": "Practice Mode tutorial. The owner's lead shuffle knee, added to the app's Technique Library as Muay Thai › Lead Shuffle Knee (cues, mistakes, next from there; the existing Lead Knee entry is the clinch knee, so the shuffle got its own). Thai: khao yao (เข่ายาว), the long knee: a straight knee thrown with a step from range. Footage: the owner's clip 25 (ring, 2026-11-03), raw-footage/practice/p25.mp4, one shot of 5.6 s with two reps: a shuffle into the knee at 0.9 s, a second at 4.3 s.",
   "scheduledFor": null,
   "coverFrame": 30,
   "props": {
@@ -16,7 +16,7 @@
     "description": "The straight lead knee off a shuffle step",
     "stance": "orthodox",
     "hook": "CLOSE THE GAP|*WITH YOUR KNEE.*",
-    "hookSub": "Lead shuffle knee. Khao trong. 20 seconds.",
+    "hookSub": "Lead shuffle knee. Khao yao. 20 seconds.",
     "src": "raw-footage/practice/p25.mp4",
     "slowSrc": "raw-footage/practice/p25.x75.mp4",
     "pose": "raw-footage/practice/p25.pose.json",
@@ -77,26 +77,26 @@
     "cta": "OPEN PRACTICE MODE",
     "zoom": 1.45,
     "focus": null,
-    "alias": "เข่าตรง · KHAO TRONG"
+    "alias": "เข่ายาว · KHAO YAO"
   },
   "platforms": {
     "tiktok": {
-      "caption": "Close the gap with your knee 🦵 Lead shuffle knee, khao trong: shuffle the rear foot up, drive the hip forward, spear with the point of the knee. Watch for no hip drive. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #knee #khaotrong #muaythaitechnique #trainingmode",
+      "caption": "Close the gap with your knee 🦵 Lead shuffle knee, khao yao: shuffle the rear foot up, drive the hip forward, spear with the point of the knee. Watch for no hip drive. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #knee #khaoyao #muaythaitechnique #trainingmode",
       "privacy": "SELF_ONLY"
     },
     "instagram": {
-      "caption": "Close the gap with your knee. 🦵\n\nLead shuffle knee (khao trong, เข่าตรง):\n1. Shuffle the rear foot up\n2. Drive the hip forward\n3. Spear with the point of the knee\nWatch for: no hip drive.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #knee #khaotrong #muaythaitechnique #combatfitness #trainingmode"
+      "caption": "Close the gap with your knee. 🦵\n\nLead shuffle knee (khao yao, เข่ายาว):\n1. Shuffle the rear foot up\n2. Drive the hip forward\n3. Spear with the point of the knee\nWatch for: no hip drive.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #knee #khaoyao #muaythaitechnique #combatfitness #trainingmode"
     },
     "facebook": {
-      "caption": "Close the gap with your knee 🦵 Lead shuffle knee, khao trong: shuffle the rear foot up, drive the hip forward, spear with the point of the knee. Watch for no hip drive. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+      "caption": "Close the gap with your knee 🦵 Lead shuffle knee, khao yao: shuffle the rear foot up, drive the hip forward, spear with the point of the knee. Watch for no hip drive. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
     },
     "youtube": {
-      "title": "Close the gap with your knee. The lead shuffle knee (khao trong) 🦵 #shorts",
-      "description": "Practice Mode in Training Mode: the lead shuffle knee, khao trong (เข่าตรง), step by step. Shuffle the rear foot up, drive the hip forward, spear with the point of the knee. Watch for no hip drive. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "title": "Close the gap with your knee. The lead shuffle knee (khao yao) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the lead shuffle knee, khao yao (เข่ายาว), step by step. Shuffle the rear foot up, drive the hip forward, spear with the point of the knee. Watch for no hip drive. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
       "tags": [
         "muay thai",
         "knee strike",
-        "khao trong",
+        "khao yao",
         "shuffle knee",
         "muay thai technique",
         "training mode"
@@ -107,6 +107,7 @@
   "approvedAt": null,
   "posted": {},
   "notes": [
-    "2026-11-03 cut from clip 25 at the owner's word. One shot of 5.6 s with two reps, so the beats share footage: key points 1 and 3 on the first rep (shuffle, then the knee's point), key point 2 and the WATCH FOR freeze on the second, the fix from the first. The drill runs the whole clip at 0.9× to fill its 6 s. In the second rep the shuffle switches the feet, so the right knee fires; the words still hold. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+    "2026-11-03 cut from clip 25 at the owner's word. One shot of 5.6 s with two reps, so the beats share footage: key points 1 and 3 on the first rep (shuffle, then the knee's point), key point 2 and the WATCH FOR freeze on the second, the fix from the first. The drill runs the whole clip at 0.9× to fill its 6 s. In the second rep the shuffle switches the feet, so the right knee fires; the words still hold. No voice yet. Owner approves before anything posts; TikTok as Only me first.",
+    "2026-11-03 Thai name: khao yao (the long knee, thrown with a step from range) fits the shuffle knee better than khao trong, which is the plain straight knee; the rear knee takes khao trong."
   ]
 }

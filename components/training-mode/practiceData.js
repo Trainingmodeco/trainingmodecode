@@ -473,7 +473,7 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Shuffle Knee',
-    description: 'Khao trong: the straight lead knee off a shuffle step',
+    description: 'Khao yao: the long lead knee off a shuffle step',
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Shuffle the rear foot up', 'Drive the hip forward', 'Spear with the point of the knee'],
     mistakes: ['No hip drive', 'Kneeing with the kneecap', 'Hands drop on the shuffle'],
@@ -489,7 +489,7 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Knee',
-    description: 'Rear-leg knee strike with full hip drive',
+    description: 'Khao trong: rear-leg knee strike with full hip drive',
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
