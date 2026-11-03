@@ -1,0 +1,111 @@
+{
+  "id": "2026-11-03-practice-uppercut-elbow",
+  "title": "Practice: Uppercut Elbow",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Uppercut Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Ngat (ศอกงัด). Footage: the owner's clip 4 (ring, 2026-10-31), raw-footage/practice/p4.mp4. One shot; four reps with the lead elbow rising at about 0.65, 2.6, 4.5 and 6.85 s.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Uppercut Elbow",
+    "number": null,
+    "badge": "Elbow",
+    "level": "Intermediate",
+    "description": "The rising elbow under the chin",
+    "stance": "orthodox",
+    "hook": "STOP LIFTING WITH|*YOUR SHOULDER.*",
+    "hookSub": "Uppercut elbow. Sok Ngat. 20 seconds.",
+    "src": "raw-footage/practice/p4.mp4",
+    "slowSrc": "raw-footage/practice/p4.x75.mp4",
+    "pose": "raw-footage/practice/p4.pose.json",
+    "hookAt": 1.9,
+    "repAt": 3.8,
+    "cues": [
+      {
+        "text": "Drop the hand, point the elbow up",
+        "at": 2.4,
+        "mark": "leadHand",
+        "label": "DROP",
+        "say": "Coach: \"The hand dips first, so the point of the elbow leads the way up.\""
+      },
+      {
+        "text": "Drive up through the legs",
+        "at": 4.45,
+        "mark": "rearKnee",
+        "label": "LEGS",
+        "say": "Coach: \"The legs straighten into it. That's where the lift comes from.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.7
+        ]
+      },
+      {
+        "text": "Hand finishes past your ear",
+        "at": 6.8,
+        "mark": "leadHand",
+        "label": "FINISH",
+        "say": "Coach: \"Follow through until the hand is past your ear. Short of that, it's a nudge.\""
+      }
+    ],
+    "watch": {
+      "text": "Lifting with the shoulder only",
+      "fix": "Legs and hip lift it",
+      "at": 0.7,
+      "fixAt": 4.2,
+      "mark": "leadShoulder",
+      "label": "SHOULDER",
+      "say": "Coach: \"Shoulder only and it's an arm strike. Legs and hip, and it lifts their head.\""
+    },
+    "drill": {
+      "calls": [
+        "UP ELBOW",
+        "UP ELBOW × 2",
+        "HOOK → UP ELBOW"
+      ],
+      "start": 1.5,
+      "cue": "Very close range only"
+    },
+    "next": {
+      "name": "Chopping Elbow",
+      "description": "The downward chopping elbow",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "ศอกงัด · SOK NGAT"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop lifting with your shoulder 🥊 Uppercut Elbow, Sok Ngat: drop the hand, point the elbow up; drive up through the legs; hand finishes past your ear. Watch for lifting with the shoulder only. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #sokngat #elbow #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop lifting with your shoulder. 🥊\n\nUppercut Elbow (Sok Ngat, ศอกงัด):\n1. Drop the hand, point the elbow up\n2. Drive up through the legs\n3. Hand finishes past your ear\nWatch for: lifting with the shoulder only.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #sokngat #elbow #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop lifting with your shoulder 🥊 Uppercut Elbow, Sok Ngat: drop the hand, point the elbow up; drive up through the legs; hand finishes past your ear. Watch for lifting with the shoulder only. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop lifting with your shoulder. Uppercut Elbow (Sok Ngat) 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the uppercut elbow, Sok Ngat (ศอกงัด), step by step. Drop the hand, point the elbow up. Drive up through the legs. Hand finishes past your ear. Watch for lifting with the shoulder only. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "sok ngat",
+        "uppercut elbow",
+        "elbow strike",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 4 (Claude's reading: the uppercut elbow; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}

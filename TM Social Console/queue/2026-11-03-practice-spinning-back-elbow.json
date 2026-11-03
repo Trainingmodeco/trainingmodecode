@@ -1,0 +1,111 @@
+{
+  "id": "2026-11-03-practice-spinning-back-elbow",
+  "title": "Practice: Spinning Back Elbow",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. The move is in the app's Technique Library (practiceData.js › Muay Thai › Spinning Back Elbow: cues, mistakes, next), named from the owner's footage by Claude; the owner corrects the name at approval. Thai: Sok Klap (ศอกกลับ). Footage: the owner's clip 1 (ring, 2026-10-31), raw-footage/practice/p1.mp4. One shot; three spins, the elbow landing at about 2.1, 5.2 and 7.9 s.",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Spinning Back Elbow",
+    "number": null,
+    "badge": "Elbow",
+    "level": "Advanced",
+    "description": "The spinning back elbow",
+    "stance": "orthodox",
+    "hook": "THEY NEVER SEE|*THIS ONE COMING.*",
+    "hookSub": "Spinning back elbow. Sok Klap. 20 seconds.",
+    "src": "raw-footage/practice/p1.mp4",
+    "slowSrc": "raw-footage/practice/p1.x75.mp4",
+    "pose": "raw-footage/practice/p1.pose.json",
+    "hookAt": 3.9,
+    "repAt": 4.1,
+    "cues": [
+      {
+        "text": "Step across to start the turn",
+        "at": 1.15,
+        "mark": "leadFoot",
+        "label": "STEP ACROSS",
+        "say": "Coach: \"The lead foot crosses over. That step is what starts the spin.\"",
+        "zoom": 1.6,
+        "focus": [
+          0.5,
+          0.68
+        ]
+      },
+      {
+        "text": "Spot the target over your shoulder",
+        "at": 4.65,
+        "mark": "nose",
+        "label": "SPOT",
+        "say": "Coach: \"Head turns first. Find them over your shoulder before the elbow comes.\""
+      },
+      {
+        "text": "Whip the elbow through on the turn",
+        "at": 7.9,
+        "mark": "leadElbow",
+        "label": "WHIP",
+        "say": "Coach: \"The hips turn and the elbow rides the turn. Don't throw it, let the spin throw it.\""
+      }
+    ],
+    "watch": {
+      "text": "Spinning blind",
+      "fix": "Eyes find the target first",
+      "at": 4.5,
+      "fixAt": 4.4,
+      "mark": "nose",
+      "label": "BLIND",
+      "say": "Coach: \"Spin without looking and you eat a counter. Eyes first, elbow second.\""
+    },
+    "drill": {
+      "calls": [
+        "SPINNING ELBOW",
+        "SPINNING ELBOW × 2",
+        "CROSS → SPINNING ELBOW"
+      ],
+      "start": 3.0,
+      "cue": "Commit to the turn"
+    },
+    "next": {
+      "name": "Rear Hook",
+      "description": "Rear-side hook punch",
+      "level": "Intermediate"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "ศอกกลับ · SOK KLAP"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "They never see this one coming 🥊 Spinning Back Elbow, Sok Klap: step across to start the turn; spot the target over your shoulder; whip the elbow through on the turn. Watch for spinning blind. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #sokklap #elbow #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "They never see this one coming. 🥊\n\nSpinning Back Elbow (Sok Klap, ศอกกลับ):\n1. Step across to start the turn\n2. Spot the target over your shoulder\n3. Whip the elbow through on the turn\nWatch for: spinning blind.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #sokklap #elbow #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "They never see this one coming 🥊 Spinning Back Elbow, Sok Klap: step across to start the turn; spot the target over your shoulder; whip the elbow through on the turn. Watch for spinning blind. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "They never see this one coming. Spinning Back Elbow (Sok Klap) 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: the spinning back elbow, Sok Klap (ศอกกลับ), step by step. Step across to start the turn. Spot the target over your shoulder. Whip the elbow through on the turn. Watch for spinning blind. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "sok klap",
+        "spinning back elbow",
+        "elbow strike",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 1 (Claude's reading: the spinning back elbow, the clearest of the six spinning takes; clips 11, 12, 14, 15 and 17 stay as alternates; the owner names the clip at approval). Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}
