@@ -612,8 +612,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const progressNow = useCallback(() => ({
     set: phase === 'rest' ? Math.min(totalSets, set + 1) : set,
     lifted: liftedRef.current,
-    weight: logWeightRef.current || readyWeightRef.current || 0,
-  }), [phase, set, totalSets]);
+    weight: plan.kind === 'weighted' ? (logWeightRef.current || readyWeightRef.current || 0) : 0,
+  }), [phase, set, totalSets, plan]);
 
   const handleSkipSet = () => {
     if (finishingRef.current || tooSoon()) return;
