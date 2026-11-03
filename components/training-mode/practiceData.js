@@ -441,7 +441,7 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Roundhouse Kick',
-    description: 'Full-rotation shin kick with power',
+    description: 'Te tat: full-rotation shin kick with power',
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],

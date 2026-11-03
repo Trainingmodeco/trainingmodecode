@@ -1,0 +1,112 @@
+{
+  "id": "2026-11-03-practice-rear-roundhouse-kick",
+  "title": "Practice: Rear Roundhouse Kick",
+  "status": "draft",
+  "format": "PracticeTutorial",
+  "createdAt": "2026-11-03",
+  "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Muay Thai › Rear Roundhouse Kick: cues, mistakes, next); the same video serves the Kickboxing and MMA entries and the Rear Roundhouse Kick lessons of the Kickboxing and Muay Thai paths. Thai: te tat (เตะตัด), the roundhouse. Footage: the owner's clip 24 (ring, 2026-11-03), raw-footage/practice/p24.mp4, two shots joined in InShot (the join at 5.63 s is too soft for scene detection; found by the body jumping across the frame): three kicks facing the camera (1.2, 3.95 and 4.95 s), one wider (6.8 s).",
+  "scheduledFor": null,
+  "coverFrame": 30,
+  "props": {
+    "discipline": "Muay Thai",
+    "technique": "Rear Roundhouse Kick",
+    "number": null,
+    "badge": "Kick",
+    "level": "Beginner",
+    "description": "Full-rotation shin kick with power",
+    "stance": "orthodox",
+    "hook": "STOP KICKING WITH|*YOUR FOOT.*",
+    "hookSub": "Rear roundhouse kick. Te tat. 20 seconds.",
+    "src": "raw-footage/practice/p24.mp4",
+    "slowSrc": "raw-footage/practice/p24.x75.mp4",
+    "pose": "raw-footage/practice/p24.pose.json",
+    "hookAt": 0.3,
+    "repAt": 3.0,
+    "cues": [
+      {
+        "text": "Full hip rotation",
+        "at": 3.95,
+        "mark": "hips",
+        "label": "HIPS",
+        "say": "Coach: \"The hip turns all the way over. The leg just comes along for the ride.\""
+      },
+      {
+        "text": "Strike with the shin",
+        "at": 1.2,
+        "mark": "rearFoot",
+        "label": "SHIN",
+        "say": "Coach: \"Contact is the shin, not the foot. Toes pointed, shin through the target.\""
+      },
+      {
+        "text": "Swing the arm for power",
+        "at": 6.8,
+        "lead": 0.8,
+        "mark": "rearHand",
+        "label": "ARM",
+        "say": "Coach: \"The same-side arm swings down and back. That's the counterweight that turns the hip.\""
+      }
+    ],
+    "watch": {
+      "text": "No pivot",
+      "fix": "Pivot the base foot",
+      "at": 4.85,
+      "fixAt": 0.7,
+      "mark": "leadFoot",
+      "label": "PIVOT",
+      "say": "Coach: \"If the base foot doesn't turn, the hip can't. Heel toward the target.\"",
+      "zoom": 1.6,
+      "focus": [
+        0.5,
+        0.72
+      ]
+    },
+    "drill": {
+      "calls": [
+        "ROUNDHOUSE",
+        "ROUNDHOUSE × 2",
+        "TEEP → ROUNDHOUSE"
+      ],
+      "start": 0.0,
+      "cue": "Turn the hip all the way"
+    },
+    "next": {
+      "name": "Machine Gun Kick",
+      "description": "Rapid-fire roundhouse kicks off the same leg",
+      "level": "Advanced"
+    },
+    "cta": "OPEN PRACTICE MODE",
+    "zoom": 1.45,
+    "focus": null,
+    "alias": "เตะตัด · TE TAT"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Stop kicking with your foot 🦵 Rear roundhouse kick, te tat: full hip rotation, strike with the shin, swing the arm for power. Watch for no pivot on the base foot. Practice Mode teaches every strike step by step, then the coach drills it with you. Link in bio. #muaythai #roundhouse #tetat #kickboxing #muaythaitechnique #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Stop kicking with your foot. 🦵\n\nRear roundhouse kick (te tat, เตะตัด):\n1. Full hip rotation\n2. Strike with the shin\n3. Swing the arm for power\nWatch for: no pivot on the base foot.\n\nPractice Mode in Training Mode teaches every strike step by step, then the coach drills it with you in a Practice Round.\n\nComment TRAIN and I'll DM you the link.\n\n#muaythai #roundhouse #tetat #kickboxing #muaythaitechnique #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Stop kicking with your foot 🦵 Rear roundhouse kick, te tat: full hip rotation, strike with the shin, swing the arm for power. Watch for no pivot on the base foot. Practice Mode teaches every strike step by step. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Stop kicking with your foot. The rear roundhouse kick (te tat) 🦵 #shorts",
+      "description": "Practice Mode in Training Mode: the rear roundhouse kick, te tat (เตะตัด), step by step. Full hip rotation, strike with the shin, swing the arm for power. Watch for no pivot on the base foot. Then drill it with the coach calling the work.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "muay thai",
+        "roundhouse kick",
+        "te tat",
+        "kickboxing",
+        "muay thai technique",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-03 cut from clip 24 at the owner's word. Shots: front 0–5.63 (hook, name, key points 1–2, the freeze and the fix), wider 5.63–8.35 (key point 3, the arm swing, with its own 0.8 s lead-in). The drill runs 0–6 at real speed across the join, between the third kick landing and the fourth. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
+  ]
+}
