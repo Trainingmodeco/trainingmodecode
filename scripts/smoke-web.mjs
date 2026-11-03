@@ -138,7 +138,18 @@ await check('owner: turbo solo start', async () => {
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /SOLO/);
-await check('build workout generate + start', async () => { await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200); await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /EXERCISE|SET|REPS/i);
+// START opens the ring warm-up (5 MIN until the athlete picks). Its SKIP is
+// clicked for real, so the check fails if anything covers it: the old warm-up's
+// SKIP sat under the tab bar, and this check still passed because the workout
+// list stayed rendered beneath the overlay.
+await check('build workout generate + start', async () => {
+  await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200);
+  await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000);
+  // START primes the voice first (a couple of seconds headless), then opens it.
+  await btn(/^START/).click({ timeout: 4000 });
+  await page.getByText('WARM UP · WORKOUT').first().waitFor({ timeout: 8000 }).catch(() => { throw new Error('START did not open the ring warm-up'); });
+  await btn(/^SKIP → START WORKOUT$/).click({ timeout: 4000 }); await S(3000);
+}, /GUIDED WORKOUT/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);

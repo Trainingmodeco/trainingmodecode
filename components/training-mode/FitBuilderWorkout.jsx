@@ -1,19 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
 import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark, Link2 } from 'lucide-react';
-import { C } from './Styles';
+import { C, NAV_H, fixedColumnBar } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
-import FitBuilderGuidedPlayer from './FitBuilderGuidedPlayer';
+import FitBuilderGuidedPlayer, { nextOpenIdx } from './FitBuilderGuidedPlayer';
 import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
 import { routineSlotLimit } from './data/entitlements';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
-import BuilderWarmup from './shared/BuilderWarmup';
+import WarmupTimer from './shared/WarmupTimer';
+import { loadWarmup, saveWarmup, loadWarmupPick, saveWarmupPick } from './shared/WarmupRow';
+import { SegRow } from './shared/FitSetupKit';
+import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
+import { warmupSuggestionsFor } from './data/warmupSuggestions';
 import ExerciseEditSheet from './shared/ExerciseEditSheet';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
@@ -22,6 +26,17 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 
 const GOLD = C.gold;
+const TEAL = '#2dd4bf';   // the warm-up's colour, same as the ring timer
+
+// The warm-up START runs first on a fresh workout. One timed block on the ring
+// timer (shared/WarmupTimer), remembered on this phone like the Fight setups.
+const WARMUP_OPTIONS = [{ id: 0, label: 'OFF' }, { id: 5, label: '5 MIN' }, { id: 10, label: '10 MIN' }];
+const SKIP_UNDO_MS = 4000;   // how long a skip can be taken back
+// Where the athlete is in a chain: which chain, which round, and how many sets
+// were actually lifted in it so far. Kept WITH its chain id, so leaving a
+// chain and coming back (the list's back arrow, then START) picks up the round
+// you were on, and a different chain always starts at round 1.
+const NO_CHAIN = { cid: null, round: 1, lifted: 0 };
 
 // 58a — every gesture the list understands, in one strip. Four cells, equal
 // width, so none of them reads as the important one. This is the ONLY place
@@ -63,6 +78,8 @@ const workoutCSS = `
 .wo-cta:active:not(:disabled) { transform: scale(0.97); }
 .wo-swap-item { transition: all 0.15s ease; cursor: pointer; }
 .wo-swap-item:hover { background: rgba(168,85,247,0.12) !important; }
+.fk-seg { transition: color .18s ease, background .18s ease; }
+.fk-seg:not([aria-checked="true"]):hover, .fk-seg:not([aria-checked="true"]):focus-visible { color: #fff; background: rgba(45,212,191,.12); }
 `;
 
 const MUSCLE_COLORS = {
@@ -206,15 +223,66 @@ function withUids(list) {
   return list.map(ex => (ex._uid ? ex : { ...ex, _uid: `x${++uidCounter}_${Math.random().toString(36).slice(2, 7)}` }));
 }
 
+// Chain ids are `c<n>`. A restored or saved list already holds some, so new
+// links count on from the highest one instead of minting a duplicate.
+function lastChainSeq(list) {
+  return list.reduce((n, e) => Math.max(n, Number(/^c(\d+)$/.exec(e._chain || '')?.[1]) || 0), 0);
+}
+
+// Where a session starts: fresh, or from the lifecycle snapshot (App.jsx
+// stashes whatever onStateChange last reported).
+//
+// The snapshot carries the EXERCISE LIST itself. It used to carry only the
+// statuses, keyed by position, and the list was regenerated on the way back —
+// the generator deliberately never deals the same workout twice, so a reload
+// mid-session came back with different exercises wearing the old ✓ DONE and
+// SKIPPED flags. Statuses are keyed by each row's stable _uid now, so they
+// can only ever belong to the row they were earned on.
+//
+// A snapshot written before this change (no `exercises`, index-keyed flags)
+// is carried over by position once, which is what it meant at the time.
+function initialWorkout(cfg, resume) {
+  const stashed = Array.isArray(resume?.exercises) && resume.exercises.length ? resume.exercises : null;
+  const exercises = withUids(stashed || cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme));
+  const byUid = (m) => {
+    if (!m) return {};
+    if (stashed) return { ...m };
+    const out = {};
+    Object.keys(m).forEach(k => { const row = exercises[Number(k)]; if (m[k] && row) out[row._uid] = true; });
+    return out;
+  };
+  const completed = byUid(resume?.completed);
+  // Back into the exercise that was running — unless it had just finished
+  // (the completion map was up), which would run it a second time.
+  const a = stashed ? resume.activeIdx : null;
+  const activeIdx = Number.isInteger(a) && a >= 0 && a < exercises.length && !completed[exercises[a]._uid] ? a : null;
+  return {
+    exercises,
+    completed,
+    skipped: byUid(resume?.skipped),
+    chainRounds: (stashed && resume.chainRounds) || cfg.chainRounds || {},
+    chainPos: stashed && resume.chainPos?.cid ? { ...NO_CHAIN, ...resume.chainPos } : NO_CHAIN,
+    activeIdx,
+  };
+}
+
 export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile, onPaywall, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
-  // A saved routine loads its exact (possibly hand-tuned) exercise list.
-  const [exercises, setExercises] = useState(() => withUids(cfg.savedExercises || applyScheme(generateFitModeWorkout(cfg), cfg.setScheme)));
-  const [completed, setCompleted] = useState(initialResumeData?.completed ?? {});
-  // Exercises passed over with SKIP EXERCISE — shown as skipped (not done) in
-  // the player's workout map, cleared if the exercise is later completed.
-  const [skipped, setSkipped] = useState(initialResumeData?.skipped ?? {});
-  const [activeIdx, setActiveIdx] = useState(null);
+  // A saved routine loads its exact (possibly hand-tuned) exercise list; a
+  // resumed session loads the list it was running (see initialWorkout).
+  const [init] = useState(() => initialWorkout(cfg, initialResumeData));
+  const [exercises, setExercises] = useState(init.exercises);
+  // Both maps are keyed by the row's _uid, so a reorder, delete or chain move
+  // never has to carry them along.
+  const [completed, setCompleted] = useState(init.completed);
+  // Exercises passed over with SKIP EXERCISE (or hold + swipe on the map) —
+  // shown as skipped (not done) in the player's workout map, cleared if the
+  // exercise is later started again or completed.
+  const [skipped, setSkipped] = useState(init.skipped);
+  const [activeIdx, setActiveIdx] = useState(init.activeIdx);
+  // A resumed session lands back in the player paused, as the lifecycle
+  // restore promises (App.jsx); only that first exercise, not the next one.
+  const resumeUidRef = useRef(initialPaused && init.activeIdx !== null ? init.exercises[init.activeIdx]._uid : null);
   const [swapIdx, setSwapIdx] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);   // the "?" walkthrough for this list
   // One deal of swap alternates per session — reopening a sheet keeps its
@@ -225,10 +293,19 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const [routineName, setRoutineName] = useState('');
   const [savedFlash, setSavedFlash] = useState(false);
   const [saveErr, setSaveErr] = useState('');
-  // 90s warm-up gate before a FRESH session only — resuming or re-entering a
-  // half-done workout skips it (you already warmed up).
+  // Ring-timer warm-up before a FRESH session only — resuming, re-entering a
+  // half-done workout or coming back to the list after the player skips it
+  // (you already warmed up). OFF / 5 / 10, 5 until the athlete picks.
   const [warmupOpen, setWarmupOpen] = useState(false);
+  const [warmedUp, setWarmedUp] = useState(!!initialResumeData);
+  const [warmupMin, setWarmupMin] = useState(() => {
+    const v = loadWarmup('fitBuilder', 5);
+    return WARMUP_OPTIONS.some(o => o.id === v) ? v : 5;
+  });
+  const warmupIdeas = useMemo(() => warmupSuggestionsFor(cfg.muscleGroups), [cfg.muscleGroups]);
   const warmupTargetRef = useRef(0);
+  // The last skip, for the few seconds it can be taken back.
+  const [skipUndo, setSkipUndo] = useState(null); // { uids, name, backTo, round }
   // Spec 12 — tapping a row's LAST line opens that exercise's history sheet.
   const [historyIdx, setHistoryIdx] = useState(null);
   // Spec 13 — "what IS this exercise?". `infoIdx` is a row of the workout;
@@ -244,21 +321,29 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const rowRefs = useRef({});
   const listRef = useRef(null);
   const tapBlockedRef = useRef(false);         // a gesture just ran — eat the click
-  const [undoInfo, setUndoInfo] = useState(null); // { index, exercise, wasDone, wasSkipped }
+  const [undoInfo, setUndoInfo] = useState(null); // { index, exercise }
   // Exercise chains (supersets & circuits). A row carries `_chain` = chain id;
   // members are kept CONTIGUOUS in the list so a chain is always one bracket.
   // Rounds only apply to circuits (3+ moves); a 2-move superset runs the
   // exercises' own set count.
   const [linkingIdx, setLinkingIdx] = useState(null);   // row whose ⛓ is glowing
   // A concept day can arrive with its circuits already chained (cfg.chainRounds).
-  const [chainRounds, setChainRounds] = useState(() => cfg.chainRounds || {});   // chainId -> rounds (2–5)
-  const chainSeq = useRef(0);
+  const [chainRounds, setChainRounds] = useState(init.chainRounds);   // chainId -> rounds (2–5)
+  const chainSeq = useRef(lastChainSeq(init.exercises));
   const lastChainTap = useRef({ idx: -1, at: 0 });
   // Which round of the running chain we're on (a superset's rounds are the
-  // exercises' own sets; a circuit's come from the header stepper).
-  const [chainRound, setChainRound] = useState(1);
+  // exercises' own sets; a circuit's come from the header stepper) and what
+  // was lifted in it — see NO_CHAIN.
+  const [chainPos, setChainPos] = useState(init.chainPos);
+  const posIn = (cid) => (chainPos.cid === cid ? chainPos : { ...NO_CHAIN, cid });
+  // An UNDONE skip remounts the player on the set it left: { uid, set, lifted, weight }.
+  const [resumeAt, setResumeAt] = useState(null);
 
-  const doneCount = Object.values(completed).filter(Boolean).length;
+  // The statuses by POSITION, for everything that walks the list (the
+  // rows, the player, the progression record).
+  const doneAt = useMemo(() => exercises.map(e => !!completed[e._uid]), [exercises, completed]);
+  const skippedAt = useMemo(() => exercises.map(e => !!skipped[e._uid]), [exercises, skipped]);
+  const doneCount = doneAt.filter(Boolean).length;
   const pct = exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0;
   const allDone = doneCount === exercises.length && exercises.length > 0;
   const title = buildTitle(cfg);
@@ -271,6 +356,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     setCompleted({});
     setSkipped({});
     setActiveIdx(null);
+    setChainPos(NO_CHAIN);
     setSwapIdx(null);
   };
 
@@ -344,38 +430,23 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   };
 
   // ── List gestures: delete (with undo) + drag to reorder ──────────────────
-  // completed/skipped are INDEX-keyed, so any structural change has to move
-  // their keys with the rows or a finished exercise would follow the slot
-  // instead of the movement.
-  const shiftMap = (m, from, delta) => {
-    const next = {};
-    Object.keys(m).forEach(k => {
-      if (!m[k]) return;
-      const n = Number(k);
-      if (n === from && delta < 0) return;                 // the removed row
-      next[n > from ? n + delta : n] = true;
-    });
-    return next;
-  };
-
+  // completed/skipped are keyed by the row's _uid, so a structural change
+  // moves the rows and the statuses simply go with them. A deleted row's
+  // status waits under its uid and is back the moment UNDO puts the row back.
   const deleteAt = (idx) => {
     if (exercises.length <= 1) return;   // never leave an empty workout
     const victim = exercises[idx];
     // The undo holds the gap it left and does NOT time out — the offer is
     // only withdrawn when a neighbouring row moves and the slot stops
     // meaning anything (see moveRow).
-    setUndoInfo({ index: idx, exercise: victim, wasDone: !!completed[idx], wasSkipped: !!skipped[idx] });
+    setUndoInfo({ index: idx, exercise: victim });
     setExercises(prev => dissolveSingletons(prev.filter((_, i) => i !== idx)));
-    setCompleted(m => shiftMap(m, idx, -1));
-    setSkipped(m => shiftMap(m, idx, -1));
   };
 
   const undoDelete = () => {
     if (!undoInfo) return;
-    const { index, exercise, wasDone, wasSkipped } = undoInfo;
+    const { index, exercise } = undoInfo;
     setExercises(prev => { const next = [...prev]; next.splice(index, 0, exercise); return next; });
-    setCompleted(m => { const n = shiftMap(m, index - 1, +1); if (wasDone) n[index] = true; return n; });
-    setSkipped(m => { const n = shiftMap(m, index - 1, +1); if (wasSkipped) n[index] = true; return n; });
     setUndoInfo(null);
   };
 
@@ -397,16 +468,6 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       if (row._chain && above !== row._chain && below !== row._chain) next[to] = { ...row, _chain: undefined };
       return dissolveSingletons(next);
     });
-    const remap = (m) => {
-      const order = exercises.map((_, i) => i);
-      const [moved] = order.splice(from, 1);
-      order.splice(to, 0, moved);
-      const next = {};
-      order.forEach((oldI, newI) => { if (m[oldI]) next[newI] = true; });
-      return next;
-    };
-    setCompleted(remap);
-    setSkipped(remap);
   };
 
   // ── Exercise chains ─────────────────────────────────────────────────────
@@ -448,9 +509,6 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     const [movedIdx] = order.splice(target, 1);
     order.splice(to, 0, movedIdx);
     setExercises(order.map(o => tagged[o]));
-    const remap = (m) => { const out = {}; order.forEach((oldI, newI) => { if (m[oldI]) out[newI] = true; }); return out; };
-    setCompleted(remap);
-    setSkipped(remap);
     if (others.length + 1 >= 3) setChainRounds(r => ({ ...r, [cid]: r[cid] || 3 }));
     setUndoInfo(null);            // the list moved; the gap no longer means anything
   };
@@ -556,13 +614,29 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
   // Rows stay pan-y so the list scrolls normally; only an engaged gesture
   // blocks the scroll.
+  // Re-attached whenever the list comes back on screen: a resumed session
+  // mounts straight into the player, and the warm-up or the player replace
+  // the list's DOM while they run.
+  const listShown = activeIdx === null && !warmupOpen;
+  // List ↔ warm-up ↔ player is not a route change, so App's scroll reset
+  // never runs, and the route's scroller (ScreenRouter's WithNav) kept the
+  // list's scroll: a list scrolled down to reach START opened the warm-up and
+  // the player with their tops cut off. Each view starts at the top.
+  const view = warmupOpen ? 'warmup' : activeIdx !== null ? 'player' : 'list';
+  const topRef = useRef(null);
+  useLayoutEffect(() => {
+    for (let el = topRef.current?.parentElement; el && el !== document.body; el = el.parentElement) {
+      if (el.scrollTop) el.scrollTop = 0;
+    }
+  }, [view]);
+  const topMark = <span ref={topRef} aria-hidden="true" style={{ display: 'block', height: 0 }}/>;
   useEffect(() => {
     const el = listRef.current;
-    if (!el) return undefined;
+    if (!el || !listShown) return undefined;
     const h = (e) => { const g = gestRef.current; if (g && g.mode !== 'pending') e.preventDefault(); };
     el.addEventListener('touchmove', h, { passive: false });
     return () => el.removeEventListener('touchmove', h);
-  }, []);
+  }, [listShown]);
 
   // While dragging, the list renders in the PREVIEW order so the other rows
   // part to show where this one will land.
@@ -652,34 +726,150 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     );
   };
 
+  // Everything the lifecycle snapshot needs to bring THIS session back: the
+  // list itself, its statuses, the chains and where the athlete was.
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ completed, skipped });
+      onStateChange({ completed, skipped, exercises, chainRounds, chainPos, activeIdx });
     }
-    // Spec 11 — remember this workout for TRAIN AGAIN. Skips silently until
-    // at least one exercise is completed, so an untouched generate never
-    // clobbers the last real session's progression history.
-    recordBuilderWorkout({ title, cfg, exercises, completed });
-  }, [completed, skipped, onStateChange, title, cfg, exercises]);
+  }, [completed, skipped, exercises, chainRounds, chainPos, activeIdx, onStateChange]);
+
+  // Spec 11 — remember this workout for TRAIN AGAIN. Skips silently until
+  // at least one exercise is completed, so an untouched generate never
+  // clobbers the last real session's progression history. The record reads
+  // its statuses by position (builderProgression.rowProgression).
+  useEffect(() => {
+    const byIdx = {};
+    doneAt.forEach((d, i) => { if (d) byIdx[i] = true; });
+    recordBuilderWorkout({ title, cfg, exercises, completed: byIdx });
+  }, [doneAt, title, cfg, exercises]);
+
+  // The resume hold is for the exercise the session came back into only.
+  useEffect(() => {
+    if (resumeUidRef.current && exercises[activeIdx]?._uid !== resumeUidRef.current) resumeUidRef.current = null;
+  }, [activeIdx, exercises]);
+  // So is an UNDO's set: once the player has moved off it, it is spent.
+  useEffect(() => {
+    if (resumeAt && exercises[activeIdx]?._uid !== resumeAt.uid) setResumeAt(null);
+  }, [activeIdx, exercises, resumeAt]);
+
+  // A skip's UNDO lasts a few seconds, then the row just reads SKIPPED (still
+  // a tap away on the map).
+  useEffect(() => {
+    if (!skipUndo) return undefined;
+    const t = setTimeout(() => setSkipUndo(null), SKIP_UNDO_MS);
+    return () => clearTimeout(t);
+  }, [skipUndo]);
+
+  const enterWorkout = useCallback(() => {
+    setWarmupOpen(false);
+    setWarmedUp(true);
+    setActiveIdx(warmupTargetRef.current);
+  }, []);
 
   // Spec 10 — reorder from the map. `orderOld` is the full list of OLD indices
   // in their NEW order (the player computes the weave so done/skipped rows stay
-  // pinned in place). Remap the index-keyed completed/skipped maps and follow
-  // the active exercise to its new position.
+  // pinned in place). The statuses ride along on the uids; only the active
+  // exercise has to be followed to its new position.
   const handleReorder = (orderOld) => {
     if (!Array.isArray(orderOld) || orderOld.length !== exercises.length) return;
     const newIdxOf = {};
     orderOld.forEach((oldI, newI) => { newIdxOf[oldI] = newI; });
     setExercises(prev => orderOld.map(o => prev[o]));
-    const remap = (m) => {
-      const next = {};
-      Object.keys(m).forEach(k => { if (m[k]) next[newIdxOf[k]] = true; });
-      return next;
-    };
-    setCompleted(remap);
-    setSkipped(remap);
     setActiveIdx(a => (a === null ? null : newIdxOf[a]));
   };
+
+  // A row and, if it is in a chain, the rest of its bracket — a chain is
+  // started, skipped and un-skipped as one.
+  const groupOf = (idx) => {
+    const cid = exercises[idx]?._chain;
+    return cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [idx];
+  };
+
+  // Where a skip lands: the next OPEN exercise after the skipped one (or its
+  // whole bracket), wrapping round — never a finished row, never one already
+  // skipped. null when nothing open is left: the workout ends on this list.
+  // It used to be blindly index + 1, which re-ran a finished exercise and left
+  // the map with no NOW row.
+  const skipLanding = (idx) => {
+    const group = groupOf(idx);
+    return nextOpenIdx(exercises.length, Math.max(...group), i => doneAt[i] || group.includes(i), i => skippedAt[i]);
+  };
+
+  // Start (or restart) an exercise. Starting a skipped one clears its skip —
+  // only DONE is permanent — and re-entering any chain member un-skips the
+  // whole bracket: you're running the chain again, not one move out of it.
+  // The round is left alone: it belongs to its chain (chainPos), so coming
+  // back into a chain picks up where it was, and any other chain — or one
+  // that was skipped or finished — starts at round 1.
+  const jumpTo = (idx) => {
+    const uids = groupOf(idx).map(i => exercises[i]._uid);
+    setSkipped(s => { const next = { ...s }; uids.forEach(u => { delete next[u]; }); return next; });
+    setActiveIdx(idx);
+  };
+
+  // The one skip path (SKIP EXERCISE, the last SKIP SET with nothing lifted,
+  // and hold + swipe on the map). Every skip can be taken back for a few
+  // seconds: one tap with no confirm is too easy to do by accident.
+  // `advance` = the skipped row is the one running, so the player moves on;
+  // `progress` is where it stood (the player's progressNow), for the UNDO.
+  const markSkipped = (idx, advance, progress = null) => {
+    const group = groupOf(idx);
+    const first = exercises[group[0]];
+    const cid = exercises[idx]?._chain;
+    setSkipUndo({
+      uids: group.map(i => exercises[i]._uid),
+      name: group.length > 1 ? `${first.name} ${group.length >= 3 ? 'circuit' : 'superset'}` : exercises[idx].name,
+      backTo: advance ? exercises[activeIdx]?._uid : null,
+      progress,
+      chainPos,
+    });
+    setSkipped(s => { const n = { ...s }; group.forEach(m => { n[exercises[m]._uid] = true; }); return n; });
+    // A skipped chain is over: started again, it starts at round 1.
+    if (cid && chainPos.cid === cid) setChainPos(NO_CHAIN);
+    if (advance) setActiveIdx(skipLanding(idx));
+  };
+
+  const undoSkip = () => {
+    const u = skipUndo;
+    if (!u) return;
+    setSkipUndo(null);
+    setSkipped(s => { const n = { ...s }; u.uids.forEach(x => { delete n[x]; }); return n; });
+    setChainPos(u.chainPos);
+    // A skip that moved the player on puts the athlete back where they were:
+    // the same exercise, on the same set, with the same weight (resumeAt).
+    const back = u.backTo ? exercises.findIndex(e => e._uid === u.backTo) : -1;
+    if (back >= 0 && !completed[u.backTo]) {
+      setResumeAt(u.progress ? { uid: u.backTo, ...u.progress } : null);
+      setActiveIdx(back);
+    }
+  };
+
+  // Shown over whichever screen is up — the player, its map, or this list
+  // when the skip ended the workout. Portalled, so the tab bar can't cover it.
+  const skipSnack = skipUndo ? (
+    <OverlayPortal>
+      <div role="status" style={{
+        position: 'fixed', ...fixedColumnBar, bottom: `calc(${NAV_H} + 62px)`, zIndex: OVERLAY_Z + 1,
+        display: 'flex', justifyContent: 'center', padding: '0 14px', boxSizing: 'border-box', pointerEvents: 'none',
+      }}>
+        <div style={{
+          pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, maxWidth: '100%',
+          padding: '5px 5px 5px 14px', borderRadius: 12, boxSizing: 'border-box',
+          background: 'rgba(14,5,26,0.97)', border: '1px solid rgba(168,85,247,0.5)', boxShadow: '0 8px 26px rgba(0,0,0,0.6)',
+        }}>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 13, color: '#e7ddf7', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+            Skipped {skipUndo.name} ·
+          </span>
+          <button type="button" onClick={undoSkip} style={{
+            flexShrink: 0, height: 44, padding: '0 16px', borderRadius: 9, cursor: 'pointer',
+            background: 'rgba(253,224,71,0.1)', border: `1px solid ${GOLD}88`, color: GOLD,
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10.5, letterSpacing: '0.12em',
+          }}>UNDO</button>
+        </div>
+      </div>
+    </OverlayPortal>
+  ) : null;
 
   // The chain the running exercise belongs to, if any. The player uses this
   // to run the members back-to-back with rest only at the end of a round.
@@ -691,7 +881,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     if (members.length < 2) return null;
     const circuit = members.length >= 3;
     const rounds = circuit ? (chainRounds[cid] || 3) : (exercises[members[0]]?.sets || 3);
-    return { id: cid, members, position: members.indexOf(activeIdx), rounds, round: chainRound, circuit };
+    const pos = posIn(cid);
+    return { id: cid, members, position: members.indexOf(activeIdx), rounds, round: pos.round, lifted: pos.lifted, circuit };
   })();
 
   // Move to the next member with NO rest (the whole point of a chain).
@@ -703,102 +894,131 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
   // A round finished. Either loop back to the first move, or the chain is
   // done — mark every member complete and move past it.
+  // (The last round with nothing lifted never gets here: the player sends
+  // that through the skip path, like a single exercise's last SKIP SET.)
   const chainRoundDone = () => {
     if (!activeChain) return;
-    if (activeChain.round < activeChain.rounds) {
-      setChainRound(r => r + 1);
+    const { id: cid, round, lifted } = activeChain;
+    if (round < activeChain.rounds) {
+      setChainPos({ cid, round: round + 1, lifted });
       setActiveIdx(activeChain.members[0]);
       return;
     }
-    setCompleted(prev => { const n = { ...prev }; activeChain.members.forEach(m => { n[m] = true; }); return n; });
-    setSkipped(prev => { const n = { ...prev }; activeChain.members.forEach(m => { delete n[m]; }); return n; });
-    setChainRound(1);
-    const after = exercises.findIndex((e, i) => i > Math.max(...activeChain.members) && !completed[i]);
-    setActiveIdx(after >= 0 ? after : null);
+    const members = activeChain.members;
+    setCompleted(prev => { const n = { ...prev }; members.forEach(m => { n[exercises[m]._uid] = true; }); return n; });
+    setSkipped(prev => { const n = { ...prev }; members.forEach(m => { delete n[exercises[m]._uid]; }); return n; });
+    setChainPos(NO_CHAIN);
+    // On to the next OPEN exercise — not a finished one, and not one the
+    // athlete chose to skip.
+    setActiveIdx(nextOpenIdx(exercises.length, Math.max(...members), i => doneAt[i] || members.includes(i), i => skippedAt[i]));
   };
+
+  // The warm-up is its own screen, in place of the list — not an overlay on
+  // top of it. The old 90s gate was drawn inside the list's PhoneFrame, whose
+  // `isolation: isolate` capped its z-index under the app's tab bar, so its
+  // SKIP button sat behind HOME / TRAIN / PROGRESS and a tap on it left the
+  // workout (see shared/OverlayPortal). WarmupTimer is a full screen with the
+  // nav's clearance built in, the same way Fight Mode runs its warm-ups.
+  if (warmupOpen) {
+    return (
+      <>
+        {topMark}
+        <WarmupTimer
+          minutes={warmupMin}
+          title="WARM UP · WORKOUT"
+          suggestions={warmupIdeas}
+          initialPick={loadWarmupPick('fitBuilder')}
+          onPick={(id) => saveWarmupPick('fitBuilder', id)}
+          skipLabel="SKIP → START WORKOUT"
+          intro={`Warm up. ${warmupMin} minutes, at your own pace.`}
+          miniPlayer
+          onDone={enterWorkout}
+          onSkip={enterWorkout}
+        />
+        {skipSnack}
+      </>
+    );
+  }
 
   // Voice-guided player (design 34 + spec 10 free-select map). Keyed on the
   // exercise's stable uid, NOT its index: a reorder moves the current exercise
   // to a new index without remounting the player (set progress survives);
   // jumping to a DIFFERENT exercise changes the uid and remounts fresh.
   if (activeIdx !== null) {
+    const activeUid = exercises[activeIdx]?._uid;
     return (
-      <FitBuilderGuidedPlayer
-        key={`guided-${exercises[activeIdx]?._uid ?? activeIdx}`}
-        exercises={exercises}
-        exerciseIdx={activeIdx}
-        completed={completed}
-        skipped={skipped}
-        voiceOn
-        onBack={() => setActiveIdx(null)}
-        onStop={() => onDone(doneCount, exercises.length)}
-        onSkipExercise={() => {
-          // Advance to the next exercise WITHOUT marking this one complete —
-          // it shows as SKIPPED in the map until it's redone. A chain bails
-          // whole: landing on the next member would be a half-superset.
-          const cid = exercises[activeIdx]?._chain;
-          const group = cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [activeIdx];
-          setSkipped(s => { const n = { ...s }; group.forEach(m => { n[m] = true; }); return n; });
-          if (cid) setChainRound(1);
-          const after = Math.max(...group) + 1;
-          setActiveIdx(after < exercises.length ? after : null);
-        }}
-        onRewindExercise={() => {
-          // 3b — step back to the previous exercise and clear its completed
-          // mark, so redoing it counts once (never leaves a stale ✓).
-          if (activeIdx > 0) {
-            const prev = activeIdx - 1;
-            setCompleted(c => { const next = { ...c }; delete next[prev]; return next; });
-            setSkipped(s => { const next = { ...s }; delete next[prev]; return next; });
-            setActiveIdx(prev);
-          }
-        }}
-        // Spec 10 — the exercise finished its last set. Mark it done but do NOT
-        // advance: the player owns navigation now (completion map → glow → next).
-        onCompleteExercise={() => {
-          setCompleted(prev => ({ ...prev, [activeIdx]: true }));
-          setSkipped(s => { if (!s[activeIdx]) return s; const next = { ...s }; delete next[activeIdx]; return next; });
-        }}
-        // Free select: start ANY non-done exercise. Re-entering a skipped one
-        // clears its skip — only DONE is permanent.
-        onJumpExercise={(idx) => {
-          // Re-entering any member un-skips the whole chain — you're running
-          // the bracket again, not one move out of it.
-          const cid = exercises[idx]?._chain;
-          const group = cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [idx];
-          setSkipped(s => { const next = { ...s }; group.forEach(m => delete next[m]); return next; });
-          if (cid) setChainRound(1);
-          setActiveIdx(idx);
-        }}
-        // Hold + swipe on a map row. Skipping the CURRENT exercise behaves like
-        // the SKIP EXERCISE button (advance); others just flip to SKIPPED.
-        // A chain skips whole: mark every member and land past the bracket,
-        // never on a member we just skipped.
-        onMarkSkipped={(idx) => {
-          const cid = exercises[idx]?._chain;
-          const group = cid ? exercises.reduce((a, e, i) => (e._chain === cid ? [...a, i] : a), []) : [idx];
-          setSkipped(s => { const n = { ...s }; group.forEach(m => { n[m] = true; }); return n; });
-          if (group.includes(activeIdx)) {
-            const after = Math.max(...group) + 1;
-            setChainRound(1);
-            setActiveIdx(after < exercises.length ? after : null);
-          }
-        }}
-        onReorder={handleReorder}
-        onFinishWorkout={() => setActiveIdx(null)}
-        chainCtx={activeChain}
-        chainRoundsMap={chainRounds}
-        onChainNext={chainNext}
-        onChainRound={chainRoundDone}
-        // The player's ADJUST pill: sets / reps / rest edited in place, before
-        // a set starts. Same sheet as the list rows.
-        onEditExercise={(idx, vals) => setExercises(prev => prev.map((ex, i) => (i === idx ? { ...ex, ...vals } : ex)))}
-      />
+      <>
+        {topMark}
+        <FitBuilderGuidedPlayer
+          key={`guided-${activeUid ?? activeIdx}`}
+          exercises={exercises}
+          exerciseIdx={activeIdx}
+          completed={doneAt}
+          skipped={skippedAt}
+          voiceOn
+          initialPaused={!!resumeUidRef.current && activeUid === resumeUidRef.current}
+          initialProgress={resumeAt?.uid === activeUid ? resumeAt : null}
+          onBack={() => setActiveIdx(null)}
+          onStop={() => onDone(doneCount, exercises.length)}
+          // Advance to the next OPEN exercise WITHOUT marking this one
+          // complete — it shows as SKIPPED in the map until it's redone. A
+          // chain bails whole: landing on the next member would be a
+          // half-superset.
+          onSkipExercise={(progress) => markSkipped(activeIdx, true, progress)}
+          // Where that skip will land, so the coach names the real
+          // destination before it happens.
+          skipTargetOf={skipLanding}
+          onRewindExercise={() => {
+            // 3b — step back to the previous exercise and clear its completed
+            // mark, so redoing it counts once (never leaves a stale ✓).
+            if (activeIdx > 0) {
+              const prev = activeIdx - 1;
+              const uid = exercises[prev]._uid;
+              setCompleted(c => { const next = { ...c }; delete next[uid]; return next; });
+              setSkipped(sk => { const next = { ...sk }; delete next[uid]; return next; });
+              setActiveIdx(prev);
+            }
+          }}
+          // Spec 10 — the exercise finished its last set. Mark it done but do NOT
+          // advance: the player owns navigation now (completion map → glow → next).
+          onCompleteExercise={() => {
+            setCompleted(prev => ({ ...prev, [activeUid]: true }));
+            setSkipped(sk => { if (!sk[activeUid]) return sk; const next = { ...sk }; delete next[activeUid]; return next; });
+          }}
+          // Free select: start ANY non-done exercise (see jumpTo).
+          onJumpExercise={jumpTo}
+          // Hold + swipe on a map row. Skipping the CURRENT exercise behaves like
+          // the SKIP EXERCISE button (advance); others just flip to SKIPPED.
+          // A chain skips whole: mark every member and land past the bracket,
+          // never on a member we just skipped.
+          onMarkSkipped={(idx, progress) => markSkipped(idx, groupOf(idx).includes(activeIdx), progress)}
+          onReorder={handleReorder}
+          onFinishWorkout={() => setActiveIdx(null)}
+          chainCtx={activeChain}
+          chainRoundsMap={chainRounds}
+          onChainNext={chainNext}
+          onChainRound={chainRoundDone}
+          // A set actually lifted inside the running chain (see NO_CHAIN).
+          onSetLifted={() => {
+            const cid = activeChain?.id;
+            if (cid) setChainPos(p => (p.cid === cid ? { ...p, lifted: p.lifted + 1 } : { ...NO_CHAIN, cid, lifted: 1 }));
+          }}
+          // The player's ADJUST pill: sets / reps / rest edited in place, before
+          // a set starts. Same sheet as the list rows.
+          onEditExercise={(idx, vals) => setExercises(prev => prev.map((ex, i) => (i === idx ? { ...ex, ...vals } : ex)))}
+        />
+        {skipSnack}
+      </>
     );
   }
 
+  // START runs the warm-up first only on a fresh workout with it switched on.
+  const warmupFresh = !warmedUp && doneCount === 0;
+  const warmupDue = warmupFresh && warmupMin > 0;
+
   return (
     <PhoneFrame useBrandBg>
+      {topMark}
       <style dangerouslySetInnerHTML={{ __html: workoutCSS }}/>
       <Embers count={2}/>
 
@@ -882,7 +1102,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           {previewOrder.flatMap((i, pos) => {
             const ex = exercises[i];
             if (!ex) return [];
-            const done = !!completed[i];
+            const done = doneAt[i];
             const muscleColor = MUSCLE_COLORS[ex.muscle] || C.faint;
             // Spec 11 — last-time progression verdict for this row.
             const prog = rowProgression(ex, prevRecRef.current);
@@ -1086,6 +1306,26 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           )}
         </div>
 
+        {/* WARM-UP · OFF / 5 MIN / 10 MIN — what START runs first. One row
+            on this screen covers every way in (builder, programs, saved
+            routines, concept days, TRAIN AGAIN): they all land here. Gone once
+            the athlete is warm. */}
+        {warmupFresh && !allDone && (
+          <div style={{ marginTop: 16 }}>
+            <SegRow
+              guide="fw-warmup"
+              label="Warm-up"
+              right={<span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: '#7fe3d4' }}>ring timer · skip anytime · no XP</span>}
+              options={WARMUP_OPTIONS}
+              value={warmupMin}
+              onPick={(v) => { saveWarmup('fitBuilder', v); setWarmupMin(v); }}
+              accent={TEAL}
+              height={44}
+              gap={6}
+            />
+          </div>
+        )}
+
         {/* START, then the two quiet actions under it — the design's order. */}
         <button
           className="wo-gold"
@@ -1096,21 +1336,25 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
               // Prime speech on the user gesture so the guided coach can talk.
               setVoiceGender(profile?.voiceCoach || 'FEMALE');
               await primeSpeech();
-              const firstIncomplete = exercises.findIndex((_, i) => !completed[i]);
-              const target = firstIncomplete >= 0 ? firstIncomplete : 0;
-              // Fresh session → 90s warm-up gate first. Anything already done
-              // (or a resume) means the athlete is warm — go straight in.
-              if (doneCount === 0 && !initialResumeData) {
+              // The first open exercise; if only skipped ones are left, the
+              // first of those (starting it clears its skip).
+              const n = exercises.length;
+              const target = nextOpenIdx(n, n - 1, i => doneAt[i], i => skippedAt[i], true) ?? 0;
+              // Fresh session → the warm-up first, if it's on. Anything
+              // already done (or a resume) means the athlete is warm — go
+              // straight in.
+              if (warmupDue) {
                 warmupTargetRef.current = target;
                 setWarmupOpen(true);
               } else {
-                setActiveIdx(target);
+                setWarmedUp(true);
+                jumpTo(target);
               }
             }
           }}
           data-guide="fw-start"
           style={{
-            ...CHF, width: '100%', marginTop: 16, height: 54, border: 'none', cursor: 'pointer',
+            ...CHF, width: '100%', marginTop: warmupFresh && !allDone ? 12 : 16, height: 54, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
             font: `700 20px ${HEAD}`, letterSpacing: '0.2em',
             boxShadow: `0 0 28px rgba(242,190,69,${allDone ? '0.55' : '0.35'})`,
@@ -1119,6 +1363,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         >
           {allDone ? <Trophy size={18}/> : <Play size={18} fill="currentColor" strokeWidth={0}/>}
           {allDone ? 'COMPLETE WORKOUT' : 'START'}
+          {!allDone && warmupDue && (
+            <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.12em', opacity: 0.7, marginLeft: -2 }}>· {warmupMin} MIN WARM-UP</span>
+          )}
         </button>
 
         <div data-guide="fw-actions" style={{ display: 'grid', gridTemplateColumns: cfg.conceptId ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
@@ -1167,16 +1414,18 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
       {/* The "?" walkthrough — the gestures on this list are discoverable but
           not obvious, so they get a proper spotlight tour of their own. */}
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fit_workout} onClose={() => setHelpOpen(false)}/>}
-
-      {/* 90s warm-up gate (spec: follow-along counted moves or freestyle) */}
-      {warmupOpen && (
-        <BuilderWarmup
-          muscleGroups={cfg.muscleGroups}
-          onDone={() => { setWarmupOpen(false); setActiveIdx(warmupTargetRef.current); }}
-          onSkip={() => { setWarmupOpen(false); setActiveIdx(warmupTargetRef.current); }}
+      {/* The WARM-UP step only while its row is on screen: an unanchored card
+          describing a control that isn't there, which then moves on by
+          itself, is worse than no step. */}
+      {helpOpen && (
+        <ScreenGuide
+          steps={SCREEN_GUIDES.fit_workout.filter(st => st.target !== 'fw-warmup' || (warmupFresh && !allDone))}
+          onClose={() => setHelpOpen(false)}
         />
       )}
+
+      {/* A skip that ended the workout lands here — still undoable. */}
+      {skipSnack}
 
       {/* Swap bottom sheet */}
       {swapIdx !== null && (

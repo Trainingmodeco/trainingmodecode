@@ -2081,10 +2081,11 @@ SecondaryButton / Card); no new design system.
 >   an open window without touching the capture stream.
 > - `useMiniPlayer` inherits the open state on mount, so the button reads
 >   correctly on the far side of a hand-off.
-> - `BuilderWarmup` carries the mini-player too. The warm-up is 90 seconds OF
+> - The builder's ring warm-up carries the mini-player too (`WarmupTimer` with
+>   `miniPlayer`; it replaced `BuilderWarmup`, Nov 2026). The warm-up is part OF
 >   the session; a call landing there would otherwise leave nothing on screen.
->   It feeds the same content model — warm-up is the position, the current move
->   is the name, UP NEXT reads WORKOUT.
+>   It feeds the same content model — warm-up is the position, the picked
+>   warm-up idea is the name, UP NEXT reads WORKOUT.
 >
 > ### Do NOT
 >
@@ -2097,10 +2098,11 @@ SecondaryButton / Card); no new design system.
 >
 > ### Verify (builder → warm-up → workout, in a real browser)
 >
-> 1. The warm-up gate is reached from START on a fresh workout.
+> 1. The ring warm-up is reached from START on a fresh workout (WARM-UP on
+>    5 or 10 MIN above START).
 > 2. The mini-player button renders DURING the warm-up.
 > 3. The window opens from the warm-up.
-> 4. Skipping the warm-up reaches the guided player.
+> 4. SKIP → START WORKOUT reaches the guided player.
 > 5. **`document.pictureInPictureElement` is still set after the hand-off.**
 >    This is the whole point of the prompt.
 > 6. The button reads "Close floating timer" on the far side.
