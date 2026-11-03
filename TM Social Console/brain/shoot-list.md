@@ -70,6 +70,7 @@ Library entries except the body elbow.
 | 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi, the advancing side thrust kick) | filed 2026-11-03 |
 | 21 | machine gun kick (Thai: te rua, เตะรัว, rapid-fire kicks) | filed 2026-11-03 |
 | 22 | spinning back heel kick (karate: ushiro geri; Thai: te klap lang, เตะกลับหลัง) | filed 2026-11-03 |
+| 23 | switch kick (Thai: te salap, เตะสลับ), owner's word | cut |
 
 Clips 19–22 are in the app's Technique Library: Kickboxing › Lead Side Kick
 (now "Yoko geri: …"), Kickboxing › Stepping Side Kick (new), Kickboxing ›
