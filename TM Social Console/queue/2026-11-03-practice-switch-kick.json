@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-switch-kick",
   "title": "Practice: Switch Kick",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Kickboxing › Switch Kick: cues, mistakes, next). Thai: te salap (เตะสลับ), the switch kick. Footage: the owner's clip 23 (ring, 2026-11-03), raw-footage/practice/p23.mp4, two shots joined in InShot (cut at 6.27 s): two switch kicks facing the camera (0.8 and 4.8 s), one from 45° (10.3 s).",
@@ -123,5 +123,5 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T16:52:58.329Z"
+  "renderedAt": "2026-11-03T17:18:18.211Z"
 }
