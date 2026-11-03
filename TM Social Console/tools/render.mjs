@@ -69,8 +69,15 @@ Object.assign(props, stageAll(props));
 const outDir = path.join(EXPORTS, post.id);
 fs.mkdirSync(outDir, { recursive: true });
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
+// Clean up on the way out, whether the render worked or not: the staged copies
+// are only for this render (the bundle copies public/, so leftovers make every
+// later bundle bigger; the next render stages afresh), and Remotion leaves its
+// webpack bundle in the temp folder, which a day of renders turns into GBs.
+const cleanups = [() => { for (const r of staged.values()) fs.rmSync(path.join(ROOT, 'public', r), { force: true }); }];
+process.on('exit', () => cleanups.forEach((f) => { try { f(); } catch { /* best effort */ } }));
 console.log(`bundling templates…`);
 const serveUrl = await bundle({ entryPoint: path.join(ROOT, 'src', 'index.ts') });
+cleanups.push(() => fs.rmSync(serveUrl, { recursive: true, force: true }));
 const composition = await selectComposition({ serveUrl, id: variant ?? post.format, inputProps: props, browserExecutable });
 
 const video = path.join(outDir, variant ? `${variant}.mp4` : 'video.mp4');
@@ -100,13 +107,6 @@ console.log('');
 const coverFrame = Math.min(composition.durationInFrames - 1, post.coverFrame ?? 50);
 const cover = path.join(outDir, variant ? `${variant}-cover.jpg` : 'cover.jpg');
 await renderStill({ serveUrl, composition, inputProps: props, frame: coverFrame, output: cover, imageFormat: 'jpeg', jpegQuality: 90, browserExecutable });
-
-// Remotion leaves its webpack bundle in the temp folder (hundreds of MB per
-// render); drop it now that the frames are out, or a day's renders fill the disk.
-fs.rmSync(serveUrl, { recursive: true, force: true });
-// The staged copies are only for this render (the bundle copies public/, so
-// leftovers make every later bundle bigger); the next render stages afresh.
-for (const rel of staged.values()) fs.rmSync(path.join(ROOT, 'public', rel), { force: true });
 
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
 const made = { video: rel(video), cover: rel(cover), seconds: +(composition.durationInFrames / composition.fps).toFixed(2) };
