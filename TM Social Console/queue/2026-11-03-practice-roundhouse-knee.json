@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-roundhouse-knee",
   "title": "Practice: Roundhouse Knee",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The owner's roundhouse knee: a knee disguised as a low roundhouse kick. Added to the app's Technique Library as Muay Thai › Roundhouse Knee (cues, mistakes, next from there). Thai: khao khong (เข่าโค้ง), the curving knee. Footage: the owner's clip 27 (ring, 2026-11-03), raw-footage/practice/p27.mp4, one shot: three rear-leg roundhouse knees facing the camera (the leg swings out low at about 0.6, 3.4 and 6.3 s, the knee turns in at 0.85, 3.6 and 6.6 s), then a lead-leg knee at 9.4 s that the cut leaves out.",
@@ -65,7 +65,7 @@
         "ROUNDHOUSE KNEE × 2",
         "JAB → ROUNDHOUSE KNEE"
       ],
-      "start": 0.0,
+      "start": 0,
       "cue": "Sell the low kick first"
     },
     "next": {
@@ -107,5 +107,16 @@
   "posted": {},
   "notes": [
     "2026-11-03 cut from clip 27 at the owner's word (a knee disguised as a low roundhouse kick). One shot, no joins. Key point 1 on the first rep's low swing, 2 on the second rep's turn-in, 3 on the third rep's knee across; the WATCH FOR freeze is the second rep's knee rising, the fix the full third rep. The lead-leg knee at 9.4 s is left out. Markers follow the body. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-roundhouse-knee/video.mp4",
+    "cover": "exports/2026-11-03-practice-roundhouse-knee/cover.jpg",
+    "seconds": 32,
+    "PracticeLessonApp": {
+      "video": "exports/2026-11-03-practice-roundhouse-knee/PracticeLessonApp.mp4",
+      "cover": "exports/2026-11-03-practice-roundhouse-knee/PracticeLessonApp-cover.jpg",
+      "seconds": 23
+    }
+  },
+  "renderedAt": "2026-11-03T17:13:40.765Z"
 }
