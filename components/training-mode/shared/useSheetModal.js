@@ -37,12 +37,28 @@ export default function useSheetModal(onClose, { returnFocus } = {}) {
     else if (!e.shiftKey && (at === last || !panelRef.current.contains(at))) { e.preventDefault(); first.focus(); }
   };
 
+  // The swipe holds the pointer (setPointerCapture), so its release always
+  // arrives here even off the header, and a move with no button down ends
+  // it: a later plain hover can never count as a swipe. A press on a button
+  // in the header (the close X) is that button's, not a swipe: capturing it
+  // would send its click to the header instead.
   const drag = useRef(null);
+  const end = () => { drag.current = null; };
   const grabProps = {
-    onPointerDown: (e) => { drag.current = e.clientY; },
-    onPointerMove: (e) => { if (drag.current != null && e.clientY - drag.current > SWIPE_PX) { drag.current = null; onClose?.(); } },
-    onPointerUp: () => { drag.current = null; },
-    onPointerCancel: () => { drag.current = null; },
+    onPointerDown: (e) => {
+      if ((e.pointerType === 'mouse' && e.button !== 0) || e.target.closest?.('button, a, input')) return;
+      drag.current = { id: e.pointerId, y: e.clientY };
+      try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch { /* the pointer is already gone */ }
+    },
+    onPointerMove: (e) => {
+      const d = drag.current;
+      if (!d || d.id !== e.pointerId) return;
+      if (e.buttons === 0) { end(); return; }
+      if (e.clientY - d.y > SWIPE_PX) { end(); onClose?.(); }
+    },
+    onPointerUp: end,
+    onPointerCancel: end,
+    onLostPointerCapture: end,
   };
 
   return { panelRef, trapTab, grabProps };

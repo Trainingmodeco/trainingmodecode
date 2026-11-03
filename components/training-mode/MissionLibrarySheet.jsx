@@ -39,9 +39,10 @@ const levelTag = (t) => QM_LEVEL_WORD[t] || t;
 const CHIP_WORD = { bell: 'BELL / DB' };
 
 // A short phone (360 x 740) keeps the list tall enough to browse: the preview
-// drops its MISSION line and its third move (the "+ N more" that counts them
-// swaps with it), and the header, preview and footer pack a little tighter.
-// A chip's hit area reaches into the gap around it.
+// drops its LOADOUT and MISSION lines (its eyebrow and every row still name
+// the gear) and its third move (the "+ N more" that counts them swaps with
+// it), and the header, preview and footer pack a little tighter. A chip's
+// hit area reaches into the gap around it.
 const CSS = `
 @keyframes ml-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 .ml-row { transition: border-color .18s ease, background .18s ease; }
@@ -49,9 +50,9 @@ const CSS = `
 .ml-chip { position: relative; }
 .ml-chip::after { content: ''; position: absolute; top: -2px; bottom: -2px; left: 0; right: 0; }
 @media (max-height: 760px) {
-  .ml-move-3, .ml-more-3, .ml-line-MISSION { display: none !important; }
+  .ml-move-3, .ml-more-3, .ml-lines { display: none !important; }
   .ml-more-2 { display: block !important; }
-  .ml-head { padding: 6px 12px 6px 14px !important; }
+  .ml-head { padding: 6px 12px 6px !important; }
   .ml-preview { padding: 8px 12px !important; gap: 4px !important; }
   .ml-foot { padding: 8px 12px 10px !important; }
 }
@@ -187,19 +188,19 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
           display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'ml-up 0.26s ease',
         }}>
           {/* Header: the grab bar (swipe down closes), MISSION LIBRARY · 28
-              and what it is. */}
-          <div className="ml-head" {...grabProps} style={{ flexShrink: 0, padding: '8px 12px 10px 14px', touchAction: 'none' }}>
-            <div aria-hidden="true" style={{ ...GRAB_BAR, marginBottom: 6 }}/>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <span style={{ font: `700 15px ${HEAD}`, letterSpacing: '0.14em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>MISSION LIBRARY · {count}</span>
-                <span id="ml-sub" style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>Ready-made workouts. Tap one to see it on top, then START.</span>
-              </span>
+              beside the X, and its line under both, the panel's full width,
+              so it fits on one line on a 412px phone. The X hangs into the
+              padding around its row rather than making it taller. */}
+          <div className="ml-head" {...grabProps} style={{ flexShrink: 0, padding: '6px 12px 10px', touchAction: 'none' }}>
+            <div aria-hidden="true" style={{ ...GRAB_BAR, marginBottom: 4 }}/>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 20 }}>
+              <span style={{ flex: 1, minWidth: 0, font: `700 15px ${HEAD}`, letterSpacing: '0.14em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>MISSION LIBRARY · {count}</span>
               <button type="button" aria-label="Close" onClick={onClose} style={{
-                width: 36, height: 36, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                width: 36, height: 36, margin: '-8px 0', flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
                 background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', color: '#CFC9E4', cursor: 'pointer',
               }}><X size={16}/></button>
             </div>
+            <div id="ml-sub" style={{ marginTop: 3, font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35, textWrap: 'balance' }}>Ready-made workouts. Tap one to see it on top, then START.</div>
           </div>
 
           {/* The highlighted mission, pinned. Read-only: its controls live on
@@ -216,11 +217,11 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                   {preview.tags.map(tag => <Tag key={tag.t} accent={tag.accent}>{tag.t}</Tag>)}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(60px, auto) 1fr', gap: '2px 10px', alignItems: 'baseline' }}>
+                <div className="ml-lines" style={{ display: 'grid', gridTemplateColumns: 'minmax(60px, auto) 1fr', gap: '2px 10px', alignItems: 'baseline' }}>
                   {preview.lines.map(([k, v]) => (
                     <Fragment key={k}>
-                      <span className={`ml-line-${k}`} style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{k}</span>
-                      <span className={`ml-line-${k}`} style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff', lineHeight: 1.3 }}>{v}</span>
+                      <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{k}</span>
+                      <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff', lineHeight: 1.3 }}>{v}</span>
                     </Fragment>
                   ))}
                 </div>

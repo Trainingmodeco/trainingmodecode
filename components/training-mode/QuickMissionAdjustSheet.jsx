@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Check } from 'lucide-react';
 import { NAV_H } from './Styles';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
@@ -15,6 +16,8 @@ import {
 // sized to what it holds. What it shows depends on the mission on the card:
 //   today's mission   LEVEL (easy / medium / hard) · FOCUS · ADD CARDIO
 //   a library mission LEVEL (its own levels) · HOW (guided / solo) · ADD CARDIO
+//                     · NOTES (its loadout, score, how to scale and the
+//                     coach's note: the brief the open card leaves out)
 //   a classic         ADD CARDIO
 // The page owns every choice: a tap goes straight back to it, the card
 // rebuilds behind the sheet and the page remembers it. DONE, Escape, the
@@ -23,6 +26,7 @@ import {
 // level: { options: [{ id, label }], value, onPick, detail? } | null
 // focus: { options, value, onPick } | null
 // how:   { value: 'guided' | 'solo', soloOnly, help, onPick } | null
+// notes: { lines: [[label, value]], scale, note } | null
 // cardio: { on, summary, onToggle, onEdit }
 const CSS = `
 @keyframes qa-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
@@ -60,7 +64,29 @@ function HowRow({ how }) {
   );
 }
 
-export default function QuickMissionAdjustSheet({ title, level, focus, how, cardio, onClose, returnFocus }) {
+// NOTES: read-only, after the choices.
+function NotesBlock({ notes }) {
+  const lines = notes.lines.filter(([, v]) => v);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <Label>Notes</Label>
+      {lines.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(64px, auto) 1fr', gap: '2px 10px', alignItems: 'baseline' }}>
+          {lines.map(([k, v]) => (
+            <Fragment key={k}>
+              <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>{k}</span>
+              <span style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff' }}>{v}</span>
+            </Fragment>
+          ))}
+        </div>
+      )}
+      {notes.scale && help(<><span style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.08em' }}>SCALE:</span> {notes.scale}</>)}
+      {notes.note && help(notes.note)}
+    </div>
+  );
+}
+
+export default function QuickMissionAdjustSheet({ title, level, focus, how, notes, cardio, onClose, returnFocus }) {
   const { panelRef, trapTab, grabProps } = useSheetModal(onClose, { returnFocus });
   return (
     <OverlayPortal>
@@ -94,6 +120,7 @@ export default function QuickMissionAdjustSheet({ title, level, focus, how, card
             )}
             {how && <HowRow how={how}/>}
             <CardioToggleCard on={cardio.on} summary={cardio.summary} onToggle={cardio.onToggle} onEdit={cardio.onEdit}/>
+            {notes && <NotesBlock notes={notes}/>}
           </div>
 
           <div style={{ flexShrink: 0, padding: '10px 16px 14px' }}>

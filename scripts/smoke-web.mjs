@@ -198,6 +198,44 @@ await check('quick mission: TIME 45 and WEIGHTED start a weighted mission', asyn
   await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
   if (!/WEIGHTED/.test(await text())) throw new Error('no WEIGHTED on the status strip');
 }, /ROUND|GET READY|PREPARING|WORK/);
+// TIME on a touch screen: a swipe up or down that starts on the slider is a
+// page scroll and changes nothing (not the minutes, the saved keys or a
+// library mission on the card); a sideways drag from the knob sets it.
+await check('quick mission: a scroll on TIME stays a scroll, a sideways drag sets it', async () => {
+  await quick(); await putOnCard(V2_PUBLIC ? /^ONE-BELL 300/ : /^HALF MURPH/);
+  const picked = await card().locator('h1').innerText();
+  const cdp = await page.context().newCDPSession(page);
+  const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  const gesture = async (x0, y0, x1, y1) => {
+    await touch('touchStart', x0, y0);
+    for (let i = 1; i <= 10; i++) { await touch('touchMove', x0 + (x1 - x0) * i / 10, y0 + (y1 - y0) * i / 10); await S(16); }
+    await touch('touchEnd'); await S(500);
+  };
+  const minute = async (v) => { const b = await slider().boundingBox(); return { x: b.x + 14 + (v - 10) / 50 * (b.width - 28), y: b.y + b.height / 2 }; };
+  const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('tm_qm_keys_v1') || '{}').duration);
+  let p = await minute(50);
+  await gesture(p.x, p.y, p.x, p.y - 160);
+  if (await slider().inputValue() !== '20' || (await saved()) !== undefined) throw new Error('a swipe up on TIME changed or saved it');
+  if (await card().locator('h1').innerText() !== picked) throw new Error('a swipe up on TIME dropped the library mission');
+  p = await minute(50);
+  await gesture(p.x, p.y, p.x, p.y + 160);
+  if (await slider().inputValue() !== '20' || await card().locator('h1').innerText() !== picked) throw new Error('a swipe down on TIME changed it');
+  const from = await minute(20), to = await minute(45);
+  await gesture(from.x, from.y, to.x, to.y);
+  if (await slider().inputValue() !== '45' || (await saved()) !== 45) throw new Error('a sideways drag did not set and save 45');
+  if (await card().locator('h1').innerText() === picked) throw new Error('a new TIME kept the library mission');
+}, /45 MIN/);
+// ADD CARDIO runs after the mission, so switching it on keeps the card's moves.
+await check('quick mission: ADD CARDIO keeps the moves', async () => {
+  await quick(); await expand();
+  const before = await card().locator('ol').innerText();
+  await adjust();
+  await adjustSheet().getByRole('switch', { name: 'Add cardio' }).click({ timeout: 4000 }); await S(600);
+  await btn(/ADD TO WORKOUT/).click({ timeout: 4000 }); await S(600);
+  if (await adjustSheet().getByRole('switch', { name: 'Add cardio' }).getAttribute('aria-checked') !== 'true') throw new Error('ADD CARDIO did not switch on');
+  await done();
+  if (await card().locator('ol').innerText() !== before) throw new Error('ADD CARDIO dealt new moves');
+}, /\+ CARDIO/);
 await check('quick mission: choices are remembered, SURPRISE is not', async () => {
   await quick(); await timeTo(30);
   await adjust(); await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await done();
