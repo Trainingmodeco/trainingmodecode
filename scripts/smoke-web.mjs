@@ -278,6 +278,18 @@ await check('owner: turbo solo start', async () => {
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /SOLO/);
+// A SOLO-only library mission starts SOLO from the sheet's own START, whatever
+// the remembered run mode (GUIDED on a clean slate).
+await check('quick mission: library BARBELL → HONOR ROUNDS starts SOLO', async () => {
+  await ownerQuick(); await library();
+  await sheet().getByRole('radiogroup', { name: 'Loadout' }).getByRole('radio', { name: /^BARBELL/ }).click({ timeout: 4000 }); await S(400);
+  if (await sheet().getByRole('radio', { name: /^IRON CLOCK 16/ }).count() !== 1 || await sheet().getByRole('radio', { name: /^BEST OF 3/ }).count()) throw new Error('BARBELL did not filter the list');
+  await sheet().getByRole('radio', { name: /^HONOR ROUNDS SOLO$/ }).click({ timeout: 4000 }); await S(300);
+  if (!/HONOR ROUNDS/.test(await sheet().locator('[aria-live="polite"]').innerText())) throw new Error('HONOR ROUNDS is not on top');
+  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(7000);
+  const t = await text();
+  if (!/HONOR ROUNDS/.test(t) || !/FINISH/.test(t) || !/STOP/.test(t) || !/CAP 20:00/.test(t)) throw new Error('not the SOLO screen for HONOR ROUNDS');
+}, /SOLO/);
 // START opens the ring warm-up (5 MIN until the athlete picks). Its SKIP is
 // clicked for real, so the check fails if anything covers it: the old warm-up's
 // SKIP sat under the tab bar, and this check still passed because the workout

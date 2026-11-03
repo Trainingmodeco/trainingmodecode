@@ -1,8 +1,9 @@
 // Quick Mission v2: the gate, the move catalog, the 11 launch missions, the
-// shelf, swaps and safety, the voice and timing helpers, integrity sizing
-// (ungated fix a), SOLO maths, shelf prefs and the tape line. Run with
-// `npm run test:missions`.
+// 15 SOLO-only missions (12-26), the shelf, swaps and safety, the voice and
+// timing helpers, integrity sizing (ungated fix a), SOLO maths, shelf prefs
+// and the tape line. Run with `npm run test:missions`.
 import { isDeepStrictEqual } from 'node:util';
+import { createHash } from 'node:crypto';
 
 const store = new Map();
 const memStore = {
@@ -42,12 +43,12 @@ reset();
 // ── catalog ─────────────────────────────────────────────────────────────────
 const PATTERNS = ['hinge', 'squat', 'lunge', 'push', 'pull', 'press', 'clean', 'sprawl', 'burpee', 'punch', 'kick', 'knee', 'core', 'cardio'];
 const ids = M.MOVES.map(m => m.id);
-check('3 80 unique move ids', M.MOVES.length === 80 && new Set(ids).size === 80, `${M.MOVES.length}`);
+check('3 131 unique move ids', M.MOVES.length === 131 && new Set(ids).size === 131, `${M.MOVES.length}`);
 const badField = M.MOVES.filter(m => {
   const cadOk = m.cadence === null || (['elite', 'standard', 'beginner'].every(l => Number.isInteger(m.cadence[l]) && m.cadence[l] >= 500 && m.cadence[l] <= 6000) && Object.keys(m.cadence).length === 3);
   const manual = m.cadence === null && (m.unit === 'reps' || m.unit === 'cal');
   return !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(m.id) || !m.name || !m.say || !PATTERNS.includes(m.pattern) || !M.GEAR_TAGS.includes(m.gear)
-    || !['reps', 'secs', 'cal'].includes(m.unit) || !cadOk
+    || !['reps', 'secs', 'cal', 'm'].includes(m.unit) || !cadOk
     || (m.timedOnly && !(m.cadence === null && m.unit === 'secs'))
     || (manual && !m.estMs)
     || !Array.isArray(m.cues) || m.cues.length < 2 || m.cues.length > 4 || m.cues.some(c => !c || c.length > 140)
@@ -77,8 +78,15 @@ check('7 cue text: Hindu push-up, dive bomber, wipers', cueHas('hindu-push-up', 
 // ── missions ────────────────────────────────────────────────────────────────
 const IDS = ['iron_clock_16', 'one_bell_300', 'five_round_bout', 'best_of_3', 'steel_plating', 'checkpoint_20', 'room_12', 'hit_combo_21', 'tutorial_stage', 'turbo_button', 'quota_300'];
 const TITLES = ['IRON CLOCK 16', 'ONE-BELL 300', 'FIVE ROUND BOUT', 'BEST OF 3', 'STEEL PLATING', 'CHECKPOINT 20', 'ROOM 12', '21-HIT COMBO', 'TUTORIAL STAGE', 'TURBO BUTTON', 'QUOTA 300'];
-check('8 11 defs, ids and titles in launch order', eq(L.LOADOUT_MISSIONS.map(d => d.id), IDS) && eq(L.LOADOUT_MISSIONS.map(d => d.title), TITLES) && L.LOADOUT_MISSIONS.every((d, i) => d.launch === i + 1));
-check('8 only 21-HIT is SOLO only; guided help everywhere else', L.LOADOUT_MISSIONS.every(d => (d.id === 'hit_combo_21' ? d.guided === false : d.guided === true && d.guidedHelp.length > 0))
+// 12-26: the researched barbell, bell and mixed missions, SOLO only for now.
+const SOLO_IDS = ['honor_rounds', 'ko_sprint_30', 'overhead_rush', 'burnout_21', 'stance_breaker_9', 'rookie_round_8',
+  'first_bell', 'continue_bell', 'carry_on_15', 'surge_20_10', 'midline_lock', 'leg_sweep', 'charge_up_12', 'oxygen_debt', 'hot_laps'];
+const SOLO_TITLES = ['HONOR ROUNDS', 'KO SPRINT 30', 'OVERHEAD RUSH', 'BURNOUT 21', 'STANCE BREAKER 9', 'ROOKIE ROUND 8',
+  'FIRST BELL', 'CONTINUE? · BELL', 'CARRY-ON 15', 'SURGE 20/10', 'MIDLINE LOCK', 'LEG SWEEP', 'CHARGE UP 12', 'OXYGEN DEBT', 'HOT LAPS'];
+check('8 26 defs, ids and titles in launch order', eq(L.LOADOUT_MISSIONS.map(d => d.id), [...IDS, ...SOLO_IDS]) && eq(L.LOADOUT_MISSIONS.map(d => d.title), [...TITLES, ...SOLO_TITLES])
+  && L.LOADOUT_MISSIONS.every((d, i) => d.launch === i + 1));
+const soloOnlyDef = (id) => id === 'hit_combo_21' || SOLO_IDS.includes(id);
+check('8 only 21-HIT and 12-26 are SOLO only; guided help everywhere else', L.LOADOUT_MISSIONS.every(d => (soloOnlyDef(d.id) ? d.guided === false && d.guidedHelp === '' && d.introSay === '' : d.guided === true && d.guidedHelp.length > 0))
   && ['five_round_bout', 'best_of_3', 'room_12'].every(id => L.missionDefById(id).guidedHelp === L.GUIDED_HELP_AMRAP));
 
 const RULE_KIND = { forTime: 'time', amrap: 'roundsReps', emom: 'minutesHeld', intervals: 'reps' };
@@ -172,14 +180,16 @@ check('14 card copy: eyebrow, AMRAP names, no tape mention', IDS.every(id => L.m
 
 // ── shelf ───────────────────────────────────────────────────────────────────
 const shelf = L.shelfEntries();
-check('15 shelf: 28 entries, v2 first', shelf.length === 28 && shelf.slice(0, 11).every(e => e.kind === 'v2') && shelf.slice(11).every(e => e.kind === 'classic')
-  && eq(shelf.slice(0, 11).map(e => e.id), IDS));
+check('15 shelf: 43 entries, v2 first', shelf.length === 43 && shelf.slice(0, 26).every(e => e.kind === 'v2') && shelf.slice(26).every(e => e.kind === 'classic')
+  && eq(shelf.slice(0, 26).map(e => e.id), [...IDS, ...SOLO_IDS])
+  && shelf.slice(0, 26).every(e => e.soloOnly === soloOnlyDef(e.id)));
 const loCount = (lo) => L.filterShelf(shelf, { loadout: lo }).length;
-check('16 loadout counts', loCount('none') === 18 && loCount('bell') === 3 && loCount('barbell') === 2 && loCount('mixed') === 5,
+check('16 loadout counts', loCount('none') === 18 && loCount('bell') === 10 && loCount('barbell') === 8 && loCount('mixed') === 7,
   ['none', 'bell', 'barbell', 'mixed'].map(loCount).join('/'));
 const tAll = L.themeCounts(shelf, 'all');
-check('17 theme counts', tAll.all === 28 && tAll.striking === 9 && tAll.burpees === 2 && tAll.century === 3
-  && L.themeCounts(shelf, 'barbell').striking === 0 && L.themeCounts(shelf, 'bell').striking === 1, show(tAll));
+check('17 theme counts', tAll.all === 43 && tAll.striking === 9 && tAll.burpees === 4 && tAll.century === 3
+  && L.themeCounts(shelf, 'barbell').striking === 0 && L.themeCounts(shelf, 'bell').striking === 1
+  && L.themeCounts(shelf, 'barbell').burpees === 1 && L.themeCounts(shelf, 'bell').burpees === 1, show(tAll));
 const empty = L.emptyShelfCopy({ loadout: 'barbell', theme: 'striking' });
 check('18 empty shelf copy', empty.text === 'No striking missions for BARBELL yet.' && empty.action?.label === 'SHOW NO GEAR' && empty.action?.loadout === 'none');
 const TAGS = {
@@ -541,6 +551,255 @@ check('50 score formats', S.formatScore({ kind: 'time', timeSec: 1122, value: 11
   && S.formatScore({ kind: 'roundsReps', rounds: 6, reps: 12 }) === '6 + 12' && S.formatScore({ kind: 'roundsReps', blocks: [{ rounds: 5, reps: 3 }, { rounds: 4, reps: 10 }] }) === '9 + 13'
   && S.formatScore({ kind: 'minutesHeld', minutesHeld: 15, of: 16, value: 15 }) === '15/16' && S.formatScore({ kind: 'reps', reps: 64, label: 'X', value: 64 }) === '64'
   && S.formatScore(null) === '—');
+
+// ── the SOLO-only missions (12-26) ──────────────────────────────────────────
+reset();
+const soloBuilt = {};
+const soloProblems = [];
+// CHARGE UP 12 is an AMRAP scored in total reps (an ascending ladder).
+const soloRuleKind = (id, format) => (id === 'charge_up_12' ? 'reps' : RULE_KIND[format]);
+for (const id of SOLO_IDS) {
+  soloBuilt[id] = {};
+  const def = L.missionDefById(id);
+  if (!eq(Object.keys(def.levels).sort(), [...LEVELS].sort()) || def.defaultLevel !== 'standard' || def.workoutType !== 'Weighted' || typeof def.knownAs !== 'string') soloProblems.push(`${id} def shape`);
+  for (const lv of LEVELS) {
+    const m = build(id, { level: lv });
+    soloBuilt[id][lv] = m;
+    const tag = `${id}/${lv}`;
+    if (!m) { soloProblems.push(`${tag} null`); continue; }
+    const card = L.missionCardModel(m);
+    if (m.guided !== false || !card.soloOnly || !card.tags.includes('SOLO ONLY') || card.guidedHelp !== '' || m.introSay !== '') soloProblems.push(`${tag} not SOLO only`);
+    const its = items(m);
+    if (its.some(it => !M.moveById(it.moveId))) soloProblems.push(`${tag} unknown move`);
+    if (its.some(it => it.moveId !== it.baseMoveId || it.defaultMoveId !== it.baseMoveId) || m.scaled !== false || m.gearBanner !== null) soloProblems.push(`${tag} not at base with no gear set`);
+    if (m.exercises.some(sl => !Array.isArray(sl.list) && !('cadenceMs' in sl))) soloProblems.push(`${tag} slot missing cadenceMs`);
+    if (m.exercises.some(sl => sl.window != null && ![30, 60].includes(sl.window))) soloProblems.push(`${tag} window`);
+    if (m.exercises.some(sl => Array.isArray(sl.list) && sl.mode === 'reps' && sl.list.some(st => 'sides' in st))) soloProblems.push(`${tag} complex step has sides`);
+    if (!eq(JSON.parse(JSON.stringify(m)), m)) soloProblems.push(`${tag} JSON round-trip`);
+    if (!paceOk(m.format, m.pace)) soloProblems.push(`${tag} pace types`);
+    if (m.scoreRule.kind !== soloRuleKind(id, m.format)) soloProblems.push(`${tag} scoreRule`);
+    if (m.format === 'forTime' ? !(m.capSec > 0) : m.capSec !== 0) soloProblems.push(`${tag} capSec`);
+    if (m.workoutType !== 'Weighted' || !m.loadoutLine || !m.missionLine || !m.scoreLine || !m.scale || !m.note || !m.paceBasis || !m.load || !m.levelDetail) soloProblems.push(`${tag} card copy`);
+  }
+}
+check('53 every SOLO-only mission builds at all 3 levels, guided === false', soloProblems.length === 0, soloProblems.join('; '));
+
+// Every slot / step names a catalog move, and every alt of every move a swap
+// can reach resolves too. Each NEW catalog entry (after the launch 80) has
+// 2-4 alts; the launch entries keep theirs, so the 11 missions are unchanged.
+const altProblems = [];
+SOLO_IDS.forEach(id => LEVELS.forEach(lv => {
+  const m = soloBuilt[id][lv];
+  items(m).forEach(it => { if (!M.moveById(it.moveId)) altProblems.push(`${id}/${lv} ${it.moveId}`); });
+  L.cardRows(m).forEach(r => {
+    [r.moveId, ...L.reachableMoves(m, r.swapKey).keys()].forEach(mid => {
+      (M.moveById(mid)?.alts || [null]).forEach(a => { if (!a || !M.moveById(a.id)) altProblems.push(`${id}/${lv} ${mid}→${a?.id}`); });
+    });
+  });
+}));
+const NEW_MOVES = M.MOVES.slice(80);
+const fewAlts = NEW_MOVES.filter(m => m.alts.length < 2 || m.alts.length > 4).map(m => m.id);
+// Gear-aware: a loaded new move offers a no-gear or easier option, or is one.
+const LOADED = ['bell', 'db', 'barbell', 'plate'];
+const scaleTarget = new Set(M.MOVES.flatMap(m => m.alts.filter(a => a.kind === 'easier' || a.kind === 'no-gear').map(a => a.id)));
+const noLighter = NEW_MOVES.filter(m => LOADED.includes(m.gear) && !m.alts.some(a => a.kind === 'easier' || a.kind === 'no-gear' || M.moveById(a.id).gear === 'none') && !scaleTarget.has(m.id)).map(m => m.id);
+const usedIds = new Set(SOLO_IDS.flatMap(id => LEVELS.flatMap(lv => items(soloBuilt[id][lv]).map(it => it.moveId))));
+check('54 every slot\'s move and every reachable alt resolves', altProblems.length === 0 && usedIds.size > 40, altProblems.slice(0, 6).join(', '));
+check('54 new catalog entries: 2-4 alts each, loaded ones gear-aware', fewAlts.length === 0 && noLighter.length === 0 && NEW_MOVES.length === 51, `${fewAlts.join(',')} | ${noLighter.join(',')}`);
+
+// Pace: three tiers, elite better than standard better than beginner; a for-
+// time beginner still finishes inside the cap.
+const inf = (v) => (v == null ? Infinity : v);
+const ordered = (m) => {
+  const p = m.pace;
+  if (m.format === 'forTime') return p.elite < p.standard && p.standard < p.beginner && p.beginner <= m.capSec;
+  if (m.format === 'emom') {
+    const pair = (a, b) => a.held >= b.held && inf(a.setSec) <= inf(b.setSec) && (a.held > b.held || inf(a.setSec) < inf(b.setSec)) && a.of === b.of;
+    return pair(p.elite, p.standard) && pair(p.standard, p.beginner) && p.elite.of === S.heldOf(m);
+  }
+  return p.elite > p.standard && p.standard > p.beginner && p.beginner > 0;
+};
+const paceBad = SOLO_IDS.flatMap(id => LEVELS.filter(lv => {
+  const m = soloBuilt[id][lv];
+  const pt = S.paceTargets(m);
+  return !ordered(m) || pt.length !== 3 || pt.some(x => !x.text || /undefined|NaN/.test(x.text));
+}).map(lv => `${id}/${lv}`));
+check('55 pace targets exist and are ordered', paceBad.length === 0, paceBad.join(', '));
+
+// The clock: a fixed clock's timeline adds up to the mission's clock, within
+// a minute of its minutes; a for-time mission has none and runs to its cap.
+const tlProblems = [];
+SOLO_IDS.forEach(id => LEVELS.forEach(lv => {
+  const m = soloBuilt[id][lv];
+  const tl = S.soloTimeline(m);
+  const tag = `${id}/${lv}`;
+  if (!S.isFixedClock(m.format)) {
+    if (tl.length || m.clockSec !== m.capSec || m.duration * 60 > m.capSec) tlProblems.push(`${tag} for time`);
+    return;
+  }
+  const sum = tl.reduce((n, seg) => n + seg.sec, 0);
+  if (!tl.length || sum !== S.missionClockSec(m) || sum !== m.clockSec || Math.abs(sum - m.duration * 60) > 60) tlProblems.push(`${tag} ${sum} vs ${m.clockSec} / ${m.duration} min`);
+  if (tl.some(seg => !Number.isInteger(seg.sec) || seg.sec <= 0 || !['work', 'rest'].includes(seg.kind) || !seg.label)) tlProblems.push(`${tag} segment`);
+  if (tl[0].kind !== 'work' || tl[tl.length - 1].kind !== 'work' || tl.some((seg, i) => i > 0 && seg.kind === 'rest' && tl[i - 1].kind === 'rest')) tlProblems.push(`${tag} rests`);
+  if (S.segmentAt(tl, sum - 0.5)?.index !== tl.length - 1 || S.segmentAt(tl, sum) !== null) tlProblems.push(`${tag} segmentAt`);
+}));
+check('56 every SOLO-only timeline is valid and matches its time or cap', tlProblems.length === 0, tlProblems.join('; '));
+
+const SOLO_CLOCKS = {
+  honor_rounds: [1200, 1200, 1200], ko_sprint_30: [600, 600, 600], overhead_rush: [900, 900, 900], burnout_21: [1800, 1200, 1800],
+  stance_breaker_9: [540, 360, 540], rookie_round_8: [480, 300, 480], first_bell: [960, 1260, 960], continue_bell: [1200, 600, 1200],
+  carry_on_15: [900, 600, 900], surge_20_10: [710, 525, 710], midline_lock: [600, 360, 600], leg_sweep: [720, 480, 720],
+  charge_up_12: [720, 480, 720], oxygen_debt: [600, 600, 600], hot_laps: [1200, 1200, 1200],
+};
+// A ladder pays per rung (BURNOUT 21: 7, not 14 flattened slots).
+const SOLO_XP = {
+  honor_rounds: [255, 165, 255], ko_sprint_30: [45, 45, 45], overhead_rush: [330, 210, 330], burnout_21: [135, 105, 135],
+  stance_breaker_9: [45, 45, 45], rookie_round_8: [45, 45, 45], first_bell: [330, 330, 330], continue_bell: [180, 105, 180],
+  carry_on_15: [45, 45, 45], surge_20_10: [390, 300, 390], midline_lock: [45, 45, 45], leg_sweep: [45, 45, 45],
+  charge_up_12: [45, 45, 45], oxygen_debt: [75, 75, 75], hot_laps: [165, 165, 165],
+};
+const soloClockBad = [];
+SOLO_IDS.forEach(id => ORDER.forEach((lv, i) => {
+  const m = soloBuilt[id][lv];
+  if (m.clockSec !== SOLO_CLOCKS[id][i] || S.fullRunXp(m) !== SOLO_XP[id][i]) soloClockBad.push(`${id}/${lv} ${m.clockSec} ${S.fullRunXp(m)}`);
+}));
+check('57 SOLO-only clocks and full-run XP', soloClockBad.length === 0, soloClockBad.join(', '));
+
+// The 11 launch missions are untouched by the SOLO extensions: their SOLO
+// timelines hash as before (taken before FIRST BELL's windows and the ladders
+// went in), and the minutes-held score still counts the clock's minutes.
+const TL_HASH = {
+  iron_clock_16: ['0c0d6fdc9ce2', 'ddc26113eb28', 'ddc26113eb28'], one_bell_300: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
+  five_round_bout: ['dd5651b27792', '773518de81ff', '773518de81ff'], best_of_3: ['4a00cf163580', '1143d47d27f8', '1143d47d27f8'],
+  steel_plating: ['d72f27eb798b', '1c2c2e8fd574', '51d9be148923'], checkpoint_20: ['8ee170fa4750', '4e8d41554d7a', 'e4c3e662b981'],
+  room_12: ['c67977febccf', 'f5d5bd1ac72e', 'f5d5bd1ac72e'], hit_combo_21: ['3ff641c8ef6f', '6d4e60765c67', '6d4e60765c67'],
+  tutorial_stage: ['0381a06bd309', '7b5268953eed', '4f738aae99b8'], turbo_button: ['7f31f462bec7', '1feeb1f153b3', '1feeb1f153b3'],
+  quota_300: ['e49c4bce9196', 'aad1e65a0721', '61f7fcd2afb7'],
+};
+const hash = (v) => createHash('sha1').update(JSON.stringify(v)).digest('hex').slice(0, 12);
+const tlChanged = IDS.flatMap(id => LEVELS.filter((lv, i) => hash(S.soloTimeline(built[id][lv])) !== TL_HASH[id][i]).map(lv => `${id}/${lv}`));
+const heldBad = IDS.flatMap(id => LEVELS.filter(lv => built[id][lv].format === 'emom' && S.heldOf(built[id][lv]) !== S.missionClockSec(built[id][lv]) / 60).map(lv => `${id}/${lv}`));
+check('58 the 11 launch missions: timelines unchanged (XP: test 10)', tlChanged.length === 0 && heldBad.length === 0, `${tlChanged.join(', ')} ${heldBad.join(', ')}`);
+check('58 the 11 launch missions: SOLO rounds and the cap prefill unchanged', IDS.every(id => LEVELS.every(lv => {
+  const m = built[id][lv];
+  return S.soloRounds(m) === (m.rounds || 1) && S.repsThrough(m, 2) === 2 * S.repsPerRound(m);
+})));
+
+// No franchise, benchmark or person names anywhere a viewer reads.
+const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];
+const BANNED_WORDS = [/\bchief\b/i, /\bFran\b/, /\bHelen\b/, /\bGrace\b/, /\bLinda\b/, /\bCindy\b/, /\bDT\b/, /\bWOD\b/i];
+const allStrings = [];
+const walkAll = (v, key) => {
+  if (key === 'knownAs') return;
+  if (typeof v === 'string') allStrings.push(v);
+  else if (Array.isArray(v)) v.forEach(x => walkAll(x));
+  else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => walkAll(x, k));
+};
+[...IDS, ...SOLO_IDS].forEach(id => LEVELS.forEach(lv => {
+  const m = build(id, { level: lv });
+  walkAll(m); walkAll(L.missionCardModel(m)); walkAll(S.paceTargets(m)); walkAll(S.soloTimeline(m).map(seg => seg.label));
+  L.cardRows(m).forEach(r => walkAll(L.swapOptions(m, r.swapKey)));
+}));
+M.MOVES.forEach(m => { allStrings.push(m.name, m.say, ...(m.say1 ? [m.say1] : []), ...m.cues, ...m.alts.filter(a => a.stop).map(a => a.stop)); });
+L.shelfEntries().forEach(e => allStrings.push(e.title, L.shelfEntryLine(e)));
+const bannedAll = [...new Set(allStrings.filter(s => BANNED_ALL.some(b => b !== 'Chief' && s.toLowerCase().includes(b.toLowerCase())) || BANNED_WORDS.some(re => re.test(s))
+  || knownAs.some(k => s.includes(k))))];
+check('59 no franchise, benchmark or person names in any user text', bannedAll.length === 0 && SOLO_IDS.filter(id => L.missionDefById(id).knownAs).length === 10, bannedAll.join(' | '));
+
+// Safety reaches the card and every swap: no flying knees for beginners, no
+// jumps in a QUIET mission, a warm-up where the source asks for one, and the
+// technique-safe swaps the source names (offered with their stop rule).
+const safetyBad = [];
+SOLO_IDS.forEach(id => LEVELS.forEach(lv => {
+  const m = soloBuilt[id][lv];
+  L.cardRows(m).forEach(r => {
+    const reach = [...L.reachableMoves(m, r.swapKey).keys(), r.moveId];
+    if (lv === 'beginner' && reach.some(k => M.moveById(k).flyingKnee)) safetyBad.push(`${id}/${lv} ${r.swapKey} flying knee`);
+    if (m.quiet && reach.some(k => M.moveById(k).jumps)) safetyBad.push(`${id}/${lv} ${r.swapKey} jumps`);
+  });
+}));
+const WARM_UP = ['honor_rounds', 'ko_sprint_30', 'overhead_rush', 'burnout_21', 'stance_breaker_9', 'first_bell', 'surge_20_10', 'charge_up_12', 'oxygen_debt', 'hot_laps'];
+const noWarmUp = WARM_UP.filter(id => !/^Warm up|\. Warm up|Warm up \d/.test(L.missionCardModel(soloBuilt[id].standard).note));
+check('60 safety: no flying knees for beginners, no jumps when QUIET', safetyBad.length === 0 && ['carry_on_15', 'midline_lock', 'leg_sweep'].every(id => L.missionDefById(id).quiet), safetyBad.join(', '));
+check('60 safety: a warm-up line on every card that needs one', noWarmUp.length === 0, noWarmUp.join(', '));
+const soloOpt = (id, lv, key, to) => L.swapOptions(soloBuilt[id][lv], key).find(o => o.id === to);
+const baseOf = (id, lv, key) => keyItems(soloBuilt[id][lv], key)[0]?.moveId;
+check('60 safety: technique-safe swaps for the Olympic lifts', soloOpt('honor_rounds', 'standard', 'jerk', 'bb-push-press')?.stop === 'Never been coached?'
+  && !!soloOpt('honor_rounds', 'standard', 'clean', 'bb-hang-muscle-clean')
+  && baseOf('honor_rounds', 'beginner', 'clean') === 'bb-hang-muscle-clean' && baseOf('honor_rounds', 'beginner', 'jerk') === 'bb-push-press'
+  && soloOpt('ko_sprint_30', 'standard', 'clean-jerk', 'bb-hang-clean-push-press')?.stop === 'Never been coached?'
+  && soloOpt('overhead_rush', 'standard', 'lift', 'bb-g2oh-three-step')?.stop === 'Never been coached?' && baseOf('overhead_rush', 'beginner', 'lift') === 'bb-g2oh-three-step'
+  && soloOpt('burnout_21', 'standard', 'thruster', 'bb-front-squat-push-press')?.stop === 'Back arching on the press?'
+  && soloOpt('hot_laps', 'elite', 'swing', 'kb-swing')?.stop === 'Never been coached?' && baseOf('hot_laps', 'standard', 'swing') === 'kb-swing'
+  && soloOpt('first_bell', 'standard', 'get-up', 'half-get-up')?.stop === 'Shoulder pain?');
+const stepOver = (id, lv) => soloOpt(id, lv, 'burpee', 'bar-step-over-burpee');
+check('60 safety: a step-over for every bar-facing burpee, a no-jump option over the bell', ['overhead_rush', 'burnout_21'].every(id => stepOver(id, 'standard')?.stop === 'Clipping the bar?'
+  && stepOver(id, 'elite') && baseOf(id, 'beginner', 'burpee') === 'bar-step-over-burpee') && !M.moveById('bar-step-over-burpee').jumps
+  && L.swapOptions(soloBuilt.charge_up_12.standard, 'burpee').some(o => !M.moveById(o.id).jumps && o.stop === 'Knee pain?')
+  && soloOpt('charge_up_12', 'standard', 'burpee', 'lateral-burpee')?.stop === 'Feet clipping the bell?'
+  && cueHas('pull-up', 'Kip only if you already can') && cueHas('ring-row', 'Never row under a table'));
+
+// FIRST BELL: a swing set every :30, then 1:00 of rest, then a get-up every
+// minute, on one clock. The score is out of all 20 windows.
+const fb = soloBuilt.first_bell.standard;
+const fbTl = S.soloTimeline(fb);
+const fbB = S.soloTimeline(soloBuilt.first_bell.beginner);
+check('61 FIRST BELL: :30 sets, the rest, then minutes', fbTl.length === 21 && fbTl.slice(0, 10).every((seg, i) => seg.kind === 'work' && seg.sec === 30 && seg.label === `SET ${i + 1} · 10 Single-Arm Kettlebell Swings` && seg.swapKey === 'swing')
+  && fbTl[10].kind === 'rest' && fbTl[10].sec === 60 && fbTl.slice(11).every((seg, i) => seg.sec === 60 && seg.label === `MIN ${i + 1} · 1 Weighted Turkish Get-Up` && seg.swapKey === 'get-up')
+  && fbB.length === 21 && fbB[0].label === 'MIN 1 · 10 Kettlebell Swings' && fbB[11].label === 'MIN 1 · 1 Turkish Get-Up' && fbB.reduce((n, seg) => n + seg.sec, 0) === 1260,
+  show(fbTl.slice(9, 12)));
+check('61 FIRST BELL: score out of 20, a swap keeps the window', S.heldOf(fb) === 20 && S.prefillScore(fb) === 20 && fb.scoreRule.label === 'SETS HELD'
+  && S.paceTargets(fb)[0].text === '20/20 · sets ≤ 15s' && S.formatScore({ kind: 'minutesHeld', minutesHeld: 19, of: 20 }) === '19/20'
+  && eq(doses(fb), ['10 × 10', '10 × 1']) && L.cardRows(fb)[0].prefix === 'EVERY :30'
+  && S.soloTimeline(L.swapMissionMove(fb, 'swing', 'kb-swing'))[0].label === 'SET 1 · 10 Kettlebell Swings' && S.missionClockSec(L.swapMissionMove(fb, 'swing', 'kb-swing')) === 960);
+
+// Ladders: a complex per rung, so + ROUND counts rungs and the cap prefill is
+// the reps through the rungs tapped.
+const bo21 = soloBuilt.burnout_21.standard;
+const cb = soloBuilt.continue_bell.standard;
+const od = soloBuilt.oxygen_debt.standard;
+check('62 ladders: rungs as rounds, reps through the rungs', S.soloRounds(bo21) === 7 && S.repsPerRound(bo21) === 168 && S.repsThrough(bo21, 3) === 108 && S.repsThrough(bo21, 7) === 168
+  && S.soloRounds(cb) === 10 && S.repsPerRound(cb) === 260 && S.repsThrough(cb, 1) === 35 && S.soloRounds(od) === 3 && S.repsPerRound(od) === 72
+  && S.soloRounds(soloBuilt.honor_rounds.standard) === 5 && S.repsThrough(soloBuilt.honor_rounds.standard, 2) === 54
+  && S.soloRounds(oneBell) === 5 && S.repsThrough(oneBell, 2) === 120);
+check('62 ladders: the card reads every rung', eq(doses(bo21), ['21-18-15-12-9-6-3', '21-18-15-12-9-6-3']) && eq(doses(soloBuilt.burnout_21.beginner), ['15-12-9-6-3', '15-12-9-6-3'])
+  && eq(doses(cb), ['15', '10→1', '10→1']) && eq(doses(soloBuilt.continue_bell.beginner), ['15', '5-4-3-2-1', '5-4-3-2-1']) && L.cardRows(cb)[0].note === 'Every rung.'
+  && eq(doses(od), ['21-15-9', '12-9-6']) && eq(doses(L.swapMissionMove(bo21, 'burpee', 'bar-step-over-burpee')), ['21-18-15-12-9-6-3', '21-18-15-12-9-6-3']),
+  show(doses(cb)));
+
+// CHARGE UP 12: +2 every rung on the AMRAP clock, scored in total reps.
+const cu = soloBuilt.charge_up_12.standard;
+check('63 CHARGE UP: the climb, the prefill and the pace in reps', [[9, 180], [7, 112], [5, 60], [4, 40], [0, 0]].every(([n, r]) => S.repsThrough(cu, n) === r)
+  && S.prefillScore(cu, { roundTaps: 7 }) === 112 && eq(S.paceTargets(cu).map(p => p.text), ['180+ reps', '112 reps', '60 reps'])
+  && eq(doses(cu), ['2, 4, 6…', '2, 4, 6…']) && S.formatScore({ kind: 'reps', reps: 153, label: 'TOTAL REPS', value: 153 }) === '153'
+  && eq(doses(L.swapMissionMove(cu, 'burpee', 'step-back-burpee')), ['2, 4, 6…', '2, 4, 6…']) && S.soloTimeline(cu)[0].label === 'AMRAP');
+
+// HOT LAPS: the run is metres (a manual DONE), never reps in the score.
+const hl = soloBuilt.hot_laps.standard;
+const run = hl.exercises[0];
+const rowed400 = L.swapMissionMove(hl, 'run', 'row-cal');
+check('64 HOT LAPS: metres, never reps', run.unit === 'M' && M.slotDose(run) === '400 M' && run.cadenceMs === null && M.countBeats(run) === null
+  && S.estimateWorkSeconds(run) === 150 && S.repsPerRound(hl) === 27 && S.repsPerRound(soloBuilt.hot_laps.elite) === 33 && S.repsThrough(hl, 2) === 54
+  && rowed400.exercises[0].reps === 25 && rowed400.exercises[0].unit === 'CAL' && L.swapMissionMove(soloBuilt.hot_laps.beginner, 'run', 'row-cal').exercises[0].reps === 13
+  && M.slotDose(L.swapMissionMove(hl, 'run', 'high-knees').exercises[0]) === '200 (100/leg)'
+  && M.slotDose(L.swapMissionMove(rowed400, 'run', 'run').exercises[0]) === '400 M', show(run));
+
+// SURGE 20/10: 8 rounds of 3 × 0:20 on / 0:10 off, the last rest not run.
+const sg = soloBuilt.surge_20_10.standard;
+const sgTl = S.soloTimeline(sg);
+check('65 SURGE: the rotation and the lowest-round score', sgTl.length === 47 && sgTl.reduce((n, seg) => n + seg.sec, 0) === 710
+  && eq(sgTl.slice(0, 6).map(seg => seg.label), ['Kettlebell Swings', 'REST', 'Goblet Thrusters', 'REST', 'Mountain Climbers', 'REST'])
+  && S.prefillScore(sg) === 44 && eq(S.paceTargets(sg).map(p => p.text), ['46+', '37', '29']) && sg.scoreRule.agg === 'lowest');
+
+// The shelf and the card for 12-26.
+check('66 SOLO-only rows and cards', L.shelfEntryLine(L.shelfEntries().find(e => e.id === 'honor_rounds')) === '~12 MIN · BARBELL · FOR TIME'
+  && L.shelfEntryLine(L.shelfEntries().find(e => e.id === 'first_bell')) === '~16 MIN · 1 BELL / DB · EMOM'
+  && L.shelfEntryLine(L.shelfEntries().find(e => e.id === 'surge_20_10')) === '~12 MIN · 1 BELL / DB · INTERVALS'
+  && L.filterShelf(L.shelfEntries(), { loadout: 'barbell' }).map(e => e.id).includes('honor_rounds')
+  && ['carry_on_15', 'midline_lock', 'leg_sweep'].every(id => L.missionCardModel(soloBuilt[id].standard).tags.includes('QUIET'))
+  && L.missionCardModel(soloBuilt.honor_rounds.standard).eyebrow === 'Mission · Barbell'
+  && M.slotDose(keyItems(soloBuilt.midline_lock.standard, 'pull-through')[0]) === '10 (5/side)'
+  && M.slotDose(keyItems(soloBuilt.carry_on_15.standard, 'lunge')[0]) === '10 (5/leg)');
 
 // ── prefs and tapes ─────────────────────────────────────────────────────────
 reset();

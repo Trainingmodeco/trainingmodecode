@@ -968,7 +968,7 @@ const OXYGEN_DEBT = {
   difficulty: 'Brutal', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: false, guided: false, knownAs: 'Fran',
   loadoutLine: '1 BARBELL + A PULL-UP BAR, OR 2 DUMBBELLS', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bar, or the beginner level: 15-12-9 with an empty bar or 2 light dumbbells, and jumping pull-ups. Dumbbells: 2 × 15/10 kg. No bar on the road: dumbbell bent-over rows, the same reps.',
-  note: 'A 5-8 min sprint, so start it warm: 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap + ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
+  note: 'Warm up 8-10 min first; this is a 5-8 min sprint. 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap + ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 5-8 min for most; elite athletes finish in under 3.',
   defaultLevel: 'standard',
