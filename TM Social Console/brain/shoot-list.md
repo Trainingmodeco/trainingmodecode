@@ -51,7 +51,19 @@ shoot.
 
 | Clip | What the owner says it is | Status |
 |---|---|---|
-| 1–18 | the elbow set (owner: "for elbows"); 2 = horizontal, 8 = diagonal | 2 and 8 cut; 1, 3–7, 9–18 await their names |
+| 1 | spinning back elbow (Sok Klap), Claude's reading | cut |
+| 2 | lead horizontal elbow (Sok Tat), owner's word | cut |
+| 3 | rear horizontal elbow with a step (Sok Tat), Claude's reading | cut |
+| 4 | uppercut elbow (Sok Ngat), Claude's reading | cut |
+| 5 | jumping elbow, three short joined shots | alternate to 16 |
+| 6 | chopping elbow, both hands raised, Claude's reading | alternate to 7 |
+| 7 | chopping elbow (Sok Sap), Claude's reading; body at the frame edge for 2 s | cut |
+| 8 | lead diagonal elbow (Sok Chieng), owner's word | cut |
+| 9, 10 | lunging elbows with a deep step | alternates (horizontal / chop) |
+| 11, 12, 14, 15, 17 | spinning elbows and rear-view takes | alternates to 1 |
+| 13 | horizontal elbows with a step, facing the camera | alternate to 2 / 3 |
+| 16 | jumping elbow with a rear-knee drive (Sok Kratod), Claude's reading, one shot | cut |
+| 18 | a high raised elbow facing the camera (uppercut or chop) | alternate to 4 / 7 |
 | 19 | lead side kick (karate: yoko geri) | filed 2026-11-03 |
 | 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi, the advancing side thrust kick) | filed 2026-11-03 |
 | 21 | machine gun kick (Thai: te rua, เตะรัว, rapid-fire kicks) | filed 2026-11-03 |
