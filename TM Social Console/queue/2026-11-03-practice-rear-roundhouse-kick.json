@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-rear-roundhouse-kick",
   "title": "Practice: Rear Roundhouse Kick",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. Words from the app's Technique Library (practiceData.js › Muay Thai › Rear Roundhouse Kick: cues, mistakes, next); the same video serves the Kickboxing and MMA entries and the Rear Roundhouse Kick lessons of the Kickboxing and Muay Thai paths. Thai: te tat (เตะตัด), the roundhouse. Footage: the owner's clip 24 (ring, 2026-11-03), raw-footage/practice/p24.mp4, two shots joined in InShot (the join at 5.63 s is too soft for scene detection; found by the body jumping across the frame): three kicks facing the camera (1.2, 3.95 and 4.95 s), one wider (6.8 s).",
@@ -121,5 +121,5 @@
       "seconds": 23
     }
   },
-  "renderedAt": "2026-11-03T16:57:40.505Z"
+  "renderedAt": "2026-11-03T17:24:38.849Z"
 }
