@@ -1,7 +1,7 @@
 {
   "id": "2026-11-03-practice-spinning-back-kick",
   "title": "Practice: Spinning Back Kick",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticeTutorial",
   "createdAt": "2026-11-03",
   "source": "Practice Mode tutorial. The owner's spinning back heel kick. Words from the app's Technique Library (practiceData.js › Kickboxing › Spinning Back Kick: cues, mistakes, next). Karate: ushiro geri (後ろ蹴り); Thai: te klap lang (เตะกลับหลัง). Footage: the owner's clip 22 (ring, 2026-11-02), raw-footage/practice/p22.mp4, two shots joined in InShot (cut at 7.0 s): a slow rep with a long hold facing away (turn at 1.0 s, kick at 4.3–4.9 s), then one at full speed (spin at 9.4 s, kick at 9.8–10.1 s).",
@@ -57,7 +57,7 @@
       "text": "Spinning without spotting the target",
       "fix": "Eyes on the target, then kick",
       "at": 9.75,
-      "fixAt": 4.0,
+      "fixAt": 4,
       "mark": "nose",
       "label": "SPOT",
       "say": "Coach: \"Spin blind and you kick air, or a counter. Eyes first, heel second.\""
@@ -68,7 +68,7 @@
         "JAB → SPINNING BACK KICK",
         "LOW KICK → SPINNING BACK KICK"
       ],
-      "start": 5.0,
+      "start": 5,
       "cue": "Spot, chamber, heel"
     },
     "next": {
@@ -110,5 +110,11 @@
   "posted": {},
   "notes": [
     "2026-11-03 cut from clip 22 (filed earlier, cut now so every clip the owner sent has its tutorial). Shots: 0–7.0 (name, key points 2 and 3, the fix), 7.0–11.3 (hook, key point 1, the WATCH FOR freeze). The tracker mixes up the knees during the chamber, so key point 2 is pinned by hand; the kicking foot and the head track fine. The drill runs 5–11 s across the join at real speed. No voice yet. Owner approves before anything posts; TikTok as Only me first."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-03-practice-spinning-back-kick/video.mp4",
+    "cover": "exports/2026-11-03-practice-spinning-back-kick/cover.jpg",
+    "seconds": 32
+  },
+  "renderedAt": "2026-11-03T17:28:19.766Z"
 }
