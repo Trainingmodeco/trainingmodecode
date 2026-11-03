@@ -26,7 +26,8 @@
     "deblur": "python tools/deblur.py",
     "hf:preview": "cd hyperframes && npx hyperframes preview",
     "typecheck": "tsc --noEmit",
-    "app-video": "node tools/app-video.mjs"
+    "app-video": "node tools/app-video.mjs",
+    "handoff": "node tools/handoff.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",

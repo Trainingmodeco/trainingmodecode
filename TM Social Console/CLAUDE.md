@@ -82,6 +82,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run track -- raw-footage/clip.mp4 --zoom 2 --head 0.33` | zooms in and follows the owner's head (MediaPipe pose) → `clip.tracked.mp4` (1080×1920, 30 fps, same timing) + `clip.track.json` |
 | `npm run pose -- raw-footage/clip.mp4` | body landmarks per frame (MediaPipe) → `clip.pose.json`, for the Practice tutorial's markers; it also prints each hand's and foot's reach per 0.1 s, so a strike's extension frame is a peak |
 | `npm run app-video -- <id> [<id> …]` | puts a Practice tutorial into the app: the in-app cut → `../public/static/practice/<slug>.mp4` (720p, ~1 MB, no audio) + `<slug>.webp` poster, and its URL into every slot in `app.slots` ("Muay Thai › Rear Knee" for a Technique Library entry, "lesson:mt_knee" for a path lesson; default: the technique in each of the post's disciplines). Then `npm run lock:assets` in the app (the posters are new images) and commit |
+| `npm run handoff -- --log "what it delivers" [--also <path> …]` | hands app work to the app chat: a `claude/console-handoff-<date>` branch cut from `origin/app` with only app files (the practice videos, the two Practice data files, the re-locked `assets.lock.json`, any `--also` paths) and a log entry in `HANDOFF.md`. Never carries `TM Social Console/`. Refuses until `origin/app` is merged into this branch |
 | `npm run deblur -- raw-footage/clip.mp4 --sigma 2 --iters 12` | fixes evenly soft (missed-focus) footage with Richardson-Lucy deconvolution on the luma, then denoise, 1080×1920 and light CAS → `clip.deblur.mp4`. Not for motion blur. Test sigma on one frame first (1.6–2.4 for a soft 720p phone clip; higher rings). Plain `unsharp`/`cas` barely help such footage; FSRCNN upscaling does nothing for it |
 
 ## The loop
@@ -254,6 +255,26 @@ fallback is only an espeak placeholder.
 - **Reddit**: drafts only (rule 7).
 - **ManyChat**: Instagram comments with TRAIN or BETA get the app link by DM
   (`brain/manychat.md`). Instagram/Facebook captions end with "Comment TRAIN".
+
+## Two chats, one repo
+
+The owner keeps the code in separate chats: **this console chat** owns
+`TM Social Console/` on `claude/training-mode-social-console-zfcf8f`; **the
+app chat** (fight mode improvements, the app) owns the app on `app`, which
+Netlify deploys. This branch is **never merged into `app`**, and nothing here
+edits the app chat's work directly. They share information through
+`HANDOFF.md` on `app` (`git fetch origin app && git show origin/app:HANDOFF.md`):
+
+- **Before work:** read HANDOFF.md's *Needs*, and `git merge origin/app` so the
+  Practice words, lessons and brand facts match the live app.
+- **Delivering to the app:** `npm run app-video -- <id>` (fills the slots on
+  this branch), then `npm run handoff -- --log "…"`. That pushes an app-only
+  `claude/console-handoff-<date>` branch with a HANDOFF.md log entry; the app
+  chat or the owner merges it. Tell the app chat it's there (a message to its
+  session, or the owner). Add anything the console needs from the app under
+  *Needs* in the same handoff.
+- **App code a delivery needs** (like the lesson card's player) goes in the
+  same handoff with `--also <path>`, written to fit the app as it is on `app`.
 
 ## Cloud vs laptop
 

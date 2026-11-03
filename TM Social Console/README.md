@@ -81,6 +81,7 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run render -- <id>` | make the video + cover |
 | `npm run render -- <id> PracticeLessonApp` | the 16:9 in-app cut of a Practice tutorial |
 | `npm run app-video -- <id>` | put a finished tutorial into the app's Practice Mode (video + poster in the app's `public/static/practice/`, URL into its library and lesson slots) |
+| `npm run handoff -- --log "…"` | send that to the app: an app-only `claude/console-handoff-<date>` branch for the app chat to merge (the console's own code never goes to `app`; HANDOFF.md on `app` is the shared note) |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
 | `npm run hf:render -- raw-footage/clip.mp4 9 50 0.5` | render the Rank Ladder over a clip (from 9 s, centred, at half speed) |
