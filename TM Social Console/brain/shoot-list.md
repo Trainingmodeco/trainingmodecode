@@ -71,6 +71,7 @@ Library entries except the body elbow.
 | 21 | machine gun kick (Thai: te rua, เตะรัว, rapid-fire kicks) | filed 2026-11-03 |
 | 22 | spinning back heel kick (karate: ushiro geri; Thai: te klap lang, เตะกลับหลัง) | filed 2026-11-03 |
 | 23 | switch kick (Thai: te salap, เตะสลับ), owner's word | cut |
+| 24 | rear roundhouse kick (Thai: te tat, เตะตัด), owner's word; a soft InShot join at 5.63 s that scene detection misses | cut |
 
 Clips 19–22 are in the app's Technique Library: Kickboxing › Lead Side Kick
 (now "Yoko geri: …"), Kickboxing › Stepping Side Kick (new), Kickboxing ›
@@ -90,7 +91,8 @@ Where each one goes:
 | Clip | App lesson or Library entry |
 |---|---|
 | lead teep, rear teep | Kickboxing › Front Kick / Teep; Muay Thai › Teep; MMA › Teep or Low Kick |
-| rear roundhouse | Kickboxing › Rear Roundhouse Kick; Muay Thai › Roundhouse Kick |
+| rear roundhouse (clip 24, cut) | Kickboxing › Rear Roundhouse Kick; Muay Thai › Roundhouse Kick |
+| switch kick (clip 23, cut) | Kickboxing › Switch Kick |
 | low kick | MMA › Teep or Low Kick |
 | rear knee, lead knee | Muay Thai › Knee |
 | elbows (horizontal, diagonal, uppercut, spinning…) | Muay Thai › Elbow (lesson) and the Technique Library entries (Lead Diagonal Elbow is cut) |
