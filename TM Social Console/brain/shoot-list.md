@@ -47,6 +47,20 @@ The words on screen come from the app's lesson (practiceLessons.js: `steps`
 and `calls`), so the clip only has to show them; nothing is written for the
 shoot.
 
+## Clips on file (raw-footage/practice, not in git)
+
+| Clip | What the owner says it is | Status |
+|---|---|---|
+| 1–18 | the elbow set (owner: "for elbows"); 2 = horizontal, 8 = diagonal | 2 and 8 cut; 1, 3–7, 9–18 await their names |
+| 19 | lead side kick (karate: yoko geri) | filed 2026-11-03 |
+| 20 | marching-forward side kick (tsugi-ashi yoko geri kekomi, the advancing side thrust kick) | filed 2026-11-03 |
+| 21 | machine gun kick (Thai: te rua, เตะรัว, rapid-fire kicks) | filed 2026-11-03 |
+
+Clips 19–21 are in the app's Technique Library: Kickboxing › Lead Side Kick
+(now "Yoko geri: …"), Kickboxing › Stepping Side Kick (new), Muay Thai ›
+Machine Gun Kick (new). The owner is sending the rest of the kicks as they
+load.
+
 ## Kicks, knees, elbows: done
 
 Filmed and clear; nothing to reshoot. Per technique the cut wants three reps

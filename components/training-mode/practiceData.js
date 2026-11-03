@@ -240,7 +240,7 @@ export const TECHNIQUES = [
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Side Kick',
-    description: 'Lateral thrust kick from the lead leg',
+    description: 'Yoko geri: lateral thrust kick from the lead leg',
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Chamber at the hip', 'Thrust heel-first', 'Lean away for power'],
     mistakes: ['Kicking with the toe', 'Not chambering', 'No lean for range'],
@@ -252,6 +252,14 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Turn the hip over', 'Drive through the heel', 'Keep guard hand high'],
     mistakes: ['Kicking with the ball of the foot', 'Not turning the hip', 'Slow recovery'],
+    next: 'Stepping Side Kick', locked: true,
+  },
+  {
+    discipline: 'Kickboxing', category: 'Strikes', name: 'Stepping Side Kick',
+    description: 'Tsugi-ashi yoko geri kekomi: the advancing side thrust kick',
+    level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
+    cues: ['Shuffle the rear foot up first', 'Chamber as you step', 'Thrust the heel, hips behind it'],
+    mistakes: ['Kicking before the step lands', 'Telegraphing the shuffle', 'Dropping the hands on the step'],
     next: 'Low Kick', locked: true,
   },
   {
@@ -381,6 +389,14 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
+    next: 'Machine Gun Kick', locked: true,
+  },
+  {
+    discipline: 'Muay Thai', category: 'Strikes', name: 'Machine Gun Kick',
+    description: 'Te rua: rapid-fire roundhouse kicks off the same leg',
+    level: 'Advanced', duration: '20–30 sec', videoUrl: '',
+    cues: ['Land and reload off the same foot', 'The hip drives every kick', 'Hands stay up between kicks'],
+    mistakes: ['Resetting the foot too far back', 'Swinging the arm instead of turning the hip', 'Losing balance on the base leg'],
     next: 'Lead Uppercut', locked: true,
   },
   {
