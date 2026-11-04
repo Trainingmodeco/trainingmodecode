@@ -50,7 +50,7 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('level 3 text gives XP 1,000 to 1,499', /XP 1,000 to 1,499/.test(s.levelLine), s.levelLine);
   check('level 3 is the last step', /last step of Rookie/.test(s.levelLine));
   check('level 3 range matches getLevel', getLevel(1000) === 3 && getLevel(1499) === 3 && s.xpInfo.levelFrom === 1000 && s.xpInfo.levelTo === 1499);
-  check('ladder note', s.ladderNote === 'Each level is 500 XP. Each tier is 3 levels.', s.ladderNote);
+  check('ladder note', s.ladderNote === 'Each level is 500 XP. Rookie to Max are 3 levels each.', s.ladderNote);
   check('level 3 maths: 250 in, 250 to go', s.xpInfo.into === 250 && s.xpInfo.toNext === 250 && s.xpInfo.pct === 50, JSON.stringify(s.xpInfo));
   check('bar label', s.xpInfo.barLabel === '250 XP to LEVEL 4', s.xpInfo.barLabel);
   check('level 3 title', s.levelTitle === 'WHAT LEVEL 3 MEANS');

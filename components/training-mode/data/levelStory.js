@@ -276,7 +276,7 @@ export function levelStory(stats, opts = {}) {
     nextTitle: 'NEXT',
     next: buildNext({ level, xp, toNext, tier, idx, pace }),
     ladder: buildLadder(level, tier, idx),
-    ladderNote: `Each level is ${fmt(XP_PER_LEVEL)} XP. Each tier is ${LEVELS_PER_TIER} levels.`,
+    ladderNote: `Each level is ${fmt(XP_PER_LEVEL)} XP. ${VISIBLE_TIERS[0].name} to ${VISIBLE_TIERS[LAST_VISIBLE - 1].name} are ${LEVELS_PER_TIER} levels each.`,
   };
 }
 
