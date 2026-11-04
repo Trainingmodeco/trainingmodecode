@@ -9,7 +9,7 @@ import { pickXpBanner } from '../components/training-mode/data/xpBanners.js';
 import { judgeRoundIntensity } from '../components/training-mode/data/roundIntensity.js';
 import { createMicStrikeDetector } from '../components/training-mode/data/micStrikeDetector.js';
 import { quickMissionXp, addFitModeSession, loadStats } from '../components/training-mode/data/userStats.js';
-import { canFinishEarly, finishPrompt } from '../components/training-mode/data/builderFinish.js';
+import { canFinishEarly, finishPrompt, finishOnResume } from '../components/training-mode/data/builderFinish.js';
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -135,6 +135,15 @@ check('build workout: FINISH WORKOUT goes when all are done', canFinishEarly(7, 
   const p = finishPrompt(6, 8);
   check('build workout: the confirm names the count', p.title === 'Finish with 6 of 8 done?' && p.line === "The 2 left won't count.", JSON.stringify(p));
   check('build workout: one left', finishPrompt(7, 8).line === "The 1 left won't count.");
+}
+// A session that comes back with every row done (killed in the done toast's
+// beat after the last move) goes to the summary, not to COMPLETE WORKOUT.
+{
+  const rows = [{ _uid: 'a' }, { _uid: 'b' }, { _uid: 'c' }];
+  check('build workout: resumed with all done finishes', finishOnResume(true, rows, { a: true, b: true, c: true }));
+  check('build workout: resumed with one open stays on the list', !finishOnResume(true, rows, { a: true, b: true }));
+  check('build workout: a fresh list never finishes itself', !finishOnResume(false, rows, { a: true, b: true, c: true }));
+  check('build workout: an empty list never finishes', !finishOnResume(true, [], {}) && !finishOnResume(true, rows, null));
 }
 // What a finish banks (App's goFitComplete → addFitModeSession), on a
 // throwaway storage: 15 per exercise done, +30 only when all are done, one

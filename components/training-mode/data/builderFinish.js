@@ -20,3 +20,12 @@ export function finishPrompt(done, total) {
     line: `The ${left} left won't count.`,
   };
 }
+
+// A session that comes back (the boot restore, or RESUME) with every row
+// done goes straight to the summary. It was killed in the done toast's beat
+// after the last move, and the list it would land on is the one that only
+// offers COMPLETE WORKOUT.
+export function finishOnResume(resumed, exercises, completed) {
+  return !!resumed && Array.isArray(exercises) && exercises.length > 0
+    && exercises.every((e) => !!completed?.[e._uid]);
+}

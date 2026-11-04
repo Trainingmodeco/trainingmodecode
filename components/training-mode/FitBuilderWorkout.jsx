@@ -25,7 +25,8 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import FinishWorkoutConfirm from './shared/FinishWorkoutConfirm';
-import { canFinishEarly } from './data/builderFinish';
+import { canFinishEarly, finishOnResume } from './data/builderFinish';
+import { reportError } from './data/analytics';
 
 const GOLD = C.gold;
 const TEAL = '#2dd4bf';   // the warm-up's colour, same as the ring timer
@@ -346,8 +347,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const [finishAsk, setFinishAsk] = useState(false);
   // Raised when the last exercise (or chain) finishes with nothing open or
   // skipped left: the session goes to the summary instead of back to this
-  // list. See the effect below.
-  const [finishDue, setFinishDue] = useState(false);
+  // list. See the effect below. A session that comes back with every row
+  // done (the app was killed in the done toast's beat, after the last move)
+  // starts raised, so it lands on the summary, not on COMPLETE WORKOUT.
+  const [finishDue, setFinishDue] = useState(() => finishOnResume(!!initialResumeData, init.exercises, init.completed));
   const endedRef = useRef(false);
 
   // The statuses by POSITION, for everything that walks the list (the
@@ -776,10 +779,22 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // COMPLETE WORKOUT, and the last exercise finishing. onDone banks the XP
   // (App's goFitComplete), so it runs once per session: a double tap, a
   // timer racing a button, or a StrictMode re-run never pays twice.
+  // A finish that throws (App's stats write on a full storage, say) leaves
+  // the session open, so COMPLETE WORKOUT or FINISH can try again; and it
+  // is caught here because the automatic finish runs in an effect, where a
+  // throw would take the whole app down to the crash screen. False when the
+  // finish failed.
   const endSession = useCallback((done, total) => {
-    if (endedRef.current) return;
+    if (endedRef.current) return true;
     endedRef.current = true;
-    onDone(done, total);
+    try {
+      onDone(done, total);
+      return true;
+    } catch (err) {
+      endedRef.current = false;
+      reportError(err, 'fit-finish');
+      return false;
+    }
   }, [onDone]);
 
   // The workout has nowhere left to go (the player's onFinishWorkout, or the
@@ -787,11 +802,11 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // callback it captured renders ago, so it only raises the flag: the count
   // is read here, from a render that already holds the move just finished.
   // Everything done → the summary. Rows left (the completion map closed with
-  // the last one skipped) → this list, as before, where FINISH WORKOUT or
-  // START picks it up.
+  // the last one skipped), or a finish that failed → this list, where
+  // FINISH WORKOUT, COMPLETE WORKOUT or START picks it up.
   useEffect(() => {
     if (!finishDue) return;
-    if (allDone) { endSession(doneCount, exercises.length); return; }
+    if (allDone && endSession(doneCount, exercises.length)) return;
     setFinishDue(false);
     setActiveIdx(null);
   }, [finishDue, allDone, doneCount, exercises.length, endSession]);

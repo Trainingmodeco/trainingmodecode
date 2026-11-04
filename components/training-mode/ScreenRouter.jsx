@@ -613,8 +613,11 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'fit_complete' && fitCfg) {
+    // Its own WithNav (the key): the workout list hands over the same
+    // scroll container otherwise, and a list scrolled down to FINISH WORKOUT
+    // or COMPLETE WORKOUT opened the summary with its top cut off.
     return (
-      <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+      <WithNav key="fit_complete" activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
         <FitWorkoutComplete cfg={fitCfg} completedCount={session?.exerciseCount || 0} totalCount={session?.totalCount || 0} cardioResult={cardioResult} onHome={goHome}/>
       </WithNav>
     );

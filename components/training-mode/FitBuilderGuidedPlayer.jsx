@@ -27,6 +27,7 @@ import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { encouragementIntervalSec } from './data/coachEncouragement';
 import FinishWorkoutConfirm from './shared/FinishWorkoutConfirm';
 import { canFinishEarly } from './data/builderFinish';
+import swallowNextClick from './shared/swallowNextClick';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -78,18 +79,6 @@ export function nextOpenIdx(n, from, isDone, isSkipped, orSkipped = false) {
   for (let d = 1; d <= n; d++) { const i = (from + d) % n; if (!isDone(i) && !isSkipped(i)) return i; }
   if (orSkipped) for (let d = 1; d <= n; d++) { const i = (from + d) % n; if (!isDone(i)) return i; }
   return null;
-}
-
-// A row started on pointerup (a slow tap on the map) closes the sheet before
-// the browser sends the click that ends the tap, and that click is hit-tested
-// again with the sheet gone: it would land on whatever player control was
-// under the finger (SKIP EXERCISE, REWIND, STOP). Eat it. A press that long
-// may get no click at all, so the trap only waits a moment.
-function swallowNextClick(ms = 600) {
-  const eat = (e) => { e.preventDefault(); e.stopPropagation(); release(); };
-  const release = () => { clearTimeout(t); window.removeEventListener('click', eat, true); };
-  const t = setTimeout(release, ms);
-  window.addEventListener('click', eat, true);
 }
 
 const fmtClock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -695,8 +684,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   // STOP → shared "End session?" confirm (matches FightFocusTimer /
   // CampFitSetRunner). Confirm ends the whole workout to the summary; cancel
-  // closes and the session keeps running.
+  // closes and the session keeps running. The summary opens under the finger
+  // with RETURN HOME right where END was, so the second tap of a double tap
+  // is eaten (shared/swallowNextClick).
   const handleStopConfirm = () => {
+    swallowNextClick();
     versionRef.current++;
     cancelSpeech();
     setConfirmEnd(false);
@@ -742,7 +734,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   // Closing the sheet. Normal mode: auto-resume with a 3-2-1 count (spec 2).
   // Complete mode: any close starts the glowing exercise — swipe down, ✕ or
-  // backdrop all mean "go" (spec 6).
+  // backdrop all mean "go" (spec 6). The start waits out the count-in, and
+  // anything that moved the player on meanwhile (Back to the list, STOP, a
+  // skip, the player unmounting) bumps versionRef and calls it off: a late
+  // jump would pull the athlete off the list, and its open FINISH confirm,
+  // into the next exercise.
   const closeMap = useCallback(async () => {
     setMapOpen(false);
     clearGesture();
@@ -751,7 +747,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       const target = glow;
       setMapMode('normal');
       if (target == null) { onFinishWorkout?.(); return; }
+      const version = versionRef.current;
       await countIn();
+      if (versionRef.current !== version) return;
       onJumpExercise?.(target);
       return;
     }
@@ -776,7 +774,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     setMapMode('normal');
     setGlowWas(null);
     clearGesture();
+    // Called off if the player moved on during the count-in (see closeMap).
+    const version = versionRef.current;
     await countIn();
+    if (versionRef.current !== version) return;
     if (idx === exerciseIdx && phase !== 'done') {
       wasRunningRef.current = false;
       setPaused(false);
@@ -808,6 +809,22 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     el.addEventListener('touchmove', h, { passive: false });
     return () => el.removeEventListener('touchmove', h);
   }, [mapOpen]);
+
+  // The completion map opens on the glowing row (a single row or a chain's
+  // block). The FINISH WORKOUT footer takes room from the list, so on a small
+  // phone the last row could open hidden under it: scroll it into the list's
+  // view, and again when a skip on the map hands the glow on. Only the list
+  // scrolls, never the page under the sheet.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!mapOpen || mapMode !== 'complete' || !list) return;
+    const row = list.querySelector('.wm-glow');
+    if (!row) return;
+    const l = list.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    if (r.bottom > l.bottom) list.scrollTop += r.bottom - l.bottom + 8;
+    else if (r.top < l.top) list.scrollTop -= l.top - r.top + 8;
+  }, [mapOpen, mapMode, glow]);
 
   const engageCharge = useCallback((idx) => {
     const row = rowRefs.current[idx];
