@@ -146,7 +146,15 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
   useEffect(() => {
     const el = containerRef.current;
     if (!el || !lock) { setOverflowing(false); return undefined; }
-    const check = () => setOverflowing(el.scrollHeight > el.clientHeight + 4);
+    // Count the content alone, not the nav clearance this container adds once
+    // it scrolls: that padding is part of scrollHeight, so a screen that fits
+    // would otherwise stay "overflowing" for good after one that did not. The
+    // same WithNav instance carries from Home (which overflows on a 412x811
+    // phone) into the hubs, and the hubs came up scrollable by 110px.
+    const check = () => {
+      const pad = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+      setOverflowing(el.scrollHeight - pad > el.clientHeight + 4);
+    };
     check();
     let ro;
     if (typeof ResizeObserver !== 'undefined') {

@@ -147,14 +147,14 @@ const fitsHub = (m, label) => {
     if (!b) throw new Error(`${label}: ${k} is not on the hub`);
     if (b.bottom > m.navTop) throw new Error(`${label}: ${k} ends at ${Math.round(b.bottom)}, under the tab bar at ${Math.round(m.navTop)}`);
     if (prev && b.top < prev.bottom - 0.5) throw new Error(`${label}: ${k} overlaps the block above it`);
-    if (k.startsWith('fit-') && k !== 'fit-today' && k !== 'fit-concept' && b.h < 43.5) throw new Error(`${label}: ${k} is squashed to ${Math.round(b.h)}px`);
+    if (k !== 'fit-today' && k !== 'fit-concept' && b.h < 43.5) throw new Error(`${label}: ${k} is squashed to ${Math.round(b.h)}px`);
     prev = b;
   }
   if (m.stack[0] > m.stack[1] + 1) throw new Error(`${label}: the stack needs scrolling (${m.stack[0]} > ${m.stack[1]})`);
 };
 await check('fit hub fits 412x811 with a ghost, Coach\'s Tapes and a drop', async () => { await fullFitHub(); await resizeTo(412, 811); fitsHub(await hubMetrics(), '412x811'); }, /Quick Mission/);
-await check('fit hub fits 360x740 and 390x844 (the title wraps on the narrow one)', async () => {
-  try { for (const [w, h] of [[360, 740], [390, 844]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h}`); } } finally { await resizeTo(390, 844); }
+await check('fit hub fits 412x790, 360x740 and 390x844 (the title wraps on the narrow one)', async () => {
+  try { for (const [w, h] of [[412, 790], [360, 740], [390, 844]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h}`); } } finally { await resizeTo(390, 844); }
 }, /Quick Mission/);
 // Under about 700px tall even the floors cannot fit, so the stack scrolls; the
 // last row has to scroll fully clear of the tab bar and the fade above it.

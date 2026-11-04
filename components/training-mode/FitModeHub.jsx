@@ -57,6 +57,8 @@ const hubCSS = `
 .fm-go:hover, .fm-go:focus-visible { filter: brightness(1.1); box-shadow: 0 0 30px rgba(242,190,69,.55); }
 .fm-go:active { transform: scale(0.985); }
 .fm-hero img { opacity: .62; filter: brightness(.85); transition: opacity .25s ease, filter .25s ease, transform .3s ease; }
+.fm-ghost { position: relative; }
+.fm-ghost::after { content: ''; position: absolute; inset: -8px -6px; } /* a 28px pill with a 44px tap */
 .fm-hero:hover img { opacity: .85; filter: brightness(1) saturate(1.1); transform: scale(1.02); }
 `;
 
@@ -215,7 +217,7 @@ export default function FitModeHub({
                 {/* Ghost is a state of today's mission now, not a separate row
                     below it — it only shows when a ghost is actually waiting. */}
                 {onGhostMode && hasGhost && (
-                  <button type="button" onClick={onGhostMode} style={{
+                  <button type="button" className="fm-ghost" onClick={onGhostMode} style={{
                     height: 28, display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px 0 6px',
                     borderRadius: 14, cursor: 'pointer', background: 'rgba(157,108,255,0.22)',
                     border: '1px solid rgba(196,168,255,0.6)', color: '#D2BCFF',
