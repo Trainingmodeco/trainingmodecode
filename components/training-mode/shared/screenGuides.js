@@ -93,6 +93,9 @@ export const SCREEN_GUIDES = {
     { target: 'fh-camp', title: 'TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight — Foundation, Development, Hard Camp, Taper, then the belt. Clear a stage to unlock the next. Choose Training Camp.' },
     { target: 'fh-practice', title: 'PRACTICE MODE', body: 'New to striking? Learn strikes, defense and footwork step by step, then drill each one in a Practice Round. Choose Practice Mode.' },
     { target: 'fh-conditioning', title: 'COMBAT CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work.' },
+    // Last on purpose, and only when a drop is live (the hub drops this step
+    // when the card is not on screen).
+    { target: 'fight-concept', title: '🎮 CONCEPT PROGRAMS', body: 'Train like your favorite video game or anime hero. Each concept is a full program, and this card opens its Fight plan; the Fit plan and the Arcade run are in it too. It is free while it is live, and a new one drops about every two months.' },
   ],
 
   // `campModal: true` steps open the current level's card so the guide can
@@ -124,6 +127,9 @@ export const SCREEN_GUIDES = {
     { target: 'fit-builder', title: 'BUILD WORKOUT', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear and difficulty. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
     { target: 'fit-programs', title: 'PROGRAMS', body: 'Follow a plan instead of deciding each day. Pick a split — Full Body, Push/Pull/Legs, Upper/Lower or Bro Split — and it remembers which day is next.' },
     { target: 'fit-cardio', title: 'CARDIO', body: 'Runs on GPS or a treadmill, machine work and intervals, with pace coaching and a target you set by distance or time.' },
+    // Last on purpose, and only when a drop is live: the hub drops this step
+    // when the card is not on screen (a step with no target would stall).
+    { target: 'fit-concept', title: '🎮 CONCEPT PROGRAMS', body: 'Train like your favorite video game or anime hero. Each concept is a full program: a Fit plan, a Fight plan and an Arcade run. It is free while it is live, and a new one drops about every two months.' },
   ],
 
   // Crosses into the stage ladder for the last three steps (hosted by

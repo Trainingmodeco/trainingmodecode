@@ -21,7 +21,8 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
     : mode === 'fight' ? c.fight.blurb : c.fit.blurb;
   const cta = st.partsDone ? 'CONTINUE ›' : 'START ›';
   return (
-    <button type="button" onClick={() => onOpen?.(mode === 'home' ? 'fit' : mode)} style={{
+    // The guide anchor is per mode: the Fit and Fight hubs' "?" end on this card.
+    <button type="button" data-guide={mode === 'fight' ? 'fight-concept' : mode === 'home' ? 'home-concept' : 'fit-concept'} onClick={() => onOpen?.(mode === 'home' ? 'fit' : mode)} style={{
       position: 'relative', display: 'block', width: '100%', height: mode === 'home' ? 92 : 88, padding: 0, border: 0, cursor: 'pointer',
       borderRadius: 14, overflow: 'hidden', textAlign: 'left', color: '#fff', background: '#0c0218',
       boxShadow: `0 0 0 1.5px ${ring}aa, 0 0 22px ${ring}44`, ...style,

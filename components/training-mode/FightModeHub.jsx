@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import { ChevronRight, ChevronLeft, Home } from 'lucide-react';
@@ -13,6 +13,7 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
+import { featuredEntry } from './data/concepts';
 
 // Fight Mode hub — the Simplify revamp layout, royal blue and gold.
 //
@@ -84,6 +85,10 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
   const campStage = Math.min(loadCampProgress(), 12);
 
   const banners = onTapes ? [...BANNERS, TAPES_BANNER] : BANNERS;
+  // The guide's last step points at the concept card; with no drop live the
+  // card is not there, so the step goes too (a step with no target stalls).
+  const [hasConcept] = useState(() => !!featuredEntry());
+  const guideSteps = useMemo(() => SCREEN_GUIDES.fight_hub.filter(st => hasConcept || st.target !== 'fight-concept'), [hasConcept]);
   const goMode = async (key) => {
     if (key === 'tapes') { onTapes?.(); return; }
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
@@ -203,7 +208,7 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
 
       {toast && <div style={{ position: 'absolute', left: '50%', bottom: 120, transform: 'translateX(-50%)', background: 'rgba(20,8,36,0.96)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 10, padding: '10px 16px', font: "700 10px 'Orbitron',sans-serif", color: '#c9a6ff', zIndex: 20, whiteSpace: 'nowrap' }}>{toast}</div>}
 
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fight_hub} onClose={() => setHelpOpen(false)}/>}
+      {helpOpen && <ScreenGuide steps={guideSteps} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

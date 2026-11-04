@@ -562,8 +562,11 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'fit_hub') {
+    // Locked like Fight Mode's hub: the hub is exactly one screen tall and
+    // scrolls its own stack, so the container's 110px of nav padding made the
+    // whole page drag up and leave a gap under it.
     return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         <FitModeHub onTapes={tapesEnabled() ? () => goTapes('fit') : undefined} onOpenConcept={(tab) => goConcept(tab, null, 'fit')} onHome={goHome} onBack={goHome} onFightMode={goFightHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onStartQuickMission={goQuickMissionActive} onPrograms={goPrograms} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })}/>
       </WithNav>
     );

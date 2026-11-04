@@ -107,6 +107,94 @@ await check('home', async () => { await home(); }, /FIT MODE/);
 await check('fit hub', async () => { await fit(); }, /Quick Mission/);
 await check('quick mission start', async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1200); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WORK|EXERCISE/);
 
+// The Fit hub on the fullest day it gets: a run ghost waiting (GHOST ACTIVE
+// makes the card's label row taller), Coach's Tapes on (a fourth row), a drop
+// featured (the concept card) and the long Recovery Circuit title (it wraps to
+// two lines on a narrow phone). On a real 412x811 phone the title was drawn
+// with its bottom chopped off and the Cardio row was cut under the tab bar, so
+// the stack has to FIT, not scroll: every block above the tab bar, none on top
+// of another, the title whole. Boots once; the next checks only resize.
+const FIT_BLOCKS = ['fit-today', 'fit-concept', 'fit-quick', 'fit-builder', 'fit-programs', 'fit-tapes', 'fit-cardio'];
+const fullFitHub = async () => {
+  await preview();
+  await page.evaluate(() => {
+    localStorage.setItem('tm_run_ghosts_v1', JSON.stringify({ v: 1, best: {}, last: { 'mi|3|gps': { v: 1, ghostId: 'smoke', ownerId: 'me', ownerName: 'SMOKE', gender: 'male', unit: 'mi', goal: 3, surface: 'gps', totalSec: 1800, trace: [{ t: 0, d: 0 }, { t: 1800, d: 3 }], splits: [], verified: true, createdAt: Date.now() } } }));
+    localStorage.setItem('tm_user_stats', JSON.stringify({ xp: 0, sessions: [{ type: 'Fit Mode', date: new Date().toISOString(), xp: 50 }] }));
+  });
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  if (!/GHOST ACTIVE/.test(await text()) || !/Recovery Circuit/.test(await text())) throw new Error('the full hub did not come up (ghost badge or long title missing)');
+};
+const hubMetrics = () => page.evaluate((blocks) => {
+  const rect = (k) => { const e = document.querySelector(`[data-guide="${k}"]`); return e ? e.getBoundingClientRect() : null; };
+  const hero = document.querySelector('[data-guide="fit-today"]');
+  const h1 = hero.querySelector('h1');
+  const stack = hero.parentElement;
+  const hb = hero.getBoundingClientRect();
+  const sb = hero.querySelector('button.fm-go').getBoundingClientRect();
+  const out = { navTop: rect('nav-tabs').top, h1: [h1.scrollHeight, h1.clientHeight], stack: [stack.scrollHeight, stack.clientHeight], stackBottom: stack.getBoundingClientRect().bottom, startInside: sb.top >= hb.top - 0.5 && sb.bottom <= hb.bottom + 0.5, blocks: {} };
+  for (const k of blocks) { const b = rect(k); if (b) out.blocks[k] = { top: b.top, bottom: b.bottom, h: b.height }; }
+  return out;
+}, FIT_BLOCKS);
+const resizeTo = async (w, h) => { await page.setViewportSize({ width: w, height: h }); await S(500); };
+const fitsHub = (m, label) => {
+  if (m.h1[0] > m.h1[1] + 1) throw new Error(`${label}: the mission title is clipped (${m.h1[0]} > ${m.h1[1]})`);
+  if (!m.startInside) throw new Error(`${label}: START sits outside the mission card`);
+  let prev = null;
+  for (const k of FIT_BLOCKS) {
+    const b = m.blocks[k];
+    if (!b) throw new Error(`${label}: ${k} is not on the hub`);
+    if (b.bottom > m.navTop) throw new Error(`${label}: ${k} ends at ${Math.round(b.bottom)}, under the tab bar at ${Math.round(m.navTop)}`);
+    if (prev && b.top < prev.bottom - 0.5) throw new Error(`${label}: ${k} overlaps the block above it`);
+    if (k.startsWith('fit-') && k !== 'fit-today' && k !== 'fit-concept' && b.h < 43.5) throw new Error(`${label}: ${k} is squashed to ${Math.round(b.h)}px`);
+    prev = b;
+  }
+  if (m.stack[0] > m.stack[1] + 1) throw new Error(`${label}: the stack needs scrolling (${m.stack[0]} > ${m.stack[1]})`);
+};
+await check('fit hub fits 412x811 with a ghost, Coach\'s Tapes and a drop', async () => { await fullFitHub(); await resizeTo(412, 811); fitsHub(await hubMetrics(), '412x811'); }, /Quick Mission/);
+await check('fit hub fits 360x740 and 390x844 (the title wraps on the narrow one)', async () => {
+  try { for (const [w, h] of [[360, 740], [390, 844]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h}`); } } finally { await resizeTo(390, 844); }
+}, /Quick Mission/);
+// Under about 700px tall even the floors cannot fit, so the stack scrolls; the
+// last row has to scroll fully clear of the tab bar and the fade above it.
+await check('fit hub at 375x667 scrolls the Cardio row fully clear of the tab bar', async () => {
+  try {
+    await resizeTo(375, 667);
+    await page.evaluate(() => { const st = document.querySelector('[data-guide="fit-today"]').parentElement; st.scrollTop = st.scrollHeight; });
+    await S(400);
+    const m = await hubMetrics();
+    const c = m.blocks['fit-cardio'];
+    if (!c || c.bottom > m.navTop || c.bottom > m.stackBottom + 1 || c.top < 0) throw new Error(`Cardio sits at ${Math.round(c?.top)}-${Math.round(c?.bottom)} after scrolling to the end; tab bar at ${Math.round(m.navTop)}`);
+    const clear = await page.evaluate(() => {
+      const el = document.querySelector('[data-guide="fit-cardio"]'); const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      const st = document.querySelector('[data-guide="fit-today"]').parentElement;
+      return { hit: !!hit && el.contains(hit), mask: getComputedStyle(st).webkitMaskImage || getComputedStyle(st).maskImage };
+    });
+    if (!clear.hit) throw new Error('something sits on top of the Cardio row at the end of the scroll');
+    if (clear.mask && clear.mask !== 'none') throw new Error('the scroll fade is still on at the end of the scroll');
+  } finally { await resizeTo(390, 844); }
+}, /Quick Mission/);
+// The "?" ends on the concept card, and the last NEXT closes the guide.
+await check('fit hub guide ends on the concept step, and GOT IT closes it', async () => {
+  await page.locator('[data-guide="help-icon"]').click({ timeout: 4000 }); await S(600);
+  const title = () => page.evaluate(() => document.querySelector('[aria-label="Close guide"]')?.nextElementSibling?.textContent || '');
+  const titles = [];
+  for (let i = 0; i < 12; i += 1) {
+    titles.push(await title());
+    if (await btn(/^GOT IT/).count()) break;
+    await btn(/^NEXT/).click({ timeout: 3000 }); await S(450);
+  }
+  if (!/CONCEPT PROGRAMS/.test(titles[titles.length - 1])) throw new Error(`the guide ends on "${titles[titles.length - 1]}", not the concept step`);
+  if (!/^CARDIO/.test(titles[titles.length - 2] || '')) throw new Error(`the step before the end is "${titles[titles.length - 2]}", not Cardio`);
+  await btn(/^‹ BACK/).click({ timeout: 3000 }); await S(450);
+  if (!/^CARDIO/.test(await title())) throw new Error('BACK from the concept step did not land on Cardio');
+  await btn(/^NEXT/).click({ timeout: 3000 }); await S(450);
+  await btn(/^GOT IT/).click({ timeout: 3000 }); await S(500);
+  if (await page.locator('[aria-label="Close guide"]').count()) throw new Error('GOT IT did not close the guide');
+}, /Quick Mission/);
+
 // Quick Mission v2 ships behind data/qmV2 (owner preview until the flag
 // flips). The library check reads the flag, so it never needs editing when
 // the owner turns v2 on for everyone.
