@@ -144,7 +144,9 @@ check('17 HARD weighted never gets the bodyweight 14-20 reps on 20 s', hardWeigh
 const hybrids = many({ duration: 20, difficulty: 'NORMAL', workoutType: 'Hybrid' });
 check('18 a hybrid opens on a loaded move and alternates', hybrids.every(m => m.exercises[0].isWeighted && m.exercises.every((e, i) => i === 0 || !!e.isWeighted !== !!m.exercises[i - 1].isWeighted)),
   hybrids.find(m => !m.exercises[0].isWeighted)?.exercises.map(e => e.name).join(', ') || '');
-check('19 a hybrid never pairs a move with its weighted version', hybrids.every(m => !m.exercises.some(a => m.exercises.some(b => a !== b && a.name !== b.name && b.name.includes(a.name)))));
+// Only a bodyweight move beside a loaded one counts: 'Push-Ups' with 'Pike
+// Push-Ups' is two bodyweight moves, not a move and its weighted version.
+check('19 a hybrid never pairs a move with its weighted version', hybrids.every(m => !m.exercises.some(a => !a.isWeighted && m.exercises.some(b => b.isWeighted && b.name.includes(a.name)))));
 const upperTitles = new Set(many({ duration: 10, focus: 'UPPER', workoutType: 'Weighted' }, 60).map(m => m.title));
 const fullTitles = new Set(many({ duration: 10, focus: 'FULL BODY', workoutType: 'Weighted' }, 60).map(m => m.title));
 check('20 weighted titles follow the focus', [...upperTitles].every(t => !fullTitles.has(t)), [...upperTitles].join(', '));
