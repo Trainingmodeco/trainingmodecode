@@ -340,6 +340,43 @@ await check('owner: UPPER LOWER DIPS guided start', async () => {
   const t = await text();
   if (!/GET READY/.test(t) || !/ROUND 1/.test(t) || !/I'M DONE/.test(t) || !/elbows reach 90°/.test(t)) throw new Error('GET READY does not lead into round 1');
 }, /UPPER LOWER DIPS/);
+// NO CONTINUES GUIDED: STOP then END is a quit, as in SOLO. One set counted,
+// and the complete screen pays nothing and shows no rounds out of the hidden
+// 30-round backstop.
+await check('owner: NO CONTINUES guided END saves nothing, like SOLO', async () => {
+  await ownerQuick(); await putOnCard(/^NO CONTINUES/);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
+  for (let i = 0; i < 30 && !/SET 2/.test(await text()); i += 1) await S(2000); // the coach counts set 1
+  if (!/SET 2/.test(await text())) throw new Error('set 1 never finished');
+  await page.locator('[data-guide="qma-stop"]').click({ timeout: 4000 }); await S(500);
+  if (!/END saves nothing/.test(await text())) throw new Error('the END confirm does not say END saves nothing');
+  await btn(/^END MISSION$/).click({ timeout: 4000 }); await S(3000);
+  const t = await text();
+  if (!/Ended with no score\. I PUT IT DOWN saves your sets\./.test(t) || /\/30/.test(t) || /EXERCISES/.test(t)) throw new Error('GUIDED END paid or showed the backstop');
+}, /MISSION FAILED/);
+// TOUCH THE SKY SOLO: not a race. ROUND starts the timed 2:00 rest, FINISH
+// is the last ROUND tap, and the score is the rounds held with the bar never down.
+await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async () => {
+  await ownerQuick(); await putOnCard(/^TOUCH THE SKY/);
+  await expand();
+  const c = await card().innerText();
+  if (!/45 reps a round, bar never down/i.test(c) || !/The bar is already in the rack\./.test(c)) throw new Error('not the bar-never-down card');
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  let t = await text();
+  if (!/COMPLEX · STANDARD/.test(t) || !/CAP 20:00 · ROUND 1\/3/.test(t) || !/3\/3 rounds/.test(t)) throw new Error('not the rounds-held SOLO screen');
+  await btn(/^ROUND$/).click({ timeout: 4000 }); await S(1500);
+  if (!/REST 1:5\d/.test(await text())) throw new Error('ROUND did not start the 2:00 rest');
+  await btn(/^FINISH$/).click({ timeout: 4000 }); await S(800);
+  t = await text();
+  if (!/YOUR SCORE/.test(t) || !/ROUNDS, BAR NEVER DOWN\s*3/.test(t) || !/R1 0:0\d · R2 0:0\d/.test(t)) throw new Error('FINISH did not close the last round or open rounds held');
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3000);
+  t = await text();
+  if (!/3\/3/.test(t) || !/ROUNDS 3/.test(t) || !/R3 not timed/.test(t)) throw new Error('the complete screen does not show rounds held and the splits');
+}, /COMPLEX · STANDARD/);
 // OVERTIME 20: GUIDED like the other AMRAPs, and SOLO has the round timer.
 await check('quick mission: OVERTIME 20 guided start', async () => {
   await ownerQuick(); await putOnCard(/^OVERTIME 20/);

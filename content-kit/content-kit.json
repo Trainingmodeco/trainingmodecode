@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03",
+  "generatedAt": "2026-11-04",
   "source": "npm run content:kit (scripts/content-kit.mjs) — do not edit by hand",
   "brand": {
     "name": "Training Mode",
@@ -3309,9 +3309,9 @@
       "id": "touch_the_sky",
       "title": "TOUCH THE SKY",
       "loadout": "1 BARBELL + PLATES · 2 × 2 M",
-      "format": "FOR TIME",
-      "mission": "3 ROUNDS FOR TIME · 45 REPS, BAR NEVER DOWN · 2:00 REST · CAP 20:00",
-      "score": "TIME WITH THE RESTS, OR REPS AT THE CAP (135 FINISHES)",
+      "format": "COMPLEX",
+      "mission": "3 ROUNDS · 45 REPS A ROUND, BAR NEVER DOWN · 2:00 REST · CAP 20:00",
+      "score": "ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD",
       "tags": [
         "~11 MIN",
         "HARD"
@@ -3348,14 +3348,13 @@
     {
       "id": "no_continues",
       "title": "NO CONTINUES",
-      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE · CHECK THE CEILING",
       "format": "MAX SETS",
       "mission": "BOTH HANDS · LEFT ARM · RIGHT ARM · 3 EACH · UNTIL THE BELL TOUCHES THE FLOOR",
       "score": "SETS + REPS, AND THE TIME",
       "tags": [
         "~5 MIN",
-        "HARD",
-        "HOTEL OK"
+        "HARD"
       ],
       "themes": [],
       "moves": [
@@ -3421,7 +3420,7 @@
         {
           "id": "elite",
           "label": "ELITE",
-          "detail": "8 bar dips · 16 jump squats"
+          "detail": "8 bar dips · 16 squats"
         }
       ],
       "guided": true,

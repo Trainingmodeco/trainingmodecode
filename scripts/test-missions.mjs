@@ -231,7 +231,8 @@ check('19 classicMeta', eq(L.classicMeta(N.namedWorkoutById('hell_mma')), { load
   && L.classicMeta(N.namedWorkoutById('murph')).loadoutLabel === 'MIXED');
 // The Mission Library's row line: minutes (at the default level), loadout,
 // then how it runs. A classic's tag (Training Mode, Day Zero) is not a format.
-const FORMATS = new Set([...Object.values(L.FORMAT_LABEL), 'FOR TIME', 'CHALLENGE', 'ROUNDS', 'NON-STOP', 'INTERVALS', 'CIRCUIT', 'TEST']);
+// TOUCH THE SKY reads COMPLEX (its own formatLabel: it runs the for-time clock but is not a race).
+const FORMATS = new Set([...Object.values(L.FORMAT_LABEL), 'FOR TIME', 'CHALLENGE', 'ROUNDS', 'NON-STOP', 'INTERVALS', 'CIRCUIT', 'TEST', 'COMPLEX']);
 const rowLines = shelf.map(e => L.shelfEntryLine(e));
 check('19 library rows: minutes · loadout · format', rowLines.every(l => { const p = l.split(' · '); return p.length === 3 && /^~\d+ MIN$/.test(p[0]) && FORMATS.has(p[2]); })
   && L.shelfEntryLine(shelf[0]) === '~16 MIN · BARBELL · EMOM' && L.shelfEntryLine({ kind: 'classic', id: 'murph', loadout: 'mixed' }) === '~55 MIN · MIXED · FOR TIME',
@@ -727,13 +728,17 @@ const SOLO_CLOCKS = {
 // A ladder pays per rung (BURNOUT 21: 7, not 14 flattened slots). XP by
 // time moved the six single-block AMRAPs off their flat 45: CARRY-ON 15 180,
 // STANCE BREAKER 9 120, ROOKIE ROUND 8 110, MIDLINE LOCK 130, LEG SWEEP 150,
-// CHARGE UP 12 150 (STANDARD; 10 a minute of the clock + 30). For-time
-// missions and the EMOM and interval clocks are unchanged.
+// CHARGE UP 12 150 (STANDARD; 10 a minute of the clock + 30). A for-time
+// finish pays its standard time at 10 a minute when that is more than its
+// slots, so the three for-time missions of few slots moved: KO SPRINT 30
+// 45 → 80, BURNOUT 21 135 → 190, OXYGEN DEBT 75 → 85 (STANDARD). Every other
+// for-time mission pays more by its slots, and the EMOM and interval clocks
+// are unchanged.
 const SOLO_XP = {
-  honor_rounds: [255, 165, 255], ko_sprint_30: [45, 45, 45], overhead_rush: [330, 210, 330], burnout_21: [135, 105, 135],
+  honor_rounds: [255, 165, 255], ko_sprint_30: [80, 75, 85], overhead_rush: [330, 210, 330], burnout_21: [190, 130, 210],
   stance_breaker_9: [120, 90, 120], rookie_round_8: [110, 80, 110], first_bell: [330, 330, 330], continue_bell: [180, 105, 180],
   carry_on_15: [180, 130, 180], surge_20_10: [390, 300, 390], midline_lock: [130, 90, 130], leg_sweep: [150, 110, 150],
-  charge_up_12: [150, 110, 150], oxygen_debt: [75, 75, 75], hot_laps: [165, 165, 165],
+  charge_up_12: [150, 110, 150], oxygen_debt: [85, 80, 90], hot_laps: [165, 165, 165],
 };
 const soloClockBad = [];
 SOLO_IDS.forEach(id => ORDER.forEach((lv, i) => {
@@ -843,7 +848,10 @@ check('58 all 26: no until-down flag, safety line, origin or MAX SETS', flagLeak
 // the full-run figures in tests 10 and 57, and the settle of six fixed
 // results here. The settles of the 16 missions that do not pay by time are
 // the ones taken at fcf1c5b; the ten AMRAPs' were re-taken after the minute
-// rule went in (a stopped AMRAP now pays the minutes it ran).
+// rule went in (a stopped AMRAP now pays the minutes it ran), and KO SPRINT
+// 30's, BURNOUT 21's and OXYGEN DEBT's after a for-time finish began paying
+// its standard time (only their pass and cap figures moved: checked against
+// 80d286e, every stopped run pays as before).
 const soloPrint = (m) => ({
   clock: S.missionClockSec(m), tl: S.soloTimeline(m), pace: S.paceTargets(m),
   pre: [0, 1, 3].map(n => S.prefillScore(m, { roundTaps: n, blockTaps: m.rounds > 1 ? Array(m.rounds).fill(n) : null })),
@@ -877,13 +885,13 @@ const SETTLE_HASH = {
   room_12: ['a7ee626f24e1', '4dea075db5db', '4dea075db5db'], hit_combo_21: ['a7ee626f24e1', '937c94534696', '937c94534696'],
   tutorial_stage: ['c3452f507e96', 'c388d54a84b0', 'a05beec589fe'], turbo_button: ['d0863534f48e', '5db73a56f62a', '5db73a56f62a'],
   quota_300: ['5c50537c8aa8', '5c50537c8aa8', 'e84e4d6e05a7'], honor_rounds: ['06dc7f97887e', '5a5fcc9129a4', '7d5fc8a77a95'],
-  ko_sprint_30: ['d177d342b6a7', '2451b5869be2', '6a568fdc9e08'], overhead_rush: ['f4e9d2e32ce1', '58abff99815a', '55069de07b22'],
-  burnout_21: ['72f4ccdf0afb', 'd8dd9c35f64c', '9209ec0b5231'], stance_breaker_9: ['7ec33a8ea206', '95a0a57fce1a', '95a0a57fce1a'],
+  ko_sprint_30: ['26088aee6d9d', 'ac6f8f162cdb', 'a6b62d037e59'], overhead_rush: ['f4e9d2e32ce1', '58abff99815a', '55069de07b22'],
+  burnout_21: ['73faedf2bb08', '1870e4b0025e', '0cdc2ccfb334'], stance_breaker_9: ['7ec33a8ea206', '95a0a57fce1a', '95a0a57fce1a'],
   rookie_round_8: ['6d19cecf744c', '0e29a23c6662', '0e29a23c6662'], first_bell: ['67f40a236334', '4a342c118f13', '4a342c118f13'],
   continue_bell: ['34b579af9519', '6a73ce5bfbd3', '1df9ac43b177'], carry_on_15: ['a7ee626f24e1', '937c94534696', '937c94534696'],
   surge_20_10: ['422766f07f15', 'ad6beb3a6a92', 'ad6beb3a6a92'], midline_lock: ['7ec33a8ea206', 'a7ee626f24e1', 'a7ee626f24e1'],
   leg_sweep: ['0e29a23c6662', '4dea075db5db', '4dea075db5db'], charge_up_12: ['0e29a23c6662', '4dea075db5db', '4dea075db5db'],
-  oxygen_debt: ['61ec96659be0', '8a349ba6e72a', '6cb67bc49382'], hot_laps: ['07c9f6a89be5', '5006b6fb0308', 'c39d2e2fd277'],
+  oxygen_debt: ['1690aab2a021', '2eb0dc27c584', '2fc67168b150'], hot_laps: ['07c9f6a89be5', '5006b6fb0308', 'c39d2e2fd277'],
 };
 const BUILT_HASH = {
   iron_clock_16: ['0e43ba6347f1', 'fa8284b7d3d8', 'f769e7de756d'], one_bell_300: ['8d374522f6e3', 'fd88b4a19296', '5d517fba399d'],
@@ -932,9 +940,9 @@ const builtChanged = pinChanged(BUILT_HASH, (m) => pinNote(m));
 const cardChanged = pinChanged(CARD_HASH, (m) => pinNote(L.missionCardModel(m)));
 const tapNotes = L.LOADOUT_MISSIONS.filter(d => /Tap ROUND after each/.test(d.note)).map(d => d.id);
 check('58 all 26: SOLO clocks, pace, prefills, floors and integrity sizing unchanged', soloMathChanged.length === 0, soloMathChanged.join(', '));
-check('58 all 26: the six settles as pinned (XP by time on the ten AMRAPs only)', settleChanged.length === 0, settleChanged.join(', '));
+check('58 all 26: the six settles as pinned (XP by time on the ten AMRAPs, a for-time finish on three)', settleChanged.length === 0, settleChanged.join(', '));
 check('58 all 26: the built mission and its card unchanged', builtChanged.length === 0 && cardChanged.length === 0, `${builtChanged.join(', ')} ${cardChanged.join(', ')}`);
-check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`)), show(tapNotes));
+check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps', 'touch_the_sky']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`)), show(tapNotes));
 
 // No franchise, benchmark or person names anywhere a viewer reads.
 const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];
@@ -1100,7 +1108,7 @@ check('66 short move names on FIRST BELL and CHARGE UP 12', LEVELS.every(lv => L
 reset();
 const ownBuilt = {};
 const ownProblems = [];
-const OWN_RULE = { bar_fight: 'reps', touch_the_sky: 'time', no_continues: 'setsReps' };
+const OWN_RULE = { bar_fight: 'reps', touch_the_sky: 'roundsHeld', no_continues: 'setsReps' };
 for (const id of OWN_IDS) {
   ownBuilt[id] = {};
   const def = L.missionDefById(id);
@@ -1119,7 +1127,9 @@ for (const id of OWN_IDS) {
     if (m.exercises.some(sl => !Array.isArray(sl.list) && !('cadenceMs' in sl))) ownProblems.push(`${tag} slot missing cadenceMs`);
     if (m.exercises.some(sl => Array.isArray(sl.list) && sl.mode === 'reps' && sl.list.some(st => 'sides' in st || typeof st.cadenceMs !== 'number'))) ownProblems.push(`${tag} complex step`);
     if (!eq(JSON.parse(JSON.stringify(m)), m)) ownProblems.push(`${tag} JSON round-trip`);
-    if (!LEVELS.every(t => typeof m.pace[t] === 'number')) ownProblems.push(`${tag} pace types`);
+    // TOUCH THE SKY's tiers are rounds held, each with its time at the count (for the maths only).
+    const tierOk = (v) => (m.scoreRule.kind === 'roundsHeld' ? [v?.held, v?.of, v?.timeSec].every(Number.isInteger) && v.of === m.rounds && v.held <= v.of : typeof v === 'number');
+    if (!LEVELS.every(t => tierOk(m.pace[t]))) ownProblems.push(`${tag} pace types`);
     if (m.scoreRule.kind !== OWN_RULE[id]) ownProblems.push(`${tag} scoreRule`);
     if ((m.format === 'forTime' || !!m.untilDown) !== (m.capSec > 0)) ownProblems.push(`${tag} capSec`);
     if (!m.loadoutLine || !m.missionLine || !m.scoreLine || !m.scale || !m.note || !m.load || !m.levelDetail || !/^Coach estimate/.test(m.paceBasis)) ownProblems.push(`${tag} card copy`);
@@ -1129,13 +1139,15 @@ for (const id of OWN_IDS) {
 check('67 the owner\'s three build at every level: GUIDED, a Coach TM original, no knownAs', ownProblems.length === 0, ownProblems.join('; '));
 check('67 on the shelf: BAR FIGHT is barbell striking, all three GUIDED', eq(L.filterShelf(L.shelfEntries(), { loadout: 'barbell', theme: 'striking' }).map(e => e.id), ['bar_fight'])
   && L.shelfEntries().filter(e => OWN_IDS.includes(e.id)).every(e => e.soloOnly === false)
-  && eq(OWN_IDS.map(id => L.shelfEntryLine(L.shelfEntries().find(e => e.id === id))), ['~13 MIN · BARBELL · INTERVALS', '~11 MIN · BARBELL · FOR TIME', '~5 MIN · 1 BELL / DB · MAX SETS']),
+  && eq(OWN_IDS.map(id => L.shelfEntryLine(L.shelfEntries().find(e => e.id === id))), ['~13 MIN · BARBELL · INTERVALS', '~11 MIN · BARBELL · COMPLEX', '~5 MIN · 1 BELL / DB · MAX SETS']),
   show(OWN_IDS.map(id => L.shelfEntryLine(L.shelfEntries().find(e => e.id === id)))));
 
 // Clocks, XP and timelines. NO CONTINUES' clock is its 30:00 safety cap, and
-// its full-run XP is only the backstop's ceiling (a real run pays per set).
+// its full-run XP is the most a run can bank: 30 minutes of sets at 10 a
+// minute + 30 (a real run pays per set). TOUCH THE SKY's finish pays its
+// standard time at 10 a minute (rests in it) + 30.
 const OWN_CLOCKS = { bar_fight: [750, 510, 1020], touch_the_sky: [1200, 900, 1500], no_continues: [1800, 1800, 1800] };
-const OWN_XP = { bar_fight: [330, 255, 405], touch_the_sky: [75, 60, 90], no_continues: [1380, 1380, 1380] };
+const OWN_XP = { bar_fight: [330, 255, 405], touch_the_sky: [140, 85, 197], no_continues: [330, 330, 330] };
 const ownClockBad = [];
 OWN_IDS.forEach(id => ORDER.forEach((lv, i) => {
   const m = ownBuilt[id][lv];
@@ -1160,38 +1172,60 @@ check('68 TOUCH THE SKY and NO CONTINUES have no fixed timeline', LEVELS.every(l
 // heavier for-time level is never faster, a heavier interval level never
 // scores more; NO CONTINUES runs one cap at every level, so a heavier bell
 // always means fewer sets), and BAR FIGHT's clock-end prefill (the pace
-// count) never beats its own elite mark.
+// count) never beats its own elite mark. TOUCH THE SKY is not a race: its
+// tiers are rounds held (never more for a weaker tier), and only the time at
+// the count behind them is ordered (a heavier level never faster).
 const ownPaceBad = [];
+const skyHeld = (m) => m.scoreRule.kind === 'roundsHeld';
 OWN_IDS.forEach(id => {
   const by = ownBuilt[id];
   LEVELS.forEach(lv => {
     const p = by[lv].pace;
-    const ok = by[lv].format === 'forTime' ? p.elite < p.standard && p.standard < p.beginner && p.beginner <= by[lv].capSec : p.elite > p.standard && p.standard > p.beginner && p.beginner > 0;
+    const ok = skyHeld(by[lv])
+      ? p.elite.held >= p.standard.held && p.standard.held >= p.beginner.held && p.beginner.held >= 1
+        && p.elite.timeSec < p.standard.timeSec && p.standard.timeSec < p.beginner.timeSec && p.beginner.timeSec <= by[lv].capSec
+      : by[lv].format === 'forTime' ? p.elite < p.standard && p.standard < p.beginner && p.beginner <= by[lv].capSec : p.elite > p.standard && p.standard > p.beginner && p.beginner > 0;
     if (!ok || S.paceTargets(by[lv]).some(x => !x.text || /undefined|NaN/.test(x.text))) ownPaceBad.push(`${id}/${lv}`);
   });
   TIERS.forEach(t => {
-    if (by.standard.format === 'forTime' && !(by.beginner.pace[t] <= by.standard.pace[t] && by.standard.pace[t] <= by.elite.pace[t])) ownPaceBad.push(`${id} ${t}`);
+    if (skyHeld(by.standard) && !(by.beginner.pace[t].timeSec <= by.standard.pace[t].timeSec && by.standard.pace[t].timeSec <= by.elite.pace[t].timeSec)) ownPaceBad.push(`${id} ${t}`);
+    if (!skyHeld(by.standard) && by.standard.format === 'forTime' && !(by.beginner.pace[t] <= by.standard.pace[t] && by.standard.pace[t] <= by.elite.pace[t])) ownPaceBad.push(`${id} ${t}`);
     if (by.standard.format === 'intervals' && !(by.elite.pace[t] <= by.standard.pace[t])) ownPaceBad.push(`${id} ${t} across`);
     if (by.standard.untilDown && !(by.elite.pace[t] <= by.standard.pace[t] && by.standard.pace[t] <= by.beginner.pace[t])) ownPaceBad.push(`${id} ${t} across`);
   });
 });
 check('69 the owner\'s three: pace ordered in every level and across levels', ownPaceBad.length === 0, ownPaceBad.join(', '));
+// The count is a fresh first round: every level's standard mark sits at
+// about 0.83 of it at most (the house's lowest-round interval missions run
+// 0.77-0.84), and a loaded bar never scores like bodyweight work.
 check('69 BAR FIGHT: lowest front presses + uppercuts from the count, under its own elite', eq(LEVELS.map(lv => S.prefillScore(ownBuilt.bar_fight[lv])), [35, 44, 44])
   && LEVELS.every(lv => S.prefillScore(ownBuilt.bar_fight[lv]) <= ownBuilt.bar_fight[lv].pace.elite) && bf.scoreRule.agg === 'lowest' && eq(bf.scoreRule.keys, ['front-press', 'uppercut'])
-  && eq(S.paceTargets(bf).map(p => p.text), ['48+', '42', '34']) && keyItems(ownBuilt.bar_fight.elite, 'front-press')[0].cadenceMs === 1250);
-check('69 pace targets read: time with the rests, and sets', eq(S.paceTargets(ownBuilt.touch_the_sky.standard).map(p => p.text), ['≤ 9:30', '≤ 11:00', '≤ 13:00'])
+  && LEVELS.every(lv => ownBuilt.bar_fight[lv].pace.standard <= 0.85 * S.prefillScore(ownBuilt.bar_fight[lv]))
+  && eq(LEVELS.map(lv => ownBuilt.bar_fight[lv].pace), [{ elite: 35, standard: 29, beginner: 24 }, { elite: 46, standard: 37, beginner: 30 }, { elite: 44, standard: 35, beginner: 28 }])
+  && eq(S.paceTargets(bf).map(p => p.text), ['46+', '37', '30']) && keyItems(ownBuilt.bar_fight.elite, 'front-press')[0].cadenceMs === 1250 && /3-5 rounds/.test(bf.paceBasis));
+check('69 pace targets read: rounds held (not a race), and sets', eq(S.paceTargets(ownBuilt.touch_the_sky.standard).map(p => p.text), ['3/3 rounds', '3/3 rounds', '2/3 rounds'])
+  && eq(S.paceTargets(ownBuilt.touch_the_sky.elite).map(p => p.text), ['4/4 rounds', '4/4 rounds', '3/4 rounds'])
+  && S.soloExpectedSec(ownBuilt.touch_the_sky.standard) === 660 && S.soloFloorSec(ownBuilt.touch_the_sky.standard) === 285 && S.tierSec(570) === 570 && S.tierSec(null) === 0
   && eq(S.paceTargets(ownBuilt.no_continues.standard).map(p => p.text), ['12+ sets', '8 sets', '5 sets']));
 
 // Swaps: every alt of every reachable move resolves; the new catalog entries
-// have 2-4 alts with cues and a count; every loaded row offers a lighter swap,
-// except NO CONTINUES' swings and rows, whose only lighter option is a lighter
-// bell (its easier swing and its backpack rows would put the bell down).
+// have 2-4 alts with cues and a count; every loaded row of BAR FIGHT offers a
+// lighter swap. TOUCH THE SKY and NO CONTINUES never let the bar or the bell
+// out of the hand, so a swap keeps the same implement, and a row with none
+// left has no swap: its lighter option is a lighter bar or bell (the scale
+// line). Those rows are exactly the ones below.
 const OWN_MOVES = M.MOVES.slice(135, 152);
+const IN_HAND = ['touch_the_sky', 'no_continues'];
+const NO_SWAP = {
+  touch_the_sky: { beginner: ['front-squat'], standard: ['front-squat'], elite: ['front-squat'] },
+  no_continues: { beginner: ['swing2', 'row2', 'pull2', 'swing1', 'row1', 'snatch'], standard: ['swing2', 'row2', 'swing1', 'row1'], elite: ['swing2', 'row2', 'swing1', 'row1'] },
+};
 const ownAltBad = [];
 OWN_IDS.forEach(id => LEVELS.forEach(lv => {
   const m = ownBuilt[id][lv];
+  const noSwap = L.cardRows(m).filter(r => !r.canSwap).map(r => r.swapKey);
+  if (!eq(noSwap, NO_SWAP[id]?.[lv] || [])) ownAltBad.push(`${id}/${lv} cannot swap: ${noSwap.join(' ')}`);
   L.cardRows(m).forEach(r => {
-    if (!r.canSwap) ownAltBad.push(`${id}/${lv} ${r.swapKey} cannot swap`);
     [r.moveId, ...L.reachableMoves(m, r.swapKey).keys()].forEach(mid => (M.moveById(mid)?.alts || [null]).forEach(a => { if (!a || !M.moveById(a.id)) ownAltBad.push(`${id}/${lv} ${mid}→${a?.id}`); }));
     L.swapOptions(m, r.swapKey).forEach(o => { if (!M.moveById(o.id) || !o.cues.length) ownAltBad.push(`${id}/${lv} option ${o.id}`); });
   });
@@ -1199,20 +1233,41 @@ OWN_IDS.forEach(id => LEVELS.forEach(lv => {
 const ownMoveBad = OWN_MOVES.filter(mv => mv.alts.length < 2 || mv.alts.length > 4 || mv.cues.length < 2
   || (!mv.timedOnly && !(mv.cadence && mv.cadence.elite <= mv.cadence.standard && mv.cadence.standard <= mv.cadence.beginner))
   || (LOADED.includes(mv.gear) && !mv.alts.some(a => a.kind === 'easier' || a.kind === 'no-gear' || M.moveById(a.id).gear === 'none'))).map(mv => mv.id);
-const NC_HEAVY_ONLY = ['swing2', 'row2', 'swing1', 'row1'];
 const ownSheetBad = [];
+const inHandBad = [];
 OWN_IDS.forEach(id => LEVELS.forEach(lv => {
   const m = ownBuilt[id][lv];
   L.cardRows(m).forEach(r => {
+    const gear = M.moveById(r.baseMoveId).gear;
+    if (IN_HAND.includes(id)) {
+      [...L.reachableMoves(m, r.swapKey).keys()].forEach(k => { if (M.moveById(k).gear !== gear) inHandBad.push(`${id}/${lv} ${r.swapKey}→${k}`); });
+      return;
+    }
     const lighter = L.swapOptions(m, r.swapKey).some(o => o.kind === 'easier' || o.kind === 'no-gear' || o.gear === 'none');
-    const exempt = id === 'no_continues' && NC_HEAVY_ONLY.includes(r.swapKey);
-    if (LOADED.includes(M.moveById(r.moveId).gear) && lighter === exempt) ownSheetBad.push(`${id}/${lv} ${r.swapKey}`);
+    if (LOADED.includes(M.moveById(r.moveId).gear) && !lighter) ownSheetBad.push(`${id}/${lv} ${r.swapKey}`);
   });
 }));
-check('70 every move and every reachable alt resolves, every row can swap', ownAltBad.length === 0, ownAltBad.slice(0, 6).join(', '));
+check('70 every move and every reachable alt resolves; every row can swap but the in-hand ones', ownAltBad.length === 0, ownAltBad.slice(0, 6).join(', '));
 check('70 17 new catalog entries: 2-4 alts, cues, a count per level, gear-aware', OWN_MOVES.length === 17 && ownMoveBad.length === 0
   && OWN_MOVES.every(mv => mv.cues.every(c => c.length <= 140)), `${OWN_MOVES.length} ${ownMoveBad.join(',')}`);
-check('70 every loaded row offers a lighter swap (NO CONTINUES: a lighter bell for the swings and rows)', ownSheetBad.length === 0, ownSheetBad.join(', '));
+check('70 BAR FIGHT: every loaded row offers a lighter swap', ownSheetBad.length === 0, ownSheetBad.join(', '));
+// The bar never goes down inside a TOUCH THE SKY round and the bell never
+// leaves the hand in NO CONTINUES: no swap reaches another implement (a
+// dumbbell, a plate, a backpack, the floor), and no back squat (the bar over
+// the head between a good morning and a press).
+const skyReach = (lv) => L.cardRows(ownBuilt.touch_the_sky[lv]).flatMap(r => [...L.reachableMoves(ownBuilt.touch_the_sky[lv], r.swapKey).keys()]);
+check('70 TOUCH THE SKY and NO CONTINUES: no swap changes the implement in hand', inHandBad.length === 0
+  && LEVELS.every(lv => !skyReach(lv).some(k => ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat'].includes(k)))
+  && LEVELS.every(lv => eq(ownBuilt.touch_the_sky[lv].excludeAlts, ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat'])),
+  inHandBad.slice(0, 8).join(', '));
+// The step notes: every front squat comes straight from the rack; RDLs for
+// the good mornings say where the bar goes (and the extra clean on the way down).
+const skyRdl = build('touch_the_sky', { level: 'standard', swaps: { 'good-morning': 'bb-rdl' } });
+const skyNotes = (m) => m.exercises[0].list.map(st => st.note || null);
+check('70 TOUCH THE SKY: the rack note on the front squats, the RDL note on the good mornings', eq(skyNotes(ownBuilt.touch_the_sky.standard), [null, null, null, 'The bar is already in the rack.', null, 'The bar is already in the rack.', null, null, null])
+  && eq(skyNotes(skyRdl), [null, null, 'Lower the bar to the hips for the RDLs, then clean it back up.', 'The bar is already in the rack.', null, 'The bar is already in the rack.', 'Lower the bar to the hips for the RDLs.', null, null])
+  && L.cardRows(skyRdl).find(r => r.swapKey === 'good-morning').note === 'Lower the bar to the hips for the RDLs, then clean it back up.'
+  && L.cardRows(ownBuilt.touch_the_sky.standard).find(r => r.swapKey === 'front-squat').note === 'The bar is already in the rack.', show(skyNotes(skyRdl)));
 check('70 named swaps: hang muscle cleans, RDLs for the good mornings, a push press, plate and no-gear punches',
   L.swapOptions(ownBuilt.touch_the_sky.standard, 'clean').find(o => o.id === 'bb-hang-muscle-clean')?.stop === 'Never been coached?'
   && L.swapOptions(ownBuilt.touch_the_sky.standard, 'good-morning').find(o => o.id === 'bb-rdl')?.stop === 'Low back rounding?'
@@ -1230,16 +1285,26 @@ const FLOOR = ['kb-deadlift', 'kb-suitcase-deadlift', 'kb-plank-pull-through', '
 check('71 BAR FIGHT: no jump below ELITE, the hop offered at ELITE', jumpsAt('beginner').length === 0 && jumpsAt('standard').length === 0
   && L.swapOptions(ownBuilt.bar_fight.elite, 'front-squat').find(o => o.id === 'bb-front-squat-hop')?.kind === 'harder'
   && !L.isSwapAllowed(ownBuilt.bar_fight.standard, 'front-squat', 'bb-front-squat-hop') && M.moveById('bb-front-squat-hop').jumps === true, show(jumpsAt('standard')));
-check('71 NO CONTINUES: the bell never leaves the hand through a swap', LEVELS.every(lv => ncReach(lv).every(k => M.moveById(k).gear !== 'none' && !FLOOR.includes(k)))
+check('71 NO CONTINUES: the bell never leaves the hand through a swap (no dumbbell either)', LEVELS.every(lv => ncReach(lv).every(k => M.moveById(k).gear === 'bell' && !FLOOR.includes(k)))
   && !ncReach('beginner').some(k => /snatch/.test(k)) && keyItems(ownBuilt.no_continues.beginner, 'snatch')[0].moveId === 'kb-one-arm-high-pull'
   && keyItems(ownBuilt.no_continues.standard, 'snatch')[0].moveId === 'kb-snatch', show(ncReach('standard')));
 const ncCard = L.missionCardModel(ownBuilt.no_continues.standard);
 check('71 NO CONTINUES: the safety line on the card, only there', ncCard.safety === 'Grip starting to open? Park the bell between your feet. Never let it fly.'
   && ownBuilt.no_continues.standard.safety === ncCard.safety && OWN_IDS.filter(id => L.missionCardModel(ownBuilt[id].standard).safety).length === 1
   && /park the bell between your feet/i.test(ownBuilt.no_continues.standard.introSay));
+// Overhead to grip failure: never HOTEL OK, the ceiling checked, and the stop
+// rules before the last loose rep and for the hands.
+check('71 NO CONTINUES: the ceiling, the loose-rep and palm stop rules', LEVELS.every(lv => ownBuilt.no_continues[lv].hotel === false && !L.missionCardModel(ownBuilt.no_continues[lv]).tags.includes('HOTEL OK'))
+  && ncCard.loadoutLine === '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE · CHECK THE CEILING'
+  && ["Swing or snatch feeling loose? Don't start the next one.", 'Hot spot or a tear on the palm: put it down.'].every(t => ncCard.note.includes(t)), ncCard.note);
 check('71 TOUCH THE SKY and BAR FIGHT: the card rules', /press can handle for 5/.test(ownBuilt.touch_the_sky.standard.note) && /Don't put the bar down inside a round/.test(ownBuilt.touch_the_sky.standard.note)
   && /Low back rounding on the good mornings\? Stop the round/.test(ownBuilt.touch_the_sky.standard.note) && /Only ELITE may add a small hop/.test(bf.note)
-  && cueHas('bb-punch-out', 'Core braced, shoulders down') && cueHas('explosive-shadowbox', 'Set the bar down first'));
+  && ownBuilt.touch_the_sky.standard.note.includes('Not a race: every rep clean, rest the full 2:00.')
+  && LEVELS.every(lv => /45 REPS A ROUND|27 REPS A ROUND/.test(ownBuilt.touch_the_sky[lv].missionLine) && !/FOR TIME/.test(ownBuilt.touch_the_sky[lv].missionLine))
+  && ownBuilt.touch_the_sky.beginner.missionLine.includes('27 REPS A ROUND') && ownBuilt.touch_the_sky.standard.formatLabel === 'COMPLEX'
+  && bf.note.includes('Using a plate? Swap all four bar drills to the plate.') && /set the bar down and shadowbox/.test(bf.introSay) && !/drop the bar/i.test(bf.introSay)
+  && cueHas('bb-punch-out', 'Core braced, shoulders down') && cueHas('bb-punch-out', "Don't lean back to hold the bar out") && cueHas('bb-explosive-press', 'Soft knees to catch it on the shoulders')
+  && cueHas('explosive-shadowbox', 'Set the bar down first'));
 
 // The guided voice: BAR FIGHT paces every bar drill and calls what is next;
 // TOUCH THE SKY counts all 45 reps at a strength cadence and calls each lift;
@@ -1248,7 +1313,9 @@ check('72 BAR FIGHT: leads, pace counts, near-end calls', M.leadLine(bf.exercise
   && eq(bf.exercises.map(M.paceBeats), [{ ms: 1250, n: 24 }, { ms: 1750, n: 17 }, { ms: 1500, n: 20 }, { ms: 2000, n: 15 }, null])
   && bf.exercises.every((sl, i) => M.nearEndUpNextAt(sl, bf.exercises[(i + 1) % 5]) === 8)
   && eq([0, 1, 2, 3].map(i => M.restPlan(bf.exercises[i].rest)), ['chain', 'chain', 'chain', 'chain']) && M.restPlan(bf.exercises[4].rest) === 'long'
-  && eq(bf.exercises.slice(1).map(sl => M.chainedLine(sl)), ['Explosive overhead presses. Go.', 'Barbell uppercuts. Go.', 'Explosive front squats. Go.', 'Explosive shadowboxing. Go.'])
+  && eq(bf.exercises.slice(1).map(sl => M.chainedLine(sl)), ['Explosive overhead presses. Go.', 'Barbell uppercuts. Go.', 'Explosive front squats. Go.', 'Bar down. Explosive shadowboxing. Go.'])
+  && M.shortRestLine(bf.exercises[4]) === 'Next: bar down. Explosive shadowboxing.'
+  && L.swapMissionMove(bf, 'shadowbox', 'air-boxing').exercises[4].say === undefined
   && M.restScript({ restSec: 30, roundEnd: true, completedRound: 1, format: bf.format, tips: bf.tips, lead: M.leadLine(bf.exercises[0], ctxFor(bf, 2, 0)), short: M.shortRestLine(bf.exercises[0]) }).opener === 'Round 1 complete. Rest. 30 seconds. Shoulders down, core braced.',
   show(bf.exercises.slice(1).map(sl => M.chainedLine(sl))));
 const sky = ownBuilt.touch_the_sky.standard;
@@ -1256,10 +1323,12 @@ const skyBeats = M.countBeats(sky.exercises[0], { next: sky.exercises[0] });
 check('72 TOUCH THE SKY: 45 counted reps, each lift called, 2:08 at the count', skyBeats.length === 45 && skyBeats.reduce((n, b) => n + b.ms, 0) === 128000
   && eq(skyBeats.filter(b => /\. /.test(b.say)).map(b => b.say), ['5. Hang power cleans.', '5. Good mornings.', '5. Front squats.', '5. Strict presses.', '5. Front squats.', '5. Good mornings.', '5. Hang power cleans.', '5. Deadlifts.'])
   && skyBeats[44].say === '5' && skyBeats[0].ms === 3000 + 2500 && M.countBeats(ownBuilt.touch_the_sky.beginner.exercises[0]).length === 27
-  && M.restScript({ restSec: 120, roundEnd: true, completedRound: 1, format: 'forTime', tips: sky.tips, lead: M.leadLine(sky.exercises[0], ctxFor(sky, 2, 0)), short: M.shortRestLine(sky.exercises[0]) }).opener === 'Round 1 complete. Rest. 120 seconds. Pick a load your press can handle for 5.',
+  && M.restScript({ restSec: 120, roundEnd: true, completedRound: 1, format: 'forTime', tips: sky.tips, lead: M.leadLine(sky.exercises[0], ctxFor(sky, 2, 0)), short: M.shortRestLine(sky.exercises[0]) }).opener === 'Round 1 complete. Rest. 2 minutes. Pick a load your press can handle for 5.'
+  && M.restOpener({ restSec: 60, roundEnd: true, completedRound: 1, format: 'forTime' }) === 'Round 1 complete. Rest. 60 seconds.' && M.restOpener({ restSec: 150, roundEnd: false, format: 'forTime' }) === 'Rest. 150 seconds.',
   show(skyBeats.filter(b => /\. /.test(b.say)).map(b => b.say)));
 check('72 TOUCH THE SKY: the card reads down and back', eq(doses(sky), ['2 × 5', '2 × 5', '2 × 5', '2 × 5', '5']) && eq(doses(ownBuilt.touch_the_sky.beginner), ['2 × 3', '2 × 3', '2 × 3', '2 × 3', '3'])
-  && S.soloRounds(sky) === 3 && S.repsPerRound(sky) === 45 && S.repsThrough(sky, 2) === 90 && sky.scoreLine.includes('(135 FINISHES)') && sky.exercises[0].rest === 120, show(doses(sky)));
+  && S.soloRounds(sky) === 3 && S.repsPerRound(sky) === 45 && S.repsThrough(sky, 2) === 90 && sky.scoreLine === 'ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD'
+  && LEVELS.every(lv => ownBuilt.touch_the_sky[lv].scoreLine === sky.scoreLine) && sky.exercises[0].rest === 120, show(doses(sky)));
 const nc = ownBuilt.no_continues.standard;
 const ncCtx = { round: 1, idx: 0, rounds: 1, slotsPerRound: 3, format: nc.format }; // the runner passes rounds: 1 (no 'Round 1.')
 const ncBeats = M.countBeats(nc.exercises[0], { next: null });
@@ -1309,11 +1378,15 @@ const nZero = ncSettle({ completed: true, score: downScore(0, 5, 20), elapsedSec
 const nStop = ncSettle({ stopped: true, score: null, elapsedSec: 400 });
 const nCap = ncSettle({ completed: true, capped: true, score: downScore(50, 0, 1800, true), elapsedSec: 1800 });
 const nOver = ncSettle({ completed: true, score: downScore(500, 0, 1800), elapsedSec: 1800 });
-check('74 NO CONTINUES SOLO: I PUT IT DOWN is a finish paid for the sets done', nPut.outcome === 'pass' && nPut.xp === 15 * 10 + 30 && nPut.message === null && nPut.credited === 10
-  && nFast.outcome === 'pass' && nFast.credited === 2 && nFast.xp === 60 && /2 of 10 sets/.test(nFast.message)
+// The XP is on the clocks' scale: each set is worth its standard time (27 s
+// at STANDARD: 12 reps) at 10 a minute, never more than the run clock ran,
+// + 30 for the finish. 10 sets in 5:00 pay 270 s of work (45) + 30.
+check('74 NO CONTINUES SOLO: I PUT IT DOWN is a finish paid for the sets done', nPut.outcome === 'pass' && nPut.xp === 75 && nPut.message === null && nPut.credited === 10
+  && S.downSetSec(nc) === 27 && S.downSetSec(ownBuilt.no_continues.elite) === 44
+  && nFast.outcome === 'pass' && nFast.credited === 2 && nFast.xp === 35 && /2 of 10 sets/.test(nFast.message)
   && nZero.xp === 0 && nZero.outcome === 'none' && nZero.message === S.DOWN_NO_SET_MESSAGE
   && nStop.xp === 0 && nStop.outcome === 'none' && nStop.message === S.DOWN_STOP_MESSAGE
-  && nCap.outcome === 'pass' && nCap.xp === 15 * 50 + 30 && nOver.credited === 90 && nOver.xp === S.fullRunXp(nc),
+  && nCap.outcome === 'pass' && nCap.xp === 255 && nOver.credited === 90 && nOver.xp === S.fullRunXp(nc) && S.fullRunXp(nc) === 330,
   show([nPut, nFast, nZero, nStop, nCap, nOver].map(x => `${x.outcome}:${x.xp}`)));
 // The cap ends it, GUIDED and SOLO alike: the run clock reaching 30:00 is a
 // finish on the cap's time, and only an until-down mission reads it.
@@ -1322,13 +1395,31 @@ const capSettle = ncSettle({ completed: true, capped: true, score: capScore, ela
 check('74 NO CONTINUES: the 30:00 cap ends the run as a finish on the cap\'s time', !S.downCapReached(nc, 1799.9) && S.downCapReached(nc, 1800) && S.downCapReached(nc, 2400)
   && !S.downCapReached(built.one_bell_300.standard, 1800) && !S.downCapReached(soloBuilt.honor_rounds.standard, 99999)
   && eq(capScore, { kind: 'setsReps', sets: 50, reps: 3, timeSec: 1800, value: 603, capped: true })
-  && capSettle.outcome === 'pass' && capSettle.xp === 15 * 50 + 30 && capSettle.message === null,
+  && capSettle.outcome === 'pass' && capSettle.xp === 255 && capSettle.message === null,
   show([capScore, capSettle]));
 check('74 NO CONTINUES: I PUT IT DOWN keeps the time tapped; reps never make a whole set', eq(S.downScore(nc, { sets: 9, reps: 4, end: 'down', timeSec: 372.6 }), { kind: 'setsReps', sets: 9, reps: 4, timeSec: 372, value: 112 })
   && S.downScore(nc, { sets: 2, reps: 15, timeSec: 60 }).reps === 11 && S.downScore(ownBuilt.no_continues.elite, { sets: 1, reps: 30 }).reps === 19
   && S.formatScore(S.downScore(nc, { sets: 9, reps: 4, timeSec: 372 })) === '9 + 4' && S.downScore(nc, { sets: -3, reps: -1 }).value === 0);
-check('74 NO CONTINUES GUIDED pays the same as SOLO: 15 a set plus the finish bonus', [1, 7, 12, 30].every(n => US.quickMissionXp(n, n, true) === S.downXp(n)) && S.downXp(0) === 0
-  && O.resolveOutcome({ completed: 9, total: 9, difficulty: 'Hard', integrityResult: null }).outcome === 'pass');
+// GUIDED settles an until-down run the way SOLO does. I PUT IT DOWN (or the
+// cap) is the only end with a score; STOP then END is a quit that pays
+// nothing and shows no rounds out of the hidden backstop, as in SOLO. A
+// skipped block is no set and drops the finish bonus.
+const gDown = (m, o) => S.settleGuidedXp({ mission: m, completed: true, untilDown: 'down', integrityResult: null, skipped: 0, ...o });
+const gPut = gDown(nc, { exercisesCompleted: 10, totalExercises: 10, elapsedSec: 300, score: S.downScore(nc, { sets: 10, timeSec: 300 }) });
+const gEnd = S.settleGuidedXp({ mission: nc, completed: false, exercisesCompleted: 4, totalExercises: 4, elapsedSec: 120, integrityResult: null });
+const gEndElite = S.settleGuidedXp({ mission: ownBuilt.no_continues.elite, completed: false, exercisesCompleted: 3, totalExercises: 3, integrityResult: null });
+const gSkip = gDown(nc, { exercisesCompleted: 2, totalExercises: 4, skipped: 2, elapsedSec: 60, score: S.downScore(nc, { sets: 2, timeSec: 60, skipped: 2 }) });
+const gCapDown = gDown(nc, { untilDown: 'cap', exercisesCompleted: 50, totalExercises: 50, elapsedSec: 1800, score: capScore });
+check('74 NO CONTINUES GUIDED pays the same as SOLO; END pays nothing; a skip drops the bonus', gPut.xp === nPut.xp && gPut.outcome === 'pass' && gPut.verdict.preset.eyebrow === 'SESSION COMPLETE'
+  && gEnd.xp === 0 && gEnd.outcome === 'none' && gEnd.verdict.response === S.DOWN_STOP_MESSAGE && gEnd.verdict.preset.eyebrow === 'MISSION FAILED'
+  && gEndElite.xp === 0 && gCapDown.xp === capSettle.xp
+  && gSkip.xp === S.downXp(nc, 2, { elapsedSec: 60, bonus: false }) && gSkip.xp === 9 && gSkip.outcome === 'partial' && S.downScore(nc, { sets: 2, skipped: 2 }).skipped === 2 && !('skipped' in S.downScore(nc, { sets: 2 }))
+  && S.downXp(nc, 0) === 0 && S.downXp(nc, 1) === 35 && S.downXp(nc, 10, { elapsedSec: 60 }) === 40
+  && O.resolveOutcome({ completed: 9, total: 9, difficulty: 'Hard', integrityResult: null }).outcome === 'pass', show([gPut, gEnd, gSkip, gCapDown].map(x => `${x.outcome}:${x.xp}`)));
+// A phone left running never counts to the cap: GUIDED holds the count and
+// asks STILL GOING? every elite mark of sets (rounds).
+check('74 the GUIDED check-in: every elite mark, until-down only', S.downCheckEvery(nc) === 12 && S.downCheckEvery(ownBuilt.no_continues.beginner) === 15 && S.downCheckEvery(ownBuilt.no_continues.elite) === 9
+  && S.downCheckEvery(built.room_12.standard) === 0 && S.downCheckEvery(ownBuilt.touch_the_sky.standard) === 0);
 // GUIDED: the integrity session is judged on the cycles the run actually ran.
 // The cycle the bell came down in counts when a block of it finished, and is
 // dropped when none did. Every other session is unchanged (endRunHere is
@@ -1347,6 +1438,16 @@ const cycles = (n, partSec, keep) => {
 const ir3 = cycles(3, 30, true);
 const ir2 = cycles(2, 3, false);
 Date.now = realNow2;
+// A run resumed mid-cycle that ends before the next cycle opened a unit ran
+// none on that mount: complete, not 'INCOMPLETE · 0 of 1'.
+Date.now = () => clk;
+const resumed = new I.IntegritySession('quickMission', S.qmTotalUnits(nc, { round: 2 }), ncRules);
+clk += 40_000;
+resumed.endRunHere(false);
+const irResumed = resumed.finalize();
+Date.now = realNow2;
+check('74 GUIDED until down, resumed: ending before a unit opened is complete', irResumed.validityStatus === 'complete' && irResumed.awardXp && irResumed.totalRequiredUnits === 0
+  && O.resolveOutcome({ completed: 6, total: 6, difficulty: 'Hard', integrityResult: irResumed }).outcome === 'pass', show([irResumed.validityStatus, irResumed.totalRequiredUnits]));
 check('74 NO CONTINUES GUIDED: a finished run whatever cycle it ended in', ir3.isFullyValid && ir3.totalRequiredUnits === 4 && ir3.validityStatus === 'complete' && ir3.awardXp
   && ir2.isFullyValid && ir2.totalRequiredUnits === 2 && O.resolveOutcome({ completed: 7, total: 7, difficulty: 'Hard', integrityResult: ir3 }).outcome === 'pass'
   && S.qmMaxValidSeconds(nc) === 600, show([ir3.validityStatus, ir3.totalRequiredUnits, ir2.validityStatus, ir2.totalRequiredUnits]));
@@ -1354,25 +1455,31 @@ check('74 NO CONTINUES GUIDED: a finished run whatever cycle it ended in', ir3.i
 // ── XP by time (fixed clocks) ───────────────────────────────────────────────
 // One rule, GUIDED and SOLO: 15 a slot, or on a clock about 10 a minute
 // worked when that is more, + 30 for a finish with nothing skipped. Rests
-// are not work. It never pays less than the slot figure, and a generated
-// mission or a classic never reaches it.
+// are not work. A for-time finish pays its standard time (at most the cap)
+// at the same 10 a minute when that is more than its slots. An until-down
+// run pays its sets on the same scale, so at most 30 minutes' worth. A clock
+// or a for-time run never pays less than the slot figure, and a generated
+// mission or a classic never reaches the minute rule.
 reset();
 const Q = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
 const clockBuilt = ALL_IDS.flatMap(id => LEVELS.map(lv => ({ id, lv, m: build(id, { level: lv }) })));
 const xpRuleBad = clockBuilt.filter(({ m }) => {
   const bySlots = 15 * S.totalSlots(m) + 30;
-  const byTime = Math.round(S.workSecOf(m) / 6) + 30;
-  const want = S.paysByTime(m) ? Math.max(bySlots, byTime) : bySlots;
-  return S.fullRunXp(m) !== want || S.fullRunXp(m) < bySlots || S.paysByTime(m) !== (S.isFixedClock(m.format) && !S.isUntilDown(m));
+  if (S.isUntilDown(m)) return S.fullRunXp(m) !== Math.round(Math.min(m.capSec, S.totalSlots(m) * S.downSetSec(m)) / 6) + 30 || S.paysByTime(m) || S.paysOnFinish(m);
+  const byTime = S.paysByTime(m) ? Math.round(S.workSecOf(m) / 6) + 30 : S.paysOnFinish(m) ? Math.round(S.forTimePaySec(m) / 6) + 30 : 0;
+  const want = Math.max(bySlots, byTime);
+  return S.fullRunXp(m) !== want || S.fullRunXp(m) < bySlots || S.paysByTime(m) !== S.isFixedClock(m.format) || S.paysOnFinish(m) !== (m.format === 'forTime');
 }).map(({ id, lv }) => `${id}/${lv}`);
 const namedM = N.buildNamedMission('murph');
 const genM = Q.generateQuickMission({ duration: 20, difficulty: 'Normal' });
-check('75 XP by time: max(15 a slot, 10 a minute worked) + 30, never less than the slots', xpRuleBad.length === 0
+check('75 XP by time: max(15 a slot, 10 a minute worked) + 30, never less than the slots; until down on the same scale', xpRuleBad.length === 0
+  && S.fullRunXp(ownBuilt.touch_the_sky.standard) === 140 && S.forTimePaySec(ownBuilt.touch_the_sky.standard) === 660 && S.fullRunXp(built.one_bell_300.standard) === 480
   && S.fullRunXp(soloBuilt.carry_on_15.standard) === 180 && S.fullRunXp(built.room_12.standard) === 150 && S.fullRunXp(built.five_round_bout.standard) === 180
   && S.fullRunXp(built.turbo_button.standard) === 270 && S.fullRunXp(built.iron_clock_16.standard) === 270
   && S.workSecOf(built.five_round_bout.standard) === 900 && S.workSecOf(built.five_round_bout.standard, 900) === 720 && S.workSecOf(soloBuilt.carry_on_15.standard, 600) === 600,
   xpRuleBad.join(', '));
 check('75 generated missions and the classics never pay by time', !S.paysByTime(namedM) && !S.paysByTime(genM) && !S.paysByTime({ ...built.room_12.standard, v2: false })
+  && !S.paysOnFinish(namedM) && !S.paysOnFinish({ ...built.one_bell_300.standard, v2: false })
   && S.missionXp(namedM, { slots: 10, workedSec: 3000, full: true }) === 180 && US.quickMissionXp(10, 10, true) === 180);
 const co = soloBuilt.carry_on_15.standard;
 const coSettle = (o) => settle(co, o);
@@ -1394,6 +1501,23 @@ const gOver = gs(r12, { completed: true, exercisesCompleted: 1, workedSec: 99999
 check('75 GUIDED: ROOM 12 pays 150 for the 12 minutes; a stop pays the minutes it ran; anti-cheat still zeroes', gFull.xp === 150 && gFull.outcome === 'pass' && gFull.workedSec === 720
   && gFive.xp === 50 && gFive.outcome === 'partial' && gEleven.xp === 110 && gCheat.xp === 0 && gCheat.outcome === 'validation_failed' && gOver.xp === 150 && gOver.workedSec === 720,
   show([gFull, gFive, gEleven, gCheat, gOver].map(x => `${x.outcome}:${x.xp}`)));
+// A stopped run is never SESSION COMPLETE, however far it got: ROOM 12 ENDed
+// at 11:03, BEST OF 3 at 92% and a slot run one slot short all read SESSION
+// STOPPED, as SOLO calls a stop. The XP is unchanged.
+const b3 = built.best_of_3.standard;
+const g1103 = gs(r12, { workedSec: 662 });
+const gB3 = gs(b3, { workedSec: Math.floor(0.92 * S.workSecOf(b3)) });
+const gSlot = gs(built.one_bell_300.standard, { exercisesCompleted: S.totalSlots(built.one_bell_300.standard) - 1 });
+check('75 GUIDED: a stopped run is never a pass', [g1103, gB3, gSlot].every(g => g.outcome === 'partial' && g.verdict.preset.eyebrow === 'SESSION STOPPED' && /^Ended early/.test(g.verdict.response))
+  && g1103.xp === 110 && gB3.xp === S.missionXp(b3, { workedSec: Math.floor(0.92 * S.workSecOf(b3)) }) && gSlot.xp === 15 * (S.totalSlots(built.one_bell_300.standard) - 1),
+  show([g1103, gB3, gSlot].map(x => `${x.outcome}:${x.xp}`)));
+// A for-time finish pays the same GUIDED and SOLO (TOUCH THE SKY: 110 + 30).
+const forTimeSame = clockBuilt.filter(({ m }) => S.paysOnFinish(m)).filter(({ m }) => {
+  const g = gs(m, { completed: true, exercisesCompleted: S.totalSlots(m) });
+  const so = settle(m, { completed: true, elapsedSec: S.soloExpectedSec(m) });
+  return !(g.xp === so.xp && so.xp === S.fullRunXp(m) && g.outcome === 'pass');
+}).map(({ id, lv }) => `${id}/${lv}`);
+check('75 a for-time finish pays the same in GUIDED and SOLO', forTimeSame.length === 0, forTimeSame.join(', '));
 const sameRule = clockBuilt.filter(({ m }) => S.paysByTime(m)).filter(({ m }) => {
   const g = gs(m, { completed: true, exercisesCompleted: S.totalSlots(m), workedSec: S.workSecOf(m) });
   const so = settle(m, { completed: true, elapsedSec: S.missionClockSec(m) });
@@ -1401,8 +1525,8 @@ const sameRule = clockBuilt.filter(({ m }) => S.paysByTime(m)).filter(({ m }) =>
 }).map(({ id, lv }) => `${id}/${lv}`);
 check('75 the same rule in GUIDED and SOLO: a full run on every clock pays the same', sameRule.length === 0, sameRule.join(', '));
 const ob = built.one_bell_300.standard;
-check('75 GUIDED off the clock: slots as before (ONE-BELL, NO CONTINUES)', gs(ob, { completed: true, exercisesCompleted: S.totalSlots(ob) }).xp === US.quickMissionXp(S.totalSlots(ob), S.totalSlots(ob), true)
-  && gs(ob, { exercisesCompleted: 3 }).xp === 45 && gs(ownBuilt.no_continues.standard, { completed: true, exercisesCompleted: 7, totalExercises: 7 }).xp === S.downXp(7)
+check('75 GUIDED off the clock: slots as before (ONE-BELL); an until-down result without its end pays nothing', gs(ob, { completed: true, exercisesCompleted: S.totalSlots(ob) }).xp === US.quickMissionXp(S.totalSlots(ob), S.totalSlots(ob), true)
+  && gs(ob, { exercisesCompleted: 3 }).xp === 45 && gs(ownBuilt.no_continues.standard, { completed: true, exercisesCompleted: 7, totalExercises: 7 }).xp === 0
   && gs(ob, { completed: true, exercisesCompleted: 3, workedSec: 5000 }).xp === 45);
 
 // ── the round timer (SOLO splits) ───────────────────────────────────────────
@@ -1426,6 +1550,25 @@ US.addQuickMissionSoloSession({ xpEarned: 180, missionId: 'carry_on_15', format:
 const soloRow = US.loadStats().sessions.at(-1);
 US.addQuickMissionSoloSession({ xpEarned: 0, missionId: 'iron_clock_16', format: 'emom', score: null, elapsedSec: 10, completed: false, completedCount: 0, totalCount: 16, splits: null });
 const emomRow = US.loadStats().sessions.at(-1);
+// FINISH is the last ROUND tap: 2 taps + FINISH on a 3-round mission make 3
+// splits that add up to the finish time. A run with every round tapped, an
+// AMRAP and an until-down run are left as tapped.
+const skyStd = ownBuilt.touch_the_sky.standard;
+const closed = S.roundSplits(skyStd, S.closeSplits(skyStd, [{ at: 139000, block: 0 }, { at: 399000, block: 0 }], 660));
+check('76 FINISH closes the last round on a for-time mission', eq(closed.map(r => r.lapSec), [139, 260, 261]) && closed.reduce((n, r) => n + r.lapSec, 0) === 660
+  && S.closeSplits(skyStd, [{ at: 1, block: 0 }, { at: 2, block: 0 }, { at: 3, block: 0 }], 660).length === 3 && S.closeSplits(skyStd, [], 30).length === 1
+  && S.closeSplits(co, [{ at: 1000, block: 0 }], 900).length === 1 && S.closeSplits(ownBuilt.no_continues.standard, [], 300).length === 0
+  && S.closeSplits(skyStd, [{ at: 500500, block: 0 }], 500)[1].at === 500500, show(closed));
+// TOUCH THE SKY's 2:00 rest is timed after each ROUND tap in SOLO; no other
+// mission has a rest that long between rounds, so none is timed.
+const restTimed = clockBuilt.filter(({ m }) => Array.from({ length: S.soloRounds(m) }, (_, k) => S.roundRestSec(m, k + 1)).some(v => v > 0)).map(({ id, lv }) => `${id}/${lv}`);
+check('76 SOLO times TOUCH THE SKY\'s 2:00 rests, and only those', eq(restTimed, ['touch_the_sky/beginner', 'touch_the_sky/standard', 'touch_the_sky/elite']) && S.roundRestSec(skyStd, 1) === 120 && S.roundRestSec(skyStd, 2) === 120 && S.roundRestSec(skyStd, 0) === 0, restTimed.join(', '));
+// Rounds held, not a race: the score is the rounds with the bar never down
+// (and the reps into the next at the cap); the time is kept for the record.
+check('76 TOUCH THE SKY scores rounds held', S.formatScore({ kind: 'roundsHeld', held: 3, of: 3, reps: 0, timeSec: 640 }) === '3/3'
+  && S.formatScore({ kind: 'roundsHeld', held: 1, of: 3, reps: 12, timeSec: 1200, capped: true }) === '1/3 + 12' && S.prefillScore(skyStd) === null
+  && settle(skyStd, { completed: true, elapsedSec: 640, score: { kind: 'roundsHeld', held: 2, of: 3, reps: 0, timeSec: 640, value: 90 } }).xp === 140
+  && settle(skyStd, { completed: true, elapsedSec: 200 }).outcome === 'too_fast' && settle(skyStd, { stopped: true, elapsedSec: 400 }).xp === Math.round(45 * 400 / 660));
 check('76 the splits are saved with the session', soloRow.mode === 'solo' && soloRow.xpEarned === 180 && eq(soloRow.splits, tapRounds) && soloRow.score.rounds === 3 && soloRow.elapsedSec === 900
   && !('splits' in emomRow) && emomRow.mode === 'solo', show(soloRow));
 reset();
@@ -1451,10 +1594,18 @@ LEVELS.forEach(lv => {
   if ([...L.reachableMoves(m, 'squat').keys()].some(id => ['burpee', 'sprawl', 'squat-thrust'].includes(id))) uldBad.push(`${lv} squat swaps`);
 });
 check('77 UPPER LOWER DIPS builds at every level: GUIDED and SOLO, NO GEAR, until a round can\'t be finished', uldBad.length === 0
-  && eq(LEVELS.map(lv => items(uldBuilt[lv]).map(it => it.moveId)), [['bench-dip-bent', 'air-squat'], ['bench-dip', 'air-squat'], ['parallel-bar-dip', 'jump-squat']])
+  && eq(LEVELS.map(lv => items(uldBuilt[lv]).map(it => it.moveId)), [['bench-dip-bent', 'air-squat'], ['bench-dip', 'air-squat'], ['parallel-bar-dip', 'air-squat']])
   && L.FORMAT_LABEL.maxRounds === 'MAX ROUNDS' && L.shelfEntryLine(L.shelfEntries().find(e => e.id === 'upper_lower_dips')) === '~7 MIN · NO GEAR · MAX ROUNDS'
   && ['bench-dip-bent', 'bench-dip', 'parallel-bar-dip'].every(id => M.moveById(id).cues.some(c => c.includes('90°')) && M.moveById(id).alts.some(a => a.id === 'incline-push-up' && a.stop === 'Shoulder pinch?')),
   uldBad.join('; '));
+// A run to failure never ends on landings: no level squats with a jump, and
+// no swap reaches one (the until-down rule), though the same jump squats stay
+// a swap on a mission that is not until down.
+const uldJumps = LEVELS.flatMap(lv => L.cardRows(uldBuilt[lv]).flatMap(r => [...L.reachableMoves(uldBuilt[lv], r.swapKey).keys()].filter(k => M.moveById(k).jumps).map(k => `${lv} ${k}`)));
+check('77 UPPER LOWER DIPS: no jump at any level, the dip safety in the voice and the cues', uldJumps.length === 0 && !L.altAllowed(uldBuilt.elite, 'squat', { id: 'jump-squat' })
+  && L.isSwapAllowed(built.five_round_bout.standard, 'squat', 'jump-squat') && !/vest|jump/i.test(uldDef.scale) && uldDef.scale.includes('ELITE: parallel-bar dips.')
+  && uldDef.introSay.includes('Stop every dip at ninety degrees.') && ['bench-dip-bent', 'bench-dip'].every(id => cueHas(id, 'Shoulders down and back, chest up.'))
+  && cueHas('parallel-bar-dip', 'A dip station or parallel bars only. Never between two chairs.') && uldBuilt.elite.levelDetail === '8 bar dips · 16 squats', uldJumps.join(', '));
 check('77 its words: ROUNDS and I\'M DONE; NO CONTINUES keeps SETS and I PUT IT DOWN', S.downCopy(uld).done === "I'M DONE" && S.downCopy(uld).ONE === 'ROUND' && S.downCount(uld, 1) === '1 round' && S.downCount(uld, 6) === '6 rounds'
   && S.downCopy(ownBuilt.no_continues.standard).done === 'I PUT IT DOWN' && S.downCopy(ownBuilt.no_continues.standard).stop === S.DOWN_STOP_MESSAGE && S.downCopy(ownBuilt.no_continues.standard).noScore === S.DOWN_NO_SET_MESSAGE
   && eq(S.paceTargets(uld).map(p => p.text), ['12+ rounds', '8 rounds', '5 rounds']) && S.formatScore(S.downScore(uld, { sets: 6, reps: 10, timeSec: 400 })) === '6 + 10'
@@ -1465,11 +1616,15 @@ const uFast = uldSettle({ completed: true, score: S.downScore(uld, { sets: 2, ti
 const uZero = uldSettle({ completed: true, score: S.downScore(uld, { sets: 0, reps: 9, timeSec: 30 }), elapsedSec: 30 });
 const uStop = uldSettle({ stopped: true, score: null, elapsedSec: 300 });
 const uCap = uldSettle({ completed: true, capped: true, score: S.downScore(uld, { sets: 25, end: 'cap' }), elapsedSec: 1800 });
-check('77 the until-failure end: I\'M DONE finishes the run, paid 15 a round + 30; STOP saves nothing', uDone.outcome === 'pass' && uDone.xp === 120 && uDone.message === null
-  && uFast.credited === 1 && uFast.xp === 45 && uFast.message === 'Faster than elite pace, so 1 of 2 rounds count.'
+// A round is worth its standard time (50 s) at 10 a minute, never more than the run clock ran.
+const gUldDone = S.settleGuidedXp({ mission: uld, completed: true, untilDown: 'down', exercisesCompleted: 6, totalExercises: 6, elapsedSec: 400, score: S.downScore(uld, { sets: 6, reps: 4, timeSec: 400 }), integrityResult: null });
+const gUldEnd = S.settleGuidedXp({ mission: uld, completed: false, exercisesCompleted: 4, totalExercises: 4, elapsedSec: 240, integrityResult: null });
+check('77 the until-failure end: I\'M DONE finishes the run, paid by the rounds\' time + 30; STOP and END save nothing', uDone.outcome === 'pass' && uDone.xp === 80 && uDone.message === null
+  && S.downSetSec(uld) === 50 && uFast.credited === 1 && uFast.xp === 33 && uFast.message === 'Faster than elite pace, so 1 of 2 rounds count.'
   && uZero.xp === 0 && uZero.message === 'Finish one round to earn XP.' && uStop.xp === 0 && uStop.message === "Ended with no score. I'M DONE saves your rounds."
-  && uCap.outcome === 'pass' && uCap.xp === 15 * 25 + 30 && S.downCapReached(uld, 1800) && !S.downCapReached(uld, 1799)
-  && gs(uld, { completed: true, exercisesCompleted: 6, totalExercises: 6 }).xp === 120, show([uDone, uFast, uZero, uStop, uCap].map(x => `${x.outcome}:${x.xp}:${x.message}`)));
+  && uCap.outcome === 'pass' && uCap.xp === 238 && S.downCapReached(uld, 1800) && !S.downCapReached(uld, 1799)
+  && gUldDone.xp === uDone.xp && gUldEnd.xp === 0 && gUldEnd.verdict.response === "Ended with no score. I'M DONE saves your rounds.",
+  show([uDone, uFast, uZero, uStop, uCap, gUldDone, gUldEnd].map(x => `${x.outcome}:${x.xp}:${x.message ?? x.verdict?.response}`)));
 const uldCtx = (m) => ({ round: 1, idx: 0, rounds: m.rounds, slotsPerRound: 1, format: m.format });
 const uldBeats = M.countBeats(uld.exercises[0]);
 check('77 GUIDED counts the dips and squats and calls each round; the cap comes before the last round', M.leadLine(uld.exercises[0], uldCtx(uld)) === 'Round 1. 8 bench dips, 16 air squats. Ready? On my count.'
@@ -1511,8 +1666,14 @@ const doorElsewhere = ALL_IDS.filter(id => id !== 'overtime_20').flatMap(id => L
 }).map(lv => `${id}/${lv}`));
 const extraLeak = ALL_IDS.filter(id => id !== 'overtime_20').flatMap(id => LEVELS.filter(lv => { const m = build(id, { level: lv }); return 'gearPlus' in m || 'altsPlus' in m; }).map(lv => `${id}/${lv}`));
 const downLeak = ALL_IDS.filter(id => id !== 'upper_lower_dips').flatMap(id => LEVELS.filter(lv => 'downUnit' in build(id, { level: lv })).map(lv => `${id}/${lv}`));
+// QUIET and HOTEL OK: no jump to a bar at any level, the strict-rounds note,
+// and the door frame row's grip and fall-back cues.
+const otJump = LEVELS.filter(lv => L.cardRows(otBuilt[lv]).some(r => L.reachableMoves(otBuilt[lv], r.swapKey).has('jumping-pull-up')));
+check('78 OVERTIME 20: no jumping pull-ups, strict rounds run lower, a safe door frame row', otJump.length === 0 && !/jumping/i.test(otDef.scale) && otDef.scale.includes('Easier: ring rows and knee push-ups.')
+  && ot.paceBasis.includes('The published bands allow kipping; strict rounds run lower.') && cueHas('door-frame-row', 'whole hand') && cueHas('door-frame-row', 'No vest on door frame rows.')
+  && cueHas('door-frame-row', 'if a hand slips, you fall backward') && !cueHas('door-frame-row', 'Feet closer in'), otJump.join(', '));
 check('78 the no-bar swap: door frame rows, on OVERTIME 20 only', otPull.some(o => o.id === 'door-frame-row' && o.label === 'NO GEAR' && o.gear === 'none')
-  && otPull.some(o => o.id === 'jumping-pull-up' && o.kind === 'easier') && otDoor.scaled && L.cardRows(otDoor)[0].name === 'Door Frame Rows' && L.cardRows(otDoor)[0].dose === '5'
+  && !otPull.some(o => o.id === 'jumping-pull-up') && otPull.some(o => o.id === 'ring-row' && o.kind === 'easier') && otDoor.scaled && L.cardRows(otDoor)[0].name === 'Door Frame Rows' && L.cardRows(otDoor)[0].dose === '5'
   && L.swapOptions(otDoor, 'pull').some(o => o.id === 'pull-up') && L.swapOptions(ot, 'push-up').some(o => o.id === 'knee-push-up')
   && doorElsewhere.length === 0 && extraLeak.length === 0 && downLeak.length === 0 && M.moveById('door-frame-row').gear === 'none' && M.moveById('door-frame-row').cues.some(c => c.includes('Never pull on the door')),
   `${doorElsewhere.join(', ')} ${extraLeak.join(', ')} ${downLeak.join(', ')}`);

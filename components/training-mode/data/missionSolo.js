@@ -235,12 +235,15 @@ export function segmentAt(timeline, elapsedSec) {
 // A for-time tier's seconds: a number, or TOUCH THE SKY's { held, of, timeSec }
 // (rounds held are its tiers; the time at the count is only for the maths).
 export function tierSec(v) { return typeof v === 'number' ? v : typeof v?.timeSec === 'number' ? v.timeSec : 0; }
-// The rest SOLO times after a ROUND tap: a for-time mission's own long rest
-// between rounds (TOUCH THE SKY's 2:00), else 0. Short rests are never timed.
-export function roundRestSec(mission) {
-  if (mission?.format !== 'forTime' || isUntilDown(mission) || isLadder(mission)) return 0;
+// The rest SOLO times after the taps-th ROUND tap: a for-time mission's own
+// long rest after that round (a ladder: after that rung), TOUCH THE SKY's
+// 2:00, else 0. Short rests are never timed.
+export function roundRestSec(mission, taps = 1) {
+  if (mission?.format !== 'forTime' || isUntilDown(mission)) return 0;
   const slots = allSlots(mission);
-  const rest = slots.length ? slots[slots.length - 1].rest || 0 : 0;
+  if (!slots.length || !(taps >= 1)) return 0;
+  const slot = isLadder(mission) ? slots[(Math.floor(taps) - 1) % slots.length] : slots[slots.length - 1];
+  const rest = slot?.rest || 0;
   return rest >= 60 ? rest : 0;
 }
 // Reps in one round of the score: one pass of the AMRAP list, or one round of
@@ -381,7 +384,11 @@ export function missionXp(mission, { slots = 0, ratio = 1, workedSec = 0, full =
     : full && paysOnFinish(mission) ? minutesXp(forTimePaySec(mission)) : 0;
   return Math.max(bySlots, byTime) + (full ? XP_FINISH : 0);
 }
-export function fullRunXp(mission) { return missionXp(mission, { slots: totalSlots(mission), workedSec: workSecOf(mission), full: true }); }
+// The most a run can bank. Until down: every set up to the backstop, inside the cap.
+export function fullRunXp(mission) {
+  if (isUntilDown(mission)) return downXp(mission, totalSlots(mission), { elapsedSec: mission.capSec || Infinity });
+  return missionXp(mission, { slots: totalSlots(mission), workedSec: workSecOf(mission), full: true });
+}
 export function soloExpectedSec(mission) {
   if (isUntilDown(mission)) return mission.capSec || 0;
   if (isFixedClock(mission?.format)) return missionClockSec(mission);

@@ -520,7 +520,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   // A for-time mission's long rest between rounds (TOUCH THE SKY's 2:00) is
   // timed from the ROUND tap: REST 1:42 on the round timer, a beep at 3-2-1
   // and the bell to go.
-  const restSec = roundRestSec(mission);
+  const restSec = roundRestSec(mission, roundTaps);
   const restLeft = restSec > 0 && lastLap && tapsLive && roundTaps < tapRounds ? Math.max(0, restSec - (elapsedSec - lastLap.atSec)) : 0;
   const restPrevRef = useRef(restLeft);
   useEffect(() => {
