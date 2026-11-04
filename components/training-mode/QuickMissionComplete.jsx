@@ -1,7 +1,7 @@
 import MissionComplete from './shared/MissionComplete';
 import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from './shared/sessionOutcome';
 import { FORMAT_LABEL } from './data/loadoutMissions';
-import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime } from './data/missionSolo';
+import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime, soloRounds } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 import { quickMissionXp } from './data/userStats';
 
@@ -35,6 +35,14 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const rounds = solo && Array.isArray(result.rounds) ? result.rounds : null;
   const roundTag = isUntilDown(mission) ? downCopy(mission).tag : 'R';
   const roundWord = isUntilDown(mission) ? downCopy(mission).MANY : 'ROUNDS';
+  // The tap's own word: NO CONTINUES taps SET, everything else ROUND.
+  const roundOne = isUntilDown(mission) ? downCopy(mission).one : 'round';
+  // No taps and no score (a STOP): nothing to recap.
+  const recap = !!rounds && (rounds.length > 0 || !!result.score);
+  // An until-down GUIDED run is judged by its settle (sets, skips, the end it
+  // took); the per-cycle integrity banner would contradict it. A forensic
+  // fail still reaches the verdict through the settle.
+  const banner = solo || (guidedSettle && isUntilDown(mission)) ? null : integrityResult;
 
   const subtitle = solo
     ? `${(mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · Solo`
@@ -76,10 +84,10 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       accent={GOLD}
       xp={xp}
       heroImage="/static/trophies/mission-complete-fit.webp"
-      integrityResult={solo ? null : integrityResult}
+      integrityResult={banner}
       failReason={solo ? result.settle?.message || undefined : verdict.response}
       stats={stats}
-      summary={rounds ? <RoundSplits rounds={rounds} count={scoreCount(result.score, rounds.length)} tag={roundTag} word={roundWord} totalSec={result.elapsedSec || 0}/> : null}
+      summary={recap ? <RoundSplits rounds={rounds} count={scoreCount(result, mission, rounds.length)} tag={roundTag} word={roundWord} one={roundOne} totalSec={result.elapsedSec || 0}/> : null}
       cardioResult={cardioResult}
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
       actions={[
@@ -92,17 +100,20 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
 }
 
 // The rounds the saved score counts (the athlete can correct the taps on
-// YOUR SCORE): rounds, sets, a finished run's rounds held; else the taps.
-function scoreCount(score, taps) {
+// YOUR SCORE): rounds, sets, a finished run's rounds held, a finished race's
+// rounds (FINISH means all of them, tapped or not); else the taps.
+function scoreCount(result, mission, taps) {
+  const score = result?.score;
   if (score?.kind === 'roundsReps') return Array.isArray(score.blocks) && score.blocks.length ? score.blocks.reduce((n, b) => n + (b.rounds || 0), 0) : score.rounds || 0;
   if (score?.kind === 'setsReps') return score.sets || 0;
   if (score?.kind === 'roundsHeld' && !score.capped) return score.of || 0;
+  if (score?.kind === 'time' && !score.capped && result?.completed) return soloRounds(mission);
   return taps;
 }
 // The round timer's recap: how many rounds the score counts, each tapped
 // round's time, the total. Rounds the score has but nobody tapped read as
 // not timed. Kept short so it fits on any phone (MissionComplete never hides it).
-function RoundSplits({ rounds, count, tag, word, totalSec }) {
+function RoundSplits({ rounds, count, tag, word, one = 'round', totalSec }) {
   const blocks = [...new Set(rounds.map(r => r.block))];
   const multi = blocks.length > 1;
   const taps = rounds.length;
@@ -117,7 +128,7 @@ function RoundSplits({ rounds, count, tag, word, totalSec }) {
         <span>{word} {count}</span><span style={{ color: '#fff' }}>TOTAL {mmss(totalSec)}</span>
       </div>
       {rounds.length === 0 ? (
-        <div style={{ ...line, color: '#9a90b8' }}>No round taps this run.</div>
+        <div style={{ ...line, color: '#9a90b8' }}>No {one} taps this run.</div>
       ) : multi ? blocks.map(b => (
         <div key={b} style={line}>B{b + 1} · {splitsLine(rounds.filter(r => r.block === b), { tag })}</div>
       )) : (

@@ -460,6 +460,8 @@ function settleGuidedDown(result, mission) {
     mode: 'guided', xp: 0, base: 0, outcome: 'none', workedSec: 0,
     verdict: { outcome: 'fail', response: message, completionRatio: 0, preset: OUTCOME_PRESET.fail },
   });
+  // I PUT IT DOWN with no set done: nothing to save, and the line says why.
+  if (result?.untilDown && !result?.score) return none(copy.noScore);
   if (!ended) return none(copy.stop);
   const sets = Math.min(totalSlots(mission), Math.max(0, Math.floor(Number(result.score.sets) || 0)));
   if (sets <= 0) return none(copy.noScore);
@@ -504,7 +506,9 @@ function blockStartSec(mission, b) {
 // The rounds the splits make: { n, atSec, lapSec, block }. n counts within
 // its block, atSec is the clock at the tap, lapSec the round's own time (from
 // the last tap in the same block, or the block's start), so the laps of one
-// block add up to its last tap. Bad entries are skipped.
+// block add up to its last tap. A rest SOLO times after a tap (TOUCH THE
+// SKY's 2:00) is not in the next round: its lap starts when the rest ends.
+// Bad entries are skipped.
 export function roundSplits(mission, splits) {
   const last = new Map();
   const count = new Map();
@@ -514,20 +518,22 @@ export function roundSplits(mission, splits) {
     if (!Number.isFinite(atMs) || atMs < 0) return;
     const block = Number.isInteger(sp?.block) && sp.block >= 0 ? sp.block : 0;
     const atSec = Math.floor(atMs / 1000);
-    const from = last.has(block) ? last.get(block) : blockStartSec(mission, block);
+    const n0 = count.get(block) || 0;
+    const from = last.has(block) ? Math.min(atSec, last.get(block) + roundRestSec(mission, n0)) : blockStartSec(mission, block);
     last.set(block, atSec);
     count.set(block, (count.get(block) || 0) + 1);
     out.push({ n: count.get(block), atSec, lapSec: Math.max(0, atSec - from), block });
   });
   return out;
 }
-// FINISH on a for-time mission is its last ROUND tap: when the taps are
-// short of the rounds (the last round is never tapped: FINISH is the tap),
-// the splits close at the finish time, so a finished 3-round run has 3.
+// FINISH on a for-time mission is its last ROUND tap: when every round but
+// the last was tapped (FINISH is the last tap), the splits close at the
+// finish time, so a finished 3-round run has 3. Any fewer taps and nobody
+// knows where the untapped rounds ended: the splits stay as tapped.
 export function closeSplits(mission, splits, finishSec) {
   const list = Array.isArray(splits) ? splits : [];
   if (mission?.format !== 'forTime' || isUntilDown(mission) || !Number.isFinite(Number(finishSec))) return list;
-  if (list.length >= soloRounds(mission)) return list;
+  if (list.length !== soloRounds(mission) - 1) return list;
   const lastAt = list.reduce((n, sp) => Math.max(n, Number(sp?.at) || 0), 0);
   return [...list, { at: Math.max(lastAt, Math.floor(Number(finishSec)) * 1000), block: 0 }];
 }

@@ -1126,13 +1126,17 @@ const BAR_FIGHT = {
 // good morning and a press), are never offered. A heavy row's lighter option
 // is a lighter bar: the scale line. Swapping the good mornings to RDLs means
 // lowering the bar to the hips and cleaning it back up: the step says so.
-// Every front squat comes straight from the rack.
-const SKY_OUT = ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat'];
+// Every front squat comes straight from the rack, so the cleans never swap
+// down to High Pulls (no catch: the bar would never reach the rack). Power
+// Cleans' own cue offers dumbbells, which this bar-only mission has none of:
+// the step names the bar move instead.
+const SKY_OUT = ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat', 'bb-high-pull'];
+const SKY_POWER = { key: 'clean', is: 'bb-power-clean', then: 'Never been coached on the clean? Take Hang Muscle Cleans.', else: null };
 const SKY_GM_DOWN = { key: 'good-morning', is: 'bb-rdl', then: 'Lower the bar to the hips for the RDLs, then clean it back up.', else: null };
 const SKY_GM_UP = { key: 'good-morning', is: 'bb-rdl', then: 'Lower the bar to the hips for the RDLs.', else: null };
 const SKY_RACKED = { key: 'front-squat', is: 'bb-front-squat', then: 'The bar is already in the rack.', else: null };
 const sky = (n) => [complex('Touch the Sky', [
-  s('bb-deadlift', n, { swapKey: 'deadlift' }), s('bb-hang-power-clean', n, { swapKey: 'clean' }), s('bb-front-rack-good-morning', n, { swapKey: 'good-morning', noteIf: SKY_GM_DOWN }),
+  s('bb-deadlift', n, { swapKey: 'deadlift' }), s('bb-hang-power-clean', n, { swapKey: 'clean', noteIf: SKY_POWER }), s('bb-front-rack-good-morning', n, { swapKey: 'good-morning', noteIf: SKY_GM_DOWN }),
   s('bb-front-squat', n, { swapKey: 'front-squat', noteIf: SKY_RACKED }), s('bb-strict-press', n, { swapKey: 'press' }), s('bb-front-squat', n, { swapKey: 'front-squat', noteIf: SKY_RACKED }),
   s('bb-front-rack-good-morning', n, { swapKey: 'good-morning', noteIf: SKY_GM_UP }), s('bb-hang-power-clean', n, { swapKey: 'clean' }), s('bb-deadlift', n, { swapKey: 'deadlift' }),
 ], { swapKey: 'complex', rest: 120, setupMs: 3000 })];
@@ -1148,15 +1152,16 @@ const TOUCH_THE_SKY = {
   loadoutLine: '1 BARBELL + PLATES · 2 × 2 M', scoreLine: 'ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD',
   scoreRule: { kind: 'roundsHeld', label: 'ROUNDS, BAR NEVER DOWN' },
   scale: 'Lighter bar, or the beginner level: 2 rounds of 3 each. Never been coached on the clean? Hang Muscle Cleans. Good mornings feel wrong? Romanian Deadlifts.',
-  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for 5. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. Tap ROUND after each round and the rest is timed for you.",
+  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for every rep. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. In SOLO, tap ROUND after each round to time the rest.",
   introSay: "Touch the sky. Five of each, down the lifts and back up. Don't put the bar down until the round is done.",
-  tips: ['Pick a load your press can handle for 5.', 'Chest up and soft knees on the good mornings.'],
+  tips: ['Pick a load your press can handle for every rep.', 'Chest up and soft knees on the good mornings.'],
   guidedHelp: 'The coach counts every rep, calls each lift and times the rests.',
   paceBasis: 'Coach estimate: a round takes about 2:00 at the count. The score is the rounds you hold with the bar never down. The time, rests in it, is for the record, not a race.',
   defaultLevel: 'standard',
   levels: {
     beginner: {
       detail: '2 rounds · 3 each · the empty bar · cap 15:00', minutes: 6, load: 'The empty bar, 20/15 kg (45/35 lb), or lighter', rounds: 2, capSec: 900,
+      introSay: "Touch the sky. Three of each, down the lifts and back up. Don't put the bar down until the round is done.",
       missionLine: '2 ROUNDS · 27 REPS A ROUND, BAR NEVER DOWN · 2:00 REST · CAP 15:00', excludeAlts: SKY_OUT,
       slots: sky(3), pace: skyPace(2, [270, 330, 420]),
     },
@@ -1195,9 +1200,12 @@ const ncBoth = (n) => [
   s('kb-swing', n, { swapKey: 'swing2', name: 'Two-Hand Swings', say: 'swings' }), s('kb-two-hand-row', n, { swapKey: 'row2', say: 'rows' }),
   s('kb-two-hand-high-pull', n, { swapKey: 'pull2', say: 'high pulls' }), s('kb-horn-press', n, { swapKey: 'press2', say: 'presses', note: 'By the horns.' }),
 ];
+// Kettlebell Hang Cleans keep the bell in hand, but their cue starts with a
+// deadlift from the floor: the step says to start from the hang.
+const NC_HANG = { key: 'snatch', is: 'kb-hang-clean', then: 'Start from the hang: the bell never touches the floor.', else: null };
 const ncArm = (n, pullId) => [
   s('kb-one-arm-swing', n, { swapKey: 'swing1', say: 'swings', note: 'All four on the left arm, then the right.' }), s('kb-row', n, { swapKey: 'row1', name: 'One-Arm Rows' }),
-  s(pullId, n, { swapKey: 'snatch', ...(pullId === 'kb-one-arm-high-pull' ? { say: 'high pulls' } : {}) }), s('kb-press', n, { swapKey: 'press1', name: 'One-Arm Presses' }),
+  s(pullId, n, { swapKey: 'snatch', noteIf: NC_HANG, ...(pullId === 'kb-one-arm-high-pull' ? { say: 'high pulls' } : {}) }), s('kb-press', n, { swapKey: 'press1', name: 'One-Arm Presses' }),
 ];
 const ncBlock = (name, say, list) => complex(name, list, { swapKey: 'block', sideSay: say, say, setupMs: 2000 });
 const noContinues = (n, pullId) => [ncBlock('Both Hands', 'both hands', ncBoth(n)), ncBlock('Left Arm', 'left arm', ncArm(n, pullId)), ncBlock('Right Arm', 'right arm', ncArm(n, pullId))];
@@ -1317,6 +1325,7 @@ const OVERTIME = {
     beginner: {
       detail: 'AMRAP 12 · 3 door frame rows · 6 incline push-ups · 9 squats', minutes: 12, rounds: 1,
       missionLine: 'AMRAP 12 · 3 DOOR FRAME ROWS · 6 INCLINE PUSH-UPS · 9 SQUATS',
+      introSay: 'Overtime twelve. Three rows, six push-ups, nine squats. As many rounds as you can.',
       slots: overtime(720, C720, 'door-frame-row', 'incline-push-up', 3), pace: { elite: 18, standard: 12, beginner: 8 }, excludeAlts: OT_OUT,
     },
     standard: {
@@ -1567,7 +1576,8 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
     scoreLine: L.scoreLine || def.scoreLine,
     scale: def.scale,
     note: def.note,
-    introSay: def.introSay || '',
+    // A level's own brief when its reps differ (BEGINNER's 3 of each).
+    introSay: L.introSay ?? def.introSay ?? '',
     tips: [...(def.tips || [])],
     excludeAlts: [...(L.excludeAlts || [])],
     scaled: false,

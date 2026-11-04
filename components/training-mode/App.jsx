@@ -261,6 +261,8 @@ export default function App() {
   // endedScreenRef stops the saver from writing it back before the screen
   // changes; the saver clears it when a session screen mounts.
   const endedScreenRef = useRef(null);
+  // The last Quick Mission run banked (QuickMissionActive's runId).
+  const bankedRunIdRef = useRef(null);
   const endSessionFor = useCallback((scr) => {
     endedScreenRef.current = scr;
     const stored = loadPausedSessions();
@@ -682,6 +684,11 @@ export default function App() {
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
     },
     goQuickMissionComplete: (result) => {
+      // A run banks once: a second end of the same GUIDED run (its runId) is dropped.
+      if (result?.runId) {
+        if (bankedRunIdRef.current === result.runId) return;
+        bankedRunIdRef.current = result.runId;
+      }
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen);
       setResumeData(null);
@@ -714,7 +721,8 @@ export default function App() {
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
-        tryCompleteDailyMission('quickMission');
+        // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
+        if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
         setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
       }

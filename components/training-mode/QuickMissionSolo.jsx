@@ -516,11 +516,11 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const roundsHere = multiBlock ? (blockTaps?.[block] ?? 0) : roundTaps;
   const allTapped = countUp && roundTaps >= tapRounds;
   const lastLap = blockRounds.length ? blockRounds[blockRounds.length - 1] : null;
-  const roundFrom = lastLap ? lastLap.atSec : (multiBlock ? (at?.startSec ?? 0) : 0);
   // A for-time mission's long rest between rounds (TOUCH THE SKY's 2:00) is
   // timed from the ROUND tap: REST 1:42 on the round timer, a beep at 3-2-1
-  // and the bell to go.
+  // and the bell to go. The next round's time starts when the rest ends.
   const restSec = roundRestSec(mission, roundTaps);
+  const roundFrom = lastLap ? lastLap.atSec + restSec : (multiBlock ? (at?.startSec ?? 0) : 0);
   const restLeft = restSec > 0 && lastLap && tapsLive && roundTaps < tapRounds ? Math.max(0, restSec - (elapsedSec - lastLap.atSec)) : 0;
   const restPrevRef = useRef(restLeft);
   useEffect(() => {
@@ -531,7 +531,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     else if (restLeft > 0 && restLeft <= 3 && restLeft < prev) playBeep();
   }, [restLeft, phase]);
   const addRound = () => {
-    if (!tapsLive || allTapped) return;
+    // Not during a timed rest: a tap there would be a round that was all rest.
+    if (!tapsLive || allTapped || restLeft > 0) return;
     if (phase === 'running' && tick()) return;
     const atMs = Math.round(clockRef.current.elapsedMs);
     setRoundTaps(n => n + 1);
@@ -628,12 +629,15 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                 thisSec={allTapped ? null : Math.max(0, elapsedSec - roundFrom)} lastSec={lastLap ? lastLap.lapSec : null}
                 restLeft={restLeft}
                 line={splitsLine(blockRounds, { tag: down ? dc.tag : 'R', last: 5 })}
-                live={tapsLive && !allTapped} canUndo={tapsLive && roundsHere > 0}
+                live={tapsLive && !allTapped && restLeft === 0} canUndo={tapsLive && roundsHere > 0}
                 onRound={addRound} onUndo={undoRound}
               />
             )}
             {/* NO CONTINUES: a bell in hand, so the SET tap is optional. */}
             {showRounds && down && dc.tapHint && <div style={{ ...muted11, marginTop: -6 }}>{dc.tapHint}</div>}
+            {/* For time: FINISH right under the round timer, on screen without
+                a scroll (the clock runs until it is tapped). */}
+            {format === 'forTime' && <GoldButton label="FINISH" height={56} onClick={handleFinish} disabled={!tapsLive}/>}
 
             {/* Until down: the end of the run and the safety line sit right
                 under SET, on screen without a scroll. */}
@@ -679,7 +683,6 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 
             {/* Controls */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {format === 'forTime' && <GoldButton label="FINISH" height={56} onClick={handleFinish} disabled={!tapsLive}/>}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <GhostButton label={phase === 'paused' ? 'RESUME' : 'PAUSE'} onClick={handlePauseToggle} style={phase === 'ready' ? { opacity: 0.45, cursor: 'default' } : undefined}/>
                 <GhostButton label="STOP" onClick={() => setConfirmStop(true)} style={{ border: `1px solid ${RED_BORDER}` }}/>

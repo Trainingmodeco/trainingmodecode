@@ -130,6 +130,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // the count holds and asks STILL GOING?, so a phone left running never
   // counts to the cap on its own.
   const skippedRef = useRef(Math.max(0, Math.floor(Number(initialResumeData?.skipped) || 0)));
+  // How each position (`${round}:${idx}`) was left, 'done' or 'skip', so a
+  // REWIND takes back only what that slot really counted. It travels in the
+  // stash; a stash from before it has none, and its earlier slots read as done.
+  const outcomesRef = useRef(initialResumeData?.outcomes && typeof initialResumeData.outcomes === 'object' ? { ...initialResumeData.outcomes } : {});
+  const outcomesKnown = !initialResumeData || !!initialResumeData.outcomes;
   const checkEvery = untilDown ? downCheckEvery(mission) : 0;
   // v2 · XP by time: a mission on a clock (EMOM, AMRAP, intervals) pays the
   // minutes worked (data/missionSolo settleGuidedXp). The work of every slot
@@ -176,6 +181,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const [paused, setPaused] = useState(!!initialPaused);
   const [done, setDone] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // One id per run, on every result: App banks a run once, however many ends
+  // reach it (a STOP inside the finish bell used to bank it twice).
+  const runId = useState(() => `${Date.now()}_${Math.random().toString(36).slice(2)}`)[0];
   const [exercisesCompleted, setExercisesCompleted] = useState(initialResumeData?.exercisesCompleted ?? 0);
   const [roundsCompleted, setRoundsCompleted] = useState(initialResumeData?.roundsCompleted ?? 0);
   const [cadenceRep, setCadenceRep] = useState(0);
@@ -236,7 +244,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   useEffect(() => {
     if (typeof onStateChange === 'function') {
       // runMs: only an untilDown run has a run clock to bring back.
-      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, ...(untilDown ? { runMs: Math.round(runMsNow()), skipped: skippedRef.current } : {}), ...(byTime ? { workedSec: workedRef.current } : {}) });
+      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, outcomes: { ...outcomesRef.current }, ...(untilDown ? { runMs: Math.round(runMsNow()), skipped: skippedRef.current } : {}), ...(byTime ? { workedSec: workedRef.current } : {}) });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange, mission, restTotal, restKind, runSec]);
@@ -494,6 +502,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
     setExercisesCompleted(c => c + 1);
     if (byTime) workedRef.current += clockWorkOf(ex);
+    outcomesRef.current[`${currentRound}:${idx}`] = 'done';
     integrity.recordAction('complete');
 
     if (v2) {
@@ -560,6 +569,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       setRapidWarning(actionResult.message);
       setTimeout(() => setRapidWarning(null), 2500);
     }
+    outcomesRef.current[`${roundRef.current}:${exIdxRef.current}`] = 'skip';
     if (v2) {
       if (untilDown) skippedRef.current += 1;
       advanceV2('skip');
@@ -596,6 +606,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // v2: disabled during the intro (there is nothing to go back to), and the
   // move restarts after a 5 s rest, so it gets its short line and the 3-2-1.
   const rewindExercise = () => {
+    // The finish bell is ringing: the result is already taken.
+    if (doneRef.current) return;
     if (v2 && phaseRef.current === 'intro') return;
     cancelSpeech();
     stopCadence();
@@ -619,8 +631,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     }
     // else: already on the very first exercise — just restart it.
 
-    setExercisesCompleted(c => Math.max(0, c - 1));
-    if (byTime) workedRef.current = Math.max(0, workedRef.current - clockWorkOf(allExercises[exIdxRef.current]));
+    // Take back what the slot gone back to counted: a completion (and its
+    // work), or a skip. A slot that only restarts counted nothing yet.
+    const key = `${roundRef.current}:${exIdxRef.current}`;
+    const moved = idx > 0 || currentRound > 1;
+    const was = outcomesRef.current[key] ?? (moved && !outcomesKnown ? 'done' : null);
+    delete outcomesRef.current[key];
+    if (was === 'done') {
+      setExercisesCompleted(c => Math.max(0, c - 1));
+      if (byTime) workedRef.current = Math.max(0, workedRef.current - clockWorkOf(allExercises[exIdxRef.current]));
+    } else if (was === 'skip' && untilDown) {
+      skippedRef.current = Math.max(0, skippedRef.current - 1);
+    }
     if (v2) {
       moveVersionRef.current++;
       workStartRef.current = null;
@@ -1042,6 +1064,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   };
 
   const handleSkip = () => {
+    if (doneRef.current) return;
     // v2: the intro and rest branches come first, so a SKIP in a rest no
     // longer cancels the countdown that is speaking.
     if (v2 && phaseRef.current === 'intro') { skipIntroV2(); return; }
@@ -1132,6 +1155,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   };
 
   const handlePauseToggle = () => {
+    if (doneRef.current) return;
     if (paused) {
       handleResume();
     } else {
@@ -1142,6 +1166,19 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // Auto-pause when the app is backgrounded (honest pause, not a cheat flag).
   useAutoPauseOnHidden(!paused && !done, handlePauseToggle, integrity);
 
+  // The end after the 1.8 s finish bell (finishMission, endDown). Leaving the
+  // screen inside the bell ends the run there and then, once, rather than
+  // from a timer that outlives the screen.
+  const endTimerRef = useRef(null);
+  const endAfterBell = (fn) => {
+    const run = () => { endTimerRef.current = null; fn(); };
+    endTimerRef.current = { id: setTimeout(run, 1800), run };
+  };
+  useEffect(() => () => {
+    const t = endTimerRef.current;
+    if (t) { clearTimeout(t.id); t.run(); }
+  }, []);
+
   const finishMission = (finalRounds) => {
     // untilDown: running out of rounds (the backstop) ends it like the cap.
     if (untilDown) { endDown('cap'); return; }
@@ -1151,14 +1188,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     doneRef.current = true;
     stopCadence();
     setDone(true);
+    // An End Mission? left open over the last slot closes: the run finished.
+    setConfirmEnd(false);
+    setDownAsk(false);
     playBell(3);
     if (voiceOn) {
       setTimeout(() => speakAsync(getCoachCopy('sessionComplete')), 400);
     }
     const integrityResult = integrity.finalize();
-    setTimeout(() => {
+    endAfterBell(() => {
       stopVoiceSession();
       onEnd({
+        runId,
         completed: true,
         roundsCompleted: finalRounds,
         totalRounds: mission.rounds,
@@ -1171,7 +1212,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         integrityResult,
         ...(byTime ? { workedSec: Math.floor(workedRef.current) } : {}),
       });
-    }, 1800);
+    });
   };
 
   // untilDown: I PUT IT DOWN ('down') or the cap ('cap'). A FINISHED run:
@@ -1182,7 +1223,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // so a block that completed on this same tick is in them.
   const endDown = (why) => {
     if (doneRef.current) return;
-    if (exercisesCompletedRef.current <= 0) { handleEndConfirm(); return; }
+    // No set yet: an END with no score, flagged so the screen says to finish
+    // one set rather than to tap the button just tapped.
+    if (exercisesCompletedRef.current <= 0) { handleEndConfirm({ untilDown: why }); return; }
     doneRef.current = true;
     const reps = phaseRef.current === 'work' ? cadenceRepRef.current : 0;
     runClockStop();
@@ -1192,17 +1235,19 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     moveVersionRef.current++;
     setDone(true);
     setConfirmEnd(false);
+    setDownAsk(false);
     playBell(3);
     const n = exercisesCompletedRef.current;
     if (voiceOn) speakAsync(why === 'cap' ? dc.capSay : `${dc.doneSay} ${downCount(mission, n)}.`);
     integrity.getSession()?.endRunHere(exIdxRef.current > 0);
     const integrityResult = integrity.finalize();
     const elapsedSec = Math.floor(runMsNow() / 1000);
-    setTimeout(() => {
+    endAfterBell(() => {
       stopVoiceSession();
       const sets = exercisesCompletedRef.current;
       const skipped = skippedRef.current;
       onEnd({
+        runId,
         completed: true,
         roundsCompleted: roundsCompletedRef.current,
         totalRounds: mission.rounds,
@@ -1216,7 +1261,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
         skipped,
         score: downScore(mission, { sets, reps, end: why, timeSec: elapsedSec, skipped }),
       });
-    }, 1800);
+    });
   };
 
   // I PUT IT DOWN holds the run (the count and the run clock stop) and asks.
@@ -1261,7 +1306,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [untilDown, done]);
 
-  const handleEndConfirm = () => {
+  // extra: fields for the result (endDown's no-set end flags untilDown).
+  const handleEndConfirm = (extra) => {
+    // Once only, and never after a finish: its bell already took the result.
+    if (doneRef.current) return;
+    doneRef.current = true;
+    setDone(true);
+    setConfirmEnd(false);
     stopCadence();
     cancelSpeech();
     stopVoiceSession();
@@ -1277,8 +1328,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     if (untilDown) runClockStop();
     // The work of a timed slot cut short counts for the time it ran.
     const exNow = allExercises[exIdxRef.current];
-    const partWork = phaseRef.current === 'work' && exNow?.mode === 'timed' ? Math.max(0, (exNow.work || 0) - (remaining || 0)) : 0;
+    // Never a slot already counted done (its clock ran out and completed it).
+    const counted = outcomesRef.current[`${roundRef.current}:${exIdxRef.current}`] === 'done';
+    const partWork = phaseRef.current === 'work' && exNow?.mode === 'timed' && !counted ? Math.max(0, (exNow.work || 0) - (remaining || 0)) : 0;
     onEnd({
+      runId,
       completed: false,
       roundsCompleted: Math.min(mission.rounds, Math.floor(exDone / Math.max(1, allExercises.length))),
       totalRounds: mission.rounds,
@@ -1291,6 +1345,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       // untilDown: END is a quit with no score (settleGuidedXp pays 0); the
       // run clock goes with it for the complete screen.
       ...(untilDown ? { elapsedSec: Math.floor(runMsNow() / 1000) } : {}),
+      ...(extra && typeof extra === 'object' && !extra.nativeEvent ? extra : {}),
     });
   };
 
@@ -1325,7 +1380,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   const minuteLabel = v2Mission && mission.format === 'emom'
     ? `MINUTE ${(round - 1) * allExercises.length + exIdx + 1}/${(mission.rounds || 1) * allExercises.length}`
     : null;
-  const rewindOff = v2 && phase === 'intro';
+  // The finish bell: the run is over, so nothing on the bar works (or looks like it does).
+  const offStyle = done ? { opacity: 0.45, cursor: 'default' } : null;
+  const rewindOff = done || (v2 && phase === 'intro');
 
   return (
     <PhoneFrame useBrandBg>
@@ -1353,7 +1410,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
-          <button data-guide="qma-back" onClick={() => setConfirmEnd(true)} style={{ background: 'none', border: 'none', color: C.text, padding: 4 }}>
+          <button data-guide="qma-back" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} aria-disabled={done ? 'true' : undefined} style={{ background: 'none', border: 'none', color: C.text, padding: 4, ...offStyle }}>
             <ChevronLeft size={24}/>
           </button>
           <div data-guide="qma-title" style={{
@@ -1612,7 +1669,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
             </button>
           )}
           {/* 3b — REWIND: back to the previous exercise (symmetric to SKIP) */}
-          <button data-guide="qma-rewind" onClick={rewindExercise} aria-label="Previous exercise" aria-disabled={rewindOff ? 'true' : undefined} style={{
+          <button data-guide="qma-rewind" onClick={rewindExercise} aria-label="Previous exercise" disabled={done} aria-disabled={rewindOff ? 'true' : undefined} style={{
             width: 56, height: 56, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
@@ -1621,29 +1678,32 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           }}>
             <RotateCcw size={22}/>
           </button>
-          <button data-guide="qma-pause" onClick={handlePauseToggle} style={{
+          <button data-guide="qma-pause" onClick={handlePauseToggle} disabled={done} style={{
             width: 70, height: 70, borderRadius: 18,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: paused ? 'rgba(253,224,71,0.12)' : 'linear-gradient(135deg, rgba(253,224,71,0.3), rgba(253,224,71,0.15))',
             border: `1.5px solid ${paused ? GOLD : 'rgba(253,224,71,0.4)'}`,
             color: '#fff', cursor: 'pointer',
             boxShadow: paused ? 'none' : '0 0 20px rgba(253,224,71,0.2)',
+            ...offStyle,
           }}>
             {paused ? <Play size={28}/> : <Pause size={28}/>}
           </button>
-          <button data-guide="qma-skip" onClick={handleSkip} style={{
+          <button data-guide="qma-skip" onClick={handleSkip} disabled={done} style={{
             width: 56, height: 56, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
             color: C.neon, cursor: 'pointer',
+            ...offStyle,
           }}>
             <SkipForward size={22}/>
           </button>
-          <button data-guide="qma-stop" onClick={() => setConfirmEnd(true)} style={{
+          <button data-guide="qma-stop" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} disabled={done} style={{
             width: 56, height: 56, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)',
             color: '#ef4444', cursor: 'pointer',
+            ...offStyle,
           }}>
             <Square size={20}/>
           </button>
@@ -1683,7 +1743,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       )}
 
       {/* Confirm End Modal */}
-      {confirmEnd && (
+      {confirmEnd && !done && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 200,
           background: 'rgba(5,0,15,0.88)',
@@ -1715,7 +1775,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
                 color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
               }}>CANCEL</button>
-              <button onClick={handleEndConfirm} style={{
+              <button onClick={() => handleEndConfirm()} style={{
                 flex: 1, padding: '12px 0', borderRadius: 10,
                 background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)',
                 color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
