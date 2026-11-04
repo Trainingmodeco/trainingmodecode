@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import CornerHUD from './CornerHUD';
@@ -14,10 +15,21 @@ const GOLD = '#fde047';
 const ORB = "'Orbitron',sans-serif";
 const RAJ = "'Rajdhani',sans-serif";
 
+// Ladder names: as big as 8.5px, but never wider than a step. Five steps share
+// the screen minus 76px of margins and padding, and CHAMPION needs about 6.7px
+// of width per px of type, so the size shrinks on a narrow phone, not the word.
+const NAME_SIZE = 'min(8.5px, calc((100vw - 76px) / 33.5))';
+
+// Text for screen readers only (the drawing it describes is aria-hidden).
+const SR_ONLY = { position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 };
+
+// Each card is a named section with a real heading, so a screen reader can jump
+// between "THE LADDER", "WHAT LEVEL 3 MEANS", "WHAT YOU'VE DONE" and "NEXT".
 function Card({ label, accent = 'rgba(168,85,247,0.28)', children }) {
+  const id = useId();
   return (
-    <section style={{ borderRadius: 14, border: `1px solid ${accent}`, background: 'rgba(8,2,18,0.8)', padding: '12px 14px 14px' }}>
-      <div style={{ font: `700 9px ${ORB}`, color: '#c4a4d8', letterSpacing: '0.18em', marginBottom: 8 }}>{label}</div>
+    <section aria-labelledby={id} style={{ borderRadius: 14, border: `1px solid ${accent}`, background: 'rgba(8,2,18,0.8)', padding: '12px 14px 14px' }}>
+      <h2 id={id} style={{ margin: '0 0 8px', font: `700 9px ${ORB}`, color: '#c4a4d8', letterSpacing: '0.18em' }}>{label}</h2>
       {children}
     </section>
   );
@@ -32,20 +44,22 @@ function Ladder({ nodes }) {
   const secret = nodes.find((n) => n.secret);
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5 }}>
+      <ol style={{ display: 'flex', alignItems: 'flex-end', gap: 5, listStyle: 'none', margin: 0, padding: 0 }}>
         {steps.map((n, i) => {
           const lit = n.current;
           const done = n.ticked;
           const h = 52 + i * 11;
           return (
-            <div key={n.id} data-tier={n.id} data-state={n.state} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <li key={n.id} data-tier={n.id} data-state={n.state} style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {/* The state is colour and a tick on screen, so say it in words too. */}
+              <span style={SR_ONLY}>{n.say}</span>
               {n.marker && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 3 }}>
+                <div aria-hidden="true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 3 }}>
                   <span style={{ font: `900 8px ${ORB}`, color: '#0a0014', background: GOLD, borderRadius: 5, padding: '2px 5px', whiteSpace: 'nowrap', boxShadow: '0 0 10px rgba(253,224,71,0.55)' }}>{n.marker.label}</span>
                   <span style={{ width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: `5px solid ${GOLD}` }}/>
                 </div>
               )}
-              <div style={{
+              <div aria-hidden="true" style={{
                 width: '100%', height: h, boxSizing: 'border-box', borderRadius: 9,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0 7px',
                 background: lit ? `linear-gradient(180deg, ${n.color}, ${n.color}88)` : done ? `${n.color}26` : 'rgba(255,255,255,0.03)',
@@ -69,20 +83,21 @@ function Ladder({ nodes }) {
                   })}
                 </span>
               </div>
-              <div style={{ marginTop: 5, maxWidth: '100%', font: `800 7.5px ${ORB}`, letterSpacing: '0.02em', color: lit ? n.color : done ? '#fff' : '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.name.toUpperCase()}</div>
-              <div style={{ font: `700 9.5px ${RAJ}`, color: lit ? '#f5e9ff' : '#9a90b8', letterSpacing: '0.02em' }}>LVL {n.levels}</div>
-            </div>
+              <div aria-hidden="true" style={{ marginTop: 5, maxWidth: '100%', font: `800 ${NAME_SIZE} ${ORB}`, letterSpacing: '0.02em', color: lit ? n.color : done ? '#fff' : '#9a90b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.name.toUpperCase()}</div>
+              <div aria-hidden="true" style={{ font: `700 9.5px ${RAJ}`, color: lit ? '#f5e9ff' : '#9a90b8', letterSpacing: '0.02em' }}>LVL {n.levels}</div>
+            </li>
           );
         })}
-      </div>
+      </ol>
       {secret && (
-        <div data-tier={secret.id} data-state="current" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, padding: '8px 10px', border: `1.5px solid ${secret.color}aa`, background: `${secret.color}1f`, boxShadow: `0 0 18px -6px ${secret.color}` }}>
-          <span style={{ font: `900 14px ${ORB}`, color: secret.color }}>★</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
+        <div data-tier={secret.id} data-state="current" style={{ position: 'relative', marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, padding: '8px 10px', border: `1.5px solid ${secret.color}aa`, background: `${secret.color}1f`, boxShadow: `0 0 18px -6px ${secret.color}` }}>
+          <span style={SR_ONLY}>{secret.say}</span>
+          <span aria-hidden="true" style={{ font: `900 14px ${ORB}`, color: secret.color }}>★</span>
+          <span aria-hidden="true" style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', font: `900 10px ${ORB}`, color: secret.color, letterSpacing: '0.04em' }}>{secret.name.toUpperCase()}</span>
-            <span style={{ display: 'block', font: `700 9.5px ${RAJ}`, color: '#c4a4d8' }}>Secret tier · LVL {secret.levels}</span>
+            <span style={{ display: 'block', font: `700 10px ${RAJ}`, color: '#c4a4d8' }}>Secret tier · LVL {secret.levels}</span>
           </span>
-          <span style={{ font: `900 8px ${ORB}`, color: '#0a0014', background: GOLD, borderRadius: 5, padding: '3px 6px', whiteSpace: 'nowrap' }}>{secret.marker.label}</span>
+          <span aria-hidden="true" style={{ font: `900 8px ${ORB}`, color: '#0a0014', background: GOLD, borderRadius: 5, padding: '3px 6px', whiteSpace: 'nowrap' }}>{secret.marker.label}</span>
         </div>
       )}
     </div>
@@ -92,7 +107,7 @@ function Ladder({ nodes }) {
 function Fact({ label, value }) {
   return (
     <div style={{ minWidth: 0, background: 'rgba(12,2,24,0.8)', border: '1px solid rgba(168,85,247,0.22)', borderRadius: 10, padding: '7px 10px' }}>
-      <div style={{ font: `700 8px ${ORB}`, color: '#9a90b8', letterSpacing: '0.1em' }}>{label}</div>
+      <div style={{ font: `700 9px ${ORB}`, color: '#9a90b8', letterSpacing: '0.08em' }}>{label}</div>
       <div style={{ font: `900 15px ${ORB}`, color: '#fff', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
     </div>
   );
@@ -106,6 +121,11 @@ export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAv
   const displayName = (name && String(name).trim()) ? String(name).trim().toUpperCase() : 'TRAINEE';
   const nx = story.next;
 
+  // Land on the page heading, so a keyboard or screen-reader user starts at the
+  // top of the new page instead of on the page body.
+  const headingRef = useRef(null);
+  useEffect(() => { try { headingRef.current?.focus({ preventScroll: true }); } catch { /* nothing to focus */ } }, []);
+
   return (
     <PhoneFrame useBrandBg>
       <CornerHUD color="rgba(168,85,247,0.3)" size={24} inset={12}/>
@@ -118,12 +138,14 @@ export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAv
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
             {/* Hero: the portrait with the tier's glow, the level and the XP bar */}
-            <section style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: `1.5px solid ${t.color}99`, background: `radial-gradient(ellipse at 50% 22%, ${t.color}3d, #0a0014 74%)`, padding: '18px 16px 14px', textAlign: 'center', boxShadow: `0 0 30px -12px ${t.color}` }}>
-              <div style={{ width: 132, height: 164, margin: '0 auto', borderRadius: 14, overflow: 'hidden', border: `2px solid ${t.color}`, boxShadow: `0 0 34px -2px ${t.color}b3, 0 0 70px -10px ${t.color}80` }}>
-                <SafeImage src={tierImage(t.id, avSex)} alt="" loading="eager" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+            <section aria-label="Your level" style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: `1.5px solid ${t.color}99`, background: `radial-gradient(ellipse at 50% 22%, ${t.color}3d, #0a0014 74%)`, padding: '18px 16px 14px', textAlign: 'center', boxShadow: `0 0 30px -12px ${t.color}` }}>
+              {/* The art is about 2:3 and the secret tiers carry a title along the
+                  bottom edge, so the box follows the image instead of cropping it. */}
+              <div style={{ width: 120, minHeight: 176, margin: '0 auto', borderRadius: 14, overflow: 'hidden', border: `2px solid ${t.color}`, background: '#0a0014', boxShadow: `0 0 34px -2px ${t.color}b3, 0 0 70px -10px ${t.color}80` }}>
+                <SafeImage src={tierImage(t.id, avSex)} alt="" loading="eager" style={{ display: 'block', width: '100%', height: 'auto' }}/>
               </div>
               <div style={{ font: `900 14px ${ORB}`, color: '#fff', letterSpacing: '0.05em', marginTop: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
-              <div style={{ font: `900 38px ${ORB}`, color: GOLD, letterSpacing: '0.02em', lineHeight: 1.1, marginTop: 2, textShadow: '0 0 24px rgba(253,224,71,0.55), 0 0 50px rgba(168,85,247,0.4)' }}>{story.headline}</div>
+              <h1 ref={headingRef} tabIndex={-1} style={{ margin: '2px 0 0', outline: 'none', font: `900 38px ${ORB}`, color: GOLD, letterSpacing: '0.02em', lineHeight: 1.1, textShadow: '0 0 24px rgba(253,224,71,0.55), 0 0 50px rgba(168,85,247,0.4)' }}>{story.headline}</h1>
               <div style={{ display: 'inline-block', marginTop: 6, font: `800 10px ${ORB}`, color: t.color, letterSpacing: '0.1em', border: `1px solid ${t.color}99`, background: `${t.color}1a`, borderRadius: 99, padding: '4px 12px' }}>{story.tierLabel}{t.secret ? ' ★' : ''}</div>
               <div style={{ height: 8, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginTop: 14 }}>
                 <div style={{ width: `${story.xpInfo.pct}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/>
@@ -173,7 +195,7 @@ export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAv
             </Card>
 
             {/* The promotion */}
-            <section style={{ display: 'flex', alignItems: 'center', gap: 12, borderRadius: 14, padding: '13px 14px', border: '1.5px solid rgba(253,224,71,0.55)', background: 'linear-gradient(90deg,rgba(253,224,71,0.16),rgba(176,106,255,0.08))', boxShadow: '0 0 18px -6px rgba(253,224,71,0.6)' }}>
+            <section aria-label="Your promotion" style={{ display: 'flex', alignItems: 'center', gap: 12, borderRadius: 14, padding: '13px 14px', border: '1.5px solid rgba(253,224,71,0.55)', background: 'linear-gradient(90deg,rgba(253,224,71,0.16),rgba(176,106,255,0.08))', boxShadow: '0 0 18px -6px rgba(253,224,71,0.6)' }}>
               <span aria-hidden="true" style={{ flexShrink: 0, width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', font: `900 17px ${ORB}`, color: '#0a0014', background: `linear-gradient(135deg,${GOLD},#f59e0b)`, boxShadow: '0 0 14px rgba(253,224,71,0.5)' }}>★</span>
               <p style={{ margin: 0, font: `700 15px/1.35 ${RAJ}`, color: '#fff7c2' }}>{story.promo}</p>
             </section>

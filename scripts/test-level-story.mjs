@@ -2,6 +2,7 @@
 // has its own text, the numbers agree with getLevel, a brand-new athlete gets
 // no fake numbers, odd stats never throw, and no string is empty, long or
 // carries a franchise name. Run with `npm run test:levels`.
+import fs from 'node:fs';
 const store = new Map();
 globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
@@ -10,7 +11,7 @@ globalThis.localStorage = {
 };
 const { levelStory, LEVEL_STORY_CONSTANTS: K } = await import('../components/training-mode/data/levelStory.js');
 const { getLevel, getLevelProgress } = await import('../components/training-mode/data/userStats.js');
-const { VISIBLE_TIERS, SECRET_TIERS, SECRET_UNLOCK, getModeXp, getCurrentTier } = await import('../components/training-mode/data/tiers.js');
+const { VISIBLE_TIERS, SECRET_TIERS, SECRET_UNLOCK, getModeXp, getCurrentTier, tierIndexForLevel, sessionMode, trainingSessionCount } = await import('../components/training-mode/data/tiers.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -33,8 +34,10 @@ const strings = (v, out = []) => {
   return out;
 };
 // Copy only: ids, colours and state words are not sentences.
-const copy = (s) => strings([s.headline, s.tierLabel, s.xpInfo.barLabel, s.xpInfo.intoLabel, s.levelTitle, s.levelLine, s.levelLineParts, s.doneTitle, s.recap, s.facts, s.split.map((x) => x.label), s.promo, s.ladderNote, s.nextTitle, s.next.xpLine, s.next.paceLine, s.next.tierLine, s.ladder.map((n) => [n.name, n.label, n.levels, n.marker ? n.marker.label : []])]);
-const BANNED = ['street fighter', 'ryu', 'goku', 'batman', 'naruto', 'dragon ball', 'marvel', 'pokemon', 'zelda', 'mario', 'saiyan', 'jedi'];
+const copy = (s) => strings([s.headline, s.tierLabel, s.xpInfo.barLabel, s.xpInfo.intoLabel, s.levelTitle, s.levelLine, s.levelLineParts, s.doneTitle, s.recap, s.facts, s.split.map((x) => x.label), s.promo, s.ladderNote, s.nextTitle, s.next.xpLine, s.next.paceLine, s.next.tierLine, s.ladder.map((n) => [n.name, n.label, n.levels, n.say, n.marker ? n.marker.label : []])]);
+// Franchise and character names: the union of test-concepts, the content kit's
+// neverSay list and the common ones, matched on whole words (so "ken" is not "taken").
+const BANNED = /\b(street fighter|ryu|ken|akuma|capcom|goku|vegeta|saiyan|dragon ball|ultra instinct|ultra ego|saitama|one[- ]?punch|garou|baki|hanma|batman|dark knight|gotham|wonder woman|diana|themyscira|amazon|lasso|spider-?man|sonic|guts|berserk|sparta|tekken|mortal kombat|one piece|star wars|avengers|rocky|naruto|marvel|pokemon|zelda|mario|jedi)\b/i;
 
 // ── the constants agree with the app ───────────────────────────────────────
 check('500 XP a level', K.XP_PER_LEVEL === 500 && getLevelProgress(0).needed === 500);
@@ -50,14 +53,15 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('level 3 text gives XP 1,000 to 1,499', /XP 1,000 to 1,499/.test(s.levelLine), s.levelLine);
   check('level 3 is the last step', /last step of Rookie/.test(s.levelLine));
   check('level 3 range matches getLevel', getLevel(1000) === 3 && getLevel(1499) === 3 && s.xpInfo.levelFrom === 1000 && s.xpInfo.levelTo === 1499);
-  check('ladder note', s.ladderNote === 'Each level is 500 XP. Rookie to Max are 3 levels each.', s.ladderNote);
+  check('ladder note names every 3-level tier and says Champion has no end', s.ladderNote === 'Each level is 500 XP. Rookie, Novice, Warrior and Max take 3 levels each. Champion has no end.', s.ladderNote);
   check('level 3 maths: 250 in, 250 to go', s.xpInfo.into === 250 && s.xpInfo.toNext === 250 && s.xpInfo.pct === 50, JSON.stringify(s.xpInfo));
   check('bar label', s.xpInfo.barLabel === '250 XP to LEVEL 4', s.xpInfo.barLabel);
   check('level 3 title', s.levelTitle === 'WHAT LEVEL 3 MEANS');
   check('recap counts the split', s.recap === 'You have finished 12 sessions: 8 in Fit Mode and 4 in Fight Mode.', s.recap);
   check('facts carry the real numbers', s.facts.find((f) => f.key === 'sessions').value === '12' && s.facts.find((f) => f.key === 'xp').value === '1,250' && s.facts.find((f) => f.key === 'streak').value === '3');
   check('most used is Fit Mode', s.facts.find((f) => f.key === 'top').value === 'Fit Mode');
-  check('rookie promo', /habit/.test(s.promo));
+  check('level 3 promo is the last-step Rookie line (warm and true)', s.promo === 'You started from zero and you are still here. Be proud of that.', s.promo);
+  check('level 3 says what the level is, not a habit claim twice', !/habit/i.test(s.levelLine + s.promo));
   check('next names Novice at level 4', s.next.nextTier.name === 'Novice' && s.next.nextTier.startLevel === 4 && s.next.nextTier.levelsAway === 1 && /Level 4 is your first step into Novice/.test(s.next.tierLine), s.next.tierLine);
   check('next xp line', s.next.xpLine === '250 XP to Level 4.', s.next.xpLine);
   check('own pace from 12 sessions (104 XP)', s.next.paceIsOwn && s.next.paceXp === 104 && s.next.sessionsToNext === 3, JSON.stringify(s.next));
@@ -85,7 +89,8 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('level 15: Champion, XP 7,000 to 7,499', l15.level === 15 && l15.tier.name === 'Champion' && /Champion level: XP 7,000 to 7,499/.test(l15.levelLine), l15.levelLine);
   const l16 = levelStory(atXp(7500));
   check('level 16 reuses the Champion wording with its own numbers', l16.level === 16 && /Level 16 is a Champion level: XP 7,500 to 7,999/.test(l16.levelLine) && /Champion levels/.test(l16.levelLine), l16.levelLine);
-  check('Champion is at the top: what is left, no next tier', l16.next.atTop && l16.next.nextTier === null && /top tier/.test(l16.next.tierLine) && l16.next.xpLine === '500 XP to Level 17.');
+  check('Champion is at the top: what is left, no next tier', l16.next.atTop && l16.next.nextTier === null && /What is left is more levels/.test(l16.next.tierLine) && l16.next.xpLine === '500 XP to Level 17.');
+  check('Champion copy never says elite or top tier (a secret tier is beyond it)', !/elite|top tier/i.test(copy(l16).join(' ') + copy(levelStory(atXp(6000))).join(' ')));
   check('Champion ladder: all four ticked, Champion current, still 13+', l16.ladder.map((n) => n.state).join() === 'passed,passed,passed,passed,current' && l16.ladder[4].levels === '13+');
   check('Champion does not mention a secret tier', !/secret|Peak|Ascendant|Final/i.test(copy(l16).join(' ')));
   const l13 = levelStory(atXp(6000));
@@ -137,9 +142,10 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
 // ── a brand-new athlete: no fake numbers ───────────────────────────────────
 {
   const s = levelStory({ xp: 0, sessions: [] }, { streak: 0 });
-  check('zero sessions: the first-session line', s.recap === 'Your first session starts this level.' && s.isNew && s.sessions === 0);
+  check('zero sessions: an invitation, not a claim', s.recap === 'You have not trained yet. Your first session is the first step.' && s.isNew && s.sessions === 0, s.recap);
   check('zero sessions: no facts, no split', s.facts.length === 0 && s.split.length === 0);
-  check('zero sessions: the promo does not claim work', /first session/.test(s.promo) && !/habit|work is showing|train like/.test(s.promo));
+  check('zero sessions: the promo does not claim work', /first session/.test(s.promo) && !/habit|work is showing|train like|building/.test(s.promo));
+  check('level 1 meaning is an invitation for the first sessions', /starts here/.test(s.levelLine) && !/you are learning|finding your feet/i.test(s.levelLine), s.levelLine);
   check('zero sessions: pace uses the typical session', !s.next.paceIsOwn && s.next.paceXp === 90 && s.next.sessionsToNext === 6 && /typical session/.test(s.next.paceLine));
   check('zero sessions: level 1 Rookie, 500 XP to Level 2', s.level === 1 && s.xpInfo.barLabel === '500 XP to LEVEL 2' && s.xpInfo.into === 0);
   check('zero-session ladder: Rookie current only', s.ladder.map((n) => n.state).join() === 'current,ahead,ahead,ahead,ahead' && s.ladder[0].pips.map((p) => p.state).join() === 'here,todo,todo');
@@ -150,20 +156,22 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('one session', levelStory(mk([['Fit Mode', 1, 40]])).recap === 'You have finished 1 session, all in Fit Mode.');
   check('all one mode', levelStory(mk([['Fight Focus', 4]])).recap === 'You have finished 4 sessions, all in Fight Mode.');
   const mix = levelStory(mk([['Fit Mode', 3], ['Quick Mission', 2], ['Cardio', 1], ['Fight Focus', 2], ['Combo Coach', 1], ['Practice', 1], ['Combat Conditioning', 2], ['Training Camp', 1], ['Start Here', 1]]));
-  check('the buckets are the tier buckets (Quick Mission and Cardio are Fit; Practice is Fight)', mix.recap === 'You have finished 14 sessions: 6 in Fit Mode, 4 in Fight Mode, 2 in Combat Conditioning and 2 in other training.', mix.recap);
+  check('the buckets are the tier buckets (Quick Mission and Cardio are Fit; Practice is Fight); Camp is named; a Start Here lesson is not a session', mix.recap === 'You have finished 13 sessions: 6 in Fit Mode, 4 in Fight Mode, 2 in Combat Conditioning and 1 in Training Camp.', mix.recap);
   const tapes = levelStory(mk([["Coach's Tapes", 2, 50, { kind: 'fight' }], ["Coach's Tapes", 1, 50, { kind: 'fit' }]]));
   check("Coach's Tapes follow their shelf", tapes.split.find((x) => x.key === 'fight').count === 2 && tapes.split.find((x) => x.key === 'fit').count === 1);
   const stats = mk([['Fit Mode', 5, 70], ['Fight Focus', 3, 90], ['Combat Conditioning', 2, 60], ["Coach's Tapes", 2, 40, { kind: 'fight' }], ['Cardio', 1, 30], ['Mission of the Day', 2, 25]]);
   const s = levelStory(stats);
   const bucketCount = Object.fromEntries(s.split.map((x) => [x.key, x.count]));
   const m = getModeXp(stats);
-  check('the split agrees with getModeXp on which rows land where', bucketCount.fit === 6 && bucketCount.fight === 5 && bucketCount.cc === 2 && bucketCount.other === 2 && m.fitXp === 5 * 70 + 30 && m.fightXp === 3 * 90 + 80 && m.ccXp === 120, JSON.stringify([bucketCount, m]));
+  check('the split agrees with getModeXp on which rows land where; award rows are in no bucket', bucketCount.fit === 6 && bucketCount.fight === 5 && bucketCount.cc === 2 && bucketCount.other === undefined && bucketCount.camp === undefined && m.fitXp === 5 * 70 + 30 && m.fightXp === 3 * 90 + 80 && m.ccXp === 120 && s.sessions === 13, JSON.stringify([bucketCount, m, s.sessions]));
   check('split percentages add to about 100', Math.abs(s.split.reduce((a, x) => a + x.pct, 0) - 100) <= 2);
-  check('most used is the biggest of Fit, Fight, Conditioning', s.facts.find((f) => f.key === 'top').value === 'Fit Mode');
+  check('most sessions is the biggest of Fit, Fight, Conditioning', s.facts.find((f) => f.key === 'top').value === 'Fit Mode' && s.facts.find((f) => f.key === 'top').label === 'MOST SESSIONS');
   const tie = levelStory(mk([['Fit Mode', 3], ['Fight Focus', 3]]));
   check('a tie has no winner', tie.facts.find((f) => f.key === 'top').value === 'Even split');
-  const onlyOther = levelStory(mk([['Start Here', 2]]));
-  check('only other rows: no most-used, no mode named', onlyOther.recap === 'You have finished 2 sessions.' && !onlyOther.facts.some((f) => f.key === 'top'));
+  const onlyOther = levelStory(mk([['Mystery', 2]]));
+  check('only unknown rows: no most-used, no mode named', onlyOther.recap === 'You have finished 2 sessions.' && !onlyOther.facts.some((f) => f.key === 'top'));
+  const mixOther = levelStory(mk([['Fit Mode', 2], ['Mystery', 1]]));
+  check('unknown rows are "other training"', mixOther.recap === 'You have finished 3 sessions: 2 in Fit Mode and 1 in other training.', mixOther.recap);
   check('no streak given: no streak fact', !levelStory(mk([['Fit Mode', 2]])).facts.some((f) => f.key === 'streak'));
   check('a streak of 0 is shown as 0', levelStory(mk([['Fit Mode', 2]]), { streak: 0 }).facts.find((f) => f.key === 'streak').value === '0');
 }
@@ -233,19 +241,153 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('does not touch storage', store.size === 0);
 }
 
+// ── review fixes: one rule for the tier, everywhere ───────────────────────
+{
+  // The Progress tab, the content kit and the Level page all rank by the level's
+  // tier. VISIBLE_TIERS[].xp is where each tier's band starts, so they cannot differ.
+  check('VISIBLE_TIERS[].xp is where each tier\'s level band starts', VISIBLE_TIERS.every((t, i) => t.xp === (i * K.LEVELS_PER_TIER) * K.XP_PER_LEVEL && getLevel(t.xp) === i * K.LEVELS_PER_TIER + 1), JSON.stringify(VISIBLE_TIERS.map((t) => t.xp)));
+  let agree = true;
+  for (let xp = 0; xp <= 9000; xp += 37) {
+    // What ProgressScreen's rank did before it used the level: the last tier whose xp is reached.
+    const byXp = VISIBLE_TIERS.reduce((r, t, i) => (xp >= t.xp ? i : r), 0);
+    const byLevel = tierIndexForLevel(getLevel(xp));
+    const page = levelStory(atXp(xp, 3)).tier.index;
+    if (byXp !== byLevel || byLevel !== page) { agree = false; console.log('   xp', xp, byXp, byLevel, page); break; }
+  }
+  check('rank by XP, rank by level and the Level page agree at every 37 XP to 9,000', agree);
+  const prog = fs.readFileSync(new URL('../components/training-mode/ProgressScreen.jsx', import.meta.url), 'utf8');
+  check('ProgressScreen ranks by the level\'s tier (tierIndexForLevel(getLevel(xp)))', /const getRank = \(xp\) => RANKS\[tierIndexForLevel\(getLevel\(xp\)\)\]/.test(prog));
+  const kit = JSON.parse(fs.readFileSync(new URL('../content-kit/content-kit.json', import.meta.url), 'utf8'));
+  check('the content kit\'s ranks start where the app\'s tiers start (run npm run content:kit)', kit.ranks.every((r, i) => r.xpFrom === VISIBLE_TIERS[i].xp), JSON.stringify(kit.ranks.map((r) => r.xpFrom)));
+  // The friend at level 3 and the owner at level 10, by name.
+  check('level 3 is Rookie and level 4 is Novice on the page, as on Profile', levelStory(atXp(1260)).tier.name === 'Rookie' && levelStory(atXp(1520)).tier.name === 'Novice' && getCurrentTier(atXp(1260)).name === 'Rookie' && getCurrentTier(atXp(1520)).name === 'Novice');
+}
+
+// ── review fixes: what counts as a session ────────────────────────────────
+{
+  const rows = mk([['Fit Mode', 3], ['Mission of the Day', 3, 25], ['Hybrid Training Bonus', 1, 40], ['Start Here', 2, 20], ['Training Camp', 2], ['Mystery', 1]]);
+  const s = levelStory(rows, { streak: 1 });
+  check('award rows (Mission of the Day, Hybrid bonus, Start Here) are not sessions', trainingSessionCount(rows) === 6 && s.sessions === 6 && s.facts.find((f) => f.key === 'sessions').value === '6', String(s.sessions));
+  check('Profile and the Level page count the same', trainingSessionCount(rows) === s.sessions && ['Mission of the Day', 'Hybrid Training Bonus', 'Start Here'].every((t) => sessionMode({ type: t }) === 'bonus'));
+  check('award XP still counts in the XP total', s.xp === rows.xp && s.facts.find((f) => f.key === 'xp').value === String(rows.xp).replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+  check('Training Camp is named, not "other training"', /2 in Training Camp/.test(s.recap) && /1 in other training/.test(s.recap), s.recap);
+  check('trainingSessionCount tolerates junk', trainingSessionCount(null) === 0 && trainingSessionCount({ sessions: 'x' }) === 0 && trainingSessionCount({ sessions: [null, 3, { type: 'Fit Mode' }, { type: 'Start Here' }] }) === 1);
+  const pace = levelStory(mk([['Fit Mode', 2, 100], ['Mission of the Day', 2, 25]], 250));
+  check('pace counts sessions, not award rows (2 sessions: still the typical 90 XP)', pace.sessions === 2 && !pace.next.paceIsOwn && pace.next.paceXp === 90);
+}
+
+// ── review fixes: XP but no (real) sessions ───────────────────────────────
+{
+  const noRows = levelStory({ xp: 3000, sessions: [] });
+  check('level 7 with no rows: not "your first session"', noRows.level === 7 && noRows.recap === 'No sessions are recorded on this device.' && !noRows.isNew, noRows.recap);
+  check('level 7 with no rows: the Warrior promo, the XP fact, no session numbers', noRows.promo === 'You are a Warrior now. That is a real step up, and you earned it.' && noRows.facts.map((f) => f.key).join() === 'xp' && noRows.split.length === 0);
+  const bonusOnly = levelStory(mk([['Mission of the Day', 1, 150]]));
+  check('a bonus-only history is not "1 session"', bonusOnly.sessions === 0 && bonusOnly.recap === 'No sessions are recorded on this device.' && !/finished/.test(bonusOnly.recap), bonusOnly.recap);
+  const one = levelStory(mk([['Fit Mode', 1, 90]]));
+  check('level 1 with one session: a nudge, no claim of a habit', one.promo === 'You have started. Come back and do it again.' && !/habit|building/.test(one.promo + one.levelLine), one.promo);
+  const two = levelStory(mk([['Fit Mode', 2, 90]]));
+  check('level 1 with two sessions: the same nudge', two.promo === one.promo);
+  const three = levelStory(mk([['Fit Mode', 3, 90]]));
+  check('level 1 with three sessions: the Rookie line', three.promo === 'You are on the ladder now. Each session takes you one step higher.', three.promo);
+  check('XP with no rows is not "new"', levelStory({ xp: 1, sessions: [] }).isNew === false && levelStory({ xp: 0, sessions: [] }).isNew === true);
+}
+
+// ── review fixes: secret-tier copy is true to the numbers ─────────────────
+{
+  const lean = (fit, fight, n = 5) => mk([['Fit Mode', n, fit], ['Fight Focus', n, fight]], 13000);
+  const fitWins = levelStory(lean(300, 100), { tier: SECRET_TIERS.peakPhysique });
+  check('Peak Physique by Fit XP: says Fit leans', /Fit Mode training/.test(fitWins.levelLine) && /Fit Mode work/.test(fitWins.promo));
+  const tie = levelStory(lean(200, 200), { tier: SECRET_TIERS.peakPhysique });
+  check('Peak Physique on an exact tie: no lean claimed', !/Fit Mode|leans/.test(tie.levelLine + tie.promo) && /passed Champion/.test(tie.levelLine) && /passed Champion/.test(tie.promo), tie.levelLine + ' | ' + tie.promo);
+  const none = levelStory({ xp: 13000, sessions: [] });
+  check('Peak Physique with 0 vs 0 XP: no lean claimed', none.tier.id === 'peak-physique' && !/Fit Mode|leans/.test(none.levelLine + none.promo));
+  const fightWins = levelStory(mk([['Fit Mode', 10, 100], ['Fight Focus', 5, 400]], 12500));
+  check('Fight Ascendant by Fight XP: says Fight leans', fightWins.tier.id === 'fight-ascendant' && /Fight Mode training/.test(fightWins.levelLine) && /Fight Mode work/.test(fightWins.promo));
+  check('the lean is by XP, and the session fact is labelled by sessions (10 Fit vs 5 Fight sessions)', fightWins.facts.find((f) => f.key === 'top').label === 'MOST SESSIONS' && fightWins.facts.find((f) => f.key === 'top').value === 'Fit Mode' && /XP leans/.test(fightWins.levelLine));
+  const wrongHint = levelStory(lean(300, 100), { tier: SECRET_TIERS.fightAscendant });
+  check('a hint that disagrees with the rows gets the neutral line, not a false lean', !/Fight Mode training/.test(wrongHint.levelLine) && /passed Champion/.test(wrongHint.levelLine));
+  const ff = levelStory(mk([['Fit Mode', 3, 100]], 20500), { tier: SECRET_TIERS.finalForm });
+  check('Final Form starts at its own level (20,000 XP), not the secret band\'s', ff.ladder.at(-1).levels === `${K.FINAL_FORM_START_LEVEL}+` && K.FINAL_FORM_START_LEVEL === getLevel(SECRET_UNLOCK.finalForm.totalXp) && ff.tier.levels === '41+' && K.FINAL_FORM_START_LEVEL === 41, ff.ladder.at(-1).levels);
+  check('Peak Physique still starts at 25', levelStory(lean(300, 100), { tier: SECRET_TIERS.peakPhysique }).ladder.at(-1).levels === '25+');
+}
+
+// ── review fixes: numbers over 999 read the same everywhere ──────────────
+{
+  const big = levelStory({ xp: 5000000, sessions: [] });
+  check('level 10,001 is written with its comma in every string', big.headline === 'LEVEL 10,001' && big.levelLine.startsWith('Level 10,001 ') && !/\b10001\b/.test(copy(big).join(' ')), big.levelLine);
+}
+
+// ── review fixes: the ladder speaks ───────────────────────────────────────
+{
+  const s = levelStory(atXp(1260));
+  check('every ladder step says its state in words', s.ladder.every((n) => /\.$/.test(n.say)) && s.ladder[0].say === 'Rookie, levels 1 to 3, you are here at level 3.' && s.ladder[1].say === 'Novice, levels 4 to 6, still ahead.' && s.ladder[4].say === 'Champion, level 13 and up, still ahead.', JSON.stringify(s.ladder.map((n) => n.say)));
+  const l10 = levelStory(atXp(4960));
+  check('passed steps say passed', l10.ladder[0].say === 'Rookie, levels 1 to 3, passed.' && l10.ladder[3].say === 'Max, levels 10 to 12, you are here at level 10.');
+  const sec = levelStory(mk([['Fit Mode', 30, 300]], 13000));
+  check('a secret tier is said as a secret tier, and Champion closes at 24', sec.ladder.at(-1).say === 'Peak Physique, secret tier, level 25 and up, you are here at level 27.' && sec.ladder[4].say === 'Champion, levels 13 to 24, passed.', JSON.stringify(sec.ladder.map((n) => n.say)));
+  const view = fs.readFileSync(new URL('../components/training-mode/LevelView.jsx', import.meta.url), 'utf8');
+  check('LevelView: cards are headed sections, the ladder is a list, the heading takes focus', /<h2 id=\{id\}/.test(view) && /aria-labelledby=\{id\}/.test(view) && /<ol /.test(view) && /<li /.test(view) && /<h1 ref=\{headingRef\} tabIndex=\{-1\}/.test(view) && /\{n\.say\}/.test(view) && /\{secret\.say\}/.test(view));
+}
+
+// ── review fixes: no two lines on one screen say the same thing ───────────
+{
+  const words = (t) => t.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).filter(Boolean);
+  const shingles = (t, n) => { const w = words(t); const out = new Set(); for (let i = 0; i + n <= w.length; i += 1) out.add(w.slice(i, i + n).join(' ')); return out; };
+  // Words that carry the ladder itself, not an idea.
+  const COMMON = new Set(['level', 'levels', 'tier', 'ladder', 'main', 'session', 'sessions', 'training', 'train', 'trained', 'champion', 'rookie', 'novice', 'warrior', 'peak', 'physique', 'fight', 'ascendant', 'final', 'form', 'unlocked', 'passed', 'there', 'where', 'their', 'still', 'those', 'these', 'every', 'which', 'again', 'start', 'starts', 'steps', 'record', 'earned', 'secret']);
+  const content = (t) => new Set(words(t).filter((w) => w.length >= 5 && !COMMON.has(w)));
+  let bad = [];
+  const screens = [];
+  for (let lv = 1; lv <= 30; lv += 1) {
+    for (const n of [0, 1, 5]) screens.push([`L${lv}/${n}`, levelStory(mk([['Fit Mode', n, 90]], (lv - 1) * 500 + 7), { streak: 2 })]);
+  }
+  for (const kind of ['fit', 'fight', 'tie']) screens.push([`secret-${kind}`, levelStory(mk([['Fit Mode', 5, kind === 'fight' ? 50 : kind === 'fit' ? 300 : 200], ['Fight Focus', 5, kind === 'fight' ? 300 : kind === 'fit' ? 50 : 200]], 13000))]);
+  for (const [name, st] of screens) {
+    const parts = { meaning: st.levelLineParts[1], promo: st.promo, recap: st.recap, tier: st.next.tierLine, note: st.ladderNote };
+    const pairs = [['meaning', 'promo'], ['meaning', 'tier'], ['promo', 'tier'], ['promo', 'recap'], ['meaning', 'recap'], ['promo', 'note']];
+    for (const [x, y] of pairs) {
+      const echo = [...shingles(parts[x], 5)].filter((g) => shingles(parts[y], 5).has(g));
+      const ideas = [...content(parts[x])].filter((w) => content(parts[y]).has(w));
+      if (echo.length || ideas.length) bad.push(`${name} ${x}/${y}: ${[...echo, ...ideas].join(', ')}`);
+    }
+  }
+  check('on one screen, the meaning, promo, recap and next lines share no 5-word phrase and no idea word', bad.length === 0, bad.slice(0, 6).join(' | '));
+  // Across the fifteen levels, no phrase is the standard line twice.
+  const pool = new Set();
+  for (let lv = 1; lv <= 15; lv += 1) { const st = levelStory(mk([['Fit Mode', 5, 90]], (lv - 1) * 500 + 7)); pool.add(st.levelLineParts[1]); pool.add(st.promo); }
+  const seen = new Map(); const repeats = [];
+  [...pool].forEach((line, i) => shingles(line, 4).forEach((g) => { if (seen.has(g) && seen.get(g) !== i) repeats.push(g); else seen.set(g, i); }));
+  check('across levels 1-15 no 4-word phrase is reused (no "showing up" / "one session at a time" / "serious work" twice)', repeats.length === 0, [...new Set(repeats)].join(' | '));
+  const promos = new Set(); for (let lv = 1; lv <= 13; lv += 1) promos.add(levelStory(mk([['Fit Mode', 5, 90]], (lv - 1) * 500 + 7)).promo);
+  check('levels 1-13 each have their own promotion line', promos.size === 13, String(promos.size));
+}
+
 // ── copy rules ─────────────────────────────────────────────────────────────
 {
   const sample = [];
-  for (const xp of [0, 250, 700, 1250, 1500, 2600, 3200, 4100, 4960, 5500, 6100, 7050, 7600, 9999, 13000, 20500, 1e9]) {
-    sample.push(levelStory(mk([['Fit Mode', 6], ['Fight Focus', 4], ['Combat Conditioning', 1], ['Training Camp', 1]], xp), { streak: 5 }));
-    sample.push(levelStory({ xp, sessions: [] }, { streak: 0 }));
+  // Every level 1 to 30 (with sessions, with none and with a few), and the XP a
+  // level starts and ends on.
+  for (let lv = 1; lv <= 30; lv += 1) {
+    for (const xp of [(lv - 1) * 500, lv * 500 - 1]) {
+      sample.push(levelStory(mk([['Fit Mode', 6], ['Fight Focus', 4], ['Combat Conditioning', 1], ['Training Camp', 1]], xp), { streak: 5 }));
+      sample.push(levelStory({ xp, sessions: [] }, { streak: 0 }));
+    }
+    sample.push(levelStory(mk([['Fit Mode', 1, 90]], (lv - 1) * 500 + 7)));
   }
-  sample.push(levelStory(mk([['Fit Mode', 3]], 20500), { tier: SECRET_TIERS.finalForm }));
+  for (const xp of [0, 250, 1e9]) sample.push(levelStory({ xp, sessions: [] }, { streak: 0 }));
+  // All three secret tiers, with each lean and with the neutral line.
+  const secretStats = [
+    mk([['Fit Mode', 30, 300], ['Fight Focus', 10, 200]], 13000),
+    mk([['Fit Mode', 10, 100], ['Fight Focus', 30, 300]], 13000),
+    mk([['Fit Mode', 5, 200], ['Fight Focus', 5, 200]], 13000),
+    mk([['Fit Mode', 3, 100]], 20500),
+  ];
+  for (const st of secretStats) for (const tier of [undefined, SECRET_TIERS.peakPhysique, SECRET_TIERS.fightAscendant, SECRET_TIERS.finalForm]) sample.push(levelStory(st, { streak: 5, tier }));
   const every = sample.flatMap(copy);
-  check('copy is not empty', every.length > 100 && every.every((t) => t.trim().length > 0));
+  check('copy is not empty', every.length > 500 && every.every((t) => t.trim().length > 0), String(every.length));
   check('every string is under 160 characters', every.every((t) => t.length < 160), every.filter((t) => t.length >= 160).join(' | '));
   check('every sentence in the page text is under 140 characters', sample.every((s) => [...s.levelLineParts, s.recap, s.promo, s.next.xpLine, s.next.paceLine, s.next.tierLine].every((t) => t.length < 140)));
-  const banned = every.filter((t) => BANNED.some((w) => t.toLowerCase().includes(w)));
+  const banned = every.filter((t) => BANNED.test(t));
   check('no franchise or character names', banned.length === 0, banned.join(' | '));
   check('no medical claims', every.every((t) => !/\b(cure|heal|disease|doctor|injury|diagnos|treat|prescri|medical)/i.test(t)));
   check('no more than one exclamation mark per screen', sample.every((s) => copy(s).join('').split('!').length - 1 <= 1));
@@ -253,7 +395,22 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('no double spaces or stray punctuation', every.every((t) => !/\s{2,}|\.\.|,,|\s[.,]/.test(t)), every.filter((t) => /\s{2,}|\.\.|,,|\s[.,]/.test(t)).join(' | '));
   check('second person: no "the athlete"', every.every((t) => !/the athlete/i.test(t)));
   check('promo is always present', sample.every((s) => s.promo && s.promo.length > 20));
+  check('no copy line says "elite" (Max was Elite once)', every.every((t) => !/\belite\b/i.test(t)));
   check('the secret tiers only show to people in one', sample.filter((s) => !s.tier.secret).every((s) => !/secret|Peak Physique|Fight Ascendant|Final Form/.test(copy(s).join(' '))));
+  check('no secret copy claims a lean the rows do not show', sample.filter((s) => s.tier.secret && s.tier.id !== 'final-form').every((s) => !/leans toward Fit/.test(s.levelLine) || /Peak Physique/.test(s.levelLine)));
+
+  // The words that are written in the page itself, not in levelStory: every
+  // string literal and JSX text in LevelView.jsx and the Level tags on Profile.
+  const lits = (file) => {
+    const src = fs.readFileSync(new URL(file, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    const out = [];
+    for (const m of src.matchAll(/'([^'\n]{3,})'|"([^"\n]{3,})"|>\s*([A-Za-z0-9⚔️·›★ ,.'’!?&:%+-]{3,}?)\s*</g)) out.push(m[1] || m[2] || m[3]);
+    return out.map((t) => t.trim()).filter(Boolean);
+  };
+  const pageLits = [...lits('../components/training-mode/LevelView.jsx'), ...lits('../components/training-mode/Profile.jsx').filter((t) => /LEVEL|AVATAR|level/i.test(t))];
+  check('literal strings in LevelView.jsx and the Profile entry points were found', pageLits.length > 15 && pageLits.some((t) => /CHANGE AVATAR/.test(t)) && pageLits.some((t) => /LEVEL ›/.test(t)), String(pageLits.length));
+  check('no franchise or character names in the page text', pageLits.every((t) => !BANNED.test(t)), pageLits.filter((t) => BANNED.test(t)).join(' | '));
+  check('the page text has no exclamation mark (the promo line is the only one)', pageLits.every((t) => !t.includes('!')));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

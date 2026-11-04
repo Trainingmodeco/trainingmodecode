@@ -1,4 +1,4 @@
-import { getLevel } from './userStats';
+import { getLevel, getLevelProgress } from './userStats';
 import { getSeriesProgress } from './arcadeProgress';
 import { TRAINING_ARCADE_SERIES } from './trainingArcadeData';
 
@@ -9,14 +9,22 @@ import { TRAINING_ARCADE_SERIES } from './trainingArcadeData';
 //   · Final Form     — maxed Fit + Fight + Combat Conditioning + full saga clears
 // One engine so every screen (profile, progress, level-up, results) agrees.
 
+// A tier is a band of levels, so each tier's `xp` is where its band starts:
+// the first level of the tier times the XP a level takes. Derived, not typed,
+// so the Progress tab, the content kit and the Level page can never rank the
+// same athlete differently (see tierIndexForLevel below).
+const LEVELS_PER_TIER = 3;
+const XP_PER_LEVEL = getLevelProgress(0).needed;
+const tierStartXp = (i) => i * LEVELS_PER_TIER * XP_PER_LEVEL;
+
 export const VISIBLE_TIERS = [
-  { id: 'rookie',   name: 'Rookie',   label: 'Combat Rookie',   color: '#b87333', xp: 0 },
-  { id: 'novice',   name: 'Novice',   label: 'Combat Novice',   color: '#c0c0c0', xp: 500 },
-  { id: 'warrior',  name: 'Warrior',  label: 'Combat Warrior',  color: '#fde047', xp: 1500 },
+  { id: 'rookie',   name: 'Rookie',   label: 'Combat Rookie',   color: '#b87333', xp: tierStartXp(0) },
+  { id: 'novice',   name: 'Novice',   label: 'Combat Novice',   color: '#c0c0c0', xp: tierStartXp(1) },
+  { id: 'warrior',  name: 'Warrior',  label: 'Combat Warrior',  color: '#fde047', xp: tierStartXp(2) },
   // Shown as MAX (owner call). The id stays 'elite' so saved progress and the
   // avatar art (/avatars/*/elite) keep resolving.
-  { id: 'elite',    name: 'Max',      label: 'Combat Max',      color: '#60a5fa', xp: 3500 },
-  { id: 'champion', name: 'Champion', label: 'Combat Champion', color: '#c084fc', xp: 7000 },
+  { id: 'elite',    name: 'Max',      label: 'Combat Max',      color: '#60a5fa', xp: tierStartXp(3) },
+  { id: 'champion', name: 'Champion', label: 'Combat Champion', color: '#c084fc', xp: tierStartXp(4) },
 ];
 
 export const SECRET_TIERS = {
@@ -40,16 +48,33 @@ export const SECRET_UNLOCK = {
 const FIGHT_TYPES = new Set(['Fight Focus', 'Combo Coach', 'Practice']);
 const FIT_TYPES = new Set(['Fit Mode', 'Quick Mission', 'Cardio']);
 
+// Rows that are an award on top of a session, not a session of their own: the
+// Mission of the Day, the Hybrid bonus and Start Here lessons.
+const BONUS_TYPES = new Set(['Mission of the Day', 'Hybrid Training Bonus', 'Start Here']);
+
 // Which bucket one session row counts in: 'fit', 'fight', 'cc' (Combat
-// Conditioning) or 'other' (camp, lessons, bonus rows, anything unknown). One
-// rule for the tier maths and the Level page, so the two cannot drift.
+// Conditioning), 'camp' (Training Camp), 'bonus' (an award row, not a session)
+// or 'other' (anything unknown). One rule for the tier maths and the Level
+// page, so the two cannot drift.
 export function sessionMode(s) {
   if (!s || typeof s !== 'object') return 'other';
   if (FIGHT_TYPES.has(s.type)) return 'fight';
   if (FIT_TYPES.has(s.type)) return 'fit';
   if (s.type === "Coach's Tapes") return s.kind === 'fight' ? 'fight' : 'fit';
   if (s.type === 'Combat Conditioning') return 'cc';
+  if (s.type === 'Training Camp') return 'camp';
+  if (BONUS_TYPES.has(s.type)) return 'bonus';
   return 'other';
+}
+
+// How many sessions the athlete has finished: every row except the award rows,
+// which ride along with a real session. Profile and the Level page both use it.
+export function trainingSessionCount(stats) {
+  let n = 0;
+  for (const s of Array.isArray(stats?.sessions) ? stats.sessions : []) {
+    if (s && typeof s === 'object' && sessionMode(s) !== 'bonus') n += 1;
+  }
+  return n;
 }
 
 // Split lifetime XP into fit / fight / combat-conditioning buckets.
@@ -79,7 +104,7 @@ function fullyClearedSagaCount() {
 
 // Visible-tier index for a level — same banding the app has always used.
 export function tierIndexForLevel(level) {
-  return Math.min(Math.floor(((level || 1) - 1) / 3), VISIBLE_TIERS.length - 1);
+  return Math.min(Math.floor(((level || 1) - 1) / LEVELS_PER_TIER), VISIBLE_TIERS.length - 1);
 }
 
 // The user's current tier, secret tiers included. Pass loadStats() output.
