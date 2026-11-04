@@ -140,7 +140,7 @@
       "id": "novice",
       "name": "Novice",
       "label": "Combat Novice",
-      "xpFrom": 500,
+      "xpFrom": 1500,
       "color": "#c0c0c0",
       "art": {
         "path": "/static/tiers/novice-male.png",
@@ -151,7 +151,7 @@
       "id": "warrior",
       "name": "Warrior",
       "label": "Combat Warrior",
-      "xpFrom": 1500,
+      "xpFrom": 3000,
       "color": "#fde047",
       "art": {
         "path": "/static/tiers/warrior-male.png",
@@ -162,7 +162,7 @@
       "id": "elite",
       "name": "Max",
       "label": "Combat Max",
-      "xpFrom": 3500,
+      "xpFrom": 4500,
       "color": "#60a5fa",
       "art": {
         "path": "/static/tiers/elite-male.png",
@@ -173,7 +173,7 @@
       "id": "champion",
       "name": "Champion",
       "label": "Combat Champion",
-      "xpFrom": 7000,
+      "xpFrom": 6000,
       "color": "#c084fc",
       "art": {
         "path": "/static/tiers/champion-male.png",

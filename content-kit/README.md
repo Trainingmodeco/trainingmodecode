@@ -63,10 +63,10 @@ Generated 2026-11-04 from the app's own data by `npm run content:kit`. Don't edi
 ## Ranks
 
 - Rookie (Combat Rookie) from 0 XP
-- Novice (Combat Novice) from 500 XP
-- Warrior (Combat Warrior) from 1500 XP
-- Max (Combat Max) from 3500 XP
-- Champion (Combat Champion) from 7000 XP
+- Novice (Combat Novice) from 1500 XP
+- Warrior (Combat Warrior) from 3000 XP
+- Max (Combat Max) from 4500 XP
+- Champion (Combat Champion) from 6000 XP
 
 ## Named workouts
 
