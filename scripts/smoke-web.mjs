@@ -48,6 +48,13 @@ await ctx.addInitScript(() => {
     try { localStorage.clear(); sessionStorage.clear(); } catch {}
     history.replaceState(null, '', location.pathname);
   }
+  // A check can hand the next page load a session to come back into (see
+  // builderAt). Written here, at document start: after the previous page's
+  // unload re-saved its own live session over the key, before the app boots.
+  try {
+    const seed = sessionStorage.getItem('__smoke_seed');
+    if (seed) { sessionStorage.removeItem('__smoke_seed'); localStorage.setItem('trainingModePausedSession', seed); }
+  } catch {}
   if (localStorage.getItem('__smoke')) return;
   localStorage.setItem('trainingModeOnboardingComplete', 'true');
   localStorage.setItem('trainingModeTourComplete', 'true');
@@ -420,6 +427,96 @@ await check('build workout generate + start', async () => {
   await page.getByText('WARM UP · WORKOUT').first().waitFor({ timeout: 8000 }).catch(() => { throw new Error('START did not open the ring warm-up'); });
   await btn(/^SKIP → START WORKOUT$/).click({ timeout: 4000 }); await S(3000);
 }, /GUIDED WORKOUT/);
+// Build Workout part-way through, without lifting every set: generate one,
+// take the live snapshot App keeps for the boot restore, mark all but `left`
+// rows done (the open ones trimmed to one set of one rep, so a check can
+// finish one for real in seconds), and reload. The app comes straight back
+// into the list, the way it does after the OS kills it mid-session. With
+// `chain` the open rows are one superset (one round: their single set).
+const builderAt = async (left, { chain = false } = {}) => {
+  await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200);
+  await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000);
+  const slots = JSON.parse(await page.evaluate(() => localStorage.getItem('trainingModePausedSession')) || '[]');
+  const snap = slots.find((x) => x.screen === 'fit_workout');
+  const st = snap?.internalState;
+  if (!st?.exercises?.length) throw new Error('no live Build Workout snapshot to seed');
+  const total = st.exercises.length;
+  const done = total - left;
+  st.exercises.forEach((r, i) => {
+    delete r._chain;
+    if (i < done) st.completed[r._uid] = true;
+    else Object.assign(r, { sets: 1, reps: '1', equipment: 'Bodyweight' }, chain ? { _chain: 'c1' } : null);
+  });
+  Object.assign(st, { skipped: {}, chainRounds: {}, activeIdx: null });
+  Object.assign(snap, { reason: 'lifecycle', timestamp: Date.now() });
+  await page.evaluate((v) => sessionStorage.setItem('__smoke_seed', v), JSON.stringify([snap]));
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2500);
+  if (!(await text()).includes(`${done}/${total} exercises`)) throw new Error(`the seeded list does not read ${done}/${total}`);
+  return { total, done };
+};
+const finishDialog = () => page.getByRole('alertdialog', { name: 'Finish workout' });
+// What the finish banked: exactly one Fit Mode row, with this XP.
+const bankedOnce = async (xp) => {
+  const stats = JSON.parse(await page.evaluate(() => localStorage.getItem('tm_user_stats')) || '{}');
+  const fits = (stats.sessions || []).filter((s) => s.type === 'Fit Mode');
+  if (fits.length !== 1 || fits[0].xpEarned !== xp || stats.xp !== xp) throw new Error(`banked ${JSON.stringify(fits.map((s) => s.xpEarned))} (total ${stats.xp}), not ${xp} once`);
+};
+// The owner's report: 6 of 8 done, two left open, and START was the only way
+// on. FINISH WORKOUT under it asks first (KEEP GOING stays on the list);
+// FINISH goes to the SESSION ENDED summary with n/total, banking 15 per
+// exercise done and no +30, once.
+await check('build workout: FINISH WORKOUT with rows left ends to the summary', async () => {
+  const { total, done } = await builderAt(2);
+  if (!await btn(/^START$/).isVisible()) throw new Error('START is not on the list');
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  const d = await finishDialog().innerText();
+  if (!d.includes(`Finish with ${done} of ${total} done?`) || !d.includes("The 2 left won't count.")) throw new Error(`the confirm reads "${d.replace(/\n+/g, ' / ')}"`);
+  await finishDialog().getByRole('button', { name: 'KEEP GOING' }).click({ timeout: 4000 }); await S(400);
+  if (await finishDialog().count() || !(await text()).includes(`${done}/${total} exercises`)) throw new Error('KEEP GOING did not stay on the list');
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(3000);
+  const t = await text();
+  if (!/SESSION ENDED/.test(t) || !t.includes(`${done}/${total}`) || !t.includes(`+${done * 15}`)) throw new Error(`not the SESSION ENDED summary with ${done}/${total} and +${done * 15}`);
+  await bankedOnce(done * 15);
+}, /SESSION ENDED/);
+// The last open exercise finishing goes straight to the summary after the
+// done toast. It used to drop back on the list, where only COMPLETE WORKOUT
+// reached the summary. The same for a superset that is the last of it.
+const lastOneToSummary = async (left, opts) => {
+  const { total } = await builderAt(left, opts);
+  await btn(/^START$/).click({ timeout: 4000 });
+  for (let i = 0; i < 60; i += 1) {
+    await S(500);
+    const t = await text();
+    if (/COMPLETE WORKOUT/.test(t)) throw new Error('landed back on the list');
+    if (/WORKOUT COMPLETE/.test(t)) break;
+  }
+  await S(1500);
+  const t = await text();
+  if (!/WORKOUT COMPLETE/.test(t) || !t.includes(`${total}/${total}`) || !t.includes(`+${total * 15 + 30}`)) throw new Error(`not the WORKOUT COMPLETE summary with ${total}/${total} and +${total * 15 + 30}`);
+  await bankedOnce(total * 15 + 30);
+};
+await check('build workout: the last exercise done goes straight to the summary', () => lastOneToSummary(1), /WORKOUT COMPLETE/);
+await check('build workout: the last superset done goes straight to the summary', () => lastOneToSummary(2, { chain: true }), /WORKOUT COMPLETE/);
+// The map that slides up after an exercise, with the next one glowing, can
+// end the session too: FINISH WORKOUT, the same confirm (KEEP GOING leaves
+// the glow up), then the summary.
+await check('build workout: FINISH WORKOUT on the completion map', async () => {
+  const { total, done } = await builderAt(2);
+  await btn(/^START$/).click({ timeout: 4000 });
+  const glowStart = page.locator('button[aria-label^="Start "]').first();
+  await glowStart.waitFor({ timeout: 30000 }).catch(() => { throw new Error('the completion map never slid up'); });
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  const d = await finishDialog().innerText();
+  if (!d.includes(`Finish with ${done + 1} of ${total} done?`) || !d.includes("The 1 left won't count.")) throw new Error(`the confirm reads "${d.replace(/\n+/g, ' / ')}"`);
+  await finishDialog().getByRole('button', { name: 'KEEP GOING' }).click({ timeout: 4000 }); await S(400);
+  if (await finishDialog().count() || !await glowStart.isVisible()) throw new Error('KEEP GOING did not leave the map with the next one glowing');
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(3000);
+  const t = await text();
+  if (!/SESSION ENDED/.test(t) || !t.includes(`${done + 1}/${total}`) || !t.includes(`+${(done + 1) * 15}`)) throw new Error(`not the SESSION ENDED summary with ${done + 1}/${total}`);
+  await bankedOnce((done + 1) * 15);
+}, /SESSION ENDED/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);

@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } fr
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import Embers from './Embers';
-import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark, Link2 } from 'lucide-react';
+import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark, Link2, Flag } from 'lucide-react';
 import { C, NAV_H, fixedColumnBar } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
@@ -24,6 +24,8 @@ import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HelpButton } from './shared/WorkoutHelpPanel';
+import FinishWorkoutConfirm from './shared/FinishWorkoutConfirm';
+import { canFinishEarly } from './data/builderFinish';
 
 const GOLD = C.gold;
 const TEAL = '#2dd4bf';   // the warm-up's colour, same as the ring timer
@@ -58,6 +60,8 @@ const workoutCSS = `
 .wo-gold:active { transform: scale(.98); }
 .wo-ghost { transition: border-color .2s, background .2s, color .2s; }
 .wo-ghost:hover, .wo-ghost:focus-visible { background: rgba(157,108,255,.14) !important; border-color: #9D6CFF !important; color: #fff !important; }
+.wo-finish { transition: border-color .2s, background .2s; }
+.wo-finish:hover, .wo-finish:focus-visible { background: rgba(242,190,69,.1) !important; border-color: #F2BE45 !important; }
 .wo-dose { transition: border-color .18s, color .18s; }
 .wo-dose:hover, .wo-dose:focus-visible { border-color: #F2BE45 !important; color: #F2BE45 !important; }
 .wo-ib { transition: border-color .18s, background .18s; }
@@ -338,6 +342,13 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   const posIn = (cid) => (chainPos.cid === cid ? chainPos : { ...NO_CHAIN, cid });
   // An UNDONE skip remounts the player on the set it left: { uid, set, lifted, weight }.
   const [resumeAt, setResumeAt] = useState(null);
+  // FINISH WORKOUT's confirm, on this list ("Finish with 6 of 8 done?").
+  const [finishAsk, setFinishAsk] = useState(false);
+  // Raised when the last exercise (or chain) finishes with nothing open or
+  // skipped left: the session goes to the summary instead of back to this
+  // list. See the effect below.
+  const [finishDue, setFinishDue] = useState(false);
+  const endedRef = useRef(false);
 
   // The statuses by POSITION, for everything that walks the list (the
   // rows, the player, the progression record).
@@ -761,6 +772,30 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     return () => clearTimeout(t);
   }, [skipUndo]);
 
+  // Every way out to the summary goes through here: STOP, FINISH WORKOUT,
+  // COMPLETE WORKOUT, and the last exercise finishing. onDone banks the XP
+  // (App's goFitComplete), so it runs once per session: a double tap, a
+  // timer racing a button, or a StrictMode re-run never pays twice.
+  const endSession = useCallback((done, total) => {
+    if (endedRef.current) return;
+    endedRef.current = true;
+    onDone(done, total);
+  }, [onDone]);
+
+  // The workout has nowhere left to go (the player's onFinishWorkout, or the
+  // last chain finishing). The player calls from a timer that holds whatever
+  // callback it captured renders ago, so it only raises the flag: the count
+  // is read here, from a render that already holds the move just finished.
+  // Everything done → the summary. Rows left (the completion map closed with
+  // the last one skipped) → this list, as before, where FINISH WORKOUT or
+  // START picks it up.
+  useEffect(() => {
+    if (!finishDue) return;
+    if (allDone) { endSession(doneCount, exercises.length); return; }
+    setFinishDue(false);
+    setActiveIdx(null);
+  }, [finishDue, allDone, doneCount, exercises.length, endSession]);
+
   const enterWorkout = useCallback(() => {
     setWarmupOpen(false);
     setWarmedUp(true);
@@ -910,7 +945,12 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
     setChainPos(NO_CHAIN);
     // On to the next OPEN exercise — not a finished one, and not one the
     // athlete chose to skip.
-    setActiveIdx(nextOpenIdx(exercises.length, Math.max(...members), i => doneAt[i] || members.includes(i), i => skippedAt[i]));
+    const next = nextOpenIdx(exercises.length, Math.max(...members), i => doneAt[i] || members.includes(i), i => skippedAt[i]);
+    // The chain was the last of it (nothing open, nothing skipped): straight
+    // to the summary, like the last single exercise. Skipped rows left → the
+    // list, as before.
+    if (next === null && exercises.every((_, i) => doneAt[i] || members.includes(i))) { setFinishDue(true); return; }
+    setActiveIdx(next);
   };
 
   // The warm-up is its own screen, in place of the list — not an overlay on
@@ -959,7 +999,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           initialPaused={!!resumeUidRef.current && activeUid === resumeUidRef.current}
           initialProgress={resumeAt?.uid === activeUid ? resumeAt : null}
           onBack={() => setActiveIdx(null)}
-          onStop={() => onDone(doneCount, exercises.length)}
+          // STOP's END, and FINISH on the completion map: the summary.
+          onStop={() => endSession(doneCount, exercises.length)}
           // Advance to the next OPEN exercise WITHOUT marking this one
           // complete — it shows as SKIPPED in the map until it's redone. A
           // chain bails whole: landing on the next member would be a
@@ -993,7 +1034,9 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           // never on a member we just skipped.
           onMarkSkipped={(idx, progress) => markSkipped(idx, groupOf(idx).includes(activeIdx), progress)}
           onReorder={handleReorder}
-          onFinishWorkout={() => setActiveIdx(null)}
+          // Nowhere left to go: the summary if it's all done, else the list
+          // (see the finishDue effect).
+          onFinishWorkout={() => setFinishDue(true)}
           chainCtx={activeChain}
           chainRoundsMap={chainRounds}
           onChainNext={chainNext}
@@ -1026,8 +1069,8 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
         title={title}
         subtitle={`${cfg.difficulty} \u00B7 ${cfg.equipment}`}
         showBack
-        onBack={onBack || (() => onDone(doneCount, exercises.length))}
-        onHome={onHome || (() => onDone(doneCount, exercises.length))}
+        onBack={onBack || (() => endSession(doneCount, exercises.length))}
+        onHome={onHome || (() => endSession(doneCount, exercises.length))}
         rightSlot={<HelpButton onClick={() => setHelpOpen(true)}/>}
       />
 
@@ -1331,7 +1374,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           className="wo-gold"
           onClick={async () => {
             if (allDone) {
-              onDone(doneCount, exercises.length);
+              endSession(doneCount, exercises.length);
             } else {
               // Prime speech on the user gesture so the guided coach can talk.
               setVoiceGender(profile?.voiceCoach || 'FEMALE');
@@ -1367,6 +1410,25 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.12em', opacity: 0.7, marginLeft: -2 }}>· {warmupMin} MIN WARM-UP</span>
           )}
         </button>
+
+        {/* Done with some of it: end here, to the summary, with what's done.
+            Outlined, so START stays the main action; asks first. With
+            everything done START is COMPLETE WORKOUT and this goes. */}
+        {canFinishEarly(doneCount, exercises.length) && (
+          <button
+            type="button"
+            className="wo-finish"
+            onClick={() => setFinishAsk(true)}
+            style={{
+              ...CHF, width: '100%', marginTop: 10, height: 44, cursor: 'pointer',
+              background: '#110E1C', border: '1px solid rgba(242,190,69,0.45)', color: GOLD,
+              font: `600 13px ${HEAD}`, letterSpacing: '0.14em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            <Flag size={15}/> FINISH WORKOUT
+          </button>
+        )}
 
         <div data-guide="fw-actions" style={{ display: 'grid', gridTemplateColumns: cfg.conceptId ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
           {/* A concept day is a set program — no regenerating it into something else. */}
@@ -1426,6 +1488,16 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
 
       {/* A skip that ended the workout lands here — still undoable. */}
       {skipSnack}
+
+      {/* FINISH WORKOUT → "Finish with 6 of 8 done?" → the summary. */}
+      {finishAsk && (
+        <FinishWorkoutConfirm
+          done={doneCount}
+          total={exercises.length}
+          onCancel={() => setFinishAsk(false)}
+          onFinish={() => { setFinishAsk(false); endSession(doneCount, exercises.length); }}
+        />
+      )}
 
       {/* Swap bottom sheet */}
       {swapIdx !== null && (

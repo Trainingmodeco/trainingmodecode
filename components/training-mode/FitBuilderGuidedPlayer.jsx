@@ -25,6 +25,8 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { encouragementIntervalSec } from './data/coachEncouragement';
+import FinishWorkoutConfirm from './shared/FinishWorkoutConfirm';
+import { canFinishEarly } from './data/builderFinish';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -165,6 +167,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const [paused, setPaused] = useState(!!initialPaused);
   const [cadenceSec, setCadenceSec] = useState(2);
   const [confirmEnd, setConfirmEnd] = useState(false); // STOP → shared confirm modal
+  const [confirmFinish, setConfirmFinish] = useState(false); // FINISH WORKOUT on the completion map
   // WORKOUT MAP sheet: 'complete' mode is the auto slide-up after an exercise
   // finishes — the just-done row flips ✓ and the next one glows.
   const [mapOpen, setMapOpen] = useState(false);
@@ -359,6 +362,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     // rows left were skipped, offer the first of those. Only DONE is permanent.
     const target = nextOpenIdx(exercises.length, exerciseIdx, (i) => i === exerciseIdx || !!completed[i], (i) => !!skipped[i], true);
     flowTimers.current.forEach(clearTimeout);
+    // Nothing open or skipped left: the toast has its beat, then the parent
+    // takes the workout to the session summary (not back to the list).
     if (target === null) {
       flowTimers.current = [setTimeout(() => onFinishWorkout?.(), 1600)];
       return;
@@ -695,6 +700,17 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     versionRef.current++;
     cancelSpeech();
     setConfirmEnd(false);
+    onStop?.();
+  };
+
+  // FINISH WORKOUT on the completion map → "Finish with 6 of 8 done?" →
+  // FINISH ends the session to the summary, the same way STOP's END does
+  // (onStop). KEEP GOING leaves the map up with the next one still glowing.
+  const handleFinishConfirm = () => {
+    versionRef.current++;
+    cancelSpeech();
+    flowTimers.current.forEach(clearTimeout);
+    setConfirmFinish(false);
     onStop?.();
   };
 
@@ -1589,6 +1605,23 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               </div>
               {dragFloat}
             </div>
+
+            {/* The completion map: an exercise just finished and the next one
+                glows. Ending here is a quiet option under the list; closing
+                the sheet still starts the glowing one. */}
+            {mapMode === 'complete' && canFinishEarly(doneCount, exercises.length) && (
+              <div style={{ flexShrink: 0, padding: '8px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <button
+                  type="button"
+                  onClick={() => { clearGesture(); setConfirmFinish(true); }}
+                  style={{
+                    width: '100%', height: 44, borderRadius: 10, cursor: 'pointer',
+                    background: 'transparent', border: '1px solid rgba(242,190,69,0.35)', color: GOLD,
+                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.12em',
+                  }}
+                >FINISH WORKOUT</button>
+              </div>
+            )}
           </div>
         </div>,
         document.body
@@ -1628,6 +1661,16 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
             </div>
           </div>
         </div>
+      )}
+
+      {/* FINISH WORKOUT's confirm — portalled over the map sheet. */}
+      {confirmFinish && (
+        <FinishWorkoutConfirm
+          done={doneCount}
+          total={exercises.length}
+          onCancel={() => setConfirmFinish(false)}
+          onFinish={handleFinishConfirm}
+        />
       )}
     </PhoneFrame>
   );
