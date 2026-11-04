@@ -40,15 +40,27 @@ export const SECRET_UNLOCK = {
 const FIGHT_TYPES = new Set(['Fight Focus', 'Combo Coach', 'Practice']);
 const FIT_TYPES = new Set(['Fit Mode', 'Quick Mission', 'Cardio']);
 
+// Which bucket one session row counts in: 'fit', 'fight', 'cc' (Combat
+// Conditioning) or 'other' (camp, lessons, bonus rows, anything unknown). One
+// rule for the tier maths and the Level page, so the two cannot drift.
+export function sessionMode(s) {
+  if (!s || typeof s !== 'object') return 'other';
+  if (FIGHT_TYPES.has(s.type)) return 'fight';
+  if (FIT_TYPES.has(s.type)) return 'fit';
+  if (s.type === "Coach's Tapes") return s.kind === 'fight' ? 'fight' : 'fit';
+  if (s.type === 'Combat Conditioning') return 'cc';
+  return 'other';
+}
+
 // Split lifetime XP into fit / fight / combat-conditioning buckets.
 export function getModeXp(stats) {
   const out = { fitXp: 0, fightXp: 0, ccXp: 0 };
   for (const s of stats?.sessions || []) {
-    const xp = s.xpEarned || 0;
-    if (FIGHT_TYPES.has(s.type)) out.fightXp += xp;
-    else if (FIT_TYPES.has(s.type)) out.fitXp += xp;
-    else if (s.type === "Coach's Tapes") { if (s.kind === 'fight') out.fightXp += xp; else out.fitXp += xp; }
-    else if (s.type === 'Combat Conditioning') out.ccXp += xp;
+    const xp = s?.xpEarned || 0;
+    const mode = sessionMode(s);
+    if (mode === 'fight') out.fightXp += xp;
+    else if (mode === 'fit') out.fitXp += xp;
+    else if (mode === 'cc') out.ccXp += xp;
   }
   return out;
 }

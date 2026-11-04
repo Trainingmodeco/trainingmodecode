@@ -23,6 +23,7 @@ import { PRIVACY_URL, INSTAGRAM_URL, MARKETING_SITE_URL, openExternalUrl } from 
 import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
 import { loadProfile } from './data/userProfile';
 import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
+import LevelView from './LevelView';
 
 
 function SectionLabel({ text }) {
@@ -392,15 +393,18 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             {/* Avatar showcase */}
             <div data-guide="pr-avatar" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1.5px solid rgba(253,224,71,0.4)', marginBottom: 10, background: 'radial-gradient(ellipse at 50% 20%,rgba(168,85,247,0.3),#0a0014 70%)' }}>
               <div style={{ display: 'flex', gap: 12, padding: 10, alignItems: 'center' }}>
-                <div style={{ width: 72, height: 90, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)' }}>
+                {/* The portrait opens the Level page; a small LEVEL › tag on it says so. */}
+                <button type="button" onClick={() => setProfileView('level')} aria-label="View your level" style={{ position: 'relative', display: 'block', padding: 0, width: 72, height: 90, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)', background: 'none', cursor: 'pointer' }}>
                   <SafeImage src={tierImage(tier.id, avSex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
-                </div>
+                  <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '9px 0 3px', textAlign: 'center', font: "800 7px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.1em', background: 'linear-gradient(to top, rgba(8,1,15,0.92), transparent)' }}>LEVEL ›</span>
+                </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0, font: "900 16px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
-                    <button onClick={() => setProfileView('main')} aria-label="Change avatar" style={{ flexShrink: 0, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 7, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px', cursor: 'pointer' }}>⚔️ AVATAR</button>
+                    <button onClick={() => setProfileView('level')} aria-label="Avatar and level" style={{ flexShrink: 0, border: '1px solid rgba(253,224,71,0.5)', borderRadius: 7, background: 'rgba(253,224,71,0.08)', color: '#fde047', font: "800 8px 'Orbitron',sans-serif", padding: '5px 8px', cursor: 'pointer' }}>⚔️ AVATAR</button>
                   </div>
-                  <div style={{ font: "700 9px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', letterSpacing: '0.06em', marginTop: 3 }}>LVL {lvl} · {tier.label.toUpperCase()}{tier.secret ? ' ★' : ''}</div>
+                  {/* Tappable: the padding grows the hit area, the margins give it back. */}
+                  <button type="button" onClick={() => setProfileView('level')} aria-label="Level and tier" style={{ display: 'block', maxWidth: '100%', padding: '4px 0', margin: '-1px 0 -4px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', font: "700 9px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>LVL {lvl} · {tier.label.toUpperCase()}{tier.secret ? ' ★' : ''} ›</button>
                   <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 6 }}><div style={{ width: `${pctToNext}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
                   <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 3 }}>{lp.current} / {lp.needed} XP to next</div>
                   {/* Streak · sessions · trophies — inside the card now. */}
@@ -497,6 +501,19 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
 
         {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.profile} onClose={() => setHelpOpen(false)}/>}
       </PhoneFrame>
+    );
+  }
+
+  if (profileView === 'level') {
+    return (
+      <LevelView
+        stats={loadStats()}
+        name={name}
+        sex={sex}
+        onBack={() => setProfileView('overview')}
+        onHome={onHome}
+        onChangeAvatar={() => setProfileView('main')}
+      />
     );
   }
 

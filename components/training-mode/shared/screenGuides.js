@@ -18,7 +18,7 @@ export const SCREEN_GUIDES = {
 
   profile: [
     { target: null, title: '👤 YOUR PROFILE', body: 'This is your fighter profile — your avatar, stats, account, and every app setting. Here is what each button does.' },
-    { target: 'pr-avatar', title: 'YOUR FIGHTER', body: 'Your avatar and rank. It evolves as you level up — Rookie to Champion… and there are secret tiers beyond.' },
+    { target: 'pr-avatar', title: 'YOUR FIGHTER', body: 'Your avatar and rank. It evolves as you level up — Rookie to Champion… and there are secret tiers beyond. Tap it to see your level, what it means and what you have done.' },
     { target: 'pr-stats', title: 'YOUR STATS', body: 'Your body profile and your setup answers — experience, goal and discipline, the same questions you answered on day one. Tap any row to change them: your goal decides the workout Home picks for you, and your discipline is the tab Fight Mode opens on.' },
     { target: 'pr-google', title: '🔐 GOOGLE SIGN-IN', body: 'Continue with Google to attach your progress to your account. Optional — everything trains fine without it; signing in backs up your fighter identity.' },
     { target: 'pr-pro', title: '👑 GO PRO', body: 'Opens the Training Mode Pro page — plans, pricing, and everything Pro unlocks (full Camp levels, all Arcade stages, and more). Browsing never charges you; you always confirm first.' },

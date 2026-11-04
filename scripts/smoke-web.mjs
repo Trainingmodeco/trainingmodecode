@@ -770,6 +770,103 @@ await check('concept gauntlet stage start', async () => { await preview(); await
 await check('progress', async () => { await home(); await btn(/^PROGRESS$/).click({ timeout: 4000 }); await S(1500); }, /PROGRESS|XP/i);
 await check('profile', async () => { await home(); await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500); }, /PROFILE/);
 
+// ── Profile › the avatar opens the Level page ───────────────────────────────
+// Seeded athletes: the stats go in after boot() wiped storage and before the
+// next load, so the app boots with them. Every session is dated past the combo
+// engine's 60-day replay window (so Home grants no streak-milestone XP and the
+// numbers stay exactly what was seeded), except the `recent` ones, which sit
+// on today and yesterday for a 2-day streak.
+const seedStats = (spec, xp, recent = 0) => {
+  const sessions = []; let n = 0;
+  for (const [type, count, each] of spec) for (let k = 0; k < count; k += 1) sessions.push({ id: `seed${n++}`, type, xpEarned: each, completedCount: 1, totalCount: 1 });
+  sessions.forEach((row, i) => {
+    const fromEnd = sessions.length - 1 - i;
+    const d = new Date(); d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() - (fromEnd < recent ? fromEnd : 65 + (fromEnd % 30)));
+    row.completedAt = d.toISOString();
+  });
+  return { xp, sessions };
+};
+const profileFor = async (stats) => {
+  await home();
+  await page.evaluate((v) => localStorage.setItem('tm_user_stats', JSON.stringify(v)), stats);
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000);
+  await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  // Many sessions and no Practice yet: Home offers the Practice invite first.
+  await btn(/REMIND ME NEXT WEEK|EXPLORE ON MY OWN/).click({ timeout: 1200 }).catch(() => {});
+  await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500);
+};
+const mustSee = async (re, what) => { const t = await text(); if (!re.test(t)) throw new Error(`${what}: expected ${re} on screen`); };
+const mustNotSee = async (re, what) => { const t = await text(); if (re.test(t)) throw new Error(`${what}: ${re} should not be on screen`); };
+const openLevel = async () => { await page.locator('button[aria-label="Avatar and level"]').click({ timeout: 4000 }); await S(1200); };
+const backToOverview = async () => { await page.locator('button[aria-label="Back"]').first().click({ timeout: 4000 }); await S(900); await mustSee(/YOUR STATS/, 'back from the Level page'); await mustNotSee(/YOUR LEVEL/, 'back from the Level page'); };
+
+// A level-3 athlete: 11 sessions, 8 Fit (Fit Mode, Quick Mission, Cardio) and 3 Fight.
+const L3 = seedStats([['Fit Mode', 5, 95], ['Fight Focus', 3, 110], ['Quick Mission', 2, 80], ['Cardio', 1, 70]], 1260);
+await check('level page: the AVATAR button opens it (level 3)', async () => {
+  await profileFor(L3);
+  await mustSee(/LVL 3 · COMBAT ROOKIE/, 'overview');
+  // The overview is still one screen: nothing in the avatar card pushed it past the fold.
+  const over = await page.evaluate(() => { let e = document.querySelector('[data-guide="pr-avatar"]'); while (e && !/(auto|scroll)/.test(getComputedStyle(e).overflowY)) e = e.parentElement; return e ? e.scrollHeight - e.clientHeight : 999; });
+  if (over > 1) throw new Error(`the Profile overview scrolls by ${over}px`);
+  await openLevel();
+  await mustSee(/YOUR LEVEL/, 'level page');
+  await mustSee(/LEVEL 3\b/, 'level page'); await mustSee(/Rookie/i, 'level page');
+  await mustSee(/240 XP to LEVEL 4/, 'xp bar');
+  await mustSee(/Level 3 is the last step of Rookie: XP 1,000 to 1,499\./, 'what level 3 means');
+  await mustSee(/You have finished 11 sessions: 8 in Fit Mode and 3 in Fight Mode\./, 'the recap matches the seed');
+  await mustSee(/SESSIONS\s*\n\s*11/, 'sessions fact'); await mustSee(/TOTAL XP\s*\n\s*1,260/, 'xp fact');
+  await mustSee(/THE LADDER/, 'ladder'); await mustSee(/NOVICE/, 'ladder'); await mustSee(/CHAMPION/, 'ladder');
+  const states = await page.evaluate(() => [...document.querySelectorAll('[data-tier]')].map((n) => n.getAttribute('data-state')).join());
+  if (states !== 'current,ahead,ahead,ahead,ahead') throw new Error(`ladder states ${states}`);
+  await mustSee(/NEXT/, 'next'); await mustSee(/Level 4 is your first step into Novice\./, 'next tier');
+  await mustNotSee(/secret|Peak Physique|Fight Ascendant|Final Form/i, 'no secret tier for a Rookie');
+  await backToOverview();
+}, /LVL 3/);
+await check('level page: the portrait and the level line open the same page', async () => {
+  await profileFor(L3);
+  await page.locator('button[aria-label="View your level"]').click({ timeout: 4000 }); await S(1200);
+  await mustSee(/YOUR LEVEL/, 'portrait tap'); await mustSee(/Level 3 is the last step of Rookie/, 'portrait tap');
+  await backToOverview();
+  await page.locator('button[aria-label="Level and tier"]').click({ timeout: 4000 }); await S(1200);
+  await mustSee(/YOUR LEVEL/, 'level line tap'); await mustSee(/LEVEL 3\b/, 'level line tap');
+}, /YOUR LEVEL/);
+await check('level page: CHANGE AVATAR opens the editor, and the stats tile still does too', async () => {
+  await profileFor(L3);
+  await openLevel();
+  await btn(/CHANGE AVATAR/).click({ timeout: 4000 }); await S(1000);
+  await mustSee(/EDIT PROFILE/, 'CHANGE AVATAR');
+  await page.locator('button[aria-label="Back"]').first().click({ timeout: 4000 }); await S(900);
+  await mustSee(/YOUR STATS/, 'back from the editor');
+  await btn(/^AVATAR\s+MALE/).click({ timeout: 4000 }); await S(1000);
+}, /EDIT PROFILE/);
+
+// The owner's athlete: level 10, 57 sessions, 34 Fit and 23 Fight, a 2-day streak.
+const L10 = seedStats([['Fit Mode', 20, 90], ['Quick Mission', 10, 85], ['Cardio', 4, 100], ['Fight Focus', 13, 88], ['Combo Coach', 10, 80]], 4960, 2);
+await check('level page: level 10 athlete (Max, 57 sessions)', async () => {
+  await profileFor(L10);
+  await openLevel();
+  await mustSee(/LEVEL 10\b/, 'level 10'); await mustSee(/COMBAT MAX/, 'level 10');
+  await mustSee(/40 XP to LEVEL 11/, 'level 10 xp bar');
+  await mustSee(/Level 10 is the first step of Max: XP 4,500 to 4,999\./, 'what level 10 means');
+  await mustSee(/You have finished 57 sessions: 34 in Fit Mode and 23 in Fight Mode\./, 'level 10 recap');
+  await mustSee(/DAY STREAK\s*\n\s*2/, 'streak'); await mustSee(/MOST USED\s*\n\s*Fit Mode/, 'most used');
+  await mustSee(/Champion starts at Level 13, 3 levels away\./, 'next tier');
+  const states = await page.evaluate(() => [...document.querySelectorAll('[data-tier]')].map((n) => n.getAttribute('data-state')).join());
+  if (states !== 'passed,passed,passed,current,ahead') throw new Error(`ladder states ${states}`);
+  await backToOverview();
+}, /LVL 10/);
+await check('level page: a brand-new athlete sees no fake numbers', async () => {
+  await profileFor({ xp: 0, sessions: [] });
+  await openLevel();
+  await mustSee(/LEVEL 1\b/, 'level 1'); await mustSee(/Rookie/i, 'level 1');
+  await mustSee(/Your first session starts this level\./, 'empty recap');
+  await mustNotSee(/TOTAL XP|DAY STREAK|MOST USED|You have finished/, 'empty recap shows no numbers');
+  await mustSee(/500 XP to LEVEL 2/, 'level 1 xp bar');
+  await backToOverview();
+}, /LVL 1/);
+
 await browser.close();
 server.close();
 if (failures.length) { console.log(`\nsmoke-web: ${failures.length} failure(s)`); failures.forEach((f) => console.log('FAIL ' + f)); process.exit(1); }
