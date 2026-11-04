@@ -95,7 +95,7 @@ export const SCREEN_GUIDES = {
     { target: 'fh-conditioning', title: 'COMBAT CONDITIONING', body: 'A fight-pace circuit that trains your gas tank — explosive, athletic conditioning that blends fitness with fight work.' },
     // Last on purpose, and only when a drop is live (the hub drops this step
     // when the card is not on screen).
-    { target: 'fight-concept', title: '🎮 CONCEPT PROGRAMS', body: 'Train like your favorite video game or anime hero. Each concept is a full program, and this card opens its Fight plan; the Fit plan and the Arcade run are in it too. It is free while it is live, and a new one drops about every two months.' },
+    { target: 'fight-concept', title: '🎮 CONCEPT PROGRAMS', body: 'Train like your favorite video game or anime hero. This card opens the Fight plan; the Fit plan and Arcade run come with it.' },
   ],
 
   // `campModal: true` steps open the current level's card so the guide can
@@ -129,7 +129,7 @@ export const SCREEN_GUIDES = {
     { target: 'fit-cardio', title: 'CARDIO', body: 'Runs on GPS or a treadmill, machine work and intervals, with pace coaching and a target you set by distance or time.' },
     // Last on purpose, and only when a drop is live: the hub drops this step
     // when the card is not on screen (a step with no target would stall).
-    { target: 'fit-concept', title: '🎮 CONCEPT PROGRAMS', body: 'Train like your favorite video game or anime hero. Each concept is a full program: a Fit plan, a Fight plan and an Arcade run. It is free while it is live, and a new one drops about every two months.' },
+    { target: 'fit-concept', title: '🎮 CONCEPT PROGRAMS', body: 'Train like your favorite video game or anime hero. Each concept has Fit, Fight and Arcade workouts, free while it is live.' },
   ],
 
   // Crosses into the stage ladder for the last three steps (hosted by

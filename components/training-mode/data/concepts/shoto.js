@@ -55,7 +55,7 @@ export const SHOTO = {
   fit: {
     weeks: 4,
     minutes: 35,
-    blurb: 'Three conditioning styles: controlled power, explosive speed, demon pressure.',
+    blurb: 'Three styles: power, speed, pressure.',
     days: [
       {
         label: RYU, focus: 'CONTROLLED POWER',
@@ -120,7 +120,7 @@ export const SHOTO = {
   // coach. Two weeks of the four-day rotation.
   fight: {
     discipline: 'Kickboxing',
-    blurb: 'Fundamentals, speed and pressure, with your combinations called every round.',
+    blurb: 'Fundamentals, speed and pressure.',
     roundMin: 3,
     restSec: 60,
     weeks: 2,

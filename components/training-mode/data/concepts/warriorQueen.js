@@ -62,7 +62,7 @@ export const WARRIOR_QUEEN = {
   fit: {
     weeks: 4,
     minutes: 50,
-    blurb: 'Strongwoman power, glutes and core, a battle-day metcon and a heroic build. Every gym lift has a rookie and a home version.',
+    blurb: 'Strongwoman power, glutes and core.',
     days: [
       {
         label: 'THE FORGE', focus: 'POWER + STRENGTH',
@@ -192,7 +192,7 @@ export const WARRIOR_QUEEN = {
   // battlefield — several opponents, pivot to the next on the switch call.
   fight: {
     discipline: 'Kickboxing',
-    blurb: 'Shield and bracers, the clinch, power kicks and the battlefield. Every day ends in a Bracer Storm.',
+    blurb: 'Clinch, power kicks and bracer work.',
     roundMin: 3,
     restSec: 60,
     weeks: 2,

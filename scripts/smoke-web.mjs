@@ -40,7 +40,7 @@ try { browser = await chromium.launch(launchOpts); } catch (e) {
 }
 
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, permissions: ['geolocation'], geolocation: { latitude: 40, longitude: -74, accuracy: 8 } });
-await ctx.addInitScript(() => {
+const seedStorage = () => {
   // A reset flag on the URL wipes storage at document start — AFTER the
   // previous page unloaded (the app re-saves its live session on unload, so
   // clearing before navigation is undone) and BEFORE the app boots.
@@ -66,7 +66,8 @@ await ctx.addInitScript(() => {
   localStorage.setItem('tm_camp_parq', JSON.stringify({ done: true, anyYes: false, ts: Date.now() }));
   localStorage.setItem('tm_practice_invite_v1', JSON.stringify({ introShownAt: new Date().toISOString() }));
   localStorage.setItem('__smoke', '1');
-});
+};
+await ctx.addInitScript(seedStorage);
 const page = await ctx.newPage();
 let step = 'boot';
 const failures = [];
@@ -133,14 +134,16 @@ const hubMetrics = () => page.evaluate((blocks) => {
   const stack = hero.parentElement;
   const hb = hero.getBoundingClientRect();
   const sb = hero.querySelector('button.fm-go').getBoundingClientRect();
-  const out = { navTop: rect('nav-tabs').top, h1: [h1.scrollHeight, h1.clientHeight], stack: [stack.scrollHeight, stack.clientHeight], stackBottom: stack.getBoundingClientRect().bottom, startInside: sb.top >= hb.top - 0.5 && sb.bottom <= hb.bottom + 0.5, blocks: {} };
+  const sub = [...document.querySelectorAll('[data-guide="fit-concept"] div')].find(d => d.style.whiteSpace === 'nowrap');
+  const out = { cardSub: sub ? [sub.scrollWidth, sub.clientWidth] : null, navTop: rect('nav-tabs').top, h1: [h1.scrollHeight, h1.clientHeight], stack: [stack.scrollHeight, stack.clientHeight], stackBottom: stack.getBoundingClientRect().bottom, startInside: sb.top >= hb.top - 0.5 && sb.bottom <= hb.bottom + 0.5, blocks: {} };
   for (const k of blocks) { const b = rect(k); if (b) out.blocks[k] = { top: b.top, bottom: b.bottom, h: b.height }; }
   return out;
 }, FIT_BLOCKS);
 const resizeTo = async (w, h) => { await page.setViewportSize({ width: w, height: h }); await S(500); };
 const fitsHub = (m, label) => {
-  if (m.h1[0] > m.h1[1] + 1) throw new Error(`${label}: the mission title is clipped (${m.h1[0]} > ${m.h1[1]})`);
+  if (m.h1[0] > m.h1[1]) throw new Error(`${label}: the mission title is clipped (${m.h1[0]} > ${m.h1[1]})`);
   if (!m.startInside) throw new Error(`${label}: START sits outside the mission card`);
+  if (m.cardSub && m.cardSub[0] > m.cardSub[1]) throw new Error(`${label}: the drop card's line is cut off with an ellipsis (${m.cardSub[0]} > ${m.cardSub[1]})`);
   let prev = null;
   for (const k of FIT_BLOCKS) {
     const b = m.blocks[k];
@@ -176,6 +179,20 @@ await check('fit hub at 375x667 scrolls the Cardio row fully clear of the tab ba
     if (clear.mask && clear.mask !== 'none') throw new Error('the scroll fade is still on at the end of the scroll');
   } finally { await resizeTo(390, 844); }
 }, /Quick Mission/);
+// A 320px phone is the narrowest one in use: no row subtitle may be cut off.
+await check('fit hub at 320x640: no row subtitle is cut off', async () => {
+  try {
+    await resizeTo(320, 640);
+    const cut = await page.evaluate(() => [...document.querySelectorAll('.fm-s')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent));
+    if (cut.length) throw new Error(`cut off at 320 wide: ${cut.join(' | ')}`);
+  } finally { await resizeTo(390, 844); }
+}, /Quick Mission/);
+// The gold ring ScreenGuide draws on the highlighted element (null on a step with none).
+const guideRing = () => page.evaluate(() => {
+  const el = [...document.querySelectorAll('body div')].find(d => d.style.position === 'fixed' && d.style.pointerEvents === 'none' && /2px solid/.test(d.style.border));
+  if (!el) return null;
+  const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom };
+});
 // The "?" ends on the concept card, and the last NEXT closes the guide.
 await check('fit hub guide ends on the concept step, and GOT IT closes it', async () => {
   await page.locator('[data-guide="help-icon"]').click({ timeout: 4000 }); await S(600);
@@ -187,6 +204,10 @@ await check('fit hub guide ends on the concept step, and GOT IT closes it', asyn
     await btn(/^NEXT/).click({ timeout: 3000 }); await S(450);
   }
   if (!/CONCEPT PROGRAMS/.test(titles[titles.length - 1])) throw new Error(`the guide ends on "${titles[titles.length - 1]}", not the concept step`);
+  // The step has a spotlight, and it is on the card (a missing anchor shows a full dim).
+  const ring = await guideRing();
+  const card = await page.evaluate(() => { const r = document.querySelector('[data-guide="fit-concept"]').getBoundingClientRect(); return { top: r.top, bottom: r.bottom }; });
+  if (!ring || Math.abs(ring.top - card.top) > 14 || Math.abs(ring.bottom - card.bottom) > 14) throw new Error(`the concept step's ring is not on the card (ring ${JSON.stringify(ring)}, card ${JSON.stringify(card)})`);
   if (!/^CARDIO/.test(titles[titles.length - 2] || '')) throw new Error(`the step before the end is "${titles[titles.length - 2]}", not Cardio`);
   await btn(/^‹ BACK/).click({ timeout: 3000 }); await S(450);
   if (!/^CARDIO/.test(await title())) throw new Error('BACK from the concept step did not land on Cardio');
@@ -194,6 +215,151 @@ await check('fit hub guide ends on the concept step, and GOT IT closes it', asyn
   await btn(/^GOT IT/).click({ timeout: 3000 }); await S(500);
   if (await page.locator('[aria-label="Close guide"]').count()) throw new Error('GOT IT did not close the guide');
 }, /Quick Mission/);
+// (Runs last on the Fit hub: tapping SURPRISE ME swaps the long title for a short one.)
+// Every tap on the hub is a real 44px one. SURPRISE ME and ADJUST are 44px
+// buttons that overlap the card above and the spacer below, so the browser's own
+// hit test has to hand every point of them to the button (down to 40px of the
+// 44: the last few px belong to the card below, whose own edge starts there);
+// the three header controls are 44px taps too (four points 16px / 20px off each
+// one's centre).
+const hitsFor = (selector, pointsFor) => page.evaluate(({ selector, pointsFor }) => {
+  const b = [...document.querySelectorAll(selector)][0];
+  if (!b) return 'missing';
+  const r = b.getBoundingClientRect(); const vis = b.querySelector('svg')?.getBoundingClientRect() || r;
+  const pts = pointsFor === 'column'
+    ? [1, 6, 11, 22, 33, 40].map(dy => [r.left + r.width / 2, r.top + dy])
+    : [[-16, -20], [16, -20], [-16, 20], [16, 20]].map(([dx, dy]) => [vis.left + vis.width / 2 + dx, vis.top + vis.height / 2 + dy]);
+  return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return e && b.contains(e) ? 1 : 0; }).join('');
+}, { selector, pointsFor });
+await check('fit hub taps: SURPRISE ME, ADJUST and the header buttons reach 44px', async () => {
+  try {
+  await resizeTo(412, 811);
+  for (const [name, sel] of [['SURPRISE ME', 'button.fm-quiet:nth-of-type(1)'], ['ADJUST', 'button.fm-quiet:nth-of-type(2)']]) {
+    const hit = await hitsFor(sel, 'column');
+    if (hit !== '111111') throw new Error(`${name} only answers some of its 44px (top to bottom: ${hit})`);
+  }
+  for (const [name, sel] of [['Back', 'button[aria-label="Back"]'], ['help', '[data-guide="help-icon"]'], ['Home', 'button[aria-label="Home"]']]) {
+    const hit = await hitsFor(sel, 'corners');
+    if (hit !== '1111') throw new Error(`the ${name} button is under 44px to tap (${hit})`);
+  }
+  // A tap 4px inside the top edge of SURPRISE ME, the part the card used to cover.
+  const before = await page.evaluate(() => document.querySelector('[data-guide="fit-today"] h1').textContent);
+  const at = await page.evaluate(() => { const r = document.querySelector('button.fm-quiet').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + 4 }; });
+  await page.mouse.click(at.x, at.y); await S(500);
+  if (await page.evaluate(() => document.querySelector('[data-guide="fit-today"] h1').textContent) === before) throw new Error('a tap 4px inside the top of SURPRISE ME did nothing');
+  } finally { await resizeTo(390, 844); }
+}, /Surprise Mission/);
+
+// The Fight hub on its fullest day (owner preview: Coach's Tapes row plus the
+// drop card). Same rule as the Fit hub: it sizes to the phone, so nothing sits
+// under the tab bar and nothing is on top of anything; on a very short phone it
+// scrolls, fully clear of the bar, with a fade as the hint.
+const FIGHT_BLOCKS = ['fight-concept', 'fh-just-train', 'fh-fight-focus', 'fh-combo', 'fh-camp', 'fh-tapes', 'fh-practice', 'fh-conditioning'];
+const fightMetrics = () => page.evaluate((blocks) => {
+  const rect = (k) => { const e = document.querySelector(`[data-guide="${k}"]`); return e ? e.getBoundingClientRect() : null; };
+  const stack = document.querySelector('[data-guide="fh-disciplines"]').parentElement;
+  const sub = [...document.querySelectorAll('[data-guide="fight-concept"] div')].find(d => d.style.whiteSpace === 'nowrap');
+  const out = { navTop: rect('nav-tabs').top, stack: [stack.scrollHeight, stack.clientHeight], stackTop: stack.getBoundingClientRect().top, stackBottom: stack.getBoundingClientRect().bottom, cardSub: sub ? [sub.scrollWidth, sub.clientWidth] : null, mask: getComputedStyle(stack).webkitMaskImage, blocks: {} };
+  for (const k of blocks) { const b = rect(k); if (b) out.blocks[k] = { top: b.top, bottom: b.bottom, h: b.height }; }
+  return out;
+}, FIGHT_BLOCKS);
+const fightFits = (m, label) => {
+  let prev = null;
+  for (const k of FIGHT_BLOCKS) {
+    const b = m.blocks[k];
+    if (!b) throw new Error(`${label}: ${k} is not on the Fight hub`);
+    if (b.bottom > m.navTop) throw new Error(`${label}: ${k} ends at ${Math.round(b.bottom)}, under the tab bar at ${Math.round(m.navTop)}`);
+    if (prev && b.top < prev.bottom - 0.5 && k !== 'fh-conditioning') throw new Error(`${label}: ${k} overlaps the block above it`);
+    const floor = k === 'fight-concept' ? 75.5 : k === 'fh-camp' ? 55.5 : /^fh-(practice|conditioning)$/.test(k) ? 83.5 : 47.5;
+    if (b.h < floor) throw new Error(`${label}: ${k} is squashed to ${Math.round(b.h)}px`);
+    prev = b;
+  }
+  if (m.stack[0] > m.stack[1] + 1) throw new Error(`${label}: the stack needs scrolling (${m.stack[0]} > ${m.stack[1]})`);
+  if (m.cardSub && m.cardSub[0] > m.cardSub[1]) throw new Error(`${label}: the drop card's line is cut off with an ellipsis`);
+};
+await check('fight hub fits 412x811, 390x844 and 360x740 with Coach\'s Tapes and a drop', async () => {
+  try {
+    await page.locator('[data-guide="mode-fight"]').click({ timeout: 4000 }); await S(1200);
+    for (const [w, h] of [[412, 811], [390, 844], [360, 740]]) { await resizeTo(w, h); fightFits(await fightMetrics(), `${w}x${h}`); }
+  } finally { await resizeTo(390, 844); }
+}, /FIGHT MODE/);
+await check('fight hub at 375x667 scrolls the tiles fully clear of the tab bar, with a fade hint', async () => {
+  try {
+    await resizeTo(375, 667);
+    const rest = await fightMetrics();
+    if (rest.stack[0] <= rest.stack[1] || !rest.mask || rest.mask === 'none') throw new Error('a stack that scrolls shows no fade hint');
+    await page.evaluate(() => { const st = document.querySelector('[data-guide="fh-disciplines"]').parentElement; st.scrollTop = st.scrollHeight; });
+    await S(400);
+    const m = await fightMetrics();
+    const t = m.blocks['fh-conditioning'];
+    if (!t || t.bottom > m.navTop || t.bottom > m.stackBottom + 1) throw new Error(`the tiles end at ${Math.round(t?.bottom)} after scrolling to the end; stack ends ${Math.round(m.stackBottom)}, tab bar at ${Math.round(m.navTop)}`);
+    if (m.mask && m.mask !== 'none') throw new Error('the scroll fade is still on at the end of the scroll');
+  } finally { await resizeTo(390, 844); }
+}, /FIGHT MODE/);
+// The Fight "?" lights the concept card last, and on a phone where the stack
+// scrolls every ring must still sit on the stack, not over the header or under
+// the tab bar (the guide scrolls each target into the stack first).
+const walkFightGuide = async (label) => {
+  await page.locator('button[aria-label="How this screen works"]').click({ timeout: 4000 }); await S(700);
+  const title = () => page.evaluate(() => document.querySelector('[aria-label="Close guide"]')?.nextElementSibling?.textContent || '');
+  const titles = [];
+  for (let i = 0; i < 14; i += 1) {
+    const t = await title(); titles.push(t);
+    const m = await fightMetrics(); const ring = await guideRing();
+    if (i > 0) {
+      if (!ring) throw new Error(`${label}: "${t}" has no spotlight`);
+      if (ring.top < m.stackTop - 12 || ring.bottom > Math.min(m.stackBottom, m.navTop) + 12) throw new Error(`${label}: "${t}" is lit at ${Math.round(ring.top)}-${Math.round(ring.bottom)}, outside the stack ${Math.round(m.stackTop)}-${Math.round(m.stackBottom)}`);
+    }
+    if (await btn(/^GOT IT/).count()) break;
+    await btn(/^NEXT/).click({ timeout: 3000 }); await S(700);
+  }
+  if (!/CONCEPT PROGRAMS/.test(titles[titles.length - 1])) throw new Error(`${label}: the guide ends on "${titles[titles.length - 1]}", not the concept step`);
+  const ring = await guideRing(); const card = await page.evaluate(() => { const r = document.querySelector('[data-guide="fight-concept"]').getBoundingClientRect(); return { top: r.top, bottom: r.bottom }; });
+  if (!ring || Math.abs(ring.top - card.top) > 14 || Math.abs(ring.bottom - card.bottom) > 14) throw new Error(`${label}: the concept step's ring is not on the card`);
+  await btn(/^GOT IT/).click({ timeout: 3000 }); await S(500);
+  if (await page.locator('[aria-label="Close guide"]').count()) throw new Error(`${label}: GOT IT did not close the guide`);
+};
+await check('fight hub guide: every ring on the stack at 375x667 (scrolling) and 360x740, ending on the concept card', async () => {
+  try { for (const [w, h] of [[375, 667], [360, 740]]) { await resizeTo(w, h); await walkFightGuide(`${w}x${h}`); } } finally { await resizeTo(390, 844); }
+}, /FIGHT MODE/);
+
+// A drop that ends while a hub is open (the last window closes at midnight on
+// 2027-09-30): card, gap and the guide's last step have to go together. The
+// hub is on screen across midnight, then anything re-renders it.
+const overMidnight = async (mode, rerender, lastTitle) => {
+  // Its own context: a page's clock is the whole context's, and every check
+  // after this one has to run on today's date.
+  const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await ctx2.addInitScript(seedStorage);
+  const p2 = await ctx2.newPage();
+  try {
+    await p2.clock.install({ time: new Date('2027-09-30T23:59:40') });
+    await p2.goto(BASE + '?__reset=1', { waitUntil: 'networkidle' }); await p2.waitForTimeout(2000);
+    await p2.mouse.click(195, 120); await p2.waitForTimeout(1500);
+    await p2.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+    await p2.locator(`button[aria-label="${mode === 'fit' ? 'FIT MODE' : 'FIGHT MODE'}"]`).click({ timeout: 5000 }); await p2.waitForTimeout(1200);
+    const card = `[data-guide="${mode}-concept"]`;
+    if (!(await p2.locator(card).count())) throw new Error('the drop card is not on the hub before midnight');
+    await p2.clock.fastForward(30000); await p2.waitForTimeout(300);
+    await rerender(p2); await p2.waitForTimeout(500);
+    if (await p2.locator(card).count()) throw new Error('the drop card is still on the hub after the drop ended');
+    await p2.locator('button[aria-label="How this screen works"]').click({ timeout: 4000 }); await p2.waitForTimeout(700);
+    const title = () => p2.evaluate(() => document.querySelector('[aria-label="Close guide"]')?.nextElementSibling?.textContent || '');
+    const titles = [];
+    for (let i = 0; i < 14; i += 1) {
+      titles.push(await title());
+      if (await p2.getByRole('button', { name: /^GOT IT/ }).count()) break;
+      await p2.getByRole('button', { name: /^NEXT/ }).first().click({ timeout: 3000 }); await p2.waitForTimeout(450);
+    }
+    if (titles.some(t => /CONCEPT PROGRAMS/.test(t)) || !new RegExp(`^${lastTitle}`).test(titles[titles.length - 1])) throw new Error(`the guide ends on "${titles[titles.length - 1]}" after the drop ended, not ${lastTitle}`);
+  } finally { await ctx2.close(); }
+};
+await check('fit hub: a drop ending while it is open leaves no card and a guide that ends on Cardio', async () => {
+  await overMidnight('fit', (p2) => p2.locator('button.fm-quiet').first().click(), 'CARDIO');
+}, /FIGHT MODE|FIT MODE/);
+await check('fight hub: a drop ending while it is open leaves no card and a guide that ends on Combat Conditioning', async () => {
+  await overMidnight('fight', (p2) => p2.locator('[aria-label="Discipline"] [role="tab"]').nth(1).click(), 'COMBAT CONDITIONING');
+}, /FIGHT MODE|FIT MODE/);
 
 // Quick Mission v2 ships behind data/qmV2 (owner preview until the flag
 // flips). The library check reads the flag, so it never needs editing when

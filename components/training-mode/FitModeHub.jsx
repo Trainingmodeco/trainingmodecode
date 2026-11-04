@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, Fragment } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import Embers from './Embers';
@@ -15,6 +15,7 @@ import { hasAnyRunGhost } from './data/runGhosts';
 import { qmV2Enabled } from './data/qmV2';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
 import { featuredEntry } from './data/concepts';
+import { useScrollFade, scrollGuideTarget } from './shared/hubScroll';
 
 // Fit Mode — the Simplify revamp layout.
 //
@@ -38,7 +39,10 @@ const MUTED = '#A9A3C4';
 // Tapes and Cardio); the Quick Mission row gives last; today's mission card
 // never shrinks, it sizes by its own content. Only below roughly 700px tall,
 // where even the floors cannot fit, does the column scroll, and it always
-// scrolls fully clear of the tab bar.
+// scrolls fully clear of the tab bar. Measured at 360-412 wide: with a run ghost,
+// Coach's Tapes and a drop all on it the floors need about 700px; a plain day
+// about 640px. The lane above the tab bar stays reserved (the BETA chip sits in
+// it), so buying more height would put the chip over the last row.
 const ROW_BASIS = 'clamp(48px, 6.6dvh, 56px)'; // caps at 56 on a tall phone
 const ROW_MIN = 44;
 const GAP_BASIS = 'clamp(8px, 1.4dvh, 12px)';
@@ -60,6 +64,19 @@ const hubCSS = `
 .fm-ghost { position: relative; }
 .fm-ghost::after { content: ''; position: absolute; inset: -8px -6px; } /* a 28px pill with a 44px tap */
 .fm-hero:hover img { opacity: .85; filter: brightness(1) saturate(1.1); transform: scale(1.02); }
+/* A guide step scrolls its target into the stack: leave room for the fade. */
+.fm-stack [data-guide] { scroll-margin-bottom: 32px; }
+/* Row type: 17/14 on any normal phone, a notch smaller on a short one, where
+   the rows are at their floor and the text would otherwise touch the border. */
+.fm-t { display: block; font: 700 clamp(16px, 2.4dvh, 17px) 'Chakra Petch',sans-serif; line-height: 1.15; letter-spacing: 0.04em; color: #fff; }
+.fm-s { display: block; font-size: clamp(13px, 2dvh, 14px); line-height: 1.15; color: ${MUTED}; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A 320px phone: tighter row padding and a 13px subtitle so no line is cut. */
+@media (max-width: 340px) {
+  .fm-row { padding-left: 12px !important; gap: 10px !important; }
+  .fm-row .fm-n { width: 16px !important; }
+  .fm-s { font-size: 13px; }
+  .fm-cardio-go svg { display: none; } /* Cardio's subtitle needs the room; "START" stays */
+}
 `;
 
 export default function FitModeHub({
@@ -108,7 +125,11 @@ export default function FitModeHub({
 
   // Concept drop on? The card renders nothing when none is featured, so the
   // gap that would sit beside it and the guide's last step both go with it.
-  const [hasConcept] = useState(() => !!featuredEntry());
+  // Read on every render and handed to the card, so a drop that starts or ends
+  // while the hub is open can never leave the card, the gap and the guide
+  // disagreeing.
+  const concept = featuredEntry();
+  const hasConcept = !!concept;
   const guideSteps = useMemo(
     () => SCREEN_GUIDES[v2 ? 'fit_hub_v2' : 'fit_hub'].filter(st => hasConcept || st.target !== 'fit-concept'),
     [v2, hasConcept],
@@ -116,7 +137,9 @@ export default function FitModeHub({
 
   // One gap between every block on the hub, so the stack reads evenly. A gap is
   // a flex item that gives back first when the column runs short.
-  const gap = (k) => <div key={k} aria-hidden="true" style={{ flex: `0 4 ${GAP_BASIS}`, minHeight: GAP_MIN }}/>;
+  // pointerEvents none: a spacer is a later sibling of the block above it and
+  // would otherwise sit on top of the lower edge of that block's buttons.
+  const gap = (k) => <div key={k} aria-hidden="true" style={{ flex: `0 4 ${GAP_BASIS}`, minHeight: GAP_MIN, pointerEvents: 'none' }}/>;
   const row = (r) => (
     <button
       key={r.key} type="button" className="fm-row" data-guide={'fit-' + r.key} onClick={r.onClick}
@@ -128,10 +151,10 @@ export default function FitModeHub({
         textAlign: 'left', width: '100%', WebkitTapHighlightColor: 'transparent',
       }}
     >
-      <span style={{ font: "600 13px 'Chakra Petch',sans-serif", color: '#8E88A8', width: 20 }}>{r.n}</span>
+      <span className="fm-n" style={{ font: "600 13px 'Chakra Petch',sans-serif", color: '#8E88A8', width: 20 }}>{r.n}</span>
       <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.04em', color: '#fff' }}>{r.title}</span>
-        <span style={{ display: 'block', fontSize: 14, color: MUTED, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.sub}</span>
+        <span className="fm-t">{r.title}</span>
+        <span className="fm-s">{r.sub}</span>
       </span>
       {r.badge && <span style={{ padding: '2px 7px', borderRadius: 99, background: '#F2BE45', color: '#1a1204', font: "700 9.5px 'Chakra Petch',sans-serif", letterSpacing: '0.14em' }}>{r.badge}</span>}
       <ChevronRight size={18} color="#8E88A8"/>
@@ -140,34 +163,7 @@ export default function FitModeHub({
 
   // When even the floors cannot fit (about 700px tall and under) the stack
   // scrolls. A fade on its lower edge says there is more; it goes at the end.
-  const stackRef = useRef(null);
-  const heroRef = useRef(null);
-  const [more, setMore] = useState(false);
-  useEffect(() => {
-    const el = stackRef.current;
-    if (!el) return undefined;
-    const check = () => setMore(el.scrollHeight - el.scrollTop - el.clientHeight > 6);
-    check();
-    el.addEventListener('scroll', check, { passive: true });
-    let ro;
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(check);
-      ro.observe(el);
-      if (heroRef.current) ro.observe(heroRef.current); // a wrapped title grows the card
-    }
-    return () => { el.removeEventListener('scroll', check); ro?.disconnect(); };
-  }, [surprise, hasGhost, hasConcept]);
-
-  // The guide's spotlight sits on the real element; on a short phone that
-  // element may be under the fade, so bring it into the column first.
-  const onGuideStep = (_i, st) => {
-    if (!st?.target) return;
-    requestAnimationFrame(() => {
-      try { document.querySelector(`[data-guide="${st.target}"]`)?.scrollIntoView({ block: 'nearest' }); } catch { /* noop */ }
-    });
-  };
-
-  const fade = more ? 'linear-gradient(to bottom, #000 calc(100% - 28px), transparent)' : 'none';
+  const { ref: stackRef, fade } = useScrollFade(`${surprise ? 1 : 0}${hasGhost ? 1 : 0}${hasConcept ? 1 : 0}`);
 
   return (
     <PhoneFrame useBrandBg>
@@ -182,27 +178,30 @@ export default function FitModeHub({
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px', flexShrink: 0 }}>
-          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={22}/></button>
+          {/* The three header buttons are 44px taps that lay out as before: padding
+              out, margin back in. Home reaches to the screen edge, and sits 4px
+              further from "?" so the two taps do not overlap. */}
+          <button onClick={onBack} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 11, margin: -11 }}><ChevronLeft size={22}/></button>
           <div style={{ flex: 1 }}><SafeImage src="/static/title-fit.png" alt="Fit Mode" style={{ height: 30, width: 'auto', maxWidth: '100%', display: 'block' }}/></div>
-          <HelpButton dataGuide="help-icon" onClick={() => setHelpOpen(true)}/>
-          <button onClick={onHome} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: 0 }}><Home size={18}/></button>
+          <HelpButton dataGuide="help-icon" hitSlop={6} onClick={() => setHelpOpen(true)}/>
+          <button onClick={onHome} aria-label="Home" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a4d8', display: 'flex', padding: '13px 16px 13px 10px', margin: '-13px -16px -13px -6px' }}><Home size={18}/></button>
         </div>
 
         <div style={{ flexShrink: 0, padding: '0 16px' }}>
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div ref={stackRef} className="no-scrollbar" style={{
+        <div ref={stackRef} className="no-scrollbar fm-stack" style={{
           flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column',
           padding: '0 16px 4px', WebkitMaskImage: fade, maskImage: fade,
         }}>
-          <div aria-hidden="true" style={{ flex: '0 4 clamp(8px, 2dvh, 16px)', minHeight: GAP_MIN }}/>
+          <div aria-hidden="true" style={{ flex: '0 4 clamp(8px, 2dvh, 16px)', minHeight: GAP_MIN, pointerEvents: 'none' }}/>
 
           {/* Today's mission — the one thing on this screen with a gold button.
               It sizes by its own content (label row, title, detail + START), so
               a long title or the GHOST ACTIVE badge makes it taller instead of
               cutting the title. The minimum is the look on a tall phone. */}
-          <section ref={heroRef} className="fm-hero" data-guide="fit-today" style={{
+          <section className="fm-hero" data-guide="fit-today" style={{
             position: 'relative', flexShrink: 0, display: 'flex', flexDirection: 'column',
             minHeight: 'clamp(112px, 15.5dvh, 134px)', borderRadius: 16, overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
@@ -248,8 +247,10 @@ export default function FitModeHub({
           {/* SURPRISE ME at the far left, ADJUST at the far right — the design
               parks them at the card's corners, not side by side in the middle.
               The row is 32 tall in the flow; the buttons are 44 tall and reach
-              6px over each side of it, so the taps are full size for free. */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', marginTop: 2, marginBottom: -6, height: 32, flexShrink: 0 }}>
+              6px over each side of it, so the taps are full size for free.
+              position:relative lifts the row above the card's lower edge (the
+              card is positioned, so it would paint over the buttons' top 6px). */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', marginTop: 2, marginBottom: -6, height: 32, flexShrink: 0 }}>
             <button type="button" className="fm-quiet" onClick={() => setSurprise(surpriseQuickMission())} style={{
               height: 44, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
@@ -263,7 +264,7 @@ export default function FitModeHub({
           {hasConcept && (
             <>
               {gap('g-concept')}
-              <ConceptFeatureCard mode="fit" onOpen={onOpenConcept} style={{ flex: '0 2 88px', height: 'auto', minHeight: 76 }}/>
+              <ConceptFeatureCard mode="fit" entry={concept} onOpen={onOpenConcept} style={{ flex: '0 2 88px', height: 'auto', minHeight: 76 }}/>
             </>
           )}
 
@@ -278,19 +279,19 @@ export default function FitModeHub({
           }}>
             <Heart size={20} color={VIOLET}/>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.04em', color: '#fff' }}>Cardio</span>
+              <span className="fm-t">Cardio</span>
               {/* Machine, not Cycle — the indoor option covers bike, rower and
                   elliptical, and "Cycle" undersold it. */}
-              <span style={{ display: 'block', fontSize: 14, color: MUTED, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Run · Jog · Machine · GPS</span>
+              <span className="fm-s">Run · Jog · Machine · GPS</span>
             </span>
-            <span style={{ padding: '0 4px 0 8px', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, color: VIOLET, font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em' }}>
+            <span className="fm-cardio-go" style={{ padding: '0 4px 0 8px', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, color: VIOLET, font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em' }}>
               <Play size={13} fill="currentColor" strokeWidth={0}/>START
             </span>
           </button>
         </div>
       </div>
 
-      {helpOpen && <ScreenGuide steps={guideSteps} onStep={onGuideStep} onClose={() => setHelpOpen(false)}/>}
+      {helpOpen && <ScreenGuide steps={guideSteps} onStep={scrollGuideTarget} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

@@ -2,13 +2,16 @@ import SafeImage from '../SafeImage';
 import { featuredEntry, loadProgress, status, fmtEnd } from '../data/concepts';
 
 // The featured-drop card on Home and at the top of the Fit and Fight hubs.
-// Renders nothing when no drop is featured.
+// Renders nothing when no drop is featured. A hub that also needs to know
+// whether the card is there (a spacer beside it, a guide step that points at
+// it) reads featuredEntry() once and passes it as `entry`, so the card and that
+// decision can never disagree.
 const H = "'Orbitron',sans-serif";
 const B = "'Rajdhani',sans-serif";
 const GOLD = '#fde047';
 
-export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
-  const entry = featuredEntry();
+export default function ConceptFeatureCard({ mode = 'home', onOpen, style, entry: given }) {
+  const entry = given === undefined ? featuredEntry() : given;
   if (!entry) return null;
   const c = entry.concept;
   const prog = loadProgress(c.id);
@@ -20,6 +23,10 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
     ? `Fit · Fight · Arcade — ${st.partsDone} of 3 done`
     : mode === 'fight' ? c.fight.blurb : c.fit.blurb;
   const cta = st.partsDone ? 'CONTINUE ›' : 'START ›';
+  // On a hub the card gives height back on a short phone (88 down to 76), so its
+  // text is centred in whatever height it gets instead of hanging from the top
+  // and landing on the bottom edge at the floor.
+  const hub = mode !== 'home';
   return (
     // The guide anchor is per mode: the Fit and Fight hubs' "?" end on this card.
     <button type="button" data-guide={mode === 'fight' ? 'fight-concept' : mode === 'home' ? 'home-concept' : 'fit-concept'} onClick={() => onOpen?.(mode === 'home' ? 'fit' : mode)} style={{
@@ -29,11 +36,13 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style }) {
     }}>
       <SafeImage src={fight ? c.art.poster : c.art.wide} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '60% 30%' }} />
       <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg,${fight ? 'rgba(4,8,26,.95)' : 'rgba(10,0,22,.94)'} 0%,rgba(10,0,22,.68) 55%,rgba(10,0,22,.12) 100%)` }} />
-      <div style={{ position: 'absolute', left: 14, top: 11, right: 14 }}>
-        <span style={{ display: 'inline-block', padding: '4px 9px', borderRadius: 99, background: ring, color: fight ? '#03122e' : '#2a0034', font: `800 8.5px ${H}`, letterSpacing: '0.14em' }}>
+      <div style={hub
+        ? { position: 'absolute', left: 14, right: 14, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }
+        : { position: 'absolute', left: 14, top: 11, right: 14 }}>
+        <span style={{ display: 'inline-block', alignSelf: hub ? 'flex-start' : undefined, padding: '4px 9px', borderRadius: 99, background: ring, color: fight ? '#03122e' : '#2a0034', font: `800 8.5px ${H}`, letterSpacing: '0.14em' }}>
           ◆ {mode === 'home' ? 'NEW DROP' : 'CONCEPT PROGRAM'}
         </span>
-        <div style={{ font: `900 ${mode === 'home' ? 20 : 19}px ${H}`, letterSpacing: '0.04em', marginTop: 4 }}>{title}</div>
+        <div style={{ font: `900 ${mode === 'home' ? 20 : 19}px ${H}`, lineHeight: hub ? 1.15 : undefined, letterSpacing: '0.04em', marginTop: 4 }}>{title}</div>
         <div style={{ font: `600 12px ${B}`, color: fight ? '#cfe0ff' : '#f0d6ff', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 70 }}>{sub}</div>
       </div>
       <div style={{ position: 'absolute', right: 12, bottom: 10, textAlign: 'right' }}>
