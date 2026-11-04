@@ -8,7 +8,7 @@
 //     the honor-system XP settle.
 import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL } from './missionMoves';
 import { MODE_RULES } from '../utils/missionIntegrity';
-import { resolveOutcome, xpForOutcome } from '../shared/sessionOutcome';
+import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from '../shared/sessionOutcome';
 
 // Seconds per unit when a rep is a distance or a calorie (Murph's mile; M is
 // HOT LAPS' 400 m, at the KM pace).
@@ -60,12 +60,14 @@ export function downCapReached(mission, elapsedSec) {
 // The score an until-down run ends on, GUIDED and SOLO alike. end 'down' (I
 // PUT IT DOWN) keeps the time tapped; end 'cap' reads the cap. reps are the
 // reps into the next set, never a whole set.
-export function downScore(mission, { sets = 0, reps = 0, end = 'down', timeSec = 0 } = {}) {
+// skipped: GUIDED's skipped blocks, kept on the score when there were any.
+export function downScore(mission, { sets = 0, reps = 0, end = 'down', timeSec = 0, skipped = 0 } = {}) {
   const n = Math.max(0, Math.floor(Number(sets) || 0));
   const r = Math.min(Math.max(0, repsPerSet(mission) - 1), Math.max(0, Math.floor(Number(reps) || 0)));
   const capped = end === 'cap';
   const t = capped ? mission?.capSec || 0 : Math.max(0, Math.floor(Number(timeSec) || 0));
-  return { kind: 'setsReps', sets: n, reps: r, timeSec: t, value: n * repsPerSet(mission) + r, ...(capped ? { capped: true } : {}) };
+  const k = Math.max(0, Math.floor(Number(skipped) || 0));
+  return { kind: 'setsReps', sets: n, reps: r, timeSec: t, value: n * repsPerSet(mission) + r, ...(capped ? { capped: true } : {}), ...(k > 0 ? { skipped: k } : {}) };
 }
 export const DOWN_NO_SET_MESSAGE = 'Finish one set to earn XP.';
 export const DOWN_STOP_MESSAGE = 'Ended with no score. I PUT IT DOWN saves your sets.';
@@ -77,23 +79,45 @@ const DOWN_COPY = {
     one: 'set', many: 'sets', ONE: 'SET', MANY: 'SETS', tag: 'S', done: 'I PUT IT DOWN', ask: 'BELL DOWN?', askName: 'Bell down',
     noScore: DOWN_NO_SET_MESSAGE, stop: DOWN_STOP_MESSAGE,
     stopSolo: 'Bell on the floor? Tap I PUT IT DOWN instead: it saves your sets. END saves nothing.',
-    stopGuided: 'Bell on the floor? Tap I PUT IT DOWN instead: it finishes the run with your sets.',
+    stopGuided: 'Bell on the floor? Tap I PUT IT DOWN instead: it finishes the run with your sets. END saves nothing.',
     capSay: 'Time. Park the bell.', doneSay: 'Bell down.',
+    // SOLO's SET tap comes every ~25 s with a bell in hand.
+    tapHint: 'Tap SET with your free hand at a switch, or skip it and enter your sets when the bell is down.',
   },
   round: {
     one: 'round', many: 'rounds', ONE: 'ROUND', MANY: 'ROUNDS', tag: 'R', done: "I'M DONE", ask: 'DONE?', askName: 'Done',
     noScore: 'Finish one round to earn XP.', stop: "Ended with no score. I'M DONE saves your rounds.",
     stopSolo: "Can't finish a round? Tap I'M DONE instead: it saves your rounds. END saves nothing.",
-    stopGuided: "Can't finish a round? Tap I'M DONE instead: it finishes the run with your rounds.",
+    stopGuided: "Can't finish a round? Tap I'M DONE instead: it finishes the run with your rounds. END saves nothing.",
     capSay: 'Time.', doneSay: 'Done.',
   },
 };
 export function downCopy(mission) { return mission?.downUnit === 'round' ? DOWN_COPY.round : DOWN_COPY.set; }
 // '1 set', '6 rounds'.
 export function downCount(mission, n) { const c = downCopy(mission); return `${n} ${n === 1 ? c.one : c.many}`; }
-// The XP for an untilDown run: 15 a set done plus the finish bonus, the
-// same as a guided run that finished every slot it ran.
-export function downXp(sets) { return sets > 0 ? 15 * sets + 30 : 0; }
+// One set's (round's) seconds at the STANDARD count: the average block, rep 1
+// with its setup. What a set is worth in XP, at every level.
+export function downSetSec(mission) {
+  const secs = allSlots(mission).map(sl => (hasList(sl) ? sl.list : [sl])
+    .reduce((n, it) => n + (it.reps || 0) * estMsFor(it.moveId, 'standard') / 1000, 0) + (sl.setupMs || 0) / 1000);
+  return secs.length ? Math.max(1, Math.round(secs.reduce((a, b) => a + b, 0) / secs.length)) : 1;
+}
+// The XP for an untilDown run, on the clocks' scale: the sets done, each
+// worth its standard time, at 10 a minute, never more than the run clock
+// ran (elapsedSec), plus the finish bonus (bonus: false when GUIDED skipped
+// a block). So holding on longer earns what the work is worth, not three
+// times a clock's rate: NO CONTINUES STANDARD pays about 5 a set, a 30:00
+// run at most 330, like any 30-minute clock.
+export function downXp(mission, sets, { elapsedSec = Infinity, bonus = true } = {}) {
+  const n = Math.max(0, Math.floor(Number(sets) || 0));
+  if (n <= 0) return 0;
+  const ran = Math.max(0, Number(elapsedSec));
+  return minutesXp(Math.min(Number.isFinite(ran) ? ran : Infinity, n * downSetSec(mission))) + (bonus ? XP_FINISH : 0);
+}
+// GUIDED counts the sets for itself, so a phone left running would count to
+// the cap: every `downCheckEvery` sets (the level's elite mark) it holds the
+// count and asks STILL GOING? before it counts on.
+export function downCheckEvery(mission) { return isUntilDown(mission) && mission?.pace?.elite > 0 ? mission.pace.elite : 0; }
 
 // ── estimates ───────────────────────────────────────────────────────────────
 // The working seconds of one slot, without its rest.
@@ -208,6 +232,17 @@ export function segmentAt(timeline, elapsedSec) {
 }
 
 // ── score and pace ──────────────────────────────────────────────────────────
+// A for-time tier's seconds: a number, or TOUCH THE SKY's { held, of, timeSec }
+// (rounds held are its tiers; the time at the count is only for the maths).
+export function tierSec(v) { return typeof v === 'number' ? v : typeof v?.timeSec === 'number' ? v.timeSec : 0; }
+// The rest SOLO times after a ROUND tap: a for-time mission's own long rest
+// between rounds (TOUCH THE SKY's 2:00), else 0. Short rests are never timed.
+export function roundRestSec(mission) {
+  if (mission?.format !== 'forTime' || isUntilDown(mission) || isLadder(mission)) return 0;
+  const slots = allSlots(mission);
+  const rest = slots.length ? slots[slots.length - 1].rest || 0 : 0;
+  return rest >= 60 ? rest : 0;
+}
 // Reps in one round of the score: one pass of the AMRAP list, or one round of
 // a for-time mission (a ladder's round is all its rungs). Distances and
 // `scored: false` slots never count.
@@ -258,6 +293,7 @@ export function paceTargets(mission) {
     const v = pace[tier];
     let text = '';
     if (isUntilDown(mission)) text = tier === 'elite' ? `${v}+ ${downCopy(mission).many}` : `${v} ${downCopy(mission).many}`;
+    else if (kind === 'roundsHeld') text = `${v?.held}/${v?.of} rounds`; // not a race: rounds held
     else if (f === 'forTime') text = `≤ ${mmss(v)}`;
     else if (f === 'amrap' && kind === 'reps') text = tier === 'elite' ? `${v}+ reps` : `${v} reps`; // an AMRAP scored in total reps
     else if (f === 'amrap') text = tier === 'elite' ? `${v}+ rounds` : `${v} rounds`;
@@ -302,8 +338,13 @@ export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) 
 // with nothing skipped. Rests are not work. So a single-block AMRAP no
 // longer pays a flat 45: CARRY-ON 15 pays 180, ROOM 12 150, OVERTIME 20 230
 // (STANDARD). A mission of many short slots (TURBO BUTTON, every EMOM) still
-// pays by its slots, which is more. A generated mission or a classic never
-// reaches the minute rule (no v2 flag): it pays 15 a slot, as before.
+// pays by its slots, which is more. A for-time mission's FINISH pays its
+// standard time (capped at the cap) at the same 10 a minute when that is
+// more than its slots: a fixed figure, so a slow finish never earns more
+// (TOUCH THE SKY 110 + 30, BURNOUT 21, KO SPRINT 30, OXYGEN DEBT). A stopped
+// for-time run pays its slots. An until-down run pays its sets on the same
+// scale (downXp). A generated mission or a classic never reaches the minute
+// rule (no v2 flag): it pays 15 a slot, as before.
 export const XP_PER_SLOT = 15;
 export const XP_FINISH = 30;
 export const XP_PER_MIN = 10;
@@ -323,25 +364,35 @@ export function workSecOf(mission, upToSec = Infinity) {
   return out;
 }
 export function minutesXp(sec) { return Math.round((XP_PER_MIN * Math.max(0, Number(sec) || 0)) / 60); }
+// A v2 for-time mission: its finish pays the standard time (forTimePaySec).
+export function paysOnFinish(mission) { return mission?.v2 === true && !isUntilDown(mission) && mission?.format === 'forTime'; }
+export function forTimePaySec(mission) {
+  if (!paysOnFinish(mission)) return 0;
+  const std = tierSec(mission?.pace?.standard);
+  const cap = mission?.capSec || 0;
+  return cap > 0 ? Math.min(std, cap) : std;
+}
 // slots × ratio at 15 each (ratio: SOLO's share of a stopped run), or the
-// minutes worked at 10 each on a clock, whichever is more, + the bonus.
+// minutes worked at 10 each on a clock (a for-time finish: its standard
+// time), whichever is more, + the bonus.
 export function missionXp(mission, { slots = 0, ratio = 1, workedSec = 0, full = false } = {}) {
   const bySlots = Math.round(XP_PER_SLOT * Math.max(0, slots) * ratio);
-  const byTime = paysByTime(mission) ? minutesXp(Math.min(Math.max(0, Number(workedSec) || 0), workSecOf(mission))) : 0;
+  const byTime = paysByTime(mission) ? minutesXp(Math.min(Math.max(0, Number(workedSec) || 0), workSecOf(mission)))
+    : full && paysOnFinish(mission) ? minutesXp(forTimePaySec(mission)) : 0;
   return Math.max(bySlots, byTime) + (full ? XP_FINISH : 0);
 }
 export function fullRunXp(mission) { return missionXp(mission, { slots: totalSlots(mission), workedSec: workSecOf(mission), full: true }); }
 export function soloExpectedSec(mission) {
   if (isUntilDown(mission)) return mission.capSec || 0;
   if (isFixedClock(mission?.format)) return missionClockSec(mission);
-  const std = mission?.pace?.standard;
+  const std = tierSec(mission?.pace?.standard);
   const cap = mission?.capSec || 0;
-  return typeof std === 'number' && cap ? Math.min(std, cap) : (std || cap || 0);
+  return std && cap ? Math.min(std, cap) : (std || cap || 0);
 }
 export function soloFloorSec(mission) {
   if (isUntilDown(mission)) return soloSetFloorSec(mission);
   if (isFixedClock(mission?.format)) return Math.ceil(0.95 * missionClockSec(mission));
-  return Math.ceil(0.5 * (mission?.pace?.elite || 0));
+  return Math.ceil(0.5 * tierSec(mission?.pace?.elite));
 }
 export const TOO_FAST_MESSAGE = "Faster than elite pace, so this one can't count.";
 export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
@@ -372,8 +423,12 @@ export function settleSoloXp(result) {
 // measured in time (the runner reports workedSec): the minute rule pays it
 // and the verdict reads the share of the clock worked. Anything else reads
 // its slots, as before. A generated mission or a classic never comes here.
+// A stopped run is never a pass: past 90% of a clock (or of the slots) it is
+// still SESSION STOPPED, as SOLO calls it. The XP stays what it is.
+const STOPPED_RESPONSE = 'Ended early — the work you completed counts toward your stats.';
 export function settleGuidedXp(result) {
   const mission = result?.mission || {};
+  if (isUntilDown(mission)) return settleGuidedDown(result, mission);
   const done = Math.max(0, Math.floor(Number(result?.exercisesCompleted) || 0));
   const total = Math.max(0, Number(result?.totalExercises) || 0);
   const full = !!result?.completed && done >= total;
@@ -381,10 +436,31 @@ export function settleGuidedXp(result) {
   const clockWork = timed ? workSecOf(mission) : 0;
   const worked = timed ? Math.min(clockWork, Math.max(0, Math.floor(Number(result?.workedSec) || 0))) : 0;
   const base = missionXp(mission, { slots: done, workedSec: worked, full });
-  const verdict = resolveOutcome({
+  let verdict = resolveOutcome({
     completed: timed ? worked : done, total: timed ? clockWork : total, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null,
   });
+  if (!result?.completed && verdict.outcome === 'pass') verdict = { ...verdict, outcome: 'partial', response: STOPPED_RESPONSE, preset: OUTCOME_PRESET.partial };
   return { mode: 'guided', xp: xpForOutcome(verdict.outcome, base), base, outcome: verdict.outcome, verdict, workedSec: worked };
+}
+// GUIDED, until down: the same settle as SOLO's. Only I PUT IT DOWN (I'M
+// DONE) or the cap ends the run with a score (result.untilDown, from the
+// runner's endDown); a STOP / END is a quit with no score and pays nothing,
+// whatever sets it counted. A skipped block drops the finish bonus.
+function settleGuidedDown(result, mission) {
+  const copy = downCopy(mission);
+  const ended = !!result?.untilDown && !!result?.completed && !!result?.score;
+  const none = (message) => ({
+    mode: 'guided', xp: 0, base: 0, outcome: 'none', workedSec: 0,
+    verdict: { outcome: 'fail', response: message, completionRatio: 0, preset: OUTCOME_PRESET.fail },
+  });
+  if (!ended) return none(copy.stop);
+  const sets = Math.min(totalSlots(mission), Math.max(0, Math.floor(Number(result.score.sets) || 0)));
+  if (sets <= 0) return none(copy.noScore);
+  const skipped = Math.max(0, Math.floor(Number(result.skipped) || 0));
+  const elapsed = Math.max(0, Math.floor(Number(result.elapsedSec ?? result.score.timeSec) || 0));
+  const base = downXp(mission, sets, { elapsedSec: elapsed, bonus: skipped === 0 });
+  const verdict = resolveOutcome({ completed: sets, total: sets + skipped, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null });
+  return { mode: 'guided', xp: xpForOutcome(verdict.outcome, base), base, outcome: verdict.outcome, verdict, workedSec: 0 };
 }
 // untilDown: I PUT IT DOWN (or the cap) is a finish, paid per set done. A
 // STOP is a quit with no score, so it pays nothing: the button that saves
@@ -397,7 +473,7 @@ function settleDown(result, mission) {
   const credited = Math.min(sets, Math.floor(elapsed / soloSetFloorSec(mission)));
   if (credited <= 0) return { xp: 0, outcome: sets > 0 ? 'too_fast' : 'none', ratio: 0, credited: 0, message: sets > 0 ? TOO_FAST_MESSAGE : copy.noScore };
   return {
-    xp: downXp(credited), outcome: 'pass', ratio: 1, credited,
+    xp: downXp(mission, credited, { elapsedSec: elapsed }), outcome: 'pass', ratio: 1, credited,
     message: credited < sets ? `Faster than elite pace, so ${credited} of ${sets} ${copy.many} count.` : null,
   };
 }
@@ -438,6 +514,16 @@ export function roundSplits(mission, splits) {
   });
   return out;
 }
+// FINISH on a for-time mission is its last ROUND tap: when the taps are
+// short of the rounds (the last round is never tapped: FINISH is the tap),
+// the splits close at the finish time, so a finished 3-round run has 3.
+export function closeSplits(mission, splits, finishSec) {
+  const list = Array.isArray(splits) ? splits : [];
+  if (mission?.format !== 'forTime' || isUntilDown(mission) || !Number.isFinite(Number(finishSec))) return list;
+  if (list.length >= soloRounds(mission)) return list;
+  const lastAt = list.reduce((n, sp) => Math.max(n, Number(sp?.at) || 0), 0);
+  return [...list, { at: Math.max(lastAt, Math.floor(Number(finishSec)) * 1000), block: 0 }];
+}
 // 'R1 2:00 · R2 4:00 · R3 8:00': each round's own time. `tag` 'S' for sets.
 export function splitsLine(rounds, { tag = 'R', last = Infinity } = {}) {
   const list = Array.isArray(rounds) ? rounds : [];
@@ -451,7 +537,7 @@ export function blockSplitsLine(rounds, { tag = 'R' } = {}) {
   return blocks.map(b => `B${b + 1} ${splitsLine(list.filter(r => r.block === b), { tag })}`).join(' / ');
 }
 
-// '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '—'
+// '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '3/3' (rounds held) · '—'
 export function formatScore(score) {
   if (!score) return '—';
   switch (score.kind) {
@@ -467,6 +553,7 @@ export function formatScore(score) {
     case 'minutesHeld': return `${score.minutesHeld ?? score.value ?? 0}/${score.of ?? 0}`;
     case 'reps': return String(score.reps ?? score.value ?? 0);
     case 'setsReps': return `${score.sets || 0} + ${score.reps || 0}`;
+    case 'roundsHeld': return `${score.held || 0}/${score.of || 0}${score.reps ? ` + ${score.reps}` : ''}`;
     default: return '—';
   }
 }

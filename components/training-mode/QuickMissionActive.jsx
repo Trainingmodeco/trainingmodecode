@@ -21,7 +21,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSetupKit';
 import { qmV2Enabled } from './data/qmV2';
-import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, paysByTime } from './data/missionSolo';
+import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime } from './data/missionSolo';
 import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
   leadLine, shortRestLine, restScript, getReadySeconds, workStartLine, skipRestTarget,
@@ -125,6 +125,12 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   // I'M DONE (UPPER LOWER DIPS, downUnit 'round', which calls each round).
   const dc = downCopy(mission);
   const roundsDown = untilDown && mission.downUnit === 'round';
+  // A skipped block is no set, and it drops the finish bonus (sent with the
+  // result as `skipped`). Every `checkEvery` sets (the level's elite mark)
+  // the count holds and asks STILL GOING?, so a phone left running never
+  // counts to the cap on its own.
+  const skippedRef = useRef(Math.max(0, Math.floor(Number(initialResumeData?.skipped) || 0)));
+  const checkEvery = untilDown ? downCheckEvery(mission) : 0;
   // v2 · XP by time: a mission on a clock (EMOM, AMRAP, intervals) pays the
   // minutes worked (data/missionSolo settleGuidedXp). The work of every slot
   // done adds up here: an EMOM window, an AMRAP block, an interval. A
@@ -230,7 +236,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
   useEffect(() => {
     if (typeof onStateChange === 'function') {
       // runMs: only an untilDown run has a run clock to bring back.
-      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, ...(untilDown ? { runMs: Math.round(runMsNow()) } : {}), ...(byTime ? { workedSec: workedRef.current } : {}) });
+      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, ...(untilDown ? { runMs: Math.round(runMsNow()), skipped: skippedRef.current } : {}), ...(byTime ? { workedSec: workedRef.current } : {}) });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange, mission, restTotal, restKind, runSec]);
@@ -491,7 +497,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     integrity.recordAction('complete');
 
     if (v2) {
+      const setsNow = exercisesCompletedRef.current + 1;
       advanceV2('complete', opts);
+      if (checkEvery > 0 && setsNow % checkEvery === 0 && !doneRef.current) askCheck();
       return;
     }
 
@@ -553,6 +561,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       setTimeout(() => setRapidWarning(null), 2500);
     }
     if (v2) {
+      if (untilDown) skippedRef.current += 1;
       advanceV2('skip');
       return;
     }
@@ -1192,34 +1201,50 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     setTimeout(() => {
       stopVoiceSession();
       const sets = exercisesCompletedRef.current;
+      const skipped = skippedRef.current;
       onEnd({
         completed: true,
         roundsCompleted: roundsCompletedRef.current,
         totalRounds: mission.rounds,
         exercisesCompleted: sets,
-        totalExercises: sets,
+        // A skipped block counts against the finish (settleGuidedXp drops the bonus).
+        totalExercises: sets + skipped,
         mission,
         integrityResult,
         untilDown: why,
         elapsedSec,
-        score: downScore(mission, { sets, reps, end: why, timeSec: elapsedSec }),
+        skipped,
+        score: downScore(mission, { sets, reps, end: why, timeSec: elapsedSec, skipped }),
       });
     }, 1800);
   };
 
   // I PUT IT DOWN holds the run (the count and the run clock stop) and asks.
-  // NOT YET picks it up again only if it was running.
-  const [downAsk, setDownAsk] = useState(false);
+  // NOT YET picks it up again only if it was running. The check-in ('check',
+  // every checkEvery sets) holds it the same way: KEEP GOING calls the block
+  // again and counts on; the end button saves the run.
+  const [downAsk, setDownAsk] = useState(false); // false | 'down' | 'check'
   const downWasPausedRef = useRef(false);
   const askDown = () => {
     if (doneRef.current) return;
     downWasPausedRef.current = pausedRef.current;
     if (!pausedRef.current) handlePause();
-    setDownAsk(true);
+    setDownAsk('down');
+  };
+  const askCheck = () => {
+    if (doneRef.current) return;
+    downWasPausedRef.current = false;
+    if (!pausedRef.current) handlePause();
+    setDownAsk('check');
+    if (voiceOn) speakAsync('Still going?');
   };
   const cancelDown = () => {
+    const wasCheck = downAsk === 'check';
     setDownAsk(false);
-    if (!downWasPausedRef.current) handleResume();
+    if (downWasPausedRef.current) return;
+    // The hold cut the block's call short: say it again before the count.
+    if (wasCheck && voiceOn && phaseRef.current === 'work') speakAsync(roundsDown ? roundLine(roundRef.current) : switchLine(allExercises[exIdxRef.current]));
+    handleResume();
   };
   const confirmDown = () => { setDownAsk(false); endDown('down'); };
 
@@ -1249,6 +1274,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
     // "0 EXERCISES" on the same screen. Rounds are now DERIVED from the
     // exercise counter, so the two can never disagree again.
     const exDone = exercisesCompletedRef.current;
+    if (untilDown) runClockStop();
     // The work of a timed slot cut short counts for the time it ran.
     const exNow = allExercises[exIdxRef.current];
     const partWork = phaseRef.current === 'work' && exNow?.mode === 'timed' ? Math.max(0, (exNow.work || 0) - (remaining || 0)) : 0;
@@ -1257,10 +1283,14 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
       roundsCompleted: Math.min(mission.rounds, Math.floor(exDone / Math.max(1, allExercises.length))),
       totalRounds: mission.rounds,
       exercisesCompleted: exDone,
-      totalExercises: allExercises.length * mission.rounds,
+      // untilDown has no set length: never the hidden backstop (blocks × 30).
+      totalExercises: untilDown ? exDone + skippedRef.current : allExercises.length * mission.rounds,
       mission,
       integrityResult,
       ...(byTime ? { workedSec: Math.floor(workedRef.current + partWork) } : {}),
+      // untilDown: END is a quit with no score (settleGuidedXp pays 0); the
+      // run clock goes with it for the complete screen.
+      ...(untilDown ? { elapsedSec: Math.floor(runMsNow() / 1000) } : {}),
     });
   };
 
@@ -1675,7 +1705,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
               color: C.muted, lineHeight: 1.5, marginBottom: 24,
             }}>{untilDown
               ? dc.stopGuided
-              : 'Only completed exercises will count toward your stats.'}</div>
+              : byTime
+                ? 'The minutes you worked count toward your XP.'
+                : 'Only completed exercises will count toward your stats.'}</div>
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setConfirmEnd(false)} style={{
                 flex: 1, padding: '12px 0', borderRadius: 10,
@@ -1700,21 +1732,23 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
           display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)',
         }}>
           <div style={{ background: 'rgba(15,5,30,0.95)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 16, padding: '28px 24px', textAlign: 'center', maxWidth: 300, width: '85%' }}>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, color: '#fff', letterSpacing: '0.12em', marginBottom: 12 }}>{dc.ask}</div>
+            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, color: '#fff', letterSpacing: '0.12em', marginBottom: 12 }}>{downAsk === 'check' ? 'STILL GOING?' : dc.ask}</div>
             <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 15, fontWeight: 500, color: C.muted, lineHeight: 1.45, marginBottom: 22 }}>
-              {exercisesCompleted > 0
-                ? `That ends the run with ${downCount(mission, exercisesCompleted)}${cadenceRep > 0 ? ` + ${cadenceRep}` : ''}.`
-                : `No ${dc.one} is finished yet, so the run ends with no score.`}
+              {downAsk === 'check'
+                ? `${downCount(mission, exercisesCompleted)} done. The count holds until you tap.`
+                : exercisesCompleted > 0
+                  ? `That ends the run with ${downCount(mission, exercisesCompleted)}${cadenceRep > 0 ? ` + ${cadenceRep}` : ''}.`
+                  : `No ${dc.one} is finished yet, so the run ends with no score.`}
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <button type="button" onClick={cancelDown} style={{
                 flex: 1, minHeight: 44, borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
                 color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
-              }}>NOT YET</button>
+              }}>{downAsk === 'check' ? 'KEEP GOING' : 'NOT YET'}</button>
               <button type="button" onClick={confirmDown} style={{
                 flex: 1, minHeight: 44, borderRadius: 10, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)',
                 color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
-              }}>{exercisesCompleted > 0 ? 'SAVE' : 'END'}</button>
+              }}>{downAsk === 'check' ? dc.done : exercisesCompleted > 0 ? 'SAVE' : 'END'}</button>
             </div>
           </div>
         </div>

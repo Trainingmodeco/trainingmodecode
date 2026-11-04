@@ -9,11 +9,12 @@ import {
   fitKitCSS, GoldButton, GhostButton, Label, Modal,
   HEAD, BODY, GOLD, MUTED, CARD, CARD_BORDER,
 } from './shared/FitSetupKit';
-import { cardRows, swapMissionMove, gearProfile, FORMAT_LABEL } from './data/loadoutMissions';
+import { cardRows, swapMissionMove, gearProfile, formatLabelOf } from './data/loadoutMissions';
 import {
   isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, paceTargets, prefillScore,
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
   isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, splitsLine, blockSplitsLine,
+  closeSplits, roundRestSec,
 } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 
@@ -87,8 +88,15 @@ function downDraft(mission, roundTaps, end, from) {
   return { end, sets: clampInt(roundTaps, 0, totalSlots(mission)), reps: 0, ...(from ? { from } : {}) };
 }
 // A ladder's taps are its rungs, so the prefill is the reps through them.
+// Rounds held (TOUCH THE SKY): the rounds tapped, and the reps into the next.
+const isHeld = (mission) => mission?.scoreRule?.kind === 'roundsHeld';
 function capDraft(mission, roundTaps) {
+  if (isHeld(mission)) return { end: 'cap', held: clampInt(roundTaps, 0, mission.rounds || 1), reps: 0 };
   return { end: 'cap', reps: Math.min(repsPerRound(mission) * (mission.rounds || 1), repsThrough(mission, roundTaps)) };
+}
+// FINISH: every round is done, so the held rounds start at all of them.
+function finishDraft(mission, from) {
+  return isHeld(mission) ? { end: 'finish', from, held: mission.rounds || 1, reps: 0 } : { end: 'finish', from };
 }
 
 // The Score object App stores (see the Drop A spec, 3.7).
@@ -99,6 +107,14 @@ function scoreFromDraft(mission, draft, finishSec) {
   if (isUntilDown(mission)) {
     if (draft.end !== 'down' && draft.end !== 'cap') return null;
     return downScore(mission, { sets: draft.sets, reps: draft.reps, end: draft.end, timeSec: finishSec });
+  }
+  // Rounds held, not a race: the time is kept for the record only.
+  if (isHeld(mission) && (draft.end === 'finish' || draft.end === 'cap')) {
+    const of = mission.rounds || 1;
+    const held = clampInt(draft.held, 0, of);
+    const reps = draft.end === 'cap' ? clampInt(draft.reps, 0, Math.max(0, rpr - 1)) : 0;
+    const timeSec = draft.end === 'cap' ? mission.capSec || 0 : finishSec;
+    return { kind: 'roundsHeld', held, of, reps, timeSec, value: held * rpr + reps, ...(draft.end === 'cap' ? { capped: true } : {}) };
   }
   if (draft.end === 'finish') return { kind: 'time', timeSec: finishSec, value: finishSec };
   if (draft.end === 'cap') return { kind: 'time', capped: true, reps: draft.reps, value: draft.reps };
@@ -151,7 +167,7 @@ function startState(resume, mission) {
     }
     if (Number.isFinite(resume.finishSec)) {
       // FINISH was tapped: the panel waits, the clock held (NOT YET → paused).
-      const scoreDraft = draft.end === 'down' ? { ...draft, from: 'paused' } : { end: 'finish', from: 'paused' };
+      const scoreDraft = draft.end === 'down' || isHeld(mission) ? { ...finishDraft(mission, 'paused'), ...draft, from: 'paused' } : { end: 'finish', from: 'paused' };
       return { ...base, phase: 'score', finishSec: resume.finishSec, scoreDraft, clock: clock(elapsedMs, ms(resume.pausedMs), ms(resume.hiddenMs), true) };
     }
   }
@@ -352,7 +368,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   };
 
   // The result App settles and stores (see the Drop A spec, 3.7).
-  const finish = ({ completed, stopped = false, capped = false, score = null, elapsedSec }) => {
+  const finish = ({ completed, stopped = false, capped = false, score = null, elapsedSec, splitsOut = splits }) => {
     const c = clockRef.current;
     if (c.done) return;
     c.done = true;
@@ -368,7 +384,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       mode: 'solo', completed, stopped, capped,
       missionId: mission.id, mission, format, level: mission.level, scaled: !!mission.scaled, swaps: mission.swaps || [],
       elapsedSec: sec, pausedSec: Math.floor(c.pausedMs / 1000), hiddenSec: Math.floor(c.hiddenMs / 1000), clockSec: mission.clockSec || 0,
-      roundTaps, blockTaps: blockTaps ? [...blockTaps] : null, splits: splits.map(sp => ({ ...sp })),
+      roundTaps, blockTaps: blockTaps ? [...blockTaps] : null, splits: splitsOut.map(sp => ({ ...sp })),
       score, totalSlots: slots,
       roundsCompleted: 0, totalRounds: mission.rounds,
       exercisesCompleted: completed || down ? slots : Math.round(slots * (expected > 0 ? Math.min(1, sec / expected) : 0)),
@@ -394,7 +410,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     if (phase !== 'running' && phase !== 'paused') return;
     if (phase === 'running' && tick()) return;
     setFinishSec(Math.floor(clockRef.current.elapsedMs / 1000));
-    setScoreDraft({ end: 'finish', from: phase });
+    setScoreDraft(finishDraft(mission, phase));
     setSwapKeyOpen(null);
     setPhase('score');
   };
@@ -440,7 +456,9 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     const d = scoreDraft;
     if (!d) return;
     const score = scoreFromDraft(mission, d, finishSec);
-    if (d.end === 'finish' || d.end === 'down') finish({ completed: true, score, elapsedSec: finishSec });
+    // FINISH is the last ROUND tap: the splits close at the finish time.
+    if (d.end === 'finish') finish({ completed: true, score, elapsedSec: finishSec, splitsOut: closeSplits(mission, splits, finishSec) });
+    else if (d.end === 'down') finish({ completed: true, score, elapsedSec: finishSec });
     else if (d.end === 'cap') finish({ completed: true, capped: true, score, elapsedSec: capSec });
     else finish({ completed: true, score, elapsedSec: clockRef.current.elapsedMs / 1000 });
   };
@@ -491,11 +509,27 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   // ladder's rung, a set) and takes a split: the clock right now, read
   // fresh, not the last tick. UNDO takes the last one back, split and all.
   const roundsDone = useMemo(() => roundSplits(mission, splits), [mission, splits]);
+  // The score panel after FINISH reads the closed splits (FINISH is the last tap).
+  const panelRounds = useMemo(() => (scoreDraft?.end === 'finish' ? roundSplits(mission, closeSplits(mission, splits, finishSec)) : roundsDone),
+    [mission, splits, finishSec, scoreDraft, roundsDone]);
   const blockRounds = multiBlock ? roundsDone.filter(r => r.block === block) : roundsDone;
   const roundsHere = multiBlock ? (blockTaps?.[block] ?? 0) : roundTaps;
   const allTapped = countUp && roundTaps >= tapRounds;
   const lastLap = blockRounds.length ? blockRounds[blockRounds.length - 1] : null;
   const roundFrom = lastLap ? lastLap.atSec : (multiBlock ? (at?.startSec ?? 0) : 0);
+  // A for-time mission's long rest between rounds (TOUCH THE SKY's 2:00) is
+  // timed from the ROUND tap: REST 1:42 on the round timer, a beep at 3-2-1
+  // and the bell to go.
+  const restSec = roundRestSec(mission);
+  const restLeft = restSec > 0 && lastLap && tapsLive && roundTaps < tapRounds ? Math.max(0, restSec - (elapsedSec - lastLap.atSec)) : 0;
+  const restPrevRef = useRef(restLeft);
+  useEffect(() => {
+    const prev = restPrevRef.current;
+    restPrevRef.current = restLeft;
+    if (phase !== 'running' || restLeft === prev) return;
+    if (prev > 0 && restLeft === 0) playBell(1);
+    else if (restLeft > 0 && restLeft <= 3 && restLeft < prev) playBeep();
+  }, [restLeft, phase]);
   const addRound = () => {
     if (!tapsLive || allTapped) return;
     if (phase === 'running' && tick()) return;
@@ -531,7 +565,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const onUndo = (row) => setMission(m => swapMissionMove(m, row.swapKey, row.defaultMoveId, { gear }));
 
   const levelLabel = mission.levelLabel || '';
-  const strip = `${FORMAT_LABEL[format] || ''} · ${levelLabel}${mission.scaled ? ' · SCALED' : ''}`;
+  const strip = `${formatLabelOf(mission)} · ${levelLabel}${mission.scaled ? ' · SCALED' : ''}`;
   const muted11 = { font: `500 11px ${BODY}`, color: MUTED, lineHeight: 1.4 };
   const cardBox = { borderRadius: 14, background: CARD, border: `1px solid ${CARD_BORDER}`, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 };
   const canStop = phase !== 'score';
@@ -562,7 +596,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         {phase === 'score' ? (
           <ScorePanel
             mission={mission} draft={scoreDraft} finishSec={finishSec} rpr={rpr}
-            splitLine={blockSplitsLine(roundsDone, { tag: down ? dc.tag : 'R' })}
+            splitLine={blockSplitsLine(panelRounds, { tag: down ? dc.tag : 'R' })}
             onDraft={setScoreDraft} onSave={handleSave} onNotYet={handleNotYet}
           />
         ) : (
@@ -592,11 +626,14 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                 word={down ? dc.ONE : 'ROUND'} words={down ? dc.MANY : 'ROUNDS'}
                 current={allTapped ? tapRounds : roundsHere + 1} count={roundsHere} total={multiBlock ? roundTaps : null}
                 thisSec={allTapped ? null : Math.max(0, elapsedSec - roundFrom)} lastSec={lastLap ? lastLap.lapSec : null}
+                restLeft={restLeft}
                 line={splitsLine(blockRounds, { tag: down ? dc.tag : 'R', last: 5 })}
                 live={tapsLive && !allTapped} canUndo={tapsLive && roundsHere > 0}
                 onRound={addRound} onUndo={undoRound}
               />
             )}
+            {/* NO CONTINUES: a bell in hand, so the SET tap is optional. */}
+            {showRounds && down && dc.tapHint && <div style={{ ...muted11, marginTop: -6 }}>{dc.tapHint}</div>}
 
             {/* Until down: the end of the run and the safety line sit right
                 under SET, on screen without a scroll. */}
@@ -683,13 +720,17 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 // round's time, a short list of splits, UNDO for a mis-tap and the big ROUND
 // button. `count` is the rounds done (in this block), `total` the run's total
 // across blocks (multi-block AMRAPs only).
-function RoundTimer({ word, words, current, count, total, thisSec, lastSec, line, live, canUndo, onRound, onUndo }) {
+function RoundTimer({ word, words, current, count, total, thisSec, lastSec, restLeft = 0, line, live, canUndo, onRound, onUndo }) {
   const meta = [`LAST ${lastSec == null ? '—' : mmss(lastSec)}`, `${words} ${count}`, ...(total != null ? [`TOTAL ${total}`] : [])].join(' · ');
   return (
     <div data-guide="qms-rounds" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
         <span style={{ font: `700 26px ${HEAD}`, letterSpacing: '0.08em', color: GOLD }}>{word} {current}</span>
-        <span aria-label={`This ${word.toLowerCase()}`} style={{ font: `700 24px ${HEAD}`, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{thisSec == null ? '' : mmss(thisSec)}</span>
+        {restLeft > 0 ? (
+          <span role="timer" aria-label="Rest left" style={{ font: `700 24px ${HEAD}`, color: '#C4A8FF', fontVariantNumeric: 'tabular-nums' }}>REST {mmss(restLeft)}</span>
+        ) : (
+          <span aria-label={`This ${word.toLowerCase()}`} style={{ font: `700 24px ${HEAD}`, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{thisSec == null ? '' : mmss(thisSec)}</span>
+        )}
       </div>
       <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: '#fff' }}>{meta}</div>
       {line && <div style={{ font: `600 12px ${BODY}`, color: MUTED, lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>{line}</div>}
@@ -739,6 +780,20 @@ function ScorePanel({ mission, draft, finishSec, rpr, splitLine, onDraft, onSave
         </div>
         <ScoreStepper label={dc.MANY} name={dc.many} value={draft.sets} max={totalSlots(mission)} onChange={(v) => set({ sets: v })}/>
         <ScoreStepper label="REPS INTO THE NEXT" name="reps" value={draft.reps} max={Math.max(0, repsPerSet(mission) - 1)} onChange={(v) => set({ reps: v })}/>
+      </>
+    );
+  } else if (isHeld(mission) && (draft.end === 'finish' || draft.end === 'cap')) {
+    // Not a race: the rounds held with the bar never down (and the reps into
+    // the next at the cap) are the score; the time is for the record.
+    body = (
+      <>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: draft.end === 'cap' ? GOLD : MUTED }}>{draft.end === 'cap' ? 'TIME CAP' : 'TIME'}</span>
+          <span style={{ font: `700 44px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{mmss(score?.timeSec ?? 0)}</span>
+        </div>
+        <ScoreStepper label={rule.label || 'ROUNDS HELD'} name="rounds held" value={draft.held} max={mission.rounds || 1} onChange={(v) => set({ held: v })}/>
+        {draft.end === 'cap' && <ScoreStepper label="REPS INTO THE NEXT" name="reps" value={draft.reps} max={repsMax} onChange={(v) => set({ reps: v })}/>}
+        <div style={{ font: `500 11px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>A round counts when the bar never went down in it.</div>
       </>
     );
   } else if (draft.end === 'finish') {

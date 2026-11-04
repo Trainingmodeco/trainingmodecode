@@ -37,7 +37,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const roundWord = isUntilDown(mission) ? downCopy(mission).MANY : 'ROUNDS';
 
   const subtitle = solo
-    ? `${FORMAT_LABEL[result.format || mission.format] || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · Solo`
+    ? `${(mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · Solo`
     : `${mission.workoutType} · ${mission.difficulty} · Quick Mission`;
   // A guided run until the bell is down (NO CONTINUES) has a score of its own.
   const scored = solo || (!!result.untilDown && !!result.score);
@@ -47,6 +47,14 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       { value: mmss(result.elapsedSec || 0), label: 'TIME', color: '#fff' },
       { value: mission.levelLabel, label: 'LEVEL', color: '#fff' },
     ]
+    // An until-down run ENDed with no score: no rounds out of the hidden
+    // backstop (it has no set length), just the time it ran.
+    : isUntilDown(mission)
+      ? [
+        { value: '—', label: 'SCORE', color: GOLD },
+        { value: mmss(result.elapsedSec || 0), label: 'TIME', color: '#fff' },
+        { value: mission.levelLabel, label: 'LEVEL', color: '#fff' },
+      ]
     : guidedSettle && paysByTime(mission)
       // On a clock the XP is the time worked, so the screen shows it.
       ? [
@@ -71,7 +79,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       integrityResult={solo ? null : integrityResult}
       failReason={solo ? result.settle?.message || undefined : verdict.response}
       stats={stats}
-      summary={rounds ? <RoundSplits rounds={rounds} tag={roundTag} word={roundWord} totalSec={result.elapsedSec || 0}/> : null}
+      summary={rounds ? <RoundSplits rounds={rounds} count={scoreCount(result.score, rounds.length)} tag={roundTag} word={roundWord} totalSec={result.elapsedSec || 0}/> : null}
       cardioResult={cardioResult}
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
       actions={[
@@ -83,17 +91,30 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   );
 }
 
-// The round timer's recap: how many rounds, each round's time, the total.
-// Kept short so it fits on any phone (MissionComplete never hides it).
-function RoundSplits({ rounds, tag, word, totalSec }) {
+// The rounds the saved score counts (the athlete can correct the taps on
+// YOUR SCORE): rounds, sets, a finished run's rounds held; else the taps.
+function scoreCount(score, taps) {
+  if (score?.kind === 'roundsReps') return Array.isArray(score.blocks) && score.blocks.length ? score.blocks.reduce((n, b) => n + (b.rounds || 0), 0) : score.rounds || 0;
+  if (score?.kind === 'setsReps') return score.sets || 0;
+  if (score?.kind === 'roundsHeld' && !score.capped) return score.of || 0;
+  return taps;
+}
+// The round timer's recap: how many rounds the score counts, each tapped
+// round's time, the total. Rounds the score has but nobody tapped read as
+// not timed. Kept short so it fits on any phone (MissionComplete never hides it).
+function RoundSplits({ rounds, count, tag, word, totalSec }) {
   const blocks = [...new Set(rounds.map(r => r.block))];
   const multi = blocks.length > 1;
+  const taps = rounds.length;
+  const gap = count > taps
+    ? (multi ? `${count - taps} not timed.` : `${tag}${taps + 1}${count > taps + 1 ? `–${tag}${count}` : ''} not timed.`)
+    : count < taps ? `${taps} taps timed.` : null;
   const box = { background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 10, padding: '8px 10px' };
   const line = { font: "600 10px 'Rajdhani',sans-serif", color: '#e9e3f7', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' };
   return (
     <div data-guide="qm-splits" style={box}>
       <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.12em', color: GOLD, marginBottom: 3 }}>
-        <span>{word} {rounds.length}</span><span style={{ color: '#fff' }}>TOTAL {mmss(totalSec)}</span>
+        <span>{word} {count}</span><span style={{ color: '#fff' }}>TOTAL {mmss(totalSec)}</span>
       </div>
       {rounds.length === 0 ? (
         <div style={{ ...line, color: '#9a90b8' }}>No round taps this run.</div>
@@ -102,6 +123,7 @@ function RoundSplits({ rounds, tag, word, totalSec }) {
       )) : (
         <div style={line}>{splitsLine(rounds, { tag })}</div>
       )}
+      {gap && taps > 0 && <div style={{ ...line, color: '#9a90b8' }}>{gap}</div>}
     </div>
   );
 }

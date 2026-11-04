@@ -223,7 +223,9 @@ export class IntegritySession {
   // touches the floor). The athlete ending it IS the finish, so the session
   // is judged on the units it actually ran: the unit in progress closes as
   // done when it holds finished work (keepCurrent), else it is dropped. Only
-  // that mission's runner calls this.
+  // that mission's runner calls this, and only once a set is done. A run
+  // resumed mid-cycle that ends before the next cycle opens a unit ran none
+  // on this mount: nothing to judge, so it is complete, not 0 of 1.
   endRunHere(keepCurrent) {
     const unit = this.units[this.currentUnitIndex];
     if (unit && !unit.completedAt) {
@@ -231,7 +233,7 @@ export class IntegritySession {
       if (keepCurrent) this.completeUnit();
       else { this.units.splice(this.currentUnitIndex, 1); this.currentUnitIndex = this.units.length - 1; }
     }
-    this.totalUnits = Math.max(1, this.units.length);
+    this.totalUnits = this.units.length;
   }
 
   finalize(motion) {

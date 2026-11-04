@@ -103,7 +103,7 @@ const kit = {
   // screen. `origin` marks the owner's own workouts ('Coach TM original').
   missions: LM.LOADOUT_MISSIONS.map((d) => {
     const c = LM.missionCardModel(LM.buildLoadoutMission(d.id, { gear: null }), { gear: null });
-    return { id: d.id, title: c.title, loadout: c.loadoutLine, format: LM.FORMAT_LABEL[d.format] || d.format, mission: c.missionLine, score: c.scoreLine, tags: c.tags, themes: d.themes || [], moves: c.rows.map(r => `${r.dose} ${r.name}`.trim()), levels: LM.levelsOf(d), guided: d.guided !== false, captionAka: d.knownAs || null, origin: d.origin || null };
+    return { id: d.id, title: c.title, loadout: c.loadoutLine, format: LM.formatLabelOf(d) || d.format, mission: c.missionLine, score: c.scoreLine, tags: c.tags, themes: d.themes || [], moves: c.rows.map(r => `${r.dose} ${r.name}`.trim()), levels: LM.levelsOf(d), guided: d.guided !== false, captionAka: d.knownAs || null, origin: d.origin || null };
   }),
   programs: PLAN_PROGRAMS.map(p => ({ id: p.id, title: p.title, shelf: p.category, meta: p.meta, blurb: p.blurb, days: (p.days || []).map(d => d.label), pro: !!p.pro })),
 };

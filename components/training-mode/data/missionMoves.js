@@ -494,13 +494,13 @@ export const MOVES = [
   // earlier mission's swaps did either.
   // barbell: BAR FIGHT
   mv('bb-punch-out', 'Explosive Front Presses', 'explosive front presses', 'punch', 'barbell', 'reps', [1.0, 1.25, 1.5], { say1: 'explosive front press' },
-    'Light bar at the chest, overhand grip, elbows tucked. | Punch it straight out fast, then snap it back to the chest. | Core braced, shoulders down. Never lock the elbows hard.',
+    "Light bar at the chest, overhand grip, elbows tucked. | Punch it straight out fast, then snap it back to the chest. | Stagger the feet. Don't lean back to hold the bar out. | Core braced, shoulders down. Never lock the elbows hard.",
     [easier('plate-punch-out'), noGear('one-two', { stop: 'Shoulder pinch?' })]),
   mv('plate-punch-out', 'Plate Punch-Outs', 'plate punch-outs', 'punch', 'plate', 'reps', [1.0, 1.25, 1.5], { say1: 'plate punch-out' },
     'Hold a light plate by the edges at the chest. | Punch it straight out fast, then snap it back. | Core braced, shoulders down.',
     [harder('bb-punch-out'), noGear('one-two')]),
   mv('bb-explosive-press', 'Explosive Overhead Presses', 'explosive overhead presses', 'press', 'barbell', 'reps', [1.5, 1.75, 2.0], { say1: 'explosive overhead press' },
-    'Bar on the front of the shoulders, elbows just ahead of the bar. | Dip and drive with the legs like a jump, and punch the bar overhead. | Ribs down at the top, then straight back to the shoulders.',
+    'Bar on the front of the shoulders, elbows just ahead of the bar. | Dip and drive with the legs like a jump, and punch the bar overhead. | Ribs down at the top, then straight back to the shoulders. | Soft knees to catch it on the shoulders.',
     [easier('plate-push-press'), similar('bb-push-press'), noGear('pike-push-up')]),
   mv('plate-push-press', 'Plate Push Presses', 'plate push presses', 'press', 'plate', 'reps', [1.5, 1.75, 2.0], { say1: 'plate push press' },
     'Hold a plate by the edges at the chest. | Dip and drive with the legs, and punch it overhead. | Ribs down, then back to the chest.',
@@ -552,18 +552,18 @@ export const MOVES = [
   // incline push-ups, offered first on every dip row. NO GEAR: a fixed bench,
   // a sturdy chair against a wall, or parallel bars. Coach estimates.
   mv('bench-dip-bent', 'Bent-Knee Bench Dips', 'bench dips', 'push', 'none', 'reps', [1.75, 2.0, 2.5], { say1: 'bench dip' },
-    'Hands on the edge of a fixed bench, or a sturdy chair against a wall. Fingers forward. | Knees bent, feet flat, hips close to the edge. | Lower until the elbows reach 90°, no deeper. Press back up.',
+    'Hands on the edge of a fixed bench, or a sturdy chair against a wall. Fingers forward. | Knees bent, feet flat, hips close to the edge. | Shoulders down and back, chest up. | Lower until the elbows reach 90°, no deeper. Press back up.',
     [easier('incline-push-up', { stop: 'Shoulder pinch?' }), harder('bench-dip')]),
   mv('bench-dip', 'Bench Dips', 'bench dips', 'push', 'none', 'reps', [1.75, 2.0, 2.5], { say1: 'bench dip' },
-    'Hands on the edge of a fixed bench, or a sturdy chair against a wall. Fingers forward. | Legs out straight, heels down, hips close to the edge. | Lower until the elbows reach 90°, no deeper. Press back up.',
+    'Hands on the edge of a fixed bench, or a sturdy chair against a wall. Fingers forward. | Legs out straight, heels down, hips close to the edge. | Shoulders down and back, chest up. | Lower until the elbows reach 90°, no deeper. Press back up.',
     [easier('incline-push-up', { stop: 'Shoulder pinch?' }), easier('bench-dip-bent'), harder('parallel-bar-dip')]),
   mv('parallel-bar-dip', 'Parallel-Bar Dips', 'dips', 'push', 'none', 'reps', [1.75, 2.25, 2.75], { say1: 'dip' },
-    'Straight arms on parallel bars or a dip station, shoulders down. | Lean a little forward and lower until the elbows reach 90°. No deeper. | Press back to straight arms.',
+    'A dip station or parallel bars only. Never between two chairs. | Straight arms, shoulders down. Lean a little forward and lower until the elbows reach 90°. No deeper. | Press back to straight arms.',
     [easier('incline-push-up', { stop: 'Shoulder pinch?' }), easier('bench-dip')]),
   // A no-bar pull. Only OVERTIME 20 offers it (its own extra alts), so no
   // other mission's swaps change.
   mv('door-frame-row', 'Door Frame Rows', 'door frame rows', 'pull', 'none', 'reps', [2.0, 2.5, 3.0], { say1: 'door frame row' },
-    'Stand in a solid door frame, a hand on each side at chest height, toes near the threshold. | Lean back to straight arms, body in one line. | Pull the chest to the frame, lower slowly. Feet closer in is harder. | A solid frame only. Never pull on the door itself.',
+    'A solid frame only. Never pull on the door itself. No vest on door frame rows. | A hand on each side at chest height, gripping with the whole hand, not the fingertips. | Start nearly upright and keep the lean shallow: if a hand slips, you fall backward. | Body in one line. Pull the chest to the frame, lower slowly.',
     [harder('jumping-pull-up'), harder('pull-up')]),
 ];
 
@@ -684,10 +684,13 @@ export function shortRestLine(next) { return `Next: ${spokenMove(next)}.`; }
 export function switchLine(slot) { return `Switch: ${spokenMove(slot)}.`; }
 // The same chain when the run counts rounds (UPPER LOWER DIPS): 'Round 4.'
 export function roundLine(n) { return `Round ${n}.`; }
+// A rest of 2:00 or more is said in minutes ('Rest. 2 minutes.'); a shorter
+// one in seconds, as every mission before TOUCH THE SKY says it.
+const restPhrase = (sec) => (sec >= 120 ? spokenDuration(sec) : secondsPhrase(sec));
 export function restOpener({ restSec, roundEnd, completedRound, format, tip = null }) {
   const base = format !== 'emom' && roundEnd
-    ? `Round ${completedRound} complete. Rest. ${secondsPhrase(restSec)}.`
-    : `Rest. ${secondsPhrase(restSec)}.`;
+    ? `Round ${completedRound} complete. Rest. ${restPhrase(restSec)}.`
+    : `Rest. ${restPhrase(restSec)}.`;
   return tip ? `${base} ${tip}` : base;
 }
 // 'Swapped in: Knee Dive Bombers, Step-Back Sprawls.' for the intro, or null.
