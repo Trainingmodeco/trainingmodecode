@@ -121,6 +121,10 @@ const sheet = () => page.getByRole('dialog', { name: 'Mission library' });
 const library = async () => { await page.locator('[data-guide="qm-library"]').click({ timeout: 4000 }); await S(700); };
 const pickRow = async (re) => { await library(); await sheet().getByRole('radio', { name: re }).click({ timeout: 4000 }); await S(300); };
 const putOnCard = async (re) => { await pickRow(re); await sheet().getByRole('button', { name: 'PUT ON CARD' }).click({ timeout: 4000 }); await S(600); };
+// The Quick Mission rows the stats bank holds (one per run banked).
+const qmRows = () => page.evaluate(() => { try { return (JSON.parse(localStorage.getItem('tm_user_stats') || '{}').sessions || []).filter(s => s.type === 'Quick Mission'); } catch { return []; } });
+// A tap that may find its button disabled or gone (the finish bell): it must not end the run again.
+const tryTap = (loc) => loc.click({ timeout: 800 }).catch(() => {});
 // The page: the card (▾ SEE ALL opens it in place, ADJUST sits on the open
 // card), GEAR (a radio strip) and TIME (a range input, 10 to 60 by 5).
 const card = () => page.locator('[data-guide="qm-card"]');
@@ -308,6 +312,19 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
   t = await text();
   if (!/1 \+ 0/.test(t)) throw new Error('the saved score is not 1 + 0');
 }, /SESSION COMPLETE/);
+// NO CONTINUES SOLO, STOP then END with no SET tap: no score and no taps,
+// so no recap box (it read 'No round taps' on a mission that taps SET).
+await check('owner: NO CONTINUES solo END with no taps shows no recap', async () => {
+  await ownerQuick(); await putOnCard(/^NO CONTINUES/);
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await btn(/^STOP$/).click({ timeout: 4000 }); await S(400);
+  await btn(/^END$/).click({ timeout: 4000 }); await S(3000);
+  const t = await text();
+  if (/taps this run/.test(t) || await page.locator('[data-guide="qm-splits"]').count()) throw new Error('a recap box on a run with no taps and no score');
+}, /MISSION FAILED/);
 // UPPER LOWER DIPS in SOLO: the same until-failure engine counting ROUNDS.
 // Two ROUND taps take two splits, I'M DONE ends it as a finish, and the
 // complete screen shows the rounds, each round's time and the total.
@@ -340,21 +357,84 @@ await check('owner: UPPER LOWER DIPS guided start', async () => {
   const t = await text();
   if (!/GET READY/.test(t) || !/ROUND 1/.test(t) || !/I'M DONE/.test(t) || !/elbows reach 90°/.test(t)) throw new Error('GET READY does not lead into round 1');
 }, /UPPER LOWER DIPS/);
-// NO CONTINUES GUIDED: STOP then END is a quit, as in SOLO. One set counted,
-// and the complete screen pays nothing and shows no rounds out of the hidden
-// 30-round backstop.
+// NO CONTINUES GUIDED: STOP then END is a quit, as in SOLO. A full cycle
+// (3 sets) counted, and the complete screen pays nothing, shows no rounds out
+// of the hidden 30-round backstop and no integrity banner beside the verdict
+// (it read PARTIAL COMPLETION next to MISSION FAILED). A quit that pays
+// nothing leaves the Mission of the Day to do, as in SOLO.
 await check('owner: NO CONTINUES guided END saves nothing, like SOLO', async () => {
   await ownerQuick(); await putOnCard(/^NO CONTINUES/);
+  await page.evaluate(() => {
+    localStorage.setItem('dailyMissionActive', 'true'); localStorage.setItem('dailyMissionDate', new Date().toISOString().slice(0, 10));
+    localStorage.setItem('dailyMissionActiveData', JSON.stringify({ action: 'quickMission' })); localStorage.removeItem('dailyMissionCompleted');
+  });
   await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
   await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
-  for (let i = 0; i < 30 && !/SET 2/.test(await text()); i += 1) await S(2000); // the coach counts set 1
-  if (!/SET 2/.test(await text())) throw new Error('set 1 never finished');
+  for (let i = 0; i < 60 && !/SET 4/.test(await text()); i += 1) await S(2000); // the coach counts sets 1-3
+  if (!/SET 4/.test(await text())) throw new Error('the first cycle never finished');
   await page.locator('[data-guide="qma-stop"]').click({ timeout: 4000 }); await S(500);
   if (!/END saves nothing/.test(await text())) throw new Error('the END confirm does not say END saves nothing');
   await btn(/^END MISSION$/).click({ timeout: 4000 }); await S(3000);
   const t = await text();
   if (!/Ended with no score\. I PUT IT DOWN saves your sets\./.test(t) || /\/30/.test(t) || /EXERCISES/.test(t)) throw new Error('GUIDED END paid or showed the backstop');
+  if (/PARTIAL COMPLETION|All rounds verified/.test(t)) throw new Error('an integrity banner contradicts the verdict');
+  const daily = await page.evaluate(() => localStorage.getItem('dailyMissionCompleted'));
+  const rows = await qmRows();
+  if (daily === 'true' || rows.length !== 1 || rows[0].xpEarned !== 0) throw new Error(`a quit completed the Mission of the Day or paid (${daily}, ${JSON.stringify(rows.map(r => r.xpEarned))})`);
 }, /MISSION FAILED/);
+// NO CONTINUES GUIDED: a SKIP undone by REWIND takes back the skip, not the
+// set before it. Set 1, SKIP, REWIND, set 2, I PUT IT DOWN: two clean sets
+// and the bonus (it saved 1 set, skipped 1 and SESSION STOPPED). Inside the
+// finish bell REWIND, STOP and END MISSION do nothing: one row, 2 + 0.
+await check('owner: NO CONTINUES guided SKIP then REWIND keeps the sets', async () => {
+  await ownerQuick(); await putOnCard(/^NO CONTINUES/);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
+  for (let i = 0; i < 60 && !/SET 2/.test(await text()); i += 1) await S(1000); // the coach counts set 1
+  if (!/SET 2/.test(await text()) || !/BLOCK 2\/3/.test(await text())) throw new Error(`set 1 never finished: ${(await text()).replace(/\s+/g, ' ').slice(0, 300)}`);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(800);
+  if (!/BLOCK 3\/3/.test(await text())) throw new Error('SKIP did not move on to block 3');
+  await page.locator('[data-guide="qma-rewind"]').click({ timeout: 4000 }); await S(800);
+  if (!/SET 2/.test(await text())) throw new Error('REWIND took back set 1');
+  for (let i = 0; i < 60 && !/SET 3/.test(await text()); i += 1) await S(1000); // block 2 again
+  if (!/SET 3/.test(await text())) throw new Error('block 2 never finished after REWIND');
+  await btn(/^I PUT IT DOWN$/).click({ timeout: 4000 }); await S(500);
+  if (!/That ends the run with 2 sets/.test(await text())) throw new Error('the BELL DOWN? dialog does not count 2 sets');
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(300);
+  await tryTap(page.locator('[data-guide="qma-rewind"]'));
+  await tryTap(page.locator('[data-guide="qma-stop"]'));
+  await tryTap(btn(/^END MISSION$/));
+  await S(3500);
+  const t = await text();
+  const rows = await qmRows();
+  if (rows.length !== 1) throw new Error(`the run banked ${rows.length} times`);
+  if (rows[0].score?.sets !== 2 || rows[0].score?.skipped || !(rows[0].xpEarned > 30)) throw new Error(`the saved score is not 2 clean sets with the bonus: ${JSON.stringify([rows[0].score, rows[0].xpEarned])}`);
+  if (!/2 \+ 0/.test(t) || /SESSION STOPPED|PARTIAL COMPLETION|All rounds verified/.test(t)) throw new Error('the complete screen does not read 2 + 0, complete');
+}, /SESSION COMPLETE/);
+// GUIDED, a clock: an End Mission? left open while the last slot runs out
+// closes with the finish, so END MISSION after 00:00 never banks it twice.
+// TURBO BUTTON: every slot but the last is SKIPped (each rest jumps to its
+// last seconds), STOP opens on the last one and stays open past 00:00.
+await check('quick mission: GUIDED STOP left open as the clock ends banks once', async () => {
+  await ownerQuick(); await putOnCard(/^TURBO BUTTON/);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1200); // the brief
+  let t = '';
+  for (let i = 0; i < 220; i += 1) {
+    t = await text();
+    if (/EXERCISE 16\/16/.test(t) && /WORK/.test(t)) break;
+    await page.locator('[data-guide="qma-skip"]').click({ timeout: 2000 }); await S(700);
+  }
+  if (!/EXERCISE 16\/16/.test(t)) throw new Error('never reached the last slot');
+  await page.locator('[data-guide="qma-stop"]').click({ timeout: 2000 }); await S(300);
+  if (!/End Mission\?/.test(await text())) throw new Error('STOP did not open End Mission?');
+  for (let i = 0; i < 200 && !/\b00:00\b/.test(await text()); i += 1) await S(150); // the clock runs under the dialog
+  await S(300);
+  await tryTap(btn(/^END MISSION$/));
+  await S(4000);
+  const rows = await qmRows();
+  if (rows.length !== 1) throw new Error(`the run banked ${rows.length} times: ${JSON.stringify(rows.map(r => r.xpEarned))}`);
+}, /TURBO BUTTON/);
 // TOUCH THE SKY SOLO: not a race. ROUND starts the timed 2:00 rest, FINISH
 // is the last ROUND tap, and the score is the rounds held with the bar never down.
 await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async () => {
@@ -368,14 +448,20 @@ await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async (
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
   if (!/COMPLEX · STANDARD/.test(t) || !/CAP 20:00 · ROUND 1\/3/.test(t) || !/3\/3 rounds/.test(t)) throw new Error('not the rounds-held SOLO screen');
+  // FINISH sits under the round timer, on screen above the tab bar without a scroll.
+  const fin = await btn(/^FINISH$/).boundingBox();
+  if (!fin || fin.y + fin.height > 760) throw new Error(`FINISH is off screen or under the tab bar (${fin && Math.round(fin.y)})`);
   await btn(/^ROUND$/).click({ timeout: 4000 }); await S(1500);
   if (!/REST 1:5\d/.test(await text())) throw new Error('ROUND did not start the 2:00 rest');
+  // ROUND rests with the athlete: a tap in the timed rest is no round.
+  if (!(await btn(/^ROUND$/).isDisabled())) throw new Error('ROUND is live during the timed rest');
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(800);
   t = await text();
-  if (!/YOUR SCORE/.test(t) || !/ROUNDS, BAR NEVER DOWN\s*3/.test(t) || !/R1 0:0\d · R2 0:0\d/.test(t)) throw new Error('FINISH did not close the last round or open rounds held');
+  // One ROUND tap of three: FINISH cannot know where rounds 2 and 3 split, so only R1 is timed.
+  if (!/YOUR SCORE/.test(t) || !/ROUNDS, BAR NEVER DOWN\s*3/.test(t) || !/R1 0:0\d/.test(t) || /R2 \d/.test(t)) throw new Error('FINISH did not open rounds held with only the tapped round timed');
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3000);
   t = await text();
-  if (!/3\/3/.test(t) || !/ROUNDS 3/.test(t) || !/R3 not timed/.test(t)) throw new Error('the complete screen does not show rounds held and the splits');
+  if (!/3\/3/.test(t) || !/ROUNDS 3/.test(t) || !/R2–R3 not timed/.test(t)) throw new Error('the complete screen does not show rounds held and the splits');
 }, /COMPLEX · STANDARD/);
 // OVERTIME 20: GUIDED like the other AMRAPs, and SOLO has the round timer.
 await check('quick mission: OVERTIME 20 guided start', async () => {

@@ -942,7 +942,11 @@ const tapNotes = L.LOADOUT_MISSIONS.filter(d => /Tap ROUND after each/.test(d.no
 check('58 all 26: SOLO clocks, pace, prefills, floors and integrity sizing unchanged', soloMathChanged.length === 0, soloMathChanged.join(', '));
 check('58 all 26: the six settles as pinned (XP by time on the ten AMRAPs, a for-time finish on three)', settleChanged.length === 0, settleChanged.join(', '));
 check('58 all 26: the built mission and its card unchanged', builtChanged.length === 0 && cardChanged.length === 0, `${builtChanged.join(', ')} ${cardChanged.join(', ')}`);
-check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps', 'touch_the_sky']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`)), show(tapNotes));
+// GUIDED has no ROUND button: a note on a mission that runs GUIDED says the
+// tap is SOLO's (TOUCH THE SKY, the only one; the five above are SOLO only).
+const guidedRoundNotes = L.LOADOUT_MISSIONS.filter(d => d.guided && /\bROUND\b/.test(d.note) && !/In SOLO, tap ROUND/.test(d.note)).map(d => d.id);
+check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`))
+  && L.missionDefById('touch_the_sky').note.endsWith('In SOLO, tap ROUND after each round to time the rest.') && guidedRoundNotes.length === 0, show([tapNotes, guidedRoundNotes]));
 
 // No franchise, benchmark or person names anywhere a viewer reads.
 const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];
@@ -1256,9 +1260,19 @@ check('70 BAR FIGHT: every loaded row offers a lighter swap', ownSheetBad.length
 // dumbbell, a plate, a backpack, the floor), and no back squat (the bar over
 // the head between a good morning and a press).
 const skyReach = (lv) => L.cardRows(ownBuilt.touch_the_sky[lv]).flatMap(r => [...L.reachableMoves(ownBuilt.touch_the_sky[lv], r.swapKey).keys()]);
+// High Pulls have no catch, so the bar would never reach the rack for the
+// front squats: two steps down the clean row (Hang Muscle Cleans, then
+// EASIER) never reach them. Power Cleans' cue offers dumbbells, which this
+// bar-only mission has none of, so the step names the bar move instead.
+const SKY_OUT_PIN = ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat', 'bb-high-pull'];
+const skyPower = (lv) => L.swapMissionMove(ownBuilt.touch_the_sky[lv], 'clean', 'bb-power-clean');
 check('70 TOUCH THE SKY and NO CONTINUES: no swap changes the implement in hand', inHandBad.length === 0
-  && LEVELS.every(lv => !skyReach(lv).some(k => ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat'].includes(k)))
-  && LEVELS.every(lv => eq(ownBuilt.touch_the_sky[lv].excludeAlts, ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat'])),
+  && LEVELS.every(lv => !skyReach(lv).some(k => SKY_OUT_PIN.includes(k)))
+  && LEVELS.every(lv => eq(ownBuilt.touch_the_sky[lv].excludeAlts, SKY_OUT_PIN))
+  && LEVELS.every(lv => !L.swapOptions(L.swapMissionMove(ownBuilt.touch_the_sky[lv], 'clean', 'bb-hang-muscle-clean'), 'clean').some(o => o.id === 'bb-high-pull')
+    && L.swapOptions(ownBuilt.touch_the_sky[lv], 'clean').length > 0
+    && L.cardRows(skyPower(lv)).find(r => r.swapKey === 'clean').note === 'Never been coached on the clean? Take Hang Muscle Cleans.'
+    && L.cardRows(ownBuilt.touch_the_sky[lv]).find(r => r.swapKey === 'clean').note === null),
   inHandBad.slice(0, 8).join(', '));
 // The step notes: every front squat comes straight from the rack; RDLs for
 // the good mornings say where the bar goes (and the extra clean on the way down).
@@ -1297,7 +1311,16 @@ check('71 NO CONTINUES: the safety line on the card, only there', ncCard.safety 
 check('71 NO CONTINUES: the ceiling, the loose-rep and palm stop rules', LEVELS.every(lv => ownBuilt.no_continues[lv].hotel === false && !L.missionCardModel(ownBuilt.no_continues[lv]).tags.includes('HOTEL OK'))
   && ncCard.loadoutLine === '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE · CHECK THE CEILING'
   && ["Swing or snatch feeling loose? Don't start the next one.", 'Hot spot or a tear on the palm: put it down.'].every(t => ncCard.note.includes(t)), ncCard.note);
-check('71 TOUCH THE SKY and BAR FIGHT: the card rules', /press can handle for 5/.test(ownBuilt.touch_the_sky.standard.note) && /Don't put the bar down inside a round/.test(ownBuilt.touch_the_sky.standard.note)
+// The one swap that keeps the bell in hand but whose cue starts from the
+// floor (Kettlebell Hang Cleans: 'Deadlift the bell to the hang') says to
+// start from the hang.
+const ncHang = (lv) => L.swapMissionMove(L.swapMissionMove(ownBuilt.no_continues[lv], 'snatch', 'kb-clean'), 'snatch', 'kb-hang-clean');
+check('71 NO CONTINUES: hang cleans start from the hang', ['standard', 'elite'].every(lv => keyItems(ncHang(lv), 'snatch').every(st => st.moveId === 'kb-hang-clean')
+    && L.cardRows(ncHang(lv)).find(r => r.swapKey === 'snatch').note === 'Start from the hang: the bell never touches the floor.'
+    && L.cardRows(ownBuilt.no_continues[lv]).find(r => r.swapKey === 'snatch').note === null
+    && L.cardRows(L.swapMissionMove(ownBuilt.no_continues[lv], 'snatch', 'kb-clean')).find(r => r.swapKey === 'snatch').note === null),
+  show(L.cardRows(ncHang('standard')).find(r => r.swapKey === 'snatch')));
+check('71 TOUCH THE SKY and BAR FIGHT: the card rules', /press can handle for every rep/.test(ownBuilt.touch_the_sky.standard.note) && !/for 5\b/.test(ownBuilt.touch_the_sky.standard.note) && /Don't put the bar down inside a round/.test(ownBuilt.touch_the_sky.standard.note)
   && /Low back rounding on the good mornings\? Stop the round/.test(ownBuilt.touch_the_sky.standard.note) && /Only ELITE may add a small hop/.test(bf.note)
   && ownBuilt.touch_the_sky.standard.note.includes('Not a race: every rep clean, rest the full 2:00.')
   && LEVELS.every(lv => /45 REPS A ROUND|27 REPS A ROUND/.test(ownBuilt.touch_the_sky[lv].missionLine) && !/FOR TIME/.test(ownBuilt.touch_the_sky[lv].missionLine))
@@ -1323,12 +1346,22 @@ const skyBeats = M.countBeats(sky.exercises[0], { next: sky.exercises[0] });
 check('72 TOUCH THE SKY: 45 counted reps, each lift called, 2:08 at the count', skyBeats.length === 45 && skyBeats.reduce((n, b) => n + b.ms, 0) === 128000
   && eq(skyBeats.filter(b => /\. /.test(b.say)).map(b => b.say), ['5. Hang power cleans.', '5. Good mornings.', '5. Front squats.', '5. Strict presses.', '5. Front squats.', '5. Good mornings.', '5. Hang power cleans.', '5. Deadlifts.'])
   && skyBeats[44].say === '5' && skyBeats[0].ms === 3000 + 2500 && M.countBeats(ownBuilt.touch_the_sky.beginner.exercises[0]).length === 27
-  && M.restScript({ restSec: 120, roundEnd: true, completedRound: 1, format: 'forTime', tips: sky.tips, lead: M.leadLine(sky.exercises[0], ctxFor(sky, 2, 0)), short: M.shortRestLine(sky.exercises[0]) }).opener === 'Round 1 complete. Rest. 2 minutes. Pick a load your press can handle for 5.'
+  && M.restScript({ restSec: 120, roundEnd: true, completedRound: 1, format: 'forTime', tips: sky.tips, lead: M.leadLine(sky.exercises[0], ctxFor(sky, 2, 0)), short: M.shortRestLine(sky.exercises[0]) }).opener === 'Round 1 complete. Rest. 2 minutes. Pick a load your press can handle for every rep.'
   && M.restOpener({ restSec: 60, roundEnd: true, completedRound: 1, format: 'forTime' }) === 'Round 1 complete. Rest. 60 seconds.' && M.restOpener({ restSec: 150, roundEnd: false, format: 'forTime' }) === 'Rest. 150 seconds.',
   show(skyBeats.filter(b => /\. /.test(b.say)).map(b => b.say)));
 check('72 TOUCH THE SKY: the card reads down and back', eq(doses(sky), ['2 × 5', '2 × 5', '2 × 5', '2 × 5', '5']) && eq(doses(ownBuilt.touch_the_sky.beginner), ['2 × 3', '2 × 3', '2 × 3', '2 × 3', '3'])
   && S.soloRounds(sky) === 3 && S.repsPerRound(sky) === 45 && S.repsThrough(sky, 2) === 90 && sky.scoreLine === 'ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD'
   && LEVELS.every(lv => ownBuilt.touch_the_sky[lv].scoreLine === sky.scoreLine) && sky.exercises[0].rest === 120, show(doses(sky)));
+// The brief speaks the level's own reps: BEGINNER is 3 of each on TOUCH THE
+// SKY and AMRAP 12 of 3 / 6 / 9 on OVERTIME 20 (a level's introSay); the
+// other levels keep the mission's. The rest tip names no rep count.
+const otBrief = (lv) => build('overtime_20', { level: lv }).introSay;
+check('72 the GUIDED brief speaks each level\'s reps', ownBuilt.touch_the_sky.beginner.introSay === "Touch the sky. Three of each, down the lifts and back up. Don't put the bar down until the round is done."
+  && ['standard', 'elite'].every(lv => ownBuilt.touch_the_sky[lv].introSay.startsWith('Touch the sky. Five of each,'))
+  && otBrief('beginner') === 'Overtime twelve. Three rows, six push-ups, nine squats. As many rounds as you can.'
+  && ['standard', 'elite'].every(lv => otBrief(lv) === 'Overtime twenty. Five pull-ups, ten push-ups, fifteen squats. As many rounds as you can.')
+  && LEVELS.every(lv => ownBuilt.touch_the_sky[lv].tips.every(t => !/\b[35]\b/.test(t))) && ownBuilt.bar_fight.beginner.introSay === ownBuilt.bar_fight.elite.introSay,
+  show([ownBuilt.touch_the_sky.beginner.introSay, otBrief('beginner')]));
 const nc = ownBuilt.no_continues.standard;
 const ncCtx = { round: 1, idx: 0, rounds: 1, slotsPerRound: 3, format: nc.format }; // the runner passes rounds: 1 (no 'Round 1.')
 const ncBeats = M.countBeats(nc.exercises[0], { next: null });
@@ -1416,6 +1449,14 @@ check('74 NO CONTINUES GUIDED pays the same as SOLO; END pays nothing; a skip dr
   && gSkip.xp === S.downXp(nc, 2, { elapsedSec: 60, bonus: false }) && gSkip.xp === 9 && gSkip.outcome === 'partial' && S.downScore(nc, { sets: 2, skipped: 2 }).skipped === 2 && !('skipped' in S.downScore(nc, { sets: 2 }))
   && S.downXp(nc, 0) === 0 && S.downXp(nc, 1) === 35 && S.downXp(nc, 10, { elapsedSec: 60 }) === 40
   && O.resolveOutcome({ completed: 9, total: 9, difficulty: 'Hard', integrityResult: null }).outcome === 'pass', show([gPut, gEnd, gSkip, gCapDown].map(x => `${x.outcome}:${x.xp}`)));
+// I PUT IT DOWN (I'M DONE) before any set is done: the runner ends it with
+// no score but flags the end, so the line says to finish one, not to tap the
+// button just tapped. A plain STOP / END still says what saves the sets.
+const gZero = (m) => S.settleGuidedXp({ mission: m, completed: false, untilDown: 'down', exercisesCompleted: 0, totalExercises: 0, elapsedSec: 6, integrityResult: null });
+check('74 GUIDED I PUT IT DOWN with no set: finish one to earn XP', gZero(nc).verdict.response === 'Finish one set to earn XP.' && gZero(nc).xp === 0 && gZero(nc).outcome === 'none'
+  && gZero(build('upper_lower_dips', { level: 'standard' })).verdict.response === 'Finish one round to earn XP.'
+  && S.settleGuidedXp({ mission: build('upper_lower_dips', { level: 'standard' }), completed: false, exercisesCompleted: 0, totalExercises: 0, integrityResult: null }).verdict.response === "Ended with no score. I'M DONE saves your rounds."
+  && gEnd.verdict.response === S.DOWN_STOP_MESSAGE, show([gZero(nc).verdict.response, gZero(build('upper_lower_dips', { level: 'standard' })).verdict.response]));
 // A phone left running never counts to the cap: GUIDED holds the count and
 // asks STILL GOING? every elite mark of sets (rounds).
 check('74 the GUIDED check-in: every elite mark, until-down only', S.downCheckEvery(nc) === 12 && S.downCheckEvery(ownBuilt.no_continues.beginner) === 15 && S.downCheckEvery(ownBuilt.no_continues.elite) === 9
@@ -1550,15 +1591,31 @@ US.addQuickMissionSoloSession({ xpEarned: 180, missionId: 'carry_on_15', format:
 const soloRow = US.loadStats().sessions.at(-1);
 US.addQuickMissionSoloSession({ xpEarned: 0, missionId: 'iron_clock_16', format: 'emom', score: null, elapsedSec: 10, completed: false, completedCount: 0, totalCount: 16, splits: null });
 const emomRow = US.loadStats().sessions.at(-1);
-// FINISH is the last ROUND tap: 2 taps + FINISH on a 3-round mission make 3
-// splits that add up to the finish time. A run with every round tapped, an
-// AMRAP and an until-down run are left as tapped.
+// FINISH is the last ROUND tap: when every round but the last was tapped,
+// FINISH closes the last split, so a 5-round run tapped 4 times has 5 that
+// add up to the finish time. Fewer taps and nobody knows where the untapped
+// rounds ended: the splits stay as tapped (0 taps, 0 splits; 1 tap of 3, 1).
+// A run with every round tapped, an AMRAP and an until-down run are left as tapped.
 const skyStd = ownBuilt.touch_the_sky.standard;
-const closed = S.roundSplits(skyStd, S.closeSplits(skyStd, [{ at: 139000, block: 0 }, { at: 399000, block: 0 }], 660));
-check('76 FINISH closes the last round on a for-time mission', eq(closed.map(r => r.lapSec), [139, 260, 261]) && closed.reduce((n, r) => n + r.lapSec, 0) === 660
-  && S.closeSplits(skyStd, [{ at: 1, block: 0 }, { at: 2, block: 0 }, { at: 3, block: 0 }], 660).length === 3 && S.closeSplits(skyStd, [], 30).length === 1
+const honor = soloBuilt.honor_rounds.standard;
+const honorTaps = [100000, 220000, 345000, 470000].map(at => ({ at, block: 0 }));
+const honorClosed = S.roundSplits(honor, S.closeSplits(honor, honorTaps, 600));
+check('76 FINISH closes the last round on a for-time mission, and only the last', S.soloRounds(honor) === 5
+  && eq(honorClosed.map(r => r.lapSec), [100, 120, 125, 125, 130]) && honorClosed.reduce((n, r) => n + r.lapSec, 0) === 600
+  && S.closeSplits(honor, [], 600).length === 0 && S.closeSplits(honor, [{ at: 100000, block: 0 }], 600).length === 1 && S.closeSplits(honor, honorTaps.slice(0, 3), 600).length === 3
+  && S.closeSplits(skyStd, [], 30).length === 0 && S.closeSplits(skyStd, [{ at: 130000, block: 0 }], 630).length === 1
+  && S.closeSplits(skyStd, [{ at: 130000, block: 0 }, { at: 380000, block: 0 }], 630).length === 3
+  && S.closeSplits(skyStd, [{ at: 1, block: 0 }, { at: 2, block: 0 }, { at: 3, block: 0 }], 660).length === 3
   && S.closeSplits(co, [{ at: 1000, block: 0 }], 900).length === 1 && S.closeSplits(ownBuilt.no_continues.standard, [], 300).length === 0
-  && S.closeSplits(skyStd, [{ at: 500500, block: 0 }], 500)[1].at === 500500, show(closed));
+  && S.closeSplits(skyStd, [{ at: 1000, block: 0 }, { at: 500500, block: 0 }], 500)[2].at === 500500, show(honorClosed));
+// TOUCH THE SKY's timed 2:00 rest is not in the next round: three 130 s
+// rounds tapped at 2:10 and 6:20 with FINISH at 10:30 read 2:10 each (the
+// rest used to land in rounds 2 and 3: 2:10 / 4:10 / 4:10). A mission with
+// no timed rest is timed tap to tap, as before.
+const skyLaps = S.roundSplits(skyStd, S.closeSplits(skyStd, [{ at: 130000, block: 0 }, { at: 380000, block: 0 }], 630));
+check('76 a timed rest is not in the next round\'s time', eq(skyLaps.map(r => [r.n, r.atSec, r.lapSec]), [[1, 130, 130], [2, 380, 130], [3, 630, 130]])
+  && eq(S.roundSplits(skyStd, [{ at: 130000 }, { at: 200000 }]).map(r => r.lapSec), [130, 0])
+  && eq(S.roundSplits(honor, honorTaps).map(r => r.lapSec), [100, 120, 125, 125]), show(skyLaps));
 // TOUCH THE SKY's 2:00 rest is timed after each ROUND tap in SOLO; no other
 // mission has a rest that long between rounds, so none is timed.
 const restTimed = clockBuilt.filter(({ m }) => Array.from({ length: S.soloRounds(m) }, (_, k) => S.roundRestSec(m, k + 1)).some(v => v > 0)).map(({ id, lv }) => `${id}/${lv}`);
