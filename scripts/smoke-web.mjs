@@ -48,6 +48,13 @@ await ctx.addInitScript(() => {
     try { localStorage.clear(); sessionStorage.clear(); } catch {}
     history.replaceState(null, '', location.pathname);
   }
+  // A check can hand the next page load a session to come back into (see
+  // builderAt). Written here, at document start: after the previous page's
+  // unload re-saved its own live session over the key, before the app boots.
+  try {
+    const seed = sessionStorage.getItem('__smoke_seed');
+    if (seed) { sessionStorage.removeItem('__smoke_seed'); localStorage.setItem('trainingModePausedSession', seed); }
+  } catch {}
   if (localStorage.getItem('__smoke')) return;
   localStorage.setItem('trainingModeOnboardingComplete', 'true');
   localStorage.setItem('trainingModeTourComplete', 'true');
@@ -506,6 +513,214 @@ await check('build workout generate + start', async () => {
   await page.getByText('WARM UP · WORKOUT').first().waitFor({ timeout: 8000 }).catch(() => { throw new Error('START did not open the ring warm-up'); });
   await btn(/^SKIP → START WORKOUT$/).click({ timeout: 4000 }); await S(3000);
 }, /GUIDED WORKOUT/);
+// Build Workout part-way through, without lifting every set: generate one,
+// take the live snapshot App keeps for the boot restore, mark all but `left`
+// rows done (the open ones trimmed to one set of one rep, so a check can
+// finish one for real in seconds), and reload. The app comes straight back
+// into the list, the way it does after the OS kills it mid-session. With
+// `chain` the open rows are one superset (one round: their single set).
+// `activeIdx` is the row the snapshot was on ('last' for the last row);
+// `list: false` when the app is not expected to come back to the list.
+const builderAt = async (left, { chain = false, activeIdx = null, list = true } = {}) => {
+  await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1200);
+  await btn(/GENERATE WORKOUT/).click({ timeout: 4000 }); await S(2000);
+  const slots = JSON.parse(await page.evaluate(() => localStorage.getItem('trainingModePausedSession')) || '[]');
+  const snap = slots.find((x) => x.screen === 'fit_workout');
+  const st = snap?.internalState;
+  if (!st?.exercises?.length) throw new Error('no live Build Workout snapshot to seed');
+  const total = st.exercises.length;
+  const done = total - left;
+  st.exercises.forEach((r, i) => {
+    delete r._chain;
+    if (i < done) st.completed[r._uid] = true;
+    else Object.assign(r, { sets: 1, reps: '1', equipment: 'Bodyweight' }, chain ? { _chain: 'c1' } : null);
+  });
+  Object.assign(st, { skipped: {}, chainRounds: {}, activeIdx: activeIdx === 'last' ? total - 1 : activeIdx });
+  Object.assign(snap, { reason: 'lifecycle', timestamp: Date.now() });
+  await page.evaluate((v) => sessionStorage.setItem('__smoke_seed', v), JSON.stringify([snap]));
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2500);
+  if (list && !(await text()).includes(`${done}/${total} exercises`)) throw new Error(`the seeded list does not read ${done}/${total}`);
+  return { total, done };
+};
+const finishDialog = () => page.getByRole('alertdialog', { name: 'Finish workout' });
+// What the finish banked: exactly one Fit Mode row, with this XP.
+const bankedOnce = async (xp) => {
+  const stats = JSON.parse(await page.evaluate(() => localStorage.getItem('tm_user_stats')) || '{}');
+  const fits = (stats.sessions || []).filter((s) => s.type === 'Fit Mode');
+  if (fits.length !== 1 || fits[0].xpEarned !== xp || stats.xp !== xp) throw new Error(`banked ${JSON.stringify(fits.map((s) => s.xpEarned))} (total ${stats.xp}), not ${xp} once`);
+};
+// The owner's report: 6 of 8 done, two left open, and START was the only way
+// on. FINISH WORKOUT under it asks first (KEEP GOING stays on the list);
+// FINISH goes to the SESSION ENDED summary with n/total, banking 15 per
+// exercise done and no +30, once.
+await check('build workout: FINISH WORKOUT with rows left ends to the summary', async () => {
+  const { total, done } = await builderAt(2);
+  if (!await btn(/^START$/).isVisible()) throw new Error('START is not on the list');
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  const d = await finishDialog().innerText();
+  if (!d.includes(`Finish with ${done} of ${total} done?`) || !d.includes("The 2 left won't count.")) throw new Error(`the confirm reads "${d.replace(/\n+/g, ' / ')}"`);
+  await finishDialog().getByRole('button', { name: 'KEEP GOING' }).click({ timeout: 4000 }); await S(400);
+  if (await finishDialog().count() || !(await text()).includes(`${done}/${total} exercises`)) throw new Error('KEEP GOING did not stay on the list');
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(3000);
+  const t = await text();
+  if (!/SESSION ENDED/.test(t) || !t.includes(`${done}/${total}`) || !t.includes(`+${done * 15}`)) throw new Error(`not the SESSION ENDED summary with ${done}/${total} and +${done * 15}`);
+  await bankedOnce(done * 15);
+}, /SESSION ENDED/);
+// The last open exercise finishing goes straight to the summary after the
+// done toast. It used to drop back on the list, where only COMPLETE WORKOUT
+// reached the summary. The same for a superset that is the last of it.
+const lastOneToSummary = async (left, opts) => {
+  const { total } = await builderAt(left, opts);
+  await btn(/^START$/).click({ timeout: 4000 });
+  for (let i = 0; i < 60; i += 1) {
+    await S(500);
+    const t = await text();
+    if (/COMPLETE WORKOUT/.test(t)) throw new Error('landed back on the list');
+    if (/WORKOUT COMPLETE/.test(t)) break;
+  }
+  await S(1500);
+  const t = await text();
+  if (!/WORKOUT COMPLETE/.test(t) || !t.includes(`${total}/${total}`) || !t.includes(`+${total * 15 + 30}`)) throw new Error(`not the WORKOUT COMPLETE summary with ${total}/${total} and +${total * 15 + 30}`);
+  await bankedOnce(total * 15 + 30);
+};
+await check('build workout: the last exercise done goes straight to the summary', () => lastOneToSummary(1), /WORKOUT COMPLETE/);
+await check('build workout: the last superset done goes straight to the summary', () => lastOneToSummary(2, { chain: true }), /WORKOUT COMPLETE/);
+// The map that slides up after an exercise, with the next one glowing, can
+// end the session too: FINISH WORKOUT, the same confirm (KEEP GOING leaves
+// the glow up), then the summary.
+await check('build workout: FINISH WORKOUT on the completion map', async () => {
+  const { total, done } = await builderAt(2);
+  await btn(/^START$/).click({ timeout: 4000 });
+  const glowStart = page.locator('button[aria-label^="Start "]').first();
+  await glowStart.waitFor({ timeout: 30000 }).catch(() => { throw new Error('the completion map never slid up'); });
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  const d = await finishDialog().innerText();
+  if (!d.includes(`Finish with ${done + 1} of ${total} done?`) || !d.includes("The 1 left won't count.")) throw new Error(`the confirm reads "${d.replace(/\n+/g, ' / ')}"`);
+  await finishDialog().getByRole('button', { name: 'KEEP GOING' }).click({ timeout: 4000 }); await S(400);
+  if (await finishDialog().count() || !await glowStart.isVisible()) throw new Error('KEEP GOING did not leave the map with the next one glowing');
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+  await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(3000);
+  const t = await text();
+  if (!/SESSION ENDED/.test(t) || !t.includes(`${done + 1}/${total}`) || !t.includes(`+${(done + 1) * 15}`)) throw new Error(`not the SESSION ENDED summary with ${done + 1}/${total}`);
+  await bankedOnce((done + 1) * 15);
+}, /SESSION ENDED/);
+// Two quick taps, the way a thumb does it. FINISH swaps in the summary at
+// once, and its RETURN HOME sits right under the confirm's FINISH: the second
+// tap used to land there and skip the summary. On FINISH WORKOUT the second
+// tap used to land on the confirm's backdrop and close it again.
+const tapTwice = async (loc) => {
+  const b = await loc.boundingBox();
+  if (!b) throw new Error('nothing to tap');
+  const x = b.x + b.width / 2, y = b.y + b.height / 2;
+  await page.touchscreen.tap(x, y); await S(150); await page.touchscreen.tap(x, y);
+};
+await check('build workout: double taps on FINISH WORKOUT and FINISH still end on the summary', async () => {
+  const { total, done } = await builderAt(2);
+  await tapTwice(btn(/^FINISH WORKOUT$/)); await S(500);
+  if (!await finishDialog().count()) throw new Error('a double tap on FINISH WORKOUT closed its own confirm');
+  await tapTwice(finishDialog().getByRole('button', { name: /^FINISH$/ })); await S(2500);
+  const t = await text();
+  if (!/SESSION ENDED/.test(t) || !t.includes(`${done}/${total}`)) throw new Error('the second tap on FINISH left the summary');
+  await bankedOnce(done * 15);
+}, /SESSION ENDED/);
+// A list scrolled down to reach FINISH WORKOUT hands its scroll container to
+// the summary unless the summary mounts its own: it opened with its top cut
+// off. A short phone, so the list has to scroll.
+await check('build workout: the summary opens at its top after a scrolled list', async () => {
+  await page.setViewportSize({ width: 390, height: 640 });
+  try {
+    const { total, done } = await builderAt(2);
+    const fin = btn(/^FINISH WORKOUT$/);
+    // The athlete scrolls the list right down, past the button.
+    const listTop = await fin.evaluate((b) => {
+      let el = b.parentElement;
+      while (el && !(el.scrollHeight > el.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
+      if (!el) return 0;
+      el.scrollTop = el.scrollHeight;
+      return el.scrollTop;
+    });
+    if (!listTop) throw new Error('the list did not scroll at 390x640');
+    await fin.click({ timeout: 4000 }); await S(400);
+    await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(2500);
+    const t = await text();
+    if (!/SESSION ENDED/.test(t) || !t.includes(`${done}/${total}`)) throw new Error('not the SESSION ENDED summary');
+    const off = await page.getByText('SESSION ENDED').first().evaluate((e) => {
+      let n = 0;
+      for (let el = e; el; el = el.parentElement) n += el.scrollTop || 0;
+      return n;
+    });
+    if (off) throw new Error(`the summary opened ${off}px down`);
+  } finally { await page.setViewportSize({ width: 390, height: 844 }); }
+}, /SESSION ENDED/);
+// The completion map on a short phone: the FINISH WORKOUT footer takes room
+// from its list, and the glowing next exercise (the last row here) used to
+// open hidden under it. Then Back during the map's 3-2-1: the start it was
+// counting into used to fire anyway, a second later, pulling the athlete off
+// the list and its open FINISH confirm into that exercise.
+await check('build workout: the completion map shows the glow; Back in its count-in stays on the list', async () => {
+  const { total, done } = await builderAt(2);
+  await btn(/^START$/).click({ timeout: 4000 });
+  await page.setViewportSize({ width: 360, height: 480 });
+  try {
+    const glowStart = page.locator('button[aria-label^="Start "]').first();
+    await glowStart.waitFor({ timeout: 30000 }).catch(() => { throw new Error('the completion map never slid up'); });
+    await S(500);
+    const seen = await glowStart.evaluate((b) => {
+      const r = b.getBoundingClientRect();
+      const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return !!e && b.contains(e);
+    });
+    if (!seen) throw new Error('the glowing next exercise is hidden on the completion map');
+  } finally { await page.setViewportSize({ width: 390, height: 844 }); }
+  await S(400);
+  await page.locator('button[aria-label="Close map"]').click({ timeout: 3000 }); await S(250);
+  await page.locator('button[aria-label="Back"]').first().click({ timeout: 3000 }); await S(400);
+  await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(2800);
+  const t = await text();
+  if (!await finishDialog().count() || t.includes(`Exercise ${total} of ${total}`)) throw new Error('the count-in started the next exercise after Back');
+  if (!t.includes(`${done + 1}/${total} exercises`)) throw new Error('not on the list after Back');
+  await finishDialog().getByRole('button', { name: 'KEEP GOING' }).click({ timeout: 4000 }); await S(300);
+}, /exercises ·/);
+// Killed in the done toast's beat after the last move: the session comes
+// back with every row done, and goes to the summary, not to the list that
+// only offers COMPLETE WORKOUT.
+await check('build workout: a session back with every row done opens the summary', async () => {
+  const { total } = await builderAt(0, { activeIdx: 'last', list: false });
+  await S(1500);
+  const t = await text();
+  if (/COMPLETE WORKOUT/.test(t)) throw new Error('came back to the list');
+  if (!/WORKOUT COMPLETE/.test(t) || !t.includes(`${total}/${total}`) || !t.includes(`+${total * 15 + 30}`)) throw new Error(`not the WORKOUT COMPLETE summary with ${total}/${total}`);
+  await bankedOnce(total * 15 + 30);
+}, /WORKOUT COMPLETE/);
+// A finish that throws (the stats write on a full storage) on the automatic
+// path used to take the app down to the crash screen, and left every finish
+// button dead. Now it lands on the list, and COMPLETE WORKOUT tries again.
+await check('build workout: a finish that fails stays on the list and can be retried', async () => {
+  const { total } = await builderAt(1);
+  await page.evaluate(() => {
+    window.__failStats = true;
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      if (k === 'tm_user_stats' && window.__failStats) throw new DOMException('quota', 'QuotaExceededError');
+      return set.call(this, k, v);
+    };
+  });
+  await btn(/^START$/).click({ timeout: 4000 });
+  for (let i = 0; i < 60; i += 1) {
+    await S(500);
+    const t = await text();
+    if (/Training Mode runtime error/.test(t)) throw new Error('the failed finish crashed the app');
+    if (/WORKOUT COMPLETE/.test(t)) throw new Error('reached the summary with the stats write failing');
+    if (/COMPLETE WORKOUT/.test(t)) break;
+  }
+  if (!await btn(/COMPLETE WORKOUT/).isVisible()) throw new Error('not back on the list with COMPLETE WORKOUT');
+  await page.evaluate(() => { window.__failStats = false; });
+  await btn(/COMPLETE WORKOUT/).click({ timeout: 4000 }); await S(2500);
+  const t = await text();
+  if (!/WORKOUT COMPLETE/.test(t) || !t.includes(`${total}/${total}`)) throw new Error('COMPLETE WORKOUT did not retry the finish');
+  await bankedOnce(total * 15 + 30);
+}, /WORKOUT COMPLETE/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);
