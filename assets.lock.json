@@ -823,6 +823,74 @@
     "size": 3908,
     "sha1": "b29d274f818096cc9047c31f29a1e22054685ac8"
   },
+  "static/practice/lead-diagonal-elbow.webp": {
+    "size": 34084,
+    "sha1": "be04bddec282f7e408e656470531bd6e0f280d51"
+  },
+  "static/practice/lead-hook-elbow.webp": {
+    "size": 34248,
+    "sha1": "7c9e87ec6f061176ee968c6869e15efaeeaa2acf"
+  },
+  "static/practice/lead-shuffle-knee.webp": {
+    "size": 35080,
+    "sha1": "c4379b4da961236bc4dc865c2dddbcab70f16f20"
+  },
+  "static/practice/lead-side-kick.webp": {
+    "size": 33282,
+    "sha1": "9b05ef6e717c278fc9837985fa5ab9b3c856ec13"
+  },
+  "static/practice/lead-uppercut-elbow.webp": {
+    "size": 35776,
+    "sha1": "8b5b2cd7854f479aa0a11c9e0562302d6cc7e98b"
+  },
+  "static/practice/machine-gun-kick.webp": {
+    "size": 33504,
+    "sha1": "0b3a5ef93cb089b8e2152463c70ce6debd95a734"
+  },
+  "static/practice/rear-diagonal-elbow.webp": {
+    "size": 34264,
+    "sha1": "b6cc434adca1f8afc791392c2194fef82e2d9eab"
+  },
+  "static/practice/rear-hook-elbow.webp": {
+    "size": 33566,
+    "sha1": "e16f04495a078c0710cb7abe81278f21ebf000d0"
+  },
+  "static/practice/rear-knee.webp": {
+    "size": 35156,
+    "sha1": "3952bde0be3fc32080031d59b59ba709d58306d5"
+  },
+  "static/practice/rear-roundhouse-kick.webp": {
+    "size": 36610,
+    "sha1": "202911a7669d84785a39331cc9cbd7c4dc3622fe"
+  },
+  "static/practice/rear-uppercut-elbow.webp": {
+    "size": 35328,
+    "sha1": "4e1b6276483bacd64f6afdab05ee3e8afd84a5e1"
+  },
+  "static/practice/roundhouse-knee.webp": {
+    "size": 37280,
+    "sha1": "080e07cfd338a0a775a4964e8edd2676b6f10e26"
+  },
+  "static/practice/spinning-back-elbow.webp": {
+    "size": 33422,
+    "sha1": "5c87731d52278f2fdb448642db18518912a6ad7e"
+  },
+  "static/practice/spinning-back-kick.webp": {
+    "size": 33372,
+    "sha1": "f47c6dc11ee7f4022bdf9b4ecd0c146e6c6b4702"
+  },
+  "static/practice/stepping-side-kick.webp": {
+    "size": 34184,
+    "sha1": "8490c85e0a628bd4f24ced0767fcf4c41af69829"
+  },
+  "static/practice/switch-kick.webp": {
+    "size": 36552,
+    "sha1": "0ec439b72934b0de952f59a3f49b3d2a542f25d1"
+  },
+  "static/practice/tomahawk-elbow.webp": {
+    "size": 35828,
+    "sha1": "f8f6d791574b660c260d9cb1610e12ef31c42b35"
+  },
   "static/qr-code-poster.png": {
     "size": 984417,
     "sha1": "c84133959378a193ce205143ec21237adeb77432"
