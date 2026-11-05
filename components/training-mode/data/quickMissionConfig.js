@@ -55,10 +55,11 @@ export function surpriseQuickMission() {
 // a mission, so what it says is what START runs. Quick Mission v2 says
 // "No gear" for a bodyweight mission, the word its LOADOUT row uses. When START
 // runs it AT YOUR PACE (the choice saved on the Quick Mission page) the line
-// ends "· At your pace".
+// ends "· At your pace". Those last words are held together with no-break
+// spaces, so a narrow card wraps before "At your pace" instead of splitting it.
 export function quickMissionLine(cfg, { v2 = false, atYourPace = false } = {}) {
   const type = cfg.workoutType || 'Bodyweight';
-  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · ${type === 'Bodyweight' && v2 ? 'No gear' : type}${atYourPace ? ' · At your pace' : ''}`;
+  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · ${type === 'Bodyweight' && v2 ? 'No gear' : type}${atYourPace ? '\u00A0· At\u00A0your\u00A0pace' : ''}`;
 }
 
 // The setup screen's choices, remembered per viewer: GEAR and TIME on the

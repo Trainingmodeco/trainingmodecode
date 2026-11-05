@@ -306,11 +306,15 @@ check('21 nothing to run: null for empty, missing and move-less missions', adapt
 // ── the hub's detail line ───────────────────────────────────────────────────
 {
   const cfg = C.quickMissionConfig({ duration: 12, difficulty: 'Easy', focus: 'Full Body' });
+  const plain = (s) => s.replace(/\u00A0/g, ' ');
+  const held = C.quickMissionLine(cfg, { v2: true, atYourPace: true });
   check('38 the hub line ends "· At your pace" only when asked, and never changes otherwise',
     C.quickMissionLine(cfg, { v2: true }) === '12 min · Easy · Full Body · No gear'
-    && C.quickMissionLine(cfg, { v2: true, atYourPace: true }) === '12 min · Easy · Full Body · No gear · At your pace'
+    && plain(held) === '12 min · Easy · Full Body · No gear · At your pace'
     && C.quickMissionLine(cfg) === '12 min · Easy · Full Body · Bodyweight'
-    && C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { atYourPace: true }) === '15 min · Normal · Full Body · Weighted · At your pace');
+    && plain(C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { atYourPace: true })) === '15 min · Normal · Full Body · Weighted · At your pace');
+  check('38b the last words are held together: a narrow card wraps before "At your pace", never inside it',
+    held.endsWith('\u00A0· At\u00A0your\u00A0pace') && !/ At | your /.test(held.slice(held.indexOf('No gear') + 7)));
 }
 
 // ── the words: nobody reads "SOLO" on screen ────────────────────────────────

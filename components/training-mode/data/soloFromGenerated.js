@@ -100,7 +100,7 @@ export function soloFromGenerated(gen) {
     capSec: Math.ceil((2 * pace.standard) / 60) * 60,
     clockSec: 0,
     pace,
-    paceBasis: 'Set from the moves and the rests the coach plan gives you.',
+    paceBasis: 'Set from your moves and a normal rest between them.',
     scoreRule: { kind: 'time' },
     scoreLine: 'TIME',
     missionLine: rounds === 1 ? '1 ROUND · THE WHOLE LIST' : `${rounds} ROUNDS · THE WHOLE LIST EACH TIME`,

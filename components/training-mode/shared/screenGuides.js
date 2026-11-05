@@ -311,7 +311,10 @@ export const SCREEN_GUIDES = {
 };
 
 // The Fit hub's guide while Quick Mission v2 is on (data/qmV2): the same steps,
-// with the Quick Mission row naming the Mission Library's missions.
+// with the Quick Mission row naming the Mission Library's missions and today's
+// mission saying what "At your pace" on its line means.
 SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-quick'
   ? { ...s, body: 'A quick workout without the planning: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
-  : s));
+  : s.target === 'fit-today'
+    ? { ...s, body: `${s.body} If the line ends "At your pace", START runs the moves and a timer, no coach voice: you choose that on the Quick Mission page.` }
+    : s));

@@ -129,7 +129,7 @@ const fullFitHub = async ({ atYourPace = false } = {}) => {
   await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
   await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
   await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
-  if (!/GHOST ACTIVE/.test(await text()) || !(atYourPace ? /At your pace/ : /Recovery Circuit/).test(await text())) throw new Error('the full hub did not come up (ghost badge or long title missing)');
+  if (!/GHOST ACTIVE/.test(await text()) || !(atYourPace ? /At\s+your\s+pace/ : /Recovery Circuit/).test(await text())) throw new Error('the full hub did not come up (ghost badge or long title missing)');
 };
 const hubMetrics = () => page.evaluate((blocks) => {
   const rect = (k) => { const e = document.querySelector(`[data-guide="${k}"]`); return e ? e.getBoundingClientRect() : null; };
@@ -585,7 +585,7 @@ await check('fit hub: START runs today\'s mission AT YOUR PACE when that is the 
   await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
   await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
   const hero = await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText);
-  if (!/Surprise Mission/.test(hero) || !/ · At your pace/.test(hero)) throw new Error(`the card does not say At your pace: ${hero.replace(/\n/g, ' | ')}`);
+  if (!/Surprise Mission/.test(hero) || !/\s·\s+At\s+your\s+pace/.test(hero)) throw new Error(`the card does not say At your pace: ${hero.replace(/\n/g, ' | ')}`);
   await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(7500);
   const t = await text();
   if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the hub START did not run the moves and a timer');
@@ -593,14 +593,14 @@ await check('fit hub: START runs today\'s mission AT YOUR PACE when that is the 
 await check('fit hub: START still runs the coach when GUIDED is saved (no "At your pace" on the card)', async () => {
   await fit();
   await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
-  if (/At your pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card says At your pace on GUIDED');
+  if (/At\s+your\s+pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card says At your pace on GUIDED');
   await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(2500);
   if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE\n/.test(await text())) throw new Error('the hub START did not run the coach');
 }, /PREPARING|ROUND|GET READY/);
 await check('fit hub: on the fullest day, with "At your pace" saved, the card still fits 412x811 and 360x740', async () => {
   await fullFitHub({ atYourPace: true });
   try { for (const [w, h] of [[412, 811], [360, 740]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h} At your pace`); } } finally { await resizeTo(390, 844); }
-  if (!/ · At your pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card does not say At your pace');
+  if (!/\s·\s+At\s+your\s+pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card does not say At your pace');
 }, /Quick Mission/);
 await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => {
   await quick();
