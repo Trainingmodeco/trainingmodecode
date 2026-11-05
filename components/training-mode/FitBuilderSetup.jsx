@@ -84,6 +84,11 @@ const builderCSS = `
   60% { transform: translateX(-5px); }
   80% { transform: translateX(5px); }
 }
+/* MAX OUT adds a row under SURPRISE ME / ROUTINES: on a phone under about 860px
+   tall the stack packs a little tighter so the page still ends above the floating
+   BETA chip (412 x 811), and a little bottom room lets a shorter phone (360 x 740)
+   scroll the button clear of it. */
+@media (max-height: 860px) { .wb-stack { gap: 7px !important; padding-top: 10px !important; } }
 .wb-again { transition: border-color .2s, box-shadow .2s; }
 .wb-again:hover, .wb-again:focus-visible { border-color: ${GOLD} !important; box-shadow: 0 0 0 1px rgba(242,190,69,.3), 0 0 22px rgba(157,108,255,.45); }
 `;
@@ -172,7 +177,7 @@ export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerat
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0', flex: 1 }}>
+        <div className="wb-stack" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 24px', flex: 1 }}>
           {/* The build card — same banner card as Today's Mission and Quick
               Mission (owner's gym art), with GENERATE inside it like their
               START. It reads back what the settings below will build. */}

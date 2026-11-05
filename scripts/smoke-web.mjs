@@ -539,6 +539,145 @@ await check('quick mission: the library says how START will run the highlighted 
   await sheet().getByRole('radio', { name: /^MURPH|^HALF MURPH/ }).first().click({ timeout: 4000 }); await S(300);
   if (!/START runs this one with the coach\./.test(await lineOf())) throw new Error(`a classic: the library says "${await lineOf()}"`);
 }, /CLASSICS|MISSION LIBRARY/);
+// ── MAX OUT ─────────────────────────────────────────────────────────────────
+// Five max-rep workouts on the library's MAX OUT chip, run GUIDED (the coach
+// calls the move, DONE ends the set, HOW MANY REPS? takes the reps, SAVE starts
+// the rest) and AT YOUR PACE (DONE, the sheet, a timed rest, UNDO, the last SAVE
+// finishes), and Build Workout's MAX OUT button, which opens the library on the
+// chip. All the MAX OUT checks sit here together.
+const maxDone = () => page.locator('[data-guide="qma-done"]');
+// The library's row names, in order (each row's accessible name is its title).
+const rowNames = () => sheet().getByRole('radiogroup', { name: 'Missions' }).getByRole('radio').evaluateAll(els => els.map(e => (e.getAttribute('aria-label') || '').trim()));
+const repsSheet = () => page.getByRole('dialog', { name: 'How many reps' });
+const startAtPace = async () => {
+  await ownerQuick(); await putOnCard(/^BOSS RUSH/);
+  await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+};
+await check('max out: the MAX OUT chip lists the five workouts and their rows', async () => {
+  await ownerQuick(); await library();
+  const chip = sheet().getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: /^MAX OUT/ });
+  if (!/5/.test(await chip.innerText())) throw new Error('the MAX OUT chip does not count 5');
+  await chip.click({ timeout: 4000 }); await S(400);
+  const rows = await rowNames();
+  if (JSON.stringify(rows) !== JSON.stringify(['BOSS RUSH', 'HEALTH BAR', 'COMBO METER', 'TANK MODE', 'DUAL WIELD'])) throw new Error(`the chip lists ${rows.join(', ')}`);
+  if (!/~13 MIN · NO GEAR · MAX REPS/.test(await sheet().innerText())) throw new Error('BOSS RUSH has no "~13 MIN · NO GEAR · MAX REPS" row');
+  await sheet().getByRole('radiogroup', { name: 'Loadout' }).getByRole('radio', { name: /^NO GEAR/ }).click({ timeout: 4000 }); await S(300);
+  const one = await rowNames();
+  if (JSON.stringify(one) !== JSON.stringify(['BOSS RUSH'])) throw new Error(`MAX OUT + NO GEAR lists ${one.join(', ')}`);
+}, /MAX OUT/);
+await check('max out: BOSS RUSH GUIDED, DONE opens HOW MANY REPS?, NOT YET goes back, SAVE starts the rest, STOP keeps the set', async () => {
+  await ownerQuick(); await putOnCard(/^BOSS RUSH/);
+  await expand();
+  const cardText = await card().innerText();
+  if (!/STATION 1/.test(cardText) || !/Push-Ups/.test(cardText) || !/MAX/.test(cardText) || !/Stop a set when your form breaks/.test(cardText)) throw new Error('the card does not show the stations, MAX and the safety line');
+  await btn(/^START$/).click({ timeout: 4000 }); await S(3000);
+  if (!await btn(/^AT YOUR PACE INSTEAD$/).count()) throw new Error('no AT YOUR PACE INSTEAD in the brief');
+  await page.locator('[data-guide="qma-skip"]').click({ timeout: 4000 }); await S(1500);
+  let t = await text();
+  if (!/GET READY/.test(t) || !/Push-Ups/.test(t) || !/ROUND 1\/3/.test(t)) throw new Error('GET READY does not name the first station');
+  await maxDone().waitFor({ timeout: 20000 });
+  if (!await maxDone().isDisabled()) throw new Error('DONE is lit in the first seconds of a set');
+  t = await text();
+  if (!/MAX\s*\nREPS/.test(t) || !/STATION 1/.test(t) || !/UP NEXT · AIR SQUATS · MAX/.test(t)) throw new Error('the set does not say MAX, its station and what is up next');
+  await page.waitForFunction(() => { const b = document.querySelector('[data-guide="qma-done"]'); return b && !b.disabled; }, null, { timeout: 15000 });
+  await maxDone().click({ timeout: 4000 }); await S(500);
+  if (!await repsSheet().count() || !/HOW MANY REPS\?/.test(await text())) throw new Error('DONE did not open HOW MANY REPS?');
+  await btn(/^NOT YET$/).click({ timeout: 4000 }); await S(500);
+  if (await repsSheet().count() || !await maxDone().count()) throw new Error('NOT YET did not go back to the set');
+  await maxDone().click({ timeout: 4000 }); await S(500);
+  await page.getByRole('button', { name: 'Fewer reps' }).click({ timeout: 4000 }); await S(200);
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(1200);
+  t = await text();
+  if (!/REST/.test(t) || !/UP NEXT · STATION 2/.test(t) || !/Air Squats/.test(t)) throw new Error('SAVE did not start the rest with the next station up');
+  await page.locator('[data-guide="qma-stop"]').click({ timeout: 4000 }); await S(500);
+  if (!/Your saved sets count\./.test(await text())) throw new Error('the STOP sheet does not say the saved sets count');
+  await btn(/^END MISSION$/).click({ timeout: 4000 }); await S(2500);
+  t = await text();
+  if (!/TOTAL REPS/.test(t) || !/SETS 1\/9/.test(t) || !/PUSH-UPS \d+/.test(t)) throw new Error('the finish does not show TOTAL REPS and SETS 1/9');
+  const rows = await qmRows();
+  if (rows.length !== 1 || rows[0].score?.kind !== 'totalReps' || rows[0].score.sets !== 1 || !(rows[0].xpEarned >= 0)) throw new Error(`the run banked ${JSON.stringify(rows.map(r => r.score))}`);
+}, /TOTAL REPS/);
+await check('max out: BOSS RUSH AT YOUR PACE, DONE, the sheet, a timed rest, UNDO, and the last SAVE finishes with TOTAL REPS', async () => {
+  await startAtPace();
+  let t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || !/CAP 20:00 · ROUND 1\/3 · PUSH-UPS · MAX/.test(t) || !/SET 1/.test(t) || !/LAST — · SETS 0/.test(t)) throw new Error('not the MAX REPS at-your-pace screen');
+  if (!/Stop a set when your form breaks/.test(t)) throw new Error('no safety card above the list');
+  await jump(20000); await S(700);
+  await btn(/^DONE$/).click({ timeout: 4000 }); await S(500);
+  if (!await repsSheet().count()) throw new Error('DONE did not open the rep sheet');
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(700);
+  t = await text();
+  if (!/REST 0:2\d/.test(t) || !/SETS 1/.test(t) || !/NEXT AIR SQUATS/.test(t)) throw new Error('SAVE did not start a REST 0:25 and name the next station');
+  if (!await btn(/^DONE$/).isDisabled()) throw new Error('DONE is on during the rest');
+  await btn(/^Undo set$/).click({ timeout: 4000 }); await S(500);
+  t = await text();
+  if (!/SETS 0/.test(t) || /REST 0:/.test(t)) throw new Error('UNDO did not take back the saved set');
+  // the nine sets, the clock moved on through every set and rest
+  const rests = [25, 25, 75, 25, 25, 75, 25, 25];
+  for (let i = 0; i < 9; i += 1) {
+    await jump(30000); await S(600);
+    await btn(/^DONE$/).click({ timeout: 4000 }); await S(400);
+    await btn(/^SAVE$/).click({ timeout: 4000 }); await S(500);
+    if (i < 8) { await jump((rests[i] + 1) * 1000); await S(1300); }
+  }
+  await S(2000);
+  t = await text();
+  if (!/TOTAL REPS/.test(t) || !/SETS 9\/9/.test(t) || !/SIT-UPS \d+ · \d+ · \d+/.test(t) || !/\+\d+\s*\nXP/.test(t)) throw new Error('the last SAVE did not finish with TOTAL REPS and the sets');
+  const rows = await qmRows();
+  if (rows.length !== 1 || rows[0].score?.kind !== 'totalReps' || rows[0].score.sets !== 9 || rows[0].xpEarned < 100) throw new Error(`banked ${JSON.stringify(rows.map(r => [r.score?.sets, r.xpEarned]))}`);
+}, /TOTAL REPS/);
+await check('max out: STOP then END after one set at your pace ends as a partial with the set kept; killed and reloaded it comes back', async () => {
+  await startAtPace();
+  await jump(20000); await S(700);
+  await btn(/^DONE$/).click({ timeout: 4000 }); await S(400);
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(700);
+  await page.reload({ waitUntil: 'networkidle' }); await S(2500);
+  let t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || !/PAUSED/.test(t) || !/SETS 1/.test(t)) throw new Error('the reload did not bring back the run with its saved set');
+  await btn(/^RESUME$/).click({ timeout: 4000 }); await S(600);
+  await page.locator('button', { hasText: /^STOP$/ }).first().click({ timeout: 4000 }); await S(500);
+  if (!/Your saved sets count\./.test(await text())) throw new Error('the STOP sheet does not say the saved sets count');
+  await btn(/^END$/).click({ timeout: 4000 }); await S(2500);
+  t = await text();
+  if (!/TOTAL REPS/.test(t) || !/SETS 1\/9/.test(t) || /SESSION COMPLETE/.test(t)) throw new Error('STOP then END did not end as a partial with the set kept');
+}, /SETS 1\/9/);
+await check('max out: Build Workout has MAX OUT, it opens the library on the MAX OUT chip for your gear and level, and the page fits', async () => {
+  await fit(); await page.locator('[data-guide="fit-builder"]').click({ timeout: 4000 }); await S(1500);
+  const fits = async (at) => {
+    await page.evaluate(() => { const sc = document.querySelector('[data-guide="wb-maxout"]').closest('.no-scrollbar'); sc.scrollTop = sc.scrollHeight; });
+    await S(300);
+    const g = await page.evaluate(() => {
+      const r = (e) => e.getBoundingClientRect();
+      return {
+        mo: r(document.querySelector('[data-guide="wb-maxout"]')), rt: r(document.querySelector('[data-guide="wb-routines"]')), nav: r(document.querySelector('[data-guide="nav-tabs"]')).top,
+        chip: r([...document.querySelectorAll('button')].find(b => /BETA/.test(b.textContent))), vw: window.innerWidth,
+      };
+    });
+    if (g.mo.bottom > g.nav + 0.5) throw new Error(`${at}: MAX OUT ends at ${Math.round(g.mo.bottom)}, under the tab bar at ${Math.round(g.nav)}`);
+    if (g.mo.top < g.rt.bottom - 0.5) throw new Error(`${at}: MAX OUT overlaps SURPRISE ME / ROUTINES`);
+    if (g.mo.left < 0 || g.mo.right > g.vw + 0.5 || g.mo.height < 44) throw new Error(`${at}: MAX OUT is cut at the sides or under 44px tall`);
+    if (g.chip.right > g.mo.left && g.chip.left < g.mo.right && g.chip.bottom > g.mo.top + 0.5 && g.chip.top < g.mo.bottom - 0.5) throw new Error(`${at}: the BETA chip (${Math.round(g.chip.top)}-${Math.round(g.chip.bottom)}) sits on MAX OUT (${Math.round(g.mo.top)}-${Math.round(g.mo.bottom)})`);
+  };
+  try {
+    for (const [w, h] of [[412, 811], [360, 740]]) { await resizeTo(w, h); await fits(`${w} x ${h}`); }
+  } finally { await resizeTo(390, 844); }
+  // HYBRID gear and HARD difficulty: the MIXED list at the ELITE level.
+  await page.locator('[data-guide="wb-equipment"]').click({ timeout: 4000 }); await S(400);
+  await page.getByRole('radiogroup', { name: 'EQUIPMENT' }).getByRole('radio', { name: 'HYBRID', exact: true }).click({ timeout: 4000 }); await S(200);
+  await page.getByRole('button', { name: /DONE/ }).last().click({ timeout: 4000 }); await S(400);
+  await page.getByRole('radiogroup', { name: 'Difficulty' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await S(300);
+  await page.locator('[data-guide="wb-maxout"]').click({ timeout: 4000 }); await S(900);
+  if (!await sheet().count()) throw new Error('MAX OUT did not open the Mission Library');
+  if (await sheet().getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: /^MAX OUT/ }).getAttribute('aria-checked') !== 'true') throw new Error('the MAX OUT chip is not on');
+  if (await sheet().getByRole('radiogroup', { name: 'Loadout' }).getByRole('radio', { name: /^MIXED/ }).getAttribute('aria-checked') !== 'true') throw new Error('HYBRID did not open the MIXED loadout');
+  const rows = await rowNames();
+  if (JSON.stringify(rows) !== JSON.stringify(['HEALTH BAR', 'DUAL WIELD'])) throw new Error(`HYBRID lists ${rows.join(', ')}`);
+  if (!/~15 MIN · MIXED · MAX REPS/.test(await sheet().innerText()) || !/ELITE|HARD/.test(await sheet().innerText())) throw new Error('HARD did not open the workouts at the ELITE level');
+  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4500);
+  if (!/ELITE/.test(await text()) || !/ROUND 1\/4/.test(await text())) throw new Error('START did not run HEALTH BAR at the ELITE level (4 rounds)');
+}, /ELITE|ROUND 1\/4|GET READY|PREPARING/);
+
 await check('owner: a mission only offered at your pace shows AT YOUR PACE selected and GUIDED dimmed', async () => {
   await ownerQuick(); await putOnCard(/^HONOR ROUNDS/);
   if (await modeKey('AT YOUR PACE').getAttribute('aria-checked') !== 'true' || await modeKey('GUIDED').getAttribute('aria-disabled') !== 'true') throw new Error('HONOR ROUNDS is not AT YOUR PACE with GUIDED dimmed');
