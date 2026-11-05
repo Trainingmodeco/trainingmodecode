@@ -335,7 +335,9 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   // Build Workout's MAX OUT opens the page on the Mission Library (entry.openLibrary).
-  const [libraryOpen, setLibraryOpen] = useState(() => entry?.openLibrary === true);
+  // Its pick (loadout, theme, level) is the library's starting point for this visit only.
+  const [handoff] = useState(() => (entry?.openLibrary === true ? entry : null));
+  const [libraryOpen, setLibraryOpen] = useState(() => !!handoff);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [open, setOpen] = useState(() => loadCardOpen());
   // What the card shows: the generated mission, a named classic (Murph,
@@ -501,7 +503,13 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
   // one the sheet's preview shows.
   const putOnCard = (entry) => {
     setLibraryOpen(false);
-    if (entry.kind === 'v2') pickV2(entry.id); else pickClassic(entry.id);
+    if (entry.kind === 'v2') {
+      pickV2(entry.id);
+      // Build Workout's difficulty picked this MAX OUT workout's level: it stays on the card
+      // like a level picked in ADJUST (for this workout only).
+      const lv = handoff?.level ? libraryLevelFor(entry.id, undefined, handoff.level) : undefined;
+      if (lv) { setLevel(lv); savePrefs({ levels: { [entry.id]: lv } }); }
+    } else pickClassic(entry.id);
     cardRef.current?.closest('.no-scrollbar')?.scrollTo({ top: 0 });
   };
   const startFromLibrary = (entry) => {
@@ -509,7 +517,7 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
     if (entry.kind === 'v2') {
       // A MAX OUT workout runs at the level picked for it (Build Workout's difficulty, or ADJUST);
       // every other mission runs its default, as the library always did.
-      const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id) });
+      const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id, undefined, handoff?.level) });
       if (m) startV2(m, mode);
       return;
     }
@@ -803,7 +811,7 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
 
       {libraryOpen && (
         <MissionLibrarySheet
-          shelf={shelf} onTop={onLibrary ? sel : null} gear={gear}
+          shelf={shelf} onTop={onLibrary ? sel : null} gear={gear} initial={handoff}
           onPutOnCard={putOnCard} onStart={startFromLibrary} onClose={() => setLibraryOpen(false)}
         />
       )}

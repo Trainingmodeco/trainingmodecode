@@ -16,7 +16,7 @@ import {
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
   isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, splitsLine, blockSplitsLine,
   closeSplits, roundRestSec, hasRoundTimer,
-  isMaxReps, maxRepsScore, maxEntriesFromSplits, maxSlotAt, maxRepsLimit,
+  isMaxReps, maxRepsScore, maxEntriesFromSplits, maxSlotAt, maxRepsLimit, MIN_SET_SEC,
 } from './data/missionSolo';
 import { mmss, repCapFor } from './data/missionMoves';
 
@@ -614,8 +614,10 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   // MAX REPS · DONE: the set ends at this tap (its time is taken now) and HOW
   // MANY REPS? opens; the clock runs on, so NOT YET loses nothing. Not during a
   // timed rest, and not twice.
+  // DONE wakes MIN_SET_SEC into the set (a set shorter than that never counts), as it does GUIDED.
+  const setReady = elapsedSec - roundFrom >= MIN_SET_SEC;
   const handleSetDone = () => {
-    if (!maxReps || !tapsLive || allTapped || restLeft > 0 || repsAskRef.current) return;
+    if (!maxReps || !tapsLive || allTapped || restLeft > 0 || !setReady || repsAskRef.current) return;
     if (phase === 'running' && tick()) return;
     repsAskRef.current = { atMs: Math.round(clockRef.current.elapsedMs) };
     setRepsAsk(repsAskRef.current);
@@ -726,7 +728,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                 thisSec={allTapped ? null : Math.max(0, elapsedSec - roundFrom)} lastSec={lastLap ? lastLap.lapSec : null}
                 restLeft={restLeft}
                 line={splitsLine(blockRounds, { tag: down ? dc.tag : maxReps ? 'S' : 'R', last: 5 })}
-                live={tapsLive && !allTapped && restLeft === 0 && !repsAsk} canUndo={tapsLive && roundsHere > 0}
+                live={tapsLive && !allTapped && restLeft === 0 && !repsAsk && (!maxReps || setReady)} canUndo={tapsLive && roundsHere > 0}
                 onRound={maxReps ? handleSetDone : addRound} onUndo={undoRound}
               />
             )}

@@ -32,10 +32,29 @@ import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
   leadLine, shortRestLine, restScript, getReadySeconds, workStartLine, skipRestTarget,
   countBeats, paceBeats, nearEndUpNextAt, windowRest, swappedInLine, switchLine, roundLine, mmss,
-  moveById, isLoadedMove, maxStopLine, maxFinishLine, repCapFor,
+  maxCues, isLoadedMove, maxStopLine, maxFinishLine, repCapFor, maxCapCallSec, MAX_CAP_CALL,
 } from './data/missionMoves';
 
 const GOLD = C.yellow;
+
+// MAX REPS on a short phone (under about 780px tall: 360 x 740, 375 x 667): the ring, the card and
+// the DONE button pack tighter and the first cue steps aside (the stop line stays), so DONE and
+// the controls stay above the tab bar and the BETA chip with no scrolling mid-set. A taller phone
+// (412 x 811) keeps the full layout.
+const MAX_COMPACT_CSS = `
+@media (max-height: 780px) {
+  .qma-mx-top { margin-bottom: 4px !important; }
+  .qma-mx-strip { margin-bottom: 8px !important; padding-top: 5px !important; padding-bottom: 5px !important; }
+  .qma-mx-ring { width: min(36vw, 132px) !important; margin-bottom: 8px !important; }
+  .qma-mx-ring-big { font-size: 28px !important; }
+  .qma-mx-ring-sub { font-size: 9px !important; letter-spacing: 0.1em !important; margin-top: 2px !important; }
+  .qma-mx-card { padding: 10px 14px !important; margin-bottom: 8px !important; }
+  .qma-mx-cue { display: none !important; }
+  .qma-mx-next { margin-bottom: 8px !important; }
+  .qma-mx-safety { margin-bottom: 8px !important; padding: 6px 10px !important; font-size: 12px !important; }
+  .qma-mx-done { height: 50px !important; margin-bottom: 8px !important; }
+}
+`;
 
 const CADENCE_SAFE_NAMES = new Set([
   'push-ups', 'pushups', 'push ups',
@@ -230,6 +249,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   // must not save (and advance) twice.
   const repsAskRef = useRef(null);
   const repsWasPausedRef = useRef(false);
+  // A hinge or swing set has no count and no stop but the athlete's: the coach calls the cap once.
+  const capCallRef = useRef(false);
 
   const versionRef = useRef(0);
   const cadenceVersionRef = useRef(0);
@@ -457,7 +478,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     if (ex.mode === 'timed') setRemaining(ex.work);
     setTickEpoch(e => e + 1);
     if (clocked) runStartedRef.current = true;
-    if (maxReps) setSetReady(false); // DONE wakes after MIN_SET_SEC of the set
+    if (maxReps) { setSetReady(false); capCallRef.current = false; } // DONE wakes after MIN_SET_SEC of the set
     // Paused (a SKIP mid-pause chained in): RESUME starts the count.
     if (pausedRef.current) return;
     if (clocked) runClockStart();
@@ -924,6 +945,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
         if (mission.v2 && !await say(swappedInLine(mission))) return;
         if (!await say(getCoachCopy('sessionStart'))) return;
         if (!await say(mission.introSay)) return;
+        // MAX REPS: the safety line is said once here and shown in every rest (it is not on the set screen).
+        if (maxReps && mission.safety && !await say(mission.safety)) return;
         if (!await hold(400)) return;
       }
 
@@ -1426,6 +1449,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
       if (maxReps) {
         // The set's own clock: DONE wakes after MIN_SET_SEC. endMax says 'Time.' itself.
         setSetReady(phaseRef.current === 'work' && (workElapsedSec() ?? 0) >= MIN_SET_SEC);
+        // A capped hinge or swing set: "Stop. Set it down." once, at the cap's pace for the level.
+        const live = allExercises[exIdxRef.current];
+        const callAt = live?.max ? maxCapCallSec(live, mission.level) : null;
+        if (voiceOn && callAt != null && !capCallRef.current && phaseRef.current === 'work' && !pausedRef.current && (workElapsedSec() ?? 0) >= callAt) {
+          capCallRef.current = true;
+          speakAsync(MAX_CAP_CALL, { preempt: true, priority: 2 });
+        }
         if (maxCapReached(mission, ms / 1000) && !doneRef.current) endMaxRef.current?.('cap');
         return;
       }
@@ -1537,6 +1567,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
       <VoiceMixer top={58} right={14} dataGuide="qma-volume"/>
       <FloatOnLeave {...mini}/>
 
+      {maxReps && <style dangerouslySetInnerHTML={{ __html: MAX_COMPACT_CSS }}/>}
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh',
@@ -1546,7 +1577,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
       }}>
 
         {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
+        <div className={maxReps ? 'qma-mx-top' : undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
           <button data-guide="qma-back" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} aria-disabled={done ? 'true' : undefined} style={{ background: 'none', border: 'none', color: C.text, padding: 4, ...offStyle }}>
             <ChevronLeft size={24}/>
           </button>
@@ -1576,7 +1607,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* Status strip. v2 missions: MINUTE m/N for an EMOM, and the level
             in place of the difficulty. */}
-        <div data-guide="qma-status" style={{
+        <div data-guide="qma-status" className={maxReps ? 'qma-mx-strip' : undefined} style={{
           display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 16,
           padding: '7px 16px', borderRadius: 8,
           background: 'rgba(15,5,30,0.7)', border: '1px solid rgba(253,224,71,0.15)',
@@ -1594,7 +1625,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* Timer ring / Cadence display / Reps display */}
         {(phase === 'work' && currentEx.mode === 'timed') || phase === 'rest' ? (
-          <div data-guide="qma-ring" style={ringBox}>
+          <div data-guide="qma-ring" className={maxReps ? 'qma-mx-ring' : undefined} style={ringBox}>
             {/* The ring's own art, dimmed behind the arc (matches Fight Focus) */}
             <SafeImage src="/static/ring-conditioning.png" alt="" style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
@@ -1625,7 +1656,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             </div>
           </div>
         ) : phase === 'work' && cadenceActive ? (
-          <div data-guide="qma-ring" style={{
+          <div data-guide="qma-ring" className={maxReps ? 'qma-mx-ring' : undefined} style={{
             ...ringBox,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}55`,
@@ -1642,7 +1673,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             }}>REP {cadenceRep} / {currentEx.reps}</div>
           </div>
         ) : (
-          <div data-guide="qma-ring" style={{
+          <div data-guide="qma-ring" className={maxReps ? 'qma-mx-ring' : undefined} style={{
             ...ringBox,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             borderRadius: '50%', border: `4px solid ${GOLD}33`,
@@ -1664,11 +1695,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
               </>
             ) : (
               <>
-                <div style={{
+                <div className={maxSet ? 'qma-mx-ring-big' : undefined} style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40,
                   color: GOLD,
                 }}>{maxSet ? 'MAX' : currentEx.reps}</div>
-                <div style={{
+                <div className={maxSet ? 'qma-mx-ring-sub' : undefined} style={{
                   fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
                   color: C.muted, letterSpacing: '0.15em', marginTop: 6,
                 }}>{maxSet ? maxRingLabel : currentEx.unit || 'REPS'}</div>
@@ -1690,7 +1721,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* Current exercise / Up Next card */}
         {phase !== 'intro' && (
-          <div data-guide="qma-exercisecard" style={{
+          <div data-guide="qma-exercisecard" className={maxReps ? 'qma-mx-card' : undefined} style={{
             width: '100%', maxWidth: 360, padding: '16px 18px', borderRadius: 12,
             background: 'rgba(10,0,20,0.8)', border: `1px solid ${ringColor}33`,
             textAlign: 'center', marginBottom: 14,
@@ -1717,8 +1748,12 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                   color: workoutType === 'Bodyweight' ? 'rgba(79,140,255,0.7)' : GOLD,
                   marginTop: 6,
                 }}>
-                  {workoutType === 'Weighted' ? 'Grab your weight.' : workoutType === 'Hybrid' ? 'Prepare your setup.' : 'Get in position.'}
+                  {/* MAX REPS: only a loaded station says grab your weight (push-ups and dead bugs do not). */}
+                  {workoutType === 'Weighted' && !(maxReps && upNextExercise.max && !isLoadedMove(upNextExercise.moveId)) ? 'Grab your weight.' : workoutType === 'Hybrid' ? 'Prepare your setup.' : 'Get in position.'}
                 </div>
+                {maxReps && upNextExercise.max && (
+                  <div role="note" style={{ font: `600 12px ${BODY}`, lineHeight: 1.4, color: '#fff', marginTop: 8 }}>{maxStopLine(upNextExercise, mission.level)}</div>
+                )}
               </>
             ) : (
               <>
@@ -1749,8 +1784,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                 {/* MAX REPS: the first cue, and when to stop the set. */}
                 {maxSet && (
                   <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {moveById(currentEx.moveId)?.cues?.[0] && (
-                      <div style={{ font: `500 13px ${BODY}`, lineHeight: 1.4, color: C.text }}>{moveById(currentEx.moveId).cues[0]}</div>
+                    {maxCues(currentEx.moveId, mission.weightWord)[0] && (
+                      <div className="qma-mx-cue" style={{ font: `500 13px ${BODY}`, lineHeight: 1.4, color: C.text }}>{maxCues(currentEx.moveId, mission.weightWord)[0]}</div>
                     )}
                     <div role="note" style={{ font: `700 13px ${BODY}`, lineHeight: 1.4, color: '#fff' }}>{maxStopLine(currentEx, mission.level)}</div>
                   </div>
@@ -1785,7 +1820,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* v2: what comes after this move, under its card */}
         {upNextInWork && (
-          <div style={{
+          <div className={maxReps ? 'qma-mx-next' : undefined} style={{
             width: '100%', maxWidth: 360, marginTop: -6, marginBottom: 14, textAlign: 'center',
             font: `600 11px ${HEAD}`, letterSpacing: '0.08em', color: '#4f8cff',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -1793,8 +1828,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
         )}
 
         {/* untilDown: the safety line, big, through every block and rest. */}
-        {untilDown && mission.safety && phase !== 'intro' && (
-          <div role="note" style={{
+        {/* MAX REPS: the same card, in the rest and the 3-2-1 before each set (the set screen is
+            tight and shows the move's own stop line instead). */}
+        {(untilDown || (maxReps && phase === 'rest')) && mission.safety && phase !== 'intro' && (
+          <div role="note" className={maxReps ? 'qma-mx-safety' : undefined} style={{
             width: '100%', maxWidth: 360, marginBottom: 12, padding: '9px 12px', borderRadius: 12, textAlign: 'center',
             background: 'rgba(253,224,71,0.1)', border: '1.5px solid rgba(253,224,71,0.55)',
             font: `700 14px ${BODY}`, color: '#fff', lineHeight: 1.35,
@@ -1816,7 +1853,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             first MIN_SET_SEC of the set, so a stray tap cannot save a set that
             never happened. */}
         {maxSet && !done && (
-          <button type="button" data-guide="qma-done" onClick={handleCompleteRep} disabled={!setReady} aria-label="Done. Enter your reps" style={{
+          <button type="button" data-guide="qma-done" className="qma-mx-done" onClick={handleCompleteRep} disabled={!setReady} aria-label="Done. Enter your reps" style={{
             width: '100%', maxWidth: 360, height: 56, marginBottom: 14, borderRadius: 14, border: 'none',
             cursor: setReady ? 'pointer' : 'default', opacity: setReady ? 1 : 0.4,
             background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',

@@ -3,8 +3,12 @@
 // (79), the two new catalog moves (80), the coach's words (81), the XP, floors
 // and caps (82), the rep limits (83), the saved score (84), both settles (85),
 // the integrity sizing (86), Build Workout's hand-off (87) and the screen
-// guides (88). The 31 earlier missions are pinned in test-missions.mjs; this
-// file only tests what is new.
+// guides (88); then the review fixes: swaps that never move the XP or break a
+// cap (89), the swaps and moves no MAX OUT may reach (90), stop lines that
+// agree with their cues (91), the cap, zero-rep and short-set settles (92),
+// the cap said aloud (93), copy that agrees with the data (94), the one-shot
+// hand-off (95) and the level word (96). The 31 earlier missions are pinned in
+// test-missions.mjs; this file only tests what is new.
 // Run with `npm run test:maxout`.
 import { isDeepStrictEqual } from 'node:util';
 
@@ -82,7 +86,7 @@ every((id, lv, m) => {
   if (m.capSec < 1.5 * plan(m) - 1e-6 || m.capSec % 300 !== 0 || m.capSec > 1.5 * plan(m) + 300) timeBad.push(`${id}/${lv} cap ${m.capSec} for ${plan(m)}`);
 });
 check('79 minutes = the plan rounded; the cap is about 1.5 x the plan, up to the next 5 minutes', timeBad.length === 0, timeBad.join('; '));
-const MINUTES = { boss_rush: [8, 13, 23], health_bar: [8, 11, 15], combo_meter: [10, 16, 21], tank_mode: [8, 12, 18], dual_wield: [10, 15, 21] };
+const MINUTES = { boss_rush: [8, 13, 23], health_bar: [8, 11, 15], combo_meter: [10, 15, 20], tank_mode: [8, 12, 18], dual_wield: [10, 15, 21] };
 const ROUNDS = { boss_rush: [2, 3, 5], health_bar: [2, 3, 4], combo_meter: [2, 3, 4], tank_mode: [2, 3, 4], dual_wield: [2, 3, 4] };
 const CAPS = { boss_rush: [900, 1200, 2100], health_bar: [900, 1200, 1500], combo_meter: [1200, 1500, 2100], tank_mode: [900, 1200, 1800], dual_wield: [900, 1500, 2100] };
 check('79 minutes, rounds and caps per level as the spec has them', IDS.every(id => LEVELS.every((lv, i) => {
@@ -105,7 +109,7 @@ IDS.forEach(id => {
   ['elite', 'standard', 'beginner'].forEach(tier => { if (!(paceOf(id, 'beginner')[tier] < paceOf(id, 'standard')[tier] && paceOf(id, 'standard')[tier] < paceOf(id, 'elite')[tier])) paceBad.push(`${id} ${tier} across levels`); });
 });
 check('79 pace is ordered inside every level and across levels (more reps is better)', paceBad.length === 0, paceBad.join(', '));
-check('79 pace marks as the spec has them', eq(paceOf('boss_rush', 'standard'), { elite: 250, standard: 195, beginner: 135 }) && eq(paceOf('health_bar', 'elite'), { elite: 540, standard: 415, beginner: 290 })
+check('79 pace marks as the spec has them (COMBO METER ELITE re-taken from the formula)', eq(paceOf('boss_rush', 'standard'), { elite: 250, standard: 195, beginner: 135 }) && eq(paceOf('combo_meter', 'elite'), { elite: 345, standard: 265, beginner: 185 }) && eq(paceOf('health_bar', 'elite'), { elite: 540, standard: 415, beginner: 290 })
   && eq(paceOf('combo_meter', 'beginner'), { elite: 125, standard: 95, beginner: 65 }) && eq(paceOf('tank_mode', 'standard'), { elite: 165, standard: 130, beginner: 90 })
   && eq(paceOf('dual_wield', 'elite'), { elite: 380, standard: 295, beginner: 205 }));
 check('79 every def says its pace is a coach estimate; no capital ROUND in a note', defs.every(d => /^Coach estimate/.test(d.paceBasis) && !/\bROUND\b/.test(d.note)));
@@ -166,19 +170,20 @@ check('79 no rejected game or film name, no franchise name, no SOLO in the new c
   && !copy.some(s => REJECTED.some(r => s.toUpperCase().includes(r))) && !copy.some(s => BANNED.some(b => (b === 'Chief' ? /\bchief\b/i.test(s) : s.toLowerCase().includes(b.toLowerCase())))), copy.filter(s => /\bsolo\b/i.test(s)).slice(0, 3).join(' | '));
 
 const bossCard = L.missionCardModel(build('boss_rush'));
-check('79 BOSS RUSH STANDARD on the card: eyebrow, tags, loadout, rows, score, safety', bossCard.eyebrow === 'Mission · Max Reps' && bossCard.accentTag === 'MAX OUT' && eq(bossCard.tags, ['~13 MIN', 'HARD', 'HOTEL OK', 'QUIET'])
+check('79 BOSS RUSH STANDARD on the card: eyebrow, tags, loadout, rows, score, safety', bossCard.eyebrow === 'Mission · Max Reps' && bossCard.accentTag === 'MAX OUT' && eq(bossCard.tags, ['~13 MIN', 'STANDARD', 'HOTEL OK', 'QUIET'])
   && bossCard.loadoutLine === 'NO GEAR · 2 × 2 M OF FLOOR' && bossCard.missionLine === '3 ROUNDS · PUSH-UPS · SQUATS · SIT-UPS · MAX REPS'
   && bossCard.scoreLine === 'TOTAL REPS, EVERY SET ADDED' && eq(bossCard.rows.map(r => [r.prefix, r.name, r.dose]), [['STATION 1', 'Push-Ups', 'MAX'], ['STATION 2', 'Air Squats', 'MAX'], ['STATION 3', 'Sit-Ups', 'MAX']])
   && bossCard.safety === 'Stop a set when your form breaks, not when it burns. Sit-ups: hands on your chest, never pull on your neck.'
-  && eq(S.paceTargets(build('boss_rush')).map(p => p.text), ['250+ reps', '195 reps', '135 reps']) && L.missionCardModel(build('boss_rush', 'beginner')).tags[1] === 'NORMAL', show(bossCard.tags));
-check('79 the rows say when to stop (the move\'s rule, the stop-short, the cap)', bossCard.rows[0].note === 'Stop when your hips sag or your chest cannot reach a fist off the floor.'
-  && L.cardRows(build('boss_rush', 'beginner'))[0].note === 'Stop when your hips sag or your chest cannot reach a fist off the floor. Stop 2 reps short of that.'
+  && eq(S.paceTargets(build('boss_rush')).map(p => p.text), ['250+ reps', '195 reps', '135 reps']) && L.missionCardModel(build('boss_rush', 'beginner')).tags[1] === 'BEGINNER' && L.missionCardModel(build('boss_rush', 'elite')).tags[1] === 'ELITE', show(bossCard.tags));
+check('79 the rows say when to stop (the move\'s rule, the stop-short, the cap)', bossCard.rows[0].note === 'Stop when your hips sag or you cannot lower to within a fist of the floor.'
+  && L.cardRows(build('boss_rush', 'beginner'))[0].note === 'Stop when your hips sag or you cannot lower to within a fist of the floor. Stop 2 reps before that.'
   && L.cardRows(build('combo_meter'))[0].note === 'Stop when the bell stops floating to chest height or your back wants to round. Most reps: 15.', show(L.cardRows(build('combo_meter'))[0].note));
 const shelf = L.shelfEntries();
 const maxout = L.filterShelf(shelf, { theme: 'maxout' });
-check('79 the library: five on the MAX OUT chip, one each for none, bell and barbell, two for mixed; rows read "~13 MIN · NO GEAR · MAX REPS"', eq(maxout.map(e => e.id), IDS)
+check('79 the library: five on the MAX OUT chip, one each for none, bell and barbell, two for mixed; rows read "~13 MIN · NO GEAR · MAX REPS · STANDARD"', eq(maxout.map(e => e.id), IDS)
   && ['none', 'bell', 'barbell', 'mixed'].every((lo, i) => L.filterShelf(shelf, { loadout: lo, theme: 'maxout' }).length === [1, 1, 1, 2][i])
-  && L.shelfEntryLine(maxout[0]) === '~13 MIN · NO GEAR · MAX REPS' && L.shelfEntryLine(maxout[1]) === '~11 MIN · MIXED · MAX REPS' && L.shelfEntryLine(maxout[4], { level: 'elite' }) === '~21 MIN · MIXED · MAX REPS'
+  && L.shelfEntryLine(maxout[0]) === '~13 MIN · NO GEAR · MAX REPS · STANDARD' && L.shelfEntryLine(maxout[1]) === '~11 MIN · MIXED · MAX REPS · STANDARD' && L.shelfEntryLine(maxout[4], { level: 'elite' }) === '~21 MIN · MIXED · MAX REPS · ELITE'
+  && L.shelfEntryLine(maxout[0], { level: 'beginner' }) === '~8 MIN · NO GEAR · MAX REPS · BEGINNER'
   && maxout.every(e => e.soloOnly === false));
 
 // ── 80 · two catalog moves ───────────────────────────────────────────────────
@@ -204,12 +209,13 @@ const tank = build('tank_mode');
 const combo = build('combo_meter');
 check('81 the first lead: "Round 1. Push-ups. Max reps."; a later station has no round', M.leadLine(boss.exercises[0], ctxFor(boss, 1, 0)) === 'Round 1. Push-ups. Max reps.'
   && M.leadLine(boss.exercises[1], ctxFor(boss, 1, 1)) === 'Air squats. Max reps.' && M.leadLine(boss.exercises[0], ctxFor(boss, 2, 0)) === 'Round 2. Push-ups. Max reps.');
-check('81 a loaded move says "Max clean reps."; a stop-short set says so; a backpack is a load', M.leadLine(combo.exercises[0], ctxFor(combo, 1, 0)) === 'Round 1. Swings. Max clean reps.'
-  && M.leadLine(tank.exercises[0], ctxFor(tank, 1, 0)) === 'Round 1. Dead-stop rows. Max clean reps. Stop two short.'
+check('81 a loaded move says "Max clean reps." and its cap; a stop-short set says so; a backpack is a load', M.leadLine(combo.exercises[0], ctxFor(combo, 1, 0)) === 'Round 1. Swings. Max clean reps. Never more than 15.'
+  && M.leadLine(tank.exercises[0], ctxFor(tank, 1, 0)) === 'Round 1. Dead-stop rows. Max clean reps. Stop two short. Never more than 25.'
   && M.leadLine(bossBeg.exercises[0], ctxFor(bossBeg, 1, 0)) === 'Round 1. Knee push-ups. Max clean reps. Stop two short.'
-  && M.leadLine(build('health_bar').exercises[1], ctxFor(build('health_bar'), 1, 1)) === 'Backpack Romanian deadlifts. Max clean reps.');
+  && M.leadLine(build('health_bar').exercises[1], ctxFor(build('health_bar'), 1, 1)) === 'Backpack deadlifts. Max clean reps. Never more than 12.'
+  && M.leadLine(build('health_bar', 'beginner').exercises[1], ctxFor(build('health_bar', 'beginner'), 1, 1)) === 'Backpack deadlifts. Max clean reps. Stop two short. Never more than 10.');
 check('81 the start is "Go." after a lead or short line, the move and "Go." after a silence', M.workStartLine(boss.exercises[1], { announcedBy: 'lead' }) === 'Go.' && M.workStartLine(boss.exercises[1], { announcedBy: 'short' }) === 'Go.'
-  && M.workStartLine(boss.exercises[1]) === 'Air squats. Max reps. Go.' && M.chainedLine(tank.exercises[2]) === 'Front squats. Max clean reps. Stop two short. Go.');
+  && M.workStartLine(boss.exercises[1]) === 'Air squats. Max reps. Go.' && M.chainedLine(tank.exercises[2]) === 'Front squats. Max clean reps. Stop two short. Never more than 25. Go.');
 check('81 "Next: air squats." and the rests', M.shortRestLine(boss.exercises[1]) === 'Next: air squats.'
   && M.restOpener({ restSec: 25, roundEnd: false, completedRound: 1, format: 'maxReps' }) === 'Rest. 25 seconds.'
   && M.restOpener({ restSec: 75, roundEnd: true, completedRound: 1, format: 'maxReps' }) === 'Round 1 complete. Rest. 75 seconds.'
@@ -223,9 +229,9 @@ check('81 "Done. 214 reps." and "Done. 1 rep."', M.maxFinishLine(214) === 'Done.
 check('81 a max slot has no count and no dose number; spokenMove is the word alone', M.countBeats(boss.exercises[0]) === null && M.slotDose(boss.exercises[0]) === 'MAX'
   && M.spokenMove(boss.exercises[0]) === 'push-ups' && M.spokenMove(boss.exercises[2]) === 'sit-ups' && M.isCounted(boss.exercises[0]) === false);
 check('81 the stop lines: the move\'s rule, the stop-short, the cap, the default', M.maxStopLine(boss.exercises[2]) === 'Stop when you have to swing or pull on your neck. Most reps: 60.'
-  && M.maxStopLine(bossBeg.exercises[2], 'beginner') === 'Stop when you have to swing or pull on your neck. Stop 2 reps short of that. Most reps: 60.'
-  && M.maxStopLine({ moveId: 'nope' }) === 'Stop when your form breaks.' && M.maxStopLine({ moveId: 'push-up' }) === 'Stop when your hips sag or your chest cannot reach a fist off the floor.'
-  && M.STOP_RULES['db-floor-press'] === 'Stop when a rep stalls. Lower both dumbbells to your sides.' && M.STOP_RULES['pull-up'] === 'Stop when your chin cannot clear the bar. Step down, never kip.');
+  && M.maxStopLine(bossBeg.exercises[2], 'beginner') === 'Stop when you have to swing or pull on your neck. Stop 2 reps before that. Most reps: 60.'
+  && M.maxStopLine({ moveId: 'nope' }) === 'Stop when your form breaks.' && M.maxStopLine({ moveId: 'push-up' }) === 'Stop when your hips sag or you cannot lower to within a fist of the floor.'
+  && M.STOP_RULES['db-floor-press'] === 'Stop when a rep stalls. Lower both dumbbells to your sides.' && M.STOP_RULES['pull-up'] === 'Stop when your chin cannot clear the bar. Step down to the floor. No swinging.');
 // Every move the five can hold has its own stop rule.
 const ruleless = [];
 every((id, lv, m) => m.exercises.forEach(sl => reach(m, sl.swapKey).forEach(mid => { if (!M.STOP_RULES[mid]) ruleless.push(`${id}/${lv}/${mid}`); })));
@@ -254,7 +260,7 @@ const farm = entries(std, 9, 10, 8);
 const farmSolo = solo(std, farm, { elapsedSec: 100 });
 const farmGuided = guided(std, farm, { elapsedSec: 100 });
 check('82 the farm: nine 8 s taps in 100 s credit 4 sets, pay 17 and no bonus, and say so', S.creditedSets(std, farm, 100).credited === 4 && farmSolo.credited === 4 && farmSolo.xp === 17 && farmSolo.outcome === 'partial'
-  && farmSolo.message === 'Faster than the plan allows, so 4 of 9 sets count.' && farmGuided.xp === 17 && farmGuided.credited === 4 && farmGuided.message === farmSolo.message, show([farmSolo, farmGuided.xp]));
+  && farmSolo.message === 'The clock was too short, so 4 of 9 sets count.' && farmGuided.xp === 17 && farmGuided.credited === 4 && farmGuided.message === farmSolo.message, show([farmSolo, farmGuided.xp]));
 check('82 a set must have a rep and run 8 s: 0 reps or 7 s never counts', S.creditedSets(std, [{ reps: 0, sec: 30 }, { reps: 5, sec: 7 }, { reps: 5, sec: 8 }], Infinity).credited === 1
   && S.creditedSets(std, [], 600).credited === 0 && S.creditedSets(std, [null, { reps: 5, sec: 30 }], Infinity).credited === 1);
 const honest = entries(std, 9, 20, 30);
@@ -267,9 +273,15 @@ check('82 the cap pays the sets saved and no bonus; a skipped set in GUIDED lose
   && guided(std, honest, { completed: false, capped: true, elapsedSec: 1200 }).xp === 114
   && solo(std, null, { completed: false, stopped: true }).xp === 0 && solo(std, null, { completed: false, stopped: true }).message === 'Finish one set to earn XP.' && solo(std, null, { completed: false, stopped: true }).outcome === 'none'
   && guided(std, null, { completed: false }).xp === 0 && guided(std, null, { completed: false }).verdict.response === 'Finish one set to earn XP.' && guided(std, null, { completed: false }).outcome === 'none');
+// Each of these fails if its guard is dropped: a cap, a STOP or a skip never pays the bonus even when the
+// run says it completed, and the bonus needs every set (not just k >= 1) to be credited.
+check('82 no bonus for a capped, stopped or skipped run that still says completed, nor for part of the sets', solo(std, honest, { completed: true, capped: true, elapsedSec: 1200 }).xp === 114
+  && solo(std, honest, { completed: true, stopped: true, elapsedSec: 900 }).xp === 114 && solo(std, honest, { completed: true, stopped: true, elapsedSec: 900 }).outcome === 'partial'
+  && guided(std, honest, { completed: true, capped: true, elapsedSec: 1200 }).xp === 114 && guided(std, honest, { completed: true, stopped: true, elapsedSec: 900 }).outcome === 'partial'
+  && S.maxRepsXp(std, 5, { full: true }) === S.maxRepsXp(std, 5) && S.maxRepsXp(std, 9, { full: true }) === S.maxRepsXp(std, 9) + 30);
 check('82 reps never change the XP', solo(std, entries(std, 9, 5, 30)).xp === solo(std, entries(std, 9, 40, 30)).xp && guided(std, entries(std, 9, 1, 30)).xp === guided(std, entries(std, 9, 40, 30)).xp);
 check('82 every set refused by the clock (under 8 s run): no XP and the plain message', solo(std, entries(std, 3, 10, 30), { elapsedSec: 5 }).outcome === 'too_fast' && solo(std, entries(std, 3, 10, 30), { elapsedSec: 5 }).xp === 0
-  && solo(std, entries(std, 3, 10, 30), { elapsedSec: 5 }).message === 'Faster than the plan allows, so none of your sets count.'
+  && solo(std, entries(std, 3, 10, 30), { elapsedSec: 5 }).message === 'The clock was too short, so no sets count.'
   && guided(std, entries(std, 3, 10, 30), { elapsedSec: 5 }).outcome === 'none' && guided(std, entries(std, 3, 10, 30), { elapsedSec: 5 }).xp === 0
   && S.creditedSets(std, entries(std, 3, 10, 30), 10).credited === 1);
 const fullXp = [];
@@ -331,9 +343,9 @@ check('85 the GUIDED settle: { mode, xp, base, outcome, verdict, workedSec, cred
 check('85 a stopped GUIDED run is a partial (SESSION STOPPED), never a pass', guided(std, honest.slice(0, 6), { completed: false, elapsedSec: 480 }).verdict.preset.eyebrow === 'SESSION STOPPED' && guided(std, honest.slice(0, 6), { completed: false, elapsedSec: 480 }).outcome === 'partial');
 check('85 a hard anti-cheat flag zeroes GUIDED XP; the same score in both settles pays the same', guided(std, honest, { integrityResult: { awardXp: false, validityStatus: 'tooFast', reason: 'x' } }).xp === 0
   && ['standard', 'elite', 'beginner'].every(lv => { const m = build('dual_wield', lv); const es = entries(m, S.totalSlots(m), 12, 40); return solo(m, es, { elapsedSec: 5000 }).xp === guided(m, es, { elapsedSec: 5000 }).xp; }));
-check('85 an old or empty result never throws: no score, a score from another mission, no sets', [undefined, {}, { mission: std }, { mission: std, score: { kind: 'time' } }, { mission: std, score: null, elapsedSec: 'x' }].every(r => {
-  try { return S.settleSoloXp(r).xp >= 0 || true; } catch { return false; }
-}) && [{ mission: std }, { mission: std, score: { kind: 'totalReps' } }, { mission: std, score: { kind: 'totalReps', byStation: 'x', setSecs: 'y' } }].every(r => {
+check('85 an old or empty result never throws and never pays more than 0: no score, a score from another mission, no sets', [{ mission: std }, { mission: std, score: { kind: 'time' } }, { mission: std, score: null, elapsedSec: 'x' }].every(r => {
+  try { return S.settleSoloXp(r).xp === 0 && S.settleGuidedXp(r).xp === 0; } catch { return false; }
+}) && [undefined, {}].every(r => { try { S.settleSoloXp(r); S.settleGuidedXp(r); return true; } catch { return false; } }) && [{ mission: std }, { mission: std, score: { kind: 'totalReps' } }, { mission: std, score: { kind: 'totalReps', byStation: 'x', setSecs: 'y' } }].every(r => {
   try { return S.settleGuidedXp(r).xp === 0 && S.settleSoloXp(r).xp === 0; } catch { return false; }
 }));
 check('85 the other formats still settle as before (BEST OF 3 SOLO and GUIDED)', S.settleSoloXp({ mission: oldMission, completed: true, format: 'amrap', elapsedSec: 660 }).outcome === 'pass'
@@ -341,39 +353,51 @@ check('85 the other formats still settle as before (BEST OF 3 SOLO and GUIDED)',
 
 // ── 86 · integrity sizing ────────────────────────────────────────────────────
 const sizeBad = [];
-every((id, lv, m) => { if (S.qmMaxValidSeconds(m) < 600 || S.qmIntegrityRules(m).maxValidSeconds < 600 || S.qmTotalUnits(m) !== m.rounds) sizeBad.push(`${id}/${lv} ${S.qmMaxValidSeconds(m)}`); });
-check('86 a GUIDED round is one unit, sized to at least 10 minutes (a round is 4 to 6)', sizeBad.length === 0, sizeBad.join(', '));
+every((id, lv, m) => {
+  const r = S.estimateRoundSeconds(m);
+  // The estimate is the quickest honest round (ELITE counts): 2 to 6.5 minutes. The sizing is the 10-minute floor, and always 1.5 x the estimate.
+  if (!(r >= 120 && r <= 400)) sizeBad.push(`${id}/${lv} round ${Math.round(r)} s`);
+  if (S.qmMaxValidSeconds(m) < 1.5 * r || S.qmIntegrityRules(m).maxValidSeconds !== S.qmMaxValidSeconds(m)) sizeBad.push(`${id}/${lv} sizing`);
+  if (S.qmMaxValidSeconds(m) < 600 || S.qmTotalUnits(m) !== m.rounds) sizeBad.push(`${id}/${lv} ${S.qmMaxValidSeconds(m)}`);
+});
+check('86 a GUIDED round is one unit; its sizing is the 10-minute floor and at least 1.5 x the round estimate (2 to 6.5 minutes)', sizeBad.length === 0, sizeBad.join(', '));
 
 // ── 87 · Build Workout's MAX OUT ─────────────────────────────────────────────
 store.clear();
 const PAIRS = [];
 for (const eqp of ['BODYWEIGHT', 'WEIGHTED', 'HYBRID']) for (const diff of ['EASY', 'NORMAL', 'HARD']) PAIRS.push([eqp, diff]);
-const lo = { BODYWEIGHT: 'none', WEIGHTED: 'bell', HYBRID: 'mixed' };
+const lo = { BODYWEIGHT: 'none', WEIGHTED: 'all', HYBRID: 'mixed' };
 const lv = { EASY: 'beginner', NORMAL: 'standard', HARD: 'elite' };
 const handBad = [];
 PAIRS.forEach(([eqp, diff]) => {
   store.clear();
   const out = L.maxOutHandoff({ equipment: eqp, difficulty: diff });
-  const prefs = L.loadShelfPrefs();
-  if (out.loadout !== lo[eqp] || out.level !== lv[diff]) handBad.push(`${eqp}/${diff} ${show(out)}`);
-  if (prefs.theme !== 'maxout' || prefs.loadout !== lo[eqp] || !IDS.every(id => prefs.levels[id] === lv[diff]) || prefs.mode !== 'guided') handBad.push(`${eqp}/${diff} prefs ${show(prefs)}`);
-  const list = L.filterShelf(L.shelfEntries(), { loadout: prefs.loadout, theme: prefs.theme });
+  if (!eq(out, { loadout: lo[eqp], theme: 'maxout', level: lv[diff] })) handBad.push(`${eqp}/${diff} ${show(out)}`);
+  // Nothing is saved: the library's remembered filter and every workout's saved level stay as they were.
+  if (store.size !== 0) handBad.push(`${eqp}/${diff} saved ${show([...store.keys()])}`);
+  const list = L.filterShelf(L.shelfEntries(), { loadout: out.loadout, theme: out.theme });
   if (!list.length || list.some(e => !IDS.includes(e.id))) handBad.push(`${eqp}/${diff} list ${show(list.map(e => e.id))}`);
+  if (!IDS.every(id => L.libraryLevelFor(id, undefined, out.level) === out.level)) handBad.push(`${eqp}/${diff} level`);
 });
-check('87 all nine gear × difficulty pairs: the loadout, the level, the MAX OUT chip, a list of MAX OUT workouts only', handBad.length === 0, handBad.join('; '));
+check('87 all nine gear × difficulty pairs: the loadout, the MAX OUT chip and the level are handed over and nothing is saved', handBad.length === 0, handBad.join('; '));
+check('87 BODYWEIGHT lists BOSS RUSH; WEIGHTED lists all five (TANK MODE, the barbell one, included); HYBRID lists the mixed two', eq(L.filterShelf(L.shelfEntries(), { loadout: 'none', theme: 'maxout' }).map(e => e.id), ['boss_rush'])
+  && eq(L.filterShelf(L.shelfEntries(), { loadout: L.maxOutHandoff({ equipment: 'WEIGHTED' }).loadout, theme: 'maxout' }).map(e => e.id), IDS)
+  && eq(L.filterShelf(L.shelfEntries(), { loadout: 'mixed', theme: 'maxout' }).map(e => e.id), ['health_bar', 'dual_wield']));
 store.clear();
-L.saveShelfPrefs({ mode: 'solo', levels: { quota_300: 'elite' } });
+L.saveShelfPrefs({ mode: 'solo', theme: 'striking', loadout: 'bell', levels: { quota_300: 'elite', boss_rush: 'beginner' } });
+const before = show(L.loadShelfPrefs());
 L.maxOutHandoff({ equipment: 'hybrid', difficulty: 'hard' });
-check('87 the hand-off keeps the run mode and every other mission\'s level; it takes any case; an unknown pair opens ALL at STANDARD', L.loadShelfPrefs().mode === 'solo' && L.loadShelfPrefs().levels.quota_300 === 'elite'
-  && L.loadShelfPrefs().levels.dual_wield === 'elite' && L.loadShelfPrefs().loadout === 'mixed'
-  && eq(L.maxOutHandoff({}), { loadout: 'all', level: 'standard', prefs: L.loadShelfPrefs() }) && L.MAX_OUT_IDS.join() === IDS.join());
-check('87 the library opens a MAX OUT workout at its picked level, every other mission at its default', L.libraryLevelFor('boss_rush') === 'standard' && L.libraryLevelFor('quota_300') === undefined && L.libraryLevelFor('nope') === undefined);
+check('87 the hand-off never touches the saved filter, run mode or levels; it takes any case; an unknown pair opens ALL at STANDARD', show(L.loadShelfPrefs()) === before
+  && eq(L.maxOutHandoff({}), { loadout: 'all', theme: 'maxout', level: 'standard' }) && eq(L.maxOutHandoff({ equipment: 'hybrid', difficulty: 'hard' }), { loadout: 'mixed', theme: 'maxout', level: 'elite' }) && L.MAX_OUT_IDS.join() === IDS.join());
+check('87 the library opens a MAX OUT workout at the handed-over level, else the one picked on its card, else the default; every other mission at its default', L.libraryLevelFor('boss_rush') === 'beginner'
+  && L.libraryLevelFor('boss_rush', undefined, 'elite') === 'elite' && L.libraryLevelFor('health_bar') === undefined && L.libraryLevelFor('quota_300', undefined, 'elite') === undefined && L.libraryLevelFor('nope') === undefined);
 store.clear();
-check('87 with nothing picked the library uses the default level', L.libraryLevelFor('boss_rush') === undefined && L.libraryLevelFor('boss_rush', { levels: { boss_rush: 'elite' } }) === 'elite' && L.libraryLevelFor('boss_rush', { levels: { boss_rush: 'brutal' } }) === undefined);
+check('87 with nothing picked the library uses the default level', L.libraryLevelFor('boss_rush') === undefined && L.libraryLevelFor('boss_rush', { levels: { boss_rush: 'elite' } }) === 'elite' && L.libraryLevelFor('boss_rush', { levels: { boss_rush: 'brutal' } }) === undefined
+  && L.libraryLevelFor('boss_rush', { levels: {} }, 'brutal') === undefined);
 const blocked = globalThis.localStorage;
 globalThis.localStorage = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); }, removeItem() { throw new Error('blocked'); } };
 let threw = false;
-try { L.maxOutHandoff({ equipment: 'BODYWEIGHT', difficulty: 'EASY' }); } catch { threw = true; }
+try { L.maxOutHandoff({ equipment: 'BODYWEIGHT', difficulty: 'EASY' }); L.libraryLevelFor('boss_rush', undefined, 'elite'); } catch { threw = true; }
 globalThis.localStorage = blocked;
 check('87 a blocked localStorage never throws', !threw);
 
@@ -382,6 +406,160 @@ const stepFor = (key, target) => (G.SCREEN_GUIDES[key] || []).find(s => s.target
 check('88 the guides say MAX OUT: the library, the guided ring, Build Workout', /MAX OUT: max reps on each move, then switch\./.test(stepFor('quick_mission_setup_v2', 'qm-library')?.body || '')
   && /On a MAX set the ring says MAX\. Do clean reps until your form breaks, then tap DONE and enter your reps\./.test(stepFor('quick_mission_active', 'qma-ring')?.body || '')
   && stepFor('workout_builder', 'wb-maxout')?.body === 'MAX OUT: five max-rep workouts. Your gear and difficulty pick the list and the level.');
+
+// ── 89 · a swap never moves the plan, the XP or breaks a cap ─────────────────
+// The plan (minutes, the XP ceiling) is priced on the authored move and reps, so choosing a
+// slower or faster move can neither raise nor cut what a full run pays ("Swaps never cost XP").
+const planBad = [];
+let swapCount = 0;
+every((id, lv, m) => m.exercises.forEach(sl => reach(m, sl.swapKey).forEach(mid => {
+  if (mid === sl.baseMoveId) return;
+  swapCount += 1;
+  const sm = L.swapMissionMove(m, sl.swapKey, mid);
+  const slot = sm.exercises.find(x => x.swapKey === sl.swapKey);
+  const cap = M.repCapFor(mid, lv);
+  if (S.fullRunXp(sm) !== S.fullRunXp(m) || S.estimateMissionSeconds(sm) !== S.estimateMissionSeconds(m) || S.plannedThrough(sm, S.totalSlots(sm)) !== S.plannedThrough(m, S.totalSlots(m))) planBad.push(`${id}/${lv}/${sl.swapKey} -> ${mid} moves the plan`);
+  if ((slot.cap ?? null) !== cap) planBad.push(`${id}/${lv}/${sl.swapKey} -> ${mid} cap ${slot.cap} vs ${cap}`);
+  if (cap != null && slot.reps > cap) planBad.push(`${id}/${lv}/${sl.swapKey} -> ${mid} first set ${slot.reps} over cap ${cap}`);
+  if (slot.max !== true || slot.cadenceMs !== null || 'sides' in slot) planBad.push(`${id}/${lv}/${sl.swapKey} -> ${mid} not a max set`);
+})));
+check(`89 all ${swapCount} reachable swaps: the plan, the minutes and the full-run XP do not move; the cap follows the move; a first set never starts over its cap`, planBad.length === 0 && swapCount > 100, planBad.slice(0, 4).join('; '));
+const kbd = L.swapMissionMove(build('combo_meter', 'standard'), 'hinge', 'kb-deadlift').exercises[0];
+check('89 COMBO METER swings -> kettlebell deadlifts: 15 becomes 12 (the deadlift cap), still priced on 15 swings', kbd.reps === 12 && kbd.cap === 12 && kbd.planReps === 15 && kbd.baseMoveId === 'kb-swing'
+  && S.fullRunXp(L.swapMissionMove(build('combo_meter', 'standard'), 'hinge', 'kb-deadlift')) === S.fullRunXp(build('combo_meter', 'standard'))
+  && L.swapMissionMove(build('combo_meter', 'beginner'), 'hinge', 'kb-deadlift').exercises[0].reps === 10);
+check('89 a swapped plan comes back to the same slot on undo (back to the base move)', eq(L.swapMissionMove(L.swapMissionMove(build('combo_meter', 'standard'), 'hinge', 'kb-deadlift'), 'hinge', 'kb-swing').exercises, build('combo_meter', 'standard').exercises));
+
+// ── 90 · the moves no MAX OUT swap may reach ─────────────────────────────────
+const bannedBad = [];
+const ROWS = new Set(['db-bent-over-row', 'bb-bent-over-row']);
+every((id, lv, m) => m.exercises.forEach((sl, i) => {
+  const n = m.exercises.length;
+  const around = [m.exercises[(i + n - 1) % n], m.exercises[(i + 1) % n]].map(x => M.regionOf(x.baseMoveId));
+  reach(m, sl.swapKey).forEach(mid => {
+    if (M.MAX_OUT_BANNED.has(mid)) bannedBad.push(`${id}/${lv}/${mid} banned`);
+    // A hinged-back row never sits next to a hinge station (the backpack deadlift is the very next one).
+    if (ROWS.has(mid) && mid !== sl.baseMoveId && around.includes('hinge')) bannedBad.push(`${id}/${lv}/${sl.swapKey} ${mid} next to a hinge`);
+  });
+}));
+check('90 no swap reaches a loaded dead bug, a Hindu squat to knee strike, a split squat or a lunge to knee drive; no bent-over row can be swapped in beside a hinge', bannedBad.length === 0
+  && [...M.MAX_OUT_BANNED].every(id => M.moveById(id)) && M.MAX_OUT_BANNED.size === 6, bannedBad.slice(0, 4).join('; '));
+check('90 TANK MODE\'s rows stay dead-stop at every level: the one pull option, no swap offered, never the plain bent-over row', LEVELS.every(lv => {
+  const t = build('tank_mode', lv);
+  return eq(reach(t, 'pull'), ['bb-dead-stop-row']) && L.swapOptions(t, 'pull').length === 0 && L.cardRows(t)[0].canSwap === false && L.isSwapAllowed(t, 'pull', 'bb-bent-over-row') === false;
+}));
+check('90 HEALTH BAR has no bent-over row for the pull, at any level; the pull stays on the bar (pull-ups, jumping pull-ups, ring rows)', LEVELS.every(lv => {
+  const h = build('health_bar', lv);
+  return eq(reach(h, 'pull').sort(), ['jumping-pull-up', 'pull-up', 'ring-row']) && !L.isSwapAllowed(h, 'pull', 'db-bent-over-row') && !L.isSwapAllowed(h, 'pull', 'bb-bent-over-row');
+}));
+check('90 COMBO METER does its dead bugs with no bell at every level, and cannot swap to a loaded one', LEVELS.every(lv => {
+  const c = build('combo_meter', lv);
+  return c.exercises[3].moveId === 'dead-bug' && M.moveById('dead-bug').gear === 'none' && eq(reach(c, 'core'), ['dead-bug']) && !L.isSwapAllowed(c, 'core', 'kb-dead-bug') && !L.isSwapAllowed(c, 'core', 'backpack-dead-bug');
+}));
+check('90 DUAL WIELD\'s lunge station has no rear-foot-raised or moving-foot swap at any level', LEVELS.every(lv => {
+  const d = build('dual_wield', lv);
+  return !reach(d, 'quads').some(id => /bulgarian|knee-drive/.test(id));
+}));
+
+// ── 91 · a stop line never contradicts its own cue ───────────────────────────
+const stopBad = [];
+every((id, lv, m) => {
+  const word = m.weightWord || null;
+  m.exercises.forEach(sl => reach(m, sl.swapKey).forEach(mid => {
+    const rule = M.STOP_RULES[mid] || '';
+    const cues = M.maxCues(mid, word).join(' ');
+    if (/heels lift/.test(rule) && /heels rise/.test(cues)) stopBad.push(`${id}/${lv}/${mid} heels`);
+    if (/\bkip\b/i.test(cues) || /\bbox\b/i.test(cues)) stopBad.push(`${id}/${lv}/${mid} kip or box`);
+    if (word && /\bbell\b/.test(cues)) stopBad.push(`${id}/${lv}/${mid} bell`);
+    if (/\bkg\b/.test(cues)) stopBad.push(`${id}/${lv}/${mid} a weight in a cue`);
+    L.swapOptions(m, sl.swapKey).forEach(o => { if (o.cues.some(c => /\bkip\b/i.test(c))) stopBad.push(`${id}/${lv}/${o.id} kip in the swap sheet`); });
+  }));
+});
+check('91 no reachable move has a stop line that its own cue contradicts (heels), a kip, a box, a weight or a bell on a dumbbell workout', stopBad.length === 0, [...new Set(stopBad)].slice(0, 5).join('; '));
+check('91 the Hindu squats stop on the knees and the chest, never on the heels they lift on purpose; the plain squats keep the heels rule', M.STOP_RULES['hindu-squat'] === 'Stop when your knees cave or your chest drops.'
+  && M.STOP_RULES['half-hindu-squat'] === M.STOP_RULES['hindu-squat'] && /heels lift/.test(M.STOP_RULES['air-squat']) && /heels lift/.test(M.STOP_RULES['heels-down-hindu-squat']) && !/heel/.test(M.STOP_RULES['hindu-squat']));
+check('91 pull-ups say one thing everywhere: step down to the floor, no swinging (the stop line, the HEALTH BAR safety line, the swap sheet); the catalog keeps its own cue for the earlier missions', /Step down to the floor\. No swinging\./.test(M.STOP_RULES['pull-up'])
+  && /step down to the floor/i.test(L.missionDefById('health_bar').safety) && !/drop to the floor/i.test(L.missionDefById('health_bar').safety)
+  && M.maxCues('pull-up').length === 2 && M.moveById('pull-up').cues.length === 3 && M.moveById('pull-up').cues[2].startsWith('Kip only if you already can')
+  && M.maxCues('jumping-pull-up')[0] === 'A bar low enough to stand under, feet on the floor.' && M.moveById('jumping-pull-up').cues[0].includes('a box beneath it'));
+check('91 the front squat says what to do when the bar slides; the TANK MODE safety card says it too', /let it go forward/.test(M.STOP_RULES['bb-front-squat']) && /let it go forward/.test(L.missionDefById('tank_mode').safety));
+check('91 plain words in the lines read mid-set: no "fist off the floor", no "short of that", no "kip"', !Object.values(M.STOP_RULES).some(r => /fist off|short of that|\bkip\b/i.test(r)) && !/short of that/.test(M.maxStopLine({ moveId: 'push-up', leave: 2 })) && /Stop 2 reps before that\./.test(M.maxStopLine({ moveId: 'push-up', leave: 2 })));
+
+// ── 92 · the cap, zero reps and short sets in the settle ─────────────────────
+const hb = build('health_bar');
+const expired = { awardXp: false, validityStatus: 'expired', reason: 'x' };
+const idle = { awardXp: false, validityStatus: 'idleTimeout', reason: 'x' };
+const oneSet = entries(std, 1, 20, 40);
+const cappedG = guided(std, oneSet, { completed: false, capped: true, elapsedSec: 1250, integrityResult: expired });
+const cappedS = solo(std, oneSet, { completed: false, capped: true, elapsedSec: 1250 });
+check('92 the GUIDED cap pays the sets saved even when its open round is EXPIRED or IDLE: a partial, no bonus, never VALIDATION FAILED; AT YOUR PACE pays the same', cappedG.xp > 0 && cappedG.xp === cappedS.xp && cappedG.outcome === 'partial' && cappedG.verdict.outcome === 'partial'
+  && cappedG.verdict.preset.eyebrow === 'SESSION STOPPED' && guided(std, oneSet, { completed: false, capped: true, elapsedSec: 1250, integrityResult: idle }).xp === cappedG.xp
+  && guided(std, entries(std, 3, 20, 40), { completed: false, capped: true, elapsedSec: 1250, integrityResult: expired }).xp === S.maxRepsXp(std, 3, { elapsedSec: 1250 }), show([cappedG.xp, cappedS.xp, cappedG.outcome]));
+check('92 without the cap an EXPIRED or IDLE run is still refused (the anti-cheat gate is only lifted for the cap)', guided(std, honest, { integrityResult: expired }).outcome === 'validation_failed' && guided(std, honest, { integrityResult: expired }).xp === 0
+  && guided(std, honest, { integrityResult: idle }).xp === 0 && guided(std, honest, { completed: false, stopped: true, elapsedSec: 600, integrityResult: expired }).xp === 0);
+const hbSets = (zeroAt) => entries(hb, 9, i => (i === zeroAt ? 0 : 10), 40);
+const zero8 = solo(hb, hbSets(7), { elapsedSec: 900 });
+const zeroG = guided(hb, hbSets(7), { elapsedSec: 900 });
+check('92 a set with no reps says so, not "the clock was too short"; it never counts and loses the bonus, as before', zero8.message === 'A set with no reps does not count.' && zeroG.message === zero8.message
+  && zero8.credited === 8 && zero8.outcome === 'partial' && zero8.xp === S.maxRepsXp(hb, 8, { elapsedSec: 900 }) && zeroG.xp === zero8.xp && S.MAX_NO_REPS_MESSAGE === zero8.message);
+const short = entries(hb, 9, 10, i => (i === 2 ? 5 : 40));
+const both = entries(hb, 9, i => (i === 1 ? 0 : 10), i => (i === 2 ? 5 : 40));
+check('92 a set under 8 seconds says so; no reps and under 8 seconds say both; a clock too short still says the clock', solo(hb, short, { elapsedSec: 900 }).message === 'A set under 8 seconds does not count.'
+  && solo(hb, both, { elapsedSec: 900 }).message === 'A set with no reps, or under 8 seconds, does not count.' && solo(hb, hbSets(-1), { elapsedSec: 900 }).message === null
+  && solo(hb, entries(hb, 3, 0, 40), { elapsedSec: 900 }).message === 'A set with no reps does not count.' && solo(hb, entries(hb, 3, 10, 40), { elapsedSec: 5 }).message === 'The clock was too short, so no sets count.'
+  && solo(hb, entries(hb, 9, 10, 8), { elapsedSec: 100 }).message === 'The clock was too short, so 4 of 9 sets count.');
+
+// ── 93 · the cap is said aloud ───────────────────────────────────────────────
+const capBad = [];
+every((id, lv, m) => m.exercises.forEach((sl, i) => {
+  const cap = M.repCapFor(sl.moveId, lv);
+  if ((sl.cap ?? null) !== cap) capBad.push(`${id}/${lv}/${i} slot cap`);
+  const line = M.leadLine(sl, ctxFor(m, 1, i));
+  if (cap != null && !line.endsWith(` Never more than ${cap}.`)) capBad.push(`${id}/${lv}/${i} lead "${line}"`);
+  if (cap == null && /Never more than/.test(line)) capBad.push(`${id}/${lv}/${i} lead "${line}"`);
+  if (cap != null && !M.chainedLine(sl).includes(`Never more than ${cap}. Go.`)) capBad.push(`${id}/${lv}/${i} chained`);
+}));
+check('93 every capped station says its cap in the lead and the chained line ("Never more than 15."), every uncapped one says none', capBad.length === 0, capBad.slice(0, 3).join('; '));
+check('93 a hinge or swing set gets one spoken "Stop. Set it down." at the cap\'s pace for the level; no other set does', M.MAX_CAP_CALL === 'Stop. Set it down.'
+  && M.maxCapCallSec(build('combo_meter').exercises[0], 'standard') === Math.round(15 * M.estMsFor('kb-swing', 'standard') / 1000)
+  && M.maxCapCallSec(build('health_bar').exercises[1], 'standard') === 30 && M.maxCapCallSec(build('health_bar', 'elite').exercises[1], 'elite') === 24
+  && M.maxCapCallSec(build('combo_meter', 'beginner').exercises[0], 'beginner') === Math.round(12 * M.estMsFor('kb-swing', 'beginner') / 1000)
+  && M.maxCapCallSec(build('boss_rush').exercises[2], 'standard') === null && M.maxCapCallSec(build('boss_rush').exercises[0], 'standard') === null && M.maxCapCallSec(build('combo_meter').exercises[2], 'standard') === null
+  && M.maxCapCallSec(undefined) === null && M.maxCapCallSec({ moveId: 'kb-swing' }) === null);
+// A quarter of a rep sheet, in numbers: nothing is saved over the cap or what the seconds hold.
+check('93 the saved score still clamps a set to its cap whatever was typed (the backstop)', eq(S.maxRepsScore(hb, [{ reps: 40, sec: 90 }, { reps: 40, sec: 90 }, { reps: 40, sec: 90 }], { timeSec: 300 }).byStation[1].reps, [12]));
+
+// ── 94 · copy that agrees with the data ──────────────────────────────────────
+// The backpack deadlift (HEALTH BAR\'s own move) is never "Romanian": not on the card, the mission line, the coach, the rest. (The
+// dumbbell RDL a swap can reach keeps its catalog name: it is another move, shared with earlier missions.)
+const allCopy = [...strings([defs.map(d => ({ ...d, levels: undefined })), every((id, lv, m) => m).map(m => ({ ...m }))]),
+  ...every((id, lv, m) => m.exercises.map((sl, i) => M.leadLine(sl, ctxFor(m, 1, i)))).flat(), M.moveById('backpack-rdl').name, M.moveById('backpack-rdl').say];
+check('94 nothing a MAX OUT athlete reads or hears about the backpack deadlift says "Romanian": the card, the coach, the mission line all say Backpack Deadlifts', !allCopy.some(t => /romanian/i.test(String(t)))
+  && L.cardRows(build('health_bar'))[1].name === 'Backpack Deadlifts' && build('health_bar').missionLine.includes('BACKPACK DEADLIFTS') && M.spokenMove(build('health_bar').exercises[1]) === 'backpack deadlifts'
+  && !/tight to your back/.test(L.missionDefById('health_bar').note) && /close to your body/.test(L.missionDefById('health_bar').note) && !/\bkg\b/.test(M.maxCues('backpack-rdl').join(' ')));
+const beginnerIntro = (id) => build(id, 'beginner').introSay.toLowerCase();
+check('94 a BEGINNER brief names the beginner moves, not the harder ones', /knee push-ups, squats, crunches/.test(beginnerIntro('boss_rush')) && /jumping pull-ups, backpack deadlifts, slow climbers/.test(beginnerIntro('health_bar'))
+  && /rows, knee push-ups, goblet squats/.test(beginnerIntro('tank_mode')) && /floor presses, lunges, rows, knee pull-throughs/.test(beginnerIntro('dual_wield'))
+  && /^tank mode\./i.test(build('tank_mode', 'beginner').introSay) && !/sit-ups|front squats/.test(beginnerIntro('boss_rush') + beginnerIntro('tank_mode')));
+check('94 TANK MODE: the stop-two-short promise is made for the bar sets, and push-ups at STANDARD and ELITE keep none', ['standard', 'elite'].every(lv => build('tank_mode', lv).exercises.map(sl => sl.leave ?? 0).join() === '2,0,2' && /Stop two short on the bar\./.test(build('tank_mode', lv).introSay))
+  && /every bar set/.test(L.missionDefById('tank_mode').safety) && !/every set/.test(L.missionDefById('tank_mode').safety) && /too risky to take to failure/.test(L.missionDefById('tank_mode').scale) && !/rack and a spotter/.test(L.missionDefById('tank_mode').scale));
+check('94 DUAL WIELD speaks of dumbbells; COMBO METER keeps its bell; the pull-up bar swaps in for the rows', L.missionDefById('dual_wield').weightWord === 'dumbbell' && build('dual_wield').weightWord === 'dumbbell' && build('combo_meter').weightWord === undefined
+  && M.maxCues('kb-reverse-lunge', 'dumbbell')[0] === 'Hold the dumbbell at the chest.' && M.maxCues('kb-plank-pull-through', 'dumbbell').every(c => !/\bbell\b/.test(c)) && M.maxCues('kb-reverse-lunge')[0] === 'Hold the bell at the chest.'
+  && L.missionDefById('dual_wield').loadoutLine.endsWith('A PULL-UP BAR SWAPS IN FOR THE ROWS'));
+// Pace marks: first-set reps, each later set 85% of the one before, hinge flat; the STANDARD mark is that number (within 3%).
+const paceOff = [];
+every((id, lv, m) => {
+  let tot = 0;
+  m.exercises.forEach(sl => { const hinge = M.regionOf(sl.baseMoveId) === 'hinge'; for (let r = 0; r < m.rounds; r += 1) tot += hinge ? sl.reps : sl.reps * Math.pow(0.85, r); });
+  if (Math.abs(m.pace.standard / tot - 1) > 0.03) paceOff.push(`${id}/${lv} ${m.pace.standard} vs ${Math.round(tot)}`);
+  if (Math.abs(m.pace.elite / m.pace.standard - 1.3) > 0.1 || Math.abs(m.pace.beginner / m.pace.standard - 0.69) > 0.06) paceOff.push(`${id}/${lv} ratios ${show(m.pace)}`);
+});
+check('94 all fifteen pace marks follow the stated formula to within 3%, and keep the 1.3 / 0.69 spread', paceOff.length === 0, paceOff.join('; '));
+
+// ── 96 · the level word ──────────────────────────────────────────────────────
+check('96 a MAX OUT card, preview tag and finish say the level (BEGINNER / STANDARD / ELITE), the word Build Workout\'s EASY / NORMAL / HARD hands over', every((id, lv, m) => L.missionCardModel(m).tags[1] === lv.toUpperCase()).every(Boolean)
+  && every((id, lv, m) => L.missionCardModel(m).tags.includes(String(m.difficulty).toUpperCase()) === (lv.toUpperCase() === String(m.difficulty).toUpperCase())).every(Boolean)
+  && L.missionCardModel(L.buildLoadoutMission('best_of_3')).tags[1] === 'NORMAL' && L.shelfEntryLine(L.shelfEntries()[0]) === '~16 MIN · BARBELL · EMOM');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

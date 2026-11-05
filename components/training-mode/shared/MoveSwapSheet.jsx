@@ -51,9 +51,11 @@ export function MoveRow({ row, index, onSwap, onUndo, highlight = false, noSwap 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, font: `500 13px ${BODY}`, color: '#fff' }}>
         <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: GOLD }}>{String(index + 1).padStart(2, '0')}</span>
         <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+          {/* A MAX REPS row: STATION n sits above the name and the name wraps, so a long one
+              ('Dumbbell Floor Presses') is never cut to a few letters by the label, MAX and the swap icon. */}
+          <span style={{ display: 'flex', flexDirection: row.max ? 'column' : 'row', alignItems: row.max ? 'flex-start' : 'baseline', gap: row.max ? 0 : 6, minWidth: 0 }}>
             {row.prefix && <span style={{ flexShrink: 0, font: `600 10px ${HEAD}`, letterSpacing: '0.1em', color: MUTED, whiteSpace: 'nowrap' }}>{row.prefix}</span>}
-            <span style={{ minWidth: 0, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</span>
+            <span style={{ minWidth: 0, fontWeight: 600, ...(row.max ? { lineHeight: 1.2, padding: '2px 0', overflowWrap: 'anywhere' } : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }) }}>{row.name}</span>
           </span>
           {/* Under the name, not beside it: on a phone a tag and a button in
               the row would squeeze the name down to a few letters. */}

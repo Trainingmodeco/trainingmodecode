@@ -592,7 +592,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'fit_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FitBuilderSetup onBack={goFitHub} onFightMode={goFightHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'} onMaxOut={(pick) => { maxOutHandoff(pick); goQuickMissionSetup({ openLibrary: true }); }}/>
+        <FitBuilderSetup onBack={goFitHub} onFightMode={goFightHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'} onMaxOut={(pick) => goQuickMissionSetup({ openLibrary: true, ...maxOutHandoff(pick) })}/>
       </WithNav>
     );
   }

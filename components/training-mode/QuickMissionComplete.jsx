@@ -36,6 +36,9 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const preset = solo ? OUTCOME_PRESET[SOLO_PRESET[result.settle?.outcome] || 'fail'] : verdict.preset;
   // The round timer (SOLO): rounds done, each round's time and the total.
   const rounds = solo && Array.isArray(result.rounds) ? result.rounds : null;
+  // A MAX OUT run that played every set but lost the bonus (a skipped set, a set with no reps) was
+  // not stopped: it says SESSION DONE. A STOP, END or the cap still says SESSION STOPPED.
+  const eyebrow = maxReps && preset.variant === 'partial' && result.completed === true && !result.stopped && !result.capped ? 'SESSION DONE' : preset.eyebrow;
   const roundTag = isUntilDown(mission) ? downCopy(mission).tag : 'R';
   const roundWord = isUntilDown(mission) ? downCopy(mission).MANY : 'ROUNDS';
   // The tap's own word: NO CONTINUES taps SET, everything else ROUND.
@@ -52,7 +55,9 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const word = (t) => String(t || '').split(' ').map(w => (/^(AMRAP|EMOM)$/.test(w) ? w : w.charAt(0) + w.slice(1).toLowerCase())).join(' ');
   const subtitle = solo
     ? `${word((mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission')} · ${word(mission.levelLabel)}${result.scaled ? ' · Scaled' : ''} · At your pace`
-    : `${mission.workoutType} · ${word(levelWord(mission.difficulty))} · Quick Mission`;
+    // MAX OUT says its format and the level word the card and the LEVEL box use, not the difficulty word.
+    : maxReps ? `${word(mission.formatLabel || FORMAT_LABEL[mission.format])} · ${word(mission.levelLabel)} · Quick Mission`
+      : `${mission.workoutType} · ${word(levelWord(mission.difficulty))} · Quick Mission`;
   // A guided run until the bell is down (NO CONTINUES) has a score of its own.
   const scored = solo || (!!result.untilDown && !!result.score) || (maxReps && result.score?.kind === 'totalReps');
   const stats = scored || maxReps
@@ -84,7 +89,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
     <MissionComplete
       onBack={onFitHub}
       variant={preset.variant}
-      eyebrow={preset.eyebrow}
+      eyebrow={eyebrow}
       title={mission.title}
       subtitle={subtitle}
       accent={GOLD}

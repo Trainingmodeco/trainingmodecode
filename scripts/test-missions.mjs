@@ -243,7 +243,8 @@ check('19 classicMeta', eq(L.classicMeta(N.namedWorkoutById('hell_mma')), { load
 // TOUCH THE SKY reads COMPLEX (its own formatLabel: it runs the for-time clock but is not a race).
 const FORMATS = new Set([...Object.values(L.FORMAT_LABEL), 'FOR TIME', 'CHALLENGE', 'ROUNDS', 'NON-STOP', 'INTERVALS', 'CIRCUIT', 'TEST', 'COMPLEX']);
 const rowLines = shelf.map(e => L.shelfEntryLine(e));
-check('19 library rows: minutes · loadout · format', rowLines.every(l => { const p = l.split(' · '); return p.length === 3 && /^~\d+ MIN$/.test(p[0]) && FORMATS.has(p[2]); })
+// A MAX OUT row also names the level it opens on (a 4th part, MAX REPS rows only).
+check('19 library rows: minutes · loadout · format', rowLines.every(l => { const p = l.split(' · '); return (p.length === 3 || (p.length === 4 && p[2] === 'MAX REPS' && /^(BEGINNER|STANDARD|ELITE)$/.test(p[3]))) && /^~\d+ MIN$/.test(p[0]) && FORMATS.has(p[2]); })
   && L.shelfEntryLine(shelf[0]) === '~16 MIN · BARBELL · EMOM' && L.shelfEntryLine({ kind: 'classic', id: 'murph', loadout: 'mixed' }) === '~55 MIN · MIXED · FOR TIME',
   rowLines.filter(l => !FORMATS.has(l.split(' · ')[2])).join(' | '));
 
@@ -790,17 +791,20 @@ const TL_HASH_SOLO = {
   charge_up_12: ['bdd0dc42d7b4', '0dec4763aa2a', '0dec4763aa2a'], oxygen_debt: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
   hot_laps: ['97d170e1550e', '97d170e1550e', '97d170e1550e'],
 };
+// Re-taken once, on purpose, for iron_clock_16, hit_combo_21, honor_rounds, stance_breaker_9 and
+// carry_on_15: the catalog's 'Backpack Romanian Deadlifts' became 'Backpack Deadlifts' (the owner's
+// word; MAX OUT's HEALTH BAR is built on it). Nothing else in those swap sheets moved.
 const SWAP_HASH = {
-  iron_clock_16: ['c4eb35156843', '878aed9f4850', '878aed9f4850'], one_bell_300: ['05d24fc5fdf3', '9c03ca3beeed', '9c03ca3beeed'],
+  iron_clock_16: ['3a5c642fbb6a', 'd03e96b2add8', 'd03e96b2add8'], one_bell_300: ['05d24fc5fdf3', '9c03ca3beeed', '9c03ca3beeed'],
   five_round_bout: ['ede729a589e4', '86ae049b827f', '86ae049b827f'], best_of_3: ['9b14b45e82e7', '1e4f6accc097', '3ecd1380be67'],
   steel_plating: ['7650d66ef713', 'ad6b4d2b7920', 'ad6b4d2b7920'], checkpoint_20: ['77a9b618d50b', '7732b433ca59', '7732b433ca59'],
-  room_12: ['63e0854bdaa4', '24b3abc652d1', '2c6a18171413'], hit_combo_21: ['cf48670ebbbe', 'af368ec7152f', 'af368ec7152f'],
+  room_12: ['63e0854bdaa4', '24b3abc652d1', '2c6a18171413'], hit_combo_21: ['3bd8ef5fcda1', '5fbd09790887', '5fbd09790887'],
   tutorial_stage: ['38a34a2be802', '002691d8bc61', '004d499be28d'], turbo_button: ['83764586c084', '0f2ffda5127f', '0f2ffda5127f'],
-  quota_300: ['edae56942522', 'd8d338028dbe', 'd8d338028dbe'], honor_rounds: ['a647f2df7b33', '46e6dcab8cdc', '46e6dcab8cdc'],
+  quota_300: ['edae56942522', 'd8d338028dbe', 'd8d338028dbe'], honor_rounds: ['e028ed503d4b', '751c7d647e37', '751c7d647e37'],
   ko_sprint_30: ['91228de70fba', '036b12c9b662', '036b12c9b662'], overhead_rush: ['9f41b3d3404f', 'a69b304024a0', 'a69b304024a0'],
-  burnout_21: ['6fabff651400', '957550736aff', '957550736aff'], stance_breaker_9: ['60adc96c0bae', '5d3ef9e37cb1', '5d3ef9e37cb1'],
+  burnout_21: ['6fabff651400', '957550736aff', '957550736aff'], stance_breaker_9: ['853510784d25', 'd7458996571d', 'd7458996571d'],
   rookie_round_8: ['647b2c95998d', '39ac03a83d6c', '39ac03a83d6c'], first_bell: ['840101be78d9', '6e3db72c6fc1', '6e3db72c6fc1'],
-  continue_bell: ['88cc566a8519', '889947c12ae9', '889947c12ae9'], carry_on_15: ['802262a18bab', 'c28828f3a5d9', 'c28828f3a5d9'],
+  continue_bell: ['88cc566a8519', '889947c12ae9', '889947c12ae9'], carry_on_15: ['b22ac5daadec', 'ded74236426c', 'ded74236426c'],
   surge_20_10: ['a3a7cce9a316', '11491e0f929f', '11491e0f929f'], midline_lock: ['21e89f4bfdec', '34c2046e1429', '34c2046e1429'],
   leg_sweep: ['9b64711ceb91', '90614a8297ac', '90614a8297ac'], charge_up_12: ['f42be06c792c', 'f42be06c792c', 'f42be06c792c'],
   oxygen_debt: ['d5111087744e', '7742ffa03f6c', 'f5db11c79ca5'], hot_laps: ['029fecbf338a', '0a0bc70a019c', '49ead546e8b1'],

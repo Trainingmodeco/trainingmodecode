@@ -3,14 +3,19 @@ import { Minus, Plus } from 'lucide-react';
 import { Modal, GoldButton, GhostButton, fitKitCSS, HEAD, BODY, MUTED } from './FitSetupKit';
 
 // MAX OUT · HOW MANY REPS? The sheet both runners open when a set ends (the
-// guided DONE, the at-your-pace DONE): a 44 px stepper, − number +, holding a
-// button repeats and tapping the number types it. It starts at last round's reps
-// for this station (or the level's first-set number) and stops at `max`, the
-// smaller of the move's rep cap and what a set of that length can hold
-// (data/missionSolo maxRepsLimit). SAVE keeps the reps, NOT YET goes back to
-// the set. The reps never change the XP.
+// guided DONE, the at-your-pace DONE): a 52 px stepper (big for a sweaty or
+// gloved thumb), − number +, holding a button repeats and tapping the number
+// types it. It starts at last round's reps for this station (or the level's
+// first-set number) and stops at `max`, the smaller of the move's rep cap and
+// what a set of that length can hold (data/missionSolo maxRepsLimit). SAVE keeps
+// the reps, NOT YET goes back to the set. The reps never change the XP.
+//
+// A double tap on DONE must not act on the sheet it opened: the second tap lands
+// on the backdrop (NOT YET) or on SAVE. So nothing on the sheet works for its
+// first ARM_MS.
 const HOLD_MS = 420;
 const REPEAT_MS = 75;
+export const ARM_MS = 500;
 
 const clamp = (v, max) => Math.min(Math.max(0, max), Math.max(0, Math.round(Number(v) || 0)));
 
@@ -48,11 +53,14 @@ export default function MaxRepsSheet({ moveName, start, max, cap = null, onSave,
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState('');
   const rootRef = useRef(null);
+  const openedAt = useRef(Date.now());
+  const armed = () => Date.now() - openedAt.current >= ARM_MS;
+  const notYet = () => { if (armed()) onNotYet?.(); };
   const step = (dir) => setReps(r => clamp(r + dir, top));
 
   useEffect(() => {
     rootRef.current?.querySelector('button.fk-gold')?.focus();
-    const onKey = (e) => { if (e.key === 'Escape') onNotYet?.(); };
+    const onKey = (e) => { if (e.key === 'Escape') notYet(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,16 +68,18 @@ export default function MaxRepsSheet({ moveName, start, max, cap = null, onSave,
 
   const openTyping = () => { setDraft(String(reps)); setTyping(true); };
   const commit = () => { const v = clamp(draft === '' ? reps : draft, top); setReps(v); setTyping(false); return v; };
-  const save = () => onSave?.(typing ? commit() : reps);
+  const save = () => { if (armed()) onSave?.(typing ? commit() : reps); };
 
-  const limited = cap != null && top < cap;
+  // Say why + stops: the move's own cap, or the length of the set when that is lower (a push-up set
+  // of 8 seconds cannot hold 40 reps), with or without a cap.
+  const limited = top < (cap ?? 300);
   return (
     <div ref={rootRef}>
       <style dangerouslySetInnerHTML={{ __html: fitKitCSS }}/>
-      <Modal title="HOW MANY REPS?" ariaLabel="How many reps" onClose={onNotYet} footer={(
+      <Modal title="HOW MANY REPS?" ariaLabel="How many reps" onClose={notYet} footer={(
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <GoldButton label="SAVE" height={52} onClick={save} style={{ fontSize: 17 }}/>
-          <GhostButton label="NOT YET" height={46} onClick={onNotYet}/>
+          <GhostButton label="NOT YET" height={46} onClick={notYet}/>
         </div>
       )}>
         {moveName && <div style={{ marginTop: -6, font: `600 12px ${HEAD}`, letterSpacing: '0.14em', color: MUTED, textTransform: 'uppercase' }}>{moveName}</div>}
@@ -90,7 +100,8 @@ export default function MaxRepsSheet({ moveName, start, max, cap = null, onSave,
           <StepButton dir={1} label="More reps" disabled={reps >= top} onStep={step}/>
         </div>
         {cap != null && <div style={{ font: `500 12px ${BODY}`, color: MUTED, textAlign: 'center', lineHeight: 1.35 }}>Most for this move: {cap}.</div>}
-        {limited && <div style={{ font: `500 12px ${BODY}`, color: MUTED, textAlign: 'center', lineHeight: 1.35, marginTop: -8 }}>Most for a set this long: {top}.</div>}
+        {limited && <div style={{ font: `500 12px ${BODY}`, color: MUTED, textAlign: 'center', lineHeight: 1.35, marginTop: cap != null ? -8 : 0 }}>Most for a set this long: {top}.</div>}
+        {reps === 0 && <div role="note" style={{ font: `600 12px ${BODY}`, color: '#E6E2F5', textAlign: 'center', lineHeight: 1.35 }}>A set with no reps does not count.</div>}
       </Modal>
     </div>
   );

@@ -125,8 +125,9 @@ export function estimateWorkSeconds(slot) {
   if (!slot) return 0;
   const setupSec = (slot.setupMs ?? 0) / 1000;
   if (slot.mode === 'timed') return slot.work || 0;
-  // A MAX REPS station: its first-set reps at the ELITE count (the quickest honest set).
-  if (slot.max === true) return ((slot.reps || 0) * estMsFor(slot.moveId, 'elite')) / 1000;
+  // A MAX REPS station: its first-set reps at the ELITE count (the quickest honest set), priced on
+  // the authored move and reps (baseMoveId, planReps) so a swap never changes the plan or the XP.
+  if (slot.max === true) return (((slot.planReps ?? slot.reps) || 0) * estMsFor(slot.baseMoveId || slot.moveId, 'elite')) / 1000;
   if (hasList(slot)) {
     return slot.list.reduce((s, st) => s + (st.reps || 0) * (st.cadenceMs ?? estMsFor(st.moveId)) / 1000, 0) + setupSec;
   }
@@ -618,8 +619,13 @@ export function formatScore(score) {
 export const MIN_SET_SEC = 8;
 export function isMaxReps(mission) { return mission?.format === 'maxReps'; }
 export const MAX_NO_SET_MESSAGE = DOWN_NO_SET_MESSAGE; // 'Finish one set to earn XP.'
-export const MAX_TOO_FAST_MESSAGE = 'Faster than the plan allows, so none of your sets count.';
-const maxShortfall = (k, n) => `Faster than the plan allows, so ${k} of ${n} sets count.`;
+// What the finish screen says when saved sets do not all count. Plain words: a set with no
+// reps, a set under MIN_SET_SEC, or a clock too short for the sets (the run floors).
+export const MAX_TOO_FAST_MESSAGE = 'The clock was too short, so no sets count.';
+export const MAX_NO_REPS_MESSAGE = 'A set with no reps does not count.';
+export const MAX_SHORT_SET_MESSAGE = `A set under ${MIN_SET_SEC} seconds does not count.`;
+export const MAX_NO_REPS_OR_SHORT_MESSAGE = `A set with no reps, or under ${MIN_SET_SEC} seconds, does not count.`;
+const maxShortfall = (k, n) => `The clock was too short, so ${k} of ${n} sets count.`;
 
 // The slot set n (1-based) is at: one set per station, round after round.
 export function maxSlotAt(mission, n) {
@@ -750,10 +756,17 @@ function settleMaxCore(result, mission) {
   const total = totalSlots(mission);
   const sets = scoreSets(mission, result?.score);
   const elapsed = Math.max(0, Math.floor(Number(result?.elapsedSec ?? result?.score?.timeSec) || 0));
-  const { credited, saved } = creditedSets(mission, sets, elapsed);
+  const { credited, saved, qualifying } = creditedSets(mission, sets, elapsed);
   const skipped = Math.max(0, Math.floor(Number(result?.skipped ?? result?.score?.skipped) || 0));
   const full = !!result?.completed && !result?.capped && !result?.stopped && skipped === 0 && saved === total && credited === total;
-  const message = saved === 0 ? MAX_NO_SET_MESSAGE : credited === 0 ? MAX_TOO_FAST_MESSAGE : credited < saved ? maxShortfall(credited, saved) : null;
+  // Why a saved set did not count: no reps or too short a set (the athlete's own sets), else the clock.
+  const noReps = sets.filter(x => x && !(x.reps >= 1)).length;
+  const tooShort = sets.filter(x => x && x.reps >= 1 && !(x.sec >= MIN_SET_SEC)).length;
+  const setsReason = noReps && tooShort ? MAX_NO_REPS_OR_SHORT_MESSAGE : noReps ? MAX_NO_REPS_MESSAGE : MAX_SHORT_SET_MESSAGE;
+  const message = saved === 0 ? MAX_NO_SET_MESSAGE
+    : credited === 0 ? (qualifying === 0 ? setsReason : MAX_TOO_FAST_MESSAGE)
+      : credited < qualifying ? maxShortfall(credited, saved)
+        : credited < saved ? setsReason : null;
   return { total, saved, credited, full, message, xp: maxRepsXp(mission, credited, { elapsedSec: elapsed, full }) };
 }
 // AT YOUR PACE: the last SAVE finishes the run (completed), STOP / END or the
@@ -772,7 +785,10 @@ function settleGuidedMaxReps(result, mission) {
     verdict: { outcome: 'fail', response: message, completionRatio: 0, preset: OUTCOME_PRESET.fail },
   });
   if (c.saved === 0 || c.credited === 0) return none(c.message);
-  let verdict = resolveOutcome({ completed: c.credited, total: c.total, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null });
+  // The cap pays the sets saved, like AT YOUR PACE does: a left-running phone leaves its open round
+  // EXPIRED or IDLE in the integrity layer, which must never read as fraud on an honest run.
+  const integrityResult = result?.capped ? null : (result?.integrityResult || null);
+  let verdict = resolveOutcome({ completed: c.credited, total: c.total, difficulty: mission.difficulty, integrityResult });
   if (!c.full && verdict.outcome === 'pass') verdict = { ...verdict, outcome: 'partial', response: STOPPED_RESPONSE, preset: OUTCOME_PRESET.partial };
   return { mode: 'guided', xp: xpForOutcome(verdict.outcome, c.xp), base: c.xp, outcome: verdict.outcome, verdict, workedSec: 0, credited: c.credited, message: c.message };
 }

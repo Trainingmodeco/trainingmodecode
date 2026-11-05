@@ -684,9 +684,13 @@ export default function App() {
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     // Cardio records itself for Home's Continue card when a session starts.
     rememberCardio: (setup) => { rememberSession('cardio', { setup }); trackSessionStart('cardio', { kind: setup?.categoryId || null }); },
-    // entry: { openLibrary: true } opens the page on the Mission Library (Build Workout's MAX OUT).
-    // A click event handed in by a button is not an entry.
-    goQuickMissionSetup: (entry) => { setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true } : null); setScreen('qm_setup'); },
+    // entry: { openLibrary: true, loadout, theme, level } opens the page on the Mission Library with that
+    // starting filter and level (Build Workout's MAX OUT); nothing of it is saved. A click event handed in by a button is not an entry.
+    goQuickMissionSetup: (entry) => {
+      const str = (v) => (typeof v === 'string' ? v : undefined);
+      setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true, loadout: str(entry.loadout), theme: str(entry.theme), level: str(entry.level) } : null);
+      setScreen('qm_setup');
+    },
     // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE
     // choice is settled in one place: a start with no run asked for (the Fit
     // hub's and Home's START, a replay) runs today's mission the way the first

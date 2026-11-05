@@ -61,11 +61,11 @@ const CSS = `
 
 // What the pinned preview shows: the card's own words, at the default level
 // START runs.
-function previewOf(entry, { gear }) {
+function previewOf(entry, { gear, level }) {
   if (!entry) return null;
   if (entry.kind === 'v2') {
     // A MAX OUT workout previews (and starts) at its picked level; the rest at their default.
-    const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id) });
+    const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id, undefined, level) });
     if (!m) return null;
     const card = missionCardModel(m, { gear });
     return {
@@ -100,15 +100,16 @@ export function CountPill({ n }) {
 function FilterChip({ on, dim, onClick, label, count }) {
   return (
     <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-chip ml-chip" onClick={onClick} style={{
-      flexShrink: 0, height: 34, padding: '0 6px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
+      flexShrink: 0, height: 34, padding: '0 4px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
       background: on ? 'rgba(157,108,255,0.22)' : '#16131F', border: `1px solid ${on ? 'rgba(157,108,255,0.55)' : 'transparent'}`,
       color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.04em', opacity: dim ? 0.45 : 1,
     }}>{label}{count != null && <span style={{ opacity: 0.6 }}> {count}</span>}</button>
   );
 }
 
-// Every chip in view: the five LOADOUT chips just fit a 412px phone, and a
-// narrower one wraps them instead of hiding any off the edge.
+// Every chip in view: the five LOADOUT chips and the five THEME chips (MAX OUT is
+// the fifth) each fit one row on a 412px phone, and a narrower one wraps them
+// instead of hiding any off the edge.
 function ChipRow({ label, children }) {
   return (
     <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -151,10 +152,12 @@ function MissionRow({ entry, index, on, line, onPick, rowRef }) {
 
 // shelf: shelfEntries() (the page decides what is on it); onTop: the entry
 // the page card shows, if any; gear: gearProfile().
-export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, onStart, onClose }) {
+// initial: { loadout, theme, level } from Build Workout's MAX OUT: where this visit starts (the
+// remembered filter and levels are not touched until the athlete picks a chip).
+export default function MissionLibrarySheet({ shelf, onTop, gear, initial = null, onPutOnCard, onStart, onClose }) {
   const [prefs] = useState(() => loadShelfPrefs());
-  const [loadout, setLoadout] = useState(prefs.loadout);
-  const [theme, setTheme] = useState(prefs.theme);
+  const [loadout, setLoadout] = useState(LOADOUTS.some(l => l.id === initial?.loadout) ? initial.loadout : prefs.loadout);
+  const [theme, setTheme] = useState(THEMES.some(t => t.id === initial?.theme) ? initial.theme : prefs.theme);
   const [highlight, setHighlight] = useState(() => (shelf || []).find(e => same(e, onTop)) || null);
   const pickLoadout = (id) => { setLoadout(id); saveShelfPrefs({ loadout: id }); };
   const pickTheme = (id) => { setTheme(id); saveShelfPrefs({ theme: id }); };
@@ -165,7 +168,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
   // The highlighted row, or the list's first when a filter hid it (it comes
   // back highlighted if the filter does).
   const current = list.find(e => same(e, highlight)) || list[0] || null;
-  const preview = useMemo(() => previewOf(current, { gear }), [current, gear]);
+  const preview = useMemo(() => previewOf(current, { gear, level: initial?.level }), [current, gear, initial]);
   const groups = [
     { id: 'v2', label: 'MISSIONS', rows: list.filter(e => e.kind === 'v2') },
     { id: 'classic', label: 'CLASSICS', rows: list.filter(e => e.kind === 'classic') },
@@ -288,7 +291,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
                   <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }}/>
                 </div>
                 {g.rows.map((e, i) => (
-                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level: e.kind === 'v2' ? libraryLevelFor(e.id) : undefined })}
+                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level: e.kind === 'v2' ? libraryLevelFor(e.id, undefined, initial?.level) : undefined })}
                     onPick={() => setHighlight(e)} rowRef={(el) => { rowRefs.current[keyOf(e)] = el; }}/>
                 ))}
               </div>
