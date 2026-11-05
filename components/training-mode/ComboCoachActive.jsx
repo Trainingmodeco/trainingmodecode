@@ -129,6 +129,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       arsenalOnly: cfg.arsenalOnly,
       arsenal: cfg.arsenal,
       customCombos: cfg.customCombos,
+      // The level's mix decides what is dealt (data/comboMix).
+      byLevel: true,
       // A margin over the theoretical count so a fast round never runs dry.
       callsPerRound: Math.ceil(secs / perCall) + 8,
       secondsPerCall: perCall,
@@ -147,6 +149,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       arsenalOnly: cfg.arsenalOnly,
       arsenal: cfg.arsenal,
       customCombos: cfg.customCombos,
+      byLevel: true,
     });
     // Move Lab (43a): the athlete's rotation-flagged moves join the call pool
     // alongside stock combos. Signature specials are spoken by name. Skipped

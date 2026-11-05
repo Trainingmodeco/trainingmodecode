@@ -94,6 +94,18 @@ Generated 2026-11-05 from the app's own data by `npm run content:kit`. Don't edi
 - Levels: EASY (from level 1), MEDIUM (from level 3), HARD (from level 6), ADVANCED (from level 10)
 - The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST.
 
+## Levels at work
+
+- The higher your level, the harder your workouts get.
+- Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.
+
+| From level | Quick Mission | Combo Coach | Mix |
+|---|---|---|---|
+| 1 | Quick Missions start at EASY. | Combo Coach deals up to 3-strike combos, with no difficult kicks. | You get single strikes and short combos. |
+| 3 | Quick Missions start at MEDIUM. | Combo Coach deals up to 6-strike combos, with up to 2 difficult kicks per round. | About 1 in 10 combos is advanced. |
+| 6 | Quick Missions start at HARD. | Combo Coach deals up to 6-strike combos, with no limit on difficult kicks. | About 2 in 10 combos are advanced. |
+| 10 | Quick Missions start at ADVANCED. | Combo Coach deals up to 6-strike combos, with no limit on difficult kicks. | Rounds swing from single strikes to the hardest combos. About 5 in 10 combos are advanced. |
+
 ## Quick Mission loadout missions
 
 | Mission | Loadout | Mission line | Score | Themes | Origin |

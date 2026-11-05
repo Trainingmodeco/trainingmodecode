@@ -28,6 +28,7 @@ const { NAMED_WORKOUTS } = await import(path.join(TM, 'data/namedWorkouts.js'));
 const { PLAN_PROGRAMS } = await import(path.join(TM, 'data/workoutLibrary.js'));
 const LM = await import(path.join(TM, 'data/loadoutMissions.js'));
 const AL = await import(path.join(TM, 'data/athleteLevel.js'));
+const LS = await import(path.join(TM, 'data/levelStory.js'));
 const { C: COLORS } = await import(path.join(TM, 'Styles.js'));
 
 // Values that live inside components (not exported); read from source so they
@@ -38,7 +39,7 @@ const src = (f) => fs.readFileSync(path.join(TM, f), 'utf8');
 // starts (data/athleteLevel, the rule the app uses).
 const qmSrc = src('data/quickMissionConfig.js');
 const qmNum = (name) => Number(qmSrc.match(new RegExp(`export const ${name} = (\\d+)`))[1]);
-const qmWords = Object.fromEntries([...qmSrc.match(/export const QM_LEVEL_WORD = \{([^}]*)\}/)[1].matchAll(/(\w+): '(\w+)'/g)].map(m => [m[1], m[2]]));
+const qmWords = AL.QUICK_MISSION_WORD;
 const posterMap = Object.fromEntries([...src('TrainingArcade.jsx').matchAll(/'([a-z0-9-]+)':\s*'(\/static\/series\/posters\/[^']+)'/g)].map(m => [m[1], m[2]]));
 const proBenefits = [...(src('Paywall.jsx').match(/const BENEFITS = \[([\s\S]*?)\];/)?.[1] || '').matchAll(/'([^']+)'/g)].map(m => m[1]);
 const prices = [...src('data/stripe.js').matchAll(/(\w+): \{ id: '\w+', label: '([^']+)', price: '([^']+)', cadence: '([^']+)', sub: '([^']+)'/g)]
@@ -106,6 +107,15 @@ const kit = {
     levels: AL.TIERS.map(id => ({ id, word: qmWords[id], fromLevel: AL.TIER_START_LEVEL[id] })),
     startsAt: 'The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST.',
   },
+  // The proof that progress means something, for a post: what each tier does in
+  // Quick Mission and Combo Coach. Every line is the Level page's own (AT YOUR
+  // LEVEL), read from the same tables the app runs on. Fit work sets Quick
+  // Mission's tier and Fight work Combo Coach's.
+  levelsAtWork: {
+    say: 'The higher your level, the harder your workouts get.',
+    note: 'Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.',
+    tiers: AL.TIERS.map(id => ({ id, fromLevel: AL.TIER_START_LEVEL[id], quickMission: LS.quickLine(id), comboCoach: LS.comboLine(id), comboMix: LS.comboMixLine(id) })),
+  },
   pro: { benefits: proBenefits, prices, freeAlways: 'The current concept drop is always free.' },
   ranks: VISIBLE_TIERS.map(t => ({ id: t.id, name: t.name, label: t.label, xpFrom: t.xp, color: t.color, art: asset(tierImage(t.id, 'male')) })),
   drops,
@@ -136,6 +146,7 @@ md.push('', '## Pro', '', ...kit.pro.prices.map(p => `- ${p.label}: ${p.price} $
 md.push('', '## Ranks', '', ...kit.ranks.map(r => `- ${r.name} (${r.label}) from ${r.xpFrom} XP`));
 md.push('', '## Named workouts', '', ...kit.workouts.map(w => `- ${w.title} · ${w.focus} · ~${w.minutes} min${w.pro ? ' · Pro' : ''}`));
 md.push('', '## Quick Mission', '', `- Time: ${kit.quickMission.time.minMinutes} to ${kit.quickMission.time.maxMinutes} minutes, a minute at a time. ${kit.quickMission.time.say}`, `- Levels: ${kit.quickMission.levels.map(l => `${l.word} (from level ${l.fromLevel})`).join(', ')}`, `- ${kit.quickMission.startsAt}`);
+md.push('', '## Levels at work', '', `- ${kit.levelsAtWork.say}`, `- ${kit.levelsAtWork.note}`, '', '| From level | Quick Mission | Combo Coach | Mix |', '|---|---|---|---|', ...kit.levelsAtWork.tiers.map(t => `| ${t.fromLevel} | ${t.quickMission} | ${t.comboCoach} | ${t.comboMix} |`));
 md.push('', '## Quick Mission loadout missions', '', '| Mission | Loadout | Mission line | Score | Themes | Origin |', '|---|---|---|---|---|---|', ...kit.missions.map(m => `| ${m.title} | ${m.loadout} | ${m.mission} | ${m.score} | ${m.themes.join(', ') || '—'} | ${m.origin || '—'} |`));
 md.push('', '## Programs', '', ...kit.programs.map(p => `- ${p.title} · ${p.meta}${p.pro ? ' · Pro' : ''}`), '');
 

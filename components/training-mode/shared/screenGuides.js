@@ -157,7 +157,7 @@ export const SCREEN_GUIDES = {
 
   combo_coach_setup: [
     { target: null, title: '⚡ COMBO COACH', body: 'This screen sets up combo training — the coach calls combinations, you throw them.' },
-    { target: 'cc-difficulty', title: 'DIFFICULTY', body: 'Higher difficulty means longer, trickier combinations to react to.' },
+    { target: 'cc-difficulty', title: 'DIFFICULTY', body: 'It starts at your level, set by your Fight work. YOUR LEVEL marks it. The higher it is, the longer and harder the combos get. Tap any level to change it for today. Next time it starts at your level again.' },
     { target: 'cc-callstyle', title: 'CALL STYLE — NAMES or NUMBERS', body: 'NAMES calls every strike by its name: "jab, cross, hook". NUMBERS calls punches the way a boxing gym does — 1-2-3 — which is faster to hear and react to once you know the count. Your pick follows you into Camp and Arcade too.' },
     { target: 'cc-callstyle', title: 'WHY NUMBERS SOMETIMES SAYS WORDS', body: 'Punches 1 to 8 are standard in every gym. Kicks, knees and elbows are not — no two gyms number them the same way. So on NUMBERS a punch-only combo is called 1-2-3, and any combo with a kick, knee, slip or roll is called by name instead. You will never get half numbers and half words in one call.' },
     { target: 'cc-mode', title: 'MODE', body: 'TECHNICAL calls one strike at a time so you can drill clean technique. COMBO calls full combinations to chain together for flow and speed. Not sure? Leave it on COMBO.' },

@@ -1486,6 +1486,159 @@ await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/)
 await check('just train start', async () => { await fight(); await page.locator('.fb', { hasText: 'JUST TRAIN' }).first().click(); await S(1200); await btn(/START/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
 await check('fight focus start', async () => { await fight(); await page.locator('.fb', { hasText: 'FIGHT FOCUS' }).first().click(); await S(1200); await btn(/START SESSION/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
 await check('combo coach start', async () => { await fight(); await page.locator('.fb', { hasText: 'COMBO COACH' }).first().click(); await S(1200); await btn(/START COMBOS/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
+
+// ── Shared by the Combo Coach and Level page checks: seeded athletes and the Profile › Level page walk ──
+// Seeded athletes: the stats go in after boot() wiped storage and before the
+// next load, so the app boots with them. Every session is dated past the combo
+// engine's 60-day replay window (so Home grants no streak-milestone XP and the
+// numbers stay exactly what was seeded), except the `recent` ones, which sit
+// on today and yesterday for a 2-day streak.
+const seedStats = (spec, xp, recent = 0) => {
+  const sessions = []; let n = 0;
+  for (const [type, count, each] of spec) for (let k = 0; k < count; k += 1) sessions.push({ id: `seed${n++}`, type, xpEarned: each, completedCount: 1, totalCount: 1 });
+  sessions.forEach((row, i) => {
+    const fromEnd = sessions.length - 1 - i;
+    const d = new Date(); d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() - (fromEnd < recent ? fromEnd : 65 + (fromEnd % 30)));
+    row.completedAt = d.toISOString();
+  });
+  return { xp, sessions };
+};
+const profileFor = async (stats) => {
+  await home();
+  await page.evaluate((v) => localStorage.setItem('tm_user_stats', JSON.stringify(v)), stats);
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000);
+  await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  // Many sessions and no Practice yet: Home offers the Practice invite first.
+  await btn(/REMIND ME NEXT WEEK|EXPLORE ON MY OWN/).click({ timeout: 1200 }).catch(() => {});
+  await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500);
+};
+const mustSee = async (re, what) => { const t = await text(); if (!re.test(t)) throw new Error(`${what}: expected ${re} on screen`); };
+const mustNotSee = async (re, what) => { const t = await text(); if (re.test(t)) throw new Error(`${what}: ${re} should not be on screen`); };
+const openLevel = async () => { await page.locator('button[aria-label="Avatar and level"]').click({ timeout: 4000 }); await S(1200); };
+const backToOverview = async () => { await page.locator('button[aria-label="Back"]').first().click({ timeout: 4000 }); await S(900); await mustSee(/YOUR STATS/, 'back from the Level page'); await mustNotSee(/YOUR LEVEL/, 'back from the Level page'); };
+
+// A level-3 athlete: 11 sessions, 8 Fit (Fit Mode, Quick Mission, Cardio) and 3 Fight.
+const L3 = seedStats([['Fit Mode', 5, 95], ['Fight Focus', 3, 110], ['Quick Mission', 2, 80], ['Cardio', 1, 70]], 1260);
+// The owner's athlete: level 10, 57 sessions, 34 Fit and 23 Fight, a 2-day streak.
+const L10 = seedStats([['Fit Mode', 20, 90], ['Quick Mission', 10, 85], ['Cardio', 4, 100], ['Fight Focus', 13, 88], ['Combo Coach', 10, 80]], 4960, 2);
+
+// ── Combo Coach by level, and the Level page's AT YOUR LEVEL ─────────────────
+// Combo Coach opens on the athlete's own level (Fight progress): level 1 EASY,
+// level 10 ADVANCED, marked YOUR LEVEL under its chip. Any level can be picked,
+// for this visit only, and the cadence follows the pick. The Level page shows
+// what the level does (Quick Missions start at, Combo Coach deals), read from the
+// same rules the app runs on.
+const L1_FIGHT = seedStats([['Fight Focus', 4, 75]], 300);       // Fight level 1
+const L10_FIGHT = seedStats([['Fight Focus', 4, 1150]], 4600);   // Fight level 10
+// The Combo Coach setup as an athlete with these stats (the page reads their level on open).
+const comboAs = async (stats) => {
+  await home();
+  await page.evaluate((v) => localStorage.setItem('tm_user_stats', JSON.stringify(v)), stats);
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000);
+  await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  await btn(/REMIND ME NEXT WEEK|EXPLORE ON MY OWN/).click({ timeout: 1200 }).catch(() => {});
+  await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('.fb', { hasText: 'COMBO COACH' }).first().click({ timeout: 4000 });
+  await btn(/START COMBOS/).waitFor({ timeout: 12000 }); await S(500);
+};
+const diffState = () => page.evaluate(() => {
+  const r = (e) => { const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, l: b.left, r: b.right, h: b.height }; };
+  const chips = [...document.querySelectorAll('[role="radiogroup"][aria-label="Difficulty"] [role="radio"]')].map((e) => ({ label: e.textContent.replace('YOUR LEVEL', '').trim(), on: e.getAttribute('aria-checked') === 'true', cut: e.scrollWidth > e.clientWidth + 0.5, ...r(e) }));
+  const marks = [...document.querySelectorAll('[data-your-level]')].map((e) => ({ t: e.textContent.trim(), ...r(e) }));
+  const g = document.querySelector('[data-guide="cc-difficulty"]');
+  const cad = document.querySelector('input[aria-label="CADENCE"]');
+  return { chips, marks, text: g ? g.innerText : '', cadence: cad ? cad.value : undefined };
+});
+await check('combo coach: level 1 and level 10 athletes open on EASY and ADVANCED, YOUR LEVEL marks theirs, a pick lasts for the visit and the cadence follows it', async () => {
+  for (const [stats, word, cadence, pick, pickCadence] of [[L1_FIGHT, 'EASY', '4.0', 'ADVANCED', '2.5'], [L10_FIGHT, 'ADVANCED', '2.5', 'EASY', '4.0']]) {
+    await comboAs(stats);
+    let s = await diffState();
+    if (s.chips.map((c) => c.label).join() !== 'EASY,NORMAL,HARD,ADVANCED') throw new Error(`DIFFICULTY offers ${s.chips.map((c) => c.label)}`);
+    if (s.chips.filter((c) => c.on).map((c) => c.label).join() !== word) throw new Error(`a ${word} athlete opens on ${s.chips.filter((c) => c.on).map((c) => c.label)}`);
+    const own = s.chips.find((c) => c.label === word);
+    if (s.marks.length !== 1 || s.marks[0].t !== 'YOUR LEVEL' || Math.abs(s.marks[0].x - own.x) > 4) throw new Error(`YOUR LEVEL is not marked once, under ${word}: ${JSON.stringify(s.marks)}`);
+    if (s.chips.some((c) => c.h < 43.5 || c.cut)) throw new Error(`a difficulty chip is short or its word is cut off: ${JSON.stringify(s.chips.map((c) => [c.label, c.h, c.cut]))}`);
+    if (!/STARTS AT YOUR LEVEL/.test(s.text) || !new RegExp(`^${word}:`, 'm').test(s.text)) throw new Error(`the line under the chips says: ${s.text.replace(/\n/g, ' / ')}`);
+    if (s.cadence !== cadence) throw new Error(`a ${word} athlete opens on a ${s.cadence}s cadence, not ${cadence}s`);
+    // Any level can be picked: the description, the hint and the cadence follow, and the mark stays on their own.
+    await page.locator('[role="radiogroup"][aria-label="Difficulty"]').getByRole('radio', { name: new RegExp(`^${pick}`, 'i') }).click({ timeout: 4000 }); await S(300);
+    s = await diffState();
+    if (s.chips.filter((c) => c.on).map((c) => c.label).join() !== pick || !new RegExp(`^${pick}:`, 'm').test(s.text) || !/FOR TODAY ONLY/.test(s.text)) throw new Error(`a ${pick} pick did not take: ${s.text.replace(/\n/g, ' / ')}`);
+    if (s.cadence !== pickCadence) throw new Error(`picking ${pick} left the cadence at ${s.cadence}s, not ${pickCadence}s`);
+    if (s.marks.length !== 1 || Math.abs(s.marks[0].x - s.chips.find((c) => c.label === word).x) > 4) throw new Error('YOUR LEVEL moved off their own level');
+    // Leaving the setup drops the pick: the next visit is the athlete's own level again.
+    await page.locator('button[aria-label="Back to Fight Mode"]').click({ timeout: 4000 }); await S(900);
+    await page.locator('.fb', { hasText: 'COMBO COACH' }).first().click({ timeout: 4000 });
+    await btn(/START COMBOS/).waitFor({ timeout: 12000 }); await S(400);
+    s = await diffState();
+    if (s.chips.filter((c) => c.on).map((c) => c.label).join() !== word || s.cadence !== cadence) throw new Error(`a ${pick} pick survived leaving the setup for a ${word} athlete`);
+  }
+}, /START COMBOS/);
+await check('combo coach: START stays above the tab bar at 412x811, 360x740 and 375x667, and ADVANCED fits its chip', async () => {
+  await comboAs(L10_FIGHT);
+  try {
+    for (const [w, h] of [[412, 811], [360, 740], [375, 667]]) {
+      await resizeTo(w, h);
+      const g = await page.evaluate(() => {
+        const r = (e) => e.getBoundingClientRect();
+        const start = [...document.querySelectorAll('button')].find((b) => /START COMBOS/.test(b.textContent));
+        const chips = [...document.querySelectorAll('[role="radiogroup"][aria-label="Difficulty"] [role="radio"]')].map((e) => ({ h: r(e).height, cut: e.scrollWidth > e.clientWidth + 0.5, w: r(e).width }));
+        const mark = r(document.querySelector('[data-your-level]'));
+        const adv = r([...document.querySelectorAll('[role="radiogroup"][aria-label="Difficulty"] [role="radio"]')].pop());
+        return { nav: r(document.querySelector('[data-guide="nav-tabs"]')).top, start: r(start), chips, markIn: mark.left >= adv.left && mark.right <= adv.right };
+      });
+      const at = `${w}x${h}`;
+      if (g.start.bottom > g.nav || g.start.height < 43.5) throw new Error(`${at}: START COMBOS ends at ${Math.round(g.start.bottom)}, the tab bar starts at ${Math.round(g.nav)}`);
+      if (g.chips.length !== 4 || g.chips.some((c) => c.h < 43.5 || c.cut)) throw new Error(`${at}: a difficulty chip is short or cut off ${JSON.stringify(g.chips)}`);
+      if (!g.markIn) throw new Error(`${at}: YOUR LEVEL leaves the ADVANCED chip`);
+    }
+  } finally { await resizeTo(390, 844); }
+}, /START COMBOS/);
+await check('combo coach: an ADVANCED run starts', async () => {
+  await comboAs(L10_FIGHT);
+  await btn(/START COMBOS/).click({ timeout: 4000 }); await S(4000);
+}, /ROUND|WARM/i);
+await check('combo coach: a TECHNICAL run at EASY starts', async () => {
+  await comboAs(L1_FIGHT);
+  await page.locator('[role="radiogroup"][aria-label="MODE"]').getByRole('radio', { name: /TECHNICAL/i }).click({ timeout: 4000 }); await S(300);
+  await btn(/START COMBOS/).click({ timeout: 4000 }); await S(4000);
+}, /ROUND|WARM/i);
+await check('level page: AT YOUR LEVEL for a level 3 and a level 10 athlete (Quick Mission start, Combo Coach mix, NEXT TIER)', async () => {
+  await profileFor(L3);
+  await openLevel();
+  await mustSee(/AT YOUR LEVEL/, 'level 3 block');
+  await mustSee(/QUICK MISSION\s*\n\s*FIT LEVEL 2\s*\n\s*Quick Missions start at EASY\./, 'level 3: Quick Mission row');
+  await mustSee(/COMBO COACH\s*\n\s*FIGHT LEVEL 2\s*\n\s*Combo Coach deals up to 3-strike combos, with no difficult kicks\.\s*\n\s*You get single strikes and short combos\./, 'level 3: Combo Coach row');
+  await mustSee(/NEXT TIER\s*\n\s*At Fit level 3, Quick Missions start at MEDIUM\./, 'level 3: next tier');
+  await mustSee(/Fit work counts most for Quick Missions\.\s*\n?\s*Fight work counts most for Combo Coach\./, 'level 3: which work counts');
+  await backToOverview();
+  await profileFor(L10);
+  await openLevel();
+  await mustSee(/AT YOUR LEVEL/, 'level 10 block');
+  await mustSee(/QUICK MISSION\s*\n\s*FIT LEVEL 8\s*\n\s*Quick Missions start at HARD\./, 'level 10: Quick Mission row');
+  await mustSee(/COMBO COACH\s*\n\s*FIGHT LEVEL 7\s*\n\s*Combo Coach deals up to 6-strike combos, with no limit on difficult kicks\.\s*\n\s*About 2 in 10 combos are advanced\./, 'level 10: Combo Coach row');
+  await mustSee(/NEXT TIER\s*\n\s*At Fit level 10, Quick Missions start at ADVANCED\./, 'level 10: next tier');
+  await mustNotSee(/secret|Peak Physique|Fight Ascendant|Final Form/i, 'no secret tier for a Max athlete');
+  // The page still scrolls to the end and fits at both phone sizes: the last button clears the tab bar, nothing runs sideways.
+  for (const [w, h] of [[412, 811], [360, 740]]) {
+    await resizeTo(w, h);
+    const g = await page.evaluate(() => {
+      const sc = document.querySelector('[data-screen="level"]');
+      sc.scrollTo({ top: sc.scrollHeight });
+      const last = [...sc.querySelectorAll('button')].pop().getBoundingClientRect();
+      const rows = [...sc.querySelectorAll('[data-at-level]')].map((e) => { const b = e.getBoundingClientRect(); return { l: b.left, r: b.right }; });
+      return { nav: document.querySelector('[data-guide="nav-tabs"]').getBoundingClientRect().top, lastBottom: last.bottom, wide: sc.scrollWidth > sc.clientWidth + 1, rows, vw: window.innerWidth, h2: [...sc.querySelectorAll('h2')].map((x) => x.textContent).join('|') };
+    });
+    if (g.lastBottom > g.nav + 0.5) throw new Error(`${w}x${h}: the page ends at ${Math.round(g.lastBottom)}, under the tab bar at ${Math.round(g.nav)}`);
+    if (g.wide || g.rows.length !== 3 || g.rows.some((x) => x.l < 0 || x.r > g.vw)) throw new Error(`${w}x${h}: the block runs sideways ${JSON.stringify(g.rows)}`);
+    if (g.h2 !== "THE LADDER|WHAT LEVEL 10 MEANS|AT YOUR LEVEL|WHAT YOU'VE DONE|NEXT") throw new Error(`${w}x${h}: headings ${g.h2}`);
+  }
+  await resizeTo(390, 844);
+}, /AT YOUR LEVEL/);
+
 await check('training camp map', async () => { await fight(); await page.locator('.fb', { hasText: 'TRAINING CAMP' }).first().click(); await S(1800); }, /TRAINING CAMP/);
 await check('practice mode', async () => { await fight(); await page.locator('.ft.prac').click(); await S(1500); }, /PRACTICE MODE/);
 // A move with a tutorial (practiceData videoUrl) plays it on its card: Muay
@@ -1530,39 +1683,7 @@ await check('progress', async () => { await home(); await btn(/^PROGRESS$/).clic
 await check('profile', async () => { await home(); await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500); }, /PROFILE/);
 
 // ── Profile › the avatar opens the Level page ───────────────────────────────
-// Seeded athletes: the stats go in after boot() wiped storage and before the
-// next load, so the app boots with them. Every session is dated past the combo
-// engine's 60-day replay window (so Home grants no streak-milestone XP and the
-// numbers stay exactly what was seeded), except the `recent` ones, which sit
-// on today and yesterday for a 2-day streak.
-const seedStats = (spec, xp, recent = 0) => {
-  const sessions = []; let n = 0;
-  for (const [type, count, each] of spec) for (let k = 0; k < count; k += 1) sessions.push({ id: `seed${n++}`, type, xpEarned: each, completedCount: 1, totalCount: 1 });
-  sessions.forEach((row, i) => {
-    const fromEnd = sessions.length - 1 - i;
-    const d = new Date(); d.setHours(12, 0, 0, 0);
-    d.setDate(d.getDate() - (fromEnd < recent ? fromEnd : 65 + (fromEnd % 30)));
-    row.completedAt = d.toISOString();
-  });
-  return { xp, sessions };
-};
-const profileFor = async (stats) => {
-  await home();
-  await page.evaluate((v) => localStorage.setItem('tm_user_stats', JSON.stringify(v)), stats);
-  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000);
-  await page.mouse.click(195, 120); await S(1500);
-  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
-  // Many sessions and no Practice yet: Home offers the Practice invite first.
-  await btn(/REMIND ME NEXT WEEK|EXPLORE ON MY OWN/).click({ timeout: 1200 }).catch(() => {});
-  await btn(/^PROFILE$/).click({ timeout: 4000 }); await S(1500);
-};
-const mustSee = async (re, what) => { const t = await text(); if (!re.test(t)) throw new Error(`${what}: expected ${re} on screen`); };
-const mustNotSee = async (re, what) => { const t = await text(); if (re.test(t)) throw new Error(`${what}: ${re} should not be on screen`); };
-const openLevel = async () => { await page.locator('button[aria-label="Avatar and level"]').click({ timeout: 4000 }); await S(1200); };
-const backToOverview = async () => { await page.locator('button[aria-label="Back"]').first().click({ timeout: 4000 }); await S(900); await mustSee(/YOUR STATS/, 'back from the Level page'); await mustNotSee(/YOUR LEVEL/, 'back from the Level page'); };
-
-// A level-3 athlete: 11 sessions, 8 Fit (Fit Mode, Quick Mission, Cardio) and 3 Fight.
-const L3 = seedStats([['Fit Mode', 5, 95], ['Fight Focus', 3, 110], ['Quick Mission', 2, 80], ['Cardio', 1, 70]], 1260);
+// (the seeded athletes and helpers are defined above, with the Combo Coach checks)
 await check('level page: the AVATAR button opens it (level 3)', async () => {
   await profileFor(L3);
   await mustSee(/LVL 3 · COMBAT ROOKIE/, 'overview');
@@ -1627,7 +1748,7 @@ await check('level page: tap areas, focus and structure', async () => {
     named: [...document.querySelectorAll('[data-screen="level"] section')].filter((x) => !x.getAttribute('aria-labelledby') && !x.getAttribute('aria-label')).length,
   }));
   if (shape.h1 !== 1) throw new Error(`${shape.h1} h1 on the Level page`);
-  if (shape.h2.join('|') !== "THE LADDER|WHAT LEVEL 3 MEANS|WHAT YOU'VE DONE|NEXT") throw new Error(`h2s: ${shape.h2.join('|')}`);
+  if (shape.h2.join('|') !== "THE LADDER|WHAT LEVEL 3 MEANS|AT YOUR LEVEL|WHAT YOU'VE DONE|NEXT") throw new Error(`h2s: ${shape.h2.join('|')}`);
   if (shape.named) throw new Error(`${shape.named} unnamed sections`);
   const cut = await page.evaluate(() => [...document.querySelectorAll('[data-screen="level"] [aria-hidden="true"]')].filter((e) => e.children.length === 0 && e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
   if (cut.length) throw new Error(`cut off on the Level page: ${cut.join(', ')}`);
@@ -1637,8 +1758,6 @@ await check('level page: tap areas, focus and structure', async () => {
   if (focus2 !== 'View your level') throw new Error(`after Back focus is on ${focus2}`);
 }, /YOUR STATS/);
 
-// The owner's athlete: level 10, 57 sessions, 34 Fit and 23 Fight, a 2-day streak.
-const L10 = seedStats([['Fit Mode', 20, 90], ['Quick Mission', 10, 85], ['Cardio', 4, 100], ['Fight Focus', 13, 88], ['Combo Coach', 10, 80]], 4960, 2);
 await check('level page: level 10 athlete (Max, 57 sessions)', async () => {
   await profileFor(L10);
   await openLevel();

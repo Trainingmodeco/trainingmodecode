@@ -12,6 +12,9 @@ globalThis.localStorage = {
 const { levelStory, LEVEL_STORY_CONSTANTS: K } = await import('../components/training-mode/data/levelStory.js');
 const { getLevel, getLevelProgress } = await import('../components/training-mode/data/userStats.js');
 const { VISIBLE_TIERS, SECRET_TIERS, SECRET_UNLOCK, getModeXp, getCurrentTier, tierIndexForLevel, sessionMode, trainingSessionCount } = await import('../components/training-mode/data/tiers.js');
+const AL = await import('../components/training-mode/data/athleteLevel.js');
+const CM = await import('../components/training-mode/data/comboMix.js');
+const LS = await import('../components/training-mode/data/levelStory.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -34,7 +37,7 @@ const strings = (v, out = []) => {
   return out;
 };
 // Copy only: ids, colours and state words are not sentences.
-const copy = (s) => strings([s.headline, s.tierLabel, s.xpInfo.barLabel, s.xpInfo.intoLabel, s.levelTitle, s.levelLine, s.levelLineParts, s.doneTitle, s.recap, s.facts, s.split.map((x) => x.label), s.promo, s.ladderNote, s.nextTitle, s.next.xpLine, s.next.paceLine, s.next.tierLine, s.ladder.map((n) => [n.name, n.label, n.levels, n.say, n.marker ? n.marker.label : []])]);
+const copy = (s) => strings([s.atYourLevel.title, s.atYourLevel.rows.map((r) => [r.label, r.tag, r.line, r.sub]), s.atYourLevel.note, s.atYourLevel.nextTitle, s.atYourLevel.next.line, s.headline, s.tierLabel, s.xpInfo.barLabel, s.xpInfo.intoLabel, s.levelTitle, s.levelLine, s.levelLineParts, s.doneTitle, s.recap, s.facts, s.split.map((x) => x.label), s.promo, s.ladderNote, s.nextTitle, s.next.xpLine, s.next.paceLine, s.next.tierLine, s.ladder.map((n) => [n.name, n.label, n.levels, n.say, n.marker ? n.marker.label : []])]);
 // Franchise and character names: the union of test-concepts, the content kit's
 // neverSay list and the common ones, matched on whole words (so "ken" is not "taken").
 const BANNED = /\b(street fighter|ryu|ken|akuma|capcom|goku|vegeta|saiyan|dragon ball|ultra instinct|ultra ego|saitama|one[- ]?punch|garou|baki|hanma|batman|dark knight|gotham|wonder woman|diana|themyscira|amazon|lasso|spider-?man|sonic|guts|berserk|sparta|tekken|mortal kombat|one piece|star wars|avengers|rocky|naruto|marvel|pokemon|zelda|mario|jedi)\b/i;
@@ -411,6 +414,109 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('literal strings in LevelView.jsx and the Profile entry points were found', pageLits.length > 15 && pageLits.some((t) => /CHANGE AVATAR/.test(t)) && pageLits.some((t) => /LEVEL ›/.test(t)), String(pageLits.length));
   check('no franchise or character names in the page text', pageLits.every((t) => !BANNED.test(t)), pageLits.filter((t) => BANNED.test(t)).join(' | '));
   check('the page text has no exclamation mark (the promo line is the only one)', pageLits.every((t) => !t.includes('!')));
+}
+
+// ── AT YOUR LEVEL: the proof that progress means something ─────────────────
+// The block reads Quick Mission's start from the Fit side's tier and Combo
+// Coach's mix from the Fight side's, by the rule in data/athleteLevel. No number
+// is typed in the page: every one here is checked against the tables.
+{
+  const fitOnly = (level) => mk([['Fit Mode', 1, (level - 1) * 500]]);
+  const fightOnly = (level) => mk([['Fight Focus', 1, (level - 1) * 500]]);
+  const both = (level) => mk([['Fit Mode', 1, (level - 1) * 250], ['Fight Focus', 1, (level - 1) * 250]]);
+  const kicksText = (t) => { const m = CM.COMBO_MIX[t].maxHardKicks; return m === null ? 'with no limit on difficult kicks' : m === 0 ? 'with no difficult kicks' : `with up to ${m} difficult kick${m === 1 ? '' : 's'} per round`; };
+
+  // The block is on the story, for every level 1 to 30 and for each way the XP can lean.
+  let shape = true, quickOk = true, comboOk = true, tagOk = true, nextOk = true, levelsSeen = 0;
+  const lines = [];
+  for (let level = 1; level <= 30; level += 1) {
+    for (const [name, st] of [['fit', fitOnly(level)], ['fight', fightOnly(level)], ['both', both(level)], ['no rows', { xp: (level - 1) * 500, sessions: [] }]]) {
+      const a = levelStory(st).atYourLevel;
+      const fit = AL.athleteStart(st, 'fit'), fight = AL.athleteStart(st, 'fight');
+      if (!a || a.title !== 'AT YOUR LEVEL' || a.nextTitle !== 'NEXT TIER' || a.rows.length !== 2 || a.rows[0].key !== 'quick' || a.rows[1].key !== 'combo') { shape = false; console.log('   shape', level, name); continue; }
+      levelsSeen += 1;
+      // Quick Missions start at the tier the Fit side sets, in the word the Quick Mission page prints.
+      if (a.rows[0].line !== `Quick Missions start at ${AL.QUICK_MISSION_WORD[AL.tierForLevel(fit.level)]}.` || a.rows[0].tier !== AL.tierForLevel(fit.level) || a.rows[0].level !== fit.level) { quickOk = false; console.log('   quick', level, name, a.rows[0].line); }
+      // Combo Coach: the number is the longest combo the tier can really deal, the kicks are the table's.
+      const tier = AL.tierForLevel(fight.level);
+      const m = a.rows[1].line.match(/^Combo Coach deals up to (\d+)-strike combos, (.+)\.$/);
+      if (!m || Number(m[1]) !== CM.comboReach(tier).strikes || m[2] !== kicksText(tier) || a.rows[1].tier !== tier || a.rows[1].level !== fight.level) { comboOk = false; console.log('   combo', level, name, a.rows[1].line); }
+      if (a.rows[0].tag !== `FIT LEVEL ${fit.level}` || a.rows[1].tag !== `FIGHT LEVEL ${fight.level}`) { tagOk = false; console.log('   tag', level, name, a.rows.map((r) => r.tag).join()); }
+      // NEXT TIER: whichever cutoff is nearer (Quick Mission on a tie), at the cutoff's own level.
+      const qn = AL.nextTierAfter(fit.level), cn = AL.nextTierAfter(fight.level);
+      const want = !qn && !cn ? 'top' : qn && (!cn || qn.levelsAway <= cn.levelsAway) ? 'quick' : 'combo';
+      const n = a.next;
+      const okNext = want === 'top'
+        ? n.atTop && /^You are on the top tier\./.test(n.line)
+        : want === 'quick'
+          ? n.key === 'quick' && n.level === qn.level && n.tier === qn.tier && n.line === `At Fit level ${qn.level}, Quick Missions start at ${AL.QUICK_MISSION_WORD[qn.tier]}.`
+          : n.key === 'combo' && n.level === cn.level && n.tier === cn.tier && n.line.startsWith(`At Fight level ${cn.level}, Combo Coach `) && n.line.endsWith('.');
+      if (!okNext) { nextOk = false; console.log('   next', level, name, want, n.line); }
+      if (name === 'both') lines.push(`${level}: ${a.rows[0].line} | ${a.rows[1].line} | ${a.next.line}`);
+    }
+  }
+  check('AT YOUR LEVEL is on the story at every level 1 to 30, Fit-heavy, Fight-heavy, balanced and with no rows', shape && levelsSeen === 120, String(levelsSeen));
+  check('Quick Missions start at the tier the Fit side sets (level 1-2 EASY, 3-5 MEDIUM, 6-9 HARD, 10+ ADVANCED), in the Quick Mission page\'s own words', quickOk);
+  check('Combo Coach: "up to N-strike combos" is the tier\'s real longest combo and the difficult kicks are the table\'s', comboOk);
+  check('each row names the level it reads (FIT LEVEL n, FIGHT LEVEL n)', tagOk);
+  check('NEXT TIER is the nearer cutoff, with its own level and new start; the top tier says so', nextOk);
+
+  // The numbers on the page are true: deal thousands of calls and nothing is longer than the page says.
+  for (const t of AL.TIERS) {
+    const claimed = CM.comboReach(t).strikes;
+    let longest = 0, hardWorst = 0;
+    for (const d of CM.DISCIPLINES) for (let r = 0; r < 60; r += 1) {
+      let seed = 7 * r + 13 + t.length; const rng = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const round = CM.dealMixItems({ prepared: CM.preparedPool()[d], tier: t, count: 40, rng });
+      longest = Math.max(longest, ...round.map((c) => c.strikes));
+      hardWorst = Math.max(hardWorst, round.filter((c) => c.hard).length);
+    }
+    const cap = CM.COMBO_MIX[t].maxHardKicks;
+    check(`${t}: the page's "${claimed}-strike" is the longest dealt (no longer, and one that long does come up); the kick cap holds`, longest === claimed && (cap === null || hardWorst <= cap), `dealt ${longest}, page ${claimed}, kicks ${hardWorst}/${cap}`);
+  }
+  check('the numbers climb with the tier: Easy deals shorter combos than Normal, and the kick cap goes none, some, no limit',
+    CM.comboReach('EASY').strikes < CM.comboReach('NORMAL').strikes && CM.COMBO_MIX.EASY.maxHardKicks === 0 && CM.COMBO_MIX.NORMAL.maxHardKicks > 0 && CM.COMBO_MIX.HARD.maxHardKicks === null);
+
+  // Plain examples (the words the owner can post).
+  const l = (level, st = fitOnly) => levelStory(st(level)).atYourLevel;
+  check('level 1: Quick Missions start at EASY; Combo Coach deals up to 3-strike combos, with no difficult kicks', l(1).rows[0].line === 'Quick Missions start at EASY.' && l(1).rows[1].line === 'Combo Coach deals up to 3-strike combos, with no difficult kicks.', l(1).rows[1].line);
+  check('level 7 (Fit work): Quick Missions start at HARD; Combo Coach is on Fight level 4 and caps difficult kicks at 2', l(7).rows[0].line === 'Quick Missions start at HARD.' && l(7).rows[1].tag === 'FIGHT LEVEL 4' && l(7).rows[1].line === 'Combo Coach deals up to 6-strike combos, with up to 2 difficult kicks per round.', l(7).rows[1].line);
+  check('level 10 (Fit work): Quick Missions start at ADVANCED', l(10).rows[0].line === 'Quick Missions start at ADVANCED.');
+  check('a balanced level 10 (half Fit, half Fight) reads Fit level 7 and Fight level 7: HARD for both, since the other side counts at half',
+    l(10, both).rows[0].tag === 'FIT LEVEL 7' && l(10, both).rows[1].tag === 'FIGHT LEVEL 7' && l(10, both).rows[0].line === 'Quick Missions start at HARD.' && l(10, both).next.line === 'At Fit level 10, Quick Missions start at ADVANCED.', JSON.stringify(l(10, both).rows.map((r) => r.tag)));
+  check('a Fit-only athlete at level 12 has Quick Missions at ADVANCED and Combo Coach still climbing (NEXT TIER names Fight level 10)', l(12).rows[0].line === 'Quick Missions start at ADVANCED.' && /^At Fight level 10, Combo Coach swings from single strikes to the hardest combos/.test(l(12).next.line), l(12).next.line);
+  check('the very top says so', /^You are on the top tier\. Quick Missions start at ADVANCED, and Combo Coach deals its full mix\.$/.test(levelStory(both(30)).atYourLevel.next.line), levelStory(both(30)).atYourLevel.next.line);
+  check('Combo Coach\'s second line: Easy is singles and short combos; the rest say how many in 10 are advanced, the top swings',
+    l(1).rows[1].sub === 'You get single strikes and short combos.' && /^About 1 in 10 combos is advanced\.$/.test(levelStory(fightOnly(3)).atYourLevel.rows[1].sub) && /^About 2 in 10 combos are advanced\.$/.test(levelStory(fightOnly(6)).atYourLevel.rows[1].sub)
+    && /^Rounds swing from single strikes to the hardest combos\. About 5 in 10 combos are advanced\.$/.test(levelStory(fightOnly(10)).atYourLevel.rows[1].sub), levelStory(fightOnly(6)).atYourLevel.rows[1].sub);
+  check('the block is the same in the helper and in the story', JSON.stringify(levelStory(fitOnly(7)).atYourLevel) === JSON.stringify(LS.atYourLevel(fitOnly(7))));
+  check('Quick Mission\'s word for a tier is one table (the page, the Quick Mission page and the kit read it)', AL.QUICK_MISSION_WORD.NORMAL === 'MEDIUM' && AL.QUICK_MISSION_WORD.ADVANCED === 'ADVANCED');
+
+  // Secret tiers, empty and odd stats: still a sane block.
+  const secret = [mk([['Fit Mode', 30, 300], ['Fight Focus', 10, 200]], 13000), mk([['Fit Mode', 10, 100], ['Fight Focus', 30, 300]], 13000), mk([['Fit Mode', 3, 100]], 20500)];
+  for (const [i, st] of secret.entries()) {
+    const a = levelStory(st, { tier: [SECRET_TIERS.peakPhysique, SECRET_TIERS.fightAscendant, SECRET_TIERS.finalForm][i] }).atYourLevel;
+    const all = strings(a);
+    check(`secret tier ${i + 1}: the block is whole, plain and not empty`, all.length > 8 && all.every((t) => t.trim().length > 0 && !/NaN|undefined|null|\[object|e\+\d/.test(t)) && a.rows.every((r) => /^FIT LEVEL \d|^FIGHT LEVEL \d/.test(r.tag)), all.join(' | '));
+  }
+  const emptyBlock = levelStory({ xp: 0, sessions: [] }).atYourLevel;
+  check('no stats: level 1 on both sides, EASY, and the first cutoff is level 3', emptyBlock.rows.map((r) => r.level).join() === '1,1' && emptyBlock.rows[0].line === 'Quick Missions start at EASY.' && emptyBlock.next.line === 'At Fit level 3, Quick Missions start at MEDIUM.', emptyBlock.next.line);
+  for (const bad of [null, undefined, {}, 'x', { xp: NaN, sessions: 'x' }, { xp: -1, sessions: [null] }, { xp: 1e30, sessions: [] }]) {
+    let ok = true; try { const a = levelStory(bad).atYourLevel; ok = strings(a).every((t) => t.trim() && !/NaN|undefined|null|Infinity|\[object|e\+\d/.test(t)); } catch { ok = false; }
+    if (!ok) check(`odd stats ${JSON.stringify(bad)}: the block is sane`, false);
+  }
+  check('odd stats never break the block', true);
+
+  // Copy rules for the block: short, plain, one idea each, no names, no exclamation marks, no medical claims.
+  const blocks = [];
+  for (let level = 1; level <= 30; level += 1) for (const mkx of [fitOnly, fightOnly, both]) blocks.push(levelStory(mkx(level)).atYourLevel);
+  const words = blocks.flatMap((b) => strings(b));
+  check('every line of the block is under 140 characters and every sentence ends in a full stop (labels aside)', blocks.every((b) => [b.note, b.next.line, ...b.rows.flatMap((r) => [r.line, r.sub].filter(Boolean))].every((t) => t.length < 140 && /\.$/.test(t))), words.filter((t) => t.length >= 140).join(' | '));
+  check('the block has no exclamation mark, no franchise name, no medical claim', words.every((t) => !t.includes('!') && !BANNED.test(t) && !/\b(cure|heal|disease|doctor|injury|diagnos|treat|prescri|medical)/i.test(t)));
+  check('the block is second person and says nothing about "the athlete"', words.every((t) => !/the athlete/i.test(t)));
+  check('the block says "strike", never "punch" for a combo that may hold a kick', words.every((t) => !/punch/i.test(t)));
+  check('the four tiers read differently (Quick Mission line, Combo Coach line and mix line all change from Easy up)',
+    new Set(AL.TIERS.map((t) => `${LS.quickLine(t)}|${LS.comboLine(t)}|${LS.comboMixLine(t)}`)).size === 4);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

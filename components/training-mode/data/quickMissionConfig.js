@@ -1,6 +1,6 @@
 import { CADENCE_PRESETS } from '../shared/CadenceSlider';
 import { loadStats } from './userStats';
-import { athleteTier, normalizeTier, rollSurpriseTier } from './athleteLevel';
+import { athleteTier, normalizeTier, rollSurpriseTier, QUICK_MISSION_WORD } from './athleteLevel';
 
 // The Quick Mission config, built in one place.
 //
@@ -32,7 +32,7 @@ export const QM_INTENSITY = ['EASY', 'NORMAL', 'HARD', 'ADVANCED'];
 // The owner's words for the levels. 'NORMAL' stays the stored id (the
 // generator, DIFFICULTY_CONFIG and saved sessions read it); MEDIUM is what
 // the setup screen and its Mission Library print, on ADJUST and the tags.
-export const QM_LEVEL_WORD = { EASY: 'EASY', NORMAL: 'MEDIUM', HARD: 'HARD', ADVANCED: 'ADVANCED' };
+export const QM_LEVEL_WORD = QUICK_MISSION_WORD;
 // Any stored form of a level ('Normal', 'NORMAL', 'Advanced') as the word the
 // athlete reads, in capitals: NORMAL reads MEDIUM everywhere, so both runs and
 // the hub name a level the same way. An unknown word comes back as it was.

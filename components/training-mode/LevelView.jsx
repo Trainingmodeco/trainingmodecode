@@ -104,6 +104,21 @@ function Ladder({ nodes }) {
   );
 }
 
+// One row of AT YOUR LEVEL: what a feature does for this athlete, with the level
+// it reads in a small tag. Every word comes from levelStory.
+function LevelRow({ row, first }) {
+  return (
+    <div data-at-level={row.key} style={{ padding: first ? '0 0 10px' : '10px 0 0', borderTop: first ? 'none' : '1px solid rgba(168,85,247,0.2)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+        <span style={{ font: `800 10px ${ORB}`, color: '#fff', letterSpacing: '0.1em' }}>{row.label}</span>
+        <span style={{ font: `800 8px ${ORB}`, color: GOLD, letterSpacing: '0.08em', border: '1px solid rgba(253,224,71,0.5)', background: 'rgba(253,224,71,0.08)', borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{row.tag}</span>
+      </div>
+      <p style={{ margin: 0, font: `700 14px/1.4 ${RAJ}`, color: '#f5e9ff', textWrap: 'balance' }}>{row.line}</p>
+      {row.sub && <p style={{ margin: '3px 0 0', font: `600 12px/1.4 ${RAJ}`, color: '#c4a4d8', textWrap: 'balance' }}>{row.sub}</p>}
+    </div>
+  );
+}
+
 function Fact({ label, value }) {
   return (
     <div style={{ minWidth: 0, background: 'rgba(12,2,24,0.8)', border: '1px solid rgba(168,85,247,0.22)', borderRadius: 10, padding: '7px 10px' }}>
@@ -120,6 +135,7 @@ export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAv
   const avSex = String(sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const displayName = (name && String(name).trim()) ? String(name).trim().toUpperCase() : 'TRAINEE';
   const nx = story.next;
+  const at = story.atYourLevel;
 
   // Land on the page heading, so a keyboard or screen-reader user starts at the
   // top of the new page instead of on the page body.
@@ -168,6 +184,18 @@ export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAv
                 <span style={{ color: '#c4a4d8' }}>{story.levelLineParts[0]}</span>{' '}
                 <span style={{ fontWeight: 700 }}>{story.levelLineParts[1]}</span>
               </p>
+            </Card>
+
+            {/* What the level does: Quick Mission and Combo Coach at this athlete's
+                level, and the next cutoff. The proof that the higher the level,
+                the harder the workouts. */}
+            <Card label={at.title} accent={`${t.color}66`}>
+              {at.rows.map((r, i) => <LevelRow key={r.key} row={r} first={i === 0}/>)}
+              <p style={{ margin: '10px 0 0', font: `600 11px/1.4 ${RAJ}`, color: '#9a90b8', textWrap: 'balance' }}>{at.note}</p>
+              <div data-at-level="next" style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(253,224,71,0.3)' }}>
+                <div style={{ font: `800 9px ${ORB}`, color: GOLD, letterSpacing: '0.16em', marginBottom: 4 }}>{at.nextTitle}</div>
+                <p style={{ margin: 0, font: `700 14px/1.4 ${RAJ}`, color: '#fff7c2', textWrap: 'balance' }}>{at.next.line}</p>
+              </div>
             </Card>
 
             {/* What the athlete has really done */}

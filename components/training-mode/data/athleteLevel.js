@@ -25,6 +25,7 @@
 // answer (level 1, EASY, at worst).
 import { getLevel, getLevelProgress } from './userStats';
 import { sessionMode } from './tiers';
+import { COMBO_MIX } from './comboMix';
 
 export const SIDES = ['fit', 'fight'];
 // What a side's own XP and everyone else's XP weigh. Half is the owner's rule.
@@ -37,6 +38,10 @@ const MAX_XP = 1e12;
 // generator and its saved keys already use EASY / NORMAL / HARD, and NORMAL is
 // the word MEDIUM on screen (quickMissionConfig QM_LEVEL_WORD).
 export const TIERS = ['EASY', 'NORMAL', 'HARD', 'ADVANCED'];
+// The word Quick Mission prints for each tier (the owner's words): NORMAL reads
+// MEDIUM. Combo Coach prints Easy, Normal, Hard, Advanced. One table, read by
+// the Quick Mission page (QM_LEVEL_WORD), the Level page and the content kit.
+export const QUICK_MISSION_WORD = { EASY: 'EASY', NORMAL: 'MEDIUM', HARD: 'HARD', ADVANCED: 'ADVANCED' };
 // The first level of each tier above EASY.
 export const TIER_START_LEVEL = { EASY: 1, NORMAL: 3, HARD: 6, ADVANCED: 10 };
 export const XP_PER_LEVEL = getLevelProgress(0).needed;
@@ -146,10 +151,12 @@ export function tierLevels(tier) {
   return { from: TIER_START_LEVEL[t], to: next ? TIER_START_LEVEL[next] - 1 : null };
 }
 
-// ── per-tier rules (a clean place for the rest) ─────────────────────────────
-// Part 2 adds Combo Coach's mix here (which combos each tier is dealt: single
-// punches up to 4 for EASY, longer combos up to 7 with an occasional hard kick
-// for the middle, a mix of single, mid-tier and harder combos for the top) and
-// the Level page's proof lines read the same table. Quick Mission needs nothing
-// beyond the tier itself: its generator tables are keyed by it.
-export const TIER_RULES = Object.fromEntries(TIERS.map(t => [t, { tier: t }]));
+// ── per-tier rules ──────────────────────────────────────────────────────────
+// What each tier means in the app, in one table the Level page reads. Quick
+// Mission needs nothing beyond the tier itself: its generator tables are keyed
+// by it. Combo Coach's mix (which combos each tier is dealt: single strikes and
+// short combos for EASY, longer combos with a few difficult kicks for NORMAL,
+// mostly hard for HARD, a swing from single strikes to the hardest combos for
+// ADVANCED) lives in data/comboMix, the same table the dealer reads; the Fight
+// side's tier from athleteStart(stats, 'fight') picks the row.
+export const TIER_RULES = Object.fromEntries(TIERS.map(t => [t, { tier: t, combo: COMBO_MIX[t] }]));

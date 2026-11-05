@@ -122,6 +122,40 @@
     ],
     "startsAt": "The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST."
   },
+  "levelsAtWork": {
+    "say": "The higher your level, the harder your workouts get.",
+    "note": "Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.",
+    "tiers": [
+      {
+        "id": "EASY",
+        "fromLevel": 1,
+        "quickMission": "Quick Missions start at EASY.",
+        "comboCoach": "Combo Coach deals up to 3-strike combos, with no difficult kicks.",
+        "comboMix": "You get single strikes and short combos."
+      },
+      {
+        "id": "NORMAL",
+        "fromLevel": 3,
+        "quickMission": "Quick Missions start at MEDIUM.",
+        "comboCoach": "Combo Coach deals up to 6-strike combos, with up to 2 difficult kicks per round.",
+        "comboMix": "About 1 in 10 combos is advanced."
+      },
+      {
+        "id": "HARD",
+        "fromLevel": 6,
+        "quickMission": "Quick Missions start at HARD.",
+        "comboCoach": "Combo Coach deals up to 6-strike combos, with no limit on difficult kicks.",
+        "comboMix": "About 2 in 10 combos are advanced."
+      },
+      {
+        "id": "ADVANCED",
+        "fromLevel": 10,
+        "quickMission": "Quick Missions start at ADVANCED.",
+        "comboCoach": "Combo Coach deals up to 6-strike combos, with no limit on difficult kicks.",
+        "comboMix": "Rounds swing from single strikes to the hardest combos. About 5 in 10 combos are advanced."
+      }
+    ]
+  },
   "pro": {
     "benefits": [
       "All Arcade protocols & boss stages",

@@ -1134,7 +1134,7 @@ export default function App() {
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);

@@ -22,11 +22,18 @@
 // Day, Hybrid bonus, Start Here lessons), the same rule Profile's SESSIONS
 // counter uses (tiers.trainingSessionCount). Award XP still counts in XP.
 //
+// AT YOUR LEVEL is the proof that progress means something: what Quick Mission
+// and Combo Coach really do for this athlete, read from the same rules the app
+// runs on (data/athleteLevel for the tier, data/comboMix for the Combo Coach
+// table). No number is typed here: a change to a table changes the page.
+//
 // Copy rules: second person, short plain sentences, one idea each, no
 // franchise or character names, no medical claims, at most one exclamation
 // mark on the whole page (the promotion line).
 import { getLevel, getLevelProgress } from './userStats';
 import { VISIBLE_TIERS, SECRET_TIERS, SECRET_UNLOCK, tierIndexForLevel, getModeXp, sessionMode, trainingSessionCount } from './tiers';
+import { athleteStart, nextTierAfter, QUICK_MISSION_WORD } from './athleteLevel';
+import { mixFor, comboReach, advancedInTen } from './comboMix';
 
 // Levels per visible tier and XP per level come from the same code the rest
 // of the app uses, so a change there cannot leave this page behind.
@@ -295,6 +302,74 @@ function ladderNote() {
   return `Each level is ${fmt(XP_PER_LEVEL)} XP. ${list} take ${LEVELS_PER_TIER} levels each. ${VISIBLE_TIERS[LAST_VISIBLE].name} has no end.`;
 }
 
+
+// ── AT YOUR LEVEL ───────────────────────────────────────────────────────────
+// Quick Mission starts at the tier your Fit work sets; Combo Coach deals the mix
+// of the tier your Fight work sets (the rule in data/athleteLevel: the side's own
+// XP in full, everything else at half). So the page names which level each uses.
+const AT_TITLE = 'AT YOUR LEVEL';
+const AT_NOTE = 'Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.';
+const NEXT_TIER_TITLE = 'NEXT TIER';
+const inTen = (n) => (n === 1 ? '1 in 10 combos is advanced' : `${fmt(n)} in 10 combos are advanced`);
+
+// What Quick Mission starts at, in the word the Quick Mission page prints.
+export const quickLine = (tier) => `Quick Missions start at ${QUICK_MISSION_WORD[tier]}.`;
+
+// What a tier means for Combo Coach, from the mix table and the pool: the
+// longest combo it can really deal, and the cap on difficult kicks a round.
+export function comboLine(tier) {
+  const m = mixFor(tier);
+  const reach = comboReach(tier);
+  const kicks = m.maxHardKicks === null ? 'with no limit on difficult kicks'
+    : m.maxHardKicks === 0 ? 'with no difficult kicks'
+      : `with up to ${plural(m.maxHardKicks, 'difficult kick', 'difficult kicks')} per round`;
+  return `Combo Coach deals up to ${fmt(reach.strikes)}-strike combos, ${kicks}.`;
+}
+// One more fact about the mix: how it leans.
+export function comboMixLine(tier) {
+  const m = mixFor(tier);
+  if (m.tier === 'EASY') return 'You get single strikes and short combos.';
+  const adv = advancedInTen(m.tier);
+  const lead = m.swing ? 'Rounds swing from single strikes to the hardest combos. ' : '';
+  return `${lead}${adv === 1 ? 'About 1 in 10 combos is advanced.' : `About ${fmt(adv)} in 10 combos are advanced.`}`;
+}
+
+// What Combo Coach gains when it steps up a tier, read as the difference of two
+// rows of the table: up to two of swing, difficult kicks, longer combos, more
+// advanced combos.
+function comboGain(from, to) {
+  const a = mixFor(from), b = mixFor(to);
+  const ra = comboReach(a.tier), rb = comboReach(b.tier);
+  const parts = [];
+  if (b.swing && !a.swing) parts.push('swings from single strikes to the hardest combos');
+  if (b.maxHardKicks !== a.maxHardKicks) parts.push(b.maxHardKicks === null ? 'has no limit on difficult kicks' : `adds up to ${plural(b.maxHardKicks, 'difficult kick', 'difficult kicks')} a round`);
+  if (rb.strikes > ra.strikes) parts.push(`deals up to ${fmt(rb.strikes)}-strike combos`);
+  if (advancedInTen(b.tier) > advancedInTen(a.tier)) parts.push(inTen(advancedInTen(b.tier)));
+  return parts.slice(0, 2).join(' and ');
+}
+
+// The block: a row for Quick Mission and one for Combo Coach, each with the
+// level it reads, and one NEXT TIER line for whichever cutoff is nearer.
+export function atYourLevel(stats) {
+  const fit = athleteStart(stats, 'fit');
+  const fight = athleteStart(stats, 'fight');
+  const rows = [
+    { key: 'quick', label: 'QUICK MISSION', side: 'fit', level: fit.level, tier: fit.tier, tag: `FIT LEVEL ${fmt(fit.level)}`, line: quickLine(fit.tier), sub: null },
+    { key: 'combo', label: 'COMBO COACH', side: 'fight', level: fight.level, tier: fight.tier, tag: `FIGHT LEVEL ${fmt(fight.level)}`, line: comboLine(fight.tier), sub: comboMixLine(fight.tier) },
+  ];
+  // The nearer cutoff first; Quick Mission on a tie.
+  const qn = nextTierAfter(fit.level), cn = nextTierAfter(fight.level);
+  let next;
+  if (!qn && !cn) {
+    next = { key: 'top', side: null, level: null, tier: null, atTop: true, line: `You are on the top tier. Quick Missions start at ${QUICK_MISSION_WORD[fit.tier]}, and Combo Coach deals its full mix.` };
+  } else if (qn && (!cn || qn.levelsAway <= cn.levelsAway)) {
+    next = { key: 'quick', side: 'fit', level: qn.level, tier: qn.tier, levelsAway: qn.levelsAway, atTop: false, line: `At Fit level ${fmt(qn.level)}, Quick Missions start at ${QUICK_MISSION_WORD[qn.tier]}.` };
+  } else {
+    next = { key: 'combo', side: 'fight', level: cn.level, tier: cn.tier, levelsAway: cn.levelsAway, atTop: false, line: `At Fight level ${fmt(cn.level)}, Combo Coach ${comboGain(fight.tier, cn.tier)}.` };
+  }
+  return { title: AT_TITLE, rows, note: AT_NOTE, nextTitle: NEXT_TIER_TITLE, next };
+}
+
 // ── the story ───────────────────────────────────────────────────────────────
 export function levelStory(stats, opts = {}) {
   const { xp, rows } = cleanStats(stats);
@@ -359,6 +434,7 @@ export function levelStory(stats, opts = {}) {
     promo,
     nextTitle: 'NEXT',
     next: buildNext({ level, xp, toNext, tier, idx, pace }),
+    atYourLevel: atYourLevel(stats),
     ladder: buildLadder(level, tier, idx),
     ladderNote: ladderNote(),
   };

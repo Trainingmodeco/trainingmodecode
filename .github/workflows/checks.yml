@@ -66,6 +66,12 @@ jobs:
       - name: Athlete level tests
         run: npm run -s test:athlete
 
+      # What Combo Coach deals at each level: the pieces helper, the one mix
+      # table, the caps (Easy 4 pieces and no difficult kick, Normal 7 and 2 a
+      # round) and the swing at the top, over thousands of deals.
+      - name: Combo Coach mix tests
+        run: npm run -s test:combomix
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 
