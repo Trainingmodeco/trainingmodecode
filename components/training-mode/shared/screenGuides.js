@@ -215,13 +215,14 @@ export const SCREEN_GUIDES = {
   // open card) and qm-surprise while a library mission is on it.
   quick_mission_setup: [
     { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
-    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: 'The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time.' },
+    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: 'The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds as you slide the time or change the gear.' },
     { target: 'qm-expand', title: 'SEE ALL', body: 'Opens the card where it is: every move, how long it really takes with the rest, and ADJUST. SHOW LESS folds it back. The card stays open or closed for next time.' },
-    { target: 'qm-adjust', title: 'ADJUST', body: 'Level (easy, medium or hard), focus (the whole body or one area) and an optional cardio finisher. Then DONE. Your picks are kept for next time.' },
+    { target: 'qm-adjust', title: 'ADJUST', body: 'Level, focus (the whole body or one area) and an optional cardio finisher. Then DONE. Your gear, time and focus are kept for next time.' },
+    { target: 'qm-adjust', title: 'LEVEL', body: 'The workout starts at your level, set by your Fit progress: the higher you climb, the harder it starts. In ADJUST you can scale it to easy, medium, hard or advanced for today. YOUR LEVEL marks yours, and your pick lasts for this visit.' },
     { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, timer, coach and all.' },
-    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level one step either side of yours. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
-    { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the knob sideways, tap a minute, or use the arrow keys. Longer workouts get more rounds and more moves.' },
+    { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to run exactly that long: the card changes as you slide. Drag the knob, tap a minute, or use the arrow keys.' },
     { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts, like Murph. Tap one to see it on top, then START, or PUT ON CARD to bring it here. The coach calls every move; on a run, tap DONE when you are back.' },
   ],
 
@@ -229,14 +230,15 @@ export const SCREEN_GUIDES = {
   // missions, their swaps and GUIDED · AT YOUR PACE.
   quick_mission_setup_v2: [
     { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
-    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time. A library mission on the card has a ‹ TODAY to come back." },
+    { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds as you slide the time or change the gear. A library mission on the card has a ‹ TODAY to come back." },
     { target: 'qm-expand', title: 'SEE ALL', body: "Opens the card where it is: every move, how long it really takes, and ADJUST. On a library mission every move has a swap icon; swaps never cost XP, the run is marked SCALED. SHOW LESS folds it back." },
     { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, run mode (guided or at your pace: the same choice as the switch above START), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
+    { target: 'qm-adjust', title: 'LEVEL', body: 'Today\'s workout starts at your level, set by your Fit progress: the higher you climb, the harder it starts. In ADJUST you can scale it to easy, medium, hard or advanced for today. YOUR LEVEL marks yours, and your pick lasts for this visit. A library mission keeps its own levels.' },
     { target: 'qm-how', title: 'GUIDED OR AT YOUR PACE', body: "GUIDED: the coach calls every move and keeps time; tap DONE after a loaded set. AT YOUR PACE: just the moves and a timer, with beeps and no coach voice. Your pick is kept for next time, and START on Fit Mode and Home follows it. Classics like Murph run with the coach." },
     { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, GUIDED or AT YOUR PACE.' },
-    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level one step either side of yours. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
-    { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the knob sideways, tap a minute, or use the arrow keys. Longer workouts get more rounds and more moves.' },
+    { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to run exactly that long: the card changes as you slide. Drag the knob, tap a minute, or use the arrow keys.' },
     { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
   ],
 

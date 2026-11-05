@@ -13,7 +13,9 @@ import {
   QM_FOCI, QM_INTENSITY, QM_TYPES, QM_LEVEL_WORD, QM_TIME_MIN, QM_TIME_MAX, QM_TIME_STEP, QM_TIME_TICKS,
   quickMissionConfig, loadQuickMissionKeys, saveQuickMissionKeys,
 } from './data/quickMissionConfig';
-import { generateQuickMission, estimateQuickMissionSeconds, quickMissionDose } from './fit-mode/quickMissionGenerator';
+import { generateQuickMission, estimateQuickMissionSeconds, quickMissionDose, seededRng } from './fit-mode/quickMissionGenerator';
+import { loadStats } from './data/userStats';
+import { athleteTier, rollSurpriseTier } from './data/athleteLevel';
 import AddCardioSheet from './AddCardioSheet';
 import { namedWorkoutById, buildNamedMission } from './data/namedWorkouts';
 import { isPro } from './data/entitlements';
@@ -35,7 +37,7 @@ import {
 //   TODAY'S QUICK MISSION  the card START runs: its name, its tags, the first
 //                          three moves, ▾ SEE ALL, START and a small SURPRISE
 //   GEAR                   bodyweight / weighted / hybrid
-//   TIME                   a slider, 10 to 60 minutes in 5-minute steps
+//   TIME                   a slider, 5 to 60 minutes in 1-minute steps
 //   MISSION LIBRARY        one row that opens the library sheet
 //
 // ▾ SEE ALL opens the card where it is: every move (with a swap on a library
@@ -44,11 +46,19 @@ import {
 // stays open or closed for the next visit. ADJUST is a sheet
 // (QuickMissionAdjustSheet) with LEVEL, FOCUS, GUIDED or AT YOUR PACE, ADD
 // CARDIO and a library mission's notes (loadout, score, scale and the coach's
-// note), so its open card stays the moves and one line. GEAR,
-// TIME, LEVEL and FOCUS are remembered per viewer (tm_qm_keys_v1); SURPRISE
-// re-rolls the level, the focus and the moves with the same GEAR and TIME,
-// and saves nothing. What the card shows is exactly what runs: the
-// previewed mission travels with the config.
+// note), so its open card stays the moves and one line. GEAR, TIME and FOCUS
+// are remembered per viewer (tm_qm_keys_v1). LEVEL is not: the page opens on
+// the athlete's own level (data/athleteLevel, from their Fit progress) so it
+// keeps tracking them, ADJUST can scale it to EASY, MEDIUM, HARD or ADVANCED
+// (the athlete's own is marked YOUR LEVEL) and a pick lasts for the visit.
+// SURPRISE re-rolls the level (one step either side of the athlete's own), the
+// focus and the moves with the same GEAR and TIME, and saves nothing. What the
+// card shows is exactly what runs: the previewed mission travels with the
+// config.
+//
+// TIME is for short notice: 5 to 60 minutes and the workout is built for
+// exactly that (fit-mode/quickMissionGenerator fits the real guided run to the
+// minute). The card follows the knob live; only the end of the gesture saves.
 //
 // The MISSION LIBRARY sheet (MissionLibrarySheet) holds the launch missions
 // and the classics. PUT ON CARD brings one here, onto the same card: the
@@ -225,28 +235,54 @@ function RunModeSwitch({ value, guidedOff, soloOff, onPick }) {
   );
 }
 
-// TIME: 10 to 60 minutes in 5-minute steps. The bubble rides the knob and
-// the marks sit where their minutes are on the track (the knob's centre runs
-// from half a knob in to half a knob short of the end).
+// TIME: 5 to 60 minutes, a minute a step. The bubble rides the knob and the
+// marks sit where their minutes are on the track (the knob's centre runs from
+// half a knob in to half a knob short of the end).
 //
 // A scroll that starts on the slider stays a scroll. The band handles the
 // pointer itself (touch-action: pan-y, so the browser keeps every vertical
-// swipe): a finger on the knob drags it, a finger anywhere else drags only
-// once it has gone sideways (more than SLOP px, and more than up or down),
-// and a tap jumps to that minute. A swipe the browser takes for a scroll
-// (pointercancel) puts the knob back. The mouse drags from any press, as a
-// slider does. The native range input underneath takes no pointer and stays
-// the slider for the keyboard and screen readers. Only a finished gesture or
-// a key commits the minutes: onCommit saves them and rebuilds the card.
+// swipe): a finger on the knob drags it (it moves with the finger, from where
+// it was grabbed, so it never jumps), a finger anywhere else drags only once
+// it has gone sideways (more than SLOP px, and more than up or down), and a tap
+// jumps to that minute. A swipe the browser takes for a scroll (pointercancel)
+// puts the knob back. The mouse drags from any press, as a slider does. The
+// native range input underneath takes no pointer and stays the slider for the
+// keyboard and screen readers.
+//
+// While the knob is held the card follows it: onLive(minutes) is called at most
+// once a frame (requestAnimationFrame) with the minute under the knob, and
+// onLive(null) when the gesture is cancelled. Only a finished gesture or a key
+// commits the minutes: onCommit saves them (and the live card is already the
+// card for them).
 const SLOP = 8;
-function TimeSlider({ value, onCommit, dim }) {
+function TimeSlider({ value, onLive, onCommit, dim }) {
   const inputRef = useRef(null);
-  const gesture = useRef(null); // { id, x, y, dragging }
+  const gesture = useRef(null); // { id, x, y, dragging, grab }
   const skipClick = useRef(false);
   const [draft, setDraft] = useState(null);
   const shown = draft ?? value;
   const at = (v) => (v - QM_TIME_MIN) / (QM_TIME_MAX - QM_TIME_MIN);
   const left = (v) => `calc(${THUMB / 2}px + ${at(v)} * (100% - ${THUMB}px))`;
+  // The live card: the latest minute, sent once a frame; a minute already sent
+  // is not sent again.
+  const frame = useRef(0);
+  const pending = useRef(null);
+  const sent = useRef(null);
+  const onLiveRef = useRef(onLive);
+  useEffect(() => { onLiveRef.current = onLive; });
+  const follow = (v) => {
+    pending.current = v;
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      if (pending.current !== null && pending.current !== sent.current) { sent.current = pending.current; onLiveRef.current?.(pending.current); }
+    });
+  };
+  const stopFollowing = () => {
+    if (frame.current) { cancelAnimationFrame(frame.current); frame.current = 0; }
+    pending.current = null; sent.current = null;
+  };
+  useEffect(() => stopFollowing, []);
   // The minute under a pointer, and whether it is on the knob, from the
   // track's own box.
   const track = () => inputRef.current.getBoundingClientRect();
@@ -255,23 +291,26 @@ function TimeSlider({ value, onCommit, dim }) {
     const p = Math.min(1, Math.max(0, (clientX - r.left - THUMB / 2) / Math.max(1, r.width - THUMB)));
     return QM_TIME_MIN + Math.round(p * (QM_TIME_MAX - QM_TIME_MIN) / QM_TIME_STEP) * QM_TIME_STEP;
   };
-  const onKnob = (clientX) => {
-    const r = track();
-    return Math.abs(clientX - (r.left + THUMB / 2 + at(value) * (r.width - THUMB))) <= THUMB / 2 + SLOP;
-  };
+  const knobX = () => { const r = track(); return r.left + THUMB / 2 + at(value) * (r.width - THUMB); };
+  const onKnob = (clientX) => Math.abs(clientX - knobX()) <= THUMB / 2 + SLOP;
   const drag = (e) => {
     gesture.current.dragging = true;
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* already gone */ }
     if (e.pointerType === 'mouse') inputRef.current?.focus({ preventScroll: true }); // the arrow keys carry on from here
   };
-  const reset = () => { gesture.current = null; setDraft(null); };
+  const move = (clientX) => { const m = minuteAt(clientX - (gesture.current?.grab || 0)); setDraft(m); follow(m); };
+  const reset = () => {
+    const wasDragging = !!gesture.current?.dragging;
+    gesture.current = null; setDraft(null); stopFollowing();
+    if (wasDragging) onLiveRef.current?.(null);
+  };
   const band = {
     onPointerDown: (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dragging: false };
+      gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dragging: false, grab: 0 };
       skipClick.current = false;
-      if (e.pointerType === 'mouse') { e.preventDefault(); drag(e); setDraft(minuteAt(e.clientX)); }
-      else if (onKnob(e.clientX)) drag(e);
+      if (e.pointerType === 'mouse') { e.preventDefault(); drag(e); move(e.clientX); }
+      else if (onKnob(e.clientX)) { gesture.current.grab = e.clientX - knobX(); drag(e); }
     },
     onPointerMove: (e) => {
       const g = gesture.current;
@@ -281,7 +320,7 @@ function TimeSlider({ value, onCommit, dim }) {
         const dx = Math.abs(e.clientX - g.x), dy = Math.abs(e.clientY - g.y);
         if (dx > SLOP && dx > dy) drag(e); else return;
       }
-      setDraft(minuteAt(e.clientX));
+      move(e.clientX);
     },
     onPointerUp: (e) => {
       const g = gesture.current;
@@ -289,8 +328,9 @@ function TimeSlider({ value, onCommit, dim }) {
       gesture.current = null;
       if (!g.dragging) return; // a tap: the click below
       skipClick.current = true;
-      setDraft(null);
-      onCommit(minuteAt(e.clientX));
+      const m = minuteAt(e.clientX - g.grab);
+      stopFollowing(); setDraft(null);
+      onCommit(m);
     },
     onPointerCancel: reset,
     onLostPointerCapture: (e) => { if (gesture.current?.id === e.pointerId) reset(); },
@@ -309,7 +349,7 @@ function TimeSlider({ value, onCommit, dim }) {
       position: 'relative', paddingTop: 18, opacity: dim ? 0.55 : 1, transition: 'opacity .2s ease',
       touchAction: 'pan-y', cursor: 'pointer', userSelect: 'none', WebkitUserSelect: 'none', WebkitTapHighlightColor: 'transparent',
     }}>
-      <span aria-hidden="true" style={{
+      <span aria-hidden="true" data-qm-bubble="" style={{
         position: 'absolute', top: 0, left: left(shown), transform: 'translateX(-50%)', whiteSpace: 'nowrap',
         padding: '3px 8px', borderRadius: 6, background: GOLD, color: '#1A1204', font: `700 12px ${HEAD}`, letterSpacing: '0.04em',
       }}>{shown} MIN</span>
@@ -327,10 +367,27 @@ function TimeSlider({ value, onCommit, dim }) {
 
 export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart, onCardioOnly, onPaywall }) {
   const [helpOpen, setHelpOpen] = useState(false);
-  // GEAR · TIME (on the page) and LEVEL · FOCUS (behind ADJUST), back from
-  // the last visit.
+  // GEAR · TIME (on the page) and FOCUS (behind ADJUST), back from the last
+  // visit. LEVEL is the athlete's own on every visit (their Fit progress, so it
+  // keeps tracking them); a pick in ADJUST or a SURPRISE roll lasts for this
+  // visit only and is never saved.
   const [keys, setKeys] = useState(() => loadQuickMissionKeys());
-  const { workoutType, difficulty, duration, focus } = keys;
+  const { workoutType, duration: savedDuration, focus } = keys;
+  const start = useState(() => athleteTier(loadStats(), 'fit'))[0];
+  const [picked, setPicked] = useState(null);
+  const difficulty = picked ?? start;
+  // The minutes under the knob while it is held (null otherwise): the card is
+  // built for them live, and only the end of the gesture saves them.
+  const [live, setLive] = useState(null);
+  const duration = live ?? savedDuration;
+  // While the knob is held the open card's move list keeps the height it had,
+  // so the slider under the finger never moves as the list grows or shrinks.
+  const [frozenH, setFrozenH] = useState(null);
+  const listRef = useRef(null);
+  // One seed per visit (and per SURPRISE): the same choices deal the same
+  // moves, so scrubbing the minutes grows and shrinks one workout instead of
+  // dealing a new one at every step.
+  const [nonce] = useState(() => Math.floor(Math.random() * 2147483647));
   const [seed, setSeed] = useState(0);
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
@@ -364,7 +421,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // after the mission and joins the config only at START, so turning it on
   // or off in ADJUST keeps the moves on the card.
   const cfg = useMemo(() => quickMissionConfig({ duration, focus, difficulty, workoutType }), [duration, focus, difficulty, workoutType]);
-  const mission = useMemo(() => generateQuickMission(cfg), [cfg, seed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const mission = useMemo(() => generateQuickMission({ ...cfg, rng: seededRng(nonce + seed * 7919) }), [cfg, seed, nonce]);
   const estMin = Math.max(1, Math.round(estimateQuickMissionSeconds(mission) / 60));
 
   // A v2 card is rebuilt from the authored mission on every choice, so a
@@ -394,18 +451,36 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // A finished TIME gesture or key. The same minutes change nothing, except
   // that a deliberate touch on TIME with a library mission on the card brings
   // today's mission back.
-  const pickTime = (v) => { if (v !== duration || sel.kind !== 'generated') pickPage({ duration: v }); };
+  const pickTime = (v) => {
+    setLive(null); setFrozenH(null);
+    if (v !== savedDuration || sel.kind !== 'generated') pickPage({ duration: v });
+  };
+  // The knob is moving: build the card for the minute under it (null = the
+  // gesture was cancelled, back to the saved minutes). The first move of a
+  // drag brings today's mission back if a library mission was on the card.
+  const latest = useRef({});
+  useEffect(() => { latest.current = { live, sel, open }; });
+  const followTime = (v) => {
+    if (v == null) { setLive(null); setFrozenH(null); return; }
+    const { live: was, sel: on, open: isOpen } = latest.current;
+    if (was == null) {
+      if (on.kind !== 'generated') clearPick();
+      else if (isOpen && listRef.current) setFrozenH(Math.round(listRef.current.getBoundingClientRect().height));
+    }
+    setLive(v);
+  };
   // SURPRISE keeps GEAR and TIME (the two choices on the page) and deals a
-  // new level, focus and moves. It is not a choice, so it is not saved: the
-  // next visit opens on what the athlete picked.
+  // new level (one step either side of the athlete's own), focus and moves. It
+  // is not a choice, so it is not saved: the next visit opens on the athlete's
+  // level and what they picked.
   // The two dice on SURPRISE roll on every tap (remounted by key).
   const [roll, setRoll] = useState(0);
   const surprise = () => {
     setRoll(r => r + 1);
     clearPick();
-    let f = focus, i = difficulty;
-    while (f === focus && i === difficulty) { f = rand(QM_FOCI); i = rand(QM_INTENSITY); }
-    setKeys(k => ({ ...k, focus: f, difficulty: i })); setSeed(s => s + 1);
+    let f = focus, i = difficulty, guard = 0;
+    while (f === focus && i === difficulty && guard++ < 40) { f = rand(QM_FOCI); i = rollSurpriseTier(start); }
+    setKeys(k => ({ ...k, focus: f })); setPicked(i); setSeed(n => n + 1);
   };
 
   // ▾ SEE ALL / ▴ SHOW LESS. Opening scrolls the page just enough to bring
@@ -560,7 +635,8 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
       ? { words: 'add cardio', level: null, focus: null, how: null, notes: null }
       : {
         words: v2 ? 'level, focus, run mode, cardio' : 'level, focus, cardio',
-        level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: (v) => pickKey({ difficulty: v }) },
+        // The athlete's own level is marked YOUR LEVEL; any can be picked, for this visit.
+        level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: setPicked, mark: start, markLabel: 'YOUR LEVEL', detail: 'Starts at your level. Your pick lasts for this visit.' },
         focus: { options: QM_FOCI.map(f => ({ id: f, label: f === 'FULL BODY' ? 'FULL' : f })), value: focus, onPick: (v) => pickKey({ focus: v }) },
         how: v2 ? { value: runMode, soloOnly: false, onPick: pickMode, help: runHelp } : null, notes: null,
       };
@@ -590,7 +666,11 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const muted = (children) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{children}</div>;
   // An open library card's rows are MoveRow's 44px (the swap's target), so
   // they need no gap of their own.
-  const listStyle = { listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: card && open ? 0 : open ? 4 : 3 };
+  const listStyle = {
+    listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: card && open ? 0 : open ? 4 : 3,
+    // While the knob is held: the height the list had, never more, never less.
+    ...(frozenH != null && open && !card && !named ? { height: frozenH, overflow: 'hidden', flexShrink: 0 } : {}),
+  };
 
   // The eyebrow: TODAY'S QUICK MISSION, or a library mission's with the small
   // way back to today's mission (short words, a 44px target; its margins keep
@@ -703,7 +783,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               {eyebrow}
               <h1 style={{ margin: 0, font: `700 23px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 320 }}>{title}</h1>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>
-              <ol id="qm-moves" className={open ? undefined : 'qm-moves-closed'} style={listStyle}>{moves}</ol>
+              <ol id="qm-moves" ref={listRef} className={open ? undefined : 'qm-moves-closed'} style={listStyle}>{moves}</ol>
               {/* A mission's safety line (NO CONTINUES), big, open or closed. */}
               {card?.safety && (
                 <div role="note" style={{
@@ -776,7 +856,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
           </div>
           <div data-guide="qm-time" className="qm-mt" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
             <Label>Time</Label>
-            <TimeSlider value={duration} dim={onLibrary} onCommit={pickTime}/>
+            <TimeSlider value={duration} dim={onLibrary} onLive={followTime} onCommit={pickTime}/>
           </div>
 
           {/* MISSION LIBRARY — the folder: every launch mission and classic,

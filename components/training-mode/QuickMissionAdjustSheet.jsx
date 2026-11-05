@@ -7,7 +7,7 @@ import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import useSheetModal, { GRAB_BAR } from './shared/useSheetModal';
 import {
   SegRow, ChipGroup, CardioToggleCard, GoldButton, Label,
-  HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, CARD, CARD_BORDER, chf,
+  HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD, CARD, CARD_BORDER, chf,
 } from './shared/FitSetupKit';
 
 // Quick Mission · ADJUST. Everything that is not GEAR or TIME, behind the
@@ -15,7 +15,8 @@ import {
 //
 // The Mission Library's floating sheet (portalled, resting on the tab bar),
 // sized to what it holds. What it shows depends on the mission on the card:
-//   today's mission   LEVEL (easy / medium / hard) · FOCUS · RUN MODE (guided /
+//   today's mission   LEVEL (easy / medium / hard / advanced, with the athlete's
+//                     own marked YOUR LEVEL) · FOCUS · RUN MODE (guided /
 //                     at your pace) · ADD CARDIO
 //   a library mission LEVEL (its own levels) · RUN MODE (guided / at your pace) · ADD CARDIO
 //                     · NOTES (its loadout, score, how to scale and the
@@ -25,7 +26,8 @@ import {
 // rebuilds behind the sheet and the page remembers it. DONE, Escape, the
 // backdrop or a swipe down on the grab bar close it.
 //
-// level: { options: [{ id, label }], value, onPick, detail? } | null
+// level: { options: [{ id, label }], value, onPick, detail?, mark?, markLabel? } | null
+//        (mark: the option id to caption with markLabel, the athlete's own level)
 // focus: { options, value, onPick } | null
 // how:   { value: 'guided' | 'solo' (shown as AT YOUR PACE), soloOnly, help, onPick } | null
 // notes: { lines: [[label, value]], scale, note } | null
@@ -37,6 +39,40 @@ const CSS = `
 .qa-chips .fk-chip::after { content: ''; position: absolute; top: -4px; bottom: -4px; left: -3px; right: -3px; }
 @media (prefers-reduced-motion: reduce) { .qa-panel { animation: none !important; } }
 `;
+
+// LEVEL: the kit's strip (the SegRow look, 44px), for four levels on a 360px
+// phone (a tighter label), with the athlete's own captioned under its segment.
+function LevelRow({ level }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <Label>Level</Label>
+      <div role="radiogroup" aria-label="Level" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
+        {level.options.map(o => {
+          const on = o.id === level.value;
+          return (
+            <button key={o.id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={o.id === level.mark ? `${o.label}, ${level.markLabel.toLowerCase()}` : o.label}
+              className="fk-seg" onClick={() => level.onPick(o.id)} style={{
+                flex: '1 1 0', minWidth: 0, height: 44, border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap',
+                font: `600 11px ${HEAD}`, letterSpacing: '0.06em',
+                color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
+                boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
+              }}>{o.label}</button>
+          );
+        })}
+      </div>
+      {level.mark && (
+        <div aria-hidden="true" style={{ display: 'flex', gap: 3, padding: '0 3px', marginTop: -2 }}>
+          {level.options.map(o => (
+            <span key={o.id} data-your-level={o.id === level.mark ? '' : undefined} style={{
+              flex: '1 1 0', minWidth: 0, textAlign: 'center', whiteSpace: 'nowrap', font: `700 9px ${HEAD}`, letterSpacing: '0.1em', color: GOLD,
+            }}>{o.id === level.mark ? level.markLabel : '\u00A0'}</span>
+          ))}
+        </div>
+      )}
+      {level.detail && help(level.detail)}
+    </div>
+  );
+}
 
 const help = (text) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{text}</div>;
 
@@ -109,12 +145,14 @@ export default function QuickMissionAdjustSheet({ title, level, focus, how, note
           </div>
 
           <div className="no-scrollbar" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '8px 16px 4px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {level && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <SegRow label="Level" options={level.options} value={level.value} onPick={level.onPick} height={44}/>
-                {level.detail && help(level.detail)}
-              </div>
-            )}
+            {level && (level.mark
+              ? <LevelRow level={level}/>
+              : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <SegRow label="Level" options={level.options} value={level.value} onPick={level.onPick} height={44}/>
+                  {level.detail && help(level.detail)}
+                </div>
+              ))}
             {focus && (
               <div className="qa-chips" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <Label>Focus</Label>

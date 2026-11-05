@@ -36,7 +36,7 @@ const clamp01 = (n) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0);
  * @param {object}  o
  * @param {number}  o.completed              units of work actually completed
  * @param {number}  o.total                  units prescribed
- * @param {string}  o.difficulty             'easy' | 'normal' | 'hard'
+ * @param {string}  o.difficulty             'easy' | 'normal' | 'hard' | 'advanced' (read as hard)
  * @param {object}  [o.integrityResult]      from utils/missionIntegrity
  * @param {boolean} [o.safetyFlag]           pain / danger symptom reported
  * @param {number}  [o.techniqueBreakdowns]  flagged form breakdowns
@@ -85,8 +85,10 @@ export function resolveOutcome({
   // still resolves to 'normal', whose threshold demands 'completed'. Every
   // Fight Focus and Combo Coach session then failed on the tactical rule —
   // 3/3 rounds, all verified, MISSION FAILED, zero XP.
+  // ADVANCED (Quick Mission's fourth level) is judged as HARD: it asks for more
+  // work, never a stricter verdict, so it can never be harder to pass than HARD.
   const diff = String(difficulty || 'normal').toLowerCase();
-  const tier = diff === 'easy' || diff === 'hard' ? diff : 'normal';
+  const tier = diff === 'easy' || diff === 'hard' ? diff : diff === 'advanced' ? 'hard' : 'normal';
 
   // Modes that don't track a tactical objective shouldn't be failed on one:
   // default to "met" so the engine judges them on completion and technique.

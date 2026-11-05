@@ -10,6 +10,7 @@ import { judgeRoundIntensity } from '../components/training-mode/data/roundInten
 import { createMicStrikeDetector } from '../components/training-mode/data/micStrikeDetector.js';
 import { quickMissionXp, addFitModeSession, loadStats } from '../components/training-mode/data/userStats.js';
 import { canFinishEarly, finishPrompt, finishOnResume } from '../components/training-mode/data/builderFinish.js';
+import { resolveOutcome, xpForOutcome } from '../components/training-mode/shared/sessionOutcome.js';
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -162,6 +163,27 @@ check('build workout: FINISH WORKOUT goes when all are done', canFinishEarly(7, 
   check('build workout: 8 of 8 adds the +30', full === 150, String(full));
   check('build workout: two finishes, two rows', loadStats().sessions.length === 2 && loadStats().xp === 240);
   delete globalThis.localStorage;
+}
+
+// Quick Mission's fourth level. ADVANCED asks for more work, never a stricter
+// verdict: for every completion and every kind of ending it resolves exactly as
+// HARD does, so it is never harder to pass than HARD (and XP is the same fair
+// per-exercise figure the other levels bank).
+{
+  const ratios = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1];
+  const same = ratios.every(r => ['advanced', 'Advanced', 'ADVANCED'].every(d => {
+    const a = resolveOutcome({ completed: Math.round(r * 24), total: 24, difficulty: d });
+    const h = resolveOutcome({ completed: Math.round(r * 24), total: 24, difficulty: 'Hard' });
+    return a.outcome === h.outcome && a.failType === h.failType && a.completionRatio === h.completionRatio;
+  }));
+  check('quick mission: ADVANCED resolves exactly as HARD at every completion', same);
+  const rank = { fail: 0, validation_failed: 0, partial: 1, pass: 2 };
+  check('quick mission: ADVANCED is never harder to pass than HARD, or than NORMAL on a clean finish', ratios.every(r => {
+    const o = (d) => rank[resolveOutcome({ completed: Math.round(r * 24), total: 24, difficulty: d }).outcome];
+    return o('Advanced') >= o('Hard');
+  }) && resolveOutcome({ completed: 24, total: 24, difficulty: 'Advanced' }).outcome === 'pass');
+  check('quick mission: a finished ADVANCED mission banks the full XP, a stopped one keeps its exercises', xpForOutcome('pass', quickMissionXp(24, 24, true)) === 24 * 15 + 30
+    && xpForOutcome(resolveOutcome({ completed: 12, total: 24, difficulty: 'Advanced' }).outcome, quickMissionXp(12, 24, false)) === 12 * 15);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
