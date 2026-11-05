@@ -6,7 +6,7 @@ import ModeTabs from './shared/ModeTabs';
 import BottomSheet from './shared/BottomSheet';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
-import { Shuffle, Zap, Bookmark, ChevronRight, X } from 'lucide-react';
+import { Shuffle, Zap, Bookmark, ChevronRight, X, Flame } from 'lucide-react';
 import AddCardioSheet from './AddCardioSheet';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import { resolveScheme, CHIP_GROUPS, SET_SCHEMES, DURATIONS, DEFAULT_DURATION } from './data/workoutPrograms';
@@ -105,7 +105,7 @@ const numInput = {
   background: '#16131F', border: '1px solid rgba(157,108,255,0.45)', color: '#fff', font: `700 14px ${HEAD}`, outline: 'none',
 };
 
-export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerate, profileSex }) {
+export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerate, onMaxOut, profileSex }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [chips, setChips] = useState(['CHEST', 'BACK']);
   const [equipment, setEquipment] = useState('BODYWEIGHT');
@@ -234,6 +234,11 @@ export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerat
             <GhostButton label="SURPRISE ME" icon={<Shuffle size={16} color={GOLD}/>} onClick={surprise} height={44}/>
             <GhostButton guide="wb-routines" label={routines.length ? `ROUTINES · ${routines.length}` : 'ROUTINES'} icon={<Bookmark size={16} color={VIOLET_TEXT}/>} onClick={() => setSheet('routines')} height={44}/>
           </div>
+          {/* MAX OUT — five max-rep workouts. Your equipment and difficulty pick the
+              list and the level; the Mission Library opens on them. */}
+          {onMaxOut && (
+            <GhostButton guide="wb-maxout" label="MAX OUT" icon={<Flame size={16} color={GOLD}/>} onClick={() => onMaxOut({ equipment, difficulty })} height={44}/>
+          )}
         </div>
       </SetupPage>
 

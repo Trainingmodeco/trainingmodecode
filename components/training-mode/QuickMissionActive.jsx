@@ -23,11 +23,16 @@ import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSe
 import { qmV2Enabled } from './data/qmV2';
 import { levelWord } from './data/quickMissionConfig';
 import { missionRunsAtYourPace } from './data/soloFromGenerated';
-import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime } from './data/missionSolo';
+import MaxRepsSheet from './shared/MaxRepsSheet';
+import {
+  qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime,
+  isMaxReps, maxRepsScore, maxRepsLimit, maxCapReached, MIN_SET_SEC,
+} from './data/missionSolo';
 import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
   leadLine, shortRestLine, restScript, getReadySeconds, workStartLine, skipRestTarget,
   countBeats, paceBeats, nearEndUpNextAt, windowRest, swappedInLine, switchLine, roundLine, mmss,
+  moveById, isLoadedMove, maxStopLine, maxFinishLine, repCapFor,
 } from './data/missionMoves';
 
 const GOLD = C.yellow;
@@ -127,6 +132,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   // I'M DONE (UPPER LOWER DIPS, downUnit 'round', which calls each round).
   const dc = downCopy(mission);
   const roundsDown = untilDown && mission.downUnit === 'round';
+  // v2 · MAX OUT (format 'maxReps'): one set at each station, clean reps until
+  // the form breaks, then DONE and the reps entered (the HOW MANY REPS? sheet).
+  // The run has a clock like an until-down run (it counts up to the cap) and
+  // the same skip / stash fields. Every maxReps branch below is off for every
+  // other mission.
+  const maxReps = v2 && isMaxReps(mission);
+  const clocked = untilDown || maxReps;
+  // The reps saved for each position ('round:idx' -> { reps, sec }). It travels
+  // in the stash, and a REWIND takes its slot's entry back like its outcome. A
+  // stash from before it (or from any other mission) loads empty.
+  const repsRef = useRef(initialResumeData?.reps && typeof initialResumeData.reps === 'object' ? { ...initialResumeData.reps } : {});
   // A skipped block is no set, and it drops the finish bonus (sent with the
   // result as `skipped`). Every `checkEvery` sets (the level's elite mark)
   // the count holds and asks STILL GOING?, so a phone left running never
@@ -206,6 +222,14 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   // the old tick, the next second comes early and the spoken "3" cuts the
   // short line. Never changes in today's runner.
   const [tickEpoch, setTickEpoch] = useState(0);
+  // MAX REPS: DONE wakes after MIN_SET_SEC of the set, and HOW MANY REPS?
+  // (repsAsk: the set it was opened on, with its seconds) holds the run.
+  const [setReady, setSetReady] = useState(false);
+  const [repsAsk, setRepsAsk] = useState(null);
+  // The same ask, read synchronously: a second tap on SAVE inside one render
+  // must not save (and advance) twice.
+  const repsAskRef = useRef(null);
+  const repsWasPausedRef = useRef(false);
 
   const versionRef = useRef(0);
   const cadenceVersionRef = useRef(0);
@@ -245,8 +269,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      // runMs: only an untilDown run has a run clock to bring back.
-      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, outcomes: { ...outcomesRef.current }, ...(untilDown ? { runMs: Math.round(runMsNow()), skipped: skippedRef.current } : {}), ...(byTime ? { workedSec: workedRef.current } : {}) });
+      // runMs: only an untilDown or MAX REPS run has a run clock to bring back.
+      onStateChange({ phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, mission, restTotal, restKind, outcomes: { ...outcomesRef.current }, ...(clocked ? { runMs: Math.round(runMsNow()), skipped: skippedRef.current } : {}), ...(maxReps ? { reps: { ...repsRef.current } } : {}), ...(byTime ? { workedSec: workedRef.current } : {}) });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, exIdx, round, remaining, exercisesCompleted, roundsCompleted, onStateChange, mission, restTotal, restKind, runSec]);
@@ -432,10 +456,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     setCadenceStep(null);
     if (ex.mode === 'timed') setRemaining(ex.work);
     setTickEpoch(e => e + 1);
-    if (untilDown) runStartedRef.current = true;
+    if (clocked) runStartedRef.current = true;
+    if (maxReps) setSetReady(false); // DONE wakes after MIN_SET_SEC of the set
     // Paused (a SKIP mid-pause chained in): RESUME starts the count.
     if (pausedRef.current) return;
-    if (untilDown) runClockStart();
+    if (clocked) runClockStart();
     if (voiceOn) {
       // untilDown: a block that chained on from the last one is a switch,
       // or the next round when the run counts rounds.
@@ -573,7 +598,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     }
     outcomesRef.current[`${roundRef.current}:${exIdxRef.current}`] = 'skip';
     if (v2) {
-      if (untilDown) skippedRef.current += 1;
+      if (clocked) skippedRef.current += 1;
       advanceV2('skip');
       return;
     }
@@ -639,10 +664,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     const moved = idx > 0 || currentRound > 1;
     const was = outcomesRef.current[key] ?? (moved && !outcomesKnown ? 'done' : null);
     delete outcomesRef.current[key];
+    if (maxReps) delete repsRef.current[key];
     if (was === 'done') {
       setExercisesCompleted(c => Math.max(0, c - 1));
       if (byTime) workedRef.current = Math.max(0, workedRef.current - clockWorkOf(allExercises[exIdxRef.current]));
-    } else if (was === 'skip' && untilDown) {
+    } else if (was === 'skip' && clocked) {
       skippedRef.current = Math.max(0, skippedRef.current - 1);
     }
     if (v2) {
@@ -1041,6 +1067,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
   const handleCompleteRep = () => {
     if (phaseRef.current !== 'work' || currentEx.mode !== 'reps') return;
+    // A MAX REPS set: DONE opens HOW MANY REPS? (SAVE ends the set).
+    if (maxReps && currentEx.max) { askReps(); return; }
     // v2 minute windows keep DONE through the count: finishing early buys rest.
     if (!cadenceActive || (v2 && currentEx.window != null)) {
       completeExerciseRef.current?.();
@@ -1085,7 +1113,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     stopCadence();
     setPaused(true);
     integrity.pause();
-    if (untilDown) runClockStop();
+    if (clocked) runClockStop();
     if (v2) {
       pausedRef.current = true;
       // The minute window counts only unpaused work.
@@ -1128,7 +1156,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   const handleResume = () => {
     setPaused(false);
     integrity.resume();
-    if (untilDown && runStartedRef.current) runClockStart();
+    if (clocked && runStartedRef.current) runClockStart();
     if (v2) {
       pausedRef.current = false;
       if (pauseStartRef.current != null) {
@@ -1142,6 +1170,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
       } else if (phaseRef.current === 'rest') {
         resumeRestVoice();
       } else if (phaseRef.current === 'work' && ex) {
+        // A MAX REPS set brought back from the stash starts over: nobody knows
+        // how long it ran, so its seconds count from this tap.
+        if (maxReps && workStartRef.current == null) { workStartRef.current = Date.now(); workPausedMsRef.current = 0; }
         // Counted reps restart from the last number shown, even 0 (paused
         // before rep 1 used to leave only a manual DONE); a pace count from
         // the next number still ahead.
@@ -1184,6 +1215,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   const finishMission = (finalRounds) => {
     // untilDown: running out of rounds (the backstop) ends it like the cap.
     if (untilDown) { endDown('cap'); return; }
+    // MAX REPS: the last SAVE finishes the run with its score.
+    if (maxReps) { endMax('finish', finalRounds); return; }
     // Set at once, not after the next render: a second tap inside the 1.8 s
     // bell used to bank the whole session twice.
     if (doneRef.current) return;
@@ -1266,6 +1299,95 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     });
   };
 
+  // ── MAX REPS ───────────────────────────────────────────────────────────────
+  // The saved sets in set order, [{ reps, sec } | null]: a position nobody
+  // saved (a skipped set) is null.
+  const maxEntries = () => {
+    const per = allExercises.length;
+    const out = [];
+    for (let r = 1; r <= (mission.rounds || 1); r += 1) {
+      for (let i = 0; i < per; i += 1) out.push(repsRef.current[`${r}:${i}`] || null);
+    }
+    while (out.length && out[out.length - 1] == null) out.pop();
+    return out;
+  };
+  const maxScoreNow = (elapsedSec, { capped = false } = {}) => maxRepsScore(mission, maxEntries(), { timeSec: elapsedSec, capped, skipped: skippedRef.current });
+  const savedSets = () => maxEntries().filter(Boolean).length;
+  // The end of a MAX REPS run: the last SAVE ('finish'), the cap ('cap'). Like
+  // an until-down end it is read after the 1.8 s bell, the score travels with
+  // the result, and the cap keeps the sets saved (no bonus: App settles it).
+  const endMax = (why, finalRounds) => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    runClockStop();
+    stopCadence();
+    cancelSpeech();
+    versionRef.current++;
+    moveVersionRef.current++;
+    setDone(true);
+    setConfirmEnd(false);
+    repsAskRef.current = null;
+    setRepsAsk(null);
+    playBell(3);
+    const elapsedSec = Math.floor(runMsNow() / 1000);
+    const capped = why === 'cap';
+    const score = maxScoreNow(elapsedSec, { capped });
+    if (voiceOn) setTimeout(() => speakAsync(capped ? 'Time.' : maxFinishLine(score.total)), 400);
+    if (capped) integrity.getSession()?.endRunHere(exIdxRef.current > 0);
+    const integrityResult = integrity.finalize();
+    endAfterBell(() => {
+      stopVoiceSession();
+      onEnd({
+        runId,
+        completed: !capped,
+        capped,
+        roundsCompleted: finalRounds ?? roundsCompletedRef.current,
+        totalRounds: mission.rounds,
+        exercisesCompleted: exercisesCompletedRef.current,
+        totalExercises: allExercises.length * mission.rounds,
+        mission,
+        integrityResult,
+        elapsedSec,
+        skipped: skippedRef.current,
+        ...(score.sets > 0 ? { score } : {}),
+      });
+    });
+  };
+  const endMaxRef = useRef(null);
+  useEffect(() => { endMaxRef.current = endMax; });
+
+  // DONE: the set ends here. The run holds (the count, the run clock and the
+  // set's own clock stop) and HOW MANY REPS? opens; NOT YET picks the set up
+  // again only if it was running. The set's seconds are frozen at the tap.
+  const askReps = () => {
+    if (doneRef.current || phaseRef.current !== 'work') return;
+    const ex = allExercises[exIdxRef.current];
+    if (!ex?.max) return;
+    const sec = Math.max(0, Math.round(workElapsedSec() ?? 0));
+    if (repsAskRef.current) return;
+    repsWasPausedRef.current = pausedRef.current;
+    if (!pausedRef.current) handlePause();
+    repsAskRef.current = { sec, round: roundRef.current, idx: exIdxRef.current };
+    setRepsAsk(repsAskRef.current);
+  };
+  const cancelReps = () => {
+    if (!repsAskRef.current) return;
+    repsAskRef.current = null;
+    setRepsAsk(null);
+    if (!repsWasPausedRef.current) handleResume();
+  };
+  // SAVE: the reps go in, the run un-holds, and the set is done: the rest
+  // starts (or the run ends on the last set).
+  const saveReps = (reps) => {
+    const ask = repsAskRef.current;
+    repsAskRef.current = null;
+    setRepsAsk(null);
+    if (!ask || doneRef.current) return;
+    repsRef.current[`${ask.round}:${ask.idx}`] = { reps, sec: ask.sec };
+    if (!repsWasPausedRef.current && pausedRef.current) handleResume();
+    completeExerciseRef.current?.();
+  };
+
   // I PUT IT DOWN holds the run (the count and the run clock stop) and asks.
   // NOT YET picks it up again only if it was running. The check-in ('check',
   // every checkEvery sets) holds it the same way: KEEP GOING calls the block
@@ -1295,18 +1417,24 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   };
   const confirmDown = () => { setDownAsk(false); endDown('down'); };
 
-  // untilDown: the run clock on screen, and the safety cap.
+  // untilDown and MAX REPS: the run clock on screen, and the cap.
   useEffect(() => {
-    if (!untilDown || done) return undefined;
+    if (!clocked || done) return undefined;
     const id = setInterval(() => {
       const ms = runMsNow();
       setRunSec(Math.floor(ms / 1000));
+      if (maxReps) {
+        // The set's own clock: DONE wakes after MIN_SET_SEC. endMax says 'Time.' itself.
+        setSetReady(phaseRef.current === 'work' && (workElapsedSec() ?? 0) >= MIN_SET_SEC);
+        if (maxCapReached(mission, ms / 1000) && !doneRef.current) endMaxRef.current?.('cap');
+        return;
+      }
       // endDown says 'Time. Park the bell.' itself.
       if (downCapReached(mission, ms / 1000) && !doneRef.current) endDownRef.current?.('cap');
     }, 500);
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [untilDown, done]);
+  }, [clocked, done]);
 
   // extra: fields for the result (endDown's no-set end flags untilDown).
   const handleEndConfirm = (extra) => {
@@ -1327,7 +1455,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     // "0 EXERCISES" on the same screen. Rounds are now DERIVED from the
     // exercise counter, so the two can never disagree again.
     const exDone = exercisesCompletedRef.current;
-    if (untilDown) runClockStop();
+    if (clocked) runClockStop();
     // The work of a timed slot cut short counts for the time it ran.
     const exNow = allExercises[exIdxRef.current];
     // Never a slot already counted done (its clock ran out and completed it).
@@ -1346,7 +1474,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
       ...(byTime ? { workedSec: Math.floor(workedRef.current + partWork) } : {}),
       // untilDown: END is a quit with no score (settleGuidedXp pays 0); the
       // run clock goes with it for the complete screen.
-      ...(untilDown ? { elapsedSec: Math.floor(runMsNow() / 1000) } : {}),
+      ...(clocked ? { elapsedSec: Math.floor(runMsNow() / 1000) } : {}),
+      // MAX REPS: STOP / END keeps the sets saved so far (a partial, no bonus).
+      ...(maxReps ? { skipped: skippedRef.current, ...(savedSets() > 0 ? { score: maxScoreNow(Math.floor(runMsNow() / 1000)) } : {}) } : {}),
       ...(extra && typeof extra === 'object' && !extra.nativeEvent ? extra : {}),
     });
   };
@@ -1372,7 +1502,12 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   // count (done early = more rest); elsewhere it hides once counting starts.
   const showDoneV2 = phase === 'work' && currentEx.mode === 'reps' && (!currentCounted
     || (currentEx.window != null ? !paused : (!cadenceActive && cadenceRep === 0 && !paused)));
-  const showDone = !done && (v2 ? showDoneV2 : (showDoneButton || showManualDone));
+  // A MAX REPS set has its own big gold DONE (below), never the small square one.
+  const maxSet = maxReps && phase === 'work' && !!currentEx.max;
+  const showDone = !done && !maxSet && (v2 ? showDoneV2 : (showDoneButton || showManualDone));
+  // The ring on a MAX set says MAX over REPS (CLEAN REPS under a load, STOP 2 SHORT when
+  // the station leaves reps in the tank).
+  const maxRingLabel = currentEx.leave > 0 ? `STOP ${currentEx.leave} SHORT` : isLoadedMove(currentEx.moveId) ? 'CLEAN REPS' : 'REPS';
 
   // v2 on-screen extras. A catalog slot prints its card dose ('10 (5/side)',
   // '3:00', '2 + 1 + 3'); anything else today's dose plus its unit.
@@ -1449,8 +1584,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: '0.1em' }}>
             {untilDown ? `${dc.ONE} ${exercisesCompleted + 1}` : (minuteLabel || <>ROUND {round}/{mission.rounds}</>)}
           </span>
-          <span role={untilDown ? 'timer' : undefined} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>
-            {untilDown ? `${mmss(runSec)} / ${mmss(mission.capSec || 0)}` : workoutType.toUpperCase()}
+          <span role={clocked ? 'timer' : undefined} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>
+            {clocked ? `${mmss(runSec)} / ${mmss(mission.capSec || 0)}` : workoutType.toUpperCase()}
           </span>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted }}>
             {v2Mission && mission.levelLabel ? mission.levelLabel : levelWord(missionCfg.difficulty)}
@@ -1532,11 +1667,11 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                 <div style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40,
                   color: GOLD,
-                }}>{currentEx.reps}</div>
+                }}>{maxSet ? 'MAX' : currentEx.reps}</div>
                 <div style={{
                   fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
                   color: C.muted, letterSpacing: '0.15em', marginTop: 6,
-                }}>{currentEx.unit || 'REPS'}</div>
+                }}>{maxSet ? maxRingLabel : currentEx.unit || 'REPS'}</div>
               </>
             )}
           </div>
@@ -1563,7 +1698,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             {phase === 'rest' && upNextExercise ? (
               <>
                 <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: '#4f8cff', letterSpacing: '0.15em', marginBottom: 6 }}>
-                  UP NEXT
+                  {maxReps && upNextExercise.max ? `UP NEXT · STATION ${exIdx + 1}` : 'UP NEXT'}
                 </div>
                 <div style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20,
@@ -1589,7 +1724,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.muted, letterSpacing: '0.15em' }}>
-                    {untilDown ? (roundsDown ? `${dc.ONE} ${exercisesCompleted + 1}` : `BLOCK ${exIdx + 1}/${allExercises.length}`) : (minuteLabel || <>EXERCISE {exIdx + 1}/{allExercises.length}</>)}
+                    {untilDown ? (roundsDown ? `${dc.ONE} ${exercisesCompleted + 1}` : `BLOCK ${exIdx + 1}/${allExercises.length}`) : maxSet ? `STATION ${exIdx + 1}` : (minuteLabel || <>EXERCISE {exIdx + 1}/{allExercises.length}</>)}
                   </span>
                   {phase === 'work' && currentEx.mode === 'reps' && (
                     <span style={{
@@ -1611,6 +1746,15 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                 }}>
                   {currentEx.name}
                 </div>
+                {/* MAX REPS: the first cue, and when to stop the set. */}
+                {maxSet && (
+                  <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {moveById(currentEx.moveId)?.cues?.[0] && (
+                      <div style={{ font: `500 13px ${BODY}`, lineHeight: 1.4, color: C.text }}>{moveById(currentEx.moveId).cues[0]}</div>
+                    )}
+                    <div role="note" style={{ font: `700 13px ${BODY}`, lineHeight: 1.4, color: '#fff' }}>{maxStopLine(currentEx, mission.level)}</div>
+                  </div>
+                )}
                 {/* v2 list slots: an AMRAP block keeps its moves on screen; a
                     complex lights the step the count is on. */}
                 {v2 && Array.isArray(currentEx.list) && (
@@ -1666,6 +1810,19 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             background: 'rgba(239,68,68,0.16)', border: '1.5px solid rgba(239,68,68,0.75)', color: '#fff',
             fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, letterSpacing: '0.14em',
           }}>{dc.done}</button>
+        )}
+
+        {/* MAX REPS: DONE ends the set and opens HOW MANY REPS?. It is dim for the
+            first MIN_SET_SEC of the set, so a stray tap cannot save a set that
+            never happened. */}
+        {maxSet && !done && (
+          <button type="button" data-guide="qma-done" onClick={handleCompleteRep} disabled={!setReady} aria-label="Done. Enter your reps" style={{
+            width: '100%', maxWidth: 360, height: 56, marginBottom: 14, borderRadius: 14, border: 'none',
+            cursor: setReady ? 'pointer' : 'default', opacity: setReady ? 1 : 0.4,
+            background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, letterSpacing: '0.2em',
+            boxShadow: setReady ? '0 0 24px rgba(242,190,69,0.35)' : 'none', transition: 'opacity .25s ease',
+          }}>DONE</button>
         )}
 
         {/* Controls */}
@@ -1778,7 +1935,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
               color: C.muted, lineHeight: 1.5, marginBottom: 24,
             }}>{untilDown
               ? dc.stopGuided
-              : byTime
+              : maxReps
+                ? (exercisesCompleted > 0 ? 'Your saved sets count.' : 'Save one set to earn XP.')
+                : byTime
                 ? 'The minutes you worked count toward your XP.'
                 : 'Only completed exercises will count toward your stats.'}</div>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -1826,6 +1985,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
           </div>
         </div>
       )}
+      {/* MAX REPS: HOW MANY REPS? opens when DONE ends a set. It starts at last round's
+          reps for this station, or the level's first-set number. */}
+      {maxReps && repsAsk && !done && (() => {
+        const ex = allExercises[repsAsk.idx];
+        const last = repsRef.current[`${repsAsk.round - 1}:${repsAsk.idx}`];
+        return (
+          <MaxRepsSheet moveName={ex?.name} start={last?.reps ?? ex?.reps ?? 10}
+            max={maxRepsLimit(ex, repsAsk.sec, mission.level)} cap={repCapFor(ex?.moveId, mission.level)}
+            onSave={saveReps} onNotYet={cancelReps}/>
+        );
+      })()}
       {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.quick_mission_active} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );

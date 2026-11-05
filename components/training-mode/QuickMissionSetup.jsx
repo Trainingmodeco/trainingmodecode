@@ -22,7 +22,7 @@ import { qmV2Enabled } from './data/qmV2';
 import {
   RUN_MODES, GUIDED_HELP, SOLO_HELP, SOLO_ONLY_HELP, CLASSIC_HELP,
   missionDefById, levelsOf, gearProfile, buildLoadoutMission, missionCardModel,
-  classicMeta, shelfEntries, loadShelfPrefs, saveShelfPrefs,
+  classicMeta, shelfEntries, loadShelfPrefs, saveShelfPrefs, libraryLevelFor,
 } from './data/loadoutMissions';
 import {
   fitKitCSS, SetupHeader, SetupPage, GoldButton, Tag, Label,
@@ -325,7 +325,7 @@ function TimeSlider({ value, onCommit, dim }) {
   );
 }
 
-export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart, onCardioOnly, onPaywall }) {
+export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, onStart, onCardioOnly, onPaywall }) {
   const [helpOpen, setHelpOpen] = useState(false);
   // GEAR · TIME (on the page) and LEVEL · FOCUS (behind ADJUST), back from
   // the last visit.
@@ -334,7 +334,8 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const [seed, setSeed] = useState(0);
   const [cardioAddon, setCardioAddon] = useState(null);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
-  const [libraryOpen, setLibraryOpen] = useState(false);
+  // Build Workout's MAX OUT opens the page on the Mission Library (entry.openLibrary).
+  const [libraryOpen, setLibraryOpen] = useState(() => entry?.openLibrary === true);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [open, setOpen] = useState(() => loadCardOpen());
   // What the card shows: the generated mission, a named classic (Murph,
@@ -506,7 +507,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const startFromLibrary = (entry) => {
     setLibraryOpen(false);
     if (entry.kind === 'v2') {
-      const m = buildLoadoutMission(entry.id, { gear });
+      // A MAX OUT workout runs at the level picked for it (Build Workout's difficulty, or ADJUST);
+      // every other mission runs its default, as the library always did.
+      const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id) });
       if (m) startV2(m, mode);
       return;
     }

@@ -9,7 +9,7 @@ import { QM_LEVEL_WORD } from './data/quickMissionConfig';
 import { namedWorkoutById } from './data/namedWorkouts';
 import {
   LOADOUTS, THEMES, buildLoadoutMission, missionCardModel, classicMeta,
-  filterShelf, themeCounts, loadoutCounts, shelfEntryLine, emptyShelfCopy, loadShelfPrefs, saveShelfPrefs,
+  filterShelf, themeCounts, loadoutCounts, shelfEntryLine, emptyShelfCopy, loadShelfPrefs, saveShelfPrefs, libraryLevelFor,
 } from './data/loadoutMissions';
 
 // Quick Mission · the MISSION LIBRARY sheet: every launch mission and every
@@ -64,7 +64,8 @@ const CSS = `
 function previewOf(entry, { gear }) {
   if (!entry) return null;
   if (entry.kind === 'v2') {
-    const m = buildLoadoutMission(entry.id, { gear });
+    // A MAX OUT workout previews (and starts) at its picked level; the rest at their default.
+    const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id) });
     if (!m) return null;
     const card = missionCardModel(m, { gear });
     return {
@@ -287,7 +288,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
                   <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }}/>
                 </div>
                 {g.rows.map((e, i) => (
-                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e)}
+                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level: e.kind === 'v2' ? libraryLevelFor(e.id) : undefined })}
                     onPick={() => setHighlight(e)} rowRef={(el) => { rowRefs.current[keyOf(e)] = el; }}/>
                 ))}
               </div>
