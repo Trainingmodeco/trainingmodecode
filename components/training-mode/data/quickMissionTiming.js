@@ -34,6 +34,18 @@
 // which the runner waits for). `voice: false` leaves the speech out: that is a
 // run with the coach's voice off, or a browser with no speech, and then the
 // whole estimate is timers.
+//
+// Calibration (scripts/measure-qm-timeline.mjs: the production bundle, a fake
+// clock, START to the last set, no speech, a loaded set tapped at the model's
+// own pace). Bodyweight, Weighted and Hybrid missions at every level, 5 to 45
+// minutes (and as many 60 minute runs as finished): the real run is 1.6 to 6.6 s
+// longer than `voice: false` here, the 1.6 being the one-second poll of the
+// script plus the 60 ms the runner's waits round up to, and the rest the poll
+// lag on a loaded set. The generator fits `voice: true` to the minutes asked
+// within 8 s at every minute from 5 to 60 (test-qm-generator), so a run with the
+// coach talking lands within 30 s of the minutes asked with room to spare. With
+// the voice off a 60 minute bodyweight mission runs about 23 s short (29 at the
+// most): the last number of every counted set is no longer waited for.
 import { speechSeconds, getReadySeconds, leadLine } from './missionMoves';
 import { getCoachCopy } from './coachCopy';
 
