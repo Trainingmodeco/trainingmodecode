@@ -859,11 +859,13 @@ export function nearEndUpNextAt(slot, next) {
 const REGION_OF_PATTERN = { push: 'chest', press: 'shoulders', pull: 'back', squat: 'quads', lunge: 'quads', hinge: 'hinge', core: 'core' };
 export function regionOf(moveId) { return REGION_OF_PATTERN[moveById(moveId)?.pattern] || null; }
 
-// A move with a load in the hands or on the back, so its set says CLEAN reps.
-// A backpack is no gear in the catalog but it is a load.
+// A move with a load in the hands, on the shoulders or on the back, so its set says
+// CLEAN reps. A backpack is no gear in the catalog but it is a load; a pull-up bar is
+// not (the body is the load).
+const LOAD_GEAR = new Set(['bell', 'db', 'barbell', 'plate']);
 export function isLoadedMove(moveId) {
   const m = moveById(moveId);
-  return !!m && (m.gear !== 'none' || /^backpack-/.test(m.id));
+  return !!m && (LOAD_GEAR.has(m.gear) || /^backpack-/.test(m.id));
 }
 
 // One sentence each: when to stop the set. The default is the catalog-wide rule.
@@ -884,7 +886,7 @@ const STOP_FAMILIES = [
   [['bb-bent-over-row', 'bb-dead-stop-row', 'db-bent-over-row', 'ring-row'], 'Stop when your back wants to round or you start to heave.'],
   [['bb-front-squat', 'plate-goblet-squat'], 'Stop when your elbows drop or your chest folds.'],
   [['db-floor-press'], 'Stop when a rep stalls. Lower both dumbbells to your sides.'],
-  [['kb-reverse-lunge', 'reverse-lunge'], 'Stop at the first wobble or when your front knee caves.'],
+  [['kb-reverse-lunge', 'reverse-lunge', 'reverse-lunge-knee-drive', 'bulgarian-split-squat'], 'Stop at the first wobble or when your front knee caves.'],
   [['kb-plank-pull-through', 'kb-knee-pull-through', 'backpack-pull-through'], 'Stop when your hips twist or sag.'],
 ];
 export const STOP_RULES = Object.fromEntries(STOP_FAMILIES.flatMap(([ids, rule]) => ids.map(id => [id, rule])));

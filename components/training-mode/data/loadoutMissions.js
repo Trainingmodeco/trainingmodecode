@@ -1416,7 +1416,10 @@ const BOSS_RUSH = {
 // ── 33 · HEALTH BAR ─────────────────────────────────────────────────────────
 // MIXED (its loadout lets the pull-up bar in): the backpack deadlift is the
 // owner's deadlift, capped, with core last so the sit-up family never follows a
-// loaded hinge. No bar: the pull-ups swap to dumbbell rows.
+// loaded hinge. No bar: the pull-ups swap to dumbbell rows. MIXED also lets the
+// barbell in, so the hinge row may never swap on to a barbell deadlift or RDL:
+// no barbell deadlift to failure (HB_OUT).
+const HB_OUT = ['bb-deadlift', 'bb-rdl'];
 const HEALTH_BAR = {
   ...MAX_COMMON, id: 'health_bar', launch: 33, title: 'HEALTH BAR', loadout: 'mixed', workoutType: 'Bodyweight', hotel: false, quiet: false,
   loadoutLine: 'A PULL-UP BAR · A BACKPACK, 8-10 KG (12-15 KG AT ELITE) · 2 × 2 M OF FLOOR',
@@ -1427,20 +1430,20 @@ const HEALTH_BAR = {
   levels: {
     beginner: {
       detail: '2 rounds · jumping pull-ups, backpack deadlifts, slow climbers', minutes: 8, rounds: 2, capSec: 900, difficulty: 'Normal',
-      missionLine: '2 ROUNDS · JUMPING PULL-UPS · BACKPACK DEADLIFTS · SLOW CLIMBERS · MAX REPS',
+      missionLine: '2 ROUNDS · JUMPING PULL-UPS · BACKPACK DEADLIFTS · SLOW CLIMBERS · MAX REPS', excludeAlts: HB_OUT,
       introSay: `Health bar. Pull-ups, backpack deadlifts, mountain climbers. Max reps on each, then switch.${STOP_TWO}`,
       slots: station('beginner', [['jumping-pull-up', 10, 'pull', 2], ['backpack-rdl', 10, 'hinge', 2], ['slow-climber', 30, 'core', 2]]),
       pace: { elite: 120, standard: 95, beginner: 65 },
     },
     standard: {
       detail: '3 rounds · pull-ups, backpack deadlifts, climbers', minutes: 11, rounds: 3, capSec: 1200,
-      missionLine: '3 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS',
+      missionLine: '3 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS', excludeAlts: HB_OUT,
       slots: station('standard', [['pull-up', 8, 'pull'], ['backpack-rdl', 12, 'hinge'], ['mountain-climber', 60, 'core']]),
       pace: { elite: 275, standard: 210, beginner: 150 },
     },
     elite: {
       detail: '4 rounds · pull-ups, backpack deadlifts, climbers', minutes: 15, rounds: 4, capSec: 1500,
-      missionLine: '4 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS',
+      missionLine: '4 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS', excludeAlts: HB_OUT,
       slots: station('elite', [['pull-up', 15, 'pull'], ['backpack-rdl', 12, 'hinge'], ['mountain-climber', 100, 'core']]),
       pace: { elite: 540, standard: 415, beginner: 290 },
     },
