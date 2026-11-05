@@ -88,6 +88,12 @@ Generated 2026-11-05 from the app's own data by `npm run content:kit`. Don't edi
 - HERO TRAINING · Full Body · ~27 min · Pro
 - CHAOS ENGINE CIRCUIT · Full Body · ~29 min · Pro
 
+## Quick Mission
+
+- Time: 5 to 60 minutes, a minute at a time. Slide to the minutes you have. The workout is built to run exactly that long.
+- Levels: EASY (from level 1), MEDIUM (from level 3), HARD (from level 6), ADVANCED (from level 10)
+- The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST.
+
 ## Quick Mission loadout missions
 
 | Mission | Loadout | Mission line | Score | Themes | Origin |

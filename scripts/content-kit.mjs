@@ -27,11 +27,18 @@ const { VISIBLE_TIERS, tierImage } = await import(path.join(TM, 'data/tiers.js')
 const { NAMED_WORKOUTS } = await import(path.join(TM, 'data/namedWorkouts.js'));
 const { PLAN_PROGRAMS } = await import(path.join(TM, 'data/workoutLibrary.js'));
 const LM = await import(path.join(TM, 'data/loadoutMissions.js'));
+const AL = await import(path.join(TM, 'data/athleteLevel.js'));
 const { C: COLORS } = await import(path.join(TM, 'Styles.js'));
 
 // Values that live inside components (not exported); read from source so they
 // stay in step with the app.
 const src = (f) => fs.readFileSync(path.join(TM, f), 'utf8');
+// Quick Mission's TIME range and level words (data/quickMissionConfig imports a
+// component, so the numbers are read from its source), and where each level
+// starts (data/athleteLevel, the rule the app uses).
+const qmSrc = src('data/quickMissionConfig.js');
+const qmNum = (name) => Number(qmSrc.match(new RegExp(`export const ${name} = (\\d+)`))[1]);
+const qmWords = Object.fromEntries([...qmSrc.match(/export const QM_LEVEL_WORD = \{([^}]*)\}/)[1].matchAll(/(\w+): '(\w+)'/g)].map(m => [m[1], m[2]]));
 const posterMap = Object.fromEntries([...src('TrainingArcade.jsx').matchAll(/'([a-z0-9-]+)':\s*'(\/static\/series\/posters\/[^']+)'/g)].map(m => [m[1], m[2]]));
 const proBenefits = [...(src('Paywall.jsx').match(/const BENEFITS = \[([\s\S]*?)\];/)?.[1] || '').matchAll(/'([^']+)'/g)].map(m => m[1]);
 const prices = [...src('data/stripe.js').matchAll(/(\w+): \{ id: '\w+', label: '([^']+)', price: '([^']+)', cadence: '([^']+)', sub: '([^']+)'/g)]
@@ -92,6 +99,13 @@ const kit = {
     fight: ['Just Train', 'Fight Focus', 'Combo Coach', 'Training Camp (12 levels)', 'Practice', 'Combat Conditioning'],
     arcade: '10-stage sagas with a boss; pick FIT, FIGHT or BOTH on every stage.',
   },
+  // Quick Mission is for short notice: slide to the minutes you have and the
+  // workout is built to run exactly that long. It starts at the athlete's level.
+  quickMission: {
+    time: { minMinutes: qmNum('QM_TIME_MIN'), maxMinutes: qmNum('QM_TIME_MAX'), stepMinutes: qmNum('QM_TIME_STEP'), say: 'Slide to the minutes you have. The workout is built to run exactly that long.' },
+    levels: AL.TIERS.map(id => ({ id, word: qmWords[id], fromLevel: AL.TIER_START_LEVEL[id] })),
+    startsAt: 'The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST.',
+  },
   pro: { benefits: proBenefits, prices, freeAlways: 'The current concept drop is always free.' },
   ranks: VISIBLE_TIERS.map(t => ({ id: t.id, name: t.name, label: t.label, xpFrom: t.xp, color: t.color, art: asset(tierImage(t.id, 'male')) })),
   drops,
@@ -121,6 +135,7 @@ for (const s of sagas) md.push(`| ${s.title} | ${s.subtitle} | ${s.status} | ${s
 md.push('', '## Pro', '', ...kit.pro.prices.map(p => `- ${p.label}: ${p.price} ${p.cadence} (${p.note})`), '', ...kit.pro.benefits.map(b => `- ${b}`), `- ${kit.pro.freeAlways}`);
 md.push('', '## Ranks', '', ...kit.ranks.map(r => `- ${r.name} (${r.label}) from ${r.xpFrom} XP`));
 md.push('', '## Named workouts', '', ...kit.workouts.map(w => `- ${w.title} · ${w.focus} · ~${w.minutes} min${w.pro ? ' · Pro' : ''}`));
+md.push('', '## Quick Mission', '', `- Time: ${kit.quickMission.time.minMinutes} to ${kit.quickMission.time.maxMinutes} minutes, a minute at a time. ${kit.quickMission.time.say}`, `- Levels: ${kit.quickMission.levels.map(l => `${l.word} (from level ${l.fromLevel})`).join(', ')}`, `- ${kit.quickMission.startsAt}`);
 md.push('', '## Quick Mission loadout missions', '', '| Mission | Loadout | Mission line | Score | Themes | Origin |', '|---|---|---|---|---|---|', ...kit.missions.map(m => `| ${m.title} | ${m.loadout} | ${m.mission} | ${m.score} | ${m.themes.join(', ') || '—'} | ${m.origin || '—'} |`));
 md.push('', '## Programs', '', ...kit.programs.map(p => `- ${p.title} · ${p.meta}${p.pro ? ' · Pro' : ''}`), '');
 

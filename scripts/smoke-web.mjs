@@ -94,7 +94,10 @@ const fight = async () => { await home(); await page.locator('button[aria-label=
 // (which marks it seen), so the drop's progress is reset to bring it back.
 const preview = async () => { await home(); await page.evaluate(() => { localStorage.setItem('tm_owner_preview', '1'); localStorage.removeItem('tm_concepts_v1'); }); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1800); };
 
+// SMOKE_ONLY=<regex> runs just the checks whose names match (for working on one).
+const ONLY = process.env.SMOKE_ONLY ? new RegExp(process.env.SMOKE_ONLY) : null;
 async function check(name, fn, expectRe) {
+  if (ONLY && !ONLY.test(name)) return;
   step = name;
   try { await fn(); } catch (e) { failures.push(`${name}: could not drive the screen — ${String(e.message).split('\n')[0].slice(0, 160)}`); return; }
   const t = await text();
@@ -391,7 +394,7 @@ const qmRows = () => page.evaluate(() => { try { return (JSON.parse(localStorage
 // A tap that may find its button disabled or gone (the finish bell): it must not end the run again.
 const tryTap = (loc) => loc.click({ timeout: 800 }).catch(() => {});
 // The page: the card (▾ SEE ALL opens it in place, ADJUST sits on the open
-// card), GEAR (a radio strip) and TIME (a range input, 10 to 60 by 5).
+// card), GEAR (a radio strip) and TIME (a range input, 5 to 60 by 1).
 const card = () => page.locator('[data-guide="qm-card"]');
 const gearKey = (name) => page.locator('[data-guide="qm-gear"]').getByRole('radio', { name, exact: true });
 const slider = () => page.locator('[data-guide="qm-time"] input[type="range"]');
@@ -401,10 +404,10 @@ const adjust = async () => { await expand(); await page.locator('[data-guide="qm
 const done = async () => { await adjustSheet().getByRole('button', { name: /DONE/ }).click({ timeout: 4000 }); await S(400); };
 const timeTo = async (mins) => {
   await slider().focus();
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 70; i++) {
     const v = Number(await slider().inputValue());
     if (v === mins) return;
-    await page.keyboard.press(v < mins ? 'ArrowRight' : 'ArrowLeft'); await S(80);
+    await page.keyboard.press(v < mins ? 'ArrowRight' : 'ArrowLeft'); await S(30);
   }
   throw new Error(`TIME never reached ${mins}`);
 };
@@ -778,7 +781,7 @@ await check('quick mission: a scroll on TIME stays a scroll, a sideways drag set
     for (let i = 1; i <= 10; i++) { await touch('touchMove', x0 + (x1 - x0) * i / 10, y0 + (y1 - y0) * i / 10); await S(16); }
     await touch('touchEnd'); await S(500);
   };
-  const minute = async (v) => { const b = await slider().boundingBox(); return { x: b.x + 14 + (v - 10) / 50 * (b.width - 28), y: b.y + b.height / 2 }; };
+  const minute = async (v) => { const b = await slider().boundingBox(); return { x: b.x + 14 + (v - 5) / 55 * (b.width - 28), y: b.y + b.height / 2 }; };
   const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('tm_qm_keys_v1') || '{}').duration);
   let p = await minute(50);
   await gesture(p.x, p.y, p.x, p.y - 160);
@@ -803,7 +806,7 @@ await check('quick mission: ADD CARDIO keeps the moves', async () => {
   await done();
   if (await card().locator('ol').innerText() !== before) throw new Error('ADD CARDIO dealt new moves');
 }, /\+ CARDIO/);
-await check('quick mission: choices are remembered, SURPRISE is not', async () => {
+await check('quick mission: GEAR, TIME and the open card are remembered; LEVEL and SURPRISE are not', async () => {
   await quick(); await timeTo(30);
   await adjust(); await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'HARD', exact: true }).click({ timeout: 4000 }); await done();
   // SURPRISE keeps GEAR and TIME and is not a choice: a choice made after it
@@ -815,9 +818,203 @@ await check('quick mission: choices are remembered, SURPRISE is not', async () =
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
   if (await slider().inputValue() !== '30' || await gearKey('HYBRID').getAttribute('aria-checked') !== 'true') throw new Error('GEAR or TIME came back as the defaults');
   if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') throw new Error('the open card came back closed');
+  // LEVEL is the athlete's own on every visit (a new athlete: EASY), so a pick, like a SURPRISE roll, does not come back.
   await adjust();
-  if (await adjustSheet().getByRole('radio', { name: 'HARD', exact: true }).getAttribute('aria-checked') !== 'true') throw new Error('LEVEL came back as the default or the SURPRISE roll');
-}, /HARD/);
+  if (await adjustSheet().getByRole('radio', { name: /^EASY/ }).getAttribute('aria-checked') !== 'true' || await adjustSheet().getByRole('radio', { name: 'HARD', exact: true }).getAttribute('aria-checked') === 'true') throw new Error('LEVEL came back as the pick or the SURPRISE roll, not as the athlete\'s own');
+}, /EASY|YOUR LEVEL/);
+
+// ── Quick Mission is for short notice, and starts at the athlete's level ─────
+// TIME runs 5 to 60 by the minute and the card is built for the minutes asked
+// (and follows the knob while it is held, saving only when it is let go); LEVEL
+// opens on the athlete's own (level 1 EASY, level 5 MEDIUM, level 10 ADVANCED),
+// marks it YOUR LEVEL in ADJUST, lets any be picked for the visit, and START
+// stays above the tab bar with the slider and the four levels.
+const minutesOnCard = async () => (await card().innerText()).match(/(\d+) MIN/)?.[1];
+const bubbleText = () => page.locator('[data-qm-bubble]').innerText();
+const tagLines = async () => (await card().innerText()).split('\n').map(l => l.trim());
+const savedTime = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('tm_qm_keys_v1') || '{}').duration; } catch { return undefined; } });
+// The Quick Mission page as an athlete with this much Fit XP (the page reads their level on open).
+const quickAs = async (xp) => {
+  await home();
+  await page.evaluate((x) => localStorage.setItem('tm_user_stats', JSON.stringify({ xp: x, sessions: [{ id: 'lv1', type: 'Fit Mode', xpEarned: x, completedAt: new Date().toISOString(), completedCount: 1, totalCount: 1 }] })), xp);
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000);
+  await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  await btn(/REMIND ME NEXT WEEK|EXPLORE ON MY OWN/).click({ timeout: 1200 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+};
+await check('quick mission: TIME runs 5 to 60 by the minute and the card is built for the minutes asked', async () => {
+  await quick();
+  if (await slider().getAttribute('min') !== '5' || await slider().getAttribute('max') !== '60' || await slider().getAttribute('step') !== '1') throw new Error('TIME is not a 5 to 60 slider in 1-minute steps');
+  const ticks = await page.locator('[data-guide="qm-time"]').evaluate(el => [...el.querySelectorAll('span')].map(x => x.textContent.trim()).filter(t => /^\d+$/.test(t)));
+  if (ticks.join() !== '5,10,15,20,30,45,60') throw new Error(`the marks are ${ticks.join()}`);
+  const at20 = await card().locator('ol').innerText();
+  await timeTo(8);
+  if (await slider().getAttribute('aria-valuetext') !== '8 minutes' || await bubbleText() !== '8 MIN') throw new Error('the knob and the bubble do not read 8 minutes');
+  if (await minutesOnCard() !== '8' || !(await tagLines()).includes('8 MIN')) throw new Error('the card does not read 8 MIN');
+  if (await card().locator('ol').innerText() === at20) throw new Error('the moves did not change from 20 to 8 minutes');
+  if (await savedTime() !== 8) throw new Error('a key press did not save the time');
+  // The open card says how long it really takes, and it is the minutes asked, at every length.
+  await expand();
+  for (const m of [5, 8, 13, 20, 37, 60]) {
+    await timeTo(m); await S(150);
+    const c = await card().innerText();
+    if (!new RegExp(`about ${m} min`).test(c)) throw new Error(`asked for ${m} minutes, the card says "${(c.match(/about \d+ min/) || ['nothing'])[0]}"`);
+    const n = await card().locator('ol > li').count();
+    if (n < 3 || (m === 5 && !/1 round\b/.test(c))) throw new Error(`${m} minutes deals ${n} moves, ${(c.match(/\d+ rounds?/) || ['no rounds'])[0]}`);
+  }
+  if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') throw new Error('SEE ALL did not keep its state as TIME moved');
+}, /60 MIN/);
+await check('quick mission: the card follows the knob while it is held, saves only on release, and the layout does not jump', async () => {
+  await quick();
+  const cdp = await page.context().newCDPSession(page);
+  const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  const at = async (v) => { const b = await slider().boundingBox(); return { x: b.x + 14 + (v - 5) / 55 * (b.width - 28), y: b.y + b.height / 2 }; };
+  const probe = async () => ({ bubble: await bubbleText(), tag: await minutesOnCard(), h: (await card().boundingBox()).height, y: (await slider().boundingBox()).y, saved: await savedTime() });
+  const rest = await probe();
+  const from = await at(20), to = await at(47);
+  await touch('touchStart', from.x, from.y);
+  const seen = new Set();
+  for (let i = 1; i <= 10; i++) {
+    await touch('touchMove', from.x + (to.x - from.x) * i / 10, from.y); await S(50);
+    const p = await probe(); seen.add(p.tag);
+    if (`${p.tag} MIN` !== p.bubble) throw new Error(`held: the knob says ${p.bubble}, the card ${p.tag} MIN`);
+    if (p.saved !== undefined) throw new Error('held: the time was saved before the knob was let go');
+    if (Math.abs(p.h - rest.h) > 0.6 || Math.abs(p.y - rest.y) > 0.6) throw new Error(`held: the card is ${p.h}px tall (was ${rest.h}) and TIME moved ${p.y - rest.y}px`);
+  }
+  if (seen.size < 6) throw new Error(`the card showed only ${seen.size} different minutes while the knob moved`);
+  const held = await probe();
+  await touch('touchEnd'); await S(500);
+  const after = await probe();
+  if (after.saved !== Number(held.tag) || after.tag !== held.tag) throw new Error(`let go at ${held.tag} but saved ${after.saved} and the card says ${after.tag}`);
+  if (Math.abs(after.h - rest.h) > 0.6) throw new Error('the card jumped when the knob was let go');
+  // A second drag, back down: it saves where it is let go too.
+  const c0 = await at(47), c1 = await at(12);
+  await touch('touchStart', c0.x, c0.y);
+  for (let i = 1; i <= 4; i++) { await touch('touchMove', c0.x + (c1.x - c0.x) * i / 4, c0.y); await S(40); }
+  await touch('touchEnd'); await S(400);
+  if (await savedTime() !== Number(await minutesOnCard())) throw new Error('the second drag did not save where it was let go');
+  // With the card open the list holds its height while the knob is held, so TIME stays under the finger.
+  await expand();
+  await page.evaluate(() => { const sc = document.querySelector('[data-guide="qm-card"]').closest('.no-scrollbar'); sc.scrollTo({ top: sc.scrollHeight }); }); await S(400);
+  const cur = Number(await slider().inputValue());
+  const o0 = await at(cur), o1 = await at(cur < 30 ? 55 : 8);
+  const y0 = (await slider().boundingBox()).y;
+  await touch('touchStart', o0.x, o0.y);
+  for (let i = 1; i <= 8; i++) {
+    await touch('touchMove', o0.x + (o1.x - o0.x) * i / 8, o0.y); await S(50);
+    if (Math.abs((await slider().boundingBox()).y - y0) > 0.6) throw new Error('open card: TIME moved under the finger as the list changed');
+  }
+  await touch('touchEnd'); await S(500);
+  if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') throw new Error('the open card closed during a drag');
+}, /MIN/);
+await check('quick mission: level 1, 5 and 10 athletes open on EASY, MEDIUM and ADVANCED, ADJUST marks YOUR LEVEL, and a pick does not survive leaving the page', async () => {
+  for (const [xp, word] of [[300, 'EASY'], [2200, 'MEDIUM'], [4600, 'ADVANCED']]) {
+    await quickAs(xp);
+    if (!(await tagLines()).includes(word)) throw new Error(`a ${word} athlete: the card does not open on ${word} (${(await tagLines()).slice(2, 6).join(' / ')})`);
+    await adjust();
+    const group = adjustSheet().getByRole('radiogroup', { name: 'Level' });
+    const names = await group.getByRole('radio').evaluateAll(els => els.map(e => ({ label: e.textContent.trim(), on: e.getAttribute('aria-checked') === 'true', x: e.getBoundingClientRect().left + e.getBoundingClientRect().width / 2, h: e.getBoundingClientRect().height, cut: e.scrollWidth > e.clientWidth + 0.5 })));
+    if (names.map(n => n.label).join() !== 'EASY,MEDIUM,HARD,ADVANCED') throw new Error(`LEVEL offers ${names.map(n => n.label).join()}`);
+    if (names.filter(n => n.on).map(n => n.label).join() !== word || names.some(n => n.h < 43.5 || n.cut)) throw new Error(`LEVEL shows ${names.filter(n => n.on).map(n => n.label)} for a ${word} athlete (or a segment is short or cut)`);
+    const marks = await adjustSheet().locator('[data-your-level]').evaluateAll(els => els.map(e => ({ t: e.textContent.trim(), x: e.getBoundingClientRect().left + e.getBoundingClientRect().width / 2 })));
+    const own = names.find(n => n.label === word);
+    if (marks.length !== 1 || marks[0].t !== 'YOUR LEVEL' || Math.abs(marks[0].x - own.x) > 4) throw new Error(`YOUR LEVEL is not marked once, under ${word}: ${JSON.stringify(marks)}`);
+    // Any level can be picked; the card follows it.
+    const pick = word === 'EASY' ? 'HARD' : 'EASY';
+    await group.getByRole('radio', { name: pick, exact: true }).click({ timeout: 4000 }); await S(300);
+    await done();
+    if (!(await tagLines()).includes(pick)) throw new Error(`a ${pick} pick did not reach the card`);
+    // Leaving the page drops it: the next visit is the athlete's own level again.
+    await page.locator('button[aria-label="Back"]').click({ timeout: 3000 }); await S(800);
+    await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+    if (!(await tagLines()).includes(word)) throw new Error(`a ${pick} pick survived leaving the page for a ${word} athlete`);
+    await adjust();
+    if (await adjustSheet().getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: pick, exact: true }).getAttribute('aria-checked') === 'true') throw new Error('ADJUST still shows the old pick');
+  }
+}, /MIN/);
+await check('quick mission: SURPRISE never deals a level 1 athlete a HARD workout', async () => {
+  await quickAs(300);
+  for (let i = 0; i < 12; i++) {
+    await page.locator('[data-guide="qm-surprise"]').click({ timeout: 3000 }); await S(120);
+    const tag = (await tagLines()).filter(l => ['EASY', 'MEDIUM', 'HARD', 'ADVANCED'].includes(l)).join();
+    if (tag !== 'EASY' && tag !== 'MEDIUM') throw new Error(`SURPRISE dealt ${tag} to a level 1 athlete`);
+  }
+}, /MIN/);
+await check('quick mission: START stays above the tab bar at 412x811, 360x740 and 375x667 with the slider and the four levels', async () => {
+  await quickAs(4600); // ADVANCED: the longest word on the level strip
+  try {
+    for (const [w, h] of [[412, 811], [360, 740], [375, 667]]) {
+      await resizeTo(w, h);
+      const g = await page.evaluate(() => {
+        const r = (e) => e.getBoundingClientRect();
+        const start = [...document.querySelectorAll('button')].find(b => /^START$/.test(b.textContent.trim()));
+        const ticks = [...document.querySelectorAll('[data-guide="qm-time"] span')].filter(x => /^\d+$/.test(x.textContent.trim())).map(x => r(x));
+        const bub = r(document.querySelector('[data-qm-bubble]'));
+        return { nav: r(document.querySelector('[data-guide="nav-tabs"]')).top, start: r(start), input: r(document.querySelector('[data-guide="qm-time"] input')), ticks, bub, vw: window.innerWidth };
+      });
+      const at = `${w}x${h}`;
+      if (g.start.bottom > g.nav || g.start.height < 43.5) throw new Error(`${at}: START ends at ${Math.round(g.start.bottom)}, the tab bar starts at ${Math.round(g.nav)}`);
+      if (g.input.height < 43.5) throw new Error(`${at}: the TIME slider is ${g.input.height}px tall`);
+      if (g.ticks.length !== 7 || g.ticks.some((t, i) => i && t.left < g.ticks[i - 1].right + 2) || g.ticks[0].left < 0 || g.ticks[6].right > g.vw) throw new Error(`${at}: the TIME marks overlap or leave the screen`);
+      if (g.bub.left < 0 || g.bub.right > g.vw) throw new Error(`${at}: the bubble leaves the screen`);
+      await adjust();
+      const sheet = await adjustSheet().evaluate((el) => {
+        const r = (e) => e.getBoundingClientRect();
+        const segs = [...el.querySelectorAll('[role="radiogroup"][aria-label="Level"] [role="radio"]')].map(b => ({ h: r(b).height, cut: b.scrollWidth > b.clientWidth + 0.5, l: r(b).left, rr: r(b).right }));
+        const mark = el.querySelector('[data-your-level]');
+        const doneB = [...el.querySelectorAll('button')].find(b => /DONE/.test(b.textContent));
+        return { segs, mark: r(mark), panel: r(el.querySelector('[role="dialog"]') || el), done: r(doneB) };
+      });
+      if (sheet.segs.length !== 4 || sheet.segs.some(s => s.h < 43.5 || s.cut)) throw new Error(`${at}: the four-level strip is short or cut off ${JSON.stringify(sheet.segs)}`);
+      if (sheet.mark.left < sheet.panel.left || sheet.mark.right > sheet.panel.right) throw new Error(`${at}: YOUR LEVEL leaves the sheet`);
+      if (sheet.done.bottom > g.nav + 0.5 || sheet.done.height < 43.5) throw new Error(`${at}: DONE ends at ${Math.round(sheet.done.bottom)}, under the tab bar at ${Math.round(g.nav)}`);
+      await done();
+      // Fold the card again: the next size is measured closed, as the page opens.
+      if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') === 'true') { await page.locator('[data-guide="qm-expand"]').click({ timeout: 4000 }); await S(400); }
+    }
+  } finally { await resizeTo(390, 844); }
+}, /MIN/);
+// The real guided run, on a fake clock: a 5 minute mission has to run 5 minutes
+// (within 30 seconds), start to its last set. The browser has no speech, so the
+// coach's lines take no time and this is the timers alone; the minutes asked
+// are what the card promises. (scripts/measure-qm-timeline.mjs runs the whole
+// grid of lengths, gear and levels against the generator's model.)
+await check('quick mission: a 5 minute guided mission really runs 5 minutes (fake clock)', async () => {
+  const ctx3 = await browser.newContext({ viewport: { width: 412, height: 811 }, isMobile: true, hasTouch: true });
+  await ctx3.addInitScript(seedStorage);
+  await ctx3.addInitScript(() => {
+    try { Object.defineProperty(window, 'speechSynthesis', { value: undefined }); } catch {}
+    if (localStorage.getItem('__qm5')) return;
+    localStorage.setItem('tm_qm_keys_v1', JSON.stringify({ workoutType: 'Bodyweight', difficulty: 'NORMAL', duration: 5, focus: 'FULL BODY' }));
+    localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'guided' }));
+    localStorage.setItem('__qm5', '1');
+  });
+  const p3 = await ctx3.newPage();
+  try {
+    await p3.clock.install({ time: Date.now() });
+    await p3.goto(BASE + '?__reset=1', { waitUntil: 'networkidle' }); await p3.waitForTimeout(2000);
+    await p3.mouse.click(206, 120); await p3.waitForTimeout(1800);
+    await p3.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+    await p3.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await p3.waitForTimeout(1200);
+    await p3.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await p3.waitForTimeout(1500);
+    if (!/5 MIN/.test(await p3.locator('[data-guide="qm-card"]').innerText())) throw new Error('the card is not a 5 minute mission');
+    const now = () => p3.evaluate(() => Date.now());
+    await p3.clock.pauseAt((await now()) + 500);
+    const t0 = await now();
+    await p3.getByRole('button', { name: /^START$/ }).first().click({ timeout: 4000 });
+    let finishAt = null;
+    for (let i = 0; i < 600 && finishAt === null; i++) {
+      await p3.clock.runFor(1000);
+      const info = await p3.evaluate(() => ({ t: document.body.innerText, now: Date.now() }));
+      if (/SESSION COMPLETE|GOOD WORK/.test(info.t)) finishAt = info.now - 1800; // the finish bell rings 1.8 s before the result
+    }
+    if (finishAt === null) throw new Error('the 5 minute mission did not finish inside 10 minutes of fake time');
+    const took = (finishAt - t0) / 1000;
+    if (Math.abs(took - 300) > 30) throw new Error(`a 5 minute mission took ${Math.round(took)} s, not 300 (within 30)`);
+  } finally { await ctx3.close(); }
+}, /./);
 await check('quick mission: weighted classic starts weighted', async () => { await quick(); await pickRow(/^CHAOS ENGINE/); await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(4000); }, /WEIGHTED/);
 await check('quick mission: murph starts', async () => { await quick(); await putOnCard(/^MURPH$/); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|EXERCISE|MILE/);
 await check('quick mission: library pick + START', async () => {

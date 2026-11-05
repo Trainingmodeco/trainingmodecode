@@ -41,9 +41,9 @@ const show = (v) => JSON.stringify(v);
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 const TYPES = ['Bodyweight', 'Weighted', 'Hybrid'];
-const LEVELS = ['Easy', 'Normal', 'Hard'];
+const LEVELS = ['Easy', 'Normal', 'Hard', 'Advanced'];
 const FOCI = ['Full Body', 'Upper', 'Lower', 'Core', 'Combat'];
-const MINUTES = [3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+const MINUTES = [3, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 const FORMATS = ['Auto', 'Timed'];
 const DEALS = 2;
 
@@ -233,7 +233,7 @@ problems('17 the words on the screen: the line names the rounds, no franchise or
   if (!new RegExp(`^${a.rounds} ROUNDS?\\b`).test(a.missionLine)) return `line ${a.missionLine}`;
   const loaded = movesOf(gen).some(ex => ex.isWeighted);
   if (loaded !== /safe weight/.test(a.note || '')) return `note ${a.note}`;
-  if (!['EASY', 'MEDIUM', 'HARD'].includes(a.levelLabel)) return `level ${a.levelLabel}`;
+  if (!['EASY', 'MEDIUM', 'HARD', 'ADVANCED'].includes(a.levelLabel) || a.levelLabel !== C.levelWord(gen.difficulty)) return `level ${a.levelLabel}`;
   return null;
 });
 

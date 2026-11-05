@@ -694,7 +694,10 @@ export default function App() {
       const c = resolveQuickMissionRun(c0, v2On ? loadShelfPrefs().mode : 'guided', { stamp: v2On });
       rememberSession('quick_mission', c);
       if (switched) trackEvent('session_switch', { mode: 'quickMission', to: 'solo' });
-      else trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : c?.mode === 'solo' ? { solo: true } : undefined);
+      else trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : {
+        // Today's generated mission: the level it started on (EASY to ADVANCED) and the minutes asked.
+        ...(c?.mode === 'solo' ? { solo: true } : {}), level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration,
+      });
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
     },
     // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,

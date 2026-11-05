@@ -91,6 +91,37 @@
     ],
     "arcade": "10-stage sagas with a boss; pick FIT, FIGHT or BOTH on every stage."
   },
+  "quickMission": {
+    "time": {
+      "minMinutes": 5,
+      "maxMinutes": 60,
+      "stepMinutes": 1,
+      "say": "Slide to the minutes you have. The workout is built to run exactly that long."
+    },
+    "levels": [
+      {
+        "id": "EASY",
+        "word": "EASY",
+        "fromLevel": 1
+      },
+      {
+        "id": "NORMAL",
+        "word": "MEDIUM",
+        "fromLevel": 3
+      },
+      {
+        "id": "HARD",
+        "word": "HARD",
+        "fromLevel": 6
+      },
+      {
+        "id": "ADVANCED",
+        "word": "ADVANCED",
+        "fromLevel": 10
+      }
+    ],
+    "startsAt": "The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST."
+  },
   "pro": {
     "benefits": [
       "All Arcade protocols & boss stages",

@@ -422,7 +422,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // after the mission and joins the config only at START, so turning it on
   // or off in ADJUST keeps the moves on the card.
   const cfg = useMemo(() => quickMissionConfig({ duration, focus, difficulty, workoutType }), [duration, focus, difficulty, workoutType]);
-  const mission = useMemo(() => generateQuickMission({ ...cfg, rng: seededRng(quickMissionSeed(nonce, seed, duration)) }), [cfg, seed, nonce]);
+  const mission = useMemo(() => generateQuickMission({ ...cfg, rng: seededRng(quickMissionSeed(nonce, seed, duration)) }), [cfg, seed, nonce, duration]);
   const estMin = Math.max(1, Math.round(estimateQuickMissionSeconds(mission) / 60));
 
   // A v2 card is rebuilt from the authored mission on every choice, so a
