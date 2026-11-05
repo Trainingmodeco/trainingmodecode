@@ -13,7 +13,7 @@ import {
   QM_FOCI, QM_INTENSITY, QM_TYPES, QM_LEVEL_WORD, QM_TIME_MIN, QM_TIME_MAX, QM_TIME_STEP, QM_TIME_TICKS,
   quickMissionConfig, loadQuickMissionKeys, saveQuickMissionKeys,
 } from './data/quickMissionConfig';
-import { generateQuickMission, estimateQuickMissionSeconds, quickMissionDose, seededRng } from './fit-mode/quickMissionGenerator';
+import { generateQuickMission, estimateQuickMissionSeconds, quickMissionDose, seededRng, quickMissionSeed } from './fit-mode/quickMissionGenerator';
 import { loadStats } from './data/userStats';
 import { athleteTier, rollSurpriseTier } from './data/athleteLevel';
 import AddCardioSheet from './AddCardioSheet';
@@ -384,9 +384,10 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // so the slider under the finger never moves as the list grows or shrinks.
   const [frozenH, setFrozenH] = useState(null);
   const listRef = useRef(null);
-  // One seed per visit (and per SURPRISE): the same choices deal the same
-  // moves, so scrubbing the minutes grows and shrinks one workout instead of
-  // dealing a new one at every step.
+  // One seed per visit (and per SURPRISE): inside one shape of workout (the
+  // rounds the minutes make) the same moves, so scrubbing the minutes grows and
+  // shrinks one workout instead of dealing a new one at every step; where the
+  // shape changes, a new workout (quickMissionSeed).
   const [nonce] = useState(() => Math.floor(Math.random() * 2147483647));
   const [seed, setSeed] = useState(0);
   const [cardioAddon, setCardioAddon] = useState(null);
@@ -421,7 +422,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // after the mission and joins the config only at START, so turning it on
   // or off in ADJUST keeps the moves on the card.
   const cfg = useMemo(() => quickMissionConfig({ duration, focus, difficulty, workoutType }), [duration, focus, difficulty, workoutType]);
-  const mission = useMemo(() => generateQuickMission({ ...cfg, rng: seededRng(nonce + seed * 7919) }), [cfg, seed, nonce]);
+  const mission = useMemo(() => generateQuickMission({ ...cfg, rng: seededRng(quickMissionSeed(nonce, seed, duration)) }), [cfg, seed, nonce]);
   const estMin = Math.max(1, Math.round(estimateQuickMissionSeconds(mission) / 60));
 
   // A v2 card is rebuilt from the authored mission on every choice, so a

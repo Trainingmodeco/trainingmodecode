@@ -300,6 +300,20 @@ for (const [type, focus] of [['Bodyweight', 'FULL BODY'], ['Hybrid', 'UPPER'], [
   if (JSON.stringify(at(20)) !== JSON.stringify(at(20))) stable.push(`${type} not repeatable`);
 }
 check('31 the same seed gives the same first moves at every minute, and the same mission twice (a slider scrub grows one workout)', stable.length === 0, stable.join());
+// The setup screen's seed (quickMissionSeed): inside one shape of workout (the rounds the minutes make) a scrub keeps the same moves, and where the
+// shape changes the workout is a new one, so the card visibly changes at 8, 16, 26, 36 and 46 minutes and never flickers between.
+{
+  const shapes = [[5, 7], [8, 15], [16, 25], [26, 35], [36, 45], [46, 60]];
+  const bad = [];
+  const firstMoves = (nonce, reroll, mins, type = 'Bodyweight') => Q.generateQuickMission({ ...C.quickMissionConfig({ duration: mins, difficulty: 'NORMAL', workoutType: type }), rng: Q.seededRng(Q.quickMissionSeed(nonce, reroll, mins)) }).exercises.slice(0, 3).map(e => e.name).join();
+  for (const nonce of [11, 4242, 987654]) for (const type of TYPES) {
+    const per = shapes.map(([lo, hi]) => { const names = new Set(); for (let m = lo; m <= hi; m++) names.add(firstMoves(nonce, 0, m, type)); if (names.size !== 1) bad.push(`${type} ${lo}-${hi} changed within a shape`); return [...names][0]; });
+    if (new Set(per).size < 5) bad.push(`${type} nonce ${nonce}: only ${new Set(per).size} different openings across six shapes`);
+    if (firstMoves(nonce, 1, 20, type) === firstMoves(nonce, 0, 20, type) && firstMoves(nonce, 2, 20, type) === firstMoves(nonce, 0, 20, type)) bad.push(`${type} SURPRISE did not re-deal`);
+  }
+  check('31a the setup seed: one workout inside a shape of minutes, a new one where the shape changes, a new one on SURPRISE', bad.length === 0, bad.slice(0, 3).join(' | '));
+  check('31a2 quickMissionRounds: 1 round up to 7 minutes, 2 to 15, 3 to 25, 4 to 35, 5 to 45, 6 to 60', [[5, 1], [7, 1], [8, 2], [15, 2], [16, 3], [25, 3], [26, 4], [35, 4], [36, 5], [45, 5], [46, 6], [60, 6]].every(([m, r]) => Q.roundsFor(m) === r));
+}
 check('31b without a seed the deal still varies (Math.random)', new Set(Array.from({ length: 12 }, () => Q.generateQuickMission({ duration: 20 }).exercises.map(e => e.name).join())).size > 3);
 check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a = Q.seededRng(5), b = Q.seededRng(5); const xs = Array.from({ length: 200 }, () => a()); return xs.every((x, i) => x === b() && x >= 0 && x < 1) && new Set(xs.map(x => Math.floor(x * 10))).size === 10; })());
 

@@ -141,7 +141,7 @@ const REST_DRIFT = 10;
 // rounds. Up to 35 minutes a round is up to eight moves; past that the mission
 // gets a fifth and a sixth round and up to ten moves, so 45 to 60 minutes is
 // more work, not a minute and a half of rest after every set.
-function roundsFor(mins) {
+export function roundsFor(mins) {
   return mins <= 7 ? 1 : mins <= 15 ? 2 : mins <= 25 ? 3 : mins <= 35 ? 4 : mins <= 45 ? 5 : 6;
 }
 function movesFor(mins) {
@@ -159,6 +159,16 @@ export function seededRng(seed) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+// The seed for a visit to the setup screen. `nonce` is the visit's (random once
+// per visit), `reroll` counts SURPRISE taps. The minutes only enter through the
+// number of rounds they make: inside one shape (1 round up to 7 minutes, 2 up
+// to 15, 3 up to 25 ...) a slider scrub keeps the same moves and only the count,
+// doses and rests follow the minutes, and where the shape changes the workout
+// is a new one. So the card changes where the workout really changes, and
+// never flickers in between.
+export function quickMissionSeed(nonce, reroll, mins) {
+  return ((Number(nonce) || 0) + (Number(reroll) || 0) * 7919 + roundsFor(Math.max(3, Number(mins) || 10)) * 104729) >>> 0;
 }
 // A string to a seed (FNV-1a), for seeding by the visit's choices.
 export function seedFrom(str) {
