@@ -47,7 +47,8 @@ reset();
 // ── catalog ─────────────────────────────────────────────────────────────────
 const PATTERNS = ['hinge', 'squat', 'lunge', 'push', 'pull', 'press', 'clean', 'sprawl', 'burpee', 'punch', 'kick', 'knee', 'core', 'cardio'];
 const ids = M.MOVES.map(m => m.id);
-check('3 156 unique move ids', M.MOVES.length === 156 && new Set(ids).size === 156, `${M.MOVES.length}`);
+// 158: the 156 before MAX OUT, plus sit-up and db-floor-press (test 80).
+check('3 158 unique move ids', M.MOVES.length === 158 && new Set(ids).size === 158, `${M.MOVES.length}`);
 const badField = M.MOVES.filter(m => {
   const cadOk = m.cadence === null || (['elite', 'standard', 'beginner'].every(l => Number.isInteger(m.cadence[l]) && m.cadence[l] >= 500 && m.cadence[l] <= 6000) && Object.keys(m.cadence).length === 3);
   const manual = m.cadence === null && (m.unit === 'reps' || m.unit === 'cal');
@@ -93,8 +94,14 @@ const OWN_TITLES = ['BAR FIGHT', 'TOUCH THE SKY', 'NO CONTINUES'];
 // 30-31: the owner's UPPER LOWER DIPS and the catalog's OVERTIME 20, GUIDED and SOLO.
 const NEW_IDS = ['upper_lower_dips', 'overtime_20'];
 const NEW_TITLES = ['UPPER LOWER DIPS', 'OVERTIME 20'];
+// The first 31 (every loop below runs over these). 32-36 are MAX OUT, a format of
+// its own: scripts/test-max-out.mjs tests them end to end; here only their place
+// on the shelf and in the counts is pinned.
 const ALL_IDS = [...IDS, ...SOLO_IDS, ...OWN_IDS, ...NEW_IDS];
-check('8 31 defs, ids and titles in launch order', eq(L.LOADOUT_MISSIONS.map(d => d.id), ALL_IDS) && eq(L.LOADOUT_MISSIONS.map(d => d.title), [...TITLES, ...SOLO_TITLES, ...OWN_TITLES, ...NEW_TITLES])
+const MAX_IDS = ['boss_rush', 'health_bar', 'combo_meter', 'tank_mode', 'dual_wield'];
+const MAX_TITLES = ['BOSS RUSH', 'HEALTH BAR', 'COMBO METER', 'TANK MODE', 'DUAL WIELD'];
+const EVERY_ID = [...ALL_IDS, ...MAX_IDS];
+check('8 36 defs, ids and titles in launch order', eq(L.LOADOUT_MISSIONS.map(d => d.id), EVERY_ID) && eq(L.LOADOUT_MISSIONS.map(d => d.title), [...TITLES, ...SOLO_TITLES, ...OWN_TITLES, ...NEW_TITLES, ...MAX_TITLES])
   && L.LOADOUT_MISSIONS.every((d, i) => d.launch === i + 1));
 const soloOnlyDef = (id) => id === 'hit_combo_21' || SOLO_IDS.includes(id);
 check('8 only 21-HIT and 12-26 are SOLO only; guided help everywhere else', L.LOADOUT_MISSIONS.every(d => (soloOnlyDef(d.id) ? d.guided === false && d.guidedHelp === '' && d.introSay === '' : d.guided === true && d.guidedHelp.length > 0))
@@ -196,16 +203,18 @@ check('14 card copy: eyebrow, AMRAP names, no tape mention', IDS.every(id => L.m
 
 // ── shelf ───────────────────────────────────────────────────────────────────
 const shelf = L.shelfEntries();
-check('15 shelf: 48 entries, v2 first', shelf.length === 48 && shelf.slice(0, 31).every(e => e.kind === 'v2') && shelf.slice(31).every(e => e.kind === 'classic')
-  && eq(shelf.slice(0, 31).map(e => e.id), ALL_IDS)
-  && shelf.slice(0, 31).every(e => e.soloOnly === soloOnlyDef(e.id)));
+check('15 shelf: 53 entries, v2 first', shelf.length === 53 && shelf.slice(0, 36).every(e => e.kind === 'v2') && shelf.slice(36).every(e => e.kind === 'classic')
+  && eq(shelf.slice(0, 36).map(e => e.id), EVERY_ID)
+  && shelf.slice(0, 36).every(e => e.soloOnly === soloOnlyDef(e.id)));
 const loCount = (lo) => L.filterShelf(shelf, { loadout: lo }).length;
-check('16 loadout counts', loCount('none') === 20 && loCount('bell') === 11 && loCount('barbell') === 10 && loCount('mixed') === 7,
+// MAX OUT added one each to none, bell and barbell, and two to mixed.
+check('16 loadout counts', loCount('none') === 21 && loCount('bell') === 12 && loCount('barbell') === 11 && loCount('mixed') === 9,
   ['none', 'bell', 'barbell', 'mixed'].map(loCount).join('/'));
 const tAll = L.themeCounts(shelf, 'all');
-check('17 theme counts', tAll.all === 48 && tAll.striking === 10 && tAll.burpees === 5 && tAll.century === 4
+check('17 theme counts', tAll.all === 53 && tAll.maxout === 5 && tAll.striking === 10 && tAll.burpees === 5 && tAll.century === 4
   && L.themeCounts(shelf, 'barbell').striking === 1 && L.themeCounts(shelf, 'bell').striking === 1
-  && L.themeCounts(shelf, 'barbell').burpees === 2 && L.themeCounts(shelf, 'bell').burpees === 1, show(tAll));
+  && L.themeCounts(shelf, 'barbell').burpees === 2 && L.themeCounts(shelf, 'bell').burpees === 1
+  && ['none', 'bell', 'barbell'].every(lo => L.themeCounts(shelf, lo).maxout === 1) && L.themeCounts(shelf, 'mixed').maxout === 2, show(tAll));
 const empty = L.emptyShelfCopy({ loadout: 'barbell', theme: 'striking' });
 check('18 empty shelf copy', empty.text === 'No striking missions for BARBELL yet.' && empty.action?.label === 'SHOW NO GEAR' && empty.action?.loadout === 'none');
 const TAGS = {
@@ -1751,7 +1760,7 @@ Date.now = realNow3;
 check('78 GUIDED runs today: one 20:00 AMRAP block inside the integrity limit, paid by the minute', S.qmMaxValidSeconds(ot) === 1865 && otIr.validityStatus === 'complete' && otIr.awardXp
   && ot.exercises.length === 1 && ot.exercises[0].mode === 'timed' && ot.exercises[0].work === 1200 && M.leadLine(ot.exercises[0], { round: 1, idx: 0, rounds: 1, slotsPerRound: 1, format: 'amrap' }) === 'AMRAP. 20 minutes. 5 pull-ups, 10 push-ups, 15 air squats.'
   && gs(ot, { completed: true, exercisesCompleted: 1, workedSec: 1200, integrityResult: otIr }).xp === 230, show(otIr.validityStatus));
-const LATE_MOVES = M.MOVES.slice(152);
+const LATE_MOVES = M.MOVES.slice(152, 156); // 156-157 are MAX OUT's sit-up and floor press (test 80)
 check('78 four new catalog entries: dips and door frame rows, NO GEAR, 2-4 alts, a count per level', eq(LATE_MOVES.map(mv => mv.id), ['bench-dip-bent', 'bench-dip', 'parallel-bar-dip', 'door-frame-row'])
   && LATE_MOVES.every(mv => mv.gear === 'none' && mv.alts.length >= 2 && mv.alts.length <= 4 && mv.cues.length >= 2 && mv.cues.every(c => c.length <= 140)
     && mv.cadence.elite <= mv.cadence.standard && mv.cadence.standard <= mv.cadence.beginner));

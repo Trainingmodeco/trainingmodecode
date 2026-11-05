@@ -6,7 +6,7 @@
 //     mission, unit-aware, so a 55-minute classic is not VALIDATION FAILED.
 //   · SOLO (v2): the one-clock timeline, pace targets, the score prefill and
 //     the honor-system XP settle.
-import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL } from './missionMoves';
+import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL, repCapFor } from './missionMoves';
 import { MODE_RULES } from '../utils/missionIntegrity';
 import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from '../shared/sessionOutcome';
 
@@ -125,6 +125,8 @@ export function estimateWorkSeconds(slot) {
   if (!slot) return 0;
   const setupSec = (slot.setupMs ?? 0) / 1000;
   if (slot.mode === 'timed') return slot.work || 0;
+  // A MAX REPS station: its first-set reps at the ELITE count (the quickest honest set).
+  if (slot.max === true) return ((slot.reps || 0) * estMsFor(slot.moveId, 'elite')) / 1000;
   if (hasList(slot)) {
     return slot.list.reduce((s, st) => s + (st.reps || 0) * (st.cadenceMs ?? estMsFor(st.moveId)) / 1000, 0) + setupSec;
   }
@@ -162,6 +164,7 @@ export function isFixedClock(format) { return format === 'emom' || format === 'a
 // interval's last rest, a restAfter on the very last window is never run.
 export function missionClockSec(mission) {
   if (isUntilDown(mission)) return mission.capSec || 0; // the safety cap
+  if (isMaxReps(mission)) return mission.capSec || 0; // MAX REPS: the cap is its clock
   const f = mission?.format;
   if (f === 'forTime') return mission.capSec || 0;
   const slots = allSlots(mission);
@@ -239,6 +242,12 @@ export function tierSec(v) { return typeof v === 'number' ? v : typeof v?.timeSe
 // long rest after that round (a ladder: after that rung), TOUCH THE SKY's
 // 2:00, else 0. Short rests are never timed.
 export function roundRestSec(mission, taps = 1) {
+  // MAX REPS: the rest after the taps-th set, every one timed (a 25 s change too).
+  if (isMaxReps(mission)) {
+    const list = allSlots(mission);
+    if (!list.length || !(taps >= 1) || taps >= totalSlots(mission)) return 0;
+    return list[(Math.floor(taps) - 1) % list.length]?.rest || 0;
+  }
   if (mission?.format !== 'forTime' || isUntilDown(mission)) return 0;
   const slots = allSlots(mission);
   if (!slots.length || !(taps >= 1)) return 0;
@@ -261,6 +270,7 @@ export function repsPerRound(mission) {
 // anything else its rounds.
 export function soloRounds(mission) {
   if (isUntilDown(mission)) return totalSlots(mission); // sets, up to the backstop
+  if (isMaxReps(mission)) return totalSlots(mission); // MAX REPS: one tap a set
   return isLadder(mission) ? rounds(mission) * allSlots(mission).length : rounds(mission);
 }
 // The reps done after n of SOLO's rounds (the cap's prefill): n full rounds,
@@ -296,6 +306,7 @@ export function paceTargets(mission) {
     const v = pace[tier];
     let text = '';
     if (isUntilDown(mission)) text = tier === 'elite' ? `${v}+ ${downCopy(mission).many}` : `${v} ${downCopy(mission).many}`;
+    else if (isMaxReps(mission)) text = tier === 'elite' ? `${v}+ reps` : `${v} reps`; // total reps, every set added
     else if (kind === 'roundsHeld') text = `${v?.held}/${v?.of} rounds`; // not a race: rounds held
     else if (f === 'forTime') text = `≤ ${mmss(v)}`;
     else if (f === 'amrap' && kind === 'reps') text = tier === 'elite' ? `${v}+ reps` : `${v} reps`; // an AMRAP scored in total reps
@@ -386,11 +397,13 @@ export function missionXp(mission, { slots = 0, ratio = 1, workedSec = 0, full =
 }
 // The most a run can bank. Until down: every set up to the backstop, inside the cap.
 export function fullRunXp(mission) {
+  if (isMaxReps(mission)) return maxRepsXp(mission, totalSlots(mission), { full: true });
   if (isUntilDown(mission)) return downXp(mission, totalSlots(mission), { elapsedSec: mission.capSec || Infinity });
   return missionXp(mission, { slots: totalSlots(mission), workedSec: workSecOf(mission), full: true });
 }
 export function soloExpectedSec(mission) {
   if (isUntilDown(mission)) return mission.capSec || 0;
+  if (isMaxReps(mission)) return Math.round(plannedThrough(mission, totalSlots(mission)));
   if (isFixedClock(mission?.format)) return missionClockSec(mission);
   const std = tierSec(mission?.pace?.standard);
   const cap = mission?.capSec || 0;
@@ -398,6 +411,7 @@ export function soloExpectedSec(mission) {
 }
 export function soloFloorSec(mission) {
   if (isUntilDown(mission)) return soloSetFloorSec(mission);
+  if (isMaxReps(mission)) return Math.ceil(floorSec(mission, totalSlots(mission)));
   if (isFixedClock(mission?.format)) return Math.ceil(0.95 * missionClockSec(mission));
   return Math.ceil(0.5 * tierSec(mission?.pace?.elite));
 }
@@ -411,6 +425,7 @@ export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
 // ran (the work in them); a finish pays the whole clock.
 export function settleSoloXp(result) {
   const mission = result?.mission || {};
+  if (isMaxReps(mission)) return settleMaxRepsSolo(result, mission);
   if (isUntilDown(mission)) return settleDown(result, mission);
   const slots = result?.mission ? totalSlots(mission) : (result?.totalSlots || 0);
   const full = missionXp(mission, { slots, workedSec: workSecOf(mission), full: true });
@@ -437,6 +452,7 @@ export function settleSoloXp(result) {
 const STOPPED_RESPONSE = 'Ended early — the work you completed counts toward your stats.';
 export function settleGuidedXp(result) {
   const mission = result?.mission || {};
+  if (isMaxReps(mission)) return settleGuidedMaxReps(result, mission);
   if (isUntilDown(mission)) return settleGuidedDown(result, mission);
   const done = Math.max(0, Math.floor(Number(result?.exercisesCompleted) || 0));
   const total = Math.max(0, Number(result?.totalExercises) || 0);
@@ -497,8 +513,9 @@ function settleDown(result, mission) {
 // ROUND button: its rounds are the clock's.
 // noRoundTimer: a one-round generated mission run AT YOUR PACE (data/
 // soloFromGenerated) has FINISH only: a ROUND tap would just be the finish.
+// A MAX REPS mission's tap is its DONE (one a set): the splits are the sets' times.
 export function hasRoundTimer(mission) {
-  return mission?.noRoundTimer !== true && (mission?.format === 'amrap' || mission?.format === 'forTime' || isUntilDown(mission));
+  return mission?.noRoundTimer !== true && (mission?.format === 'amrap' || mission?.format === 'forTime' || isUntilDown(mission) || isMaxReps(mission));
 }
 // Where block b's work starts on the clock, in seconds (0 for one block).
 function blockStartSec(mission, b) {
@@ -558,7 +575,7 @@ export function blockSplitsLine(rounds, { tag = 'R' } = {}) {
   return blocks.map(b => `B${b + 1} ${splitsLine(list.filter(r => r.block === b), { tag })}`).join(' / ');
 }
 
-// '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '3/3' (rounds held) · '—'
+// '18:42' · 'CAP · 248 reps' · '6 + 12' · '15/16' · '64' · '9 + 4' (sets) · '3/3' (rounds held) · '214' (total reps) · '—'
 export function formatScore(score) {
   if (!score) return '—';
   switch (score.kind) {
@@ -574,7 +591,188 @@ export function formatScore(score) {
     case 'minutesHeld': return `${score.minutesHeld ?? score.value ?? 0}/${score.of ?? 0}`;
     case 'reps': return String(score.reps ?? score.value ?? 0);
     case 'setsReps': return `${score.sets || 0} + ${score.reps || 0}`;
+    case 'totalReps': return String(score.total ?? score.value ?? 0);
     case 'roundsHeld': return `${score.held || 0}/${score.of || 0}${score.reps ? ` + ${score.reps}` : ''}`;
     default: return '—';
   }
+}
+
+// ── MAX REPS (MAX OUT) ──────────────────────────────────────────────────────
+// A mission with format 'maxReps' is a rotation of stations: one SET at each
+// (clean reps until the form breaks, then DONE and the reps entered), a short
+// rest, the next station; after the last one, the round's longer rest, and the
+// stations again. `rounds` is the sets each, 2 to 5. Every slot carries
+// `max: true` and a first-set estimate in `reps`; the athlete's reps are
+// never counted by the coach and never change the XP.
+//
+// XP is paid for time and for finishing, at the clock's own rate (10 XP a
+// minute), and never more than the clock really ran:
+//   · a SET is credited when it has at least 1 rep and ran MIN_SET_SEC;
+//   · a run is credited k sets: the most qualifying sets whose floorSec (8 s a
+//     set and half the planned rest between them) fits the clock;
+//   · XP = minutes the plan puts through those k sets, but no more than the
+//     seconds the clock ran, + the 30 finish bonus only when every set was
+//     credited, none skipped, and the run was not cut by the cap.
+// STOP, END or the cap pays the credited sets with no bonus; nothing saved
+// pays nothing. Skipping a set in the guided run loses the bonus.
+export const MIN_SET_SEC = 8;
+export function isMaxReps(mission) { return mission?.format === 'maxReps'; }
+export const MAX_NO_SET_MESSAGE = DOWN_NO_SET_MESSAGE; // 'Finish one set to earn XP.'
+export const MAX_TOO_FAST_MESSAGE = 'Faster than the plan allows, so none of your sets count.';
+const maxShortfall = (k, n) => `Faster than the plan allows, so ${k} of ${n} sets count.`;
+
+// The slot set n (1-based) is at: one set per station, round after round.
+export function maxSlotAt(mission, n) {
+  const list = allSlots(mission);
+  return list.length && n >= 1 ? list[(Math.floor(n) - 1) % list.length] : null;
+}
+// Every set of the run in order: its round and station, the seconds the plan
+// gives its work (at the ELITE count) and the authored rest after it.
+export function maxRepsPlan(mission) {
+  const list = allSlots(mission);
+  if (!list.length) return [];
+  return Array.from({ length: totalSlots(mission) }, (_, i) => {
+    const slot = list[i % list.length];
+    return { n: i + 1, round: Math.floor(i / list.length) + 1, station: i % list.length, moveId: slot.moveId, workSec: estimateWorkSeconds(slot), restSec: slot.rest || 0 };
+  });
+}
+// The seconds the plan puts through its first n sets: each set's work and 5 s
+// to get set, and the rest after every one but the last.
+export function plannedThrough(mission, n) {
+  const plan = maxRepsPlan(mission).slice(0, Math.max(0, Math.floor(Number(n) || 0)));
+  return plan.reduce((s, p, i) => s + p.workSec + 5 + (i < plan.length - 1 ? p.restSec : 0), 0);
+}
+// The least a clock can honestly show after n sets: MIN_SET_SEC each and half
+// of every authored rest between them (a skipped rest shortens the rest, never
+// the sets).
+export function floorSec(mission, n) {
+  const plan = maxRepsPlan(mission).slice(0, Math.max(0, Math.floor(Number(n) || 0)));
+  return plan.reduce((s, p, i) => s + MIN_SET_SEC + 0.5 * (i < plan.length - 1 ? p.restSec : 0), 0);
+}
+// The most reps a set of `sec` seconds can honestly hold: a rep takes at least
+// half the ELITE count (a push-up in 40 s: 53), at most 300.
+export function repsCeiling(moveId, sec) {
+  const s = Math.max(0, Number(sec) || 0);
+  const hard = (0.5 * estMsFor(moveId, 'elite')) / 1000;
+  return Math.min(300, Math.max(1, Math.floor(s / hard)));
+}
+// What the rep sheet and the saved score allow for one set: the smaller of the
+// move's cap (data/missionMoves repCapFor) and the ceiling for its seconds. A
+// set with no known seconds has only the cap.
+export function maxRepsLimit(slot, sec, level = 'standard') {
+  const cap = repCapFor(slot?.moveId, level);
+  const hasSec = Number.isFinite(Number(sec)) && Number(sec) > 0;
+  const ceiling = hasSec ? repsCeiling(slot?.moveId, sec) : 300;
+  return Math.min(cap == null ? 300 : cap, ceiling);
+}
+// sets: [{ reps, sec } | null], in set order (null: a skipped or missing set).
+// → { credited, saved, qualifying }: the sets the clock lets count.
+export function creditedSets(mission, sets, elapsedSec = Infinity) {
+  const list = Array.isArray(sets) ? sets : [];
+  const saved = list.filter(Boolean).length;
+  const qualifying = list.filter(x => x && x.reps >= 1 && x.sec >= MIN_SET_SEC).length;
+  const ran = Number(elapsedSec);
+  let k = Math.min(qualifying, totalSlots(mission));
+  if (Number.isFinite(ran)) while (k > 0 && floorSec(mission, k) > ran) k -= 1;
+  return { credited: k, saved, qualifying };
+}
+// `full`: the finish bonus is allowed (every set credited and none skipped is
+// checked by the caller; k must also be every set). Reps never change this.
+export function maxRepsXp(mission, k, { elapsedSec = Infinity, full = false } = {}) {
+  const total = totalSlots(mission);
+  const n = Math.min(total, Math.max(0, Math.floor(Number(k) || 0)));
+  if (n <= 0) return 0;
+  const ran = Math.max(0, Number(elapsedSec));
+  const sec = Math.min(Number.isFinite(ran) ? ran : Infinity, plannedThrough(mission, n));
+  return minutesXp(sec) + (full && n === total ? XP_FINISH : 0);
+}
+// The saved score: total reps, sets saved of all, each station's reps round by
+// round (null: a skipped set), each set's seconds, the clock. Every entry is
+// clamped to what a set of its seconds can hold, so the total can never come
+// from a tampered stash.
+export function maxRepsScore(mission, entries, { timeSec = 0, capped = false, skipped = 0 } = {}) {
+  const list = allSlots(mission);
+  const stations = list.length;
+  const level = mission?.level || 'standard';
+  const byStation = list.map(sl => ({ moveId: sl.moveId, name: sl.name, reps: [] }));
+  const setSecs = [];
+  let total = 0;
+  let saved = 0;
+  (Array.isArray(entries) ? entries : []).forEach((e, i) => {
+    const st = byStation[stations ? i % stations : 0];
+    if (!st) return;
+    if (!e || !Number.isFinite(Number(e.reps))) { st.reps.push(null); setSecs.push(null); return; }
+    const sec = Number.isFinite(Number(e.sec)) ? Math.max(0, Math.round(Number(e.sec))) : 0;
+    const reps = Math.min(maxRepsLimit(list[i % stations], sec, level), Math.max(0, Math.round(Number(e.reps))));
+    st.reps.push(reps);
+    setSecs.push(sec);
+    total += reps;
+    saved += 1;
+  });
+  byStation.forEach(st => { while (st.reps.length && st.reps[st.reps.length - 1] == null) st.reps.pop(); });
+  while (setSecs.length && setSecs[setSecs.length - 1] == null) setSecs.pop();
+  const k = Math.max(0, Math.floor(Number(skipped) || 0));
+  return {
+    kind: 'totalReps', total, sets: saved, of: totalSlots(mission), byStation, setSecs,
+    timeSec: Math.max(0, Math.floor(Number(timeSec) || 0)),
+    ...(capped ? { capped: true } : {}), ...(k > 0 ? { skipped: k } : {}),
+  };
+}
+// A saved score back to its sets in order: [{ reps, sec } | null].
+export function scoreSets(mission, score) {
+  if (!score || score.kind !== 'totalReps') return [];
+  const stations = allSlots(mission).length;
+  if (!stations) return [];
+  const by = Array.isArray(score.byStation) ? score.byStation : [];
+  const secs = Array.isArray(score.setSecs) ? score.setSecs : [];
+  let n = secs.length;
+  by.forEach((b, s) => { const len = Array.isArray(b?.reps) ? b.reps.length : 0; if (len) n = Math.max(n, (len - 1) * stations + s + 1); });
+  n = Math.min(n, totalSlots(mission));
+  return Array.from({ length: n }, (_, i) => {
+    const reps = by[i % stations]?.reps?.[Math.floor(i / stations)];
+    if (!Number.isFinite(reps)) return null;
+    return { reps, sec: Number.isFinite(secs[i]) ? secs[i] : 0 };
+  });
+}
+// AT YOUR PACE: each set's reps (setReps, parallel to the splits) and seconds
+// (the split's own lap, which leaves the rest out) as score entries.
+export function maxEntriesFromSplits(mission, splits, setReps) {
+  return roundSplits(mission, splits).map((r, i) => (Number.isFinite(Number(setReps?.[i])) ? { reps: Number(setReps[i]), sec: r.lapSec } : null));
+}
+// The cap (the run clock's seconds) has been reached.
+export function maxCapReached(mission, elapsedSec) {
+  const cap = mission?.capSec || 0;
+  return isMaxReps(mission) && cap > 0 && Number(elapsedSec) >= cap;
+}
+
+// The settle both runners share: what the saved sets earned.
+function settleMaxCore(result, mission) {
+  const total = totalSlots(mission);
+  const sets = scoreSets(mission, result?.score);
+  const elapsed = Math.max(0, Math.floor(Number(result?.elapsedSec ?? result?.score?.timeSec) || 0));
+  const { credited, saved } = creditedSets(mission, sets, elapsed);
+  const skipped = Math.max(0, Math.floor(Number(result?.skipped ?? result?.score?.skipped) || 0));
+  const full = !!result?.completed && !result?.capped && !result?.stopped && skipped === 0 && saved === total && credited === total;
+  const message = saved === 0 ? MAX_NO_SET_MESSAGE : credited === 0 ? MAX_TOO_FAST_MESSAGE : credited < saved ? maxShortfall(credited, saved) : null;
+  return { total, saved, credited, full, message, xp: maxRepsXp(mission, credited, { elapsedSec: elapsed, full }) };
+}
+// AT YOUR PACE: the last SAVE finishes the run (completed), STOP / END or the
+// cap ends it with the sets saved so far (a partial, no bonus).
+function settleMaxRepsSolo(result, mission) {
+  const c = settleMaxCore(result, mission);
+  if (c.saved === 0) return { xp: 0, outcome: 'none', ratio: 0, credited: 0, message: c.message };
+  if (c.credited === 0) return { xp: 0, outcome: 'too_fast', ratio: 0, credited: 0, message: c.message };
+  return { xp: c.xp, outcome: c.full ? 'pass' : 'partial', ratio: c.credited / c.total, credited: c.credited, message: c.message };
+}
+// GUIDED: the same maths. A run that is not a full finish is never a pass.
+function settleGuidedMaxReps(result, mission) {
+  const c = settleMaxCore(result, mission);
+  const none = (message) => ({
+    mode: 'guided', xp: 0, base: 0, outcome: 'none', workedSec: 0, credited: 0, message,
+    verdict: { outcome: 'fail', response: message, completionRatio: 0, preset: OUTCOME_PRESET.fail },
+  });
+  if (c.saved === 0 || c.credited === 0) return none(c.message);
+  let verdict = resolveOutcome({ completed: c.credited, total: c.total, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null });
+  if (!c.full && verdict.outcome === 'pass') verdict = { ...verdict, outcome: 'partial', response: STOPPED_RESPONSE, preset: OUTCOME_PRESET.partial };
+  return { mode: 'guided', xp: xpForOutcome(verdict.outcome, c.xp), base: c.xp, outcome: verdict.outcome, verdict, workedSec: 0, credited: c.credited, message: c.message };
 }
