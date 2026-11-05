@@ -55,7 +55,7 @@ const clampInt = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(v) |
 // Every bell and beep of the run, as moments on the clock (ms). Segment 0's
 // start is the end of GET READY, which rings its own bell.
 function soloCues(mission, timeline) {
-  if (mission.format === 'forTime' || isUntilDown(mission)) {
+  if (mission.format === 'forTime' || isUntilDown(mission) || isMaxReps(mission)) {
     const cap = mission.capSec || 0;
     return cap > 60 ? [{ at: (cap - 60) * 1000, kind: 'warn' }] : [];
   }
