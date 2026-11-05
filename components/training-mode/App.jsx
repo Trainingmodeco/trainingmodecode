@@ -685,10 +685,16 @@ export default function App() {
     // hub's and Home's START, a replay) runs today's mission the way the first
     // page last saved it (data/soloFromGenerated resolveQuickMissionRun). What
     // runs is what is remembered, so Continue repeats the same moves.
-    goQuickMissionActive: (c0) => {
-      const c = resolveQuickMissionRun(c0, qmV2Enabled() ? loadShelfPrefs().mode : 'guided');
+    // A guided start with no run asked for is written down as guided (stamp),
+    // so Continue repeats it as guided even after AT YOUR PACE is saved.
+    // `switched`: the guided brief's AT YOUR PACE INSTEAD, the same attempt, so
+    // it is one switch event and not a second session start.
+    goQuickMissionActive: (c0, { switched = false } = {}) => {
+      const v2On = qmV2Enabled();
+      const c = resolveQuickMissionRun(c0, v2On ? loadShelfPrefs().mode : 'guided', { stamp: v2On });
       rememberSession('quick_mission', c);
-      trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : c?.mode === 'solo' ? { solo: true } : undefined);
+      if (switched) trackEvent('session_switch', { mode: 'quickMission', to: 'solo' });
+      else trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : c?.mode === 'solo' ? { solo: true } : undefined);
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
     },
     // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,
@@ -698,7 +704,7 @@ export default function App() {
       if (!qmCfg) return;
       const base = { ...qmCfg, mission: mission || qmCfg.mission, mode: 'solo' };
       if (!missionRunsAtYourPace(base.mission)) return;
-      actions.goQuickMissionActive(base.v2 ? base : resolveQuickMissionRun(base, 'solo'));
+      actions.goQuickMissionActive(base.v2 ? base : resolveQuickMissionRun(base, 'solo'), { switched: true });
     },
     goQuickMissionComplete: (result) => {
       // A run banks once: a second end of the same GUIDED run (its runId) is dropped.

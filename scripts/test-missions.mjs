@@ -936,10 +936,10 @@ const settleChanged = pinChanged(SETTLE_HASH, settlePrint);
 // over from + ROUND, so five notes now say 'Tap ROUND after each rung' (lap).
 // The pin reads them back the old way; nothing else may differ.
 // The other: the owner does not read 'SOLO', so the badge on a card (and the
-// word in a note) now says YOUR PACE / At your pace; the pin reads them back too.
+// word in a note) now says YOUR PACE ONLY / In AT YOUR PACE; the pin reads them back too.
 const pinNote = (v) => {
   let out = v;
-  if (typeof v?.note === 'string') out = { ...out, note: v.note.replace('Tap ROUND after each', 'Tap + ROUND after each').replace('At your pace, tap ROUND', 'In SOLO, tap ROUND') };
+  if (typeof v?.note === 'string') out = { ...out, note: v.note.replace('Tap ROUND after each', 'Tap + ROUND after each').replace('In AT YOUR PACE, tap ROUND', 'In SOLO, tap ROUND') };
   if (Array.isArray(v?.tags)) out = { ...out, tags: v.tags.map(t => (t === 'YOUR PACE ONLY' ? 'SOLO ONLY' : t)) };
   return out;
 };
@@ -951,9 +951,9 @@ check('58 all 26: the six settles as pinned (XP by time on the ten AMRAPs, a for
 check('58 all 26: the built mission and its card unchanged', builtChanged.length === 0 && cardChanged.length === 0, `${builtChanged.join(', ')} ${cardChanged.join(', ')}`);
 // GUIDED has no ROUND button: a note on a mission that runs GUIDED says the
 // tap is SOLO's (TOUCH THE SKY, the only one; the five above are SOLO only).
-const guidedRoundNotes = L.LOADOUT_MISSIONS.filter(d => d.guided && /\bROUND\b/.test(d.note) && !/At your pace, tap ROUND/.test(d.note)).map(d => d.id);
+const guidedRoundNotes = L.LOADOUT_MISSIONS.filter(d => d.guided && /\bROUND\b/.test(d.note) && !/In AT YOUR PACE, tap ROUND/.test(d.note)).map(d => d.id);
 check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`))
-  && L.missionDefById('touch_the_sky').note.endsWith('At your pace, tap ROUND after each round to time the rest.') && guidedRoundNotes.length === 0, show([tapNotes, guidedRoundNotes]));
+  && L.missionDefById('touch_the_sky').note.endsWith('In AT YOUR PACE, tap ROUND after each round to time the rest.') && guidedRoundNotes.length === 0, show([tapNotes, guidedRoundNotes]));
 
 // No franchise, benchmark or person names anywhere a viewer reads.
 const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];

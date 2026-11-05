@@ -106,11 +106,12 @@ problems('4 tiers: whole 15-second marks, ELITE < STANDARD < BEGINNER, STANDARD 
   if (Math.abs(pace.standard - est) > 7.5 + 1e-9) return `standard ${pace.standard} vs estimate ${est}`;
   return null;
 });
-problems('5 ELITE is never under 1.2 x the moves\' own seconds (unless STANDARD itself is that close), BEGINNER about 1.4 x', ({ gen }) => {
+problems('5 ELITE is never under 1.2 x the moves\' own seconds (unless STANDARD itself is that close) and never over 1.6 x, BEGINNER about 1.4 x', ({ gen }) => {
   const { pace } = adapt(gen);
   const work = Q.estimateQuickMissionWorkSeconds(gen);
   const est = Q.estimateQuickMissionSeconds(gen);
   if (pace.elite < Math.min(pace.standard - 15, 1.2 * work - 7.5)) return `elite ${pace.elite} work ${work}`;
+  if (pace.elite > 1.6 * work + 7.5 && pace.elite > 15) return `elite ${pace.elite} work ${work} (over 1.6 x)`;
   if (pace.beginner < 1.4 * est - 7.5 || pace.beginner > 1.4 * est + 15 + 7.5) return `beginner ${pace.beginner} est ${est}`;
   return null;
 });
@@ -177,6 +178,24 @@ problems('13 the floor is a believable lower bound: at least 0.6 x the moves\' o
   const floor = S.soloFloorSec(a);
   return floor >= Math.min(0.5 * (a.pace.standard - 15), 0.6 * work - 7.5) && floor >= 8 ? null : `floor ${floor} work ${work} standard ${a.pace.standard}`;
 });
+// Two-sided: the floor is a believable lower bound AND never above what the moves
+// take with no rest at all, so an honest no-rest finish is paid (an Easy mission's
+// rests are most of its estimate; half of 70% of it alone sat above the work).
+problems('13b the floor is never above 0.9 x the moves\' own seconds: a no-rest finish at the coach\'s cadence pays the full XP', ({ gen }) => {
+  const a = adapt(gen);
+  const work = Q.estimateQuickMissionWorkSeconds(gen);
+  const floor = S.soloFloorSec(a);
+  if (floor > 0.9 * work) return `floor ${floor} work ${work}`;
+  const r = settle(a, { completed: true, elapsedSec: work });
+  return r.outcome === 'pass' && r.xp === guidedFull(gen) ? null : `no-rest finish at ${work}s: ${show(r)}`;
+});
+check('13c an Easy 10 minute bodyweight mission: a no-rest finish at its own seconds pays, a tap-and-done at 0 does not', (() => {
+  const gen = Q.generateQuickMission({ workoutType: 'Bodyweight', difficulty: 'Easy', focus: 'Full Body', duration: 10 });
+  const a = adapt(gen);
+  const work = Q.estimateQuickMissionWorkSeconds(gen);
+  return settle(a, { completed: true, elapsedSec: work }).xp === guidedFull(gen) && settle(a, { completed: true, elapsedSec: 0 }).xp === 0
+    && settle(a, { completed: true, elapsedSec: 0 }).message === S.TOO_FAST_TIME_MESSAGE && /half the elite time/.test(S.TOO_FAST_TIME_MESSAGE);
+})());
 problems('14 a stopped run pays by the share of STANDARD it ran: none under a quarter, less than a finish after it', ({ gen }) => {
   const a = adapt(gen);
   const early = settle(a, { stopped: true, elapsedSec: Math.floor(a.pace.standard * 0.2) });
@@ -290,6 +309,46 @@ check('21 nothing to run: null for empty, missing and move-less missions', adapt
     A.resolveQuickMissionRun(null, 'solo') === null && A.resolveQuickMissionRun(undefined, 'solo') === undefined && A.resolveQuickMissionRun('x', 'solo') === 'x' && show(A.resolveQuickMissionRun({}, 'guided')) === '{}');
 }
 
+// ── a guided start is written down as guided (Continue and replay repeat it) ──
+{
+  const hubCfg = C.quickMissionConfig({ duration: 20, difficulty: 'Normal', focus: 'Upper' });
+  const stamped = A.resolveQuickMissionRun(hubCfg, 'guided', { stamp: true });
+  check('33b a guided start with no mode is stamped mode "guided" (the config otherwise kept, the original untouched)',
+    stamped.mode === 'guided' && stamped !== hubCfg && !('mode' in hubCfg) && stamped.focus === 'Upper' && stamped.duration === 20 && !('mission' in stamped));
+  // The replay: saved AT YOUR PACE since, the stamped guided run is still guided.
+  check('33c ...and a replay of it after AT YOUR PACE is saved is still guided (the same object), where an unstamped one would flip', A.resolveQuickMissionRun(stamped, 'solo', { stamp: true }) === stamped
+    && A.resolveQuickMissionRun(hubCfg, 'solo', { stamp: true }).mode === 'solo');
+  const gen = Q.generateQuickMission(hubCfg);
+  const cardCfg = { ...hubCfg, mission: gen };
+  check('33d a stamp reaches a generated mission with no mode too; a library mission, a classic and a plan day are never stamped, and a stamp is off by default',
+    A.resolveQuickMissionRun(cardCfg, 'guided', { stamp: true }).mode === 'guided' && A.resolveQuickMissionRun(cardCfg, 'guided') === cardCfg
+    && A.resolveQuickMissionRun({ ...cardCfg, mission: N.buildNamedMission('half_murph') }, 'guided', { stamp: true }).mode === undefined
+    && !('mode' in A.resolveQuickMissionRun({ ...hubCfg, mission: { ...gen, named: 'plan:0', planId: 'p' } }, 'guided', { stamp: true }))
+    && !('mode' in A.resolveQuickMissionRun({ ...hubCfg, v2: true, mission: L.buildLoadoutMission('iron_clock_16', {}) }, 'guided', { stamp: true })));
+  const solo = A.resolveQuickMissionRun(hubCfg, 'solo', { stamp: true });
+  check('33e what is remembered is what ran: an AT YOUR PACE start stays mode solo (with its adapted mission) through a replay', solo.mode === 'solo' && A.resolveQuickMissionRun(solo, 'guided', { stamp: true }) === solo);
+
+  // startsAtYourPace: what the Home cards say before START.
+  const libSoloCfg = { ...hubCfg, v2: true, mode: 'solo', mission: L.buildLoadoutMission('honor_rounds', {}) };
+  check('33f startsAtYourPace: a bare config follows the saved choice; an explicit mode wins; a classic, a plan day and a library mission on the coach never say it; junk is false',
+    A.startsAtYourPace(hubCfg, 'solo') === true && A.startsAtYourPace(hubCfg, 'guided') === false && A.startsAtYourPace(hubCfg, undefined) === false
+    && A.startsAtYourPace({ ...hubCfg, mode: 'guided' }, 'solo') === false && A.startsAtYourPace({ ...hubCfg, mode: 'solo' }, 'guided') === true
+    && A.startsAtYourPace({ ...hubCfg, mission: N.buildNamedMission('half_murph') }, 'solo') === false
+    && A.startsAtYourPace({ ...hubCfg, mission: { ...gen, named: 'plan:0', planId: 'p' } }, 'solo') === false
+    && A.startsAtYourPace({ ...hubCfg, v2: true, mode: 'guided', mission: L.buildLoadoutMission('iron_clock_16', {}) }, 'solo') === false
+    && A.startsAtYourPace(libSoloCfg, 'guided') === true && A.startsAtYourPace(null, 'solo') === false && A.startsAtYourPace('x', 'solo') === false);
+}
+
+// ── one round: no ROUND, so no split line either ────────────────────────────
+{
+  const a = adapt(Q.generateQuickMission({ workoutType: 'Bodyweight', difficulty: 'Easy', focus: 'Core', duration: 5 }));
+  const many = adapt(Q.generateQuickMission({ workoutType: 'Bodyweight', difficulty: 'Easy', focus: 'Core', duration: 20 }));
+  check('33g a one-round run closes no split on FINISH (no "R1" line repeating the TIME); a several-round run still does',
+    a.noRoundTimer === true && S.closeSplits(a, [], 180).length === 0 && S.roundSplits(a, S.closeSplits(a, [], 180)).length === 0
+    && S.closeSplits(many, Array.from({ length: many.rounds - 1 }, (_, i) => ({ at: (i + 1) * 1000, block: 0 })), 600).length === many.rounds);
+  check('33h the line under the clock says what the taps do', a.tapHint === 'Tap FINISH when the list is done.' && many.tapHint === 'Tap ROUND when a round is done. FINISH after the last.');
+}
+
 // ── the saved choice ────────────────────────────────────────────────────────
 {
   store.clear();
@@ -312,9 +371,14 @@ check('21 nothing to run: null for empty, missing and move-less missions', adapt
     C.quickMissionLine(cfg, { v2: true }) === '12 min · Easy · Full Body · No gear'
     && plain(held) === '12 min · Easy · Full Body · No gear · At your pace'
     && C.quickMissionLine(cfg) === '12 min · Easy · Full Body · Bodyweight'
-    && plain(C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { atYourPace: true })) === '15 min · Normal · Full Body · Weighted · At your pace');
-  check('38b the last words are held together: a narrow card wraps before "At your pace", never inside it',
-    held.endsWith('\u00A0· At\u00A0your\u00A0pace') && !/ At | your /.test(held.slice(held.indexOf('No gear') + 7)));
+    && plain(C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { atYourPace: true })) === '15 min · Medium · Full Body · Weighted · At your pace');
+  // The dot is bound FORWARD: a normal space before it, no-break spaces after, so a
+  // wrap leaves "· At your pace" on the next line and never a dangling "·".
+  check('38b the last words are held together: a narrow card wraps before the dot, so "· At your pace" arrives whole',
+    held.endsWith(' \u00B7\u00A0At\u00A0your\u00A0pace') && !/\u00A0\u00B7/.test(held) && !/ At | your | gear/.test(held.slice(held.indexOf('No') + 2).replace(/^ \u00B7/, '')));
+  check('38c the level reads MEDIUM everywhere: Normal becomes Medium on the hub line, levelWord gives the capitals, anything else is as it was',
+    plain(C.quickMissionLine(C.quickMissionConfig({ duration: 15, difficulty: 'NORMAL' }))).includes(' · Medium · ') && C.levelWord('Normal') === 'MEDIUM' && C.levelWord('NORMAL') === 'MEDIUM'
+    && C.levelWord('Easy') === 'EASY' && C.levelWord('Hard') === 'HARD' && C.levelWord('Advanced') === 'ADVANCED' && C.levelWord(undefined) === '');
 }
 
 // ── the words: nobody reads "SOLO" on screen ────────────────────────────────
@@ -322,7 +386,9 @@ check('21 nothing to run: null for empty, missing and move-less missions', adapt
   const jargon = (s) => /\bsolo\b/i.test(String(s));
   check('39 the helper lines and the switch labels say AT YOUR PACE, not SOLO',
     L.RUN_MODES.map(m => m.label).join('|') === 'GUIDED|AT YOUR PACE' && [L.GUIDED_HELP, L.SOLO_HELP, L.SOLO_ONLY_HELP, L.CLASSIC_HELP].every(t => !jargon(t) && t.length > 10 && t.length < 80)
-    && L.GUIDED_HELP === 'The coach calls every move and counts your reps.' && L.SOLO_HELP === 'The moves and a timer. No coach voice. Your phone stays awake.');
+    && L.GUIDED_HELP === 'The coach calls every move and keeps time.' && L.SOLO_HELP === 'The moves and a timer. Beeps, no coach voice.'
+    // One line each under the switch on a 360px phone (about 55 characters at 11px).
+    && L.GUIDED_HELP.length <= 50 && L.SOLO_HELP.length <= 50);
   check('40 the stored values are unchanged: run mode ids are guided and solo', L.RUN_MODES.map(m => m.id).join('|') === 'guided|solo');
   const guideText = Object.entries(G.SCREEN_GUIDES).filter(([k]) => k.startsWith('quick_mission') || k.startsWith('qm')).flatMap(([, steps]) => steps.flatMap(s => [s.title, s.body]));
   check('41 the Quick Mission guides never say SOLO, and the v2 setup guide has the GUIDED OR AT YOUR PACE step', guideText.length > 10 && !guideText.some(jargon)

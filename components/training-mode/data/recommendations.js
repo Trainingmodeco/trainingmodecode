@@ -249,7 +249,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
   // Fallback
   return {
     title: 'Quick Mission — 12 Min Starter',
-    subtitle: 'A quick guided session to get you moving.',
+    subtitle: 'A quick session to get you moving.',
     reason: 'Starter recommendation',
     actionType: 'quickMission',
     actionPayload: { duration: 12, difficulty: 'Normal', focus: 'Full Body' },

@@ -15,9 +15,9 @@ import {
 //
 // The Mission Library's floating sheet (portalled, resting on the tab bar),
 // sized to what it holds. What it shows depends on the mission on the card:
-//   today's mission   LEVEL (easy / medium / hard) · FOCUS · HOW (guided / at
-//                     your pace) · ADD CARDIO
-//   a library mission LEVEL (its own levels) · HOW (guided / at your pace) · ADD CARDIO
+//   today's mission   LEVEL (easy / medium / hard) · FOCUS · RUN MODE (guided /
+//                     at your pace) · ADD CARDIO
+//   a library mission LEVEL (its own levels) · RUN MODE (guided / at your pace) · ADD CARDIO
 //                     · NOTES (its loadout, score, how to scale and the
 //                     coach's note: the brief the open card leaves out)
 //   a classic         ADD CARDIO
@@ -46,8 +46,8 @@ const help = (text) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lin
 function HowRow({ how }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <Label>How</Label>
-      <div role="radiogroup" aria-label="How" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
+      <Label>Run mode</Label>
+      <div role="radiogroup" aria-label="Run mode" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
         {RUN_MODES.map(({ id, label }) => {
           const on = how.value === id;
           const off = id === 'guided' && how.soloOnly;

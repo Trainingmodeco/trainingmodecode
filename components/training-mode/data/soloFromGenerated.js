@@ -46,14 +46,17 @@ export function missionRunsAtYourPace(m) {
 }
 
 // ELITE, STANDARD and BEGINNER finish times, in seconds, strictly in that order.
-// STANDARD is the guided estimate. ELITE is 70% of it, but never under 1.2 x the
-// moves' own seconds (the engine's floor is half of ELITE, so a finish at the
-// floor still took 60% of the moves' time). BEGINNER is 1.4 x.
+// STANDARD is the guided estimate. ELITE is 70% of it, kept between 1.2 x and
+// 1.6 x the moves' own seconds: the engine's floor is half of ELITE, so a finish
+// at the floor still took 60-80% of the moves' time, and the floor can never sit
+// above what the moves take with no rest at all (an Easy mission's rests are most
+// of its estimate, so 70% of it alone would refuse an honest no-rest finish).
+// BEGINNER is 1.4 x the estimate.
 export function paceTiersFor(gen) {
   const est = estimateQuickMissionSeconds(gen);
   const work = estimateQuickMissionWorkSeconds(gen);
   const standard = mark(est);
-  const elite = Math.max(STEP, Math.min(standard - STEP, mark(Math.max(0.7 * est, 1.2 * work))));
+  const elite = Math.max(STEP, Math.min(standard - STEP, mark(Math.min(Math.max(0.7 * est, 1.2 * work), 1.6 * work))));
   const beginner = Math.max(standard + STEP, mark(1.4 * est));
   return { elite, standard, beginner };
 }
@@ -101,6 +104,8 @@ export function soloFromGenerated(gen) {
     clockSec: 0,
     pace,
     paceBasis: 'Set from your moves and a normal rest between them.',
+    // The one line under the clock that says what the taps do.
+    tapHint: rounds === 1 ? 'Tap FINISH when the list is done.' : 'Tap ROUND when a round is done. FINISH after the last.',
     scoreRule: { kind: 'time' },
     scoreLine: 'TIME',
     missionLine: rounds === 1 ? '1 ROUND · THE WHOLE LIST' : `${rounds} ROUNDS · THE WHOLE LIST EACH TIME`,
@@ -124,11 +129,26 @@ export function soloFromGenerated(gen) {
 // adapted mission has to exist before the run screen opens. The returned
 // config carries the adapted mission, so a replay and a resume bring back the
 // very same moves.
-export function resolveQuickMissionRun(cfg, savedMode) {
+// `stamp` (App passes it while the choice is live): a GUIDED start is written
+// down as mode 'guided', so Continue and a replay repeat it as a guided run
+// even after AT YOUR PACE has been saved since. Only a start that would have
+// followed the saved choice is stamped; a library mission, a classic and a
+// plan day stay as they were.
+export function resolveQuickMissionRun(cfg, savedMode, { stamp = false } = {}) {
   if (!cfg || typeof cfg !== 'object' || cfg.v2) return cfg;
   if (cfg.mode === 'guided') return cfg;
-  if (cfg.mode == null && savedMode !== 'solo') return cfg;
   if (cfg.mission && !isGeneratedMission(cfg.mission)) return cfg;
+  if (cfg.mode == null && savedMode !== 'solo') return stamp ? { ...cfg, mode: 'guided' } : cfg;
   const mission = soloFromGenerated(cfg.mission ?? generateQuickMission(cfg));
   return mission ? { ...cfg, mission, mode: 'solo' } : cfg;
+}
+
+// Whether a start with this config would run at your pace (the Home cards say
+// so, as the Fit hub's does). Looks only; deals nothing.
+export function startsAtYourPace(cfg, savedMode) {
+  if (!cfg || typeof cfg !== 'object') return false;
+  if (cfg.mode === 'solo') return true;
+  if (cfg.v2 || cfg.mode === 'guided') return false;
+  if (cfg.mission && !isGeneratedMission(cfg.mission)) return false;
+  return savedMode === 'solo';
 }

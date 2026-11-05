@@ -27,6 +27,10 @@ export const QM_INTENSITY = ['EASY', 'NORMAL', 'HARD'];
 // generator, DIFFICULTY_CONFIG and saved sessions read it); MEDIUM is what
 // the setup screen and its Mission Library print, on ADJUST and the tags.
 export const QM_LEVEL_WORD = { EASY: 'EASY', NORMAL: 'MEDIUM', HARD: 'HARD' };
+// Any stored form of a level ('Normal', 'NORMAL', 'Advanced') as the word the
+// athlete reads, in capitals: NORMAL reads MEDIUM everywhere, so both runs and
+// the hub name a level the same way. An unknown word comes back as it was.
+export const levelWord = (d) => QM_LEVEL_WORD[String(d ?? '').toUpperCase()] || String(d ?? '').toUpperCase();
 // The setup screen's GEAR. Bodyweight is every caller's default, so the
 // hub, Home and Programs keep starting exactly what they did.
 export const QM_TYPES = ['Bodyweight', 'Weighted', 'Hybrid'];
@@ -55,11 +59,15 @@ export function surpriseQuickMission() {
 // a mission, so what it says is what START runs. Quick Mission v2 says
 // "No gear" for a bodyweight mission, the word its LOADOUT row uses. When START
 // runs it AT YOUR PACE (the choice saved on the Quick Mission page) the line
-// ends "· At your pace". Those last words are held together with no-break
-// spaces, so a narrow card wraps before "At your pace" instead of splitting it.
+// ends "· At your pace". Those last words, and the dot before them, are held
+// together with no-break spaces, so a narrow card wraps before the dot and
+// "At your pace" arrives whole (never "· " at the end of a line).
 export function quickMissionLine(cfg, { v2 = false, atYourPace = false } = {}) {
   const type = cfg.workoutType || 'Bodyweight';
-  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · ${type === 'Bodyweight' && v2 ? 'No gear' : type}${atYourPace ? '\u00A0· At\u00A0your\u00A0pace' : ''}`;
+  const level = levelWord(cfg.difficulty);
+  // With the tail on, "No gear" is held together too, so a wrap never lands between its words.
+  const gear = type === 'Bodyweight' && v2 ? (atYourPace ? 'No\u00A0gear' : 'No gear') : type;
+  return `${cfg.duration} min · ${level.charAt(0)}${level.slice(1).toLowerCase()} · ${cfg.focus} · ${gear}${atYourPace ? ' \u00B7\u00A0At\u00A0your\u00A0pace' : ''}`;
 }
 
 // The setup screen's choices, remembered per viewer: GEAR and TIME on the

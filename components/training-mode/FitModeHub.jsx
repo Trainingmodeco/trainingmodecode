@@ -71,8 +71,11 @@ const hubCSS = `
    the rows are at their floor and the text would otherwise touch the border. */
 .fm-t { display: block; font: 700 clamp(16px, 2.4dvh, 17px) 'Chakra Petch',sans-serif; line-height: 1.15; letter-spacing: 0.04em; color: #fff; }
 .fm-s { display: block; font-size: clamp(13px, 2dvh, 14px); line-height: 1.15; color: ${MUTED}; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* A 320px phone: tighter row padding and a 13px subtitle so no line is cut. */
+.fm-line { -webkit-line-clamp: 2; }
+/* A 320px phone: tighter row padding and a 13px subtitle so no line is cut. The
+   card's detail line takes a third line, so "· At your pace" is never cut off. */
 @media (max-width: 340px) {
+  .fm-line { -webkit-line-clamp: 3; }
   .fm-row { padding-left: 12px !important; gap: 10px !important; }
   .fm-row .fm-n { width: 16px !important; }
   .fm-s { font-size: 13px; }
@@ -237,7 +240,7 @@ export default function FitModeHub({
               {/* The detail line and a compact START share the bottom row, so the
                   card stays short now that the drop card sits below it. */}
               <div style={{ marginTop: 'auto', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: MUTED, lineHeight: 1.2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{line}</div>
+                <div className="fm-line" style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: MUTED, lineHeight: 1.2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{line}</div>
                 <button type="button" className="fm-go" onClick={startPick} style={{
                   height: 44, padding: '0 18px', borderRadius: 11, border: 'none', cursor: 'pointer', flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

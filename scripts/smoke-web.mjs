@@ -446,8 +446,8 @@ await check('quick mission: the first page is the card, GEAR, TIME and the libra
 const modeSwitch = () => page.getByRole('radiogroup', { name: 'Run mode' });
 const modeKey = (name) => modeSwitch().getByRole('radio', { name, exact: true });
 const modeHelp = () => page.locator('#qm-how-help').innerText();
-const GUIDED_LINE = 'The coach calls every move and counts your reps.';
-const PACE_LINE = 'The moves and a timer. No coach voice. Your phone stays awake.';
+const GUIDED_LINE = 'The coach calls every move and keeps time.';
+const PACE_LINE = 'The moves and a timer. Beeps, no coach voice.';
 // The move names on the card, after ▾ SEE ALL opens it.
 const cardMoves = async () => { await expand(); return card().locator('ol > li > span:nth-child(2)').allInnerTexts(); };
 // The moves the run screen lists (its rows are 01, 02… then a name).
@@ -470,6 +470,8 @@ await check('quick mission: GUIDED | AT YOUR PACE is on the first page and the w
             nav: r(document.querySelector('[data-guide="nav-tabs"]')).top, start: r(start), lib: r(document.querySelector('[data-guide="qm-library"]')),
             sw: r(sw), segs: [...sw.querySelectorAll('[role="radio"]')].map(b => r(b).height), how: r(document.querySelector('[data-guide="qm-how"]')),
             gear: r(document.querySelector('[data-guide="qm-gear"]')), time: r(document.querySelector('[data-guide="qm-time"]')),
+            chip: r([...document.querySelectorAll('button')].find(b => /BETA/.test(b.textContent))),
+            help: r(document.querySelector('#qm-how-help')),
           };
         });
         const at = `${w}x${h} ${m}`;
@@ -478,18 +480,34 @@ await check('quick mission: GUIDED | AT YOUR PACE is on the first page and the w
         if (g.sw.bottom > g.start.top) throw new Error(`${at}: the switch is not above START`);
         if (g.lib.bottom > g.nav + 0.5) throw new Error(`${at}: the library row ends at ${Math.round(g.lib.bottom)}, under the tab bar at ${Math.round(g.nav)}`);
         if (g.gear.bottom > g.time.top + 0.5 || g.time.bottom > g.lib.top + 0.5) throw new Error(`${at}: GEAR, TIME and the library overlap`);
+        // The floating BETA chip (left edge, 37px over the tab bar) must not sit on the library row.
+        if (g.chip.right > g.lib.left && g.chip.left < g.lib.right && g.chip.bottom > g.lib.top && g.chip.top < g.lib.bottom - 0.5) throw new Error(`${at}: the BETA chip (${Math.round(g.chip.top)}-${Math.round(g.chip.bottom)}) sits on the library row (${Math.round(g.lib.top)}-${Math.round(g.lib.bottom)})`);
+        if (g.help.height > 20) throw new Error(`${at}: the line under the switch wraps to ${Math.round(g.help.height)}px`);
         if (await modeHelp() !== (m === 'GUIDED' ? GUIDED_LINE : PACE_LINE)) throw new Error(`${at}: the line under the switch is not the ${m} one`);
       }
     }
   } finally { await resizeTo(390, 844); }
 }, /GUIDED/);
+await check('quick mission: a closed card with exactly three moves says SEE ALL 3 MOVES where a short phone hides one', async () => {
+  await quick(); await putOnCard(V2_PUBLIC ? /^BEST OF 3/ : /^HALF MURPH/);
+  const moves = () => page.evaluate(() => ({ all: document.querySelectorAll('#qm-moves > li').length, shown: [...document.querySelectorAll('#qm-moves > li')].filter(li => li.offsetParent !== null).length }));
+  if ((await moves()).all !== 3) return; // the mission has changed; the rule is held for three moves only
+  try {
+    await resizeTo(360, 740);
+    const small = await moves(); const smallLabel = await page.locator('[data-guide="qm-expand"]').innerText();
+    if (small.shown < 3 && !/SEE ALL 3 MOVES/.test(smallLabel)) throw new Error(`360x740 shows ${small.shown} of 3 moves under "${smallLabel}"`);
+    await resizeTo(412, 811);
+    const tall = await moves(); const tallLabel = await page.locator('[data-guide="qm-expand"]').innerText();
+    if (tall.shown !== 3 || !/SEE MORE/.test(tallLabel)) throw new Error(`412x811 shows ${tall.shown} of 3 moves under "${tallLabel}"`);
+  } finally { await resizeTo(390, 844); }
+}, /SEE ALL \d+ MOVES|SEE MORE/);
 await check('quick mission: GUIDED is the default, and the choice is remembered, with ADJUST in step', async () => {
   await quick();
   if (await modeKey('GUIDED').getAttribute('aria-checked') !== 'true' || await modeKey('AT YOUR PACE').getAttribute('aria-checked') !== 'false') throw new Error('GUIDED is not the default');
   await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
   if (await page.evaluate(() => JSON.parse(localStorage.getItem('tm_qm_shelf_v1') || '{}').mode) !== 'solo') throw new Error('AT YOUR PACE was not saved (stored as solo)');
   await adjust();
-  const how = adjustSheet().getByRole('radiogroup', { name: 'How' });
+  const how = adjustSheet().getByRole('radiogroup', { name: 'Run mode' });
   if (await how.getByRole('radio', { name: 'AT YOUR PACE', exact: true }).getAttribute('aria-checked') !== 'true') throw new Error('ADJUST does not show AT YOUR PACE');
   if (!(await adjustSheet().innerText()).includes(PACE_LINE)) throw new Error('ADJUST does not say what AT YOUR PACE does');
   await how.getByRole('radio', { name: 'GUIDED', exact: true }).click({ timeout: 4000 }); await S(300); await done();
@@ -509,6 +527,18 @@ await check('quick mission: a classic stays with the coach, and says why', async
   await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
   if (/AT YOUR PACE/.test(await text())) throw new Error('a classic ran at your pace');
 }, /ROUND|EXERCISE|MILE|PREPARING|GET READY/);
+await check('quick mission: the library says how START will run the highlighted mission', async () => {
+  await quick();
+  const lineOf = async () => (await sheet().locator('#ml-sub').innerText()).replace(/\s+/g, ' ');
+  await pickRow(V2_PUBLIC ? /^ONE-BELL 300/ : /^HALF MURPH/);
+  if (V2_PUBLIC && !/START runs it GUIDED\./.test(await lineOf())) throw new Error(`GUIDED saved: the library says "${await lineOf()}"`);
+  await sheet().getByRole('button', { name: 'Close' }).click({ timeout: 4000 }); await S(500);
+  await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await pickRow(V2_PUBLIC ? /^ONE-BELL 300/ : /^HALF MURPH/);
+  if (V2_PUBLIC && !/START runs it AT YOUR PACE\./.test(await lineOf())) throw new Error(`AT YOUR PACE saved: the library says "${await lineOf()}"`);
+  await sheet().getByRole('radio', { name: /^MURPH|^HALF MURPH/ }).first().click({ timeout: 4000 }); await S(300);
+  if (!/START runs this one with the coach\./.test(await lineOf())) throw new Error(`a classic: the library says "${await lineOf()}"`);
+}, /CLASSICS|MISSION LIBRARY/);
 await check('owner: a mission only offered at your pace shows AT YOUR PACE selected and GUIDED dimmed', async () => {
   await ownerQuick(); await putOnCard(/^HONOR ROUNDS/);
   if (await modeKey('AT YOUR PACE').getAttribute('aria-checked') !== 'true' || await modeKey('GUIDED').getAttribute('aria-disabled') !== 'true') throw new Error('HONOR ROUNDS is not AT YOUR PACE with GUIDED dimmed');
@@ -553,16 +583,106 @@ await check('quick mission: a finish far faster than the moves could be done pay
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(500);
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
   const t = await text(); const rows = await qmRows();
-  if (!/Faster than elite pace/.test(t) || !/\+?0\s*\n?\s*XP/.test(t) || rows.length !== 1 || rows[0].xpEarned !== 0) throw new Error(`a quick tap paid: ${JSON.stringify(rows)}`);
+  if (!/Under half the elite time/.test(t) || !/\+?0\s*\n?\s*XP/.test(t) || rows.length !== 1 || rows[0].xpEarned !== 0) throw new Error(`a quick tap paid: ${JSON.stringify(rows)}`);
 }, /VALIDATION FAILED|FAILED|COMPLETE/);
+// The pace targets on the run screen, in seconds ("≤ 10:15" under STANDARD).
+const paceTier = (t, n) => { const m = t.match(new RegExp(`${n}\\s*\\n?\\s*≤ (\\d+):(\\d\\d)`)); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
+await check('quick mission: on an Easy mission a finish at a third of STANDARD still pays the full XP (the floor sits under what the moves take)', async () => {
+  await fit();
+  await page.evaluate(() => localStorage.setItem('tm_qm_keys_v1', JSON.stringify({ workoutType: 'Bodyweight', difficulty: 'EASY', duration: 10, focus: 'FULL BODY' })));
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  let t = await text();
+  const moves = runMoves(t).length;
+  const rounds = Number((t.match(/ROUND 1\/(\d+)/) || [])[1]) || 1;
+  const standard = paceTier(t, 'STANDARD');
+  if (!moves || !(standard > 0)) throw new Error('no moves or STANDARD target on the at-your-pace screen');
+  await jump(Math.round(standard * 0.33) * 1000); await S(700);
+  await btn(/^FINISH$/).click({ timeout: 4000 }); await S(500);
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
+  t = await text();
+  const xp = 15 * moves * rounds + 30; const bank = await qmRows();
+  if (!new RegExp(`\\+${xp}\\b`).test(t) || bank.length !== 1 || bank[0].xpEarned !== xp) throw new Error(`a finish at a third of STANDARD paid ${JSON.stringify(bank.map(r => r.xpEarned))}, not ${xp}`);
+}, /SESSION COMPLETE/);
+await check('home: a one-round run (the 5 minute mission) has FINISH only, and its score panel repeats no "R1" split', async () => {
+  await home();
+  await page.evaluate(() => localStorage.setItem('tm_last_session_v1', JSON.stringify({ kind: 'quick_mission', at: Date.now(), disc: null, cfg: {
+    workoutType: 'Bodyweight', duration: 5, difficulty: 'Easy', focus: 'Core', format: 'Auto', cardioFinisher: false, cadenceCount: true,
+    cadencePreset: 'moderate', cadenceMs: 2000, voiceOn: true, cardioAddon: null, mode: 'solo' } })));
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await S(7500);
+  let t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length) throw new Error('the replay did not open the at-your-pace screen');
+  if (await btn(/^ROUND$/).count() || !(await btn(/^FINISH$/).isVisible())) throw new Error('a one-round run should have FINISH and no ROUND');
+  if (!/Tap FINISH when the list is done\./.test(t)) throw new Error('no line saying what FINISH does');
+  await jump(90000); await S(700);
+  await btn(/^FINISH$/).click({ timeout: 4000 }); await S(600);
+  t = await text();
+  if (!/YOUR SCORE/.test(t) || /\bR1 \d+:\d\d/.test(t)) throw new Error(`the score panel repeats the time as a split: ${t.replace(/\n/g, ' | ').slice(0, 220)}`);
+}, /YOUR SCORE/);
+await check('home: the card says AT YOUR PACE when that is saved and START runs it that way; with GUIDED saved it says nothing', async () => {
+  const goHome = async () => {
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+    await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  };
+  const cardText = () => page.evaluate(() => document.querySelector('[data-guide="home-continue"]').innerText);
+  await home();
+  await page.evaluate(() => localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'solo' })));
+  await goHome();
+  await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
+  const c = await cardText();
+  if (!/Surprise Mission/.test(c) || !/AT YOUR PACE/.test(c)) throw new Error(`the Home card does not say AT YOUR PACE: ${c.replace(/\n/g, ' | ')}`);
+  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await S(7500);
+  const t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the Home START did not run the moves and a timer');
+  await home();
+  await page.evaluate(() => localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'guided' })));
+  await goHome();
+  await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
+  if (/AT YOUR PACE/.test(await cardText())) throw new Error('the Home card says AT YOUR PACE on GUIDED');
+}, /Surprise Mission/);
+await check('home: a guided start is remembered as guided, so CONTINUE stays guided even after AT YOUR PACE is saved', async () => {
+  await fit();
+  await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(2500);
+  if (!await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the hub START did not run the coach');
+  const mode = await page.evaluate(() => JSON.parse(localStorage.getItem('tm_last_session_v1') || '{}').cfg?.mode);
+  if (mode !== 'guided') throw new Error(`the last session is remembered as "${mode}", not guided`);
+  // Later the athlete saves AT YOUR PACE; CONTINUE still repeats the guided run it remembers.
+  await home();
+  await page.evaluate(() => {
+    localStorage.setItem('tm_last_session_v1', JSON.stringify({ kind: 'quick_mission', at: Date.now(), disc: null, cfg: {
+      workoutType: 'Bodyweight', duration: 15, difficulty: 'Normal', focus: 'Full Body', format: 'Auto', cardioFinisher: false, cadenceCount: true,
+      cadencePreset: 'moderate', cadenceMs: 2000, voiceOn: true, cardioAddon: null, mode: 'guided' } }));
+    localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'solo' }));
+  });
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+  const c = await page.evaluate(() => document.querySelector('[data-guide="home-continue"]').innerText);
+  if (!/Quick Mission/.test(c) || /AT YOUR PACE/.test(c)) throw new Error(`the Continue card is wrong: ${c.replace(/\n/g, ' | ')}`);
+  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await S(2500);
+  if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE\n/.test(await text())) throw new Error('CONTINUE did not repeat the guided run');
+}, /PREPARING|ROUND|GET READY/);
 await check('quick mission: GUIDED still starts the coach, and its brief offers AT YOUR PACE INSTEAD for the same mission', async () => {
   await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
   await modeKey('GUIDED').click({ timeout: 4000 }); await S(300);
   const moves = await cardMoves();
+  // Count the analytics events: one session_start for the attempt, the switch is its own event.
+  await page.evaluate(() => { window.__ev = []; window.plausible = (n, o) => window.__ev.push([n, o?.props]); });
   await btn(/^START$/).click({ timeout: 4000 }); await S(1500);
   let t = await text();
   if (!/PREPARING/.test(t) || !await page.locator('[data-guide="qma-ring"]').count()) throw new Error('GUIDED did not open the coach runner');
+  // The link keeps clear of the pause / skip / stop row under it (a late tap must not hit STOP).
+  const gap = await page.evaluate(() => {
+    const link = [...document.querySelectorAll('button')].find(b => /^AT YOUR PACE INSTEAD$/.test(b.textContent.trim()));
+    const next = document.querySelector('[data-guide="qma-pause"]');
+    return link && next ? Math.round(next.getBoundingClientRect().top - link.getBoundingClientRect().bottom) : null;
+  });
+  if (gap === null || gap < 8) throw new Error(`AT YOUR PACE INSTEAD sits ${gap}px above the pause row`);
   await btn(/^AT YOUR PACE INSTEAD$/).click({ timeout: 4000 }); await S(7500);
+  const ev = await page.evaluate(() => window.__ev || []);
+  if (ev.filter(e => e[0] === 'session_start').length !== 1 || ev.filter(e => e[0] === 'session_switch').length !== 1) throw new Error(`the switch counted as another start: ${JSON.stringify(ev)}`);
   t = await text();
   if (!/^AT YOUR PACE\n/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the switch did not restart the same mission at your pace');
   if ((await qmRows()).length) throw new Error('the switch banked something');
@@ -624,6 +744,19 @@ await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => 
   await page.locator('[data-guide="qm-expand"]').click({ timeout: 4000 }); await S(400);
   if (await card().locator('ol > li').count() !== 3) throw new Error('SHOW LESS did not fold the card');
 }, /SEE ALL|SEE MORE/);
+await check('quick mission: the ADJUST row on the open card shows its whole hint (cardio included) at 412x811 and 360x740', async () => {
+  await quick(); await expand();
+  try {
+    for (const [w, h] of [[412, 811], [360, 740]]) {
+      await resizeTo(w, h);
+      const hint = await page.evaluate(() => {
+        const sp = [...document.querySelectorAll('[data-guide="qm-adjust"] span')].find(x => /^·/.test(x.textContent));
+        return { text: sp.textContent, cut: sp.scrollWidth > sp.clientWidth + 0.5 };
+      });
+      if (hint.cut || !/cardio/.test(hint.text)) throw new Error(`${w}x${h}: the ADJUST hint is cut off: "${hint.text}"`);
+    }
+  } finally { await resizeTo(390, 844); }
+}, /SHOW LESS/);
 await check('quick mission: TIME 45 and WEIGHTED start a weighted mission', async () => {
   await quick(); await timeTo(45); await gearKey('WEIGHTED').click({ timeout: 4000 }); await S(400);
   const c = await card().innerText();
@@ -707,7 +840,7 @@ await check('owner: one-bell guided start', async () => { await ownerQuick(); aw
 await check('owner: turbo solo start', async () => {
   await ownerQuick(); await putOnCard(/^TURBO BUTTON/);
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
@@ -727,7 +860,7 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
   await ownerQuick(); await putOnCard(/^NO CONTINUES/);
   if (!/Park the bell between your feet/.test(await card().innerText())) throw new Error('no safety line on the card');
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -747,7 +880,7 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
 await check('owner: NO CONTINUES solo END with no taps shows no recap', async () => {
   await ownerQuick(); await putOnCard(/^NO CONTINUES/);
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   await btn(/^STOP$/).click({ timeout: 4000 }); await S(400);
@@ -762,7 +895,7 @@ await check('owner: UPPER LOWER DIPS solo, two ROUND taps and I\'M DONE', async 
   await ownerQuick(); await putOnCard(/^UPPER LOWER DIPS/);
   if (!/elbows reach 90°/.test(await card().innerText())) throw new Error('no safety line on the card');
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -873,7 +1006,7 @@ await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async (
   const c = await card().innerText();
   if (!/45 reps a round, bar never down/i.test(c) || !/The bar is already in the rack\./.test(c)) throw new Error('not the bar-never-down card');
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -892,7 +1025,7 @@ await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async (
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3000);
   t = await text();
   if (!/3\/3/.test(t) || !/ROUNDS 3/.test(t) || !/R2–R3 not timed/.test(t)) throw new Error('the complete screen does not show rounds held and the splits');
-}, /COMPLEX · STANDARD/);
+}, /Complex · Standard/);
 // OVERTIME 20: GUIDED like the other AMRAPs, and SOLO has the round timer.
 await check('quick mission: OVERTIME 20 guided start', async () => {
   await ownerQuick(); await putOnCard(/^OVERTIME 20/);
@@ -903,7 +1036,7 @@ await check('quick mission: OVERTIME 20 guided start', async () => {
 await check('quick mission: OVERTIME 20 solo shows the ROUND button', async () => {
   await ownerQuick(); await putOnCard(/^OVERTIME 20/);
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();

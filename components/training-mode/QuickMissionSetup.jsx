@@ -117,6 +117,9 @@ input[type=range].qm-range:focus-visible { outline: none; }
 input[type=range].qm-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(242,190,69,.9); }
 input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(242,190,69,.9); }
 .qm-toggle { transition: color .18s ease; }
+/* A closed card with exactly three moves reads SEE MORE, until the short phone
+   hides its third move: then the same button says SEE ALL 3 MOVES. */
+.qm-see-all { display: none; }
 .qm-toggle:hover, .qm-toggle:focus-visible { color: #fff !important; }
 /* The GUIDED | AT YOUR PACE switch and its line sit in the card, so on a
    phone under about 860px tall (412 x 811, 390 x 844) the whole first page
@@ -128,23 +131,26 @@ input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3
   .qm-card-in > .qm-toggle { margin: -2px 0 -4px !important; }
   .qm-time-band { padding-top: 14px !important; }
 }
-/* A short phone (360 x 740) keeps the whole first page above the tab bar:
-   the card, GEAR, TIME and the library row pack tighter, the closed card
-   shows its first two moves (SEE ALL still counts every move) and START is
-   44px. */
+/* A short phone (360 x 740) keeps the whole first page above the tab bar AND
+   above the floating BETA chip (it sits 37px over the bar, at the left edge, so
+   the library row has to end above it): the card, GEAR, TIME and the library row
+   pack tighter, the closed card shows its first two moves (SEE ALL still counts
+   every move) and START is 44px. */
 @media (max-height: 760px) {
-  .qm-stack { gap: 8px !important; padding-top: 10px !important; }
+  .qm-stack { gap: 6px !important; padding-top: 10px !important; }
   .qm-stack > .qm-mt { margin-top: 0 !important; }
   .qm-stack > div.qm-mt { gap: 6px !important; }
-  .qm-card-in { padding: 8px 14px 10px !important; gap: 4px !important; }
+  .qm-card-in { padding: 8px 14px 10px !important; gap: 3px !important; }
   .qm-card-in h1 { font-size: 21px !important; }
   .qm-card-in > .qm-toggle { margin: -2px 0 -6px !important; }
   .qm-moves-closed > li:nth-child(n+3) { display: none !important; }
+  .qm-see-more { display: none; }
+  .qm-see-all { display: inline; }
   .qm-how { gap: 4px !important; }
   .qm-how > div:last-child { line-height: 1.25 !important; }
   .qm-start button, .qm-surprise { height: 44px !important; }
   .qm-time-band { padding-top: 14px !important; }
-  .qm-lib { min-height: 52px !important; padding: 6px 12px !important; }
+  .qm-lib { min-height: 48px !important; padding: 4px 12px !important; }
 }
 `;
 
@@ -542,7 +548,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // ADJUST: what this mission lets you change.
   const adjust = card
     ? {
-      words: levels.length > 1 ? 'level, guided or at your pace, cardio' : 'guided or at your pace, cardio',
+      words: levels.length > 1 ? 'level, run mode, cardio' : 'run mode, cardio',
       level: levels.length > 1 ? { options: levels.map(l => ({ id: l.id, label: l.label })), value: v2Mission.level, onPick: pickLevel, detail: v2Mission.levelDetail } : null,
       focus: null,
       how: { value: runMode, soloOnly: card.soloOnly, onPick: pickMode, help: runHelp },
@@ -553,7 +559,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
     : named
       ? { words: 'add cardio', level: null, focus: null, how: null, notes: null }
       : {
-        words: v2 ? 'level, focus, guided or at your pace, cardio' : 'level, focus, cardio',
+        words: v2 ? 'level, focus, run mode, cardio' : 'level, focus, cardio',
         level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: (v) => pickKey({ difficulty: v }) },
         focus: { options: QM_FOCI.map(f => ({ id: f, label: f === 'FULL BODY' ? 'FULL' : f })), value: focus, onPick: (v) => pickKey({ focus: v }) },
         how: v2 ? { value: runMode, soloOnly: false, onPick: pickMode, help: runHelp } : null, notes: null,
@@ -731,7 +737,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                 <span aria-hidden="true" style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid rgba(157,108,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
                 </span>
-                {open ? 'SHOW LESS' : hidden ? `SEE ALL ${moveCount} MOVES` : 'SEE MORE'}
+                {open ? 'SHOW LESS' : hidden ? `SEE ALL ${moveCount} MOVES` : moveCount === CARD_MOVES
+                  ? <><span className="qm-see-more">SEE MORE</span><span className="qm-see-all">SEE ALL {moveCount} MOVES</span></>
+                  : 'SEE MORE'}
               </button>
 
               {/* GUIDED | AT YOUR PACE — always here, right above START. */}

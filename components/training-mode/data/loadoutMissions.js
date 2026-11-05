@@ -54,8 +54,8 @@ export const GUIDED_HELP_AMRAP = 'The coach runs the clock and calls the time. T
 // 'solo': saved sessions, resume stashes and analytics keep that word). The
 // words the first page, ADJUST and the run screen print.
 export const RUN_MODES = [{ id: 'guided', label: 'GUIDED' }, { id: 'solo', label: 'AT YOUR PACE' }];
-export const GUIDED_HELP = 'The coach calls every move and counts your reps.';
-export const SOLO_HELP = 'The moves and a timer. No coach voice. Your phone stays awake.';
+export const GUIDED_HELP = 'The coach calls every move and keeps time.';
+export const SOLO_HELP = 'The moves and a timer. Beeps, no coach voice.';
 export const SOLO_ONLY_HELP = 'Only at your pace for now. Guided is coming.';
 // A named classic (Murph, Sally Up, 5 Minutes of Hell…) is built around the coach's calls.
 export const CLASSIC_HELP = 'This classic runs with the coach.';
@@ -1159,7 +1159,7 @@ const TOUCH_THE_SKY = {
   loadoutLine: '1 BARBELL + PLATES · 2 × 2 M', scoreLine: 'ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD',
   scoreRule: { kind: 'roundsHeld', label: 'ROUNDS, BAR NEVER DOWN' },
   scale: 'Lighter bar, or the beginner level: 2 rounds of 3 each. Never been coached on the clean? Hang Muscle Cleans. Good mornings feel wrong? Romanian Deadlifts.',
-  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for every rep. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. At your pace, tap ROUND after each round to time the rest.",
+  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for every rep. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. In AT YOUR PACE, tap ROUND after each round to time the rest.",
   introSay: "Touch the sky. Five of each, down the lifts and back up. Don't put the bar down until the round is done.",
   tips: ['Pick a load your press can handle for every rep.', 'Chest up and soft knees on the good mornings.'],
   guidedHelp: 'The coach counts every rep, calls each lift and times the rests.',

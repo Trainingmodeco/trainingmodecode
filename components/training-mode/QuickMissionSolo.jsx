@@ -638,6 +638,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                 onRound={addRound} onUndo={undoRound}
               />
             )}
+            {/* Today's mission at your pace: what the taps do. */}
+            {mission.atYourPace && mission.tapHint && <div style={{ ...muted11, marginTop: -6, textAlign: 'center' }}>{mission.tapHint}</div>}
             {/* NO CONTINUES: a bell in hand, so the SET tap is optional. */}
             {showRounds && down && dc.tapHint && <div style={{ ...muted11, marginTop: -6 }}>{dc.tapHint}</div>}
             {/* For time: FINISH right under the round timer, on screen without
@@ -683,7 +685,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                 })}
               </div>
               {mission.paceBasis && <div style={muted11}>{mission.paceBasis}</div>}
-              <div style={muted11}>Keep the screen on for the beeps.</div>
+              <div style={muted11}>Beeps play while the screen is on.</div>
             </section>
 
             {/* Controls */}
@@ -717,7 +719,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         )}>
           <div style={{ font: `500 14px ${BODY}`, color: '#E6E2F5', lineHeight: 1.45 }}>{down
             ? dc.stopSolo
-            : 'XP counts once you pass a quarter of the mission.'}</div>
+            : `XP counts once you pass a quarter of the ${fixedClock ? 'clock' : 'standard time'}.`}</div>
         </Modal>
       )}
     </PhoneFrame>

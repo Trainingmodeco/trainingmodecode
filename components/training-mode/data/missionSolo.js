@@ -402,6 +402,8 @@ export function soloFloorSec(mission) {
   return Math.ceil(0.5 * tierSec(mission?.pace?.elite));
 }
 export const TOO_FAST_MESSAGE = "Faster than elite pace, so this one can't count.";
+// Today's mission at your pace (mission.atYourPace) names the floor itself.
+export const TOO_FAST_TIME_MESSAGE = "Under half the elite time, so this one can't count.";
 export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
 
 // SOLO is honor-system: the floor is the check. Swaps never change totalSlots
@@ -419,7 +421,7 @@ export function settleSoloXp(result) {
   const pass = { xp: full, outcome: 'pass', ratio, message: null };
   if (result?.capped) return pass;
   if (format === 'forTime' && result?.completed) {
-    return elapsed >= soloFloorSec(mission) ? pass : { xp: 0, outcome: 'too_fast', ratio, message: TOO_FAST_MESSAGE };
+    return elapsed >= soloFloorSec(mission) ? pass : { xp: 0, outcome: 'too_fast', ratio, message: mission.atYourPace ? TOO_FAST_TIME_MESSAGE : TOO_FAST_MESSAGE };
   }
   if (isFixedClock(format) && elapsed >= soloFloorSec(mission)) return pass;
   if (ratio >= 0.25) return { xp: missionXp(mission, { slots, ratio, workedSec: workSecOf(mission, elapsed) }), outcome: 'partial', ratio, message: null };
@@ -536,6 +538,8 @@ export function roundSplits(mission, splits) {
 // knows where the untapped rounds ended: the splits stay as tapped.
 export function closeSplits(mission, splits, finishSec) {
   const list = Array.isArray(splits) ? splits : [];
+  // noRoundTimer (one round, FINISH only): no splits to close; the one round is the TIME.
+  if (mission?.noRoundTimer === true) return list;
   if (mission?.format !== 'forTime' || isUntilDown(mission) || !Number.isFinite(Number(finishSec))) return list;
   if (list.length !== soloRounds(mission) - 1) return list;
   const lastAt = list.reduce((n, sp) => Math.max(n, Number(sp?.at) || 0), 0);

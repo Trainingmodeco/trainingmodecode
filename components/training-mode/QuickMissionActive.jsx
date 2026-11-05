@@ -21,6 +21,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSetupKit';
 import { qmV2Enabled } from './data/qmV2';
+import { levelWord } from './data/quickMissionConfig';
 import { missionRunsAtYourPace } from './data/soloFromGenerated';
 import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime } from './data/missionSolo';
 import {
@@ -1452,7 +1453,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             {untilDown ? `${mmss(runSec)} / ${mmss(mission.capSec || 0)}` : workoutType.toUpperCase()}
           </span>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted }}>
-            {v2Mission && mission.levelLabel ? mission.levelLabel : missionCfg.difficulty.toUpperCase()}
+            {v2Mission && mission.levelLabel ? mission.levelLabel : levelWord(missionCfg.difficulty)}
           </span>
         </div>
 
@@ -1546,7 +1547,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             yet, so the restart costs nothing. */}
         {phase === 'intro' && v2 && onSwitchRun && !done && missionRunsAtYourPace(mission) && (
           <button type="button" onClick={() => { cancelSpeech(); stopVoiceSession(); onSwitchRun(mission); }} style={{
-            marginTop: 14, minHeight: 44, padding: '0 14px', background: 'transparent', border: 'none', cursor: 'pointer',
+            marginTop: 14, marginBottom: 12, minHeight: 44, padding: '0 14px', background: 'transparent', border: 'none', cursor: 'pointer',
             fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', color: C.muted,
             textDecoration: 'underline', textUnderlineOffset: 4,
           }}>AT YOUR PACE INSTEAD</button>
@@ -1599,7 +1600,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                       background: cadenceActive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',
                       border: `1px solid ${cadenceActive ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.08)'}`,
                     }}>
-                      {cadenceActive ? 'CADENCE ON' : v2 ? (currentCounted ? 'CADENCE ON' : 'YOUR PACE') : 'MANUAL REPS'}
+                      {cadenceActive ? 'CADENCE ON' : v2 ? (currentCounted ? 'CADENCE ON' : 'TAP DONE') : 'MANUAL REPS'}
                     </span>
                   )}
                 </div>

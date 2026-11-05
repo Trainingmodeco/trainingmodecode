@@ -4,6 +4,7 @@ import { FORMAT_LABEL } from './data/loadoutMissions';
 import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime, soloRounds } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 import { quickMissionXp } from './data/userStats';
+import { levelWord } from './data/quickMissionConfig';
 
 // Quick Mission complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
@@ -44,9 +45,12 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   // fail still reaches the verdict through the settle.
   const banner = solo || (guidedSettle && isUntilDown(mission)) ? null : integrityResult;
 
+  // One case in the line: 'Circuit · Medium · At your pace' (EMOM and AMRAP stay
+  // capitals), and the same level word the first page and the run use.
+  const word = (t) => String(t || '').split(' ').map(w => (/^(AMRAP|EMOM)$/.test(w) ? w : w.charAt(0) + w.slice(1).toLowerCase())).join(' ');
   const subtitle = solo
-    ? `${(mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · At your pace`
-    : `${mission.workoutType} · ${mission.difficulty} · Quick Mission`;
+    ? `${word((mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission')} · ${word(mission.levelLabel)}${result.scaled ? ' · Scaled' : ''} · At your pace`
+    : `${mission.workoutType} · ${word(levelWord(mission.difficulty))} · Quick Mission`;
   // A guided run until the bell is down (NO CONTINUES) has a score of its own.
   const scored = solo || (!!result.untilDown && !!result.score);
   const stats = scored

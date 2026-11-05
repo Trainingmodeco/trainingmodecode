@@ -45,7 +45,7 @@ check('3 an unknown type falls back to Bodyweight', C.quickMissionConfig({ worko
 check('4 screen labels map to display forms', (() => { const c = C.quickMissionConfig({ duration: 15, difficulty: 'NORMAL', focus: 'FULL BODY', workoutType: 'Hybrid' }); return c.difficulty === 'Normal' && c.focus === 'Full Body'; })());
 check('5 the hub line prints the type', C.quickMissionLine(plain) === '12 min · Easy · Full Body · Bodyweight'
   && C.quickMissionLine(plain, { v2: true }) === '12 min · Easy · Full Body · No gear'
-  && C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { v2: true }) === '15 min · Normal · Full Body · Weighted');
+  && C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { v2: true }) === '15 min · Medium · Full Body · Weighted');
 
 // ── keys storage ────────────────────────────────────────────────────────────
 store.clear();

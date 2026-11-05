@@ -6,13 +6,13 @@ export const SCREEN_GUIDES = {
   home: [
     { target: null, title: '🏠 HOME', body: 'Your daily command center. If you only ever tap one thing, tap the gold START at the top — everything else on this screen is a way to choose something different.' },
     { target: 'home-level', title: 'LEVEL · RANK · STREAK', body: 'Every finished workout adds XP and fills the bar. Fill it and you level up and climb the ranks. The 🔥 number is how many days in a row you\'ve trained.' },
-    { target: 'home-continue', title: 'CONTINUE', body: 'The session you paused, or the last one you started — START runs it again with the same settings. A program moves on to its next day. New here? It shows a workout picked for you instead. SURPRISE ME deals a random quick mission; ADJUST opens the settings first.' },
+    { target: 'home-continue', title: 'CONTINUE', body: 'The session you paused, or the last one you started — START runs it again with the same settings. A program moves on to its next day. New here? It shows a workout picked for you instead. A quick mission marked AT YOUR PACE runs the moves and a timer, no coach voice. SURPRISE ME deals a random quick mission; ADJUST opens the settings first.' },
     { target: 'home-modes', title: 'FIT OR FIGHT', body: 'The two sides of Training Mode. FIT MODE builds strength and cardio; FIGHT MODE builds striking skill. Everything else in the app lives inside one of these.' },
     { target: 'home-arcade', title: 'TRAINING ARCADE', body: 'Real workouts played like a game — sagas with stages and a boss at the end. Clear a stage to unlock the next.' },
     { target: 'home-quick', title: 'QUICK ACCESS', body: 'Three shortcuts for when you know what you want: an instant Quick Mission, the Just Train round timer, and Combat Conditioning.' },
     { target: null, title: '👻 GHOST CHALLENGES', body: 'Every so often a past session comes back as a ghost and dares you to beat it — one of your own Fight Focus sessions or runs, or an anonymous fighter\'s. While one is live, a 👻 floats beside the title of the top card; tap it. NOT NOW never makes it leave — the bonus just shrinks: full for four days, half for three more, then it\'s for pride.' },
     { target: 'nav-tabs', title: 'THE FOUR TABS', body: 'HOME is here. TRAIN is every workout in the app. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
-    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+    { target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of most screens. Tap it any time and it walks you through whatever you\'re looking at.' },
   ],
 
 
@@ -45,7 +45,7 @@ export const SCREEN_GUIDES = {
 
     { screen: 'fit_hub', target: null, title: '🥊 FIT OR FIGHT', body: 'Every workout in the app lives under one of these two tabs. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio. They sit side by side at the top of both training hubs, so you are never more than one tap from the other — mix them however you like.' },
     { screen: 'fit_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN opens your training tabs. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },
-    { screen: 'fit_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of every screen. Tap it any time and it walks you through whatever you\'re looking at — you can never get stuck.' },
+    { screen: 'fit_hub', target: 'help-icon', title: '❓ LOST? TAP THIS ICON', body: 'This glowing "?" sits in the corner of most screens. Tap it any time and it walks you through whatever you\'re looking at.' },
 
     { screen: 'fit_hub', target: null, title: '🎬 WANT THE GRAND TOUR?', body: 'That\'s everything you need to start training. Tap NEXT for the full walkthrough — inside every mode, the camp, the arcade and the rewards, about two minutes. Or tap ✕ to start now; you can replay all of this any time from PROFILE → Replay Intro Guide.' },
 
@@ -231,13 +231,13 @@ export const SCREEN_GUIDES = {
     { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
     { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time. A library mission on the card has a ‹ TODAY to come back." },
     { target: 'qm-expand', title: 'SEE ALL', body: "Opens the card where it is: every move, how long it really takes, and ADJUST. On a library mission every move has a swap icon; swaps never cost XP, the run is marked SCALED. SHOW LESS folds it back." },
-    { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, guided or at your pace (the same choice as the switch above START), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
-    { target: 'qm-how', title: 'GUIDED OR AT YOUR PACE', body: "GUIDED: the coach calls every move and counts your reps. AT YOUR PACE: just the moves and a timer, no coach voice, and your phone stays awake. Your pick is kept for next time, and START on Fit Mode and Home follows it. Classics like Murph run with the coach." },
+    { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, run mode (guided or at your pace: the same choice as the switch above START), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
+    { target: 'qm-how', title: 'GUIDED OR AT YOUR PACE', body: "GUIDED: the coach calls every move and keeps time; tap DONE after a loaded set. AT YOUR PACE: just the moves and a timer, with beeps and no coach voice. Your pick is kept for next time, and START on Fit Mode and Home follows it. Classics like Murph run with the coach." },
     { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, GUIDED or AT YOUR PACE.' },
     { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
     { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the knob sideways, tap a minute, or use the arrow keys. Longer workouts get more rounds and more moves.' },
-    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here.' },
+    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
   ],
 
   combat_conditioning_setup: [
@@ -295,7 +295,7 @@ export const SCREEN_GUIDES = {
   ],
 
   quick_mission_active: [
-    { target: null, title: '⏱️ QUICK MISSION', body: 'This is your guided workout — the timer and coach move you through every exercise. Here is what everything on this screen does.' },
+    { target: null, title: '⏱️ QUICK MISSION', body: 'This is your guided workout — the timer and coach move you through every exercise. While the coach reads the brief, AT YOUR PACE INSTEAD restarts this mission with just the moves and a timer. Here is what everything on this screen does.' },
     { target: 'qma-title', title: 'MISSION TITLE', body: 'Shows QUICK MISSION plus your generated mission name below it, so you always know which session you are running.' },
     { target: 'qma-status', title: 'ROUND, TYPE & DIFFICULTY', body: 'Your round count, workout type (Bodyweight, Weighted, or Hybrid), and difficulty — set back on the setup screen.' },
     { target: 'qma-volume', title: '🔊 SOUND', body: 'Tap to open the volume mixer — separate VOICE and MUSIC sliders, adjustable mid-round without pausing.' },

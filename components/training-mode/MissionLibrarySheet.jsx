@@ -18,13 +18,13 @@ import {
 //
 // The Workout Map's tall floating sheet (floatPanel, portalled so it rests on
 // the tab bar instead of under it). The header says what it is: MISSION
-// LIBRARY · 43 and one line, "Ready-made workouts. Tap one to see it on top,
-// then START." Only the list scrolls: the header, the pinned preview of the
+// LIBRARY · 43 and one line, "Ready-made workouts. START runs it GUIDED." (it
+// follows the highlighted row and the saved choice). Only the list scrolls: the header, the pinned preview of the
 // highlighted mission, the LOADOUT / THEME chips and the footer stay put.
 // Tapping a row only highlights it. PUT ON CARD hands it to the page, where
 // its card opens to every move and its swaps, with LEVEL and GUIDED / AT YOUR PACE
 // behind ADJUST; START runs it from here, in the remembered run mode (AT YOUR PACE
-// for a SOLO-only mission) at its default level, the one the preview and the
+// for a mission only offered that way) at its default level, the one the preview and the
 // row show. The preview is
 // read-only, so nothing in here ever opens a second sheet.
 //
@@ -130,7 +130,8 @@ function MissionRow({ entry, index, on, line, onPick, rowRef }) {
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           <span style={{ minWidth: 0, font: `700 13px ${HEAD}`, letterSpacing: '0.1em', color: on ? GOLD : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.title}</span>
-          {entry.soloOnly && pill('YOUR PACE', '#9D6CFF', '#0D0A18')}
+          {/* PACE ONLY is as wide as the old YOUR PACE, so no title is cut on a 360px phone; the row's name and the card tag say YOUR PACE ONLY. */}
+          {entry.soloOnly && pill('PACE ONLY', '#9D6CFF', '#0D0A18')}
           {entry.pro && pill('PRO', GOLD, '#1A1204')}
           {/* ON TOP rides the title line, so the line under it keeps its
               format word on a narrow phone. */}
@@ -169,6 +170,12 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
     { id: 'classic', label: 'CLASSICS', rows: list.filter(e => e.kind === 'classic') },
   ].filter(g => g.rows.length);
   const empty = list.length ? null : emptyShelfCopy({ loadout, theme });
+  // What START will do with the highlighted row: a classic runs with the coach,
+  // a mission only offered at your pace runs that way, any other follows the
+  // choice saved on the page.
+  const startLine = !current ? 'Tap one, then START.'
+    : current.kind === 'classic' ? 'START runs this one with the coach.'
+      : current.soloOnly || prefs.mode === 'solo' ? 'START runs it AT YOUR PACE.' : 'START runs it GUIDED.';
 
   // Opened with a library mission on the card: start with its row in view.
   const rowRefs = useRef({});
@@ -201,7 +208,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
                 background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', color: '#CFC9E4', cursor: 'pointer',
               }}><X size={16}/></button>
             </div>
-            <div id="ml-sub" style={{ marginTop: 3, font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35, textWrap: 'balance' }}>Ready-made workouts. Tap one to see it on top, then START.</div>
+            <div id="ml-sub" style={{ marginTop: 3, font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35, textWrap: 'balance' }}>Ready-made workouts. {startLine}</div>
           </div>
 
           {/* The highlighted mission, pinned. Read-only: its controls live on
