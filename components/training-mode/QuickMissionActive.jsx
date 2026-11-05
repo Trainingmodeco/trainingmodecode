@@ -23,6 +23,11 @@ import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSe
 import { qmV2Enabled } from './data/qmV2';
 import { levelWord } from './data/quickMissionConfig';
 import { missionRunsAtYourPace } from './data/soloFromGenerated';
+// The runner's timing numbers and which moves it counts live in one pure module,
+// so the generator's minutes are these same minutes (data/quickMissionTiming).
+import {
+  isCadenceEligible, QM_WEIGHT_BRIEF, QM_WEIGHT_BRIEF_HOLD_MS, QM_INTRO_HOLD_MS, QM_INTRO_BELL_MS, QM_FINISH_BELL_MS,
+} from './data/quickMissionTiming';
 import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime } from './data/missionSolo';
 import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
@@ -31,48 +36,6 @@ import {
 } from './data/missionMoves';
 
 const GOLD = C.yellow;
-
-const CADENCE_SAFE_NAMES = new Set([
-  'push-ups', 'pushups', 'push ups',
-  'squats', 'bodyweight squats', 'air squats',
-  'lunges', 'forward lunges', 'reverse lunges', 'lateral lunges', 'walking lunges',
-  'sit-ups', 'situps', 'sit ups',
-  'crunches', 'bicycle crunches',
-  'dips', 'tricep dips',
-  'jump squats', 'jumping squats', 'squat jumps',
-  'glute bridges', 'hip bridges',
-  'burpees',
-  'sprawls',
-  'mountain climbers',
-  'knee push-ups',
-  'explosive push-ups',
-  'superman push-ups',
-  'diamond push-ups',
-  'wide push-ups',
-  'pike push-ups',
-  'decline push-ups',
-  'calf raises',
-  'leg raises',
-  'flutter kicks',
-  'high knees',
-  'jumping jacks',
-  'step-ups',
-  'box jumps',
-  'tuck jumps',
-  // The focus-tagged Quick Mission pool (fit-mode/quickMissionGenerator).
-  'shoulder taps', 'inchworms', 'squat thrusts', 'skater hops',
-  'russian twists', 'knee strikes', 'squat to front kick', 'sprawl to jab-cross',
-  'elbow strikes', 'slip and rip', 'reverse lunges', 'plank jacks',
-]);
-
-function isCadenceEligible(exercise, missionCfg) {
-  if (missionCfg.cadenceCount === false) return false;
-  if (exercise.mode !== 'reps') return false;
-  if (missionCfg.workoutType === 'Weighted') return false;
-  if (missionCfg.workoutType === 'Hybrid' && exercise.isWeighted) return false;
-  const name = (exercise.name || '').toLowerCase().trim();
-  return CADENCE_SAFE_NAMES.has(name);
-}
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -820,21 +783,21 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     if (aborted()) return;
 
     if (isWeighted && voiceOn) {
-      await speakAsync('Choose a safe weight before starting. Form first. Control every rep.');
+      await speakAsync(QM_WEIGHT_BRIEF);
       if (aborted()) return;
-      await delay(800);
+      await delay(QM_WEIGHT_BRIEF_HOLD_MS);
       if (aborted()) return;
     }
 
     if (voiceOn) {
       await speakAsync(getCoachCopy('sessionStart'));
       if (aborted()) return;
-      await delay(400);
+      await delay(QM_INTRO_HOLD_MS);
       if (aborted()) return;
     }
 
     playBell(1);
-    await delay(600);
+    await delay(QM_INTRO_BELL_MS);
     if (aborted()) return;
 
     if (!integrityStartedRef.current) {
@@ -890,19 +853,19 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
       if (aborted() || !await hold()) return;
 
       if (isWeighted && voiceOn) {
-        if (!await say('Choose a safe weight before starting. Form first. Control every rep.')) return;
-        if (!await hold(800)) return;
+        if (!await say(QM_WEIGHT_BRIEF)) return;
+        if (!await hold(QM_WEIGHT_BRIEF_HOLD_MS)) return;
       }
 
       if (voiceOn) {
         if (mission.v2 && !await say(swappedInLine(mission))) return;
         if (!await say(getCoachCopy('sessionStart'))) return;
         if (!await say(mission.introSay)) return;
-        if (!await hold(400)) return;
+        if (!await hold(QM_INTRO_HOLD_MS)) return;
       }
 
       playBell(1);
-      if (!await hold(600)) return;
+      if (!await hold(QM_INTRO_BELL_MS)) return;
       beginRunV2();
     } finally {
       if (introRunRef.current === version) introRunRef.current = 0;
@@ -1174,7 +1137,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   const endTimerRef = useRef(null);
   const endAfterBell = (fn) => {
     const run = () => { endTimerRef.current = null; fn(); };
-    endTimerRef.current = { id: setTimeout(run, 1800), run };
+    endTimerRef.current = { id: setTimeout(run, QM_FINISH_BELL_MS), run };
   };
   useEffect(() => () => {
     const t = endTimerRef.current;

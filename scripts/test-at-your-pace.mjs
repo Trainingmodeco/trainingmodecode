@@ -371,7 +371,8 @@ check('21 nothing to run: null for empty, missing and move-less missions', adapt
     C.quickMissionLine(cfg, { v2: true }) === '12 min · Easy · Full Body · No gear'
     && plain(held) === '12 min · Easy · Full Body · No gear · At your pace'
     && C.quickMissionLine(cfg) === '12 min · Easy · Full Body · Bodyweight'
-    && plain(C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted' }), { atYourPace: true })) === '15 min · Medium · Full Body · Weighted · At your pace');
+    && // (a config with no level now starts on the athlete's own level, so this one names it)
+    && plain(C.quickMissionLine(C.quickMissionConfig({ duration: 15, workoutType: 'Weighted', difficulty: 'Normal' }), { atYourPace: true })) === '15 min · Medium · Full Body · Weighted · At your pace');
   // The dot is bound FORWARD: a normal space before it, no-break spaces after, so a
   // wrap leaves "· At your pace" on the next line and never a dangling "·".
   check('38b the last words are held together: a narrow card wraps before the dot, so "· At your pace" arrives whole',

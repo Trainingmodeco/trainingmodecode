@@ -28,7 +28,7 @@ import { estimateQuickMissionSeconds, estimateQuickMissionWorkSeconds, generateQ
 
 // The setup screen's words for the levels (data/quickMissionConfig
 // QM_LEVEL_WORD): MEDIUM for the stored 'Normal'.
-const LEVEL_WORD = { Easy: 'EASY', Normal: 'MEDIUM', Hard: 'HARD', Advanced: 'HARD' };
+const LEVEL_WORD = { Easy: 'EASY', Normal: 'MEDIUM', Hard: 'HARD', Advanced: 'ADVANCED' };
 const STEP = 15;
 const mark = (sec) => Math.max(STEP, Math.round(sec / STEP) * STEP);
 
@@ -81,7 +81,7 @@ export function soloFromGenerated(gen) {
   if (!moves.length) return null;
   const rounds = Math.max(1, Math.floor(Number(gen.rounds) || 1));
   const loaded = moves.some(ex => ex.isWeighted);
-  const pace = paceTiersFor({ exercises: gen.exercises, finisherExercises: gen.finisherExercises || [], rounds });
+  const pace = paceTiersFor({ workoutType: gen.workoutType, format: gen.format, exercises: gen.exercises, finisherExercises: gen.finisherExercises || [], rounds });
   return {
     title: gen.title,
     workoutType: gen.workoutType,
