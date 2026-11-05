@@ -60,6 +60,12 @@ jobs:
       - name: Level page tests
         run: npm run -s test:levels
 
+      # The athlete's level for training: effective XP (own side in full, the
+      # rest at half), the EASY / NORMAL / HARD / ADVANCED tier and the
+      # surprise range every workout's starting difficulty comes from.
+      - name: Athlete level tests
+        run: npm run -s test:athlete
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 
