@@ -86,6 +86,7 @@ const levelTag = (t) => LEVEL_WORD[t] || t;
 const GEAR_TAG = { Weighted: 'WEIGHTED', Hybrid: 'HYBRID' };
 const CARD_MOVES = 3; // the closed card's moves; ▾ SEE ALL shows the rest
 const THUMB = 28;     // the TIME slider's knob, px
+const BUBBLE_HALF = 36; // half the widest bubble ("60 MIN"), px
 const notes = (a) => /^[+×]\s/.test(a); // a classic's "+ 3 more" / "× 2 rounds" lines are notes, not moves
 // A library card's one summary line, in the generated card's sentence case:
 // "300 REPS · 5 ROUNDS FOR TIME · CAP 30:00" reads "300 reps · 5 rounds for
@@ -350,7 +351,8 @@ function TimeSlider({ value, onLive, onCommit, dim }) {
       touchAction: 'pan-y', cursor: 'pointer', userSelect: 'none', WebkitUserSelect: 'none', WebkitTapHighlightColor: 'transparent',
     }}>
       <span aria-hidden="true" data-qm-bubble="" style={{
-        position: 'absolute', top: 0, left: left(shown), transform: 'translateX(-50%)', whiteSpace: 'nowrap',
+        // Rides the knob, but never past the ends of the band (the knob can sit at 5 or 60).
+        position: 'absolute', top: 0, left: `min(max(${left(shown)}, ${BUBBLE_HALF}px), calc(100% - ${BUBBLE_HALF}px))`, transform: 'translateX(-50%)', whiteSpace: 'nowrap',
         padding: '3px 8px', borderRadius: 6, background: GOLD, color: '#1A1204', font: `700 12px ${HEAD}`, letterSpacing: '0.04em',
       }}>{shown} MIN</span>
       <input ref={inputRef} type="range" className="qm-range" aria-label="Time" aria-valuetext={`${shown} minutes`}

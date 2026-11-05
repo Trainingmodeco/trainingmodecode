@@ -865,6 +865,12 @@ await check('quick mission: TIME runs 5 to 60 by the minute and the card is buil
     if (n < 3 || (m === 5 && !/1 round\b/.test(c))) throw new Error(`${m} minutes deals ${n} moves, ${(c.match(/\d+ rounds?/) || ['no rounds'])[0]}`);
   }
   if (await page.locator('[data-guide="qm-expand"]').getAttribute('aria-expanded') !== 'true') throw new Error('SEE ALL did not keep its state as TIME moved');
+  // The bubble stays on screen with the knob at either end.
+  for (const m of [5, 60]) {
+    await timeTo(m); await S(150);
+    const b = await page.locator('[data-qm-bubble]').evaluate(e => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, w: window.innerWidth }; });
+    if (b.l < 4 || b.r > b.w - 4) throw new Error(`at ${m} minutes the bubble runs from ${Math.round(b.l)} to ${Math.round(b.r)} on a ${b.w}px screen`);
+  }
 }, /60 MIN/);
 await check('quick mission: the card follows the knob while it is held, saves only on release, and the layout does not jump', async () => {
   await quick();

@@ -35,6 +35,8 @@ import {
 const CSS = `
 @keyframes qa-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 /* The five FOCUS chips on one row at 412px; a narrower phone wraps them. */
+/* The four LEVEL segments on a 360px phone: ADVANCED has to fit its segment. */
+@media (max-width: 380px) { .qa-lv { font-size: 10.5px !important; letter-spacing: 0.02em !important; } }
 .qa-chips .fk-chip { position: relative; padding: 0 9px !important; letter-spacing: 0.08em !important; }
 .qa-chips .fk-chip::after { content: ''; position: absolute; top: -4px; bottom: -4px; left: -3px; right: -3px; }
 @media (prefers-reduced-motion: reduce) { .qa-panel { animation: none !important; } }
@@ -51,7 +53,7 @@ function LevelRow({ level }) {
           const on = o.id === level.value;
           return (
             <button key={o.id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={o.id === level.mark ? `${o.label}, ${level.markLabel.toLowerCase()}` : o.label}
-              className="fk-seg" onClick={() => level.onPick(o.id)} style={{
+              className="fk-seg qa-lv" onClick={() => level.onPick(o.id)} style={{
                 flex: '1 1 0', minWidth: 0, height: 44, border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap',
                 font: `600 11px ${HEAD}`, letterSpacing: '0.06em',
                 color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
