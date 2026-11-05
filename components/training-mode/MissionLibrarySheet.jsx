@@ -22,8 +22,8 @@ import {
 // then START." Only the list scrolls: the header, the pinned preview of the
 // highlighted mission, the LOADOUT / THEME chips and the footer stay put.
 // Tapping a row only highlights it. PUT ON CARD hands it to the page, where
-// its card opens to every move and its swaps, with LEVEL and GUIDED / SOLO
-// behind ADJUST; START runs it from here, in the remembered run mode (SOLO
+// its card opens to every move and its swaps, with LEVEL and GUIDED / AT YOUR PACE
+// behind ADJUST; START runs it from here, in the remembered run mode (AT YOUR PACE
 // for a SOLO-only mission) at its default level, the one the preview and the
 // row show. The preview is
 // read-only, so nothing in here ever opens a second sheet.
@@ -116,10 +116,10 @@ function ChipRow({ label, children }) {
   );
 }
 
-// One mission: number, title (+ SOLO / PRO), "~16 MIN · BARBELL · EMOM".
+// One mission: number, title (+ YOUR PACE / PRO), "~16 MIN · BARBELL · EMOM".
 // The accessible name is the title, as the old shelf chips had it.
 function MissionRow({ entry, index, on, line, onPick, rowRef }) {
-  const name = [entry.title, entry.soloOnly && 'SOLO', entry.pro && 'PRO'].filter(Boolean).join(' ');
+  const name = [entry.title, entry.soloOnly && 'YOUR PACE ONLY', entry.pro && 'PRO'].filter(Boolean).join(' ');
   return (
     <button ref={rowRef} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={name} className="ml-row" onClick={onPick} style={{
       width: '100%', minHeight: 54, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12, padding: '6px 12px', borderRadius: 10,
@@ -130,7 +130,7 @@ function MissionRow({ entry, index, on, line, onPick, rowRef }) {
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           <span style={{ minWidth: 0, font: `700 13px ${HEAD}`, letterSpacing: '0.1em', color: on ? GOLD : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.title}</span>
-          {entry.soloOnly && pill('SOLO', '#9D6CFF', '#0D0A18')}
+          {entry.soloOnly && pill('YOUR PACE', '#9D6CFF', '#0D0A18')}
           {entry.pro && pill('PRO', GOLD, '#1A1204')}
           {/* ON TOP rides the title line, so the line under it keeps its
               format word on a narrow phone. */}

@@ -585,7 +585,7 @@ for (const id of SOLO_IDS) {
     const tag = `${id}/${lv}`;
     if (!m) { soloProblems.push(`${tag} null`); continue; }
     const card = L.missionCardModel(m);
-    if (m.guided !== false || !card.soloOnly || !card.tags.includes('SOLO ONLY') || card.guidedHelp !== '' || m.introSay !== '') soloProblems.push(`${tag} not SOLO only`);
+    if (m.guided !== false || !card.soloOnly || !card.tags.includes('YOUR PACE ONLY') || card.guidedHelp !== '' || m.introSay !== '') soloProblems.push(`${tag} not your-pace only`);
     const its = items(m);
     if (its.some(it => !M.moveById(it.moveId))) soloProblems.push(`${tag} unknown move`);
     if (its.some(it => it.moveId !== it.baseMoveId || it.defaultMoveId !== it.baseMoveId) || m.scaled !== false || m.gearBanner !== null) soloProblems.push(`${tag} not at base with no gear set`);
@@ -932,10 +932,17 @@ const pinChanged = (pins, print) => {
 };
 const soloMathChanged = pinChanged(SOLO_HASH, soloPrint);
 const settleChanged = pinChanged(SETTLE_HASH, settlePrint);
-// The one deliberate copy change since these pins: the ROUND button took
+// Two deliberate copy changes since these pins. One: the ROUND button took
 // over from + ROUND, so five notes now say 'Tap ROUND after each rung' (lap).
 // The pin reads them back the old way; nothing else may differ.
-const pinNote = (v) => (typeof v?.note === 'string' ? { ...v, note: v.note.replace('Tap ROUND after each', 'Tap + ROUND after each') } : v);
+// The other: the owner does not read 'SOLO', so the badge on a card (and the
+// word in a note) now says YOUR PACE / At your pace; the pin reads them back too.
+const pinNote = (v) => {
+  let out = v;
+  if (typeof v?.note === 'string') out = { ...out, note: v.note.replace('Tap ROUND after each', 'Tap + ROUND after each').replace('At your pace, tap ROUND', 'In SOLO, tap ROUND') };
+  if (Array.isArray(v?.tags)) out = { ...out, tags: v.tags.map(t => (t === 'YOUR PACE ONLY' ? 'SOLO ONLY' : t)) };
+  return out;
+};
 const builtChanged = pinChanged(BUILT_HASH, (m) => pinNote(m));
 const cardChanged = pinChanged(CARD_HASH, (m) => pinNote(L.missionCardModel(m)));
 const tapNotes = L.LOADOUT_MISSIONS.filter(d => /Tap ROUND after each/.test(d.note)).map(d => d.id);
@@ -944,9 +951,9 @@ check('58 all 26: the six settles as pinned (XP by time on the ten AMRAPs, a for
 check('58 all 26: the built mission and its card unchanged', builtChanged.length === 0 && cardChanged.length === 0, `${builtChanged.join(', ')} ${cardChanged.join(', ')}`);
 // GUIDED has no ROUND button: a note on a mission that runs GUIDED says the
 // tap is SOLO's (TOUCH THE SKY, the only one; the five above are SOLO only).
-const guidedRoundNotes = L.LOADOUT_MISSIONS.filter(d => d.guided && /\bROUND\b/.test(d.note) && !/In SOLO, tap ROUND/.test(d.note)).map(d => d.id);
+const guidedRoundNotes = L.LOADOUT_MISSIONS.filter(d => d.guided && /\bROUND\b/.test(d.note) && !/At your pace, tap ROUND/.test(d.note)).map(d => d.id);
 check('58 the notes name the ROUND button', eq(tapNotes, ['burnout_21', 'continue_bell', 'charge_up_12', 'oxygen_debt', 'hot_laps']) && L.LOADOUT_MISSIONS.every(d => !/\+ ROUND|\+ SET/.test(`${d.note} ${d.scale}`))
-  && L.missionDefById('touch_the_sky').note.endsWith('In SOLO, tap ROUND after each round to time the rest.') && guidedRoundNotes.length === 0, show([tapNotes, guidedRoundNotes]));
+  && L.missionDefById('touch_the_sky').note.endsWith('At your pace, tap ROUND after each round to time the rest.') && guidedRoundNotes.length === 0, show([tapNotes, guidedRoundNotes]));
 
 // No franchise, benchmark or person names anywhere a viewer reads.
 const BANNED_ALL = [...BANNED, 'StrongFirst', 'Sinister', 'Tsatsouline', 'Pavel', 'Humane Burpee', 'Timothy', 'Davis', 'Hero WOD', 'Open 1', 'Open 2'];
@@ -1124,7 +1131,7 @@ for (const id of OWN_IDS) {
     const tag = `${id}/${lv}`;
     if (!m) { ownProblems.push(`${tag} null`); continue; }
     const card = L.missionCardModel(m);
-    if (m.guided !== true || card.soloOnly || card.tags.includes('SOLO ONLY') || !card.guidedHelp || !m.introSay || m.origin !== 'Coach TM original') ownProblems.push(`${tag} not guided`);
+    if (m.guided !== true || card.soloOnly || card.tags.includes('YOUR PACE ONLY') || !card.guidedHelp || !m.introSay || m.origin !== 'Coach TM original') ownProblems.push(`${tag} not guided`);
     const its = items(m);
     if (its.some(it => !M.moveById(it.moveId))) ownProblems.push(`${tag} unknown move`);
     if (its.some(it => it.moveId !== it.baseMoveId || it.defaultMoveId !== it.baseMoveId) || m.scaled !== false || m.gearBanner !== null) ownProblems.push(`${tag} not at base`);
@@ -1773,7 +1780,7 @@ const card = L.missionCardModel(turboStd);
 check('card model: tags, accent, rows, help', eq(card.tags, ['~9 MIN', 'NORMAL']) && card.accentTag === 'STRIKING' && card.rows.length === 4 && card.soloOnly === false
   && card.guidedHelp === 'The coach calls the wipers and sets the pace on every burst.' && card.banner === null);
 const hitCard = L.missionCardModel(hit);
-check('card model: 21-HIT is SOLO only', hitCard.soloOnly === true && hitCard.tags.includes('SOLO ONLY') && hitCard.accentTag === null);
+check('card model: 21-HIT is your-pace only', hitCard.soloOnly === true && hitCard.tags.includes('YOUR PACE ONLY') && hitCard.accentTag === null);
 check('card model: SCALED tag after a swap', L.missionCardModel(quotaSb).tags.includes('SCALED') && L.cardRows(quotaSb)[0].undoable === true && L.cardRows(quotaSb)[0].swapped === true);
 const opt = L.swapOptions(check20, 'shadowbox')[0];
 check('swap option doses', opt?.id === 'row-cal' && opt.doseFrom === '40s' && opt.doseTo === '12 CAL' && opt.label === 'SIMILAR' && opt.gearLabel === 'ROWER' && opt.cues.length >= 2

@@ -213,6 +213,15 @@ export function estimateQuickMissionSeconds(mission) {
   return Math.round(perRound * (mission.rounds || 1));
 }
 
+// The seconds the moves themselves take (counted reps, holds, a loaded set's
+// pick-up) with no coach intro and no rest: the least a mission can honestly
+// take. AT YOUR PACE sets its fastest finish from it (data/soloFromGenerated).
+export function estimateQuickMissionWorkSeconds(mission) {
+  const all = [...(mission.exercises || []), ...(mission.finisherExercises || [])];
+  const perRound = all.reduce((s, ex) => s + slotSeconds(ex) - INTRO_SEC - ex.rest, 0);
+  return Math.round(perRound * (mission.rounds || 1));
+}
+
 // "12 reps" / "40s" — the dose the setup card prints beside a move.
 export function quickMissionDose(ex) {
   return ex.mode === 'timed' ? `${ex.work}s` : `${ex.reps} reps`;

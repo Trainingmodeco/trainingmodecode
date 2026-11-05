@@ -21,6 +21,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSetupKit';
 import { qmV2Enabled } from './data/qmV2';
+import { missionRunsAtYourPace } from './data/soloFromGenerated';
 import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime } from './data/missionSolo';
 import {
   secondsPhrase, legacyDose, slotDose, isCatalogSlot, isCounted, spokenMove, speechSeconds,
@@ -103,7 +104,7 @@ function getPrepMessage(workoutType) {
   return 'Get in position.';
 }
 
-export default function QuickMissionActive({ missionCfg, profile, onEnd, initialPaused, onStateChange, initialResumeData }) {
+export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitchRun, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
   // Quick Mission v2 (owner preview until it ships): lead lines and a spoken
   // 3-2-1 before every move, per-move counting, up-next calls and minute
@@ -1538,6 +1539,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, initial
               </>
             )}
           </div>
+        )}
+
+        {/* While the coach reads the brief: the same mission AT YOUR PACE
+            instead (the moves and a timer, no coach voice). Nothing is banked
+            yet, so the restart costs nothing. */}
+        {phase === 'intro' && v2 && onSwitchRun && !done && missionRunsAtYourPace(mission) && (
+          <button type="button" onClick={() => { cancelSpeech(); stopVoiceSession(); onSwitchRun(mission); }} style={{
+            marginTop: 14, minHeight: 44, padding: '0 14px', background: 'transparent', border: 'none', cursor: 'pointer',
+            fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', color: C.muted,
+            textDecoration: 'underline', textUnderlineOffset: 4,
+          }}>AT YOUR PACE INSTEAD</button>
         )}
 
         {/* Current exercise / Up Next card */}

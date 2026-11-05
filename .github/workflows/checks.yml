@@ -47,6 +47,11 @@ jobs:
       - name: Quick Mission tests
         run: npm run -s test:missions
 
+      # GUIDED or AT YOUR PACE for today's mission: the adapter, the pace
+      # tiers, the XP parity with guided, the floors and the words.
+      - name: Quick Mission at-your-pace tests
+        run: npm run -s test:ayp
+
       # XP verdicts and the Level page's words and maths (levels, tiers, recap,
       # copy rules). Both are in check:all; they were not gating PRs.
       - name: XP verdict tests

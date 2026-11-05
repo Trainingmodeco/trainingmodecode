@@ -39,6 +39,8 @@ import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
 import { settleSoloXp, settleGuidedXp, roundSplits, hasRoundTimer } from './data/missionSolo';
+import { resolveQuickMissionRun, missionRunsAtYourPace } from './data/soloFromGenerated';
+import { loadShelfPrefs } from './data/loadoutMissions';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
 import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview, entryFor as conceptEntryFor, stageCfg as conceptStageCfg } from './data/concepts';
@@ -678,10 +680,25 @@ export default function App() {
     // Cardio records itself for Home's Continue card when a session starts.
     rememberCardio: (setup) => { rememberSession('cardio', { setup }); trackSessionStart('cardio', { kind: setup?.categoryId || null }); },
     goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => {
+    // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE
+    // choice is settled in one place: a start with no run asked for (the Fit
+    // hub's and Home's START, a replay) runs today's mission the way the first
+    // page last saved it (data/soloFromGenerated resolveQuickMissionRun). What
+    // runs is what is remembered, so Continue repeats the same moves.
+    goQuickMissionActive: (c0) => {
+      const c = resolveQuickMissionRun(c0, qmV2Enabled() ? loadShelfPrefs().mode : 'guided');
       rememberSession('quick_mission', c);
-      trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : undefined);
+      trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : c?.mode === 'solo' ? { solo: true } : undefined);
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
+    },
+    // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,
+    // restarted in the other runner before anything is banked. `mission` is the
+    // one the guided run dealt (a Fit hub start has none in its config).
+    goQuickMissionAtPace: (mission) => {
+      if (!qmCfg) return;
+      const base = { ...qmCfg, mission: mission || qmCfg.mission, mode: 'solo' };
+      if (!missionRunsAtYourPace(base.mission)) return;
+      actions.goQuickMissionActive(base.v2 ? base : resolveQuickMissionRun(base, 'solo'));
     },
     goQuickMissionComplete: (result) => {
       // A run banks once: a second end of the same GUIDED run (its runId) is dropped.
@@ -888,9 +905,10 @@ export default function App() {
           actions.goComboActive(c);
           return true;
         case 'quick_mission':
-          // A v2 mission (GUIDED or SOLO) replays as itself, but only while
-          // v2 is on for this viewer; otherwise Setup opens instead.
-          if (c?.v2 && !qmV2Enabled()) { actions.goQuickMissionSetup(); return true; }
+          // A v2 mission (GUIDED or AT YOUR PACE) and a generated mission run
+          // at your pace replay as themselves, but only while v2 is on for
+          // this viewer; otherwise Setup opens instead.
+          if ((c?.v2 || c?.mode === 'solo') && !qmV2Enabled()) { actions.goQuickMissionSetup(); return true; }
           actions.goQuickMissionActive(c);
           return true;
         case 'fit': {

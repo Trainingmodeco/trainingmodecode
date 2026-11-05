@@ -116,16 +116,20 @@ await check('quick mission start', async () => { await fit(); await page.locator
 // the stack has to FIT, not scroll: every block above the tab bar, none on top
 // of another, the title whole. Boots once; the next checks only resize.
 const FIT_BLOCKS = ['fit-today', 'fit-concept', 'fit-quick', 'fit-builder', 'fit-programs', 'fit-tapes', 'fit-cardio'];
-const fullFitHub = async () => {
+// atYourPace: the saved AT YOUR PACE choice puts "· At your pace" on the card's
+// line, so the day uses the Quick Mission pick (no earlier session, which would
+// make today's pick the long Recovery Circuit) with its two-line title.
+const fullFitHub = async ({ atYourPace = false } = {}) => {
   await preview();
-  await page.evaluate(() => {
+  await page.evaluate((solo) => {
     localStorage.setItem('tm_run_ghosts_v1', JSON.stringify({ v: 1, best: {}, last: { 'mi|3|gps': { v: 1, ghostId: 'smoke', ownerId: 'me', ownerName: 'SMOKE', gender: 'male', unit: 'mi', goal: 3, surface: 'gps', totalSec: 1800, trace: [{ t: 0, d: 0 }, { t: 1800, d: 3 }], splits: [], verified: true, createdAt: Date.now() } } }));
-    localStorage.setItem('tm_user_stats', JSON.stringify({ xp: 0, sessions: [{ type: 'Fit Mode', date: new Date().toISOString(), xp: 50 }] }));
-  });
+    if (solo) localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'solo' }));
+    else localStorage.setItem('tm_user_stats', JSON.stringify({ xp: 0, sessions: [{ type: 'Fit Mode', date: new Date().toISOString(), xp: 50 }] }));
+  }, atYourPace);
   await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
   await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
   await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
-  if (!/GHOST ACTIVE/.test(await text()) || !/Recovery Circuit/.test(await text())) throw new Error('the full hub did not come up (ghost badge or long title missing)');
+  if (!/GHOST ACTIVE/.test(await text()) || !(atYourPace ? /At your pace/ : /Recovery Circuit/).test(await text())) throw new Error('the full hub did not come up (ghost badge or long title missing)');
 };
 const hubMetrics = () => page.evaluate((blocks) => {
   const rect = (k) => { const e = document.querySelector(`[data-guide="${k}"]`); return e ? e.getBoundingClientRect() : null; };
@@ -375,7 +379,7 @@ const ownerQuick = async () => {
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
 };
 // The MISSION LIBRARY sheet (MissionLibrarySheet). Its rows are role="radio"
-// named by the title, plus a SOLO or PRO pill, so the patterns are anchored
+// named by the title, plus a YOUR PACE ONLY or PRO pill, so the patterns are anchored
 // at the start only. A row tap only highlights it; PUT ON CARD brings it to
 // the page card, the sheet's own START runs it.
 const sheet = () => page.getByRole('dialog', { name: 'Mission library' });
@@ -433,6 +437,171 @@ await check('quick mission: the first page is the card, GEAR, TIME and the libra
   if (await slider().getAttribute('aria-valuetext') !== '20 minutes') throw new Error('TIME does not open on 20 minutes');
   if ((await slider().boundingBox()).height < 44) throw new Error('the TIME slider is under 44px tall');
 }, /SEE ALL \d+ MOVES|SEE MORE/);
+// GUIDED | AT YOUR PACE (data/soloFromGenerated). The choice sits on the first
+// page, right above START: GUIDED is the coach, AT YOUR PACE the moves and a
+// timer. It is remembered, ADJUST keeps in step with it, today's mission runs
+// both ways, a classic stays with the coach and a your-pace-only mission shows
+// AT YOUR PACE selected. Stored and routed as 'solo' (the words on screen are
+// AT YOUR PACE).
+const modeSwitch = () => page.getByRole('radiogroup', { name: 'Run mode' });
+const modeKey = (name) => modeSwitch().getByRole('radio', { name, exact: true });
+const modeHelp = () => page.locator('#qm-how-help').innerText();
+const GUIDED_LINE = 'The coach calls every move and counts your reps.';
+const PACE_LINE = 'The moves and a timer. No coach voice. Your phone stays awake.';
+// The move names on the card, after ▾ SEE ALL opens it.
+const cardMoves = async () => { await expand(); return card().locator('ol > li > span:nth-child(2)').allInnerTexts(); };
+// The moves the run screen lists (its rows are 01, 02… then a name).
+const runMoves = (t) => [...t.matchAll(/\n\d\d\n([^\n]+)\n/g)].map(m => m[1]);
+// Move the app's clock on without waiting: the run screen counts Date.now().
+const jump = (ms) => page.evaluate((d) => { if (window.__off === undefined) { const r = Date.now.bind(Date); window.__off = 0; Date.now = () => r() + window.__off; } window.__off += d; }, ms);
+const nav = () => page.evaluate(() => document.querySelector('[data-guide="nav-tabs"]').getBoundingClientRect().top);
+await check('quick mission: GUIDED | AT YOUR PACE is on the first page and the whole page stays above the tab bar', async () => {
+  await quick();
+  try {
+    for (const [w, h] of [[412, 811], [390, 844], [360, 740]]) {
+      await resizeTo(w, h);
+      for (const m of ['GUIDED', 'AT YOUR PACE']) {
+        await modeKey(m).click({ timeout: 4000 }); await S(300);
+        const g = await page.evaluate(() => {
+          const r = (e) => e.getBoundingClientRect();
+          const sw = document.querySelector('[role="radiogroup"][aria-label="Run mode"]');
+          const start = [...document.querySelectorAll('button')].find(b => /^START$/.test(b.textContent.trim()));
+          return {
+            nav: r(document.querySelector('[data-guide="nav-tabs"]')).top, start: r(start), lib: r(document.querySelector('[data-guide="qm-library"]')),
+            sw: r(sw), segs: [...sw.querySelectorAll('[role="radio"]')].map(b => r(b).height), how: r(document.querySelector('[data-guide="qm-how"]')),
+            gear: r(document.querySelector('[data-guide="qm-gear"]')), time: r(document.querySelector('[data-guide="qm-time"]')),
+          };
+        });
+        const at = `${w}x${h} ${m}`;
+        if (g.sw.height < 43.5 || g.segs.some(s => s < 43.5)) throw new Error(`${at}: the switch is ${g.sw.height}px tall (segments ${g.segs})`);
+        if (g.start.bottom > g.nav || g.start.height < 43.5) throw new Error(`${at}: START ends at ${Math.round(g.start.bottom)}, the tab bar starts at ${Math.round(g.nav)}`);
+        if (g.sw.bottom > g.start.top) throw new Error(`${at}: the switch is not above START`);
+        if (g.lib.bottom > g.nav + 0.5) throw new Error(`${at}: the library row ends at ${Math.round(g.lib.bottom)}, under the tab bar at ${Math.round(g.nav)}`);
+        if (g.gear.bottom > g.time.top + 0.5 || g.time.bottom > g.lib.top + 0.5) throw new Error(`${at}: GEAR, TIME and the library overlap`);
+        if (await modeHelp() !== (m === 'GUIDED' ? GUIDED_LINE : PACE_LINE)) throw new Error(`${at}: the line under the switch is not the ${m} one`);
+      }
+    }
+  } finally { await resizeTo(390, 844); }
+}, /GUIDED/);
+await check('quick mission: GUIDED is the default, and the choice is remembered, with ADJUST in step', async () => {
+  await quick();
+  if (await modeKey('GUIDED').getAttribute('aria-checked') !== 'true' || await modeKey('AT YOUR PACE').getAttribute('aria-checked') !== 'false') throw new Error('GUIDED is not the default');
+  await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  if (await page.evaluate(() => JSON.parse(localStorage.getItem('tm_qm_shelf_v1') || '{}').mode) !== 'solo') throw new Error('AT YOUR PACE was not saved (stored as solo)');
+  await adjust();
+  const how = adjustSheet().getByRole('radiogroup', { name: 'How' });
+  if (await how.getByRole('radio', { name: 'AT YOUR PACE', exact: true }).getAttribute('aria-checked') !== 'true') throw new Error('ADJUST does not show AT YOUR PACE');
+  if (!(await adjustSheet().innerText()).includes(PACE_LINE)) throw new Error('ADJUST does not say what AT YOUR PACE does');
+  await how.getByRole('radio', { name: 'GUIDED', exact: true }).click({ timeout: 4000 }); await S(300); await done();
+  if (await modeKey('GUIDED').getAttribute('aria-checked') !== 'true' || await modeHelp() !== GUIDED_LINE) throw new Error('GUIDED in ADJUST did not reach the page');
+  await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await page.locator('button[aria-label="Back"]').click({ timeout: 3000 }); await S(800);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  if (await modeKey('AT YOUR PACE').getAttribute('aria-checked') !== 'true' || await modeHelp() !== PACE_LINE) throw new Error('AT YOUR PACE did not come back on the next visit');
+}, /AT YOUR PACE/);
+await check('quick mission: a classic stays with the coach, and says why', async () => {
+  await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await putOnCard(/^MURPH$/);
+  if (await modeKey('GUIDED').getAttribute('aria-checked') !== 'true' || await modeKey('AT YOUR PACE').getAttribute('aria-disabled') !== 'true') throw new Error('Murph is not GUIDED with AT YOUR PACE dimmed');
+  if (await modeHelp() !== 'This classic runs with the coach.') throw new Error('no reason under the dimmed switch');
+  await modeKey('AT YOUR PACE').click({ force: true, timeout: 4000 }); await S(300);
+  if (await modeKey('GUIDED').getAttribute('aria-checked') !== 'true' || await page.evaluate(() => JSON.parse(localStorage.getItem('tm_qm_shelf_v1') || '{}').mode) !== 'solo') throw new Error('tapping the dimmed segment changed something');
+  await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
+  if (/AT YOUR PACE/.test(await text())) throw new Error('a classic ran at your pace');
+}, /ROUND|EXERCISE|MILE|PREPARING|GET READY/);
+await check('owner: a mission only offered at your pace shows AT YOUR PACE selected and GUIDED dimmed', async () => {
+  await ownerQuick(); await putOnCard(/^HONOR ROUNDS/);
+  if (await modeKey('AT YOUR PACE').getAttribute('aria-checked') !== 'true' || await modeKey('GUIDED').getAttribute('aria-disabled') !== 'true') throw new Error('HONOR ROUNDS is not AT YOUR PACE with GUIDED dimmed');
+  if (await modeHelp() !== 'Only at your pace for now. Guided is coming.') throw new Error('no your-pace-only note');
+  if (!/YOUR PACE ONLY/.test(await card().innerText())) throw new Error('no YOUR PACE ONLY tag on the card');
+}, /YOUR PACE/);
+await check('quick mission: AT YOUR PACE then START runs the moves and a timer; the XP is the guided XP, banked once', async () => {
+  await quick();
+  const moves = await cardMoves();
+  await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  let t = await text();
+  if (!/AT YOUR PACE/.test(t) || !/CIRCUIT/.test(t)) throw new Error('not the at-your-pace screen');
+  if (await page.locator('[data-guide="qma-ring"]').count() || /PREPARING/.test(t)) throw new Error('the coach runner opened');
+  const shown = runMoves(t);
+  if (JSON.stringify(shown) !== JSON.stringify(moves)) throw new Error(`the list is ${shown.join(', ')}, the card said ${moves.join(', ')}`);
+  const rounds = Number((t.match(/ROUND 1\/(\d+)/) || [])[1]);
+  if (!(rounds >= 2) || !/CAP \d+:\d\d/.test(t) || !/ROUND 1\b/.test(t) || !(await btn(/^ROUND$/).isVisible()) || !(await btn(/^FINISH$/).isVisible()) || !(await page.getByRole('button', { name: 'Undo round' }).count())) throw new Error('no timer, round count, ROUND, UNDO or FINISH');
+  const tier = (n) => { const m = t.match(new RegExp(`${n}\\s*\\n?\\s*≤ (\\d+):(\\d\\d)`)); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
+  const [elite, standard, beginner] = ['ELITE', 'STANDARD', 'BEGINNER'].map(tier);
+  if (!(elite < standard && standard < beginner)) throw new Error(`the pace targets are ${elite} / ${standard} / ${beginner}`);
+  if (/SOLO/i.test(t)) throw new Error('the screen says SOLO');
+  // Round 1, a round tap, the rest of the rounds, FINISH, SAVE: the clock is moved on, not waited for.
+  for (let r = 1; r < rounds; r += 1) { await jump(Math.round(standard / rounds) * 1000); await S(700); await btn(/^ROUND$/).click({ timeout: 4000 }); await S(300); }
+  await jump(Math.round(standard / rounds) * 1000); await S(700);
+  if (!new RegExp(`ROUNDS ${rounds - 1}\\b`).test(await text())) throw new Error('ROUND did not count the rounds');
+  await btn(/^FINISH$/).click({ timeout: 4000 }); await S(600);
+  t = await text();
+  if (!/YOUR SCORE/.test(t) || !/NOT YET/.test(t)) throw new Error('FINISH did not open the score');
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
+  t = await text();
+  const xp = 15 * moves.length * rounds + 30;
+  if (!new RegExp(`\\+${xp}\\b`).test(t) || !/At your pace/.test(t)) throw new Error(`the complete screen does not show +${xp} XP at your pace`);
+  const rows = await qmRows();
+  if (rows.length !== 1 || rows[0].xpEarned !== xp || rows[0].mode !== 'solo' || rows[0].completed !== true || rows[0].completedCount !== moves.length * rounds || rows[0].totalCount !== moves.length * rounds) throw new Error(`the bank holds ${JSON.stringify(rows)}`);
+  await page.waitForTimeout(500);
+  if ((await qmRows()).length !== 1) throw new Error('the run banked twice');
+}, /SESSION COMPLETE/);
+await check('quick mission: a finish far faster than the moves could be done pays nothing', async () => {
+  await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await btn(/^FINISH$/).click({ timeout: 4000 }); await S(500);
+  await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
+  const t = await text(); const rows = await qmRows();
+  if (!/Faster than elite pace/.test(t) || !/\+?0\s*\n?\s*XP/.test(t) || rows.length !== 1 || rows[0].xpEarned !== 0) throw new Error(`a quick tap paid: ${JSON.stringify(rows)}`);
+}, /VALIDATION FAILED|FAILED|COMPLETE/);
+await check('quick mission: GUIDED still starts the coach, and its brief offers AT YOUR PACE INSTEAD for the same mission', async () => {
+  await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  await modeKey('GUIDED').click({ timeout: 4000 }); await S(300);
+  const moves = await cardMoves();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(1500);
+  let t = await text();
+  if (!/PREPARING/.test(t) || !await page.locator('[data-guide="qma-ring"]').count()) throw new Error('GUIDED did not open the coach runner');
+  await btn(/^AT YOUR PACE INSTEAD$/).click({ timeout: 4000 }); await S(7500);
+  t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the switch did not restart the same mission at your pace');
+  if ((await qmRows()).length) throw new Error('the switch banked something');
+}, /AT YOUR PACE/);
+await check('quick mission: a paused at-your-pace run, and one killed and reloaded, come back with the same moves', async () => {
+  await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  const moves = await cardMoves();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await page.locator('[data-guide="nav-tabs"] button').first().click({ timeout: 4000 }); await S(1800);
+  await page.getByRole('button', { name: /RESUME/ }).first().click({ timeout: 4000 }); await S(2500);
+  let t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || !/PAUSED/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the pause did not bring back the same run');
+  await page.reload({ waitUntil: 'networkidle' }); await S(2500);
+  t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the reload did not bring back the same run');
+}, /AT YOUR PACE/);
+await check('fit hub: START runs today\'s mission AT YOUR PACE when that is the saved choice, and says so', async () => {
+  await home();
+  await page.evaluate(() => localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'solo' })));
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
+  const hero = await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText);
+  if (!/Surprise Mission/.test(hero) || !/ · At your pace/.test(hero)) throw new Error(`the card does not say At your pace: ${hero.replace(/\n/g, ' | ')}`);
+  await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(7500);
+  const t = await text();
+  if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the hub START did not run the moves and a timer');
+}, /AT YOUR PACE/);
+await check('fit hub: START still runs the coach when GUIDED is saved (no "At your pace" on the card)', async () => {
+  await fit();
+  await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
+  if (/At your pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card says At your pace on GUIDED');
+  await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(2500);
+  if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE\n/.test(await text())) throw new Error('the hub START did not run the coach');
+}, /PREPARING|ROUND|GET READY/);
+await check('fit hub: on the fullest day, with "At your pace" saved, the card still fits 412x811 and 360x740', async () => {
+  await fullFitHub({ atYourPace: true });
+  try { for (const [w, h] of [[412, 811], [360, 740]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h} At your pace`); } } finally { await resizeTo(390, 844); }
+  if (!/ · At your pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card does not say At your pace');
+}, /Quick Mission/);
 await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => {
   await quick();
   const n = Number((await page.locator('[data-guide="qm-expand"]').innerText()).match(/\d+/)?.[0] || 3);
@@ -538,11 +707,11 @@ await check('owner: one-bell guided start', async () => { await ownerQuick(); aw
 await check('owner: turbo solo start', async () => {
   await ownerQuick(); await putOnCard(/^TURBO BUTTON/);
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
-}, /SOLO/);
+}, /AT YOUR PACE/);
 // The owner's own workouts. BAR FIGHT runs GUIDED (the clean slate's mode):
 // SKIP the brief, and GET READY names its first bar drill.
 await check('owner: BAR FIGHT guided start', async () => {
@@ -558,7 +727,7 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
   await ownerQuick(); await putOnCard(/^NO CONTINUES/);
   if (!/Park the bell between your feet/.test(await card().innerText())) throw new Error('no safety line on the card');
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -578,7 +747,7 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
 await check('owner: NO CONTINUES solo END with no taps shows no recap', async () => {
   await ownerQuick(); await putOnCard(/^NO CONTINUES/);
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   await btn(/^STOP$/).click({ timeout: 4000 }); await S(400);
@@ -593,7 +762,7 @@ await check('owner: UPPER LOWER DIPS solo, two ROUND taps and I\'M DONE', async 
   await ownerQuick(); await putOnCard(/^UPPER LOWER DIPS/);
   if (!/elbows reach 90°/.test(await card().innerText())) throw new Error('no safety line on the card');
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -704,7 +873,7 @@ await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async (
   const c = await card().innerText();
   if (!/45 reps a round, bar never down/i.test(c) || !/The bar is already in the rack\./.test(c)) throw new Error('not the bar-never-down card');
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -734,7 +903,7 @@ await check('quick mission: OVERTIME 20 guided start', async () => {
 await check('quick mission: OVERTIME 20 solo shows the ROUND button', async () => {
   await ownerQuick(); await putOnCard(/^OVERTIME 20/);
   await adjust();
-  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'SOLO', exact: true }).click({ timeout: 4000 }); await S(300);
+  await adjustSheet().getByRole('radiogroup', { name: 'How' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   let t = await text();
@@ -742,19 +911,19 @@ await check('quick mission: OVERTIME 20 solo shows the ROUND button', async () =
   await btn(/^ROUND$/).click({ timeout: 4000 }); await S(400);
   t = await text();
   if (!/ROUND 2/.test(t) || !/R1 0:0\d/.test(t) || !/ROUNDS 1/.test(t)) throw new Error('ROUND did not take a split');
-}, /SOLO/);
+}, /AT YOUR PACE/);
 // A SOLO-only library mission starts SOLO from the sheet's own START, whatever
 // the remembered run mode (GUIDED on a clean slate).
 await check('quick mission: library BARBELL → HONOR ROUNDS starts SOLO', async () => {
   await ownerQuick(); await library();
   await sheet().getByRole('radiogroup', { name: 'Loadout' }).getByRole('radio', { name: /^BARBELL/ }).click({ timeout: 4000 }); await S(400);
   if (await sheet().getByRole('radio', { name: /^IRON CLOCK 16/ }).count() !== 1 || await sheet().getByRole('radio', { name: /^BEST OF 3/ }).count()) throw new Error('BARBELL did not filter the list');
-  await sheet().getByRole('radio', { name: /^HONOR ROUNDS SOLO$/ }).click({ timeout: 4000 }); await S(300);
+  await sheet().getByRole('radio', { name: /^HONOR ROUNDS YOUR PACE ONLY$/ }).click({ timeout: 4000 }); await S(300);
   if (!/HONOR ROUNDS/.test(await sheet().locator('[aria-live="polite"]').innerText())) throw new Error('HONOR ROUNDS is not on top');
   await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(7000);
   const t = await text();
   if (!/HONOR ROUNDS/.test(t) || !/FINISH/.test(t) || !/STOP/.test(t) || !/CAP 20:00/.test(t)) throw new Error('not the SOLO screen for HONOR ROUNDS');
-}, /SOLO/);
+}, /AT YOUR PACE/);
 // START opens the ring warm-up (5 MIN until the athlete picks). Its SKIP is
 // clicked for real, so the check fails if anything covers it: the old warm-up's
 // SKIP sat under the tab bar, and this check still passed because the workout

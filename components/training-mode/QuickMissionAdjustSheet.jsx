@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { Check } from 'lucide-react';
 import { NAV_H } from './Styles';
+import { RUN_MODES } from './data/loadoutMissions';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import useSheetModal, { GRAB_BAR } from './shared/useSheetModal';
@@ -14,8 +15,9 @@ import {
 //
 // The Mission Library's floating sheet (portalled, resting on the tab bar),
 // sized to what it holds. What it shows depends on the mission on the card:
-//   today's mission   LEVEL (easy / medium / hard) · FOCUS · ADD CARDIO
-//   a library mission LEVEL (its own levels) · HOW (guided / solo) · ADD CARDIO
+//   today's mission   LEVEL (easy / medium / hard) · FOCUS · HOW (guided / at
+//                     your pace) · ADD CARDIO
+//   a library mission LEVEL (its own levels) · HOW (guided / at your pace) · ADD CARDIO
 //                     · NOTES (its loadout, score, how to scale and the
 //                     coach's note: the brief the open card leaves out)
 //   a classic         ADD CARDIO
@@ -25,7 +27,7 @@ import {
 //
 // level: { options: [{ id, label }], value, onPick, detail? } | null
 // focus: { options, value, onPick } | null
-// how:   { value: 'guided' | 'solo', soloOnly, help, onPick } | null
+// how:   { value: 'guided' | 'solo' (shown as AT YOUR PACE), soloOnly, help, onPick } | null
 // notes: { lines: [[label, value]], scale, note } | null
 // cardio: { on, summary, onToggle, onEdit }
 const CSS = `
@@ -38,14 +40,15 @@ const CSS = `
 
 const help = (text) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{text}</div>;
 
-// GUIDED · SOLO: the kit's strip, with GUIDED greyed out on a SOLO-only
-// mission (it still says what is coming).
+// GUIDED · AT YOUR PACE: the kit's strip (the same choice as the first page's
+// switch, kept in sync by the page), with GUIDED greyed out on a mission only
+// offered at your pace (it still says what is coming).
 function HowRow({ how }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Label>How</Label>
       <div role="radiogroup" aria-label="How" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
-        {['guided', 'solo'].map(id => {
+        {RUN_MODES.map(({ id, label }) => {
           const on = how.value === id;
           const off = id === 'guided' && how.soloOnly;
           return (
@@ -55,7 +58,7 @@ function HowRow({ how }) {
                 font: `600 12px ${HEAD}`, letterSpacing: '0.14em', opacity: off ? 0.45 : 1,
                 color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
                 boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
-              }}>{id.toUpperCase()}</button>
+              }}>{label}</button>
           );
         })}
       </div>

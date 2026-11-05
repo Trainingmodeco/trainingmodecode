@@ -20,7 +20,7 @@ import { isPro } from './data/entitlements';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import { qmV2Enabled } from './data/qmV2';
 import {
-  SOLO_HELP, SOLO_ONLY_HELP,
+  RUN_MODES, GUIDED_HELP, SOLO_HELP, SOLO_ONLY_HELP, CLASSIC_HELP,
   missionDefById, levelsOf, gearProfile, buildLoadoutMission, missionCardModel,
   classicMeta, shelfEntries, loadShelfPrefs, saveShelfPrefs,
 } from './data/loadoutMissions';
@@ -42,9 +42,9 @@ import {
 // mission's), how long it really takes, an ADJUST row and ▴ SHOW LESS. The
 // page scrolls just enough to bring the open card into view, and the card
 // stays open or closed for the next visit. ADJUST is a sheet
-// (QuickMissionAdjustSheet) with LEVEL, FOCUS, GUIDED or SOLO where a mission
-// has it, ADD CARDIO and a library mission's notes (loadout, score, scale and
-// the coach's note), so its open card stays the moves and one line. GEAR,
+// (QuickMissionAdjustSheet) with LEVEL, FOCUS, GUIDED or AT YOUR PACE, ADD
+// CARDIO and a library mission's notes (loadout, score, scale and the coach's
+// note), so its open card stays the moves and one line. GEAR,
 // TIME, LEVEL and FOCUS are remembered per viewer (tm_qm_keys_v1); SURPRISE
 // re-rolls the level, the focus and the moves with the same GEAR and TIME,
 // and saves nothing. What the card shows is exactly what runs: the
@@ -52,11 +52,19 @@ import {
 //
 // The MISSION LIBRARY sheet (MissionLibrarySheet) holds the launch missions
 // and the classics. PUT ON CARD brings one here, onto the same card: the
-// first moves, ▾ SEE ALL, ADJUST (its level, GUIDED or SOLO, cardio) and a
+// first moves, ▾ SEE ALL, ADJUST (its level, GUIDED or AT YOUR PACE, cardio) and a
 // small ‹ TODAY back to today's mission; touching GEAR or TIME goes back too.
 // Everything on a library card comes from data/loadoutMissions; this screen
 // only holds the choices. With the v2 gate off (data/qmV2) the library holds
 // only the classics.
+//
+// GUIDED | AT YOUR PACE sits right above START, always on the page: GUIDED is
+// the coach (the runner that counts every move), AT YOUR PACE is the moves and
+// one timer (QuickMissionSolo; stored and routed as 'solo'). The choice is
+// remembered (the shelf prefs' mode) and works for today's mission and for
+// library missions; a mission only offered at your pace shows it selected with
+// GUIDED dimmed, and a classic (built around the coach's calls) stays GUIDED
+// with AT YOUR PACE dimmed and the reason under it.
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const focusLabel = (f) => (f === 'FULL BODY' ? 'Full Body' : cap(f));
@@ -110,14 +118,33 @@ input[type=range].qm-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0
 input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(242,190,69,.9); }
 .qm-toggle { transition: color .18s ease; }
 .qm-toggle:hover, .qm-toggle:focus-visible { color: #fff !important; }
+/* The GUIDED | AT YOUR PACE switch and its line sit in the card, so on a
+   phone under about 860px tall (412 x 811, 390 x 844) the whole first page
+   packs a little tighter to stay above the tab bar. */
+@media (max-height: 860px) {
+  .qm-stack { gap: 8px !important; padding-top: 12px !important; }
+  .qm-stack > .qm-mt { margin-top: 0 !important; }
+  .qm-card-in { padding: 10px 14px 10px !important; gap: 6px !important; }
+  .qm-card-in > .qm-toggle { margin: -2px 0 -4px !important; }
+  .qm-time-band { padding-top: 14px !important; }
+}
 /* A short phone (360 x 740) keeps the whole first page above the tab bar:
-   the card, GEAR, TIME and the library row pack a little tighter. */
+   the card, GEAR, TIME and the library row pack tighter, the closed card
+   shows its first two moves (SEE ALL still counts every move) and START is
+   44px. */
 @media (max-height: 760px) {
   .qm-stack { gap: 8px !important; padding-top: 10px !important; }
   .qm-stack > .qm-mt { margin-top: 0 !important; }
-  .qm-card-in { padding: 10px 14px 12px !important; gap: 6px !important; }
+  .qm-stack > div.qm-mt { gap: 6px !important; }
+  .qm-card-in { padding: 8px 14px 10px !important; gap: 4px !important; }
+  .qm-card-in h1 { font-size: 21px !important; }
   .qm-card-in > .qm-toggle { margin: -2px 0 -6px !important; }
+  .qm-moves-closed > li:nth-child(n+3) { display: none !important; }
+  .qm-how { gap: 4px !important; }
+  .qm-how > div:last-child { line-height: 1.25 !important; }
+  .qm-start button, .qm-surprise { height: 44px !important; }
   .qm-time-band { padding-top: 14px !important; }
+  .qm-lib { min-height: 52px !important; padding: 6px 12px !important; }
 }
 `;
 
@@ -162,6 +189,30 @@ function GearRow({ value, onPick }) {
             color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
             boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
           }}>{t.toUpperCase()}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+// GUIDED | AT YOUR PACE: how START runs the mission on the card. Two 44px
+// segments in the kit's chamfered strip, the chosen one in gold. `guidedOff`
+// dims GUIDED (a mission only offered at your pace), `soloOff` dims AT YOUR
+// PACE (a classic); a dimmed segment does nothing and the line under the strip
+// says why.
+function RunModeSwitch({ value, guidedOff, soloOff, onPick }) {
+  return (
+    <div role="radiogroup" aria-label="Run mode" aria-describedby="qm-how-help" style={{ ...chf, display: 'flex', height: 44, flexShrink: 0, background: CARD, boxShadow: `inset 0 0 0 1px ${CARD_BORDER}` }}>
+      {RUN_MODES.map(({ id, label }) => {
+        const on = id === value;
+        const off = id === 'guided' ? guidedOff : soloOff;
+        return (
+          <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={off ? 'true' : undefined} className="fk-seg"
+            onClick={off ? undefined : () => onPick(id)} style={{
+              flex: '1 1 0', minWidth: 0, height: 44, border: 'none', padding: '0 4px', whiteSpace: 'nowrap', cursor: off ? 'default' : 'pointer',
+              font: `700 12px ${HEAD}`, letterSpacing: '0.12em', opacity: off ? 0.4 : 1,
+              color: on ? '#1A1204' : MUTED, background: on ? GOLD : 'transparent',
+            }}>{label}</button>
         );
       })}
     </div>
@@ -315,7 +366,10 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const v2Mission = useMemo(() => (v2 && sel.kind === 'v2' ? buildLoadoutMission(sel.id, { level, swaps, gear }) : null), [v2, sel, level, swaps, gear]);
   const card = useMemo(() => (v2Mission ? missionCardModel(v2Mission, { gear }) : null), [v2Mission, gear]);
   const levels = useMemo(() => (v2Mission ? levelsOf(missionDefById(v2Mission.id)) : []), [v2Mission]);
-  const runMode = card?.soloOnly ? 'solo' : mode;
+  // How START runs what is on the card: a mission only offered at your pace
+  // always, a classic always GUIDED (the coach's calls are its point), else the
+  // saved choice.
+  const runMode = card?.soloOnly ? 'solo' : named ? 'guided' : mode;
   const onLibrary = sel.kind !== 'generated';
   // RESET SWAPS shows while one of the athlete's picks is on the card. A pick
   // the current level dropped stays in the map (it comes back with its level)
@@ -391,8 +445,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
     setSel({ kind: 'v2', id });
   };
   const pickLevel = (l) => { setLevel(l); if (v2Mission) savePrefs({ levels: { [v2Mission.id]: l } }); };
-  // A SOLO-only mission shows SOLO without overwriting the stored choice.
-  const pickMode = (m) => { if (card?.soloOnly || m === mode) return; setMode(m); savePrefs({ mode: m }); };
+  // A mission only offered at your pace, or a classic, shows its own mode
+  // without overwriting the stored choice.
+  const pickMode = (m) => { if (card?.soloOnly || named || m === mode) return; setMode(m); savePrefs({ mode: m }); };
   // The sheet only offers moves reachable from the authored base, and the
   // build derives the dose from the base, so a chained pick needs nothing
   // special. Picking the card's own default is the same as UNDO.
@@ -428,7 +483,9 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const handleStart = () => {
     if (v2Mission) { startV2(v2Mission, runMode); return; }
     if (named) { startClassic(named); return; }
-    onStart?.({ ...cfg, cardioAddon, mission });
+    // The run is asked for explicitly (and only when v2 is on), so App's start
+    // never has to guess for a mission started from this page.
+    onStart?.({ ...cfg, cardioAddon, mission, ...(v2 ? { mode: runMode } : {}) });
   };
 
   // The library's two actions. Both close it first, so a sheet never opens
@@ -476,13 +533,19 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   const moveCount = card ? card.rows.length : named ? classicMoves.length : movesAll.length;
   const hidden = moveCount > CARD_MOVES;
 
+  // The one line under the switch (and under HOW in ADJUST): what the choice
+  // does, or why it is not offered.
+  const runHelp = card
+    ? (card.soloOnly ? SOLO_ONLY_HELP : runMode === 'solo' ? SOLO_HELP : card.guidedHelp || GUIDED_HELP)
+    : named ? CLASSIC_HELP : runMode === 'solo' ? SOLO_HELP : GUIDED_HELP;
+
   // ADJUST: what this mission lets you change.
   const adjust = card
     ? {
-      words: levels.length > 1 ? 'level, guided or solo, cardio' : 'guided or solo, cardio',
+      words: levels.length > 1 ? 'level, guided or at your pace, cardio' : 'guided or at your pace, cardio',
       level: levels.length > 1 ? { options: levels.map(l => ({ id: l.id, label: l.label })), value: v2Mission.level, onPick: pickLevel, detail: v2Mission.levelDetail } : null,
       focus: null,
-      how: { value: runMode, soloOnly: card.soloOnly, onPick: pickMode, help: card.soloOnly ? SOLO_ONLY_HELP : runMode === 'solo' ? SOLO_HELP : card.guidedHelp },
+      how: { value: runMode, soloOnly: card.soloOnly, onPick: pickMode, help: runHelp },
       // The mission's brief, off the card so the open card stays the moves
       // and one line.
       notes: { lines: [['LOADOUT', card.loadoutLine], ['SCORE', card.scoreLine]], scale: card.scale, note: card.note },
@@ -490,10 +553,10 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
     : named
       ? { words: 'add cardio', level: null, focus: null, how: null, notes: null }
       : {
-        words: 'level, focus, cardio',
+        words: v2 ? 'level, focus, guided or at your pace, cardio' : 'level, focus, cardio',
         level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: (v) => pickKey({ difficulty: v }) },
         focus: { options: QM_FOCI.map(f => ({ id: f, label: f === 'FULL BODY' ? 'FULL' : f })), value: focus, onPick: (v) => pickKey({ focus: v }) },
-        how: null, notes: null,
+        how: v2 ? { value: runMode, soloOnly: false, onPick: pickMode, help: runHelp } : null, notes: null,
       };
   const title = card ? card.title : named ? named.title : mission.title;
 
@@ -506,15 +569,17 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
 
   // How long it really takes, and how it runs: a loaded set is never counted,
   // so it ends on DONE (the runner's safe-weight brief says the same).
-  const summary = workoutType === 'Weighted'
-    ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after each set.`
-    : workoutType === 'Hybrid'
-      ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after a loaded set.`
-      : `${roundsWord} · about ${estMin} min with the coach's count and rest`;
-  const missionCount = shelf.filter(e => e.kind === 'v2').length;
-  const librarySub = missionCount
-    ? `${shelf.length} ready-made workouts: new missions and classics like Murph. Pick one and go.`
-    : `${shelf.length} ready-made workouts: classics like Murph. Pick one and go.`;
+  const atPace = v2 && runMode === 'solo';
+  const summary = atPace
+    ? `${roundsWord} · about ${estMin} min. The clock counts up; rest as you need.${workoutType === 'Bodyweight' ? '' : ' Pick a safe weight.'}`
+    : workoutType === 'Weighted'
+      ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after each set.`
+      : workoutType === 'Hybrid'
+        ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after a loaded set.`
+        : `${roundsWord} · about ${estMin} min with the coach's count and rest`;
+  // One short line: the count is the pill beside it, and the row stays one
+  // line tall on a 360px phone.
+  const librarySub = 'Ready-made workouts. Pick one.';
 
   const muted = (children) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{children}</div>;
   // An open library card's rows are MoveRow's 44px (the swap's target), so
@@ -632,7 +697,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               {eyebrow}
               <h1 style={{ margin: 0, font: `700 23px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 320 }}>{title}</h1>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>
-              <ol id="qm-moves" style={listStyle}>{moves}</ol>
+              <ol id="qm-moves" className={open ? undefined : 'qm-moves-closed'} style={listStyle}>{moves}</ol>
               {/* A mission's safety line (NO CONTINUES), big, open or closed. */}
               {card?.safety && (
                 <div role="note" style={{
@@ -644,7 +709,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
               {open && (
                 <>
                   {details}
-                  {/* ADJUST — level, focus, guided or solo, cardio: a sheet. */}
+                  {/* ADJUST — level, focus, guided or at your pace, cardio: a sheet. */}
                   <button ref={adjustRef} type="button" data-guide="qm-adjust" className="fk-row" onClick={() => setAdjustOpen(true)} aria-haspopup="dialog" aria-expanded={adjustOpen ? 'true' : 'false'} style={{
                     display: 'flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 12px', width: '100%', boxSizing: 'border-box', marginTop: 2,
                     borderRadius: 10, background: 'rgba(18,13,36,0.9)', border: '1px solid rgba(157,108,255,0.35)', textAlign: 'left', cursor: 'pointer',
@@ -669,13 +734,21 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
                 {open ? 'SHOW LESS' : hidden ? `SEE ALL ${moveCount} MOVES` : 'SEE MORE'}
               </button>
 
+              {/* GUIDED | AT YOUR PACE — always here, right above START. */}
+              {v2 && (
+                <div data-guide="qm-how" className="qm-how" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <RunModeSwitch value={runMode} guidedOff={!!card?.soloOnly} soloOff={!!named} onPick={pickMode}/>
+                  <div id="qm-how-help" style={{ font: `500 11px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>{runHelp}</div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 8 }}>
-                <div data-guide="qm-start" style={{ flex: 1, minWidth: 0 }}>
+                <div data-guide="qm-start" className="qm-start" style={{ flex: 1, minWidth: 0 }}>
                   <GoldButton label="START" icon="play" onClick={handleStart} height={50} style={{ fontSize: 18, letterSpacing: '0.22em' }}/>
                 </div>
                 {/* SURPRISE — a different workout with the same GEAR and TIME. */}
                 {!onLibrary && (
-                  <button type="button" data-guide="qm-surprise" className="fk-ghost" onClick={surprise} style={{
+                  <button type="button" data-guide="qm-surprise" className="fk-ghost qm-surprise" onClick={surprise} style={{
                     ...chf, width: 64, height: 50, flexShrink: 0, padding: 0, cursor: 'pointer',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
                     background: CARD, border: '1px solid rgba(157,108,255,0.5)', color: '#fff', font: `700 8px ${HEAD}`, letterSpacing: '0.12em',
@@ -700,8 +773,8 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
 
           {/* MISSION LIBRARY — the folder: every launch mission and classic,
               in a sheet. */}
-          <button type="button" data-guide="qm-library" className="fk-row qm-mt" onClick={() => setLibraryOpen(true)} aria-haspopup="dialog" aria-expanded={libraryOpen ? 'true' : 'false'} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 72, padding: '10px 12px', width: '100%', boxSizing: 'border-box', marginTop: 4,
+          <button type="button" data-guide="qm-library" className="fk-row qm-mt qm-lib" onClick={() => setLibraryOpen(true)} aria-haspopup="dialog" aria-expanded={libraryOpen ? 'true' : 'false'} style={{
+            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 56, padding: '8px 12px', width: '100%', boxSizing: 'border-box', marginTop: 4,
             borderRadius: 14, background: '#0F0B1E', border: '1px solid rgba(157,108,255,0.4)', color: '#fff', textAlign: 'left', cursor: 'pointer',
           }}>
             <span style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: 'rgba(157,108,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

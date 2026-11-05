@@ -1,6 +1,6 @@
 # Training Mode content kit
 
-Generated 2026-11-04 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
+Generated 2026-11-05 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
 
 ## Rules
 

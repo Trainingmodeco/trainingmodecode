@@ -50,8 +50,15 @@ export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME',
 // for-time clock but is not a race: COMPLEX), else its format's.
 export function formatLabelOf(m) { return m?.formatLabel || FORMAT_LABEL[m?.format] || ''; }
 export const GUIDED_HELP_AMRAP = 'The coach runs the clock and calls the time. The moves stay on screen.';
-export const SOLO_HELP = 'Your pace. The whole workout on one screen, one clock.';
-export const SOLO_ONLY_HELP = 'SOLO only for now. Guided is coming.';
+// How START runs a mission: GUIDED, or AT YOUR PACE (stored and routed as
+// 'solo': saved sessions, resume stashes and analytics keep that word). The
+// words the first page, ADJUST and the run screen print.
+export const RUN_MODES = [{ id: 'guided', label: 'GUIDED' }, { id: 'solo', label: 'AT YOUR PACE' }];
+export const GUIDED_HELP = 'The coach calls every move and counts your reps.';
+export const SOLO_HELP = 'The moves and a timer. No coach voice. Your phone stays awake.';
+export const SOLO_ONLY_HELP = 'Only at your pace for now. Guided is coming.';
+// A named classic (Murph, Sally Up, 5 Minutes of Hell…) is built around the coach's calls.
+export const CLASSIC_HELP = 'This classic runs with the coach.';
 
 // ── authoring helpers ───────────────────────────────────────────────────────
 // r: reps slot · t: timed slot · amrap: timed list (an AMRAP block) ·
@@ -346,7 +353,7 @@ const HIT_COMBO = {
   scale: 'Lighter bar, or the beginner level. Hotel gym: 2 dumbbells, same 7 moves.',
   note: 'Warm up 5 min of easy cardio, then 2 rounds with the empty bar. Put the bar down whenever form slips: the score is rounds, not unbroken sets. Sore shoulders: swap Back Squats for Front-Rack Reverse Lunges.',
   introSay: '',
-  guidedHelp: '', // SOLO only; the card shows SOLO_ONLY_HELP
+  guidedHelp: '', // at your pace only; the card shows SOLO_ONLY_HELP
   paceBasis: 'Coach estimate: one clean round takes 60-75 s; the target is about 8-11 rounds at 50/35 kg.',
   defaultLevel: 'standard',
   levels: {
@@ -502,7 +509,7 @@ const QUOTA = {
 // ELITE, Scaled STANDARD, the source's beginner option BEGINNER. A pace is a
 // coach estimate unless its paceBasis names a published range. Where SOLO
 // needed a different shape than the source's, the comment says so.
-const SOLO_COPY = { introSay: '', guidedHelp: '' }; // SOLO only; the card shows SOLO_ONLY_HELP
+const SOLO_COPY = { introSay: '', guidedHelp: '' }; // at your pace only; the card shows SOLO_ONLY_HELP
 // A ladder (a for-time workout whose rungs differ): one complex per rung, so
 // SOLO's ROUND tap counts rungs and a capped run prefills the reps through them.
 const rungs = (counts, steps) => counts.map((n, i) => complex(`Rung ${i + 1}`, steps(n, i), { swapKey: 'rung' }));
@@ -1152,7 +1159,7 @@ const TOUCH_THE_SKY = {
   loadoutLine: '1 BARBELL + PLATES · 2 × 2 M', scoreLine: 'ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD',
   scoreRule: { kind: 'roundsHeld', label: 'ROUNDS, BAR NEVER DOWN' },
   scale: 'Lighter bar, or the beginner level: 2 rounds of 3 each. Never been coached on the clean? Hang Muscle Cleans. Good mornings feel wrong? Romanian Deadlifts.',
-  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for every rep. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. In SOLO, tap ROUND after each round to time the rest.",
+  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for every rep. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. At your pace, tap ROUND after each round to time the rest.",
   introSay: "Touch the sky. Five of each, down the lifts and back up. Don't put the bar down until the round is done.",
   tips: ['Pick a load your press can handle for every rep.', 'Chest up and soft knees on the good mornings.'],
   guidedHelp: 'The coach counts every rep, calls each lift and times the rests.',
@@ -1788,7 +1795,7 @@ export function missionCardModel(mission, { gear = gearProfile() } = {}) {
   if (mission.hotel) tags.push('HOTEL OK');
   if (mission.quiet) tags.push('QUIET');
   if (mission.scaled) tags.push('SCALED');
-  if (!mission.guided) tags.push('SOLO ONLY');
+  if (!mission.guided) tags.push('YOUR PACE ONLY');
   return {
     eyebrow: `Mission · ${mission.tag}`,
     title: mission.title,

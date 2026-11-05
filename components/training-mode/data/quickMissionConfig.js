@@ -53,10 +53,12 @@ export function surpriseQuickMission() {
 
 // "12 min · Easy · Full Body · Bodyweight" — the line the Fit hub prints under
 // a mission, so what it says is what START runs. Quick Mission v2 says
-// "No gear" for a bodyweight mission, the word its LOADOUT row uses.
-export function quickMissionLine(cfg, { v2 = false } = {}) {
+// "No gear" for a bodyweight mission, the word its LOADOUT row uses. When START
+// runs it AT YOUR PACE (the choice saved on the Quick Mission page) the line
+// ends "· At your pace".
+export function quickMissionLine(cfg, { v2 = false, atYourPace = false } = {}) {
   const type = cfg.workoutType || 'Bodyweight';
-  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · ${type === 'Bodyweight' && v2 ? 'No gear' : type}`;
+  return `${cfg.duration} min · ${cfg.difficulty} · ${cfg.focus} · ${type === 'Bodyweight' && v2 ? 'No gear' : type}${atYourPace ? ' · At your pace' : ''}`;
 }
 
 // The setup screen's choices, remembered per viewer: GEAR and TIME on the

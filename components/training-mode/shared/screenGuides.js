@@ -226,13 +226,14 @@ export const SCREEN_GUIDES = {
   ],
 
   // Quick Mission v2 (data/qmV2): the same steps, with the library's launch
-  // missions, their swaps and GUIDED · SOLO.
+  // missions, their swaps and GUIDED · AT YOUR PACE.
   quick_mission_setup_v2: [
     { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
     { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds when you change the gear or the time. A library mission on the card has a ‹ TODAY to come back." },
     { target: 'qm-expand', title: 'SEE ALL', body: "Opens the card where it is: every move, how long it really takes, and ADJUST. On a library mission every move has a swap icon; swaps never cost XP, the run is marked SCALED. SHOW LESS folds it back." },
-    { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, guided or solo where a mission has it (GUIDED: the coach calls every move; SOLO: the whole workout on one screen, one clock), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
-    { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, in GUIDED or SOLO.' },
+    { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, guided or at your pace (the same choice as the switch above START), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
+    { target: 'qm-how', title: 'GUIDED OR AT YOUR PACE', body: "GUIDED: the coach calls every move and counts your reps. AT YOUR PACE: just the moves and a timer, no coach voice, and your phone stays awake. Your pick is kept for next time, and START on Fit Mode and Home follows it. Classics like Murph run with the coach." },
+    { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, GUIDED or AT YOUR PACE.' },
     { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new level, focus and moves. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
     { target: 'qm-time', title: 'TIME', body: '10 to 60 minutes, in steps of 5. Drag the knob sideways, tap a minute, or use the arrow keys. Longer workouts get more rounds and more moves.' },

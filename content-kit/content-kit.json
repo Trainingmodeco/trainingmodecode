@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04",
+  "generatedAt": "2026-11-05",
   "source": "npm run content:kit (scripts/content-kit.mjs) — do not edit by hand",
   "brand": {
     "name": "Training Mode",
@@ -2513,7 +2513,7 @@
       "tags": [
         "~15 MIN",
         "HARD",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2676,7 +2676,7 @@
       "tags": [
         "~8 MIN",
         "HARD",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2715,7 +2715,7 @@
       "tags": [
         "~5 MIN",
         "HARD",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2752,7 +2752,7 @@
       "tags": [
         "~12 MIN",
         "HARD",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [
         "burpees"
@@ -2792,7 +2792,7 @@
       "tags": [
         "~16 MIN",
         "BRUTAL",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [
         "burpees"
@@ -2832,7 +2832,7 @@
       "tags": [
         "~9 MIN",
         "NORMAL",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2872,7 +2872,7 @@
       "tags": [
         "~8 MIN",
         "EASY",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2912,7 +2912,7 @@
         "~16 MIN",
         "NORMAL",
         "HOTEL OK",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2951,7 +2951,7 @@
         "~13 MIN",
         "HARD",
         "HOTEL OK",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -2992,7 +2992,7 @@
         "NORMAL",
         "HOTEL OK",
         "QUIET",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -3033,7 +3033,7 @@
         "~12 MIN",
         "HARD",
         "HOTEL OK",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -3074,7 +3074,7 @@
         "EASY",
         "HOTEL OK",
         "QUIET",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -3116,7 +3116,7 @@
         "NORMAL",
         "HOTEL OK",
         "QUIET",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -3155,7 +3155,7 @@
       "tags": [
         "~12 MIN",
         "HARD",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [
         "burpees"
@@ -3196,7 +3196,7 @@
         "~6 MIN",
         "BRUTAL",
         "HOTEL OK",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [
@@ -3234,7 +3234,7 @@
       "tags": [
         "~11 MIN",
         "HARD",
-        "SOLO ONLY"
+        "YOUR PACE ONLY"
       ],
       "themes": [],
       "moves": [

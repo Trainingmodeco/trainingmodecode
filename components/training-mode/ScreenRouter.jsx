@@ -232,7 +232,7 @@ function StagePlate({ plate }) {
 }
 
 export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight, goTapes } = actions;
+  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionAtPace, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight, goTapes } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -648,7 +648,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     const Runner = qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} onSwitchRun={goQuickMissionAtPace} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

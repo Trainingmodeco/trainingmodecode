@@ -35,9 +35,10 @@ function MiniTag({ children, style }) {
 }
 
 // One move on a v2 card. row: a cardRows() row; index: 0-based. onUndo is
-// optional; the SWAPPED tag and UNDO only show with it. highlight marks SOLO's
-// current segment. Render it inside an <ol>/<ul>.
-export function MoveRow({ row, index, onSwap, onUndo, highlight = false }) {
+// optional; the SWAPPED tag and UNDO only show with it. highlight marks the run
+// screen's current segment. noSwap leaves the swap button's column out (a
+// generated mission run AT YOUR PACE has no swaps). Render it inside an <ol>/<ul>.
+export function MoveRow({ row, index, onSwap, onUndo, highlight = false, noSwap = false }) {
   const showUndo = !!(row.undoable && onUndo);
   return (
     // The negative margin lets the highlight bar and tint sit just outside the
@@ -67,12 +68,14 @@ export function MoveRow({ row, index, onSwap, onUndo, highlight = false }) {
           )}
         </span>
         <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: '#CFC9E4', whiteSpace: 'nowrap' }}>{row.dose}</span>
-        <button type="button" onClick={row.canSwap ? () => onSwap?.(row) : undefined} disabled={!row.canSwap} aria-label={`Swap ${row.name}`} style={{
-          width: 44, height: 44, flexShrink: 0, marginRight: -6, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'transparent', border: 'none', cursor: row.canSwap ? 'pointer' : 'default',
-        }}>
-          {row.canSwap && <ArrowRightLeft size={18} color={VIOLET_TEXT}/>}
-        </button>
+        {!noSwap && (
+          <button type="button" onClick={row.canSwap ? () => onSwap?.(row) : undefined} disabled={!row.canSwap} aria-label={`Swap ${row.name}`} style={{
+            width: 44, height: 44, flexShrink: 0, marginRight: -6, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'transparent', border: 'none', cursor: row.canSwap ? 'pointer' : 'default',
+          }}>
+            {row.canSwap && <ArrowRightLeft size={18} color={VIOLET_TEXT}/>}
+          </button>
+        )}
       </div>
       {row.note && <div style={{ padding: '0 0 4px 28px', marginTop: -4, font: `500 11px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>{row.note}</div>}
     </li>

@@ -8,7 +8,7 @@ import { quickMissionXp } from './data/userStats';
 // Quick Mission complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
 
-// SOLO's settle (data/missionSolo settleSoloXp, run once in App) → the preset.
+// AT YOUR PACE ('solo')'s settle (data/missionSolo settleSoloXp, run once in App) → the preset.
 // too_fast is the floor rule refusing the run, so it reads as VALIDATION FAILED.
 const SOLO_PRESET = { pass: 'pass', partial: 'partial', too_fast: 'validation_failed', none: 'fail' };
 
@@ -45,7 +45,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const banner = solo || (guidedSettle && isUntilDown(mission)) ? null : integrityResult;
 
   const subtitle = solo
-    ? `${(mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · Solo`
+    ? `${(mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission'} · ${mission.levelLabel}${result.scaled ? ' · Scaled' : ''} · At your pace`
     : `${mission.workoutType} · ${mission.difficulty} · Quick Mission`;
   // A guided run until the bell is down (NO CONTINUES) has a score of its own.
   const scored = solo || (!!result.untilDown && !!result.score);

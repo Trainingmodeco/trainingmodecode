@@ -14,12 +14,15 @@ import {
   isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, paceTargets, prefillScore,
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
   isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, splitsLine, blockSplitsLine,
-  closeSplits, roundRestSec,
+  closeSplits, roundRestSec, hasRoundTimer,
 } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 
-// Quick Mission · SOLO. The whole workout on one screen with one clock, at the
-// athlete's own pace. No coach voice: the cues are bells and beeps only.
+// Quick Mission · AT YOUR PACE (internally 'solo': the stored mode, the stash
+// kind and the file name keep that word). The whole workout on one screen with
+// one clock, at the athlete's own pace. No coach voice: the cues are bells and
+// beeps only. It runs a library mission, and today's generated mission through
+// data/soloFromGenerated.
 //
 // It is a race clock, so it keeps running when the screen locks or the app is
 // hidden (no useAutoPauseOnHidden); only PAUSE stops it. Time spent hidden is
@@ -238,6 +241,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const dc = downCopy(mission);
   const roundsDown = down && mission.downUnit === 'round';
   const countUp = format === 'forTime' || down;
+  // A one-round generated mission has FINISH only (data/soloFromGenerated).
+  const roundTimer = hasRoundTimer(mission);
   const fixedClock = isFixedClock(format) && !down;
   const multiBlock = isMultiBlock(mission);
   const timeline = useMemo(() => soloTimeline(mission), [mission]);
@@ -485,7 +490,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     subLine = `CAP ${mmss(capSec)} · SET ${roundTaps + 1} · ${String(nextBlock?.sideSay || nextBlock?.name || '').toUpperCase()}`;
   } else if (format === 'forTime') {
     bigClock = mmss(elapsedSec);
-    subLine = `CAP ${mmss(capSec)} · ROUND ${Math.min(roundTaps + 1, tapRounds)}/${tapRounds}`;
+    subLine = roundTimer ? `CAP ${mmss(capSec)} · ROUND ${Math.min(roundTaps + 1, tapRounds)}/${tapRounds}` : `CAP ${mmss(capSec)}`;
   } else if (format === 'amrap' && !multiBlock) {
     bigClock = mmss(totalLeft);
     subLine = `AMRAP ${Math.round(clockSec / 60)}`;
@@ -503,7 +508,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     ? seg.calls.filter(q => q.t <= elapsedF - at.startSec).pop()?.say || null
     : null;
 
-  const showRounds = (format === 'amrap' || countUp) && !inRest;
+  const showRounds = roundTimer && (format === 'amrap' || countUp) && !inRest;
   const tapsLive = phase === 'running' || phase === 'paused';
   // The round timer. A ROUND tap counts what + ROUND counted (a round, a
   // ladder's rung, a set) and takes a split: the clock right now, read
@@ -578,7 +583,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 14,
         padding: '10px 16px 24px', boxSizing: 'border-box', minHeight: '100dvh',
       }}>
-        {/* Top bar: back opens the STOP confirm; SOLO over the mission title. */}
+        {/* Top bar: back opens the STOP confirm; AT YOUR PACE over the mission title. */}
         <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center' }}>
           <button type="button" className="fk-back" aria-label="Back" aria-disabled={canStop ? undefined : 'true'}
             onClick={canStop ? () => setConfirmStop(true) : undefined}
@@ -586,7 +591,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
             <ChevronLeft size={22}/>
           </button>
           <div style={{ minWidth: 0, textAlign: 'center' }}>
-            <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>SOLO</div>
+            <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>AT YOUR PACE</div>
             <div style={{ font: `700 16px ${HEAD}`, letterSpacing: '0.06em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mission.title}</div>
           </div>
           <span/>
@@ -657,7 +662,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
               {mission.missionLine && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textTransform: 'uppercase', lineHeight: 1.35 }}>{mission.missionLine}</div>}
               <ol style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {rows.map((row, i) => (
-                  <MoveRow key={row.swapKey} row={row} index={i} highlight={highlightOf(row)}
+                  <MoveRow key={row.swapKey} row={row} index={i} highlight={highlightOf(row)} noSwap={!!mission.atYourPace}
                     onSwap={(r) => setSwapKeyOpen(r.swapKey)} onUndo={onUndo}/>
                 ))}
               </ol>

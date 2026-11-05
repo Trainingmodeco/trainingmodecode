@@ -493,7 +493,11 @@ function settleDown(result, mission) {
 // tap counts exactly what + ROUND counted (a ladder's rung, NO CONTINUES'
 // set); the split only adds its time. An EMOM or an interval clock has no
 // ROUND button: its rounds are the clock's.
-export function hasRoundTimer(mission) { return mission?.format === 'amrap' || mission?.format === 'forTime' || isUntilDown(mission); }
+// noRoundTimer: a one-round generated mission run AT YOUR PACE (data/
+// soloFromGenerated) has FINISH only: a ROUND tap would just be the finish.
+export function hasRoundTimer(mission) {
+  return mission?.noRoundTimer !== true && (mission?.format === 'amrap' || mission?.format === 'forTime' || isUntilDown(mission));
+}
 // Where block b's work starts on the clock, in seconds (0 for one block).
 function blockStartSec(mission, b) {
   let start = 0;

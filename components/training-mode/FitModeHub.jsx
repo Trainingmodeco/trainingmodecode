@@ -13,6 +13,7 @@ import { getFitMiniSuggestion } from './data/recommendations';
 import { quickMissionConfig, surpriseQuickMission, quickMissionLine } from './data/quickMissionConfig';
 import { hasAnyRunGhost } from './data/runGhosts';
 import { qmV2Enabled } from './data/qmV2';
+import { loadShelfPrefs } from './data/loadoutMissions';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
 import { featuredEntry } from './data/concepts';
 import { useScrollFade, scrollGuideTarget } from './shared/hubScroll';
@@ -93,6 +94,10 @@ export default function FitModeHub({
   const [hasGhost] = useState(() => hasAnyRunGhost());
   // Quick Mission v2 (owner-only until it ships): read once per mount.
   const v2 = useState(() => qmV2Enabled())[0];
+  // The choice saved on the Quick Mission page: AT YOUR PACE ('solo') makes
+  // START run today's mission with the moves and a timer (App
+  // goQuickMissionActive reads the same saved choice), and the card says so.
+  const [atYourPace] = useState(() => v2 && loadShelfPrefs().mode === 'solo');
 
   // The same engine Home uses for TODAY'S BOUT, asked for its fit-side pick.
   // Held in state so a re-render never swaps the card out from under a tap.
@@ -106,7 +111,7 @@ export default function FitModeHub({
   const mission = surprise
     || (pick?.actionType === 'quickMission' ? quickMissionConfig(pick.actionPayload || {}) : null);
   const title = surprise ? 'Surprise Mission' : (pick?.title || 'Quick Mission');
-  const line = mission ? quickMissionLine(mission, { v2 }) : (pick?.subtitle || '');
+  const line = mission ? quickMissionLine(mission, { v2, atYourPace }) : (pick?.subtitle || '');
 
   const startPick = () => {
     if (mission) onStartQuickMission?.(mission);
