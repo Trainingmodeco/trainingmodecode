@@ -9,6 +9,7 @@
 import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL } from './missionMoves';
 import { MODE_RULES } from '../utils/missionIntegrity';
 import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from '../shared/sessionOutcome';
+import { generatedMissionXp } from './quickMissionXp';
 
 // Seconds per unit when a rep is a distance or a calorie (Murph's mile; M is
 // HOT LAPS' 400 m, at the KM pace).
@@ -346,8 +347,9 @@ export function prefillScore(mission, { roundTaps = 0, blockTaps = null } = {}) 
 // more than its slots: a fixed figure, so a slow finish never earns more
 // (TOUCH THE SKY 110 + 30, BURNOUT 21, KO SPRINT 30, OXYGEN DEBT). A stopped
 // for-time run pays its slots. An until-down run pays its sets on the same
-// scale (downXp). A generated mission or a classic never reaches the minute
-// rule (no v2 flag): it pays 15 a slot, as before.
+// scale (downXp). A classic never reaches the minute rule (no v2 flag): it pays
+// 15 a slot, as before. Today's generated mission pays its minutes at its
+// level's rate, the slots splitting it (data/quickMissionXp).
 export const XP_PER_SLOT = 15;
 export const XP_FINISH = 30;
 export const XP_PER_MIN = 10;
@@ -379,7 +381,13 @@ export function forTimePaySec(mission) {
 // minutes worked at 10 each on a clock (a for-time finish: its standard
 // time), whichever is more, + the bonus.
 export function missionXp(mission, { slots = 0, ratio = 1, workedSec = 0, full = false } = {}) {
-  const bySlots = Math.round(XP_PER_SLOT * Math.max(0, slots) * ratio);
+  // Today's generated mission pays its minutes at its level's rate (the sets
+  // split it); everything else pays 15 a slot.
+  const gen = generatedMissionXp(mission);
+  const total = totalSlots(mission);
+  const bySlots = gen !== null && total > 0
+    ? Math.round(gen * Math.min(1, (Math.max(0, slots) * ratio) / total))
+    : Math.round(XP_PER_SLOT * Math.max(0, slots) * ratio);
   const byTime = paysByTime(mission) ? minutesXp(Math.min(Math.max(0, Number(workedSec) || 0), workSecOf(mission)))
     : full && paysOnFinish(mission) ? minutesXp(forTimePaySec(mission)) : 0;
   return Math.max(bySlots, byTime) + (full ? XP_FINISH : 0);
@@ -446,7 +454,7 @@ export function settleGuidedXp(result) {
   const worked = timed ? Math.min(clockWork, Math.max(0, Math.floor(Number(result?.workedSec) || 0))) : 0;
   const base = missionXp(mission, { slots: done, workedSec: worked, full });
   let verdict = resolveOutcome({
-    completed: timed ? worked : done, total: timed ? clockWork : total, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null,
+    completed: timed ? worked : done, total: timed ? clockWork : total, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null, advancedAs: 'hard',
   });
   if (!result?.completed && verdict.outcome === 'pass') verdict = { ...verdict, outcome: 'partial', response: STOPPED_RESPONSE, preset: OUTCOME_PRESET.partial };
   return { mode: 'guided', xp: xpForOutcome(verdict.outcome, base), base, outcome: verdict.outcome, verdict, workedSec: worked };
@@ -470,7 +478,7 @@ function settleGuidedDown(result, mission) {
   const skipped = Math.max(0, Math.floor(Number(result.skipped) || 0));
   const elapsed = Math.max(0, Math.floor(Number(result.elapsedSec ?? result.score.timeSec) || 0));
   const base = downXp(mission, sets, { elapsedSec: elapsed, bonus: skipped === 0 });
-  const verdict = resolveOutcome({ completed: sets, total: sets + skipped, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null });
+  const verdict = resolveOutcome({ completed: sets, total: sets + skipped, difficulty: mission.difficulty, integrityResult: result?.integrityResult || null, advancedAs: 'hard' });
   return { mode: 'guided', xp: xpForOutcome(verdict.outcome, base), base, outcome: verdict.outcome, verdict, workedSec: 0 };
 }
 // untilDown: I PUT IT DOWN (or the cap) is a finish, paid per set done. A

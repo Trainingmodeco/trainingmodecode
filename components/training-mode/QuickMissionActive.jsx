@@ -22,11 +22,11 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HEAD, BODY, GOLD as KIT_GOLD, MUTED as KIT_MUTED } from './shared/FitSetupKit';
 import { qmV2Enabled } from './data/qmV2';
 import { levelWord } from './data/quickMissionConfig';
-import { missionRunsAtYourPace } from './data/soloFromGenerated';
+import { missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
 // The runner's timing numbers and which moves it counts live in one pure module,
 // so the generator's minutes are these same minutes (data/quickMissionTiming).
 import {
-  isCadenceEligible, QM_WEIGHT_BRIEF, QM_WEIGHT_BRIEF_HOLD_MS, QM_INTRO_HOLD_MS, QM_INTRO_BELL_MS, QM_FINISH_BELL_MS,
+  isCadenceEligible, manualRestSeconds, QM_LAST_NUMBER_WAIT_MS, QM_WEIGHT_BRIEF, QM_WEIGHT_BRIEF_HOLD_MS, QM_INTRO_HOLD_MS, QM_INTRO_BELL_MS, QM_FINISH_BELL_MS,
 } from './data/quickMissionTiming';
 import { qmTotalUnits, qmIntegrityRules, isUntilDown, downScore, downCapReached, downCopy, downCount, downCheckEvery, paysByTime } from './data/missionSolo';
 import {
@@ -428,7 +428,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     const ex = allExercises[idx];
     const nextIdx = idx + 1;
     const worked = workElapsedSec();
-    const rest = ex.window && worked != null ? windowRest(ex, worked) : (ex.rest || 0);
+    // Today's generated mission keeps its minutes at any pace: a set that ends
+    // on DONE hands its unused seconds to the rest after it, or takes the
+    // seconds it went over from it (data/quickMissionTiming manualRestSeconds).
+    const heldToSlot = how === 'complete' && worked != null && isGeneratedMission(mission);
+    const rest = ex.window && worked != null ? windowRest(ex, worked)
+      : heldToSlot ? manualRestSeconds(ex, worked, { workoutType: countCfg.workoutType || workoutType, cadenceCount: countCfg.cadenceCount })
+      : (ex.rest || 0);
     workStartRef.current = null;
     pauseStartRef.current = null;
 
@@ -720,6 +726,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     setCadenceActive(true);
     if (startFrom === 0) { setCadenceRep(0); setCadenceStep(null); }
 
+    const generated = isGeneratedMission(mission);
     const runCountLoop = async () => {
       let due = Date.now();
       for (let i = startFrom; i < beats.length; i += 1) {
@@ -734,6 +741,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
         if (!voiceOn) continue;
         if (i < beats.length - 1) {
           speakAsync(beat.say, { dropIfBusy: true });
+        } else if (generated && /^\d+\.?$/.test(String(beat.say).trim())) {
+          // Today's generated mission: the last number is said on the beat when
+          // the voice is free (not queued behind a long "Up next" line) and the
+          // set ends within QM_LAST_NUMBER_WAIT_MS of it, however slow the
+          // voice, so the count never stretches the run.
+          await Promise.race([speakAsync(beat.say, { dropIfBusy: true }), delay(QM_LAST_NUMBER_WAIT_MS)]);
+          if (stale()) return;
         } else {
           await speakAsync(beat.say);
           if (stale()) return;

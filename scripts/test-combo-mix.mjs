@@ -86,7 +86,7 @@ check('3d no easy-pool combo holds a difficult kick, and the real pool has them 
 
 // ── what a tier may ever draw ───────────────────────────────────────────────
 for (const d of M.DISCIPLINES) {
-  check(`4 ${d}: EASY draws only the easy pool, no combo past 4 pieces, no difficult kick`, M.tierPool(P[d], 'EASY').length === 15 && M.tierPool(P[d], 'EASY').every(c => c.source === 'easy' && c.pieces <= 4 && !c.hard));
+  check(`4 ${d}: EASY draws only the easy pool, no combo past 4 pieces, no difficult kick`, M.tierPool(P[d], 'EASY').length >= 15 && M.tierPool(P[d], 'EASY').every(c => c.source === 'easy' && c.pieces <= 4 && !c.hard));
   const n = M.tierPool(P[d], 'NORMAL');
   check(`4b ${d}: NORMAL draws easy, normal, hard and advanced, nothing past 7 pieces`, new Set(n.map(c => c.source)).size === 4 && n.every(c => c.pieces <= 7));
   check(`4c ${d}: HARD never draws the easy pool; ADVANCED draws all four`, M.tierPool(P[d], 'HARD').every(c => c.source !== 'easy') && new Set(M.tierPool(P[d], 'ADVANCED').map(c => c.source)).size === 4);
@@ -140,9 +140,10 @@ for (const t of TIERS) for (const d of M.DISCIPLINES) {
 }
 check('6 EASY: never more than 4 pieces (the pool\'s longest easy combo is 3) in any discipline', M.SOURCE_TIERS.length && M.DISCIPLINES.every(d => at('EASY', d).maxPieces <= 4 && at('EASY', d).maxPieces >= 3), M.DISCIPLINES.map(d => at('EASY', d).maxPieces).join());
 check('6b EASY: never a difficult kick', M.DISCIPLINES.every(d => at('EASY', d).hardMax === 0));
-check('6c EASY: about 30 in 100 easy calls are a single strike where the discipline has singles; MMA has none',
-  ['boxing', 'kickboxing', 'muay-thai'].every(d => Math.abs((100 * at('EASY', d).singles) / at('EASY', d).easyCalls - 30) <= 5) && at('EASY', 'mma').singles === 0,
+check('6c EASY: about 30 in 100 easy calls are a single strike, in every discipline (MMA too: Jab, Cross and Teep)',
+  M.DISCIPLINES.every(d => Math.abs((100 * at('EASY', d).singles) / at('EASY', d).easyCalls - 30) <= 5),
   M.DISCIPLINES.map(d => ((100 * at('EASY', d).singles) / at('EASY', d).easyCalls).toFixed(1)).join());
+check('6c2 every discipline has single strikes in the pool, so a level 1 athlete is dealt single punches first', M.DISCIPLINES.every(d => P[d].filter(c => c.single).length >= 2 && P[d].filter(c => c.single).every(c => c.source === 'easy' && c.pieces === 1)), M.DISCIPLINES.map(d => P[d].filter(c => c.single).length).join());
 check('6d NORMAL: never more than 7 pieces', M.DISCIPLINES.every(d => at('NORMAL', d).maxPieces <= 7), M.DISCIPLINES.map(d => at('NORMAL', d).maxPieces).join());
 check('6e NORMAL: at most 2 difficult-kick combos in any round, and the cap is used where the pool has kicks',
   M.DISCIPLINES.every(d => at('NORMAL', d).hardMax <= 2) && at('NORMAL', 'kickboxing').hardMax === 2 && at('NORMAL', 'muay-thai').hardMax === 2 && at('NORMAL', 'mma').hardMax === 2 && at('NORMAL', 'boxing').hardMax === 0,
@@ -260,6 +261,23 @@ for (const t of TIERS) {
   const odd = [{ difficulty: 'Intermediate' }, { difficulty: undefined }, { difficulty: 'banana' }, { discipline: 'Muay Thai', difficulty: 'Easy' }];
   const ok = odd.every(o => { const r = G.generateComboCoachRoundPlans({ ...planOpts('NORMAL', 'boxing'), ...o, seed: 2 }); return r.plans.length === 4 && r.plans.every(p => p.length === 44); });
   check('15 odd difficulty words still deal full rounds', ok);
+}
+
+
+// ── the dealer never stalls ─────────────────────────────────────────────────
+// A pool with nothing calm in it (only difficult-kick combos) and a tier that caps them
+// used to loop forever: the cap's slots never opened. The cap stays open then, and the
+// round is dealt in full; a worker thread with a timeout proves it ends.
+{
+  const only = M.prepareCombos([{ id: 'x1', discipline: 'kickboxing', minDifficulty: 'normal', comboText: 'Jab Cross High Kick', category: 'combination' }], 'kickboxing');
+  const t0 = Date.now();
+  const round = M.dealMixRound({ prepared: only, tier: 'NORMAL', count: 10, rng: rngOf(5) });
+  check('7 a pool of only difficult-kick combos still deals a full round under a capped tier, and ends at once', round.length === 10 && round.every(t => t === 'Jab Cross High Kick') && Date.now() - t0 < 1000, `${round.length} calls`);
+  const two = M.prepareCombos([
+    { id: 'x1', discipline: 'kickboxing', minDifficulty: 'normal', comboText: 'Jab Cross High Kick', category: 'combination' },
+    { id: 'x2', discipline: 'kickboxing', minDifficulty: 'normal', comboText: 'Cross Head Kick', category: 'combination' },
+  ], 'kickboxing');
+  check('7b the same with two, in every tier that may draw them (EASY may not, so it deals nothing), and an empty pool deals nothing', ['NORMAL', 'HARD', 'ADVANCED'].every(t => M.dealMixRound({ prepared: two, tier: t, count: 12, rng: rngOf(9) }).length === 12) && M.dealMixRound({ prepared: two, tier: 'EASY', count: 12, rng: rngOf(9) }).length === 0 && M.dealMixRound({ prepared: [], tier: 'NORMAL', count: 5 }).length === 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -308,22 +308,37 @@ function ladderNote() {
 // of the tier your Fight work sets (the rule in data/athleteLevel: the side's own
 // XP in full, everything else at half). So the page names which level each uses.
 const AT_TITLE = 'AT YOUR LEVEL';
-const AT_NOTE = 'Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.';
-const NEXT_TIER_TITLE = 'NEXT TIER';
+// Quick Missions read the Fit side and Combo Coach the Fight side; each side's own
+// XP counts in full and the other at half, which is why a level here can sit below
+// the page's own level. The heading says NEXT UNLOCK, never tier: a tier is a rank
+// on the ladder (Rookie to Champion) and these are workout levels.
+export const AT_YOUR_LEVEL_NOTE = 'Your own side counts in full and the other side at half, so these can sit below your level.';
+const NEXT_TITLE = 'NEXT UNLOCK';
+const SPOKEN = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+// "One more Fit level" / "Three more Fight levels".
+const moreLevels = (n, side) => `${n >= 1 && n <= SPOKEN.length ? SPOKEN[n - 1] : fmt(n)} more ${side} ${n === 1 ? 'level' : 'levels'}`;
 const inTen = (n) => (n === 1 ? '1 in 10 combos is advanced' : `${fmt(n)} in 10 combos are advanced`);
+// The share of advanced combos, said in words where it is a clean fraction.
+const advancedShare = (n) => (n === 5 ? 'About half your combos are advanced.' : n === 1 ? 'About 1 in 10 combos is advanced.' : `About ${fmt(n)} in 10 combos are advanced.`);
 
 // What Quick Mission starts at, in the word the Quick Mission page prints.
 export const quickLine = (tier) => `Quick Missions start at ${QUICK_MISSION_WORD[tier]}.`;
 
-// What a tier means for Combo Coach, from the mix table and the pool: the
-// longest combo it can really deal, and the cap on difficult kicks a round.
+// What a tier means for Combo Coach, from the mix table and the pool. Easy and
+// Normal lead with the longest combo they can really deal (the number is the
+// pool's own, so the page never promises a combo that cannot come); Hard and
+// Advanced deal combos as long as Normal, so their line leads with what changes
+// instead: the mix and the hard kicks. The kick cap counts combos, not kicks,
+// and a boxer's pool has no kicks, so it is an upper bound ("at most").
+const MIX_LEAD = { HARD: 'mostly hard combos', ADVANCED: 'its hardest combos' };
 export function comboLine(tier) {
   const m = mixFor(tier);
   const reach = comboReach(tier);
-  const kicks = m.maxHardKicks === null ? 'with no limit on difficult kicks'
-    : m.maxHardKicks === 0 ? 'with no difficult kicks'
-      : `with up to ${plural(m.maxHardKicks, 'difficult kick', 'difficult kicks')} per round`;
-  return `Combo Coach deals up to ${fmt(reach.strikes)}-strike combos, ${kicks}.`;
+  const kicks = m.maxHardKicks === null ? 'with no limit on hard kicks'
+    : m.maxHardKicks === 0 ? 'with no hard kicks'
+      : `with at most ${plural(m.maxHardKicks, 'hard-kick combo', 'hard-kick combos')} a round`;
+  const lead = MIX_LEAD[m.tier] ? MIX_LEAD[m.tier] : `up to ${fmt(reach.strikes)}-strike combos`;
+  return `Combo Coach deals ${lead}, ${kicks}.`;
 }
 // One more fact about the mix: how it leans.
 export function comboMixLine(tier) {
@@ -331,7 +346,7 @@ export function comboMixLine(tier) {
   if (m.tier === 'EASY') return 'You get single strikes and short combos.';
   const adv = advancedInTen(m.tier);
   const lead = m.swing ? 'Rounds swing from single strikes to the hardest combos. ' : '';
-  return `${lead}${adv === 1 ? 'About 1 in 10 combos is advanced.' : `About ${fmt(adv)} in 10 combos are advanced.`}`;
+  return `${lead}${advancedShare(adv)}`;
 }
 
 // What Combo Coach gains when it steps up a tier, read as the difference of two
@@ -342,9 +357,9 @@ function comboGain(from, to) {
   const ra = comboReach(a.tier), rb = comboReach(b.tier);
   const parts = [];
   if (b.swing && !a.swing) parts.push('swings from single strikes to the hardest combos');
-  if (b.maxHardKicks !== a.maxHardKicks) parts.push(b.maxHardKicks === null ? 'has no limit on difficult kicks' : `adds up to ${plural(b.maxHardKicks, 'difficult kick', 'difficult kicks')} a round`);
+  if (b.maxHardKicks !== a.maxHardKicks) parts.push(b.maxHardKicks === null ? 'has no limit on hard kicks' : `allows up to ${plural(b.maxHardKicks, 'hard-kick combo', 'hard-kick combos')} a round`);
   if (rb.strikes > ra.strikes) parts.push(`deals up to ${fmt(rb.strikes)}-strike combos`);
-  if (advancedInTen(b.tier) > advancedInTen(a.tier)) parts.push(inTen(advancedInTen(b.tier)));
+  if (advancedInTen(b.tier) > advancedInTen(a.tier)) parts.push(advancedInTen(b.tier) === 5 ? 'makes half your combos advanced' : inTen(advancedInTen(b.tier)));
   return parts.slice(0, 2).join(' and ');
 }
 
@@ -361,13 +376,13 @@ export function atYourLevel(stats) {
   const qn = nextTierAfter(fit.level), cn = nextTierAfter(fight.level);
   let next;
   if (!qn && !cn) {
-    next = { key: 'top', side: null, level: null, tier: null, atTop: true, line: `You are on the top tier. Quick Missions start at ${QUICK_MISSION_WORD[fit.tier]}, and Combo Coach deals its full mix.` };
+    next = { key: 'top', side: null, level: null, tier: null, atTop: true, line: `Nothing left to unlock here. Quick Missions start at ${QUICK_MISSION_WORD[fit.tier]} and Combo Coach deals its hardest mix.` };
   } else if (qn && (!cn || qn.levelsAway <= cn.levelsAway)) {
-    next = { key: 'quick', side: 'fit', level: qn.level, tier: qn.tier, levelsAway: qn.levelsAway, atTop: false, line: `At Fit level ${fmt(qn.level)}, Quick Missions start at ${QUICK_MISSION_WORD[qn.tier]}.` };
+    next = { key: 'quick', side: 'fit', level: qn.level, tier: qn.tier, levelsAway: qn.levelsAway, atTop: false, line: `${moreLevels(qn.levelsAway, 'Fit')}, and Quick Missions start at ${QUICK_MISSION_WORD[qn.tier]}.` };
   } else {
-    next = { key: 'combo', side: 'fight', level: cn.level, tier: cn.tier, levelsAway: cn.levelsAway, atTop: false, line: `At Fight level ${fmt(cn.level)}, Combo Coach ${comboGain(fight.tier, cn.tier)}.` };
+    next = { key: 'combo', side: 'fight', level: cn.level, tier: cn.tier, levelsAway: cn.levelsAway, atTop: false, line: `${moreLevels(cn.levelsAway, 'Fight')}, and Combo Coach ${comboGain(fight.tier, cn.tier)}.` };
   }
-  return { title: AT_TITLE, rows, note: AT_NOTE, nextTitle: NEXT_TIER_TITLE, next };
+  return { title: AT_TITLE, rows, note: AT_YOUR_LEVEL_NOTE, nextTitle: NEXT_TITLE, next };
 }
 
 // ── the story ───────────────────────────────────────────────────────────────

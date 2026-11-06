@@ -18,7 +18,7 @@ import COMBO_POOL from './comboCoachData';
 //               source with weight 0 is never dealt at that level.
 // singleShare   of the calls from the EASY pool, the % that are a single strike
 //               (category 'single': Jab, Cross, Teep...). The rest are the short
-//               basic combos. A discipline with no singles (MMA) deals basics.
+//               basic combos. A discipline with no singles deals basics.
 // maxPieces     the longest combo this level is dealt, counted by pieceCount()
 //               (null: no limit, the whole pool).
 // maxHardKicks  the most combos with a difficult kick in ONE round (see
@@ -356,11 +356,15 @@ export function dealMixItems({ prepared, tier, count, rng = Math.random }) {
   const cap = capped(m.maxHardKicks) ? m.maxHardKicks : Infinity;
   const slots = Number.isFinite(cap) ? Array.from({ length: cap }, (_, j) => Math.floor((n * (j + 1)) / (cap + 1))) : [];
   let hardUsed = 0;
-  while (out.length < n) {
+  // A pool with nothing calm in it (only difficult-kick combos) cannot honour the
+  // cap, so the cap stays open: the round is dealt rather than stalled.
+  const noCalm = calmAll.length === 0;
+  // However it goes, the loop ends: a round is dealt in at most this many draws.
+  for (let guard = 0; out.length < n && guard < n * 20 + 200; guard += 1) {
     if (!cards.length) cards = sourceDeck(counts, rng, m.swing, run);
     if (!cards.length) break;
     const source = cards.shift();
-    const hardOpen = !Number.isFinite(cap) || (hardUsed < cap && out.length >= slots[hardUsed]);
+    const hardOpen = noCalm || !Number.isFinite(cap) || (hardUsed < cap && out.length >= slots[hardUsed]);
     const banned = hardOpen ? null : hardSet;
     let pick;
     if (source === 'easy') {

@@ -34,6 +34,11 @@ const T = await import('../components/training-mode/data/quickMissionTiming.js')
 const M = await import('../components/training-mode/data/missionMoves.js');
 const A = await import('../components/training-mode/data/athleteLevel.js');
 const SG = await import('../components/training-mode/data/soloFromGenerated.js');
+const U = await import('../components/training-mode/data/userStats.js');
+const QX = await import('../components/training-mode/data/quickMissionXp.js');
+const RC = await import('../components/training-mode/data/recommendations.js');
+const LS = await import('../components/training-mode/data/lastSession.js');
+const MS = await import('../components/training-mode/data/missionSolo.js');
 import fs from 'node:fs';
 
 let pass = 0, fail = 0;
@@ -316,6 +321,123 @@ check('31 the same seed gives the same first moves at every minute, and the same
 }
 check('31b without a seed the deal still varies (Math.random)', new Set(Array.from({ length: 12 }, () => Q.generateQuickMission({ duration: 20 }).exercises.map(e => e.name).join())).size > 3);
 check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a = Q.seededRng(5), b = Q.seededRng(5); const xs = Array.from({ length: 200 }, () => a()); return xs.every((x, i) => x === b() && x >= 0 && x < 1) && new Set(xs.map(x => Math.floor(x * 10))).size === 10; })());
+
+// ── a set that ends on DONE keeps to its slot, at any pace ─────────────────
+// The runner (QuickMissionActive advanceV2) gives a loaded set's unused seconds
+// to the rest after it and takes a late set's overrun from that rest
+// (manualRestSeconds). Replayed here from the same module at four tempos, a
+// Weighted or Hybrid mission still lands within 30 s of the minutes asked.
+{
+  const ex = (o) => ({ mode: 'reps', reps: 12, rest: 40, isWeighted: true, ...o });
+  const ctx = { workoutType: 'Weighted' };
+  const budget = T.QM_LOADED_SETUP_SEC + 12 * T.QM_LOADED_REP_SEC;
+  check('29g manualSetSeconds: a loaded set is budgeted (pick-up + a rep each), a counted set or a timed move has no budget', T.manualSetSeconds(ex(), ctx) === budget
+    && T.manualSetSeconds({ name: 'Push-Ups', mode: 'reps', reps: 12, rest: 20 }, { workoutType: 'Bodyweight' }) === null
+    && T.manualSetSeconds({ name: 'Wall Sit', mode: 'timed', work: 40, rest: 20 }, { workoutType: 'Bodyweight' }) === null
+    && T.manualSetSeconds(ex(), { workoutType: 'Hybrid' }) === budget);
+  check('29h manualRestSeconds: on time keeps the rest, early adds the unused seconds, late takes the overrun, never below the floor', T.manualRestSeconds(ex(), budget, ctx) === 40
+    && T.manualRestSeconds(ex(), budget - 12, ctx) === 52 && T.manualRestSeconds(ex(), budget + 12, ctx) === 28
+    && T.manualRestSeconds(ex(), budget + 200, ctx) === T.QM_MANUAL_REST_FLOOR_SEC && T.manualRestSeconds(ex({ rest: 6 }), budget + 200, ctx) === 6
+    && T.manualRestSeconds(ex(), undefined, ctx) === 40 && T.manualRestSeconds({ name: 'Push-Ups', mode: 'reps', reps: 12, rest: 20 }, 5, { workoutType: 'Bodyweight' }) === 20
+    && Number.isInteger(T.manualRestSeconds(ex(), budget + 4.4, ctx)));
+  check('29i the last number waits at most QM_LAST_NUMBER_WAIT_MS, never less than the model\'s own allowance', T.QM_LAST_NUMBER_WAIT_MS >= T.QM_LAST_NUMBER_SEC * 1000 && T.QM_LAST_NUMBER_WAIT_MS <= 1000);
+  // The runner's rule, replayed: counted sets and timers as modelled, a loaded set at the athlete's pace (pick-up seconds, then secPerRep), every rest as manualRestSeconds.
+  const replay = (m, setup, perRep) => {
+    const tl = T.quickMissionTimeline(m, { voice: true });
+    const c = { workoutType: m.workoutType };
+    const slots = [...m.exercises, ...m.finisherExercises];
+    let total = tl.introSec;
+    for (let r = 1; r <= m.rounds; r++) slots.forEach((e, i) => {
+      const manual = T.manualSetSeconds(e, c) !== null;
+      const worked = manual ? setup + e.reps * perRep : T.workSeconds(e, { workoutType: m.workoutType, voice: true });
+      total += worked;
+      if (r === m.rounds && i === slots.length - 1) return;
+      total += manual ? T.manualRestSeconds(e, worked, c) : e.rest;
+    });
+    return total;
+  };
+  const worst = {};
+  const bad = [];
+  for (const type of ['Weighted', 'Hybrid']) for (const level of ['Easy', 'Normal', 'Hard', 'Advanced']) for (let mins = 5; mins <= 60; mins += 5) for (const seed of [1, 2, 3]) {
+    const m = Q.generateQuickMission({ workoutType: type, difficulty: level, duration: mins, rng: Q.seededRng(seed * 977 + mins) });
+    for (const [setup, perRep] of [[3, 2], [5, 3], [8, 4], [4, 3.5]]) {
+      const miss = replay(m, setup, perRep) - mins * 60;
+      const key = `${setup},${perRep}`;
+      worst[key] = Math.max(worst[key] || 0, Math.abs(miss));
+      if (Math.abs(miss) > 30) bad.push(`${type}/${level}/${mins} (${setup} s + ${perRep} s a rep) ${Math.round(miss)}s`);
+    }
+  }
+  check('29j Weighted and Hybrid missions land within 30 s of the minutes at a quick, the model\'s, a slow and a heavy tempo', bad.length === 0, `${bad.length} off, first ${bad.slice(0, 3).join(' | ')}; worst by tempo ${JSON.stringify(worst)}`);
+  // Without the hold (every rest as dealt) a slow lifter drifts far past 30 s, which is what the hold is for.
+  const mSlow = Q.generateQuickMission({ workoutType: 'Weighted', difficulty: 'Hard', duration: 10, rng: Q.seededRng(7) });
+  const driftNoHold = [...mSlow.exercises].reduce((a, e) => a + (8 + e.reps * 4 - T.manualSetSeconds(e, { workoutType: 'Weighted' })), 0) * mSlow.rounds;
+  check('29k the hold is doing work: at a slow tempo the unheld run would be more than 30 s long', driftNoHold > 30, String(driftNoHold));
+}
+
+// ── XP: the same minutes never pay less at a harder level ───────────────────
+// Today's generated mission pays minutes x the level's rate (data/quickMissionXp),
+// the sets splitting it, so ADVANCED (fewer, longer sets in the same minutes)
+// never pays less than HARD, and no level pays less than EASY, whatever the
+// seed dealt. GUIDED (userStats quickMissionXp) and AT YOUR PACE (missionSolo
+// missionXp) read the same figure.
+{
+  const bad = [];
+  const xpFull = (m) => { const n = ([...m.exercises, ...m.finisherExercises]).length * m.rounds; return U.quickMissionXp(n, n, true, m); };
+  let rows = 0;
+  for (const type of TYPES) for (let mins = 5; mins <= 60; mins++) for (const seed of [1, 2, 3, 4]) {
+    const xp = {};
+    for (const level of ['Easy', 'Normal', 'Hard', 'Advanced']) xp[level] = xpFull(Q.generateQuickMission({ workoutType: type, difficulty: level, duration: mins, rng: Q.seededRng(seed * 131 + mins * 7) }));
+    rows++;
+    if (!(xp.Advanced >= xp.Hard && xp.Hard >= xp.Normal && xp.Normal >= xp.Easy && xp.Advanced > xp.Easy)) bad.push(`${type}/${mins}/${seed} ${JSON.stringify(xp)}`);
+  }
+  check('32 the same minutes pay EASY <= MEDIUM <= HARD <= ADVANCED XP, on every seed, type and minute from 5 to 60', bad.length === 0 && rows > 600, bad.slice(0, 3).join(' | '));
+  const m20 = Q.generateQuickMission({ workoutType: 'Bodyweight', difficulty: 'Advanced', duration: 20, rng: Q.seededRng(5) });
+  const n20 = m20.exercises.length * m20.rounds;
+  check('33 a full finish pays minutes x the rate + 30; a stopped run keeps its share of the minutes, no finish bonus', U.quickMissionXp(n20, n20, true, m20) === 20 * QX.QM_XP_PER_MIN.advanced + 30
+    && U.quickMissionXp(Math.round(n20 / 2), n20, false, m20) === Math.round(20 * QX.QM_XP_PER_MIN.advanced * Math.round(n20 / 2) / n20)
+    && U.quickMissionXp(0, n20, false, m20) === 0 && U.quickMissionXp(n20, n20, false, m20) === 20 * QX.QM_XP_PER_MIN.advanced);
+  check('34 a classic, a plan day and a library mission keep 15 a set (and no mission at all is the old rule)', U.quickMissionXp(10, 10, true) === 180
+    && U.quickMissionXp(10, 10, true, { ...m20, named: 'murph' }) === 180 && U.quickMissionXp(4, 10, false, { ...m20, planId: 'p' }) === 60 && U.quickMissionXp(10, 10, true, { ...m20, v2: true }) === 180
+    && QX.generatedMissionXp({ ...m20, difficulty: 'Savage' }) === null && QX.generatedMissionXp({ ...m20, duration: 0 }) === null && QX.generatedMissionXp(null) === null);
+  check('35 AT YOUR PACE pays the same figure as guided for a full finish and a share for a stopped run', (() => {
+    const a = SG.soloFromGenerated(m20);
+    const full = MS.missionXp(a, { slots: MS.totalSlots(a), workedSec: 0, full: true });
+    const half = MS.missionXp(a, { slots: MS.totalSlots(a), ratio: 0.5 });
+    return full === U.quickMissionXp(n20, n20, true, m20) && half === Math.round(20 * QX.QM_XP_PER_MIN.advanced * 0.5);
+  })());
+}
+
+// ── the Fit hub's and Home's START begins on the athlete's level ────────────
+// The suggestion cards used to carry a fixed Easy or Normal, so a level 10
+// athlete's START ran MEDIUM. Now only the two recovery picks fix EASY; every
+// other Quick Mission pick names no level and starts on the athlete's own.
+{
+  // XP earned on one kind of session ('Cardio' counts as Fit XP but is none of the sessions the recommender avoids repeating).
+  const statsOf = (xp, last = 'Cardio') => ({ xp, sessions: xp ? [{ id: 'a', type: last, xpEarned: xp, completedAt: '2026-01-01T00:00:00.000Z' }] : [] });
+  const level = (xp, profile, last) => {
+    const stats = statsOf(xp, last);
+    const pick = RC.getFitMiniSuggestion({ profile, stats, dailyMission: null });
+    return { title: pick.title, payload: pick.actionPayload, difficulty: pick.actionType === 'quickMission' ? C.quickMissionConfig({ ...pick.actionPayload, stats }).difficulty : null };
+  };
+  const starter = { goal: 'Get Fit', experience: 'Beginner' };
+  const bad = [];
+  // The beginner Starter and the fallback follow the level: EASY at level 1, ADVANCED at level 10.
+  for (const [xp, want] of [[0, 'Easy'], [300, 'Easy'], [2200, 'Normal'], [3200, 'Hard'], [4600, 'Advanced']]) {
+    const a = level(xp, starter), f = level(xp, { goal: 'Improve Health', experience: 'Advanced' });
+    if (a.difficulty !== want || 'difficulty' in a.payload) bad.push(`Starter at ${xp} XP: ${a.difficulty}`);
+    if (f.difficulty !== want || 'difficulty' in f.payload) bad.push(`fallback at ${xp} XP: ${f.difficulty} ${JSON.stringify(f.payload)}`);
+    // After a Quick Mission the next pick (New Challenge) follows the level too.
+    const n = level(xp, { goal: 'Improve Health', experience: 'Advanced' }, 'Quick Mission');
+    if (n.difficulty !== want || /Recovery/.test(n.title)) bad.push(`New Challenge at ${xp} XP: ${n.difficulty} ${n.title}`);
+    // The two recovery picks stay EASY at every level, on purpose.
+    for (const last of xp ? ['Fit Mode', 'Combat Conditioning'] : []) {
+      const r = level(xp, { goal: 'Improve Health', experience: 'Advanced' }, last);
+      if (!/Recovery/.test(r.title) || r.difficulty !== 'Easy') bad.push(`${last} recovery at ${xp} XP: ${r.title} ${r.difficulty}`);
+    }
+  }
+  check('36 the Fit hub and Home picks start on the athlete\'s level (the recovery picks stay EASY)', bad.length === 0, bad.slice(0, 3).join(' | '));
+  check('37 Home\'s Continue card words a Quick Mission\'s level as the page does (MEDIUM for the stored Normal)', ['Easy', 'Normal', 'Hard', 'Advanced'].map(d => LS.describeSession({ kind: 'quick_mission', cfg: { focus: 'Full Body', difficulty: d, duration: 15 } }).diff).join() === 'Easy,Medium,Hard,Advanced');
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

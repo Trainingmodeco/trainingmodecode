@@ -1,6 +1,6 @@
 # Training Mode content kit
 
-Generated 2026-11-05 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
+Generated 2026-11-06 from the app's own data by `npm run content:kit`. Don't edit by hand; the JSON next to this file has every field.
 
 ## Rules
 
@@ -90,21 +90,21 @@ Generated 2026-11-05 from the app's own data by `npm run content:kit`. Don't edi
 
 ## Quick Mission
 
-- Time: 5 to 60 minutes, a minute at a time. Slide to the minutes you have. The workout is built to run exactly that long.
+- Time: 5 to 60 minutes, a minute at a time. Slide to the minutes you have. The workout is built to fit that time.
 - Levels: EASY (from level 1), MEDIUM (from level 3), HARD (from level 6), ADVANCED (from level 10)
 - The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST.
 
 ## Levels at work
 
 - The higher your level, the harder your workouts get.
-- Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.
+- Your own side counts in full and the other side at half, so these can sit below your level.
 
 | From level | Quick Mission | Combo Coach | Mix |
 |---|---|---|---|
-| 1 | Quick Missions start at EASY. | Combo Coach deals up to 3-strike combos, with no difficult kicks. | You get single strikes and short combos. |
-| 3 | Quick Missions start at MEDIUM. | Combo Coach deals up to 6-strike combos, with up to 2 difficult kicks per round. | About 1 in 10 combos is advanced. |
-| 6 | Quick Missions start at HARD. | Combo Coach deals up to 6-strike combos, with no limit on difficult kicks. | About 2 in 10 combos are advanced. |
-| 10 | Quick Missions start at ADVANCED. | Combo Coach deals up to 6-strike combos, with no limit on difficult kicks. | Rounds swing from single strikes to the hardest combos. About 5 in 10 combos are advanced. |
+| 1 | Quick Missions start at EASY. | Combo Coach deals up to 3-strike combos, with no hard kicks. | You get single strikes and short combos. |
+| 3 | Quick Missions start at MEDIUM. | Combo Coach deals up to 6-strike combos, with at most 2 hard-kick combos a round. | About 1 in 10 combos is advanced. |
+| 6 | Quick Missions start at HARD. | Combo Coach deals mostly hard combos, with no limit on hard kicks. | About 2 in 10 combos are advanced. |
+| 10 | Quick Missions start at ADVANCED. | Combo Coach deals its hardest combos, with no limit on hard kicks. | Rounds swing from single strikes to the hardest combos. About half your combos are advanced. |
 
 ## Quick Mission loadout missions
 

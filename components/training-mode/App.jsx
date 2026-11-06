@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
-import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addQuickMissionSoloSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
+import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, quickMissionXp, addQuickMissionSoloSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
 import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
@@ -39,7 +39,7 @@ import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
 import { settleSoloXp, settleGuidedXp, roundSplits, hasRoundTimer } from './data/missionSolo';
-import { resolveQuickMissionRun, missionRunsAtYourPace } from './data/soloFromGenerated';
+import { resolveQuickMissionRun, missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
 import { loadShelfPrefs } from './data/loadoutMissions';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
@@ -696,7 +696,9 @@ export default function App() {
       if (switched) trackEvent('session_switch', { mode: 'quickMission', to: 'solo' });
       else trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : {
         // Today's generated mission: the level it started on (EASY to ADVANCED) and the minutes asked.
-        ...(c?.mode === 'solo' ? { solo: true } : {}), level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration,
+        // A classic (Murph and the other named workouts) is not a level choice, so it carries neither.
+        ...(c?.mode === 'solo' ? { solo: true } : {}),
+        ...(!c?.mission || isGeneratedMission(c.mission) || c.mission.id === 'generated' ? { level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration } : {}),
       });
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
     },
@@ -742,8 +744,10 @@ export default function App() {
         // pays the minutes worked, and the complete screen shows this same
         // number. A generated mission or a classic banks as before.
         const settle = result?.mission?.v2 === true ? settleGuidedXp(result) : null;
+        // A generated mission pays its minutes at its level's rate (the sets split it), the same figure the complete screen shows.
         const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
-          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : meta, settle ? settle.xp : undefined);
+          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : meta,
+          settle ? settle.xp : quickMissionXp(result.exercisesCompleted, result.totalExercises, result.completed, result.mission));
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);

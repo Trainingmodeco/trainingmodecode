@@ -123,7 +123,7 @@ export const SCREEN_GUIDES = {
   fit_hub: [
     { target: null, title: '💪 FIT MODE', body: 'This is the Fit Mode hub — strength, conditioning and cardio, no fighting required. The card at the top is today\'s workout; everything below it is for when you want to choose your own.' },
     { target: 'fit-today', title: "TODAY'S MISSION", body: 'A workout picked for you from your goal and your last session. The line under the title is exactly what START runs. Not feeling it? SURPRISE ME deals a random one in its place, and ADJUST lets you set the length and intensity yourself.' },
-    { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit-style workouts for when you are short on time — pick a length and an intensity and it builds the circuit on the spot.' },
+    { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit-style workouts for when you are short on time — slide to the minutes you have and it builds the circuit at your level.' },
     { target: 'fit-builder', title: 'BUILD WORKOUT', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear and difficulty. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
     { target: 'fit-programs', title: 'PROGRAMS', body: 'Follow a plan instead of deciding each day. Pick a split — Full Body, Push/Pull/Legs, Upper/Lower or Bro Split — and it remembers which day is next.' },
     { target: 'fit-cardio', title: 'CARDIO', body: 'Runs on GPS or a treadmill, machine work and intervals, with pace coaching and a target you set by distance or time.' },
@@ -157,7 +157,7 @@ export const SCREEN_GUIDES = {
 
   combo_coach_setup: [
     { target: null, title: '⚡ COMBO COACH', body: 'This screen sets up combo training — the coach calls combinations, you throw them.' },
-    { target: 'cc-difficulty', title: 'DIFFICULTY', body: 'It starts at your level, set by your Fight work. YOUR LEVEL marks it. The higher it is, the longer and harder the combos get. Tap any level to change it for today. Next time it starts at your level again.' },
+    { target: 'cc-difficulty', title: 'DIFFICULTY', body: 'It starts at your level, set mostly by your Fight work (your Fit work counts at half). YOUR LEVEL marks it. The higher it is, the longer and harder the combos get. Tap any level to change it for today. Next time it starts at your level again.' },
     { target: 'cc-callstyle', title: 'CALL STYLE — NAMES or NUMBERS', body: 'NAMES calls every strike by its name: "jab, cross, hook". NUMBERS calls punches the way a boxing gym does — 1-2-3 — which is faster to hear and react to once you know the count. Your pick follows you into Camp and Arcade too.' },
     { target: 'cc-callstyle', title: 'WHY NUMBERS SOMETIMES SAYS WORDS', body: 'Punches 1 to 8 are standard in every gym. Kicks, knees and elbows are not — no two gyms number them the same way. So on NUMBERS a punch-only combo is called 1-2-3, and any combo with a kick, knee, slip or roll is called by name instead. You will never get half numbers and half words in one call.' },
     { target: 'cc-mode', title: 'MODE', body: 'TECHNICAL calls one strike at a time so you can drill clean technique. COMBO calls full combinations to chain together for flow and speed. Not sure? Leave it on COMBO.' },
@@ -218,11 +218,11 @@ export const SCREEN_GUIDES = {
     { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: 'The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds as you slide the time or change the gear.' },
     { target: 'qm-expand', title: 'SEE ALL', body: 'Opens the card where it is: every move, how long it really takes with the rest, and ADJUST. SHOW LESS folds it back. The card stays open or closed for next time.' },
     { target: 'qm-adjust', title: 'ADJUST', body: 'Level, focus (the whole body or one area) and an optional cardio finisher. Then DONE. Your gear, time and focus are kept for next time.' },
-    { target: 'qm-adjust', title: 'LEVEL', body: 'The workout starts at your level, set by your Fit progress: the higher you climb, the harder it starts. In ADJUST you can scale it to easy, medium, hard or advanced for today. YOUR LEVEL marks yours, and your pick lasts for this visit.' },
+    { target: 'qm-adjust', title: 'LEVEL', body: 'The workout starts at your level, set mostly by your Fit work (your Fight work counts at half): the higher you climb, the harder it starts. In ADJUST you can scale it to easy, medium, hard or advanced for today. YOUR LEVEL marks yours, and your pick lasts for this visit.' },
     { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, timer, coach and all.' },
-    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level one step either side of yours. Your saved picks stay as they are.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level within one step of yours. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
-    { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to run exactly that long: the card changes as you slide. Drag the knob, tap a minute, or use the arrow keys.' },
+    { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to fit that time: the card changes as you slide. With weights a set ends on DONE, and your rest flexes so the time holds. Drag the knob, tap a minute, or use the arrow keys.' },
     { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts, like Murph. Tap one to see it on top, then START, or PUT ON CARD to bring it here. The coach calls every move; on a run, tap DONE when you are back.' },
   ],
 
@@ -233,12 +233,12 @@ export const SCREEN_GUIDES = {
     { target: 'qm-card', title: "TODAY'S QUICK MISSION", body: "The workout START runs: its name, its first moves and the reps or seconds each gets. It rebuilds as you slide the time or change the gear. A library mission on the card has a ‹ TODAY to come back." },
     { target: 'qm-expand', title: 'SEE ALL', body: "Opens the card where it is: every move, how long it really takes, and ADJUST. On a library mission every move has a swap icon; swaps never cost XP, the run is marked SCALED. SHOW LESS folds it back." },
     { target: 'qm-adjust', title: 'ADJUST', body: "Level, focus, run mode (guided or at your pace: the same choice as the switch above START), and an optional cardio finisher. A library mission's notes (loadout, score, how to scale) are here too. Then DONE." },
-    { target: 'qm-adjust', title: 'LEVEL', body: 'Today\'s workout starts at your level, set by your Fit progress: the higher you climb, the harder it starts. In ADJUST you can scale it to easy, medium, hard or advanced for today. YOUR LEVEL marks yours, and your pick lasts for this visit. A library mission keeps its own levels.' },
+    { target: 'qm-adjust', title: 'LEVEL', body: 'Today\'s workout starts at your level, set mostly by your Fit work (your Fight work counts at half): the higher you climb, the harder it starts. In ADJUST you can scale it to easy, medium, hard or advanced for today. YOUR LEVEL marks yours, and your pick lasts for this visit. A library mission keeps its own levels.' },
     { target: 'qm-how', title: 'GUIDED OR AT YOUR PACE', body: "GUIDED: the coach calls every move and keeps time; tap DONE after a loaded set. AT YOUR PACE: just the moves and a timer, with beeps and no coach voice. Your pick is kept for next time, and START on Fit Mode and Home follows it. Classics like Murph run with the coach." },
     { target: 'qm-start', title: 'START', body: 'Runs exactly the workout on the card, GUIDED or AT YOUR PACE.' },
-    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level one step either side of yours. Your saved picks stay as they are.' },
+    { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level within one step of yours. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
-    { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to run exactly that long: the card changes as you slide. Drag the knob, tap a minute, or use the arrow keys.' },
+    { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to fit that time: the card changes as you slide. With weights a set ends on DONE, and your rest flexes so the time holds. Drag the knob, tap a minute, or use the arrow keys.' },
     { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
   ],
 

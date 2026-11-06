@@ -30,12 +30,18 @@ const MODES = ['Technical', 'Combo'];
 // user can still adjust the CADENCE stepper afterward.
 const CADENCE_BY_DIFF = { Easy: 4, Normal: 3.5, Hard: 3, Advanced: 2.5 };
 // What each level deals, in a line. The numbers come from the mix table
-// (data/comboMix), the same one the coach deals from.
-const DIFF_DESC = {
-  Easy: 'Single strikes and short combos. Relaxed pace.',
-  Normal: `Longer combos, up to ${COMBO_MIX.NORMAL.maxHardKicks} hard kicks a round. Steady pace.`,
-  Hard: 'Mostly hard combos, hard kicks included. Semi fight pace.',
-  Advanced: 'Singles to the hardest combos. Fight pace.',
+// (data/comboMix), the same one the coach deals from. A boxer's pool has no
+// kicks, so the lines that speak of hard kicks are for the other disciplines;
+// the kick cap counts combos, not single kicks.
+const hardKicks = (n) => `${n} hard-kick combo${n === 1 ? '' : 's'}`;
+const diffDesc = (discipline, level) => {
+  const boxing = /^boxing$/i.test(String(discipline || '').trim());
+  switch (level) {
+    case 'Easy': return 'Single strikes and short combos. Relaxed pace.';
+    case 'Normal': return boxing ? 'Longer combos. Steady pace.' : `Longer combos, at most ${hardKicks(COMBO_MIX.NORMAL.maxHardKicks)} a round. Steady pace.`;
+    case 'Hard': return boxing ? 'Mostly hard combos. Semi fight pace.' : 'Mostly hard combos, hard kicks included. Semi fight pace.';
+    default: return 'Singles to the hardest combos. Fight pace.';
+  }
 };
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
@@ -99,7 +105,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
             sets a default cadence (faster as it gets harder); the CADENCE
             stepper can still override it. Any level can be picked, for today. */}
         <FightDifficulty
-          levels={DIFFICULTIES} value={cfg.difficulty} desc={DIFF_DESC[cfg.difficulty]} guide="cc-difficulty"
+          levels={DIFFICULTIES} value={cfg.difficulty} desc={diffDesc(discipline, cfg.difficulty)} guide="cc-difficulty"
           mark={own} markLabel="YOUR LEVEL" hint={cfg.difficulty === own ? 'STARTS AT YOUR LEVEL' : 'FOR TODAY ONLY'}
           onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))}
         />

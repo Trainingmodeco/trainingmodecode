@@ -20,8 +20,9 @@
 // slower, all on 15-second marks.
 //
 // XP is the guided XP, not a new rule. The mission carries no `v2` flag, so
-// missionSolo's minute rules never apply to it: a full finish pays 15 a slot
-// plus the 30 finish bonus (userStats quickMissionXp), the same as guided.
+// missionSolo's clock rules never apply to it: a full finish pays its minutes
+// at its level's rate (data/quickMissionXp) plus the 30 finish bonus
+// (userStats quickMissionXp), the same as guided.
 // The honesty floors are the existing ones (settleSoloXp: half the ELITE
 // time), and a stopped run pays by the share of the STANDARD time it ran.
 import { estimateQuickMissionSeconds, estimateQuickMissionWorkSeconds, generateQuickMission } from '../fit-mode/quickMissionGenerator';

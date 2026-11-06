@@ -36,13 +36,13 @@ export const HELP_CONTENT = {
   },
   quick_mission_setup: {
     title: 'QUICK MISSION',
-    purpose: 'A fast, no-planning workout. Pick a type, time, and difficulty and the app builds the session for you.',
+    purpose: 'A fast, no-planning workout. Pick a type and a time and the app builds the session for you, at your level.',
     cues: [
       'Bodyweight needs no gear. Weighted and Hybrid mix in loaded moves.',
       'Duration sets the target length. Shorter means denser work.',
       'Turn on the cardio finisher for an extra conditioning burst.',
     ],
-    howHard: 'Difficulty scales the intensity and rest. Start at Normal if you are unsure.',
+    howHard: 'It starts at your level. Scale it down or up in ADJUST.',
     safety: 'Warm up for a minute or two before starting. Move within a range you can control.',
     modifications: 'Shorten the duration or lower difficulty anytime. You can also switch to Cardio Only for pure conditioning.',
     completion: 'Finish the timed mission to complete it and log your effort.',

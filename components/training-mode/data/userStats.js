@@ -1,3 +1,5 @@
+import { generatedMissionXp } from './quickMissionXp';
+
 const STORAGE_KEY = 'tm_user_stats';
 
 export const WEEKLY_GOAL = 5;
@@ -153,9 +155,16 @@ export function addFitModeSession(exercisesCompleted, totalExercises, difficulty
 // only when nothing was skipped. A run that reached the end by skipping a
 // move still pays its exercises, but not the bonus. The complete screen
 // shows this same figure.
-export function quickMissionXp(exercisesCompleted, totalExercises, completed) {
+// `mission` (optional): today's generated mission pays by its minutes and level
+// instead (data/quickMissionXp), the sets splitting it, so the same minutes
+// never pay less at a harder level. Without it, or for a library mission or a
+// classic, it is 15 a set.
+export function quickMissionXp(exercisesCompleted, totalExercises, completed, mission) {
   const full = completed && exercisesCompleted >= totalExercises;
-  return (exercisesCompleted * XP_PER_FIT_EXERCISE) + (full ? XP_FIT_FULL_BONUS : 0);
+  const bonus = full ? XP_FIT_FULL_BONUS : 0;
+  const work = generatedMissionXp(mission);
+  if (work !== null && totalExercises > 0) return Math.round(work * Math.min(1, Math.max(0, exercisesCompleted) / totalExercises)) + bonus;
+  return (exercisesCompleted * XP_PER_FIT_EXERCISE) + bonus;
 }
 
 // `meta` (optional): extra fields for the row, e.g. a v2 guided run's

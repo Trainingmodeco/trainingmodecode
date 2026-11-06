@@ -153,6 +153,9 @@ input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3
   .qm-stack > div.qm-mt { gap: 6px !important; }
   .qm-card-in { padding: 8px 14px 10px !important; gap: 3px !important; }
   .qm-card-in h1 { font-size: 21px !important; }
+  /* Four tags (20 MIN, ADVANCED, FULL BODY, WEIGHTED) stay on one line on a 360px phone. */
+  .qm-tags { gap: 4px !important; }
+  .qm-tags > span { padding: 5px 6px !important; letter-spacing: 0.1em !important; }
   .qm-card-in > .qm-toggle { margin: -2px 0 -6px !important; }
   .qm-moves-closed > li:nth-child(n+3) { display: none !important; }
   .qm-see-more { display: none; }
@@ -308,18 +311,35 @@ function TimeSlider({ value, onLive, onCommit, dim }) {
   const band = {
     onPointerDown: (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dragging: false, grab: 0 };
+      // A second finger never takes the gesture over (its own up and cancel
+      // would be ignored and the card would stay on the live minute). A new
+      // first finger starts clean, whatever a lost one left behind.
+      if (!e.isPrimary) return;
+      if (gesture.current) reset();
+      gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dragging: false, grab: 0, from: null };
       skipClick.current = false;
       if (e.pointerType === 'mouse') { e.preventDefault(); drag(e); move(e.clientX); }
-      else if (onKnob(e.clientX)) { gesture.current.grab = e.clientX - knobX(); drag(e); }
+      else if (onKnob(e.clientX)) {
+        // Held, not yet dragging: the knob follows once it has moved a minute
+        // from where it was grabbed, so a swipe up or down that starts on it
+        // (a scroll) or a tap on it changes nothing, and the card stays as it was.
+        gesture.current.grab = e.clientX - knobX();
+        gesture.current.from = value;
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* already gone */ }
+      }
     },
     onPointerMove: (e) => {
       const g = gesture.current;
       if (!g || g.id !== e.pointerId) return;
       if (e.pointerType === 'mouse' && e.buttons === 0) { reset(); return; }
       if (!g.dragging) {
-        const dx = Math.abs(e.clientX - g.x), dy = Math.abs(e.clientY - g.y);
-        if (dx > SLOP && dx > dy) drag(e); else return;
+        if (g.from != null) {
+          if (minuteAt(e.clientX - g.grab) === g.from) return;
+          drag(e);
+        } else {
+          const dx = Math.abs(e.clientX - g.x), dy = Math.abs(e.clientY - g.y);
+          if (dx > SLOP && dx > dy) drag(e); else return;
+        }
       }
       move(e.clientX);
     },
@@ -342,7 +362,9 @@ function TimeSlider({ value, onLive, onCommit, dim }) {
     onClick: (e) => {
       if (skipClick.current) { skipClick.current = false; return; }
       if (e.detail === 0 || e.target === inputRef.current) return;
-      onCommit(minuteAt(e.clientX));
+      // A tap on the knob itself keeps its minute; anywhere else it jumps there
+      // (a tap a few minutes from the knob is a nudge, so it counts).
+      onCommit(Math.abs(e.clientX - knobX()) <= THUMB / 2 ? value : minuteAt(e.clientX));
     },
   };
   return (
@@ -639,7 +661,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
       : {
         words: v2 ? 'level, focus, run mode, cardio' : 'level, focus, cardio',
         // The athlete's own level is marked YOUR LEVEL; any can be picked, for this visit.
-        level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: setPicked, mark: start, markLabel: 'YOUR LEVEL', detail: 'Starts at your level. Your pick lasts for this visit.' },
+        level: { options: QM_INTENSITY.map(d => ({ id: d, label: LEVEL_WORD[d] })), value: difficulty, onPick: setPicked, mark: start, markLabel: 'YOUR LEVEL', detail: picked != null && picked !== start ? 'Your pick lasts for today only. Next time it starts at your level.' : 'The workout starts at your level, set mostly by your Fit work. Your pick lasts for this visit.' },
         focus: { options: QM_FOCI.map(f => ({ id: f, label: f === 'FULL BODY' ? 'FULL' : f })), value: focus, onPick: (v) => pickKey({ focus: v }) },
         how: v2 ? { value: runMode, soloOnly: false, onPick: pickMode, help: runHelp } : null, notes: null,
       };
@@ -655,12 +677,17 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
   // How long it really takes, and how it runs: a loaded set is never counted,
   // so it ends on DONE (the runner's safe-weight brief says the same).
   const atPace = v2 && runMode === 'solo';
+  // A loaded move's rest, to the nearest 5 s: with the reps held at fifteen, the
+  // rest is what tells HARD from ADVANCED on a loaded card. It flexes with your
+  // pace (DONE early rests longer, late rests shorter).
+  const loadedRests = mission.exercises.filter(e => e.isWeighted && e.rest > 0).map(e => e.rest);
+  const restBit = loadedRests.length ? ` · ${Math.round(loadedRests.reduce((a, b) => a + b, 0) / loadedRests.length / 5) * 5} s rest` : '';
   const summary = atPace
     ? `${roundsWord} · about ${estMin} min. The clock counts up; rest as you need.${workoutType === 'Bodyweight' ? '' : ' Pick a safe weight.'}`
     : workoutType === 'Weighted'
-      ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after each set.`
+      ? `${roundsWord} · about ${estMin} min${restBit}. Pick a safe weight; tap DONE after each set.`
       : workoutType === 'Hybrid'
-        ? `${roundsWord} · about ${estMin} min. Pick a safe weight; tap DONE after a loaded set.`
+        ? `${roundsWord} · about ${estMin} min${restBit}. Pick a safe weight; tap DONE after a loaded set.`
         : `${roundsWord} · about ${estMin} min with the coach's count and rest`;
   // One short line: the count is the pill beside it, and the row stays one
   // line tall on a 360px phone.
@@ -785,7 +812,7 @@ export default function QuickMissionSetup({ onBack, onHome, onFightMode, onStart
             <div className="qm-card-in" style={{ position: 'relative', padding: '12px 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {eyebrow}
               <h1 style={{ margin: 0, font: `700 23px ${HEAD}`, lineHeight: 1.05, textTransform: 'uppercase', color: '#fff', maxWidth: 320 }}>{title}</h1>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>
+              <div className="qm-tags" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>
               <ol id="qm-moves" ref={listRef} className={open ? undefined : 'qm-moves-closed'} style={listStyle}>{moves}</ol>
               {/* A mission's safety line (NO CONTINUES), big, open or closed. */}
               {card?.safety && (

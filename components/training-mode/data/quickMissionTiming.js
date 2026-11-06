@@ -31,9 +31,17 @@
 // rep and QM_LOADED_SETUP_SEC to pick the weight up, the athlete's own pace)
 // and how long the coach's voice takes (the repo's own speechSeconds estimate
 // for the intro, and QM_LAST_NUMBER_SEC for the last number of a counted set,
-// which the runner waits for). `voice: false` leaves the speech out: that is a
-// run with the coach's voice off, or a browser with no speech, and then the
-// whole estimate is timers.
+// which the runner waits for, but never longer than QM_LAST_NUMBER_WAIT_MS: a
+// slow voice, or a long "Up next" line still being said, does not stretch the
+// set). `voice: false` leaves the speech out: that is a run with the coach's
+// voice off, or a browser with no speech, and then the whole estimate is timers.
+//
+// A set that ends on DONE keeps to its slot. The model budgets it
+// (manualSetSeconds), and the runner holds the run to that budget at any pace:
+// DONE early and the unused seconds go into the rest after it, DONE late and
+// the rest is cut down (never below QM_MANUAL_REST_FLOOR_SEC), so a quick lifter
+// and a slow one both finish at the minutes on the card (manualRestSeconds). Only
+// the last set of the last round has no rest to move seconds into.
 //
 // Calibration (scripts/measure-qm-timeline.mjs: the production bundle, a fake
 // clock, START to the last set, no speech, a loaded set tapped at the model's
@@ -59,6 +67,10 @@ export const QM_LOADED_SETUP_SEC = 5;
 // The runner waits for the last number of a counted set to be spoken before
 // the next move starts: about half a second (voice on).
 export const QM_LAST_NUMBER_SEC = 0.5;
+export const QM_LAST_NUMBER_WAIT_MS = 700;
+// The least rest a late DONE can cut a set's rest down to (a rest shorter than
+// this keeps its own length).
+export const QM_MANUAL_REST_FLOOR_SEC = 10;
 // The intro, step by step (QuickMissionActive runIntroV2 reads these).
 export const QM_WEIGHT_BRIEF = 'Choose a safe weight before starting. Form first. Control every rep.';
 export const QM_WEIGHT_BRIEF_HOLD_MS = 800;
@@ -133,6 +145,25 @@ export function moveSeconds(ex, ctx = {}) {
 export function workSeconds(ex, ctx = {}) {
   const counted = ex.mode === 'reps' && isCadenceEligible(ex, { cadenceCount: ctx.cadenceCount, workoutType: ctx.workoutType });
   return moveSeconds(ex, ctx) + (counted && ctx.voice !== false ? QM_LAST_NUMBER_SEC : 0);
+}
+
+// A set that ends on DONE (a loaded set, or a rep move the coach does not
+// count): the seconds it is budgeted, or null for a set the clock ends (a timed
+// move, or a counted set). ctx as moveSeconds.
+export function manualSetSeconds(ex, ctx = {}) {
+  if (!ex || ex.mode !== 'reps') return null;
+  if (isCadenceEligible(ex, { cadenceCount: ctx.cadenceCount, workoutType: ctx.workoutType })) return null;
+  return moveSeconds(ex, ctx);
+}
+// The rest after a set that ended on DONE `workedSec` seconds after it began:
+// the move's own rest, plus the seconds left of its budget (or minus the seconds
+// it went over), to the second, never below the floor. A set the clock ends, or
+// a time that is not known (a run restored into work), keeps the move's rest.
+export function manualRestSeconds(ex, workedSec, ctx = {}) {
+  const rest = Number(ex?.rest) || 0;
+  const budget = manualSetSeconds(ex, ctx);
+  if (budget == null || !Number.isFinite(workedSec)) return rest;
+  return Math.max(Math.min(rest, QM_MANUAL_REST_FLOOR_SEC), Math.round(rest + budget - workedSec));
 }
 
 // ── the intro ───────────────────────────────────────────────────────────────

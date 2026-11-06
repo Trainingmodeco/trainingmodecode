@@ -13,7 +13,7 @@ import { syncCombo, consumeComboFlash, getComboNudge, snoozeNudge, dismissNudgeT
 import { getTodayBout } from './data/gamePlan';
 import { firstPick } from './data/recommendations';
 import { loadLastSession, describeSession, programFor } from './data/lastSession';
-import { surpriseQuickMission, quickMissionConfig } from './data/quickMissionConfig';
+import { surpriseQuickMission, quickMissionConfig, levelWord } from './data/quickMissionConfig';
 import { qmV2Enabled } from './data/qmV2';
 import { loadShelfPrefs } from './data/loadoutMissions';
 import { startsAtYourPace } from './data/soloFromGenerated';
@@ -220,7 +220,7 @@ export default function HomeDashboard({
   } else if (surprise) {
     card = {
       kind: 'surprise', eyebrow: 'Surprise', side: FIT,
-      title: 'Surprise Mission', parts: [surprise.focus, surprise.difficulty, `${surprise.duration} min`],
+      title: 'Surprise Mission', parts: [surprise.focus, levelWord(surprise.difficulty).charAt(0) + levelWord(surprise.difficulty).slice(1).toLowerCase(), `${surprise.duration} min`],
       cta: 'START', onGo: () => primeThen(() => onStartQuickMission?.(surprise)), onAdjust: onQuickMission,
       atPace: startsAtYourPace(surprise, savedMode),
     };

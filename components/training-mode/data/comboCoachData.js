@@ -114,6 +114,10 @@ const COMBO_POOL = [
   { id: 'mma-03', discipline: 'mma', minDifficulty: 'easy', comboText: 'Cross Low Kick', category: 'basic', coachingCue: 'Power then chop.' },
   { id: 'mma-04', discipline: 'mma', minDifficulty: 'easy', comboText: 'Jab Cross Level Change', category: 'basic', coachingCue: 'Punch to shot.' },
   { id: 'mma-05', discipline: 'mma', minDifficulty: 'easy', comboText: 'Jab Teep', category: 'basic', coachingCue: 'Keep them at range.' },
+  // The single strikes MMA never had (every other discipline has them): what a level 1 athlete is dealt first (data/comboMix).
+  { id: 'mma-72', discipline: 'mma', minDifficulty: 'easy', comboText: 'Jab', category: 'single', coachingCue: 'Snap it back.' },
+  { id: 'mma-73', discipline: 'mma', minDifficulty: 'easy', comboText: 'Cross', category: 'single', coachingCue: 'Turn the hip. Full extension.' },
+  { id: 'mma-74', discipline: 'mma', minDifficulty: 'easy', comboText: 'Teep', category: 'single', coachingCue: 'Push them back.' },
   { id: 'mma-06', discipline: 'mma', minDifficulty: 'easy', comboText: 'Cross Sprawl', category: 'basic', coachingCue: 'Strike then stuff.' },
   { id: 'mma-07', discipline: 'mma', minDifficulty: 'easy', comboText: 'Jab Low Kick Exit', category: 'basic', coachingCue: 'In and out.' },
   // Normal

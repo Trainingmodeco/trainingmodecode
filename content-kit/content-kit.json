@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05",
+  "generatedAt": "2026-11-06",
   "source": "npm run content:kit (scripts/content-kit.mjs) — do not edit by hand",
   "brand": {
     "name": "Training Mode",
@@ -96,7 +96,7 @@
       "minMinutes": 5,
       "maxMinutes": 60,
       "stepMinutes": 1,
-      "say": "Slide to the minutes you have. The workout is built to run exactly that long."
+      "say": "Slide to the minutes you have. The workout is built to fit that time."
     },
     "levels": [
       {
@@ -124,35 +124,35 @@
   },
   "levelsAtWork": {
     "say": "The higher your level, the harder your workouts get.",
-    "note": "Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.",
+    "note": "Your own side counts in full and the other side at half, so these can sit below your level.",
     "tiers": [
       {
         "id": "EASY",
         "fromLevel": 1,
         "quickMission": "Quick Missions start at EASY.",
-        "comboCoach": "Combo Coach deals up to 3-strike combos, with no difficult kicks.",
+        "comboCoach": "Combo Coach deals up to 3-strike combos, with no hard kicks.",
         "comboMix": "You get single strikes and short combos."
       },
       {
         "id": "NORMAL",
         "fromLevel": 3,
         "quickMission": "Quick Missions start at MEDIUM.",
-        "comboCoach": "Combo Coach deals up to 6-strike combos, with up to 2 difficult kicks per round.",
+        "comboCoach": "Combo Coach deals up to 6-strike combos, with at most 2 hard-kick combos a round.",
         "comboMix": "About 1 in 10 combos is advanced."
       },
       {
         "id": "HARD",
         "fromLevel": 6,
         "quickMission": "Quick Missions start at HARD.",
-        "comboCoach": "Combo Coach deals up to 6-strike combos, with no limit on difficult kicks.",
+        "comboCoach": "Combo Coach deals mostly hard combos, with no limit on hard kicks.",
         "comboMix": "About 2 in 10 combos are advanced."
       },
       {
         "id": "ADVANCED",
         "fromLevel": 10,
         "quickMission": "Quick Missions start at ADVANCED.",
-        "comboCoach": "Combo Coach deals up to 6-strike combos, with no limit on difficult kicks.",
-        "comboMix": "Rounds swing from single strikes to the hardest combos. About 5 in 10 combos are advanced."
+        "comboCoach": "Combo Coach deals its hardest combos, with no limit on hard kicks.",
+        "comboMix": "Rounds swing from single strikes to the hardest combos. About half your combos are advanced."
       }
     ]
   },

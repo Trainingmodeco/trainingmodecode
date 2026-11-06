@@ -111,7 +111,7 @@ function LevelRow({ row, first }) {
     <div data-at-level={row.key} style={{ padding: first ? '0 0 10px' : '10px 0 0', borderTop: first ? 'none' : '1px solid rgba(168,85,247,0.2)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
         <span style={{ font: `800 10px ${ORB}`, color: '#fff', letterSpacing: '0.1em' }}>{row.label}</span>
-        <span style={{ font: `800 8px ${ORB}`, color: GOLD, letterSpacing: '0.08em', border: '1px solid rgba(253,224,71,0.5)', background: 'rgba(253,224,71,0.08)', borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{row.tag}</span>
+        <span style={{ font: `800 10px ${ORB}`, color: GOLD, letterSpacing: '0.06em', border: '1px solid rgba(253,224,71,0.5)', background: 'rgba(253,224,71,0.08)', borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{row.tag}</span>
       </div>
       <p style={{ margin: 0, font: `700 14px/1.4 ${RAJ}`, color: '#f5e9ff', textWrap: 'balance' }}>{row.line}</p>
       {row.sub && <p style={{ margin: '3px 0 0', font: `600 12px/1.4 ${RAJ}`, color: '#c4a4d8', textWrap: 'balance' }}>{row.sub}</p>}

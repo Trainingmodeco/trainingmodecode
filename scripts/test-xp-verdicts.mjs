@@ -166,24 +166,42 @@ check('build workout: FINISH WORKOUT goes when all are done', canFinishEarly(7, 
 }
 
 // Quick Mission's fourth level. ADVANCED asks for more work, never a stricter
-// verdict: for every completion and every kind of ending it resolves exactly as
-// HARD does, so it is never harder to pass than HARD (and XP is the same fair
-// per-exercise figure the other levels bank).
+// verdict: Quick Mission passes advancedAs: 'hard', and then for every completion
+// it resolves exactly as HARD does, so it is never harder to pass than HARD (and
+// XP is the same fair per-exercise figure the other levels bank).
 {
   const ratios = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1];
+  const qm = (completed, d) => resolveOutcome({ completed, total: 24, difficulty: d, advancedAs: 'hard' });
   const same = ratios.every(r => ['advanced', 'Advanced', 'ADVANCED'].every(d => {
-    const a = resolveOutcome({ completed: Math.round(r * 24), total: 24, difficulty: d });
-    const h = resolveOutcome({ completed: Math.round(r * 24), total: 24, difficulty: 'Hard' });
+    const a = qm(Math.round(r * 24), d);
+    const h = qm(Math.round(r * 24), 'Hard');
     return a.outcome === h.outcome && a.failType === h.failType && a.completionRatio === h.completionRatio;
   }));
   check('quick mission: ADVANCED resolves exactly as HARD at every completion', same);
   const rank = { fail: 0, validation_failed: 0, partial: 1, pass: 2 };
   check('quick mission: ADVANCED is never harder to pass than HARD, or than NORMAL on a clean finish', ratios.every(r => {
-    const o = (d) => rank[resolveOutcome({ completed: Math.round(r * 24), total: 24, difficulty: d }).outcome];
+    const o = (d) => rank[qm(Math.round(r * 24), d).outcome];
     return o('Advanced') >= o('Hard');
-  }) && resolveOutcome({ completed: 24, total: 24, difficulty: 'Advanced' }).outcome === 'pass');
+  }) && qm(24, 'Advanced').outcome === 'pass');
   check('quick mission: a finished ADVANCED mission banks the full XP, a stopped one keeps its exercises', xpForOutcome('pass', quickMissionXp(24, 24, true)) === 24 * 15 + 30
-    && xpForOutcome(resolveOutcome({ completed: 12, total: 24, difficulty: 'Advanced' }).outcome, quickMissionXp(12, 24, false)) === 12 * 15);
+    && xpForOutcome(qm(12, 'Advanced').outcome, quickMissionXp(12, 24, false)) === 12 * 15);
+}
+
+// Every other mode that already has an Advanced level (Combo Coach, Combat
+// Conditioning) keeps judging it as it did before Quick Mission got one: as
+// NORMAL. A finish at 92% is a pass there, and only a Quick Mission (HARD rules)
+// reads it as partial.
+{
+  const at = (done, opts) => resolveOutcome({ completed: done, total: 100, difficulty: 'Advanced', ...opts }).outcome;
+  const same = ['advanced', 'Advanced', 'ADVANCED'].every(d => [0, 25, 50, 90, 92, 95, 100].every(n => {
+    const a = resolveOutcome({ completed: n, total: 100, difficulty: d });
+    const nrm = resolveOutcome({ completed: n, total: 100, difficulty: 'Normal' });
+    return a.outcome === nrm.outcome && a.failType === nrm.failType;
+  }));
+  check('Combo Coach and Combat Conditioning: ADVANCED is judged as NORMAL at every completion (as before Quick Mission had one)', same);
+  check('a 92% finish at ADVANCED is a pass for them, and partial only when judged as HARD', at(92) === 'pass' && at(92, { advancedAs: 'hard' }) === 'partial'
+    && resolveOutcome({ completed: 92, total: 100, difficulty: 'Hard' }).outcome === 'partial' && resolveOutcome({ completed: 92, total: 100, difficulty: 'Normal' }).outcome === 'pass');
+  check('advancedAs touches nothing but ADVANCED', ['Easy', 'Normal', 'Hard'].every(d => [0, 50, 92, 100].every(n => resolveOutcome({ completed: n, total: 100, difficulty: d }).outcome === resolveOutcome({ completed: n, total: 100, difficulty: d, advancedAs: 'hard' }).outcome)));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -101,9 +101,9 @@ const kit = {
     arcade: '10-stage sagas with a boss; pick FIT, FIGHT or BOTH on every stage.',
   },
   // Quick Mission is for short notice: slide to the minutes you have and the
-  // workout is built to run exactly that long. It starts at the athlete's level.
+  // workout is built to fit that time. It starts at the athlete's level.
   quickMission: {
-    time: { minMinutes: qmNum('QM_TIME_MIN'), maxMinutes: qmNum('QM_TIME_MAX'), stepMinutes: qmNum('QM_TIME_STEP'), say: 'Slide to the minutes you have. The workout is built to run exactly that long.' },
+    time: { minMinutes: qmNum('QM_TIME_MIN'), maxMinutes: qmNum('QM_TIME_MAX'), stepMinutes: qmNum('QM_TIME_STEP'), say: 'Slide to the minutes you have. The workout is built to fit that time.' },
     levels: AL.TIERS.map(id => ({ id, word: qmWords[id], fromLevel: AL.TIER_START_LEVEL[id] })),
     startsAt: 'The workout starts at your level. The higher your level, the harder it starts. Pick any level for today in ADJUST.',
   },
@@ -113,7 +113,7 @@ const kit = {
   // Mission's tier and Fight work Combo Coach's.
   levelsAtWork: {
     say: 'The higher your level, the harder your workouts get.',
-    note: 'Fit work counts most for Quick Missions. Fight work counts most for Combo Coach.',
+    note: LS.AT_YOUR_LEVEL_NOTE,
     tiers: AL.TIERS.map(id => ({ id, fromLevel: AL.TIER_START_LEVEL[id], quickMission: LS.quickLine(id), comboCoach: LS.comboLine(id), comboMix: LS.comboMixLine(id) })),
   },
   pro: { benefits: proBenefits, prices, freeAlways: 'The current concept drop is always free.' },

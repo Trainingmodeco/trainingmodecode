@@ -22,9 +22,10 @@ import {
 //                     · NOTES (its loadout, score, how to scale and the
 //                     coach's note: the brief the open card leaves out)
 //   a classic         ADD CARDIO
-// The page owns every choice: a tap goes straight back to it, the card
-// rebuilds behind the sheet and the page remembers it. DONE, Escape, the
-// backdrop or a swipe down on the grab bar close it.
+// The page owns every choice: a tap goes straight back to it and the card
+// rebuilds behind the sheet. The page keeps GEAR, TIME and FOCUS; a LEVEL pick
+// lasts for the visit only. DONE, Escape, the backdrop or a swipe down on the
+// grab bar close it.
 //
 // level: { options: [{ id, label }], value, onPick, detail?, mark?, markLabel? } | null
 //        (mark: the option id to caption with markLabel, the athlete's own level)

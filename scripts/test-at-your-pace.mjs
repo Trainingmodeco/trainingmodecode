@@ -32,6 +32,7 @@ const S = await import('../components/training-mode/data/missionSolo.js');
 const L = await import('../components/training-mode/data/loadoutMissions.js');
 const C = await import('../components/training-mode/data/quickMissionConfig.js');
 const US = await import('../components/training-mode/data/userStats.js');
+const QX = await import('../components/training-mode/data/quickMissionXp.js');
 const N = await import('../components/training-mode/data/namedWorkouts.js');
 const G = await import('../components/training-mode/shared/screenGuides.js');
 
@@ -152,11 +153,11 @@ problems('9 the splits close on FINISH: every round has a lap, and the laps add 
 
 // ── the XP: the guided XP, with the existing floors ─────────────────────────
 const settle = (a, o) => S.settleSoloXp({ mode: 'solo', mission: a, format: a.format, totalSlots: S.totalSlots(a), completed: false, stopped: false, capped: false, ...o });
-const guidedFull = (gen) => US.quickMissionXp(movesOf(gen).length * gen.rounds, movesOf(gen).length * gen.rounds, true);
-problems('10 a full finish at STANDARD pays exactly what the same mission pays guided (15 a slot + 30)', ({ gen }) => {
+const guidedFull = (gen) => US.quickMissionXp(movesOf(gen).length * gen.rounds, movesOf(gen).length * gen.rounds, true, gen);
+problems('10 a full finish at STANDARD pays exactly what the same mission pays guided (its minutes at its level\'s rate + 30)', ({ gen }) => {
   const a = adapt(gen);
   const r = settle(a, { completed: true, elapsedSec: a.pace.standard });
-  return r.outcome === 'pass' && r.xp === guidedFull(gen) && r.xp === 15 * S.totalSlots(a) + 30 && S.fullRunXp(a) === r.xp ? null : `${show(r)} vs guided ${guidedFull(gen)}`;
+  return r.outcome === 'pass' && r.xp === guidedFull(gen) && r.xp === Math.round(gen.duration * QX.QM_XP_PER_MIN[gen.difficulty.toLowerCase()]) + 30 && S.fullRunXp(a) === r.xp ? null : `${show(r)} vs guided ${guidedFull(gen)}`;
 });
 problems('11 any believable finish pays the same: ELITE, BEGINNER and well past the cap\'s tiers', ({ gen }) => {
   const a = adapt(gen);

@@ -119,6 +119,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     // Calls a round can fit: cadence plus the ~1.2s the coach spends speaking.
     const perCall = Math.max(2, (cfg.ms || 4000) / 1000 + 1.2);
     const secs = (cfg.roundMin || 3) * 60;
+    // A call is spoken INSIDE its cadence window, so a round can use one call per
+    // cadence tick (a fast cadence with no defence calls and quick speech):
+    // the plan is sized from the cadence alone, so it never runs out and wraps
+    // to its start in the middle of a round.
+    const perTick = Math.max(1, (cfg.ms || 4000) / 1000);
     const { plans } = generateComboCoachRoundPlans({
       discipline,
       difficulty: cfg.difficulty,
@@ -131,8 +136,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       customCombos: cfg.customCombos,
       // The level's mix decides what is dealt (data/comboMix).
       byLevel: true,
-      // A margin over the theoretical count so a fast round never runs dry.
-      callsPerRound: Math.ceil(secs / perCall) + 8,
+      // A margin over the most a round can use so a fast round never runs dry.
+      callsPerRound: Math.ceil(secs / perTick) + 8,
       secondsPerCall: perCall,
     });
     return plans;

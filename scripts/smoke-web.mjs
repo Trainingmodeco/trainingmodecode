@@ -551,6 +551,11 @@ await check('owner: a mission only offered at your pace shows AT YOUR PACE selec
 await check('quick mission: AT YOUR PACE then START runs the moves and a timer; the XP is the guided XP, banked once', async () => {
   await quick();
   const moves = await cardMoves();
+  // Today's mission pays its minutes at its level's rate (15 a minute at EASY and MEDIUM, 16 HARD, 18 ADVANCED), plus the 30 finish bonus.
+  const cardText = await card().innerText();
+  const askedMin = Number((cardText.match(/(\d+) MIN/i) || [])[1]);
+  const perMin = { EASY: 15, MEDIUM: 15, HARD: 16, ADVANCED: 18 }[(cardText.match(/\b(EASY|MEDIUM|HARD|ADVANCED)\b/) || [])[1]];
+  if (!(askedMin >= 5) || !perMin) throw new Error(`could not read the minutes and level off the card: ${cardText.replace(/\n/g, ' / ').slice(0, 120)}`);
   await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
   await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
   let t = await text();
@@ -573,7 +578,7 @@ await check('quick mission: AT YOUR PACE then START runs the moves and a timer; 
   if (!/YOUR SCORE/.test(t) || !/NOT YET/.test(t)) throw new Error('FINISH did not open the score');
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
   t = await text();
-  const xp = 15 * moves.length * rounds + 30;
+  const xp = Math.round(askedMin * perMin) + 30;
   if (!new RegExp(`\\+${xp}\\b`).test(t) || !/At your pace/.test(t)) throw new Error(`the complete screen does not show +${xp} XP at your pace`);
   const rows = await qmRows();
   if (rows.length !== 1 || rows[0].xpEarned !== xp || rows[0].mode !== 'solo' || rows[0].completed !== true || rows[0].completedCount !== moves.length * rounds || rows[0].totalCount !== moves.length * rounds) throw new Error(`the bank holds ${JSON.stringify(rows)}`);
@@ -982,6 +987,126 @@ await check('quick mission: START stays above the tab bar at 412x811, 360x740 an
     }
   } finally { await resizeTo(390, 844); }
 }, /MIN/);
+// TIME on a touch screen, the small cases: a swipe that starts ON the knob is a
+// scroll (it must not drop a library mission from the card), a tap a few minutes
+// from the knob is a nudge that jumps there (it used to count as a grab and do
+// nothing), and a second finger on the band never takes the drag over, so the
+// bubble, the card and what is saved agree once every finger is up.
+await check('quick mission: a swipe that starts on the knob stays a scroll, a tap 3 minutes away jumps, and a second finger does not break the drag', async () => {
+  await quick(); await putOnCard(V2_PUBLIC ? /^ONE-BELL 300/ : /^HALF MURPH/);
+  const picked = await card().locator('h1').innerText();
+  const cdp = await page.context().newCDPSession(page);
+  const send = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([id, x, y]) => ({ x, y, id, radiusX: 4, radiusY: 4, force: 1 })) });
+  const b = await slider().boundingBox();
+  const y = b.y + b.height / 2, X = (v) => b.x + 14 + (v - 5) / 55 * (b.width - 28);
+  // A swipe straight up from the knob (minute 20): nothing changes, the library mission stays, nothing is saved.
+  await send('touchStart', [[1, X(20), y]]);
+  for (let i = 1; i <= 10; i++) { await send('touchMove', [[1, X(20), y - 16 * i]]); await S(16); }
+  await send('touchEnd', []); await S(500);
+  if (await slider().inputValue() !== '20' || (await savedTime()) !== undefined) throw new Error('a swipe up from the knob changed or saved the time');
+  if (await card().locator('h1').innerText() !== picked) throw new Error('a swipe up from the knob dropped the library mission');
+  // A tap 3 minutes from the knob jumps there and brings today's mission back.
+  await send('touchStart', [[1, X(23), y]]); await send('touchEnd', []); await S(500);
+  if (await slider().inputValue() !== '23' || (await savedTime()) !== 23) throw new Error(`a tap on the 23 mark left TIME at ${await slider().inputValue()}, saved ${await savedTime()}`);
+  if (await card().locator('h1').innerText() === picked) throw new Error('a tap on TIME kept the library mission');
+  // A tap on the knob itself keeps its minute.
+  await send('touchStart', [[1, X(23) + 3, y]]); await send('touchEnd', []); await S(500);
+  if (await slider().inputValue() !== '23') throw new Error('a tap on the knob moved it');
+  // Drag, add a second finger, lift the first, lift all: the bubble, the card and the saved minute agree, and the next key moves on from there.
+  await send('touchStart', [[1, X(23), y]]);
+  for (let i = 1; i <= 6; i++) { await send('touchMove', [[1, X(23) + (X(40) - X(23)) * i / 6, y]]); await S(20); }
+  await send('touchStart', [[1, X(40), y], [2, X(10), y]]); await S(50);
+  await send('touchMove', [[1, X(40), y], [2, X(12), y]]); await S(50);
+  await send('touchEnd', [[2, X(12), y]]); await S(50);
+  await send('touchEnd', []); await S(500);
+  const v = await slider().inputValue();
+  if (await bubbleText() !== `${v} MIN` || await minutesOnCard() !== v || (await savedTime()) !== Number(v)) throw new Error(`after two fingers the knob says ${await bubbleText()}, the card ${await minutesOnCard()}, saved ${await savedTime()}, TIME ${v}`);
+  await slider().focus(); await page.keyboard.press('ArrowRight'); await S(300);
+  if (await slider().inputValue() !== String(Number(v) + 1) || await bubbleText() !== `${Number(v) + 1} MIN`) throw new Error(`the next arrow key went to ${await slider().inputValue()}, the bubble says ${await bubbleText()}`);
+}, /MIN/);
+// At 360x740 the closed card's four tags (20 MIN, ADVANCED, FULL BODY, WEIGHTED) stay on one line
+// and the first page does not scroll; with the card open WEIGHTED says its rest.
+await check('quick mission: at 360x740 ADVANCED with WEIGHTED gear keeps the tag row on one line and the page does not scroll; the open card says the rest', async () => {
+  await quickAs(4600);
+  try {
+    await resizeTo(360, 740);
+    await gearKey('WEIGHTED').click({ timeout: 4000 }); await S(500);
+    const g = await page.evaluate(() => {
+      const row = document.querySelector('.qm-tags');
+      const sc = document.querySelector('[data-guide="qm-card"]').closest('.no-scrollbar');
+      return { tagH: row.getBoundingClientRect().height, sh: sc.scrollHeight, ch: sc.clientHeight, tags: [...row.children].map(c => c.textContent.trim()) };
+    });
+    if (g.tagH > 30) throw new Error(`the tag row is ${Math.round(g.tagH)}px tall (it wraps): ${g.tags.join(' / ')}`);
+    if (g.sh > g.ch + 1) throw new Error(`the first page scrolls (${g.sh} on ${g.ch})`);
+    await expand();
+    if (!/about \d+ min · \d+ s rest\. Pick a safe weight/.test(await card().innerText())) throw new Error(`the open WEIGHTED card does not say its rest: ${(await card().innerText()).replace(/\n/g, ' / ').slice(0, 200)}`);
+  } finally { await resizeTo(390, 844); }
+}, /ADVANCED/);
+// The Fit hub's Today's Mission starts on the athlete's level (a level 1 athlete
+// EASY, a level 10 athlete ADVANCED); only a recovery pick stays EASY.
+await check('fit hub: Today\'s Mission starts on the athlete\'s level, and a recovery pick stays EASY', async () => {
+  const hubLine = async (stats) => {
+    await home();
+    await page.evaluate((v) => localStorage.setItem('tm_user_stats', JSON.stringify(v)), stats);
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000);
+    await page.mouse.click(195, 120); await S(1500);
+    await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+    await btn(/REMIND ME NEXT WEEK|EXPLORE ON MY OWN/).click({ timeout: 1200 }).catch(() => {});
+    await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1500);
+    return page.locator('[data-guide="fit-today"]').innerText();
+  };
+  const row = (type, xp) => ({ xp, sessions: [{ id: 'h1', type, xpEarned: xp, completedAt: new Date().toISOString(), completedCount: 1, totalCount: 1 }] });
+  const l10 = await hubLine(row('Cardio', 4600));
+  if (!/12 min · Advanced · Full Body/.test(l10)) throw new Error(`a level 10 athlete's card reads: ${l10.replace(/\n/g, ' / ')}`);
+  const l1 = await hubLine(row('Cardio', 300));
+  if (!/12 min · Easy · Full Body/.test(l1)) throw new Error(`a level 1 athlete's card reads: ${l1.replace(/\n/g, ' / ')}`);
+  const rec = await hubLine(row('Fit Mode', 4600));
+  if (!/Recovery/i.test(rec) || !/10 min · Easy · Full Body/.test(rec)) throw new Error(`a recovery pick reads: ${rec.replace(/\n/g, ' / ')}`);
+}, /./);
+// A loaded set ends on DONE, at the athlete's own pace, and the run still lands on the minutes on the card:
+// DONE early and the rest after the set is longer, DONE late and it is shorter. A 10 minute WEIGHTED mission
+// on a fake clock, DONE tapped a quick or a slow time after each set begins, finishes within 30 s of 10 minutes.
+for (const [name, tapSec] of [['quick', 28], ['slow', 62]]) {
+  await check(`quick mission: a ${name} lifter (DONE ${tapSec} s into every set) still finishes a 10 minute weighted mission on time (fake clock)`, async () => {
+    const ctx3 = await browser.newContext({ viewport: { width: 412, height: 811 }, isMobile: true, hasTouch: true });
+    await ctx3.addInitScript(seedStorage);
+    await ctx3.addInitScript(() => {
+      try { Object.defineProperty(window, 'speechSynthesis', { value: undefined }); } catch {}
+      if (localStorage.getItem('__qmw')) return;
+      localStorage.setItem('tm_qm_keys_v1', JSON.stringify({ workoutType: 'Weighted', duration: 10, focus: 'FULL BODY' }));
+      localStorage.setItem('tm_user_stats', JSON.stringify({ xp: 3000, sessions: [{ id: 'w1', type: 'Fit Mode', xpEarned: 3000, completedAt: new Date().toISOString(), completedCount: 1, totalCount: 1 }] }));
+      localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'guided' }));
+      localStorage.setItem('__qmw', '1');
+    });
+    const p3 = await ctx3.newPage();
+    try {
+      await p3.clock.install({ time: Date.now() });
+      await p3.goto(BASE + '?__reset=1', { waitUntil: 'networkidle' }); await p3.waitForTimeout(2000);
+      await p3.mouse.click(206, 120); await p3.waitForTimeout(1800);
+      await p3.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+      await p3.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await p3.waitForTimeout(1200);
+      await p3.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await p3.waitForTimeout(1500);
+      const c = await p3.locator('[data-guide="qm-card"]').innerText();
+      if (!/10 MIN/.test(c) || !/WEIGHTED/.test(c)) throw new Error(`the card is not a 10 minute weighted mission: ${c.replace(/\n/g, ' / ').slice(0, 120)}`);
+      const now = () => p3.evaluate(() => Date.now());
+      await p3.clock.pauseAt((await now()) + 500);
+      const t0 = await now();
+      await p3.getByRole('button', { name: /^START$/ }).first().click({ timeout: 4000 });
+      let finishAt = null, since = null, taps = 0;
+      for (let i = 0; i < 1500 && finishAt === null; i++) {
+        await p3.clock.runFor(1000);
+        const info = await p3.evaluate(() => ({ t: document.body.innerText, now: Date.now(), done: [...document.querySelectorAll('button')].some(x => x.innerText.trim() === 'DONE' && x.offsetParent !== null) }));
+        if (/SESSION COMPLETE|GOOD WORK/.test(info.t)) { finishAt = info.now - 1800; break; } // the finish bell rings 1.8 s before the result
+        if (!info.done) { since = null; continue; }
+        if (since === null) since = info.now;
+        else if (info.now - since >= tapSec * 1000) { await p3.getByRole('button', { name: /^DONE$/ }).first().click({ timeout: 2000 }); taps += 1; since = null; }
+      }
+      if (finishAt === null) throw new Error('the mission did not finish inside 25 minutes of fake time');
+      const took = (finishAt - t0) / 1000;
+      if (taps < 4 || Math.abs(took - 600) > 30) throw new Error(`a ${name} lifter (${taps} sets) took ${Math.round(took)} s for a 10 minute mission (within 30 s of 600)`);
+    } finally { await ctx3.close(); }
+  }, /./);
+}
 // The real guided run, on a fake clock: a 5 minute mission has to run 5 minutes
 // (within 30 seconds), start to its last set. The browser has no speech, so the
 // coach's lines take no time and this is the timers alone; the minutes asked
@@ -1606,21 +1731,22 @@ await check('combo coach: a TECHNICAL run at EASY starts', async () => {
   await page.locator('[role="radiogroup"][aria-label="MODE"]').getByRole('radio', { name: /TECHNICAL/i }).click({ timeout: 4000 }); await S(300);
   await btn(/START COMBOS/).click({ timeout: 4000 }); await S(4000);
 }, /ROUND|WARM/i);
-await check('level page: AT YOUR LEVEL for a level 3 and a level 10 athlete (Quick Mission start, Combo Coach mix, NEXT TIER)', async () => {
+await check('level page: AT YOUR LEVEL for a level 3 and a level 10 athlete (Quick Mission start, Combo Coach mix, NEXT UNLOCK)', async () => {
   await profileFor(L3);
   await openLevel();
   await mustSee(/AT YOUR LEVEL/, 'level 3 block');
   await mustSee(/QUICK MISSION\s*\n\s*FIT LEVEL 2\s*\n\s*Quick Missions start at EASY\./, 'level 3: Quick Mission row');
-  await mustSee(/COMBO COACH\s*\n\s*FIGHT LEVEL 2\s*\n\s*Combo Coach deals up to 3-strike combos, with no difficult kicks\.\s*\n\s*You get single strikes and short combos\./, 'level 3: Combo Coach row');
-  await mustSee(/NEXT TIER\s*\n\s*At Fit level 3, Quick Missions start at MEDIUM\./, 'level 3: next tier');
-  await mustSee(/Fit work counts most for Quick Missions\.\s*\n?\s*Fight work counts most for Combo Coach\./, 'level 3: which work counts');
+  await mustSee(/COMBO COACH\s*\n\s*FIGHT LEVEL 2\s*\n\s*Combo Coach deals up to 3-strike combos, with no hard kicks\.\s*\n\s*You get single strikes and short combos\./, 'level 3: Combo Coach row');
+  await mustSee(/NEXT UNLOCK\s*\n\s*One more Fit level, and Quick Missions start at MEDIUM\./, 'level 3: next unlock');
+  await mustSee(/Your own side counts in full and the other side at half, so these can sit below your level\./, 'level 3: which work counts');
+  await mustNotSee(/NEXT TIER|top tier|difficult kicks/, 'level 3: no tier or difficult kicks wording');
   await backToOverview();
   await profileFor(L10);
   await openLevel();
   await mustSee(/AT YOUR LEVEL/, 'level 10 block');
   await mustSee(/QUICK MISSION\s*\n\s*FIT LEVEL 8\s*\n\s*Quick Missions start at HARD\./, 'level 10: Quick Mission row');
-  await mustSee(/COMBO COACH\s*\n\s*FIGHT LEVEL 7\s*\n\s*Combo Coach deals up to 6-strike combos, with no limit on difficult kicks\.\s*\n\s*About 2 in 10 combos are advanced\./, 'level 10: Combo Coach row');
-  await mustSee(/NEXT TIER\s*\n\s*At Fit level 10, Quick Missions start at ADVANCED\./, 'level 10: next tier');
+  await mustSee(/COMBO COACH\s*\n\s*FIGHT LEVEL 7\s*\n\s*Combo Coach deals mostly hard combos, with no limit on hard kicks\.\s*\n\s*About 2 in 10 combos are advanced\./, 'level 10: Combo Coach row');
+  await mustSee(/NEXT UNLOCK\s*\n\s*Two more Fit levels, and Quick Missions start at ADVANCED\./, 'level 10: next unlock');
   await mustNotSee(/secret|Peak Physique|Fight Ascendant|Final Form/i, 'no secret tier for a Max athlete');
   // The page still scrolls to the end and fits at both phone sizes: the last button clears the tab bar, nothing runs sideways.
   for (const [w, h] of [[412, 811], [360, 740]]) {

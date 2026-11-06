@@ -1,4 +1,5 @@
 import { PROGRAMS, programDayIndex } from './workoutPrograms';
+import { QUICK_MISSION_WORD } from './athleteLevel';
 
 // "Continue" on Home: the last session the athlete actually started, kept with
 // the settings it ran with, so Home can offer it again in one tap.
@@ -43,6 +44,13 @@ export function programFor(last) {
   return last?.kind === 'fit' && last.cfg.programId ? PROGRAMS.find(p => p.id === last.cfg.programId) || null : null;
 }
 
+// Quick Mission's level as the Quick Mission page words it (MEDIUM for the stored
+// 'Normal'), in the sentence case the card uses.
+const qmLevel = (d) => {
+  const w = QUICK_MISSION_WORD[String(d ?? '').toUpperCase()];
+  return w ? w.charAt(0) + w.slice(1).toLowerCase() : d;
+};
+
 // What the Continue card says: which side of the app it belongs to, a title,
 // and the "detail · difficulty · time" line under it.
 export function describeSession(last) {
@@ -57,7 +65,7 @@ export function describeSession(last) {
     case 'combo':
       return { mode: 'fight', title: 'Combo Coach', sub: `${disc} · ${c.rounds} rounds`, diff: c.difficulty, time: `${roundsMinutes(c)} min` };
     case 'quick_mission':
-      return { mode: 'fit', title: 'Quick Mission', sub: c.focus || 'Full Body', diff: c.difficulty, time: `${c.duration} min` };
+      return { mode: 'fit', title: 'Quick Mission', sub: c.focus || 'Full Body', diff: qmLevel(c.difficulty), time: `${c.duration} min` };
     case 'fit': {
       const p = programFor(last);
       if (p) {

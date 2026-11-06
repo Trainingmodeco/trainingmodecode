@@ -22,14 +22,14 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   // Item 9 — the engine decides the outcome, so this mode can end on
   // fail / validation_failed and not only success / partial.
   const verdict = solo ? null : guidedSettle ? guidedSettle.verdict : resolveOutcome({
-    completed: exercisesCompleted, total: totalExercises, difficulty: mission.difficulty, integrityResult,
+    completed: exercisesCompleted, total: totalExercises, difficulty: mission.difficulty, integrityResult, advancedAs: 'hard',
   });
   // Beta ND-05 — ONE XP figure. The stats bank credits completed exercises
   // (the End dialog's promise), so the screen shows the same number instead
   // of re-gating it through the integrity ratio and displaying 0 above a
   // level bar that just moved. Real anti-cheat still zeroes via the verdict.
   // SOLO and a v2 GUIDED run show the number App banked from their settle.
-  const baseXp = quickMissionXp(exercisesCompleted, totalExercises, completed);
+  const baseXp = quickMissionXp(exercisesCompleted, totalExercises, completed, mission);
   const xp = solo || guidedSettle ? (result.xpEarned || 0) : xpForOutcome(verdict.outcome, baseXp);
   const preset = solo ? OUTCOME_PRESET[SOLO_PRESET[result.settle?.outcome] || 'fail'] : verdict.preset;
   // The round timer (SOLO): rounds done, each round's time and the total.
