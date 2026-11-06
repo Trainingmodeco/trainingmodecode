@@ -39,9 +39,14 @@ const GOLD = C.yellow;
 
 // MAX REPS on a short phone (under about 780px tall: 360 x 740, 375 x 667): the ring, the card and
 // the DONE button pack tighter and the first cue steps aside (the stop line stays), so DONE and
-// the controls stay above the tab bar and the BETA chip with no scrolling mid-set. A taller phone
-// (412 x 811) keeps the full layout.
+// the controls stay above the tab bar and the BETA chip with no scrolling mid-set. A phone of
+// 781 to 830px (412 x 811) only trims the ring, enough to clear the BETA chip in the rest and the
+// set; a taller one keeps the full layout. Under 700px (375 x 667) the rest card also drops its
+// generic ready line and tightens the safety card.
 const MAX_COMPACT_CSS = `
+@media (min-height: 781px) and (max-height: 830px) {
+  .qma-mx-ring { width: min(46vw, 172px) !important; margin-bottom: 10px !important; }
+}
 @media (max-height: 780px) {
   .qma-mx-top { margin-bottom: 4px !important; }
   .qma-mx-strip { margin-bottom: 8px !important; padding-top: 5px !important; padding-bottom: 5px !important; }
@@ -53,6 +58,11 @@ const MAX_COMPACT_CSS = `
   .qma-mx-next { margin-bottom: 8px !important; }
   .qma-mx-safety { margin-bottom: 8px !important; padding: 6px 10px !important; font-size: 12px !important; }
   .qma-mx-done { height: 50px !important; margin-bottom: 8px !important; }
+}
+@media (max-height: 700px) {
+  .qma-mx-ready { display: none !important; }
+  .qma-mx-card { padding: 8px 12px !important; margin-bottom: 6px !important; }
+  .qma-mx-safety { margin-bottom: 6px !important; padding: 5px 8px !important; font-size: 11px !important; line-height: 1.3 !important; }
 }
 `;
 
@@ -1743,14 +1753,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                 }}>
                   {v2 ? doseOf(upNextExercise) : legacyDose(upNextExercise)}
                 </div>
-                <div style={{
-                  fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
-                  color: workoutType === 'Bodyweight' ? 'rgba(79,140,255,0.7)' : GOLD,
-                  marginTop: 6,
-                }}>
-                  {/* MAX REPS: only a loaded station says grab your weight (push-ups and dead bugs do not). */}
-                  {workoutType === 'Weighted' && !(maxReps && upNextExercise.max && !isLoadedMove(upNextExercise.moveId)) ? 'Grab your weight.' : workoutType === 'Hybrid' ? 'Prepare your setup.' : 'Get in position.'}
-                </div>
+                {(() => {
+                  // MAX REPS: only a loaded station says grab your weight (push-ups and dead bugs do not).
+                  const ready = workoutType === 'Weighted' && !(maxReps && upNextExercise.max && !isLoadedMove(upNextExercise.moveId)) ? 'Grab your weight.' : workoutType === 'Hybrid' ? 'Prepare your setup.' : 'Get in position.';
+                  return (
+                    // On the shortest phones the generic line makes way for the stop line (the coach says it).
+                    <div className={maxReps && ready === 'Get in position.' ? 'qma-mx-ready' : undefined} style={{
+                      fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
+                      color: workoutType === 'Bodyweight' ? 'rgba(79,140,255,0.7)' : GOLD,
+                      marginTop: 6,
+                    }}>{ready}</div>
+                  );
+                })()}
                 {maxReps && upNextExercise.max && (
                   <div role="note" style={{ font: `600 12px ${BODY}`, lineHeight: 1.4, color: '#fff', marginTop: 8 }}>{maxStopLine(upNextExercise, mission.level)}</div>
                 )}

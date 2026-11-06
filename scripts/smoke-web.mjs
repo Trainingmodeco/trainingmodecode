@@ -690,29 +690,35 @@ const maxStartGuided = async (re) => {
 const maxDoneReady = () => page.waitForFunction(() => { const b = document.querySelector('[data-guide="qma-done"]'); return b && !b.disabled; }, null, { timeout: 20000 });
 const maxSave = async () => { await maxDone().click({ timeout: 4000 }); await S(700); await btn(/^SAVE$/).click({ timeout: 4000 }); await S(1000); };
 const xpOnScreen = async () => { const m = (await text()).match(/\+(\d+)\s*\nXP/); return m ? Number(m[1]) : null; };
-await check('max out: the GUIDED set keeps DONE and the controls above the tab bar and the BETA chip at 375 x 667 and 360 x 740; the rest card shows the safety line and the next stop line', async () => {
-  await maxStartGuided(/^TANK MODE/); // the tallest set screen: a two-line move name and a long stop line
+// DONE (set only) and the four controls end above the tab bar and clear of the BETA chip, at every size.
+const maxFits = async (phase, sizes) => {
   try {
-    for (const [w, h] of [[412, 811], [375, 667], [360, 740]]) {
+    for (const [w, h] of sizes) {
       await resizeTo(w, h);
       const g = await page.evaluate(() => {
         const r = (e) => { if (!e) return null; const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right }; };
         const q = (k) => r(document.querySelector(`[data-guide="${k}"]`));
         return { done: q('qma-done'), keys: ['qma-rewind', 'qma-pause', 'qma-skip', 'qma-stop'].map(q), nav: q('nav-tabs').top, chip: r([...document.querySelectorAll('button')].find(b => /BETA/.test(b.textContent))) };
       });
-      const at = `${w}x${h}`;
-      if (!g.done || g.keys.some(k => !k)) throw new Error(`${at}: DONE or a control is missing`);
-      if (g.done.bottom > g.nav + 0.5) throw new Error(`${at}: DONE ends at ${Math.round(g.done.bottom)}, under the tab bar at ${Math.round(g.nav)}`);
-      const lowest = Math.max(...g.keys.map(k => k.bottom));
-      if (lowest > g.nav + 0.5) throw new Error(`${at}: the controls end at ${Math.round(lowest)}, under the tab bar at ${Math.round(g.nav)}`);
-      const hit = (a, b) => g.chip && a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom;
-      if ([g.done, ...g.keys].some(b => hit(g.chip, b))) throw new Error(`${at}: the BETA chip sits on DONE or a control`);
+      const at = `${phase} ${w}x${h}`;
+      if (g.keys.some(k => !k) || (phase === 'set' && !g.done)) throw new Error(`${at}: DONE or a control is missing`);
+      const boxes = [...(phase === 'set' ? [g.done] : []), ...g.keys];
+      const lowest = Math.max(...boxes.map(b => b.bottom));
+      if (lowest > g.nav + 0.5) throw new Error(`${at}: DONE or the controls end at ${Math.round(lowest)}, under the tab bar at ${Math.round(g.nav)}`);
+      const hit = (a, b) => a && b && a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom;
+      if (boxes.some(b => hit(g.chip, b))) throw new Error(`${at}: the BETA chip sits on DONE or a control`);
     }
   } finally { await resizeTo(390, 844); }
+};
+await check('max out: the GUIDED set and rest keep DONE and the controls above the tab bar and clear of the BETA chip at 412 x 811, 375 x 667 and 360 x 740; the rest card shows the safety line and the next stop line', async () => {
+  await maxStartGuided(/^TANK MODE/); // the tallest set screen: a two-line move name and a long stop line
+  const sizes = [[412, 811], [375, 667], [360, 740], [390, 844]];
+  await maxFits('set', sizes);
   await maxDoneReady(); await maxSave();
   const t = await text();
   if (!/REST/.test(t) || !/never grind a rep/.test(t)) throw new Error('the rest card does not show the safety line');
   if (!/Stop when your hips sag/.test(t)) throw new Error('the rest card does not show the next move\'s stop line before the set');
+  await maxFits('rest', sizes);
 }, /REST/);
 await check('max out: a double tap on DONE keeps HOW MANY REPS? open; REWIND goes back; a run that skips a set finishes as SESSION DONE with the banked XP the screen shows', async () => {
   await ownerQuick(); await putOnCard(/^BOSS RUSH/);

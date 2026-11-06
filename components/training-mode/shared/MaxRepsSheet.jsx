@@ -19,7 +19,7 @@ export const ARM_MS = 500;
 
 const clamp = (v, max) => Math.min(Math.max(0, max), Math.max(0, Math.round(Number(v) || 0)));
 
-// A 44 px round-cornered button: one step on press, then repeating while held.
+// A 52 px round-cornered button: one step on press, then repeating while held.
 // A keyboard press (click with no pointer) steps once.
 function StepButton({ dir, disabled, onStep, label }) {
   const timer = useRef(null);
