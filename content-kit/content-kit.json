@@ -3531,6 +3531,211 @@
       "guided": true,
       "captionAka": "Cindy",
       "origin": null
+    },
+    {
+      "id": "boss_rush",
+      "title": "BOSS RUSH",
+      "loadout": "NO GEAR · 2 × 2 M OF FLOOR",
+      "format": "MAX REPS",
+      "mission": "3 ROUNDS · PUSH-UPS · SQUATS · SIT-UPS · MAX REPS",
+      "score": "TOTAL REPS, EVERY SET ADDED",
+      "tags": [
+        "~13 MIN",
+        "STANDARD",
+        "HOTEL OK",
+        "QUIET"
+      ],
+      "themes": [
+        "maxout"
+      ],
+      "moves": [
+        "MAX Push-Ups",
+        "MAX Air Squats",
+        "MAX Sit-Ups"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 rounds · knee push-ups, squats, crunches"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 rounds · push-ups, squats, sit-ups"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "5 rounds · push-ups, squats, sit-ups"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "health_bar",
+      "title": "HEALTH BAR",
+      "loadout": "A PULL-UP BAR · A BACKPACK, 8-10 KG (12-15 KG AT ELITE) · 2 × 2 M OF FLOOR",
+      "format": "MAX REPS",
+      "mission": "3 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS",
+      "score": "TOTAL REPS, EVERY SET ADDED",
+      "tags": [
+        "~11 MIN",
+        "STANDARD"
+      ],
+      "themes": [
+        "maxout"
+      ],
+      "moves": [
+        "MAX Pull-Ups",
+        "MAX Backpack Deadlifts",
+        "MAX Mountain Climbers"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 rounds · jumping pull-ups, backpack deadlifts, slow climbers"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 rounds · pull-ups, backpack deadlifts, climbers"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "4 rounds · pull-ups, backpack deadlifts, climbers"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "combo_meter",
+      "title": "COMBO METER",
+      "loadout": "1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE · CHECK THE CEILING",
+      "format": "MAX REPS",
+      "mission": "3 ROUNDS · SWINGS · PRESSES · SQUATS · DEAD BUGS · MAX REPS",
+      "score": "TOTAL REPS, EVERY SET ADDED",
+      "tags": [
+        "~15 MIN",
+        "STANDARD"
+      ],
+      "themes": [
+        "maxout"
+      ],
+      "moves": [
+        "MAX Kettlebell Swings",
+        "MAX Two-Hand Presses",
+        "MAX Goblet Squats",
+        "MAX Dead Bugs"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 rounds · 12/8 kg · swings, presses, squats, dead bugs"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 rounds · 16/12 kg · swings, presses, squats, dead bugs"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "4 rounds · 24/16 kg · swings, presses, squats, dead bugs"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "tank_mode",
+      "title": "TANK MODE",
+      "loadout": "1 BARBELL + PLATES · A CLEAR FLOOR · BUMPER PLATES IF YOU HAVE THEM",
+      "format": "MAX REPS",
+      "mission": "3 ROUNDS · ROWS · PUSH-UPS · FRONT SQUATS · MAX REPS",
+      "score": "TOTAL REPS, EVERY SET ADDED",
+      "tags": [
+        "~12 MIN",
+        "STANDARD"
+      ],
+      "themes": [
+        "maxout"
+      ],
+      "moves": [
+        "MAX Dead-Stop Barbell Rows",
+        "MAX Push-Ups",
+        "MAX Front Squats"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 rounds · empty bar · rows, knee push-ups, goblet squats"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 rounds · 30/20 kg · rows, push-ups, front squats"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "4 rounds · 45/30 kg · rows, push-ups, front squats"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
+    },
+    {
+      "id": "dual_wield",
+      "title": "DUAL WIELD",
+      "loadout": "2 DUMBBELLS · FLOOR SPACE · A PULL-UP BAR SWAPS IN FOR THE ROWS",
+      "format": "MAX REPS",
+      "mission": "3 ROUNDS · FLOOR PRESSES · LUNGES · ROWS · PULL-THROUGHS · MAX REPS",
+      "score": "TOTAL REPS, EVERY SET ADDED",
+      "tags": [
+        "~15 MIN",
+        "STANDARD",
+        "HOTEL OK"
+      ],
+      "themes": [
+        "maxout"
+      ],
+      "moves": [
+        "MAX Dumbbell Floor Presses",
+        "MAX Goblet Reverse Lunges",
+        "MAX Dumbbell Bent-Over Rows",
+        "MAX Plank Pull-Throughs"
+      ],
+      "levels": [
+        {
+          "id": "beginner",
+          "label": "BEGINNER",
+          "detail": "2 rounds · floor presses, lunges, rows, knee pull-throughs"
+        },
+        {
+          "id": "standard",
+          "label": "STANDARD",
+          "detail": "3 rounds · floor presses, lunges, rows, pull-throughs"
+        },
+        {
+          "id": "elite",
+          "label": "ELITE",
+          "detail": "4 rounds · floor presses, lunges, rows, pull-throughs"
+        }
+      ],
+      "guided": true,
+      "captionAka": null,
+      "origin": "Coach TM original"
     }
   ],
   "programs": [

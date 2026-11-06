@@ -1,7 +1,7 @@
 import MissionComplete from './shared/MissionComplete';
 import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from './shared/sessionOutcome';
 import { FORMAT_LABEL } from './data/loadoutMissions';
-import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime, soloRounds } from './data/missionSolo';
+import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime, soloRounds, isMaxReps } from './data/missionSolo';
 import { mmss } from './data/missionMoves';
 import { quickMissionXp } from './data/userStats';
 import { levelWord } from './data/quickMissionConfig';
@@ -16,6 +16,8 @@ const SOLO_PRESET = { pass: 'pass', partial: 'partial', too_fast: 'validation_fa
 export default function QuickMissionComplete({ result, cardioResult, onRetry, onFitHub, onHome }) {
   const { completed, roundsCompleted, totalRounds, exercisesCompleted, totalExercises, mission, integrityResult } = result;
   const solo = result.mode === 'solo';
+  // MAX OUT (MAX REPS): the score is the total reps, with the sets behind it.
+  const maxReps = isMaxReps(mission);
   // A v2 GUIDED run was settled once in App (data/missionSolo settleGuidedXp):
   // its verdict and the XP it banked are shown as they are.
   const guidedSettle = !solo && result.settle?.mode === 'guided' ? result.settle : null;
@@ -34,6 +36,9 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   const preset = solo ? OUTCOME_PRESET[SOLO_PRESET[result.settle?.outcome] || 'fail'] : verdict.preset;
   // The round timer (SOLO): rounds done, each round's time and the total.
   const rounds = solo && Array.isArray(result.rounds) ? result.rounds : null;
+  // A MAX OUT run that played every set but lost the bonus (a skipped set, a set with no reps) was
+  // not stopped: it says SESSION DONE. A STOP, END or the cap still says SESSION STOPPED.
+  const eyebrow = maxReps && preset.variant === 'partial' && result.completed === true && !result.stopped && !result.capped ? 'SESSION DONE' : preset.eyebrow;
   const roundTag = isUntilDown(mission) ? downCopy(mission).tag : 'R';
   const roundWord = isUntilDown(mission) ? downCopy(mission).MANY : 'ROUNDS';
   // The tap's own word: NO CONTINUES taps SET, everything else ROUND.
@@ -43,19 +48,21 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
   // An until-down GUIDED run is judged by its settle (sets, skips, the end it
   // took); the per-cycle integrity banner would contradict it. A forensic
   // fail still reaches the verdict through the settle.
-  const banner = solo || (guidedSettle && isUntilDown(mission)) ? null : integrityResult;
+  const banner = solo || (guidedSettle && (isUntilDown(mission) || maxReps)) ? null : integrityResult;
 
   // One case in the line: 'Circuit · Medium · At your pace' (EMOM and AMRAP stay
   // capitals), and the same level word the first page and the run use.
   const word = (t) => String(t || '').split(' ').map(w => (/^(AMRAP|EMOM)$/.test(w) ? w : w.charAt(0) + w.slice(1).toLowerCase())).join(' ');
   const subtitle = solo
     ? `${word((mission.formatLabel || FORMAT_LABEL[result.format || mission.format]) || 'Quick Mission')} · ${word(mission.levelLabel)}${result.scaled ? ' · Scaled' : ''} · At your pace`
-    : `${mission.workoutType} · ${word(levelWord(mission.difficulty))} · Quick Mission`;
+    // MAX OUT says its format and the level word the card and the LEVEL box use, not the difficulty word.
+    : maxReps ? `${word(mission.formatLabel || FORMAT_LABEL[mission.format])} · ${word(mission.levelLabel)} · Quick Mission`
+      : `${mission.workoutType} · ${word(levelWord(mission.difficulty))} · Quick Mission`;
   // A guided run until the bell is down (NO CONTINUES) has a score of its own.
-  const scored = solo || (!!result.untilDown && !!result.score);
-  const stats = scored
+  const scored = solo || (!!result.untilDown && !!result.score) || (maxReps && result.score?.kind === 'totalReps');
+  const stats = scored || maxReps
     ? [
-      { value: formatScore(result.score), label: 'SCORE', color: GOLD },
+      { value: formatScore(result.score), label: maxReps ? 'TOTAL REPS' : 'SCORE', color: GOLD },
       { value: mmss(result.elapsedSec || 0), label: 'TIME', color: '#fff' },
       { value: mission.levelLabel, label: 'LEVEL', color: '#fff' },
     ]
@@ -82,7 +89,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
     <MissionComplete
       onBack={onFitHub}
       variant={preset.variant}
-      eyebrow={preset.eyebrow}
+      eyebrow={eyebrow}
       title={mission.title}
       subtitle={subtitle}
       accent={GOLD}
@@ -91,7 +98,9 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       integrityResult={banner}
       failReason={solo ? result.settle?.message || undefined : verdict.response}
       stats={stats}
-      summary={recap ? <RoundSplits rounds={rounds} count={scoreCount(result, mission, rounds.length)} tag={roundTag} word={roundWord} one={roundOne} totalSec={result.elapsedSec || 0}/> : null}
+      summary={maxReps
+        ? (result.score?.kind === 'totalReps' ? <MaxRepsRecap score={result.score} capSec={mission.capSec || 0} totalSec={result.elapsedSec || 0} message={result.settle?.credited > 0 ? result.settle?.message : null}/> : null)
+        : recap ? <RoundSplits rounds={rounds} count={scoreCount(result, mission, rounds.length)} tag={roundTag} word={roundWord} one={roundOne} totalSec={result.elapsedSec || 0}/> : null}
       cardioResult={cardioResult}
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
       actions={[
@@ -139,6 +148,26 @@ function RoundSplits({ rounds, count, tag, word, one = 'round', totalSec }) {
         <div style={line}>{splitsLine(rounds, { tag })}</div>
       )}
       {gap && taps > 0 && <div style={{ ...line, color: '#9a90b8' }}>{gap}</div>}
+    </div>
+  );
+}
+
+// MAX OUT's recap: the sets saved of all, the clock, then each station's reps set
+// by set ('PUSH-UPS 22 · 19 · 16'; a skipped set reads —). A capped run says its
+// cap, and a run whose floors refused some sets says how many count.
+function MaxRepsRecap({ score, capSec, totalSec, message }) {
+  const box = { background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 10, padding: '8px 10px' };
+  const line = { font: "600 10px 'Rajdhani',sans-serif", color: '#e9e3f7', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' };
+  return (
+    <div data-guide="qm-splits" style={box}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.12em', color: GOLD, marginBottom: 3 }}>
+        <span>SETS {score.sets}/{score.of}</span><span style={{ color: '#fff' }}>TOTAL {mmss(totalSec)}</span>
+      </div>
+      {(score.byStation || []).filter(st => (st.reps || []).length > 0).map(st => (
+        <div key={st.moveId} style={line}>{String(st.name || '').toUpperCase()} {st.reps.map(r => (r == null ? '—' : r)).join(' · ')}</div>
+      ))}
+      {score.capped && <div style={{ ...line, color: GOLD }}>CAP {mmss(capSec)}</div>}
+      {message && <div style={{ ...line, color: '#9a90b8' }}>{message}</div>}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import useWakeLock from './hooks/useWakeLock';
 import { stopVoiceSession } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import MoveSwapSheet, { MoveRow } from './shared/MoveSwapSheet';
+import MaxRepsSheet from './shared/MaxRepsSheet';
 import {
   fitKitCSS, GoldButton, GhostButton, Label, Modal,
   HEAD, BODY, GOLD, MUTED, CARD, CARD_BORDER,
@@ -15,8 +16,9 @@ import {
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
   isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, splitsLine, blockSplitsLine,
   closeSplits, roundRestSec, hasRoundTimer,
+  isMaxReps, maxRepsScore, maxEntriesFromSplits, maxSlotAt, maxRepsLimit, MIN_SET_SEC,
 } from './data/missionSolo';
-import { mmss } from './data/missionMoves';
+import { mmss, repCapFor } from './data/missionMoves';
 
 // Quick Mission · AT YOUR PACE (internally 'solo': the stored mode, the stash
 // kind and the file name keep that word). The whole workout on one screen with
@@ -32,6 +34,12 @@ import { mmss } from './data/missionMoves';
 // Renders inside the qm_active screen (ScreenRouter picks it for a SOLO cfg or
 // a SOLO stash), so pause / autosave / Continue / replay all work unchanged.
 // What it reports through onStateChange is exactly what it restores from.
+//
+// A MAX REPS mission (MAX OUT) runs here too: the big button is DONE, one tap
+// a set. DONE opens HOW MANY REPS? (the tap's time is taken at the tap); SAVE
+// keeps the set (its reps, with its time in the splits), starts the rest, and
+// on the last set goes straight to the finish. UNDO takes back the last saved
+// set. There is no score panel: the reps are already in.
 
 const RED_BORDER = 'rgba(239,68,68,0.5)';
 const READY_SEC = 5;
@@ -47,7 +55,7 @@ const clampInt = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(v) |
 // Every bell and beep of the run, as moments on the clock (ms). Segment 0's
 // start is the end of GET READY, which rings its own bell.
 function soloCues(mission, timeline) {
-  if (mission.format === 'forTime' || isUntilDown(mission)) {
+  if (mission.format === 'forTime' || isUntilDown(mission) || isMaxReps(mission)) {
     const cap = mission.capSec || 0;
     return cap > 60 ? [{ at: (cap - 60) * 1000, kind: 'warn' }] : [];
   }
@@ -146,7 +154,7 @@ function startState(resume, mission) {
   const clock = (elapsedMs, pausedMs, hiddenMs, paused) => ({
     elapsedMs, pausedMs, hiddenMs, lastAt: null, pauseAt: paused ? now : null, hiddenAt: null, over: false, done: false,
   });
-  const fresh = { phase: 'ready', roundTaps: 0, blockTaps: blocks0, splits: [], finishSec: null, scoreDraft: null, clock: clock(0, 0, 0, false) };
+  const fresh = { phase: 'ready', roundTaps: 0, blockTaps: blocks0, splits: [], setReps: [], finishSec: null, scoreDraft: null, clock: clock(0, 0, 0, false) };
   if (resume?.kind !== 'solo' || resume.phase === 'ready') return fresh;
 
   const ms = (v) => (Number.isFinite(v) && v > 0 ? v : 0);
@@ -159,7 +167,13 @@ function startState(resume, mission) {
     .filter(sp => Number.isFinite(sp?.at) && sp.at >= 0 && sp.at <= elapsedMs)
     .map(sp => ({ at: Math.round(sp.at), block: Number.isInteger(sp.block) && sp.block >= 0 ? sp.block : 0 }))
     .slice(0, roundTaps);
-  const base = { roundTaps, blockTaps, splits, finishSec: null, scoreDraft: null };
+  // MAX REPS: the reps of every saved set, parallel to its splits. A stash from
+  // before it (or any other mission) has none.
+  const maxRun = isMaxReps(mission);
+  const setReps = maxRun
+    ? (Array.isArray(resume.setReps) ? resume.setReps : []).slice(0, splits.length).map(v => (Number.isFinite(Number(v)) ? Math.max(0, Math.round(Number(v))) : null))
+    : [];
+  const base = { roundTaps: maxRun ? Math.min(roundTaps, splits.length) : roundTaps, blockTaps, splits, setReps, finishSec: null, scoreDraft: null };
   const draft = resume.scoreDraft && typeof resume.scoreDraft === 'object' ? resume.scoreDraft : null;
 
   // I PUT IT DOWN waits like FINISH: NOT YET can still take it back.
@@ -176,6 +190,10 @@ function startState(resume, mission) {
   }
 
   const capMs = (mission.format === 'forTime' ? mission.capSec || 0 : missionClockSec(mission)) * 1000;
+  // MAX REPS: a run whose cap already ran out finishes at once, with its saved sets (capHit).
+  if (maxRun && capMs > 0 && elapsedMs >= capMs) {
+    return { ...base, phase: 'paused', capHit: true, clock: clock(capMs, ms(resume.pausedMs), ms(resume.hiddenMs), true) };
+  }
   if (capMs > 0 && elapsedMs >= capMs) {
     elapsedMs = capMs;
     const scoreDraft = isUntilDown(mission) ? downDraft(mission, roundTaps, 'cap')
@@ -224,6 +242,12 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const [blockTaps, setBlockTaps] = useState(init.blockTaps);
   // ROUND taps as splits: { at: the clock in ms, block } (data/missionSolo roundSplits).
   const [splits, setSplits] = useState(init.splits);
+  // MAX REPS: the reps of each saved set (parallel to splits), and the open
+  // HOW MANY REPS? sheet ({ atMs }: the clock at the DONE tap). The ref is the
+  // same ask read at once, so a second tap on SAVE inside one render saves once.
+  const [setReps, setSetReps] = useState(init.setReps);
+  const [repsAsk, setRepsAsk] = useState(null);
+  const repsAskRef = useRef(null);
   const [finishSec, setFinishSec] = useState(init.finishSec);
   const [scoreDraft, setScoreDraft] = useState(init.scoreDraft);
   const [confirmStop, setConfirmStop] = useState(false);
@@ -240,7 +264,9 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   // Its words: NO CONTINUES' SET and I PUT IT DOWN, or ROUND and I'M DONE.
   const dc = downCopy(mission);
   const roundsDown = down && mission.downUnit === 'round';
-  const countUp = format === 'forTime' || down;
+  // MAX OUT (MAX REPS): a count-up clock to the cap, one DONE tap a set (see data/missionSolo).
+  const maxReps = isMaxReps(mission);
+  const countUp = format === 'forTime' || down || maxReps;
   // A one-round generated mission has FINISH only (data/soloFromGenerated).
   const roundTimer = hasRoundTimer(mission);
   const fixedClock = isFixedClock(format) && !down;
@@ -258,8 +284,9 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   // What the interval and the visibility listener read (they outlive renders).
   const liveRef = useRef(null);
   useEffect(() => {
-    liveRef.current = { mission, cues, phase, ticking, finishSec, roundTaps, blockTaps, format, countUp, clockMs: clockSec * 1000, capMs: capSec * 1000 };
+    liveRef.current = { mission, cues, phase, ticking, finishSec, roundTaps, blockTaps, splits, setReps, format, countUp, clockMs: clockSec * 1000, capMs: capSec * 1000 };
   });
+  const finishRef = useRef(null);
 
   // The cap or the fixed clock ran out: the clock stops there, the bell rings
   // three times, and the score panel opens.
@@ -269,6 +296,15 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     playBell(3);
     setConfirmStop(false);
     setSwapKeyOpen(null);
+    // MAX REPS: the cap ends the run with the sets already saved (no score panel,
+    // no bonus: App settles it). The set in hand, and an open sheet, are not saved.
+    if (isMaxReps(L.mission)) {
+      repsAskRef.current = null;
+      setRepsAsk(null);
+      const score = maxRepsScore(L.mission, maxEntriesFromSplits(L.mission, L.splits, L.setReps), { timeSec: L.capMs / 1000, capped: true });
+      finishRef.current?.({ completed: false, capped: true, score: score.sets > 0 ? score : null, elapsedSec: L.capMs / 1000 });
+      return;
+    }
     setScoreDraft(kind !== 'cap' ? clockDraft(L.mission, L.roundTaps, L.blockTaps)
       : isUntilDown(L.mission) ? downDraft(L.mission, L.roundTaps, 'cap') : capDraft(L.mission, L.roundTaps));
     setPhase('score');
@@ -364,8 +400,9 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       pausedMs: Math.round(c.pausedMs + (c.pauseAt != null ? now - c.pauseAt : 0)),
       hiddenMs: Math.round(c.hiddenMs + (c.hiddenAt != null ? now - c.hiddenAt : 0)),
       roundTaps, blockTaps, splits, finishSec, scoreDraft, mission,
+      ...(maxReps ? { setReps } : {}),
     });
-  }, [phase, elapsedMs, roundTaps, blockTaps, splits, finishSec, scoreDraft, mission, onStateChange]);
+  }, [phase, elapsedMs, roundTaps, blockTaps, splits, setReps, maxReps, finishSec, scoreDraft, mission, onStateChange]);
 
   const closePause = () => {
     const c = clockRef.current;
@@ -373,7 +410,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   };
 
   // The result App settles and stores (see the Drop A spec, 3.7).
-  const finish = ({ completed, stopped = false, capped = false, score = null, elapsedSec, splitsOut = splits }) => {
+  const finish = ({ completed, stopped = false, capped = false, score = null, elapsedSec, splitsOut = splits, tapsOut = roundTaps, repsOut = setReps }) => {
     const c = clockRef.current;
     if (c.done) return;
     c.done = true;
@@ -389,14 +426,23 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       mode: 'solo', completed, stopped, capped,
       missionId: mission.id, mission, format, level: mission.level, scaled: !!mission.scaled, swaps: mission.swaps || [],
       elapsedSec: sec, pausedSec: Math.floor(c.pausedMs / 1000), hiddenSec: Math.floor(c.hiddenMs / 1000), clockSec: mission.clockSec || 0,
-      roundTaps, blockTaps: blockTaps ? [...blockTaps] : null, splits: splitsOut.map(sp => ({ ...sp })),
+      roundTaps: tapsOut, blockTaps: blockTaps ? [...blockTaps] : null, splits: splitsOut.map(sp => ({ ...sp })),
+      ...(maxReps ? { setReps: [...repsOut] } : {}),
       score, totalSlots: slots,
       roundsCompleted: 0, totalRounds: mission.rounds,
-      exercisesCompleted: completed || down ? slots : Math.round(slots * (expected > 0 ? Math.min(1, sec / expected) : 0)),
+      // MAX REPS: the sets saved. Anything else: all of it, or the share of the time.
+      exercisesCompleted: maxReps ? Math.max(0, score?.sets || 0) : completed || down ? slots : Math.round(slots * (expected > 0 ? Math.min(1, sec / expected) : 0)),
       totalExercises: slots,
       integrityResult: null,
     });
   };
+
+  useEffect(() => { finishRef.current = finish; });
+  // MAX REPS: a stash whose cap already ran out finishes with its saved sets at once.
+  useEffect(() => {
+    if (init.capHit) endRun('cap');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePauseToggle = () => {
     if (phase === 'running') {
@@ -445,6 +491,12 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     if (phase === 'score') return;
     if (phase === 'running' && tick()) return;
     const sec = Math.floor(clockRef.current.elapsedMs / 1000);
+    // MAX REPS: END keeps the sets saved so far (a partial, no bonus); with none it is a plain quit.
+    if (maxReps) {
+      const score = maxRepsScore(mission, maxEntriesFromSplits(mission, splits, setReps), { timeSec: sec });
+      finish({ completed: false, stopped: true, score: score.sets > 0 ? score : null, elapsedSec: sec });
+      return;
+    }
     if (fixedClock && (phase === 'running' || phase === 'paused') && sec >= soloFloorSec(mission)) {
       closePause();
       clockRef.current.over = true;
@@ -551,6 +603,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       setBlockTaps(list => list.map((v, i) => (i === block ? v - 1 : v)));
     }
     const b = multiBlock ? block : 0;
+    if (maxReps) setSetReps(list => list.slice(0, Math.max(0, list.length - 1)));
     setSplits(list => {
       const i = list.map(sp => sp.block).lastIndexOf(b);
       return i < 0 ? list : [...list.slice(0, i), ...list.slice(i + 1)];
@@ -558,8 +611,48 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     setRoundTaps(n => Math.max(0, n - 1));
   };
 
+  // MAX REPS · DONE: the set ends at this tap (its time is taken now) and HOW
+  // MANY REPS? opens; the clock runs on, so NOT YET loses nothing. Not during a
+  // timed rest, and not twice.
+  // DONE wakes MIN_SET_SEC into the set (a set shorter than that never counts), as it does GUIDED.
+  const setReady = elapsedSec - roundFrom >= MIN_SET_SEC;
+  const handleSetDone = () => {
+    if (!maxReps || !tapsLive || allTapped || restLeft > 0 || !setReady || repsAskRef.current) return;
+    if (phase === 'running' && tick()) return;
+    repsAskRef.current = { atMs: Math.round(clockRef.current.elapsedMs) };
+    setRepsAsk(repsAskRef.current);
+  };
+  const cancelSetReps = () => { repsAskRef.current = null; setRepsAsk(null); };
+  // SAVE: the set, its reps and its time go in together. The last one finishes the run.
+  const saveSetReps = (reps) => {
+    const ask = repsAskRef.current;
+    repsAskRef.current = null;
+    setRepsAsk(null);
+    if (!ask || clockRef.current.done) return;
+    const n = roundTaps + 1;
+    const nextSplits = [...splits, { at: ask.atMs, block: 0 }];
+    const nextReps = [...setReps, reps];
+    if (n >= tapRounds) {
+      const score = maxRepsScore(mission, maxEntriesFromSplits(mission, nextSplits, nextReps), { timeSec: ask.atMs / 1000 });
+      finish({ completed: true, score, elapsedSec: ask.atMs / 1000, splitsOut: nextSplits, tapsOut: n, repsOut: nextReps });
+      return;
+    }
+    setRoundTaps(n);
+    setSplits(nextSplits);
+    setSetReps(nextReps);
+  };
+  // The set the next DONE ends (or the rest leads to): set number roundTaps + 1.
+  const maxSlot = maxReps ? maxSlotAt(mission, Math.min(roundTaps + 1, tapRounds)) : null;
+  const maxRound = maxReps ? Math.floor(Math.min(roundTaps, tapRounds - 1) / Math.max(1, mission.exercises.length)) + 1 : 0;
+  if (maxReps && maxSlot) {
+    const name = String(maxSlot.name || '').toUpperCase();
+    subLine = `CAP ${mmss(capSec)} · ROUND ${maxRound}/${mission.rounds} · ${restLeft > 0 ? `NEXT ${name}` : `${name} · MAX`}`;
+    bigClock = mmss(elapsedSec);
+  }
+
   const highlightOf = (row) => {
     if (phase === 'score') return false;
+    if (maxReps) return row.swapKey === maxSlot?.swapKey;
     if (down) return !!nextBlock?.list?.some(st => st.swapKey === row.swapKey);
     return seg?.kind === 'work' ? row.swapKey === seg.swapKey || seg.stepKeys.includes(row.swapKey) : false;
   };
@@ -629,13 +722,14 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
                 integrity), with each round's time. */}
             {showRounds && (
               <RoundTimer
-                word={down ? dc.ONE : 'ROUND'} words={down ? dc.MANY : 'ROUNDS'}
+                word={down ? dc.ONE : maxReps ? 'SET' : 'ROUND'} words={down ? dc.MANY : maxReps ? 'SETS' : 'ROUNDS'}
+                buttonLabel={maxReps ? 'DONE' : undefined}
                 current={allTapped ? tapRounds : roundsHere + 1} count={roundsHere} total={multiBlock ? roundTaps : null}
                 thisSec={allTapped ? null : Math.max(0, elapsedSec - roundFrom)} lastSec={lastLap ? lastLap.lapSec : null}
                 restLeft={restLeft}
-                line={splitsLine(blockRounds, { tag: down ? dc.tag : 'R', last: 5 })}
-                live={tapsLive && !allTapped && restLeft === 0} canUndo={tapsLive && roundsHere > 0}
-                onRound={addRound} onUndo={undoRound}
+                line={splitsLine(blockRounds, { tag: down ? dc.tag : maxReps ? 'S' : 'R', last: 5 })}
+                live={tapsLive && !allTapped && restLeft === 0 && !repsAsk && (!maxReps || setReady)} canUndo={tapsLive && roundsHere > 0}
+                onRound={maxReps ? handleSetDone : addRound} onUndo={undoRound}
               />
             )}
             {/* Today's mission at your pace: what the taps do. */}
@@ -659,12 +753,16 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
               </div>
             )}
 
+            {/* MAX REPS: the safety card sits above the list, for the whole run. */}
+            {maxReps && mission.safety && <SafetyLine text={mission.safety}/>}
+
             {/* The moves. Swaps stay live for the whole run. */}
             <section style={cardBox}>
               {mission.missionLine && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textTransform: 'uppercase', lineHeight: 1.35 }}>{mission.missionLine}</div>}
               <ol style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {rows.map((row, i) => (
-                  <MoveRow key={row.swapKey} row={row} index={i} highlight={highlightOf(row)} noSwap={!!mission.atYourPace}
+                  // MAX REPS: only the set in hand shows its stop line.
+                  <MoveRow key={row.swapKey} row={maxReps && !highlightOf(row) ? { ...row, note: null } : row} index={i} highlight={highlightOf(row)} noSwap={!!mission.atYourPace}
                     onSwap={(r) => setSwapKeyOpen(r.swapKey)} onUndo={onUndo}/>
                 ))}
               </ol>
@@ -710,6 +808,22 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         <MoveSwapSheet mission={mission} swapKey={swapKeyOpen} gear={gear} onPick={onPick} onClose={() => setSwapKeyOpen(null)}/>
       )}
 
+      {/* MAX REPS: HOW MANY REPS? opens at the DONE tap. It starts at last round's
+          reps for this station, or the level's first-set number. */}
+      {maxReps && repsAsk && phase !== 'score' && (() => {
+        const n = roundTaps;
+        const ex = maxSlotAt(mission, n + 1);
+        const stations = Math.max(1, mission.exercises.length);
+        const lastIdx = n - stations;
+        const last = lastIdx >= 0 ? setReps[lastIdx] : null;
+        const lap = roundSplits(mission, [...splits, { at: repsAsk.atMs, block: 0 }]).slice(-1)[0];
+        return (
+          <MaxRepsSheet moveName={ex?.name} start={Number.isFinite(last) ? last : ex?.reps ?? 10}
+            max={maxRepsLimit(ex, lap?.lapSec, mission.level)} cap={repCapFor(ex?.moveId, mission.level)}
+            onSave={saveSetReps} onNotYet={cancelSetReps}/>
+        );
+      })()}
+
       {confirmStop && canStop && (
         <Modal title="END MISSION?" onClose={() => setConfirmStop(false)} footer={(
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -719,7 +833,9 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         )}>
           <div style={{ font: `500 14px ${BODY}`, color: '#E6E2F5', lineHeight: 1.45 }}>{down
             ? dc.stopSolo
-            : `XP counts once you pass a quarter of the ${fixedClock ? 'clock' : 'standard time'}.`}</div>
+            : maxReps
+              ? (roundTaps > 0 ? 'Your saved sets count.' : 'Save one set to earn XP.')
+              : `XP counts once you pass a quarter of the ${fixedClock ? 'clock' : 'standard time'}.`}</div>
         </Modal>
       )}
     </PhoneFrame>
@@ -730,7 +846,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 // round's time, a short list of splits, UNDO for a mis-tap and the big ROUND
 // button. `count` is the rounds done (in this block), `total` the run's total
 // across blocks (multi-block AMRAPs only).
-function RoundTimer({ word, words, current, count, total, thisSec, lastSec, restLeft = 0, line, live, canUndo, onRound, onUndo }) {
+function RoundTimer({ word, words, buttonLabel, current, count, total, thisSec, lastSec, restLeft = 0, line, live, canUndo, onRound, onUndo }) {
   const meta = [`LAST ${lastSec == null ? '—' : mmss(lastSec)}`, `${words} ${count}`, ...(total != null ? [`TOTAL ${total}`] : [])].join(' · ');
   return (
     <div data-guide="qms-rounds" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -750,7 +866,7 @@ function RoundTimer({ word, words, current, count, total, thisSec, lastSec, rest
           background: CARD, border: '1px solid rgba(255,255,255,0.14)', color: '#fff', font: `700 13px ${HEAD}`, letterSpacing: '0.12em',
           cursor: canUndo ? 'pointer' : 'default', opacity: canUndo ? 1 : 0.45,
         }}>UNDO</button>
-        <GoldButton label={word} height={64} onClick={onRound} disabled={!live} style={{ flex: 1, width: 'auto', minWidth: 0, fontSize: 20 }}/>
+        <GoldButton label={buttonLabel || word} height={64} onClick={onRound} disabled={!live} style={{ flex: 1, width: 'auto', minWidth: 0, fontSize: 20 }}/>
       </div>
     </div>
   );

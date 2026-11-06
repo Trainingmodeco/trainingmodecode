@@ -382,7 +382,7 @@ export const MOVES = [
   mv('db-rdl', 'Dumbbell Romanian Deadlifts', 'Romanian deadlifts', 'hinge', 'db', 'reps', [2.0, 2.5, 3.0], NONE,
     'One dumbbell or kettlebell in both hands, soft knees. | Push the hips back; the bell slides down the thighs. | Stop when the back wants to round, then stand tall.',
     [noGear('backpack-rdl'), similar('bb-rdl')]),
-  mv('backpack-rdl', 'Backpack Romanian Deadlifts', 'backpack Romanian deadlifts', 'hinge', 'none', 'reps', [2.0, 2.5, 3.0], NONE,
+  mv('backpack-rdl', 'Backpack Deadlifts', 'backpack deadlifts', 'hinge', 'none', 'reps', [2.0, 2.5, 3.0], NONE,
     'A backpack of water bottles or books, about 8-10 kg, held in front. | Hips back, flat back, then stand tall.',
     [harder('db-rdl'), easier('glute-bridge')]),
   mv('backpack-row', 'Backpack Rows', 'backpack rows', 'pull', 'none', 'reps', [1.75, 2.0, 2.5], SW,
@@ -565,6 +565,16 @@ export const MOVES = [
   mv('door-frame-row', 'Door Frame Rows', 'door frame rows', 'pull', 'none', 'reps', [2.0, 2.5, 3.0], { say1: 'door frame row' },
     'A solid frame only. Never pull on the door itself. No vest on door frame rows. | A hand on each side at chest height, gripping with the whole hand, not the fingertips. | Start nearly upright and keep the lean shallow: if a hand slips, you fall backward. | Body in one line. Pull the chest to the frame, lower slowly.',
     [harder('jumping-pull-up'), harder('pull-up')]),
+
+  // ── MAX OUT: the two moves the five max-rep workouts needed ───────────────
+  // Coach estimates. Neither is listed as an alt by an older move, so no
+  // earlier mission's swap sheet changed.
+  mv('sit-up', 'Sit-Ups', 'sit-ups', 'core', 'none', 'reps', [1.5, 2.0, 2.5], NONE,
+    'Feet flat, knees bent, hands crossed on the chest. | Curl all the way up to the knees, then lower slowly.',
+    [easier('crunch'), harder('v-up')]),
+  mv('db-floor-press', 'Dumbbell Floor Presses', 'floor presses', 'push', 'db', 'reps', [2.0, 2.5, 3.0], NONE,
+    'Lie on the floor, a dumbbell in each hand, elbows at 45 degrees. | Press straight up, lower until the upper arms touch the floor.',
+    [easier('push-up')]),
 ];
 
 const BY_ID = new Map(MOVES.map(m => [m.id, m]));
@@ -603,6 +613,7 @@ export function isCatalogSlot(slot) { return typeof slot?.moveId === 'string' ||
 // The dose a v2 card prints: '20s', '3:00', '12 CAL', '10 (5/side)', '2 + 1 + 3'.
 export function slotDose(slot) {
   if (!slot) return '';
+  if (slot.max === true) return 'MAX'; // a MAX REPS station: no count, the athlete's own set
   if (isTimed(slot)) {
     if (hasList(slot)) return mmss(slot.work);
     return slot.work < 60 ? `${slot.work}s` : mmss(slot.work);
@@ -627,6 +638,8 @@ const lower = (s) => String(s || '').toLowerCase();
 export function spokenMove(slot) {
   if (!slot) return '';
   if (hasList(slot)) return slot.say || (isTimed(slot) ? 'the AMRAP' : 'the complex');
+  // A MAX REPS station is never counted: the move's word, with no number.
+  if (slot.max === true) return slot.say || moveById(slot.moveId)?.say || lower(slot.name);
   const move = typeof slot.moveId === 'string' ? moveById(slot.moveId) : null;
   if (isTimed(slot)) return slot.say || move?.say || lower(slot.name);
   if (move) {
@@ -669,11 +682,13 @@ export function leadLine(slot, ctx = {}) {
     return `${prefix}${cap(listSpoken(slot.list))}. ${side}${tail}`;
   }
   if (isTimed(slot)) return `${prefix}${cap(spokenMove(slot))}. ${spokenDuration(slot.work)}.`;
+  if (slot.max === true) return `${prefix}${cap(spokenMove(slot))}. ${maxWord(slot)}`;
   if (isCounted(slot, { legacyCounted })) return `${prefix}${cap(spokenMove(slot))}. Ready? On my count.`;
   return `${prefix}${cap(spokenMove(slot))}. ${MANUAL_LINE}`;
 }
 // The start line when no lead or short line named this slot (after a chain or a tiny rest).
 export function chainedLine(slot, { legacyCounted = false } = {}) {
+  if (slot?.max === true) return `${cap(spokenMove(slot))}. ${maxWord(slot)} Go.`;
   if (isTimed(slot)) return `${cap(spokenMove(slot))}.${hasCallAt0(slot) ? '' : ' Go.'}`;
   if (isCounted(slot, { legacyCounted })) return `${cap(spokenMove(slot))}.`;
   return `${cap(spokenMove(slot))}. ${MANUAL_LINE}`;
@@ -756,6 +771,8 @@ export function restScript({ restSec, kind = 'rest', roundEnd = false, completed
 }
 // The line at work start. announcedBy: 'lead' | 'short' | null.
 export function workStartLine(slot, { announcedBy = null, legacyCounted = false } = {}) {
+  // A MAX REPS station: the lead or the short line named it, so just "Go.".
+  if (slot?.max === true) return announcedBy ? 'Go.' : chainedLine(slot);
   if (!announcedBy) return chainedLine(slot, { legacyCounted });
   if (isTimed(slot)) return hasCallAt0(slot) ? null : 'Go.';
   if (isCounted(slot, { legacyCounted })) return null;
@@ -828,4 +845,128 @@ export function nearEndUpNextAt(slot, next) {
   if (!slot || !isTimed(slot) || !(slot.work >= 15) || slot.calls?.length) return null;
   if (!next || sameMove(slot, next)) return null;
   return Math.min(8, Math.floor(slot.work / 2));
+}
+
+// ── MAX REPS (MAX OUT) ──────────────────────────────────────────────────────
+// A station slot carries `max: true`: the athlete does clean reps until the
+// form breaks, taps DONE and enters the reps. Nothing here changes a slot
+// without the flag. Region, stop rule, rep cap and the words the coach says.
+
+// The muscle region a move works, from its pattern. A swap inside a MAX REPS
+// station must stay in its region (data/loadoutMissions altAllowed rule 10),
+// so the move after it never shares a prime mover with the one before.
+// null: not a station move (cardio, strikes, cleans, burpees).
+const REGION_OF_PATTERN = { push: 'chest', press: 'shoulders', pull: 'back', squat: 'quads', lunge: 'quads', hinge: 'hinge', core: 'core' };
+export function regionOf(moveId) { return REGION_OF_PATTERN[moveById(moveId)?.pattern] || null; }
+
+// A move with a load in the hands, on the shoulders or on the back, so its set says
+// CLEAN reps. A backpack is no gear in the catalog but it is a load; a pull-up bar is
+// not (the body is the load).
+const LOAD_GEAR = new Set(['bell', 'db', 'barbell', 'plate']);
+export function isLoadedMove(moveId) {
+  const m = moveById(moveId);
+  return !!m && (LOAD_GEAR.has(m.gear) || /^backpack-/.test(m.id));
+}
+
+// The cues a MAX OUT screen shows for a move: the catalog's, less the lines that do not suit a
+// set taken tired to failure (a kip, a box to jump off, a weight that is the loadout line's to
+// state). The catalog itself is unchanged: the earlier missions show these lines as they did.
+// weightWord: what a workout calls its weight ('dumbbell' for DUAL WIELD, whose kettlebell moves
+// are done with a dumbbell); the catalog's 'bell' becomes that word.
+export function maxCues(moveId, weightWord = null) {
+  const m = moveById(moveId);
+  if (!m) return [];
+  return m.cues
+    .filter(c => !/^Kip only/.test(c))
+    .map(c => c
+      .replace(', or a box beneath it.', ', feet on the floor.')
+      .replace(', about 8-10 kg, held in front.', ', held in front of the thighs.'))
+    .map(c => (weightWord ? c.replace(/\bbell\b/g, weightWord) : c));
+}
+
+// One sentence each: when to stop the set. The default is the catalog-wide rule.
+export const DEFAULT_STOP_RULE = 'Stop when your form breaks.';
+const STOP_FAMILIES = [
+  [['push-up', 'knee-push-up', 'incline-push-up', 'diamond-push-up'], 'Stop when your hips sag or you cannot lower to within a fist of the floor.'],
+  [['air-squat', 'bench-squat', 'heels-down-hindu-squat'], 'Stop when your heels lift, your knees cave or your chest drops.'],
+  // The Hindu squat lifts the heels on purpose, so its rule never mentions them.
+  [['hindu-squat', 'half-hindu-squat', 'hindu-squat-knee-strike'], 'Stop when your knees cave or your chest drops.'],
+  [['sit-up', 'crunch', 'v-up'], 'Stop when you have to swing or pull on your neck.'],
+  [['pull-up', 'jumping-pull-up'], 'Stop when your chin cannot clear the bar. Step down to the floor. No swinging.'],
+  [['backpack-rdl'], 'Stop when your back wants to round. Grip going? Hug the pack to your chest.'],
+  [['backpack-suitcase-deadlift', 'db-rdl', 'kb-deadlift', 'bb-rdl'], 'Stop when your back wants to round.'],
+  [['glute-bridge', 'hip-thrust', 'db-hip-thrust'], 'Stop when your hips cannot reach a straight line.'],
+  [['mountain-climber', 'slow-climber'], 'Stop when your hips pike up or you cannot hold the plank.'],
+  [['kb-swing', 'db-swing', 'kb-one-arm-swing', 'db-one-arm-swing', 'kb-american-swing'], 'Stop when the bell stops floating to chest height or your back wants to round.'],
+  [['kb-horn-press'], 'Stop when you have to lean back. Never press through a stall.'],
+  [['goblet-squat', 'kb-front-squat'], 'Stop when your chest drops or your heels lift.'],
+  [['dead-bug', 'kb-dead-bug', 'backpack-dead-bug'], 'Stop when your low back lifts off the floor.'],
+  [['bb-bent-over-row', 'bb-dead-stop-row', 'db-bent-over-row', 'ring-row'], 'Stop when your back wants to round or you start to heave.'],
+  [['plate-goblet-squat'], 'Stop when your elbows drop or your chest folds.'],
+  // No rack and no spotter: a front squat that stalls goes forward off the shoulders.
+  [['bb-front-squat'], 'Stop when your elbows drop or your chest folds. If the bar slides, let it go forward.'],
+  [['db-floor-press'], 'Stop when a rep stalls. Lower both dumbbells to your sides.'],
+  [['kb-reverse-lunge', 'reverse-lunge', 'reverse-lunge-knee-drive', 'bulgarian-split-squat'], 'Stop at the first wobble or when your front knee caves.'],
+  [['kb-plank-pull-through', 'kb-knee-pull-through', 'backpack-pull-through'], 'Stop when your hips twist or sag.'],
+];
+export const STOP_RULES = Object.fromEntries(STOP_FAMILIES.flatMap(([ids, rule]) => ids.map(id => [id, rule])));
+
+// The most reps one set may be entered with, or null for no cap. A loaded set
+// is a rule, not a failure test (a hinge cap is lower: its risk is form fade
+// before failure); a sit-up or a crunch caps at 60. Bodyweight push, pull and
+// squat have none (the reps-per-second ceiling in data/missionSolo bounds them).
+// Climbers count each leg, so they have no cap here either: the ceiling does it.
+const SWING_IDS = new Set(['kb-swing', 'db-swing', 'kb-one-arm-swing', 'db-one-arm-swing', 'kb-american-swing']);
+const CLIMBER_IDS = new Set(['mountain-climber', 'slow-climber']);
+export function repCapFor(moveId, level = 'standard') {
+  const m = moveById(moveId);
+  if (!m) return null;
+  const beginner = level === 'beginner';
+  if (SWING_IDS.has(m.id)) return beginner ? 12 : 15;
+  if (m.pattern === 'hinge' && isLoadedMove(m.id)) return beginner ? 10 : 12;
+  if (m.pattern === 'core') return CLIMBER_IDS.has(m.id) ? null : 60;
+  if (!isLoadedMove(m.id)) return null;
+  return m.pattern === 'lunge' ? 30 : 25;
+}
+
+// The moves no MAX OUT swap may reach (data/loadoutMissions altAllowed rule 11): balance
+// work on a raised or moving back foot, and dead bugs with a bell or a pack held over
+// the face, all of it taken tired to failure. A base station is never filtered.
+export const MAX_OUT_BANNED = new Set(['kb-dead-bug', 'backpack-dead-bug', 'hindu-squat-knee-strike', 'bulgarian-split-squat', 'kb-bulgarian-split-squat', 'reverse-lunge-knee-drive']);
+
+const NUMBER_WORD = { 1: 'one', 2: 'two', 3: 'three' };
+// The stop line a set shows: the move's rule, then "Stop 2 reps before
+// that." when the station leaves some in the tank, then the cap if it has one.
+export function maxStopLine(slot, level = 'standard') {
+  if (!slot) return DEFAULT_STOP_RULE;
+  let out = STOP_RULES[slot.moveId] || DEFAULT_STOP_RULE;
+  if (slot.leave > 0) out += ` Stop ${slot.leave} ${slot.leave === 1 ? 'rep' : 'reps'} before that.`;
+  const cap = repCapFor(slot.moveId, level);
+  if (cap != null) out += ` Most reps: ${cap}.`;
+  return out;
+}
+// What the coach says after the move: 'Max reps.', 'Max clean reps.' for a
+// loaded move, the stop-short line when the station leaves some in the tank, and
+// the move's cap when it has one ('Never more than 15.'): a voice-only athlete
+// hears the limit the screen prints. A station carries its own `cap` (set at
+// the level it was built for, and again by a swap).
+export function maxWord(slot) {
+  const tail = slot?.cap != null ? ` Never more than ${slot.cap}.` : '';
+  if (slot?.leave > 0) return `Max clean reps. Stop ${NUMBER_WORD[slot.leave] || slot.leave} short.${tail}`;
+  return `${isLoadedMove(slot?.moveId) ? 'Max clean reps.' : 'Max reps.'}${tail}`;
+}
+// A hinge or swing set is a rule, not a failure test, and nothing counts its reps:
+// the coach calls "Stop. Set it down." once this many seconds into the set (the cap
+// at the pace of the level). null for any other set.
+export function maxCapCallSec(slot, level = 'standard') {
+  const cap = slot?.cap;
+  const m = moveById(slot?.moveId);
+  if (cap == null || !m || m.pattern !== 'hinge') return null;
+  return Math.round((cap * estMsFor(m.id, level)) / 1000);
+}
+export const MAX_CAP_CALL = 'Stop. Set it down.';
+// The last SAVE: 'Done. 214 reps.'
+export function maxFinishLine(total) {
+  const n = Math.max(0, Math.floor(Number(total) || 0));
+  return `Done. ${n} ${n === 1 ? 'rep' : 'reps'}.`;
 }

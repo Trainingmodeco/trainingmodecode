@@ -177,6 +177,7 @@ export const SCREEN_GUIDES = {
     { target: 'wb-cardio', title: 'ADD CARDIO', body: 'Optional finisher — tack a run, intervals, or Tabata onto the end of your workout.' },
     { target: 'wb-generate', title: 'GENERATE WORKOUT', body: 'Tap here and your workout is built. Nothing is locked in — the next screen lets you swap, reorder, remove and link exercises before you start. It sits in the build card, which reads back what you picked. SURPRISE ME under the settings rolls the muscles and gear for you.' },
     { target: 'wb-routines', title: 'SAVED ROUTINES', body: 'ROUTINES holds every list you saved with SAVE ROUTINE, up to ten. Tap one to load it exactly as you left it.' },
+    { target: 'wb-maxout', title: 'MAX OUT', body: 'MAX OUT: five max-rep workouts. Your gear and difficulty pick the list and the level.' },
   ],
 
   // The generated list. Everything the athlete can do to a workout BEFORE
@@ -239,7 +240,7 @@ export const SCREEN_GUIDES = {
     { target: 'qm-surprise', title: 'SURPRISE', body: 'A different workout with the same gear and time: a new focus and moves, at a level within one step of yours. Your saved picks stay as they are.' },
     { target: 'qm-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
     { target: 'qm-time', title: 'TIME', body: '5 to 60 minutes, a minute at a time. Slide to the time you have and the workout is built to fit that time: the card changes as you slide. With weights a set ends on DONE, and your rest flexes so the time holds. Drag the knob, tap a minute, or use the arrow keys.' },
-    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
+    { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. MAX OUT: max reps on each move, then switch. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
   ],
 
   combat_conditioning_setup: [
@@ -302,7 +303,7 @@ export const SCREEN_GUIDES = {
     { target: 'qma-status', title: 'ROUND, TYPE & DIFFICULTY', body: 'Your round count, workout type (Bodyweight, Weighted, or Hybrid), and difficulty — set back on the setup screen.' },
     { target: 'qma-volume', title: '🔊 SOUND', body: 'Tap to open the volume mixer — separate VOICE and MUSIC sliders, adjustable mid-round without pausing.' },
     { target: 'qma-volume', title: 'LEAVE THE APP, KEEP THE CLOCK', body: 'Switch to your music or answer a text and the round follows you as a small floating window — the clock, the exercise, what is next. It pops up by itself when you leave, on phones that support it, and stays hidden until then. The timer keeps running while the window is up.' },
-    { target: 'qma-ring', title: 'THE TIMER', body: 'Counts down your work or rest time, or tracks reps on cadence-counted exercises. Gold on WORK, blue on REST.' },
+    { target: 'qma-ring', title: 'THE TIMER', body: 'Counts down your work or rest time, or tracks reps on cadence-counted exercises. Gold on WORK, blue on REST. On a MAX set the ring says MAX. Do clean reps until your form breaks, then tap DONE and enter your reps.' },
     { target: 'qma-exercisecard', title: 'EXERCISE CARD', body: 'Shows your current exercise (or the next one, during rest), and flags a FINISHER move when one comes up.' },
     { target: 'qma-rewind', title: '⟲ REWIND', body: 'Step back to redo the exercise before this one — useful if you got cut off or want another attempt.' },
     { target: 'qma-pause', title: '⏸ PLAY / PAUSE', body: 'Pause anytime — the timer and coach hold until you resume. Stepping away from the app auto-pauses too.' },
