@@ -603,14 +603,14 @@ await check('quick mission: on an Easy mission a finish at a third of STANDARD s
   await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
   let t = await text();
   const moves = runMoves(t).length;
-  const rounds = Number((t.match(/ROUND 1\/(\d+)/) || [])[1]) || 1;
   const standard = paceTier(t, 'STANDARD');
   if (!moves || !(standard > 0)) throw new Error('no moves or STANDARD target on the at-your-pace screen');
   await jump(Math.round(standard * 0.33) * 1000); await S(700);
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(500);
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
   t = await text();
-  const xp = 15 * moves * rounds + 30; const bank = await qmRows();
+  // 10 minutes at EASY pays 15 XP a minute (data/quickMissionXp), plus the finish bonus: the same whatever the seed dealt.
+  const xp = Math.round(10 * 15) + 30; const bank = await qmRows();
   if (!new RegExp(`\\+${xp}\\b`).test(t) || bank.length !== 1 || bank[0].xpEarned !== xp) throw new Error(`a finish at a third of STANDARD paid ${JSON.stringify(bank.map(r => r.xpEarned))}, not ${xp}`);
 }, /SESSION COMPLETE/);
 await check('home: a one-round run (the 5 minute mission) has FINISH only, and its score panel repeats no "R1" split', async () => {
