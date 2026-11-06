@@ -1495,7 +1495,7 @@ const TANK_OUT = ['bb-back-squat', 'bb-bent-over-row'];
 const TANK_MODE = {
   ...MAX_COMMON, id: 'tank_mode', launch: 35, title: 'TANK MODE', loadout: 'barbell', workoutType: 'Weighted', hotel: false, quiet: false,
   loadoutLine: '1 BARBELL + PLATES · A CLEAR FLOOR · BUMPER PLATES IF YOU HAVE THEM',
-  safety: 'Stop 2 reps short on every bar set. Clear floor, bumper plates if you have them, never grind a rep. Front squat: if the bar slides, let it go forward.',
+  safety: 'Stop 2 reps short on every bar set. Clear floor, bumper plates if you have them, never grind a rep. Front squats: clean the bar up or take it from a rack. If it slides, let it go forward.',
   scale: 'Barbell bench, back squat and deadlift are not offered: they are too risky to take to failure. Beginner: empty bar.',
   note: `${MAX_NOTE} The bar goes down on the floor at the end of every row set.`,
   introSay: 'Tank mode. Rows, push-ups, front squats. Max clean reps. Stop two short on the bar.',

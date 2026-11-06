@@ -482,7 +482,8 @@ check('91 pull-ups say one thing everywhere: step down to the floor, no swinging
   && /step down to the floor/i.test(L.missionDefById('health_bar').safety) && !/drop to the floor/i.test(L.missionDefById('health_bar').safety)
   && M.maxCues('pull-up').length === 2 && M.moveById('pull-up').cues.length === 3 && M.moveById('pull-up').cues[2].startsWith('Kip only if you already can')
   && M.maxCues('jumping-pull-up')[0] === 'A bar low enough to stand under, feet on the floor.' && M.moveById('jumping-pull-up').cues[0].includes('a box beneath it'));
-check('91 the front squat says what to do when the bar slides; the TANK MODE safety card says it too', /let it go forward/.test(M.STOP_RULES['bb-front-squat']) && /let it go forward/.test(L.missionDefById('tank_mode').safety));
+check('91 the front squat says what to do when the bar slides; the TANK MODE safety card says it too, and how the bar gets to the shoulders (clean it or take it from a rack)', /let it go forward/.test(M.STOP_RULES['bb-front-squat']) && /let it go forward/.test(L.missionDefById('tank_mode').safety)
+  && /Front squats: clean the bar up or take it from a rack\./.test(L.missionDefById('tank_mode').safety) && build('tank_mode').safety === L.missionDefById('tank_mode').safety);
 check('91 plain words in the lines read mid-set: no "fist off the floor", no "short of that", no "kip"', !Object.values(M.STOP_RULES).some(r => /fist off|short of that|\bkip\b/i.test(r)) && !/short of that/.test(M.maxStopLine({ moveId: 'push-up', leave: 2 })) && /Stop 2 reps before that\./.test(M.maxStopLine({ moveId: 'push-up', leave: 2 })));
 
 // ── 92 · the cap, zero reps and short sets in the settle ─────────────────────

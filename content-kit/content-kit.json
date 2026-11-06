@@ -3476,7 +3476,7 @@
       "score": "TOTAL REPS, EVERY SET ADDED",
       "tags": [
         "~13 MIN",
-        "HARD",
+        "STANDARD",
         "HOTEL OK",
         "QUIET"
       ],
@@ -3518,14 +3518,14 @@
       "score": "TOTAL REPS, EVERY SET ADDED",
       "tags": [
         "~11 MIN",
-        "HARD"
+        "STANDARD"
       ],
       "themes": [
         "maxout"
       ],
       "moves": [
         "MAX Pull-Ups",
-        "MAX Backpack Romanian Deadlifts",
+        "MAX Backpack Deadlifts",
         "MAX Mountain Climbers"
       ],
       "levels": [
@@ -3557,8 +3557,8 @@
       "mission": "3 ROUNDS · SWINGS · PRESSES · SQUATS · DEAD BUGS · MAX REPS",
       "score": "TOTAL REPS, EVERY SET ADDED",
       "tags": [
-        "~16 MIN",
-        "HARD"
+        "~15 MIN",
+        "STANDARD"
       ],
       "themes": [
         "maxout"
@@ -3567,7 +3567,7 @@
         "MAX Kettlebell Swings",
         "MAX Two-Hand Presses",
         "MAX Goblet Squats",
-        "MAX Kettlebell Dead Bugs"
+        "MAX Dead Bugs"
       ],
       "levels": [
         {
@@ -3599,7 +3599,7 @@
       "score": "TOTAL REPS, EVERY SET ADDED",
       "tags": [
         "~12 MIN",
-        "HARD"
+        "STANDARD"
       ],
       "themes": [
         "maxout"
@@ -3633,13 +3633,13 @@
     {
       "id": "dual_wield",
       "title": "DUAL WIELD",
-      "loadout": "2 DUMBBELLS · FLOOR SPACE · A PULL-UP BAR IF YOU HAVE ONE",
+      "loadout": "2 DUMBBELLS · FLOOR SPACE · A PULL-UP BAR SWAPS IN FOR THE ROWS",
       "format": "MAX REPS",
       "mission": "3 ROUNDS · FLOOR PRESSES · LUNGES · ROWS · PULL-THROUGHS · MAX REPS",
       "score": "TOTAL REPS, EVERY SET ADDED",
       "tags": [
         "~15 MIN",
-        "HARD",
+        "STANDARD",
         "HOTEL OK"
       ],
       "themes": [

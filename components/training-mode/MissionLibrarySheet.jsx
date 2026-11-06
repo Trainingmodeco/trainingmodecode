@@ -102,17 +102,17 @@ function FilterChip({ on, dim, onClick, label, count }) {
     <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-chip ml-chip" onClick={onClick} style={{
       flexShrink: 0, height: 34, padding: '0 4px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
       background: on ? 'rgba(157,108,255,0.22)' : '#16131F', border: `1px solid ${on ? 'rgba(157,108,255,0.55)' : 'transparent'}`,
-      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.04em', opacity: dim ? 0.45 : 1,
+      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.02em', opacity: dim ? 0.45 : 1,
     }}>{label}{count != null && <span style={{ opacity: 0.6 }}> {count}</span>}</button>
   );
 }
 
 // Every chip in view: the five LOADOUT chips and the five THEME chips (MAX OUT is
-// the fifth) each fit one row on a 412px phone, and a narrower one wraps them
-// instead of hiding any off the edge.
+// the fifth) each fit one row on a 390px or 412px phone, and a narrower one wraps
+// them instead of hiding any off the edge.
 function ChipRow({ label, children }) {
   return (
-    <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+    <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
       {children}
     </div>
   );
