@@ -75,7 +75,7 @@
         "start": 7,
         "rate": 1,
         "focusX": 50,
-        "textY": 470
+        "textY": 1430
       }
     ],
     "brollGrade": "app"
@@ -227,12 +227,12 @@
     "Facts: Combo Coach opens on your Fight level (own Fight XP in full, Fit at half); YOUR LEVEL marks it; \"Easy: Single strikes and short combos. Relaxed pace.\"; \"Advanced: Singles to the hardest combos. Fight pace.\"; \"The higher it is, the longer and harder the combos get\"; a picked level is \"for today only\" (ComboCoachSetup, screenGuides cc-difficulty).",
     "No number of punches on screen on purpose. The owner's rule is level 1 never gets more than 4 pieces, but the real level 1 pool tops out at 3 (the Level page prints \"up to 3-strike combos\"), and no combo in the whole pool is longer than 7. So never write \"ten-punch combos\" (nobody gets one), and say \"short\" for level 1.",
     "The level 10 clip athlete must be a level 10 FIGHT athlete (Combo Coach reads the Fight side); the cc-lvl10 setup must show ADVANCED with YOUR LEVEL under it.",
-    "cc clips are 9 s and used about twice each: the hook, b1 and the gold beat re-use setup stretches (start 0.0, 1.2, 5.4). Retime to the real taps."
+    "Footage: each scene's window in the clip is in \"timeline\". The clips are recorded from the live app by npm run app-broll (needs a built export of the app); after the app changes, re-run it and re-check every window."
   ],
   "exports": {
     "video": "exports/2026-11-07-combo-coach-by-level/video.mp4",
     "cover": "exports/2026-11-07-combo-coach-by-level/cover.jpg",
     "seconds": 22.97
   },
-  "renderedAt": "2026-11-07T03:07:47.238Z"
+  "renderedAt": "2026-11-07T03:28:00.603Z"
 }

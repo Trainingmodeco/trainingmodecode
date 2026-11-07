@@ -205,7 +205,7 @@
     "The generated mission at your pace is a count-up circuit: rests are yours and the clock keeps counting, so the reel never says the timer \"ends at N minutes\".",
     "The same moves run either way (\"Runs exactly the workout on the card, GUIDED or AT YOUR PACE\", START guide), which is why the card says \"Same moves\".",
     "\"Your pick is kept\" is in the captions only: the START guide says the choice is kept for next time and START on Fit Mode and Home follows it.",
-    "qm-at-your-pace is the tightest clip (10 s for 4 uses): use its 0.0-2.4 (switch), 2.4-5.8 (moves and timer) and 6.2-9.2 (ROUND tap) stretches once and re-time to the real taps."
+    "Footage: each scene's window in the clip is in \"timeline\". The clips are recorded from the live app by npm run app-broll (needs a built export of the app); after the app changes, re-run it and re-check every window."
   ],
   "exports": {
     "video": "exports/2026-11-07-guided-or-at-your-pace/video.mp4",

@@ -382,6 +382,19 @@ const CLIPS = [
     ],
   },
   {
+    name: 'qm-gear', persona: 'lvl3',
+    note: 'GEAR: taps WEIGHTED, then HYBRID, then back to BODYWEIGHT; the card rebuilds for each kit',
+    prep: [...QM_PAGE, { tapMinute: 10, after: 800 }],
+    steps: [
+      { expect: /\n10 MIN\n/ },
+      { wait: 900 },
+      { tap: { role: 'radio', name: 'WEIGHTED', exact: true }, after: 1500 },
+      { tap: { role: 'radio', name: 'HYBRID', exact: true }, after: 1500 },
+      { tap: { role: 'radio', name: 'BODYWEIGHT', exact: true }, after: 1500 },
+      { wait: 300 },
+    ],
+  },
+  {
     name: 'cc-pick-level', persona: 'rookie',
     note: 'Combo Coach setup for a level 1 athlete: a tap on NORMAL, HARD, then ADVANCED; the line under the levels follows (FOR TODAY ONLY)',
     prep: COMBO_PREP,

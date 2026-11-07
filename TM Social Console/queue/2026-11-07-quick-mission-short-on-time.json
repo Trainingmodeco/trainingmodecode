@@ -27,8 +27,8 @@
     "broll": [
       {
         "src": "raw-footage/app/qm-slider.mp4",
-        "start": 3.2,
-        "rate": 0.5,
+        "start": 3.85,
+        "rate": 0.45,
         "focusX": 50,
         "textY": 985
       },
@@ -47,11 +47,11 @@
         "textY": 985
       },
       {
-        "src": "raw-footage/app/qm-mode-toggle.mp4",
-        "start": 3.55,
-        "rate": 0.6,
+        "src": "raw-footage/app/qm-gear.mp4",
+        "start": 0.7,
+        "rate": 1.45,
         "focusX": 50,
-        "textY": 985
+        "textY": 960
       },
       {
         "src": "raw-footage/app/qm-start-guided.mp4",
@@ -111,7 +111,7 @@
       "text": "Only 8 minutes?",
       "start": 0,
       "seconds": 2.5,
-      "footage": "qm-slider 3.2s to 4.45s at 0.5x"
+      "footage": "qm-slider 3.85s to 4.97s at 0.45x"
     },
     {
       "scene": 1,
@@ -132,7 +132,7 @@
       "text": "Bodyweight, weighted or hybrid.",
       "start": 8.2,
       "seconds": 2.27,
-      "footage": "qm-mode-toggle 3.55s to 4.91s at 0.6x"
+      "footage": "qm-gear 0.7s to 3.99s at 1.45x"
     },
     {
       "scene": 4,
@@ -223,12 +223,12 @@
   "notes": [
     "Not approved and not published. The owner approves every post (npm run approve) after seeing the render and every caption.",
     "Facts: TIME slider 5 to 60 in 1-minute steps and the card rebuilds as it moves (QuickMissionSetup, quickMissionConfig). \"Builds to fit\" only: no \"exactly N minutes\" (weighted sets end on DONE). GEAR = bodyweight, weighted or hybrid (QM_TYPES).",
-    "Clip use: hook scene is the slider landing on 8; the 4 slider scenes walk the same clip in order (start 1.0, 3.6, 6.4, 9.0). Retime to the real clip: the hook wants the knob settling on 8 inside its 2.5 s."
+    "Footage: each scene's window in the clip is in \"timeline\". The clips are recorded from the live app by npm run app-broll (needs a built export of the app); after the app changes, re-run it and re-check every window."
   ],
   "exports": {
     "video": "exports/2026-11-07-quick-mission-short-on-time/video.mp4",
     "cover": "exports/2026-11-07-quick-mission-short-on-time/cover.jpg",
     "seconds": 22.4
   },
-  "renderedAt": "2026-11-07T03:03:08.404Z"
+  "renderedAt": "2026-11-07T03:25:30.328Z"
 }
