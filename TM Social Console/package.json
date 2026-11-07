@@ -28,7 +28,10 @@
     "typecheck": "tsc --noEmit",
     "app-video": "node tools/app-video.mjs",
     "handoff": "node tools/handoff.mjs",
-    "app-broll": "node tools/app-broll.mjs"
+    "app-broll": "node tools/app-broll.mjs",
+    "sync-broll": "node tools/app-broll.mjs --only sync",
+    "align": "node tools/align-audio.mjs",
+    "test:align": "node tools/test-align-audio.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",

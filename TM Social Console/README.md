@@ -83,6 +83,9 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run app-video -- <id>` | put a finished tutorial into the app's Practice Mode (video + poster in the app's `public/static/practice/`, URL into its library and lesson slots) |
 | `npm run handoff -- --log "…"` | send that to the app: an app-only `claude/console-handoff-<date>` branch for the app chat to merge (the console's own code never goes to `app`; HANDOFF.md on `app` is the shared note) |
 | `npm run app-broll -- --only qm-slider,hub` | record the app's own screens as B-roll (1080×1920, silent) → `raw-footage/app/<name>.mp4` |
+| `npm run sync-broll` | record the eight Combo Coach sync videos (one per style and level) with their guide sound and timing sheets → `raw-footage/app/sync/` and `exports/cc-sync/` |
+| `npm run align -- <guide.mp4> <your-clip.mp4>` | find where a guide video sits inside your own recording of it, from the sound |
+| `npm run test:align` | test that on made-up recordings (a table of PASS and FAIL) |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
 | `npm run hf:render -- raw-footage/clip.mp4 9 50 0.5` | render the Rank Ladder over a clip (from 9 s, centred, at half speed) |
@@ -120,6 +123,40 @@ app and the console gets no new dependency.
   (`broll[i].textY`, and `shiftY` to slide a screen's top rows below the HUD),
   and the HUD stays clear of the right 140 px and the bottom 350 px. Without
   `brollGrade`, a post renders exactly as before.
+
+### Combo Coach sync videos (film yourself striking to the app)
+
+`npm run sync-broll` (or `npm run app-broll -- --only cc-sync-boxing-1`) records
+eight videos of the app's real Combo Coach session screen: boxing, kickboxing,
+Muay Thai and MMA, two each (video 1 plays as a level 5 athlete, video 2 as a
+level 10 one). Each runs from the app's own 3-2-1 through ten combos
+(about a minute), with a guide sound: three beeps, the app's boxing bell, and
+the coach's voice calling each combo the moment its words show. You play the
+video out loud, film yourself hitting the bag to it, and the two are lined up
+later from the sound (`npm run align`).
+
+- **Output:** `raw-footage/app/sync/<name>.mp4` (1080×1920, 30 fps, H.264, AAC
+  stereo), copied to `exports/cc-sync/` with `<name>.timing.json` and `.csv`
+  (when each beep, the bell and each call lands, and the strikes of each call in
+  plain words), `FILM-GUIDE.md` (one page for whoever films) and `CALLS.md`
+  (every call of every video). All of it git-ignored.
+- **Options:** `--cadence 4.5` (seconds per combo), `--calls 10` (combos per
+  video), `--voice <name>`, `--no-voice`, `--sync-out <folder>`.
+- **The seeds** are fixed per video (`SYNC_SEEDS` in `tools/app-broll.mjs`): a
+  re-run deals the same combos.
+- **The voice:** the app speaks with the device's voice, which a headless
+  browser has no copy of. The tool stands in for it, lets the app run exactly as
+  it does with a real voice, and speaks each line offline afterwards. It needs a
+  text-to-speech program: on Linux `apt-get install espeak-ng mbrola mbrola-us2`
+  (also tried: flite, Pico, other MBROLA voices; see `VOICES` in
+  `tools/sync-audio.mjs`). Without one the videos still come out, with the
+  beeps, the bell and a tick per call, and the tool says so loudly.
+- **Lining up your clip:** `npm run align -- exports/cc-sync/cc-sync-boxing-1.mp4
+  raw-footage/boxing-1.mp4` prints the second of your clip at which the guide
+  video's 0:00 falls and how sure it is (`--json` writes it too). It reads the
+  sound only, so room noise, bag hits, a lowpassed phone microphone and extra audio
+  before and after do not matter. `npm run test:align` proves that on made-up
+  recordings.
 
 Head tracking (`npm run track`) needs Python once: `winget install
 Python.Python.3.12`, then `py -m pip install mediapipe`. The pose model

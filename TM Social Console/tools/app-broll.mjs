@@ -22,8 +22,30 @@
 //   --concept-art     keep the Concept Program card's art on the hubs (see CONCEPT_CSS)
 //   --keep-frames     keep the captured frames (in the temp folder) for debugging
 //
+// THE SYNC GROUP (--only sync, or one of them: --only cc-sync-boxing-1): eight videos of Combo
+// Coach playing, two for each of boxing, kickboxing, Muay Thai and MMA, with a guide track, so
+// the owner can film themselves striking to the calls and the two be lined up from the sound
+// later (tools/align-audio.mjs). Each is the app's real session screen from its own 3-2-1 to the
+// end of the 10th combo's slot (no end screen): names call style, COMBO mode, warm-up OFF, one
+// round of 1 minute, RUSH off. Video 1 of a discipline is a level 5 athlete (the NORMAL mix),
+// video 2 a level 10 athlete (the ADVANCED mix). They are recorded in real time, because the
+// calls have to land where the app lands them.
+//   --cadence <s>     seconds per combo (default 4.5: a 6-strike combo is doable on a bag)
+//   --calls <n>       combos per video (default 10)
+//   --voice <name>    the speech engine (default: the first one installed, see tools/sync-audio.mjs)
+//   --no-voice        no speech engine: beeps, bell and a tick per call (a silent-voice guide)
+//   --sync-out <dir>  where the guide videos, timing sheets and the two pages are copied
+//                     (default exports/cc-sync; the videos themselves go to <out>/sync)
+//   --app-commit <x>  the app's commit as written in the sheets (default: read from the dist's git)
+// The SEEDS are fixed per video (SYNC_SEEDS below) and are what makes a re-run deal the same combos.
+// The app speaks with the device's speech synthesis, which a headless browser does not have: a
+// stand-in (SPEECH_PAGE) takes its place, tells the app each line took as long as it really takes
+// to say (so the app's own flow runs as it does with a real voice), and logs every line with its
+// time; the lines are then spoken offline (tools/sync-audio.mjs) and mixed on the video's timeline.
+//
 // Needs ffmpeg on the PATH (npm run doctor checks it; libx264, and the fps and
-// tile filters for --contact) and a built export of the app. No music, no audio.
+// tile filters for --contact) and a built export of the app. No music. The clips are silent
+// except the sync group, whose guide track is beeps, the app's bell and the coach's voice.
 //
 // Re-run it whenever the app changes: the choreography reads the app's own
 // words (`expect` and `waitText` steps stop a clip that no longer shows what it
@@ -60,7 +82,10 @@ import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import { createRequire } from 'node:module';
-import { REPO, RAW, ffmpeg, ffprobe } from './lib.mjs';
+import { spawnSync } from 'node:child_process';
+import { REPO, RAW, EXPORTS, ROOT, ffmpeg, ffprobe } from './lib.mjs';
+import * as SA from './sync-audio.mjs';
+import * as SS from './sync-sheet.mjs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The picture: what the app is shown at.
@@ -132,6 +157,9 @@ const PERSONAS = {
   lvl10: { name: NAME, stats: athlete({ fit: 4500, fitSessions: 47, fight: 400, fightSessions: 10, other: 60 }) },
   // Level 10 on the Fight side (4,960 XP, mostly Fight): Combo Coach opens on ADVANCED.
   fight10: { name: NAME, stats: athlete({ fit: 350, fitSessions: 4, fight: 4550, fightSessions: 53, other: 60 }) },
+  // Level 5 on the Fight side (2,350 XP, mostly Fight: 2,150 of it from Fight sessions, so the Fight
+  // XP counts 2,150 in full and the other 200 at half = 2,250): Combo Coach opens on NORMAL.
+  fight5: { name: NAME, stats: athlete({ fit: 150, fitSessions: 2, fight: 2150, fightSessions: 26, other: 50 }) },
 };
 
 // Run in the page before the app boots, once per capture: the finished
@@ -139,7 +167,7 @@ const PERSONAS = {
 // athlete. The combo-streak record is written up to date so the app does not
 // replay the history and pay out milestone XP on the first load. The saved
 // Quick Mission choices are the app's own defaults, so every run starts alike.
-function seedPage({ stats, name, seed }) {
+function seedPage({ stats, name, seed, profile }) {
   // The app's random numbers (which workout a minute deals) from a seed, so a
   // re-run shows the same workouts. Set on every page load.
   let a = seed >>> 0;
@@ -155,7 +183,9 @@ function seedPage({ stats, name, seed }) {
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   set('trainingModeOnboardingComplete', 'true');
   set('trainingModeTourComplete', 'true');
-  set('tm_user_profile', { name, sex: 'male', age: '', heightVal: '', heightUnit: 'FT/IN', weightVal: '', weightUnit: 'LBS', experience: 'Some Training', goal: 'Train Like a Fighter', specialty: '', voiceCoach: 'FEMALE', coachStyle: 'STANDARD', encouragement: 'normal', callStyle: 'names', discipline: 'Boxing' });
+  // `profile` overrides a few of the app's own settings for the clips that need them (the sync videos:
+  // the discipline, and the coach's between-combo encouragement turned OFF, the app's own setting).
+  set('tm_user_profile', { name, sex: 'male', age: '', heightVal: '', heightUnit: 'FT/IN', weightVal: '', weightUnit: 'LBS', experience: 'Some Training', goal: 'Train Like a Fighter', specialty: '', voiceCoach: 'FEMALE', coachStyle: 'STANDARD', encouragement: 'normal', callStyle: 'names', discipline: 'Boxing', ...(profile || {}) });
   set('tm_arcade_intro_seen', {});
   set('tm_camp_parq', { done: true, anyYes: false, ts: Date.now() });
   set('tm_practice_invite_v1', { introShownAt: new Date().toISOString() });
@@ -549,6 +579,169 @@ function finishBossRush(reps) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// The sync group: Combo Coach playing, with a guide track (see the header).
+// ─────────────────────────────────────────────────────────────────────────────
+// Video 1 of a discipline is a level 5 Fight athlete (Combo Coach opens on NORMAL), video 2 a level
+// 10 one (ADVANCED). The SEED is the app's random numbers, set just before START: same seed, same
+// combos (the dealer takes its random numbers from it). Different seeds per video, so two videos of
+// a discipline deal different combos, and fixed here so a re-run deals the same ones. The pool of a
+// discipline is 68 combos (MMA 74); a video uses ten.
+const SYNC_DISCIPLINES = [
+  { slug: 'boxing', name: 'Boxing' },
+  { slug: 'kickboxing', name: 'Kickboxing' },
+  { slug: 'muaythai', name: 'Muay Thai' },
+  { slug: 'mma', name: 'MMA' },
+];
+const SYNC_LEVELS = [
+  { n: 1, persona: 'fight5', level: 5, difficulty: 'NORMAL', line: /NORMAL: Longer combos/ },
+  { n: 2, persona: 'fight10', level: 10, difficulty: 'ADVANCED', line: /ADVANCED: Singles to the hardest/ },
+];
+const SYNC_SEEDS = {
+  'cc-sync-boxing-1': 1101, 'cc-sync-boxing-2': 1102,
+  'cc-sync-kickboxing-1': 2101, 'cc-sync-kickboxing-2': 2102,
+  'cc-sync-muaythai-1': 3101, 'cc-sync-muaythai-2': 3102,
+  'cc-sync-mma-1': 4101, 'cc-sync-mma-2': 4102,
+};
+
+// The app's random numbers from a seed (mulberry32, as the dealer's own). Run in the page.
+const RESEED = (seed) => `(() => { let a = ${seed} >>> 0; Math.random = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })()`;
+
+// The setup screen as the guide needs it, checked in the page: a mistake here would record the
+// wrong session. `want` = { rounds, roundMin, cadence, difficulty }.
+const SETUP_OK = (want) => `((want) => {
+  const val = (l) => (document.querySelector('input[aria-label="' + l + '"]') || {}).value;
+  const on = (g) => [...document.querySelectorAll('[role="radiogroup"][aria-label="' + g + '"] [role="radio"][aria-checked="true"]')];
+  const bad = [];
+  if (val('WARM-UP') !== 'OFF') bad.push('WARM-UP is ' + val('WARM-UP'));
+  if (val('ROUNDS') !== String(want.rounds)) bad.push('ROUNDS is ' + val('ROUNDS'));
+  if (val('ROUND LENGTH') !== '1:00') bad.push('ROUND LENGTH is ' + val('ROUND LENGTH'));
+  if (Number(val('CADENCE')) !== want.cadence) bad.push('CADENCE is ' + val('CADENCE'));
+  const mode = on('MODE').map((b) => b.textContent.trim());
+  if (mode[0] !== 'COMBO') bad.push('MODE is ' + mode[0]);
+  const call = on('CALL STYLE').map((b) => b.textContent.trim());
+  if (call[0] !== 'NAMES') bad.push('CALL STYLE is ' + call[0]);
+  const diff = on('Difficulty')[0];
+  if (!diff || !new RegExp('^' + want.difficulty, 'i').test(diff.getAttribute('aria-label') || '')) bad.push('DIFFICULTY is not ' + want.difficulty);
+  else if (!diff.querySelector('[data-your-level]')) bad.push('DIFFICULTY is not the own level of the athlete');
+  if (!/Tap to add all-out surges/.test(document.body.innerText)) bad.push('RUSH MODE is on');
+  if (bad.length) throw new Error('the setup is not what the guide needs: ' + bad.join(', '));
+})(${JSON.stringify(want)})`;
+
+// The speech stand-in, run in the page before the app boots (see the header). The app calls
+// speechSynthesis.speak(utterance); this asks the recorder (window.__tmSay) how long the line takes
+// to say, tells the app it started, and tells it it ended that long after: the app's own flow (it
+// waits for each call to be spoken) runs exactly as it does with a real voice. Every line is logged
+// with the time it began. A MutationObserver logs every element that fades up (the 3-2-1, ROUND 1,
+// GO, each combo call) with the time it was added: the moment its text shows. Both clocks are
+// epoch milliseconds, the clock the screencast's frames are stamped with.
+function speechPage() {
+  const now = () => performance.timeOrigin + performance.now();
+  const log = [], events = [];
+  window.__tmSpeechLog = log;
+  window.__tmEvents = events;
+  const watch = () => {
+    new MutationObserver((muts) => {
+      const t = now();
+      for (const m of muts) {
+        for (const n of m.addedNodes) {
+          if (n.nodeType !== 1) continue;
+          const hit = n.classList && n.classList.contains('anim-fade-up') ? n : (n.querySelector && n.querySelector('.anim-fade-up'));
+          if (hit) events.push({ t, text: (hit.textContent || '').replace(/\s+/g, ' ').trim() });
+        }
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  if (document.documentElement) watch(); else document.addEventListener('DOMContentLoaded', watch);
+
+  class Utter {
+    constructor(text = '') {
+      this.text = String(text); this.lang = ''; this.voice = null; this.volume = 1; this.rate = 1; this.pitch = 1;
+      this.onstart = this.onend = this.onerror = this.onboundary = this.onpause = this.onresume = this.onmark = null;
+      this._l = {};
+    }
+    addEventListener(type, fn) { (this._l[type] = this._l[type] || []).push(fn); }
+    removeEventListener(type, fn) { this._l[type] = (this._l[type] || []).filter((f) => f !== fn); }
+    dispatchEvent() { return true; }
+  }
+  const fire = (u, type, extra) => {
+    const e = Object.assign({ type, utterance: u, charIndex: 0, charLength: 0, elapsedTime: 0, name: '' }, extra || {});
+    try { if (typeof u['on' + type] === 'function') u['on' + type](e); } catch (err) { console.error(err); }
+    for (const f of u._l[type] || []) { try { f(e); } catch (err) { console.error(err); } }
+  };
+  const voices = [{ name: 'Google UK English Female', lang: 'en-GB', default: true, localService: true, voiceURI: 'Google UK English Female' }];
+  let queue = [], current = null, timer = null, paused = false;
+  const startNext = async () => {
+    if (current || !queue.length) return;
+    const u = (current = queue.shift());
+    let info;
+    try { info = await window.__tmSay(u.text, u.rate, u.volume); } catch (err) { info = { ms: 500 }; }
+    if (current !== u) return; // cancelled while the recorder was working out how long it takes
+    const entry = { text: u.text, rate: u.rate, volume: u.volume, t: now(), ms: info.ms };
+    log.push(entry);
+    fire(u, 'start');
+    timer = setTimeout(() => {
+      if (current !== u) return;
+      current = null; timer = null;
+      fire(u, 'end', { elapsedTime: info.ms / 1000 });
+      startNext();
+    }, info.ms);
+    u.__entry = entry;
+  };
+  const synth = {
+    speak(u) { queue.push(u); startNext(); },
+    cancel() {
+      const q = queue; queue = [];
+      const u = current;
+      if (u) {
+        current = null; clearTimeout(timer); timer = null;
+        if (u.__entry) u.__entry.cut = Math.round(now() - u.__entry.t); // stopped early: the sound is cut there
+        fire(u, 'error', { error: 'canceled' });
+      }
+      for (const x of q) fire(x, 'error', { error: 'canceled' });
+    },
+    pause() { paused = true; }, resume() { paused = false; },
+    getVoices() { return voices; },
+    get speaking() { return !!current; }, get pending() { return queue.length > 0; }, get paused() { return paused; },
+    onvoiceschanged: null,
+    addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
+  };
+  Object.defineProperty(window, 'SpeechSynthesisUtterance', { value: Utter, configurable: true, writable: true });
+  Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true, writable: true });
+}
+
+// The prep and steps of one sync video. They read the options (cadence, calls) when the clip is
+// recorded, so a clip is only data until then.
+const SYNC_ROUNDS = 1, SYNC_ROUND_MIN = 1;
+function syncClip(d, lv) {
+  const name = `cc-sync-${d.slug}-${lv.n}`;
+  return {
+    name, group: 'sync', persona: lv.persona,
+    note: `Combo Coach, ${d.name}, level ${lv.level} (${lv.difficulty}): the 3-2-1, then 10 combos by voice, with the guide track`,
+    profile: { discipline: d.name, encouragement: 'off', callStyle: 'names' },
+    sync: { discipline: d.name, slug: d.slug, level: lv.level, difficulty: lv.difficulty, seed: SYNC_SEEDS[name] },
+    build: (o) => ({
+      prep: [
+        ...FIGHT_HUB,
+        { tap: '[data-guide="fh-combo"]' }, { waitText: /STARTS AT YOUR LEVEL/, timeout: 20000 }, { wait: 700 },
+        { expect: lv.line },
+        { stepTo: 'ROUNDS', value: SYNC_ROUNDS, parse: 'num' },
+        { stepTo: 'ROUND LENGTH', value: SYNC_ROUND_MIN, parse: 'mmss' },
+        { stepTo: 'CADENCE', value: o.cadence, parse: 'num' },
+        { wait: 500 },
+        { eval: SETUP_OK({ rounds: SYNC_ROUNDS, cadence: o.cadence, difficulty: lv.difficulty }) },
+        { wait: 400 },
+      ],
+      steps: [
+        { eval: RESEED(SYNC_SEEDS[name]) },
+        { tap: { role: 'button', name: /START COMBOS/ }, hold: 140, after: 0 },
+        { syncWait: o.calls },
+      ],
+    }),
+  };
+}
+for (const d of SYNC_DISCIPLINES) for (const lv of SYNC_LEVELS) CLIPS.push(syncClip(d, lv));
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Plumbing: arguments, the file server, the browser.
 // ─────────────────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -565,7 +758,8 @@ if (has('--help') || has('-h')) {
   process.exit(0);
 }
 if (has('--list')) {
-  for (const c of CLIPS) console.log(`${c.name.padEnd(18)} ${c.persona.padEnd(8)} ${c.note}`);
+  for (const c of CLIPS) console.log(`${c.name.padEnd(22)} ${c.persona.padEnd(8)} ${c.note}`);
+  console.log('\n"--only sync" records the eight cc-sync-* videos (see --help).');
   process.exit(0);
 }
 
@@ -573,9 +767,17 @@ const DIST = path.resolve(arg('--dist') || path.join(REPO, 'dist'));
 const OUT = path.resolve(arg('--out') || path.join(RAW, 'app'));
 const CONTACT = arg('--contact') ? path.resolve(arg('--contact')) : null;
 const SEED = Number(arg('--seed') ?? 7);
-const chosen = arg('--only') ? arg('--only').split(',').map((s) => s.trim()).filter(Boolean) : null;
-if (chosen) for (const n of chosen) if (!CLIPS.some((c) => c.name === n)) die(`no clip "${n}". Clips: ${CLIPS.map((c) => c.name).join(', ')}`);
+const GROUPS = Object.fromEntries([...new Set(CLIPS.map((c) => c.group).filter(Boolean))].map((g) => [g, CLIPS.filter((c) => c.group === g).map((c) => c.name)]));
+const chosen = arg('--only') ? arg('--only').split(',').map((s) => s.trim()).filter(Boolean).flatMap((n) => GROUPS[n] || [n]) : null;
+if (chosen) for (const n of chosen) if (!CLIPS.some((c) => c.name === n)) die(`no clip "${n}". Clips: ${CLIPS.map((c) => c.name).join(', ')}. Groups: ${Object.keys(GROUPS).join(', ')}`);
 const todo = CLIPS.filter((c) => !chosen || chosen.includes(c.name));
+// The sync group's options.
+const CADENCE = Number(arg('--cadence') ?? 4.5);
+const CALLS = Number(arg('--calls') ?? 10);
+if (!(CADENCE >= 2 && CADENCE <= 8 && Math.round(CADENCE * 2) === CADENCE * 2)) die('--cadence is in seconds, from 2 to 8 in steps of 0.5 (the app\'s own CADENCE stepper).');
+if (!(Number.isInteger(CALLS) && CALLS >= 1 && CALLS <= 12)) die('--calls is the number of combos per sync video, 1 to 12.');
+const SYNC_OUT = path.resolve(arg('--sync-out') || path.join(EXPORTS, 'cc-sync'));
+if (todo.some((c) => c.sync) && CALLS * CADENCE + 9 > 57) die(`${CALLS} combos at ${CADENCE} s do not fit in the one-minute round (the coach goes quiet in its last 3 s). Use fewer --calls or a shorter --cadence.`);
 if (!fs.existsSync(path.join(DIST, 'index.html'))) die(`${path.join(DIST, 'index.html')} not found. Build the app first (npm run build:web in the app) or pass --dist <dir>.`);
 
 // playwright-core: the app repo's, found from the console folder's parent.
@@ -702,7 +904,7 @@ class Recorder {
     let shift = 0;
     return this.frames.map((f) => {
       if (f.cut !== undefined) shift = f.cut;
-      return { t: f.ts - shift - this.t0, file: f.file };
+      return { t: f.ts - shift - this.t0, ts: f.ts, file: f.file };
     });
   }
 }
@@ -739,6 +941,29 @@ async function minuteX(page, minutes) {
   if (!r) throw new Error('the TIME slider is not on screen');
   const MIN = 5, MAX = 60, KNOB = 28; // QM_TIME_MIN, QM_TIME_MAX, THUMB
   return { x: r.x + KNOB / 2 + ((minutes - MIN) / (MAX - MIN)) * (r.width - KNOB), y: r.y + r.height / 2 };
+}
+
+// What the screen showed in a sync clip, from the page's log of every element that faded up:
+// the count-in digits, ROUND 1, GO and each call (a combo, or a slip / roll / check / pivot / sprawl
+// call, which the app writes in capitals with a "!").
+const SYNC_NOT_CALL = /^([123]|ROUND \d+|GO|MULTIPLE OPPONENTS)$/;
+const SYNC_DEFENCE = /^[A-Z ]+!$/;
+function syncEvents(events) {
+  const out = { count: [], round: null, go: null, calls: [] };
+  for (const e of events) {
+    if (/^[123]$/.test(e.text)) { if (!out.count.some((x) => x.text === e.text)) out.count.push(e); }
+    else if (/^ROUND \d+$/.test(e.text)) out.round = out.round || e;
+    else if (e.text === 'GO') out.go = out.go || e;
+    else if (SYNC_NOT_CALL.test(e.text)) continue;
+    else {
+      // The first combo is added twice, a few ms apart (when the count-in clears, then when the call
+      // loop starts): the first one is when it shows.
+      const prev = out.calls[out.calls.length - 1];
+      if (prev && prev.text === e.text && e.t - prev.t < 250) continue;
+      out.calls.push({ ...e, defence: SYNC_DEFENCE.test(e.text) });
+    }
+  }
+  return out;
 }
 
 const OPS = {
@@ -789,6 +1014,34 @@ const OPS = {
     }
     throw new Error(`jumped the clock and never saw ${re}`);
   },
+  // A stepper row (ROUNDS, ROUND LENGTH, CADENCE) to a value, by its own - and + buttons.
+  stepTo: async (c, label, s) => {
+    const read = async () => {
+      const v = await c.page.locator(`input[aria-label="${label}"]`).inputValue();
+      const m = /^(\d+):(\d\d)$/.exec(v);
+      return s.parse === 'mmss' && m ? Number(m[1]) + Number(m[2]) / 60 : Number(v);
+    };
+    let v = await read();
+    for (let i = 0; i < 40 && Math.abs(v - s.value) > 1e-6; i++) {
+      await OPS.tap(c, { role: 'button', name: `${v < s.value ? 'Increase' : 'Decrease'} ${label.toLowerCase()}`, exact: true }, {});
+      await sleep(260);
+      v = await read();
+    }
+    if (Math.abs(v - s.value) > 1e-6) throw new Error(`${label} would not reach ${s.value}: it says ${v}`);
+  },
+  // The sync videos: wait (in real time) until the n-th combo has had its whole slot, that is until
+  // the call after it has appeared on screen (the next combo, or a slip / roll call).
+  syncWait: async (c, n) => {
+    const until = Date.now() + (n + 4) * CADENCE * 1000 + 30000;
+    for (;;) {
+      const { calls } = syncEvents(await c.page.evaluate(() => window.__tmEvents));
+      let k = 0, at = -1;
+      calls.forEach((x, i) => { if (!x.defence && ++k === n && at < 0) at = i; });
+      if (at >= 0 && calls.length > at + 1) return;
+      if (Date.now() > until) throw new Error(`waited for ${n} combos and the screen showed ${k}`);
+      await sleep(100);
+    }
+  },
   hide: async (c, steps) => {
     if (c.rec) await c.rec.pause();
     try { await run(c, steps); } finally { if (c.rec) await c.rec.resume(); }
@@ -815,21 +1068,24 @@ async function recordClip(browser, clip) {
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: SCALE, isMobile: true, hasTouch: true, serviceWorkers: 'block', locale: 'en-US' });
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), `tm-broll-${clip.name}-`));
   try {
-    await ctx.addInitScript(seedPage, { stats: persona.stats, name: persona.name, seed: SEED });
+    await ctx.addInitScript(seedPage, { stats: persona.stats, name: persona.name, seed: clip.sync ? clip.sync.seed : SEED, profile: clip.profile });
     await ctx.addInitScript(fxPage, { css: BASE_CSS + (has('--concept-art') ? '' : CONCEPT_CSS), rgb: GOLD });
+    if (clip.sync) await startSync(ctx, clip, persona);
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)));
     const cdp = await ctx.newCDPSession(page);
     if (clip.clock) await page.clock.install();
     const c = { page, cdp, finger: new Finger(cdp), rec: null };
-    await run(c, clip.prep || []);
+    const built = clip.build ? clip.build({ cadence: CADENCE, calls: CALLS }) : null;
+    await run(c, built ? built.prep : clip.prep || []);
     const rec = new Recorder(page, cdp, frames);
     await rec.start();
     c.rec = rec;
-    await run(c, clip.steps);
+    await run(c, built ? built.steps : clip.steps);
     await rec.stop();
     if (errors.length) console.log(`   (page errors: ${[...new Set(errors)].join(' / ')})`);
+    if (clip.sync) return await finishSync(clip, persona, rec, page, frames);
     return encode(clip, rec.timeline(), frames);
   } finally {
     await ctx.close().catch(() => {});
@@ -838,10 +1094,226 @@ async function recordClip(browser, clip) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// The sync videos: the speech stand-in's bridge, and what is made once the session is captured.
+// ─────────────────────────────────────────────────────────────────────────────
+let VOICE = null, BANK = null; // the speech engine and its phrases (set in main, null with --no-voice)
+const LAG = 0;                 // seconds from a DOM change to the first frame that shows it: measured, see the README
+
+// The athlete's Fight level, by the app's rule (data/athleteLevel.js): the Fight XP in full, every
+// other XP at half, 500 XP a level. A check on the persona; the setup screen's own YOUR LEVEL is the proof.
+function fightLevel(stats) {
+  const total = Number(stats?.xp) || 0;
+  let own = 0;
+  for (const r of stats?.sessions || []) if (/Combo Coach|Fight Focus|Practice/.test(r.type)) own += Number(r.xpEarned) || 0;
+  own = Math.min(own, total);
+  return Math.floor((own + (total - own) * 0.5) / 500) + 1;
+}
+
+// How fast a line is said: the app's rate, and the round announcement a little quicker (a call is
+// the coach's job at the pace of the cadence, "Round 1. Boxing. 4.5 second cadence." is patter).
+const lineRate = (text, rate) => (rate || 1) * (/^round \d/i.test(String(text).trim()) ? 1.15 : 1);
+
+// The page asks how long a line takes to say. The count-in digits and the primer are not mixed.
+function syncSay(text, rate) {
+  const t = String(text || '').trim();
+  if (!t) return { ms: 30 };                // the silent line that wakes the engine
+  if (/^[123]$/.test(t)) return { ms: 300 }; // the app's spoken 3 - 2 - 1: the guide has beeps instead
+  if (!BANK) return { ms: Math.round(Math.max(500, t.split(/\s+/).length * 420) / Math.max(0.5, lineRate(t, rate))) };
+  return { ms: BANK.say(t, lineRate(t, rate)).ms };
+}
+
+async function startSync(ctx, clip, persona) {
+  const level = fightLevel(persona.stats);
+  if (level !== clip.sync.level) throw new Error(`persona ${clip.persona} is a level ${level} Fight athlete; ${clip.name} needs level ${clip.sync.level}`);
+  await ctx.addInitScript(speechPage);
+  await ctx.exposeFunction('__tmSay', syncSay);
+}
+
+// The app's commit as written in the sheets: the git commit of the folder the export was built in.
+function appCommit() {
+  if (arg('--app-commit')) return arg('--app-commit');
+  for (const dir of [DIST, path.dirname(DIST), REPO]) {
+    const r = spawnSync('git', ['-C', dir, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' });
+    if (r.status === 0 && r.stdout.trim()) return r.stdout.trim();
+  }
+  return 'unknown';
+}
+
+// Of the captured frames around an event (epoch seconds), the index of the first whose picture is
+// different from the one before, in the part of the screen the change is in (the ring and the count-in
+// number: the top 55% under the title bar). Each frame is read as a 90 x 160 gray picture.
+function firstChangedFrame(timeline, sec) {
+  const lo0 = timeline.findIndex((f) => f.ts >= sec - 0.04);
+  if (lo0 < 1) return null;
+  let hi = timeline.findIndex((f) => f.ts >= sec + 0.3);
+  if (hi < 0) hi = timeline.length - 1;
+  const lo = lo0 - 1, n = hi - lo + 1;
+  if (n < 3) return null;
+  const first = path.basename(timeline[lo].file);
+  const m = /^(.*?)(\d+)\.jpg$/.exec(first);
+  const W = 90, H = 160;
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-start_number', String(Number(m[2])), '-i', path.join(path.dirname(timeline[lo].file), `${m[1]}%0${m[2].length}d.jpg`), '-frames:v', String(n), '-vf', `scale=${W}:${H}:flags=area,format=gray`, '-f', 'rawvideo', '-'], { maxBuffer: 1 << 26 });
+  if (r.status !== 0 || r.stdout.length < n * W * H) return null;
+  const px = r.stdout;
+  const diff = [];
+  for (let k = 1; k < n; k++) {
+    let s = 0, c = 0;
+    for (let y = Math.floor(H * 0.1); y < Math.floor(H * 0.55); y++) for (let x = 0; x < W; x++) { s += Math.abs(px[k * W * H + y * W + x] - px[(k - 1) * W * H + y * W + x]); c++; }
+    diff.push(s / c);
+  }
+  const top = Math.max(...diff);
+  if (top < 0.5) return null;
+  return lo + 1 + diff.findIndex((d) => d >= top * 0.5);
+}
+
+const norm = (t) => String(t).toLowerCase().replace(/[^a-z0-9. ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const r3 = (x) => Math.round(x * 1000) / 1000;
+
+async function finishSync(clip, persona, rec, page, frames) {
+  const { events, speech } = await page.evaluate(() => ({ events: window.__tmEvents, speech: window.__tmSpeechLog }));
+  if (has('--keep-frames')) fs.writeFileSync(path.join(frames, 'events.json'), JSON.stringify({ events, speech, frames: rec.timeline().map((f) => [f.ts, f.t]) }));
+  const ev = syncEvents(events);
+  if (ev.count.length < 3 || !ev.round || !ev.go) throw new Error(`the count-in did not show 3, 2, 1, ROUND, GO (the screen showed ${events.map((e) => e.text).slice(0, 8).join(' | ')})`);
+  const timeline = rec.timeline();
+  // The capture second of the first frame that SHOWS what the page changed at epoch ms `ms`. A change
+  // reaches a captured frame one to four 60 Hz frames after the page makes it (and not by a fixed
+  // amount), so the frames near the event are looked at: the first whose picture changed.
+  const visible = (ms) => {
+    const i = firstChangedFrame(timeline, ms / 1000);
+    if (i === null) throw new Error('no captured frame shows what the page did');
+    return timeline[i].t;
+  };
+  const t0 = visible(ev.count[0].t);
+  // The video second at which that frame starts to show: the first 30 fps tick that picks it.
+  const at = (ms) => Math.ceil((visible(ms) - t0) * FPS - 0.5 - 1e-6) / FPS;
+
+  // The calls: the first CALLS combos, with the defence calls between, and the call after the last
+  // one, where the video ends (so the last combo has its whole slot).
+  let k = 0, last = -1;
+  ev.calls.forEach((c, i) => { if (!c.defence && ++k === CALLS && last < 0) last = i; });
+  if (last < 0 || ev.calls.length <= last + 1) throw new Error(`only ${k} combos were dealt`);
+  const length = at(ev.calls[last + 1].t);
+  const used = ev.calls.slice(0, last + 1).map((c) => ({ ...c, startSec: at(c.t) }));
+  const dealt = used.filter((c) => !c.defence).map((c) => c.text);
+  if (new Set(dealt).size !== dealt.length) throw new Error(`a combo came twice in one video: ${dealt.join(' / ')}`);
+
+  // Every line the app spoke, matched to the screen event it belongs to.
+  const lines = [];
+  const free = [...used];
+  for (const e of speech) {
+    const t = norm(e.text);
+    if (!t || /^[123]$/.test(t)) continue;
+    let place = null, kind = 'other';
+    if (/^round \d/.test(t)) { place = at(ev.round.t); kind = 'round'; }
+    else if (/^go$/.test(t)) { place = at(ev.go.t); kind = 'go'; }
+    else {
+      const i = free.findIndex((c) => norm(c.text) === t && e.t - c.t >= -50 && e.t - c.t < 1500);
+      if (i >= 0) { place = free[i].startSec; kind = 'call'; free[i].spoken = e.text; free[i].lineMs = e.cut ?? e.ms; free.splice(i, 1); }
+    }
+    if (place === null) continue; // a line outside the video (after its end) or not part of it
+    if (place >= length) continue;
+    lines.push({ at: place, text: e.text, rate: e.rate, ms: e.cut ?? e.ms, kind });
+  }
+
+  // The count-in beeps sit where the app says "3", "2", "1" (one a second, exactly: the first digit
+  // is spoken a moment after its number shows), measured on the page's own clock from the first number.
+  const said = speech.filter((e) => /^[123]$/.test(String(e.text).trim())).slice(0, 3);
+  if (said.length < 3) throw new Error('the app did not count 3, 2, 1');
+  const beeps = said.map((e) => r3((e.t - ev.count[0].t) / 1000));
+
+  // The sheet.
+  const calls = [];
+  for (let i = 0; i < used.length; i++) {
+    const c = used[i], next = i + 1 < used.length ? used[i + 1].startSec : length;
+    const counts = c.defence ? { pieceCount: 1, strikeCount: 0 } : await SS.countOf(c.text);
+    const strikes = c.defence ? [SS.plainPiece(c.text.replace(/!$/, '').toLowerCase())] : await SS.plainStrikes(c.text);
+    const ms = c.lineMs ?? 0;
+    calls.push({
+      index: i + 1, kind: c.defence ? 'defence' : 'combo', text: c.text, spoken: c.spoken ?? null,
+      strikeCount: counts.strikeCount, pieceCount: counts.pieceCount,
+      startSec: c.startSec, speechEndSec: r3(c.startSec + ms / 1000), nextCallSec: next, windowSec: r3(next - c.startSec),
+      strikes, plain: strikes.join(', '),
+    });
+  }
+  const sheet = {
+    name: clip.name, discipline: clip.sync.discipline, athleteLevel: clip.sync.level, difficulty: clip.sync.difficulty,
+    cadenceSec: CADENCE, seed: clip.sync.seed, appCommit: appCommit(),
+    durationSec: length, goAtSec: at(ev.go.t), countInBeepsAtSec: beeps,
+    roundAnnouncementAtSec: at(ev.round.t),
+    voice: VOICE ? { id: VOICE.name, engine: VOICE.label } : null,
+    calls,
+  };
+
+  // The picture, then the guide track, then both in one file.
+  const dir = path.join(OUT, 'sync');
+  const silent = path.join(frames, `${clip.name}.silent.mp4`);
+  const tl = timeline.filter((f) => f.t >= t0 - 1e-9).map((f) => ({ ...f, t: f.t - t0 }));
+  const enc = encode(clip, tl, frames, { length, out: silent, quiet: true, exact: true });
+  const final = path.join(dir, `${clip.name}.mp4`);
+  const elements = [
+    ...sheet.countInBeepsAtSec.map((x) => ({ at: x, want: x, pcm: SA.beepPcm(), what: 'beep' })),
+    { at: sheet.goAtSec, want: sheet.goAtSec, pcm: SA.bellPcm(), what: 'bell' },
+  ];
+  for (const l of lines) {
+    if (BANK) {
+      const said = BANK.say(l.text, lineRate(l.text, l.rate));
+      let pcm = said.pcm;
+      if (l.ms < pcm.length / SA.SR * 1000 - 5) { // stopped early: cut there with a short fade
+        pcm = pcm.slice(0, Math.round((l.ms / 1000) * SA.SR));
+        const f = Math.min(pcm.length, Math.round(0.01 * SA.SR));
+        for (let i = 0; i < f; i++) pcm[pcm.length - 1 - i] *= i / f;
+      }
+      // the voice starts early by its own soft attack, so the moment it SOUNDS is the moment the words show
+      const early = Math.min(l.at, said.onset ?? 0);
+      elements.push({ at: r3(l.at - early), want: l.at, pcm, what: l.kind, text: l.text });
+      l.placedAt = r3(l.at - early);
+    } else if (l.kind === 'call') elements.push({ at: l.at, want: l.at, pcm: SA.tickPcm(), what: 'tick', text: l.text });
+  }
+  fs.mkdirSync(dir, { recursive: true });
+  const wav = path.join(frames, `${clip.name}.guide.wav`);
+  const mix = SA.mixGuide(elements, length, wav);
+  ffmpeg(['-i', silent, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', '-t', String(length), '-movflags', '+faststart', final]);
+
+  // The check, on the finished file (AAC and all): every sound is read back and found where the sheet says.
+  // (1) cross-correlated against the sound that was put there (placement, to a sample); (2) its onset, the
+  // way a person hears it begin (SA.onsetOf), within 20 ms of the moment the words show. A sound that
+  // another one plays over (the "Go!" on the bell) cannot be found on its own and is skipped.
+  const pcm = SA.decodeTrack(final);
+  const spans = elements.map((el) => [el.at, el.at + el.pcm.length / SA.SR]);
+  let worst = 0, worstLag = 0, n = 0, weak = null;
+  for (const [i, el] of elements.entries()) {
+    const over = elements.filter((o, j) => j !== i && spans[j][0] < spans[i][1] && spans[j][1] > spans[i][0]);
+    if (over.length && !(el.what === 'call' && over.every((o) => o.what === 'bell'))) continue; // the first call rides on the bell's quiet tail
+    const { lag, match } = SA.lagOf(pcm, el.pcm, el.at);
+    if (match < 0.5 && el.what !== 'call') weak = weak || `${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.at} s (match ${match.toFixed(2)})`;
+    worstLag = Math.max(worstLag, Math.abs(lag));
+    const on = SA.onsetNear(pcm, Math.max(0, el.want - 0.2), 0.6);
+    if (on === null) throw new Error(`no sound where the guide has a ${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.want} s`);
+    el.heard = on;
+    worst = Math.max(worst, Math.abs(on - el.want)); n++;
+  }
+  if (weak) throw new Error(`the finished file does not hold the sound the guide put at ${weak}`);
+  if (worstLag > 0.01) throw new Error(`the sound in the file is ${Math.round(worstLag * 1000)} ms from where it was placed (limit 10 ms)`);
+  if (worst > 0.02) throw new Error(`a sound is heard ${Math.round(worst * 1000)} ms from the moment its words show (limit 20 ms)`);
+  for (const c of calls) { const el = elements.find((x) => x.what === 'call' && x.want === c.startSec); if (el && el.heard !== undefined) c.audioOnsetSec = r3(el.heard); }
+  const info = ffprobe(['-show_entries', 'stream=codec_type,codec_name,width,height,r_frame_rate,sample_rate,channels,nb_frames:format=duration,size', '-of', 'default=nw=1', final]);
+  sheet.durationSec = r3(length);
+  sheet.loudness = { integratedLufsBeforeNorm: mix.measured.inputI, targetLufs: -16 };
+  SS.writeSheet(SYNC_OUT, sheet);
+  fs.mkdirSync(SYNC_OUT, { recursive: true });
+  fs.copyFileSync(final, path.join(SYNC_OUT, `${clip.name}.mp4`));
+  void enc; void info;
+  console.log(`   wrote ${shown(final)}  ${length.toFixed(2)} s  ${calls.filter((c) => c.kind === 'combo').length} combos${calls.some((c) => c.kind === 'defence') ? ` + ${calls.filter((c) => c.kind === 'defence').length} defence calls` : ''}  bell at ${sheet.goAtSec.toFixed(2)} s, first call ${calls[0].startSec.toFixed(2)} s  (guide sound heard within ${Math.max(1, Math.round(worst * 1000))} ms of the words over ${n} sounds)`);
+  for (const c of calls) console.log(`     ${String(c.index).padStart(2)}  ${c.startSec.toFixed(2).padStart(6)} s  ${c.kind === 'defence' ? '(defence) ' : ''}${c.text}`);
+  return final;
+}
+
 // The captured frames onto a constant 30 fps (each output tick takes the latest
 // frame drawn by then), through ffmpeg's concat list, to 1080x1920 H.264.
-function encode(clip, timeline, dir) {
-  const last = timeline[timeline.length - 1].t + 1 / FPS;
+function encode(clip, timeline, dir, opts = {}) {
+  // opts.length: an exact length in seconds (the sync videos); opts.out: the file to write.
+  const last = opts.length ?? timeline[timeline.length - 1].t + 1 / FPS;
   // The longest wait between two drawn frames that is not a still screen (a gap
   // over 0.4 s is a screen holding still): a high number is a stutter.
   let stall = 0;
@@ -854,29 +1326,47 @@ function encode(clip, timeline, dir) {
     while (j + 1 < timeline.length && timeline[j + 1].t <= t) j++;
     picks.push(timeline[j].file);
   }
-  const list = [];
-  for (let i = 0; i < picks.length;) {
-    let k = i;
-    while (k < picks.length && picks[k] === picks[i]) k++;
-    list.push(`file '${path.basename(picks[i])}'`, `duration ${((k - i) / FPS).toFixed(6)}`);
-    i = k;
+  // How the frames go to ffmpeg. Normally a concat list with each picture's duration (a still screen is
+  // one entry). The sync videos need every tick on its own picture, to the frame: ffmpeg's constant frame
+  // rate conversion of a concat list with 0.033333 s durations adds a frame near the start and the
+  // whole clip slips by one, so there one file per tick is linked into a numbered sequence.
+  let input;
+  if (opts.exact) {
+    const seq = path.join(dir, 'ticks');
+    fs.mkdirSync(seq, { recursive: true });
+    picks.forEach((f, i) => {
+      const to = path.join(seq, `t${String(i).padStart(6, '0')}.jpg`);
+      try { fs.linkSync(f, to); } catch { fs.copyFileSync(f, to); }
+    });
+    input = ['-framerate', String(FPS), '-i', path.join(seq, 't%06d.jpg')];
+  } else {
+    const list = [];
+    for (let i = 0; i < picks.length;) {
+      let k = i;
+      while (k < picks.length && picks[k] === picks[i]) k++;
+      list.push(`file '${path.basename(picks[i])}'`, `duration ${((k - i) / FPS).toFixed(6)}`);
+      i = k;
+    }
+    list.push(`file '${path.basename(picks[picks.length - 1])}'`);
+    const listFile = path.join(dir, 'frames.txt');
+    fs.writeFileSync(listFile, list.join('\n') + '\n');
+    input = ['-f', 'concat', '-safe', '0', '-i', listFile];
   }
-  list.push(`file '${path.basename(picks[picks.length - 1])}'`);
-  const listFile = path.join(dir, 'frames.txt');
-  fs.writeFileSync(listFile, list.join('\n') + '\n');
-  fs.mkdirSync(OUT, { recursive: true });
-  const out = path.join(OUT, `${clip.name}.mp4`);
+  const out = opts.out || path.join(OUT, `${clip.name}.mp4`);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
   // JPEG frames are full-range BT.601; the video is limited-range BT.709 and says so.
   ffmpeg([
-    '-f', 'concat', '-safe', '0', '-i', listFile,
+    ...input,
     '-vf', `scale=${OUT_SIZE.width}:${OUT_SIZE.height}:flags=lanczos+accurate_rnd+full_chroma_int:in_range=full:in_color_matrix=bt601:out_range=tv:out_color_matrix=bt709,format=yuv420p`,
     '-r', String(FPS), '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p',
     '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
+    ...(opts.length ? ['-frames:v', String(count)] : []),
     '-an', '-movflags', '+faststart', out,
   ]);
   const info = ffprobe(['-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate,nb_frames:format=duration,size', '-of', 'default=nw=1', out]);
   const get = (k) => (info.match(new RegExp(`${k}=(.*)`)) || [])[1];
-  console.log(`   wrote ${shown(out)}  ${Number(get('duration')).toFixed(1)} s  ${get('width')}x${get('height')}  ${get('nb_frames')} frames  ${(get('size') / 1e6).toFixed(1)} MB  (${timeline.length} captured, ${(timeline.length / last).toFixed(0)}/s, longest stall in motion ${Math.round(stall * 1000)} ms)`);
+  if (!opts.quiet) console.log(`   wrote ${shown(out)}  ${Number(get('duration')).toFixed(1)} s  ${get('width')}x${get('height')}  ${get('nb_frames')} frames  ${(get('size') / 1e6).toFixed(1)} MB  (${timeline.length} captured, ${(timeline.length / last).toFixed(0)}/s, longest stall in motion ${Math.round(stall * 1000)} ms)`);
+  if (opts.quiet) return { out, frames: Number(get('nb_frames')), stall };
   if (CONTACT) {
     fs.mkdirSync(CONTACT, { recursive: true });
     const cols = 6, rows = Math.ceil(Math.ceil(Number(get('duration'))) / cols);
@@ -886,6 +1376,12 @@ function encode(clip, timeline, dir) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// The guide's voice, once, for the whole group.
+if (todo.some((c) => c.sync) && !has('--no-voice')) {
+  try { VOICE = SA.findVoice(arg('--voice')); } catch (e) { die(e.message); }
+  if (VOICE) { BANK = new SA.VoiceBank(VOICE); console.log(`guide voice: ${VOICE.label}`); }
+  else console.error(`\n!!! NO TEXT-TO-SPEECH ENGINE FOUND. The sync videos will have the beeps, the bell and a tick per call, and NO VOICE.\n!!! ${SA.installHint()}\n`);
+}
 const browser = await launch();
 const failed = [];
 try {
@@ -896,6 +1392,15 @@ try {
 } finally {
   await browser.close().catch(() => {});
   server.close();
+}
+// The two pages the owner reads, from every sheet in the sync folder.
+if (todo.some((c) => c.sync) && todo.some((c) => c.sync && !failed.includes(c.name))) {
+  const sheets = SS.readSheets(SYNC_OUT);
+  if (sheets.length) {
+    fs.writeFileSync(path.join(SYNC_OUT, 'CALLS.md'), SS.callsPage(sheets));
+    fs.writeFileSync(path.join(SYNC_OUT, 'FILM-GUIDE.md'), SS.filmGuide(sheets));
+    console.log(`\nthe film guide and the call tables for ${sheets.length} video${sheets.length === 1 ? '' : 's'}: ${shown(SYNC_OUT)}`);
+  }
 }
 console.log(failed.length ? `\n${todo.length - failed.length} of ${todo.length} clips written; failed: ${failed.join(', ')}` : `\n${todo.length} clip${todo.length === 1 ? '' : 's'} written to ${shown(OUT)}`);
 process.exit(failed.length ? 1 : 0);
