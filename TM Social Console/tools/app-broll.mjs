@@ -36,8 +36,12 @@
 //   --no-voice        no speech engine: beeps, bell and a tick per call (a silent-voice guide)
 //   --sync-out <dir>  where the guide videos, timing sheets and the two pages are copied
 //                     (default exports/cc-sync; the videos themselves go to <out>/sync)
+//   --files-at <text> where the owner gets the eight video files, written into FILM-GUIDE.md ("What you have")
+//   --pages-only      records nothing: writes CALLS.md and FILM-GUIDE.md again from the timing sheets already in
+//                     <sync-out> (use it with --files-at; the videos and their sheets stay a matched pair)
 //   --app-commit <x>  the app's commit as written in the sheets (default: read from the dist's git)
-//   --probe-seeds <n|a,b,c> records nothing: tries the seeds 1 to n (or the list) for each sync clip chosen
+//   --probe-seeds <n|a,b,c> records nothing: tries the seeds 1 to n (a list "a,b,c" tries just those; "24,24" one seed)
+//                     for each sync clip chosen
 //                     (the app's clock is run in small steps, so a seed takes about 40 s) and lists the
 //                     combos each deals, to pick seeds (SYNC_SEEDS) whose videos share no combo
 // The SEEDS are fixed per video (SYNC_SEEDS below) and are what makes a re-run deal the same combos.
@@ -47,7 +51,8 @@
 // time; the lines are then spoken offline (tools/sync-audio.mjs) and mixed on the video's timeline.
 //
 // Needs ffmpeg on the PATH (npm run doctor checks it; libx264, and the fps and
-// tile filters for --contact) and a built export of the app. No music. The clips are silent
+// tile filters for --contact; the sync videos need a FULL ffmpeg, which is checked before anything is recorded)
+// and a built export of the app. A sync video is recorded in real time: about 2.5 minutes each, 20 for all eight. No music. The clips are silent
 // except the sync group, whose guide track is beeps, the app's bell and the coach's voice.
 //
 // Re-run it whenever the app changes: the choreography reads the app's own
@@ -584,13 +589,24 @@ function finishBossRush(reps) {
 // ─────────────────────────────────────────────────────────────────────────────
 // The sync group: Combo Coach playing, with a guide track (see the header).
 // ─────────────────────────────────────────────────────────────────────────────
-// Video 1 of a discipline is a level 5 Fight athlete (Combo Coach opens on NORMAL), video 2 a level
-// 10 one (ADVANCED). The SEED is the app's random numbers, set just before START: same seed, same
-// combos (the dealer takes its random numbers from it), so a re-run deals the same ones. The pool of a
-// discipline is 68 combos (MMA 74); a video uses ten. The seeds below were picked with --probe-seeds 8
-// (every seed 1 to 8 for every video, nothing recorded) as, for each discipline, the pair whose two
-// videos share NO combo, with mostly mid-length combos (3 to 5 pieces) at level 5 and longer ones at
-// level 10. Change a seed and the video deals other combos.
+// Video 1 of a discipline is a level 5 Fight athlete (Combo Coach opens on NORMAL), video 2 a level 10 one
+// (ADVANCED). The SEED is the app's random numbers, set just before START: same seed, same combos (the
+// dealer takes its random numbers from it), so a re-run deals the same ones. The pool of a discipline is
+// 68 combos (MMA 74); a video uses ten. THE SEEDS ARE FIXED FOR CADENCE 4.5 (the default): the dealer sizes
+// the round from the call count, which the cadence sets, so another --cadence can deal other combos at
+// level 5. Re-run --probe-seeds and update SYNC_SEEDS if you change the cadence.
+//
+// How the seeds were picked: --probe-seeds, then the app's own dealer (generateComboCoachRoundPlans, the
+// same Math.random seed) over the seeds 1 to 200 for every video, scored on what a person can film to on a
+// hanging bag in a 4.5 s slot: the two videos of a discipline share NO combo; no call has a partner-only
+// drill (Ground Pound, Throw, Pass, Push, Frame, a clinch drill) except one short clinch-and-knee combo at
+// most; no call over 6 pieces (7 at the very most) and no two 6-piece calls in a row; no combo ends on a
+// lone Head or Body (the app counts that as no strike, so "Hook Body Hook Head" would read as three hooks);
+// level 5 mostly 3 to 5 pieces; level 10 longer ones with a short call or two to show the mix swinging.
+// (Level 10 MMA is the hard one: only 1 seed of 200 deals ten combos with no Clinch, Push, Throw, Pass or
+// Ground word, and it shares a combo with the level 5 pick. So each MMA video keeps one short
+// clinch-and-knee combo, "Jab Cross Knee Clinch" / "Jab Cross Clinch Knee": hug the bag.) Change a seed
+// and the video deals other combos.
 const SYNC_DISCIPLINES = [
   { slug: 'boxing', name: 'Boxing' },
   { slug: 'kickboxing', name: 'Kickboxing' },
@@ -602,10 +618,10 @@ const SYNC_LEVELS = [
   { n: 2, persona: 'fight10', level: 10, difficulty: 'ADVANCED', line: /ADVANCED: Singles to the hardest/ },
 ];
 const SYNC_SEEDS = {
-  'cc-sync-boxing-1': 1, 'cc-sync-boxing-2': 7,
+  'cc-sync-boxing-1': 1, 'cc-sync-boxing-2': 24,
   'cc-sync-kickboxing-1': 8, 'cc-sync-kickboxing-2': 2,
-  'cc-sync-muaythai-1': 1, 'cc-sync-muaythai-2': 7,
-  'cc-sync-mma-1': 5, 'cc-sync-mma-2': 4,
+  'cc-sync-muaythai-1': 16, 'cc-sync-muaythai-2': 92,
+  'cc-sync-mma-1': 16, 'cc-sync-mma-2': 85,
 };
 
 // The app's random numbers from a seed (mulberry32, as the dealer's own). Run in the page.
@@ -783,7 +799,31 @@ const CALLS = Number(arg('--calls') ?? 10);
 if (!(CADENCE >= 2 && CADENCE <= 8 && Math.round(CADENCE * 2) === CADENCE * 2)) die('--cadence is in seconds, from 2 to 8 in steps of 0.5 (the app\'s own CADENCE stepper).');
 if (!(Number.isInteger(CALLS) && CALLS >= 1 && CALLS <= 12)) die('--calls is the number of combos per sync video, 1 to 12.');
 const SYNC_OUT = path.resolve(arg('--sync-out') || path.join(EXPORTS, 'cc-sync'));
+const FILES_AT = arg('--files-at') || '';
+// --probe-seeds: a count (8: the seeds 1 to 8) or a list (24,85).
+const PROBE_LIST = (() => {
+  const v = arg('--probe-seeds');
+  if (v === undefined) return null;
+  const list = v.includes(',') ? [...new Set(v.split(',').map(Number))] : Array.from({ length: Number(v) }, (_, i) => i + 1);
+  if (!list.length || list.some((x) => !Number.isInteger(x) || x < 0)) die('--probe-seeds is a count (8: the seeds 1 to 8) or a list of seeds (24,85).');
+  return list;
+})();
+
+// The two pages the owner reads, from every timing sheet in the sync folder.
+function writePages() {
+  const sheets = SS.readSheets(SYNC_OUT);
+  if (!sheets.length) return false;
+  fs.writeFileSync(path.join(SYNC_OUT, 'CALLS.md'), SS.callsPage(sheets));
+  fs.writeFileSync(path.join(SYNC_OUT, 'FILM-GUIDE.md'), SS.filmGuide(sheets, { filesAt: FILES_AT }));
+  console.log(`\nthe film guide and the call tables for ${sheets.length} video${sheets.length === 1 ? '' : 's'}: ${shown(SYNC_OUT)}`);
+  return true;
+}
+if (has('--pages-only')) {
+  if (!writePages()) die(`no timing sheets (*.timing.json) in ${shown(SYNC_OUT)}: record the sync videos first.`);
+  process.exit(0);
+}
 if (todo.some((c) => c.sync) && CALLS * CADENCE + 9 > 57) die(`${CALLS} combos at ${CADENCE} s do not fit in the one-minute round (the coach goes quiet in its last 3 s). Use fewer --calls or a shorter --cadence.`);
+if (todo.some((c) => c.sync) && !arg('--probe-seeds')) { const bad = SA.checkFfmpeg(); if (bad) die(bad); }
 if (!fs.existsSync(path.join(DIST, 'index.html'))) die(`${path.join(DIST, 'index.html')} not found. Build the app first (npm run build:web in the app) or pass --dist <dir>.`);
 
 // playwright-core: the app repo's, found from the console folder's parent.
@@ -813,7 +853,7 @@ async function launch() {
     try { return await chromium.launch({ headless: true, channel: 'chrome', args }); } catch { /* fall through */ }
     const guess = ['C:/Program Files/Google/Chrome/Application/chrome.exe', '/usr/bin/google-chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find((g) => fs.existsSync(g));
     if (guess) return chromium.launch({ headless: true, executablePath: guess, args });
-    throw new Error(`no browser: ${String(first.message).split('\n')[0]}\nPass --chrome <exe> or set CHROME_PATH (Chrome, or the Chrome Headless Shell Remotion downloaded).`);
+    throw new Error(`no browser found (${String(first.message).split('\n')[0].replace(/^browserType\.launch: /, '')})`);
   }
 }
 
@@ -1238,7 +1278,10 @@ async function finishSync(clip, persona, rec, page, frames) {
   const calls = [];
   for (let i = 0; i < used.length; i++) {
     const c = used[i], next = i + 1 < used.length ? used[i + 1].startSec : length;
-    const counts = c.defence ? { pieceCount: 1, strikeCount: 0 } : await SS.countOf(c.text);
+    const counts = c.defence ? { pieceCount: 1, strikeCount: 0, stray: [] } : await SS.countOf(c.text);
+    // A combo the owner could misread ("Hook Body Hook Head": the app counts 2 strikes and a stray "head"):
+    // not for a guide video. Pick another seed (--probe-seeds).
+    if (counts.stray.length) throw new Error(`the combo "${c.text}" holds a word the app's counter does not count as a strike or a move (${counts.stray.join(', ')}): a reader could take it for another strike. Use another seed (--probe-seeds) for ${clip.name}.`);
     const strikes = c.defence ? [SS.plainPiece(c.text.replace(/!$/, '').toLowerCase())] : await SS.plainStrikes(c.text);
     const ms = c.lineMs ?? 0;
     calls.push({
@@ -1271,14 +1314,15 @@ async function finishSync(clip, persona, rec, page, frames) {
     placed(SA.bellPcm(), sheet.goAtSec, 'bell'),
   ];
   // The bell rings on GO and its tail runs on for two seconds, under the first call, which comes about
-  // half a second after it. A real mixer would duck the bell for the voice; so does this: it drops 20 dB over
-  // 150 ms, finishing as the first call starts (its strike and its first half second are untouched).
+  // half a second after it. A real mixer would duck the bell for the voice; so does this: it drops 30 dB over
+  // 200 ms, finishing 100 ms before the first call starts (the strike and its first 0.3 s are untouched), so the
+  // first call, the one the owner lines everything up on, is not muddied by the bell's ring.
   const first = lines.find((l) => l.kind === 'call');
   if (first) {
     const bell = elements.find((el) => el.what === 'bell');
-    const ramp = Math.round(0.15 * SA.SR), from = Math.round((first.at - bell.at - 0.15) * SA.SR);
+    const ramp = Math.round(0.2 * SA.SR), from = Math.round((first.at - bell.at - 0.3) * SA.SR);
     if (from > 0 && from < bell.pcm.length) {
-      for (let i = from; i < bell.pcm.length; i++) bell.pcm[i] *= 1 - 0.9 * Math.min(1, (i - from) / ramp);
+      for (let i = from; i < bell.pcm.length; i++) bell.pcm[i] *= 1 - 0.97 * Math.min(1, (i - from) / ramp);
     }
   }
   for (const l of lines) {
@@ -1290,59 +1334,113 @@ async function finishSync(clip, persona, rec, page, frames) {
         const f = Math.min(pcm.length, Math.round(0.01 * SA.SR));
         for (let i = 0; i < f; i++) pcm[pcm.length - 1 - i] *= i / f;
       }
-      // the voice starts early by its own soft attack, so the moment it SOUNDS is the moment the words show
-      const early = l.kind === 'go' ? 0 : Math.min(l.at, said.onset ?? 0); // "Go!" starts with the bell
-      elements.push({ at: r3(l.at - early), want: l.at, pcm, what: l.kind, text: l.text });
+      // The voice file starts early by its own soft attack, so the moment it is HEARD to start is the moment the
+      // words show. A very soft start ("h" of "hook", "f" of "feint") is audible up to 80 ms before that: it is
+      // never allowed more than SOFT_LEAD_MAX (40 ms) ahead of the frame, so such a call is heard up to about
+      // 40 ms after it instead (SA.voiceEarly). "Go!" starts with the bell.
+      const early = l.kind === 'go' ? 0 : SA.voiceEarly(said, l.at);
+      elements.push({ at: r3(l.at - early), want: l.at, pcm, what: l.kind, text: l.text, ms: l.ms, onset: said.onset ?? 0 });
     } else if (l.kind === 'call') elements.push({ at: l.at, want: l.at, pcm: SA.tickPcm(), what: 'tick', text: l.text });
   }
+  // How loud the bell's ring still is under the first call, against that call's voice (the first call is the one
+  // the owner lines everything up on): reported, and it must stay 25 dB under.
+  let bellUnder = null;
+  {
+    const bell = elements.find((el) => el.what === 'bell'), call1 = elements.find((el) => el.what === 'call');
+    if (bell && call1) {
+      const a = Math.round((first.at - bell.at) * SA.SR), z = Math.min(bell.pcm.length, a + Math.round(0.5 * SA.SR));
+      const rms = (x, i0, i1) => { let e = 0; for (let i = i0; i < i1; i++) e += x[i] * x[i]; return Math.sqrt(e / Math.max(1, i1 - i0)); };
+      const b = rms(bell.pcm, a, z), v = rms(call1.pcm, Math.round((first.at - call1.at) * SA.SR), Math.round((first.at - call1.at + 0.5) * SA.SR));
+      if (b > 0 && v > 0) bellUnder = Math.round(20 * Math.log10(b / v));
+    }
+  }
+  if (bellUnder !== null && bellUnder > -25) throw new Error(`the bell's ring is only ${-bellUnder} dB under the first call's voice (it must be 25 or more)`);
   fs.mkdirSync(dir, { recursive: true });
   const wav = path.join(frames, `${clip.name}.guide.wav`);
-  const mix = SA.mixGuide(elements, length, wav);
-  ffmpeg(['-i', silent, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', '-t', String(length), '-movflags', '+faststart', final]);
-
+  // Mix, encode, read the finished file back. Two moments of a call are measured on the finished file, the way a
+  // listener's meter reads them: its FIRST sound (SA.firstSoundNear: the soft "h" of "hook", and the AAC
+  // encoder's pre-echo of a hard "k" or "t", up to about 40 ms ahead of it) and where it is HEARD to start
+  // (SA.heardNear). A call is placed so the two are as even as they can be about the frame where its words show: if
+  // either is more than SOFT_LEAD_MAX (40 ms) away, the call is moved by half the difference (later when the first
+  // sound leads more than the heard start lags, earlier when it is the other way), never more than 50 ms from where
+  // its heard start was first placed, and re-measured, up to three passes. Nothing else moves.
+  let pcm;
+  for (let pass = 0; ; pass++) {
+    SA.mixGuide(elements, length, wav);
+    ffmpeg(['-i', silent, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', '-t', String(length), '-movflags', '+faststart', final]);
+    pcm = SA.decodeTrack(final);
+    if (!BANK || pass >= 3) break;
+    let moved = 0;
+    for (const el of elements) {
+      if (el.what !== 'call' && el.what !== 'round') continue;
+      const firstSound = SA.firstSoundNear(pcm, Math.max(0, el.want - 0.2), 0.45), heardAt = SA.heardNear(pcm, el.want);
+      if (firstSound === null || heardAt === null) continue;
+      const early = el.want - firstSound, late = heardAt - el.want;
+      if (early > 0.14 || Math.max(early, late) <= SA.SOFT_LEAD_MAX + 0.004) continue; // fine, or not this call's own soft start (a tail under it)
+      el.nat = el.nat ?? el.at;
+      const to = Math.max(el.nat - 0.05, Math.min(el.nat + 0.05, el.at + (early - late) / 2));
+      if (Math.abs(to - el.at) > 0.002) { el.at = r3(to); moved++; }
+    }
+    if (!moved) break;
+  }
   // The check, on the finished file (AAC and all): every sound is read back and found where the sheet says.
-  // (1) cross-correlated against the sound that was put there (placement, to a sample); (2) its onset, the
-  // way a person hears it begin (SA.onsetOf), within 30 ms of the moment the words show (AAC smears a sharp
-  // start, "Check!", up to about 20 ms early; the placement above is exact). A sound that
-  // another one plays over (the "Go!" on the bell, and the bell's own first moments) cannot be found on its
-  // own and is skipped.
-  const pcm = SA.decodeTrack(final);
+  // (1) cross-correlated against the sound that was put there (placement, to a sample; 10 ms, and 30 ms for the
+  // tick, whose 70 ms click the AAC encoder smears by up to 20 ms); (2) its HEARD start, read the way a meter does
+  // (SA.heardNear; a beep or the bell: SA.onsetOf), within 50 ms of the moment the words show; (3) its very FIRST sound, the way a
+  // meter reads it (SA.firstSoundNear: the soft "h" of "hook"), no more than 50 ms ahead of it (the passes above
+  // already moved a call that led by more than 40). AAC smears a sharp start ("Check!") up to about 20 ms early;
+  // the placement above is exact. A sound that another one plays over
+  // (the "Go!" on the bell, and the bell's own first moments) cannot be found on its own and is skipped.
   const spans = elements.map((el) => [el.at, el.at + el.pcm.length / SA.SR]);
-  let worst = 0, worstLag = 0, n = 0, weak = null;
+  let worst = 0, worstLead = 0, worstLag = 0, n = 0, weak = null, lagBad = null;
   const late = [];
   for (const [i, el] of elements.entries()) {
     const over = elements.filter((o, j) => j !== i && spans[j][0] < spans[i][1] && spans[j][1] > spans[i][0]);
     // (the bell, ducked, is under the first call and the "Go!"; the bell itself is found over them)
     if (over.some((o) => !(el.what === 'call' && o.what === 'bell') && !(el.what === 'bell' && o.what !== 'bell'))) continue;
     const { lag, match } = SA.lagOf(pcm, el.pcm, el.at);
-    if (match < 0.5) weak = weak || `${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.at} s (match ${match.toFixed(2)})`;
+    if (el.what !== 'tick' && match < 0.5) weak = weak || `${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.at} s (match ${match.toFixed(2)})`;
+    if (el.what === 'tick' ? Math.abs(lag) > 0.03 : Math.abs(lag) > 0.01) lagBad = lagBad || `${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.at} s is ${Math.round(Math.abs(lag) * 1000)} ms from where it was placed`;
     worstLag = Math.max(worstLag, Math.abs(lag));
+    const voiceLine = el.what === 'call' || el.what === 'round';
     const from = Math.max(0, el.at - 0.02); // the same window the sound's own onset was measured in (its first 0.6 s)
-    const on = SA.onsetNear(pcm, from, 0.62);
+    const on = voiceLine ? SA.heardNear(pcm, el.want) : SA.onsetNear(pcm, from, 0.62);
     if (on === null) throw new Error(`no sound where the guide has a ${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.want} s`);
-    if (on - from < 0.004 && from > 0) continue; // a sound is already playing there (the bell's tail under the first call): the placement check above stands
+    if (!voiceLine && on - from < 0.004 && from > 0) continue; // a sound is already playing there (the bell's tail under the first call): the placement check above stands
     el.heard = on;
     worst = Math.max(worst, Math.abs(on - el.want)); n++;
-    if (Math.abs(on - el.want) > 0.03) late.push(`${el.what}${el.text ? ` "${el.text}"` : ''} wanted ${el.want} heard ${on.toFixed(3)}`);
+    if (Math.abs(on - el.want) > 0.05) late.push(`${el.what}${el.text ? ` "${el.text}"` : ''} wanted ${el.want} heard ${on.toFixed(3)}`);
+    // the first sound: only for the voice's own lines (a beep has no soft start, the bell is a strike)
+    if (el.what === 'call' || el.what === 'round') {
+      const first = SA.firstSoundNear(pcm, Math.max(0, el.want - 0.2), 0.45);
+      if (first !== null && first < el.want + 0.2) {
+        el.first = first;
+        worstLead = Math.max(worstLead, el.want - first);
+        if (el.want - first > 0.05) late.push(`${el.what}${el.text ? ` "${el.text}"` : ''} first sound ${Math.round((el.want - first) * 1000)} ms before its words show`);
+      }
+    }
   }
   if (weak) throw new Error(`the finished file does not hold the sound the guide put at ${weak}`);
-  if (worstLag > 0.01) throw new Error(`the sound in the file is ${Math.round(worstLag * 1000)} ms from where it was placed (limit 10 ms)`);
-  if (late.length) throw new Error(`a sound is heard more than 30 ms from the moment its words show: ${late.join('; ')}`);
+  if (lagBad) throw new Error(`the sound in the file is not where it was placed: ${lagBad}`);
+  if (late.length) throw new Error(`a sound is not within 50 ms of the moment its words show: ${late.join('; ')}`);
   // Back into the sheet: where each call's voice ends on the track, and (measured on the finished file) where it
   // is heard to begin.
   for (const c of calls) {
     const el = elements.find((x) => x.what === 'call' && Math.abs(x.want - c.startSec) < 0.001);
     if (!el) continue;
     c.speechEndSec = r3(el.at + el.pcm.length / SA.SR);
-    if (el.heard !== undefined) c.audioOnsetSec = r3(el.heard);
+    if (el.heard !== undefined) c.audioOnsetSec = r3(el.heard);       // where the voice is heard to start (measured on the finished file)
+    if (el.first !== undefined) c.audioFirstSoundSec = r3(el.first);  // its very first, softest sound
   }
+  const announced = elements.find((x) => x.what === 'round');
+  if (announced) sheet.roundAnnouncementEndSec = r3(announced.at + announced.pcm.length / SA.SR); // "Round one, ..." is over: the bell follows
   sheet.durationSec = r3(length);
   sheet.loudness = SA.measureLoudness(final);
   SS.writeSheet(SYNC_OUT, sheet);
   fs.mkdirSync(SYNC_OUT, { recursive: true });
   fs.copyFileSync(final, path.join(SYNC_OUT, `${clip.name}.mp4`));
   if (byTime) console.log(`   (${byTime} of the picture times were found by the usual delay, not by the pixels)`);
-  console.log(`   wrote ${shown(final)}  ${length.toFixed(2)} s  ${calls.filter((c) => c.kind === 'combo').length} combos${calls.some((c) => c.kind === 'defence') ? ` + ${calls.filter((c) => c.kind === 'defence').length} defence calls` : ''}  bell at ${sheet.goAtSec.toFixed(2)} s, first call ${calls[0].startSec.toFixed(2)} s, ${sheet.loudness.integratedLufs} LUFS  (guide sound heard within ${Math.max(1, Math.round(worst * 1000))} ms of the words over ${n} sounds)`);
+  console.log(`   wrote ${shown(final)}  ${length.toFixed(2)} s  ${calls.filter((c) => c.kind === 'combo').length} combos${calls.some((c) => c.kind === 'defence') ? ` + ${calls.filter((c) => c.kind === 'defence').length} defence calls` : ''}  bell at ${sheet.goAtSec.toFixed(2)} s, first call ${calls[0].startSec.toFixed(2)} s, ${sheet.loudness.integratedLufs} LUFS${bellUnder !== null ? `, bell ${-bellUnder} dB under call 1` : ''}  (guide sound heard within ${Math.max(1, Math.round(worst * 1000))} ms of the words over ${n} sounds${worstLead ? `, a first soft sound at most ${Math.round(worstLead * 1000)} ms early` : ''})`);
   for (const c of calls) console.log(`     ${String(c.index).padStart(2)}  ${c.startSec.toFixed(2).padStart(6)} s  ${c.kind === 'defence' ? '(defence) ' : ''}${c.text}`);
   return final;
 }
@@ -1448,11 +1546,13 @@ if (todo.some((c) => c.sync) && !has('--no-voice') && !arg('--probe-seeds')) {
   if (VOICE) { BANK = new SA.VoiceBank(VOICE); console.log(`guide voice: ${VOICE.label}`); }
   else console.error(`\n!!! NO TEXT-TO-SPEECH ENGINE FOUND. The sync videos will have the beeps, the bell and a tick per call, and NO VOICE.\n!!! ${SA.installHint()}\n`);
 }
-const browser = await launch();
+let browser;
+try { browser = await launch(); } catch (e) {
+  die(`the browser would not start: ${String(e.message).split('\n')[0].replace(/^browserType\.launch: /, '')}\n  Pass --chrome <exe> or set CHROME_PATH to Chrome (or to the Chrome Headless Shell Remotion downloaded), e.g. --chrome "C:/Program Files/Google/Chrome/Application/chrome.exe".`);
+}
 const failed = [];
 if (arg('--probe-seeds')) {
-  const v = arg('--probe-seeds');
-  const list = v.includes(',') ? v.split(',').map(Number) : Array.from({ length: Number(v) }, (_, i) => i + 1);
+  const list = PROBE_LIST;
   const jobs = todo.filter((c) => c.sync).flatMap((c) => list.map((seed) => ({ clip: c, seed })));
   const results = [];
   const worker = async () => {
@@ -1481,13 +1581,6 @@ try {
   server.close();
 }
 // The two pages the owner reads, from every sheet in the sync folder.
-if (todo.some((c) => c.sync) && todo.some((c) => c.sync && !failed.includes(c.name))) {
-  const sheets = SS.readSheets(SYNC_OUT);
-  if (sheets.length) {
-    fs.writeFileSync(path.join(SYNC_OUT, 'CALLS.md'), SS.callsPage(sheets));
-    fs.writeFileSync(path.join(SYNC_OUT, 'FILM-GUIDE.md'), SS.filmGuide(sheets));
-    console.log(`\nthe film guide and the call tables for ${sheets.length} video${sheets.length === 1 ? '' : 's'}: ${shown(SYNC_OUT)}`);
-  }
-}
+if (todo.some((c) => c.sync) && todo.some((c) => c.sync && !failed.includes(c.name))) writePages();
 console.log(failed.length ? `\n${todo.length - failed.length} of ${todo.length} clips written; failed: ${failed.join(', ')}` : `\n${todo.length} clip${todo.length === 1 ? '' : 's'} written to ${shown(OUT)}`);
 process.exit(failed.length ? 1 : 0);

@@ -6,12 +6,12 @@
   "cadenceSec": 4.5,
   "seed": 2,
   "appCommit": "e9c3753",
-  "durationSec": 51.833,
-  "goAtSec": 6.2,
+  "durationSec": 51.767,
+  "goAtSec": 6.167,
   "countInBeepsAtSec": [
-    0.082,
-    1.073,
-    2.073
+    0.072,
+    1.07,
+    2.069
   ],
   "roundAnnouncementAtSec": 3.467,
   "voice": {
@@ -26,10 +26,10 @@
       "spoken": "low kick cross hook switch kick cross",
       "strikeCount": 5,
       "pieceCount": 5,
-      "startSec": 6.8,
-      "speechEndSec": 9.262,
+      "startSec": 6.767,
+      "speechEndSec": 9.083,
       "nextCallSec": 11.3,
-      "windowSec": 4.5,
+      "windowSec": 4.533,
       "strikes": [
         "Low kick (to the thigh)",
         "Cross",
@@ -38,7 +38,8 @@
         "Cross"
       ],
       "plain": "Low kick (to the thigh), Cross, Hook, Switch kick (switch stance, then kick), Cross",
-      "audioOnsetSec": 6.8
+      "audioOnsetSec": 6.768,
+      "audioFirstSoundSec": 6.765
     },
     {
       "index": 2,
@@ -48,16 +49,17 @@
       "strikeCount": 3,
       "pieceCount": 3,
       "startSec": 11.3,
-      "speechEndSec": 12.887,
-      "nextCallSec": 15.8,
-      "windowSec": 4.5,
+      "speechEndSec": 12.811,
+      "nextCallSec": 15.767,
+      "windowSec": 4.467,
       "strikes": [
         "Jab",
         "Cross",
         "Spinning back kick"
       ],
       "plain": "Jab, Cross, Spinning back kick",
-      "audioOnsetSec": 11.3
+      "audioOnsetSec": 11.3,
+      "audioFirstSoundSec": 11.294
     },
     {
       "index": 3,
@@ -66,9 +68,9 @@
       "spoken": "low kick jab cross hook high kick cross",
       "strikeCount": 6,
       "pieceCount": 6,
-      "startSec": 15.8,
-      "speechEndSec": 18.379,
-      "nextCallSec": 20.3,
+      "startSec": 15.767,
+      "speechEndSec": 18.178,
+      "nextCallSec": 20.267,
       "windowSec": 4.5,
       "strikes": [
         "Low kick (to the thigh)",
@@ -79,7 +81,8 @@
         "Cross"
       ],
       "plain": "Low kick (to the thigh), Jab, Cross, Hook, High kick (to the head), Cross",
-      "audioOnsetSec": 15.799
+      "audioOnsetSec": 15.768,
+      "audioFirstSoundSec": 15.765
     },
     {
       "index": 4,
@@ -88,9 +91,9 @@
       "spoken": "jab cross hook low kick",
       "strikeCount": 4,
       "pieceCount": 4,
-      "startSec": 20.3,
-      "speechEndSec": 21.844,
-      "nextCallSec": 24.8,
+      "startSec": 20.267,
+      "speechEndSec": 21.735,
+      "nextCallSec": 24.767,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -99,7 +102,8 @@
         "Low kick (to the thigh)"
       ],
       "plain": "Jab, Cross, Hook, Low kick (to the thigh)",
-      "audioOnsetSec": 20.3
+      "audioOnsetSec": 20.268,
+      "audioFirstSoundSec": 20.261
     },
     {
       "index": 5,
@@ -108,9 +112,9 @@
       "spoken": "check cross hook low kick",
       "strikeCount": 3,
       "pieceCount": 4,
-      "startSec": 24.8,
-      "speechEndSec": 26.406,
-      "nextCallSec": 29.3,
+      "startSec": 24.767,
+      "speechEndSec": 26.3,
+      "nextCallSec": 29.267,
       "windowSec": 4.5,
       "strikes": [
         "Check (lift the shin to block a kick)",
@@ -119,7 +123,8 @@
         "Low kick (to the thigh)"
       ],
       "plain": "Check (lift the shin to block a kick), Cross, Hook, Low kick (to the thigh)",
-      "audioOnsetSec": 24.8
+      "audioOnsetSec": 24.768,
+      "audioFirstSoundSec": 24.747
     },
     {
       "index": 6,
@@ -128,9 +133,9 @@
       "spoken": "jab cross low kick cross",
       "strikeCount": 4,
       "pieceCount": 4,
-      "startSec": 29.3,
-      "speechEndSec": 30.985,
-      "nextCallSec": 33.8,
+      "startSec": 29.267,
+      "speechEndSec": 30.803,
+      "nextCallSec": 33.767,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -139,7 +144,8 @@
         "Cross"
       ],
       "plain": "Jab, Cross, Low kick (to the thigh), Cross",
-      "audioOnsetSec": 29.3
+      "audioOnsetSec": 29.268,
+      "audioFirstSoundSec": 29.261
     },
     {
       "index": 7,
@@ -148,10 +154,10 @@
       "spoken": "teep jab cross body kick cross hook",
       "strikeCount": 6,
       "pieceCount": 6,
-      "startSec": 33.8,
-      "speechEndSec": 36.297,
-      "nextCallSec": 38.333,
-      "windowSec": 4.533,
+      "startSec": 33.767,
+      "speechEndSec": 36.094,
+      "nextCallSec": 38.267,
+      "windowSec": 4.5,
       "strikes": [
         "Teep (push kick)",
         "Jab",
@@ -161,7 +167,8 @@
         "Hook"
       ],
       "plain": "Teep (push kick), Jab, Cross, Kick to the body, Cross, Hook",
-      "audioOnsetSec": 33.8
+      "audioOnsetSec": 33.768,
+      "audioFirstSoundSec": 33.757
     },
     {
       "index": 8,
@@ -170,10 +177,10 @@
       "spoken": "check counter cross hook body kick",
       "strikeCount": 3,
       "pieceCount": 4,
-      "startSec": 38.333,
-      "speechEndSec": 40.37,
-      "nextCallSec": 42.833,
-      "windowSec": 4.5,
+      "startSec": 38.267,
+      "speechEndSec": 40.229,
+      "nextCallSec": 42.8,
+      "windowSec": 4.533,
       "strikes": [
         "Check counter (block the kick, fire back)",
         "Cross",
@@ -181,7 +188,8 @@
         "Kick to the body"
       ],
       "plain": "Check counter (block the kick, fire back), Cross, Hook, Kick to the body",
-      "audioOnsetSec": 38.333
+      "audioOnsetSec": 38.266,
+      "audioFirstSoundSec": 38.247
     },
     {
       "index": 9,
@@ -190,16 +198,17 @@
       "spoken": "double teep",
       "strikeCount": 2,
       "pieceCount": 2,
-      "startSec": 42.833,
-      "speechEndSec": 43.263,
-      "nextCallSec": 47.333,
-      "windowSec": 4.5,
+      "startSec": 42.8,
+      "speechEndSec": 43.23,
+      "nextCallSec": 47.267,
+      "windowSec": 4.467,
       "strikes": [
         "Teep (push kick)",
         "Teep"
       ],
       "plain": "Teep (push kick), Teep",
-      "audioOnsetSec": 42.833
+      "audioOnsetSec": 42.8,
+      "audioFirstSoundSec": 42.764
     },
     {
       "index": 10,
@@ -208,9 +217,9 @@
       "spoken": "teep cross low kick hook roundhouse",
       "strikeCount": 5,
       "pieceCount": 5,
-      "startSec": 47.333,
-      "speechEndSec": 49.557,
-      "nextCallSec": 51.833,
+      "startSec": 47.267,
+      "speechEndSec": 49.416,
+      "nextCallSec": 51.767,
       "windowSec": 4.5,
       "strikes": [
         "Teep (push kick)",
@@ -220,12 +229,14 @@
         "Roundhouse kick"
       ],
       "plain": "Teep (push kick), Cross, Low kick (to the thigh), Hook, Roundhouse kick",
-      "audioOnsetSec": 47.333
+      "audioOnsetSec": 47.268,
+      "audioFirstSoundSec": 47.259
     }
   ],
+  "roundAnnouncementEndSec": 6.156,
   "loudness": {
     "integratedLufs": -16,
-    "truePeakDbfs": -2.3,
-    "rangeLu": 9.4
+    "truePeakDbfs": -1.5,
+    "rangeLu": 7.9
   }
 }

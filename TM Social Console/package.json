@@ -31,7 +31,8 @@
     "app-broll": "node tools/app-broll.mjs",
     "sync-broll": "node tools/app-broll.mjs --only sync",
     "align": "node tools/align-audio.mjs",
-    "test:align": "node tools/test-align-audio.mjs"
+    "test:align": "node tools/test-align-audio.mjs",
+    "test:sync": "node tools/test-sync-phrases.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",

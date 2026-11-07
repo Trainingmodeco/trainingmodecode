@@ -1,11 +1,11 @@
 name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,1,combo,Hook Body Hook Head,2,6.667,7.718,11.2,"Hook, Hook to the body, Hook to the head"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,2,combo,Jab Cross Pivot Hook Cross Hook,5,11.2,13.54,15.7,"Jab, Cross, Pivot (step off at an angle), Hook, Cross, Hook"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,3,combo,Check Hook Cross Body Hook Uppercut,4,15.7,17.686,20.2,"Check hook, Cross, Hook to the body, Uppercut"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,4,combo,Jab Body Cross Hook Uppercut Cross Hook,6,20.2,22.79,24.7,"Jab, Cross to the body, Hook, Uppercut, Cross, Hook"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,5,combo,Jab Jab Cross,3,24.7,25.717,29.2,"Jab, Jab, Cross"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,6,combo,Body Jab Cross Hook Cross,4,29.2,30.941,33.7,"Jab to the body, Cross, Hook, Cross"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,7,combo,Jab Body Cross Uppercut Hook,4,33.7,35.429,38.2,"Jab, Cross to the body, Uppercut, Hook"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,8,combo,Double Jab Overhand Hook,4,38.2,39.489,42.7,"Jab, Jab, Overhand, Hook"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,9,combo,Hook Cross Hook,3,42.7,43.725,47.2,"Hook, Cross, Hook"
-cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,7,e9c3753,51.7,6.067,0.064 1.068 2.065,10,combo,Body Jab Body Cross Hook Cross Overhand,5,47.2,49.709,51.7,"Jab to the body, Cross to the body, Hook, Cross, Overhand"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,1,combo,Hook Cross Hook,3,6.667,7.654,11.167,"Hook, Cross, Hook"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,2,combo,Jab Hook Cross Uppercut Hook Cross,6,11.167,13.413,15.7,"Jab, Hook, Cross, Uppercut, Hook, Cross"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,3,combo,Cross,1,15.7,16.005,20.167,Cross
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,4,combo,Parry Cross Hook Cross Hook Body Cross,5,20.167,22.659,24.7,"Parry (knock the punch aside), Cross, Hook, Cross, Hook, Cross to the body"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,5,combo,Jab Body Cross Hook,3,24.7,25.937,29.2,"Jab, Cross to the body, Hook"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,6,combo,Jab Cross Overhand Hook Body Cross Uppercut,6,29.2,31.927,33.667,"Jab, Cross, Overhand, Hook, Cross to the body, Uppercut"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,7,combo,Jab Cross Roll Hook Cross,4,33.667,35.44,38.2,"Jab, Cross, Roll (duck under the hook), Hook, Cross"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,8,combo,Slip Cross Hook Body Cross,3,38.2,40.022,42.7,"Slip (move your head off the line), Cross, Hook, Cross to the body"
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,9,combo,Body Jab,1,42.7,43.077,47.2,Jab to the body
+cc-sync-boxing-2,Boxing,10,ADVANCED,4.5,24,e9c3753,51.7,6.067,0.084 1.08 2.08,10,combo,Jab Slip Cross Roll Hook Cross,4,47.2,49.44,51.7,"Jab, Slip (move your head off the line), Cross, Roll (duck under the hook), Hook, Cross"

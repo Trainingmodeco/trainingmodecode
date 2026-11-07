@@ -236,14 +236,31 @@ async function main() {
     rows.push({ n: rows.length + 1, name: 'command line: --json written, answer printed', truth: 5.5, got: j, errMs: j ? (j.offsetSec - 5.5) * 1000 : NaN, ok: !!okCli, ms: 0 });
     const bad = spawnSync(process.execPath, [path.join(HERE, 'align-audio.mjs'), guideFile, path.join(dir, 'nope.mp4')], { encoding: 'utf8' });
     rows.push({ n: rows.length + 1, name: 'command line: a missing file is explained (exit 1)', truth: null, got: null, errMs: NaN, ok: bad.status === 1 && /does not exist/.test(bad.stderr), ms: 0 });
+    // One file only: says what is needed before the usage (exit 1).
+    const one = spawnSync(process.execPath, [path.join(HERE, 'align-audio.mjs'), guideFile], { encoding: 'utf8' });
+    rows.push({ n: rows.length + 1, name: 'command line: one file given is explained (exit 1)', truth: null, got: null, errMs: NaN, ok: one.status === 1 && /^align-audio: give the guide video and your clip/.test(one.stderr), ms: 0 });
+    // A clip without the guide in it: no offset, no bell or call times, exit 2, JSON reliable:false and offsetSec null.
+    const ng = path.join(dir, 'noguide.m4a'), nj = path.join(dir, 'noguide.json');
+    const none = spawnSync(process.execPath, [path.join(HERE, 'align-audio.mjs'), guideFile, ng, '--json', nj], { encoding: 'utf8' });
+    let nja = null;
+    try { nja = JSON.parse(fs.readFileSync(nj, 'utf8')); } catch { /* no json */ }
+    const okNone = none.status === 2 && /not found/.test(none.stdout) && !/bell is at|call \d+ at|offset\s+[+-]/.test(none.stdout) && /not found in this clip/.test(none.stderr)
+      && nja && nja.reliable === false && nja.offsetSec === null && !nja.bellOnClipSec && !nja.callsOnClipSec;
+    rows.push({ n: rows.length + 1, name: 'command line: guide NOT in the clip: no offset given, exit 2, reliable:false', truth: null, got: nja, errMs: NaN, ok: !!okNone, ms: 0 });
+    // The camera started late (the guide's bell had already rung): the bell is said to be before the clip starts, not at a made-up time.
+    const late = buildClip(dir, guide48, { name: 'late', offset: -8, snr: 15, lowpass: 3400 }, 4242);
+    const lr = spawnSync(process.execPath, [path.join(HERE, 'align-audio.mjs'), guideFile, late.file], { encoding: 'utf8' });
+    const hasSheet = fs.existsSync(path.join(path.dirname(guideFile), `${path.basename(guideFile, path.extname(guideFile))}.timing.json`));
+    const okLate = lr.status === 0 && /offset\s+-(?:7\.9\d\d|8\.0\d\d)/.test(lr.stdout) && (!hasSheet || /the bell is [\d.]+ s BEFORE your clip starts/.test(lr.stdout));
+    rows.push({ n: rows.length + 1, name: 'command line: camera started late: the bell is said to be BEFORE the clip', truth: -8, got: null, errMs: NaN, ok: !!okLate, ms: 0 });
   }
 
   const pad = (s, n) => String(s).padEnd(n), lpad = (s, n) => String(s).padStart(n);
   console.log(`${pad('#', 3)}${pad('case', 46)}${lpad('true s', 9)}${lpad('found s', 9)}${lpad('error', 10)}${lpad('conf', 6)}  result`);
   for (const x of rows) {
-    const found = x.got ? x.got.offsetSec.toFixed(3) : (x.err ? 'error' : '-');
+    const found = x.got && Number.isFinite(x.got.offsetSec) ? x.got.offsetSec.toFixed(3) : (x.err ? 'error' : '-');
     const err = Number.isFinite(x.errMs) ? `${x.errMs >= 0 ? '+' : ''}${x.errMs.toFixed(1)} ms` : '-';
-    console.log(`${pad(x.n, 3)}${pad(x.name, 46)}${lpad(x.truth === null ? '-' : x.truth.toFixed(3), 9)}${lpad(found, 9)}${lpad(err, 10)}${lpad(x.got ? x.got.confidence.toFixed(2) : '-', 6)}  ${x.ok ? 'PASS' : 'FAIL'}${x.err ? `  (${x.err})` : ''}`);
+    console.log(`${pad(x.n, 3)}${pad(x.name, 46)}${lpad(x.truth === null ? '-' : x.truth.toFixed(3), 9)}${lpad(found, 9)}${lpad(err, 10)}${lpad(x.got && Number.isFinite(x.got.confidence) ? x.got.confidence.toFixed(2) : '-', 6)}  ${x.ok ? 'PASS' : 'FAIL'}${x.err ? `  (${x.err})` : ''}`);
   }
   const fail = rows.filter((x) => !x.ok);
   const timed = rows.filter((x) => Number.isFinite(x.errMs) && !x.control && x.truth !== null);

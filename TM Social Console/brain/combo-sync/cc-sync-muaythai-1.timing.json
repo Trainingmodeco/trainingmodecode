@@ -4,16 +4,16 @@
   "athleteLevel": 5,
   "difficulty": "NORMAL",
   "cadenceSec": 4.5,
-  "seed": 1,
+  "seed": 16,
   "appCommit": "e9c3753",
-  "durationSec": 60,
+  "durationSec": 57.233,
   "goAtSec": 6.033,
   "countInBeepsAtSec": [
-    0.068,
-    1.061,
-    2.061
+    0.083,
+    1.083,
+    2.083
   ],
-  "roundAnnouncementAtSec": 3.467,
+  "roundAnnouncementAtSec": 3.5,
   "voice": {
     "id": "mbrola-us2",
     "engine": "eSpeak NG with MBROLA us2 (American male)"
@@ -22,165 +22,94 @@
     {
       "index": 1,
       "kind": "combo",
-      "text": "Frame Elbow Knee Push Roundhouse",
-      "spoken": "frame elbow knee push roundhouse",
+      "text": "Jab Cross Roundhouse",
+      "spoken": "jab cross roundhouse",
       "strikeCount": 3,
-      "pieceCount": 5,
+      "pieceCount": 3,
       "startSec": 6.633,
-      "speechEndSec": 8.7,
-      "nextCallSec": 11.133,
-      "windowSec": 4.5,
+      "speechEndSec": 7.879,
+      "nextCallSec": 11.167,
+      "windowSec": 4.533,
       "strikes": [
-        "Frame",
-        "Elbow",
-        "Knee",
-        "Push",
+        "Jab",
+        "Cross",
         "Roundhouse kick"
       ],
-      "plain": "Frame, Elbow, Knee, Push, Roundhouse kick",
-      "audioOnsetSec": 6.633
+      "plain": "Jab, Cross, Roundhouse kick",
+      "audioOnsetSec": 6.634,
+      "audioFirstSoundSec": 6.629
     },
     {
       "index": 2,
       "kind": "combo",
-      "text": "Jab Low Kick",
-      "spoken": "jab low kick",
-      "strikeCount": 2,
-      "pieceCount": 2,
-      "startSec": 11.133,
-      "speechEndSec": 11.816,
-      "nextCallSec": 15.633,
-      "windowSec": 4.5,
-      "strikes": [
-        "Jab",
-        "Low kick (to the thigh)"
-      ],
-      "plain": "Jab, Low kick (to the thigh)",
-      "audioOnsetSec": 11.133
-    },
-    {
-      "index": 3,
-      "kind": "combo",
-      "text": "Jab Elbow Cross Roundhouse",
-      "spoken": "jab elbow cross roundhouse",
-      "strikeCount": 4,
-      "pieceCount": 4,
-      "startSec": 15.633,
-      "speechEndSec": 17.346,
-      "nextCallSec": 20.133,
-      "windowSec": 4.5,
-      "strikes": [
-        "Jab",
-        "Elbow",
-        "Cross",
-        "Roundhouse kick"
-      ],
-      "plain": "Jab, Elbow, Cross, Roundhouse kick",
-      "audioOnsetSec": 15.633
-    },
-    {
-      "index": 4,
-      "kind": "defence",
-      "text": "CHECK!",
-      "spoken": "check",
-      "strikeCount": 0,
-      "pieceCount": 1,
-      "startSec": 20.133,
-      "speechEndSec": 20.336,
-      "nextCallSec": 22.933,
-      "windowSec": 2.8,
-      "strikes": [
-        "Check (lift the shin to block a kick)"
-      ],
-      "plain": "Check (lift the shin to block a kick)",
-      "audioOnsetSec": 20.133
-    },
-    {
-      "index": 5,
-      "kind": "combo",
-      "text": "Jab Cross Knee Cross",
-      "spoken": "jab cross knee cross",
-      "strikeCount": 4,
-      "pieceCount": 4,
-      "startSec": 22.933,
-      "speechEndSec": 24.443,
-      "nextCallSec": 27.433,
+      "text": "Jab Cross Knee Elbow Roundhouse",
+      "spoken": "jab cross knee elbow roundhouse",
+      "strikeCount": 5,
+      "pieceCount": 5,
+      "startSec": 11.167,
+      "speechEndSec": 13.122,
+      "nextCallSec": 15.667,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
         "Cross",
         "Knee",
-        "Cross"
-      ],
-      "plain": "Jab, Cross, Knee, Cross",
-      "audioOnsetSec": 22.933
-    },
-    {
-      "index": 6,
-      "kind": "combo",
-      "text": "Cross Elbow Knee",
-      "spoken": "cross elbow knee",
-      "strikeCount": 3,
-      "pieceCount": 3,
-      "startSec": 27.433,
-      "speechEndSec": 28.453,
-      "nextCallSec": 31.933,
-      "windowSec": 4.5,
-      "strikes": [
-        "Cross",
         "Elbow",
-        "Knee"
+        "Roundhouse kick"
       ],
-      "plain": "Cross, Elbow, Knee",
-      "audioOnsetSec": 27.433
+      "plain": "Jab, Cross, Knee, Elbow, Roundhouse kick",
+      "audioOnsetSec": 11.168,
+      "audioFirstSoundSec": 11.161
     },
     {
-      "index": 7,
+      "index": 3,
       "kind": "combo",
-      "text": "Hook Elbow Cross Body Kick",
-      "spoken": "hook elbow cross body kick",
+      "text": "Teep Cross Hook Body Kick",
+      "spoken": "teep cross hook body kick",
       "strikeCount": 4,
       "pieceCount": 4,
-      "startSec": 31.933,
-      "speechEndSec": 33.565,
-      "nextCallSec": 36.433,
+      "startSec": 15.667,
+      "speechEndSec": 17.257,
+      "nextCallSec": 20.167,
       "windowSec": 4.5,
       "strikes": [
-        "Hook",
-        "Elbow",
+        "Teep (push kick)",
         "Cross",
+        "Hook",
         "Kick to the body"
       ],
-      "plain": "Hook, Elbow, Cross, Kick to the body",
-      "audioOnsetSec": 31.933
+      "plain": "Teep (push kick), Cross, Hook, Kick to the body",
+      "audioOnsetSec": 15.668,
+      "audioFirstSoundSec": 15.659
     },
     {
-      "index": 8,
+      "index": 4,
       "kind": "defence",
-      "text": "PIVOT!",
-      "spoken": "pivot",
+      "text": "ROLL!",
+      "spoken": "roll",
       "strikeCount": 0,
       "pieceCount": 1,
-      "startSec": 36.433,
-      "speechEndSec": 36.653,
-      "nextCallSec": 39.233,
-      "windowSec": 2.8,
+      "startSec": 20.167,
+      "speechEndSec": 20.39,
+      "nextCallSec": 22.933,
+      "windowSec": 2.767,
       "strikes": [
-        "Pivot (step off at an angle)"
+        "Roll (duck under the hook)"
       ],
-      "plain": "Pivot (step off at an angle)",
-      "audioOnsetSec": 36.433
+      "plain": "Roll (duck under the hook)",
+      "audioOnsetSec": 20.168,
+      "audioFirstSoundSec": 20.163
     },
     {
-      "index": 9,
+      "index": 5,
       "kind": "combo",
       "text": "Cross Hook Knee",
       "spoken": "cross hook knee",
       "strikeCount": 3,
       "pieceCount": 3,
-      "startSec": 39.233,
-      "speechEndSec": 40.221,
-      "nextCallSec": 43.733,
+      "startSec": 22.933,
+      "speechEndSec": 23.919,
+      "nextCallSec": 27.433,
       "windowSec": 4.5,
       "strikes": [
         "Cross",
@@ -188,84 +117,153 @@
         "Knee"
       ],
       "plain": "Cross, Hook, Knee",
-      "audioOnsetSec": 39.233
+      "audioOnsetSec": 22.934,
+      "audioFirstSoundSec": 22.931
     },
     {
-      "index": 10,
+      "index": 6,
       "kind": "combo",
-      "text": "Cross Low Kick",
-      "spoken": "cross low kick",
+      "text": "Jab Low Kick",
+      "spoken": "jab low kick",
       "strikeCount": 2,
       "pieceCount": 2,
-      "startSec": 43.733,
-      "speechEndSec": 44.535,
-      "nextCallSec": 48.233,
+      "startSec": 27.433,
+      "speechEndSec": 28.114,
+      "nextCallSec": 31.933,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Low kick (to the thigh)"
+      ],
+      "plain": "Jab, Low kick (to the thigh)",
+      "audioOnsetSec": 27.434,
+      "audioFirstSoundSec": 27.427
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Cross Elbow Knee",
+      "spoken": "cross elbow knee",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 31.933,
+      "speechEndSec": 32.946,
+      "nextCallSec": 36.433,
       "windowSec": 4.5,
       "strikes": [
         "Cross",
-        "Low kick (to the thigh)"
+        "Elbow",
+        "Knee"
       ],
-      "plain": "Cross, Low kick (to the thigh)",
-      "audioOnsetSec": 43.733
+      "plain": "Cross, Elbow, Knee",
+      "audioOnsetSec": 31.934,
+      "audioFirstSoundSec": 31.931
     },
     {
-      "index": 11,
+      "index": 8,
+      "kind": "combo",
+      "text": "Jab Cross Low Kick Teep",
+      "spoken": "jab cross low kick teep",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 36.433,
+      "speechEndSec": 37.899,
+      "nextCallSec": 40.933,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Low kick (to the thigh)",
+        "Teep (push kick)"
+      ],
+      "plain": "Jab, Cross, Low kick (to the thigh), Teep (push kick)",
+      "audioOnsetSec": 36.434,
+      "audioFirstSoundSec": 36.427
+    },
+    {
+      "index": 9,
       "kind": "combo",
       "text": "Switch Kick Elbow",
       "spoken": "switch kick elbow",
       "strikeCount": 2,
       "pieceCount": 2,
-      "startSec": 48.233,
-      "speechEndSec": 49.226,
-      "nextCallSec": 52.7,
-      "windowSec": 4.467,
+      "startSec": 40.933,
+      "speechEndSec": 41.921,
+      "nextCallSec": 45.467,
+      "windowSec": 4.533,
       "strikes": [
         "Switch kick (switch stance, then kick)",
         "Elbow"
       ],
       "plain": "Switch kick (switch stance, then kick), Elbow",
-      "audioOnsetSec": 48.233
+      "audioOnsetSec": 40.934,
+      "audioFirstSoundSec": 40.927
+    },
+    {
+      "index": 10,
+      "kind": "defence",
+      "text": "CHECK!",
+      "spoken": "check",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 45.467,
+      "speechEndSec": 45.669,
+      "nextCallSec": 48.233,
+      "windowSec": 2.767,
+      "strikes": [
+        "Check (lift the shin to block a kick)"
+      ],
+      "plain": "Check (lift the shin to block a kick)",
+      "audioOnsetSec": 45.466,
+      "audioFirstSoundSec": 45.427
+    },
+    {
+      "index": 11,
+      "kind": "combo",
+      "text": "Jab Cross Roundhouse Elbow Knee Cross",
+      "spoken": "jab cross roundhouse elbow knee cross",
+      "strikeCount": 6,
+      "pieceCount": 6,
+      "startSec": 48.233,
+      "speechEndSec": 50.616,
+      "nextCallSec": 52.733,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Roundhouse kick",
+        "Elbow",
+        "Knee",
+        "Cross"
+      ],
+      "plain": "Jab, Cross, Roundhouse kick, Elbow, Knee, Cross",
+      "audioOnsetSec": 48.234,
+      "audioFirstSoundSec": 48.227
     },
     {
       "index": 12,
-      "kind": "defence",
-      "text": "SLIP!",
-      "spoken": "slip",
-      "strikeCount": 0,
-      "pieceCount": 1,
-      "startSec": 52.7,
-      "speechEndSec": 53.007,
-      "nextCallSec": 55.5,
-      "windowSec": 2.8,
-      "strikes": [
-        "Slip (move your head off the line)"
-      ],
-      "plain": "Slip (move your head off the line)",
-      "audioOnsetSec": 52.7
-    },
-    {
-      "index": 13,
       "kind": "combo",
-      "text": "Check Cross Kick",
-      "spoken": "check cross kick",
+      "text": "Teep Cross",
+      "spoken": "teep cross",
       "strikeCount": 2,
-      "pieceCount": 3,
-      "startSec": 55.5,
-      "speechEndSec": 56.578,
-      "nextCallSec": 60,
+      "pieceCount": 2,
+      "startSec": 52.733,
+      "speechEndSec": 53.389,
+      "nextCallSec": 57.233,
       "windowSec": 4.5,
       "strikes": [
-        "Check (lift the shin to block a kick)",
-        "Cross",
-        "Kick"
+        "Teep (push kick)",
+        "Cross"
       ],
-      "plain": "Check (lift the shin to block a kick), Cross, Kick",
-      "audioOnsetSec": 55.5
+      "plain": "Teep (push kick), Cross",
+      "audioOnsetSec": 52.734,
+      "audioFirstSoundSec": 52.723
     }
   ],
+  "roundAnnouncementEndSec": 6.047,
   "loudness": {
     "integratedLufs": -16,
-    "truePeakDbfs": -2.5,
-    "rangeLu": 11.5
+    "truePeakDbfs": -1.5,
+    "rangeLu": 8.1
   }
 }

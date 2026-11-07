@@ -13,6 +13,11 @@
 //                      each call fall on the owner's clip.
 //   --quiet            print only the offset in seconds
 //
+// When the guide is NOT found in the clip (confidence under 0.5: the wrong video, or its sound is not
+// in the clip) the tool says so, prints no offset, bell or call times, and exits with code 2. The JSON then
+// has "reliable": false and "offsetSec": null (the number the match found is kept as "unreliableOffsetSec",
+// for debugging only); a found guide has "reliable": true. Exit 1: a bad argument or an unreadable file.
+//
 // The offset is the second of the OWNER'S CLIP at which the guide's time 0 falls.
 //   +6.842  the guide started 6.842 s after the owner's camera did (an owner clip
 //           can have anything before and after: room noise, talking, bag hits).
@@ -341,31 +346,42 @@ export function alignAudio(guideFile, clipFile) {
 // ─────────────────────────────────────────────────────────────────────────────
 const verdict = (c) => (c >= 0.8 ? 'good' : c >= 0.5 ? 'fair' : 'not reliable: the guide is hardly audible in this clip');
 const sign = (x) => `${x >= 0 ? '+' : '-'}${Math.abs(x).toFixed(3)}`;
-const mmss = (s) => `${Math.floor(Math.abs(s) / 60)}:${(Math.abs(s) % 60).toFixed(1).padStart(4, '0')}`;
+// Where a moment falls on the owner's clip, in words: "at 0:06.7 on your clip", or, when the camera started after
+// it had happened, "1.9 s BEFORE your clip starts".
+const where = (s) => (s < 0 ? `${Math.abs(s).toFixed(1)} s BEFORE your clip starts` : `at ${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')} on your clip`);
+const MIN_CONFIDENCE = 0.5;
+const usage = () => {
+  const lines = fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n');
+  return lines.slice(0, lines.findIndex((l) => !l.startsWith('//'))).map((l) => l.replace(/^\/\/ ?/, '')).join('\n');
+};
 
 async function main() {
   const argv = process.argv.slice(2);
   const flag = (n) => argv.includes(n);
   const val = (n) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : undefined; };
-  if (flag('--help') || flag('-h') || argv.length < 2) {
-    const lines = fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n');
-    console.log(lines.slice(0, lines.findIndex((l) => !l.startsWith('//'))).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
-    process.exit(flag('--help') || flag('-h') ? 0 : 1);
-  }
+  if (flag('--help') || flag('-h')) { console.log(usage()); process.exit(0); }
   const skip = new Set();
   for (const o of ['--json', '--timing']) { const i = argv.indexOf(o); if (i >= 0) { skip.add(i); if (argv[i + 1] && !argv[i + 1].startsWith('--')) skip.add(i + 1); } }
   const files = argv.filter((a, i) => !a.startsWith('--') && !skip.has(i));
-  if (files.length !== 2) { console.error('align-audio: give the guide video and the owner clip: node tools/align-audio.mjs <guide.mp4> <owner-clip.mp4>'); process.exit(1); }
+  if (files.length !== 2) {
+    console.error(`align-audio: give the guide video and your clip (two files${files.length === 1 ? `, you gave one: ${files[0]}` : files.length ? `, you gave ${files.length}` : ''}).\n`);
+    console.error(usage());
+    process.exit(1);
+  }
   const [guideFile, clipFile] = files;
   let r;
   try { r = alignAudio(guideFile, clipFile); } catch (e) { console.error(`align-audio: ${e.message}`); process.exit(1); }
+  const reliable = r.confidence >= MIN_CONFIDENCE;
   // The timing sheet, when there is one.
   let timing = null;
   const tFile = val('--timing') || path.join(path.dirname(guideFile), `${path.basename(guideFile, path.extname(guideFile))}.timing.json`);
   if (fs.existsSync(tFile)) { try { timing = JSON.parse(fs.readFileSync(tFile, 'utf8')); } catch { /* ignore a sheet that does not read */ } }
   const onClip = (t) => Math.round((t + r.offsetSec) * 1000) / 1000;
-  const out = { ...r, guide: path.resolve(guideFile), clip: path.resolve(clipFile) };
-  if (timing && Number.isFinite(timing.goAtSec)) {
+  // An answer that is not reliable is not given as one: offsetSec is null (a script that reads it cannot use
+  // a made-up number) and no bell or call times are worked out from it; the number the match found is kept
+  // as unreliableOffsetSec for whoever is debugging.
+  const out = { reliable, ...r, offsetSec: reliable ? r.offsetSec : null, ...(reliable ? {} : { unreliableOffsetSec: r.offsetSec }), guide: path.resolve(guideFile), clip: path.resolve(clipFile) };
+  if (reliable && timing && Number.isFinite(timing.goAtSec)) {
     out.bellOnClipSec = onClip(timing.goAtSec);
     out.callsOnClipSec = (timing.calls || []).map((c) => ({ index: c.index, text: c.text, startSec: onClip(c.startSec) }));
   }
@@ -373,16 +389,25 @@ async function main() {
     const jf = val('--json') || `${clipFile.replace(/\.[^.\\/]+$/, '')}.align.json`;
     fs.writeFileSync(jf, JSON.stringify(out, null, 2) + '\n');
   }
-  if (flag('--quiet')) { console.log(r.offsetSec.toFixed(3)); return; }
+  const warning = 'align-audio: the guide was not found in this clip (low confidence). Was the guide video playing out loud while you filmed, is it the right video, and can its sound be heard in the clip?';
+  if (flag('--quiet')) {
+    if (reliable) console.log(r.offsetSec.toFixed(3)); else console.error(warning);
+    process.exitCode = reliable ? 0 : 2;
+    return;
+  }
   console.log(`guide   ${path.basename(guideFile)}  (${r.guideSec.toFixed(1)} s)`);
   console.log(`clip    ${path.basename(clipFile)}  (${r.clipSec.toFixed(1)} s)`);
+  if (!reliable) {
+    console.log(`offset  not found    confidence ${r.confidence.toFixed(2)}  ${verdict(r.confidence)}`);
+    console.error(warning);
+    process.exitCode = 2;
+    return;
+  }
   console.log(`offset  ${sign(r.offsetSec)} s   the guide's 0:00 falls at ${r.offsetSec >= 0 ? `${r.offsetSec.toFixed(3)} s on your clip` : `${Math.abs(r.offsetSec).toFixed(3)} s BEFORE your clip starts`}`);
   console.log(`confidence ${r.confidence.toFixed(2)}  ${verdict(r.confidence)}  (match ${r.peak}, next best ${r.runnerUp}, ${r.overlapSec} s of the guide overlap the clip)`);
   if (out.bellOnClipSec !== undefined) {
-    console.log(`the bell is at ${mmss(out.bellOnClipSec)} on your clip; call ${out.callsOnClipSec[0]?.index ?? 1} at ${mmss(out.callsOnClipSec[0]?.startSec ?? 0)}`);
+    console.log(`the bell is ${where(out.bellOnClipSec)}; call ${out.callsOnClipSec[0]?.index ?? 1} is ${where(out.callsOnClipSec[0]?.startSec ?? 0)}`);
   }
-  if (r.confidence < 0.5) console.error('align-audio: low confidence. Was the guide playing out loud while you filmed, and is its sound in the clip?');
-  process.exitCode = r.confidence < 0.5 ? 2 : 0;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main();

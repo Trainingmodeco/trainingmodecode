@@ -6,14 +6,14 @@
   "cadenceSec": 4.5,
   "seed": 8,
   "appCommit": "e9c3753",
-  "durationSec": 57.4,
-  "goAtSec": 6.2,
+  "durationSec": 57.333,
+  "goAtSec": 6.167,
   "countInBeepsAtSec": [
-    0.07,
-    1.068,
-    2.068
+    0.065,
+    1.065,
+    2.066
   ],
-  "roundAnnouncementAtSec": 3.5,
+  "roundAnnouncementAtSec": 3.467,
   "voice": {
     "id": "mbrola-us2",
     "engine": "eSpeak NG with MBROLA us2 (American male)"
@@ -26,9 +26,9 @@
       "spoken": "body kick cross hook low kick",
       "strikeCount": 4,
       "pieceCount": 4,
-      "startSec": 6.8,
-      "speechEndSec": 8.584,
-      "nextCallSec": 11.3,
+      "startSec": 6.767,
+      "speechEndSec": 8.477,
+      "nextCallSec": 11.267,
       "windowSec": 4.5,
       "strikes": [
         "Kick to the body",
@@ -37,7 +37,8 @@
         "Low kick (to the thigh)"
       ],
       "plain": "Kick to the body, Cross, Hook, Low kick (to the thigh)",
-      "audioOnsetSec": 6.8
+      "audioOnsetSec": 6.768,
+      "audioFirstSoundSec": 6.739
     },
     {
       "index": 2,
@@ -46,17 +47,18 @@
       "spoken": "jab body kick cross",
       "strikeCount": 3,
       "pieceCount": 3,
-      "startSec": 11.3,
-      "speechEndSec": 12.562,
+      "startSec": 11.267,
+      "speechEndSec": 12.452,
       "nextCallSec": 15.8,
-      "windowSec": 4.5,
+      "windowSec": 4.533,
       "strikes": [
         "Jab",
         "Kick to the body",
         "Cross"
       ],
       "plain": "Jab, Kick to the body, Cross",
-      "audioOnsetSec": 11.3
+      "audioOnsetSec": 11.268,
+      "audioFirstSoundSec": 11.263
     },
     {
       "index": 3,
@@ -66,7 +68,7 @@
       "strikeCount": 3,
       "pieceCount": 3,
       "startSec": 15.8,
-      "speechEndSec": 16.963,
+      "speechEndSec": 16.962,
       "nextCallSec": 20.3,
       "windowSec": 4.5,
       "strikes": [
@@ -75,7 +77,8 @@
         "Low kick (to the thigh)"
       ],
       "plain": "Cross, Hook, Low kick (to the thigh)",
-      "audioOnsetSec": 15.8
+      "audioOnsetSec": 15.8,
+      "audioFirstSoundSec": 15.798
     },
     {
       "index": 4,
@@ -85,7 +88,7 @@
       "strikeCount": 3,
       "pieceCount": 3,
       "startSec": 20.3,
-      "speechEndSec": 21.361,
+      "speechEndSec": 21.265,
       "nextCallSec": 24.8,
       "windowSec": 4.5,
       "strikes": [
@@ -94,24 +97,26 @@
         "Cross"
       ],
       "plain": "Teep (push kick), Jab, Cross",
-      "audioOnsetSec": 20.3
+      "audioOnsetSec": 20.3,
+      "audioFirstSoundSec": 20.29
     },
     {
       "index": 5,
       "kind": "defence",
-      "text": "CHECK!",
-      "spoken": "check",
+      "text": "PIVOT!",
+      "spoken": "pivot",
       "strikeCount": 0,
       "pieceCount": 1,
       "startSec": 24.8,
-      "speechEndSec": 25.003,
+      "speechEndSec": 25.021,
       "nextCallSec": 27.567,
       "windowSec": 2.767,
       "strikes": [
-        "Check (lift the shin to block a kick)"
+        "Pivot (step off at an angle)"
       ],
-      "plain": "Check (lift the shin to block a kick)",
-      "audioOnsetSec": 24.8
+      "plain": "Pivot (step off at an angle)",
+      "audioOnsetSec": 24.8,
+      "audioFirstSoundSec": 24.792
     },
     {
       "index": 6,
@@ -121,16 +126,17 @@
       "strikeCount": 3,
       "pieceCount": 3,
       "startSec": 27.567,
-      "speechEndSec": 28.938,
-      "nextCallSec": 32.1,
-      "windowSec": 4.533,
+      "speechEndSec": 28.865,
+      "nextCallSec": 32.067,
+      "windowSec": 4.5,
       "strikes": [
         "Low kick (to the thigh)",
         "Low kick (to the thigh)",
         "Cross"
       ],
       "plain": "Low kick (to the thigh), Low kick (to the thigh), Cross",
-      "audioOnsetSec": 27.567
+      "audioOnsetSec": 27.568,
+      "audioFirstSoundSec": 27.563
     },
     {
       "index": 7,
@@ -139,10 +145,10 @@
       "spoken": "jab cross hook body kick low kick",
       "strikeCount": 5,
       "pieceCount": 5,
-      "startSec": 32.1,
-      "speechEndSec": 34.219,
+      "startSec": 32.067,
+      "speechEndSec": 34.109,
       "nextCallSec": 36.567,
-      "windowSec": 4.467,
+      "windowSec": 4.5,
       "strikes": [
         "Jab",
         "Cross",
@@ -151,7 +157,8 @@
         "Low kick (to the thigh)"
       ],
       "plain": "Jab, Cross, Hook, Kick to the body, Low kick (to the thigh)",
-      "audioOnsetSec": 32.1
+      "audioOnsetSec": 32.068,
+      "audioFirstSoundSec": 32.061
     },
     {
       "index": 8,
@@ -161,15 +168,16 @@
       "strikeCount": 2,
       "pieceCount": 2,
       "startSec": 36.567,
-      "speechEndSec": 37.328,
-      "nextCallSec": 41.133,
-      "windowSec": 4.567,
+      "speechEndSec": 37.325,
+      "nextCallSec": 41.067,
+      "windowSec": 4.5,
       "strikes": [
         "Jab",
         "Kick to the body"
       ],
       "plain": "Jab, Kick to the body",
-      "audioOnsetSec": 36.567
+      "audioOnsetSec": 36.568,
+      "audioFirstSoundSec": 36.563
     },
     {
       "index": 9,
@@ -178,17 +186,18 @@
       "spoken": "jab cross switch kick",
       "strikeCount": 3,
       "pieceCount": 3,
-      "startSec": 41.133,
-      "speechEndSec": 42.546,
+      "startSec": 41.067,
+      "speechEndSec": 42.405,
       "nextCallSec": 45.6,
-      "windowSec": 4.467,
+      "windowSec": 4.533,
       "strikes": [
         "Jab",
         "Cross",
         "Switch kick (switch stance, then kick)"
       ],
       "plain": "Jab, Cross, Switch kick (switch stance, then kick)",
-      "audioOnsetSec": 41.133
+      "audioOnsetSec": 41.068,
+      "audioFirstSoundSec": 41.061
     },
     {
       "index": 10,
@@ -198,32 +207,34 @@
       "strikeCount": 2,
       "pieceCount": 2,
       "startSec": 45.6,
-      "speechEndSec": 46.261,
-      "nextCallSec": 50.133,
-      "windowSec": 4.533,
+      "speechEndSec": 46.297,
+      "nextCallSec": 50.067,
+      "windowSec": 4.467,
       "strikes": [
         "Hook",
         "Low kick (to the thigh)"
       ],
       "plain": "Hook, Low kick (to the thigh)",
-      "audioOnsetSec": 45.6
+      "audioOnsetSec": 45.636,
+      "audioFirstSoundSec": 45.56
     },
     {
       "index": 11,
       "kind": "defence",
-      "text": "CHECK!",
-      "spoken": "check",
+      "text": "SLIP!",
+      "spoken": "slip",
       "strikeCount": 0,
       "pieceCount": 1,
-      "startSec": 50.133,
-      "speechEndSec": 50.336,
-      "nextCallSec": 52.9,
+      "startSec": 50.067,
+      "speechEndSec": 50.372,
+      "nextCallSec": 52.833,
       "windowSec": 2.767,
       "strikes": [
-        "Check (lift the shin to block a kick)"
+        "Slip (move your head off the line)"
       ],
-      "plain": "Check (lift the shin to block a kick)",
-      "audioOnsetSec": 50.133
+      "plain": "Slip (move your head off the line)",
+      "audioOnsetSec": 50.068,
+      "audioFirstSoundSec": 50.063
     },
     {
       "index": 12,
@@ -232,9 +243,9 @@
       "spoken": "jab cross hook low kick teep",
       "strikeCount": 5,
       "pieceCount": 5,
-      "startSec": 52.9,
-      "speechEndSec": 54.852,
-      "nextCallSec": 57.4,
+      "startSec": 52.833,
+      "speechEndSec": 54.66,
+      "nextCallSec": 57.333,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -244,12 +255,14 @@
         "Teep (push kick)"
       ],
       "plain": "Jab, Cross, Hook, Low kick (to the thigh), Teep (push kick)",
-      "audioOnsetSec": 52.9
+      "audioOnsetSec": 52.834,
+      "audioFirstSoundSec": 52.827
     }
   ],
+  "roundAnnouncementEndSec": 6.156,
   "loudness": {
     "integratedLufs": -16,
-    "truePeakDbfs": -2.3,
-    "rangeLu": 10.1
+    "truePeakDbfs": -1.5,
+    "rangeLu": 9.9
   }
 }

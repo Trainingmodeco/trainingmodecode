@@ -97,6 +97,26 @@ export function findVoice(want) {
   }
   return null;
 }
+// The sync videos need a full ffmpeg on the PATH (the copy Remotion bundles is a slim build without the audio
+// encoders and filters used here). Checked before anything is recorded, so a missing or slim ffmpeg costs
+// seconds and not a 2-minute recording. Returns null when it is fine, else the sentence to show.
+export const ffmpegHint = 'The sync videos need a full ffmpeg on the PATH: winget install Gyan.FFmpeg (Windows), brew install ffmpeg (macOS), apt-get install ffmpeg (Linux). Then open a new terminal and run it again.';
+export function checkFfmpeg() {
+  const run = (args) => spawnSync('ffmpeg', ['-hide_banner', ...args], { encoding: 'utf8' });
+  const enc = run(['-encoders']);
+  if (enc.error || enc.status !== 0) return `ffmpeg was not found. ${ffmpegHint}`;
+  const flt = run(['-filters']);
+  const lacks = [
+    ...['libx264', 'aac', 'pcm_f32le', 'pcm_s16le'].filter((e) => !new RegExp(`\\s${e}\\s`).test(enc.stdout)).map((e) => `the ${e} encoder`),
+    ...['loudnorm', 'equalizer', 'acompressor', 'alimiter', 'adelay', 'amix', 'aresample', 'highpass', 'afade', 'pan', 'apad', 'atrim', 'ebur128'].filter((f) => !new RegExp(`\\s${f}\\s`).test(flt.stdout)).map((f) => `the ${f} filter`),
+  ];
+  if (lacks.length) return `this ffmpeg has no ${lacks.join(', ')}. ${ffmpegHint}`;
+  // One second of every step the guide uses, for real.
+  const t = run(['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=1', '-f', 'lavfi', '-i', 'color=c=black:s=64x64:r=30:d=1', '-filter_complex',
+    '[0:a]highpass=f=85,equalizer=f=3000:t=q:w=0.9:g=6,acompressor=threshold=0.1:ratio=4,adelay=100S:all=1,apad=whole_len=48000,atrim=end_sample=48000,pan=stereo|c0=c0|c1=c0,loudnorm=I=-16:TP=-1.5:LRA=11,alimiter=limit=0.9[a]', '-map', '[a]', '-map', '1:v', '-c:a', 'aac', '-c:v', 'libx264', '-f', 'null', '-']);
+  if (t.status !== 0) return `a test encode with this ffmpeg failed (${String(t.stderr || '').trim().split('\n').slice(-1)[0]}). ${ffmpegHint}`;
+  return null;
+}
 export const installHint = () => `No offline text-to-speech program found. Install one (Linux: apt-get install -y espeak-ng; macOS: brew install espeak-ng; Windows: the eSpeak NG installer, then add it to PATH), or run with --no-voice.`;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -141,24 +161,27 @@ export function writeWavF32(file, pcm, rate = SR) {
 // as one run-on phrase. An announcer calls each strike on its own beat, so the line is cut
 // into strikes (the same pieces the app counts: data/comboMix.js) and each is said as its
 // own short phrase with a small gap. The words and their order are the app's, untouched.
-const MULTI = ['question mark kick', 'spinning back kick', 'spinning back elbow', 'spinning back fist', 'spinning backfist', 'spinning heel kick', 'superman punch', 'bolo punch', 'flying knee', 'jumping elbow', 'pull counter', 'check counter', 'catch kick', 'feint shot', 'level change', 'fake shot', 'ground pound', 'ground knee', 'step back', 'circle out', 'rear body hook', 'shovel hook', 'check hook'];
+const MULTI = ['question mark kick', 'spinning back kick', 'spinning back elbow', 'spinning back fist', 'spinning backfist', 'spinning heel kick', 'superman punch', 'bolo punch', 'flying knee', 'jumping elbow', 'pull counter', 'check counter', 'catch kick', 'feint shot', 'level change', 'fake shot', 'ground pound', 'ground knee', 'step back', 'circle out', 'rear body hook', 'shovel hook', 'check hook', 'oblique kick'];
 const MODS = new Set(['double', 'body', 'head', 'lead', 'rear', 'step', 'spinning', 'flying', 'jumping', 'high', 'low', 'switch']);
+// How many words the strike that starts at words[i] takes: a two- or three-word name from MULTI, or a
+// modifier and the strike after it ("body hook", "double jab", and "double low kick": a modifier's strike
+// can itself be a modifier and a word), else the one word.
+function unitLength(words, i) {
+  const hit = MULTI.find((m) => { const mw = m.split(' '); return mw.every((w, k) => words[i + k] === w); });
+  if (hit) return hit.split(' ').length;
+  if (MODS.has(words[i]) && i + 1 < words.length) return 1 + unitLength(words, i + 1);
+  return 1;
+}
 export function strikePieces(words) {
   const out = [];
   for (let i = 0; i < words.length;) {
-    const hit = MULTI.find((m) => { const mw = m.split(' '); return mw.every((w, k) => words[i + k] === w); });
-    if (hit) { out.push(hit); i += hit.split(' ').length; continue; }
-    if (MODS.has(words[i]) && i + 1 < words.length) {
-      // a modifier joins the strike after it ("body hook"), or two of them ("rear body hook" is in MULTI)
-      const next = MULTI.find((m) => { const mw = m.split(' '); return mw.every((w, k) => words[i + 1 + k] === w); });
-      const len = next ? next.split(' ').length : 1;
-      out.push(words.slice(i, i + 1 + len).join(' ')); i += 1 + len; continue;
-    }
-    out.push(words[i]); i += 1;
+    const len = unitLength(words, i);
+    out.push(words.slice(i, i + len).join(' '));
+    i += len;
   }
   return out;
 }
-const STRIKE_WORDS = new Set(['jab', 'cross', 'hook', 'uppercut', 'overhand', 'kick', 'knee', 'elbow', 'teep', 'roundhouse', 'backfist', 'fist', 'punch', 'slip', 'roll', 'pivot', 'check', 'parry', 'pull', 'feint', 'counter', 'sprawl', 'clinch', 'throw', 'push', 'exit', 'frame', 'sweep', 'pass', 'break', 'shot', 'pound', 'oblique', 'switch', 'double', 'body', 'head', 'lead', 'rear', 'step', 'spinning', 'flying', 'jumping', 'high', 'low', 'level', 'change', 'fake', 'circle', 'out', 'back', 'catch', 'ground', 'bolo', 'superman', 'question', 'mark', 'wheel', 'axe', 'tornado', 'heel', 'shovel']);
+export const STRIKE_WORDS = new Set(['jab', 'cross', 'hook', 'uppercut', 'overhand', 'kick', 'knee', 'elbow', 'teep', 'roundhouse', 'backfist', 'fist', 'punch', 'slip', 'roll', 'pivot', 'check', 'parry', 'pull', 'feint', 'counter', 'sprawl', 'clinch', 'throw', 'push', 'exit', 'frame', 'sweep', 'pass', 'break', 'shot', 'pound', 'oblique', 'switch', 'double', 'body', 'head', 'lead', 'rear', 'step', 'spinning', 'flying', 'jumping', 'high', 'low', 'level', 'change', 'fake', 'circle', 'out', 'back', 'catch', 'ground', 'bolo', 'superman', 'question', 'mark', 'wheel', 'axe', 'tornado', 'heel', 'shovel']);
 // A line -> [{ text, gap }] : the phrases to say in order, `gap` the silence (s) before it.
 export function phrasesOf(line) {
   const text = String(line).toLowerCase().replace(/(\d)\.(\d)/g, '$1\u0001$2');
@@ -178,7 +201,7 @@ export function phrasesOf(line) {
 // ─────────────────────────────────────────────────────────────────────────────
 const TARGET_RMS = 0.2;  // about -14 dBFS while speaking, before the final loudness pass
 const CEILING = 0.95;    // no sample above this
-const TRIM_DB = -42;     // silence at the ends of a phrase (relative to its own peak)
+const TRIM_DB = -38;     // silence at the ends of a phrase (relative to its own peak): below this is breath and engine hiss, not the word
 
 export class VoiceBank {
   constructor(voice, cacheRoot = path.join(os.tmpdir(), 'tm-sync-voice')) {
@@ -189,7 +212,7 @@ export class VoiceBank {
   }
   // One phrase at one rate.
   phrase(text, rate = 1) {
-    const key = `${text}|${rate.toFixed(3)}|${JSON.stringify(this.voice.shape)}|${this.voice.speak('x', 1, 'o').join(' ')}`;
+    const key = `v2|${TRIM_DB}|${text}|${rate.toFixed(3)}|${JSON.stringify(this.voice.shape)}|${this.voice.speak('x', 1, 'o').join(' ')}`;
     if (this.mem.has(key)) return this.mem.get(key);
     const file = path.join(this.dir, `${crypto.createHash('sha1').update(key).digest('hex').slice(0, 16)}.wav`);
     if (!fs.existsSync(file)) {
@@ -204,7 +227,7 @@ export class VoiceBank {
     this.mem.set(key, pcm);
     return pcm;
   }
-  // A whole line the app speaks: phrases with their gaps. { pcm, ms, onset } (ms: how long it takes to say; onset: seconds from the first sample to where the sound starts, see onsetOf).
+  // A whole line the app speaks: phrases with their gaps. { pcm, ms, onset, audible } (ms: how long it takes to say; onset: seconds from the first sample to where the sound is HEARD to start, see onsetOf; audible: where the very first sound is, the soft "h" of "hook", see audibleOf).
   say(line, rate = 1) {
     const parts = phrasesOf(line).map((p) => ({ gap: p.gap, pcm: this.phrase(p.text, rate) }));
     let n = 0;
@@ -216,7 +239,7 @@ export class VoiceBank {
       out.set(p.pcm, at);
       at += p.pcm.length;
     }
-    return { pcm: out, ms: Math.round((n / SR) * 1000), onset: onsetOf(out) };
+    return { pcm: out, ms: Math.round((n / SR) * 1000), onset: onsetOf(out), audible: audibleOf(out) };
   }
 }
 
@@ -370,6 +393,65 @@ export function onsetOf(pcm, from = 0, look = 0.6) {
   for (let i = a; i + w <= z; i += Math.round(w / 2)) if (rms(i) >= thr) return (i - a) / SR;
   return null;
 }
+// Where the very first sound of a phrase is: the first 2 ms of loudness above -47 dBFS (the voice is at about
+// -14 dBFS while speaking before the final loudness pass, which turns it down to about -20: this is about the
+// -50 dBFS a listener's meter reads on the finished track; a phrase is trimmed at 38 dB under its peak, about
+// -41 dBFS, so the first sample kept is above it). The soft start of a word ("h" of "hook", "f" of "feint",
+// the "p" of "pivot") is up to 80 ms before the loudness has reached what a person hears as the word starting.
+export function audibleOf(pcm, from = 0, look = 0.6) {
+  const a = Math.max(0, Math.round(from * SR)), z = Math.min(pcm.length, a + Math.round(look * SR));
+  const w = Math.round(0.002 * SR), thr = 10 ** (-47 / 20);
+  for (let i = a; i + w <= z; i += Math.round(w / 2)) {
+    let e = 0;
+    for (let k = 0; k < w; k++) e += pcm[i + k] ** 2;
+    if (Math.sqrt(e / w) >= thr) return (i - a) / SR;
+  }
+  return null;
+}
+// The most the first soft sound of a call may lead the frame where its words show, seconds. The voice is
+// placed so its HEARD start (onsetOf) is on that frame; when the soft start before it is longer than this,
+// the voice is delayed by the excess, so no sound comes more than this early and none is heard late by more
+// than the soft start's excess (at most about 40 ms for the softest starts: the soft start leads by up to 80 ms).
+export const SOFT_LEAD_MAX = 0.04;
+// Where the voice file starts relative to the frame where its words show, seconds early (always >= 0):
+// the heard start on the frame, the soft start no more than SOFT_LEAD_MAX before it.
+export function voiceEarly({ onset, audible }, cap = Infinity) {
+  const heard = onset ?? 0, first = audible ?? heard;
+  const lead = Math.max(0, heard - first);
+  return Math.min(cap, Math.max(0, heard - Math.max(0, lead - SOFT_LEAD_MAX)));
+}
+// Where a call is HEARD to begin in a long (finished) track, read the way a listener's meter does: the loudest 2 ms in
+// the 0.5 s from `want` is the peak, and the heard start is the first 2 ms, from 0.25 s before `want` to 0.35 s after
+// it, that is above a fifth of that peak, above -50 dBFS and 12 dB above the level 30 ms before it (a rise, not a
+// tail). A stricter and later reading than onsetOf's, used on the finished file. Seconds on the track; null when none.
+export function heardNear(track, want) {
+  const w = Math.round(0.002 * SR);
+  const rms = (i) => { let e = 0; for (let k = 0; k < w; k++) e += track[i + k] ** 2; return Math.sqrt(e / w); };
+  const db = (x) => 20 * Math.log10(Math.max(1e-7, x));
+  const s0 = Math.round(want * SR);
+  let pk = 0;
+  for (let i = s0; i + w <= Math.min(track.length, s0 + Math.round(0.5 * SR)); i += w) pk = Math.max(pk, rms(i));
+  if (pk <= 0) return null;
+  const a = Math.max(15 * w, Math.round((want - 0.25) * SR)), z = Math.min(track.length - w, Math.round((want + 0.35) * SR));
+  for (let i = a - (a % w); i < z; i += w) {
+    const e = rms(i);
+    if (e > 0.2 * pk && db(e) > -50 && db(e) > db(rms(i - 15 * w)) + 12) return i / SR;
+  }
+  return null;
+}
+// The first sound in a long (finished) track, the way a listener's meter reads it: at or after `from`, the
+// first 2 ms above -50 dBFS that is also 12 dB above the level 30 ms before it. Seconds on the track; null
+// when nothing is there.
+export function firstSoundNear(track, from, look = 0.5) {
+  const w = Math.round(0.002 * SR), a = Math.max(0, Math.round(from * SR)), z = Math.min(track.length, a + Math.round(look * SR));
+  const lev = (i) => { let e = 0; for (let k = 0; k < w; k++) e += track[i + k] ** 2; return 20 * Math.log10(Math.max(1e-7, Math.sqrt(e / w))); };
+  for (let i = a; i + w <= z; i += w) {
+    const d = lev(i);
+    if (d > -50 && d > lev(Math.max(0, i - 15 * w)) + 12) return i / SR;
+  }
+  return null;
+}
+
 // The same, in a long track: the time (seconds on the track) of the first onset at or after `from`.
 export function onsetNear(pcm, from, look = 0.6) {
   const o = onsetOf(pcm, from, look);

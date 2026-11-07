@@ -6,14 +6,14 @@
   "cadenceSec": 4.5,
   "seed": 1,
   "appCommit": "e9c3753",
-  "durationSec": 60.1,
-  "goAtSec": 6.133,
+  "durationSec": 57.3,
+  "goAtSec": 6.1,
   "countInBeepsAtSec": [
-    0.115,
-    1.122,
-    2.115
+    0.106,
+    1.1,
+    2.102
   ],
-  "roundAnnouncementAtSec": 3.533,
+  "roundAnnouncementAtSec": 3.5,
   "voice": {
     "id": "mbrola-us2",
     "engine": "eSpeak NG with MBROLA us2 (American male)"
@@ -26,9 +26,9 @@
       "spoken": "double jab body hook cross hook cross",
       "strikeCount": 6,
       "pieceCount": 6,
-      "startSec": 6.767,
-      "speechEndSec": 9.024,
-      "nextCallSec": 11.267,
+      "startSec": 6.733,
+      "speechEndSec": 8.841,
+      "nextCallSec": 11.233,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -39,7 +39,8 @@
         "Cross"
       ],
       "plain": "Jab, Jab, Hook to the body, Cross, Hook, Cross",
-      "audioOnsetSec": 6.767
+      "audioOnsetSec": 6.734,
+      "audioFirstSoundSec": 6.699
     },
     {
       "index": 2,
@@ -48,9 +49,9 @@
       "spoken": "jab cross step back",
       "strikeCount": 2,
       "pieceCount": 3,
-      "startSec": 11.267,
-      "speechEndSec": 12.606,
-      "nextCallSec": 15.767,
+      "startSec": 11.233,
+      "speechEndSec": 12.496,
+      "nextCallSec": 15.733,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -58,7 +59,8 @@
         "Step back"
       ],
       "plain": "Jab, Cross, Step back",
-      "audioOnsetSec": 11.267
+      "audioOnsetSec": 11.234,
+      "audioFirstSoundSec": 11.227
     },
     {
       "index": 3,
@@ -67,9 +69,9 @@
       "spoken": "lead uppercut cross hook body cross",
       "strikeCount": 4,
       "pieceCount": 4,
-      "startSec": 15.767,
-      "speechEndSec": 17.843,
-      "nextCallSec": 20.267,
+      "startSec": 15.733,
+      "speechEndSec": 17.735,
+      "nextCallSec": 20.233,
       "windowSec": 4.5,
       "strikes": [
         "Lead uppercut",
@@ -78,24 +80,26 @@
         "Cross to the body"
       ],
       "plain": "Lead uppercut, Cross, Hook, Cross to the body",
-      "audioOnsetSec": 15.767
+      "audioOnsetSec": 15.732,
+      "audioFirstSoundSec": 15.729
     },
     {
       "index": 4,
       "kind": "defence",
-      "text": "PIVOT!",
-      "spoken": "pivot",
+      "text": "ROLL!",
+      "spoken": "roll",
       "strikeCount": 0,
       "pieceCount": 1,
-      "startSec": 20.267,
-      "speechEndSec": 20.487,
+      "startSec": 20.233,
+      "speechEndSec": 20.456,
       "nextCallSec": 23.033,
-      "windowSec": 2.767,
+      "windowSec": 2.8,
       "strikes": [
-        "Pivot (step off at an angle)"
+        "Roll (duck under the hook)"
       ],
-      "plain": "Pivot (step off at an angle)",
-      "audioOnsetSec": 20.267
+      "plain": "Roll (duck under the hook)",
+      "audioOnsetSec": 20.234,
+      "audioFirstSoundSec": 20.227
     },
     {
       "index": 5,
@@ -105,7 +109,7 @@
       "strikeCount": 3,
       "pieceCount": 3,
       "startSec": 23.033,
-      "speechEndSec": 24.207,
+      "speechEndSec": 24.133,
       "nextCallSec": 27.533,
       "windowSec": 4.5,
       "strikes": [
@@ -114,7 +118,8 @@
         "Cross"
       ],
       "plain": "Jab, Uppercut, Cross",
-      "audioOnsetSec": 23.032
+      "audioOnsetSec": 23.034,
+      "audioFirstSoundSec": 23.029
     },
     {
       "index": 6,
@@ -124,7 +129,7 @@
       "strikeCount": 3,
       "pieceCount": 3,
       "startSec": 27.533,
-      "speechEndSec": 28.944,
+      "speechEndSec": 28.938,
       "nextCallSec": 32.033,
       "windowSec": 4.5,
       "strikes": [
@@ -133,7 +138,8 @@
         "Cross to the head"
       ],
       "plain": "Jab, Jab to the body, Cross to the head",
-      "audioOnsetSec": 27.533
+      "audioOnsetSec": 27.534,
+      "audioFirstSoundSec": 27.527
     },
     {
       "index": 7,
@@ -143,7 +149,7 @@
       "strikeCount": 4,
       "pieceCount": 4,
       "startSec": 32.033,
-      "speechEndSec": 33.688,
+      "speechEndSec": 33.614,
       "nextCallSec": 36.533,
       "windowSec": 4.5,
       "strikes": [
@@ -153,35 +159,19 @@
         "Cross"
       ],
       "plain": "Cross, Hook, Uppercut, Cross",
-      "audioOnsetSec": 32.033
+      "audioOnsetSec": 32.034,
+      "audioFirstSoundSec": 32.031
     },
     {
       "index": 8,
-      "kind": "defence",
-      "text": "PIVOT!",
-      "spoken": "pivot",
-      "strikeCount": 0,
-      "pieceCount": 1,
-      "startSec": 36.533,
-      "speechEndSec": 36.753,
-      "nextCallSec": 39.3,
-      "windowSec": 2.767,
-      "strikes": [
-        "Pivot (step off at an angle)"
-      ],
-      "plain": "Pivot (step off at an angle)",
-      "audioOnsetSec": 36.533
-    },
-    {
-      "index": 9,
       "kind": "combo",
       "text": "Jab Cross Body Hook",
       "spoken": "jab cross body hook",
       "strikeCount": 3,
       "pieceCount": 3,
-      "startSec": 39.3,
-      "speechEndSec": 40.528,
-      "nextCallSec": 43.8,
+      "startSec": 36.533,
+      "speechEndSec": 37.684,
+      "nextCallSec": 41.033,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -189,25 +179,45 @@
         "Hook to the body"
       ],
       "plain": "Jab, Cross, Hook to the body",
-      "audioOnsetSec": 39.3
+      "audioOnsetSec": 36.534,
+      "audioFirstSoundSec": 36.527
     },
     {
-      "index": 10,
+      "index": 9,
       "kind": "combo",
       "text": "Double Jab",
       "spoken": "double jab",
       "strikeCount": 2,
       "pieceCount": 2,
-      "startSec": 43.8,
-      "speechEndSec": 44.154,
-      "nextCallSec": 48.3,
+      "startSec": 41.033,
+      "speechEndSec": 41.385,
+      "nextCallSec": 45.533,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
         "Jab"
       ],
       "plain": "Jab, Jab",
-      "audioOnsetSec": 43.8
+      "audioOnsetSec": 41.034,
+      "audioFirstSoundSec": 40.997
+    },
+    {
+      "index": 10,
+      "kind": "defence",
+      "text": "SLIP!",
+      "spoken": "slip",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 45.533,
+      "speechEndSec": 45.838,
+      "nextCallSec": 48.333,
+      "windowSec": 2.8,
+      "strikes": [
+        "Slip (move your head off the line)"
+      ],
+      "plain": "Slip (move your head off the line)",
+      "audioOnsetSec": 45.534,
+      "audioFirstSoundSec": 45.529
     },
     {
       "index": 11,
@@ -216,9 +226,9 @@
       "spoken": "double jab cross hook",
       "strikeCount": 4,
       "pieceCount": 4,
-      "startSec": 48.3,
-      "speechEndSec": 49.515,
-      "nextCallSec": 52.8,
+      "startSec": 48.333,
+      "speechEndSec": 49.473,
+      "nextCallSec": 52.833,
       "windowSec": 4.5,
       "strikes": [
         "Jab",
@@ -227,36 +237,20 @@
         "Hook"
       ],
       "plain": "Jab, Jab, Cross, Hook",
-      "audioOnsetSec": 48.3
+      "audioOnsetSec": 48.334,
+      "audioFirstSoundSec": 48.297
     },
     {
       "index": 12,
-      "kind": "defence",
-      "text": "SLIP!",
-      "spoken": "slip",
-      "strikeCount": 0,
-      "pieceCount": 1,
-      "startSec": 52.8,
-      "speechEndSec": 53.107,
-      "nextCallSec": 55.6,
-      "windowSec": 2.8,
-      "strikes": [
-        "Slip (move your head off the line)"
-      ],
-      "plain": "Slip (move your head off the line)",
-      "audioOnsetSec": 52.8
-    },
-    {
-      "index": 13,
       "kind": "combo",
       "text": "Slip Slip Cross Hook",
       "spoken": "slip slip cross hook",
       "strikeCount": 2,
       "pieceCount": 4,
-      "startSec": 55.6,
-      "speechEndSec": 57.271,
-      "nextCallSec": 60.1,
-      "windowSec": 4.5,
+      "startSec": 52.833,
+      "speechEndSec": 54.428,
+      "nextCallSec": 57.3,
+      "windowSec": 4.467,
       "strikes": [
         "Slip (move your head off the line)",
         "Slip",
@@ -264,12 +258,14 @@
         "Hook"
       ],
       "plain": "Slip (move your head off the line), Slip, Cross, Hook",
-      "audioOnsetSec": 55.6
+      "audioOnsetSec": 52.834,
+      "audioFirstSoundSec": 52.829
     }
   ],
+  "roundAnnouncementEndSec": 6.071,
   "loudness": {
     "integratedLufs": -16,
-    "truePeakDbfs": -1.5,
-    "rangeLu": 10.4
+    "truePeakDbfs": -1.7,
+    "rangeLu": 11.2
   }
 }

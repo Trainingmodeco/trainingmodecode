@@ -1,11 +1,11 @@
 name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,1,combo,Hook Body Kick Knee,3,6.667,7.728,11.167,"Hook, Kick to the body, Knee"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,2,combo,Clinch Knee Knee Elbow Push Roundhouse,4,11.167,13.602,15.667,"Clinch (grab hold of the head), Knee, Knee, Elbow, Push, Roundhouse kick"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,3,combo,Jab Cross Knee Elbow Clinch Knee Push,5,15.667,18.363,20.167,"Jab, Cross, Knee, Elbow, Clinch (grab hold of the head), Knee, Push"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,4,combo,Teep Jab Cross Elbow Knee Roundhouse,6,20.167,22.579,24.667,"Teep (push kick), Jab, Cross, Elbow, Knee, Roundhouse kick"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,5,combo,Jab Cross Knee,3,24.667,25.676,29.167,"Jab, Cross, Knee"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,6,combo,Check Cross Elbow Body Kick,3,29.167,30.883,33.667,"Check (lift the shin to block a kick), Cross, Elbow, Kick to the body"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,7,combo,Switch Kick Cross Elbow Knee,4,33.667,35.484,38.167,"Switch kick (switch stance, then kick), Cross, Elbow, Knee"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,8,combo,Teep Cross Elbow Knee,4,38.167,39.612,42.667,"Teep (push kick), Cross, Elbow, Knee"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,9,combo,Jab Body Kick Elbow,3,42.667,43.82,47.167,"Jab, Kick to the body, Elbow"
-cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,7,e9c3753,51.667,6.033,0.062 1.061 2.062,10,combo,Jab Body Kick Elbow Clinch Knee Knee,5,47.167,49.541,51.667,"Jab, Kick to the body, Elbow, Clinch (grab hold of the head), Knee, Knee"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,1,combo,Feint Cross Low Kick Elbow Knee,4,6.633,8.561,11.167,"Feint (fake a strike), Cross, Low kick (to the thigh), Elbow, Knee"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,2,combo,Rear Roundhouse,1,11.167,11.796,15.633,Rear roundhouse kick
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,3,combo,Teep Cross Hook Elbow Knee Roundhouse,6,15.633,17.993,20.133,"Teep (push kick), Cross, Hook, Elbow, Knee, Roundhouse kick"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,4,combo,Rear Knee,1,20.133,20.45,24.633,Rear knee
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,5,combo,Teep Roundhouse Cross Elbow,4,24.633,26.312,29.167,"Teep (push kick), Roundhouse kick, Cross, Elbow"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,6,combo,Check Counter Kick Elbow Knee,3,29.167,30.793,33.633,"Check counter (block the kick, fire back), Kick, Elbow, Knee"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,7,combo,Jab Cross Knee Cross,4,33.633,34.993,38.133,"Jab, Cross, Knee, Cross"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,8,combo,Teep Cross Hook Spinning Elbow,4,38.133,39.821,42.667,"Teep (push kick), Cross, Hook, Spinning elbow"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,9,combo,Low Kick Cross Hook Knee,4,42.667,44.15,47.167,"Low kick (to the thigh), Cross, Hook, Knee"
+cc-sync-muaythai-2,Muay Thai,10,ADVANCED,4.5,92,e9c3753,51.667,6.033,0.083 1.081 2.08,10,combo,Check Counter Elbow Cross Body Kick,3,47.167,49.157,51.667,"Check counter (block the kick, fire back), Elbow, Cross, Kick to the body"

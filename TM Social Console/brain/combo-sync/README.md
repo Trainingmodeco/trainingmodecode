@@ -9,6 +9,11 @@ videos), kept here so they travel with the repo:
   that video's own clock (seconds), how long the voice takes, when the next call comes, and the
   strikes of each call in plain words. App commit `e9c3753`, seeds in each file.
 
-The videos are not in git: `npm run sync-broll` records them again (same app, same seeds, same
-combos). On the owner's clip, a moment at guide time `t` is at `t + offset`, the offset that
+The videos are not in git (about 10 MB each): `npm run sync-broll` records them again. The same app
+and seeds deal the same combos in the same order, but NOT the same file: a call can land a frame
+earlier or later and the bytes differ. **Each timing sheet is exact only for the mp4 it was written
+with.** Keep a video and its sheet as a pair, and do not swap in a re-recorded video once the owner has
+filmed to the old one.
+
+On the owner's clip, a moment at guide time `t` is at `t + offset`, the offset that
 `npm run align -- <guide.mp4> <owner-clip.mp4>` prints.
