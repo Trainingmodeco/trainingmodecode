@@ -31,7 +31,7 @@ the link. Free plan is enough to start.
 ## Keep it current
 
 The drop line changes with the app's concept drop (`brand/brand.json` →
-`drops`): SHOTO until 2026-11-30, **ULTRA EGO** from 2026-12-01, FLOW STATE
+`drops`): SHOTO until 2026-11-30, **THE DESTROYER** from 2026-12-01, FLOW STATE
 from 2027-02-01. Update the DM text on the first of those months.
 
 ## Rules

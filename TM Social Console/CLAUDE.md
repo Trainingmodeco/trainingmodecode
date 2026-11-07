@@ -22,7 +22,9 @@ boss). App: https://apptrainingmode.com · site: https://trainingmode.co.
    names you publish. The list comes from the app (`brand/brand.json` →
    `rules.neverSay`); `npm run check` enforces it and render/approve refuse to
    run on a violation. Some older Drive scripts break this rule. Rewrite them
-   with the app's own names (e.g. FLOW STATE, SHOTO, ULTRA EGO) before using them.
+   with the app's own names (e.g. FLOW STATE, SHOTO, THE DESTROYER) before using them.
+   The drop the old scripts call Ultra Ego is THE DESTROYER in the app (Ultra Ego is
+   a franchise name; `npm run check` bans it too).
 3. **The app rewards the workout, never views, likes, follows or subscribes.**
    Never offer XP or rewards for engagement. App CTA: "open the app and hit
    CLEARED".
@@ -134,9 +136,14 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   of the screen that isn't live; default 440) and `broll[i].shiftY` (slides a
   screen's top rows below the HUD, e.g. Combo Coach's difficulty chips), and the
   HUD stays inside x 70 to 938 with no bottom brackets (nothing in the right 140 px
-  or the bottom 350 px). Keep panels under 3 lines, top edge below y 315, bottom
-  edge above y 1570, and look at a still of every scene (cuts of one clip must not
-  cross a clock jump). Without `brollGrade` a post renders as it always did.
+  or the bottom 350 px), and the end card's wordmark and flash are softened to match.
+  Write each beat to fit two lines (`npm run render` sizes the panel: at most three
+  lines, and a three-line panel is 300+ px tall), keep the panel's top edge below y 315
+  and its bottom edge above y 1570 (measure the render, not the plan), and look at a
+  still of every scene. Cuts of one clip must not cross a clock jump, and no scene may
+  show a fast-forwarded clock (the clips record get-ready countdowns in real time).
+  Name no test persona on screen: the clips seed the neutral name Trainee. Without
+  `brollGrade` a post renders as it always did.
 - **FootageShort**: the owner's clip with the HUD, a title card, Whisper
   captions (spoken word turns gold) and the end card.
 - **BossIntro**: 5s "STAGE 3 / LEG DAY / BOSS: 100 SQUATS / FIGHT!" hook.

@@ -110,7 +110,10 @@ app and the console gets no new dependency.
 - **A new clip is one entry** in `CLIPS` at the top of `tools/app-broll.mjs`
   (a persona, a few steps to get to the first screen, the steps to record). Its
   `expect` and `waitText` steps stop a clip whose screen no longer says what it
-  should, so re-run it after the app changes.
+  should, so re-run it after the app changes. Athletes are seeded with the
+  neutral name Trainee (the Profile prints it, so it is on screen); get-ready
+  countdowns run in real time and only long waits are leapt (`jump`, or `hide`
+  to cut straight past them).
 - Use the clips in a **ScriptShort** post with `"brollGrade": "app"` in `props`:
   the footage keeps its true colours at full size, the words sit in a caption
   panel that each scene places over the part of the screen that isn't live

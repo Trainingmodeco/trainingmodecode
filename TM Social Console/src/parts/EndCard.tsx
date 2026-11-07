@@ -8,12 +8,15 @@ export const END_CARD_FRAMES = 105;
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 // STAGE CLEAR! with three stars, then the Training Mode sign-off: gold mark,
-// name, tagline, the call to action and the app's address.
-export const EndCard: React.FC<{ cta: string; url?: string }> = ({ cta, url }) => {
+// name, tagline, the call to action and the app's address. `safe` (opt-in, used
+// with the app-screen look) keeps the wordmark out of the right 140 px the
+// platforms use for their buttons (it spans x 167 to 913, not 128 to 948) and
+// softens the white flash that follows the yellow cut wipe.
+export const EndCard: React.FC<{ cta: string; url?: string; safe?: boolean }> = ({ cta, url, safe }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const slam = spring({ frame, fps, config: { damping: 9, stiffness: 170 } });
-  const flash = interpolate(frame, [0, 7], [0.85, 0], clamp);
+  const flash = interpolate(frame, [0, 7], [safe ? 0.45 : 0.85, 0], clamp);
   const shake = frame < 14 ? Math.sin(frame * 2.4) * (14 - frame) * 1.8 : 0;
   const clearUp = interpolate(frame, [32, 44], [0, -520], clamp);
   const clearScale = interpolate(frame, [32, 44], [1, 0.55], clamp);
@@ -57,7 +60,7 @@ export const EndCard: React.FC<{ cta: string; url?: string }> = ({ cta, url }) =
       <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 260 }}>
         <div style={{ opacity: logo, transform: `scale(${0.8 + 0.2 * logo})`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Img src={staticFile(brand.logos.mark)} style={{ width: 230, mixBlendMode: 'lighten', filter: `drop-shadow(0 0 40px ${C.gold}88)` }} />
-          <div style={{ fontFamily: FONT.display, fontWeight: 900, fontSize: 88, color: C.text, marginTop: 30, letterSpacing: '0.03em' }}>
+          <div style={{ fontFamily: FONT.display, fontWeight: 900, fontSize: safe ? 80 : 88, color: C.text, marginTop: 30, letterSpacing: '0.03em' }}>
             TRAINING MODE
           </div>
           <div style={{ fontFamily: FONT.body, fontWeight: 700, fontSize: 40, color: C.gold, letterSpacing: '0.5em', marginTop: 8 }}>

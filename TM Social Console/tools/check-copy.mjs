@@ -12,7 +12,7 @@ import { BRAND, ROOT, loadPosts, readJson } from './lib.mjs';
 
 const brand = readJson(BRAND);
 // A few more the app's list doesn't spell out but the rule covers.
-const EXTRA = ['One Punch', 'Ultra Ego Vegeta', 'Kamehameha', 'Hadouken', 'Shoryuken', 'Naruto', 'Luffy', 'Jiren', 'Rocky Balboa'];
+const EXTRA = ['One Punch', 'Ultra Ego', 'Ultra Ego Vegeta', 'Kamehameha', 'Hadouken', 'Shoryuken', 'Naruto', 'Luffy', 'Jiren', 'Rocky Balboa'];
 const STALE = { 'Strike Focus': 'Fight Focus', 'Strength Focus': 'Fight Focus' };
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

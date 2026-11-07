@@ -128,7 +128,7 @@ export const ScriptShort: React.FC<ScriptShortProps> = (p) => {
         <Slash />
       </Sequence>
       <Sequence from={endFrom}>
-        <EndCard cta={p.cta} url={p.url} />
+        <EndCard cta={p.cta} url={p.url} safe={appLook} />
       </Sequence>
       {p.voiceover ? <Audio src={staticFile(p.voiceover)} /> : null}
     </AbsoluteFill>

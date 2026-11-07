@@ -38,7 +38,9 @@
 //          (a countdown, a rest); time still flows on its own in between.
 // A step is one object, the first key names what it does:
 //   { wait: ms }                               pause
-//   { tap: <target>, after: ms }               a finger tap (after: pause once it lands)
+//   { tap: <target>, after: ms, hold: ms }     a finger tap (after: pause once it lands; hold: how long the finger
+//                                              stays down, default about 110 ms: a longer press lets the gold ripple
+//                                              show before a button that changes the screen fires)
 //   { tapAt: [x, y] }                          a tap at a spot (css px, 412 x 732)
 //   { tapMinute: 10 }                          a tap on the Quick Mission TIME track
 //   { slide: 30, ms: 1200 }                    drag the TIME knob to 30 minutes
@@ -117,16 +119,19 @@ function athlete({ fit = 0, fitSessions = 0, fight = 0, fightSessions = 0, other
   return { xp: fit + fight + other, sessions };
 }
 
+// The name is neutral on purpose (the Profile and the Level page print it in
+// capitals, so it is on screen): never a real person, never a test name.
+const NAME = 'Trainee';
 const PERSONAS = {
   // Level 1: a new account, no sessions.
-  rookie: { name: 'ALEX', stats: null },
+  rookie: { name: NAME, stats: null },
   // Level 3 (1,210 XP, Fit work): Quick Mission opens on MEDIUM, Combo Coach on EASY.
-  lvl3: { name: 'ALEX', stats: athlete({ fit: 1150, fitSessions: 12, other: 60 }) },
+  lvl3: { name: NAME, stats: athlete({ fit: 1150, fitSessions: 12, other: 60 }) },
   // Level 10 (4,960 XP, 57 sessions, mostly Fit): Quick Mission opens on ADVANCED;
   // the Fight side (400 XP in full, the rest at half) is level 6, HARD.
-  lvl10: { name: 'ALEX', stats: athlete({ fit: 4500, fitSessions: 47, fight: 400, fightSessions: 10, other: 60 }) },
+  lvl10: { name: NAME, stats: athlete({ fit: 4500, fitSessions: 47, fight: 400, fightSessions: 10, other: 60 }) },
   // Level 10 on the Fight side (4,960 XP, mostly Fight): Combo Coach opens on ADVANCED.
-  fight10: { name: 'ALEX', stats: athlete({ fit: 350, fitSessions: 4, fight: 4550, fightSessions: 53, other: 60 }) },
+  fight10: { name: NAME, stats: athlete({ fit: 350, fitSessions: 4, fight: 4550, fightSessions: 53, other: 60 }) },
 };
 
 // Run in the page before the app boots, once per capture: the finished
@@ -260,7 +265,9 @@ const quickLevelSteps = ({ level, pick }) => [
   { waitText: /TODAY.S QUICK MISSION/, timeout: 10000 },
   { expect: new RegExp(`\\n${level}\\n`) },
   { wait: 1500 },
-  { tap: SEE_ALL, after: 750 },
+  // SEE ALL opens the whole list: the reps are the level (Lunges 6 at EASY,
+  // 18 at ADVANCED), so it holds for a good look before ADJUST opens.
+  { tap: SEE_ALL, after: 1700 },
   { tap: ADJUST_ROW, after: 450 },
   { waitText: /YOUR LEVEL/, timeout: 6000 },
   { wait: 1700 },
@@ -268,15 +275,21 @@ const quickLevelSteps = ({ level, pick }) => [
   { tap: SHEET_DONE, after: 900 },
 ];
 
-// The Level page: a slow reading scroll from the portrait down to the end.
+// The Level page: a tap on the portrait (its LEVEL > tag), then a slow reading
+// scroll from the hero down to the end.
 const levelPageSteps = ({ level, stops }) => [
   { wait: 900 },
-  { tap: 'button[aria-label="Avatar and level"]', after: 300 },
+  { tap: 'button[aria-label="View your level"]', hold: 320, after: 300 },
   { waitText: /WHAT LEVEL \d+ MEANS/, timeout: 8000 },
   { expect: new RegExp(`LEVEL ${level}\\n`) },
   { wait: 1500 },
   ...stops.flatMap(([to, ms, hold]) => [{ scroll: '[data-screen="level"]', to, ms }, { wait: hold }]),
 ];
+
+// Where the Level page stops: the hero card (after the tap), the ladder, then
+// AT YOUR LEVEL with its block clear of the HUD at the top and of the caption
+// panel below (about y 410 to 1050 of the 1920 frame), then the end of the page.
+const LEVEL_STOPS = [[300, 1700, 1300], [640, 1500, 3200], [1000, 1500, 1000]];
 
 // Combo Coach from the Fight hub: the setup on the athlete's level, START, the
 // countdown and the first combos. The screen loads on first use, so prep opens
@@ -336,25 +349,26 @@ const CLIPS = [
   },
   {
     name: 'qm-at-your-pace', persona: 'lvl3', clock: true,
-    note: 'AT YOUR PACE: START, the list of moves and the timer, one ROUND tap',
+    note: 'AT YOUR PACE: START, the 5-second get-ready and the timer in real time, the list of moves, then (one jump of the clock) one ROUND tap',
     prep: [...QM_PAGE, { tapMinute: 10, after: 800 }],
     steps: [
       { wait: 700 },
       { tap: AT_YOUR_PACE, after: 900 },
       { tap: START, after: 200 },
       { waitText: /GET READY/, timeout: 12000 },
-      { wait: 1400 },
-      { clock: 3800 },
-      { waitText: /ROUND 1/, timeout: 8000 },
-      { wait: 1000 },
+      // The 5-second GET READY and the first seconds of the stopwatch run in
+      // real time: no fast-forward is ever on camera. Only the long wait for the
+      // end of round 1 is leapt (one jump; the stopwatch lands on the new time).
+      { wait: 5400 },
+      { wait: 2800 },
       { jump: 128000 },
       { wait: 900 },
       { tap: { role: 'button', name: 'ROUND', exact: true }, after: 1800 },
     ],
   },
   {
-    name: 'qm-adjust', persona: 'lvl3',
-    note: 'ADJUST: LEVEL EASY / MEDIUM / HARD / ADVANCED with YOUR LEVEL under the athlete\'s, a tap on another',
+    name: 'qm-adjust', persona: 'rookie',
+    note: 'ADJUST: LEVEL EASY / MEDIUM / HARD / ADVANCED with YOUR LEVEL under the athlete\'s (a level 1 athlete: EASY), a tap on another',
     prep: QM_PAGE,
     steps: [
       { wait: 700 },
@@ -382,11 +396,24 @@ const CLIPS = [
     ],
   },
   {
-    name: 'qm-gear', persona: 'lvl3',
-    note: 'GEAR: taps WEIGHTED, then HYBRID, then back to BODYWEIGHT; the card rebuilds for each kit',
-    prep: [...QM_PAGE, { tapMinute: 10, after: 800 }],
+    name: 'qm-start-8', persona: 'lvl3',
+    note: '8 minutes picked: the START button, a tap on it (GUIDED, the default), then PREPARING',
+    prep: [...QM_PAGE, { tapMinute: 8, after: 800 }],
     steps: [
-      { expect: /\n10 MIN\n/ },
+      { expect: /\n8 MIN\n/ },
+      { wait: 1000 },
+      // A deliberate press: the finger stays down so the ripple shows before the screen changes.
+      { tap: START, hold: 380, after: 200 },
+      { waitText: /PREPARING/, timeout: 8000 },
+      { wait: 1300 },
+    ],
+  },
+  {
+    name: 'qm-gear', persona: 'lvl3',
+    note: 'GEAR (8 minutes): taps WEIGHTED, then HYBRID, then back to BODYWEIGHT; the card rebuilds for each kit',
+    prep: [...QM_PAGE, { tapMinute: 8, after: 800 }],
+    steps: [
+      { expect: /\n8 MIN\n/ },
       { wait: 900 },
       { tap: { role: 'radio', name: 'WEIGHTED', exact: true }, after: 1500 },
       { tap: { role: 'radio', name: 'HYBRID', exact: true }, after: 1500 },
@@ -427,13 +454,13 @@ const CLIPS = [
     name: 'lvl3-level-page', persona: 'lvl3',
     note: 'Profile of a level 3 athlete, tap the avatar: the Level page scrolls slowly (ladder, what it means, AT YOUR LEVEL, what you have done)',
     prep: [...PROFILE, { expect: /LVL 3 / }],
-    steps: levelPageSteps({ level: 3, stops: [[300, 1700, 900], [610, 1700, 2400], [1000, 2400, 1300]] }),
+    steps: levelPageSteps({ level: 3, stops: LEVEL_STOPS }),
   },
   {
     name: 'lvl10-level-page', persona: 'lvl10',
     note: 'The same for the level 10 athlete (Max on the ladder, Quick Missions start at ADVANCED)',
     prep: [...PROFILE, { expect: /LVL 10 / }],
-    steps: levelPageSteps({ level: 10, stops: [[300, 1700, 900], [610, 1700, 2400], [1000, 2400, 1300]] }),
+    steps: levelPageSteps({ level: 10, stops: LEVEL_STOPS }),
   },
   {
     name: 'cc-lvl1', persona: 'rookie', clock: true,
@@ -454,20 +481,30 @@ const CLIPS = [
     steps: [
       { wait: 500 },
       { tap: { text: /^MISSION LIBRARY$/ }, after: 900 },
-      { tap: { text: /^MAX OUT/ }, after: 1400 },
+      { wait: 400 },
+      { tap: { text: /^MAX OUT/ }, after: 1200 },
       { expect: /BOSS RUSH/ },
+      // The list is the only part of the sheet that scrolls: slide it so all
+      // five MAX OUT rows pass (BOSS RUSH, HEALTH BAR, COMBO METER, TANK MODE,
+      // DUAL WIELD), then back up to BOSS RUSH.
+      { scroll: '[role="radiogroup"][aria-label="Missions"]', to: 400, ms: 1700 }, { wait: 900 },
+      { scroll: '[role="radiogroup"][aria-label="Missions"]', to: 0, ms: 900 }, { wait: 500 },
       { tap: { role: 'button', name: /PUT ON CARD/ }, after: 1100 },
       { tap: START, after: 200 },
       { waitText: /PREPARING/, timeout: 8000 },
       { wait: 600 },
-      { clock: 3600 },
-      { waitText: /GET READY/, timeout: 8000 },
-      { wait: 1000 },
-      { clock: 9000 },
-      { waitText: /TAP DONE/, timeout: 8000 },
-      { wait: 900 },
-      { jump: 38000 },
-      { wait: 400 },
+      // The get-ready is fast-forwarded off camera: the footage cuts from
+      // PREPARING straight to the set (no clock leap is ever on screen).
+      { hide: [
+        { clock: 3600 },
+        { waitText: /GET READY/, timeout: 8000 },
+        { wait: 1000 },
+        { clock: 9000 },
+        { waitText: /TAP DONE/, timeout: 8000 },
+      ] },
+      { wait: 800 },
+      { jump: 38000 }, // the stopwatch sits under the HUD, so the leap is not seen
+      { wait: 700 },
       { tap: { css: 'button', hasText: /^DONE$/ }, after: 800 },
       { waitText: /HOW MANY REPS/, timeout: 6000 },
       { tap: { css: '[role="dialog"] button, button', hasText: /^\d+$/ }, after: 300 },
@@ -710,7 +747,7 @@ const OPS = {
   closePopups: async (c) => {
     await c.page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
   },
-  tap: async (c, target, s) => { const b = await pick(c.page, target); await c.finger.tap(b.x + b.width / 2 + jitter(b.width), b.y + b.height / 2 + jitter(b.height)); },
+  tap: async (c, target, s) => { const b = await pick(c.page, target); await c.finger.tap(b.x + b.width / 2 + jitter(b.width), b.y + b.height / 2 + jitter(b.height), s.hold); },
   tapAt: (c, [x, y]) => c.finger.tap(x, y),
   tapMinute: async (c, m) => { const { x, y } = await minuteX(c.page, m); await c.finger.tap(x, y); },
   slide: async (c, to, s) => {

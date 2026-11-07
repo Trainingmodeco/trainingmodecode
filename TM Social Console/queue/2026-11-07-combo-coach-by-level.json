@@ -12,7 +12,7 @@
     "hook": "Long combos on *day one*?",
     "beats": [
       "*Combo Coach* opens on your Fight level.",
-      "Level 1: single strikes and *short combos*.",
+      "Level 1: singles and *short combos*.",
       "Level 10: *ADVANCED*.",
       "Singles to the *hardest combos*.",
       "Pick any level *for today*.",
@@ -26,74 +26,74 @@
     ],
     "broll": [
       {
-        "src": "raw-footage/app/cc-lvl10.mp4",
-        "start": 6,
+        "src": "raw-footage/app/cc-lvl1.mp4",
+        "start": 7,
         "rate": 1,
         "focusX": 50,
-        "textY": 1400
+        "textY": 1380
       },
       {
         "src": "raw-footage/app/cc-lvl1.mp4",
-        "start": 0.5,
-        "rate": 0.85,
+        "start": 1.1,
+        "rate": 0.7,
         "focusX": 50,
-        "textY": 900,
-        "shiftY": 130
+        "textY": 1000,
+        "shiftY": 170
       },
       {
         "src": "raw-footage/app/cc-lvl1.mp4",
-        "start": 8.4,
+        "start": 11,
         "rate": 1,
         "focusX": 50,
-        "textY": 1400
+        "textY": 1380
       },
       {
         "src": "raw-footage/app/cc-lvl10.mp4",
-        "start": 1,
+        "start": 1.2,
         "rate": 1,
         "focusX": 50,
-        "textY": 900,
-        "shiftY": 130
+        "textY": 1000,
+        "shiftY": 170
       },
       {
         "src": "raw-footage/app/cc-lvl10.mp4",
         "start": 11.4,
         "rate": 1,
         "focusX": 50,
-        "textY": 1400
+        "textY": 1380
       },
       {
         "src": "raw-footage/app/cc-pick-level.mp4",
         "start": 2.3,
         "rate": 1,
         "focusX": 50,
-        "textY": 900,
-        "shiftY": 130
+        "textY": 1000,
+        "shiftY": 170
       },
       {
         "src": "raw-footage/app/lvl3-level-page.mp4",
-        "start": 7,
+        "start": 6.8,
         "rate": 1,
         "focusX": 50,
-        "textY": 1430
+        "textY": 1330
       }
     ],
     "brollGrade": "app"
   },
   "platforms": {
     "tiktok": {
-      "caption": "Long combos on day one? Not in Combo Coach 🥊 It opens on your Fight level: level 1 gets single strikes and short combos, and the combos get longer and harder as you level up. Link in bio. #boxingworkout #shadowboxing #combatfitness #homeworkout #trainingmode",
+      "caption": "Long combos on day one? Not in Combo Coach 🥊 It opens on your Fight level: level 1 gets single strikes and short combos, and the combos get harder as you level up. Link in bio. #boxingworkout #shadowboxing #combatfitness #homeworkout #trainingmode",
       "privacy": "SELF_ONLY"
     },
     "instagram": {
-      "caption": "Long combos on day one? Not here. 🥊\n\nCombo Coach opens on your Fight level and deals combos to match. Level 1 gets single strikes and short combos. The higher you climb, the longer and harder they get, up to ADVANCED: singles to the hardest combos.\n\nBoxing, kickboxing, Muay Thai or MMA. Tap any level to change it for today.\n\nComment TRAIN and I'll DM you the link.\n\n#boxingworkout #shadowboxing #kickboxing #muaythai #mma #combatfitness #trainingmode"
+      "caption": "Long combos on day one? Not here. 🥊\n\nCombo Coach opens on your Fight level and deals combos to match. Level 1 gets single strikes and short combos. Level up and they get longer, then harder. At the top, ADVANCED, rounds swing from single strikes to the hardest combos, and about half your combos are advanced.\n\nBoxing, kickboxing, Muay Thai or MMA. Tap any level to change it for today.\n\nComment TRAIN and I'll DM you the link.\n\n#boxingworkout #shadowboxing #kickboxing #muaythai #mma #combatfitness #trainingmode"
     },
     "facebook": {
-      "caption": "Long combos on day one? Not here. 🥊 Combo Coach opens on your Fight level: level 1 gets single strikes and short combos, and the combos get longer and harder as you level up. Boxing, kickboxing, Muay Thai or MMA. Comment TRAIN for the link."
+      "caption": "Long combos on day one? Not here. 🥊 Combo Coach opens on your Fight level: level 1 gets single strikes and short combos, and the combos get harder as you level up. Boxing, kickboxing, Muay Thai or MMA. Comment TRAIN for the link."
     },
     "youtube": {
       "title": "Long combos on day one? Combo Coach starts at your level 🥊 #shorts",
-      "description": "Combo Coach in Training Mode opens on your Fight level and deals combos to match. Level 1 gets single strikes and short combos; the higher your level, the longer and harder the combos get, up to ADVANCED: singles to the hardest combos. Boxing, kickboxing, Muay Thai or MMA. Tap any level to change it for today.\n\nTrain: https://apptrainingmode.com",
+      "description": "Combo Coach in Training Mode opens on your Fight level and deals combos to match. Level 1 gets single strikes and short combos; level up and they get longer, then harder. At ADVANCED, rounds swing from single strikes to the hardest combos, and about half your combos are advanced. Boxing, kickboxing, Muay Thai or MMA. Tap any level to change it for today.\n\nTrain: https://apptrainingmode.com",
       "tags": [
         "combo coach",
         "boxing combos",
@@ -113,63 +113,63 @@
       "text": "Long combos on day one?",
       "start": 0,
       "seconds": 2.67,
-      "footage": "cc-lvl10 6s to 8.67s at 1x"
+      "footage": "cc-lvl1 7s to 9.67s at 1x"
     },
     {
       "scene": 1,
       "text": "Combo Coach opens on your Fight level.",
       "start": 2.67,
       "seconds": 3.4,
-      "footage": "cc-lvl1 0.5s to 3.39s at 0.85x"
+      "footage": "cc-lvl1 1.1s to 3.48s at 0.7x"
     },
     {
       "scene": 2,
-      "text": "Level 1: single strikes and short combos.",
+      "text": "Level 1: singles and short combos.",
       "start": 6.07,
-      "seconds": 3.4,
-      "footage": "cc-lvl1 8.4s to 11.80s at 1x"
+      "seconds": 3.03,
+      "footage": "cc-lvl1 11s to 14.03s at 1x"
     },
     {
       "scene": 3,
       "text": "Level 10: ADVANCED.",
-      "start": 9.47,
+      "start": 9.1,
       "seconds": 2,
-      "footage": "cc-lvl10 1s to 3.00s at 1x"
+      "footage": "cc-lvl10 1.2s to 3.20s at 1x"
     },
     {
       "scene": 4,
       "text": "Singles to the hardest combos.",
-      "start": 11.47,
+      "start": 11.1,
       "seconds": 2.67,
       "footage": "cc-lvl10 11.4s to 14.07s at 1x"
     },
     {
       "scene": 5,
       "text": "Pick any level for today.",
-      "start": 14.13,
+      "start": 13.77,
       "seconds": 2.67,
       "footage": "cc-pick-level 2.3s to 4.97s at 1x"
     },
     {
       "scene": 6,
       "text": "Level up. The combos grow.",
-      "start": 16.8,
+      "start": 16.43,
       "seconds": 2.67,
-      "footage": "lvl3-level-page 7s to 9.67s at 1x"
+      "footage": "lvl3-level-page 6.8s to 9.47s at 1x"
     }
   ],
-  "seconds": 22.97,
+  "seconds": 22.6,
   "teaches": "Combo Coach opens on your Fight level: single strikes and short combos at level 1, longer and harder combos as you climb.",
   "voiceover": {
     "voice": "Coach TM, recorded over the silent reel; plain lines, no hype. Leave a beat of air at each cut.",
-    "script": "Day one? Keep the combos short. Combo Coach opens on your Fight level. Level one: single strikes and short combos. Level ten: advanced. Singles to the hardest combos. Pick any level. Just for today. Level up and the combos grow. Link in bio. Go train.",
+    "script": "Long combos on day one? Not here. Combo Coach opens on your Fight level. Level one: singles and short combos. Level ten: advanced. Singles to the hardest combos. Pick any level. Just for today. Level up and the combos grow. Link in bio. Go train.",
     "lines": [
       {
         "scene": 0,
         "label": "hook",
         "at": 0.12,
         "window": 2.47,
-        "text": "Day one? Keep the combos short."
+        "text": "Long combos on day one? Not here."
       },
       {
         "scene": 1,
@@ -182,41 +182,41 @@
         "scene": 2,
         "label": "beat 2",
         "at": 6.19,
-        "window": 3.2,
-        "text": "Level one: single strikes and short combos."
+        "window": 2.83,
+        "text": "Level one: singles and short combos."
       },
       {
         "scene": 3,
         "label": "beat 3",
-        "at": 9.59,
+        "at": 9.22,
         "window": 1.8,
         "text": "Level ten: advanced."
       },
       {
         "scene": 4,
         "label": "beat 4",
-        "at": 11.59,
+        "at": 11.22,
         "window": 2.47,
         "text": "Singles to the hardest combos."
       },
       {
         "scene": 5,
         "label": "beat 5",
-        "at": 14.25,
+        "at": 13.89,
         "window": 2.47,
         "text": "Pick any level. Just for today."
       },
       {
         "scene": 6,
         "label": "beat 6",
-        "at": 16.92,
+        "at": 16.55,
         "window": 2.47,
         "text": "Level up and the combos grow."
       },
       {
         "scene": null,
         "label": "end card",
-        "at": 19.57,
+        "at": 19.2,
         "window": 2.3,
         "text": "Link in bio. Go train."
       }
@@ -224,7 +224,8 @@
   },
   "notes": [
     "Not approved and not published. The owner approves every post (npm run approve) after seeing the render and every caption.",
-    "Facts: Combo Coach opens on your Fight level (own Fight XP in full, Fit at half); YOUR LEVEL marks it; \"Easy: Single strikes and short combos. Relaxed pace.\"; \"Advanced: Singles to the hardest combos. Fight pace.\"; \"The higher it is, the longer and harder the combos get\"; a picked level is \"for today only\" (ComboCoachSetup, screenGuides cc-difficulty).",
+    "Facts: Combo Coach opens on your Fight level (own Fight XP in full, Fit at half); YOUR LEVEL marks it; \"Easy: Single strikes and short combos. Relaxed pace.\"; \"Advanced: Singles to the hardest combos. Fight pace.\"; \"The higher it is, the longer and harder the combos get\"; a picked level is \"for today only\" (ComboCoachSetup, screenGuides cc-difficulty). The Level page says the top mix \"swings from single strikes to the hardest combos\" with about half the combos advanced; past level 3 the combos get harder rather than longer (Normal, Hard and Advanced all top out at 6 strikes), so the captions say \"longer, then harder\" and never \"longer and harder\" for the whole climb.",
+    "The hook footage is the level 1 athlete's own combos (Jab Jab Cross, 4.0 s cadence): the answer to \"long combos on day one?\". The level 10 combos are the contrast in beat 4.",
     "No number of punches on screen on purpose. The owner's rule is level 1 never gets more than 4 pieces, but the real level 1 pool tops out at 3 (the Level page prints \"up to 3-strike combos\"), and no combo in the whole pool is longer than 7. So never write \"ten-punch combos\" (nobody gets one), and say \"short\" for level 1.",
     "The level 10 clip athlete must be a level 10 FIGHT athlete (Combo Coach reads the Fight side); the cc-lvl10 setup must show ADVANCED with YOUR LEVEL under it.",
     "Footage: each scene's window in the clip is in \"timeline\". The clips are recorded from the live app by npm run app-broll (needs a built export of the app); after the app changes, re-run it and re-check every window."
@@ -232,7 +233,7 @@
   "exports": {
     "video": "exports/2026-11-07-combo-coach-by-level/video.mp4",
     "cover": "exports/2026-11-07-combo-coach-by-level/cover.jpg",
-    "seconds": 22.97
+    "seconds": 22.6
   },
-  "renderedAt": "2026-11-07T03:28:00.603Z"
+  "renderedAt": "2026-11-07T04:57:06.998Z"
 }
