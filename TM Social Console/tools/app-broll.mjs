@@ -1328,7 +1328,14 @@ async function finishSync(clip, persona, rec, page, frames) {
   if (weak) throw new Error(`the finished file does not hold the sound the guide put at ${weak}`);
   if (worstLag > 0.01) throw new Error(`the sound in the file is ${Math.round(worstLag * 1000)} ms from where it was placed (limit 10 ms)`);
   if (late.length) throw new Error(`a sound is heard more than 30 ms from the moment its words show: ${late.join('; ')}`);
-  for (const c of calls) { const el = elements.find((x) => x.what === 'call' && x.want === c.startSec); if (el && el.heard !== undefined) c.audioOnsetSec = r3(el.heard); }
+  // Back into the sheet: where each call's voice ends on the track, and (measured on the finished file) where it
+  // is heard to begin.
+  for (const c of calls) {
+    const el = elements.find((x) => x.what === 'call' && Math.abs(x.want - c.startSec) < 0.001);
+    if (!el) continue;
+    c.speechEndSec = r3(el.at + el.pcm.length / SA.SR);
+    if (el.heard !== undefined) c.audioOnsetSec = r3(el.heard);
+  }
   sheet.durationSec = r3(length);
   sheet.loudness = SA.measureLoudness(final);
   SS.writeSheet(SYNC_OUT, sheet);

@@ -90,6 +90,29 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run align -- <guide.mp4> <owner-clip.mp4> [--json [file]]` | where the guide video's 0:00 falls on the owner's clip (seconds; negative when the camera started after the guide had begun) and a 0 to 1 confidence, from the sound alone (band loudness correlated with an FFT, refined at 2 ms; robust to room noise, bag hits, a lowpassed phone mic, a different loudness, extra audio before and after). Adds where the bell and each call fall on the clip when the guide's `.timing.json` is next to it. `npm run test:align` checks it on made-up recordings (offsets within 40 ms) |
 | `npm run deblur -- raw-footage/clip.mp4 --sigma 2 --iters 12` | fixes evenly soft (missed-focus) footage with Richardson-Lucy deconvolution on the luma, then denoise, 1080×1920 and light CAS → `clip.deblur.mp4`. Not for motion blur. Test sigma on one frame first (1.6–2.4 for a soft 720p phone clip; higher rings). Plain `unsharp`/`cas` barely help such footage; FSRCNN upscaling does nothing for it |
 
+## The Combo Coach sync videos (the owner films themselves to them)
+
+Eight guide videos of the app's Combo Coach playing (`npm run sync-broll`; boxing, kickboxing,
+Muay Thai, MMA, two each: a level 5 and a level 10 athlete), each with a guide sound and a timing
+sheet, so the owner can play one out loud, film themselves striking to the coach's calls, and send the
+clip back; `npm run align` then finds where the guide sits inside their clip from the sound alone, and
+the app screen and their striking are cut together on that offset. What to know:
+
+- The calls on the sheet are on the guide video's own clock (`startSec` is the frame where a call's
+  words first show, and the coach's voice starts then; `goAtSec` is the bell). On the owner's clip a
+  moment at guide time `t` is at `t + offset`, the offset `npm run align` prints (`--json` writes it
+  and, with the guide's `.timing.json` beside it, where the bell and every call fall on the clip).
+- The guide sound is for the owner's filming and the alignment. The reel's own audio rules stand: the
+  footage is muted in a render, the owner adds music, nothing here is posted (every post still needs
+  the owner's approval).
+- Nothing on screen names a person or a franchise: the clips seed the neutral name Trainee and the
+  screen shows only strike names. A level 5 video also holds the app's own slip / roll / check / pivot /
+  sprawl calls (`kind: defence` in the sheet; they are not combos and get a shorter slot).
+- Re-run `npm run sync-broll` after the app changes (it stops on a screen that no longer says what it
+  should). The seeds are fixed, so the same app deals the same combos; `--probe-seeds 8` lists what
+  other seeds would deal. The voice needs a text-to-speech program (`apt-get install -y espeak-ng
+  mbrola mbrola-us2`); without one the tool says so and makes the videos with beeps, bell and a tick per call.
+
 ## The loop
 
 1. **Collect.** New clips arrive in the Google Drive folder

@@ -163,7 +163,8 @@ later from the sound (`npm run align`). No music anywhere.
   frame its words appear. It needs a text-to-speech program. The one it uses:
   eSpeak NG with the MBROLA `us2` voice (`apt-get install -y espeak-ng mbrola
   mbrola-us2`), speed 200, pitch 35, each strike its own beat, then an
-  announcer's EQ (a lot of presence), compression and a limiter. It was picked
+  announcer's EQ (a lot of presence), compression and a limiter (the bell is
+  ducked 20 dB under the first call, as a mixer would). It was picked
   from every voice installable offline (eSpeak NG formant voices, MBROLA
   us1/us2/us3/en1, Flite rms/awb/slt/kal16, SVOX Pico) by a closed-vocabulary
   recognition test: PocketSphinx reading the strike words, clean and through room
