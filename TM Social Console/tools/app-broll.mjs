@@ -740,6 +740,7 @@ function syncClip(d, lv) {
         { eval: RESEED(SYNC_SEEDS[name]) },
         { tap: { role: 'button', name: /START COMBOS/ }, hold: 140, after: 0 },
         { syncWait: o.calls },
+        { wait: 500 }, // frames after the last event, so the picture of it is found
       ],
     }),
   };
@@ -1262,10 +1263,24 @@ async function finishSync(clip, persona, rec, page, frames) {
   const tl = timeline.filter((f) => f.t >= t0 - 1e-9).map((f) => ({ ...f, t: f.t - t0 }));
   encode(clip, tl, frames, { length, out: silent, quiet: true, exact: true });
   const final = path.join(dir, `${clip.name}.mp4`);
+  // Every sound is placed so that the moment it is HEARD (SA.onsetOf: the loudness reaching a fifth of its
+  // peak) is the moment on the sheet; a bell strike takes about 40 ms to reach that, a beep 3 ms.
+  const placed = (pcm, want, what) => ({ at: r3(Math.max(0, want - (SA.onsetOf(pcm) ?? 0))), want, pcm, what });
   const elements = [
-    ...sheet.countInBeepsAtSec.map((x) => ({ at: x, want: x, pcm: SA.beepPcm(), what: 'beep' })),
-    { at: sheet.goAtSec, want: sheet.goAtSec, pcm: SA.bellPcm(), what: 'bell' },
+    ...sheet.countInBeepsAtSec.map((x) => placed(SA.beepPcm(), x, 'beep')),
+    placed(SA.bellPcm(), sheet.goAtSec, 'bell'),
   ];
+  // The bell rings on GO and its tail runs on for two seconds, under the first call, which comes about
+  // half a second after it. A real mixer would duck the bell for the voice; so does this: it drops 20 dB over
+  // 150 ms, finishing as the first call starts (its strike and its first half second are untouched).
+  const first = lines.find((l) => l.kind === 'call');
+  if (first) {
+    const bell = elements.find((el) => el.what === 'bell');
+    const ramp = Math.round(0.15 * SA.SR), from = Math.round((first.at - bell.at - 0.15) * SA.SR);
+    if (from > 0 && from < bell.pcm.length) {
+      for (let i = from; i < bell.pcm.length; i++) bell.pcm[i] *= 1 - 0.9 * Math.min(1, (i - from) / ramp);
+    }
+  }
   for (const l of lines) {
     if (BANK) {
       const said = BANK.say(l.text, lineRate(l.text, l.rate));
@@ -1289,16 +1304,18 @@ async function finishSync(clip, persona, rec, page, frames) {
   // (1) cross-correlated against the sound that was put there (placement, to a sample); (2) its onset, the
   // way a person hears it begin (SA.onsetOf), within 30 ms of the moment the words show (AAC smears a sharp
   // start, "Check!", up to about 20 ms early; the placement above is exact). A sound that
-  // another one plays over (the "Go!" on the bell) cannot be found on its own and is skipped.
+  // another one plays over (the "Go!" on the bell, and the bell's own first moments) cannot be found on its
+  // own and is skipped.
   const pcm = SA.decodeTrack(final);
   const spans = elements.map((el) => [el.at, el.at + el.pcm.length / SA.SR]);
   let worst = 0, worstLag = 0, n = 0, weak = null;
   const late = [];
   for (const [i, el] of elements.entries()) {
     const over = elements.filter((o, j) => j !== i && spans[j][0] < spans[i][1] && spans[j][1] > spans[i][0]);
-    if (over.length && !(el.what === 'call' && over.every((o) => o.what === 'bell'))) continue; // the first call rides on the bell's quiet tail
+    // (the bell, ducked, is under the first call and the "Go!"; the bell itself is found over them)
+    if (over.some((o) => !(el.what === 'call' && o.what === 'bell') && !(el.what === 'bell' && o.what !== 'bell'))) continue;
     const { lag, match } = SA.lagOf(pcm, el.pcm, el.at);
-    if (match < 0.5 && el.what !== 'call') weak = weak || `${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.at} s (match ${match.toFixed(2)})`;
+    if (match < 0.5) weak = weak || `${el.what}${el.text ? ` "${el.text}"` : ''} at ${el.at} s (match ${match.toFixed(2)})`;
     worstLag = Math.max(worstLag, Math.abs(lag));
     const from = Math.max(0, el.at - 0.02); // the same window the sound's own onset was measured in (its first 0.6 s)
     const on = SA.onsetNear(pcm, from, 0.62);

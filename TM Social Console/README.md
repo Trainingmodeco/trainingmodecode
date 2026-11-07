@@ -130,33 +130,59 @@ app and the console gets no new dependency.
 eight videos of the app's real Combo Coach session screen: boxing, kickboxing,
 Muay Thai and MMA, two each (video 1 plays as a level 5 athlete, video 2 as a
 level 10 one). Each runs from the app's own 3-2-1 through ten combos
-(about a minute), with a guide sound: three beeps, the app's boxing bell, and
-the coach's voice calling each combo the moment its words show. You play the
+(51 to 60 seconds), with a guide sound: three beeps, the app's boxing bell on GO,
+and the coach's voice calling each combo on the frame its words show. You play the
 video out loud, film yourself hitting the bag to it, and the two are lined up
-later from the sound (`npm run align`).
+later from the sound (`npm run align`). No music anywhere.
 
 - **Output:** `raw-footage/app/sync/<name>.mp4` (1080×1920, 30 fps, H.264, AAC
-  stereo), copied to `exports/cc-sync/` with `<name>.timing.json` and `.csv`
-  (when each beep, the bell and each call lands, and the strikes of each call in
-  plain words), `FILM-GUIDE.md` (one page for whoever films) and `CALLS.md`
-  (every call of every video). All of it git-ignored.
+  stereo, about -16 LUFS), copied to `exports/cc-sync/` with `<name>.timing.json`
+  and `.csv` (when each beep, the bell and each call lands, how long the voice
+  takes, when the next call comes, and the strikes of each call in plain words),
+  `FILM-GUIDE.md` (one page for whoever films) and `CALLS.md` (every call of every
+  video). All git-ignored (`exports/` and `raw-footage/`).
+- **What is on screen:** names call style, COMBO mode, warm-up off, 1 round of
+  1 minute, cadence 4.5 s, RUSH off. The setup is done off camera, with every
+  value checked in the page; the athlete is a Fight level 5 (NORMAL mix) or
+  level 10 (ADVANCED mix, the app's own `YOUR LEVEL`). At level 5 the app also
+  calls "SLIP!", "ROLL!", "CHECK!", "PIVOT!" or "SPRAWL!" between combos (its own
+  rule, every 3 to 5 combos, a slot of about 2.8 s), so those videos hold ten
+  combos and two or three defence calls; the sheet marks them (`kind: defence`).
+  The coach's between-combo encouragement is switched off (the app's own
+  setting) so nothing speaks over a call.
 - **Options:** `--cadence 4.5` (seconds per combo), `--calls 10` (combos per
-  video), `--voice <name>`, `--no-voice`, `--sync-out <folder>`.
-- **The seeds** are fixed per video (`SYNC_SEEDS` in `tools/app-broll.mjs`): a
-  re-run deals the same combos.
+  video), `--voice <name>`, `--no-voice`, `--sync-out <folder>`,
+  `--probe-seeds 8` (nothing recorded: lists the combos each seed deals).
+- **The seeds** are fixed per video (`SYNC_SEEDS` in `tools/app-broll.mjs`:
+  boxing 1 and 7, kickboxing 8 and 2, Muay Thai 1 and 7, MMA 5 and 4): a re-run
+  deals the same combos, and the two videos of a style share none.
 - **The voice:** the app speaks with the device's voice, which a headless
   browser has no copy of. The tool stands in for it, lets the app run exactly as
-  it does with a real voice, and speaks each line offline afterwards. It needs a
-  text-to-speech program: on Linux `apt-get install espeak-ng mbrola mbrola-us2`
-  (also tried: flite, Pico, other MBROLA voices; see `VOICES` in
-  `tools/sync-audio.mjs`). Without one the videos still come out, with the
-  beeps, the bell and a tick per call, and the tool says so loudly.
+  it does with a real voice (it is told how long each line takes to say), logs
+  every line with its time, and speaks the lines offline afterwards, each at the
+  frame its words appear. It needs a text-to-speech program. The one it uses:
+  eSpeak NG with the MBROLA `us2` voice (`apt-get install -y espeak-ng mbrola
+  mbrola-us2`), speed 200, pitch 35, each strike its own beat, then an
+  announcer's EQ (a lot of presence), compression and a limiter. It was picked
+  from every voice installable offline (eSpeak NG formant voices, MBROLA
+  us1/us2/us3/en1, Flite rms/awb/slt/kal16, SVOX Pico) by a closed-vocabulary
+  recognition test: PocketSphinx reading the strike words, clean and through room
+  noise at 18, 12 and 8 dB with a phone-microphone lowpass; tuned, this one
+  recognised 99% of the strike words clean and 76% through noise at 12 dB, where
+  the other voices (same polish) got 8% to 59%. Other voices are in `VOICES`
+  in `tools/sync-audio.mjs` (`--voice espeak-us-m3`, `flite-rms`, `pico-us`).
+  Without any engine the videos still come out, with the beeps, the bell and a
+  tick per call, and the tool says so loudly.
+- **Checked on every video, in the finished file:** the picture (the frame where
+  each call's words first appear, found from the pixels), and the sound (each
+  beep, the bell and each call read back from the AAC track and found where the
+  sheet says, within 30 ms of the words, in practice 1 to 5 ms).
 - **Lining up your clip:** `npm run align -- exports/cc-sync/cc-sync-boxing-1.mp4
   raw-footage/boxing-1.mp4` prints the second of your clip at which the guide
   video's 0:00 falls and how sure it is (`--json` writes it too). It reads the
   sound only, so room noise, bag hits, a lowpassed phone microphone and extra audio
   before and after do not matter. `npm run test:align` proves that on made-up
-  recordings.
+  recordings (twelve cases, offsets within 40 ms).
 
 Head tracking (`npm run track`) needs Python once: `winget install
 Python.Python.3.12`, then `py -m pip install mediapipe`. The pose model

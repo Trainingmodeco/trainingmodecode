@@ -83,6 +83,7 @@ export async function plainStrikes(text) {
   const { piecesOf } = await loadCounter();
   const out = [];
   let prev = null;
+  const glossed = new Set(); // a defence move is explained once per call: "Slip (move ...), Slip"
   for (const p of piecesOf(text)) {
     const t = String(p.text).toLowerCase();
     let plain;
@@ -91,6 +92,7 @@ export async function plainStrikes(text) {
     if (lone && prev) plain = `${cap(String(prev).split(' ').pop())} to the ${lone[1]}`;
     else if (mod) plain = `${cap(mod[2])} to the ${mod[1]}`;
     else plain = plainPiece(t);
+    if (GLOSS[t]) { if (glossed.has(t)) plain = cap(t); glossed.add(t); }
     out.push(plain);
     prev = t;
   }
@@ -158,7 +160,7 @@ export function filmGuide(sheetsIn) {
   const cad = sheets[0]?.cadenceSec ?? 4.5;
   const afterBell = (s) => r3(s.calls[0].startSec - s.goAtSec);
   const defence = sheets.flatMap((s) => s.calls.filter((c) => c.kind === 'defence').map((c) => c.windowSec));
-  const defenceSlot = defence.length ? r3(defence.reduce((a, b) => a + b, 0) / defence.length) : null;
+  const defenceSlot = defence.length ? Math.round((defence.reduce((a, b) => a + b, 0) / defence.length) * 10) / 10 : null;
   const combos = sheets[0]?.calls.filter((c) => c.kind === 'combo').length ?? 10;
   const lines = [
     '# Film guide: strike to the Combo Coach videos', '',
