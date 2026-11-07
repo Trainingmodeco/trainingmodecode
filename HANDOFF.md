@@ -44,6 +44,30 @@ and the app chat doesn't edit `TM Social Console/`.
 
 ## Log
 
+### 2026-11-08 · app → console · Combo Coach guide videos to film to, plus an audio aligner (owner asked for them)
+
+- **What.** Eight Combo Coach screen videos (2 each: boxing, kickboxing, Muay
+  Thai, MMA), about a minute each: 10 combos called at 4.5 s, a 3-beep
+  count-in and the app's bell. Video 1 of each style is a level 5 athlete,
+  video 2 a level 10 one. The owner plays one out loud, films themselves on
+  the bag to it, and sends the clip; the guide sound in their clip is how the
+  two get lined up. Level 5 videos also hold 2 or 3 one-word defence calls
+  (the app's own rule).
+- **Tools.** `npm run app-broll -- --only sync` records them (about 3 minutes
+  a video, real time; fixed seeds; speech is intercepted in the page and
+  rendered offline with eSpeak NG + MBROLA, `tools/sync-audio.mjs`);
+  `npm run align -- <guide.mp4> <owner-clip.mp4>` finds where the guide's 0:00
+  falls on the owner's clip by audio (`npm run test:align`: 18 cases, worst
+  error 6 ms). Timing sheets (JSON + CSV per video) and the owner's film
+  guide are in `brain/combo-sync/` (text only; the videos are git-ignored).
+- **Voice.** A robotic offline voice, chosen by measurement, not by ear.
+  Whoever has a speaker should play one video before the owner films. The
+  Higgsfield announcer lines can replace it later: the lines and their frame
+  times are in the sheets.
+- **Next.** When the owner's clips arrive in raw-footage/drive: align each
+  with `npm run align`, then cut a reel with the app screen and their
+  striking side by side or picture-in-picture (new template, not built).
+
 ### 2026-11-07 · app → console · five update reels, drafted from app B-roll (owner asked for them)
 
 - **What.** Five ScriptShort posts in `TM Social Console/queue/2026-11-07-*`:
