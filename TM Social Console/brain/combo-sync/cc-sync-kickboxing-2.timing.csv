@@ -1,0 +1,11 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,1,combo,Low Kick Cross Hook Switch Kick Cross,5,6.8,9.262,11.3,"Low kick (to the thigh), Cross, Hook, Switch kick (switch stance, then kick), Cross"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,2,combo,Jab Cross Spinning Back Kick,3,11.3,12.887,15.8,"Jab, Cross, Spinning back kick"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,3,combo,Low Kick Jab Cross Hook High Kick Cross,6,15.8,18.379,20.3,"Low kick (to the thigh), Jab, Cross, Hook, High kick (to the head), Cross"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,4,combo,Jab Cross Hook Low Kick,4,20.3,21.844,24.8,"Jab, Cross, Hook, Low kick (to the thigh)"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,5,combo,Check Cross Hook Low Kick,3,24.8,26.406,29.3,"Check (lift the shin to block a kick), Cross, Hook, Low kick (to the thigh)"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,6,combo,Jab Cross Low Kick Cross,4,29.3,30.985,33.8,"Jab, Cross, Low kick (to the thigh), Cross"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,7,combo,Teep Jab Cross Body Kick Cross Hook,6,33.8,36.297,38.333,"Teep (push kick), Jab, Cross, Kick to the body, Cross, Hook"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,8,combo,Check Counter Cross Hook Body Kick,3,38.333,40.37,42.833,"Check counter (block the kick, fire back), Cross, Hook, Kick to the body"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,9,combo,Double Teep,2,42.833,43.263,47.333,"Teep (push kick), Teep"
+cc-sync-kickboxing-2,Kickboxing,10,ADVANCED,4.5,2,e9c3753,51.833,6.2,0.082 1.073 2.073,10,combo,Teep Cross Low Kick Hook Roundhouse,5,47.333,49.557,51.833,"Teep (push kick), Cross, Low kick (to the thigh), Hook, Roundhouse kick"

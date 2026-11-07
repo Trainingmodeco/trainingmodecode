@@ -1,0 +1,14 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,1,combo,Frame Elbow Knee Push Roundhouse,3,6.633,8.7,11.133,"Frame, Elbow, Knee, Push, Roundhouse kick"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,2,combo,Jab Low Kick,2,11.133,11.816,15.633,"Jab, Low kick (to the thigh)"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,3,combo,Jab Elbow Cross Roundhouse,4,15.633,17.346,20.133,"Jab, Elbow, Cross, Roundhouse kick"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,4,defence,CHECK!,0,20.133,20.336,22.933,Check (lift the shin to block a kick)
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,5,combo,Jab Cross Knee Cross,4,22.933,24.443,27.433,"Jab, Cross, Knee, Cross"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,6,combo,Cross Elbow Knee,3,27.433,28.453,31.933,"Cross, Elbow, Knee"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,7,combo,Hook Elbow Cross Body Kick,4,31.933,33.565,36.433,"Hook, Elbow, Cross, Kick to the body"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,8,defence,PIVOT!,0,36.433,36.653,39.233,Pivot (step off at an angle)
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,9,combo,Cross Hook Knee,3,39.233,40.221,43.733,"Cross, Hook, Knee"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,10,combo,Cross Low Kick,2,43.733,44.535,48.233,"Cross, Low kick (to the thigh)"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,11,combo,Switch Kick Elbow,2,48.233,49.226,52.7,"Switch kick (switch stance, then kick), Elbow"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,12,defence,SLIP!,0,52.7,53.007,55.5,Slip (move your head off the line)
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,1,e9c3753,60,6.033,0.068 1.061 2.061,13,combo,Check Cross Kick,2,55.5,56.578,60,"Check (lift the shin to block a kick), Cross, Kick"

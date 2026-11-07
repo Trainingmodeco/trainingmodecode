@@ -1,0 +1,255 @@
+{
+  "name": "cc-sync-mma-1",
+  "discipline": "MMA",
+  "athleteLevel": 5,
+  "difficulty": "NORMAL",
+  "cadenceSec": 4.5,
+  "seed": 5,
+  "appCommit": "e9c3753",
+  "durationSec": 57.133,
+  "goAtSec": 5.933,
+  "countInBeepsAtSec": [
+    0.074,
+    1.073,
+    2.074
+  ],
+  "roundAnnouncementAtSec": 3.467,
+  "voice": {
+    "id": "mbrola-us2",
+    "engine": "eSpeak NG with MBROLA us2 (American male)"
+  },
+  "calls": [
+    {
+      "index": 1,
+      "kind": "combo",
+      "text": "Double Jab Low Kick",
+      "spoken": "double jab low kick",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 6.533,
+      "speechEndSec": 7.384,
+      "nextCallSec": 11.033,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Jab",
+        "Low kick (to the thigh)"
+      ],
+      "plain": "Jab, Jab, Low kick (to the thigh)",
+      "audioOnsetSec": 6.533
+    },
+    {
+      "index": 2,
+      "kind": "combo",
+      "text": "Hook Body Kick Exit",
+      "spoken": "hook body kick exit",
+      "strikeCount": 2,
+      "pieceCount": 3,
+      "startSec": 11.033,
+      "speechEndSec": 12.204,
+      "nextCallSec": 15.533,
+      "windowSec": 4.5,
+      "strikes": [
+        "Hook",
+        "Kick to the body",
+        "Exit"
+      ],
+      "plain": "Hook, Kick to the body, Exit",
+      "audioOnsetSec": 11.033
+    },
+    {
+      "index": 3,
+      "kind": "combo",
+      "text": "Cross Knee",
+      "spoken": "cross knee",
+      "strikeCount": 2,
+      "pieceCount": 2,
+      "startSec": 15.533,
+      "speechEndSec": 16.161,
+      "nextCallSec": 20.033,
+      "windowSec": 4.5,
+      "strikes": [
+        "Cross",
+        "Knee"
+      ],
+      "plain": "Cross, Knee",
+      "audioOnsetSec": 15.533
+    },
+    {
+      "index": 4,
+      "kind": "defence",
+      "text": "SPRAWL!",
+      "spoken": "sprawl",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 20.033,
+      "speechEndSec": 20.369,
+      "nextCallSec": 22.833,
+      "windowSec": 2.8,
+      "strikes": [
+        "Sprawl (hips back, stop the takedown)"
+      ],
+      "plain": "Sprawl (hips back, stop the takedown)",
+      "audioOnsetSec": 20.033
+    },
+    {
+      "index": 5,
+      "kind": "combo",
+      "text": "Low Kick Cross Level Change",
+      "spoken": "low kick cross level change",
+      "strikeCount": 2,
+      "pieceCount": 3,
+      "startSec": 22.833,
+      "speechEndSec": 24.369,
+      "nextCallSec": 27.367,
+      "windowSec": 4.533,
+      "strikes": [
+        "Low kick (to the thigh)",
+        "Cross",
+        "Level change (drop your height)"
+      ],
+      "plain": "Low kick (to the thigh), Cross, Level change (drop your height)",
+      "audioOnsetSec": 22.833
+    },
+    {
+      "index": 6,
+      "kind": "combo",
+      "text": "Jab Cross Low Kick Sprawl",
+      "spoken": "jab cross low kick sprawl",
+      "strikeCount": 3,
+      "pieceCount": 4,
+      "startSec": 27.367,
+      "speechEndSec": 29.053,
+      "nextCallSec": 31.833,
+      "windowSec": 4.467,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Low kick (to the thigh)",
+        "Sprawl (hips back, stop the takedown)"
+      ],
+      "plain": "Jab, Cross, Low kick (to the thigh), Sprawl (hips back, stop the takedown)",
+      "audioOnsetSec": 27.367
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Cross Knee Clinch",
+      "spoken": "cross knee clinch",
+      "strikeCount": 2,
+      "pieceCount": 3,
+      "startSec": 31.833,
+      "speechEndSec": 33.036,
+      "nextCallSec": 36.333,
+      "windowSec": 4.5,
+      "strikes": [
+        "Cross",
+        "Knee",
+        "Clinch (grab hold of the head)"
+      ],
+      "plain": "Cross, Knee, Clinch (grab hold of the head)",
+      "audioOnsetSec": 31.833
+    },
+    {
+      "index": 8,
+      "kind": "defence",
+      "text": "SPRAWL!",
+      "spoken": "sprawl",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 36.333,
+      "speechEndSec": 36.669,
+      "nextCallSec": 39.1,
+      "windowSec": 2.767,
+      "strikes": [
+        "Sprawl (hips back, stop the takedown)"
+      ],
+      "plain": "Sprawl (hips back, stop the takedown)",
+      "audioOnsetSec": 36.333
+    },
+    {
+      "index": 9,
+      "kind": "combo",
+      "text": "Sprawl Cross Knee",
+      "spoken": "sprawl cross knee",
+      "strikeCount": 2,
+      "pieceCount": 3,
+      "startSec": 39.1,
+      "speechEndSec": 40.299,
+      "nextCallSec": 43.6,
+      "windowSec": 4.5,
+      "strikes": [
+        "Sprawl (hips back, stop the takedown)",
+        "Cross",
+        "Knee"
+      ],
+      "plain": "Sprawl (hips back, stop the takedown), Cross, Knee",
+      "audioOnsetSec": 39.1
+    },
+    {
+      "index": 10,
+      "kind": "combo",
+      "text": "Jab Cross Body Kick Sprawl Cross",
+      "spoken": "jab cross body kick sprawl cross",
+      "strikeCount": 4,
+      "pieceCount": 5,
+      "startSec": 43.6,
+      "speechEndSec": 45.864,
+      "nextCallSec": 48.133,
+      "windowSec": 4.533,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Kick to the body",
+        "Sprawl (hips back, stop the takedown)",
+        "Cross"
+      ],
+      "plain": "Jab, Cross, Kick to the body, Sprawl (hips back, stop the takedown), Cross",
+      "audioOnsetSec": 43.6
+    },
+    {
+      "index": 11,
+      "kind": "combo",
+      "text": "Jab Level Change Overhand Knee",
+      "spoken": "jab level change overhand knee",
+      "strikeCount": 3,
+      "pieceCount": 4,
+      "startSec": 48.133,
+      "speechEndSec": 49.876,
+      "nextCallSec": 52.633,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Level change (drop your height)",
+        "Overhand",
+        "Knee"
+      ],
+      "plain": "Jab, Level change (drop your height), Overhand, Knee",
+      "audioOnsetSec": 48.133
+    },
+    {
+      "index": 12,
+      "kind": "combo",
+      "text": "Jab Cross Spinning Back Elbow",
+      "spoken": "jab cross spinning back elbow",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 52.633,
+      "speechEndSec": 54.208,
+      "nextCallSec": 57.133,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Spinning back elbow"
+      ],
+      "plain": "Jab, Cross, Spinning back elbow",
+      "audioOnsetSec": 52.633
+    }
+  ],
+  "loudness": {
+    "integratedLufs": -16,
+    "truePeakDbfs": -2.6,
+    "rangeLu": 9.1
+  }
+}

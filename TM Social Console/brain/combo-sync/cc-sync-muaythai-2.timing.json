@@ -1,0 +1,234 @@
+{
+  "name": "cc-sync-muaythai-2",
+  "discipline": "Muay Thai",
+  "athleteLevel": 10,
+  "difficulty": "ADVANCED",
+  "cadenceSec": 4.5,
+  "seed": 7,
+  "appCommit": "e9c3753",
+  "durationSec": 51.667,
+  "goAtSec": 6.033,
+  "countInBeepsAtSec": [
+    0.062,
+    1.061,
+    2.062
+  ],
+  "roundAnnouncementAtSec": 3.467,
+  "voice": {
+    "id": "mbrola-us2",
+    "engine": "eSpeak NG with MBROLA us2 (American male)"
+  },
+  "calls": [
+    {
+      "index": 1,
+      "kind": "combo",
+      "text": "Hook Body Kick Knee",
+      "spoken": "hook body kick knee",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 6.667,
+      "speechEndSec": 7.728,
+      "nextCallSec": 11.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Hook",
+        "Kick to the body",
+        "Knee"
+      ],
+      "plain": "Hook, Kick to the body, Knee",
+      "audioOnsetSec": 6.667
+    },
+    {
+      "index": 2,
+      "kind": "combo",
+      "text": "Clinch Knee Knee Elbow Push Roundhouse",
+      "spoken": "clinch knee knee elbow push roundhouse",
+      "strikeCount": 4,
+      "pieceCount": 6,
+      "startSec": 11.167,
+      "speechEndSec": 13.602,
+      "nextCallSec": 15.667,
+      "windowSec": 4.5,
+      "strikes": [
+        "Clinch (grab hold of the head)",
+        "Knee",
+        "Knee",
+        "Elbow",
+        "Push",
+        "Roundhouse kick"
+      ],
+      "plain": "Clinch (grab hold of the head), Knee, Knee, Elbow, Push, Roundhouse kick",
+      "audioOnsetSec": 11.167
+    },
+    {
+      "index": 3,
+      "kind": "combo",
+      "text": "Jab Cross Knee Elbow Clinch Knee Push",
+      "spoken": "jab cross knee elbow clinch knee push",
+      "strikeCount": 5,
+      "pieceCount": 7,
+      "startSec": 15.667,
+      "speechEndSec": 18.363,
+      "nextCallSec": 20.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Knee",
+        "Elbow",
+        "Clinch (grab hold of the head)",
+        "Knee",
+        "Push"
+      ],
+      "plain": "Jab, Cross, Knee, Elbow, Clinch (grab hold of the head), Knee, Push",
+      "audioOnsetSec": 15.667
+    },
+    {
+      "index": 4,
+      "kind": "combo",
+      "text": "Teep Jab Cross Elbow Knee Roundhouse",
+      "spoken": "teep jab cross elbow knee roundhouse",
+      "strikeCount": 6,
+      "pieceCount": 6,
+      "startSec": 20.167,
+      "speechEndSec": 22.579,
+      "nextCallSec": 24.667,
+      "windowSec": 4.5,
+      "strikes": [
+        "Teep (push kick)",
+        "Jab",
+        "Cross",
+        "Elbow",
+        "Knee",
+        "Roundhouse kick"
+      ],
+      "plain": "Teep (push kick), Jab, Cross, Elbow, Knee, Roundhouse kick",
+      "audioOnsetSec": 20.167
+    },
+    {
+      "index": 5,
+      "kind": "combo",
+      "text": "Jab Cross Knee",
+      "spoken": "jab cross knee",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 24.667,
+      "speechEndSec": 25.676,
+      "nextCallSec": 29.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Knee"
+      ],
+      "plain": "Jab, Cross, Knee",
+      "audioOnsetSec": 24.667
+    },
+    {
+      "index": 6,
+      "kind": "combo",
+      "text": "Check Cross Elbow Body Kick",
+      "spoken": "check cross elbow body kick",
+      "strikeCount": 3,
+      "pieceCount": 4,
+      "startSec": 29.167,
+      "speechEndSec": 30.883,
+      "nextCallSec": 33.667,
+      "windowSec": 4.5,
+      "strikes": [
+        "Check (lift the shin to block a kick)",
+        "Cross",
+        "Elbow",
+        "Kick to the body"
+      ],
+      "plain": "Check (lift the shin to block a kick), Cross, Elbow, Kick to the body",
+      "audioOnsetSec": 29.167
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Switch Kick Cross Elbow Knee",
+      "spoken": "switch kick cross elbow knee",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 33.667,
+      "speechEndSec": 35.484,
+      "nextCallSec": 38.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Switch kick (switch stance, then kick)",
+        "Cross",
+        "Elbow",
+        "Knee"
+      ],
+      "plain": "Switch kick (switch stance, then kick), Cross, Elbow, Knee",
+      "audioOnsetSec": 33.667
+    },
+    {
+      "index": 8,
+      "kind": "combo",
+      "text": "Teep Cross Elbow Knee",
+      "spoken": "teep cross elbow knee",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 38.167,
+      "speechEndSec": 39.612,
+      "nextCallSec": 42.667,
+      "windowSec": 4.5,
+      "strikes": [
+        "Teep (push kick)",
+        "Cross",
+        "Elbow",
+        "Knee"
+      ],
+      "plain": "Teep (push kick), Cross, Elbow, Knee",
+      "audioOnsetSec": 38.167
+    },
+    {
+      "index": 9,
+      "kind": "combo",
+      "text": "Jab Body Kick Elbow",
+      "spoken": "jab body kick elbow",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 42.667,
+      "speechEndSec": 43.82,
+      "nextCallSec": 47.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Kick to the body",
+        "Elbow"
+      ],
+      "plain": "Jab, Kick to the body, Elbow",
+      "audioOnsetSec": 42.667
+    },
+    {
+      "index": 10,
+      "kind": "combo",
+      "text": "Jab Body Kick Elbow Clinch Knee Knee",
+      "spoken": "jab body kick elbow clinch knee knee",
+      "strikeCount": 5,
+      "pieceCount": 6,
+      "startSec": 47.167,
+      "speechEndSec": 49.541,
+      "nextCallSec": 51.667,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Kick to the body",
+        "Elbow",
+        "Clinch (grab hold of the head)",
+        "Knee",
+        "Knee"
+      ],
+      "plain": "Jab, Kick to the body, Elbow, Clinch (grab hold of the head), Knee, Knee",
+      "audioOnsetSec": 47.167
+    }
+  ],
+  "loudness": {
+    "integratedLufs": -16,
+    "truePeakDbfs": -2.4,
+    "rangeLu": 8.7
+  }
+}

@@ -1,0 +1,255 @@
+{
+  "name": "cc-sync-kickboxing-1",
+  "discipline": "Kickboxing",
+  "athleteLevel": 5,
+  "difficulty": "NORMAL",
+  "cadenceSec": 4.5,
+  "seed": 8,
+  "appCommit": "e9c3753",
+  "durationSec": 57.4,
+  "goAtSec": 6.2,
+  "countInBeepsAtSec": [
+    0.07,
+    1.068,
+    2.068
+  ],
+  "roundAnnouncementAtSec": 3.5,
+  "voice": {
+    "id": "mbrola-us2",
+    "engine": "eSpeak NG with MBROLA us2 (American male)"
+  },
+  "calls": [
+    {
+      "index": 1,
+      "kind": "combo",
+      "text": "Body Kick Cross Hook Low Kick",
+      "spoken": "body kick cross hook low kick",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 6.8,
+      "speechEndSec": 8.584,
+      "nextCallSec": 11.3,
+      "windowSec": 4.5,
+      "strikes": [
+        "Kick to the body",
+        "Cross",
+        "Hook",
+        "Low kick (to the thigh)"
+      ],
+      "plain": "Kick to the body, Cross, Hook, Low kick (to the thigh)",
+      "audioOnsetSec": 6.8
+    },
+    {
+      "index": 2,
+      "kind": "combo",
+      "text": "Jab Body Kick Cross",
+      "spoken": "jab body kick cross",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 11.3,
+      "speechEndSec": 12.562,
+      "nextCallSec": 15.8,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Kick to the body",
+        "Cross"
+      ],
+      "plain": "Jab, Kick to the body, Cross",
+      "audioOnsetSec": 11.3
+    },
+    {
+      "index": 3,
+      "kind": "combo",
+      "text": "Cross Hook Low Kick",
+      "spoken": "cross hook low kick",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 15.8,
+      "speechEndSec": 16.963,
+      "nextCallSec": 20.3,
+      "windowSec": 4.5,
+      "strikes": [
+        "Cross",
+        "Hook",
+        "Low kick (to the thigh)"
+      ],
+      "plain": "Cross, Hook, Low kick (to the thigh)",
+      "audioOnsetSec": 15.8
+    },
+    {
+      "index": 4,
+      "kind": "combo",
+      "text": "Teep Jab Cross",
+      "spoken": "teep jab cross",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 20.3,
+      "speechEndSec": 21.361,
+      "nextCallSec": 24.8,
+      "windowSec": 4.5,
+      "strikes": [
+        "Teep (push kick)",
+        "Jab",
+        "Cross"
+      ],
+      "plain": "Teep (push kick), Jab, Cross",
+      "audioOnsetSec": 20.3
+    },
+    {
+      "index": 5,
+      "kind": "defence",
+      "text": "CHECK!",
+      "spoken": "check",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 24.8,
+      "speechEndSec": 25.003,
+      "nextCallSec": 27.567,
+      "windowSec": 2.767,
+      "strikes": [
+        "Check (lift the shin to block a kick)"
+      ],
+      "plain": "Check (lift the shin to block a kick)",
+      "audioOnsetSec": 24.8
+    },
+    {
+      "index": 6,
+      "kind": "combo",
+      "text": "Low Kick Low Kick Cross",
+      "spoken": "low kick low kick cross",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 27.567,
+      "speechEndSec": 28.938,
+      "nextCallSec": 32.1,
+      "windowSec": 4.533,
+      "strikes": [
+        "Low kick (to the thigh)",
+        "Low kick (to the thigh)",
+        "Cross"
+      ],
+      "plain": "Low kick (to the thigh), Low kick (to the thigh), Cross",
+      "audioOnsetSec": 27.567
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Jab Cross Hook Body Kick Low Kick",
+      "spoken": "jab cross hook body kick low kick",
+      "strikeCount": 5,
+      "pieceCount": 5,
+      "startSec": 32.1,
+      "speechEndSec": 34.219,
+      "nextCallSec": 36.567,
+      "windowSec": 4.467,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Hook",
+        "Kick to the body",
+        "Low kick (to the thigh)"
+      ],
+      "plain": "Jab, Cross, Hook, Kick to the body, Low kick (to the thigh)",
+      "audioOnsetSec": 32.1
+    },
+    {
+      "index": 8,
+      "kind": "combo",
+      "text": "Jab Body Kick",
+      "spoken": "jab body kick",
+      "strikeCount": 2,
+      "pieceCount": 2,
+      "startSec": 36.567,
+      "speechEndSec": 37.328,
+      "nextCallSec": 41.133,
+      "windowSec": 4.567,
+      "strikes": [
+        "Jab",
+        "Kick to the body"
+      ],
+      "plain": "Jab, Kick to the body",
+      "audioOnsetSec": 36.567
+    },
+    {
+      "index": 9,
+      "kind": "combo",
+      "text": "Jab Cross Switch Kick",
+      "spoken": "jab cross switch kick",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 41.133,
+      "speechEndSec": 42.546,
+      "nextCallSec": 45.6,
+      "windowSec": 4.467,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Switch kick (switch stance, then kick)"
+      ],
+      "plain": "Jab, Cross, Switch kick (switch stance, then kick)",
+      "audioOnsetSec": 41.133
+    },
+    {
+      "index": 10,
+      "kind": "combo",
+      "text": "Hook Low Kick",
+      "spoken": "hook low kick",
+      "strikeCount": 2,
+      "pieceCount": 2,
+      "startSec": 45.6,
+      "speechEndSec": 46.261,
+      "nextCallSec": 50.133,
+      "windowSec": 4.533,
+      "strikes": [
+        "Hook",
+        "Low kick (to the thigh)"
+      ],
+      "plain": "Hook, Low kick (to the thigh)",
+      "audioOnsetSec": 45.6
+    },
+    {
+      "index": 11,
+      "kind": "defence",
+      "text": "CHECK!",
+      "spoken": "check",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 50.133,
+      "speechEndSec": 50.336,
+      "nextCallSec": 52.9,
+      "windowSec": 2.767,
+      "strikes": [
+        "Check (lift the shin to block a kick)"
+      ],
+      "plain": "Check (lift the shin to block a kick)",
+      "audioOnsetSec": 50.133
+    },
+    {
+      "index": 12,
+      "kind": "combo",
+      "text": "Jab Cross Hook Low Kick Teep",
+      "spoken": "jab cross hook low kick teep",
+      "strikeCount": 5,
+      "pieceCount": 5,
+      "startSec": 52.9,
+      "speechEndSec": 54.852,
+      "nextCallSec": 57.4,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Hook",
+        "Low kick (to the thigh)",
+        "Teep (push kick)"
+      ],
+      "plain": "Jab, Cross, Hook, Low kick (to the thigh), Teep (push kick)",
+      "audioOnsetSec": 52.9
+    }
+  ],
+  "loudness": {
+    "integratedLufs": -16,
+    "truePeakDbfs": -2.3,
+    "rangeLu": 10.1
+  }
+}

@@ -1,0 +1,13 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,1,combo,Double Jab Low Kick,3,6.533,7.384,11.033,"Jab, Jab, Low kick (to the thigh)"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,2,combo,Hook Body Kick Exit,2,11.033,12.204,15.533,"Hook, Kick to the body, Exit"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,3,combo,Cross Knee,2,15.533,16.161,20.033,"Cross, Knee"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,4,defence,SPRAWL!,0,20.033,20.369,22.833,"Sprawl (hips back, stop the takedown)"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,5,combo,Low Kick Cross Level Change,2,22.833,24.369,27.367,"Low kick (to the thigh), Cross, Level change (drop your height)"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,6,combo,Jab Cross Low Kick Sprawl,3,27.367,29.053,31.833,"Jab, Cross, Low kick (to the thigh), Sprawl (hips back, stop the takedown)"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,7,combo,Cross Knee Clinch,2,31.833,33.036,36.333,"Cross, Knee, Clinch (grab hold of the head)"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,8,defence,SPRAWL!,0,36.333,36.669,39.1,"Sprawl (hips back, stop the takedown)"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,9,combo,Sprawl Cross Knee,2,39.1,40.299,43.6,"Sprawl (hips back, stop the takedown), Cross, Knee"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,10,combo,Jab Cross Body Kick Sprawl Cross,4,43.6,45.864,48.133,"Jab, Cross, Kick to the body, Sprawl (hips back, stop the takedown), Cross"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,11,combo,Jab Level Change Overhand Knee,3,48.133,49.876,52.633,"Jab, Level change (drop your height), Overhand, Knee"
+cc-sync-mma-1,MMA,5,NORMAL,4.5,5,e9c3753,57.133,5.933,0.074 1.073 2.074,12,combo,Jab Cross Spinning Back Elbow,3,52.633,54.208,57.133,"Jab, Cross, Spinning back elbow"

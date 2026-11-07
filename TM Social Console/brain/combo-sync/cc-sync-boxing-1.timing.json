@@ -1,0 +1,275 @@
+{
+  "name": "cc-sync-boxing-1",
+  "discipline": "Boxing",
+  "athleteLevel": 5,
+  "difficulty": "NORMAL",
+  "cadenceSec": 4.5,
+  "seed": 1,
+  "appCommit": "e9c3753",
+  "durationSec": 60.1,
+  "goAtSec": 6.133,
+  "countInBeepsAtSec": [
+    0.115,
+    1.122,
+    2.115
+  ],
+  "roundAnnouncementAtSec": 3.533,
+  "voice": {
+    "id": "mbrola-us2",
+    "engine": "eSpeak NG with MBROLA us2 (American male)"
+  },
+  "calls": [
+    {
+      "index": 1,
+      "kind": "combo",
+      "text": "Double Jab Body Hook Cross Hook Cross",
+      "spoken": "double jab body hook cross hook cross",
+      "strikeCount": 6,
+      "pieceCount": 6,
+      "startSec": 6.767,
+      "speechEndSec": 9.024,
+      "nextCallSec": 11.267,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Jab",
+        "Hook to the body",
+        "Cross",
+        "Hook",
+        "Cross"
+      ],
+      "plain": "Jab, Jab, Hook to the body, Cross, Hook, Cross",
+      "audioOnsetSec": 6.767
+    },
+    {
+      "index": 2,
+      "kind": "combo",
+      "text": "Jab Cross Step Back",
+      "spoken": "jab cross step back",
+      "strikeCount": 2,
+      "pieceCount": 3,
+      "startSec": 11.267,
+      "speechEndSec": 12.606,
+      "nextCallSec": 15.767,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Step back"
+      ],
+      "plain": "Jab, Cross, Step back",
+      "audioOnsetSec": 11.267
+    },
+    {
+      "index": 3,
+      "kind": "combo",
+      "text": "Lead Uppercut Cross Hook Body Cross",
+      "spoken": "lead uppercut cross hook body cross",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 15.767,
+      "speechEndSec": 17.843,
+      "nextCallSec": 20.267,
+      "windowSec": 4.5,
+      "strikes": [
+        "Lead uppercut",
+        "Cross",
+        "Hook",
+        "Cross to the body"
+      ],
+      "plain": "Lead uppercut, Cross, Hook, Cross to the body",
+      "audioOnsetSec": 15.767
+    },
+    {
+      "index": 4,
+      "kind": "defence",
+      "text": "PIVOT!",
+      "spoken": "pivot",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 20.267,
+      "speechEndSec": 20.487,
+      "nextCallSec": 23.033,
+      "windowSec": 2.767,
+      "strikes": [
+        "Pivot (step off at an angle)"
+      ],
+      "plain": "Pivot (step off at an angle)",
+      "audioOnsetSec": 20.267
+    },
+    {
+      "index": 5,
+      "kind": "combo",
+      "text": "Jab Uppercut Cross",
+      "spoken": "jab uppercut cross",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 23.033,
+      "speechEndSec": 24.207,
+      "nextCallSec": 27.533,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Uppercut",
+        "Cross"
+      ],
+      "plain": "Jab, Uppercut, Cross",
+      "audioOnsetSec": 23.032
+    },
+    {
+      "index": 6,
+      "kind": "combo",
+      "text": "Jab Body Jab Head Cross",
+      "spoken": "jab body jab head cross",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 27.533,
+      "speechEndSec": 28.944,
+      "nextCallSec": 32.033,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Jab to the body",
+        "Cross to the head"
+      ],
+      "plain": "Jab, Jab to the body, Cross to the head",
+      "audioOnsetSec": 27.533
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Cross Hook Uppercut Cross",
+      "spoken": "cross hook uppercut cross",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 32.033,
+      "speechEndSec": 33.688,
+      "nextCallSec": 36.533,
+      "windowSec": 4.5,
+      "strikes": [
+        "Cross",
+        "Hook",
+        "Uppercut",
+        "Cross"
+      ],
+      "plain": "Cross, Hook, Uppercut, Cross",
+      "audioOnsetSec": 32.033
+    },
+    {
+      "index": 8,
+      "kind": "defence",
+      "text": "PIVOT!",
+      "spoken": "pivot",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 36.533,
+      "speechEndSec": 36.753,
+      "nextCallSec": 39.3,
+      "windowSec": 2.767,
+      "strikes": [
+        "Pivot (step off at an angle)"
+      ],
+      "plain": "Pivot (step off at an angle)",
+      "audioOnsetSec": 36.533
+    },
+    {
+      "index": 9,
+      "kind": "combo",
+      "text": "Jab Cross Body Hook",
+      "spoken": "jab cross body hook",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 39.3,
+      "speechEndSec": 40.528,
+      "nextCallSec": 43.8,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Hook to the body"
+      ],
+      "plain": "Jab, Cross, Hook to the body",
+      "audioOnsetSec": 39.3
+    },
+    {
+      "index": 10,
+      "kind": "combo",
+      "text": "Double Jab",
+      "spoken": "double jab",
+      "strikeCount": 2,
+      "pieceCount": 2,
+      "startSec": 43.8,
+      "speechEndSec": 44.154,
+      "nextCallSec": 48.3,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Jab"
+      ],
+      "plain": "Jab, Jab",
+      "audioOnsetSec": 43.8
+    },
+    {
+      "index": 11,
+      "kind": "combo",
+      "text": "Double Jab Cross Hook",
+      "spoken": "double jab cross hook",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 48.3,
+      "speechEndSec": 49.515,
+      "nextCallSec": 52.8,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Jab",
+        "Cross",
+        "Hook"
+      ],
+      "plain": "Jab, Jab, Cross, Hook",
+      "audioOnsetSec": 48.3
+    },
+    {
+      "index": 12,
+      "kind": "defence",
+      "text": "SLIP!",
+      "spoken": "slip",
+      "strikeCount": 0,
+      "pieceCount": 1,
+      "startSec": 52.8,
+      "speechEndSec": 53.107,
+      "nextCallSec": 55.6,
+      "windowSec": 2.8,
+      "strikes": [
+        "Slip (move your head off the line)"
+      ],
+      "plain": "Slip (move your head off the line)",
+      "audioOnsetSec": 52.8
+    },
+    {
+      "index": 13,
+      "kind": "combo",
+      "text": "Slip Slip Cross Hook",
+      "spoken": "slip slip cross hook",
+      "strikeCount": 2,
+      "pieceCount": 4,
+      "startSec": 55.6,
+      "speechEndSec": 57.271,
+      "nextCallSec": 60.1,
+      "windowSec": 4.5,
+      "strikes": [
+        "Slip (move your head off the line)",
+        "Slip",
+        "Cross",
+        "Hook"
+      ],
+      "plain": "Slip (move your head off the line), Slip, Cross, Hook",
+      "audioOnsetSec": 55.6
+    }
+  ],
+  "loudness": {
+    "integratedLufs": -16,
+    "truePeakDbfs": -1.5,
+    "rangeLu": 10.4
+  }
+}

@@ -1,0 +1,11 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,1,combo,Sprawl Cross Hook Level Change Ground Pound Pass,3,6.533,9.551,11.033,"Sprawl (hips back, stop the takedown), Cross, Hook, Level change (drop your height), Ground and pound, Pass"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,2,combo,Jab Body Kick Exit,2,11.033,12.226,15.5,"Jab, Kick to the body, Exit"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,3,combo,Oblique Kick Cross Hook Fake Shot Overhand,4,15.5,18.228,20.033,"Oblique kick, Cross, Hook, Fake shot (act like you are shooting a takedown), Overhand"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,4,combo,Jab Cross Elbow Clinch Knee Knee Throw,5,20.033,22.765,24.5,"Jab, Cross, Elbow, Clinch (grab hold of the head), Knee, Knee, Throw"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,5,combo,Jab Cross Spinning Backfist,3,24.5,26.098,29.033,"Jab, Cross, Spinning backfist"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,6,combo,Sprawl Cross Hook,2,29.033,30.27,33.5,"Sprawl (hips back, stop the takedown), Cross, Hook"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,7,combo,Low Kick Jab Overhand Clinch Knee Knee Elbow,6,33.5,36.391,38.033,"Low kick (to the thigh), Jab, Overhand, Clinch (grab hold of the head), Knee, Knee, Elbow"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,8,combo,Jab Cross Fake Shot Flying Knee,3,38.033,39.979,42.5,"Jab, Cross, Fake shot (act like you are shooting a takedown), Flying knee"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,9,combo,Feint Level Change Overhand Hook Body Kick,3,42.5,44.944,47,"Feint (fake a strike), Level change (drop your height), Overhand, Hook, Kick to the body"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,4,e9c3753,51.533,5.9,0.074 1.068 2.069,10,combo,Teep Cross,2,47,47.73,51.533,"Teep (push kick), Cross"

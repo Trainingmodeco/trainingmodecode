@@ -1,0 +1,14 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,1,combo,Double Jab Body Hook Cross Hook Cross,6,6.767,9.024,11.267,"Jab, Jab, Hook to the body, Cross, Hook, Cross"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,2,combo,Jab Cross Step Back,2,11.267,12.606,15.767,"Jab, Cross, Step back"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,3,combo,Lead Uppercut Cross Hook Body Cross,4,15.767,17.843,20.267,"Lead uppercut, Cross, Hook, Cross to the body"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,4,defence,PIVOT!,0,20.267,20.487,23.033,Pivot (step off at an angle)
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,5,combo,Jab Uppercut Cross,3,23.033,24.207,27.533,"Jab, Uppercut, Cross"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,6,combo,Jab Body Jab Head Cross,3,27.533,28.944,32.033,"Jab, Jab to the body, Cross to the head"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,7,combo,Cross Hook Uppercut Cross,4,32.033,33.688,36.533,"Cross, Hook, Uppercut, Cross"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,8,defence,PIVOT!,0,36.533,36.753,39.3,Pivot (step off at an angle)
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,9,combo,Jab Cross Body Hook,3,39.3,40.528,43.8,"Jab, Cross, Hook to the body"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,10,combo,Double Jab,2,43.8,44.154,48.3,"Jab, Jab"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,11,combo,Double Jab Cross Hook,4,48.3,49.515,52.8,"Jab, Jab, Cross, Hook"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,12,defence,SLIP!,0,52.8,53.107,55.6,Slip (move your head off the line)
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,60.1,6.133,0.115 1.122 2.115,13,combo,Slip Slip Cross Hook,2,55.6,57.271,60.1,"Slip (move your head off the line), Slip, Cross, Hook"
