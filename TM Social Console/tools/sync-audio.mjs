@@ -24,64 +24,59 @@ import { ROOT, ffmpeg } from './lib.mjs';
 
 export const SR = 48000; // the guide is built at 48 kHz mono, floats in memory
 
+// The polish every phrase gets (see polish()): gain in dB at 140 Hz, 1.2 kHz, 3 kHz and 6 kHz, and the
+// compressor's ratio. Heavy on the presence band: the consonants are what carry over a gym's noise.
+const ANNOUNCER = { low: -3, mid: 5, presence: 10, air: 6, ratio: 4 };
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Voices. Every engine here is a command line program, run once per phrase.
 // ─────────────────────────────────────────────────────────────────────────────
 // `speak(text, rate, out)` writes a wav of `text`; rate 1 is the voice's normal pace
 // for this guide, 1.15 is 15% faster. `shape` is the polish every phrase gets (see polish()).
 export const VOICES = {
-  // The one the guide ships with. See the VOICE block in README.md for why.
+  // The one the guide ships with. Picked from the voices installable offline (eSpeak NG formant voices,
+  // eSpeak NG + MBROLA us1/us2/us3/en1, Flite rms/awb/slt/kal16, SVOX Pico): the one with the best
+  // closed-vocabulary recognition of the strike words (PocketSphinx on 20 combos), clean and through
+  // room noise at 18, 12 and 8 dB with a phone-microphone lowpass. See the VOICE block in README.md.
+  // Speed 200, pitch 35 (a deeper, harder voice), EQ with a lot of presence (the SHAPE below).
+  'mbrola-us2': {
+    label: 'eSpeak NG with MBROLA us2 (American male)',
+    bin: 'espeak-ng',
+    install: 'apt-get install espeak-ng mbrola mbrola-us2',
+    speak: (text, rate, out) => ['espeak-ng', '-v', 'mb-us2', '-s', String(Math.round(200 * rate)), '-p', '35', '-w', out, text],
+    shape: ANNOUNCER,
+  },
+  // Without MBROLA: eSpeak NG's own formant voice. Robotic, but it stays clear through noise.
   'espeak-us-m3': {
     label: 'eSpeak NG, American English, male voice 3',
     bin: 'espeak-ng',
     install: 'apt-get install espeak-ng',
     speak: (text, rate, out) => ['espeak-ng', '-v', 'en-us+m3', '-s', String(Math.round(190 * rate)), '-p', '38', '-g', '1', '-w', out, text],
-    shape: { low: -2, mid: 3, presence: 5, air: 3, ratio: 3 },
+    shape: ANNOUNCER,
   },
   'flite-rms': {
     label: 'Flite, rms (American male)',
     bin: 'flite',
     install: 'apt-get install flite',
-    speak: (text, rate, out) => ['flite', '-voice', 'rms', '--setf', `duration_stretch=${(0.72 / rate).toFixed(3)}`, '-t', text, '-o', out],
-    shape: { low: 0, mid: 2, presence: 5, air: 2, ratio: 3 },
-  },
-  'mbrola-us1': {
-    label: 'eSpeak NG with MBROLA us1 (American female)',
-    bin: 'espeak-ng',
-    install: 'apt-get install espeak-ng mbrola mbrola-us1',
-    speak: (text, rate, out) => ['espeak-ng', '-v', 'mb-us1', '-s', String(Math.round(190 * rate)), '-w', out, text],
-    shape: { low: 0, mid: 3, presence: 5, air: 3, ratio: 3 },
-  },
-  'mbrola-en1': {
-    label: 'eSpeak NG with MBROLA en1 (British male)',
-    bin: 'espeak-ng',
-    install: 'apt-get install espeak-ng mbrola mbrola-en1',
-    speak: (text, rate, out) => ['espeak-ng', '-v', 'mb-en1', '-s', String(Math.round(190 * rate)), '-w', out, text],
-    shape: { low: 0, mid: 3, presence: 5, air: 3, ratio: 3 },
-  },
-  'flite-kal16': {
-    label: 'Flite, kal16 (American male)',
-    bin: 'flite',
-    install: 'apt-get install flite',
-    speak: (text, rate, out) => ['flite', '-voice', 'kal16', '--setf', `duration_stretch=${(0.72 / rate).toFixed(3)}`, '-t', text, '-o', out],
-    shape: { low: 0, mid: 2, presence: 5, air: 2, ratio: 3 },
+    speak: (text, rate, out) => ['flite', '-voice', 'rms', '--setf', `duration_stretch=${(0.6 / rate).toFixed(3)}`, '-t', text, '-o', out],
+    shape: ANNOUNCER,
   },
   'pico-us': {
     label: 'SVOX Pico, American English',
     bin: 'pico2wave',
     install: 'apt-get install libttspico-utils',
     speak: (text, rate, out) => ['pico2wave', '-l', 'en-US', '-w', out, `<speed level='${Math.round(140 * rate)}'>${text}</speed>`],
-    shape: { low: 1, mid: 2, presence: 4, air: 2, ratio: 3 },
+    shape: ANNOUNCER,
   },
-  'mbrola-us2': {
-    label: 'eSpeak NG with MBROLA us2 (American male)',
+  'mbrola-us1': {
+    label: 'eSpeak NG with MBROLA us1 (American female)',
     bin: 'espeak-ng',
-    install: 'apt-get install espeak-ng mbrola mbrola-us2',
-    speak: (text, rate, out) => ['espeak-ng', '-v', 'mb-us2', '-s', String(Math.round(190 * rate)), '-w', out, text],
-    shape: { low: 0, mid: 3, presence: 5, air: 3, ratio: 3 },
+    install: 'apt-get install espeak-ng mbrola mbrola-us1',
+    speak: (text, rate, out) => ['espeak-ng', '-v', 'mb-us1', '-s', String(Math.round(200 * rate)), '-p', '35', '-w', out, text],
+    shape: ANNOUNCER,
   },
 };
-export const VOICE_ORDER = ['espeak-us-m3', 'mbrola-us2', 'flite-rms', 'pico-us'];
+export const VOICE_ORDER = ['mbrola-us2', 'espeak-us-m3', 'flite-rms', 'pico-us'];
 
 const have = (bin) => !spawnSync(bin, ['--version'], { stdio: 'ignore' }).error; // a missing program is a spawn error
 
@@ -338,12 +333,13 @@ export function mixGuide(elements, durationSec, outWav, { lufs = -16, truePeak =
     const total = Math.round(durationSec * SR);
     const base = `${filters.join(';')};${labels}amix=inputs=${elements.length}:normalize=0:duration=longest:dropout_transition=0,apad=whole_len=${total},atrim=end_sample=${total}`;
     // Pass 1: measure. Pass 2: apply the measured gain linearly (no pumping, the beeps and the voice keep their balance).
-    const measure = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-y', ...inputs, '-filter_complex', `${base},loudnorm=I=${lufs}:TP=${truePeak}:LRA=11:print_format=json`, '-f', 'null', '-'], { encoding: 'utf8' });
+    // (made stereo first: a mono voice played on both speakers reads 3 LU louder than it measured as mono)
+    const measure = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-y', ...inputs, '-filter_complex', `${base},pan=stereo|c0=c0|c1=c0,loudnorm=I=${lufs}:TP=${truePeak}:LRA=11:print_format=json`, '-f', 'null', '-'], { encoding: 'utf8' });
     const m = /\{[\s\S]*"target_offset"[\s\S]*?\}/.exec(measure.stderr || '');
     if (!m) throw new Error(`loudnorm measured nothing: ${(measure.stderr || '').split('\n').slice(-4).join(' ')}`);
     const j = JSON.parse(m[0]);
     const ln = `loudnorm=I=${lufs}:TP=${truePeak}:LRA=11:measured_I=${j.input_i}:measured_TP=${j.input_tp}:measured_LRA=${j.input_lra}:measured_thresh=${j.input_thresh}:offset=${j.target_offset}:linear=true`;
-    ffmpeg([...inputs, '-filter_complex', `${base},${ln},aresample=${SR},pan=stereo|c0=c0|c1=c0[out]`, '-map', '[out]', '-c:a', 'pcm_s16le', outWav]);
+    ffmpeg([...inputs, '-filter_complex', `${base},pan=stereo|c0=c0|c1=c0,${ln},aresample=${SR}[out]`, '-map', '[out]', '-c:a', 'pcm_s16le', outWav]);
     return { measured: { inputI: Number(j.input_i), inputTP: Number(j.input_tp) } };
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
@@ -400,4 +396,12 @@ export function lagOf(track, el, at, span = 0.1) {
   let fine = best, fv = -2;
   for (let sh = best - D; sh <= best + D; sh++) { const v = score(sh, 1, n); if (v > fv) { fv = v; fine = sh; } }
   return { lag: fine / SR, match: fv };
+}
+
+// The loudness of a finished file, as ffmpeg's EBU R128 meter reads it: { integratedLufs, truePeakDbfs, rangeLu }.
+export function measureLoudness(file) {
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', file, '-vn', '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' });
+  const text = r.stderr || '';
+  const last = (re) => { const m = [...text.matchAll(re)]; return m.length ? Number(m[m.length - 1][1]) : null; };
+  return { integratedLufs: last(/\bI:\s+(-?[\d.]+) LUFS/g), truePeakDbfs: last(/Peak:\s+(-?[\d.]+) dBFS/g), rangeLu: last(/LRA:\s+(-?[\d.]+) LU/g) };
 }

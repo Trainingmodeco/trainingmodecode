@@ -75,12 +75,25 @@ export function plainPiece(text) {
   if (/^low kick$/.test(t)) return 'Low kick (to the thigh)';
   return cap(t);
 }
-// "Double Jab" is two strikes, as the app counts it: ['Jab', 'Jab'].
+// The strikes of a call as the owner reads them. The app's own splitter gives the pieces ("Double Jab"
+// is two of them), and the plain words are made from each: "Body Hook" is "Hook to the body". A lone
+// "Head" after a body shot (the pool's "Hook Body Hook Head": body, then upstairs) is the same
+// strike to the head.
 export async function plainStrikes(text) {
   const { piecesOf } = await loadCounter();
   const out = [];
-  for (const p of piecesOf(text)) out.push(plainPiece(p.text));
-  // the app's piecesOf already expands "double X" into two pieces
+  let prev = null;
+  for (const p of piecesOf(text)) {
+    const t = String(p.text).toLowerCase();
+    let plain;
+    const lone = /^(head|body)$/.exec(t);
+    const mod = /^(head|body) (jab|cross|hook|uppercut|kick|knee|elbow)$/.exec(t);
+    if (lone && prev) plain = `${cap(String(prev).split(' ').pop())} to the ${lone[1]}`;
+    else if (mod) plain = `${cap(mod[2])} to the ${mod[1]}`;
+    else plain = plainPiece(t);
+    out.push(plain);
+    prev = t;
+  }
   return out;
 }
 export async function countOf(text) {
@@ -124,7 +137,7 @@ const sec = (x) => `${r3(x).toFixed(1)}`;
 export function callsPage(sheetsIn) {
   const sheets = sorted(sheetsIn);
   const out = ['# Combo Coach sync videos: every call', '',
-    'Read ahead here, or just watch the video. "At" is the second of the video where the call is shouted (the same moment its words show on the screen); the clock starts with the first beep. The bell rings on GO. Each combo gets its slot (the Cadence column) before the next call.', ''];
+    'Read ahead here, or just watch the video. "At" is the second of the video where the call is shouted, the same moment its words show on the screen; the video starts on the 3 of the count-in, with its first beep a moment later. The bell rings on GO. "Slot" is how long you have before the next call.', ''];
   for (const s of sheets) {
     const combos = s.calls.filter((c) => c.kind === 'combo').length;
     out.push(`## ${s.name.replace(/^cc-sync-/, '')}: ${TITLE[key(s)] || s.discipline}, level ${s.athleteLevel} (${String(s.difficulty).toLowerCase()} mix)`, '',
@@ -144,25 +157,28 @@ export function filmGuide(sheetsIn) {
   const sheets = sorted(sheetsIn);
   const cad = sheets[0]?.cadenceSec ?? 4.5;
   const afterBell = (s) => r3(s.calls[0].startSec - s.goAtSec);
+  const defence = sheets.flatMap((s) => s.calls.filter((c) => c.kind === 'defence').map((c) => c.windowSec));
+  const defenceSlot = defence.length ? r3(defence.reduce((a, b) => a + b, 0) / defence.length) : null;
+  const combos = sheets[0]?.calls.filter((c) => c.kind === 'combo').length ?? 10;
   const lines = [
     '# Film guide: strike to the Combo Coach videos', '',
     '## What you have', '',
-    `Eight videos of Training Mode's Combo Coach playing, two for each style: boxing, kickboxing, Muay Thai and MMA. Each one is about a minute. The coach shouts out ${sheets[0]?.calls.filter((c) => c.kind === 'combo').length ?? 10} combos, one after another, and the app shows the same words on the screen. Video 1 of each style plays as a level 5 athlete (mostly mid-length combos). Video 2 plays as a level 10 athlete (longer and harder combos).`, '',
+    `Eight videos of Training Mode's Combo Coach playing, two for each style: boxing, kickboxing, Muay Thai and MMA. Each one is about a minute. The coach shouts out ${combos} combos, one after another, and the app shows the same words on the screen (with the next combo under it, so you can see what is coming). Video 1 of each style plays as a level 5 athlete (mostly mid-length combos). Video 2 plays as a level 10 athlete (longer and harder combos).`, '',
     '| Video | Style | Level | Length | First call after the bell |', '|---|---|---|---|---|',
     ...sheets.map((s) => `| ${file(s)} | ${TITLE[key(s)] || s.discipline} | ${s.athleteLevel} | ${sec(s.durationSec)} s | ${afterBell(s).toFixed(1)} s |`), '',
     '## How to film', '',
-    '1. Put the video on a phone, a tablet or a TV. Turn the sound up. You must hear it, and so must your camera.',
-    '2. Set up your camera on a bag, with your whole body in the frame. Vertical or horizontal is fine. Keep it steady.',
-    '3. Start your camera, then press play on the video. Do not stop your camera until the video is over.',
-    '4. The video counts you in with three beeps. A bell rings on GO. Then the coach shouts the first combo a moment later. Hit the bag to the calls.',
-    `5. Every combo gets ${cad} seconds before the next one. If you miss one, keep going and hit the next call. Do not stop and do not restart.`,
-    '6. Sometimes the coach calls a defence move between combos (slip, roll, check, pivot or sprawl). Do the move. It gets a shorter slot, about half of the usual one.',
-    '7. One take per video, about a minute. Do not mute the clip, and do not trim it. The sound of the video in your clip is how the two get lined up.',
+    '1. Put the video on a phone, a tablet or a TV. Turn the sound up. You need to hear it, and so does your camera.',
+    '2. Set your camera up on the bag with your whole body in the frame. Vertical or horizontal is fine. Keep it steady.',
+    '3. Start your camera, then press play on the video. Keep the camera running until the video is over.',
+    '4. The video counts you in with three beeps, one a second. A bell rings on GO. The coach shouts the first combo a moment after the bell (the table above says how long). Hit the bag to the calls.',
+    `5. Each combo gets ${cad} seconds before the next call. If you miss one, keep going and hit the next call. Do not stop and do not restart.`,
+    `6. In some videos the coach also calls a defence move between combos (slip, roll, check, pivot or sprawl). Do the move. It gets a shorter slot, about ${defenceSlot ?? 2.8} seconds.`,
+    '7. One take per video, about a minute. Do not mute the clip and do not trim it. The sound of the video, heard by your camera, is how the two get lined up.',
     '8. Name each file after its video: boxing-1.mp4, boxing-2.mp4, kickboxing-1.mp4 and so on.', '',
     '## What to send back', '',
-    'The eight clips, named as above. If a take went wrong, film that video again and send the new one.', '',
+    'Your clips, named as above, one per video. If a take went wrong, film that video again and send the new one.', '',
     '## What happens next', '',
-    'Each of your clips is lined up with its video from the sound. Then the app screen and your striking go into one reel, the strikes landing on the calls.', '',
+    'Each of your clips is lined up with its video from the sound. Then the app screen and your striking go together into one reel.', '',
     'The full list of calls for every video is in CALLS.md, so you can read ahead.',
   ];
   return lines.join('\n') + '\n';

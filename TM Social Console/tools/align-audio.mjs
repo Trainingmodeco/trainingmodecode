@@ -148,7 +148,7 @@ const BANK = filterBank();
 const HANN = Float64Array.from({ length: WIN }, (_, i) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / WIN));
 
 // signal -> { frames, data (frame-major, BANDS per frame) }, frame f centred on sample f * hop + WIN / 2.
-function features(sig, hop, from = 0, to = sig.length) {
+function features(sig, hop, from = 0, to = sig.length, flux = false) {
   const frames = Math.max(0, Math.floor((to - from - WIN) / hop) + 1);
   const data = new Float32Array(frames * BANDS);
   const re = new Float64Array(WIN), im = new Float64Array(WIN);
@@ -179,6 +179,14 @@ function features(sig, hop, from = 0, to = sig.length) {
       const a = Math.max(0, f - half), z = Math.min(frames, f + half + 1);
       const m = (pre[z] - pre[a]) / (z - a);
       data[f * BANDS + b] = Math.tanh((data[f * BANDS + b] - m) / 2);
+    }
+  }
+  if (flux) { // rising edges only: the direct sound arrives before its echoes, and an echo can only add edges later
+    const copy = Float32Array.from(data);
+    const k = Math.max(1, Math.round(0.006 * SR / hop));
+    for (let f = 0; f < frames; f++) for (let b = 0; b < BANDS; b++) {
+      const prev = f >= k ? copy[(f - k) * BANDS + b] : copy[b];
+      data[f * BANDS + b] = Math.max(0, copy[f * BANDS + b] - prev);
     }
   }
   return { frames, data };
@@ -293,7 +301,24 @@ export function alignSignals(guide, clip) {
     const den = a - 2 * b + c;
     if (den < 0) frac = Math.max(-0.5, Math.min(0.5, (0.5 * (a - c)) / den));
   }
-  const fineLag = coarseLag * ratio + (bi - span) + frac; // in 2 ms frames
+  let fineLag = coarseLag * ratio + (bi - span) + frac; // in 2 ms frames
+  // Room echo smears each sound's loudness a little later, and the match above follows the loudness, so in
+  // a roomy recording it can sit a few tens of ms late. The direct sound's EDGES are not smeared: look
+  // again, within +-70 ms, at where the edges (the loudness going up) of the guide match the clip's.
+  {
+    const gE = features(guide, HOP_FINE, 0, guide.length, true);
+    const oE = features(clip, HOP_FINE, startSample, endSample, true);
+    const span2 = Math.round((0.07 * SR) / HOP_FINE);
+    const centre2 = Math.round(fineLag - baseFrames);
+    const sc = [];
+    for (let d = -span2; d <= span2; d++) sc.push(ncc(gE, oE, centre2 + d));
+    let b2 = 0;
+    for (let i = 1; i < sc.length; i++) if (sc[i] > sc[b2]) b2 = i;
+    // the earliest lag whose match is nearly as good as the best (the direct path comes first)
+    let pick = b2;
+    for (let i = 0; i < b2; i++) if (sc[i] >= 0.93 * sc[b2] && sc[i] >= sc[Math.max(0, i - 1)]) { pick = i; break; }
+    if (sc[pick] > 0) fineLag = fineLag + (pick - span2);
+  }
   return {
     offsetSec: (fineLag * HOP_FINE) / SR,
     confidence: Math.round(confidence * 1000) / 1000,
