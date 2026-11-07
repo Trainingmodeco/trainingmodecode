@@ -17,6 +17,11 @@ export const fightTimerCSS = `
 .ftk-help:hover, .ftk-help:focus-visible { color: #F2BE45 !important; }
 .ftk-back:hover, .ftk-back:focus-visible { color: #F2BE45 !important; }
 .ftk-hit:active, .ftk-tog:active { transform: scale(0.97); }
+/* The four levels with a YOUR LEVEL caption: ADVANCED and its bolt have to fit one chip (91px on a 412px phone, 78px on a 360px one). */
+.ftk-diff { font-size: 11.5px !important; letter-spacing: 0.04em !important; }
+.ftk-diff-word { gap: 3px !important; }
+.ftk-diff svg { width: 11px !important; height: 11px !important; }
+@media (max-width: 380px) { .ftk-diff { font-size: 10px !important; letter-spacing: 0.02em !important; } }
 `;
 
 // Full-bleed background: a blue glow falling from the top edge.
@@ -72,26 +77,37 @@ const Bolt = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 14, height: 14, fill: 'currentColor' }}><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
 );
 
-export function FightDifficulty({ levels, value, onChange, desc, guide }) {
+// `mark` names the level to caption (the athlete's own, markLabel under its
+// chip) and `hint` is a few words beside DIFFICULTY (both optional: Fight Focus
+// passes neither, and its chips look as they did).
+export function FightDifficulty({ levels, value, onChange, desc, guide, mark, markLabel, hint }) {
   const word = (DIFF_ON[value] || DIFF_ON.Normal).word;
   return (
-    <div data-guide={guide} style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
-      <FightLabel>DIFFICULTY</FightLabel>
+    <div data-guide={guide} style={{ display: 'flex', flexDirection: 'column', gap: mark != null ? 6 : 7, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+        <FightLabel>DIFFICULTY</FightLabel>
+        {hint && <span style={{ font: "600 10px 'Chakra Petch',sans-serif", letterSpacing: '0.1em', color: '#8FB4FF', whiteSpace: 'nowrap' }}>{hint}</span>}
+      </div>
       <div role="radiogroup" aria-label="Difficulty" style={{ display: 'flex', gap: 6 }}>
         {levels.map(l => {
           const on = l === value;
           const s = on ? DIFF_ON[l] : DIFF_OFF;
+          const own = mark != null && l === mark;
+          const capColor = on && s.bolt ? '#1A1204' : '#F2BE45';
           return (
-            <button key={l} type="button" role="radio" aria-checked={on} className="ftk-hit" onClick={() => onChange(l)} style={{
-              flex: 1, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            <button key={l} type="button" role="radio" aria-checked={on} aria-label={own ? `${l}, ${String(markLabel || '').toLowerCase()}` : l} className={mark != null ? 'ftk-hit ftk-diff' : 'ftk-hit'} onClick={() => onChange(l)} style={{
+              flex: 1, height: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: own ? 1 : 0,
               borderRadius: 10, background: s.bg, border: `1px solid ${s.border}`, color: s.color, boxShadow: s.shadow,
-              font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', cursor: 'pointer', minWidth: 0,
-            }}>{s.bolt && <Bolt/>}{l.toUpperCase()}</button>
+              font: "700 12px 'Chakra Petch',sans-serif", letterSpacing: '0.12em', cursor: 'pointer', minWidth: 0, padding: 0,
+            }}>
+              <span className={mark != null ? 'ftk-diff-word' : undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, whiteSpace: 'nowrap', lineHeight: 1.1 }}>{s.bolt && <Bolt/>}{l.toUpperCase()}</span>
+              {own && <span aria-hidden="true" data-your-level="" style={{ font: "700 8px 'Chakra Petch',sans-serif", letterSpacing: '0.1em', lineHeight: 1, whiteSpace: 'nowrap', color: capColor }}>{markLabel}</span>}
+            </button>
           );
         })}
       </div>
       {desc && (
-        <div style={{ fontSize: 13, color: '#CFD8F0', lineHeight: 1.35 }}>
+        <div style={{ fontSize: 13, color: '#CFD8F0', lineHeight: 1.35, textWrap: 'balance' }}>
           <span style={{ font: "700 13px 'Chakra Petch',sans-serif", color: word }}>{value.toUpperCase()}:</span> {desc}
         </div>
       )}

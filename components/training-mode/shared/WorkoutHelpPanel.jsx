@@ -36,13 +36,13 @@ export const HELP_CONTENT = {
   },
   quick_mission_setup: {
     title: 'QUICK MISSION',
-    purpose: 'A fast, no-planning workout. Pick a type, time, and difficulty and the app builds the session for you.',
+    purpose: 'A fast, no-planning workout. Pick a type and a time and the app builds the session for you, at your level.',
     cues: [
       'Bodyweight needs no gear. Weighted and Hybrid mix in loaded moves.',
       'Duration sets the target length. Shorter means denser work.',
       'Turn on the cardio finisher for an extra conditioning burst.',
     ],
-    howHard: 'Difficulty scales the intensity and rest. Start at Normal if you are unsure.',
+    howHard: 'It starts at your level. Scale it down or up in ADJUST.',
     safety: 'Warm up for a minute or two before starting. Move within a range you can control.',
     modifications: 'Shorten the duration or lower difficulty anytime. You can also switch to Cardio Only for pure conditioning.',
     completion: 'Finish the timed mission to complete it and log your effort.',
@@ -168,7 +168,9 @@ const HELP_BTN_CSS = `
 }
 `;
 
-export function HelpButton({ onClick, size = 20, dataTour, dataGuide, style }) {
+// hitSlop: extra tap area in px on every side, with no change to how it looks
+// or lays out (a hub header passes 6 to make the 32px circle a 44px tap).
+export function HelpButton({ onClick, size = 20, dataTour, dataGuide, style, hitSlop = 0 }) {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: HELP_BTN_CSS }}/>
@@ -184,9 +186,12 @@ export function HelpButton({ onClick, size = 20, dataTour, dataGuide, style }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', padding: 0,
           animation: 'tm-help-glow 2.2s ease-in-out infinite',
+          ...(hitSlop ? { position: 'relative' } : null),
           ...style,
         }}
       >
+        {/* The 1.5 is the border: an absolute child is placed from the padding box. */}
+        {hitSlop ? <span aria-hidden="true" style={{ position: 'absolute', inset: -(hitSlop + 1.5) }}/> : null}
         <span style={{
           fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
           fontSize: Math.max(13, Math.round(size * 0.82)), lineHeight: 1,

@@ -7,7 +7,7 @@ import Embers from './Embers';
 import { ChevronLeft, Award } from 'lucide-react';
 import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
-import { VISIBLE_TIERS, getCurrentTier } from './data/tiers';
+import { VISIBLE_TIERS, getCurrentTier, tierIndexForLevel } from './data/tiers';
 import { groupedAchievements, progressByKind, ACHIEVEMENTS_UPDATED } from './data/achievements';
 import RunHistory from './RunHistory';
 
@@ -18,7 +18,8 @@ import RunHistory from './RunHistory';
 // tiers (Peak Physique / Fight Ascendant / Final Form) take over via
 // getCurrentTier.
 const RANKS = VISIBLE_TIERS.map(t => ({ name: t.label, xp: t.xp, tier: t.id, color: t.color }));
-const getRank = (xp) => { let r = RANKS[0]; for (const x of RANKS) if (xp >= x.xp) r = x; return r; };
+// The rank is the level's tier (3 levels each), the same call Profile and the Level page make.
+const getRank = (xp) => RANKS[tierIndexForLevel(getLevel(xp))];
 const rankProgress = (xp) => { const r = getRank(xp); const i = RANKS.indexOf(r); const n = RANKS[i + 1]; return n ? Math.min(1, Math.max(0, (xp - r.xp) / (n.xp - r.xp))) : 1; };
 
 const TROPHIES = [

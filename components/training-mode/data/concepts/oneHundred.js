@@ -58,7 +58,7 @@ export const ONE_HUNDRED = {
   fit: {
     weeks: 4,
     minutes: 60,
-    blurb: 'Ten variations of the basics, ten reps at a time. Rookie 300 reps a day, Normal 600, Elite 1,000. Then the 10K.',
+    blurb: 'Basics, 300 to 1,000 reps a day.',
     days: [
       {
         label: 'ONE HUNDRED PUSH', focus: 'PUSH-UP MASTERY',
@@ -162,7 +162,7 @@ export const ONE_HUNDRED = {
   // Fight: boxing built around one decisive punch. 2 weeks.
   fight: {
     discipline: 'Boxing',
-    blurb: 'Boxing built around one decisive punch: power straights, counters, body work, and the All-Out Series.',
+    blurb: 'Boxing built around one decisive punch.',
     roundMin: 3,
     restSec: 60,
     weeks: 2,

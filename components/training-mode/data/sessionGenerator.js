@@ -1,6 +1,7 @@
 import FIGHT_FOCUS_POOL from './fightFocusData';
 import COMBO_POOL, { SINGLE_STRIKES, ADVANCED_STRIKES } from './comboCoachData';
 import { filterCombosToArsenal } from './arsenal';
+import { prepareCombos, tierPool, dealMixRound, capCalls } from './comboMix';
 
 const DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'advanced'];
 
@@ -288,7 +289,11 @@ function buildTechnicalComboList(discipline, difficulty) {
   return out;
 }
 
-export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode, arsenalOnly, arsenal, customCombos }) {
+// `byLevel` (Combo Coach's own player sets it; Arcade and the rest do not): the
+// level's mix decides what can be dealt (data/comboMix): Easy only ever the easy
+// pool, never a combo past 4 pieces, and so on up. The athlete's own saved moves
+// and the arsenal gate work as they always did.
+export function generateComboCoachSession({ discipline, difficulty, speed, rounds, roundDuration, mode, arsenalOnly, arsenal, customCombos, byLevel }) {
   // 1.3b — if the fighter picked their own saved combos, drill exactly those
   // (shuffled so back-to-back rounds feel fresh). Overrides difficulty/mode
   // selection since the athlete chose the content directly.
@@ -300,7 +305,8 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
   if (String(mode).toLowerCase() === 'technical') {
     return gate(buildTechnicalComboList(discipline, difficulty));
   }
-  const eligible = filterPool(COMBO_POOL, discipline, difficulty);
+  let eligible = byLevel ? levelEligible(discipline, difficulty) : filterPool(COMBO_POOL, discipline, difficulty);
+  if (eligible.length === 0 && byLevel) eligible = filterPool(COMBO_POOL, discipline, difficulty);
   if (eligible.length === 0) {
     const fallback = COMBO_POOL.filter(c => c.discipline === normalizeDiscipline(discipline));
     const pool = fallback.length > 0 ? fallback : COMBO_POOL.slice(0, 30);
@@ -316,6 +322,13 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
   return gate(comboOrder.map(c => c.comboText));
 }
 
+// The pool entries this level's mix may ever deal (data/comboMix tierPool).
+function levelEligible(discipline, difficulty) {
+  const disc = normalizeDiscipline(discipline);
+  const ids = new Set(tierPool(prepareCombos(COMBO_POOL, disc), difficulty).map(c => c.id));
+  return COMBO_POOL.filter(c => c.discipline === disc && ids.has(c.id));
+}
+
 /**
  * Combo Coach session content, planned PER ROUND so no two rounds repeat the
  * same order. Wraps generateComboCoachSession (which still supplies the
@@ -326,7 +339,7 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
  */
 export function generateComboCoachRoundPlans(opts = {}) {
   const {
-    discipline, difficulty, rounds = 3, callsPerRound = 40, secondsPerCall = 5, seed,
+    discipline, difficulty, rounds = 3, callsPerRound = 40, secondsPerCall = 5, seed, byLevel, customCombos, mode,
   } = opts;
   const all = generateComboCoachSession(opts) || [];
   if (!all.length) return { plans: Array.from({ length: rounds }, () => []), all };
@@ -344,6 +357,26 @@ export function generateComboCoachRoundPlans(opts = {}) {
     const tier = tierOf.get(text);
     if (!tier) continue;
     (byTier[tier] = byTier[tier] || []).push(text);
+  }
+
+  // By level (data/comboMix): the athlete's own saved set is dealt as it always
+  // was, and Technical keeps its own singles-heavy weights but is held to the
+  // same caps. Combo mode deals the level's mix, a deck of calls at a time.
+  const custom = Array.isArray(customCombos) && customCombos.length > 0;
+  if (byLevel && !custom) {
+    const baseSeed = Number.isFinite(seed) ? seed : Math.floor(Math.random() * 1e9);
+    const count = Math.max(1, callsPerRound);
+    if (String(mode).toLowerCase() !== 'technical') {
+      const texts = new Set(all);
+      const prepared = prepareCombos(COMBO_POOL, disc).filter(c => texts.has(c.text));
+      const plans = Array.from({ length: Math.max(1, rounds) }, (_, r) => dealMixRound({ prepared, tier: difficulty, count, rng: makeRng(baseSeed + r * 7919) }));
+      if (plans.every(p => p.length)) return { plans, all };
+    }
+    const plans = planComboRounds({
+      byTier, all, difficulty: normalizeDifficulty(difficulty),
+      rounds, callsPerRound, secondsPerCall, seed: baseSeed,
+    });
+    return { plans: plans.map((p, r) => capCalls(p, difficulty, { fill: all, rng: makeRng(baseSeed + r * 104729) })), all };
   }
 
   const plans = planComboRounds({

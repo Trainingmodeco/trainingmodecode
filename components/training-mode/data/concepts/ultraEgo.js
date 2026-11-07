@@ -32,7 +32,7 @@ export const ULTRA_EGO = {
   fit: {
     weeks: 4,
     minutes: 45,
-    blurb: 'Thick neck, big traps and lats, legs that hold you up when you get hit.',
+    blurb: 'Neck, traps, lats and hit-proof legs.',
     days: [
       {
         label: 'NECK & SHOULDERS', focus: 'BRACE',
@@ -90,7 +90,7 @@ export const ULTRA_EGO = {
   // forward-pressure circuit so nobody needs a partner.
   fight: {
     discipline: 'Muay Thai',
-    blurb: 'Pressure fighting. Absorb, plant, answer back harder.',
+    blurb: 'Pressure fighting: absorb, answer back.',
     roundMin: 3,
     restSec: 60,
     // Four weeks of the five-day rotation, matching the Fit program's length.

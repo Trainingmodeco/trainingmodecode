@@ -138,6 +138,10 @@ export function getFightMiniSuggestion({ profile, stats, dailyMission }) {
   };
 }
 
+// A Quick Mission pick names no level (quickMissionConfig then starts it on the
+// athlete's own, from their Fit progress: level 1 never gets a hard workout and a
+// level 10 athlete starts on ADVANCED). Only the two recovery picks fix EASY, on
+// purpose: a light day stays light at any level.
 export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
   const goal = profile?.goal || '';
   const exp = profile?.experience || '';
@@ -165,7 +169,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
       subtitle: 'A short bodyweight circuit to get moving.',
       reason: 'Beginner fitness path',
       actionType: 'quickMission',
-      actionPayload: { duration: 12, difficulty: 'Easy', focus: 'Full Body' },
+      actionPayload: { duration: 12, focus: 'Full Body' },
       isMissionOfTheDay: false,
     };
   }
@@ -231,7 +235,7 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
         subtitle: 'Fresh circuit to keep momentum going.',
         reason: 'Based on your last session',
         actionType: 'quickMission',
-        actionPayload: { duration: 15, difficulty: 'Normal', focus: 'Full Body' },
+        actionPayload: { duration: 15, focus: 'Full Body' },
         isMissionOfTheDay: false,
       };
     }
@@ -249,10 +253,10 @@ export function getFitMiniSuggestion({ profile, stats, dailyMission }) {
   // Fallback
   return {
     title: 'Quick Mission — 12 Min Starter',
-    subtitle: 'A quick guided session to get you moving.',
+    subtitle: 'A quick session to get you moving.',
     reason: 'Starter recommendation',
     actionType: 'quickMission',
-    actionPayload: { duration: 12, difficulty: 'Normal', focus: 'Full Body' },
+    actionPayload: { duration: 12, focus: 'Full Body' },
     isMissionOfTheDay: false,
   };
 }

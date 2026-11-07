@@ -56,7 +56,7 @@ export const FLOW_STATE = {
   fit: {
     weeks: 4,
     minutes: 45,
-    blurb: 'Strength, plyometrics, agility, volume and functional power: a body that reacts on its own.',
+    blurb: 'Strength, agility and reactive power.',
     days: [
       {
         label: 'ROOTED', focus: 'STRENGTH',
@@ -170,7 +170,7 @@ export const FLOW_STATE = {
   // dodging and counters, flow. Every day ends with Silver Flow.
   fight: {
     discipline: 'Kickboxing',
-    blurb: 'One strike a thousand times, angles, slips and counters, then the flow round where you stop thinking.',
+    blurb: 'One strike a thousand times, then flow.',
     roundMin: 3,
     restSec: 60,
     weeks: 3,

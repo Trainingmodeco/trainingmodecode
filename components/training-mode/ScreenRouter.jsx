@@ -29,6 +29,7 @@ import TapesScreen from './TapesScreen';
 import { tapesEnabled } from './data/tapes';
 import CardioMode from './CardioMode';
 import FitBuilderSetup from './FitBuilderSetup';
+import { maxOutHandoff } from './data/loadoutMissions';
 import FitBuilderWorkout from './FitBuilderWorkout';
 import FitWorkoutComplete from './FitWorkoutComplete';
 import QuickMissionSetup from './QuickMissionSetup';
@@ -146,7 +147,15 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
   useEffect(() => {
     const el = containerRef.current;
     if (!el || !lock) { setOverflowing(false); return undefined; }
-    const check = () => setOverflowing(el.scrollHeight > el.clientHeight + 4);
+    // Count the content alone, not the nav clearance this container adds once
+    // it scrolls: that padding is part of scrollHeight, so a screen that fits
+    // would otherwise stay "overflowing" for good after one that did not. The
+    // same WithNav instance carries from Home (which overflows on a 412x811
+    // phone) into the hubs, and the hubs came up scrollable by 110px.
+    const check = () => {
+      const pad = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+      setOverflowing(el.scrollHeight - pad > el.clientHeight + 4);
+    };
     check();
     let ro;
     if (typeof ResizeObserver !== 'undefined') {
@@ -223,8 +232,8 @@ function StagePlate({ plate }) {
   return <XpVerdictPlate flash={flash} />;
 }
 
-export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
-  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight, goTapes } = actions;
+export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, qmEntry, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
+  const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionAtPace, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight, goTapes } = actions;
 
   const isResuming = pausedSession?.screen === screen;
 
@@ -562,8 +571,11 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'fit_hub') {
+    // Locked like Fight Mode's hub: the hub is exactly one screen tall and
+    // scrolls its own stack, so the container's 110px of nav padding made the
+    // whole page drag up and leave a gap under it.
     return (
-      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+      <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
         <FitModeHub onTapes={tapesEnabled() ? () => goTapes('fit') : undefined} onOpenConcept={(tab) => goConcept(tab, null, 'fit')} onHome={goHome} onBack={goHome} onFightMode={goFightHub} onWorkoutBuilder={goFitSetup} onQuickMission={goQuickMissionSetup} onStartQuickMission={goQuickMissionActive} onPrograms={goPrograms} onCombatConditioning={goCombatCondSetup} onCardioMode={() => goCardioMode()} onGhostMode={() => goCardioMode({ ghost: 'best' })}/>
       </WithNav>
     );
@@ -580,7 +592,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'fit_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <FitBuilderSetup onBack={goFitHub} onFightMode={goFightHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'}/>
+        <FitBuilderSetup onBack={goFitHub} onFightMode={goFightHub} onGenerate={goFitWorkout} profileSex={profile?.sex || 'male'} onMaxOut={(pick) => goQuickMissionSetup({ openLibrary: true, ...maxOutHandoff(pick) })}/>
       </WithNav>
     );
   }
@@ -613,8 +625,11 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'fit_complete' && fitCfg) {
+    // Its own WithNav (the key): the workout list hands over the same
+    // scroll container otherwise, and a list scrolled down to FINISH WORKOUT
+    // or COMPLETE WORKOUT opened the summary with its top cut off.
     return (
-      <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+      <WithNav key="fit_complete" activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
         <FitWorkoutComplete cfg={fitCfg} completedCount={session?.exerciseCount || 0} totalCount={session?.totalCount || 0} cardioResult={cardioResult} onHome={goHome}/>
       </WithNav>
     );
@@ -622,7 +637,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'qm_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <QuickMissionSetup onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
+        <QuickMissionSetup entry={qmEntry} onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
@@ -634,7 +649,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     const Runner = qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} onSwitchRun={goQuickMissionAtPace} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

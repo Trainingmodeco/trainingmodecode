@@ -89,6 +89,8 @@ export default function MissionComplete({
   integrityResult,
   stats = [],               // [{ value, label, color, highlight }]
   extra = null,             // optional ReactNode (recap / chips)
+  summary = null,           // optional ReactNode that always shows, even on a
+                            // short phone (Quick Mission SOLO's round splits)
   cardioResult,
   shareData,
   heroImage,                // badge art for a completed session
@@ -206,6 +208,7 @@ export default function MissionComplete({
             {stats.map((s, i) => <Stat key={i} {...s}/>)}
           </div>
 
+          {summary && <div style={{ marginBottom: 6 }}>{summary}</div>}
           {extra && <div className="mc-extra" style={{ marginBottom: 6 }}>{extra}</div>}
 
           <CardioFinisherSummaryCard cardioResult={cardioResult}/>
