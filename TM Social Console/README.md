@@ -82,10 +82,41 @@ in Chrome. Claude uploads approved videos there for you.
 | `npm run render -- <id> PracticeLessonApp` | the 16:9 in-app cut of a Practice tutorial |
 | `npm run app-video -- <id>` | put a finished tutorial into the app's Practice Mode (video + poster in the app's `public/static/practice/`, URL into its library and lesson slots) |
 | `npm run handoff -- --log "…"` | send that to the app: an app-only `claude/console-handoff-<date>` branch for the app chat to merge (the console's own code never goes to `app`; HANDOFF.md on `app` is the shared note) |
+| `npm run app-broll -- --only qm-slider,hub` | record the app's own screens as B-roll (1080×1920, silent) → `raw-footage/app/<name>.mp4` |
 | `npm run approve -- <id>` | your OK to post |
 | `npm run studio` | preview templates in the browser |
 | `npm run hf:render -- raw-footage/clip.mp4 9 50 0.5` | render the Rank Ladder over a clip (from 9 s, centred, at half speed) |
 | `npm run reference -- <url>` | save a reference reel to study |
+
+## B-roll from the app itself (`npm run app-broll`)
+
+Videos about an update (Quick Mission, the level system, MAX OUT) can be made
+from the app's own screens instead of a camera. `npm run app-broll` opens a
+built web export of the app in Chromium at the app's phone size, seeds an
+athlete (a new account, a level 3, a level 10 …) into its localStorage, plays a
+choreography with a finger (smooth taps and drags, each touch marked by a subtle
+gold ripple) and records it to `raw-footage/app/<name>.mp4`: 1080×1920, 30 fps,
+H.264, silent, the app's true colours, no phone frame. Nothing is added to the
+app and the console gets no new dependency.
+
+- **Needs:** the app repo's own dependencies (`npm install` in the app folder:
+  it uses its `playwright-core`), a built export of the app (`npm run build:web`
+  in the app, then `dist/`; or `--dist <folder>`), FFmpeg on the PATH, and a
+  browser: Chrome, or `CHROME_PATH=<exe>` (in a cloud session, the installed
+  Chromium; `--chrome <exe>` does the same).
+- `npm run app-broll -- --list` shows every clip and what it shows;
+  `npm run app-broll -- --only qm-slider,max-out` records just those;
+  `--contact <folder>` also writes a frame-a-second sheet of each to look at.
+- **A new clip is one entry** in `CLIPS` at the top of `tools/app-broll.mjs`
+  (a persona, a few steps to get to the first screen, the steps to record). Its
+  `expect` and `waitText` steps stop a clip whose screen no longer says what it
+  should, so re-run it after the app changes.
+- Use the clips in a **ScriptShort** post with `"brollGrade": "app"` in `props`:
+  the footage keeps its true colours at full size, the words sit in a caption
+  panel that each scene places over the part of the screen that isn't live
+  (`broll[i].textY`, and `shiftY` to slide a screen's top rows below the HUD),
+  and the HUD stays clear of the right 140 px and the bottom 350 px. Without
+  `brollGrade`, a post renders exactly as before.
 
 Head tracking (`npm run track`) needs Python once: `winget install
 Python.Python.3.12`, then `py -m pip install mediapipe`. The pose model
@@ -96,7 +127,7 @@ downloads itself the first time.
 - `brain/`: your Drive scripts as a searchable library, the content formats,
   platform setup, ManyChat flow.
 - `src/`: video templates (Remotion): **ScriptShort** (motion graphic from a
-  script), **FootageShort** (your clip + captions + HUD), **BossIntro**,
+  script, over camera footage or the app's own screens), **FootageShort** (your clip + captions + HUD), **BossIntro**,
   **FightFocusRounds** (your training footage cut into called rounds),
   **PracticeTutorial** (one technique from Practice Mode, 32 s).
 - `hyperframes/`: HTML video templates (HyperFrames): **Rank Ladder**.

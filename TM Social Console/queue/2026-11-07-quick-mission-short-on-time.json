@@ -1,0 +1,234 @@
+{
+  "id": "2026-11-07-quick-mission-short-on-time",
+  "title": "Quick Mission: short on time",
+  "status": "rendered",
+  "format": "ScriptShort",
+  "createdAt": "2026-11-07",
+  "source": "weekly dev log: the Quick Mission and level update, 2026-11-07; B-roll recorded from the live app by tools/app-broll.mjs",
+  "scheduledFor": null,
+  "props": {
+    "kicker": "Fit Mode",
+    "boss": "Quick Mission",
+    "hook": "Only *8 minutes*?",
+    "beats": [
+      "Pick from *5* to *60* minutes.",
+      "The workout builds to *fit*.",
+      "Bodyweight, weighted or *hybrid*.",
+      "*GUIDED*: the coach calls every move.",
+      "At your *pace*: moves and a timer.",
+      "Hit *START*."
+    ],
+    "cta": "Link in bio",
+    "art": null,
+    "artBeats": [],
+    "goldBeats": [
+      6
+    ],
+    "broll": [
+      {
+        "src": "raw-footage/app/qm-slider.mp4",
+        "start": 3.2,
+        "rate": 0.5,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/qm-slider.mp4",
+        "start": 2.5,
+        "rate": 2.55,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/qm-slider.mp4",
+        "start": 10.5,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/qm-mode-toggle.mp4",
+        "start": 3.55,
+        "rate": 0.6,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/qm-start-guided.mp4",
+        "start": 6.3,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 905
+      },
+      {
+        "src": "raw-footage/app/qm-at-your-pace.mp4",
+        "start": 1.25,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 860,
+        "shiftY": 45
+      },
+      {
+        "src": "raw-footage/app/qm-start-guided.mp4",
+        "start": 1.2,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 430
+      }
+    ],
+    "brollGrade": "app"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Only 8 minutes? Quick Mission builds a workout to fit ⏱️ Slide from 5 to 60 minutes, pick bodyweight, weighted or hybrid, then hit START. Guided or at your pace. Link in bio. #quickworkout #homeworkout #fitnessapp #combatfitness #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Only 8 minutes? Use them. ⏱️\n\nQuick Mission builds a workout to fit the time you have: slide from 5 to 60 minutes, pick bodyweight, weighted or hybrid, and hit START.\n\nGuided: the coach calls every move and keeps time. At your pace: the moves and a timer, with beeps and no coach voice.\n\nComment TRAIN and I'll DM you the link.\n\n#quickworkout #homeworkout #shortworkout #fitnessapp #workoutmotivation #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Only 8 minutes? Use them. ⏱️ Quick Mission builds a workout to fit the time you have: slide from 5 to 60 minutes, pick your gear, hit START. Guided, the coach calls every move. At your pace, you get the moves and a timer. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Only 8 minutes? Quick Mission builds your workout ⏱️ #shorts",
+      "description": "Quick Mission in Training Mode: slide the time from 5 to 60 minutes and the workout is built to fit. Bodyweight, weighted or hybrid. Guided: the coach calls every move and keeps time. At your pace: the moves and a timer, with beeps and no coach voice.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "quick workout",
+        "short workout",
+        "home workout",
+        "fitness app",
+        "combat fitness",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "timeline": [
+    {
+      "scene": 0,
+      "text": "Only 8 minutes?",
+      "start": 0,
+      "seconds": 2.5,
+      "footage": "qm-slider 3.2s to 4.45s at 0.5x"
+    },
+    {
+      "scene": 1,
+      "text": "Pick from 5 to 60 minutes.",
+      "start": 2.5,
+      "seconds": 3.03,
+      "footage": "qm-slider 2.5s to 10.23s at 2.55x"
+    },
+    {
+      "scene": 2,
+      "text": "The workout builds to fit.",
+      "start": 5.53,
+      "seconds": 2.67,
+      "footage": "qm-slider 10.5s to 13.17s at 1x"
+    },
+    {
+      "scene": 3,
+      "text": "Bodyweight, weighted or hybrid.",
+      "start": 8.2,
+      "seconds": 2.27,
+      "footage": "qm-mode-toggle 3.55s to 4.91s at 0.6x"
+    },
+    {
+      "scene": 4,
+      "text": "GUIDED: the coach calls every move.",
+      "start": 10.47,
+      "seconds": 3.03,
+      "footage": "qm-start-guided 6.3s to 9.33s at 1x"
+    },
+    {
+      "scene": 5,
+      "text": "At your pace: moves and a timer.",
+      "start": 13.5,
+      "seconds": 3.4,
+      "footage": "qm-at-your-pace 1.25s to 4.65s at 1x"
+    },
+    {
+      "scene": 6,
+      "text": "Hit START.",
+      "start": 16.9,
+      "seconds": 2,
+      "footage": "qm-start-guided 1.2s to 3.20s at 1x"
+    }
+  ],
+  "seconds": 22.4,
+  "teaches": "Quick Mission builds a workout to the minutes you have, 5 to 60, and you start it guided or at your pace.",
+  "voiceover": {
+    "voice": "Coach TM, recorded over the silent reel; plain lines, no hype. Leave a beat of air at each cut.",
+    "script": "Only eight minutes? Use them. Pick from five to sixty minutes. The workout builds to fit. Bodyweight, weighted or hybrid. Guided: the coach calls every move. At your pace: moves and a timer. Hit start. Link in bio. Go train.",
+    "lines": [
+      {
+        "scene": 0,
+        "label": "hook",
+        "at": 0.12,
+        "window": 2.3,
+        "text": "Only eight minutes? Use them."
+      },
+      {
+        "scene": 1,
+        "label": "beat 1",
+        "at": 2.62,
+        "window": 2.83,
+        "text": "Pick from five to sixty minutes."
+      },
+      {
+        "scene": 2,
+        "label": "beat 2",
+        "at": 5.65,
+        "window": 2.47,
+        "text": "The workout builds to fit."
+      },
+      {
+        "scene": 3,
+        "label": "beat 3",
+        "at": 8.32,
+        "window": 2.07,
+        "text": "Bodyweight, weighted or hybrid."
+      },
+      {
+        "scene": 4,
+        "label": "beat 4",
+        "at": 10.59,
+        "window": 2.83,
+        "text": "Guided: the coach calls every move."
+      },
+      {
+        "scene": 5,
+        "label": "beat 5",
+        "at": 13.62,
+        "window": 3.2,
+        "text": "At your pace: moves and a timer."
+      },
+      {
+        "scene": 6,
+        "label": "beat 6",
+        "at": 17.02,
+        "window": 1.8,
+        "text": "Hit start."
+      },
+      {
+        "scene": null,
+        "label": "end card",
+        "at": 19,
+        "window": 2.3,
+        "text": "Link in bio. Go train."
+      }
+    ]
+  },
+  "notes": [
+    "Not approved and not published. The owner approves every post (npm run approve) after seeing the render and every caption.",
+    "Facts: TIME slider 5 to 60 in 1-minute steps and the card rebuilds as it moves (QuickMissionSetup, quickMissionConfig). \"Builds to fit\" only: no \"exactly N minutes\" (weighted sets end on DONE). GEAR = bodyweight, weighted or hybrid (QM_TYPES).",
+    "Clip use: hook scene is the slider landing on 8; the 4 slider scenes walk the same clip in order (start 1.0, 3.6, 6.4, 9.0). Retime to the real clip: the hook wants the knob settling on 8 inside its 2.5 s."
+  ],
+  "exports": {
+    "video": "exports/2026-11-07-quick-mission-short-on-time/video.mp4",
+    "cover": "exports/2026-11-07-quick-mission-short-on-time/cover.jpg",
+    "seconds": 22.4
+  },
+  "renderedAt": "2026-11-07T03:03:08.404Z"
+}

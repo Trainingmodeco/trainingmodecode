@@ -1,5 +1,6 @@
 import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from 'remotion';
 import { C, FPS } from '../brand';
+import { AppCaption } from '../parts/AppCaption';
 import { ArtLayer, Backdrop, type Broll, FootageLayer } from '../parts/Backdrop';
 import { Bell } from '../parts/Bell';
 import { END_CARD_FRAMES, EndCard } from '../parts/EndCard';
@@ -23,6 +24,12 @@ export type ScriptShortProps = {
   // Footage per scene (0 = hook), e.g. { src: "raw-footage/bag.mp4", start: 2, rate: 0.75 }.
   // null leaves that scene on art / the arcade stage. tools/render.mjs stages raw-footage files.
   broll?: (Broll | null)[];
+  // How the B-roll looks. 'duotone' (default) tones it violet behind big centred
+  // words. 'app' is for app screen recordings: true colours at 1:1, the words in a
+  // caption panel that each scene places with broll[i].textY (px, the panel's
+  // centre line; default 440), the HUD kept out of the right 140 px and the
+  // bottom 350 px. A scene with no broll still gets the arcade stage.
+  brollGrade?: 'duotone' | 'app';
 };
 
 // Reading time: about 2.7 words a second plus a beat to land, within limits.
@@ -68,8 +75,17 @@ const Scene: React.FC<{ text: string; first: boolean; gold: boolean; art?: strin
   </Backdrop>
 );
 
+// An app screen recording with its caption panel on top (brollGrade 'app').
+const AppScene: React.FC<{ text: string; first: boolean; gold: boolean; broll: Broll }> = ({ text, first, gold, broll }) => (
+  <AbsoluteFill style={{ background: C.bg }}>
+    <FootageLayer {...broll} grade="app" />
+    <AppCaption text={text} first={first} gold={gold} y={broll.textY ?? 440} />
+  </AbsoluteFill>
+);
+
 export const ScriptShort: React.FC<ScriptShortProps> = (p) => {
   const frame = useCurrentFrame();
+  const appLook = p.brollGrade === 'app';
   const { scenes, endFrom } = scriptTimeline(p);
   const current = scenes.findIndex((s) => frame >= s.from && frame < s.from + s.len);
   const artBeats = p.artBeats ?? [0];
@@ -78,13 +94,17 @@ export const ScriptShort: React.FC<ScriptShortProps> = (p) => {
     <AbsoluteFill style={{ background: C.bg }}>
       {scenes.map((s) => (
         <Sequence key={s.index} from={s.from} durationInFrames={s.len}>
-          <Scene
-            text={s.text}
-            first={s.index === 0}
-            gold={goldBeats.includes(s.index)}
-            art={artBeats.includes(s.index) ? p.art : null}
-            broll={p.broll?.[s.index] ?? null}
-          />
+          {appLook && p.broll?.[s.index] ? (
+            <AppScene text={s.text} first={s.index === 0} gold={goldBeats.includes(s.index)} broll={p.broll[s.index] as Broll} />
+          ) : (
+            <Scene
+              text={s.text}
+              first={s.index === 0}
+              gold={goldBeats.includes(s.index)}
+              art={artBeats.includes(s.index) ? p.art : null}
+              broll={p.broll?.[s.index] ?? null}
+            />
+          )}
         </Sequence>
       ))}
       <Sequence from={0} durationInFrames={endFrom}>
@@ -93,7 +113,9 @@ export const ScriptShort: React.FC<ScriptShortProps> = (p) => {
           boss={p.boss}
           counter={current >= 0 ? `${String(current + 1).padStart(2, '0')}/${String(scenes.length).padStart(2, '0')}` : undefined}
           progress={frame / endFrom}
-          dark={current >= 0 && goldBeats.includes(current)}
+          // Over app footage a gold beat is only the caption panel: the HUD stays gold on the dark screen.
+          dark={current >= 0 && goldBeats.includes(current) && !(appLook && p.broll?.[current])}
+          safe={appLook}
         />
       </Sequence>
       <Bell ring="single" volume={0.55} />

@@ -1,0 +1,280 @@
+{
+  "id": "2026-11-07-what-s-new-in-training-mode",
+  "title": "What's new in Training Mode",
+  "status": "rendered",
+  "format": "ScriptShort",
+  "createdAt": "2026-11-07",
+  "source": "weekly dev log: the Quick Mission and level update, 2026-11-07; B-roll recorded from the live app by tools/app-broll.mjs",
+  "scheduledFor": null,
+  "props": {
+    "kicker": "New update",
+    "boss": "Training Mode",
+    "hook": "Training Mode *leveled up*. Did you?",
+    "beats": [
+      "Quick Mission: *5* to *60* minutes.",
+      "Built to *fit* your time.",
+      "Your *level* sets the difficulty.",
+      "*Combo Coach* matches your level.",
+      "*GUIDED* or AT YOUR *PACE*.",
+      "New: five *MAX OUT* workouts.",
+      "Max reps on a move, then *switch*.",
+      "Your *Level page* shows where you stand."
+    ],
+    "cta": "Link in bio",
+    "art": null,
+    "artBeats": [],
+    "goldBeats": [
+      8
+    ],
+    "broll": [
+      {
+        "src": "raw-footage/app/lvl10-level-page.mp4",
+        "start": 1,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1300
+      },
+      {
+        "src": "raw-footage/app/qm-slider.mp4",
+        "start": 2.5,
+        "rate": 2.55,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/qm-slider.mp4",
+        "start": 10.5,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/lvl10-quick.mp4",
+        "start": 3.95,
+        "rate": 0.7,
+        "focusX": 50,
+        "textY": 1000
+      },
+      {
+        "src": "raw-footage/app/cc-lvl10.mp4",
+        "start": 0.9,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 900,
+        "shiftY": 130
+      },
+      {
+        "src": "raw-footage/app/qm-mode-toggle.mp4",
+        "start": 0.9,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1190
+      },
+      {
+        "src": "raw-footage/app/max-out.mp4",
+        "start": 1.3,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1450
+      },
+      {
+        "src": "raw-footage/app/max-out.mp4",
+        "start": 10.5,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 430
+      },
+      {
+        "src": "raw-footage/app/lvl3-level-page.mp4",
+        "start": 1.4,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1400
+      }
+    ],
+    "brollGrade": "app"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Training Mode leveled up 🔥 Quick Mission from 5 to 60 minutes, workouts that start at your level, Combo Coach to match, guided or at your pace, five MAX OUT workouts and a Level page. Link in bio. #fitnessapp #homeworkout #combatfitness #workoutmotivation #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Training Mode leveled up. Did you? 🔥\n\nWhat's new:\n- Quick Mission: slide from 5 to 60 minutes and the workout is built to fit\n- Your level sets the difficulty, and Combo Coach deals combos to match\n- Guided, or at your pace: just the moves and a timer\n- Five MAX OUT workouts: max reps on a move, then switch\n- Your Level page: where you stand and what is next\n\nComment TRAIN and I'll DM you the link.\n\n#fitnessapp #homeworkout #quickworkout #combatfitness #boxingworkout #workoutmotivation #trainingmode"
+    },
+    "facebook": {
+      "caption": "Training Mode leveled up. Did you? 🔥 New: Quick Mission from 5 to 60 minutes, workouts that start at your level, Combo Coach to match, guided or at your pace, five MAX OUT workouts (max reps on a move, then switch) and your Level page. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "What's new in Training Mode: Quick Mission, levels, MAX OUT 🔥 #shorts",
+      "description": "The latest Training Mode update: Quick Mission from 5 to 60 minutes, workouts that start at your level, Combo Coach that deals combos to match, guided or at your pace, five MAX OUT workouts (max reps on a move, then switch) and your Level page, where you stand and what is next.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "fitness app",
+        "app update",
+        "quick workout",
+        "home workout",
+        "combat fitness",
+        "combo coach",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "timeline": [
+    {
+      "scene": 0,
+      "text": "Training Mode leveled up. Did you?",
+      "start": 0,
+      "seconds": 3.03,
+      "footage": "lvl10-level-page 1s to 4.03s at 1x"
+    },
+    {
+      "scene": 1,
+      "text": "Quick Mission: 5 to 60 minutes.",
+      "start": 3.03,
+      "seconds": 3.03,
+      "footage": "qm-slider 2.5s to 10.23s at 2.55x"
+    },
+    {
+      "scene": 2,
+      "text": "Built to fit your time.",
+      "start": 6.07,
+      "seconds": 2.67,
+      "footage": "qm-slider 10.5s to 13.17s at 1x"
+    },
+    {
+      "scene": 3,
+      "text": "Your level sets the difficulty.",
+      "start": 8.73,
+      "seconds": 2.67,
+      "footage": "lvl10-quick 3.95s to 5.82s at 0.7x"
+    },
+    {
+      "scene": 4,
+      "text": "Combo Coach matches your level.",
+      "start": 11.4,
+      "seconds": 2.67,
+      "footage": "cc-lvl10 0.9s to 3.57s at 1x"
+    },
+    {
+      "scene": 5,
+      "text": "GUIDED or AT YOUR PACE.",
+      "start": 14.07,
+      "seconds": 2.67,
+      "footage": "qm-mode-toggle 0.9s to 3.57s at 1x"
+    },
+    {
+      "scene": 6,
+      "text": "New: five MAX OUT workouts.",
+      "start": 16.73,
+      "seconds": 2.67,
+      "footage": "max-out 1.3s to 3.97s at 1x"
+    },
+    {
+      "scene": 7,
+      "text": "Max reps on a move, then switch.",
+      "start": 19.4,
+      "seconds": 3.4,
+      "footage": "max-out 10.5s to 13.90s at 1x"
+    },
+    {
+      "scene": 8,
+      "text": "Your Level page shows where you stand.",
+      "start": 22.8,
+      "seconds": 3.4,
+      "footage": "lvl3-level-page 1.4s to 4.80s at 1x"
+    }
+  ],
+  "seconds": 29.7,
+  "teaches": "The update in five parts: the 5 to 60 minute Quick Mission, workouts that start at your level, at your pace, MAX OUT and your Level page.",
+  "voiceover": {
+    "voice": "Coach TM, recorded over the silent reel; plain lines, no hype. Leave a beat of air at each cut.",
+    "script": "Training Mode leveled up. Did you? Quick Mission: five to sixty minutes. Built to fit your time. Your level sets the difficulty. Combo Coach matches it. Guided, or at your pace. Five new Max Out workouts. Max reps on a move, then switch. Your Level page shows where you stand. Link in bio. Go train.",
+    "lines": [
+      {
+        "scene": 0,
+        "label": "hook",
+        "at": 0.12,
+        "window": 2.83,
+        "text": "Training Mode leveled up. Did you?"
+      },
+      {
+        "scene": 1,
+        "label": "beat 1",
+        "at": 3.15,
+        "window": 2.83,
+        "text": "Quick Mission: five to sixty minutes."
+      },
+      {
+        "scene": 2,
+        "label": "beat 2",
+        "at": 6.19,
+        "window": 2.47,
+        "text": "Built to fit your time."
+      },
+      {
+        "scene": 3,
+        "label": "beat 3",
+        "at": 8.85,
+        "window": 2.47,
+        "text": "Your level sets the difficulty."
+      },
+      {
+        "scene": 4,
+        "label": "beat 4",
+        "at": 11.52,
+        "window": 2.47,
+        "text": "Combo Coach matches it."
+      },
+      {
+        "scene": 5,
+        "label": "beat 5",
+        "at": 14.19,
+        "window": 2.47,
+        "text": "Guided, or at your pace."
+      },
+      {
+        "scene": 6,
+        "label": "beat 6",
+        "at": 16.85,
+        "window": 2.47,
+        "text": "Five new Max Out workouts."
+      },
+      {
+        "scene": 7,
+        "label": "beat 7",
+        "at": 19.52,
+        "window": 3.2,
+        "text": "Max reps on a move, then switch."
+      },
+      {
+        "scene": 8,
+        "label": "beat 8",
+        "at": 22.92,
+        "window": 3.2,
+        "text": "Your Level page shows where you stand."
+      },
+      {
+        "scene": null,
+        "label": "end card",
+        "at": 26.3,
+        "window": 2.3,
+        "text": "Link in bio. Go train."
+      }
+    ]
+  },
+  "notes": [
+    "Not approved and not published. The owner approves every post (npm run approve) after seeing the render and every caption.",
+    "Roundup, one idea (\"it all runs on your level\"): every beat is one line from the app: slider 5 to 60 (quickMissionConfig), \"Your level sets the difficulty\" (levelStory / athleteLevel), \"Combo Coach opens on your Fight level and deals combos to match\", GUIDED | AT YOUR PACE, \"MAX OUT: max reps on a move, then switch.\" (loadoutMissions MAX OUT help), five workouts BOSS RUSH, HEALTH BAR, COMBO METER, TANK MODE, DUAL WIELD, \"Where you stand and what is next.\" (LevelView subtitle).",
+    "No XP, no unlock, no exact-minutes claim anywhere. The MAX OUT score is total reps; the XP is time plus the finish (maxRepsXp), so the reel says nothing about XP.",
+    "max-out clip: the CTA-free beats use only the library chip + BOSS RUSH (0.5-3.1) and the DONE / HOW MANY REPS? stretch (4.5-7.9), which is the part the viewer needs; the finish screen with total reps is a good cover frame candidate."
+  ],
+  "exports": {
+    "video": "exports/2026-11-07-what-s-new-in-training-mode/video.mp4",
+    "cover": "exports/2026-11-07-what-s-new-in-training-mode/cover.jpg",
+    "seconds": 29.7
+  },
+  "renderedAt": "2026-11-07T03:13:31.055Z"
+}

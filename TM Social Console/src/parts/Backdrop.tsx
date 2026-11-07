@@ -69,20 +69,26 @@ export const ArtLayer: React.FC<{ src: string; opacity?: number }> = ({ src, opa
 // stays readable. `duotone` (B-roll under words): greyscale, violet, gold on
 // gold beats. `light` (footage as the star, e.g. Fight Focus rounds): colour
 // kept, a violet wash, dark top and bottom for the HUD and platform buttons.
+// `app` (an app screen recording as B-roll): no tone at all, true colours at
+// 1:1 scale, only a dark scrim under the HUD at the top so the HUD reads.
 // focusX: where to centre a landscape clip in the vertical crop (0 = left, 100 = right).
-export type Broll = { src: string; start: number; rate?: number; focusX?: number };
+// With brollGrade 'app': textY is the centre line (px) of that scene's text panel,
+// shiftY slides the recording down (px) so a screen's top rows clear the HUD.
+export type Broll = { src: string; start: number; rate?: number; focusX?: number; textY?: number; shiftY?: number };
 
-export const FootageLayer: React.FC<Broll & { tone?: Tone; grade?: 'duotone' | 'light' }> = ({
+export const FootageLayer: React.FC<Broll & { tone?: Tone; grade?: 'duotone' | 'light' | 'app' }> = ({
   src,
   start,
   rate = 0.75,
   focusX = 50,
+  shiftY = 0,
   tone = 'dark',
   grade = 'duotone',
 }) => {
   const { fps } = useVideoConfig();
   const gold = tone === 'gold';
   const light = grade === 'light';
+  const app = grade === 'app';
   return (
     <AbsoluteFill>
       <OffthreadVideo
@@ -95,11 +101,15 @@ export const FootageLayer: React.FC<Broll & { tone?: Tone; grade?: 'duotone' | '
           height: '100%',
           objectFit: 'cover',
           objectPosition: `${focusX}% 50%`,
-          filter: light ? 'saturate(0.75) contrast(1.12) brightness(0.97)' : 'grayscale(1) contrast(1.25) brightness(1.05)',
-          transform: 'scale(1.04)',
+          filter: app ? 'none' : light ? 'saturate(0.75) contrast(1.12) brightness(0.97)' : 'grayscale(1) contrast(1.25) brightness(1.05)',
+          transform: app ? (shiftY ? `translateY(${shiftY}px)` : 'none') : 'scale(1.04)',
         }}
       />
-      {light ? (
+      {app ? (
+        <AbsoluteFill
+          style={{ background: `linear-gradient(180deg, ${C.bg} 0px, ${C.bg} 285px, ${C.bg}00 340px)` }}
+        />
+      ) : light ? (
         <>
           <AbsoluteFill style={{ background: C.violet, mixBlendMode: 'multiply', opacity: 0.35 }} />
           <AbsoluteFill

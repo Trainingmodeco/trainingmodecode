@@ -83,6 +83,7 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run pose -- raw-footage/clip.mp4` | body landmarks per frame (MediaPipe) → `clip.pose.json`, for the Practice tutorial's markers; it also prints each hand's and foot's reach per 0.1 s, so a strike's extension frame is a peak |
 | `npm run app-video -- <id> [<id> …]` | puts a Practice tutorial into the app: the in-app cut → `../public/static/practice/<slug>.mp4` (720p, ~1 MB, no audio) + `<slug>.webp` poster, and its URL into every slot in `app.slots` ("Muay Thai › Rear Knee" for a Technique Library entry, "lesson:mt_knee" for a path lesson; default: the technique in each of the post's disciplines). Then `npm run lock:assets` in the app (the posters are new images) and commit |
 | `npm run handoff -- --log "what it delivers" [--also <path> …]` | hands app work to the app chat: a `claude/console-handoff-<date>` branch cut from `origin/app` with only app files (the practice videos, the two Practice data files, the re-locked `assets.lock.json`, any `--also` paths) and a log entry in `HANDOFF.md`. Never carries `TM Social Console/`. Refuses until `origin/app` is merged into this branch |
+| `npm run app-broll -- [--list] [--only a,b] [--dist <dir>] [--chrome <exe>] [--contact <dir>]` | records the app's own screens as silent B-roll: portrait 1080×1920, 30 fps, H.264, true app colours, a gold tap ripple, `raw-footage/app/<name>.mp4`. Serves a built web export of the app (`npm run build:web` in the app → `dist/`, or `--dist`), drives Chromium at the app's phone size (412×732 at 2.62), seeds an athlete into localStorage (a new account, level 3, level 10, Fight level 10) and plays a finger choreography (taps, drags, scrolls; a fake clock only to jump long waits). Needs the app repo's deps (`playwright-core` from `../node_modules`), FFmpeg and a browser (`CHROME_PATH` or `--chrome`; in a cloud session the installed Chromium). A new clip is one entry in `CLIPS`; its `expect`/`waitText` steps stop a clip whose screen no longer says what it should. Re-run it after the app changes |
 | `npm run deblur -- raw-footage/clip.mp4 --sigma 2 --iters 12` | fixes evenly soft (missed-focus) footage with Richardson-Lucy deconvolution on the luma, then denoise, 1080×1920 and light CAS → `clip.deblur.mp4`. Not for motion blur. Test sigma on one frame first (1.6–2.4 for a soft 720p phone clip; higher rings). Plain `unsharp`/`cas` barely help such footage; FSRCNN upscaling does nothing for it |
 
 ## The loop
@@ -125,6 +126,17 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   the `.tracked.mp4` with `focusX` 50. Same for the Rank Ladder clip. Pick a different shot per scene: find cuts with
   `ffmpeg -i clip -vf "select='gt(scene,0.25)',showinfo" -f null -`, and make
   sure `start + sceneSeconds × rate` stays inside the clip.
+  **App screens as B-roll** (an update reel, no camera): record the clips with
+  `npm run app-broll`, then set `"brollGrade": "app"` in `props`. The footage keeps
+  its true colours at full size (a phone UI must stay legible: no violet tone,
+  no dimming), the words sit in a caption panel (gold-flipped on `goldBeats`) that
+  each scene places with `broll[i].textY` (the panel's centre line in px, over a part
+  of the screen that isn't live; default 440) and `broll[i].shiftY` (slides a
+  screen's top rows below the HUD, e.g. Combo Coach's difficulty chips), and the
+  HUD stays inside x 70 to 938 with no bottom brackets (nothing in the right 140 px
+  or the bottom 350 px). Keep panels under 3 lines, top edge below y 315, bottom
+  edge above y 1570, and look at a still of every scene (cuts of one clip must not
+  cross a clock jump). Without `brollGrade` a post renders as it always did.
 - **FootageShort**: the owner's clip with the HUD, a title card, Whisper
   captions (spoken word turns gold) and the end card.
 - **BossIntro**: 5s "STAGE 3 / LEG DAY / BOSS: 100 SQUATS / FIGHT!" hook.

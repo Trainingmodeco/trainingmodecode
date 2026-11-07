@@ -27,7 +27,8 @@
     "hf:preview": "cd hyperframes && npx hyperframes preview",
     "typecheck": "tsc --noEmit",
     "app-video": "node tools/app-video.mjs",
-    "handoff": "node tools/handoff.mjs"
+    "handoff": "node tools/handoff.mjs",
+    "app-broll": "node tools/app-broll.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",

@@ -1,12 +1,12 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { C, FONT } from '../brand';
 
-const Corner: React.FC<{ top?: boolean; left?: boolean; color: string }> = ({ top, left, color }) => {
+const Corner: React.FC<{ top?: boolean; left?: boolean; color: string; edge?: number }> = ({ top, left, color, edge = 46 }) => {
   const arm = 78;
   const t = 7;
   const pos: React.CSSProperties = { position: 'absolute', width: arm, height: arm };
   pos[top ? 'top' : 'bottom'] = 46;
-  pos[left ? 'left' : 'right'] = 46;
+  pos[left ? 'left' : 'right'] = edge;
   return (
     <div style={pos}>
       <div style={{ position: 'absolute', [top ? 'top' : 'bottom']: 0, left: 0, width: arm, height: t, background: color }} />
@@ -18,28 +18,34 @@ const Corner: React.FC<{ top?: boolean; left?: boolean; color: string }> = ({ to
 // Fighting-game HUD over every scene: corner brackets, the section label top
 // left, a scene counter top right and the boss HP bar draining as the video
 // plays (the workout is the boss). Kept in the top third so TikTok, Reels and
-// Shorts buttons never cover it.
-export const Hud: React.FC<{ kicker: string; boss: string; counter?: string; progress: number; dark?: boolean }> = ({
+// Shorts buttons never cover it. `safe` (opt-in) also keeps it out of the right
+// 140 px and drops the bottom brackets, so none of it sits where the platforms
+// put their buttons and captions.
+export const Hud: React.FC<{ kicker: string; boss: string; counter?: string; progress: number; dark?: boolean; safe?: boolean }> = ({
   kicker,
   boss,
   counter,
   progress,
   dark,
+  safe,
 }) => {
   const ink = dark ? C.bg : C.gold;
   const hp = Math.max(0, 1 - progress);
+  // safe: the whole HUD sits inside x 70 to 938, centred on the caption panel.
+  const left = safe ? 114 : 90;
+  const right = safe ? 186 : 90;
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
-      <Corner top left color={ink} />
-      <Corner top color={ink} />
-      <Corner left color={ink} />
-      <Corner color={ink} />
+      <Corner top left color={ink} edge={safe ? 70 : 46} />
+      <Corner top color={ink} edge={safe ? 142 : 46} />
+      {safe ? null : <Corner left color={ink} />}
+      {safe ? null : <Corner color={ink} />}
       <div
         style={{
           position: 'absolute',
           top: 150,
-          left: 90,
-          right: 90,
+          left,
+          right,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -56,7 +62,7 @@ export const Hud: React.FC<{ kicker: string; boss: string; counter?: string; pro
         </span>
         {counter ? <span style={{ fontFamily: FONT.display, letterSpacing: '0.12em', fontSize: 32 }}>{counter}</span> : null}
       </div>
-      <div style={{ position: 'absolute', top: 214, left: 90, right: 90 }}>
+      <div style={{ position: 'absolute', top: 214, left, right }}>
         <div
           style={{
             display: 'flex',
