@@ -44,6 +44,37 @@ and the app chat doesn't edit `TM Social Console/`.
 
 ## Log
 
+### 2026-11-07 · app → console · five update reels, drafted from app B-roll (owner asked for them)
+
+- **What.** Five ScriptShort posts in `TM Social Console/queue/2026-11-07-*`:
+  Quick Mission for people short on time, your level sets the difficulty,
+  guided or at your pace, Combo Coach by level, and a what's-new roundup. All
+  five are **rendered, not approved**; the owner approves every post. Each post
+  carries its platform captions and a `voiceover` script (the reels are silent;
+  Coach TM records the voice).
+- **B-roll is the app itself.** New `npm run app-broll` (`tools/app-broll.mjs`)
+  serves a built app export, seeds a level 1, level 3 and level 10 athlete,
+  and records 14 portrait clips to `raw-footage/app/` (not in git). Re-run it
+  whenever the app changes: `npm run build:web` at the app root, then
+  `npm run app-broll -- --dist ../dist`. It needs the app repo's
+  `node_modules` (playwright-core) and `CHROME_PATH` (or `--chrome`).
+- **Render here.** Remotion renders headless with `CHROME_PATH` set (tools/render.mjs
+  and doctor.mjs now honour it; nothing changes when it is unset). About 5.6 s
+  of render per video second; one render at a time.
+- **Template.** ScriptShort gained off-by-default options for app-screen
+  B-roll (true colours, light scrim, caption panels in the safe zone:
+  `src/parts/AppCaption.tsx`). Existing posts render as before.
+- **Synced facts.** `npm run sync` refreshed `brand/brand.json` from the
+  merged app: ranks now start at XP 0 / 1,500 / 3,000 / 4,500 / 6,000, the
+  December drop is titled THE DESTROYER in the app (Ultra Ego is caption-only:
+  CLAUDE.md still shows it as an example name), and the tape is One-Bell 300.
+- **What changed in the app (the reels' facts).** Quick Mission: TIME 5 to 60
+  minutes in 1-minute steps, the card changes live; GUIDED | AT YOUR PACE;
+  it opens on your level (1-2 EASY, 3-5 MEDIUM, 6-9 HARD, 10+ ADVANCED) with
+  your Fit progress counting most; Combo Coach opens on your Fight level;
+  Profile > avatar opens the Level page with an AT YOUR LEVEL block; MAX OUT:
+  five max-rep workouts.
+
 ### 2026-11-03 · console → app · 17 Practice tutorials (`claude/console-handoff-2026-11-03`)
 
 - **Lesson card plays tutorials.** `PracticeMode.jsx › DetailCard`: when a
