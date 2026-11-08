@@ -148,6 +148,30 @@ function cueOut() {
   }
 }
 
+// A saved mix is only trusted where it is a number in range: a null, NaN or
+// string volume (an old build, a hand-edited store) used to spread over the
+// defaults and make every coach line volume 0 with no sign anywhere.
+const NUMERIC = { masterVolume: [0, 1], sfxVolume: [0, 1], voiceVolume: [0, VOICE_MAX], musicVolume: [0, 1] };
+function sanitize(parsed) {
+  const out = {};
+  for (const k of Object.keys(parsed || {})) {
+    const v = parsed[k];
+    if (NUMERIC[k]) {
+      const n = typeof v === 'string' ? Number(v) : v;
+      if (typeof n !== 'number' || !Number.isFinite(n)) continue;
+      const [lo, hi] = NUMERIC[k];
+      out[k] = Math.max(lo, Math.min(hi, n));
+    } else if (k === 'duckingEnabled') {
+      if (typeof v === 'boolean') out[k] = v;
+    } else if (k === 'duckingStrength') {
+      if (typeof v === 'string' && DUCK_PROFILES[v]) out[k] = v;
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 function getSettings() {
   if (settings) return settings;
 
@@ -158,7 +182,7 @@ function getSettings() {
   } catch {
     parsed = null;
   }
-  settings = parsed ? { ...DEFAULTS, ...parsed } : { ...DEFAULTS };
+  settings = parsed ? { ...DEFAULTS, ...sanitize(parsed) } : { ...DEFAULTS };
 
   // One-time cue-boost migration for older saved mixes. The version has to be
   // read off the STORED object — DEFAULTS carries the current version, so
@@ -213,7 +237,13 @@ export function externalDuckingSupported() { return audioSessionSupported(); }
 // For browser SpeechSynthesis, whose utterance.volume is capped at 1.0.
 export function getEffectiveVoiceVolume() {
   const s = getSettings();
-  return Math.min(1, s.masterVolume * s.voiceVolume);
+  const v = Math.min(1, s.masterVolume * s.voiceVolume);
+  return Number.isFinite(v) ? v : 1;
+}
+
+// The VOICE fader (or master) is at zero: the coach is silent on purpose.
+export function isVoiceMuted() {
+  return getEffectiveVoiceVolume() <= 0;
 }
 
 // Gain for the app's own cue sounds (bells / beeps / riser). These play through

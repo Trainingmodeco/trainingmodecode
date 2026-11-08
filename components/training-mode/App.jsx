@@ -666,6 +666,18 @@ export default function App() {
     }
   };
 
+  // A fresh start on a session screen retires the paused session of the screen
+  // being left AND any paused session of the screen being entered. The router
+  // reads "a paused slot for this screen" as "resume it", so a leftover slot
+  // used to mount the new session paused: no warm-up, no count-in, no coach,
+  // a RESUME button where the 3-2-1 should be (voice audit FIGHT-02).
+  const freshStart = (dest) => {
+    dropPausedFor(screen);
+    if (dest && dest !== screen) dropPausedFor(dest);
+    setResumeData(null);
+    activeSessionStateRef.current = null;
+  };
+
   const actions = {
     goStart:       () => setScreen('start'),
     goHome:        () => { pauseCurrentSession(); setScreen('home'); },
@@ -711,7 +723,7 @@ export default function App() {
         ...(c?.mode === 'solo' ? { solo: true } : {}),
         ...(!c?.mission || isGeneratedMission(c.mission) || c.mission.id === 'generated' ? { level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration } : {}),
       });
-      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
+      freshStart('qm_active'); setQmCfg(c); setScreen('qm_active');
     },
     // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,
     // restarted in the other runner before anything is banked. `mission` is the
@@ -793,7 +805,7 @@ export default function App() {
     goConceptSaga: (conceptId) => { const s = conceptSaga(conceptId); if (s) actions.goArcadeSeries(s); },
     goArcadeDetail: (series, settings) => { setArcadeSeries(series); setArcadeSettings(settings || null); setScreen('arcade_series'); },
     goArcadeSession: (series, stage, mode, order, settings) => {
-      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
+      freshStart('arcade_session');
       if (series?.id) trackSessionStart('arcade', { series: series.id, stage: stage?.stageNumber || null });
       if (series?.id) rememberSession('arcade', { seriesId: series.id, title: series.title || null, stageNumber: stage?.stageNumber || null, mode: mode || null, settings: settings || null });
       // 2.10 — a v2 campaign stage runs on the camp round-timer engine (not the
@@ -870,7 +882,7 @@ export default function App() {
     goCombatCondActive: (config) => {
       rememberSession('cc', config);
       trackSessionStart('combatConditioning');
-      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
+      freshStart('cc_active');
       const mission = generateCombatConditioningMission(config);
       if (config?.cardioAddon?.enabled) mission.cardioAddon = config.cardioAddon;
       setCcMission(mission);
@@ -965,7 +977,7 @@ export default function App() {
     // 2.4 — launch a camp level's session (ctx = {discipline, level, difficulty, cfg}).
     goCampSession: (ctx) => {
       trackSessionStart('trainingCamp', { level: ctx?.level, format: ctx?.format || 'single' });
-      dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null;
+      freshStart(ctx?.format === 'full' ? 'camp_full' : 'camp_session');
       setCampCtx(ctx); setDisc(ctx.discipline);
       rememberSession('camp', { level: ctx.level, difficulty: ctx.difficulty, format: ctx.format || 'single', archetypeName: ctx.archetypeName || null }, ctx.discipline);
       // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
@@ -1119,7 +1131,7 @@ export default function App() {
     // once the concept page sees it in the run log (settleConceptRun).
     startConceptFit:   (c) => (c?.conceptRun ? actions.goCardioMode({ goal: c.goal, unit: c.unit }) : actions.goFitWorkout(c)),
     startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
-    goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setCfg(c); setScreen('timer'); },
+    goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); freshStart('timer'); setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1149,7 +1161,7 @@ export default function App() {
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1188,7 +1200,7 @@ export default function App() {
       });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goFitWorkout:  (c) => { rememberSession('fit', c); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setFitCfg(c); setScreen('fit_workout'); },
+    goFitWorkout:  (c) => { rememberSession('fit', c); freshStart('fit_workout'); setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);

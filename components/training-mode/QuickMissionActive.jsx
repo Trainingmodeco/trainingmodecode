@@ -1242,7 +1242,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     }
     const integrityResult = integrity.finalize();
     endAfterBell(() => {
-      stopVoiceSession();
+      stopVoiceSession({ graceful: true }); // the closing line runs on into the result (voice audit FIT-04)
       onEnd({
         runId,
         completed: true,
@@ -1288,7 +1288,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     const integrityResult = integrity.finalize();
     const elapsedSec = Math.floor(runMsNow() / 1000);
     endAfterBell(() => {
-      stopVoiceSession();
+      stopVoiceSession({ graceful: true }); // the closing line runs on into the result (voice audit FIT-04)
       const sets = exercisesCompletedRef.current;
       const skipped = skippedRef.current;
       onEnd({
@@ -1346,7 +1346,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     if (capped) integrity.getSession()?.endRunHere(exIdxRef.current > 0);
     const integrityResult = integrity.finalize();
     endAfterBell(() => {
-      stopVoiceSession();
+      stopVoiceSession({ graceful: true }); // the closing line runs on into the result (voice audit FIT-04)
       onEnd({
         runId,
         completed: !capped,

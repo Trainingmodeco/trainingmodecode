@@ -168,8 +168,9 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       versionRef.current++;
       // eslint-disable-next-line react-hooks/exhaustive-deps
       cadenceVersionRef.current++;
-      cancelSpeech();
-      stopVoiceSession();
+      // A finished session's closing line runs on; anything else is cut.
+      if (doneRef.current) stopVoiceSession({ graceful: true });
+      else { cancelSpeech(); stopVoiceSession(); }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -463,8 +464,10 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       setPaused(false);
       integrity.resume();
       const drill = drills[drillIdxRef.current];
+      // A pause inside the first cadence interval (rep 0) used to leave the
+      // drill with no count and no DONE button; resume from wherever it was.
       if (phaseRef.current === 'working' && cadenceEnabled(drill)
-        && cadenceRepRef.current > 0 && cadenceRepRef.current < (drill.reps || 10)) {
+        && cadenceRepRef.current >= 0 && cadenceRepRef.current < (drill.reps || 10)) {
         resumeCadence();
       }
     } else {
@@ -490,7 +493,8 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     speak('Conditioning complete. Good work.');
     const integrityResult = integrity.finalize();
     setTimeout(() => {
-      stopVoiceSession();
+      // Let the closing line finish into the summary (voice audit CCA-4).
+      stopVoiceSession({ graceful: true });
       onEnd({
         roundsCompleted: finalRounds,
         totalRounds,

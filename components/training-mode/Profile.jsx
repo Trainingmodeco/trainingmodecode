@@ -24,6 +24,7 @@ import { GOALS, LEVELS, DISCIPLINE_CHOICES } from './data/profileOptions';
 import { loadProfile } from './data/userProfile';
 import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
 import LevelView from './LevelView';
+import VoiceCheck from './shared/VoiceCheck';
 
 
 function SectionLabel({ text }) {
@@ -122,6 +123,9 @@ function AudioSettingsView({ onBack, onHome, voiceCoach, setVoiceCoach, coachSty
             <div>
               <SectionLabel text="VOICE COACH"/>
               <PillRow opts={['FEMALE', 'MALE']} val={voiceCoach} onPick={pick(setVoiceCoach, 'voiceCoach')}/>
+              {/* One tap says a test line and reports what the phone's speech
+                  engine did with it — the first place a silent coach shows. */}
+              <VoiceCheck voiceCoach={voiceCoach}/>
             </div>
 
             {/* Coach Style */}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { getAudioSettings, getVoiceVolume, setVoiceVolume, setMusicVolume, VOICE_MAX } from '../data/audioEngine';
+import { getSpeechHealth, onSpeechHealth } from '../voiceCoach';
 
 // The ONLY place volume is adjusted: a speaker button in the timer corner opens
 // this overlay mid-session — no pause — with 🔊 VOICE and 🎵 MUSIC.
@@ -61,6 +62,14 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
   const onMusic = (e) => { const v = Number(e.target.value); setMusic(v); setMusicVolume(v / 100); scheduleHide(); };
 
   const muted = voice <= 0;
+  // The engine's own word on whether the coach is being heard: a session
+  // whose lines never start (the phone's speech engine not answering) turns
+  // the icon amber and says so when the overlay is open, instead of leaving
+  // silence as the only sign (voice audit ENG-11 / VP-05).
+  const [health, setHealth] = useState(() => getSpeechHealth());
+  useEffect(() => onSpeechHealth(setHealth), []);
+  const engineQuiet = !muted && health.supported !== false && (health.silent || (health.attempted >= 3 && health.spoken === 0));
+  const iconColor = muted ? '#f87171' : engineQuiet ? '#fb923c' : '#fde047';
 
   return (
     <div data-guide={dataGuide} style={{ position: 'absolute', top, right, zIndex: 60, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -89,20 +98,31 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
               down instead — or raise your phone&apos;s media volume.
             </div>
           )}
+          {muted && (
+            <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#f87171', maxWidth: 210, lineHeight: 1.35 }}>
+              VOICE is at 0: the coach is silent. Slide it up to hear the calls.
+            </div>
+          )}
+          {engineQuiet && (
+            <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#fb923c', maxWidth: 210, lineHeight: 1.35 }}>
+              The phone&apos;s speech engine isn&apos;t answering, so the coach can&apos;t be
+              heard. Profile → Settings → TEST THE VOICE shows what to check.
+            </div>
+          )}
         </div>
       )}
 
       <button
         onClick={() => { setOpen(o => !o); scheduleHide(); }}
-        aria-label="Volume"
+        aria-label={muted ? 'Volume (voice off)' : engineQuiet ? 'Volume (coach voice not playing)' : 'Volume'}
         style={{
           width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(12,2,24,0.9)',
-          border: `1px solid ${muted ? 'rgba(248,113,113,0.5)' : 'rgba(253,224,71,0.35)'}`,
+          border: `1px solid ${muted ? 'rgba(248,113,113,0.5)' : engineQuiet ? 'rgba(251,146,60,0.55)' : 'rgba(253,224,71,0.35)'}`,
           cursor: 'pointer', padding: 0,
         }}>
-        {muted ? <VolumeX size={16} color="#f87171"/> : <Volume2 size={16} color="#fde047"/>}
+        {muted ? <VolumeX size={16} color={iconColor}/> : <Volume2 size={16} color={iconColor}/>}
       </button>
     </div>
   );

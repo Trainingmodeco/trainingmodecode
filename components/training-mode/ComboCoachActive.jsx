@@ -4,7 +4,7 @@ import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle } from 'lucide-react';
 import { generateComboCoachSession, generateComboCoachRoundPlans } from './data/sessionGenerator';
 import { moveLabCallStrings } from './data/customCombos';
-import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
+import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
@@ -289,7 +289,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     if (judged.verdict === 'pass') {
       playExtraLife();
       fireVerdict({ pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
-      if (cfg.voiceOn !== false) speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 });
+      // Said after the phase flip's effect cleanups have run (they cancel
+      // speech), queued behind "Rest." (voice audit CC-3).
+      if (cfg.voiceOn !== false) setTimeout(() => speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 }), 450);
     }
   };
   const closeRound = (isFinal) => {
@@ -297,7 +299,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     verdictRoundStartRef.current = thrownRef.current;
     if (pausesThisRoundRef.current === 0) {
       cleanRoundsRef.current += 1;
-      if (!isFinal && cfg.voiceOn !== false) speakAsync('Clean round. Plus five.', { priority: 1, dropIfBusy: true });
+      if (!isFinal && cfg.voiceOn !== false) setTimeout(() => speakAsync('Clean round. Plus five.', { priority: 1 }), 450);
     }
     if (isFinal) {
       // Strong finish — the last round against the first two (data/roundIntensity).
@@ -323,6 +325,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const phaseRef     = useRef('round');
   const roundIdxRef  = useRef(0);
   const doneRef      = useRef(false);
+  // Set at the final bell: the effect cleanups then leave the closing line alone.
+  const finishedRef  = useRef(false);
 
   useEffect(() => { pausedRef.current = paused; }, [paused]);
   useEffect(() => { rushRef.current = rush; }, [rush]);
@@ -434,8 +438,16 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     if (skipInitialIntro.current) {
       skipInitialIntro.current = false;
+      // A restored session skipped the setup screen's voice pick (CC-8).
+      setVoiceGender(loadProfile()?.voiceCoach || 'FEMALE');
       return;
     }
+
+    // Gate the combo loop and the clock NOW: they both read `countdown`, and
+    // the primer below takes time, during which round 2+ used to deal (and
+    // half-speak) its first combo before the 3-2-1 (voice audit CC-2).
+    setCountdown('3');
+    setCountdownSub(`ROUND ${roundIdx + 1}`);
 
     let cancelled = false;
     const start = async () => {
@@ -444,7 +456,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       if (!cancelled) runIntro(roundIdx);
     };
     start();
-    return () => { cancelled = true; cancelSpeech(); };
+    // The session's closing line must outlive this cleanup (it runs on unmount).
+    return () => { cancelled = true; if (!finishedRef.current) cancelSpeech(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundIdx]);
 
@@ -495,9 +508,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           setRush(true);
           setShowRushOverlay(true);
           rushWinRef.current = { startCount: thrownRef.current, startSec: elapsed };
-          // Only speak the rush cue in a gap between combos so it never clips
-          // a combo call; if a combo is mid-speech we retry on the next tick.
-          if (cfg.voiceOn !== false && !rushSpoken.current && !isSpeakingCombo.current) {
+          // Rush activation takes the mic even over a combo call (priority 3,
+          // pre-empt). It used to wait for a gap and "retry next tick", but the
+          // branch never re-entered once rush was on, so two in five rushes
+          // started silently (voice audit CC-1).
+          if (cfg.voiceOn !== false && !rushSpoken.current) {
             rushSpoken.current = true;
             playRiser();
             // Rush activation is THE mic-defining moment of the round —
@@ -569,11 +584,14 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
           playBell(3);
         }
         setDone(true);
+        finishedRef.current = true;
         const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
         setTimeout(() => {
-          if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'), { priority: 3, preempt: true });
+          if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'), { priority: 3 });
         }, 400);
-        setTimeout(() => { stopVoiceSession(); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult, sessionStats()); }, 1500);
+        // The closing line (and a "Rush held" verdict queued behind it) runs on
+        // into the summary instead of being cut at 1.5 s (voice audit CC-4).
+        setTimeout(() => { stopVoiceSession({ graceful: true }); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult, sessionStats()); }, 1500);
       } else {
         if (!roundEndBellPlayedRef.current) {
           roundEndBellPlayedRef.current = true;
@@ -756,6 +774,10 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       if (phaseRef.current === 'round') pausesThisRoundRef.current += 1;
     } else {
       integrity.resume();
+      // RESUME is a tap: the right moment to (re)claim audio and the speech
+      // engine, which a session restored after a reload never had (CC-8).
+      unlockAudio();
+      if (cfg.voiceOn !== false) primeSpeech().catch(() => {});
     }
     setPaused(p => !p);
   };

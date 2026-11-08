@@ -13,6 +13,8 @@ import { loadWarmup } from './shared/WarmupRow';
 import { StepperRow } from './shared/Stepper';
 import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
 import { ChevronDown } from 'lucide-react';
+import { primeSpeech, setVoiceGender } from './voiceCoach';
+import { unlockAudio } from './data/audioEngine';
 
 const GOLD = C.gold;
 const RED = '#ef4444';
@@ -426,6 +428,12 @@ export default function CombatConditioningSetup({ onBack, onStart, onCardioOnly:
   const canStart = hasPreset;
   const handleStart = () => {
     if (!hasPreset) return;
+    // START CIRCUIT is the tap that gives the page its user activation: claim
+    // audio and warm the speech engine here, not in a mount effect after the
+    // warm-up (voice audit CCA-1). Fire-and-forget: the player primes again.
+    unlockAudio();
+    setVoiceGender(_profile?.voiceCoach || 'FEMALE');
+    primeSpeech().catch(() => {});
     onStart({
       style, duration: durationMin, difficulty,
       equipment: EQUIPMENT_TIER[equipment] || 'Any',

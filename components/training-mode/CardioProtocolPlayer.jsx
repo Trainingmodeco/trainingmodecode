@@ -331,10 +331,19 @@ export default function CardioProtocolPlayer({
       setRunning(false);
       say('Paused.');
     } else {
-      if (c.startedAt == null) c.startedAt = Date.now();
+      const first = c.startedAt == null;
+      if (first) c.startedAt = Date.now();
       if (c.pausedAt) { c.pauseAccumMs += Date.now() - c.pausedAt; c.pausedAt = null; }
       setRunning(true);
-      if (totalElapsed > 0) say('Resume. Go!');
+      if (first) {
+        // A player that was not auto-started (the Cardio Finisher's steady
+        // block) had no spoken start at all: no bell, no "Go!" (voice audit
+        // ACP-05). START is the gesture, so claim audio here and say one line.
+        unlockAudio();
+        const brief = `${String(methodLabel || 'cardio').toLowerCase()}, ${speakDuration(durationSeconds || 600)} steady. Go!`;
+        if (voice) primeSpeech().then(() => { playBell(1); say(brief, { rate: 1.05 }); }).catch(() => {});
+        else playBell(1);
+      } else if (totalElapsed > 0) say('Resume. Go!');
     }
   };
 

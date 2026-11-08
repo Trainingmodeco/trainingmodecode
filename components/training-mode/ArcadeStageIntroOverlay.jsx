@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { C } from './Styles';
 import SafeImage from './SafeImage';
 import { getStageBanner } from './data/arcadeVisualAssets';
-import { speakAsync, cancelSpeech } from './voiceCoach';
+import { speakAsync } from './voiceCoach';
 
 const INTRO_STYLES = `
 @keyframes stage-slam {
@@ -115,7 +115,11 @@ export default function ArcadeStageIntroOverlay({ series, stage, currentStage, c
       const speechTimer = setTimeout(() => {
         speakAsync(stage.announcerIntro);
       }, 1000);
-      return () => { clearTimeout(speechTimer); cancelSpeech(); };
+      // The overlay hands off at 5.2 s while the announcer is still mid-line
+      // (the stage 1 intro runs ~8 s): let the line run on into the player
+      // instead of cutting it at the unmount. The player's own calls queue
+      // behind it or, at priority 3, take over.
+      return () => { clearTimeout(speechTimer); };
     }
   }, [stage?.announcerIntro, voiceEnabled]);
 

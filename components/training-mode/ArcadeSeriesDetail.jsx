@@ -10,6 +10,9 @@ import { C } from './Styles';
 import { getSeriesProgress, setActiveChallenge } from './data/arcadeProgress';
 import { isSeriesPlayable, getStarTiersForStage } from './data/trainingArcadeData';
 import { targetsForStage } from './data/benchmarkLog';
+import { primeSpeech, setVoiceGender } from './voiceCoach';
+import { unlockAudio } from './data/audioEngine';
+import { loadProfile } from './data/userProfile';
 import { canAccessStage, GATES } from './data/entitlements';
 import ProGateOverlay from './shared/ProGateOverlay';
 import { hasSeenIntro, markIntroSeen } from './data/arcadeCampaignProgress';
@@ -259,6 +262,11 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const startMode = arcadeSettings?.mode || (series.availableModes?.includes('fit') ? 'fit' : (series.availableModes?.[0] || 'fit'));
 
   function handleStart() {
+    // ENTER STAGE is the tap that gives the page its user activation: claim
+    // audio and warm the speech engine here (voice audit ACP-07 / A7).
+    unlockAudio();
+    setVoiceGender(loadProfile()?.voiceCoach || 'FEMALE');
+    primeSpeech().catch(() => {});
     if (!selected || !canEnter) return;
     // Paywall gate: name the stage in the overlay so the ask is specific to
     // what they were about to do, not a generic upsell.

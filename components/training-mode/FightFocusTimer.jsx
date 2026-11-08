@@ -339,10 +339,14 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       });
       setGhostVerdict({ outcome: result.outcome, headline });
       ghostDelay = 3600;
-      if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', { ...vOpts, priority: 3, preempt: true }), 1400);
+      // Queued behind the closing line (priority 3, no pre-empt) so both are heard.
+      if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', { ...vOpts, priority: 3 }), 1400);
     }
-    setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), { ...vOpts, priority: 3, preempt: true }); }, 400);
-    setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current, ...verdictStats() }); }, ghostDelay);
+    // The closing line queues behind a "Rush held" verdict at the final bell
+    // instead of cutting it, and the graceful stop lets it run on into the
+    // summary rather than cutting it at 1.5 s (voice audit FIGHT-05).
+    setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), { ...vOpts, priority: 3 }); }, 400);
+    setTimeout(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current, ...verdictStats() }); }, ghostDelay);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghost, cfg, vOpts, flavored, packId, rounds, onEnd]);
 
@@ -380,7 +384,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       if (!cancelled) runIntro(roundIdx);
     };
     start();
-    return () => { cancelled = true; cancelSpeech(); };
+    // On unmount after the final bell the closing line is still being said:
+    // leave it (endNow stopped the session gracefully).
+    return () => { cancelled = true; if (!doneRef.current) cancelSpeech(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundIdx]);
 
@@ -593,11 +599,21 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         // Ghost recording — bank this round's strikes before the rest phase.
         perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
         roundStartThrownRef.current = thrownRef.current;
-        setPhase('rest');
-        setRemaining(restSecOf(roundIdxRef.current));
-        // Rest + next-up (spec 22): name the coming round so nothing needs reading.
-        const nxt = rounds[roundIdxRef.current + 1];
-        setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, { ...vOpts, priority: 2 }); }, 400);
+        const restNow = restSecOf(roundIdxRef.current);
+        if (restNow <= 0) {
+          // ROUND REST 0: straight into the next round's count-in. A 0 s rest
+          // used to set a clock that was already at 0, so nothing ticked and
+          // the ring sat at REST 00:00 for ever (voice audit FIGHT-07).
+          setPhase('round');
+          integrity.startUnit('rounds');
+          setRoundIdx(i => i + 1);
+        } else {
+          setPhase('rest');
+          setRemaining(restNow);
+          // Rest + next-up (spec 22): name the coming round so nothing needs reading.
+          const nxt = rounds[roundIdxRef.current + 1];
+          setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, { ...vOpts, priority: 2 }); }, 400);
+        }
       }
     } else {
       setPhase('round');
@@ -683,6 +699,10 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     }
   };
 
+  // A session restored after a reload or a tab switch opens paused and has
+  // never claimed this document's audio or speech engine; its first RESUME is
+  // the tap that can (voice audit A6).
+  const coldResumeRef = useRef(!!initialPaused);
   const handlePause = () => {
     if (!paused) {
       cancelSpeech();
@@ -690,6 +710,17 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       if (phaseRef.current === 'round') pausesThisRoundRef.current += 1;
     } else {
       integrity.resume();
+      unlockAudio();
+      if (cfg.voiceOn) {
+        const cold = coldResumeRef.current;
+        coldResumeRef.current = false;
+        primeSpeech().then(() => {
+          if (!cold || doneRef.current) return;
+          const cur = rounds[Math.min(roundIdxRef.current, rounds.length - 1)];
+          const line = phaseRef.current === 'rest' ? 'Rest.' : `Round ${roundIdxRef.current + 1}. ${cur?.round_title || 'Free flow'}.`;
+          speakAsync(line, { ...vOpts, priority: 2 });
+        }).catch(() => {});
+      }
     }
     setPaused(p => !p);
   };

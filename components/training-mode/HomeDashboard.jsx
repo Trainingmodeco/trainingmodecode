@@ -157,7 +157,7 @@ export default function HomeDashboard({
       // A suggested mission carries its settings, so START runs exactly the
       // mission named on the card — as the Fit hub's does.
       case 'quickMission':
-        if (payload && typeof payload === 'object') onStartQuickMission?.(quickMissionConfig(payload));
+        if (payload && typeof payload === 'object') primeThen(() => onStartQuickMission?.(quickMissionConfig(payload)));
         else onQuickMission?.();
         break;
       case 'fitMode': onFitSetup?.(); break;

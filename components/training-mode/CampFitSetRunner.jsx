@@ -158,7 +158,10 @@ export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateCha
       playBell(1); setCountdown('GO'); await delay(400);
       if (cancelled) return;
       setCountdown(null);
-      say(cfg.announcer || `${cur?.name}. ${doseLabel(cur)}.`);
+      // The stage announcer's script opens with its own "3, 2, 1." and closes
+      // on "Ready — go!"; both were just done out loud, so say the middle.
+      const announcer = String(cfg.announcer || '').replace(/^\s*3\s*,\s*2\s*,\s*1\s*[.!]?\s*/i, '').replace(/\s*ready\s*[—–-]+\s*go!?\s*$/i, '').trim();
+      say(announcer || `${cur?.name}. ${doseLabel(cur)}.`);
       setPhase('work'); beginSet(0, 0);
     })();
     return () => { cancelled = true; cancelSpeech(); };
@@ -185,7 +188,9 @@ export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateCha
     const id = setInterval(() => {
       setReps((n) => {
         const next = n + 1;
-        if (!isHold && pol.voiceCount && next <= target) speakAsync(String(next), { ...vOpts, rate: (vOpts.rate || 1) * 1.15 });
+        // A number that cannot be said on its beat is dropped, not queued: a
+        // count that lags the screen by five is worse than a missed "two".
+        if (!isHold && pol.voiceCount && next <= target) speakAsync(String(next), { ...vOpts, rate: (vOpts.rate || 1) * 1.15, dropIfBusy: true });
         if (isHold && next === Math.ceil(target / 2)) say('Halfway.');
         if (next >= target) { setTimeout(() => completeSet(), 60); return target; }
         return next;

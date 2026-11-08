@@ -183,7 +183,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
         setDone(true);
         const ir = integrity.finalize({});
         setTimeout(() => say(flavored ? packLine(packId, 'done') : 'Work done. Recover well.'), 300);
-        setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, total, ir); }, 1300);
+        setTimeout(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, total, ir); }, 1300); // the closing line runs on (voice audit FIT-05)
       } else {
         playBell(2);
         setPhase('rest');

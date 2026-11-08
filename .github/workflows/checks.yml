@@ -16,7 +16,9 @@ concurrency:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # The full gate (build + production smoke) takes 30-45 minutes; at 20 every
+    # run on `app` was cancelled before it finished, so nothing was checked.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -76,6 +78,12 @@ jobs:
       # round) and the swing at the top, over thousands of deals.
       - name: Combo Coach mix tests
         run: npm run -s test:combomix
+
+      # The spoken coach's engine rules on a fake speechSynthesis: no speak()
+      # inside the window after a cancel() (Android drops it), silent mode on a
+      # dead engine, retry with the device voice, graceful session end.
+      - name: Voice coach tests
+        run: npm run -s test:voice
 
       - name: Combat Conditioning audit
         run: npm run -s audit:cc

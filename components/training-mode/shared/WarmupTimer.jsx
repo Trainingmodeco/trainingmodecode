@@ -84,9 +84,11 @@ export default function WarmupTimer({
   useEffect(() => {
     unlockAudio();
     primeSpeech()
-      .then(() => speakAsync(introRef.current || `Warm up. ${minutes} minutes. Stretch and get loose.`))
+      .then(() => speakAsync(introRef.current || `Warm up. ${minutes} minute${minutes === 1 ? '' : 's'}. Stretch and get loose.`))
       .catch(() => {});
-    return () => stopVoiceSession();
+    // A warm-up that ran its course hands off while "Warm up complete. Here we
+    // go." is still being said: let that line finish. A SKIP cuts it (below).
+    return () => stopVoiceSession({ graceful: doneRef.current });
   }, [minutes]);
 
   const choose = (idea) => {
