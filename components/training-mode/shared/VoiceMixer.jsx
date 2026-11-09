@@ -68,7 +68,10 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
   // silence as the only sign (voice audit ENG-11 / VP-05).
   const [health, setHealth] = useState(() => getSpeechHealth());
   useEffect(() => onSpeechHealth(setHealth), []);
-  const engineQuiet = !muted && health.supported !== false && (health.silent || (health.attempted >= 3 && health.spoken === 0));
+  // The recorded coach voice does not use the speech engine: once a line has
+  // played from clips this session, the engine's silence is not the coach's.
+  const clipsTalking = !!(health.clips && health.clips.ready) && (health.clipsSpoken || 0) > 0;
+  const engineQuiet = !muted && !clipsTalking && health.supported !== false && (health.silent || (health.attempted >= 3 && health.spoken === 0));
   const iconColor = muted ? '#f87171' : engineQuiet ? '#fb923c' : '#fde047';
 
   return (
@@ -92,7 +95,7 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
           ` }}/>
           <Slider icon="🔊" label="VOICE" pct={voice} max={VOICE_PCT_MAX} warn={muted} onChange={onVoice}/>
           <Slider icon="🎵" label="MUSIC" pct={music} max={100} onChange={onMusic}/>
-          {voice > 100 && (
+          {voice > 100 && !(health.clips && health.clips.ready) && (
             <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', maxWidth: 210, lineHeight: 1.35 }}>
               The browser caps the spoken coach at 100%. Above that, turn MUSIC
               down instead — or raise your phone&apos;s media volume.

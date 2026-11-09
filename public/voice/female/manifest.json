@@ -1,0 +1,3308 @@
+{
+ "voice": "female",
+ "version": 1,
+ "clips": {
+  "0": {
+   "file": "0.mp3",
+   "ms": 1272
+  },
+  "1": {
+   "file": "1.mp3",
+   "ms": 600
+  },
+  "2": {
+   "file": "2.mp3",
+   "ms": 1248
+  },
+  "3": {
+   "file": "3.mp3",
+   "ms": 432
+  },
+  "4": {
+   "file": "4.mp3",
+   "ms": 1080
+  },
+  "5": {
+   "file": "5.mp3",
+   "ms": 672
+  },
+  "6": {
+   "file": "6.mp3",
+   "ms": 1440
+  },
+  "7": {
+   "file": "7.mp3",
+   "ms": 1296
+  },
+  "8": {
+   "file": "8.mp3",
+   "ms": 696
+  },
+  "9": {
+   "file": "9.mp3",
+   "ms": 600
+  },
+  "10": {
+   "file": "10.mp3",
+   "ms": 1344
+  },
+  "11": {
+   "file": "11.mp3",
+   "ms": 1416
+  },
+  "12": {
+   "file": "12.mp3",
+   "ms": 1104
+  },
+  "13": {
+   "file": "13.mp3",
+   "ms": 1128
+  },
+  "14": {
+   "file": "14.mp3",
+   "ms": 1104
+  },
+  "15": {
+   "file": "15.mp3",
+   "ms": 888
+  },
+  "16": {
+   "file": "16.mp3",
+   "ms": 1296
+  },
+  "17": {
+   "file": "17.mp3",
+   "ms": 1392
+  },
+  "18": {
+   "file": "18.mp3",
+   "ms": 888
+  },
+  "19": {
+   "file": "19.mp3",
+   "ms": 1032
+  },
+  "20": {
+   "file": "20.mp3",
+   "ms": 1296
+  },
+  "21": {
+   "file": "21.mp3",
+   "ms": 1176
+  },
+  "22": {
+   "file": "22.mp3",
+   "ms": 1344
+  },
+  "23": {
+   "file": "23.mp3",
+   "ms": 936
+  },
+  "24": {
+   "file": "24.mp3",
+   "ms": 1224
+  },
+  "25": {
+   "file": "25.mp3",
+   "ms": 1056
+  },
+  "26": {
+   "file": "26.mp3",
+   "ms": 936
+  },
+  "27": {
+   "file": "27.mp3",
+   "ms": 1008
+  },
+  "28": {
+   "file": "28.mp3",
+   "ms": 1344
+  },
+  "29": {
+   "file": "29.mp3",
+   "ms": 1584
+  },
+  "30": {
+   "file": "30.mp3",
+   "ms": 672
+  },
+  "31": {
+   "file": "31.mp3",
+   "ms": 1416
+  },
+  "32": {
+   "file": "32.mp3",
+   "ms": 1368
+  },
+  "33": {
+   "file": "33.mp3",
+   "ms": 2040
+  },
+  "34": {
+   "file": "34.mp3",
+   "ms": 1008
+  },
+  "35": {
+   "file": "35.mp3",
+   "ms": 1008
+  },
+  "36": {
+   "file": "36.mp3",
+   "ms": 1104
+  },
+  "37": {
+   "file": "37.mp3",
+   "ms": 480
+  },
+  "38": {
+   "file": "38.mp3",
+   "ms": 1080
+  },
+  "39": {
+   "file": "39.mp3",
+   "ms": 864
+  },
+  "40": {
+   "file": "40.mp3",
+   "ms": 672
+  },
+  "41": {
+   "file": "41.mp3",
+   "ms": 1320
+  },
+  "42": {
+   "file": "42.mp3",
+   "ms": 1560
+  },
+  "43": {
+   "file": "43.mp3",
+   "ms": 1272
+  },
+  "44": {
+   "file": "44.mp3",
+   "ms": 1656
+  },
+  "45": {
+   "file": "45.mp3",
+   "ms": 1032
+  },
+  "46": {
+   "file": "46.mp3",
+   "ms": 1584
+  },
+  "47": {
+   "file": "47.mp3",
+   "ms": 1008
+  },
+  "48": {
+   "file": "48.mp3",
+   "ms": 1248
+  },
+  "49": {
+   "file": "49.mp3",
+   "ms": 1368
+  },
+  "50": {
+   "file": "50.mp3",
+   "ms": 888
+  },
+  "51": {
+   "file": "51.mp3",
+   "ms": 1224
+  },
+  "52": {
+   "file": "52.mp3",
+   "ms": 1008
+  },
+  "53": {
+   "file": "53.mp3",
+   "ms": 864
+  },
+  "54": {
+   "file": "54.mp3",
+   "ms": 1368
+  },
+  "55": {
+   "file": "55.mp3",
+   "ms": 1200
+  },
+  "56": {
+   "file": "56.mp3",
+   "ms": 1272
+  },
+  "57": {
+   "file": "57.mp3",
+   "ms": 1032
+  },
+  "58": {
+   "file": "58.mp3",
+   "ms": 1248
+  },
+  "59": {
+   "file": "59.mp3",
+   "ms": 888
+  },
+  "60": {
+   "file": "60.mp3",
+   "ms": 936
+  },
+  "61": {
+   "file": "61.mp3",
+   "ms": 1680
+  },
+  "62": {
+   "file": "62.mp3",
+   "ms": 1368
+  },
+  "63": {
+   "file": "63.mp3",
+   "ms": 1080
+  },
+  "64": {
+   "file": "64.mp3",
+   "ms": 1008
+  },
+  "65": {
+   "file": "65.mp3",
+   "ms": 1296
+  },
+  "66": {
+   "file": "66.mp3",
+   "ms": 1224
+  },
+  "67": {
+   "file": "67.mp3",
+   "ms": 1320
+  },
+  "68": {
+   "file": "68.mp3",
+   "ms": 1008
+  },
+  "69": {
+   "file": "69.mp3",
+   "ms": 1080
+  },
+  "70": {
+   "file": "70.mp3",
+   "ms": 1344
+  },
+  "71": {
+   "file": "71.mp3",
+   "ms": 1008
+  },
+  "72": {
+   "file": "72.mp3",
+   "ms": 1224
+  },
+  "73": {
+   "file": "73.mp3",
+   "ms": 1152
+  },
+  "74": {
+   "file": "74.mp3",
+   "ms": 96
+  },
+  "75": {
+   "file": "75.mp3",
+   "ms": 1080
+  },
+  "76": {
+   "file": "76.mp3",
+   "ms": 1488
+  },
+  "77": {
+   "file": "77.mp3",
+   "ms": 1152
+  },
+  "78": {
+   "file": "78.mp3",
+   "ms": 1440
+  },
+  "79": {
+   "file": "79.mp3",
+   "ms": 1224
+  },
+  "80": {
+   "file": "80.mp3",
+   "ms": 1104
+  },
+  "81": {
+   "file": "81.mp3",
+   "ms": 1320
+  },
+  "82": {
+   "file": "82.mp3",
+   "ms": 1152
+  },
+  "83": {
+   "file": "83.mp3",
+   "ms": 1152
+  },
+  "84": {
+   "file": "84.mp3",
+   "ms": 1008
+  },
+  "85": {
+   "file": "85.mp3",
+   "ms": 1128
+  },
+  "86": {
+   "file": "86.mp3",
+   "ms": 1272
+  },
+  "87": {
+   "file": "87.mp3",
+   "ms": 936
+  },
+  "88": {
+   "file": "88.mp3",
+   "ms": 96
+  },
+  "89": {
+   "file": "89.mp3",
+   "ms": 1224
+  },
+  "90": {
+   "file": "90.mp3",
+   "ms": 744
+  },
+  "91": {
+   "file": "91.mp3",
+   "ms": 1224
+  },
+  "92": {
+   "file": "92.mp3",
+   "ms": 1296
+  },
+  "93": {
+   "file": "93.mp3",
+   "ms": 1200
+  },
+  "94": {
+   "file": "94.mp3",
+   "ms": 1128
+  },
+  "95": {
+   "file": "95.mp3",
+   "ms": 1248
+  },
+  "96": {
+   "file": "96.mp3",
+   "ms": 1272
+  },
+  "97": {
+   "file": "97.mp3",
+   "ms": 1032
+  },
+  "98": {
+   "file": "98.mp3",
+   "ms": 1080
+  },
+  "99": {
+   "file": "99.mp3",
+   "ms": 768
+  },
+  "100": {
+   "file": "100.mp3",
+   "ms": 504
+  },
+  "180": {
+   "file": "180.mp3",
+   "ms": 1248
+  },
+  "body cross": {
+   "file": "body_cross.mp3",
+   "ms": 1128
+  },
+  "body hook": {
+   "file": "body_hook.mp3",
+   "ms": 768
+  },
+  "body jab": {
+   "file": "body_jab.mp3",
+   "ms": 1176
+  },
+  "body kick": {
+   "file": "body_kick.mp3",
+   "ms": 1152
+  },
+  "boxing": {
+   "file": "boxing.mp3",
+   "ms": 1320
+  },
+  "check": {
+   "file": "check.mp3",
+   "ms": 624
+  },
+  "check counter": {
+   "file": "check_counter.mp3",
+   "ms": 1224
+  },
+  "clinch": {
+   "file": "clinch.mp3",
+   "ms": 768
+  },
+  "cross": {
+   "file": "cross.mp3",
+   "ms": 576
+  },
+  "double jab": {
+   "file": "double_jab.mp3",
+   "ms": 1056
+  },
+  "double teep": {
+   "file": "double_teep.mp3",
+   "ms": 1176
+  },
+  "elbow": {
+   "file": "elbow.mp3",
+   "ms": 816
+  },
+  "exit": {
+   "file": "exit.mp3",
+   "ms": 720
+  },
+  "fake shot": {
+   "file": "fake_shot.mp3",
+   "ms": 960
+  },
+  "feint": {
+   "file": "feint.mp3",
+   "ms": 672
+  },
+  "feint shot": {
+   "file": "feint_shot.mp3",
+   "ms": 1272
+  },
+  "flying knee": {
+   "file": "flying_knee.mp3",
+   "ms": 1248
+  },
+  "go": {
+   "file": "go.mp3",
+   "ms": 600
+  },
+  "head cross": {
+   "file": "head_cross.mp3",
+   "ms": 840
+  },
+  "high kick": {
+   "file": "high_kick.mp3",
+   "ms": 528
+  },
+  "hook": {
+   "file": "hook.mp3",
+   "ms": 672
+  },
+  "jab": {
+   "file": "jab.mp3",
+   "ms": 648
+  },
+  "kick": {
+   "file": "kick.mp3",
+   "ms": 648
+  },
+  "kickboxing": {
+   "file": "kickboxing.mp3",
+   "ms": 1032
+  },
+  "knee": {
+   "file": "knee.mp3",
+   "ms": 672
+  },
+  "lead uppercut": {
+   "file": "lead_uppercut.mp3",
+   "ms": 1512
+  },
+  "level change": {
+   "file": "level_change.mp3",
+   "ms": 1200
+  },
+  "low kick": {
+   "file": "low_kick.mp3",
+   "ms": 1056
+  },
+  "mma": {
+   "file": "mma.mp3",
+   "ms": 1416
+  },
+  "muay thai": {
+   "file": "muay_thai.mp3",
+   "ms": 1224
+  },
+  "overhand": {
+   "file": "overhand.mp3",
+   "ms": 840
+  },
+  "parry": {
+   "file": "parry.mp3",
+   "ms": 600
+  },
+  "pivot": {
+   "file": "pivot.mp3",
+   "ms": 744
+  },
+  "rear knee": {
+   "file": "rear_knee.mp3",
+   "ms": 816
+  },
+  "rear roundhouse": {
+   "file": "rear_roundhouse.mp3",
+   "ms": 1512
+  },
+  "roll": {
+   "file": "roll.mp3",
+   "ms": 744
+  },
+  "round 1": {
+   "file": "round_1.mp3",
+   "ms": 1056
+  },
+  "roundhouse": {
+   "file": "roundhouse.mp3",
+   "ms": 1056
+  },
+  "slip": {
+   "file": "slip.mp3",
+   "ms": 648
+  },
+  "spinning back kick": {
+   "file": "spinning_back_kick.mp3",
+   "ms": 1512
+  },
+  "spinning elbow": {
+   "file": "spinning_elbow.mp3",
+   "ms": 1560
+  },
+  "sprawl": {
+   "file": "sprawl.mp3",
+   "ms": 912
+  },
+  "step back": {
+   "file": "step_back.mp3",
+   "ms": 1224
+  },
+  "switch kick": {
+   "file": "switch_kick.mp3",
+   "ms": 1440
+  },
+  "teep": {
+   "file": "teep.mp3",
+   "ms": 576
+  },
+  "uppercut": {
+   "file": "uppercut.mp3",
+   "ms": 744
+  },
+  "begin": {
+   "file": "begin.mp3",
+   "ms": 744
+  },
+  "complete": {
+   "file": "complete.mp3",
+   "ms": 936
+  },
+  "finisher": {
+   "file": "finisher.mp3",
+   "ms": 984
+  },
+  "free flow": {
+   "file": "free_flow.mp3",
+   "ms": 1272
+  },
+  "great work": {
+   "file": "great_work.mp3",
+   "ms": 744
+  },
+  "halfway": {
+   "file": "halfway.mp3",
+   "ms": 792
+  },
+  "left": {
+   "file": "left.mp3",
+   "ms": 912
+  },
+  "minute": {
+   "file": "minute.mp3",
+   "ms": 936
+  },
+  "minutes": {
+   "file": "minutes.mp3",
+   "ms": 864
+  },
+  "of": {
+   "file": "of.mp3",
+   "ms": 288
+  },
+  "paused": {
+   "file": "paused.mp3",
+   "ms": 600
+  },
+  "plus": {
+   "file": "plus.mp3",
+   "ms": 936
+  },
+  "ready": {
+   "file": "ready.mp3",
+   "ms": 744
+  },
+  "reps": {
+   "file": "reps.mp3",
+   "ms": 768
+  },
+  "rest": {
+   "file": "rest.mp3",
+   "ms": 912
+  },
+  "resume": {
+   "file": "resume.mp3",
+   "ms": 792
+  },
+  "round 10": {
+   "file": "round_10.mp3",
+   "ms": 1104
+  },
+  "round 11": {
+   "file": "round_11.mp3",
+   "ms": 1176
+  },
+  "round 12": {
+   "file": "round_12.mp3",
+   "ms": 1248
+  },
+  "round 2": {
+   "file": "round_2.mp3",
+   "ms": 1056
+  },
+  "round 3": {
+   "file": "round_3.mp3",
+   "ms": 1320
+  },
+  "round 4": {
+   "file": "round_4.mp3",
+   "ms": 1248
+  },
+  "round 5": {
+   "file": "round_5.mp3",
+   "ms": 1224
+  },
+  "round 6": {
+   "file": "round_6.mp3",
+   "ms": 840
+  },
+  "round 7": {
+   "file": "round_7.mp3",
+   "ms": 1320
+  },
+  "round 8": {
+   "file": "round_8.mp3",
+   "ms": 1320
+  },
+  "round 9": {
+   "file": "round_9.mp3",
+   "ms": 1200
+  },
+  "rounds": {
+   "file": "rounds.mp3",
+   "ms": 864
+  },
+  "seconds": {
+   "file": "seconds.mp3",
+   "ms": 960
+  },
+  "set": {
+   "file": "set.mp3",
+   "ms": 816
+  },
+  "still going": {
+   "file": "still_going.mp3",
+   "ms": 888
+  },
+  "time": {
+   "file": "time.mp3",
+   "ms": 648
+  },
+  "to go": {
+   "file": "to_go.mp3",
+   "ms": 648
+  },
+  "up next": {
+   "file": "up_next.mp3",
+   "ms": 1464
+  },
+  "x p": {
+   "file": "x_p.mp3",
+   "ms": 888
+  },
+  "axe kick": {
+   "file": "axe_kick.mp3",
+   "ms": 888
+  },
+  "bolo punch": {
+   "file": "bolo_punch.mp3",
+   "ms": 1488
+  },
+  "break": {
+   "file": "break.mp3",
+   "ms": 504
+  },
+  "catch kick": {
+   "file": "catch_kick.mp3",
+   "ms": 1128
+  },
+  "check hook": {
+   "file": "check_hook.mp3",
+   "ms": 840
+  },
+  "circle out": {
+   "file": "circle_out.mp3",
+   "ms": 912
+  },
+  "double low kick": {
+   "file": "double_low_kick.mp3",
+   "ms": 1104
+  },
+  "frame": {
+   "file": "frame.mp3",
+   "ms": 720
+  },
+  "ground knee": {
+   "file": "ground_knee.mp3",
+   "ms": 1032
+  },
+  "ground pound": {
+   "file": "ground_pound.mp3",
+   "ms": 1080
+  },
+  "head": {
+   "file": "head.mp3",
+   "ms": 672
+  },
+  "hook kick": {
+   "file": "hook_kick.mp3",
+   "ms": 744
+  },
+  "jumping elbow": {
+   "file": "jumping_elbow.mp3",
+   "ms": 1104
+  },
+  "lead elbow": {
+   "file": "lead_elbow.mp3",
+   "ms": 1680
+  },
+  "lead hook": {
+   "file": "lead_hook.mp3",
+   "ms": 1224
+  },
+  "lead kick": {
+   "file": "lead_kick.mp3",
+   "ms": 792
+  },
+  "lead knee": {
+   "file": "lead_knee.mp3",
+   "ms": 1440
+  },
+  "oblique kick": {
+   "file": "oblique_kick.mp3",
+   "ms": 1224
+  },
+  "pass": {
+   "file": "pass.mp3",
+   "ms": 1272
+  },
+  "pull counter": {
+   "file": "pull_counter.mp3",
+   "ms": 1128
+  },
+  "push": {
+   "file": "push.mp3",
+   "ms": 720
+  },
+  "question mark kick": {
+   "file": "question_mark_kick.mp3",
+   "ms": 1104
+  },
+  "rear elbow": {
+   "file": "rear_elbow.mp3",
+   "ms": 960
+  },
+  "rear hook": {
+   "file": "rear_hook.mp3",
+   "ms": 1032
+  },
+  "rear kick": {
+   "file": "rear_kick.mp3",
+   "ms": 576
+  },
+  "rear overhand": {
+   "file": "rear_overhand.mp3",
+   "ms": 1560
+  },
+  "rear uppercut": {
+   "file": "rear_uppercut.mp3",
+   "ms": 1512
+  },
+  "shovel hook": {
+   "file": "shovel_hook.mp3",
+   "ms": 1152
+  },
+  "spinning back elbow": {
+   "file": "spinning_back_elbow.mp3",
+   "ms": 1848
+  },
+  "spinning back fist": {
+   "file": "spinning_back_fist.mp3",
+   "ms": 1584
+  },
+  "spinning backfist": {
+   "file": "spinning_backfist.mp3",
+   "ms": 1512
+  },
+  "spinning heel kick": {
+   "file": "spinning_heel_kick.mp3",
+   "ms": 1392
+  },
+  "spinning kick": {
+   "file": "spinning_kick.mp3",
+   "ms": 1056
+  },
+  "step knee": {
+   "file": "step_knee.mp3",
+   "ms": 1416
+  },
+  "superman punch": {
+   "file": "superman_punch.mp3",
+   "ms": 1536
+  },
+  "sweep": {
+   "file": "sweep.mp3",
+   "ms": 744
+  },
+  "throw": {
+   "file": "throw.mp3",
+   "ms": 552
+  },
+  "tornado kick": {
+   "file": "tornado_kick.mp3",
+   "ms": 936
+  },
+  "wheel kick": {
+   "file": "wheel_kick.mp3",
+   "ms": 1248
+  },
+  "0.75 second cadence": {
+   "file": "0_75_second_cadence.mp3",
+   "ms": 4200
+  },
+  "1 second cadence": {
+   "file": "1_second_cadence.mp3",
+   "ms": 1848
+  },
+  "1.25 second cadence": {
+   "file": "1_25_second_cadence.mp3",
+   "ms": 2952
+  },
+  "1.5 second cadence": {
+   "file": "1_5_second_cadence.mp3",
+   "ms": 96
+  },
+  "1.75 second cadence": {
+   "file": "1_75_second_cadence.mp3",
+   "ms": 2208
+  },
+  "2 second cadence": {
+   "file": "2_second_cadence.mp3",
+   "ms": 2448
+  },
+  "2.25 second cadence": {
+   "file": "2_25_second_cadence.mp3",
+   "ms": 2808
+  },
+  "2.5 second cadence": {
+   "file": "2_5_second_cadence.mp3",
+   "ms": 1896
+  },
+  "2.75 second cadence": {
+   "file": "2_75_second_cadence.mp3",
+   "ms": 2856
+  },
+  "3 second cadence": {
+   "file": "3_second_cadence.mp3",
+   "ms": 1488
+  },
+  "3.25 second cadence": {
+   "file": "3_25_second_cadence.mp3",
+   "ms": 2400
+  },
+  "3.5 second cadence": {
+   "file": "3_5_second_cadence.mp3",
+   "ms": 2928
+  },
+  "3.75 second cadence": {
+   "file": "3_75_second_cadence.mp3",
+   "ms": 2136
+  },
+  "4 second cadence": {
+   "file": "4_second_cadence.mp3",
+   "ms": 2064
+  },
+  "behind you": {
+   "file": "behind_you.mp3",
+   "ms": 792
+  },
+  "custom speed": {
+   "file": "custom_speed.mp3",
+   "ms": 1416
+  },
+  "fast speed": {
+   "file": "fast_speed.mp3",
+   "ms": 1344
+  },
+  "medium speed": {
+   "file": "medium_speed.mp3",
+   "ms": 1176
+  },
+  "moderate speed": {
+   "file": "moderate_speed.mp3",
+   "ms": 1176
+  },
+  "multiple opponents": {
+   "file": "multiple_opponents.mp3",
+   "ms": 1656
+  },
+  "next opponent": {
+   "file": "next_opponent.mp3",
+   "ms": 1224
+  },
+  "on switch": {
+   "file": "on_switch.mp3",
+   "ms": 1152
+  },
+  "one bag or shadow": {
+   "file": "one_bag_or_shadow.mp3",
+   "ms": 2184
+  },
+  "pivot to face the next opponent": {
+   "file": "pivot_to_face_the_next_opponent.mp3",
+   "ms": 1872
+  },
+  "pivot to the other bag": {
+   "file": "pivot_to_the_other_bag.mp3",
+   "ms": 1272
+  },
+  "slow speed": {
+   "file": "slow_speed.mp3",
+   "ms": 2856
+  },
+  "switch": {
+   "file": "switch.mp3",
+   "ms": 864
+  },
+  "switch bags": {
+   "file": "switch_bags.mp3",
+   "ms": 1104
+  },
+  "turn": {
+   "file": "turn.mp3",
+   "ms": 672
+  },
+  "two bags": {
+   "file": "two_bags.mp3",
+   "ms": 1224
+  },
+  "180 jump squats": {
+   "file": "180_jump_squats.mp3",
+   "ms": 1680
+  },
+  "alternate legs": {
+   "file": "alternate_legs.mp3",
+   "ms": 1440
+  },
+  "back pedal": {
+   "file": "back_pedal.mp3",
+   "ms": 816
+  },
+  "broad jump": {
+   "file": "broad_jump.mp3",
+   "ms": 1152
+  },
+  "burpee tuck jumps": {
+   "file": "burpee_tuck_jumps.mp3",
+   "ms": 1800
+  },
+  "burpees": {
+   "file": "burpees.mp3",
+   "ms": 888
+  },
+  "check kicks": {
+   "file": "check_kicks.mp3",
+   "ms": 1272
+  },
+  "clap push ups": {
+   "file": "clap_push_ups.mp3",
+   "ms": 1440
+  },
+  "don't slow down now": {
+   "file": "don_t_slow_down_now.mp3",
+   "ms": 1392
+  },
+  "drop and pop": {
+   "file": "drop_and_pop.mp3",
+   "ms": 1176
+  },
+  "empty the tank": {
+   "file": "empty_the_tank.mp3",
+   "ms": 1056
+  },
+  "fast feet": {
+   "file": "fast_feet.mp3",
+   "ms": 1056
+  },
+  "faster": {
+   "file": "faster.mp3",
+   "ms": 648
+  },
+  "finish strong": {
+   "file": "finish_strong.mp3",
+   "ms": 1152
+  },
+  "flying knee bursts": {
+   "file": "flying_knee_bursts.mp3",
+   "ms": 2016
+  },
+  "front kick": {
+   "file": "front_kick.mp3",
+   "ms": 696
+  },
+  "hands up": {
+   "file": "hands_up.mp3",
+   "ms": 912
+  },
+  "jumping lunges": {
+   "file": "jumping_lunges.mp3",
+   "ms": 1608
+  },
+  "give it everything you've got": {
+   "file": "give_it_everything_you_ve_got.mp3",
+   "ms": 1680
+  },
+  "head kick": {
+   "file": "head_kick.mp3",
+   "ms": 720
+  },
+  "jump squats": {
+   "file": "jump_squats.mp3",
+   "ms": 1080
+  },
+  "keep firing": {
+   "file": "keep_firing.mp3",
+   "ms": 1056
+  },
+  "lateral bounds": {
+   "file": "lateral_bounds.mp3",
+   "ms": 1368
+  },
+  "leave nothing behind": {
+   "file": "leave_nothing_behind.mp3",
+   "ms": 1512
+  },
+  "machine gun kicks": {
+   "file": "machine_gun_kicks.mp3",
+   "ms": 1896
+  },
+  "mountain climbers": {
+   "file": "mountain_climbers.mp3",
+   "ms": 1536
+  },
+  "plank jacks": {
+   "file": "plank_jacks.mp3",
+   "ms": 1080
+  },
+  "plyo push ups": {
+   "file": "plyo_push_ups.mp3",
+   "ms": 1632
+  },
+  "power skips": {
+   "file": "power_skips.mp3",
+   "ms": 1200
+  },
+  "push the pace": {
+   "file": "push_the_pace.mp3",
+   "ms": 1080
+  },
+  "push up to shoulder tap": {
+   "file": "push_up_to_shoulder_tap.mp3",
+   "ms": 2328
+  },
+  "running high knees": {
+   "file": "running_high_knees.mp3",
+   "ms": 1488
+  },
+  "rush mode": {
+   "file": "rush_mode.mp3",
+   "ms": 936
+  },
+  "rush mode complete": {
+   "file": "rush_mode_complete.mp3",
+   "ms": 1416
+  },
+  "shadow sprint in place": {
+   "file": "shadow_sprint_in_place.mp3",
+   "ms": 2424
+  },
+  "skater bounds": {
+   "file": "skater_bounds.mp3",
+   "ms": 1584
+  },
+  "speed squats": {
+   "file": "speed_squats.mp3",
+   "ms": 1560
+  },
+  "split jumps": {
+   "file": "split_jumps.mp3",
+   "ms": 1224
+  },
+  "sprawl to jump": {
+   "file": "sprawl_to_jump.mp3",
+   "ms": 1248
+  },
+  "sprawls": {
+   "file": "sprawls.mp3",
+   "ms": 1200
+  },
+  "squat thrusts": {
+   "file": "squat_thrusts.mp3",
+   "ms": 1560
+  },
+  "star jumps": {
+   "file": "star_jumps.mp3",
+   "ms": 1224
+  },
+  "strike hard and fast": {
+   "file": "strike_hard_and_fast.mp3",
+   "ms": 2016
+  },
+  "super": {
+   "file": "super.mp3",
+   "ms": 576
+  },
+  "switch knee": {
+   "file": "switch_knee.mp3",
+   "ms": 1560
+  },
+  "switch knees": {
+   "file": "switch_knees.mp3",
+   "ms": 1416
+  },
+  "tuck jumps": {
+   "file": "tuck_jumps.mp3",
+   "ms": 1032
+  },
+  "up downs": {
+   "file": "up_downs.mp3",
+   "ms": 1080
+  },
+  "breathe": {
+   "file": "breathe.mp3",
+   "ms": 840
+  },
+  "control your breathing": {
+   "file": "control_your_breathing.mp3",
+   "ms": 1488
+  },
+  "discipline logged": {
+   "file": "discipline_logged.mp3",
+   "ms": 1344
+  },
+  "good work": {
+   "file": "good_work.mp3",
+   "ms": 672
+  },
+  "let": {
+   "file": "let.mp3",
+   "ms": 696
+  },
+  "mission complete": {
+   "file": "mission_complete.mp3",
+   "ms": 1512
+  },
+  "move with purpose": {
+   "file": "move_with_purpose.mp3",
+   "ms": 1440
+  },
+  "quick mission started": {
+   "file": "quick_mission_started.mp3",
+   "ms": 1872
+  },
+  "recover": {
+   "file": "recover.mp3",
+   "ms": 504
+  },
+  "reset": {
+   "file": "reset.mp3",
+   "ms": 1056
+  },
+  "session complete": {
+   "file": "session_complete.mp3",
+   "ms": 1416
+  },
+  "that": {
+   "file": "that.mp3",
+   "ms": 480
+  },
+  "angles win rounds": {
+   "file": "angles_win_rounds.mp3",
+   "ms": 1752
+  },
+  "breathe and work": {
+   "file": "breathe_and_work.mp3",
+   "ms": 1488
+  },
+  "breathe through the combo": {
+   "file": "breathe_through_the_combo.mp3",
+   "ms": 1176
+  },
+  "championship pace": {
+   "file": "championship_pace.mp3",
+   "ms": 1392
+  },
+  "check and return": {
+   "file": "check_and_return.mp3",
+   "ms": 1032
+  },
+  "chin down": {
+   "file": "chin_down.mp3",
+   "ms": 912
+  },
+  "clinch strong": {
+   "file": "clinch_strong.mp3",
+   "ms": 1224
+  },
+  "control the fight": {
+   "file": "control_the_fight.mp3",
+   "ms": 1248
+  },
+  "counter fast": {
+   "file": "counter_fast.mp3",
+   "ms": 1464
+  },
+  "defend first": {
+   "file": "defend_first.mp3",
+   "ms": 1464
+  },
+  "defense first": {
+   "file": "defense_first.mp3",
+   "ms": 1560
+  },
+  "dig in": {
+   "file": "dig_in.mp3",
+   "ms": 744
+  },
+  "don": {
+   "file": "don.mp3",
+   "ms": 624
+  },
+  "elbows tight": {
+   "file": "elbows_tight.mp3",
+   "ms": 1224
+  },
+  "every range matters": {
+   "file": "every_range_matters.mp3",
+   "ms": 1776
+  },
+  "feet": {
+   "file": "feet.mp3",
+   "ms": 1176
+  },
+  "finish the round like you": {
+   "file": "finish_the_round_like_you.mp3",
+   "ms": 1392
+  },
+  "fire back": {
+   "file": "fire_back.mp3",
+   "ms": 1176
+  },
+  "ground": {
+   "file": "ground.mp3",
+   "ms": 720
+  },
+  "hands return home after every kick": {
+   "file": "hands_return_home_after_every_kick.mp3",
+   "ms": 2280
+  },
+  "hands to feet": {
+   "file": "hands_to_feet.mp3",
+   "ms": 1464
+  },
+  "hips back": {
+   "file": "hips_back.mp3",
+   "ms": 696
+  },
+  "keep fighting": {
+   "file": "keep_fighting.mp3",
+   "ms": 1224
+  },
+  "keep flowing": {
+   "file": "keep_flowing.mp3",
+   "ms": 1056
+  },
+  "keep marching": {
+   "file": "keep_marching.mp3",
+   "ms": 1008
+  },
+  "keep moving": {
+   "file": "keep_moving.mp3",
+   "ms": 864
+  },
+  "keep pressure": {
+   "file": "keep_pressure.mp3",
+   "ms": 1152
+  },
+  "keep the pace": {
+   "file": "keep_the_pace.mp3",
+   "ms": 912
+  },
+  "keep the pressure on": {
+   "file": "keep_the_pressure_on.mp3",
+   "ms": 1272
+  },
+  "keep the rhythm": {
+   "file": "keep_the_rhythm.mp3",
+   "ms": 1080
+  },
+  "keep working": {
+   "file": "keep_working.mp3",
+   "ms": 912
+  },
+  "keep your base": {
+   "file": "keep_your_base.mp3",
+   "ms": 1584
+  },
+  "keep your breath": {
+   "file": "keep_your_breath.mp3",
+   "ms": 1320
+  },
+  "keep your guard tight": {
+   "file": "keep_your_guard_tight.mp3",
+   "ms": 1272
+  },
+  "keep your range": {
+   "file": "keep_your_range.mp3",
+   "ms": 1104
+  },
+  "keep your shoulders relaxed": {
+   "file": "keep_your_shoulders_relaxed.mp3",
+   "ms": 1728
+  },
+  "knees sharp": {
+   "file": "knees_sharp.mp3",
+   "ms": 1224
+  },
+  "let it flow": {
+   "file": "let_it_flow.mp3",
+   "ms": 1152
+  },
+  "level change threat": {
+   "file": "level_change_threat.mp3",
+   "ms": 1440
+  },
+  "long guard": {
+   "file": "long_guard.mp3",
+   "ms": 1080
+  },
+  "make it count": {
+   "file": "make_it_count.mp3",
+   "ms": 696
+  },
+  "make them miss": {
+   "file": "make_them_miss.mp3",
+   "ms": 1248
+  },
+  "mix it up": {
+   "file": "mix_it_up.mp3",
+   "ms": 864
+  },
+  "move": {
+   "file": "move.mp3",
+   "ms": 672
+  },
+  "move your feet": {
+   "file": "move_your_feet.mp3",
+   "ms": 1656
+  },
+  "move your feet before they grab": {
+   "file": "move_your_feet_before_they_grab.mp3",
+   "ms": 2136
+  },
+  "muay thai pace": {
+   "file": "muay_thai_pace.mp3",
+   "ms": 1656
+  },
+  "one more push": {
+   "file": "one_more_push.mp3",
+   "ms": 1296
+  },
+  "own the distance": {
+   "file": "own_the_distance.mp3",
+   "ms": 1608
+  },
+  "own the round": {
+   "file": "own_the_round.mp3",
+   "ms": 1344
+  },
+  "own the transitions": {
+   "file": "own_the_transitions.mp3",
+   "ms": 2040
+  },
+  "power comes from control": {
+   "file": "power_comes_from_control.mp3",
+   "ms": 1728
+  },
+  "punch": {
+   "file": "punch.mp3",
+   "ms": 768
+  },
+  "push through": {
+   "file": "push_through.mp3",
+   "ms": 864
+  },
+  "return fire": {
+   "file": "return_fire.mp3",
+   "ms": 1080
+  },
+  "scramble energy": {
+   "file": "scramble_energy.mp3",
+   "ms": 1536
+  },
+  "set up the kick": {
+   "file": "set_up_the_kick.mp3",
+   "ms": 1056
+  },
+  "shin up": {
+   "file": "shin_up.mp3",
+   "ms": 744
+  },
+  "snap that jab": {
+   "file": "snap_that_jab.mp3",
+   "ms": 1176
+  },
+  "stay balanced": {
+   "file": "stay_balanced.mp3",
+   "ms": 1416
+  },
+  "stay behind the jab": {
+   "file": "stay_behind_the_jab.mp3",
+   "ms": 1560
+  },
+  "stay busy": {
+   "file": "stay_busy.mp3",
+   "ms": 1176
+  },
+  "stay calm": {
+   "file": "stay_calm.mp3",
+   "ms": 1128
+  },
+  "stay composed": {
+   "file": "stay_composed.mp3",
+   "ms": 1440
+  },
+  "stay dangerous": {
+   "file": "stay_dangerous.mp3",
+   "ms": 1536
+  },
+  "stay heavy": {
+   "file": "stay_heavy.mp3",
+   "ms": 1152
+  },
+  "stay locked in": {
+   "file": "stay_locked_in.mp3",
+   "ms": 1152
+  },
+  "stay loose": {
+   "file": "stay_loose.mp3",
+   "ms": 1632
+  },
+  "stay ready": {
+   "file": "stay_ready.mp3",
+   "ms": 696
+  },
+  "stay sharp": {
+   "file": "stay_sharp.mp3",
+   "ms": 1392
+  },
+  "stay unpredictable": {
+   "file": "stay_unpredictable.mp3",
+   "ms": 1752
+  },
+  "step off and attack": {
+   "file": "step_off_and_attack.mp3",
+   "ms": 1392
+  },
+  "strike": {
+   "file": "strike.mp3",
+   "ms": 768
+  },
+  "strike with purpose": {
+   "file": "strike_with_purpose.mp3",
+   "ms": 1944
+  },
+  "strong body": {
+   "file": "strong_body.mp3",
+   "ms": 1008
+  },
+  "strong mind": {
+   "file": "strong_mind.mp3",
+   "ms": 1608
+  },
+  "strong posture": {
+   "file": "strong_posture.mp3",
+   "ms": 1104
+  },
+  "teep them back": {
+   "file": "teep_them_back.mp3",
+   "ms": 864
+  },
+  "the round is yours": {
+   "file": "the_round_is_yours.mp3",
+   "ms": 1536
+  },
+  "touch and go": {
+   "file": "touch_and_go.mp3",
+   "ms": 1440
+  },
+  "tough it out": {
+   "file": "tough_it_out.mp3",
+   "ms": 1032
+  },
+  "wall": {
+   "file": "wall.mp3",
+   "ms": 648
+  },
+  "you": {
+   "file": "you.mp3",
+   "ms": 432
+  },
+  "you got this": {
+   "file": "you_got_this.mp3",
+   "ms": 1272
+  },
+  "5 minutes": {
+   "file": "5_minutes.mp3",
+   "ms": 1152
+  },
+  "arm circles": {
+   "file": "arm_circles.mp3",
+   "ms": 1560
+  },
+  "at your own pace": {
+   "file": "at_your_own_pace.mp3",
+   "ms": 960
+  },
+  "bounce on your feet": {
+   "file": "bounce_on_your_feet.mp3",
+   "ms": 1176
+  },
+  "easy pace": {
+   "file": "easy_pace.mp3",
+   "ms": 1464
+  },
+  "easy punches": {
+   "file": "easy_punches.mp3",
+   "ms": 1488
+  },
+  "halfway through the warm up": {
+   "file": "halfway_through_the_warm_up.mp3",
+   "ms": 1320
+  },
+  "here we go": {
+   "file": "here_we_go.mp3",
+   "ms": 864
+  },
+  "hip circles": {
+   "file": "hip_circles.mp3",
+   "ms": 1104
+  },
+  "jumping jacks": {
+   "file": "jumping_jacks.mp3",
+   "ms": 1248
+  },
+  "leg swings and torso twists": {
+   "file": "leg_swings_and_torso_twists.mp3",
+   "ms": 2784
+  },
+  "light run": {
+   "file": "light_run.mp3",
+   "ms": 1248
+  },
+  "loose hands": {
+   "file": "loose_hands.mp3",
+   "ms": 1560
+  },
+  "mobility": {
+   "file": "mobility.mp3",
+   "ms": 1152
+  },
+  "rest whenever you like": {
+   "file": "rest_whenever_you_like.mp3",
+   "ms": 1320
+  },
+  "shadowbox": {
+   "file": "shadowbox.mp3",
+   "ms": 1176
+  },
+  "steady rhythm": {
+   "file": "steady_rhythm.mp3",
+   "ms": 1032
+  },
+  "stretch and get loose": {
+   "file": "stretch_and_get_loose.mp3",
+   "ms": 2232
+  },
+  "warm up": {
+   "file": "warm_up.mp3",
+   "ms": 600
+  },
+  "warm up complete": {
+   "file": "warm_up_complete.mp3",
+   "ms": 1368
+  },
+  "you should be able to talk": {
+   "file": "you_should_be_able_to_talk.mp3",
+   "ms": 1344
+  },
+  "a draw": {
+   "file": "a_draw.mp3",
+   "ms": 888
+  },
+  "aim for the liver": {
+   "file": "aim_for_the_liver.mp3",
+   "ms": 1104
+  },
+  "and fire": {
+   "file": "and_fire.mp3",
+   "ms": 1224
+  },
+  "angles": {
+   "file": "angles.mp3",
+   "ms": 1008
+  },
+  "as they step in": {
+   "file": "as_they_step_in.mp3",
+   "ms": 1248
+  },
+  "attack": {
+   "file": "attack.mp3",
+   "ms": 696
+  },
+  "attack the base": {
+   "file": "attack_the_base.mp3",
+   "ms": 1320
+  },
+  "back up fast": {
+   "file": "back_up_fast.mp3",
+   "ms": 1536
+  },
+  "balance after kicks": {
+   "file": "balance_after_kicks.mp3",
+   "ms": 1800
+  },
+  "bend at the knees": {
+   "file": "bend_at_the_knees.mp3",
+   "ms": 1248
+  },
+  "bend the knees": {
+   "file": "bend_the_knees.mp3",
+   "ms": 1368
+  },
+  "blitz entry": {
+   "file": "blitz_entry.mp3",
+   "ms": 1104
+  },
+  "block and fire": {
+   "file": "block_and_fire.mp3",
+   "ms": 1128
+  },
+  "body kick focus": {
+   "file": "body_kick_focus.mp3",
+   "ms": 1608
+  },
+  "body kick round": {
+   "file": "body_kick_round.mp3",
+   "ms": 2112
+  },
+  "bodywork round": {
+   "file": "bodywork_round.mp3",
+   "ms": 1464
+  },
+  "boxing to level change": {
+   "file": "boxing_to_level_change.mp3",
+   "ms": 1608
+  },
+  "breathing and snap": {
+   "file": "breathing_and_snap.mp3",
+   "ms": 768
+  },
+  "chamber high": {
+   "file": "chamber_high.mp3",
+   "ms": 1440
+  },
+  "check then counter before they reset": {
+   "file": "check_then_counter_before_they_reset.mp3",
+   "ms": 2112
+  },
+  "check then punish": {
+   "file": "check_then_punish.mp3",
+   "ms": 1392
+  },
+  "chest heavy": {
+   "file": "chest_heavy.mp3",
+   "ms": 1344
+  },
+  "chest up": {
+   "file": "chest_up.mp3",
+   "ms": 864
+  },
+  "circle and jab": {
+   "file": "circle_and_jab.mp3",
+   "ms": 1920
+  },
+  "circle away from their power side": {
+   "file": "circle_away_from_their_power_side.mp3",
+   "ms": 1992
+  },
+  "clean round": {
+   "file": "clean_round.mp3",
+   "ms": 888
+  },
+  "clinch break strikes": {
+   "file": "clinch_break_strikes.mp3",
+   "ms": 1896
+  },
+  "clinch entry": {
+   "file": "clinch_entry.mp3",
+   "ms": 1008
+  },
+  "clinch exit strikes": {
+   "file": "clinch_exit_strikes.mp3",
+   "ms": 1920
+  },
+  "close the distance": {
+   "file": "close_the_distance.mp3",
+   "ms": 1296
+  },
+  "close the gap fast": {
+   "file": "close_the_gap_fast.mp3",
+   "ms": 1704
+  },
+  "combos forward": {
+   "file": "combos_forward.mp3",
+   "ms": 1560
+  },
+  "come back with hands": {
+   "file": "come_back_with_hands.mp3",
+   "ms": 1632
+  },
+  "control the position": {
+   "file": "control_the_position.mp3",
+   "ms": 1440
+  },
+  "control the posture": {
+   "file": "control_the_posture.mp3",
+   "ms": 1344
+  },
+  "control the space": {
+   "file": "control_the_space.mp3",
+   "ms": 1536
+  },
+  "control their head": {
+   "file": "control_their_head.mp3",
+   "ms": 1200
+  },
+  "counter after block": {
+   "file": "counter_after_block.mp3",
+   "ms": 1200
+  },
+  "counter after check": {
+   "file": "counter_after_check.mp3",
+   "ms": 1752
+  },
+  "counter before they reset": {
+   "file": "counter_before_they_reset.mp3",
+   "ms": 1224
+  },
+  "counter kick round": {
+   "file": "counter_kick_round.mp3",
+   "ms": 1848
+  },
+  "counter on the rise": {
+   "file": "counter_on_the_rise.mp3",
+   "ms": 1464
+  },
+  "crash in": {
+   "file": "crash_in.mp3",
+   "ms": 1056
+  },
+  "cross accuracy": {
+   "file": "cross_accuracy.mp3",
+   "ms": 1584
+  },
+  "cross to roundhouse": {
+   "file": "cross_to_roundhouse.mp3",
+   "ms": 1992
+  },
+  "cut the cage": {
+   "file": "cut_the_cage.mp3",
+   "ms": 1056
+  },
+  "cut the ring": {
+   "file": "cut_the_ring.mp3",
+   "ms": 1152
+  },
+  "cut through the thigh": {
+   "file": "cut_through_the_thigh.mp3",
+   "ms": 1512
+  },
+  "cut with the elbow": {
+   "file": "cut_with_the_elbow.mp3",
+   "ms": 1080
+  },
+  "dead heat": {
+   "file": "dead_heat.mp3",
+   "ms": 1104
+  },
+  "defensive footwork": {
+   "file": "defensive_footwork.mp3",
+   "ms": 1128
+  },
+  "defensive shell": {
+   "file": "defensive_shell.mp3",
+   "ms": 1464
+  },
+  "dig to the body every exchange": {
+   "file": "dig_to_the_body_every_exchange.mp3",
+   "ms": 2472
+  },
+  "distance management": {
+   "file": "distance_management.mp3",
+   "ms": 1200
+  },
+  "do not engage inside": {
+   "file": "do_not_engage_inside.mp3",
+   "ms": 1464
+  },
+  "do not stay in the pocket": {
+   "file": "do_not_stay_in_the_pocket.mp3",
+   "ms": 1464
+  },
+  "don't force": {
+   "file": "don_t_force.mp3",
+   "ms": 1344
+  },
+  "don't push": {
+   "file": "don_t_push.mp3",
+   "ms": 1224
+  },
+  "double jab entries": {
+   "file": "double_jab_entries.mp3",
+   "ms": 1440
+  },
+  "double up when they hesitate": {
+   "file": "double_up_when_they_hesitate.mp3",
+   "ms": 1488
+  },
+  "drive the knee": {
+   "file": "drive_the_knee.mp3",
+   "ms": 768
+  },
+  "drive through": {
+   "file": "drive_through.mp3",
+   "ms": 696
+  },
+  "drive through the target": {
+   "file": "drive_through_the_target.mp3",
+   "ms": 1728
+  },
+  "drop and drive": {
+   "file": "drop_and_drive.mp3",
+   "ms": 1224
+  },
+  "drop your level": {
+   "file": "drop_your_level.mp3",
+   "ms": 1104
+  },
+  "elbow after punch": {
+   "file": "elbow_after_punch.mp3",
+   "ms": 1776
+  },
+  "elbow and move": {
+   "file": "elbow_and_move.mp3",
+   "ms": 1752
+  },
+  "elbow at 90 degrees": {
+   "file": "elbow_at_90_degrees.mp3",
+   "ms": 2040
+  },
+  "elbow entry setup": {
+   "file": "elbow_entry_setup.mp3",
+   "ms": 1920
+  },
+  "elbow is the finisher": {
+   "file": "elbow_is_the_finisher.mp3",
+   "ms": 1800
+  },
+  "elbow on the break": {
+   "file": "elbow_on_the_break.mp3",
+   "ms": 1488
+  },
+  "elbow up": {
+   "file": "elbow_up.mp3",
+   "ms": 912
+  },
+  "every punch comes back to your face": {
+   "file": "every_punch_comes_back_to_your_face.mp3",
+   "ms": 2112
+  },
+  "every shot with bad intentions": {
+   "file": "every_shot_with_bad_intentions.mp3",
+   "ms": 2208
+  },
+  "exit on the angle": {
+   "file": "exit_on_the_angle.mp3",
+   "ms": 1536
+  },
+  "eyes up": {
+   "file": "eyes_up.mp3",
+   "ms": 792
+  },
+  "fast switch or straight off the lead": {
+   "file": "fast_switch_or_straight_off_the_lead.mp3",
+   "ms": 2016
+  },
+  "feet shoulder width": {
+   "file": "feet_shoulder_width.mp3",
+   "ms": 1296
+  },
+  "feint to entry": {
+   "file": "feint_to_entry.mp3",
+   "ms": 1416
+  },
+  "feint to kick": {
+   "file": "feint_to_kick.mp3",
+   "ms": 1176
+  },
+  "feint to overhand": {
+   "file": "feint_to_overhand.mp3",
+   "ms": 1944
+  },
+  "finish with a kick": {
+   "file": "finish_with_a_kick.mp3",
+   "ms": 1080
+  },
+  "fire back immediately": {
+   "file": "fire_back_immediately.mp3",
+   "ms": 1368
+  },
+  "first jab measures": {
+   "file": "first_jab_measures.mp3",
+   "ms": 2040
+  },
+  "flow": {
+   "file": "flow.mp3",
+   "ms": 648
+  },
+  "footwork and reset": {
+   "file": "footwork_and_reset.mp3",
+   "ms": 1824
+  },
+  "forward burst": {
+   "file": "forward_burst.mp3",
+   "ms": 1296
+  },
+  "frame and knee": {
+   "file": "frame_and_knee.mp3",
+   "ms": 1632
+  },
+  "frame on the neck": {
+   "file": "frame_on_the_neck.mp3",
+   "ms": 984
+  },
+  "full extension": {
+   "file": "full_extension.mp3",
+   "ms": 1512
+  },
+  "full hip rotation": {
+   "file": "full_hip_rotation.mp3",
+   "ms": 1776
+  },
+  "full rotation": {
+   "file": "full_rotation.mp3",
+   "ms": 1416
+  },
+  "ghost defeated": {
+   "file": "ghost_defeated.mp3",
+   "ms": 1224
+  },
+  "give ground": {
+   "file": "give_ground.mp3",
+   "ms": 792
+  },
+  "ground and pound shadow": {
+   "file": "ground_and_pound_shadow.mp3",
+   "ms": 2208
+  },
+  "guard return discipline": {
+   "file": "guard_return_discipline.mp3",
+   "ms": 1536
+  },
+  "guard while kicking": {
+   "file": "guard_while_kicking.mp3",
+   "ms": 1704
+  },
+  "hands and hips": {
+   "file": "hands_and_hips.mp3",
+   "ms": 936
+  },
+  "hands behind the head": {
+   "file": "hands_behind_the_head.mp3",
+   "ms": 1344
+  },
+  "hands bring them forward": {
+   "file": "hands_bring_them_forward.mp3",
+   "ms": 1680
+  },
+  "hands glued to your temples": {
+   "file": "hands_glued_to_your_temples.mp3",
+   "ms": 1968
+  },
+  "hands high": {
+   "file": "hands_high.mp3",
+   "ms": 960
+  },
+  "hands lower than boxing": {
+   "file": "hands_lower_than_boxing.mp3",
+   "ms": 1320
+  },
+  "hands set it": {
+   "file": "hands_set_it.mp3",
+   "ms": 1272
+  },
+  "hands stay home when the leg goes": {
+   "file": "hands_stay_home_when_the_leg_goes.mp3",
+   "ms": 2760
+  },
+  "hands then collar tie": {
+   "file": "hands_then_collar_tie.mp3",
+   "ms": 2232
+  },
+  "hands then legs": {
+   "file": "hands_then_legs.mp3",
+   "ms": 2040
+  },
+  "head movement after punches": {
+   "file": "head_movement_after_punches.mp3",
+   "ms": 2424
+  },
+  "head off their exit": {
+   "file": "head_off_their_exit.mp3",
+   "ms": 1200
+  },
+  "heavy on your base": {
+   "file": "heavy_on_your_base.mp3",
+   "ms": 1416
+  },
+  "heavy shin": {
+   "file": "heavy_shin.mp3",
+   "ms": 912
+  },
+  "heavy steps forward": {
+   "file": "heavy_steps_forward.mp3",
+   "ms": 1320
+  },
+  "high": {
+   "file": "high.mp3",
+   "ms": 624
+  },
+  "high guard defense": {
+   "file": "high_guard_defense.mp3",
+   "ms": 1440
+  },
+  "hip over": {
+   "file": "hip_over.mp3",
+   "ms": 1200
+  },
+  "hips down": {
+   "file": "hips_down.mp3",
+   "ms": 1296
+  },
+  "hips down hard": {
+   "file": "hips_down_hard.mp3",
+   "ms": 1800
+  },
+  "hips forward": {
+   "file": "hips_forward.mp3",
+   "ms": 1296
+  },
+  "hips loaded": {
+   "file": "hips_loaded.mp3",
+   "ms": 1176
+  },
+  "hips ready": {
+   "file": "hips_ready.mp3",
+   "ms": 1128
+  },
+  "hook fundamentals": {
+   "file": "hook_fundamentals.mp3",
+   "ms": 1632
+  },
+  "hop and sweep or push off": {
+   "file": "hop_and_sweep_or_push_off.mp3",
+   "ms": 2544
+  },
+  "if they catch": {
+   "file": "if_they_catch.mp3",
+   "ms": 1104
+  },
+  "it is exposed now": {
+   "file": "it_is_exposed_now.mp3",
+   "ms": 1776
+  },
+  "jab and move": {
+   "file": "jab_and_move.mp3",
+   "ms": 1464
+  },
+  "jab blinds them": {
+   "file": "jab_blinds_them.mp3",
+   "ms": 1392
+  },
+  "jab control": {
+   "file": "jab_control.mp3",
+   "ms": 1488
+  },
+  "jab discipline": {
+   "file": "jab_discipline.mp3",
+   "ms": 1320
+  },
+  "jab to body": {
+   "file": "jab_to_body.mp3",
+   "ms": 984
+  },
+  "jab to low kick": {
+   "file": "jab_to_low_kick.mp3",
+   "ms": 1368
+  },
+  "jab to takedown fake": {
+   "file": "jab_to_takedown_fake.mp3",
+   "ms": 1944
+  },
+  "jab your way in": {
+   "file": "jab_your_way_in.mp3",
+   "ms": 1320
+  },
+  "keep them at range": {
+   "file": "keep_them_at_range.mp3",
+   "ms": 1128
+  },
+  "keep them guessing": {
+   "file": "keep_them_guessing.mp3",
+   "ms": 1248
+  },
+  "kick and move": {
+   "file": "kick_and_move.mp3",
+   "ms": 1152
+  },
+  "kick and reset": {
+   "file": "kick_and_reset.mp3",
+   "ms": 1656
+  },
+  "kick and step offline": {
+   "file": "kick_and_step_offline.mp3",
+   "ms": 2208
+  },
+  "kick arrives before they settle": {
+   "file": "kick_arrives_before_they_settle.mp3",
+   "ms": 1680
+  },
+  "kick catch defense": {
+   "file": "kick_catch_defense.mp3",
+   "ms": 1608
+  },
+  "kick closes": {
+   "file": "kick_closes.mp3",
+   "ms": 984
+  },
+  "kick defense round": {
+   "file": "kick_defense_round.mp3",
+   "ms": 1848
+  },
+  "kick exit angles": {
+   "file": "kick_exit_angles.mp3",
+   "ms": 1680
+  },
+  "kick finishes it": {
+   "file": "kick_finishes_it.mp3",
+   "ms": 1368
+  },
+  "kick lands clean": {
+   "file": "kick_lands_clean.mp3",
+   "ms": 1608
+  },
+  "kick light": {
+   "file": "kick_light.mp3",
+   "ms": 816
+  },
+  "kick makes them look down": {
+   "file": "kick_makes_them_look_down.mp3",
+   "ms": 1464
+  },
+  "kick then move": {
+   "file": "kick_then_move.mp3",
+   "ms": 1776
+  },
+  "kick to exit": {
+   "file": "kick_to_exit.mp3",
+   "ms": 1320
+  },
+  "kick with the left": {
+   "file": "kick_with_the_left.mp3",
+   "ms": 1248
+  },
+  "kickboxing pressure": {
+   "file": "kickboxing_pressure.mp3",
+   "ms": 1536
+  },
+  "knee entries": {
+   "file": "knee_entries.mp3",
+   "ms": 1368
+  },
+  "knee fundamentals": {
+   "file": "knee_fundamentals.mp3",
+   "ms": 1488
+  },
+  "knee meets them": {
+   "file": "knee_meets_them.mp3",
+   "ms": 1104
+  },
+  "land in stance": {
+   "file": "land_in_stance.mp3",
+   "ms": 2064
+  },
+  "land the shin": {
+   "file": "land_the_shin.mp3",
+   "ms": 816
+  },
+  "lead hand frames": {
+   "file": "lead_hand_frames.mp3",
+   "ms": 1296
+  },
+  "lead hand out front": {
+   "file": "lead_hand_out_front.mp3",
+   "ms": 1224
+  },
+  "lead hook setup": {
+   "file": "lead_hook_setup.mp3",
+   "ms": 1200
+  },
+  "lead kick entries": {
+   "file": "lead_kick_entries.mp3",
+   "ms": 1632
+  },
+  "lead with the right": {
+   "file": "lead_with_the_right.mp3",
+   "ms": 1152
+  },
+  "left roundhouse becomes your power kick": {
+   "file": "left_roundhouse_becomes_your_power_kick.mp3",
+   "ms": 2760
+  },
+  "let them come": {
+   "file": "let_them_come.mp3",
+   "ms": 1104
+  },
+  "let them fly": {
+   "file": "let_them_fly.mp3",
+   "ms": 1152
+  },
+  "let your hands go": {
+   "file": "let_your_hands_go.mp3",
+   "ms": 1368
+  },
+  "level change reps": {
+   "file": "level_change_reps.mp3",
+   "ms": 1488
+  },
+  "light feet": {
+   "file": "light_feet.mp3",
+   "ms": 1008
+  },
+  "light kick balance": {
+   "file": "light_kick_balance.mp3",
+   "ms": 1752
+  },
+  "light kick volume": {
+   "file": "light_kick_volume.mp3",
+   "ms": 1224
+  },
+  "liver shot": {
+   "file": "liver_shot.mp3",
+   "ms": 1392
+  },
+  "long guard distance control": {
+   "file": "long_guard_distance_control.mp3",
+   "ms": 2064
+  },
+  "long guard pressure": {
+   "file": "long_guard_pressure.mp3",
+   "ms": 1872
+  },
+  "long jab from the low guard": {
+   "file": "long_jab_from_the_low_guard.mp3",
+   "ms": 1848
+  },
+  "long range": {
+   "file": "long_range.mp3",
+   "ms": 1296
+  },
+  "loop it over the guard": {
+   "file": "loop_it_over_the_guard.mp3",
+   "ms": 1632
+  },
+  "low": {
+   "file": "low.mp3",
+   "ms": 840
+  },
+  "low kick damage": {
+   "file": "low_kick_damage.mp3",
+   "ms": 1320
+  },
+  "low kick fundamentals": {
+   "file": "low_kick_fundamentals.mp3",
+   "ms": 1824
+  },
+  "low kick setup": {
+   "file": "low_kick_setup.mp3",
+   "ms": 1344
+  },
+  "low kick to level change": {
+   "file": "low_kick_to_level_change.mp3",
+   "ms": 1872
+  },
+  "make them come to you": {
+   "file": "make_them_come_to_you.mp3",
+   "ms": 1248
+  },
+  "make them pay for kicking": {
+   "file": "make_them_pay_for_kicking.mp3",
+   "ms": 1440
+  },
+  "meet their step with the push": {
+   "file": "meet_their_step_with_the_push.mp3",
+   "ms": 1488
+  },
+  "mirror everything": {
+   "file": "mirror_everything.mp3",
+   "ms": 1584
+  },
+  "mix every tool": {
+   "file": "mix_every_tool.mp3",
+   "ms": 1440
+  },
+  "mixed attack round": {
+   "file": "mixed_attack_round.mp3",
+   "ms": 1464
+  },
+  "mma guard awareness": {
+   "file": "mma_guard_awareness.mp3",
+   "ms": 2304
+  },
+  "move first": {
+   "file": "move_first.mp3",
+   "ms": 936
+  },
+  "muay thai march": {
+   "file": "muay_thai_march.mp3",
+   "ms": 1728
+  },
+  "never back straight up": {
+   "file": "never_back_straight_up.mp3",
+   "ms": 1632
+  },
+  "never cross them": {
+   "file": "never_cross_them.mp3",
+   "ms": 1032
+  },
+  "never fall forward": {
+   "file": "never_fall_forward.mp3",
+   "ms": 1728
+  },
+  "never flat footed": {
+   "file": "never_flat_footed.mp3",
+   "ms": 1416
+  },
+  "never let them breathe": {
+   "file": "never_let_them_breathe.mp3",
+   "ms": 1296
+  },
+  "never plant flat": {
+   "file": "never_plant_flat.mp3",
+   "ms": 1536
+  },
+  "never stay in front": {
+   "file": "never_stay_in_front.mp3",
+   "ms": 1608
+  },
+  "never stay in the pocket": {
+   "file": "never_stay_in_the_pocket.mp3",
+   "ms": 1800
+  },
+  "no hesitation": {
+   "file": "no_hesitation.mp3",
+   "ms": 1512
+  },
+  "no hooks": {
+   "file": "no_hooks.mp3",
+   "ms": 1152
+  },
+  "no pause between hands and feet": {
+   "file": "no_pause_between_hands_and_feet.mp3",
+   "ms": 2352
+  },
+  "no rushing": {
+   "file": "no_rushing.mp3",
+   "ms": 1296
+  },
+  "not the waist": {
+   "file": "not_the_waist.mp3",
+   "ms": 1152
+  },
+  "one punch": {
+   "file": "one_punch.mp3",
+   "ms": 1416
+  },
+  "one step": {
+   "file": "one_step.mp3",
+   "ms": 1080
+  },
+  "one two kick": {
+   "file": "one_two_kick.mp3",
+   "ms": 1608
+  },
+  "outside boxing": {
+   "file": "outside_boxing.mp3",
+   "ms": 1584
+  },
+  "outside kickboxing": {
+   "file": "outside_kickboxing.mp3",
+   "ms": 1296
+  },
+  "overhand entry": {
+   "file": "overhand_entry.mp3",
+   "ms": 1392
+  },
+  "overwhelm them": {
+   "file": "overwhelm_them.mp3",
+   "ms": 984
+  },
+  "own the range": {
+   "file": "own_the_range.mp3",
+   "ms": 1272
+  },
+  "pivot after combo": {
+   "file": "pivot_after_combo.mp3",
+   "ms": 1536
+  },
+  "plant": {
+   "file": "plant.mp3",
+   "ms": 696
+  },
+  "plus five": {
+   "file": "plus_five.mp3",
+   "ms": 1248
+  },
+  "pop back up": {
+   "file": "pop_back_up.mp3",
+   "ms": 1128
+  },
+  "posture and base": {
+   "file": "posture_and_base.mp3",
+   "ms": 1680
+  },
+  "posture up": {
+   "file": "posture_up.mp3",
+   "ms": 1176
+  },
+  "power comes from the legs": {
+   "file": "power_comes_from_the_legs.mp3",
+   "ms": 1440
+  },
+  "power strike round": {
+   "file": "power_strike_round.mp3",
+   "ms": 1872
+  },
+  "pressure boxing": {
+   "file": "pressure_boxing.mp3",
+   "ms": 864
+  },
+  "pressure reset": {
+   "file": "pressure_reset.mp3",
+   "ms": 1296
+  },
+  "pull them into the knee": {
+   "file": "pull_them_into_the_knee.mp3",
+   "ms": 1200
+  },
+  "punch kick reset": {
+   "file": "punch_kick_reset.mp3",
+   "ms": 1824
+  },
+  "punch light": {
+   "file": "punch_light.mp3",
+   "ms": 1272
+  },
+  "punch second": {
+   "file": "punch_second.mp3",
+   "ms": 936
+  },
+  "punch then angle": {
+   "file": "punch_then_angle.mp3",
+   "ms": 1824
+  },
+  "punch then slip": {
+   "file": "punch_then_slip.mp3",
+   "ms": 1296
+  },
+  "punch to kick flow": {
+   "file": "punch_to_kick_flow.mp3",
+   "ms": 1944
+  },
+  "punch to knee entry": {
+   "file": "punch_to_knee_entry.mp3",
+   "ms": 1824
+  },
+  "punches open": {
+   "file": "punches_open.mp3",
+   "ms": 1536
+  },
+  "punish against the wall": {
+   "file": "punish_against_the_wall.mp3",
+   "ms": 1560
+  },
+  "push from the hip": {
+   "file": "push_from_the_hip.mp3",
+   "ms": 1560
+  },
+  "push off": {
+   "file": "push_off.mp3",
+   "ms": 720
+  },
+  "push off and fire": {
+   "file": "push_off_and_fire.mp3",
+   "ms": 2016
+  },
+  "quick feet swap": {
+   "file": "quick_feet_swap.mp3",
+   "ms": 1464
+  },
+  "rack up reps": {
+   "file": "rack_up_reps.mp3",
+   "ms": 1152
+  },
+  "rain down": {
+   "file": "rain_down.mp3",
+   "ms": 1416
+  },
+  "ready for both": {
+   "file": "ready_for_both.mp3",
+   "ms": 912
+  },
+  "rear hand is loaded": {
+   "file": "rear_hand_is_loaded.mp3",
+   "ms": 1416
+  },
+  "rear kick power": {
+   "file": "rear_kick_power.mp3",
+   "ms": 1296
+  },
+  "rear uppercut setup": {
+   "file": "rear_uppercut_setup.mp3",
+   "ms": 1968
+  },
+  "repeat": {
+   "file": "repeat.mp3",
+   "ms": 552
+  },
+  "reset between strikes": {
+   "file": "reset_between_strikes.mp3",
+   "ms": 1872
+  },
+  "reset clean": {
+   "file": "reset_clean.mp3",
+   "ms": 1440
+  },
+  "reset to your stance every time": {
+   "file": "reset_to_your_stance_every_time.mp3",
+   "ms": 2448
+  },
+  "retreat and return": {
+   "file": "retreat_and_return.mp3",
+   "ms": 1584
+  },
+  "rhythm round": {
+   "file": "rhythm_round.mp3",
+   "ms": 1008
+  },
+  "right foot forward": {
+   "file": "right_foot_forward.mp3",
+   "ms": 1512
+  },
+  "ring cutting": {
+   "file": "ring_cutting.mp3",
+   "ms": 1056
+  },
+  "roll under hooks": {
+   "file": "roll_under_hooks.mp3",
+   "ms": 1704
+  },
+  "roundhouse form": {
+   "file": "roundhouse_form.mp3",
+   "ms": 1416
+  },
+  "roundhouse power": {
+   "file": "roundhouse_power.mp3",
+   "ms": 1656
+  },
+  "run it back": {
+   "file": "run_it_back.mp3",
+   "ms": 768
+  },
+  "rush held": {
+   "file": "rush_held.mp3",
+   "ms": 1320
+  },
+  "second jab commits": {
+   "file": "second_jab_commits.mp3",
+   "ms": 1776
+  },
+  "sell the punch": {
+   "file": "sell_the_punch.mp3",
+   "ms": 1320
+  },
+  "sharp exhale": {
+   "file": "sharp_exhale.mp3",
+   "ms": 1440
+  },
+  "shin meets shin": {
+   "file": "shin_meets_shin.mp3",
+   "ms": 1896
+  },
+  "shoot low": {
+   "file": "shoot_low.mp3",
+   "ms": 1440
+  },
+  "short arc": {
+   "file": "short_arc.mp3",
+   "ms": 1248
+  },
+  "show level change": {
+   "file": "show_level_change.mp3",
+   "ms": 1992
+  },
+  "show the jab": {
+   "file": "show_the_jab.mp3",
+   "ms": 1152
+  },
+  "show the punch": {
+   "file": "show_the_punch.mp3",
+   "ms": 1008
+  },
+  "show the shot": {
+   "file": "show_the_shot.mp3",
+   "ms": 1152
+  },
+  "side kick distance control": {
+   "file": "side_kick_distance_control.mp3",
+   "ms": 2040
+  },
+  "sit down on it": {
+   "file": "sit_down_on_it.mp3",
+   "ms": 1224
+  },
+  "slip and counter": {
+   "file": "slip_and_counter.mp3",
+   "ms": 1488
+  },
+  "small lateral steps": {
+   "file": "small_lateral_steps.mp3",
+   "ms": 1872
+  },
+  "small movements": {
+   "file": "small_movements.mp3",
+   "ms": 1464
+  },
+  "snap": {
+   "file": "snap.mp3",
+   "ms": 744
+  },
+  "snap it back": {
+   "file": "snap_it_back.mp3",
+   "ms": 984
+  },
+  "snap it back fast": {
+   "file": "snap_it_back_fast.mp3",
+   "ms": 1464
+  },
+  "snap it out": {
+   "file": "snap_it_out.mp3",
+   "ms": 960
+  },
+  "southpaw round": {
+   "file": "southpaw_round.mp3",
+   "ms": 1560
+  },
+  "spear the knee": {
+   "file": "spear_the_knee.mp3",
+   "ms": 1272
+  },
+  "speed combination round": {
+   "file": "speed_combination_round.mp3",
+   "ms": 2112
+  },
+  "speed kick round": {
+   "file": "speed_kick_round.mp3",
+   "ms": 1776
+  },
+  "speed kills": {
+   "file": "speed_kills.mp3",
+   "ms": 1536
+  },
+  "speed over power": {
+   "file": "speed_over_power.mp3",
+   "ms": 1968
+  },
+  "sprawl fundamentals": {
+   "file": "sprawl_fundamentals.mp3",
+   "ms": 1632
+  },
+  "sprawl reaction": {
+   "file": "sprawl_reaction.mp3",
+   "ms": 1488
+  },
+  "stance and balance": {
+   "file": "stance_and_balance.mp3",
+   "ms": 1728
+  },
+  "stand tall": {
+   "file": "stand_tall.mp3",
+   "ms": 1176
+  },
+  "stay ready for the shot": {
+   "file": "stay_ready_for_the_shot.mp3",
+   "ms": 1176
+  },
+  "step across": {
+   "file": "step_across.mp3",
+   "ms": 1416
+  },
+  "step in or step out": {
+   "file": "step_in_or_step_out.mp3",
+   "ms": 2064
+  },
+  "step knee timing": {
+   "file": "step_knee_timing.mp3",
+   "ms": 2016
+  },
+  "step out": {
+   "file": "step_out.mp3",
+   "ms": 912
+  },
+  "step through": {
+   "file": "step_through.mp3",
+   "ms": 1368
+  },
+  "step with the punch": {
+   "file": "step_with_the_punch.mp3",
+   "ms": 1464
+  },
+  "straight down the pipe": {
+   "file": "straight_down_the_pipe.mp3",
+   "ms": 1536
+  },
+  "straight punches only": {
+   "file": "straight_punches_only.mp3",
+   "ms": 1968
+  },
+  "strike and reset": {
+   "file": "strike_and_reset.mp3",
+   "ms": 1968
+  },
+  "strike to clinch": {
+   "file": "strike_to_clinch.mp3",
+   "ms": 1128
+  },
+  "stuff it immediately": {
+   "file": "stuff_it_immediately.mp3",
+   "ms": 1368
+  },
+  "swing the bat": {
+   "file": "swing_the_bat.mp3",
+   "ms": 1320
+  },
+  "swing through": {
+   "file": "swing_through.mp3",
+   "ms": 1056
+  },
+  "switch stance": {
+   "file": "switch_stance.mp3",
+   "ms": 1584
+  },
+  "switch step basics": {
+   "file": "switch_step_basics.mp3",
+   "ms": 2040
+  },
+  "switch your feet": {
+   "file": "switch_your_feet.mp3",
+   "ms": 1824
+  },
+  "takedown defense movement": {
+   "file": "takedown_defense_movement.mp3",
+   "ms": 1992
+  },
+  "teep control": {
+   "file": "teep_control.mp3",
+   "ms": 1296
+  },
+  "teep distance control": {
+   "file": "teep_distance_control.mp3",
+   "ms": 1464
+  },
+  "teep resets them": {
+   "file": "teep_resets_them.mp3",
+   "ms": 1296
+  },
+  "teep rhythm": {
+   "file": "teep_rhythm.mp3",
+   "ms": 888
+  },
+  "teep timing": {
+   "file": "teep_timing.mp3",
+   "ms": 1248
+  },
+  "teep to roundhouse": {
+   "file": "teep_to_roundhouse.mp3",
+   "ms": 1800
+  },
+  "the ghost takes this one": {
+   "file": "the_ghost_takes_this_one.mp3",
+   "ms": 1464
+  },
+  "then back to safety": {
+   "file": "then_back_to_safety.mp3",
+   "ms": 1416
+  },
+  "then shoot": {
+   "file": "then_shoot.mp3",
+   "ms": 1392
+  },
+  "then take it back": {
+   "file": "then_take_it_back.mp3",
+   "ms": 1248
+  },
+  "throw the bomb": {
+   "file": "throw_the_bomb.mp3",
+   "ms": 888
+  },
+  "throw the kick": {
+   "file": "throw_the_kick.mp3",
+   "ms": 768
+  },
+  "thrust through the hip": {
+   "file": "thrust_through_the_hip.mp3",
+   "ms": 1272
+  },
+  "thumb to your ear": {
+   "file": "thumb_to_your_ear.mp3",
+   "ms": 1032
+  },
+  "tight space": {
+   "file": "tight_space.mp3",
+   "ms": 1704
+  },
+  "time the counter": {
+   "file": "time_the_counter.mp3",
+   "ms": 1176
+  },
+  "touch and reset": {
+   "file": "touch_and_reset.mp3",
+   "ms": 2064
+  },
+  "turn it over": {
+   "file": "turn_it_over.mp3",
+   "ms": 1128
+  },
+  "turn it over hard": {
+   "file": "turn_it_over_hard.mp3",
+   "ms": 1440
+  },
+  "turn the hip": {
+   "file": "turn_the_hip.mp3",
+   "ms": 840
+  },
+  "turn the hip fully on the kick": {
+   "file": "turn_the_hip_fully_on_the_kick.mp3",
+   "ms": 1800
+  },
+  "turn your hip over": {
+   "file": "turn_your_hip_over.mp3",
+   "ms": 1752
+  },
+  "underhook positioning": {
+   "file": "underhook_positioning.mp3",
+   "ms": 1608
+  },
+  "unload when they are trapped": {
+   "file": "unload_when_they_are_trapped.mp3",
+   "ms": 2136
+  },
+  "walk them down": {
+   "file": "walk_them_down.mp3",
+   "ms": 1056
+  },
+  "wall pressure": {
+   "file": "wall_pressure.mp3",
+   "ms": 1104
+  },
+  "wall pressure concept": {
+   "file": "wall_pressure_concept.mp3",
+   "ms": 1464
+  },
+  "watch your lead leg": {
+   "file": "watch_your_lead_leg.mp3",
+   "ms": 1800
+  },
+  "when they react": {
+   "file": "when_they_react.mp3",
+   "ms": 1344
+  },
+  "when they shell up": {
+   "file": "when_they_shell_up.mp3",
+   "ms": 1056
+  },
+  "win the underhook": {
+   "file": "win_the_underhook.mp3",
+   "ms": 1320
+  },
+  "your jab is now your right hand": {
+   "file": "your_jab_is_now_your_right_hand.mp3",
+   "ms": 1968
+  },
+  "again": {
+   "file": "again.mp3",
+   "ms": 696
+  },
+  "breathe through it": {
+   "file": "breathe_through_it.mp3",
+   "ms": 1968
+  },
+  "catch your breath": {
+   "file": "catch_your_breath.mp3",
+   "ms": 960
+  },
+  "cleaner": {
+   "file": "cleaner.mp3",
+   "ms": 768
+  },
+  "control the tension": {
+   "file": "control_the_tension.mp3",
+   "ms": 1320
+  },
+  "controlled breathing": {
+   "file": "controlled_breathing.mp3",
+   "ms": 1488
+  },
+  "controlled to the end": {
+   "file": "controlled_to_the_end.mp3",
+   "ms": 960
+  },
+  "corner time": {
+   "file": "corner_time.mp3",
+   "ms": 1056
+  },
+  "discipline": {
+   "file": "discipline.mp3",
+   "ms": 744
+  },
+  "done": {
+   "file": "done.mp3",
+   "ms": 600
+  },
+  "effortless": {
+   "file": "effortless.mp3",
+   "ms": 1080
+  },
+  "empty your mind": {
+   "file": "empty_your_mind.mp3",
+   "ms": 1368
+  },
+  "endure": {
+   "file": "endure.mp3",
+   "ms": 984
+  },
+  "fast hands": {
+   "file": "fast_hands.mp3",
+   "ms": 1248
+  },
+  "finished": {
+   "file": "finished.mp3",
+   "ms": 720
+  },
+  "gotta go fast": {
+   "file": "gotta_go_fast.mp3",
+   "ms": 1128
+  },
+  "hold": {
+   "file": "hold.mp3",
+   "ms": 672
+  },
+  "hold that standard": {
+   "file": "hold_that_standard.mp3",
+   "ms": 1296
+  },
+  "into the arena": {
+   "file": "into_the_arena.mp3",
+   "ms": 1056
+  },
+  "it's done": {
+   "file": "it_s_done.mp3",
+   "ms": 744
+  },
+  "keep going": {
+   "file": "keep_going.mp3",
+   "ms": 888
+  },
+  "keep that form": {
+   "file": "keep_that_form.mp3",
+   "ms": 1104
+  },
+  "let's get to work": {
+   "file": "let_s_get_to_work.mp3",
+   "ms": 1080
+  },
+  "let's go": {
+   "file": "let_s_go.mp3",
+   "ms": 792
+  },
+  "nice": {
+   "file": "nice.mp3",
+   "ms": 648
+  },
+  "nice pace": {
+   "file": "nice_pace.mp3",
+   "ms": 1152
+  },
+  "overwhelming": {
+   "file": "overwhelming.mp3",
+   "ms": 1128
+  },
+  "perfectly composed": {
+   "file": "perfectly_composed.mp3",
+   "ms": 1464
+  },
+  "pick up your blade": {
+   "file": "pick_up_your_blade.mp3",
+   "ms": 1176
+  },
+  "precise": {
+   "file": "precise.mp3",
+   "ms": 1080
+  },
+  "quick feet": {
+   "file": "quick_feet.mp3",
+   "ms": 1080
+  },
+  "release": {
+   "file": "release.mp3",
+   "ms": 936
+  },
+  "settle in": {
+   "file": "settle_in.mp3",
+   "ms": 888
+  },
+  "show me power": {
+   "file": "show_me_power.mp3",
+   "ms": 1296
+  },
+  "slow": {
+   "file": "slow.mp3",
+   "ms": 864
+  },
+  "speedster": {
+   "file": "speedster.mp3",
+   "ms": 1128
+  },
+  "stance ready": {
+   "file": "stance_ready.mp3",
+   "ms": 1440
+  },
+  "standard met": {
+   "file": "standard_met.mp3",
+   "ms": 1392
+  },
+  "stay relaxed": {
+   "file": "stay_relaxed.mp3",
+   "ms": 1272
+  },
+  "still": {
+   "file": "still.mp3",
+   "ms": 576
+  },
+  "that's power": {
+   "file": "that_s_power.mp3",
+   "ms": 936
+  },
+  "that's the strongest you": {
+   "file": "that_s_the_strongest_you.mp3",
+   "ms": 1680
+  },
+  "then again": {
+   "file": "then_again.mp3",
+   "ms": 1032
+  },
+  "total domination": {
+   "file": "total_domination.mp3",
+   "ms": 1584
+  },
+  "we march": {
+   "file": "we_march.mp3",
+   "ms": 936
+  },
+  "we train": {
+   "file": "we_train.mp3",
+   "ms": 888
+  },
+  "well done": {
+   "file": "well_done.mp3",
+   "ms": 888
+  },
+  "winner": {
+   "file": "winner.mp3",
+   "ms": 816
+  },
+  "yes": {
+   "file": "yes.mp3",
+   "ms": 696
+  },
+  "you have learned": {
+   "file": "you_have_learned.mp3",
+   "ms": 840
+  },
+  "you held the line": {
+   "file": "you_held_the_line.mp3",
+   "ms": 1704
+  },
+  "you've earned it": {
+   "file": "you_ve_earned_it.mp3",
+   "ms": 1056
+  },
+  "zone cleared": {
+   "file": "zone_cleared.mp3",
+   "ms": 1272
+  },
+  "eight": {
+   "file": "eight.mp3",
+   "ms": 672
+  },
+  "five": {
+   "file": "five.mp3",
+   "ms": 528
+  },
+  "four": {
+   "file": "four.mp3",
+   "ms": 648
+  },
+  "one": {
+   "file": "one.mp3",
+   "ms": 576
+  },
+  "one to the body": {
+   "file": "one_to_the_body.mp3",
+   "ms": 1176
+  },
+  "six": {
+   "file": "six.mp3",
+   "ms": 648
+  },
+  "three": {
+   "file": "three.mp3",
+   "ms": 624
+  },
+  "three to the body": {
+   "file": "three_to_the_body.mp3",
+   "ms": 1200
+  },
+  "two": {
+   "file": "two.mp3",
+   "ms": 672
+  },
+  "two to the body": {
+   "file": "two_to_the_body.mp3",
+   "ms": 1440
+  },
+  "0.75": {
+   "file": "0_75.mp3",
+   "ms": 1368
+  },
+  "1.25": {
+   "file": "1_25.mp3",
+   "ms": 1176
+  },
+  "1.5": {
+   "file": "1_5.mp3",
+   "ms": 1344
+  },
+  "1.75": {
+   "file": "1_75.mp3",
+   "ms": 1488
+  },
+  "2.25": {
+   "file": "2_25.mp3",
+   "ms": 1128
+  },
+  "2.5": {
+   "file": "2_5.mp3",
+   "ms": 1248
+  },
+  "2.75": {
+   "file": "2_75.mp3",
+   "ms": 1704
+  },
+  "3.25": {
+   "file": "3_25.mp3",
+   "ms": 1248
+  },
+  "3.5": {
+   "file": "3_5.mp3",
+   "ms": 1440
+  },
+  "3.75": {
+   "file": "3_75.mp3",
+   "ms": 1704
+  },
+  "degrees": {
+   "file": "degrees.mp3",
+   "ms": 984
+  },
+  "elbow at": {
+   "file": "elbow_at.mp3",
+   "ms": 1320
+  },
+  "round": {
+   "file": "round.mp3",
+   "ms": 1104
+  },
+  "second cadence": {
+   "file": "second_cadence.mp3",
+   "ms": 1656
+  }
+ },
+ "count": 825,
+ "builtAt": "2026-11-09T17:36:09.295Z"
+}

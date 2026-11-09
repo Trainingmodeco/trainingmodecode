@@ -272,6 +272,18 @@ function getCtx() {
   return audioCtx;
 }
 
+// The recorded coach voice (voiceClips.js) plays through the same context
+// and the same limiter as the bells, so its gain can go above 1.0 the way the
+// VOICE fader promises (browser speech is capped at 1.0; clips are not).
+// Creating the context claims the 'ambient' session type first, as
+// unlockAudio() does, so a prefetch that runs before the first unlock still
+// mixes with the athlete's music instead of interrupting it.
+export function getAudioContext() {
+  if (!audioCtx || audioCtx.state === 'closed') initExternalAudioSession();
+  return getCtx();
+}
+export function getCueOut() { return cueOut(); }
+
 export function unlockAudio() {
   // Claim the session as 'ambient' before the context starts, so beginning a
   // workout mixes with the athlete's music instead of interrupting it.

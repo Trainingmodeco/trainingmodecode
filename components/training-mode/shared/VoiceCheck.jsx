@@ -11,12 +11,18 @@ import { C } from '../Styles';
 // voices the phone offers, which voice the coach uses, the VOICE level, and
 // the outcome of the test line (started and finished / never started / an
 // error code), plus what the last session asked the engine to say and how
-// many of those lines it actually started.
+// many of those lines it actually started. Also whether this build carries
+// the recorded coach voice (clips the coach plays instead of asking the
+// phone's speech engine) and, when the test line came from those clips, says so.
 
 const FONT = "'Rajdhani',sans-serif";
 
 function explain(result, health) {
   if (!result) return null;
+  if (result.engine === 'clips' && (result.started || result.ended)) {
+    if (result.volume <= 0 || health.muted) return { tone: 'bad', text: 'The VOICE level is at 0. Open the speaker icon in any session and raise VOICE.' };
+    return { tone: 'ok', text: 'The coach speaks from recorded clips on this phone; the phone\u2019s speech engine only reads long text. If you heard the line, you\u2019re set.' };
+  }
   if (!result.supported) return { tone: 'bad', text: 'This browser has no speech engine, so the coach cannot talk here. Chrome or Safari on a phone both have one.' };
   if (result.volume <= 0 || health.muted) return { tone: 'bad', text: 'The VOICE level is at 0. Open the speaker icon in any session and raise VOICE.' };
   const tried = result.tried || [];
@@ -31,6 +37,13 @@ function explain(result, health) {
   if (result.error && !worked) return { tone: 'bad', text: `The engine refused the line (${result.error}). On Android: Settings \u2192 search \u201cText-to-speech\u201d \u2192 Speech Services by Google \u2192 Install voice data, and update the app in the Play Store. Then tap TEST THE VOICE again.` };
   if (result.started && !result.ended) return { tone: 'warn', text: 'The line started but never reported finishing. The coach will still talk; lines may run a little long.' };
   return { tone: 'ok', text: 'If you heard the line, the coach works on this phone. If you saw this but heard nothing, raise the media volume (not the ring volume) and check Bluetooth is not sending sound elsewhere.' };
+}
+
+function clipsLabel(health) {
+  const c = health.clips || {};
+  if (c.ready) return `ready (${c.count} clips)`;
+  if (c.status === 'loading' || c.status === 'none') return 'loading';
+  return 'not on this build';
 }
 
 export default function VoiceCheck({ voiceCoach }) {
@@ -92,12 +105,13 @@ export default function VoiceCheck({ voiceCoach }) {
           background: 'rgba(12,2,24,0.8)', border: `1px solid ${toneColor}55`,
           display: 'flex', flexDirection: 'column', gap: 4,
         }}>
+          {row('Recorded coach voice', clipsLabel(health))}
           {row('Speech engine', result.supported ? 'found' : 'none')}
           {row('Voices on this phone', String(result.voices ?? 0))}
           {row('Voice used', result.voice || 'phone default')}
           {row('VOICE level', `${Math.round((result.volume ?? 1) * 100)}%`)}
           {(result.tried || []).length > 1 && row('Voices tried', (result.tried || []).map((t) => `${t.voice}${t.error ? ' \u2717' : ' \u2713'}`).join(', '))}
-          {row('Test line', result.ended ? `spoken (${(result.ms / 1000).toFixed(1)} s)` : result.started ? 'started, no end' : result.error === 'no_events' ? 'never started' : `error: ${result.error}`)}
+          {row('Test line', `${result.ended ? `spoken (${(result.ms / 1000).toFixed(1)} s)` : result.started ? 'started, no end' : result.error === 'no_events' ? 'never started' : `error: ${result.error}`}${result.engine === 'clips' ? ' from recorded clips' : ''}`)}
           {health.attempted > 0 && row('Lines asked / started', `${health.attempted} / ${health.spoken}${health.silent ? ' · engine silent' : ''}`)}
           {verdict && (
             <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 11, color: toneColor, lineHeight: 1.4, marginTop: 4 }}>

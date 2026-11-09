@@ -1,4 +1,8 @@
 import { getEffectiveVoiceVolume, duckAppAudio, releaseExternalAudio } from './data/audioEngine';
+import { normalizeSpeech } from './data/voicePhrases';
+import { loadVoiceBank, getLoadedBank, bankStatus, planClips, planMs, prefetchBank, playPlan, clipGain } from './data/voiceClips';
+
+export { normalizeSpeech };
 
 // The spoken coach, on top of the browser's speechSynthesis.
 //
@@ -32,6 +36,12 @@ import { getEffectiveVoiceVolume, duckAppAudio, releaseExternalAudio } from './d
 // 5. Failures used to be invisible. getSpeechHealth() reports what happened
 //    (attempted, spoken, dropped, errors, silent mode, muted) for the VOICE
 //    CHECK in Profile and the speaker icon in the session corner.
+// 6. The owner's phone's engine refuses every utterance (synthesis-failed on
+//    every voice, the default included). The app now carries recorded clips
+//    of the coach's phrases (data/voiceClips.js, public/voice/<voice>/). A
+//    line that can be assembled from clips plays them through Web Audio and
+//    never touches speechSynthesis; any other line goes to the engine as
+//    before. health.lastEngine says which path the last line took.
 
 export const CANCEL_GAP_MS = 250;       // gap from synth.cancel() to the next speak()
 const PRIMER_WAIT_MS = 600;             // how long the primer may take to start before we move on
@@ -51,6 +61,7 @@ let lastCancelAt = -Infinity;
 let noStartStreak = 0;
 let engineSilent = false;
 let voicesListenerOn = false;
+let activeClipHandle = null; // the recorded-clip line that is playing, if any
 
 const health = {
   supported: null,
@@ -66,6 +77,8 @@ const health = {
   lastSpeakAt: 0,
   lastStartAt: 0,
   lastText: '',
+  lastEngine: null,   // 'clips' | 'tts': the path the last line took
+  clipsSpoken: 0,     // lines that started from recorded clips (also counted in spoken)
 };
 const healthListeners = new Set();
 
@@ -95,6 +108,7 @@ export function getSpeechHealth() {
   try { voicesCount = synth ? synth.getVoices().length : 0; } catch { voicesCount = 0; }
   let effective = 1;
   try { effective = getEffectiveVoiceVolume(); } catch { effective = 1; }
+  const bank = getLoadedBank(selectedGender);
   return {
     ...health,
     supported: !!synth,
@@ -102,7 +116,52 @@ export function getSpeechHealth() {
     silent: engineSilent,
     muted: effective <= 0,
     primed: voicePrimed && health.primed,
+    clips: { voice: selectedGender, ready: !!bank, count: bank ? bank.count : 0, status: bankStatus(selectedGender) },
   };
+}
+
+// The recorded voice bank for the selected coach, when it has loaded.
+function readyBank() {
+  return getLoadedBank(selectedGender);
+}
+
+// Load (and after the first prime, decode) the selected coach's clips. Cached
+// per voice; cheap to call again. Never throws; resolves to the bank or null.
+function loadClips(prefetch) {
+  try {
+    return loadVoiceBank(selectedGender).then((bank) => {
+      notifyHealth();
+      if (bank && prefetch) schedulePrefetch(bank);
+      return bank;
+    }).catch(() => null);
+  } catch { return Promise.resolve(null); }
+}
+
+// Decoding the whole bank (hundreds of clips) the moment a session starts
+// crowded out the screen that was mounting. The count-in and round calls
+// decode at once; the rest follows after the screen has settled, one clip
+// at a time with a breath between, so it never competes with the session.
+const PREFETCH_HOT_CONCURRENCY = 2;
+const PREFETCH_SETTLE_MS = 2500;
+const PREFETCH_GAP_MS = 25;
+const prefetched = new WeakSet();
+function schedulePrefetch(bank) {
+  if (prefetched.has(bank)) return;
+  prefetched.add(bank);
+  try { prefetchBank(bank, { concurrency: PREFETCH_HOT_CONCURRENCY, first: undefined, gapMs: 0, onlyFirst: true }); } catch { /* ignore */ }
+  setTimeout(() => { try { prefetchBank(bank, { concurrency: 1, gapMs: PREFETCH_GAP_MS }); } catch { /* ignore */ } }, PREFETCH_SETTLE_MS);
+}
+
+// The longest primeSpeech() waits for the manifest: on a first visit the
+// count-in should have the bank when it arrives quickly, and never stall
+// behind a slow network (the clips then take over from the first line that
+// plans after the manifest lands).
+const BANK_PRIME_WAIT_MS = 400;
+
+function stopActiveClips() {
+  const h = activeClipHandle;
+  activeClipHandle = null;
+  if (h) { try { h.stop(); } catch { /* ignore */ } }
 }
 
 // Subscribe to health changes (the session speaker icon). Returns the unsubscribe.
@@ -114,7 +173,7 @@ export function onSpeechHealth(fn) {
 export function resetSpeechHealth() {
   noStartStreak = 0;
   engineSilent = false;
-  Object.assign(health, { attempted: 0, spoken: 0, dropped: 0, errors: 0, lastError: null, lastText: '' });
+  Object.assign(health, { attempted: 0, spoken: 0, dropped: 0, errors: 0, lastError: null, lastText: '', lastEngine: null, clipsSpoken: 0 });
   notifyHealth();
 }
 
@@ -159,9 +218,12 @@ export function ensureVoicesReady() {
 }
 
 export function setVoiceGender(gender) {
-  selectedGender = (gender || 'female').toLowerCase();
+  const next = (gender || 'female').toLowerCase();
+  const changed = next !== selectedGender;
+  selectedGender = next;
   cachedVoice = null;
   cachedGenderKey = '';
+  if (changed || bankStatus(selectedGender) === 'none') loadClips(voicePrimed);
 }
 
 let cachedVoice = null;
@@ -313,9 +375,14 @@ async function awaitCancelGap() {
   if (wait > 0) await delay(wait);
 }
 
-function noteStart(utterText) {
+// A line has started. From the speech engine it also ends silent mode; from
+// recorded clips it says nothing about the engine, so silent mode is left as
+// it was (a long line that still goes to the engine must not wait seconds for
+// an engine that is known to be dead).
+function noteStart(utterText, engine = 'tts') {
   noStartStreak = 0;
-  if (engineSilent) engineSilent = false;
+  if (engine === 'clips') health.clipsSpoken += 1;
+  else if (engineSilent) engineSilent = false;
   health.spoken += 1;
   health.lastStartAt = now();
   if (utterText !== undefined) health.lastText = utterText;
@@ -330,6 +397,9 @@ function noteNoStart() {
 }
 
 export async function primeSpeech() {
+  // The recorded voice: load the manifest (waited for briefly, so the first
+  // lines of the session can use it) and decode the clips in the background.
+  await Promise.race([loadClips(true), delay(BANK_PRIME_WAIT_MS)]);
   const synth = getSynth();
   if (!synth) {
     voicePrimed = true;
@@ -402,12 +472,12 @@ export async function primeSpeech() {
 
 export function cancelSpeech() {
   const synth = getSynth();
-  if (!synth) return;
   currentVersion++;
   cancelGen++;
   currentSpeechPromise = null;
   currentSpeechPriority = -1;
-  hardCancel(synth);
+  stopActiveClips();
+  if (synth) hardCancel(synth);
 }
 
 // End of a session's voice. Default: cut whatever is playing (PAUSE, END,
@@ -425,26 +495,6 @@ export function stopVoiceSession(opts = {}) {
   cancelSpeech();
   // Session over — un-duck the athlete's music right away.
   releaseExternalAudio();
-}
-
-// TTS voices misread hyphenated / title-cased words — "Push-Ups" gets split at
-// the hyphen and "Ups" is read as the initialism "U-P-S". De-hyphenate between
-// letters and lowercase everything; speech doesn't need casing.
-// Exercise names and cadence labels carry notation that reads fine on screen
-// and badly out loud: "(Flat/Incline/Decline)", "Step In / Step Out", "3.5s",
-// "3 × 10". Strip the brackets, say "or" for a slash, "seconds" for a
-// trailing s and "by" for a multiplication sign.
-export function normalizeSpeech(text) {
-  if (text === undefined || text === null) return '';
-  return String(text)
-    .replace(/\s*\([^)]*\)/g, '')
-    .replace(/\s*\/\s*/g, ' or ')
-    .replace(/\s*×\s*/g, ' by ')
-    .replace(/(\d+(?:\.\d+)?)\s*s\b/g, '$1 seconds')
-    .replace(/([a-zA-Z])-([a-zA-Z])/g, '$1 $2')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
 }
 
 // ── Priority-aware scheduler ────────────────────────────────────────────
@@ -575,6 +625,7 @@ function issueUtterance(synth, text, opts, speakVersion, resolve, attempt) {
 
   health.attempted += 1;
   health.lastSpeakAt = now();
+  health.lastEngine = 'tts';
   try {
     synth.speak(utter);
   } catch (_err) {
@@ -585,16 +636,56 @@ function issueUtterance(synth, text, opts, speakVersion, resolve, attempt) {
   }
 }
 
+// The line from recorded clips. Resolves true when it played (or was
+// cancelled while playing), false when it could not (a clip failed to load):
+// the caller then says it through the speech engine.
+async function speakClips(bank, plan, text, opts, speakVersion) {
+  const rate = opts.rate || 1.0;
+  let handle;
+  try {
+    handle = playPlan(plan, {
+      bank,
+      rate,
+      isCancelled: () => speakVersion !== currentVersion,
+      onStart: () => { if (speakVersion === currentVersion) noteStart(text, 'clips'); },
+    });
+  } catch { return false; }
+  activeClipHandle = handle;
+  health.attempted += 1;
+  health.lastSpeakAt = now();
+  health.lastEngine = 'clips';
+  duckAppAudio(planMs(plan, rate) + 200);
+  try {
+    await handle.done;
+    return true;
+  } catch (err) {
+    health.attempted -= 1; // the engine's attempt is counted instead
+    health.errors += 1;
+    health.lastError = { error: 'clip-' + String((err && err.message) || 'failed').slice(0, 40), text, at: Date.now() };
+    notifyHealth();
+    return false;
+  } finally {
+    if (activeClipHandle === handle) activeClipHandle = null;
+  }
+}
+
 function speakUtterance(rawText, opts) {
   const synth = getSynth();
-  if (!synth) return Promise.resolve();
   const text = normalizeSpeech(rawText);
   if (!text) return Promise.resolve();
+  const bank = readyBank();
+  const plan = bank ? planClips(bank, text) : null;
+  if (!plan && !synth) return Promise.resolve();
 
   const speakVersion = ++currentVersion;
 
   return new Promise((resolve) => {
     (async () => {
+      // Recorded clips first: they need no speech engine and no cancel gap.
+      if (plan) {
+        const played = await speakClips(bank, plan, text, opts, speakVersion);
+        if (played || speakVersion !== currentVersion || !synth) { resolve(); return; }
+      }
       // Never speak inside the window after a cancel() (platform fact: Android
       // drops it). Nothing waits when there was no recent cancel.
       await awaitCancelGap();
@@ -607,7 +698,7 @@ function speakUtterance(rawText, opts) {
 
 export async function speakAsync(rawText, opts = {}) {
   const synth = getSynth();
-  if (!synth) return;
+  if (!synth && !readyBank()) return;
 
   const gen = cancelGen;
   await ensureVoicesReady();
@@ -623,7 +714,8 @@ export async function speakAsync(rawText, opts = {}) {
     if (shouldPreempt) {
       // Take the mic. The gap after the cancel is waited out in speakUtterance.
       currentVersion++;
-      hardCancel(synth);
+      stopActiveClips();
+      if (synth) hardCancel(synth);
     } else if (dropIfBusy) {
       return;
     } else {
@@ -650,7 +742,7 @@ export async function speakOrDelay(text, minMs, opts = {}) {
   const voiceEnabled = opts.voice !== false;
   const synth = getSynth();
 
-  if (!voiceEnabled || !synth) {
+  if (!voiceEnabled || (!synth && !readyBank())) {
     await delay(minMs);
     return;
   }
@@ -668,13 +760,42 @@ export async function speakOrDelay(text, minMs, opts = {}) {
 // finds a voice that works and remembers it. `tried` lists every attempt.
 export async function speakTest(text = 'Voice check. Three, two, one. Go!', opts = {}) {
   const synth = getSynth();
-  if (!synth) return { supported: false, started: false, ended: false, error: 'no_synth', ms: 0, voice: null, voices: 0, tried: [] };
+  let voices = 0;
+  try { voices = synth ? synth.getVoices().length : 0; } catch { voices = 0; }
+  // The recorded voice, when the test line can be assembled from its clips.
+  // The bank is awaited (cached once loaded; null on failure) so a first
+  // TEST THE VOICE after a cold open does not go to the engine by accident.
+  let bank = null;
+  try { bank = await loadVoiceBank(selectedGender); } catch { bank = null; }
+  const plan = bank ? planClips(bank, text) : null;
+  if (plan) {
+    cancelSpeech();
+    const t0 = now();
+    let started = false;
+    const line = normalizeSpeech(text);
+    const handle = playPlan(plan, { bank, rate: opts.rate || 1.0, onStart: () => { started = true; noteStart(line, 'clips'); } });
+    activeClipHandle = handle;
+    health.attempted += 1;
+    health.lastSpeakAt = now();
+    health.lastEngine = 'clips';
+    try {
+      await handle.done;
+      return { supported: !!synth, engine: 'clips', voices, voice: `recorded coach (${bank.voice})`, tried: [], volume: clipGain(), ms: Math.round(now() - t0), started, ended: true, error: null };
+    } catch (err) {
+      health.attempted -= 1;
+      health.errors += 1;
+      health.lastError = { error: 'clip-' + String((err && err.message) || 'failed').slice(0, 40), text: line, at: Date.now() };
+      notifyHealth();
+      // fall through: the speech engine gets the line
+    } finally {
+      if (activeClipHandle === handle) activeClipHandle = null;
+    }
+  }
+  if (!synth) return { supported: false, engine: 'tts', started: false, ended: false, error: 'no_synth', ms: 0, voice: null, voices: 0, tried: [] };
   await ensureVoicesReady();
   await awaitCancelGap();
   cancelSpeech();
   await awaitCancelGap();
-  let voices = 0;
-  try { voices = synth.getVoices().length; } catch { voices = 0; }
   const tried = [];
   const once = (voice) => new Promise((resolve) => {
     const t0 = now();
@@ -704,7 +825,7 @@ export async function speakTest(text = 'Voice check. Three, two, one. Go!', opts
     if (!voice) break;      // the default voice failed too: nothing else to try
     break;                  // not-allowed, no_events and the like: another voice will not help
   }
-  return { supported: true, voices, voice: usedVoice ? usedVoice.name : (last && (last.started || last.ended) ? 'phone default' : null), tried, ...last };
+  return { supported: true, engine: 'tts', voices, voice: usedVoice ? usedVoice.name : (last && (last.started || last.ended) ? 'phone default' : null), tried, ...last };
 }
 
 export function isVoicePrimed() {

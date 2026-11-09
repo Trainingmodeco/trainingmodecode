@@ -85,6 +85,12 @@ jobs:
       - name: Voice coach tests
         run: npm run -s test:voice
 
+      # The recorded coach voice: a line cut into phrases, the clips played
+      # back to back through Web Audio (order, gaps, cancel), the fall-back to
+      # the speech engine, and a page with no speech engine still speaking.
+      - name: Voice clips tests
+        run: npm run -s test:clips
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 

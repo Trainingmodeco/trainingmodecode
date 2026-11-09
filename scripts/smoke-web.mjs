@@ -953,7 +953,11 @@ await check('home: a guided start is remembered as guided, so CONTINUE stays gui
   await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
   const c = await page.evaluate(() => document.querySelector('[data-guide="home-continue"]').innerText);
   if (!/Quick Mission/.test(c) || /AT YOUR PACE/.test(c)) throw new Error(`the Continue card is wrong: ${c.replace(/\n/g, ' | ')}`);
-  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await S(2500);
+  // The coach screen mounts about 2.5 s after the tap (the speech primer
+  // waits on a headless engine that never answers), so poll for it instead
+  // of guessing a fixed wait.
+  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 });
+  await page.locator('[data-guide="qma-ring"]').first().waitFor({ timeout: 8000 }).catch(() => {});
   if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE\n/.test(await text())) throw new Error('CONTINUE did not repeat the guided run');
 }, /PREPARING|ROUND|GET READY/);
 await check('quick mission: GUIDED still starts the coach, and its brief offers AT YOUR PACE INSTEAD for the same mission', async () => {
