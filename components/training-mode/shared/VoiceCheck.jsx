@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { speakTest, getSpeechHealth, setVoiceGender, onSpeechHealth } from '../voiceCoach';
+import { speakTest, getSpeechHealth, setVoiceGender, onSpeechHealth, resetVoiceChoice } from '../voiceCoach';
 import { unlockAudio } from '../data/audioEngine';
 import { C } from '../Styles';
 
@@ -19,9 +19,16 @@ function explain(result, health) {
   if (!result) return null;
   if (!result.supported) return { tone: 'bad', text: 'This browser has no speech engine, so the coach cannot talk here. Chrome or Safari on a phone both have one.' };
   if (result.volume <= 0 || health.muted) return { tone: 'bad', text: 'The VOICE level is at 0. Open the speaker icon in any session and raise VOICE.' };
-  if (result.error === 'not-allowed') return { tone: 'bad', text: 'The browser blocked speech. Tap TEST THE VOICE again; if it stays blocked, allow Sound for this site in the browser’s site settings.' };
-  if (result.error === 'no_events') return { tone: 'bad', text: 'The phone’s speech engine did not answer. On Android: Settings → search “Text-to-speech” → preferred engine Speech Services by Google → open it, update it, and play its sample. Then tap TEST THE VOICE again.' };
-  if (result.error && !result.started) return { tone: 'bad', text: `The engine refused the line (${result.error}). The coach will fall back to the phone’s default voice; if this keeps happening, pick a different voice in the phone’s Text-to-speech settings.` };
+  const tried = result.tried || [];
+  const worked = result.started || result.ended;
+  if (worked && tried.length > 1) {
+    const failed = tried.filter((t) => t.error).map((t) => t.voice).join(', ');
+    return { tone: 'ok', text: `The phone\u2019s first voice${tried.length > 2 ? 's' : ''} (${failed}) would not speak, so the app switched to ${result.voice} and will keep using it. If you heard the line, you\u2019re set.` };
+  }
+  if (result.error === 'not-allowed') return { tone: 'bad', text: 'The browser blocked speech. Tap TEST THE VOICE again; if it stays blocked, allow Sound for this site in the browser\u2019s site settings.' };
+  if (result.error === 'no_events') return { tone: 'bad', text: 'The phone\u2019s speech engine did not answer. On Android: Settings \u2192 search \u201cText-to-speech\u201d \u2192 preferred engine Speech Services by Google \u2192 open it, update it, and play its sample. Then tap TEST THE VOICE again.' };
+  if (!worked && tried.length > 1) return { tone: 'bad', text: `Every voice the app tried failed (${tried.map((t) => t.voice).join(', ')}). The speech engine is missing its voice data. On Android: Settings \u2192 search \u201cText-to-speech\u201d \u2192 Speech Services by Google \u2192 Install voice data \u2192 download English (United Kingdom) or (United States); also update Speech Services by Google in the Play Store. Then tap RESET and TEST again.` };
+  if (result.error && !worked) return { tone: 'bad', text: `The engine refused the line (${result.error}). On Android: Settings \u2192 search \u201cText-to-speech\u201d \u2192 Speech Services by Google \u2192 Install voice data, and update the app in the Play Store. Then tap TEST THE VOICE again.` };
   if (result.started && !result.ended) return { tone: 'warn', text: 'The line started but never reported finishing. The coach will still talk; lines may run a little long.' };
   return { tone: 'ok', text: 'If you heard the line, the coach works on this phone. If you saw this but heard nothing, raise the media volume (not the ring volume) and check Bluetooth is not sending sound elsewhere.' };
 }
@@ -76,6 +83,9 @@ export default function VoiceCheck({ voiceCoach }) {
       <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 10.5, color: 'rgba(255,255,255,0.5)', marginTop: 4, lineHeight: 1.35 }}>
         Says a test line with the coach voice and shows what your phone did with it.
       </div>
+      {result && !(result.started || result.ended) && (
+        <button type="button" onClick={() => { resetVoiceChoice(); run(); }} style={{ marginTop: 6, width: '100%', padding: '8px 10px', borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px dashed rgba(168,85,247,0.4)', color: '#9a90b8', fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: '0.08em' }}>RESET AND TRY EVERY VOICE AGAIN</button>
+      )}
       {result && (
         <div style={{
           marginTop: 8, padding: '9px 12px', borderRadius: 10,
@@ -86,6 +96,7 @@ export default function VoiceCheck({ voiceCoach }) {
           {row('Voices on this phone', String(result.voices ?? 0))}
           {row('Voice used', result.voice || 'phone default')}
           {row('VOICE level', `${Math.round((result.volume ?? 1) * 100)}%`)}
+          {(result.tried || []).length > 1 && row('Voices tried', (result.tried || []).map((t) => `${t.voice}${t.error ? ' \u2717' : ' \u2713'}`).join(', '))}
           {row('Test line', result.ended ? `spoken (${(result.ms / 1000).toFixed(1)} s)` : result.started ? 'started, no end' : result.error === 'no_events' ? 'never started' : `error: ${result.error}`)}
           {health.attempted > 0 && row('Lines asked / started', `${health.attempted} / ${health.spoken}${health.silent ? ' · engine silent' : ''}`)}
           {verdict && (

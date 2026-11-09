@@ -10,10 +10,10 @@ import assert from 'node:assert/strict';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const nowMs = () => performance.now();
 
-function makeEngine(model) {
+function makeEngine(model, voiceList) {
   const log = { speaks: [], cancels: [], started: [], dropped: [] };
   let current = null, queue = [], timer = null, lastCancel = -Infinity;
-  const voices = model === 'dead' ? [] : [{ name: 'English United Kingdom', lang: 'en-GB', default: true, localService: true, voiceURI: 'en-gb' }];
+  const voices = model === 'dead' ? [] : (voiceList || [{ name: 'English United Kingdom', lang: 'en-GB', default: true, localService: true, voiceURI: 'en-gb' }]);
   const fire = (u, type, extra) => { const fn = u['on' + type]; if (typeof fn === 'function') fn(Object.assign({ type, utterance: u }, extra || {})); };
   const startNext = () => {
     if (current || !queue.length) return;
@@ -37,7 +37,7 @@ function makeEngine(model) {
     speak(u) {
       log.speaks.push({ text: u.text, t: nowMs(), voice: u.voice ? u.voice.name : null, volume: u.volume, sinceCancel: nowMs() - lastCancel });
       if (model === 'android-drop' && nowMs() - lastCancel < 150) { log.dropped.push(u.text); return; }
-      if (model !== 'dead' && synth.failVoice && u.voice) { setTimeout(() => fire(u, 'error', { error: 'synthesis-failed' }), 20); return; }
+      if (model !== 'dead' && u.voice && (synth.failVoice || (synth.failNames && synth.failNames.has(u.voice.name)))) { setTimeout(() => fire(u, 'error', { error: 'synthesis-failed' }), 20); return; }
       queue.push(u); startNext();
     },
     cancel() {
@@ -72,8 +72,9 @@ async function test(name, fn) {
 }
 
 // Fresh module state per engine: import the engine once per model via a query.
-async function load(model) {
-  const synth = makeEngine(model);
+async function load(model, voiceList) {
+  const synth = makeEngine(model, voiceList);
+  globalThis.localStorage = (() => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; })();
   globalThis.window = { speechSynthesis: synth };
   globalThis.SpeechSynthesisUtterance = Utter;
   const mod = await import(`../components/training-mode/voiceCoach.js?${model}-${Math.random()}`);
@@ -163,6 +164,42 @@ await test('real: synthesis-failed on the chosen voice retries with voice = null
   assert.equal(tries[1].voice, null);
   assert.ok(synth.log.started.includes('jab cross'));
   assert.equal(vc.getSpeechHealth().errors, 1);
+});
+
+// 6b. A phone with many voices: the first English one fails (network voice, no data); the next is used and remembered.
+await test('real: a failing first voice is skipped, the next one speaks, and it is remembered', async () => {
+  const voices = [
+    { name: 'English United Kingdom', lang: 'en-GB', localService: false, voiceURI: 'net-gb' },
+    { name: 'English United States', lang: 'en-US', localService: true, voiceURI: 'loc-us' },
+    { name: 'English India', lang: 'en-IN', localService: true, voiceURI: 'loc-in' },
+  ];
+  const { synth, vc } = await load('real', voices);
+  // On-phone voices are preferred, so the local US voice is picked before the network UK one.
+  await vc.speakAsync('jab cross');
+  assert.equal(synth.log.speaks[0].voice, 'English United States', 'a voice stored on the phone comes first');
+  // Now make that one fail too: the walk goes on to the next.
+  synth.failNames = new Set(['English United States']);
+  await vc.speakAsync('hook');
+  const hook = synth.log.speaks.filter((s) => s.text === 'hook').map((s) => s.voice);
+  assert.deepEqual(hook, ['English United States', 'English India'], `hook tried with ${hook}`);
+  assert.ok(synth.log.started.includes('hook'));
+  // The bad voice is not tried again.
+  await vc.speakAsync('cross');
+  assert.deepEqual(synth.log.speaks.filter((s) => s.text === 'cross').map((s) => s.voice), ['English India']);
+});
+
+// 6c. Every voice fails: the device default is tried last, and the test reports each attempt.
+await test('real: speakTest reports every voice tried and ends on the device default', async () => {
+  const voices = [
+    { name: 'A', lang: 'en-GB', localService: true, voiceURI: 'a' },
+    { name: 'B', lang: 'en-US', localService: true, voiceURI: 'b' },
+  ];
+  const { synth, vc } = await load('real', voices);
+  synth.failVoice = true; // any named voice fails; no voice (the default) works
+  const r = await vc.speakTest('voice check');
+  assert.equal(r.started || r.ended, true, 'the default voice spoke');
+  assert.deepEqual(r.tried.map((t) => t.voice), ['A', 'B', 'phone default']);
+  assert.equal(r.voice, 'phone default');
 });
 
 // 7. A queued line is abandoned by cancelSpeech (ENG-07).

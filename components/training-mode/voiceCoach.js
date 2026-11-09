@@ -167,18 +167,53 @@ export function setVoiceGender(gender) {
 let cachedVoice = null;
 let cachedGenderKey = '';
 
-function pickVoice() {
-  const synth = getSynth();
-  if (!synth) return null;
-  let voices = [];
-  try { voices = synth.getVoices() || []; } catch { voices = []; }
-  if (voices.length === 0) return null;
+// ── Voices that do not work on this phone ───────────────────────────────
+// A phone lists many voices (92 on the owner's Samsung) and the first English
+// one can be a network voice whose data is not installed: it fails with
+// 'synthesis-failed' before a word is said, and the coach is silent. A voice
+// that fails that way is remembered as bad for BAD_TTL_MS and skipped; the one
+// that last spoke is remembered as good and tried first.
+const BAD_KEY = 'tm_voice_bad';
+const GOOD_KEY = 'tm_voice_good';
+const BAD_TTL_MS = 12 * 60 * 60 * 1000;
+let badVoices = null; // { voiceKey: failedAtMs }
 
-  const cacheKey = `${selectedGender}_${voices.length}`;
-  if (cachedVoice && cachedGenderKey === cacheKey && voices.includes(cachedVoice)) return cachedVoice;
+const voiceKey = (v) => String((v && (v.voiceURI || v.name)) || '');
 
+function loadBad() {
+  if (badVoices) return badVoices;
+  badVoices = {};
+  try {
+    const raw = JSON.parse(localStorage.getItem(BAD_KEY) || '{}');
+    const t = Date.now();
+    for (const k of Object.keys(raw || {})) if (t - Number(raw[k]) < BAD_TTL_MS) badVoices[k] = Number(raw[k]);
+  } catch { /* no storage: in-memory only */ }
+  return badVoices;
+}
+function isBad(v) { return Object.prototype.hasOwnProperty.call(loadBad(), voiceKey(v)); }
+function markBad(v) {
+  if (!v) return;
+  const k = voiceKey(v);
+  loadBad()[k] = Date.now();
+  try { localStorage.setItem(BAD_KEY, JSON.stringify(badVoices)); } catch { /* ignore */ }
+  try { if (localStorage.getItem(GOOD_KEY) === k) localStorage.removeItem(GOOD_KEY); } catch { /* ignore */ }
+  cachedVoice = null;
+  cachedGenderKey = '';
+}
+function markGood(v) {
+  if (!v) return;
+  try { localStorage.setItem(GOOD_KEY, voiceKey(v)); } catch { /* ignore */ }
+}
+// For VOICE CHECK's "try again from scratch".
+export function resetVoiceChoice() {
+  badVoices = {};
+  try { localStorage.removeItem(BAD_KEY); localStorage.removeItem(GOOD_KEY); } catch { /* ignore */ }
+  cachedVoice = null;
+  cachedGenderKey = '';
+}
+
+function selectVoice(list) {
   let chosen = null;
-
   if (selectedGender === 'female') {
     const priorityNames = [
       'google uk english female',
@@ -188,29 +223,55 @@ function pickVoice() {
       'microsoft hazel',
     ];
     for (const pName of priorityNames) {
-      const v = voices.find(v => v.name.toLowerCase().includes(pName));
+      const v = list.find(v => v.name.toLowerCase().includes(pName));
       if (v) { chosen = v; break; }
     }
     if (!chosen) {
-      chosen = voices.find(v => /en[-_]gb/i.test(v.lang) && /female|woman/i.test(v.name));
+      chosen = list.find(v => /en[-_]gb/i.test(v.lang) && /female|woman/i.test(v.name));
     }
     if (!chosen) {
-      chosen = voices.find(v => /en[-_]gb/i.test(v.lang));
+      chosen = list.find(v => /en[-_]gb/i.test(v.lang));
     }
     if (!chosen) {
       const femaleNames = /samantha|victoria|karen|tessa|susan|zira|female|fiona|moira/i;
-      chosen = voices.find(v => femaleNames.test(v.name) && /en[-_]/i.test(v.lang));
+      chosen = list.find(v => femaleNames.test(v.name) && /en[-_]/i.test(v.lang));
     }
   } else {
     const maleNames = /daniel|alex|fred|david|mark|george|male/i;
-    chosen = voices.find(v => maleNames.test(v.name) && /en[-_]/i.test(v.lang));
+    chosen = list.find(v => maleNames.test(v.name) && /en[-_]/i.test(v.lang));
   }
-
   if (!chosen) {
-    chosen = voices.find(v => /en[-_]/i.test(v.lang));
+    chosen = list.find(v => /en[-_]/i.test(v.lang));
   }
+  return chosen || null;
+}
 
-  cachedVoice = chosen || null;
+function pickVoice() {
+  const synth = getSynth();
+  if (!synth) return null;
+  let voices = [];
+  try { voices = synth.getVoices() || []; } catch { voices = []; }
+  if (voices.length === 0) return null;
+
+  const bad = loadBad();
+  const cacheKey = `${selectedGender}_${voices.length}_${Object.keys(bad).length}`;
+  if (cachedVoice && cachedGenderKey === cacheKey && voices.includes(cachedVoice)) return cachedVoice;
+
+  const usable = voices.filter((v) => !isBad(v));
+  let chosen = null;
+  // The voice that last spoke on this phone, as long as it still fits the pick.
+  let good = null;
+  try { good = localStorage.getItem(GOOD_KEY); } catch { good = null; }
+  if (good) {
+    const g = usable.find((v) => voiceKey(v) === good);
+    if (g && /en[-_]/i.test(g.lang)) chosen = g;
+  }
+  // Voices stored on the phone (localService) work offline and are the ones
+  // least likely to fail on data; take the best of those, then of all.
+  if (!chosen) chosen = selectVoice(usable.filter((v) => v.localService));
+  if (!chosen) chosen = selectVoice(usable);
+
+  cachedVoice = chosen;
   cachedGenderKey = cacheKey;
   return cachedVoice;
 }
@@ -419,9 +480,9 @@ function estimateMs(text, rate) {
 }
 
 // One utterance on the engine. Resolves when it ends, errors, is cancelled,
-// or its fallback decides it never will. `retry` allows one re-issue with the
-// device's default voice when the chosen voice fails before it starts.
-function issueUtterance(synth, text, opts, speakVersion, resolve, retry) {
+// or its fallback decides it never will. `attempt` (0-3) walks down the voices: one that fails before a word
+// is said is marked bad and the next best is used, then the device's own default.
+function issueUtterance(synth, text, opts, speakVersion, resolve, attempt) {
   let resolved = false;
   let started = false;
   let graces = 0;
@@ -441,7 +502,9 @@ function issueUtterance(synth, text, opts, speakVersion, resolve, retry) {
   const effectiveVol = opts.volume !== undefined ? opts.volume : getEffectiveVoiceVolume();
   utter.volume = Math.max(0, Math.min(1, Number.isFinite(effectiveVol) ? effectiveVol : 1));
 
-  const voice = retry ? pickVoice() : null;
+  // Attempts 0-2 use the best voice not yet known to fail; attempt 3 the
+  // device's own default (no voice set).
+  const voice = attempt >= 3 ? null : pickVoice();
   if (voice) utter.voice = voice;
   health.voiceName = voice ? voice.name : null;
 
@@ -452,6 +515,7 @@ function issueUtterance(synth, text, opts, speakVersion, resolve, retry) {
   utter.onstart = () => {
     if (speakVersion !== currentVersion) return;
     started = true;
+    markGood(voice);
     noteStart(text);
   };
   utter.onend = () => {
@@ -464,17 +528,17 @@ function issueUtterance(synth, text, opts, speakVersion, resolve, retry) {
     health.errors += 1;
     health.lastError = { error: err, text, at: Date.now() };
     notifyHealth();
-    // The chosen voice failed before a word was said: say it with the
-    // device's own voice instead (stale voice object, voice data missing).
-    if (!started && retry && voice && RETRY_ERRORS.test(err)) {
+    // The chosen voice failed before a word was said (a network voice with no
+    // data, a stale voice object): remember it as bad and say the line with the
+    // next best voice, and after three of those with the device's own default.
+    if (!started && voice && attempt < 3 && RETRY_ERRORS.test(err)) {
       clearTimeout(fallback);
       clearTimeout(silentTimer);
-      cachedVoice = null;
-      cachedGenderKey = '';
+      markBad(voice);
       setTimeout(() => {
         if (resolved) return;
         if (speakVersion !== currentVersion) { done(); return; }
-        issueUtterance(synth, text, opts, speakVersion, resolve, false);
+        issueUtterance(synth, text, opts, speakVersion, resolve, attempt + 1);
       }, 60);
       return;
     }
@@ -536,7 +600,7 @@ function speakUtterance(rawText, opts) {
       await awaitCancelGap();
       if (speakVersion !== currentVersion) { resolve(); return; }
       try { synth.resume(); } catch { /* ignore */ }
-      issueUtterance(synth, text, opts, speakVersion, resolve, true);
+      issueUtterance(synth, text, opts, speakVersion, resolve, 0);
     })();
   });
 }
@@ -598,26 +662,29 @@ export async function speakOrDelay(text, minMs, opts = {}) {
 }
 
 // A test line for the VOICE CHECK: speaks `text` outside the session lock and
-// reports exactly what the engine did with it.
+// reports exactly what the engine did with it. A voice that fails before a word
+// is said is marked bad and the next one is tried (up to three, then the
+// device's default), the same walk a session's lines take, so the check also
+// finds a voice that works and remembers it. `tried` lists every attempt.
 export async function speakTest(text = 'Voice check. Three, two, one. Go!', opts = {}) {
   const synth = getSynth();
-  if (!synth) return { supported: false, started: false, ended: false, error: 'no_synth', ms: 0, voice: null, voices: 0 };
+  if (!synth) return { supported: false, started: false, ended: false, error: 'no_synth', ms: 0, voice: null, voices: 0, tried: [] };
   await ensureVoicesReady();
   await awaitCancelGap();
   cancelSpeech();
   await awaitCancelGap();
-  const t0 = now();
-  return new Promise((resolve) => {
+  let voices = 0;
+  try { voices = synth.getVoices().length; } catch { voices = 0; }
+  const tried = [];
+  const once = (voice) => new Promise((resolve) => {
+    const t0 = now();
     let started = false, settled = false;
     const utter = new SpeechSynthesisUtterance(normalizeSpeech(text));
     utter.rate = opts.rate || 1.0;
     utter.pitch = opts.pitch || 1.05;
     utter.volume = Math.max(0, Math.min(1, getEffectiveVoiceVolume()));
-    const voice = pickVoice();
     if (voice) utter.voice = voice;
-    let voices = 0;
-    try { voices = synth.getVoices().length; } catch { voices = 0; }
-    const finish = (res) => { if (settled) return; settled = true; clearTimeout(t); resolve({ supported: true, voices, voice: voice ? voice.name : null, volume: utter.volume, ms: Math.round(now() - t0), ...res }); };
+    const finish = (res) => { if (settled) return; settled = true; clearTimeout(t); resolve({ volume: utter.volume, ms: Math.round(now() - t0), ...res }); };
     utter.onstart = () => { started = true; noteStart(utter.text); };
     utter.onend = () => finish({ started, ended: true, error: null });
     utter.onerror = (e) => finish({ started, ended: false, error: (e && e.error) || 'error' });
@@ -626,6 +693,18 @@ export async function speakTest(text = 'Voice check. Three, two, one. Go!', opts
     health.lastSpeakAt = now();
     try { synth.resume(); synth.speak(utter); } catch (_err) { finish({ started: false, ended: false, error: 'speak-threw' }); }
   });
+  let last = null, usedVoice = null;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const voice = attempt >= 3 ? null : pickVoice();
+    last = await once(voice);
+    usedVoice = voice;
+    tried.push({ voice: voice ? voice.name : 'phone default', error: last.error });
+    if (last.started || last.ended) { if (voice) markGood(voice); break; }
+    if (voice && RETRY_ERRORS.test(String(last.error))) { markBad(voice); await awaitCancelGap(); continue; }
+    if (!voice) break;      // the default voice failed too: nothing else to try
+    break;                  // not-allowed, no_events and the like: another voice will not help
+  }
+  return { supported: true, voices, voice: usedVoice ? usedVoice.name : (last && (last.started || last.ended) ? 'phone default' : null), tried, ...last };
 }
 
 export function isVoicePrimed() {
