@@ -27,6 +27,46 @@ MMA), Muay Thai clinch entry, the MMA grappling entries (sprawl, level
 change, basic shoot entry, ground-and-pound posture), and every Defense and
 Footwork entry.
 
+## Two-day plan (2026-11-10, for Friday and Saturday)
+
+**One take, three uses.** Every move is one continuous clip: say the move
+name to the camera first (the console labels clips from it; footage audio
+never reaches a video), 3 reps facing, turn 45° for 2, 1 slow, 1 wrong rep
+then the fix. The Practice tutorial, the Fit demo and the social B-roll all
+come out of that one clip. Phone on a tripod that never moves; check focus
+on the first take only.
+
+**Friday: Fit Mode** (a full commercial gym: barbell, kettlebell, dumbbells,
+pull-up bar, box, rower). The Quick Mission catalog
+(components/training-mode/data/missionMoves.js) is what the app runs today:
+135 moves, none filmed. About 1 to 1.5 min each.
+1. No gear (64): sprawl and burpee family, squats and Hindu squats, push-up
+   family, lunges, core, the striking conditioning moves (one-two, knee
+   strikes, switch and roundhouse kicks, windshield wipers), backpack moves.
+2. Kettlebell (21), then dumbbell (16).
+3. Barbell (25) and plate (2): Olympic lifts last, while fresh enough to
+   lift well but after the light work.
+4. Pull-up bar (3), heavy bag (3), rower (1).
+Morning before the gym: the talking-head pieces (founder story, beta invite,
+what is Fight / Fit / Practice / Arcade) somewhere quiet; the app screen
+recordings any time on the phone itself.
+
+**Saturday: Fight Mode** (one martial arts location, one outfit, black
+shirt and tiger shorts to match the library). In priority order:
+1. The four stances (lesson 1 of every path).
+2. Punches in boxing stance: jab, cross, lead and rear hook, lead and rear
+   uppercut, overhand, body jab, body cross. Then jab-cross in the
+   kickboxing, Muay Thai and MMA stances.
+3. Kicks and knees still missing: lead and rear teep, low kick, rear side
+   kick, check, clinch knee, clinch side knee, clinch entry.
+4. Specials: double-hand punch, fake teep to sliding elbow, spinning back
+   fist, flying knee, hurricane kick, spinning jump kick (optional).
+5. Elbows: lead and rear spear, elbow to the body.
+6. If there's time: MMA sprawl, level change, shoot entry,
+   ground-and-pound posture; the defense and footwork entries.
+7. Social B-roll while warm: 3 rounds of shadowboxing, bag rounds, the
+   round-finish sweat shot.
+
 ## Taken out
 
 - **Boxing stance** (Angel's camera, deblurred): too blurry; re-shot Saturday.
