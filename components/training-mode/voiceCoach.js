@@ -149,7 +149,19 @@ function schedulePrefetch(bank) {
   if (prefetched.has(bank)) return;
   prefetched.add(bank);
   try { prefetchBank(bank, { concurrency: PREFETCH_HOT_CONCURRENCY, first: undefined, gapMs: 0, onlyFirst: true }); } catch { /* ignore */ }
+  // The whole bank is tens of MB: on mobile data or data saver keep to the
+  // hot clips; the rest load the first time a line needs them (and the
+  // service worker keeps them).
+  if (onMeteredNetwork()) return;
   setTimeout(() => { try { prefetchBank(bank, { concurrency: 1, gapMs: PREFETCH_GAP_MS }); } catch { /* ignore */ } }, PREFETCH_SETTLE_MS);
+}
+
+function onMeteredNetwork() {
+  try {
+    const c = typeof navigator !== 'undefined' ? (navigator.connection || navigator.mozConnection || navigator.webkitConnection) : null;
+    if (!c) return false;
+    return c.saveData === true || c.type === 'cellular' || /(^|-)2g$/.test(String(c.effectiveType || ''));
+  } catch { return false; }
 }
 
 // The longest primeSpeech() waits for the manifest: on a first visit the

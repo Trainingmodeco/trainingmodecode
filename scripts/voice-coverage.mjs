@@ -45,7 +45,6 @@ const SCREENS = {
   'Training Arcade': ['ArcadeBenchmarkPlayer.jsx', 'ArcadeCadenceRepPlayer.jsx', 'ArcadeCardioPlayer.jsx', 'ArcadeStageIntroOverlay.jsx'],
   'Warm-up and mobility': ['shared/WarmupTimer.jsx', 'shared/MobilityBlock.jsx'],
 };
-const CALL = /\b(?:speakAsync|speakOrDelay|speak|say|announce)\(\s*(`(?:[^`\\]|\\.)*`|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g;
 // Split a template's text at ${...}, keeping only the fixed words; ternary
 // string branches inside ${} are fixed words too.
 function fixedPieces(lit) {
@@ -64,10 +63,39 @@ function fixedPieces(lit) {
   out.push(cur);
   return out;
 }
+// Every string and template literal inside a speak call's parentheses
+// (ternaries, || fallbacks and joins included).
+const CALL_START = /\b(?:speakAsync|speakOrDelay|speak|say|announce)\(/g;
+function callLiterals(src, at) {
+  const out = []; let depth = 1, i = at;
+  while (i < src.length && depth > 0) {
+    const ch = src[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === "'" || ch === '"' || ch === '`') {
+      let j = i + 1, tdepth = 0;
+      while (j < src.length) {
+        if (src[j] === '\\') { j += 2; continue; }
+        if (ch === '`' && src[j] === '$' && src[j + 1] === '{') { tdepth++; j += 2; continue; }
+        if (ch === '`' && tdepth > 0 && src[j] === '}') { tdepth--; j++; continue; }
+        if (src[j] === ch && tdepth === 0) break;
+        j++;
+      }
+      // Skip code labels: a literal compared with ===/!==, or the argument of
+      // a nested function call (getCoachCopy('sessionStart')).
+      const before = src.slice(Math.max(0, i - 40), i).replace(/\s+$/, '');
+      const label = /[!=]==?$/.test(before) || (depth > 1 && /[A-Za-z0-9_$]\($/.test(before));
+      if (!label) out.push(src.slice(i, j + 1));
+      i = j;
+    }
+    i++;
+  }
+  return out;
+}
 for (const [feature, files] of Object.entries(SCREENS)) {
   for (const f of files) {
     const src = fs.readFileSync(path.join(TM, f), 'utf8');
-    for (const m of src.matchAll(CALL)) for (const piece of fixedPieces(m[1])) add(feature, piece);
+    for (const m of src.matchAll(CALL_START)) for (const lit of callLiterals(src, m.index + m[0].length)) for (const piece of fixedPieces(lit)) add(feature, piece);
   }
 }
 

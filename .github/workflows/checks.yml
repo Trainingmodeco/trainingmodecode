@@ -91,11 +91,11 @@ jobs:
       - name: Voice clips tests
         run: npm run -s test:clips
 
-      # Every line the coach can say should have recorded clips in both voices
-      # (new workouts and strikes need new clips). Report only until the
-      # banks are complete; then add --strict.
+      # Every line the coach can say must have recorded clips in both voices.
+      # New workouts, strikes or spoken lines fail here until they are
+      # recorded (see CLAUDE.md: The coach's voice).
       - name: Voice coverage
-        run: npm run -s voice:coverage
+        run: npm run -s voice:coverage -- --strict
 
       - name: Combat Conditioning audit
         run: npm run -s audit:cc

@@ -23,7 +23,7 @@ export function normalizeSpeech(text) {
     .replace(/\s*\/\s*/g, ' or ')
     .replace(/\s*×\s*/g, ' by ')
     .replace(/(\d+(?:\.\d+)?)\s*s\b/g, '$1 seconds')
-    .replace(/([a-zA-Z])-([a-zA-Z])/g, '$1 $2')
+    .replace(/([a-zA-Z])-(?=[a-zA-Z])/g, '$1 ')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();

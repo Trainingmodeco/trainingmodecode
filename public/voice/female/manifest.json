@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 4,
+ "version": 10,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -4500,7 +4500,7 @@
   },
   "1-2": {
    "file": "1_2.mp3",
-   "ms": 1104
+   "ms": 1176
   },
   "10 back": {
    "file": "10_back.mp3",
@@ -5044,7 +5044,7 @@
   },
   "checkpoint": {
    "file": "checkpoint.mp3",
-   "ms": 1344
+   "ms": 696
   },
   "chin tucked": {
    "file": "chin_tucked.mp3",
@@ -5696,7 +5696,7 @@
   },
   "escaped": {
    "file": "escaped.mp3",
-   "ms": 1392
+   "ms": 696
   },
   "every minute": {
    "file": "every_minute.mp3",
@@ -7857,6 +7857,1642 @@
   "roadwork or sustained cardio to target": {
    "file": "roadwork_or_sustained_cardio_to_target.mp3",
    "ms": 3528
+  },
+  "reverse lunge to knee drive": {
+   "file": "reverse_lunge_to_knee_drive.mp3",
+   "ms": 2112
+  },
+  "right": {
+   "file": "right.mp3",
+   "ms": 576
+  },
+  "romanian deadlifts": {
+   "file": "romanian_deadlifts.mp3",
+   "ms": 1440
+  },
+  "room twelve": {
+   "file": "room_twelve.mp3",
+   "ms": 1464
+  },
+  "rotate and dip": {
+   "file": "rotate_and_dip.mp3",
+   "ms": 1584
+  },
+  "rotate hip and shoulder": {
+   "file": "rotate_hip_and_shoulder.mp3",
+   "ms": 2376
+  },
+  "rotate hips": {
+   "file": "rotate_hips.mp3",
+   "ms": 1056
+  },
+  "rotate rear hip": {
+   "file": "rotate_rear_hip.mp3",
+   "ms": 1368
+  },
+  "rotate the hip": {
+   "file": "rotate_the_hip.mp3",
+   "ms": 1200
+  },
+  "rotate the rear hip": {
+   "file": "rotate_the_rear_hip.mp3",
+   "ms": 1416
+  },
+  "rotate through the spine": {
+   "file": "rotate_through_the_spine.mp3",
+   "ms": 1344
+  },
+  "rotate your back hip forward": {
+   "file": "rotate_your_back_hip_forward.mp3",
+   "ms": 1632
+  },
+  "rotate your rear hip forward": {
+   "file": "rotate_your_rear_hip_forward.mp3",
+   "ms": 1824
+  },
+  "rotational core": {
+   "file": "rotational_core.mp3",
+   "ms": 1344
+  },
+  "rotational core and neck strengthening": {
+   "file": "rotational_core_and_neck_strengthening.mp3",
+   "ms": 2256
+  },
+  "rotational core work": {
+   "file": "rotational_core_work.mp3",
+   "ms": 1608
+  },
+  "rotational medicine ball or band throws": {
+   "file": "rotational_medicine_ball_or_band_throws.mp3",
+   "ms": 2568
+  },
+  "roundhouse kicks": {
+   "file": "roundhouse_kicks.mp3",
+   "ms": 1704
+  },
+  "row": {
+   "file": "row.mp3",
+   "ms": 600
+  },
+  "rows": {
+   "file": "rows.mp3",
+   "ms": 696
+  },
+  "run": {
+   "file": "run.mp3",
+   "ms": 480
+  },
+  "run complete": {
+   "file": "run_complete.mp3",
+   "ms": 1080
+  },
+  "run ended": {
+   "file": "run_ended.mp3",
+   "ms": 1392
+  },
+  "run resumed": {
+   "file": "run_resumed.mp3",
+   "ms": 1344
+  },
+  "running form drills": {
+   "file": "running_form_drills.mp3",
+   "ms": 1344
+  },
+  "russian twists": {
+   "file": "russian_twists.mp3",
+   "ms": 1656
+  },
+  "safety or shoulder roll from a squat": {
+   "file": "safety_or_shoulder_roll_from_a_squat.mp3",
+   "ms": 3648
+  },
+  "safety roll from a squat": {
+   "file": "safety_roll_from_a_squat.mp3",
+   "ms": 1704
+  },
+  "safety vault over a low step": {
+   "file": "safety_vault_over_a_low_step.mp3",
+   "ms": 1680
+  },
+  "sandbag or backpack clean and press": {
+   "file": "sandbag_or_backpack_clean_and_press.mp3",
+   "ms": 3312
+  },
+  "sandbag swings to target": {
+   "file": "sandbag_swings_to_target.mp3",
+   "ms": 2184
+  },
+  "scapular push ups + wall slides": {
+   "file": "scapular_push_ups_wall_slides.mp3",
+   "ms": 3000
+  },
+  "scoop the kick with both arms": {
+   "file": "scoop_the_kick_with_both_arms.mp3",
+   "ms": 1992
+  },
+  "seated one two": {
+   "file": "seated_one_two.mp3",
+   "ms": 1848
+  },
+  "seated one twos": {
+   "file": "seated_one_twos.mp3",
+   "ms": 1824
+  },
+  "seated windshield wiper punches": {
+   "file": "seated_windshield_wiper_punches.mp3",
+   "ms": 2280
+  },
+  "seated wipers": {
+   "file": "seated_wipers.mp3",
+   "ms": 1200
+  },
+  "seconds down": {
+   "file": "seconds_down.mp3",
+   "ms": 1464
+  },
+  "set up knees": {
+   "file": "set_up_knees.mp3",
+   "ms": 1080
+  },
+  "settle back into your pace": {
+   "file": "settle_back_into_your_pace.mp3",
+   "ms": 1608
+  },
+  "shadowbox combos": {
+   "file": "shadowbox_combos.mp3",
+   "ms": 1584
+  },
+  "shadowbox rounds between sprints": {
+   "file": "shadowbox_rounds_between_sprints.mp3",
+   "ms": 2064
+  },
+  "shoot the hips back and down": {
+   "file": "shoot_the_hips_back_and_down.mp3",
+   "ms": 2136
+  },
+  "short accelerations": {
+   "file": "short_accelerations.mp3",
+   "ms": 1704
+  },
+  "short conditioning intervals": {
+   "file": "short_conditioning_intervals.mp3",
+   "ms": 2136
+  },
+  "short easy plank": {
+   "file": "short_easy_plank.mp3",
+   "ms": 1440
+  },
+  "short low volume power activation": {
+   "file": "short_low_volume_power_activation.mp3",
+   "ms": 3024
+  },
+  "short mobility cooldown": {
+   "file": "short_mobility_cooldown.mp3",
+   "ms": 1704
+  },
+  "short shuttles + reactive starts": {
+   "file": "short_shuttles_reactive_starts.mp3",
+   "ms": 2328
+  },
+  "short sprint intervals": {
+   "file": "short_sprint_intervals.mp3",
+   "ms": 1872
+  },
+  "shoulder + rotator cuff care": {
+   "file": "shoulder_rotator_cuff_care.mp3",
+   "ms": 2784
+  },
+  "shoulder covers the chin": {
+   "file": "shoulder_covers_the_chin.mp3",
+   "ms": 1320
+  },
+  "shoulder pinch": {
+   "file": "shoulder_pinch.mp3",
+   "ms": 936
+  },
+  "shoulder plate rotations": {
+   "file": "shoulder_plate_rotations.mp3",
+   "ms": 1512
+  },
+  "shoulder rolls": {
+   "file": "shoulder_rolls.mp3",
+   "ms": 1104
+  },
+  "shoulder stability": {
+   "file": "shoulder_stability.mp3",
+   "ms": 1272
+  },
+  "shrug variation": {
+   "file": "shrug_variation.mp3",
+   "ms": 1560
+  },
+  "shuffle the rear foot up": {
+   "file": "shuffle_the_rear_foot_up.mp3",
+   "ms": 1632
+  },
+  "shuffle the rear foot up first": {
+   "file": "shuffle_the_rear_foot_up_first.mp3",
+   "ms": 1776
+  },
+  "side lunges": {
+   "file": "side_lunges.mp3",
+   "ms": 1536
+  },
+  "side steps": {
+   "file": "side_steps.mp3",
+   "ms": 1056
+  },
+  "single arm dumbbell rows": {
+   "file": "single_arm_dumbbell_rows.mp3",
+   "ms": 2496
+  },
+  "single arm inverted rows": {
+   "file": "single_arm_inverted_rows.mp3",
+   "ms": 1752
+  },
+  "single arm inverted rows with arm reach": {
+   "file": "single_arm_inverted_rows_with_arm_reach.mp3",
+   "ms": 2616
+  },
+  "single arm rows": {
+   "file": "single_arm_rows.mp3",
+   "ms": 1704
+  },
+  "single arm wall ball throw to sprawl": {
+   "file": "single_arm_wall_ball_throw_to_sprawl.mp3",
+   "ms": 3264
+  },
+  "single leg balance": {
+   "file": "single_leg_balance.mp3",
+   "ms": 1176
+  },
+  "single leg balance and control": {
+   "file": "single_leg_balance_and_control.mp3",
+   "ms": 2784
+  },
+  "single leg balance holds": {
+   "file": "single_leg_balance_holds.mp3",
+   "ms": 2376
+  },
+  "single leg bulgarian lunges": {
+   "file": "single_leg_bulgarian_lunges.mp3",
+   "ms": 2544
+  },
+  "single leg hops": {
+   "file": "single_leg_hops.mp3",
+   "ms": 1848
+  },
+  "single leg rdl for balance": {
+   "file": "single_leg_rdl_for_balance.mp3",
+   "ms": 2976
+  },
+  "sit ups or core": {
+   "file": "sit_ups_or_core.mp3",
+   "ms": 1584
+  },
+  "six push ups": {
+   "file": "six_push_ups.mp3",
+   "ms": 1368
+  },
+  "sixteen squats": {
+   "file": "sixteen_squats.mp3",
+   "ms": 1728
+  },
+  "slash horizontally across": {
+   "file": "slash_horizontally_across.mp3",
+   "ms": 2856
+  },
+  "slash level across the face": {
+   "file": "slash_level_across_the_face.mp3",
+   "ms": 1968
+  },
+  "sledgehammer or shadow swing power target": {
+   "file": "sledgehammer_or_shadow_swing_power_target.mp3",
+   "ms": 3480
+  },
+  "slide left": {
+   "file": "slide_left.mp3",
+   "ms": 1272
+  },
+  "slide right": {
+   "file": "slide_right.mp3",
+   "ms": 1128
+  },
+  "slightly squared": {
+   "file": "slightly_squared.mp3",
+   "ms": 1416
+  },
+  "slightly staggered": {
+   "file": "slightly_staggered.mp3",
+   "ms": 1824
+  },
+  "slip inside": {
+   "file": "slip_inside.mp3",
+   "ms": 1128
+  },
+  "slip outside": {
+   "file": "slip_outside.mp3",
+   "ms": 1416
+  },
+  "slow burn protocol": {
+   "file": "slow_burn_protocol.mp3",
+   "ms": 1728
+  },
+  "slow climbers": {
+   "file": "slow_climbers.mp3",
+   "ms": 1800
+  },
+  "slow lowering lunges": {
+   "file": "slow_lowering_lunges.mp3",
+   "ms": 2256
+  },
+  "slow lowering push ups": {
+   "file": "slow_lowering_push_ups.mp3",
+   "ms": 2232
+  },
+  "slow lowering rows": {
+   "file": "slow_lowering_rows.mp3",
+   "ms": 2064
+  },
+  "slow lowering squats": {
+   "file": "slow_lowering_squats.mp3",
+   "ms": 1896
+  },
+  "slow push ups": {
+   "file": "slow_push_ups.mp3",
+   "ms": 1392
+  },
+  "slow squats": {
+   "file": "slow_squats.mp3",
+   "ms": 1488
+  },
+  "small bend at the waist": {
+   "file": "small_bend_at_the_waist.mp3",
+   "ms": 1392
+  },
+  "small capped plyo finisher": {
+   "file": "small_capped_plyo_finisher.mp3",
+   "ms": 1920
+  },
+  "small hop to switch": {
+   "file": "small_hop_to_switch.mp3",
+   "ms": 1824
+  },
+  "small steps to stay balanced": {
+   "file": "small_steps_to_stay_balanced.mp3",
+   "ms": 1632
+  },
+  "small tap with the rear hand": {
+   "file": "small_tap_with_the_rear_hand.mp3",
+   "ms": 1944
+  },
+  "snap and return": {
+   "file": "snap_and_return.mp3",
+   "ms": 1896
+  },
+  "snap back immediately": {
+   "file": "snap_back_immediately.mp3",
+   "ms": 2064
+  },
+  "snap it back to guard immediately": {
+   "file": "snap_it_back_to_guard_immediately.mp3",
+   "ms": 1872
+  },
+  "snap it back to stance": {
+   "file": "snap_it_back_to_stance.mp3",
+   "ms": 1680
+  },
+  "snatches": {
+   "file": "snatches.mp3",
+   "ms": 840
+  },
+  "soft landings from a low step": {
+   "file": "soft_landings_from_a_low_step.mp3",
+   "ms": 6264
+  },
+  "spear with the point of the knee": {
+   "file": "spear_with_the_point_of_the_knee.mp3",
+   "ms": 2376
+  },
+  "speed boost": {
+   "file": "speed_boost.mp3",
+   "ms": 1344
+  },
+  "speed punches on the bag": {
+   "file": "speed_punches_on_the_bag.mp3",
+   "ms": 4512
+  },
+  "speed punches on the heavy bag": {
+   "file": "speed_punches_on_the_heavy_bag.mp3",
+   "ms": 4920
+  },
+  "split squat or lunge strength": {
+   "file": "split_squat_or_lunge_strength.mp3",
+   "ms": 2904
+  },
+  "split squats": {
+   "file": "split_squats.mp3",
+   "ms": 1200
+  },
+  "spot the target over your shoulder": {
+   "file": "spot_the_target_over_your_shoulder.mp3",
+   "ms": 1872
+  },
+  "sprint": {
+   "file": "sprint.mp3",
+   "ms": 744
+  },
+  "sprint in five": {
+   "file": "sprint_in_five.mp3",
+   "ms": 1608
+  },
+  "sprint intervals": {
+   "file": "sprint_intervals.mp3",
+   "ms": 1440
+  },
+  "sprint intervals or high knees": {
+   "file": "sprint_intervals_or_high_knees.mp3",
+   "ms": 2736
+  },
+  "sprint set": {
+   "file": "sprint_set.mp3",
+   "ms": 1656
+  },
+  "squat hold to target": {
+   "file": "squat_hold_to_target.mp3",
+   "ms": 2400
+  },
+  "squat jumps": {
+   "file": "squat_jumps.mp3",
+   "ms": 1056
+  },
+  "squat pattern to a target": {
+   "file": "squat_pattern_to_a_target.mp3",
+   "ms": 2664
+  },
+  "squat pattern to target": {
+   "file": "squat_pattern_to_target.mp3",
+   "ms": 2352
+  },
+  "squat variation test": {
+   "file": "squat_variation_test.mp3",
+   "ms": 2064
+  },
+  "squat volume": {
+   "file": "squat_volume.mp3",
+   "ms": 1440
+  },
+  "squat volume to target": {
+   "file": "squat_volume_to_target.mp3",
+   "ms": 1536
+  },
+  "squats": {
+   "file": "squats.mp3",
+   "ms": 1344
+  },
+  "squats to a bench": {
+   "file": "squats_to_a_bench.mp3",
+   "ms": 1464
+  },
+  "squats to peak target": {
+   "file": "squats_to_peak_target.mp3",
+   "ms": 1776
+  },
+  "stability plank": {
+   "file": "stability_plank.mp3",
+   "ms": 1608
+  },
+  "stage 1": {
+   "file": "stage_1.mp3",
+   "ms": 1920
+  },
+  "stage 2": {
+   "file": "stage_2.mp3",
+   "ms": 1008
+  },
+  "stage 3": {
+   "file": "stage_3.mp3",
+   "ms": 1464
+  },
+  "stage 4": {
+   "file": "stage_4.mp3",
+   "ms": 1128
+  },
+  "stage 5": {
+   "file": "stage_5.mp3",
+   "ms": 1056
+  },
+  "stage 6": {
+   "file": "stage_6.mp3",
+   "ms": 1488
+  },
+  "stage 7": {
+   "file": "stage_7.mp3",
+   "ms": 1056
+  },
+  "stage 8": {
+   "file": "stage_8.mp3",
+   "ms": 912
+  },
+  "stage 9": {
+   "file": "stage_9.mp3",
+   "ms": 1560
+  },
+  "stance": {
+   "file": "stance.mp3",
+   "ms": 744
+  },
+  "stand slightly wider than boxing stance": {
+   "file": "stand_slightly_wider_than_boxing_stance.mp3",
+   "ms": 2544
+  },
+  "stand taller than boxing stance": {
+   "file": "stand_taller_than_boxing_stance.mp3",
+   "ms": 2136
+  },
+  "stand with feet shoulder width": {
+   "file": "stand_with_feet_shoulder_width.mp3",
+   "ms": 2256
+  },
+  "stand with feet shoulder width apart": {
+   "file": "stand_with_feet_shoulder_width_apart.mp3",
+   "ms": 2328
+  },
+  "standard push ups": {
+   "file": "standard_push_ups.mp3",
+   "ms": 1320
+  },
+  "standard squats": {
+   "file": "standard_squats.mp3",
+   "ms": 1296
+  },
+  "standing knee drives": {
+   "file": "standing_knee_drives.mp3",
+   "ms": 1944
+  },
+  "start in kickboxing stance": {
+   "file": "start_in_kickboxing_stance.mp3",
+   "ms": 2736
+  },
+  "start in mma stance": {
+   "file": "start_in_mma_stance.mp3",
+   "ms": 1776
+  },
+  "start in muay thai stance": {
+   "file": "start_in_muay_thai_stance.mp3",
+   "ms": 1800
+  },
+  "start in stance": {
+   "file": "start_in_stance.mp3",
+   "ms": 1344
+  },
+  "start in stance with guard up": {
+   "file": "start_in_stance_with_guard_up.mp3",
+   "ms": 2280
+  },
+  "start in stance with guard up tight": {
+   "file": "start_in_stance_with_guard_up_tight.mp3",
+   "ms": 3792
+  },
+  "start in your boxing stance": {
+   "file": "start_in_your_boxing_stance.mp3",
+   "ms": 1704
+  },
+  "start in your boxing stance with guard up": {
+   "file": "start_in_your_boxing_stance_with_guard_up.mp3",
+   "ms": 2184
+  },
+  "start it like a low kick": {
+   "file": "start_it_like_a_low_kick.mp3",
+   "ms": 1536
+  },
+  "states the combined plan up front": {
+   "file": "states_the_combined_plan_up_front.mp3",
+   "ms": 2328
+  },
+  "states the stage + title": {
+   "file": "states_the_stage_title.mp3",
+   "ms": 1968
+  },
+  "stay compact": {
+   "file": "stay_compact.mp3",
+   "ms": 1656
+  },
+  "stay disciplined": {
+   "file": "stay_disciplined.mp3",
+   "ms": 1104
+  },
+  "stay explosive on the return": {
+   "file": "stay_explosive_on_the_return.mp3",
+   "ms": 1968
+  },
+  "stay heavy on top": {
+   "file": "stay_heavy_on_top.mp3",
+   "ms": 1272
+  },
+  "stay light": {
+   "file": "stay_light.mp3",
+   "ms": 960
+  },
+  "stay mobile": {
+   "file": "stay_mobile.mp3",
+   "ms": 1584
+  },
+  "stay on the balls of your feet": {
+   "file": "stay_on_the_balls_of_your_feet.mp3",
+   "ms": 1968
+  },
+  "stay strong": {
+   "file": "stay_strong.mp3",
+   "ms": 1536
+  },
+  "steady breathing cooldown": {
+   "file": "steady_breathing_cooldown.mp3",
+   "ms": 2088
+  },
+  "steady cadence": {
+   "file": "steady_cadence.mp3",
+   "ms": 1152
+  },
+  "steady pace": {
+   "file": "steady_pace.mp3",
+   "ms": 1080
+  },
+  "steady roadwork or run or bike": {
+   "file": "steady_roadwork_or_run_or_bike.mp3",
+   "ms": 3144
+  },
+  "steel plating": {
+   "file": "steel_plating.mp3",
+   "ms": 1104
+  },
+  "step across to start the turn": {
+   "file": "step_across_to_start_the_turn.mp3",
+   "ms": 2184
+  },
+  "step and punch at the same time": {
+   "file": "step_and_punch_at_the_same_time.mp3",
+   "ms": 2208
+  },
+  "step down to the floor": {
+   "file": "step_down_to_the_floor.mp3",
+   "ms": 1272
+  },
+  "step drag pattern": {
+   "file": "step_drag_pattern.mp3",
+   "ms": 1896
+  },
+  "step forward": {
+   "file": "step_forward.mp3",
+   "ms": 984
+  },
+  "step forward slightly": {
+   "file": "step_forward_slightly.mp3",
+   "ms": 1728
+  },
+  "step forward slightly as you jab": {
+   "file": "step_forward_slightly_as_you_jab.mp3",
+   "ms": 2040
+  },
+  "step forward slightly with the jab": {
+   "file": "step_forward_slightly_with_the_jab.mp3",
+   "ms": 2304
+  },
+  "step in": {
+   "file": "step_in.mp3",
+   "ms": 744
+  },
+  "step in as the elbow comes up": {
+   "file": "step_in_as_the_elbow_comes_up.mp3",
+   "ms": 1680
+  },
+  "step in slightly": {
+   "file": "step_in_slightly.mp3",
+   "ms": 1056
+  },
+  "step in to close distance": {
+   "file": "step_in_to_close_distance.mp3",
+   "ms": 2040
+  },
+  "step in to unbalance": {
+   "file": "step_in_to_unbalance.mp3",
+   "ms": 2304
+  },
+  "step in with the rear foot": {
+   "file": "step_in_with_the_rear_foot.mp3",
+   "ms": 1368
+  },
+  "step jab": {
+   "file": "step_jab.mp3",
+   "ms": 1056
+  },
+  "step lead foot forward": {
+   "file": "step_lead_foot_forward.mp3",
+   "ms": 2352
+  },
+  "step offline": {
+   "file": "step_offline.mp3",
+   "ms": 1632
+  },
+  "step over burpees": {
+   "file": "step_over_burpees.mp3",
+   "ms": 1680
+  },
+  "step slide left and right": {
+   "file": "step_slide_left_and_right.mp3",
+   "ms": 1776
+  },
+  "step to inside position": {
+   "file": "step_to_inside_position.mp3",
+   "ms": 1656
+  },
+  "step to the outside angle": {
+   "file": "step_to_the_outside_angle.mp3",
+   "ms": 1584
+  },
+  "step with the jab": {
+   "file": "step_with_the_jab.mp3",
+   "ms": 1056
+  },
+  "step your lead foot 45 degrees outward": {
+   "file": "step_your_lead_foot_45_degrees_outward.mp3",
+   "ms": 3720
+  },
+  "stick the landing soft": {
+   "file": "stick_the_landing_soft.mp3",
+   "ms": 1632
+  },
+  "stop 2 reps short on every bar set": {
+   "file": "stop_2_reps_short_on_every_bar_set.mp3",
+   "ms": 4224
+  },
+  "stop a lunge at the first wobble": {
+   "file": "stop_a_lunge_at_the_first_wobble.mp3",
+   "ms": 2184
+  },
+  "stop a set when the bell slows or your back wants to round": {
+   "file": "stop_a_set_when_the_bell_slows_or_your_back_wants_to_round.mp3",
+   "ms": 3984
+  },
+  "stop a set when your form breaks": {
+   "file": "stop_a_set_when_your_form_breaks.mp3",
+   "ms": 1800
+  },
+  "stop every dip at ninety degrees": {
+   "file": "stop_every_dip_at_ninety_degrees.mp3",
+   "ms": 1944
+  },
+  "stop the dips": {
+   "file": "stop_the_dips.mp3",
+   "ms": 1128
+  },
+  "stop the lift when your back wants to round": {
+   "file": "stop_the_lift_when_your_back_wants_to_round.mp3",
+   "ms": 2976
+  },
+  "stop two reps short": {
+   "file": "stop_two_reps_short.mp3",
+   "ms": 2424
+  },
+  "stop two short": {
+   "file": "stop_two_short.mp3",
+   "ms": 1584
+  },
+  "stop two short on the bar": {
+   "file": "stop_two_short_on_the_bar.mp3",
+   "ms": 1488
+  },
+  "straight arm scapular pulls or tuck front lever progression": {
+   "file": "straight_arm_scapular_pulls_or_tuck_front_lever_progression.mp3",
+   "ms": 4656
+  },
+  "strict press": {
+   "file": "strict_press.mp3",
+   "ms": 1464
+  },
+  "strict presses": {
+   "file": "strict_presses.mp3",
+   "ms": 1584
+  },
+  "strike from the clinch": {
+   "file": "strike_from_the_clinch.mp3",
+   "ms": 1368
+  },
+  "strike on the step": {
+   "file": "strike_on_the_step.mp3",
+   "ms": 1104
+  },
+  "strike with the shin": {
+   "file": "strike_with_the_shin.mp3",
+   "ms": 1296
+  },
+  "strike with the tip": {
+   "file": "strike_with_the_tip.mp3",
+   "ms": 1176
+  },
+  "strike with the tip of the elbow": {
+   "file": "strike_with_the_tip_of_the_elbow.mp3",
+   "ms": 1872
+  },
+  "strike with the tip of the knee": {
+   "file": "strike_with_the_tip_of_the_knee.mp3",
+   "ms": 1800
+  },
+  "string": {
+   "file": "string.mp3",
+   "ms": 648
+  },
+  "strong to the finish": {
+   "file": "strong_to_the_finish.mp3",
+   "ms": 1776
+  },
+  "suitcase carry": {
+   "file": "suitcase_carry.mp3",
+   "ms": 1224
+  },
+  "suitcase deadlifts": {
+   "file": "suitcase_deadlifts.mp3",
+   "ms": 1824
+  },
+  "sumo deadlift or kettlebell deadlift": {
+   "file": "sumo_deadlift_or_kettlebell_deadlift.mp3",
+   "ms": 2448
+  },
+  "superman": {
+   "file": "superman.mp3",
+   "ms": 768
+  },
+  "superman holds": {
+   "file": "superman_holds.mp3",
+   "ms": 1464
+  },
+  "superset": {
+   "file": "superset.mp3",
+   "ms": 648
+  },
+  "surge": {
+   "file": "surge.mp3",
+   "ms": 768
+  },
+  "surge over": {
+   "file": "surge_over.mp3",
+   "ms": 1464
+  },
+  "survive the rounds": {
+   "file": "survive_the_rounds.mp3",
+   "ms": 1200
+  },
+  "swing rear 90 degrees": {
+   "file": "swing_rear_90_degrees.mp3",
+   "ms": 1824
+  },
+  "swing rear leg": {
+   "file": "swing_rear_leg.mp3",
+   "ms": 1464
+  },
+  "swing the arm for power": {
+   "file": "swing_the_arm_for_power.mp3",
+   "ms": 1416
+  },
+  "swing through the target": {
+   "file": "swing_through_the_target.mp3",
+   "ms": 1440
+  },
+  "swing your rear leg in an arc": {
+   "file": "swing_your_rear_leg_in_an_arc.mp3",
+   "ms": 1752
+  },
+  "swings": {
+   "file": "swings.mp3",
+   "ms": 792
+  },
+  "switch kicks": {
+   "file": "switch_kicks.mp3",
+   "ms": 1752
+  },
+  "switch kicks on the bag": {
+   "file": "switch_kicks_on_the_bag.mp3",
+   "ms": 2640
+  },
+  "switch kicks on the heavy bag": {
+   "file": "switch_kicks_on_the_heavy_bag.mp3",
+   "ms": 1728
+  },
+  "t": {
+   "file": "t.mp3",
+   "ms": 528
+  },
+  "t drill": {
+   "file": "t_drill.mp3",
+   "ms": 1008
+  },
+  "tank mode": {
+   "file": "tank_mode.mp3",
+   "ms": 888
+  },
+  "tap done when complete": {
+   "file": "tap_done_when_complete.mp3",
+   "ms": 1344
+  },
+  "tap i'm done": {
+   "file": "tap_i_m_done.mp3",
+   "ms": 1344
+  },
+  "target outside of lead thigh": {
+   "file": "target_outside_of_lead_thigh.mp3",
+   "ms": 1872
+  },
+  "target the body": {
+   "file": "target_the_body.mp3",
+   "ms": 1008
+  },
+  "target the body or head": {
+   "file": "target_the_body_or_head.mp3",
+   "ms": 1296
+  },
+  "target the liver": {
+   "file": "target_the_liver.mp3",
+   "ms": 960
+  },
+  "targets": {
+   "file": "targets.mp3",
+   "ms": 864
+  },
+  "tempo lunges": {
+   "file": "tempo_lunges.mp3",
+   "ms": 1752
+  },
+  "tempo lunges to target": {
+   "file": "tempo_lunges_to_target.mp3",
+   "ms": 2232
+  },
+  "tempo push ups": {
+   "file": "tempo_push_ups.mp3",
+   "ms": 1536
+  },
+  "tempo push ups to target": {
+   "file": "tempo_push_ups_to_target.mp3",
+   "ms": 2016
+  },
+  "tempo rows": {
+   "file": "tempo_rows.mp3",
+   "ms": 1080
+  },
+  "tempo rows to target": {
+   "file": "tempo_rows_to_target.mp3",
+   "ms": 1824
+  },
+  "tempo squats": {
+   "file": "tempo_squats.mp3",
+   "ms": 1800
+  },
+  "tempo squats to target": {
+   "file": "tempo_squats_to_target.mp3",
+   "ms": 2280
+  },
+  "ten by ten foundation": {
+   "file": "ten_by_ten_foundation.mp3",
+   "ms": 1896
+  },
+  "ten of each move": {
+   "file": "ten_of_each_move.mp3",
+   "ms": 1392
+  },
+  "ten push ups": {
+   "file": "ten_push_ups.mp3",
+   "ms": 1776
+  },
+  "ten seconds": {
+   "file": "ten_seconds.mp3",
+   "ms": 1632
+  },
+  "that\\": {
+   "file": "that_2.mp3",
+   "ms": 624
+  },
+  "the double bell complex": {
+   "file": "the_double_bell_complex.mp3",
+   "ms": 1776
+  },
+  "the full base protocol": {
+   "file": "the_full_base_protocol.mp3",
+   "ms": 2136
+  },
+  "the hip drives every kick": {
+   "file": "the_hip_drives_every_kick.mp3",
+   "ms": 1632
+  },
+  "the hundred gauntlet": {
+   "file": "the_hundred_gauntlet.mp3",
+   "ms": 1224
+  },
+  "the left arm complex": {
+   "file": "the_left_arm_complex.mp3",
+   "ms": 1872
+  },
+  "the movement": {
+   "file": "the_movement.mp3",
+   "ms": 624
+  },
+  "the rest of the minute is yours": {
+   "file": "the_rest_of_the_minute_is_yours.mp3",
+   "ms": 1704
+  },
+  "the right arm complex": {
+   "file": "the_right_arm_complex.mp3",
+   "ms": 1584
+  },
+  "the standard hundred": {
+   "file": "the_standard_hundred.mp3",
+   "ms": 1296
+  },
+  "then 'review your workouts and get ready'": {
+   "file": "then_review_your_workouts_and_get_ready.mp3",
+   "ms": 1944
+  },
+  "then 1-2": {
+   "file": "then_1_2.mp3",
+   "ms": 1992
+  },
+  "then 1-2-3": {
+   "file": "then_1_2_3.mp3",
+   "ms": 2256
+  },
+  "then 10 lead knees": {
+   "file": "then_10_lead_knees.mp3",
+   "ms": 2496
+  },
+  "then 10 low kicks": {
+   "file": "then_10_low_kicks.mp3",
+   "ms": 2232
+  },
+  "then 10 rear teeps": {
+   "file": "then_10_rear_teeps.mp3",
+   "ms": 2136
+  },
+  "then across": {
+   "file": "then_across.mp3",
+   "ms": 1056
+  },
+  "then set the bar down and shadowbox": {
+   "file": "then_set_the_bar_down_and_shadowbox.mp3",
+   "ms": 2424
+  },
+  "then switch": {
+   "file": "then_switch.mp3",
+   "ms": 1536
+  },
+  "these keep opponents at your range": {
+   "file": "these_keep_opponents_at_your_range.mp3",
+   "ms": 2016
+  },
+  "these set up your elbows and kicks": {
+   "file": "these_set_up_your_elbows_and_kicks.mp3",
+   "ms": 2016
+  },
+  "thick bar or towel pull ups": {
+   "file": "thick_bar_or_towel_pull_ups.mp3",
+   "ms": 1512
+  },
+  "thick grip or towel hold": {
+   "file": "thick_grip_or_towel_hold.mp3",
+   "ms": 2496
+  },
+  "this is the ultimate test": {
+   "file": "this_is_the_ultimate_test.mp3",
+   "ms": 2616
+  },
+  "this sets your baseline": {
+   "file": "this_sets_your_baseline.mp3",
+   "ms": 1200
+  },
+  "thorough cooldown + hamstring or hip stretch": {
+   "file": "thorough_cooldown_hamstring_or_hip_stretch.mp3",
+   "ms": 4008
+  },
+  "thorough cooldown + stretch": {
+   "file": "thorough_cooldown_stretch.mp3",
+   "ms": 2448
+  },
+  "three front squats": {
+   "file": "three_front_squats.mp3",
+   "ms": 1848
+  },
+  "three hundred reps": {
+   "file": "three_hundred_reps.mp3",
+   "ms": 1872
+  },
+  "three of each": {
+   "file": "three_of_each.mp3",
+   "ms": 912
+  },
+  "three rows": {
+   "file": "three_rows.mp3",
+   "ms": 1704
+  },
+  "three step ground to overheads": {
+   "file": "three_step_ground_to_overheads.mp3",
+   "ms": 2256
+  },
+  "throw a jab": {
+   "file": "throw_a_jab.mp3",
+   "ms": 912
+  },
+  "throw easy": {
+   "file": "throw_easy.mp3",
+   "ms": 912
+  },
+  "throw rear hand": {
+   "file": "throw_rear_hand.mp3",
+   "ms": 960
+  },
+  "throw rear hand straight out": {
+   "file": "throw_rear_hand_straight_out.mp3",
+   "ms": 2136
+  },
+  "throw your rear hand straight": {
+   "file": "throw_your_rear_hand_straight.mp3",
+   "ms": 1752
+  },
+  "thrust heel first": {
+   "file": "thrust_heel_first.mp3",
+   "ms": 1416
+  },
+  "thrust the heel": {
+   "file": "thrust_the_heel.mp3",
+   "ms": 1080
+  },
+  "thrusters": {
+   "file": "thrusters.mp3",
+   "ms": 816
+  },
+  "tiger rock push ups": {
+   "file": "tiger_rock_push_ups.mp3",
+   "ms": 2088
+  },
+  "tiptoe jumping squats": {
+   "file": "tiptoe_jumping_squats.mp3",
+   "ms": 1824
+  },
+  "to 180": {
+   "file": "to_180.mp3",
+   "ms": 1488
+  },
+  "to complete": {
+   "file": "to_complete.mp3",
+   "ms": 768
+  },
+  "to kick out plank": {
+   "file": "to_kick_out_plank.mp3",
+   "ms": 1344
+  },
+  "to tuck in": {
+   "file": "to_tuck_in.mp3",
+   "ms": 792
+  },
+  "too fast to verify": {
+   "file": "too_fast_to_verify.mp3",
+   "ms": 1416
+  },
+  "top speed on the last portion": {
+   "file": "top_speed_on_the_last_portion.mp3",
+   "ms": 1824
+  },
+  "tornado": {
+   "file": "tornado.mp3",
+   "ms": 744
+  },
+  "torso twists": {
+   "file": "torso_twists.mp3",
+   "ms": 1176
+  },
+  "touch the sky": {
+   "file": "touch_the_sky.mp3",
+   "ms": 984
+  },
+  "towel grip dumbbell rows": {
+   "file": "towel_grip_dumbbell_rows.mp3",
+   "ms": 1872
+  },
+  "trap and upper back work": {
+   "file": "trap_and_upper_back_work.mp3",
+   "ms": 1680
+  },
+  "tuck elbows close to ribs": {
+   "file": "tuck_elbows_close_to_ribs.mp3",
+   "ms": 2112
+  },
+  "tuck ins": {
+   "file": "tuck_ins.mp3",
+   "ms": 864
+  },
+  "tuck jump burpees": {
+   "file": "tuck_jump_burpees.mp3",
+   "ms": 1704
+  },
+  "tuck the chin": {
+   "file": "tuck_the_chin.mp3",
+   "ms": 864
+  },
+  "tuck the elbow to cover": {
+   "file": "tuck_the_elbow_to_cover.mp3",
+   "ms": 1464
+  },
+  "tuck ups and hollow rocks": {
+   "file": "tuck_ups_and_hollow_rocks.mp3",
+   "ms": 1776
+  },
+  "turbo button": {
+   "file": "turbo_button.mp3",
+   "ms": 1584
+  },
+  "turkish get up": {
+   "file": "turkish_get_up.mp3",
+   "ms": 1368
+  },
+  "turn it 90 degrees": {
+   "file": "turn_it_90_degrees.mp3",
+   "ms": 2016
+  },
+  "turn the hip over": {
+   "file": "turn_the_hip_over.mp3",
+   "ms": 1872
+  },
+  "turn the knee in over the top": {
+   "file": "turn_the_knee_in_over_the_top.mp3",
+   "ms": 1896
+  },
+  "turn the shin out": {
+   "file": "turn_the_shin_out.mp3",
+   "ms": 744
+  },
+  "tutorial stage": {
+   "file": "tutorial_stage.mp3",
+   "ms": 1176
+  },
+  "two blocks of short bursts": {
+   "file": "two_blocks_of_short_bursts.mp3",
+   "ms": 1752
+  },
+  "two by fifty protocol": {
+   "file": "two_by_fifty_protocol.mp3",
+   "ms": 1800
+  },
+  "two cleans": {
+   "file": "two_cleans.mp3",
+   "ms": 1056
+  },
+  "two hand high pulls": {
+   "file": "two_hand_high_pulls.mp3",
+   "ms": 1728
+  },
+  "two hand presses": {
+   "file": "two_hand_presses.mp3",
+   "ms": 1416
+  },
+  "two hand rows": {
+   "file": "two_hand_rows.mp3",
+   "ms": 1728
+  },
+  "two handed vault over a low obstacle": {
+   "file": "two_handed_vault_over_a_low_obstacle.mp3",
+   "ms": 2352
+  },
+  "typewriter push up progression": {
+   "file": "typewriter_push_up_progression.mp3",
+   "ms": 4368
+  },
+  "u shaped movement": {
+   "file": "u_shaped_movement.mp3",
+   "ms": 1296
+  },
+  "up": {
+   "file": "up.mp3",
+   "ms": 312
+  },
+  "upper lower dips": {
+   "file": "upper_lower_dips.mp3",
+   "ms": 1776
+  },
+  "uppercuts": {
+   "file": "uppercuts.mp3",
+   "ms": 744
+  },
+  "use in clinch range": {
+   "file": "use_in_clinch_range.mp3",
+   "ms": 1392
+  },
+  "use it as a range tool": {
+   "file": "use_it_as_a_range_tool.mp3",
+   "ms": 1896
+  },
+  "use lateral movement": {
+   "file": "use_lateral_movement.mp3",
+   "ms": 2040
+  },
+  "use leg drive": {
+   "file": "use_leg_drive.mp3",
+   "ms": 1896
+  },
+  "use short strikes": {
+   "file": "use_short_strikes.mp3",
+   "ms": 1320
+  },
+  "use the jab to set up kicks": {
+   "file": "use_the_jab_to_set_up_kicks.mp3",
+   "ms": 1824
+  },
+  "use your hip rotation for power": {
+   "file": "use_your_hip_rotation_for_power.mp3",
+   "ms": 2760
+  },
+  "use your rear leg": {
+   "file": "use_your_rear_leg.mp3",
+   "ms": 1056
+  },
+  "v sit cross punches": {
+   "file": "v_sit_cross_punches.mp3",
+   "ms": 2232
+  },
+  "v up variations": {
+   "file": "v_up_variations.mp3",
+   "ms": 1464
+  },
+  "v ups": {
+   "file": "v_ups.mp3",
+   "ms": 1296
+  },
+  "variations by round": {
+   "file": "variations_by_round.mp3",
+   "ms": 1944
+  },
+  "very close range": {
+   "file": "very_close_range.mp3",
+   "ms": 1512
+  },
+  "very slow push ups": {
+   "file": "very_slow_push_ups.mp3",
+   "ms": 1704
+  },
+  "very slow squats": {
+   "file": "very_slow_squats.mp3",
+   "ms": 1416
+  },
+  "very slow tempo push ups": {
+   "file": "very_slow_tempo_push_ups.mp3",
+   "ms": 1920
+  },
+  "very slow tempo squats": {
+   "file": "very_slow_tempo_squats.mp3",
+   "ms": 3984
+  },
+  "wake the chest and back": {
+   "file": "wake_the_chest_and_back.mp3",
+   "ms": 1944
+  },
+  "walk": {
+   "file": "walk.mp3",
+   "ms": 624
+  },
+  "wall climb up progression": {
+   "file": "wall_climb_up_progression.mp3",
+   "ms": 2160
+  },
+  "wall drives": {
+   "file": "wall_drives.mp3",
+   "ms": 1416
+  },
+  "wall or freestanding handstand holds": {
+   "file": "wall_or_freestanding_handstand_holds.mp3",
+   "ms": 2952
+  },
+  "wall sit": {
+   "file": "wall_sit.mp3",
+   "ms": 1296
+  },
+  "wall sit to target": {
+   "file": "wall_sit_to_target.mp3",
+   "ms": 1368
+  },
+  "warm up gate + build up strides": {
+   "file": "warm_up_gate_build_up_strides.mp3",
+   "ms": 3264
+  },
+  "wave conditioning intervals": {
+   "file": "wave_conditioning_intervals.mp3",
+   "ms": 1848
+  },
+  "weight back": {
+   "file": "weight_back.mp3",
+   "ms": 816
+  },
+  "weight centered": {
+   "file": "weight_centered.mp3",
+   "ms": 1512
+  },
+  "weight evenly distributed on both feet": {
+   "file": "weight_evenly_distributed_on_both_feet.mp3",
+   "ms": 2712
+  },
+  "weight forward": {
+   "file": "weight_forward.mp3",
+   "ms": 1488
+  },
+  "weight slightly on back foot": {
+   "file": "weight_slightly_on_back_foot.mp3",
+   "ms": 2304
+  },
+  "weighted or hard progression pull ups": {
+   "file": "weighted_or_hard_progression_pull_ups.mp3",
+   "ms": 3384
+  },
+  "weighted or strict pull ups to target": {
+   "file": "weighted_or_strict_pull_ups_to_target.mp3",
+   "ms": 2352
+  },
+  "weighted pull ups": {
+   "file": "weighted_pull_ups.mp3",
+   "ms": 1152
+  },
+  "weighted pull ups or max rep pull ups": {
+   "file": "weighted_pull_ups_or_max_rep_pull_ups.mp3",
+   "ms": 3096
+  },
+  "weighted pull ups or max reps": {
+   "file": "weighted_pull_ups_or_max_reps.mp3",
+   "ms": 3192
+  },
+  "weighted turkish get up": {
+   "file": "weighted_turkish_get_up.mp3",
+   "ms": 2016
+  },
+  "weighted turkish get ups": {
+   "file": "weighted_turkish_get_ups.mp3",
+   "ms": 2064
+  },
+  "when someone shoots in": {
+   "file": "when_someone_shoots_in.mp3",
+   "ms": 1536
+  },
+  "when you can't finish a round": {
+   "file": "when_you_can_t_finish_a_round.mp3",
+   "ms": 1536
+  },
+  "when you're done": {
+   "file": "when_you_re_done.mp3",
+   "ms": 696
+  },
+  "when your grip opens": {
+   "file": "when_your_grip_opens.mp3",
+   "ms": 1344
+  },
+  "when your grip starts to open": {
+   "file": "when_your_grip_starts_to_open.mp3",
+   "ms": 1416
+  },
+  "whip the elbow through on the turn": {
+   "file": "whip_the_elbow_through_on_the_turn.mp3",
+   "ms": 1872
+  },
+  "wide grip pull ups": {
+   "file": "wide_grip_pull_ups.mp3",
+   "ms": 1416
+  },
+  "wide push ups": {
+   "file": "wide_push_ups.mp3",
+   "ms": 1512
+  },
+  "windshield wiper punches": {
+   "file": "windshield_wiper_punches.mp3",
+   "ms": 2160
+  },
+  "with": {
+   "file": "with.mp3",
+   "ms": 432
+  },
+  "wrist and forearm mobility": {
+   "file": "wrist_and_forearm_mobility.mp3",
+   "ms": 1464
+  },
+  "wrist and forearm strengthening": {
+   "file": "wrist_and_forearm_strengthening.mp3",
+   "ms": 2232
+  },
+  "wrist curls and reverse curls": {
+   "file": "wrist_curls_and_reverse_curls.mp3",
+   "ms": 2472
+  },
+  "wrist or forearm mobility": {
+   "file": "wrist_or_forearm_mobility.mp3",
+   "ms": 1776
+  },
+  "wrist prehab": {
+   "file": "wrist_prehab.mp3",
+   "ms": 1104
+  },
+  "x p banked": {
+   "file": "x_p_banked.mp3",
+   "ms": 864
+  },
+  "x p gone": {
+   "file": "x_p_gone.mp3",
+   "ms": 984
+  },
+  "y w-t shoulder sequence": {
+   "file": "y_w_t_shoulder_sequence.mp3",
+   "ms": 2856
+  },
+  "you own this": {
+   "file": "you_own_this.mp3",
+   "ms": 1584
+  },
+  "you start the moment it is ready": {
+   "file": "you_start_the_moment_it_is_ready.mp3",
+   "ms": 1944
+  },
+  "you're done": {
+   "file": "you_re_done.mp3",
+   "ms": 864
+  },
+  "your back heel lifts as you rotate": {
+   "file": "your_back_heel_lifts_as_you_rotate.mp3",
+   "ms": 1992
+  },
+  "your hands push down on their head or shoulders": {
+   "file": "your_hands_push_down_on_their_head_or_shoulders.mp3",
+   "ms": 3096
+  },
+  "your hips rotate all the way through": {
+   "file": "your_hips_rotate_all_the_way_through.mp3",
+   "ms": 1992
+  },
+  "your legs are extended behind you": {
+   "file": "your_legs_are_extended_behind_you.mp3",
+   "ms": 2184
+  },
+  "your pace": {
+   "file": "your_pace.mp3",
+   "ms": 864
+  },
+  "your whole body rotates with the kick": {
+   "file": "your_whole_body_rotates_with_the_kick.mp3",
+   "ms": 2064
+  },
+  "zercher squats": {
+   "file": "zercher_squats.mp3",
+   "ms": 1344
+  },
+  "y w t shoulder sequence": {
+   "file": "y_w_t_shoulder_sequence_2.mp3",
+   "ms": 2520
+  },
+  "hard": {
+   "file": "hard.mp3",
+   "ms": 624
+  },
+  "lift": {
+   "file": "lift.mp3",
+   "ms": 576
+  },
+  "load": {
+   "file": "load.mp3",
+   "ms": 552
+  },
+  "no rest": {
+   "file": "no_rest.mp3",
+   "ms": 768
+  },
+  "programme complete": {
+   "file": "programme_complete.mp3",
+   "ms": 1224
+  },
+  "programme ended at": {
+   "file": "programme_ended_at.mp3",
+   "ms": 1032
+  },
+  "recover well": {
+   "file": "recover_well.mp3",
+   "ms": 984
+  },
+  "skipping": {
+   "file": "skipping.mp3",
+   "ms": 672
+  },
+  "skipping to": {
+   "file": "skipping_to.mp3",
+   "ms": 720
+  },
+  "straight into": {
+   "file": "straight_into.mp3",
+   "ms": 1464
+  },
+  "straight into the next move": {
+   "file": "straight_into_the_next_move.mp3",
+   "ms": 1248
+  },
+  "that was the last one left": {
+   "file": "that_was_the_last_one_left.mp3",
+   "ms": 1584
   }
  },
  "count": 1121,
