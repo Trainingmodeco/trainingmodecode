@@ -16,9 +16,20 @@
 // and badly out loud: "(Flat/Incline/Decline)", "Step In / Step Out", "3.5s",
 // "3 × 10". Strip the brackets, say "or" for a slash, "seconds" for a
 // trailing s and "by" for a multiplication sign.
+// A clock time "2:00" / "1:30" / "0:45" is said as minutes and seconds, and
+// a " · " separator is a sentence break.
+const clockWords = (m, mm, ss) => {
+  const mi = Number(mm), se = Number(ss);
+  const parts = [];
+  if (mi) parts.push(`${mi} minute${mi === 1 ? '' : 's'}`);
+  if (se || !mi) parts.push(`${se} seconds`);
+  return parts.join(' ');
+};
 export function normalizeSpeech(text) {
   if (text === undefined || text === null) return '';
   return String(text)
+    .replace(/\b(\d{1,2}):([0-5]\d)\b/g, clockWords)
+    .replace(/\s*·\s*/g, '. ')
     .replace(/\s*\([^)]*\)/g, '')
     .replace(/\s*\/\s*/g, ' or ')
     .replace(/\s*×\s*/g, ' by ')

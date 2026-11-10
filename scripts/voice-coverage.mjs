@@ -163,6 +163,45 @@ for (const m of lessonsSrc.matchAll(/calls:\s*\[([^\]]+)\]/g)) [...m[1].matchAll
 for (const n of quoted('shared/MobilityBlock.jsx', /\bname:\s*'([^']+)'/g)) add('Warm-up and mobility', n);
 for (const n of quoted('shared/MobilityBlock.jsx', /\bcue:\s*'([^']+)'/g)) add('Warm-up and mobility', n);
 
+// ── 2b. rounds built at runtime (Camp, Arcade campaigns, concept drops) ───
+// Their titles, prompts and calls are spoken by the Fight Focus and Camp
+// runners; run every builder over every option and collect what they make.
+{
+  const store = new Map();
+  if (typeof globalThis.localStorage === 'undefined') globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), clear: () => store.clear(), key: () => null, length: 0 };
+  const ROUND_KEYS = ['round_title', 'coach_prompt', 'combos', 'name', 'movement', 'announcer', 'announcerIntro', 'intro', 'say'];
+  const take = (feature, data) => { try { fromData(feature, data, ROUND_KEYS); } catch { /* builder needs a missing option */ } };
+  const tryRun = (fn) => { try { return fn(); } catch { return null; } };
+  const camp = await import('../components/training-mode/protocol/content.ts');
+  const discs = Object.keys(JSON.parse(fs.readFileSync(path.join(TM, 'protocol/data/disciplines.json'), 'utf8')));
+  const diffs = ['easy', 'normal', 'hard'];
+  for (const d of discs) for (let lvl = 1; lvl <= 12; lvl++) for (const df of diffs) for (const slot of ['fight', 'fit']) {
+    take('Training Camp', tryRun(() => camp.campBlock(d, lvl, df, slot)));
+    take('Training Camp', tryRun(() => camp.blockRoundsFor(d, lvl, df, slot, 12)));
+  }
+  for (const d of discs) for (const df of diffs) take('Training Camp', tryRun(() => camp.titleFight(d, df)));
+  const arc = await import('../components/training-mode/protocol/campaigns.ts');
+  for (const c of arc.CAMPAIGN_ORDER) for (const st of arc.campaignStages(c)) {
+    const sid = st.stage_id || st.id;
+    for (const pth of ['fit', 'fight']) for (const df of diffs) take('Training Arcade', tryRun(() => arc.arcadeCfg(c, sid, pth, df)));
+  }
+  take('Training Arcade', tryRun(() => arc.bossFightBlockRounds()));
+  for (const df of diffs) take('Training Arcade', tryRun(() => arc.bossFitBlockRounds(df)));
+  const { generateRounds } = await import('../components/training-mode/rounds.js');
+  for (const d of ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA']) take('Fight Mode', generateRounds(d, 'Normal', 'Technical', 5));
+  const con = await import('../components/training-mode/data/concepts/index.js');
+  for (const entry of con.CONCEPT_SCHEDULE) {
+    const concept = entry.concept || con.entryFor(entry.id)?.concept;
+    if (!concept) continue;
+    for (const tier of ['easy', 'normal', 'hard']) {
+      const fd = concept.fit?.days || [], gd = concept.fight?.days || [], sts = concept.arcade?.stages || [];
+      fd.forEach((day, i) => { take('Concept drops', tryRun(() => con.fitDayCfg(concept, { tier, day: i }))); take('Concept drops', tryRun(() => con.fitDayCfg(concept, { tier, home: true, day: i }))); });
+      gd.forEach((day, i) => take('Concept drops', tryRun(() => con.fightDayCfg(concept, { tier, day: i }))));
+      sts.forEach((s, i) => { for (const a of ['hybrid', 'fit', 'fight']) take('Concept drops', tryRun(() => con.stageCfg(concept, i, { tier, arc: a }))); });
+    }
+  }
+}
+
 // ── 3. the bank inventory (combos, rush, fight focus, coach copy) ──────────
 {
   const tmp = path.join(ROOT, 'node_modules/.cache/voice-inventory.json');
