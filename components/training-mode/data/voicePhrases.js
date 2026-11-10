@@ -51,7 +51,9 @@ export function strikePieces(words) {
 }
 
 // The gaps between phrases, seconds: strikes on a beat, sentences apart.
-export const GAP_STRIKE = 0.12;
+// Each strike clip already carries about 0.1 s of its own lead-in and tail,
+// so 0.03 lands the words about 0.15 s apart: a fighter's call, not a list.
+export const GAP_STRIKE = 0.03;
 export const GAP_SENTENCE = 0.28;
 
 // A line -> [{ text, gap }]: the phrases to say in order, `gap` the silence
