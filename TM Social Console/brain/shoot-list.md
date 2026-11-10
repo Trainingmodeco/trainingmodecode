@@ -64,8 +64,12 @@ shirt and tiger shorts to match the library). In priority order:
 5. Elbows: lead and rear spear, elbow to the body.
 6. If there's time: MMA sprawl, level change, shoot entry,
    ground-and-pound posture; the defense and footwork entries.
-7. Social B-roll while warm: 3 rounds of shadowboxing, bag rounds, the
-   round-finish sweat shot.
+7. Combo Coach bag rounds: play each of the 8 guide videos out loud (2 per
+   style, about a minute each) and film yourself on the bag to it, guide
+   audible in the clip (brain/combo-sync has the film guide). These double
+   as the social bag-work B-roll.
+8. Social B-roll while warm: 3 rounds of shadowboxing and the round-finish
+   sweat shot.
 
 ## Taken out
 
