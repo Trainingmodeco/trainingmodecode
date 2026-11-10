@@ -96,10 +96,32 @@ export function forgetVoiceBank(voice) {
   banks.delete(key);
 }
 
-// A line -> the clips to play, in order, or null when any phrase has no clip
-// (the whole line then goes to the speech engine). Each phrase is looked up
-// whole; a phrase with a number in it is also tried as its parts ("plus",
-// "20", "x p"), with GAP_STRIKE between the parts.
+// A phrase the bank has no whole clip for, as the fewest clips that say it in
+// order: "straight into goblet squats" -> "straight into" + "goblet squats",
+// "plus 20 x p" -> "plus" + "20" + "x p". Digits split from the words around
+// them first (tokensOf). Null when some word has no clip at all.
+const MAX_PIECE_WORDS = 8;
+export function piecesFor(bank, phrase) {
+  const words = tokensOf(phrase).flatMap((t) => t.split(/\s+/)).filter(Boolean);
+  const n = words.length;
+  if (!n || n > 40) return null;
+  const best = new Array(n + 1).fill(null);
+  best[0] = [];
+  for (let i = 1; i <= n; i++) {
+    for (let j = Math.max(0, i - MAX_PIECE_WORDS); j < i; j++) {
+      if (!best[j]) continue;
+      const key = words.slice(j, i).join(' ');
+      if (!bank.clips[key]) continue;
+      if (!best[i] || best[j].length + 1 < best[i].length) best[i] = [...best[j], key];
+    }
+  }
+  return best[n];
+}
+
+// A line -> the clips to play, in order, or null when any phrase can't be
+// said from clips (the whole line then goes to the speech engine). Each
+// phrase is looked up whole first, then as the fewest pieces (piecesFor),
+// with GAP_STRIKE between the pieces.
 export function planClips(bank, line) {
   if (!bank || !bank.clips) return null;
   const phrases = phrasesOf(line);
@@ -108,10 +130,9 @@ export function planClips(bank, line) {
   for (const ph of phrases) {
     const whole = bank.clips[ph.text];
     if (whole) { plan.push({ key: ph.text, file: whole.file, ms: whole.ms, gap: ph.gap }); continue; }
-    if (!/\d/.test(ph.text)) return null;
-    const toks = tokensOf(ph.text);
-    if (!toks.length || !toks.every((t) => bank.clips[t])) return null;
-    toks.forEach((t, i) => plan.push({ key: t, file: bank.clips[t].file, ms: bank.clips[t].ms, gap: i === 0 ? ph.gap : GAP_STRIKE }));
+    const keys = piecesFor(bank, ph.text);
+    if (!keys) return null;
+    keys.forEach((t, i) => plan.push({ key: t, file: bank.clips[t].file, ms: bank.clips[t].ms, gap: i === 0 ? ph.gap : GAP_STRIKE }));
   }
   return plan;
 }

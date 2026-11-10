@@ -174,6 +174,14 @@ await test('planClips: a phrase with a number falls back to its parts', async ()
   assert.deepEqual(plan.map((p) => p.gap), [0, phrases.GAP_SENTENCE, phrases.GAP_STRIKE, phrases.GAP_STRIKE]);
 });
 
+await test('planClips: a sentence with no whole clip is said from the fewest pieces', async () => {
+  const plan = clips.planClips(bank, 'Rush held plus 20 x p.');
+  assert.deepEqual(plan.map((p) => p.key), ['rush held', 'plus', '20', 'x p']);
+  assert.deepEqual(plan.map((p) => p.gap), [0, phrases.GAP_STRIKE, phrases.GAP_STRIKE, phrases.GAP_STRIKE]);
+  assert.deepEqual(clips.piecesFor(bank, 'high guard defense jab'), ['high guard defense', 'jab']);
+  assert.equal(clips.piecesFor(bank, 'jab and cross'), null);
+});
+
 await test('planClips: a line with a phrase the bank lacks is null', async () => {
   assert.equal(clips.planClips(bank, 'Keep your hands up and breathe'), null);
   assert.equal(clips.planClips(bank, 'Jab Cross. Plus 21 X P.'), null, 'a missing number part sinks the whole line');
