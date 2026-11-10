@@ -4,7 +4,7 @@
  "clips": {
   "0": {
    "file": "0.mp3",
-   "ms": 1224
+   "ms": 696
   },
   "1": {
    "file": "1.mp3",
@@ -12,7 +12,7 @@
   },
   "2": {
    "file": "2.mp3",
-   "ms": 1128
+   "ms": 936
   },
   "3": {
    "file": "3.mp3",
@@ -20,7 +20,7 @@
   },
   "4": {
    "file": "4.mp3",
-   "ms": 960
+   "ms": 480
   },
   "5": {
    "file": "5.mp3",
@@ -28,11 +28,11 @@
   },
   "6": {
    "file": "6.mp3",
-   "ms": 1608
+   "ms": 672
   },
   "7": {
    "file": "7.mp3",
-   "ms": 1272
+   "ms": 672
   },
   "8": {
    "file": "8.mp3",
@@ -668,7 +668,7 @@
   },
   "round 12": {
    "file": "round_12.mp3",
-   "ms": 1608
+   "ms": 1440
   },
   "round 2": {
    "file": "round_2.mp3",
@@ -692,11 +692,11 @@
   },
   "round 7": {
    "file": "round_7.mp3",
-   "ms": 1416
+   "ms": 1296
   },
   "round 8": {
    "file": "round_8.mp3",
-   "ms": 1344
+   "ms": 1056
   },
   "round 9": {
    "file": "round_9.mp3",
@@ -3244,7 +3244,7 @@
   },
   "two to the body": {
    "file": "two_to_the_body.mp3",
-   "ms": 1368
+   "ms": 1344
   },
   "0.75": {
    "file": "0_75.mp3",
@@ -4485,6 +4485,18 @@
   "work": {
    "file": "work.mp3",
    "ms": 624
+  },
+  "seven": {
+   "file": "seven.mp3",
+   "ms": 576
+  },
+  "four to the body": {
+   "file": "four_to_the_body.mp3",
+   "ms": 984
+  },
+  "five to the body": {
+   "file": "five_to_the_body.mp3",
+   "ms": 984
   }
  },
  "count": 1121,

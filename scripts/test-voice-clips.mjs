@@ -154,6 +154,14 @@ await test('planClips: a combo is one clip per strike', async () => {
   assert.deepEqual(plan.map((p) => p.file), ['jab.mp3', 'cross.mp3', 'body_hook.mp3']);
 });
 
+await test('phrasesOf: a NUMBERS call is one combo with strike gaps', async () => {
+  const ph = phrases.phrasesOf('one, two, three to the body, two');
+  assert.deepEqual(ph.map((p) => p.text), ['one', 'two', 'three to the body', 'two']);
+  assert.deepEqual(ph.map((p) => p.gap), [0, phrases.GAP_STRIKE, phrases.GAP_STRIKE, phrases.GAP_STRIKE]);
+  // a number after a normal sentence still gets the sentence gap
+  assert.deepEqual(phrases.phrasesOf('Round 3. one, two').map((p) => p.gap), [0, phrases.GAP_SENTENCE, phrases.GAP_STRIKE]);
+});
+
 await test('planClips: three sentences are three phrases with sentence gaps', async () => {
   const plan = clips.planClips(bank, 'Round 3. High guard defense. Hands glued to your temples.');
   assert.deepEqual(plan.map((p) => p.key), ['round 3', 'high guard defense', 'hands glued to your temples']);

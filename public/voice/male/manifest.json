@@ -12,11 +12,11 @@
   },
   "2": {
    "file": "2.mp3",
-   "ms": 1992
+   "ms": 552
   },
   "3": {
    "file": "3.mp3",
-   "ms": 1152
+   "ms": 408
   },
   "4": {
    "file": "4.mp3",
@@ -32,7 +32,7 @@
   },
   "7": {
    "file": "7.mp3",
-   "ms": 1944
+   "ms": 696
   },
   "8": {
    "file": "8.mp3",
@@ -1740,7 +1740,7 @@
   },
   "four": {
    "file": "four.mp3",
-   "ms": 1080
+   "ms": 648
   },
   "frame": {
    "file": "frame.mp3",
@@ -3420,7 +3420,7 @@
   },
   "round 5": {
    "file": "round_5.mp3",
-   "ms": 1872
+   "ms": 1944
   },
   "round 6": {
    "file": "round_6.mp3",
@@ -4296,7 +4296,7 @@
   },
   "two": {
    "file": "two.mp3",
-   "ms": 1008
+   "ms": 840
   },
   "two bags": {
    "file": "two_bags.mp3",
@@ -4485,6 +4485,18 @@
   "zone cleared": {
    "file": "zone_cleared.mp3",
    "ms": 960
+  },
+  "seven": {
+   "file": "seven.mp3",
+   "ms": 672
+  },
+  "four to the body": {
+   "file": "four_to_the_body.mp3",
+   "ms": 1200
+  },
+  "five to the body": {
+   "file": "five_to_the_body.mp3",
+   "ms": 1032
   }
  },
  "count": 1121,

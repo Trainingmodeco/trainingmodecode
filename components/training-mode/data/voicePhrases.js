@@ -59,6 +59,11 @@ export const GAP_SENTENCE = 0.28;
 // A line -> [{ text, gap }]: the phrases to say in order, `gap` the silence
 // before each (0 for the first). Sentences split on . ! ? ; : , and dashes;
 // a sentence made only of strike words is a combo, one phrase per strike.
+// A NUMBERS-style punch call ("one", "three to the body"): formatCall joins
+// them with commas, but they are one combo, so they get the strike gap.
+const NUMBER_CALL = /^(one|two|three|four|five|six|seven|eight)( to the body)?$/;
+export const isNumberCall = (s) => NUMBER_CALL.test(s);
+
 export function phrasesOf(line) {
   const text = normalizeSpeech(line).replace(/(\d)\.(\d)/g, '$1\u0001$2').replace(/[—–]/g, '.');
   const sentences = text.split(/[.!?;:,]+\s*/).map((s) => s.replace(/\u0001/g, '.').trim()).filter(Boolean);
@@ -67,6 +72,8 @@ export function phrasesOf(line) {
     const words = s.split(/\s+/);
     if (words.length > 1 && words.every((w) => STRIKE_WORDS.has(w))) {
       strikePieces(words).forEach((p, pi) => out.push({ text: p, gap: si === 0 && pi === 0 ? 0 : pi === 0 ? GAP_SENTENCE : GAP_STRIKE }));
+    } else if (si > 0 && isNumberCall(s) && isNumberCall(sentences[si - 1])) {
+      out.push({ text: s, gap: GAP_STRIKE });
     } else out.push({ text: s, gap: si === 0 ? 0 : GAP_SENTENCE });
   });
   return out;
