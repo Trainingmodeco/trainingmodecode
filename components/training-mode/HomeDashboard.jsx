@@ -13,7 +13,10 @@ import { syncCombo, consumeComboFlash, getComboNudge, snoozeNudge, dismissNudgeT
 import { getTodayBout } from './data/gamePlan';
 import { firstPick } from './data/recommendations';
 import { loadLastSession, describeSession, programFor } from './data/lastSession';
-import { surpriseQuickMission, quickMissionConfig } from './data/quickMissionConfig';
+import { surpriseQuickMission, quickMissionConfig, levelWord } from './data/quickMissionConfig';
+import { qmV2Enabled } from './data/qmV2';
+import { loadShelfPrefs } from './data/loadoutMissions';
+import { startsAtYourPace } from './data/soloFromGenerated';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './data/ghostChallenges';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
@@ -91,6 +94,10 @@ export default function HomeDashboard({
   const [helpOpen, setHelpOpen] = useState(false);
   const [surprise, setSurprise] = useState(null);
   const [last] = useState(() => loadLastSession());
+  // The choice saved on the Quick Mission page. AT YOUR PACE ('solo') makes a
+  // Quick Mission START here run the moves and a timer (App
+  // goQuickMissionActive reads the same saved choice), so the card says so.
+  const [savedMode] = useState(() => (qmV2Enabled() ? loadShelfPrefs().mode : 'guided'));
 
   useEffect(() => {
     const refreshStats = () => setStats(loadStats());
@@ -213,20 +220,25 @@ export default function HomeDashboard({
   } else if (surprise) {
     card = {
       kind: 'surprise', eyebrow: 'Surprise', side: FIT,
-      title: 'Surprise Mission', parts: [surprise.focus, surprise.difficulty, `${surprise.duration} min`],
+      title: 'Surprise Mission', parts: [surprise.focus, levelWord(surprise.difficulty).charAt(0) + levelWord(surprise.difficulty).slice(1).toLowerCase(), `${surprise.duration} min`],
       cta: 'START', onGo: () => primeThen(() => onStartQuickMission?.(surprise)), onAdjust: onQuickMission,
+      atPace: startsAtYourPace(surprise, savedMode),
     };
   } else if (lastInfo) {
     card = {
       kind: 'last', eyebrow: 'Continue', side: lastInfo.mode === 'fit' ? FIT : FIGHT,
       title: lastInfo.title, parts: [lastInfo.sub, lastInfo.diff, lastInfo.time].filter(Boolean),
       cta: lastInfo.cta || 'START', onGo: () => primeThen(() => onReplayLast?.()), onAdjust: adjustLast,
+      atPace: last.kind === 'quick_mission' && startsAtYourPace(last.cfg, savedMode),
     };
   } else {
     card = {
       kind: 'bout', eyebrow: !bout && suggestion?.mode === 'fit' ? "Today's pick" : "Today's bout",
       side: !bout && suggestion?.mode === 'fit' ? FIT : FIGHT,
       title: boutTitle, parts: [boutSub], cta: boutCta, onGo: handleBoutStart,
+      // Only a plain Quick Mission pick starts straight away (the others open a setup screen).
+      atPace: !bout && suggestion?.actionType === 'quickMission' && !!suggestion.actionPayload && typeof suggestion.actionPayload === 'object'
+        && startsAtYourPace(quickMissionConfig(suggestion.actionPayload), savedMode),
     };
   }
 
@@ -328,6 +340,8 @@ export default function HomeDashboard({
                 )}
               </div>
               <div style={{ fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.parts.join(' · ')}</div>
+              {/* START follows the saved choice: AT YOUR PACE is the moves and a timer. */}
+              {card.atPace && <div style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', color: '#F2BE45' }}>AT YOUR PACE</div>}
               <div style={{ flexGrow: 1 }}/>
               <button type="button" className="hm-go" onClick={card.onGo} style={{
                 height: 52, borderRadius: 12, border: 'none', cursor: 'pointer',

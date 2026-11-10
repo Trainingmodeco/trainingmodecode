@@ -68,7 +68,9 @@ Object.assign(props, stageAll(props));
 
 const outDir = path.join(EXPORTS, post.id);
 fs.mkdirSync(outDir, { recursive: true });
-const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
+// Cloud sandboxes can't download Remotion's own browser: REMOTION_BROWSER_EXECUTABLE
+// (or CHROME_PATH) points at an installed Chrome/Chromium instead. Unset = Remotion's default.
+const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || process.env.CHROME_PATH || null;
 // Clean up on the way out, whether the render worked or not: the staged copies
 // are only for this render (the bundle copies public/, so leftovers make every
 // later bundle bigger; the next render stages afresh), and Remotion leaves its

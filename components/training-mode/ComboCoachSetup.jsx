@@ -12,6 +12,9 @@ import RushModeRow from './shared/RushMode';
 import { getEffectiveArsenal } from './data/arsenal';
 import { isBeginnerLearner, saveProfile, loadProfile } from './data/userProfile';
 import { CALL_STYLES, callStyleOf } from './data/strikeNumbering';
+import { loadStats } from './data/userStats';
+import { athleteStart } from './data/athleteLevel';
+import { COMBO_MIX } from './data/comboMix';
 import { FightBackdrop, FightHeader, FightDifficulty, FightToggle, fightTimerCSS } from './shared/FightTimerKit';
 
 // Combo Coach setup — the Simplify revamp reskin (royal blue + gold, no
@@ -26,11 +29,19 @@ const MODES = ['Technical', 'Combo'];
 // Picking a difficulty sets a default cadence (faster as it gets harder); the
 // user can still adjust the CADENCE stepper afterward.
 const CADENCE_BY_DIFF = { Easy: 4, Normal: 3.5, Hard: 3, Advanced: 2.5 };
-const DIFF_DESC = {
-  Easy: 'Base single strikes & simple combos — relaxed pace.',
-  Normal: 'Singles and combinations, about half and half — steady pace.',
-  Hard: 'Adds advanced strikes & longer combos — semi fight pace.',
-  Advanced: 'Advanced strikes & full combos — fight pace.',
+// What each level deals, in a line. The numbers come from the mix table
+// (data/comboMix), the same one the coach deals from. A boxer's pool has no
+// kicks, so the lines that speak of hard kicks are for the other disciplines;
+// the kick cap counts combos, not single kicks.
+const hardKicks = (n) => `${n} hard-kick combo${n === 1 ? '' : 's'}`;
+const diffDesc = (discipline, level) => {
+  const boxing = /^boxing$/i.test(String(discipline || '').trim());
+  switch (level) {
+    case 'Easy': return 'Single strikes and short combos. Relaxed pace.';
+    case 'Normal': return boxing ? 'Longer combos. Steady pace.' : `Longer combos, at most ${hardKicks(COMBO_MIX.NORMAL.maxHardKicks)} a round. Steady pace.`;
+    case 'Hard': return boxing ? 'Mostly hard combos. Semi fight pace.' : 'Mostly hard combos, hard kicks included. Semi fight pace.';
+    default: return 'Singles to the hardest combos. Fight pace.';
+  }
 };
 
 const fmtMin = (v) => `${Math.floor(v)}:${String(Math.round((v - Math.floor(v)) * 60)).padStart(2, '0')}`;
@@ -47,10 +58,14 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
   const arsenal = getEffectiveArsenal(discipline);
   const arsenalOnly = beginner;
   const [proGateOpen, setProGateOpen] = useState(false);
-  const [cfg, setCfg] = useState({
-    difficulty: 'Normal', mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: 3.5,
+  // The setup opens on the athlete's own level (their Fight progress, data/
+  // athleteLevel), so it keeps tracking them. A pick lasts for this visit only:
+  // nothing is saved, and the next visit starts on their level again.
+  const [own] = useState(() => DIFFICULTIES[athleteStart(loadStats(), 'fight').index] || 'Normal');
+  const [cfg, setCfg] = useState(() => ({
+    difficulty: own, mode: 'Combo', rounds: 3, roundMin: 3, restSec: 60, cadenceSec: CADENCE_BY_DIFF[own] ?? 3.5,
     rush: { on: false, pattern: 'endRound' }, warmupMin: loadWarmup('comboCoach'),
-  });
+  }));
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
 
   // PROMPT N — CALL STYLE lives on the profile (shared with Camp/Arcade), so
@@ -78,18 +93,20 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
       <style dangerouslySetInnerHTML={{ __html: fightTimerCSS }}/>
 
       <div style={{
-        // 8, not 12: with six stepper rows this is the one fight setup that
+        // 6, not 12: with six stepper rows this is the one fight setup that
         // ran START under the tab bar on a 667px phone.
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 7,
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 6,
         padding: '6px 16px 0',
         paddingBottom: 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))',
       }}>
         <FightHeader title="COMBO COACH" sub={`${discipline} · strike combos at cadence`} onBack={onBack} onHelp={() => setHelpOpen(true)}/>
 
-        {/* Difficulty also sets a default cadence (faster as it gets harder);
-            the CADENCE stepper can still override it. */}
+        {/* Difficulty opens on the athlete's level (marked YOUR LEVEL) and also
+            sets a default cadence (faster as it gets harder); the CADENCE
+            stepper can still override it. Any level can be picked, for today. */}
         <FightDifficulty
-          levels={DIFFICULTIES} value={cfg.difficulty} desc={DIFF_DESC[cfg.difficulty]} guide="cc-difficulty"
+          levels={DIFFICULTIES} value={cfg.difficulty} desc={diffDesc(discipline, cfg.difficulty)} guide="cc-difficulty"
+          mark={own} markLabel="YOUR LEVEL" hint={cfg.difficulty === own ? 'STARTS AT YOUR LEVEL' : 'FOR TODAY ONLY'}
           onChange={v => setCfg(c => ({ ...c, difficulty: v, cadenceSec: CADENCE_BY_DIFF[v] ?? c.cadenceSec }))}
         />
 
@@ -144,7 +161,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
             await primeSpeech();
             const speed = speedFor(cfg.cadenceSec);
             onStart({
-              discipline, difficulty: cfg.difficulty, mode: cfg.mode,
+              discipline, difficulty: cfg.difficulty, mode: cfg.mode, ownLevel: own.toUpperCase(),
               speed, speedLabel: `${cfg.cadenceSec.toFixed(1)}s`, ms: Math.round(cfg.cadenceSec * 1000),
               rounds: cfg.rounds, roundMin: cfg.roundMin, restSec: cfg.restSec,
               voiceOn: true, rushMode: cfg.rush.on, rushPattern: cfg.rush.pattern, rushMix: cfg.rush.mix || 'explosive',

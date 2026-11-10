@@ -8,7 +8,9 @@ import { chaseXp, CHASE_XP } from '../components/training-mode/data/chase.js';
 import { pickXpBanner } from '../components/training-mode/data/xpBanners.js';
 import { judgeRoundIntensity } from '../components/training-mode/data/roundIntensity.js';
 import { createMicStrikeDetector } from '../components/training-mode/data/micStrikeDetector.js';
-import { quickMissionXp } from '../components/training-mode/data/userStats.js';
+import { quickMissionXp, addFitModeSession, loadStats } from '../components/training-mode/data/userStats.js';
+import { canFinishEarly, finishPrompt, finishOnResume } from '../components/training-mode/data/builderFinish.js';
+import { resolveOutcome, xpForOutcome } from '../components/training-mode/shared/sessionOutcome.js';
 
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { if (cond) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}  ${extra}`); } };
@@ -125,6 +127,82 @@ check('quick mission: full run pays the bonus', quickMissionXp(10, 10, true) ===
 check('quick mission: skipped last move, no bonus', quickMissionXp(9, 10, true) === 135);
 check('quick mission: skipped middle move, no bonus', quickMissionXp(9, 10, true) === 9 * 15);
 check('quick mission: early stop, no bonus', quickMissionXp(4, 10, false) === 60);
+
+// Build Workout: FINISH WORKOUT shows once something is done and something is
+// left; with all of it done COMPLETE WORKOUT takes over. The confirm's copy.
+check('build workout: FINISH WORKOUT needs one done', !canFinishEarly(0, 8) && canFinishEarly(1, 8));
+check('build workout: FINISH WORKOUT goes when all are done', canFinishEarly(7, 8) && !canFinishEarly(8, 8) && !canFinishEarly(0, 0));
+{
+  const p = finishPrompt(6, 8);
+  check('build workout: the confirm names the count', p.title === 'Finish with 6 of 8 done?' && p.line === "The 2 left won't count.", JSON.stringify(p));
+  check('build workout: one left', finishPrompt(7, 8).line === "The 1 left won't count.");
+}
+// A session that comes back with every row done (killed in the done toast's
+// beat after the last move) goes to the summary, not to COMPLETE WORKOUT.
+{
+  const rows = [{ _uid: 'a' }, { _uid: 'b' }, { _uid: 'c' }];
+  check('build workout: resumed with all done finishes', finishOnResume(true, rows, { a: true, b: true, c: true }));
+  check('build workout: resumed with one open stays on the list', !finishOnResume(true, rows, { a: true, b: true }));
+  check('build workout: a fresh list never finishes itself', !finishOnResume(false, rows, { a: true, b: true, c: true }));
+  check('build workout: an empty list never finishes', !finishOnResume(true, [], {}) && !finishOnResume(true, rows, null));
+}
+// What a finish banks (App's goFitComplete → addFitModeSession), on a
+// throwaway storage: 15 per exercise done, +30 only when all are done, one
+// session row per call. FitWorkoutComplete shows completedCount × 15 (+30
+// when all done), so the summary and the bank agree.
+{
+  const store = new Map();
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true, writable: true,
+    value: { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) },
+  });
+  const partial = addFitModeSession(6, 8, 'Intermediate');
+  check('build workout: 6 of 8 banks 15 each, no +30', partial === 90, String(partial));
+  check('build workout: one session row, 90 XP', loadStats().sessions.length === 1 && loadStats().xp === 90 && loadStats().sessions[0].completedCount === 6);
+  const full = addFitModeSession(8, 8, 'Intermediate');
+  check('build workout: 8 of 8 adds the +30', full === 150, String(full));
+  check('build workout: two finishes, two rows', loadStats().sessions.length === 2 && loadStats().xp === 240);
+  delete globalThis.localStorage;
+}
+
+// Quick Mission's fourth level. ADVANCED asks for more work, never a stricter
+// verdict: Quick Mission passes advancedAs: 'hard', and then for every completion
+// it resolves exactly as HARD does, so it is never harder to pass than HARD (and
+// XP is the same fair per-exercise figure the other levels bank).
+{
+  const ratios = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1];
+  const qm = (completed, d) => resolveOutcome({ completed, total: 24, difficulty: d, advancedAs: 'hard' });
+  const same = ratios.every(r => ['advanced', 'Advanced', 'ADVANCED'].every(d => {
+    const a = qm(Math.round(r * 24), d);
+    const h = qm(Math.round(r * 24), 'Hard');
+    return a.outcome === h.outcome && a.failType === h.failType && a.completionRatio === h.completionRatio;
+  }));
+  check('quick mission: ADVANCED resolves exactly as HARD at every completion', same);
+  const rank = { fail: 0, validation_failed: 0, partial: 1, pass: 2 };
+  check('quick mission: ADVANCED is never harder to pass than HARD, or than NORMAL on a clean finish', ratios.every(r => {
+    const o = (d) => rank[qm(Math.round(r * 24), d).outcome];
+    return o('Advanced') >= o('Hard');
+  }) && qm(24, 'Advanced').outcome === 'pass');
+  check('quick mission: a finished ADVANCED mission banks the full XP, a stopped one keeps its exercises', xpForOutcome('pass', quickMissionXp(24, 24, true)) === 24 * 15 + 30
+    && xpForOutcome(qm(12, 'Advanced').outcome, quickMissionXp(12, 24, false)) === 12 * 15);
+}
+
+// Every other mode that already has an Advanced level (Combo Coach, Combat
+// Conditioning) keeps judging it as it did before Quick Mission got one: as
+// NORMAL. A finish at 92% is a pass there, and only a Quick Mission (HARD rules)
+// reads it as partial.
+{
+  const at = (done, opts) => resolveOutcome({ completed: done, total: 100, difficulty: 'Advanced', ...opts }).outcome;
+  const same = ['advanced', 'Advanced', 'ADVANCED'].every(d => [0, 25, 50, 90, 92, 95, 100].every(n => {
+    const a = resolveOutcome({ completed: n, total: 100, difficulty: d });
+    const nrm = resolveOutcome({ completed: n, total: 100, difficulty: 'Normal' });
+    return a.outcome === nrm.outcome && a.failType === nrm.failType;
+  }));
+  check('Combo Coach and Combat Conditioning: ADVANCED is judged as NORMAL at every completion (as before Quick Mission had one)', same);
+  check('a 92% finish at ADVANCED is a pass for them, and partial only when judged as HARD', at(92) === 'pass' && at(92, { advancedAs: 'hard' }) === 'partial'
+    && resolveOutcome({ completed: 92, total: 100, difficulty: 'Hard' }).outcome === 'partial' && resolveOutcome({ completed: 92, total: 100, difficulty: 'Normal' }).outcome === 'pass');
+  check('advancedAs touches nothing but ADVANCED', ['Easy', 'Normal', 'Hard'].every(d => [0, 50, 92, 100].every(n => resolveOutcome({ completed: n, total: 100, difficulty: d }).outcome === resolveOutcome({ completed: n, total: 100, difficulty: d, advancedAs: 'hard' }).outcome)));
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

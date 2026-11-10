@@ -9,7 +9,7 @@ import { QM_LEVEL_WORD } from './data/quickMissionConfig';
 import { namedWorkoutById } from './data/namedWorkouts';
 import {
   LOADOUTS, THEMES, buildLoadoutMission, missionCardModel, classicMeta,
-  filterShelf, themeCounts, loadoutCounts, shelfEntryLine, emptyShelfCopy, loadShelfPrefs, saveShelfPrefs,
+  filterShelf, themeCounts, loadoutCounts, shelfEntryLine, emptyShelfCopy, loadShelfPrefs, saveShelfPrefs, libraryLevelFor,
 } from './data/loadoutMissions';
 
 // Quick Mission · the MISSION LIBRARY sheet: every launch mission and every
@@ -18,13 +18,13 @@ import {
 //
 // The Workout Map's tall floating sheet (floatPanel, portalled so it rests on
 // the tab bar instead of under it). The header says what it is: MISSION
-// LIBRARY · 43 and one line, "Ready-made workouts. Tap one to see it on top,
-// then START." Only the list scrolls: the header, the pinned preview of the
+// LIBRARY · 43 and one line, "Ready-made workouts. START runs it GUIDED." (it
+// follows the highlighted row and the saved choice). Only the list scrolls: the header, the pinned preview of the
 // highlighted mission, the LOADOUT / THEME chips and the footer stay put.
 // Tapping a row only highlights it. PUT ON CARD hands it to the page, where
-// its card opens to every move and its swaps, with LEVEL and GUIDED / SOLO
-// behind ADJUST; START runs it from here, in the remembered run mode (SOLO
-// for a SOLO-only mission) at its default level, the one the preview and the
+// its card opens to every move and its swaps, with LEVEL and GUIDED / AT YOUR PACE
+// behind ADJUST; START runs it from here, in the remembered run mode (AT YOUR PACE
+// for a mission only offered that way) at its default level, the one the preview and the
 // row show. The preview is
 // read-only, so nothing in here ever opens a second sheet.
 //
@@ -61,10 +61,11 @@ const CSS = `
 
 // What the pinned preview shows: the card's own words, at the default level
 // START runs.
-function previewOf(entry, { gear }) {
+function previewOf(entry, { gear, level }) {
   if (!entry) return null;
   if (entry.kind === 'v2') {
-    const m = buildLoadoutMission(entry.id, { gear });
+    // A MAX OUT workout previews (and starts) at its picked level; the rest at their default.
+    const m = buildLoadoutMission(entry.id, { gear, level: libraryLevelFor(entry.id, undefined, level) });
     if (!m) return null;
     const card = missionCardModel(m, { gear });
     return {
@@ -99,27 +100,28 @@ export function CountPill({ n }) {
 function FilterChip({ on, dim, onClick, label, count }) {
   return (
     <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-chip ml-chip" onClick={onClick} style={{
-      flexShrink: 0, height: 34, padding: '0 6px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
+      flexShrink: 0, height: 34, padding: '0 4px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
       background: on ? 'rgba(157,108,255,0.22)' : '#16131F', border: `1px solid ${on ? 'rgba(157,108,255,0.55)' : 'transparent'}`,
-      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.04em', opacity: dim ? 0.45 : 1,
+      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.02em', opacity: dim ? 0.45 : 1,
     }}>{label}{count != null && <span style={{ opacity: 0.6 }}> {count}</span>}</button>
   );
 }
 
-// Every chip in view: the five LOADOUT chips just fit a 412px phone, and a
-// narrower one wraps them instead of hiding any off the edge.
+// Every chip in view: the five LOADOUT chips and the five THEME chips (MAX OUT is
+// the fifth) each fit one row on a 390px or 412px phone, and a narrower one wraps
+// them instead of hiding any off the edge.
 function ChipRow({ label, children }) {
   return (
-    <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+    <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
       {children}
     </div>
   );
 }
 
-// One mission: number, title (+ SOLO / PRO), "~16 MIN · BARBELL · EMOM".
+// One mission: number, title (+ YOUR PACE / PRO), "~16 MIN · BARBELL · EMOM".
 // The accessible name is the title, as the old shelf chips had it.
 function MissionRow({ entry, index, on, line, onPick, rowRef }) {
-  const name = [entry.title, entry.soloOnly && 'SOLO', entry.pro && 'PRO'].filter(Boolean).join(' ');
+  const name = [entry.title, entry.soloOnly && 'YOUR PACE ONLY', entry.pro && 'PRO'].filter(Boolean).join(' ');
   return (
     <button ref={rowRef} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={name} className="ml-row" onClick={onPick} style={{
       width: '100%', minHeight: 54, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12, padding: '6px 12px', borderRadius: 10,
@@ -130,7 +132,8 @@ function MissionRow({ entry, index, on, line, onPick, rowRef }) {
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           <span style={{ minWidth: 0, font: `700 13px ${HEAD}`, letterSpacing: '0.1em', color: on ? GOLD : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.title}</span>
-          {entry.soloOnly && pill('SOLO', '#9D6CFF', '#0D0A18')}
+          {/* PACE ONLY is as wide as the old YOUR PACE, so no title is cut on a 360px phone; the row's name and the card tag say YOUR PACE ONLY. */}
+          {entry.soloOnly && pill('PACE ONLY', '#9D6CFF', '#0D0A18')}
           {entry.pro && pill('PRO', GOLD, '#1A1204')}
           {/* ON TOP rides the title line, so the line under it keeps its
               format word on a narrow phone. */}
@@ -149,10 +152,12 @@ function MissionRow({ entry, index, on, line, onPick, rowRef }) {
 
 // shelf: shelfEntries() (the page decides what is on it); onTop: the entry
 // the page card shows, if any; gear: gearProfile().
-export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, onStart, onClose }) {
+// initial: { loadout, theme, level } from Build Workout's MAX OUT: where this visit starts (the
+// remembered filter and levels are not touched until the athlete picks a chip).
+export default function MissionLibrarySheet({ shelf, onTop, gear, initial = null, onPutOnCard, onStart, onClose }) {
   const [prefs] = useState(() => loadShelfPrefs());
-  const [loadout, setLoadout] = useState(prefs.loadout);
-  const [theme, setTheme] = useState(prefs.theme);
+  const [loadout, setLoadout] = useState(LOADOUTS.some(l => l.id === initial?.loadout) ? initial.loadout : prefs.loadout);
+  const [theme, setTheme] = useState(THEMES.some(t => t.id === initial?.theme) ? initial.theme : prefs.theme);
   const [highlight, setHighlight] = useState(() => (shelf || []).find(e => same(e, onTop)) || null);
   const pickLoadout = (id) => { setLoadout(id); saveShelfPrefs({ loadout: id }); };
   const pickTheme = (id) => { setTheme(id); saveShelfPrefs({ theme: id }); };
@@ -163,12 +168,18 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
   // The highlighted row, or the list's first when a filter hid it (it comes
   // back highlighted if the filter does).
   const current = list.find(e => same(e, highlight)) || list[0] || null;
-  const preview = useMemo(() => previewOf(current, { gear }), [current, gear]);
+  const preview = useMemo(() => previewOf(current, { gear, level: initial?.level }), [current, gear, initial]);
   const groups = [
     { id: 'v2', label: 'MISSIONS', rows: list.filter(e => e.kind === 'v2') },
     { id: 'classic', label: 'CLASSICS', rows: list.filter(e => e.kind === 'classic') },
   ].filter(g => g.rows.length);
   const empty = list.length ? null : emptyShelfCopy({ loadout, theme });
+  // What START will do with the highlighted row: a classic runs with the coach,
+  // a mission only offered at your pace runs that way, any other follows the
+  // choice saved on the page.
+  const startLine = !current ? 'Tap one, then START.'
+    : current.kind === 'classic' ? 'START runs this one with the coach.'
+      : current.soloOnly || prefs.mode === 'solo' ? 'START runs it AT YOUR PACE.' : 'START runs it GUIDED.';
 
   // Opened with a library mission on the card: start with its row in view.
   const rowRefs = useRef({});
@@ -201,7 +212,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
                 background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', color: '#CFC9E4', cursor: 'pointer',
               }}><X size={16}/></button>
             </div>
-            <div id="ml-sub" style={{ marginTop: 3, font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35, textWrap: 'balance' }}>Ready-made workouts. Tap one to see it on top, then START.</div>
+            <div id="ml-sub" style={{ marginTop: 3, font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35, textWrap: 'balance' }}>Ready-made workouts. {startLine}</div>
           </div>
 
           {/* The highlighted mission, pinned. Read-only: its controls live on
@@ -280,7 +291,7 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, onPutOnCard, o
                   <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }}/>
                 </div>
                 {g.rows.map((e, i) => (
-                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e)}
+                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level: e.kind === 'v2' ? libraryLevelFor(e.id, undefined, initial?.level) : undefined })}
                     onPick={() => setHighlight(e)} rowRef={(el) => { rowRefs.current[keyOf(e)] = el; }}/>
                 ))}
               </div>

@@ -22,8 +22,8 @@ rest from the production schedule in `scripts/`.
 ## Drop calendar (plan trailers a week ahead)
 
 - **SHOTO**: live 2026-10-23 → 2026-11-30. "Three styles. One path."
-- **ULTRA EGO**: 2026-12-01 → 2027-01-31 (replaces The Destroyer saga).
-  Trailer week: Nov 24.
+- **THE DESTROYER**: 2026-12-01 → 2027-01-31 (the old scripts call it Ultra Ego, a
+  franchise name: never say it). Trailer week: Nov 24.
 - **FLOW STATE**: 2027-02-01 → 2027-03-31.
 - **ONE HUNDRED**: 2027-04-01 → 2027-05-31.
 - **WARRIOR QUEEN**: 2027-06-01 → 2027-07-31.

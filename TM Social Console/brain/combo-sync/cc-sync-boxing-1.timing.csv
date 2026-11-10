@@ -1,0 +1,13 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,1,combo,Double Jab Body Hook Cross Hook Cross,6,6.733,8.841,11.233,"Jab, Jab, Hook to the body, Cross, Hook, Cross"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,2,combo,Jab Cross Step Back,2,11.233,12.496,15.733,"Jab, Cross, Step back"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,3,combo,Lead Uppercut Cross Hook Body Cross,4,15.733,17.735,20.233,"Lead uppercut, Cross, Hook, Cross to the body"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,4,defence,ROLL!,0,20.233,20.456,23.033,Roll (duck under the hook)
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,5,combo,Jab Uppercut Cross,3,23.033,24.133,27.533,"Jab, Uppercut, Cross"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,6,combo,Jab Body Jab Head Cross,3,27.533,28.938,32.033,"Jab, Jab to the body, Cross to the head"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,7,combo,Cross Hook Uppercut Cross,4,32.033,33.614,36.533,"Cross, Hook, Uppercut, Cross"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,8,combo,Jab Cross Body Hook,3,36.533,37.684,41.033,"Jab, Cross, Hook to the body"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,9,combo,Double Jab,2,41.033,41.385,45.533,"Jab, Jab"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,10,defence,SLIP!,0,45.533,45.838,48.333,Slip (move your head off the line)
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,11,combo,Double Jab Cross Hook,4,48.333,49.473,52.833,"Jab, Jab, Cross, Hook"
+cc-sync-boxing-1,Boxing,5,NORMAL,4.5,1,e9c3753,57.3,6.1,0.106 1.1 2.102,12,combo,Slip Slip Cross Hook,2,52.833,54.428,57.3,"Slip (move your head off the line), Slip, Cross, Hook"

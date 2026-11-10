@@ -25,6 +25,9 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
 import { encouragementIntervalSec } from './data/coachEncouragement';
+import FinishWorkoutConfirm from './shared/FinishWorkoutConfirm';
+import { canFinishEarly } from './data/builderFinish';
+import swallowNextClick from './shared/swallowNextClick';
 
 // Design 34 — voice-guided Workout Builder player (Quick Mission style).
 // Cycles through the generated list one set at a time:
@@ -76,18 +79,6 @@ export function nextOpenIdx(n, from, isDone, isSkipped, orSkipped = false) {
   for (let d = 1; d <= n; d++) { const i = (from + d) % n; if (!isDone(i) && !isSkipped(i)) return i; }
   if (orSkipped) for (let d = 1; d <= n; d++) { const i = (from + d) % n; if (!isDone(i)) return i; }
   return null;
-}
-
-// A row started on pointerup (a slow tap on the map) closes the sheet before
-// the browser sends the click that ends the tap, and that click is hit-tested
-// again with the sheet gone: it would land on whatever player control was
-// under the finger (SKIP EXERCISE, REWIND, STOP). Eat it. A press that long
-// may get no click at all, so the trap only waits a moment.
-function swallowNextClick(ms = 600) {
-  const eat = (e) => { e.preventDefault(); e.stopPropagation(); release(); };
-  const release = () => { clearTimeout(t); window.removeEventListener('click', eat, true); };
-  const t = setTimeout(release, ms);
-  window.addEventListener('click', eat, true);
 }
 
 const fmtClock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -165,6 +156,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const [paused, setPaused] = useState(!!initialPaused);
   const [cadenceSec, setCadenceSec] = useState(2);
   const [confirmEnd, setConfirmEnd] = useState(false); // STOP → shared confirm modal
+  const [confirmFinish, setConfirmFinish] = useState(false); // FINISH WORKOUT on the completion map
   // WORKOUT MAP sheet: 'complete' mode is the auto slide-up after an exercise
   // finishes — the just-done row flips ✓ and the next one glows.
   const [mapOpen, setMapOpen] = useState(false);
@@ -359,6 +351,8 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     // rows left were skipped, offer the first of those. Only DONE is permanent.
     const target = nextOpenIdx(exercises.length, exerciseIdx, (i) => i === exerciseIdx || !!completed[i], (i) => !!skipped[i], true);
     flowTimers.current.forEach(clearTimeout);
+    // Nothing open or skipped left: the toast has its beat, then the parent
+    // takes the workout to the session summary (not back to the list).
     if (target === null) {
       flowTimers.current = [setTimeout(() => onFinishWorkout?.(), 1600)];
       return;
@@ -690,11 +684,25 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   // STOP → shared "End session?" confirm (matches FightFocusTimer /
   // CampFitSetRunner). Confirm ends the whole workout to the summary; cancel
-  // closes and the session keeps running.
+  // closes and the session keeps running. The summary opens under the finger
+  // with RETURN HOME right where END was, so the second tap of a double tap
+  // is eaten (shared/swallowNextClick).
   const handleStopConfirm = () => {
+    swallowNextClick();
     versionRef.current++;
     cancelSpeech();
     setConfirmEnd(false);
+    onStop?.();
+  };
+
+  // FINISH WORKOUT on the completion map → "Finish with 6 of 8 done?" →
+  // FINISH ends the session to the summary, the same way STOP's END does
+  // (onStop). KEEP GOING leaves the map up with the next one still glowing.
+  const handleFinishConfirm = () => {
+    versionRef.current++;
+    cancelSpeech();
+    flowTimers.current.forEach(clearTimeout);
+    setConfirmFinish(false);
     onStop?.();
   };
 
@@ -726,7 +734,11 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
 
   // Closing the sheet. Normal mode: auto-resume with a 3-2-1 count (spec 2).
   // Complete mode: any close starts the glowing exercise — swipe down, ✕ or
-  // backdrop all mean "go" (spec 6).
+  // backdrop all mean "go" (spec 6). The start waits out the count-in, and
+  // anything that moved the player on meanwhile (Back to the list, STOP, a
+  // skip, the player unmounting) bumps versionRef and calls it off: a late
+  // jump would pull the athlete off the list, and its open FINISH confirm,
+  // into the next exercise.
   const closeMap = useCallback(async () => {
     setMapOpen(false);
     clearGesture();
@@ -735,7 +747,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
       const target = glow;
       setMapMode('normal');
       if (target == null) { onFinishWorkout?.(); return; }
+      const version = versionRef.current;
       await countIn();
+      if (versionRef.current !== version) return;
       onJumpExercise?.(target);
       return;
     }
@@ -760,7 +774,10 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     setMapMode('normal');
     setGlowWas(null);
     clearGesture();
+    // Called off if the player moved on during the count-in (see closeMap).
+    const version = versionRef.current;
     await countIn();
+    if (versionRef.current !== version) return;
     if (idx === exerciseIdx && phase !== 'done') {
       wasRunningRef.current = false;
       setPaused(false);
@@ -792,6 +809,22 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     el.addEventListener('touchmove', h, { passive: false });
     return () => el.removeEventListener('touchmove', h);
   }, [mapOpen]);
+
+  // The completion map opens on the glowing row (a single row or a chain's
+  // block). The FINISH WORKOUT footer takes room from the list, so on a small
+  // phone the last row could open hidden under it: scroll it into the list's
+  // view, and again when a skip on the map hands the glow on. Only the list
+  // scrolls, never the page under the sheet.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!mapOpen || mapMode !== 'complete' || !list) return;
+    const row = list.querySelector('.wm-glow');
+    if (!row) return;
+    const l = list.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    if (r.bottom > l.bottom) list.scrollTop += r.bottom - l.bottom + 8;
+    else if (r.top < l.top) list.scrollTop -= l.top - r.top + 8;
+  }, [mapOpen, mapMode, glow]);
 
   const engageCharge = useCallback((idx) => {
     const row = rowRefs.current[idx];
@@ -1589,6 +1622,23 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               </div>
               {dragFloat}
             </div>
+
+            {/* The completion map: an exercise just finished and the next one
+                glows. Ending here is a quiet option under the list; closing
+                the sheet still starts the glowing one. */}
+            {mapMode === 'complete' && canFinishEarly(doneCount, exercises.length) && (
+              <div style={{ flexShrink: 0, padding: '8px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <button
+                  type="button"
+                  onClick={() => { clearGesture(); setConfirmFinish(true); }}
+                  style={{
+                    width: '100%', height: 44, borderRadius: 10, cursor: 'pointer',
+                    background: 'transparent', border: '1px solid rgba(242,190,69,0.35)', color: GOLD,
+                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.12em',
+                  }}
+                >FINISH WORKOUT</button>
+              </div>
+            )}
           </div>
         </div>,
         document.body
@@ -1628,6 +1678,16 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
             </div>
           </div>
         </div>
+      )}
+
+      {/* FINISH WORKOUT's confirm — portalled over the map sheet. */}
+      {confirmFinish && (
+        <FinishWorkoutConfirm
+          done={doneCount}
+          total={exercises.length}
+          onCancel={() => setConfirmFinish(false)}
+          onFinish={handleFinishConfirm}
+        />
       )}
     </PhoneFrame>
   );

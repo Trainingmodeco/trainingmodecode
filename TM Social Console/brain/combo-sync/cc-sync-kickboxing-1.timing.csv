@@ -1,0 +1,13 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,1,combo,Body Kick Cross Hook Low Kick,4,6.767,8.477,11.267,"Kick to the body, Cross, Hook, Low kick (to the thigh)"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,2,combo,Jab Body Kick Cross,3,11.267,12.452,15.8,"Jab, Kick to the body, Cross"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,3,combo,Cross Hook Low Kick,3,15.8,16.962,20.3,"Cross, Hook, Low kick (to the thigh)"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,4,combo,Teep Jab Cross,3,20.3,21.265,24.8,"Teep (push kick), Jab, Cross"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,5,defence,PIVOT!,0,24.8,25.021,27.567,Pivot (step off at an angle)
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,6,combo,Low Kick Low Kick Cross,3,27.567,28.865,32.067,"Low kick (to the thigh), Low kick (to the thigh), Cross"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,7,combo,Jab Cross Hook Body Kick Low Kick,5,32.067,34.109,36.567,"Jab, Cross, Hook, Kick to the body, Low kick (to the thigh)"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,8,combo,Jab Body Kick,2,36.567,37.325,41.067,"Jab, Kick to the body"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,9,combo,Jab Cross Switch Kick,3,41.067,42.405,45.6,"Jab, Cross, Switch kick (switch stance, then kick)"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,10,combo,Hook Low Kick,2,45.6,46.297,50.067,"Hook, Low kick (to the thigh)"
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,11,defence,SLIP!,0,50.067,50.372,52.833,Slip (move your head off the line)
+cc-sync-kickboxing-1,Kickboxing,5,NORMAL,4.5,8,e9c3753,57.333,6.167,0.065 1.065 2.066,12,combo,Jab Cross Hook Low Kick Teep,5,52.833,54.66,57.333,"Jab, Cross, Hook, Low kick (to the thigh), Teep (push kick)"

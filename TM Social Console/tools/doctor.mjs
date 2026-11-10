@@ -17,7 +17,8 @@ const checks = [
   ['Packages', () => [fs.existsSync(path.join(ROOT, 'node_modules', 'remotion')), 'remotion + hyperframes installed', 'npm install']],
   ['FFmpeg for editing', () => [!!ffprobe(['-version']), ffprobe(['-version']).split('\n')[0].slice(0, 40), 'npm install']],
   ['Remotion browser', () => {
-    if (process.env.REMOTION_BROWSER_EXECUTABLE) return [fs.existsSync(process.env.REMOTION_BROWSER_EXECUTABLE), `using ${process.env.REMOTION_BROWSER_EXECUTABLE}`, 'fix REMOTION_BROWSER_EXECUTABLE'];
+    const override = process.env.REMOTION_BROWSER_EXECUTABLE || process.env.CHROME_PATH;
+    if (override) return [fs.existsSync(override), `using ${override}`, 'fix REMOTION_BROWSER_EXECUTABLE (or CHROME_PATH)'];
     const dir = path.join(ROOT, 'node_modules', '.remotion');
     return [fs.existsSync(dir), 'Chrome Headless Shell downloaded', 'npm run setup'];
   }],

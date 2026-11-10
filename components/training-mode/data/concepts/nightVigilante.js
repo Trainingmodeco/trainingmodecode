@@ -100,7 +100,7 @@ export const NIGHT_VIGILANTE = {
   fit: {
     weeks: 4,
     minutes: 60,
-    blurb: 'Olympic lifts, rings, rope, bars and parkour. Every movement has a rookie version.',
+    blurb: 'Olympic lifts, rings, rope and parkour.',
     days: [
       {
         label: 'THE FOUNDATION', focus: 'LIFT + METCON',
@@ -220,7 +220,7 @@ export const NIGHT_VIGILANTE = {
   // and leave. Tuesday is built around multiple opponents.
   fight: {
     discipline: 'MMA',
-    blurb: 'Strike and leave: MMA combinations ending in a dash, and his signature, multiple opponents.',
+    blurb: 'MMA combos that end in a dash.',
     roundMin: 3,
     restSec: 60,
     weeks: 4,

@@ -1,0 +1,217 @@
+{
+  "id": "2026-11-07-guided-or-at-your-pace",
+  "title": "Guided or at your pace",
+  "status": "rendered",
+  "format": "ScriptShort",
+  "createdAt": "2026-11-07",
+  "source": "weekly dev log: the Quick Mission and level update, 2026-11-07; B-roll recorded from the live app by tools/app-broll.mjs",
+  "scheduledFor": null,
+  "props": {
+    "kicker": "Quick Mission",
+    "boss": "At your pace",
+    "hook": "Want *no coach* in your ear?",
+    "beats": [
+      "Same moves. You choose *how*.",
+      "*GUIDED*: the coach calls every move.",
+      "At your *pace*: moves, a timer, beeps.",
+      "Tap *ROUND* when a round is done.",
+      "Either way, *you train*."
+    ],
+    "cta": "Link in bio",
+    "art": null,
+    "artBeats": [],
+    "goldBeats": [
+      5
+    ],
+    "broll": [
+      {
+        "src": "raw-footage/app/qm-mode-toggle.mp4",
+        "start": 0.4,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1150
+      },
+      {
+        "src": "raw-footage/app/qm-mode-toggle.mp4",
+        "start": 3.2,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1150
+      },
+      {
+        "src": "raw-footage/app/qm-start-guided.mp4",
+        "start": 2,
+        "rate": 0.8,
+        "focusX": 50,
+        "textY": 1390
+      },
+      {
+        "src": "raw-footage/app/qm-at-your-pace.mp4",
+        "start": 6.2,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1450,
+        "shiftY": 110
+      },
+      {
+        "src": "raw-footage/app/qm-at-your-pace.mp4",
+        "start": 10.8,
+        "rate": 0.8,
+        "focusX": 50,
+        "textY": 1420,
+        "shiftY": 45
+      },
+      {
+        "src": "raw-footage/app/qm-start-guided.mp4",
+        "start": 8.3,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1360
+      }
+    ],
+    "brollGrade": "app"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Want no coach in your ear? Quick Mission runs the same moves both ways 🎙️ Guided: the coach calls every move and keeps time. At your pace: the moves and a timer, beeps, no coach voice. Link in bio. #homeworkout #quickworkout #fitnessapp #combatfitness #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Want no coach in your ear? You can. 🎙️\n\nQuick Mission runs the same moves either way.\n\nGuided: the coach calls every move and keeps time.\nAt your pace: you see the moves and a timer, with beeps and no coach voice. Tap ROUND when a round is done and FINISH after the last.\n\nThe switch sits right above START, and the app keeps your pick for next time.\n\nComment TRAIN and I'll DM you the link.\n\n#homeworkout #quickworkout #fitnessapp #workoutmotivation #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "Want no coach in your ear? You can. 🎙️ Quick Mission runs the same moves either way. Guided: the coach calls every move and keeps time. At your pace: the moves and a timer, beeps and no coach voice. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "No coach in your ear? Guided vs at your pace 🎙️ #shorts",
+      "description": "Quick Mission in Training Mode runs the same moves two ways. Guided: the coach calls every move and keeps time. At your pace: just the moves and a timer, with beeps and no coach voice. Tap ROUND when a round is done and FINISH after the last. The switch sits above START and the app keeps your pick.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "quick workout",
+        "home workout",
+        "guided workout",
+        "workout timer",
+        "fitness app",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "timeline": [
+    {
+      "scene": 0,
+      "text": "Want no coach in your ear?",
+      "start": 0,
+      "seconds": 3.03,
+      "footage": "qm-mode-toggle 0.4s to 3.43s at 1x"
+    },
+    {
+      "scene": 1,
+      "text": "Same moves. You choose how.",
+      "start": 3.03,
+      "seconds": 2.67,
+      "footage": "qm-mode-toggle 3.2s to 5.87s at 1x"
+    },
+    {
+      "scene": 2,
+      "text": "GUIDED: the coach calls every move.",
+      "start": 5.7,
+      "seconds": 3.03,
+      "footage": "qm-start-guided 2s to 4.43s at 0.8x"
+    },
+    {
+      "scene": 3,
+      "text": "At your pace: moves, a timer, beeps.",
+      "start": 8.73,
+      "seconds": 3.4,
+      "footage": "qm-at-your-pace 6.2s to 9.60s at 1x"
+    },
+    {
+      "scene": 4,
+      "text": "Tap ROUND when a round is done.",
+      "start": 12.13,
+      "seconds": 3.4,
+      "footage": "qm-at-your-pace 10.8s to 13.52s at 0.8x"
+    },
+    {
+      "scene": 5,
+      "text": "Either way, you train.",
+      "start": 15.53,
+      "seconds": 2.27,
+      "footage": "qm-start-guided 8.3s to 10.57s at 1x"
+    }
+  ],
+  "seconds": 21.3,
+  "teaches": "GUIDED means the coach calls every move and keeps time; AT YOUR PACE means the moves and a timer, with beeps and no coach voice.",
+  "voiceover": {
+    "voice": "Coach TM, recorded over the silent reel; plain lines, no hype. Leave a beat of air at each cut.",
+    "script": "Want no coach in your ear? You can. Same moves. You choose how. Guided: the coach calls every move. At your pace: moves, a timer, beeps. Tap Round when a round's done. Either way, you train. Link in bio. Go train.",
+    "lines": [
+      {
+        "scene": 0,
+        "label": "hook",
+        "at": 0.12,
+        "window": 2.83,
+        "text": "Want no coach in your ear? You can."
+      },
+      {
+        "scene": 1,
+        "label": "beat 1",
+        "at": 3.15,
+        "window": 2.47,
+        "text": "Same moves. You choose how."
+      },
+      {
+        "scene": 2,
+        "label": "beat 2",
+        "at": 5.82,
+        "window": 2.83,
+        "text": "Guided: the coach calls every move."
+      },
+      {
+        "scene": 3,
+        "label": "beat 3",
+        "at": 8.85,
+        "window": 3.2,
+        "text": "At your pace: moves, a timer, beeps."
+      },
+      {
+        "scene": 4,
+        "label": "beat 4",
+        "at": 12.25,
+        "window": 3.2,
+        "text": "Tap Round when a round's done."
+      },
+      {
+        "scene": 5,
+        "label": "beat 5",
+        "at": 15.65,
+        "window": 2.07,
+        "text": "Either way, you train."
+      },
+      {
+        "scene": null,
+        "label": "end card",
+        "at": 17.9,
+        "window": 2.3,
+        "text": "Link in bio. Go train."
+      }
+    ]
+  },
+  "notes": [
+    "Not approved and not published. The owner approves every post (npm run approve) after seeing the render and every caption.",
+    "Facts: GUIDED = \"The coach calls every move and keeps time.\"; AT YOUR PACE = \"The moves and a timer. Beeps, no coach voice.\" (data/loadoutMissions.js GUIDED_HELP / SOLO_HELP). ROUND ends each round except the last, which ends with FINISH; a 1-round mission has FINISH only (soloFromGenerated tapHint: \"Tap ROUND when a round is done. FINISH after the last.\"). The clip must use 10 minutes or more for ROUND to show.",
+    "The generated mission at your pace is a count-up circuit: rests are yours and the clock keeps counting, so the reel never says the timer \"ends at N minutes\". The \"CAP 20:00\" under the timer is the app's own (twice the standard pace).",
+    "The same moves run either way (\"Runs exactly the workout on the card, GUIDED or AT YOUR PACE\", START guide), which is why the card says \"Same moves\".",
+    "\"Your pick is kept\" is in the captions only: the START guide says the choice is kept for next time and START on Fit Mode and Home follows it.",
+    "No fast-forwarded clock on screen: the get-ready and the first seconds of the timer are real time in the clip; each scene's window sits on one side of the clip's one clock jump.",
+    "Footage: each scene's window in the clip is in \"timeline\". The clips are recorded from the live app by npm run app-broll (needs a built export of the app); after the app changes, re-run it and re-check every window."
+  ],
+  "exports": {
+    "video": "exports/2026-11-07-guided-or-at-your-pace/video.mp4",
+    "cover": "exports/2026-11-07-guided-or-at-your-pace/cover.jpg",
+    "seconds": 21.3
+  },
+  "renderedAt": "2026-11-07T05:02:06.742Z"
+}

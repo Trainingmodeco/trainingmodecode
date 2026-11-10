@@ -22,7 +22,9 @@ boss). App: https://apptrainingmode.com · site: https://trainingmode.co.
    names you publish. The list comes from the app (`brand/brand.json` →
    `rules.neverSay`); `npm run check` enforces it and render/approve refuse to
    run on a violation. Some older Drive scripts break this rule. Rewrite them
-   with the app's own names (e.g. FLOW STATE, SHOTO, ULTRA EGO) before using them.
+   with the app's own names (e.g. FLOW STATE, SHOTO, THE DESTROYER) before using them.
+   The drop the old scripts call Ultra Ego is THE DESTROYER in the app (Ultra Ego is
+   a franchise name; `npm run check` bans it too).
 3. **The app rewards the workout, never views, likes, follows or subscribes.**
    Never offer XP or rewards for engagement. App CTA: "open the app and hit
    CLEARED".
@@ -83,7 +85,49 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
 | `npm run pose -- raw-footage/clip.mp4` | body landmarks per frame (MediaPipe) → `clip.pose.json`, for the Practice tutorial's markers; it also prints each hand's and foot's reach per 0.1 s, so a strike's extension frame is a peak |
 | `npm run app-video -- <id> [<id> …]` | puts a Practice tutorial into the app: the in-app cut → `../public/static/practice/<slug>.mp4` (720p, ~1 MB, no audio) + `<slug>.webp` poster, and its URL into every slot in `app.slots` ("Muay Thai › Rear Knee" for a Technique Library entry, "lesson:mt_knee" for a path lesson; default: the technique in each of the post's disciplines). Then `npm run lock:assets` in the app (the posters are new images) and commit |
 | `npm run handoff -- --log "what it delivers" [--also <path> …]` | hands app work to the app chat: a `claude/console-handoff-<date>` branch cut from `origin/app` with only app files (the practice videos, the two Practice data files, the re-locked `assets.lock.json`, any `--also` paths) and a log entry in `HANDOFF.md`. Never carries `TM Social Console/`. Refuses until `origin/app` is merged into this branch |
+| `npm run app-broll -- [--list] [--only a,b] [--dist <dir>] [--chrome <exe>] [--contact <dir>]` | records the app's own screens as silent B-roll: portrait 1080×1920, 30 fps, H.264, true app colours, a gold tap ripple, `raw-footage/app/<name>.mp4`. Serves a built web export of the app (`npm run build:web` in the app → `dist/`, or `--dist`), drives Chromium at the app's phone size (412×732 at 2.62), seeds an athlete into localStorage (a new account, level 3, level 10, Fight level 10) and plays a finger choreography (taps, drags, scrolls; a fake clock only to jump long waits). Needs the app repo's deps (`playwright-core` from `../node_modules`), FFmpeg and a browser (`CHROME_PATH` or `--chrome`; in a cloud session the installed Chromium). A new clip is one entry in `CLIPS`; its `expect`/`waitText` steps stop a clip whose screen no longer says what it should. Re-run it after the app changes |
+| `npm run sync-broll` (= `npm run app-broll -- --only sync`) | **the Combo Coach sync videos**: `cc-sync-{boxing,kickboxing,muaythai,mma}-{1,2}`, the app's real Combo Coach session screen from its 3-2-1 through 10 combos (about 55 s, names style, COMBO mode, 1 round of 1 minute, CADENCE 4.5 s; video 1 a level 5 Fight athlete = NORMAL mix, video 2 a level 10 one = ADVANCED mix), 1080×1920 30 fps H.264 with an AAC guide track (3 beeps on the 3-2-1, the app's bell on GO, the coach's voice on each call at the frame its words show; no music) → `raw-footage/app/sync/<name>.mp4`, copied with `<name>.timing.json/.csv` (beeps, bell, every call's start, speech end and next call, strikes in plain words), `FILM-GUIDE.md` and `CALLS.md` to `exports/cc-sync/`. The owner films themselves striking to the calls while the video plays out loud. `--cadence 4.5 --calls 10 --voice <name> --no-voice --sync-out <dir> --files-at <text> --pages-only`; the seeds are fixed for cadence 4.5 (`SYNC_SEEDS`: boxing 1 and 24, kickboxing 8 and 2, Muay Thai 16 and 92, MMA 16 and 85), so a re-run deals the same combos (not the same file: timings can differ by a frame, so keep a video and its sheet as a pair). A run is real time, about 2.5 minutes a video, 20 for all eight. The app speaks with the device's voice (none in headless Chromium): a stand-in logs every line and tells the app how long it takes to say; the lines are spoken offline (`tools/sync-audio.mjs`: eSpeak NG + MBROLA, polished and mixed with ffmpeg, -16 LUFS). Level 5 deals a "SLIP!" or "ROLL!" call every 3 to 5 combos (the app's own rule), so those videos hold 10 combos and a few defence calls, all in the sheet. No speech engine installed: the videos still come out with beeps, bell and a tick per call, and the tool says so |
+| `npm run align -- <guide.mp4> <owner-clip.mp4> [--json [file]]` | where the guide video's 0:00 falls on the owner's clip (seconds; negative when the camera started after the guide had begun) and a 0 to 1 confidence, from the sound alone (band loudness correlated with an FFT, refined at 2 ms; robust to room noise, bag hits, a lowpassed phone mic, a different loudness, extra audio before and after). Adds where the bell and each call fall on the clip when the guide's `.timing.json` is next to it. When the guide is not in the clip it says so, prints no offset (JSON: `"reliable": false`, `offsetSec: null`) and exits 2. `npm run test:align` checks it on made-up recordings (offsets within 40 ms) |
+| `npm run test:sync` | checks the sync guide's voice phrasing and plain-words lists against every combo of the app's pool (`comboCoachData.js`, counted by the app's own `piecesOf`): the voice says the app's strikes, one per phrase, and nothing is cut in the middle of one. Fails on a mismatch |
 | `npm run deblur -- raw-footage/clip.mp4 --sigma 2 --iters 12` | fixes evenly soft (missed-focus) footage with Richardson-Lucy deconvolution on the luma, then denoise, 1080×1920 and light CAS → `clip.deblur.mp4`. Not for motion blur. Test sigma on one frame first (1.6–2.4 for a soft 720p phone clip; higher rings). Plain `unsharp`/`cas` barely help such footage; FSRCNN upscaling does nothing for it |
+
+## The Combo Coach sync videos (the owner films themselves to them)
+
+Eight guide videos of the app's Combo Coach playing (`npm run sync-broll`; boxing, kickboxing,
+Muay Thai, MMA, two each: a level 5 and a level 10 athlete), each with a guide sound and a timing
+sheet, so the owner can play one out loud, film themselves striking to the coach's calls, and send the
+clip back; `npm run align` then finds where the guide sits inside their clip from the sound alone, and
+the app screen and their striking are cut together on that offset. What to know:
+
+- The calls on the sheet are on the guide video's own clock (`startSec` is the frame where a call's
+  words first show, and the coach's voice starts then; `goAtSec` is the bell). On the owner's clip a
+  moment at guide time `t` is at `t + offset`, the offset `npm run align` prints (`--json` writes it
+  and, with the guide's `.timing.json` beside it, where the bell and every call fall on the clip).
+- The guide sound is for the owner's filming and the alignment. The reel's own audio rules stand: the
+  footage is muted in a render, the owner adds music, nothing here is posted (every post still needs
+  the owner's approval).
+- Nothing on screen names a person or a franchise: the clips seed the neutral name Trainee and the
+  screen shows only strike names. A level 5 video also holds the app's own slip / roll / check / pivot /
+  sprawl calls (`kind: defence` in the sheet; they are not combos and get a shorter slot). The film
+  guide and CALLS.md number the combos 1 to 10 and the defence calls D1, D2 and so on.
+- Re-run `npm run sync-broll` after the app changes (it stops on a screen that no longer says what it
+  should). The seeds are fixed, so the same app deals the same combos; `--probe-seeds 8` lists what
+  other seeds would deal. **The seeds are fixed for cadence 4.5.** Another `--cadence` can deal other
+  combos at level 5 (the dealer sizes the round from the call count): re-run `--probe-seeds` and update
+  `SYNC_SEEDS` if you change it. The combos repeat, the timings do not (a call can land a frame
+  earlier or later, a beep 10 ms; the level 5 videos' one-word defence calls can differ from run to
+  run): each timing sheet is exact for the mp4 it was written with, so
+  never swap a re-recorded video in once the owner has filmed to the old one.
+- The seeds were chosen so every call can be filmed on a hanging bag in a 4.5 s slot (no Ground Pound,
+  Throw or Pass, at most one short clinch-and-knee combo, nothing over 6 pieces in a row, no combo ending
+  on a stray "Head" or "Body": the tool refuses to record one). `npm run test:sync` checks the voice's
+  phrasing and the plain-words lists against every combo of the app's pool, so a pool change cannot
+  break the guide unseen.
+- Nobody has listened to the voice yet: play one video before the owner films, and judge the first call
+  (right after the bell) and the calls starting with Hook, Feint, Pivot or Check.
+- The voice needs a text-to-speech program (`apt-get install -y espeak-ng mbrola mbrola-us2`); without
+  one the tool says so and makes the videos with beeps, bell and a tick per call. It also needs a full
+  ffmpeg on the PATH (checked before recording) and a browser (`CHROME_PATH` or `--chrome`).
 
 ## The loop
 
@@ -125,6 +169,22 @@ exports/<id>/        rendered video.mp4 + cover.jpg (not in git)
   the `.tracked.mp4` with `focusX` 50. Same for the Rank Ladder clip. Pick a different shot per scene: find cuts with
   `ffmpeg -i clip -vf "select='gt(scene,0.25)',showinfo" -f null -`, and make
   sure `start + sceneSeconds × rate` stays inside the clip.
+  **App screens as B-roll** (an update reel, no camera): record the clips with
+  `npm run app-broll`, then set `"brollGrade": "app"` in `props`. The footage keeps
+  its true colours at full size (a phone UI must stay legible: no violet tone,
+  no dimming), the words sit in a caption panel (gold-flipped on `goldBeats`) that
+  each scene places with `broll[i].textY` (the panel's centre line in px, over a part
+  of the screen that isn't live; default 440) and `broll[i].shiftY` (slides a
+  screen's top rows below the HUD, e.g. Combo Coach's difficulty chips), and the
+  HUD stays inside x 70 to 938 with no bottom brackets (nothing in the right 140 px
+  or the bottom 350 px), and the end card's wordmark and flash are softened to match.
+  Write each beat to fit two lines (`npm run render` sizes the panel: at most three
+  lines, and a three-line panel is 300+ px tall), keep the panel's top edge below y 315
+  and its bottom edge above y 1570 (measure the render, not the plan), and look at a
+  still of every scene. Cuts of one clip must not cross a clock jump, and no scene may
+  show a fast-forwarded clock (the clips record get-ready countdowns in real time).
+  Name no test persona on screen: the clips seed the neutral name Trainee. Without
+  `brollGrade` a post renders as it always did.
 - **FootageShort**: the owner's clip with the HUD, a title card, Whisper
   captions (spoken word turns gold) and the end card.
 - **BossIntro**: 5s "STAGE 3 / LEG DAY / BOSS: 100 SQUATS / FIGHT!" hook.

@@ -47,6 +47,36 @@ jobs:
       - name: Quick Mission tests
         run: npm run -s test:missions
 
+      # GUIDED or AT YOUR PACE for today's mission: the adapter, the pace
+      # tiers, the XP parity with guided, the floors and the words.
+      - name: Quick Mission at-your-pace tests
+        run: npm run -s test:ayp
+
+      # MAX OUT: the five max-rep workouts, their swap rules, the coach's words,
+      # the XP, floors and caps, the saved score and Build Workout's hand-off.
+      - name: MAX OUT tests
+        run: npm run -s test:maxout
+
+      # XP verdicts and the Level page's words and maths (levels, tiers, recap,
+      # copy rules). Both are in check:all; they were not gating PRs.
+      - name: XP verdict tests
+        run: npm run -s test:xp
+
+      - name: Level page tests
+        run: npm run -s test:levels
+
+      # The athlete's level for training: effective XP (own side in full, the
+      # rest at half), the EASY / NORMAL / HARD / ADVANCED tier and the
+      # surprise range every workout's starting difficulty comes from.
+      - name: Athlete level tests
+        run: npm run -s test:athlete
+
+      # What Combo Coach deals at each level: the pieces helper, the one mix
+      # table, the caps (Easy 4 pieces and no difficult kick, Normal 7 and 2 a
+      # round) and the swing at the top, over thousands of deals.
+      - name: Combo Coach mix tests
+        run: npm run -s test:combomix
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 

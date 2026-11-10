@@ -1,0 +1,11 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,1,combo,Jab Cross Fake Shot Flying Knee,3,6.5,8.362,11.067,"Jab, Cross, Fake shot (act like you are shooting a takedown), Flying knee"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,2,combo,Low Kick Cross Level Change,2,11.067,12.53,15.533,"Low kick (to the thigh), Cross, Level change (drop your height)"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,3,combo,Level Change Cross Hook Body Kick Sprawl Cross,4,15.533,18.361,20.033,"Level change (drop your height), Cross, Hook, Kick to the body, Sprawl (hips back, stop the takedown), Cross"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,4,combo,Jab Level Change Overhand Knee,3,20.033,21.773,24.533,"Jab, Level change (drop your height), Overhand, Knee"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,5,combo,Switch Kick Cross Hook Fake Shot Overhand,4,24.533,27.141,29.033,"Switch kick (switch stance, then kick), Cross, Hook, Fake shot (act like you are shooting a takedown), Overhand"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,6,combo,Jab Cross,2,29.033,29.644,33.567,"Jab, Cross"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,7,combo,Jab Cross Hook Sprawl Cross Overhand,5,33.567,36.04,38.033,"Jab, Cross, Hook, Sprawl (hips back, stop the takedown), Cross, Overhand"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,8,combo,Feint Shot Overhand Hook Body Kick Level Change,3,38.033,40.738,42.567,"Feint a shot, Overhand, Hook, Kick to the body, Level change (drop your height)"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,9,combo,Jab Cross Clinch Knee,3,42.567,43.995,47.033,"Jab, Cross, Clinch (grab hold of the head), Knee"
+cc-sync-mma-2,MMA,10,ADVANCED,4.5,85,e9c3753,51.533,5.9,0.084 1.074 2.075,10,combo,Sprawl Cross,1,47.033,47.836,51.533,"Sprawl (hips back, stop the takedown), Cross"

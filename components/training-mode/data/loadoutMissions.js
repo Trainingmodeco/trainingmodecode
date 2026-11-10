@@ -15,15 +15,17 @@
 // Tiers: where the source gives Rx and Scaled loads, Rx is ELITE and Scaled is
 // STANDARD. Pace targets for TUTORIAL STAGE, TURBO BUTTON and QUOTA 300 come
 // from the source; the other eight launch missions are coach estimates (see
-// each paceBasis). Missions 12-26 are SOLO only for now (see their block).
-// `knownAs` is stored, never rendered.
+// each paceBasis). Missions 12-26 are SOLO only for now (see their block);
+// 27-30 are the owner's own, GUIDED and SOLO, and 31 (OVERTIME 20) is a
+// verified catalog mission, GUIDED and SOLO. `knownAs` is stored, never
+// rendered; `origin` marks a Coach TM original.
 import {
   LEVELS, LEVEL_LABEL, GEAR_LABEL, GEAR_WORD, ALT_LABEL,
-  moveById, cadenceFor, estMsFor, slotDose, windowRest, rowItems,
+  moveById, cadenceFor, estMsFor, slotDose, windowRest, rowItems, regionOf, maxStopLine, maxCues, repCapFor, MAX_OUT_BANNED,
 } from './missionMoves';
 import { NAMED_WORKOUTS, CLASSIC_TAGS } from './namedWorkouts';
 import { loadEquipment } from './equipmentProfile';
-import { missionClockSec, estimateWorkSeconds } from './missionSolo';
+import { missionClockSec, estimateWorkSeconds, isMaxReps } from './missionSolo';
 
 export const LOADOUTS = [
   { id: 'all', label: 'ALL' }, { id: 'none', label: 'NO GEAR' }, { id: 'bell', label: '1 BELL / DB' },
@@ -34,6 +36,7 @@ export const THEMES = [
   { id: 'striking', label: 'STRIKING', help: 'Fight-round clocks, strikes and sprawls. No bag needed.' },
   { id: 'burpees', label: 'BURPEES', help: 'Burpee missions, up to 300 reps.' },
   { id: 'century', label: 'CENTURY', help: 'High-rep missions, 100 to 300 reps.' },
+  { id: 'maxout', label: 'MAX OUT', help: 'Max reps on a move, then switch.' },
 ];
 export const LOADOUT_GEAR = {
   none: ['none'],
@@ -41,10 +44,23 @@ export const LOADOUT_GEAR = {
   barbell: ['none', 'barbell', 'plate'],
   mixed: ['none', 'bell', 'db', 'barbell', 'plate', 'rower', 'bar'], // bar: OXYGEN DEBT's and HOT LAPS' pull-ups
 };
-export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS' };
+// maxSets: NO CONTINUES, sets until the bell touches the floor; maxRounds:
+// UPPER LOWER DIPS, rounds until one can't be finished (both untilDown);
+// maxReps: MAX OUT, one set of max clean reps at each station, round after round.
+export const FORMAT_LABEL = { emom: 'EMOM', amrap: 'AMRAP', forTime: 'FOR TIME', intervals: 'INTERVALS', maxSets: 'MAX SETS', maxRounds: 'MAX ROUNDS', maxReps: 'MAX REPS' };
+// The format word a viewer reads: a mission's own (TOUCH THE SKY runs the
+// for-time clock but is not a race: COMPLEX), else its format's.
+export function formatLabelOf(m) { return m?.formatLabel || FORMAT_LABEL[m?.format] || ''; }
 export const GUIDED_HELP_AMRAP = 'The coach runs the clock and calls the time. The moves stay on screen.';
-export const SOLO_HELP = 'Your pace. The whole workout on one screen, one clock.';
-export const SOLO_ONLY_HELP = 'SOLO only for now. Guided is coming.';
+// How START runs a mission: GUIDED, or AT YOUR PACE (stored and routed as
+// 'solo': saved sessions, resume stashes and analytics keep that word). The
+// words the first page, ADJUST and the run screen print.
+export const RUN_MODES = [{ id: 'guided', label: 'GUIDED' }, { id: 'solo', label: 'AT YOUR PACE' }];
+export const GUIDED_HELP = 'The coach calls every move and keeps time.';
+export const SOLO_HELP = 'The moves and a timer. Beeps, no coach voice.';
+export const SOLO_ONLY_HELP = 'Only at your pace for now. Guided is coming.';
+// A named classic (Murph, Sally Up, 5 Minutes of Hell…) is built around the coach's calls.
+export const CLASSIC_HELP = 'This classic runs with the coach.';
 
 // ── authoring helpers ───────────────────────────────────────────────────────
 // r: reps slot · t: timed slot · amrap: timed list (an AMRAP block) ·
@@ -339,7 +355,7 @@ const HIT_COMBO = {
   scale: 'Lighter bar, or the beginner level. Hotel gym: 2 dumbbells, same 7 moves.',
   note: 'Warm up 5 min of easy cardio, then 2 rounds with the empty bar. Put the bar down whenever form slips: the score is rounds, not unbroken sets. Sore shoulders: swap Back Squats for Front-Rack Reverse Lunges.',
   introSay: '',
-  guidedHelp: '', // SOLO only; the card shows SOLO_ONLY_HELP
+  guidedHelp: '', // at your pace only; the card shows SOLO_ONLY_HELP
   paceBasis: 'Coach estimate: one clean round takes 60-75 s; the target is about 8-11 rounds at 50/35 kg.',
   defaultLevel: 'standard',
   levels: {
@@ -495,9 +511,9 @@ const QUOTA = {
 // ELITE, Scaled STANDARD, the source's beginner option BEGINNER. A pace is a
 // coach estimate unless its paceBasis names a published range. Where SOLO
 // needed a different shape than the source's, the comment says so.
-const SOLO_COPY = { introSay: '', guidedHelp: '' }; // SOLO only; the card shows SOLO_ONLY_HELP
+const SOLO_COPY = { introSay: '', guidedHelp: '' }; // at your pace only; the card shows SOLO_ONLY_HELP
 // A ladder (a for-time workout whose rungs differ): one complex per rung, so
-// SOLO's + ROUND counts rungs and a capped run prefills the reps through them.
+// SOLO's ROUND tap counts rungs and a capped run prefills the reps through them.
 const rungs = (counts, steps) => counts.map((n, i) => complex(`Rung ${i + 1}`, steps(n, i), { swapKey: 'rung' }));
 // A step note that holds only for the row's base move: a swap clears it.
 const baseNote = (key, moveId, then) => ({ noteIf: { key, is: moveId, then, else: null } });
@@ -617,7 +633,7 @@ const BURNOUT = {
   knownAs: 'CrossFit Open 14.5 / 16.5 (captions only)',
   loadoutLine: '1 BARBELL + PLATES · 2 × 3 M OF FLOOR', scoreLine: 'TIME, OR REPS AT THE CAP (168 FINISHES)', scoreRule: { kind: 'time' },
   scale: 'Lighter bar (29/20 kg), or the beginner level: 15 down to 3 with the empty bar and step-over burpees. Hotel gym: dumbbell thrusters, burpees over the dumbbell.',
-  note: 'Warm up 5 min, then 2 rounds of 5 empty-bar thrusters and 5 burpees. Tap + ROUND after each rung. If the thruster turns into a back-arching press, split it: a front squat, then a push press.',
+  note: 'Warm up 5 min, then 2 rounds of 5 empty-bar thrusters and 5 burpees. Tap ROUND after each rung. If the thruster turns into a back-arching press, split it: a front squat, then a push press.',
   ...SOLO_COPY,
   paceBasis: 'Published: elite times at 43/29 kg were about 7:15-7:45. The rest are coach estimates (a solid intermediate: about 15-22 min).',
   defaultLevel: 'standard',
@@ -765,7 +781,7 @@ const CONTINUE_BELL = {
   knownAs: 'Humane Burpee (Dan John), 10→1 variant',
   loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A SWING LANE CLEAR OF THE TV', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bell (16/12 kg), or the beginner level: 5 rungs down to 1, and 10 swings if 15 breaks your form. Dumbbell: swings and goblet squats with one dumbbell.',
-  note: '15 swings every rung; only the squats and push-ups shrink, so it gets easier as you go. Tap + ROUND after each rung. Park the bell when your back rounds or the bell drifts forward: that is a rest, not a fail.',
+  note: '15 swings every rung; only the squats and push-ups shrink, so it gets easier as you go. Tap ROUND after each rung. Park the bell when your back rounds or the bell drifts forward: that is a rest, not a fail.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 15 swings take about 25 s; the ladder runs about 10-14 min.',
   defaultLevel: 'standard',
@@ -938,7 +954,7 @@ const LEG_SWEEP = {
 
 // ── 24 · CHARGE UP 12 ───────────────────────────────────────────────────────
 // An ascending ladder on the AMRAP clock: both steps climb 2 a rung (`climb`),
-// + ROUND marks a rung, and the score is total reps: the source's 'rung + reps
+// A ROUND tap marks a rung, and the score is total reps: the source's 'rung + reps
 // into the next' as one number (through the 14s is 112). Paces are the
 // source's rung marks in reps; BEGINNER is its ROOKIE 8:00. The source sets
 // its elite and standard marks (the 18s, the 14s) at the Rx bell and its
@@ -954,7 +970,7 @@ const CHARGE_UP = {
   loadoutLine: '1 HEX DUMBBELL · 2 × 2 M, ROOM TO PRESS OVERHEAD', scoreLine: 'TOTAL REPS: EVERY RUNG CLEARED, PLUS INTO THE NEXT',
   scoreRule: { kind: 'reps', label: 'TOTAL REPS', keys: ['press', 'burpee'], agg: 'total' },
   scale: 'Lighter bell first, then start the ladder at 1 and add 1 a rung. Step-back burpees for knees. No dumbbell: burpees and lateral burpees over a line. Harder: two dumbbells.',
-  note: 'Warm up 5 min: easy jacks, hip hinges, light deadlifts and hang clean and presses, 5 burpees, hops over a line. Tap + ROUND after each rung. Back rounding on the pull, or a soft lockout: a lighter bell. Never drop it from overhead. Dizziness, chest pain or sharp pain ends the run, and the score stands.',
+  note: 'Warm up 5 min: easy jacks, hip hinges, light deadlifts and hang clean and presses, 5 burpees, hops over a line. Tap ROUND after each rung. Back rounding on the pull, or a soft lockout: a lighter bell. Never drop it from overhead. Dizziness, chest pain or sharp pain ends the run, and the score stands.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate from the rep times (devil press 4 / 6 / 9 s, burpee-over 3 / 4.5 / 6 s), plus a breath a rung. The elite and standard marks (the 18s, the 14s) were set with the heavier bell and hold for both 12:00 levels. The beginner mark is the 10s at 15/10 kg, the 8s with the heavier bell.',
   defaultLevel: 'standard',
@@ -988,7 +1004,7 @@ const OXYGEN_DEBT = {
   difficulty: 'Brutal', focus: 'Full Body', workoutType: 'Weighted', hotel: true, quiet: false, guided: false, knownAs: 'Fran',
   loadoutLine: '1 BARBELL + A PULL-UP BAR, OR 2 DUMBBELLS', scoreLine: 'TIME, OR REPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bar, or the beginner level: 15-12-9 with an empty bar or 2 light dumbbells, and jumping pull-ups. Dumbbells: 2 × 15/10 kg. No bar on the road: dumbbell bent-over rows, the same reps.',
-  note: 'Warm up 8-10 min first; this is a 5-8 min sprint. 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap + ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
+  note: 'Warm up 8-10 min first; this is a 5-8 min sprint. 3 min easy cardio, 2 rounds of 5 empty-bar thrusters and 5 pull-ups or ring rows, then 5 thrusters at work weight. Tap ROUND after each rung. Kip only if you already can. Never row under a hotel table: it can tip.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 5-8 min for most; elite athletes finish in under 3.',
   defaultLevel: 'standard',
@@ -1024,7 +1040,7 @@ const HOT_LAPS = {
   difficulty: 'Hard', focus: 'Conditioning', workoutType: 'Weighted', hotel: false, quiet: false, guided: false, knownAs: 'Helen',
   loadoutLine: '1 KETTLEBELL + A PULL-UP BAR · A 400 M ROUTE OR A TREADMILL', scoreLine: 'TIME, OR SWINGS + PULL-UPS AT THE CAP', scoreRule: { kind: 'time' },
   scale: 'Lighter bell, or the beginner level: 200 m, 15 swings at 12/8 kg, 9 jumping pull-ups. Travel: a treadmill, dumbbell swings, and single-arm rows for the pull-ups.',
-  note: 'Warm up 6-8 min: an easy 400 m jog, then 2 rounds of 10 swings to eye level and 5 pull-ups or ring rows. Never been coached on swings? Stop them at eye level: the overhead finish is where tired backs arch. Tap + ROUND after each lap.',
+  note: 'Warm up 6-8 min: an easy 400 m jog, then 2 rounds of 10 swings to eye level and 5 pull-ups or ring rows. Never been coached on swings? Stop them at eye level: the overhead finish is where tired backs arch. Tap ROUND after each lap.',
   ...SOLO_COPY,
   paceBasis: 'Coach estimate: 10-14 min for most; a 400 m run takes about 1:45-2:30.',
   defaultLevel: 'standard',
@@ -1047,9 +1063,503 @@ const HOT_LAPS = {
   },
 };
 
+// ── 27-29 · the owner's own workouts ───────────────────────────────────────
+// Coach TM originals, owner-approved designs: `origin` says so (the content
+// kit reads it), and there is no knownAs. GUIDED and SOLO. Every pace target
+// is a coach estimate (see each paceBasis).
+const OWN = { knownAs: '', origin: 'Coach TM original' };
+
+// ── 27 · BAR FIGHT ──────────────────────────────────────────────────────────
+// The owner's round, as written: four 0:30 bar drills back to back (the
+// regrip is inside each 0:30), then the bar goes down for the shadowbox, then
+// 0:30 of rest, the round's only rest. Scored the TURBO BUTTON way: each
+// punch's lowest round, added. The count is a fresh first round, so the
+// marks sit below it the house way (STANDARD's standard mark is about 0.83 of
+// the count, its elite mark a little over it): 3-5 rounds of a loaded bar
+// held out slow down. ELITE's heavier bar counts at the standard column, so
+// its clock-end prefill (44) never beats its own elite mark. Only ELITE may
+// hop on the squats: below it, no swap reaches a jump.
+const barFight = (shadowSec) => [
+  t('bb-punch-out', 30, 0, { swapKey: 'front-press' }), t('bb-explosive-press', 30, 0, { swapKey: 'overhead-press' }),
+  t('bb-uppercut', 30, 0, { swapKey: 'uppercut' }), t('bb-explosive-front-squat', 30, 0, { swapKey: 'front-squat' }),
+  // The switch call puts the bar down first: 'Bar down. Explosive shadowboxing. Go.'
+  t('explosive-shadowbox', shadowSec, 30, { swapKey: 'shadowbox', say: 'bar down. Explosive shadowboxing' }),
+];
+const NO_HOP = ['bb-front-squat-hop', 'jump-squat'];
+const BAR_FIGHT = {
+  id: 'bar_fight', launch: 27, title: 'BAR FIGHT', tag: 'Striking', loadout: 'barbell', themes: ['striking'], format: 'intervals',
+  difficulty: 'Normal', focus: 'Combat', workoutType: 'Weighted', hotel: false, quiet: false, guided: true, ...OWN,
+  countAt: { elite: 'standard' },
+  loadoutLine: '1 LIGHT BARBELL · 2 × 2 M, CLEAR IN FRONT', scoreLine: 'LOWEST FRONT PRESSES + UPPERCUTS',
+  scoreRule: { kind: 'reps', label: 'LOWEST FRONT PRESSES + UPPERCUTS', keys: ['front-press', 'uppercut'], agg: 'lowest' },
+  scale: 'Lighter bar, a broomstick or 2 light dumbbells, or the beginner level. Sore shoulders: Plate Punch-Outs or One-Twos.',
+  note: 'Warm up 3 min: easy shadowboxing, arm circles, 10 empty-bar front squats. Light and fast: if the bar slows down, it is too heavy. Core braced, shoulders down, never lock the elbows hard. Using a plate? Swap all four bar drills to the plate. Set the bar down before you shadowbox. Only ELITE may add a small hop on the squats.',
+  introSay: 'Bar fight. Four fast bar drills, then set the bar down and shadowbox. Light bar, fast hands.',
+  tips: ['Shoulders down, core braced.', 'Light bar, fast hands.'],
+  guidedHelp: 'The coach sets the pace on every bar drill and calls the next one.',
+  paceBasis: "Coach estimate. The count (front press 1.25 s, uppercut 1.5 s; beginner 1.5 / 2.0 s) is a fresh first round; the marks allow for a loaded bar held out for 3-5 rounds. The score is each punch's lowest round, added.",
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '3 rounds · a light bar 7-11 kg · 0:30 shadowbox', minutes: 9, load: 'Light bar 7-11 kg (15-25 lb), a broomstick or 2 light dumbbells', rounds: 3,
+      missionLine: '3 ROUNDS · 4 × 0:30 BAR DRILLS · 0:30 SHADOWBOX · 0:30 REST', excludeAlts: NO_HOP,
+      slots: barFight(30), pace: { elite: 35, standard: 29, beginner: 24 },
+    },
+    standard: {
+      detail: '4 rounds · the empty bar · 0:45 shadowbox', minutes: 13, load: 'Empty bar 20/15 kg (45/35 lb)', rounds: 4,
+      missionLine: '4 ROUNDS · 4 × 0:30 BAR DRILLS · 0:45 SHADOWBOX · 0:30 REST', excludeAlts: NO_HOP,
+      slots: barFight(45), pace: { elite: 46, standard: 37, beginner: 30 },
+    },
+    elite: {
+      detail: '5 rounds · the bar + 2.5 kg a side · 1:00 shadowbox · a hop is allowed', minutes: 17, load: 'Empty bar + 2.5 kg (5 lb) a side', rounds: 5, difficulty: 'Hard',
+      missionLine: '5 ROUNDS · 4 × 0:30 BAR DRILLS · 1:00 SHADOWBOX · 0:30 REST',
+      slots: barFight(60), pace: { elite: 44, standard: 35, beginner: 28 },
+    },
+  },
+};
+
+// ── 28 · TOUCH THE SKY ──────────────────────────────────────────────────────
+// A barbell complex, down the lifts and back up, without setting the bar
+// down: one complex a round, 2:00 of rest after it. Not a race: the score is
+// the rounds held with the bar never down (scoreRule 'roundsHeld'), plus the
+// reps into the next round at the cap; the time is kept for the record. It
+// runs on the for-time clock (count-up, ROUND, FINISH, the cap), and SOLO
+// times the 2:00 rest after each ROUND (missionSolo roundRestSec). The pace
+// tiers are rounds held ({ held, of }); timeSec is the time at the count with
+// the rests, which only the honesty floor, the expected time and the XP read.
+// The count is a strength cadence, the level's own (ELITE's heavier bar at
+// the standard column); rep 1 includes setting up over the bar.
+//
+// No swap may put the bar down inside the round: the backpack, plate and
+// no-gear moves, and back squats (the bar overhead behind the neck between a
+// good morning and a press), are never offered. A heavy row's lighter option
+// is a lighter bar: the scale line. Swapping the good mornings to RDLs means
+// lowering the bar to the hips and cleaning it back up: the step says so.
+// Every front squat comes straight from the rack, so the cleans never swap
+// down to High Pulls (no catch: the bar would never reach the rack). Power
+// Cleans' own cue offers dumbbells, which this bar-only mission has none of:
+// the step names the bar move instead.
+const SKY_OUT = ['backpack-rdl', 'plate-goblet-squat', 'pike-push-up', 'bb-back-squat', 'bb-high-pull'];
+const SKY_POWER = { key: 'clean', is: 'bb-power-clean', then: 'Never been coached on the clean? Take Hang Muscle Cleans.', else: null };
+const SKY_GM_DOWN = { key: 'good-morning', is: 'bb-rdl', then: 'Lower the bar to the hips for the RDLs, then clean it back up.', else: null };
+const SKY_GM_UP = { key: 'good-morning', is: 'bb-rdl', then: 'Lower the bar to the hips for the RDLs.', else: null };
+const SKY_RACKED = { key: 'front-squat', is: 'bb-front-squat', then: 'The bar is already in the rack.', else: null };
+const sky = (n) => [complex('Touch the Sky', [
+  s('bb-deadlift', n, { swapKey: 'deadlift' }), s('bb-hang-power-clean', n, { swapKey: 'clean', noteIf: SKY_POWER }), s('bb-front-rack-good-morning', n, { swapKey: 'good-morning', noteIf: SKY_GM_DOWN }),
+  s('bb-front-squat', n, { swapKey: 'front-squat', noteIf: SKY_RACKED }), s('bb-strict-press', n, { swapKey: 'press' }), s('bb-front-squat', n, { swapKey: 'front-squat', noteIf: SKY_RACKED }),
+  s('bb-front-rack-good-morning', n, { swapKey: 'good-morning', noteIf: SKY_GM_UP }), s('bb-hang-power-clean', n, { swapKey: 'clean' }), s('bb-deadlift', n, { swapKey: 'deadlift' }),
+], { swapKey: 'complex', rest: 120, setupMs: 3000 })];
+// The tiers: an elite or a standard lifter holds every round at the level;
+// a beginner at it usually puts the bar down once.
+const skyPace = (of, [elite, standard, beginner]) => ({
+  elite: { held: of, of, timeSec: elite }, standard: { held: of, of, timeSec: standard }, beginner: { held: of - 1, of, timeSec: beginner },
+});
+const TOUCH_THE_SKY = {
+  id: 'touch_the_sky', launch: 28, title: 'TOUCH THE SKY', tag: 'Barbell', loadout: 'barbell', themes: [], format: 'forTime', formatLabel: 'COMPLEX',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: false, quiet: false, guided: true, ...OWN,
+  countAt: { elite: 'standard' },
+  loadoutLine: '1 BARBELL + PLATES · 2 × 2 M', scoreLine: 'ROUNDS WITH THE BAR NEVER DOWN · THE TIME IS FOR THE RECORD',
+  scoreRule: { kind: 'roundsHeld', label: 'ROUNDS, BAR NEVER DOWN' },
+  scale: 'Lighter bar, or the beginner level: 2 rounds of 3 each. Never been coached on the clean? Hang Muscle Cleans. Good mornings feel wrong? Romanian Deadlifts.',
+  note: "Warm up 5 min, then 1 round with the empty bar. Pick the load your press can handle for every rep. Don't put the bar down inside a round. Low back rounding on the good mornings? Stop the round there. Not a race: every rep clean, rest the full 2:00. In AT YOUR PACE, tap ROUND after each round to time the rest.",
+  introSay: "Touch the sky. Five of each, down the lifts and back up. Don't put the bar down until the round is done.",
+  tips: ['Pick a load your press can handle for every rep.', 'Chest up and soft knees on the good mornings.'],
+  guidedHelp: 'The coach counts every rep, calls each lift and times the rests.',
+  paceBasis: 'Coach estimate: a round takes about 2:00 at the count. The score is the rounds you hold with the bar never down. The time, rests in it, is for the record, not a race.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '2 rounds · 3 each · the empty bar · cap 15:00', minutes: 6, load: 'The empty bar, 20/15 kg (45/35 lb), or lighter', rounds: 2, capSec: 900,
+      introSay: "Touch the sky. Three of each, down the lifts and back up. Don't put the bar down until the round is done.",
+      missionLine: '2 ROUNDS · 27 REPS A ROUND, BAR NEVER DOWN · 2:00 REST · CAP 15:00', excludeAlts: SKY_OUT,
+      slots: sky(3), pace: skyPace(2, [270, 330, 420]),
+    },
+    standard: {
+      detail: '3 rounds · M 43 kg / W 30 kg · cap 20:00', minutes: 11, load: 'M 43 kg (95 lb) / W 30 kg (65 lb)', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS · 45 REPS A ROUND, BAR NEVER DOWN · 2:00 REST · CAP 20:00', excludeAlts: SKY_OUT,
+      slots: sky(5), pace: skyPace(3, [570, 660, 780]),
+    },
+    elite: {
+      detail: '4 rounds · M 57-66 kg / W 39-43 kg · cap 25:00', minutes: 15, load: 'M 57-66 kg (125-145 lb) / W 39-43 kg (85-95 lb)', rounds: 4, capSec: 1500,
+      missionLine: '4 ROUNDS · 45 REPS A ROUND, BAR NEVER DOWN · 2:00 REST · CAP 25:00', excludeAlts: SKY_OUT,
+      slots: sky(5), pace: skyPace(4, [880, 1000, 1160]),
+    },
+  },
+};
+
+// ── 29 · NO CONTINUES ───────────────────────────────────────────────────────
+// Max effort until the bell touches the floor (`untilDown`; see missionSolo).
+// A SET is one block: both hands, then the left arm, then the right, and
+// round again. The blocks chain with no rest; rep 1 of each includes the
+// hand switch. 30 rounds (90 sets) is more than any 30:00 run reaches at
+// the count, so the safety cap always ends the run first. No swap may take
+// the bell out of the hand: that is the bell touching the floor, the end of
+// the run. So the moves that start from the floor, every no-gear move (a
+// backpack, a push-up, a bridge) and every dumbbell move (picking one up
+// means putting the bell down) are never offered: only a swap that keeps the
+// same bell in the hand (halos, cleans, high pulls, push presses). A
+// dumbbell for the whole run is the scale line. Where that leaves a row with
+// no swap (the swings, the rows), the lighter option is a lighter bell.
+const NC_FLOOR = [
+  'kb-deadlift', 'kb-suitcase-deadlift', 'backpack-suitcase-deadlift', 'backpack-row', 'backpack-rdl', 'backpack-halo',
+  'pike-push-up', 'incline-push-up', 'knee-push-up', 'push-up', 'diamond-push-up', 'glute-bridge', 'hip-thrust', 'db-hip-thrust',
+  'db-swing', 'db-one-arm-swing', 'db-row', 'db-rdl', 'db-press', 'db-halo', 'db-snatch', 'db-clean',
+];
+const ncBoth = (n) => [
+  s('kb-swing', n, { swapKey: 'swing2', name: 'Two-Hand Swings', say: 'swings' }), s('kb-two-hand-row', n, { swapKey: 'row2', say: 'rows' }),
+  s('kb-two-hand-high-pull', n, { swapKey: 'pull2', say: 'high pulls' }), s('kb-horn-press', n, { swapKey: 'press2', say: 'presses', note: 'By the horns.' }),
+];
+// Kettlebell Hang Cleans keep the bell in hand, but their cue starts with a
+// deadlift from the floor: the step says to start from the hang.
+const NC_HANG = { key: 'snatch', is: 'kb-hang-clean', then: 'Start from the hang: the bell never touches the floor.', else: null };
+const ncArm = (n, pullId) => [
+  s('kb-one-arm-swing', n, { swapKey: 'swing1', say: 'swings', note: 'All four on the left arm, then the right.' }), s('kb-row', n, { swapKey: 'row1', name: 'One-Arm Rows' }),
+  s(pullId, n, { swapKey: 'snatch', noteIf: NC_HANG, ...(pullId === 'kb-one-arm-high-pull' ? { say: 'high pulls' } : {}) }), s('kb-press', n, { swapKey: 'press1', name: 'One-Arm Presses' }),
+];
+const ncBlock = (name, say, list) => complex(name, list, { swapKey: 'block', sideSay: say, say, setupMs: 2000 });
+const noContinues = (n, pullId) => [ncBlock('Both Hands', 'both hands', ncBoth(n)), ncBlock('Left Arm', 'left arm', ncArm(n, pullId)), ncBlock('Right Arm', 'right arm', ncArm(n, pullId))];
+const NO_CONTINUES = {
+  id: 'no_continues', launch: 29, title: 'NO CONTINUES', tag: 'Kettlebell', loadout: 'bell', themes: [], format: 'maxSets',
+  // Not HOTEL OK: snatches and presses overhead, to grip failure, need the ceiling clear.
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Weighted', hotel: false, quiet: false, guided: true, ...OWN,
+  untilDown: true,
+  safety: 'Grip starting to open? Park the bell between your feet. Never let it fly.',
+  loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE · CHECK THE CEILING', scoreLine: 'SETS + REPS, AND THE TIME', scoreRule: { kind: 'setsReps', label: 'SETS + REPS' },
+  scale: 'Lighter bell, or the beginner level (one-arm high pulls for the snatches). Dumbbell: hold it by one end for the two-hand moves.',
+  note: "Warm up 3 min: halos, goblet squats, 10 easy swings. Each block is a set: both hands, the left arm, the right arm, then round again. Swing or snatch feeling loose? Don't start the next one. Hot spot or a tear on the palm: put it down. The run ends when the bell touches the floor: tap I PUT IT DOWN. The clock stops at 30:00.",
+  introSay: 'No continues. Both hands, left arm, right arm, and keep cycling. When your grip starts to open, park the bell between your feet.',
+  guidedHelp: 'The coach counts every rep and calls each switch. Tap I PUT IT DOWN when the bell touches the floor.',
+  paceBasis: "Coach estimate: a set takes about 25 s at the count (45 s at ELITE's 5 reps). Grip, not lungs, usually ends it.",
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '3 each · 12/8 kg · one-arm high pulls', minutes: 6, load: '12/8 kg (26/18 lb)', rounds: 30, capSec: 1800,
+      missionLine: 'BOTH HANDS · LEFT ARM · RIGHT ARM · 3 EACH · UNTIL THE BELL TOUCHES THE FLOOR',
+      excludeAlts: [...NC_FLOOR, 'kb-snatch'], // the beginner pulls high; no swap brings the snatch in
+      slots: noContinues(3, 'kb-one-arm-high-pull'), pace: { elite: 15, standard: 10, beginner: 6 },
+    },
+    standard: {
+      detail: '3 each · 16/12 kg', minutes: 5, load: '16/12 kg (35/26 lb)', rounds: 30, capSec: 1800,
+      missionLine: 'BOTH HANDS · LEFT ARM · RIGHT ARM · 3 EACH · UNTIL THE BELL TOUCHES THE FLOOR', excludeAlts: NC_FLOOR,
+      slots: noContinues(3, 'kb-snatch'), pace: { elite: 12, standard: 8, beginner: 5 },
+    },
+    elite: {
+      detail: '5 each · 24/16 kg', minutes: 7, load: '24/16 kg (53/35 lb)', rounds: 30, capSec: 1800,
+      missionLine: 'BOTH HANDS · LEFT ARM · RIGHT ARM · 5 EACH · UNTIL THE BELL TOUCHES THE FLOOR', excludeAlts: NC_FLOOR,
+      slots: noContinues(5, 'kb-snatch'), pace: { elite: 9, standard: 6, beginner: 4 },
+    },
+  },
+};
+
+// ── 30 · UPPER LOWER DIPS ───────────────────────────────────────────────────
+// The owner's own: 8 dips, then 16 squats, and round again until the dips or
+// the squats can't be finished. It runs on NO CONTINUES' until-down engine,
+// counting ROUNDS (downUnit 'round'): GUIDED counts every dip and squat and
+// calls each round; SOLO taps ROUND after each one (the round timer keeps
+// the splits). I'M DONE ends it as a finish, and the 30:00 cap ends it the
+// same way. 60 rounds is more than any 30:00 run reaches at the count, so
+// the cap always comes first. NO GEAR: the dips go on a fixed bench, a
+// sturdy chair against a wall, or parallel bars (never two chairs). Every
+// dip stops at 90°; a shoulder pinch is the stop rule (incline push-ups,
+// first on every dip row). Every level squats with air squats: a run to
+// failure must never end on landings, so no jump is offered at any level
+// (altAllowed's until-down rule). ELITE is the parallel-bar dips. The squat
+// row stays a squat: no swap walks on to the sprawl and burpee family.
+const ULD_OUT = ['squat-thrust', 'sprawl', 'step-back-sprawl', 'level-change-drop', 'burpee', 'step-back-burpee', 'burpee-tuck-jump', 'hindu-squat-knee-strike'];
+const uld = (dipId, squatId, dipExtra = {}) => [complex('Dips + Squats', [
+  s(dipId, 8, { swapKey: 'dip', ...dipExtra }), s(squatId, 16, { swapKey: 'squat' }),
+], { swapKey: 'round', say: 'dips and squats', setupMs: 2000 })];
+const UPPER_LOWER_DIPS = {
+  id: 'upper_lower_dips', launch: 30, title: 'UPPER LOWER DIPS', tag: 'Bodyweight', loadout: 'none', themes: ['century'], format: 'maxRounds',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Bodyweight', hotel: false, quiet: false, guided: true, ...OWN,
+  untilDown: true, downUnit: 'round',
+  safety: 'Dips stop when your elbows reach 90°. Never sink deeper. Shoulder pinch? Stop the dips.',
+  loadoutLine: 'NO GEAR · A FIXED BENCH, A STURDY CHAIR OR PARALLEL BARS FOR THE DIPS', scoreLine: 'ROUNDS + REPS, AND THE TIME', scoreRule: { kind: 'setsReps', label: 'ROUNDS + REPS' },
+  scale: 'Beginner level: bent-knee bench dips. Shoulder pinch on any dip? Swap to incline push-ups. ELITE: parallel-bar dips.',
+  note: "Warm up 3 min: arm circles, 10 slow squats, 5 incline push-ups. One round is 8 dips, then 16 squats. Go again until you can't finish the dips or the squats, then tap I'M DONE. Never dip on a chair with wheels. The clock stops at 30:00.",
+  introSay: "Upper lower dips. Eight dips, sixteen squats, and round again. Stop every dip at ninety degrees. When you can't finish a round, tap I'm done.",
+  guidedHelp: "The coach counts every dip and squat and calls each round. Tap I'M DONE when you can't finish one.",
+  paceBasis: 'Coach estimate: a round takes about 50 s at the count. The dips usually end it.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: '8 bent-knee bench dips · 16 squats', minutes: 7, rounds: 60, capSec: 1800, excludeAlts: ULD_OUT,
+      missionLine: "8 BENT-KNEE BENCH DIPS · 16 SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      slots: uld('bench-dip-bent', 'air-squat'), pace: { elite: 14, standard: 9, beginner: 5 },
+    },
+    standard: {
+      detail: '8 bench or bar dips · 16 squats', minutes: 7, rounds: 60, capSec: 1800, excludeAlts: ULD_OUT,
+      missionLine: "8 BENCH OR BAR DIPS · 16 SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      slots: uld('bench-dip', 'air-squat', baseNote('dip', 'bench-dip', 'Parallel bars? Swap to bar dips.')), pace: { elite: 12, standard: 8, beginner: 5 },
+    },
+    elite: {
+      detail: '8 bar dips · 16 squats', minutes: 5, rounds: 60, capSec: 1800, excludeAlts: ULD_OUT,
+      missionLine: "8 PARALLEL-BAR DIPS · 16 SQUATS · ROUND AGAIN UNTIL YOU CAN'T",
+      slots: uld('parallel-bar-dip', 'air-squat'), pace: { elite: 10, standard: 6, beginner: 4 },
+    },
+  },
+};
+
+// ── 31 · OVERTIME 20 ────────────────────────────────────────────────────────
+// A well-known bodyweight benchmark, kept as published: AMRAP 20 of 5
+// pull-ups, 10 push-ups and 15 squats, in order (knownAs: captions only).
+// STANDARD is the published workout, ELITE adds the source's 9/6 kg vest,
+// BEGINNER is its lower-volume 12-minute version (3 / 6 / 9). The scaled
+// moves the source gives an intermediate (jumping pull-ups, knee push-ups)
+// are the EASIER swaps, except jumping pull-ups: a QUIET, HOTEL OK mission
+// never offers a jump to a bar (excludeAlts). NO GEAR: a pull-up bar is optional, so gearPlus lets
+// the bar moves in, and a solid door frame is the no-bar swap: altsPlus adds
+// Door Frame Rows to the bar moves for this mission only, so no other
+// mission's swaps change. GUIDED runs it like ROOM 12: one AMRAP block, the
+// coach on the clock. Pace: the source's published guide for the 20-minute
+// version at STANDARD; the vest and 12-minute marks are coach estimates.
+const C1200 = [{ t: 600, say: 'Halfway.' }, { t: 1140, say: 'One minute.' }, { t: 1190, say: 'Ten seconds.' }];
+const DOOR = [{ id: 'door-frame-row', kind: 'no-gear' }];
+const OT_OUT = ['jumping-pull-up'];
+const overtime = (sec, calls, pullId, pushId, n) => [amrap(sec, 0, [
+  s(pullId, n, { swapKey: 'pull' }), s(pushId, 2 * n, { swapKey: 'push-up' }), s('air-squat', 3 * n, { swapKey: 'squat' }),
+], calls, { swapKey: 'block' })];
+const OVERTIME = {
+  id: 'overtime_20', launch: 31, title: 'OVERTIME 20', tag: 'Bodyweight', loadout: 'none', themes: [], format: 'amrap',
+  difficulty: 'Hard', focus: 'Full Body', workoutType: 'Bodyweight', hotel: true, quiet: true, guided: true, knownAs: 'Cindy',
+  gearPlus: ['bar'], altsPlus: { 'pull-up': DOOR, 'ring-row': DOOR },
+  loadoutLine: 'NO GEAR · A PULL-UP BAR, OR A SOLID DOOR FRAME', scoreLine: 'ROUNDS + REPS', scoreRule: { kind: 'roundsReps' },
+  scale: 'Beginner level: AMRAP 12 of 3 door frame rows, 6 incline push-ups and 9 squats. No bar? Swap the pull-ups to door frame rows. Easier: ring rows and knee push-ups. No kipping until you can do 5 strict pull-ups.',
+  note: 'Warm up 3 min: march in place, arm circles, 5 door frame rows, 10 squats, 5 push-ups. Go in order: pull-ups, push-ups, squats, then round again. Incline push-ups go on a desk or counter, not the soft bed.',
+  introSay: 'Overtime twenty. Five pull-ups, ten push-ups, fifteen squats. As many rounds as you can.',
+  guidedHelp: GUIDED_HELP_AMRAP,
+  paceBasis: 'Published guide for the 20-minute version, and sources disagree: beginner 8-12 rounds, intermediate 13-18, advanced 19-23, elite 24+. The published bands allow kipping; strict rounds run lower. The vest and 12-minute marks are coach estimates. Your last score is the real benchmark.',
+  defaultLevel: 'standard',
+  levels: {
+    beginner: {
+      detail: 'AMRAP 12 · 3 door frame rows · 6 incline push-ups · 9 squats', minutes: 12, rounds: 1,
+      missionLine: 'AMRAP 12 · 3 DOOR FRAME ROWS · 6 INCLINE PUSH-UPS · 9 SQUATS',
+      introSay: 'Overtime twelve. Three rows, six push-ups, nine squats. As many rounds as you can.',
+      slots: overtime(720, C720, 'door-frame-row', 'incline-push-up', 3), pace: { elite: 18, standard: 12, beginner: 8 }, excludeAlts: OT_OUT,
+    },
+    standard: {
+      detail: 'AMRAP 20 · 5 pull-ups · 10 push-ups · 15 squats', minutes: 20, rounds: 1,
+      missionLine: 'AMRAP 20 · 5 PULL-UPS · 10 PUSH-UPS · 15 SQUATS',
+      slots: overtime(1200, C1200, 'pull-up', 'push-up', 5), pace: { elite: 24, standard: 13, beginner: 8 }, excludeAlts: OT_OUT,
+    },
+    elite: {
+      detail: 'AMRAP 20 · 9/6 kg vest', minutes: 20, load: '9/6 kg (20/14 lb) vest', rounds: 1,
+      loadoutLine: 'A 9/6 KG VEST · A PULL-UP BAR, OR A SOLID DOOR FRAME',
+      missionLine: 'AMRAP 20 · 5 PULL-UPS · 10 PUSH-UPS · 15 SQUATS · IN A VEST',
+      slots: overtime(1200, C1200, 'pull-up', 'push-up', 5), pace: { elite: 20, standard: 12, beginner: 7 }, excludeAlts: OT_OUT,
+    },
+  },
+};
+
+// ── 32-36 · MAX OUT ─────────────────────────────────────────────────────────
+// Five max-rep workouts (format 'maxReps', theme MAX OUT): a rotation of
+// stations, one SET at each, clean reps until the form breaks, then DONE and
+// the reps entered; the next station works a different muscle region while the
+// last one rests, and after the last station the round's longer rest. The
+// rounds are the sets each (2 to 5). GUIDED and AT YOUR PACE both run them
+// (data/missionSolo MAX REPS). The score is every rep added; the XP is time
+// plus the finish, never reps (maxRepsXp). Owner-approved safety: no barbell
+// bench, back squat or deadlift to failure (push-ups, dumbbell floor presses,
+// front squats and a capped backpack deadlift instead); rows come to the floor
+// every rep; a loaded set leaves reps in the tank. Every number below is a
+// coach estimate (see paceBasis): first-set reps in `reps`, a rest after every
+// set (the last station's is the round rest).
+const mx = (moveId, reps, rest, extra = {}) => ({ moveId, mode: 'reps', reps, rest, max: true, cadenceMs: null, sides: null, ...extra });
+const MAX_CHG = { beginner: 30, standard: 25, elite: 20 };
+const MAX_RND = { beginner: 90, standard: 75, elite: 60 };
+// rows: [moveId, first-set reps, swapKey, reps to leave in the tank?]. `plus`:
+// seconds added to every station change (TANK MODE's bar change).
+// A station also carries the cap of its move at this level (the coach says it, the rep
+// sheet stops at it); a swap sets it again for the move that goes in.
+const station = (lv, rows, plus = 0) => rows.map(([id, reps, key, leave = 0], i) => mx(id, reps, i === rows.length - 1 ? MAX_RND[lv] : MAX_CHG[lv] + plus, {
+  swapKey: key, prefix: `STATION ${i + 1}`, ...(leave ? { leave } : {}), ...(repCapFor(id, lv) != null ? { cap: repCapFor(id, lv) } : {}),
+}));
+const MAX_COMMON = {
+  tag: 'Max Reps', themes: ['maxout'], format: 'maxReps', difficulty: 'Hard', focus: 'Full Body', guided: true, ...OWN,
+  scoreLine: 'TOTAL REPS, EVERY SET ADDED', scoreRule: { kind: 'totalReps', label: 'TOTAL REPS' },
+  guidedHelp: 'The coach calls each move and the rests. You tap DONE and enter your reps.',
+  paceBasis: 'Coach estimate: first-set reps, each later set about 85% of the one before; hinge moves flat at their cap.',
+  defaultLevel: 'standard',
+};
+const MAX_NOTE = 'Warm up 3 to 4 minutes. Go in order, then round again. Stop a set the moment your form breaks: the last clean rep counts. Breathe out on the effort, never hold your breath. Chest pain, dizziness or a sharp pain: stop. Dark urine or severe swelling after: see a doctor.';
+const STOP_TWO = ' Stop two reps short.';
+
+// ── 32 · BOSS RUSH ──────────────────────────────────────────────────────────
+const BOSS_RUSH = {
+  ...MAX_COMMON, id: 'boss_rush', launch: 32, title: 'BOSS RUSH', loadout: 'none', workoutType: 'Bodyweight', hotel: true, quiet: true,
+  loadoutLine: 'NO GEAR · 2 × 2 M OF FLOOR',
+  safety: 'Stop a set when your form breaks, not when it burns. Sit-ups: hands on your chest, never pull on your neck.',
+  scale: 'Beginner: knee push-ups and crunches, 2 rounds, stop 2 reps short. Harder: diamond push-ups, V-ups.',
+  note: `${MAX_NOTE} Reps drop every round. That is the point.`,
+  introSay: 'Boss rush. Push-ups, squats, sit-ups. Max reps on each, then switch.',
+  levels: {
+    beginner: {
+      detail: '2 rounds · knee push-ups, squats, crunches', minutes: 8, rounds: 2, capSec: 900, difficulty: 'Normal',
+      missionLine: '2 ROUNDS · KNEE PUSH-UPS · SQUATS · CRUNCHES · MAX REPS',
+      introSay: `Boss rush. Knee push-ups, squats, crunches. Max reps on each, then switch.${STOP_TWO}`,
+      slots: station('beginner', [['knee-push-up', 12, 'push', 2], ['air-squat', 20, 'squat', 2], ['crunch', 15, 'core', 2]]),
+      pace: { elite: 115, standard: 85, beginner: 60 },
+    },
+    standard: {
+      detail: '3 rounds · push-ups, squats, sit-ups', minutes: 13, rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS · PUSH-UPS · SQUATS · SIT-UPS · MAX REPS',
+      slots: station('standard', [['push-up', 20, 'push'], ['air-squat', 30, 'squat'], ['sit-up', 25, 'core']]),
+      pace: { elite: 250, standard: 195, beginner: 135 },
+    },
+    elite: {
+      detail: '5 rounds · push-ups, squats, sit-ups', minutes: 23, rounds: 5, capSec: 2100,
+      missionLine: '5 ROUNDS · PUSH-UPS · SQUATS · SIT-UPS · MAX REPS',
+      slots: station('elite', [['push-up', 35, 'push'], ['air-squat', 40, 'squat'], ['sit-up', 35, 'core']]),
+      pace: { elite: 530, standard: 410, beginner: 285 },
+    },
+  },
+};
+
+// ── 33 · HEALTH BAR ─────────────────────────────────────────────────────────
+// MIXED (its loadout lets the pull-up bar in): the backpack deadlift is the
+// owner's deadlift, capped, with core last so the sit-up family never follows a
+// loaded hinge. MIXED also lets the barbell in, so the hinge row may never swap on
+// to a barbell deadlift or RDL (no barbell deadlift to failure), and the pull row may
+// never swap to a bent-over row: it hinges the back, and the backpack deadlift is the
+// very next station (HB_OUT).
+const HB_OUT = ['bb-deadlift', 'bb-rdl', 'db-bent-over-row', 'bb-bent-over-row'];
+const HEALTH_BAR = {
+  ...MAX_COMMON, id: 'health_bar', launch: 33, title: 'HEALTH BAR', loadout: 'mixed', workoutType: 'Bodyweight', hotel: false, quiet: false,
+  loadoutLine: 'A PULL-UP BAR · A BACKPACK, 8-10 KG (12-15 KG AT ELITE) · 2 × 2 M OF FLOOR',
+  safety: 'When your grip opens, step down to the floor. Stop the lift when your back wants to round. Grip gone? Hug the pack to your chest.',
+  scale: 'Beginner: jumping pull-ups, slow climbers. Easier pull: ring rows. No dumbbell rows here: the deadlifts come next.',
+  note: `${MAX_NOTE} Pack the backpack with water bottles or books and keep it close to your body.`,
+  introSay: 'Health bar. Pull-ups, backpack deadlifts, mountain climbers. Max reps on each, then switch.',
+  levels: {
+    beginner: {
+      detail: '2 rounds · jumping pull-ups, backpack deadlifts, slow climbers', minutes: 8, rounds: 2, capSec: 900, difficulty: 'Normal',
+      missionLine: '2 ROUNDS · JUMPING PULL-UPS · BACKPACK DEADLIFTS · SLOW CLIMBERS · MAX REPS', excludeAlts: HB_OUT,
+      introSay: `Health bar. Jumping pull-ups, backpack deadlifts, slow climbers. Max reps on each, then switch.${STOP_TWO}`,
+      slots: station('beginner', [['jumping-pull-up', 10, 'pull', 2], ['backpack-rdl', 10, 'hinge', 2], ['slow-climber', 30, 'core', 2]]),
+      pace: { elite: 120, standard: 95, beginner: 65 },
+    },
+    standard: {
+      detail: '3 rounds · pull-ups, backpack deadlifts, climbers', minutes: 11, rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS', excludeAlts: HB_OUT,
+      slots: station('standard', [['pull-up', 8, 'pull'], ['backpack-rdl', 12, 'hinge'], ['mountain-climber', 60, 'core']]),
+      pace: { elite: 275, standard: 210, beginner: 150 },
+    },
+    elite: {
+      detail: '4 rounds · pull-ups, backpack deadlifts, climbers', minutes: 15, rounds: 4, capSec: 1500,
+      missionLine: '4 ROUNDS · PULL-UPS · BACKPACK DEADLIFTS · CLIMBERS · MAX REPS', excludeAlts: HB_OUT,
+      slots: station('elite', [['pull-up', 15, 'pull'], ['backpack-rdl', 12, 'hinge'], ['mountain-climber', 100, 'core']]),
+      pace: { elite: 540, standard: 415, beginner: 290 },
+    },
+  },
+};
+
+// ── 34 · COMBO METER ────────────────────────────────────────────────────────
+const COMBO_METER = {
+  ...MAX_COMMON, id: 'combo_meter', launch: 34, title: 'COMBO METER', loadout: 'bell', workoutType: 'Weighted', hotel: false, quiet: false,
+  loadoutLine: '1 KETTLEBELL (OR 1 DUMBBELL) · A CLEAR SWING LANE · CHECK THE CEILING',
+  safety: 'Stop a set when the bell slows or your back wants to round. Never press through a stall.',
+  scale: 'Pick a bell you could swing 20 times. Beginner: lighter bell. Dead bugs are always with no bell.',
+  note: `${MAX_NOTE} Set the bell down before the dead bugs.`,
+  introSay: 'Combo meter. Swings, presses, squats, dead bugs. Max clean reps on each, then switch.',
+  levels: {
+    beginner: {
+      detail: '2 rounds · 12/8 kg · swings, presses, squats, dead bugs', minutes: 10, load: '12/8 kg (26/18 lb) bell', rounds: 2, capSec: 1200, difficulty: 'Normal',
+      missionLine: '2 ROUNDS · SWINGS · PRESSES · SQUATS · DEAD BUGS · MAX REPS', excludeAlts: ['pike-push-up'],
+      introSay: `Combo meter. Swings, presses, squats, dead bugs. Max clean reps on each, then switch.${STOP_TWO}`,
+      slots: station('beginner', [['kb-swing', 12, 'hinge', 2], ['kb-horn-press', 8, 'press', 2], ['goblet-squat', 15, 'squat', 2], ['dead-bug', 16, 'core', 2]]),
+      pace: { elite: 125, standard: 95, beginner: 65 },
+    },
+    standard: {
+      detail: '3 rounds · 16/12 kg · swings, presses, squats, dead bugs', minutes: 15, load: '16/12 kg (35/26 lb) bell', rounds: 3, capSec: 1500,
+      missionLine: '3 ROUNDS · SWINGS · PRESSES · SQUATS · DEAD BUGS · MAX REPS', excludeAlts: ['pike-push-up'],
+      slots: station('standard', [['kb-swing', 15, 'hinge'], ['kb-horn-press', 12, 'press'], ['goblet-squat', 20, 'squat'], ['dead-bug', 20, 'core']]),
+      pace: { elite: 230, standard: 180, beginner: 125 },
+    },
+    elite: {
+      detail: '4 rounds · 24/16 kg · swings, presses, squats, dead bugs', minutes: 20, load: '24/16 kg (53/35 lb) bell', rounds: 4, capSec: 2100,
+      missionLine: '4 ROUNDS · SWINGS · PRESSES · SQUATS · DEAD BUGS · MAX REPS', excludeAlts: ['pike-push-up'],
+      slots: station('elite', [['kb-swing', 15, 'hinge'], ['kb-horn-press', 15, 'press'], ['goblet-squat', 25, 'squat'], ['dead-bug', 24, 'core']]),
+      pace: { elite: 345, standard: 265, beginner: 185 },
+    },
+  },
+};
+
+// ── 35 · TANK MODE ──────────────────────────────────────────────────────────
+// The barbell is for rows and front squats only, always two reps short. Rows
+// are dead-stop: the bar is on the floor at every failure. A barbell bench,
+// back squat or deadlift to failure is too risky, so none is offered. +5 s on
+// every station change for the bar. TANK_OUT: no back squat, and rows stay
+// dead-stop (a swap to the plain bent-over row would hang the bar between reps
+// in a set taken to failure).
+const TANK_OUT = ['bb-back-squat', 'bb-bent-over-row'];
+const TANK_MODE = {
+  ...MAX_COMMON, id: 'tank_mode', launch: 35, title: 'TANK MODE', loadout: 'barbell', workoutType: 'Weighted', hotel: false, quiet: false,
+  loadoutLine: '1 BARBELL + PLATES · A CLEAR FLOOR · BUMPER PLATES IF YOU HAVE THEM',
+  safety: 'Stop 2 reps short on every bar set. Clear floor, bumper plates if you have them, never grind a rep. Front squats: clean the bar up or take it from a rack. If it slides, let it go forward.',
+  scale: 'Barbell bench, back squat and deadlift are not offered: they are too risky to take to failure. Beginner: empty bar.',
+  note: `${MAX_NOTE} The bar goes down on the floor at the end of every row set.`,
+  introSay: 'Tank mode. Rows, push-ups, front squats. Max clean reps. Stop two short on the bar.',
+  levels: {
+    beginner: {
+      detail: '2 rounds · empty bar · rows, knee push-ups, goblet squats', minutes: 8, load: 'empty bar 20/15 kg (45/33 lb)', rounds: 2, capSec: 900, difficulty: 'Normal',
+      missionLine: '2 ROUNDS · ROWS · KNEE PUSH-UPS · GOBLET SQUATS · MAX REPS', excludeAlts: TANK_OUT,
+      introSay: 'Tank mode. Rows, knee push-ups, goblet squats. Max clean reps. Stop two short.',
+      slots: station('beginner', [['bb-dead-stop-row', 12, 'pull', 2], ['knee-push-up', 12, 'push', 2], ['plate-goblet-squat', 12, 'squat', 2]], 5),
+      pace: { elite: 85, standard: 65, beginner: 45 },
+    },
+    standard: {
+      detail: '3 rounds · 30/20 kg · rows, push-ups, front squats', minutes: 12, load: '30/20 kg (65/45 lb)', rounds: 3, capSec: 1200,
+      missionLine: '3 ROUNDS · ROWS · PUSH-UPS · FRONT SQUATS · MAX REPS', excludeAlts: TANK_OUT,
+      slots: station('standard', [['bb-dead-stop-row', 15, 'pull', 2], ['push-up', 20, 'push'], ['bb-front-squat', 15, 'squat', 2]], 5),
+      pace: { elite: 165, standard: 130, beginner: 90 },
+    },
+    elite: {
+      detail: '4 rounds · 45/30 kg · rows, push-ups, front squats', minutes: 18, load: '45/30 kg (100/65 lb)', rounds: 4, capSec: 1800,
+      missionLine: '4 ROUNDS · ROWS · PUSH-UPS · FRONT SQUATS · MAX REPS', excludeAlts: TANK_OUT,
+      slots: station('elite', [['bb-dead-stop-row', 20, 'pull', 2], ['push-up', 35, 'push'], ['bb-front-squat', 20, 'squat', 2]], 5),
+      pace: { elite: 310, standard: 240, beginner: 165 },
+    },
+  },
+};
+
+// ── 36 · DUAL WIELD ─────────────────────────────────────────────────────────
+// Two dumbbells. The floor press is the safe bench: the floor stops the depth
+// and a dumbbell can be lowered to the side. No pull-up bar needed.
+const DUAL_WIELD = {
+  ...MAX_COMMON, id: 'dual_wield', launch: 36, title: 'DUAL WIELD', loadout: 'mixed', workoutType: 'Hybrid', hotel: true, quiet: false,
+  loadoutLine: '2 DUMBBELLS · FLOOR SPACE · A PULL-UP BAR SWAPS IN FOR THE ROWS', weightWord: 'dumbbell',
+  safety: 'A stalled dumbbell goes down to your sides, never over your face. Stop a lunge at the first wobble.',
+  scale: 'Pick dumbbells you could floor-press about 15 times. Beginner: lighter dumbbells, knee pull-throughs.',
+  note: `${MAX_NOTE} Set the dumbbells down before you change station.`,
+  introSay: 'Dual wield. Floor presses, lunges, rows, pull-throughs. Max clean reps on each, then switch.',
+  levels: {
+    beginner: {
+      detail: '2 rounds · floor presses, lunges, rows, knee pull-throughs', minutes: 10, rounds: 2, capSec: 900, difficulty: 'Normal',
+      missionLine: '2 ROUNDS · FLOOR PRESSES · LUNGES · ROWS · KNEE PULL-THROUGHS · MAX REPS',
+      introSay: `Dual wield. Floor presses, lunges, rows, knee pull-throughs. Max clean reps on each, then switch.${STOP_TWO}`,
+      slots: station('beginner', [['db-floor-press', 10, 'chest', 2], ['kb-reverse-lunge', 12, 'quads', 2], ['db-bent-over-row', 10, 'back', 2], ['kb-knee-pull-through', 12, 'core', 2]]),
+      pace: { elite: 105, standard: 80, beginner: 55 },
+    },
+    standard: {
+      detail: '3 rounds · floor presses, lunges, rows, pull-throughs', minutes: 15, rounds: 3, capSec: 1500,
+      missionLine: '3 ROUNDS · FLOOR PRESSES · LUNGES · ROWS · PULL-THROUGHS · MAX REPS',
+      slots: station('standard', [['db-floor-press', 15, 'chest'], ['kb-reverse-lunge', 20, 'quads'], ['db-bent-over-row', 14, 'back'], ['kb-plank-pull-through', 20, 'core']]),
+      pace: { elite: 230, standard: 180, beginner: 125 },
+    },
+    elite: {
+      detail: '4 rounds · floor presses, lunges, rows, pull-throughs', minutes: 21, rounds: 4, capSec: 2100,
+      missionLine: '4 ROUNDS · FLOOR PRESSES · LUNGES · ROWS · PULL-THROUGHS · MAX REPS',
+      slots: station('elite', [['db-floor-press', 20, 'chest'], ['kb-reverse-lunge', 24, 'quads'], ['db-bent-over-row', 18, 'back'], ['kb-plank-pull-through', 30, 'core']]),
+      pace: { elite: 380, standard: 295, beginner: 205 },
+    },
+  },
+};
+
 export const LOADOUT_MISSIONS = [
   IRON_CLOCK, ONE_BELL, FIVE_ROUND, BEST_OF_3, STEEL, CHECKPOINT, ROOM_12, HIT_COMBO, TUTORIAL, TURBO, QUOTA,
   HONOR, KO_SPRINT, OVERHEAD_RUSH, BURNOUT, STANCE, ROOKIE, FIRST_BELL, CONTINUE_BELL, CARRY_ON, SURGE, MIDLINE, LEG_SWEEP, CHARGE_UP, OXYGEN_DEBT, HOT_LAPS,
+  BAR_FIGHT, TOUCH_THE_SKY, NO_CONTINUES, UPPER_LOWER_DIPS, OVERTIME,
+  BOSS_RUSH, HEALTH_BAR, COMBO_METER, TANK_MODE, DUAL_WIELD,
 ];
 
 // Test-only: fixture defs (a box move, a flying knee) the unit tests build.
@@ -1073,8 +1583,17 @@ export function gearProfile() {
   if (loadEquipment().has('HEAVY_BAG')) out.add('bag');
   return out;
 }
-export function allowedGear(loadout, profile) {
-  return new Set([...(LOADOUT_GEAR[loadout] || ['none']), ...(profile || [])]);
+// `plus`: gear one mission lets in on top of its loadout (OVERTIME 20's
+// optional pull-up bar, def.gearPlus).
+export function allowedGear(loadout, profile, plus = null) {
+  return new Set([...(LOADOUT_GEAR[loadout] || ['none']), ...(profile || []), ...(plus || [])]);
+}
+// A move's alts in this mission: the catalog's, plus any the mission adds
+// for itself (def.altsPlus: OVERTIME 20's door frame rows on the bar moves).
+function altsOf(mission, moveId) {
+  const own = moveById(moveId)?.alts || [];
+  const plus = mission?.altsPlus?.[moveId];
+  return Array.isArray(plus) && plus.length ? [...own, ...plus.filter(a => !own.some(o => o.id === a.id))] : own;
 }
 
 const clone = (o) => (o == null ? o : JSON.parse(JSON.stringify(o)));
@@ -1084,7 +1603,8 @@ const hasList = (slot) => Array.isArray(slot?.list);
 // keeps a row out of the score whatever move a swap puts in it (HOT LAPS'
 // run). See missionSolo.
 const SLOT_KEYS = ['name', 'moveId', 'baseMoveId', 'defaultMoveId', 'swapKey', 'mode', 'reps', 'work', 'rest', 'window', 'cadenceMs', 'setupMs',
-  'unit', 'sides', 'list', 'calls', 'prefix', 'say', 'sayLead', 'sideSay', 'note', 'count', 'scaled', 'restAfter', 'climb', 'scored'];
+  'unit', 'sides', 'list', 'calls', 'prefix', 'say', 'sayLead', 'sideSay', 'note', 'count', 'scaled', 'restAfter', 'climb', 'scored',
+  'max', 'leave', 'cap', 'planReps']; // max: a MAX REPS station (the athlete's own set); leave: reps left in the tank; cap: its most reps; planReps: the authored first-set reps the plan is priced on
 const STEP_KEYS = ['name', 'moveId', 'baseMoveId', 'defaultMoveId', 'swapKey', 'reps', 'unit', 'sides', 'cadenceMs', 'say', 'note', 'noteIf', 'scaled', 'scored'];
 // Only the fields a Slot / Step has, in one order, with no undefined noise.
 const pick = (src, keys) => {
@@ -1122,6 +1642,8 @@ function baseSlot(d, col) {
     cadenceMs: 'cadenceMs' in d ? d.cadenceMs : cadenceFor(d.moveId, col),
     unit: d.mode === 'reps' ? UNIT_WORD[move?.unit] : undefined,
     sides: d.sides === null ? undefined : (d.sides || move?.sides),
+    // A MAX REPS station's plan (its minutes, its XP ceiling) is priced on the authored move and reps, so a swap never moves it.
+    planReps: d.max === true ? d.reps : undefined,
   }, SLOT_KEYS);
 }
 function baseSlots(def, level) {
@@ -1177,7 +1699,7 @@ export function totalRepsForKey(mission, swapKey, moveId, x = 1) {
 export function altAllowed(mission, swapKey, alt, { gear = gearProfile() } = {}) {
   const move = moveById(alt?.id);
   if (!mission || !move) return false;
-  if (!allowedGear(mission.loadout, gear).has(move.gear)) return false;                        // 1 · gear
+  if (!allowedGear(mission.loadout, gear, mission.gearPlus).has(move.gear)) return false;      // 1 · gear
   const others = allItems(mission).filter(it => it.swapKey !== swapKey);
   if (others.some(it => it.moveId === alt.id)) return false;                                   // 2 · not another row's move
   // Rule 3 reads the AUTHORED slot mode, so a shadowbox minute swapped to row calories can still swap back.
@@ -1193,6 +1715,13 @@ export function altAllowed(mission, swapKey, alt, { gear = gearProfile() } = {})
   if (move.jumps && mission.quiet) return false;                                               // 6 · quiet room
   if ((mission.excludeAlts || []).includes(alt.id)) return false;                              // 7 · level exclusions
   if (move.maxTotalReps != null && totalRepsForKey(mission, swapKey, alt.id, alt.x ?? 1) > move.maxTotalReps) return false; // 8 · volume
+  if (move.jumps && (mission.untilDown || isMaxReps(mission))) return false;                   // 9 · a run to failure never ends on landings
+  if (isMaxReps(mission)) {                                                                    // 10 · a MAX OUT swap stays in its station's muscle region,
+    const base = baseOf(mission).flatMap(sl => (hasList(sl) ? sl.list : [sl])).find(it => it.swapKey === swapKey);
+    if (!base || regionOf(alt.id) !== regionOf(base.moveId)) return false;                     //      is no 'all on one side, then switch' move
+    if (move.sides === 'switch' || move.timedOnly) return false;                               //      and no timed-only move
+    if (MAX_OUT_BANNED.has(alt.id)) return false;                                              // 11 · never a raised-foot balance move or a loaded dead bug to failure
+  }
   return true;
 }
 // Every move the key can hold: breadth-first from the base over the authored
@@ -1209,7 +1738,7 @@ function walkAlts(mission, swapKey, allow) {
   while (queue.length) {
     const id = queue.shift();
     const { x } = out.get(id);
-    (moveById(id)?.alts || []).forEach(alt => {
+    altsOf(mission, id).forEach(alt => {
       if (out.has(alt.id)) return;
       const ax = x * (alt.x ?? 1);
       if (!allow({ ...alt, x: ax })) return;
@@ -1270,12 +1799,22 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
     scoreLine: L.scoreLine || def.scoreLine,
     scale: def.scale,
     note: def.note,
-    introSay: def.introSay || '',
+    // A level's own brief when its reps differ (BEGINNER's 3 of each).
+    introSay: L.introSay ?? def.introSay ?? '',
     tips: [...(def.tips || [])],
     excludeAlts: [...(L.excludeAlts || [])],
     scaled: false,
     swaps: [],
     gearBanner: null,
+    // Only on the missions that have them, so every other mission builds as before.
+    ...(def.origin ? { origin: def.origin } : {}),
+    ...(def.formatLabel ? { formatLabel: def.formatLabel } : {}),
+    ...(def.untilDown ? { untilDown: true } : {}),
+    ...(def.downUnit ? { downUnit: def.downUnit } : {}),
+    ...(def.safety ? { safety: def.safety } : {}),
+    ...(def.weightWord ? { weightWord: def.weightWord } : {}),
+    ...(def.gearPlus ? { gearPlus: [...def.gearPlus] } : {}),
+    ...(def.altsPlus ? { altsPlus: clone(def.altsPlus) } : {}),
   };
   m = resolveNotes(m);
   m.exercises = m.exercises.map(slot => (slot.window ? { ...slot, rest: windowRest(slot, estimateWorkSeconds(slot)) } : slot));
@@ -1283,11 +1822,11 @@ export function buildLoadoutMission(id, { level, swaps = {}, gear = gearProfile(
 
   // Gear defaults: a base move whose gear the viewer lacks opens on its first
   // allowed alt (a NO GEAR one first). The card shows a banner, not SCALED.
-  const allowed = allowedGear(def.loadout, gear);
+  const allowed = allowedGear(def.loadout, gear, def.gearPlus);
   rowItems(m).forEach(({ item }) => {
     const base = moveById(item.baseMoveId);
     if (!base || allowed.has(base.gear)) return;
-    const ok = base.alts.filter(a => altAllowed(m, item.swapKey, a, { gear }));
+    const ok = altsOf(m, item.baseMoveId).filter(a => altAllowed(m, item.swapKey, a, { gear }));
     const alt = ok.find(a => a.kind === 'no-gear') || ok[0];
     if (!alt) return;
     m = withDefault(m, item.swapKey, alt.id);
@@ -1345,6 +1884,14 @@ function convert(b, toId, { x, col, level, step, amrapStep, defaultMoveId }) {
   out.cadenceMs = cadenceFor(toId, col); // an authored cadenceMs belongs to the base move only
   if (out.calls && !to.callsOk) out.calls = undefined;
   out.sides = !step || amrapStep ? to.sides : undefined; // complex steps never carry sides
+  // A MAX REPS station is the athlete's own set whatever move is in it: never counted, no sides,
+  // and the first-set number never sits above the cap of the move that goes in.
+  if (b.max === true) {
+    out.cadenceMs = null; out.sides = undefined;
+    const cap = repCapFor(toId, level);
+    out.cap = cap ?? undefined;
+    if (cap != null && out.reps > cap) out.reps = cap;
+  }
   return pick(out, keys);
 }
 
@@ -1413,7 +1960,7 @@ export function swapOptions(mission, swapKey, { gear = gearProfile() } = {}) {
   if (!first || !current) return [];
   const reach = reachableMoves(mission, swapKey, { gear });
   const curX = reach.get(first.moveId)?.x ?? 1;
-  const ok = current.alts.filter(a => a.id !== first.moveId && altAllowed(mission, swapKey, { ...a, x: curX * (a.x ?? 1) }, { gear }));
+  const ok = altsOf(mission, first.moveId).filter(a => a.id !== first.moveId && altAllowed(mission, swapKey, { ...a, x: curX * (a.x ?? 1) }, { gear }));
   const ordered = [...ok.filter(a => a.stop), ...ok.filter(a => !a.stop)].slice(0, 4);
   const doseFrom = slotDose(first);
   return ordered.map(a => {
@@ -1421,7 +1968,7 @@ export function swapOptions(mission, swapKey, { gear = gearProfile() } = {}) {
     const after = swapMissionMove(mission, swapKey, a.id, { gear });
     return {
       id: a.id, name: move.name, kind: a.kind, label: ALT_LABEL[a.kind], gear: move.gear, gearLabel: GEAR_LABEL[move.gear],
-      doseFrom, doseTo: slotDose(keyItems(after, swapKey)[0]), ...(a.stop ? { stop: a.stop } : {}), cues: [...move.cues],
+      doseFrom, doseTo: slotDose(keyItems(after, swapKey)[0]), ...(a.stop ? { stop: a.stop } : {}), cues: isMaxReps(mission) ? maxCues(a.id, mission.weightWord) : [...move.cues],
     };
   });
 }
@@ -1440,8 +1987,12 @@ export function cardRows(mission, { gear = gearProfile() } = {}) {
       ? (mission.exercises || []).flatMap(sl => (hasList(sl) ? sl.list.filter(st => st.swapKey === item.swapKey) : []))
       : (mission.exercises || []).filter(sl => !hasList(sl) && sl.swapKey === item.swapKey);
     const doses = occ.map(slotDose);
+    // A key that comes round twice inside one complex (TOUCH THE SKY's way
+    // down and back up): '2 × 5'.
+    const inList = parent ? parent.list.filter(st => st.swapKey === item.swapKey).length : 0;
     if (parent?.climb) dose = `${[0, 1, 2].map(k => item.reps + k * parent.climb).join(', ')}…`; // CHARGE UP 12: '2, 4, 6…'
     else if (doses.some(d => d !== doses[0])) dose = ladderDose(occ);
+    else if (inList > 1) dose = `${inList} × ${doses[0]}`;
     else if (!parent && doses.length > 1) dose = `${doses.length} × ${doses[0]}`;
     const swapped = item.moveId !== item.baseMoveId;
     return {
@@ -1451,7 +2002,8 @@ export function cardRows(mission, { gear = gearProfile() } = {}) {
       name: item.name,
       dose,
       load: null,
-      note: item.note || null,
+      // A MAX REPS station says when to stop the set; its text follows the move on it.
+      note: item.max === true ? maxStopLine(item, mission.level) : item.note || null,
       moveId: item.moveId,
       baseMoveId: item.baseMoveId,
       defaultMoveId: item.defaultMoveId,
@@ -1459,17 +2011,21 @@ export function cardRows(mission, { gear = gearProfile() } = {}) {
       swapped,
       undoable: item.moveId !== item.defaultMoveId,
       canSwap: swapped || swapOptions(mission, item.swapKey, { gear }).length > 0,
+      // A MAX REPS row: the name wraps instead of being cut (shared/MoveSwapSheet MoveRow).
+      ...(item.max === true ? { max: true } : {}),
     };
   });
 }
 const themeLabel = (id) => THEMES.find(th => th.id === id && id !== 'all')?.label || null;
 const loadoutLabel = (id) => LOADOUTS.find(l => l.id === id)?.label || String(id || '').toUpperCase();
 export function missionCardModel(mission, { gear = gearProfile() } = {}) {
-  const tags = [`~${mission.duration} MIN`, String(mission.difficulty || '').toUpperCase()];
+  // A MAX OUT workout says its level (BEGINNER / STANDARD / ELITE), the word Build Workout's
+  // difficulty picks and ADJUST offers; every other mission its difficulty word.
+  const tags = [`~${mission.duration} MIN`, String(isMaxReps(mission) ? mission.levelLabel : mission.difficulty || '').toUpperCase()];
   if (mission.hotel) tags.push('HOTEL OK');
   if (mission.quiet) tags.push('QUIET');
   if (mission.scaled) tags.push('SCALED');
-  if (!mission.guided) tags.push('SOLO ONLY');
+  if (!mission.guided) tags.push('YOUR PACE ONLY');
   return {
     eyebrow: `Mission · ${mission.tag}`,
     title: mission.title,
@@ -1484,6 +2040,7 @@ export function missionCardModel(mission, { gear = gearProfile() } = {}) {
     banner: mission.gearBanner || null,
     soloOnly: !mission.guided,
     guidedHelp: mission.guidedHelp || '',
+    ...(mission.safety ? { safety: mission.safety } : {}), // NO CONTINUES: shown big on the card and through the run
   };
 }
 
@@ -1539,8 +2096,10 @@ const CLASSIC_FORMAT = {
 export function shelfEntryLine(entry, { level } = {}) {
   if (entry?.kind === 'v2') {
     const def = missionDefById(entry.id);
-    const L = def?.levels?.[level] || def?.levels?.[def?.defaultLevel];
-    return [L ? `~${L.minutes} MIN` : null, loadoutLabel(entry.loadout), FORMAT_LABEL[def?.format] || null].filter(Boolean).join(' · ');
+    const lv = def?.levels?.[level] ? level : def?.defaultLevel;
+    const L = def?.levels?.[lv];
+    // A MAX OUT row also says the level it opens on (its minutes are that level's).
+    return [L ? `~${L.minutes} MIN` : null, loadoutLabel(entry.loadout), formatLabelOf(def) || null, def?.format === 'maxReps' ? LEVEL_LABEL[lv] || null : null].filter(Boolean).join(' · ');
   }
   const w = NAMED_WORKOUTS.find(n => n.id === entry?.id);
   return [w?.estMin ? `~${w.estMin} MIN` : null, loadoutLabel(entry?.loadout), CLASSIC_FORMAT[entry?.id] || null].filter(Boolean).join(' · ');
@@ -1578,4 +2137,32 @@ export function saveShelfPrefs(patch = {}) {
   const next = cleanPrefs({ ...cur, ...patch, levels: { ...cur.levels, ...(patch?.levels || {}) } });
   try { localStorage.setItem(SHELF_PREFS_KEY, JSON.stringify(next)); } catch { /* storage full or blocked */ }
   return next;
+}
+
+// ── Build Workout's MAX OUT button ──────────────────────────────────────────
+// Build Workout picks gear and difficulty; the MAX OUT button hands them to the
+// Mission Library for that visit only: BODYWEIGHT lists the no-gear workout,
+// WEIGHTED all five (someone with weights can do every one, the barbell one
+// included), HYBRID the mixed ones, and EASY / NORMAL / HARD set the level the
+// MAX OUT workouts open on (BEGINNER / STANDARD / ELITE). It returns the pick and
+// saves nothing: the library's remembered filter and each workout's saved level
+// stay as the athlete left them (the page passes the pick to the library, which
+// uses it as its starting filter and level). Picking by muscle comes later.
+const MAX_OUT_LOADOUT = { BODYWEIGHT: 'none', WEIGHTED: 'all', HYBRID: 'mixed' };
+const MAX_OUT_LEVEL = { EASY: 'beginner', NORMAL: 'standard', HARD: 'elite' };
+export const MAX_OUT_IDS = LOADOUT_MISSIONS.filter(d => (d.themes || []).includes('maxout')).map(d => d.id);
+export function maxOutHandoff({ equipment, difficulty } = {}) {
+  const loadout = MAX_OUT_LOADOUT[String(equipment || '').toUpperCase()] || 'all';
+  const level = MAX_OUT_LEVEL[String(difficulty || '').toUpperCase()] || 'standard';
+  return { loadout, theme: 'maxout', level };
+}
+// The level the Mission Library opens a MAX OUT workout on: the one handed over by
+// Build Workout for this visit (`override`), else the one picked on its card, else
+// its default. Every other mission keeps opening on its default, as the library
+// always did.
+export function libraryLevelFor(id, prefs = loadShelfPrefs(), override) {
+  const def = missionDefById(id);
+  if (def?.format !== 'maxReps') return undefined;
+  const pick = override && def.levels?.[override] ? override : prefs?.levels?.[id];
+  return pick && def.levels?.[pick] ? pick : undefined;
 }

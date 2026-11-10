@@ -1,0 +1,13 @@
+name,discipline,athleteLevel,difficulty,cadenceSec,seed,appCommit,durationSec,goAtSec,countInBeepsAtSec,index,kind,text,strikeCount,startSec,speechEndSec,nextCallSec,strikesInPlainWords
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,1,combo,Jab Cross Roundhouse,3,6.633,7.879,11.167,"Jab, Cross, Roundhouse kick"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,2,combo,Jab Cross Knee Elbow Roundhouse,5,11.167,13.122,15.667,"Jab, Cross, Knee, Elbow, Roundhouse kick"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,3,combo,Teep Cross Hook Body Kick,4,15.667,17.257,20.167,"Teep (push kick), Cross, Hook, Kick to the body"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,4,defence,ROLL!,0,20.167,20.39,22.933,Roll (duck under the hook)
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,5,combo,Cross Hook Knee,3,22.933,23.919,27.433,"Cross, Hook, Knee"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,6,combo,Jab Low Kick,2,27.433,28.114,31.933,"Jab, Low kick (to the thigh)"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,7,combo,Cross Elbow Knee,3,31.933,32.946,36.433,"Cross, Elbow, Knee"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,8,combo,Jab Cross Low Kick Teep,4,36.433,37.899,40.933,"Jab, Cross, Low kick (to the thigh), Teep (push kick)"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,9,combo,Switch Kick Elbow,2,40.933,41.921,45.467,"Switch kick (switch stance, then kick), Elbow"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,10,defence,CHECK!,0,45.467,45.669,48.233,Check (lift the shin to block a kick)
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,11,combo,Jab Cross Roundhouse Elbow Knee Cross,6,48.233,50.616,52.733,"Jab, Cross, Roundhouse kick, Elbow, Knee, Cross"
+cc-sync-muaythai-1,Muay Thai,5,NORMAL,4.5,16,e9c3753,57.233,6.033,0.083 1.083 2.083,12,combo,Teep Cross,2,52.733,53.389,57.233,"Teep (push kick), Cross"

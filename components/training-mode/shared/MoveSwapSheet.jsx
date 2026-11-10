@@ -35,9 +35,10 @@ function MiniTag({ children, style }) {
 }
 
 // One move on a v2 card. row: a cardRows() row; index: 0-based. onUndo is
-// optional; the SWAPPED tag and UNDO only show with it. highlight marks SOLO's
-// current segment. Render it inside an <ol>/<ul>.
-export function MoveRow({ row, index, onSwap, onUndo, highlight = false }) {
+// optional; the SWAPPED tag and UNDO only show with it. highlight marks the run
+// screen's current segment. noSwap leaves the swap button's column out (a
+// generated mission run AT YOUR PACE has no swaps). Render it inside an <ol>/<ul>.
+export function MoveRow({ row, index, onSwap, onUndo, highlight = false, noSwap = false }) {
   const showUndo = !!(row.undoable && onUndo);
   return (
     // The negative margin lets the highlight bar and tint sit just outside the
@@ -50,9 +51,11 @@ export function MoveRow({ row, index, onSwap, onUndo, highlight = false }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, font: `500 13px ${BODY}`, color: '#fff' }}>
         <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: GOLD }}>{String(index + 1).padStart(2, '0')}</span>
         <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+          {/* A MAX REPS row: STATION n sits above the name and the name wraps, so a long one
+              ('Dumbbell Floor Presses') is never cut to a few letters by the label, MAX and the swap icon. */}
+          <span style={{ display: 'flex', flexDirection: row.max ? 'column' : 'row', alignItems: row.max ? 'flex-start' : 'baseline', gap: row.max ? 0 : 6, minWidth: 0 }}>
             {row.prefix && <span style={{ flexShrink: 0, font: `600 10px ${HEAD}`, letterSpacing: '0.1em', color: MUTED, whiteSpace: 'nowrap' }}>{row.prefix}</span>}
-            <span style={{ minWidth: 0, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</span>
+            <span style={{ minWidth: 0, fontWeight: 600, ...(row.max ? { lineHeight: 1.2, padding: '2px 0', overflowWrap: 'anywhere' } : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }) }}>{row.name}</span>
           </span>
           {/* Under the name, not beside it: on a phone a tag and a button in
               the row would squeeze the name down to a few letters. */}
@@ -67,12 +70,14 @@ export function MoveRow({ row, index, onSwap, onUndo, highlight = false }) {
           )}
         </span>
         <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: '#CFC9E4', whiteSpace: 'nowrap' }}>{row.dose}</span>
-        <button type="button" onClick={row.canSwap ? () => onSwap?.(row) : undefined} disabled={!row.canSwap} aria-label={`Swap ${row.name}`} style={{
-          width: 44, height: 44, flexShrink: 0, marginRight: -6, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'transparent', border: 'none', cursor: row.canSwap ? 'pointer' : 'default',
-        }}>
-          {row.canSwap && <ArrowRightLeft size={18} color={VIOLET_TEXT}/>}
-        </button>
+        {!noSwap && (
+          <button type="button" onClick={row.canSwap ? () => onSwap?.(row) : undefined} disabled={!row.canSwap} aria-label={`Swap ${row.name}`} style={{
+            width: 44, height: 44, flexShrink: 0, marginRight: -6, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'transparent', border: 'none', cursor: row.canSwap ? 'pointer' : 'default',
+          }}>
+            {row.canSwap && <ArrowRightLeft size={18} color={VIOLET_TEXT}/>}
+          </button>
+        )}
       </div>
       {row.note && <div style={{ padding: '0 0 4px 28px', marginTop: -4, font: `500 11px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>{row.note}</div>}
     </li>

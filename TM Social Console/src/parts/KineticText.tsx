@@ -49,13 +49,17 @@ type Props = {
   delay?: number;
   // Soft drop shadow so words hold up over footage.
   shadow?: boolean;
+  // Optional: a fixed font size and a block width (px); the defaults fit a
+  // 920 px block to its longest word.
+  size?: number;
+  width?: number;
 };
 
 // Words land one after another with a springy pop; highlighted words glow.
-export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotChip, stagger = 3, delay = 0, shadow = false }) => {
+export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotChip, stagger = 3, delay = 0, shadow = false, size: fixed, width }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const size = fitSize(text, face, max);
+  const size = fixed ?? fitSize(text, face, max);
   return (
     <div
       style={{
@@ -64,7 +68,7 @@ export const KineticText: React.FC<Props> = ({ text, face, max, color, hot, hotC
         justifyContent: 'center',
         alignItems: 'center',
         gap: `${Math.round(size * 0.14)}px ${Math.round(size * 0.26)}px`,
-        width: 920,
+        width: width ?? 920,
         lineHeight: 1.04,
       }}
     >

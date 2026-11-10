@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { STYLE, C, fixedColumnLeft } from './Styles';
 import ScreenRouter from './ScreenRouter';
-import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, addQuickMissionSoloSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
+import { addFightFocusSession, addComboCoachSession, addFitModeSession, addQuickMissionSession, quickMissionXp, addQuickMissionSoloSession, addCombatConditioningSession, addDailyMissionBonus, addHybridTrainingBonus, addCampSession, addBonusXp, loadStats, getLevel } from './data/userStats';
 import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
@@ -38,7 +38,9 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
-import { settleSoloXp } from './data/missionSolo';
+import { settleSoloXp, settleGuidedXp, roundSplits, hasRoundTimer } from './data/missionSolo';
+import { resolveQuickMissionRun, missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
+import { loadShelfPrefs } from './data/loadoutMissions';
 import PracticeInvite from './PracticeInvite';
 import ConceptDropPopup from './shared/ConceptDropPopup';
 import { duePopup as dueConceptPopup, markPopupSeen as markConceptPopupSeen, recordConceptSession, setOwnerPreview, entryFor as conceptEntryFor, stageCfg as conceptStageCfg } from './data/concepts';
@@ -229,6 +231,8 @@ export default function App() {
   const [fitCfg,   setFitCfg  ] = useState(null);
   const [qmCfg,    setQmCfg   ] = useState(null);
   const [qmResult, setQmResult] = useState(null);
+  // How Quick Mission setup was opened: Build Workout's MAX OUT opens it on the Mission Library.
+  const [qmEntry,  setQmEntry ] = useState(null);
   const [ccMission, setCcMission] = useState(null);
   const [ccResult,  setCcResult ] = useState(null);
   const [cardioContext, setCardioContext] = useState(null);
@@ -261,6 +265,8 @@ export default function App() {
   // endedScreenRef stops the saver from writing it back before the screen
   // changes; the saver clears it when a session screen mounts.
   const endedScreenRef = useRef(null);
+  // The last Quick Mission run banked (QuickMissionActive's runId).
+  const bankedRunIdRef = useRef(null);
   const endSessionFor = useCallback((scr) => {
     endedScreenRef.current = scr;
     const stored = loadPausedSessions();
@@ -400,6 +406,9 @@ export default function App() {
       timestamp: Date.now(),
     };
   }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext]);
+
+  // The setup page's opening request is used once: leaving the page clears it.
+  useEffect(() => { if (screen !== 'qm_setup') setQmEntry(null); }, [screen]);
 
   const pauseCurrentSession = useCallback(() => {
     const paused = buildSessionSnapshot('nav');
@@ -675,13 +684,50 @@ export default function App() {
     goCardioMode:  (opts) => { setResumeData(null); activeSessionStateRef.current = null; setCardioEntry(opts && typeof opts === 'object' ? opts : null); setScreen('cardio_mode'); },
     // Cardio records itself for Home's Continue card when a session starts.
     rememberCardio: (setup) => { rememberSession('cardio', { setup }); trackSessionStart('cardio', { kind: setup?.categoryId || null }); },
-    goQuickMissionSetup: () => setScreen('qm_setup'),
-    goQuickMissionActive: (c) => {
+    // entry: { openLibrary: true, loadout, theme, level } opens the page on the Mission Library with that
+    // starting filter and level (Build Workout's MAX OUT); nothing of it is saved. A click event handed in by a button is not an entry.
+    goQuickMissionSetup: (entry) => {
+      const str = (v) => (typeof v === 'string' ? v : undefined);
+      setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true, loadout: str(entry.loadout), theme: str(entry.theme), level: str(entry.level) } : null);
+      setScreen('qm_setup');
+    },
+    // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE
+    // choice is settled in one place: a start with no run asked for (the Fit
+    // hub's and Home's START, a replay) runs today's mission the way the first
+    // page last saved it (data/soloFromGenerated resolveQuickMissionRun). What
+    // runs is what is remembered, so Continue repeats the same moves.
+    // A guided start with no run asked for is written down as guided (stamp),
+    // so Continue repeats it as guided even after AT YOUR PACE is saved.
+    // `switched`: the guided brief's AT YOUR PACE INSTEAD, the same attempt, so
+    // it is one switch event and not a second session start.
+    goQuickMissionActive: (c0, { switched = false } = {}) => {
+      const v2On = qmV2Enabled();
+      const c = resolveQuickMissionRun(c0, v2On ? loadShelfPrefs().mode : 'guided', { stamp: v2On });
       rememberSession('quick_mission', c);
-      trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : undefined);
+      if (switched) trackEvent('session_switch', { mode: 'quickMission', to: 'solo' });
+      else trackSessionStart('quickMission', c?.v2 ? { mission: c.missionId, solo: c.mode === 'solo' } : c?.mission?.planId ? { plan: c.mission.planId } : {
+        // Today's generated mission: the level it started on (EASY to ADVANCED) and the minutes asked.
+        // A classic (Murph and the other named workouts) is not a level choice, so it carries neither.
+        ...(c?.mode === 'solo' ? { solo: true } : {}),
+        ...(!c?.mission || isGeneratedMission(c.mission) || c.mission.id === 'generated' ? { level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration } : {}),
+      });
       dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setQmCfg(c); setScreen('qm_active');
     },
+    // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,
+    // restarted in the other runner before anything is banked. `mission` is the
+    // one the guided run dealt (a Fit hub start has none in its config).
+    goQuickMissionAtPace: (mission) => {
+      if (!qmCfg) return;
+      const base = { ...qmCfg, mission: mission || qmCfg.mission, mode: 'solo' };
+      if (!missionRunsAtYourPace(base.mission)) return;
+      actions.goQuickMissionActive(base.v2 ? base : resolveQuickMissionRun(base, 'solo'), { switched: true });
+    },
     goQuickMissionComplete: (result) => {
+      // A run banks once: a second end of the same GUIDED run (its runId) is dropped.
+      if (result?.runId) {
+        if (bankedRunIdRef.current === result.runId) return;
+        bankedRunIdRef.current = result.runId;
+      }
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen);
       setResumeData(null);
@@ -690,25 +736,36 @@ export default function App() {
         // system), and the screen shows exactly the XP banked here. v2
         // missions are never plan days, so there is no completePlanDay.
         const settle = settleSoloXp(result);
+        // The round timer's splits travel with the result and the row.
+        const splits = hasRoundTimer(result.mission) ? roundSplits(result.mission, result.splits) : null;
         const xp = addQuickMissionSoloSession({
           xpEarned: settle.xp, missionId: result.missionId, format: result.format, score: result.score,
           elapsedSec: result.elapsedSec, pausedSec: result.pausedSec, hiddenSec: result.hiddenSec,
           level: result.level, scaled: result.scaled, swaps: result.swaps, completed: result.completed,
-          completedCount: result.exercisesCompleted, totalCount: result.totalSlots,
+          completedCount: result.exercisesCompleted, totalCount: result.totalSlots, splits,
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
-        setQmResult({ ...result, xpEarned: xp, settle });
+        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits });
       } else {
-        // A v2 GUIDED run tags its row with the mission it ran; the XP is unchanged.
-        const meta = qmCfg?.v2 ? { mode: 'guided', missionId: qmCfg.missionId, level: qmCfg.level, scaled: !!qmCfg.scaled, swaps: qmCfg.swaps || [] } : undefined;
-        addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed, meta);
+        // A v2 GUIDED run tags its row with the mission it ran.
+        // An until-the-bell-is-down run (NO CONTINUES) also stores its score (sets + reps, and the time).
+        const meta = qmCfg?.v2 ? { mode: 'guided', missionId: qmCfg.missionId, level: qmCfg.level, scaled: !!qmCfg.scaled, swaps: qmCfg.swaps || [], ...(result?.score ? { score: result.score, elapsedSec: result.elapsedSec } : {}) } : undefined;
+        // A v2 mission settles once (data/missionSolo settleGuidedXp): a clock
+        // pays the minutes worked, and the complete screen shows this same
+        // number. A generated mission or a classic banks as before.
+        const settle = result?.mission?.v2 === true ? settleGuidedXp(result) : null;
+        // A generated mission pays its minutes at its level's rate (the sets split it), the same figure the complete screen shows.
+        const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
+          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : meta,
+          settle ? settle.xp : quickMissionXp(result.exercisesCompleted, result.totalExercises, result.completed, result.mission));
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
-        tryCompleteDailyMission('quickMission');
+        // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
+        if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
-        setQmResult(result);
+        setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
       }
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {
@@ -872,9 +929,10 @@ export default function App() {
           actions.goComboActive(c);
           return true;
         case 'quick_mission':
-          // A v2 mission (GUIDED or SOLO) replays as itself, but only while
-          // v2 is on for this viewer; otherwise Setup opens instead.
-          if (c?.v2 && !qmV2Enabled()) { actions.goQuickMissionSetup(); return true; }
+          // A v2 mission (GUIDED or AT YOUR PACE) and a generated mission run
+          // at your pace replay as themselves, but only while v2 is on for
+          // this viewer; otherwise Setup opens instead.
+          if ((c?.v2 || c?.mode === 'solo') && !qmV2Enabled()) { actions.goQuickMissionSetup(); return true; }
           actions.goQuickMissionActive(c);
           return true;
         case 'fit': {
@@ -1091,7 +1149,7 @@ export default function App() {
       setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach'); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); dropPausedFor(screen); setResumeData(null); activeSessionStateRef.current = null; setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1370,7 +1428,7 @@ export default function App() {
         <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gold, fontFamily: "'Orbitron',sans-serif", fontSize: 11, letterSpacing: '0.2em' }}>LOADING…</div>}>
           <ScreenRouter
             screen={screen} disc={disc} cfg={cfg} session={session} ghostLaunch={ghostLaunch} ccPreset={ccPreset}
-            comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult}
+            comboCfg={comboCfg} fitCfg={fitCfg} qmCfg={qmCfg} qmResult={qmResult} qmEntry={qmEntry}
             ccMission={ccMission} ccResult={ccResult}
             cardioContext={cardioContext} cardioResult={cardioResult} cardioEntry={cardioEntry}
             arcadeSeries={arcadeSeries} arcadeStage={arcadeStage} arcadeMode={arcadeMode} arcadeOrder={arcadeOrder} arcadeSettings={arcadeSettings}

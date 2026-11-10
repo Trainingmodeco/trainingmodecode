@@ -45,19 +45,21 @@ function weightedPick(weights) {
 // REGENERATE always visibly changes something.
 function generateRoutine(context, avoid) {
   const diff = String(context?.difficulty || 'Normal').toLowerCase();
+  // ADVANCED (Quick Mission's top level) pairs with the same lighter cardio HARD does.
+  const hard = diff === 'hard' || diff === 'advanced';
   const mainMin = context?.durationMin || 30;
-  const weights = diff === 'hard'
+  const weights = hard
     ? { walk: 3, bike: 3, treadmill: 2, 'outdoor-run': 1 }
     : diff === 'easy'
       ? { 'outdoor-run': 3, treadmill: 2, bike: 2, walk: 1 }
       : { 'outdoor-run': 2, bike: 2, treadmill: 2, walk: 2 };
   const budget = mainMin >= 40 ? [10, 15] : mainMin >= 25 ? [10, 15, 20] : [15, 20, 30];
-  const durations = diff === 'hard' ? budget.slice(0, 2) : budget;
+  const durations = hard ? budget.slice(0, 2) : budget;
   for (let i = 0; i < 8; i++) {
     const typeId = weightedPick(weights);
     const durationMin = durations[Math.floor(Math.random() * durations.length)];
     if (!avoid || avoid.typeId !== typeId || avoid.durationMin !== durationMin) {
-      const intensity = diff === 'hard' ? 'easy' : diff === 'easy' ? 'moderate' : (Math.random() < 0.5 ? 'easy' : 'moderate');
+      const intensity = hard ? 'easy' : diff === 'easy' ? 'moderate' : (Math.random() < 0.5 ? 'easy' : 'moderate');
       return { typeId, durationMin, goal: 'time', intensity, generated: true };
     }
   }

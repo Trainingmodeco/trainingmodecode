@@ -36,7 +36,10 @@ const clamp01 = (n) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0);
  * @param {object}  o
  * @param {number}  o.completed              units of work actually completed
  * @param {number}  o.total                  units prescribed
- * @param {string}  o.difficulty             'easy' | 'normal' | 'hard'
+ * @param {string}  o.difficulty             'easy' | 'normal' | 'hard' | 'advanced'
+ * @param {string}  [o.advancedAs]           how 'advanced' is judged: 'normal' (the default, as it
+ *                                           always was for Combo Coach and Combat Conditioning) or
+ *                                           'hard' (Quick Mission's fourth level, never stricter than hard)
  * @param {object}  [o.integrityResult]      from utils/missionIntegrity
  * @param {boolean} [o.safetyFlag]           pain / danger symptom reported
  * @param {number}  [o.techniqueBreakdowns]  flagged form breakdowns
@@ -52,6 +55,7 @@ export function resolveOutcome({
   safetyFlag = false,
   techniqueBreakdowns = 0,
   tacticalObjective,
+  advancedAs = 'normal',
 }) {
   const denom = total > 0 ? total : 1;
   const completionRatio = clamp01((completed ?? 0) / denom);
@@ -85,8 +89,12 @@ export function resolveOutcome({
   // still resolves to 'normal', whose threshold demands 'completed'. Every
   // Fight Focus and Combo Coach session then failed on the tactical rule —
   // 3/3 rounds, all verified, MISSION FAILED, zero XP.
+  // 'advanced' is judged as NORMAL, as it always was for the modes that already
+  // had an Advanced level (Combo Coach, Combat Conditioning). Quick Mission's
+  // fourth level passes advancedAs: 'hard', so it is judged as HARD: more work,
+  // never a stricter verdict, so never harder to pass than HARD.
   const diff = String(difficulty || 'normal').toLowerCase();
-  const tier = diff === 'easy' || diff === 'hard' ? diff : 'normal';
+  const tier = diff === 'easy' || diff === 'hard' ? diff : diff === 'advanced' && advancedAs === 'hard' ? 'hard' : 'normal';
 
   // Modes that don't track a tactical objective shouldn't be failed on one:
   // default to "met" so the engine judges them on completion and technique.

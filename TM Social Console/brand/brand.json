@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-10-30",
+  "syncedAt": "2026-11-07",
   "source": "npm run sync (tools/sync-brand.mjs) from ../content-kit — do not edit by hand",
   "name": "Training Mode",
   "coach": "Coach TM",
@@ -121,7 +121,7 @@
       "id": "novice",
       "name": "Novice",
       "label": "Combat Novice",
-      "xpFrom": 500,
+      "xpFrom": 1500,
       "color": "#c0c0c0",
       "art": "tm/ranks/novice.png"
     },
@@ -129,7 +129,7 @@
       "id": "warrior",
       "name": "Warrior",
       "label": "Combat Warrior",
-      "xpFrom": 1500,
+      "xpFrom": 3000,
       "color": "#fde047",
       "art": "tm/ranks/warrior.png"
     },
@@ -137,7 +137,7 @@
       "id": "elite",
       "name": "Max",
       "label": "Combat Max",
-      "xpFrom": 3500,
+      "xpFrom": 4500,
       "color": "#60a5fa",
       "art": "tm/ranks/elite.png"
     },
@@ -145,7 +145,7 @@
       "id": "champion",
       "name": "Champion",
       "label": "Combat Champion",
-      "xpFrom": 7000,
+      "xpFrom": 6000,
       "color": "#c084fc",
       "art": "tm/ranks/champion.png"
     }
@@ -191,7 +191,7 @@
     },
     {
       "id": "ultra-ego",
-      "title": "ULTRA EGO",
+      "title": "THE DESTROYER",
       "tagline": "Power at all costs. Take the hit, give it back harder.",
       "start": "2026-12-01",
       "end": "2027-01-31",
@@ -218,7 +218,7 @@
         "DESTROYER LEGS",
         "NO RETREAT",
         "PRIDE",
-        "BOSS · ULTRA EGO"
+        "BOSS · THE DESTROYER"
       ],
       "art": {
         "poster": "tm/drops/ultra-ego/poster.webp",
@@ -448,7 +448,7 @@
       "status": "open",
       "retires": {
         "on": "2026-12-01",
-        "replacedBy": "ULTRA EGO"
+        "replacedBy": "THE DESTROYER"
       },
       "stages": [
         "Pride Awakens",
@@ -629,7 +629,7 @@
     },
     {
       "number": "#03",
-      "title": "The 300",
+      "title": "One-Bell 300",
       "shelf": "fit",
       "minutes": 25,
       "gear": "1 kettlebell",

@@ -10,6 +10,7 @@ Config.setPixelFormat('yuv420p');
 Config.setColorSpace('bt709');
 // Only for machines that can't download Remotion's browser (some cloud
 // sandboxes): point at an installed Chrome Headless Shell instead.
-if (process.env.REMOTION_BROWSER_EXECUTABLE) {
-  Config.setBrowserExecutable(process.env.REMOTION_BROWSER_EXECUTABLE);
+const browser = process.env.REMOTION_BROWSER_EXECUTABLE || process.env.CHROME_PATH;
+if (browser) {
+  Config.setBrowserExecutable(browser);
 }

@@ -1,0 +1,240 @@
+{
+  "name": "cc-sync-boxing-2",
+  "discipline": "Boxing",
+  "athleteLevel": 10,
+  "difficulty": "ADVANCED",
+  "cadenceSec": 4.5,
+  "seed": 24,
+  "appCommit": "e9c3753",
+  "durationSec": 51.7,
+  "goAtSec": 6.067,
+  "countInBeepsAtSec": [
+    0.084,
+    1.08,
+    2.08
+  ],
+  "roundAnnouncementAtSec": 3.5,
+  "voice": {
+    "id": "mbrola-us2",
+    "engine": "eSpeak NG with MBROLA us2 (American male)"
+  },
+  "calls": [
+    {
+      "index": 1,
+      "kind": "combo",
+      "text": "Hook Cross Hook",
+      "spoken": "hook cross hook",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 6.667,
+      "speechEndSec": 7.654,
+      "nextCallSec": 11.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Hook",
+        "Cross",
+        "Hook"
+      ],
+      "plain": "Hook, Cross, Hook",
+      "audioOnsetSec": 6.704,
+      "audioFirstSoundSec": 6.629
+    },
+    {
+      "index": 2,
+      "kind": "combo",
+      "text": "Jab Hook Cross Uppercut Hook Cross",
+      "spoken": "jab hook cross uppercut hook cross",
+      "strikeCount": 6,
+      "pieceCount": 6,
+      "startSec": 11.167,
+      "speechEndSec": 13.413,
+      "nextCallSec": 15.7,
+      "windowSec": 4.533,
+      "strikes": [
+        "Jab",
+        "Hook",
+        "Cross",
+        "Uppercut",
+        "Hook",
+        "Cross"
+      ],
+      "plain": "Jab, Hook, Cross, Uppercut, Hook, Cross",
+      "audioOnsetSec": 11.166,
+      "audioFirstSoundSec": 11.159
+    },
+    {
+      "index": 3,
+      "kind": "combo",
+      "text": "Cross",
+      "spoken": "cross",
+      "strikeCount": 1,
+      "pieceCount": 1,
+      "startSec": 15.7,
+      "speechEndSec": 16.005,
+      "nextCallSec": 20.167,
+      "windowSec": 4.467,
+      "strikes": [
+        "Cross"
+      ],
+      "plain": "Cross",
+      "audioOnsetSec": 15.7,
+      "audioFirstSoundSec": 15.698
+    },
+    {
+      "index": 4,
+      "kind": "combo",
+      "text": "Parry Cross Hook Cross Hook Body Cross",
+      "spoken": "parry cross hook cross hook body cross",
+      "strikeCount": 5,
+      "pieceCount": 6,
+      "startSec": 20.167,
+      "speechEndSec": 22.659,
+      "nextCallSec": 24.7,
+      "windowSec": 4.533,
+      "strikes": [
+        "Parry (knock the punch aside)",
+        "Cross",
+        "Hook",
+        "Cross",
+        "Hook",
+        "Cross to the body"
+      ],
+      "plain": "Parry (knock the punch aside), Cross, Hook, Cross, Hook, Cross to the body",
+      "audioOnsetSec": 20.168,
+      "audioFirstSoundSec": 20.167
+    },
+    {
+      "index": 5,
+      "kind": "combo",
+      "text": "Jab Body Cross Hook",
+      "spoken": "jab body cross hook",
+      "strikeCount": 3,
+      "pieceCount": 3,
+      "startSec": 24.7,
+      "speechEndSec": 25.937,
+      "nextCallSec": 29.2,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross to the body",
+        "Hook"
+      ],
+      "plain": "Jab, Cross to the body, Hook",
+      "audioOnsetSec": 24.7,
+      "audioFirstSoundSec": 24.694
+    },
+    {
+      "index": 6,
+      "kind": "combo",
+      "text": "Jab Cross Overhand Hook Body Cross Uppercut",
+      "spoken": "jab cross overhand hook body cross uppercut",
+      "strikeCount": 6,
+      "pieceCount": 6,
+      "startSec": 29.2,
+      "speechEndSec": 31.927,
+      "nextCallSec": 33.667,
+      "windowSec": 4.467,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Overhand",
+        "Hook",
+        "Cross to the body",
+        "Uppercut"
+      ],
+      "plain": "Jab, Cross, Overhand, Hook, Cross to the body, Uppercut",
+      "audioOnsetSec": 29.2,
+      "audioFirstSoundSec": 29.194
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Jab Cross Roll Hook Cross",
+      "spoken": "jab cross roll hook cross",
+      "strikeCount": 4,
+      "pieceCount": 5,
+      "startSec": 33.667,
+      "speechEndSec": 35.44,
+      "nextCallSec": 38.2,
+      "windowSec": 4.533,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Roll (duck under the hook)",
+        "Hook",
+        "Cross"
+      ],
+      "plain": "Jab, Cross, Roll (duck under the hook), Hook, Cross",
+      "audioOnsetSec": 33.668,
+      "audioFirstSoundSec": 33.661
+    },
+    {
+      "index": 8,
+      "kind": "combo",
+      "text": "Slip Cross Hook Body Cross",
+      "spoken": "slip cross hook body cross",
+      "strikeCount": 3,
+      "pieceCount": 4,
+      "startSec": 38.2,
+      "speechEndSec": 40.022,
+      "nextCallSec": 42.7,
+      "windowSec": 4.5,
+      "strikes": [
+        "Slip (move your head off the line)",
+        "Cross",
+        "Hook",
+        "Cross to the body"
+      ],
+      "plain": "Slip (move your head off the line), Cross, Hook, Cross to the body",
+      "audioOnsetSec": 38.2,
+      "audioFirstSoundSec": 38.196
+    },
+    {
+      "index": 9,
+      "kind": "combo",
+      "text": "Body Jab",
+      "spoken": "body jab",
+      "strikeCount": 1,
+      "pieceCount": 1,
+      "startSec": 42.7,
+      "speechEndSec": 43.077,
+      "nextCallSec": 47.2,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab to the body"
+      ],
+      "plain": "Jab to the body",
+      "audioOnsetSec": 42.7,
+      "audioFirstSoundSec": 42.67
+    },
+    {
+      "index": 10,
+      "kind": "combo",
+      "text": "Jab Slip Cross Roll Hook Cross",
+      "spoken": "jab slip cross roll hook cross",
+      "strikeCount": 4,
+      "pieceCount": 6,
+      "startSec": 47.2,
+      "speechEndSec": 49.44,
+      "nextCallSec": 51.7,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Slip (move your head off the line)",
+        "Cross",
+        "Roll (duck under the hook)",
+        "Hook",
+        "Cross"
+      ],
+      "plain": "Jab, Slip (move your head off the line), Cross, Roll (duck under the hook), Hook, Cross",
+      "audioOnsetSec": 47.202,
+      "audioFirstSoundSec": 47.196
+    }
+  ],
+  "roundAnnouncementEndSec": 6.071,
+  "loudness": {
+    "integratedLufs": -15.9,
+    "truePeakDbfs": -1.6,
+    "rangeLu": 8.2
+  }
+}

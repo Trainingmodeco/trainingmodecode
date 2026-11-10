@@ -31,6 +31,9 @@ check('owner preview after Shoto features Ultra Ego', C.featuredEntry(at('2026-1
 check('featured while live', C.featuredEntry(at('2026-12-10'), false)?.concept.id === 'ultra-ego');
 check('Shoto not live Oct 22, live Oct 23', C.featuredEntry(at('2026-10-22'), false) === null && C.featuredEntry(at('2026-10-23'), false)?.concept.id === 'shoto');
 check('Shoto still live Nov 30, Ultra Ego from Dec 1', C.featuredEntry(at('2026-11-30'), false)?.concept.id === 'shoto' && C.featuredEntry(at('2026-12-01'), false)?.concept.id === 'ultra-ego');
+// The hub card shows the blurb on one line beside "ENDS / START": longer than
+// about 40 characters it is cut mid-sentence with an ellipsis on a phone.
+check('every concept blurb is short enough for the hub card (40 chars or fewer)', C.CONCEPT_SCHEDULE.every(e => [e.concept.fit.blurb, e.concept.fight.blurb].every(b => typeof b === 'string' && b.length > 0 && b.length <= 40)), C.CONCEPT_SCHEDULE.flatMap(e => [e.concept.fit.blurb, e.concept.fight.blurb]).filter(b => b.length > 40).join(' | '));
 check('schedule in date order, no overlap', C.CONCEPT_SCHEDULE.every((e, i, a) => i === 0 || e.start > a[i - 1].end));
 check('vault lists both past drops, oldest first', C.vaultEntries(at('2027-03-01')).map(e => e.concept.id).join() === 'shoto,ultra-ego');
 check('Shoto in the vault while Ultra Ego is live', C.vaultEntries(at('2026-12-10')).map(e => e.concept.id).join() === 'shoto');

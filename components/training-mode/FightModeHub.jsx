@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import PhoneFrame from './PhoneFrame';
 import SafeImage from './SafeImage';
 import { ChevronRight, ChevronLeft, Home } from 'lucide-react';
@@ -13,6 +13,8 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
+import { featuredEntry } from './data/concepts';
+import { useScrollFade, scrollGuideTarget } from './shared/hubScroll';
 
 // Fight Mode hub — the Simplify revamp layout, royal blue and gold.
 //
@@ -23,6 +25,20 @@ import ConceptFeatureCard from './shared/ConceptFeatureCard';
 // The discipline tabs above drive every row: the choice persists to the
 // profile and each mode reads it.
 const RED = '#ef4444';
+
+// The vertical budget, the same idea as the Fit hub: the stack under the tabs is
+// one flex column whose blocks size from the REAL height left (dvh clamps for
+// the comfortable size, flex-shrink down to floors that still read), the gaps
+// and the concept card first, the ladder and the tiles after. Only on a very
+// short phone, where the floors cannot fit (about 660px tall on a plain day,
+// 715 with Coach's Tapes on), does it scroll, and it scrolls fully clear of the
+// tab bar with a fade on its lower edge as the hint. Banner floors: 48 (the
+// text is 37 tall), the camp banner 56 (its text and progress bar are 52).
+const BANNER_BASIS = 'clamp(56px, 8.6dvh, 68px)';
+const TILE_BASIS = 'clamp(96px, 15dvh, 114px)';
+// The lane above the tab bar belongs to the floating BETA chip and, while a
+// session is paused, the resume pill (--tm-resume-top). The stack stops above it.
+const BOTTOM_LANE = 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))';
 
 const BANNERS = [
   { key: 'just_train', n: '01', title: 'JUST TRAIN', sub: 'Flexible fight timer · Fast start · Saved presets', art: '/static/revamp/just-train-banner.png', pos: '80% 50%', guide: 'fh-just-train' },
@@ -39,10 +55,11 @@ const TAPES_BANNER = { key: 'tapes', n: '05', title: "COACH'S TAPES", sub: 'Foll
 // brightens and the border turns gold. The banners were painted violet for the
 // old theme; the hue shift is the design's way of reusing them.
 const hubCSS = `
-.fb { position: relative; height: clamp(56px, 8.6dvh, 68px); border-radius: 14px; overflow: hidden; border: 1px solid rgba(61,123,255,.4); background: #070B1C; display: block; width: 100%; padding: 0; text-align: left; cursor: pointer; flex-shrink: 0;
+.fb { position: relative; flex: 0 1 ${BANNER_BASIS}; min-height: 48px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(61,123,255,.4); background: #070B1C; display: block; width: 100%; padding: 0; text-align: left; cursor: pointer;
   transition: border-color .2s, box-shadow .2s, transform .12s; -webkit-tap-highlight-color: transparent; }
 .fb img { opacity: .5; filter: hue-rotate(-48deg) saturate(1.15) brightness(.75); transition: opacity .25s, filter .25s, transform .25s; }
 .fb.no-shift img { filter: brightness(.75); }
+.fb.camp { min-height: 56px; }
 .fb .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,8,20,.97) 0%, rgba(5,8,20,.82) 50%, rgba(5,8,20,.15) 100%); transition: opacity .25s; }
 .fb:hover, .fb:focus-visible { border-color: #F2BE45; box-shadow: 0 0 0 1px rgba(242,190,69,.35), 0 0 22px rgba(61,123,255,.55), 0 0 14px rgba(242,190,69,.3); }
 .fb:hover img, .fb:focus-visible img { opacity: 1; filter: hue-rotate(-48deg) saturate(1.3) brightness(1.1); transform: scale(1.03); }
@@ -60,6 +77,8 @@ const hubCSS = `
 .ft.prac img { opacity: .35; filter: brightness(.7) saturate(.85); }
 /* Highlight lifts the art, but only part way: it stays a backdrop for the book. */
 .ft.prac:hover img, .ft.prac:focus-visible img { opacity: .62; filter: brightness(.85) saturate(.95); transform: scale(1.03); }
+.ft-book { height: min(60px, calc(100% - 42px)); aspect-ratio: 1; } /* shrinks with the tile so it never sits on the title */
+.fh-stack [data-guide] { scroll-margin-bottom: 32px; }
 .ft.prac .ft-book img { opacity: 1; filter: drop-shadow(0 0 8px rgba(168,85,247,.6)); transition: transform .25s, filter .25s; }
 .ft.prac:hover .ft-book img, .ft.prac:focus-visible .ft-book img { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(168,85,247,.8)) drop-shadow(0 0 6px rgba(242,190,69,.5)); }
 .ft.cond img { opacity: .45; filter: brightness(.7); }
@@ -84,6 +103,19 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
   const campStage = Math.min(loadCampProgress(), 12);
 
   const banners = onTapes ? [...BANNERS, TAPES_BANNER] : BANNERS;
+  // The guide's last step points at the concept card; with no drop live the
+  // card is not there, so the step goes too (a step with no target stalls).
+  // Read on every render and handed to the card, so a drop that starts or ends
+  // while the hub is open can never leave the card, its gap and the guide
+  // disagreeing.
+  const concept = featuredEntry();
+  const hasConcept = !!concept;
+  const guideSteps = useMemo(() => SCREEN_GUIDES.fight_hub.filter(st => hasConcept || st.target !== 'fight-concept'), [hasConcept]);
+  // The stack scrolls only on a very short phone; the fade says so.
+  const { ref: stackRef, fade } = useScrollFade(`${hasConcept ? 1 : 0}${banners.length}`);
+  // A gap is a flex item that gives back first when the column runs short.
+  // pointerEvents none: it is a later sibling and must not sit on a tap.
+  const gap = (k, basis, min = 4) => <div key={k} aria-hidden="true" style={{ flex: `0 4 ${basis}`, minHeight: min, pointerEvents: 'none' }}/>;
   const goMode = async (key) => {
     if (key === 'tapes') { onTapes?.(); return; }
     if (key === 'training_camp') { onTrainingCamp?.(disc); return; }
@@ -108,16 +140,19 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
       <FightBackdrop/>
       <style dangerouslySetInnerHTML={{ __html: hubCSS }}/>
 
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100dvh', boxSizing: 'border-box', overflow: 'hidden', paddingBottom: BOTTOM_LANE }}>
 
         {/* The same header as the Fit hub: back · wordmark · ? · home. The
             TT logo and its subtitle line are gone; the discipline tabs below
             already say which discipline you're on. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px', flexShrink: 0 }}>
-          <button onClick={onBack} aria-label="Back" className="fh-q" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a9bff0', display: 'flex', padding: 8, margin: -8 }}><ChevronLeft size={22}/></button>
+          {/* The three header buttons are 44px taps that lay out as before: padding
+              out, margin back in. Home reaches to the screen edge, and sits 4px
+              further from "?" so the two taps do not overlap. */}
+          <button onClick={onBack} aria-label="Back" className="fh-q" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a9bff0', display: 'flex', padding: 11, margin: -11 }}><ChevronLeft size={22}/></button>
           <div style={{ flex: 1 }}><SafeImage src="/static/title-fight.png" alt="Fight Mode" style={{ height: 30, width: 'auto', maxWidth: '100%', display: 'block' }}/></div>
-          <HelpButton onClick={() => setHelpOpen(true)}/>
-          <button onClick={onHome} aria-label="Home" className="fh-q" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a9bff0', display: 'flex', padding: 0 }}><Home size={18}/></button>
+          <HelpButton hitSlop={6} onClick={() => setHelpOpen(true)}/>
+          <button onClick={onHome} aria-label="Home" className="fh-q" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a9bff0', display: 'flex', padding: '13px 16px 13px 10px', margin: '-13px -16px -13px -6px' }}><Home size={18}/></button>
         </div>
 
         {/* Fit / Fight is a tab switch now, not a screen you back out to. */}
@@ -125,18 +160,24 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
           <ModeTabs active="fight" onFit={onFitMode}/>
         </div>
 
-        {/* Sizes flex down with the viewport first (clamp on the banners, gap and
-            tiles); on a very short phone, or with the resume row reserved, it
-            scrolls a little rather than clipping the tiles under the tab bar. */}
-        <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', padding: '10px 14px 0', paddingBottom: 'calc(max(96px, 15dvh, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))' }}>
+        {/* The stack ends above the lane (the container's bottom padding) and
+            sizes its blocks to fit it; only on a very short phone does it scroll. */}
+        <div ref={stackRef} className="no-scrollbar fh-stack" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', padding: '10px 14px 4px', WebkitMaskImage: fade, maskImage: fade }}>
 
-        <DisciplineTabs value={disc} onChange={pickDisc} guide="fh-disciplines" style={{ marginBottom: 12 }}/>
+        <DisciplineTabs value={disc} onChange={pickDisc} guide="fh-disciplines"/>
+        {gap('g-tabs', '12px', 6)}
 
-        <ConceptFeatureCard mode="fight" onOpen={onOpenConcept} style={{ marginBottom: 7, flexShrink: 0 }}/>
+        {hasConcept && (
+          <>
+            <ConceptFeatureCard mode="fight" entry={concept} onOpen={onOpenConcept} style={{ flex: '0 2 88px', height: 'auto', minHeight: 76 }}/>
+            {gap('g-concept', '7px')}
+          </>
+        )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
-          {banners.map(b => (
-            <button key={b.key} type="button" className={`fb${b.noShift ? ' no-shift' : ''}`} data-tour={b.tour} data-guide={b.guide} onClick={() => goMode(b.key)}>
+        {banners.map((b, i) => (
+          <Fragment key={b.key}>
+            {i > 0 && gap('g-' + b.key, '7px')}
+            <button type="button" className={`fb${b.noShift ? ' no-shift' : ''}${b.camp ? ' camp' : ''}`} data-tour={b.tour} data-guide={b.guide} onClick={() => goMode(b.key)}>
               <SafeImage src={b.art} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: b.pos }}/>
               <div className="scrim"/>
               <div style={{ position: 'relative', height: '100%', boxSizing: 'border-box', padding: '0 12px 0 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -157,25 +198,28 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
                 <ChevronRight className="fb-go" size={20} color="#8FB4FF"/>
               </div>
             </button>
-          ))}
-        </div>
+          </Fragment>
+        ))}
 
         {/* Clear air between the four ways to train and the two skill tiles —
-            stacked straight under Training Camp they read as one dense list. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 'clamp(10px, 2.4dvh, 18px) 2px clamp(6px, 1.4dvh, 10px)', flexShrink: 0 }}>
+            stacked straight under Training Camp they read as one dense list.
+            The air is two spacers, so it gives back before anything is cut. */}
+        {gap('g-skills', 'clamp(10px, 2.4dvh, 18px)')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 2px', flexShrink: 0 }}>
           <span style={{ font: "600 10px 'Chakra Petch',sans-serif", letterSpacing: '0.2em', color: '#6F7699' }}>SKILLS &amp; CONDITIONING</span>
           <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(61,123,255,0.35), transparent)' }}/>
         </div>
+        {gap('g-tiles', 'clamp(6px, 1.4dvh, 10px)', 3)}
 
         {/* Practice teaches, Combat Conditioning builds the engine: two
             side-by-side tiles, a step quieter than the ladder above. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, height: 'clamp(96px, 15dvh, 114px)', flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, flex: `0 1 ${TILE_BASIS}`, minHeight: 84 }}>
           <button type="button" className="ft prac" data-guide="fh-practice" onClick={() => goMode('practice')} style={{ background: '#0B0F1F', border: '1px dashed rgba(143,180,255,0.55)' }}>
             <SafeImage src="/static/fight-hub/practice.webp" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '82% 50%' }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(5,8,20,0.1) 0%, rgba(5,8,20,0.85) 70%)' }}/>
             {/* The book, top-middle — Practice's mark. Full strength while the
                 art behind it stays dimmed. */}
-            <span className="ft-book" style={{ position: 'absolute', top: 3, left: '50%', transform: 'translateX(-50%)', width: 60, height: 60 }}>
+            <span className="ft-book" style={{ position: 'absolute', top: 3, left: '50%', transform: 'translateX(-50%)' }}>
               <SafeImage src="/static/revamp/practice-book.webp" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
             </span>
             <span style={{ position: 'absolute', left: 12, right: 10, bottom: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -203,7 +247,7 @@ export default function FightModeHub({ onHome, onBack, onFitMode, onJustTrain, o
 
       {toast && <div style={{ position: 'absolute', left: '50%', bottom: 120, transform: 'translateX(-50%)', background: 'rgba(20,8,36,0.96)', border: '1px solid rgba(168,85,247,0.4)', borderRadius: 10, padding: '10px 16px', font: "700 10px 'Orbitron',sans-serif", color: '#c9a6ff', zIndex: 20, whiteSpace: 'nowrap' }}>{toast}</div>}
 
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.fight_hub} onClose={() => setHelpOpen(false)}/>}
+      {helpOpen && <ScreenGuide steps={guideSteps} onStep={scrollGuideTarget} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

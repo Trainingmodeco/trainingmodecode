@@ -1,0 +1,258 @@
+{
+  "id": "2026-11-07-your-level-sets-the-difficulty",
+  "title": "Your level sets the difficulty",
+  "status": "rendered",
+  "format": "ScriptShort",
+  "createdAt": "2026-11-07",
+  "source": "weekly dev log: the Quick Mission and level update, 2026-11-07; B-roll recorded from the live app by tools/app-broll.mjs",
+  "scheduledFor": null,
+  "props": {
+    "kicker": "New update",
+    "boss": "Your level",
+    "hook": "One workout for *everyone*?",
+    "beats": [
+      "Quick Mission opens on *your level*.",
+      "Fit level 1 opens on *EASY*.",
+      "Fit level 10 opens on *ADVANCED*.",
+      "Pick another in *ADJUST*.",
+      "Tap your *avatar* to see your level.",
+      "Your *Fit work* counts most.",
+      "The higher you climb, the harder it *starts*."
+    ],
+    "cta": "Link in bio",
+    "art": null,
+    "artBeats": [],
+    "goldBeats": [
+      7
+    ],
+    "broll": [
+      {
+        "src": "raw-footage/app/lvl1-quick.mp4",
+        "start": 0.95,
+        "rate": 0.5,
+        "focusX": 50,
+        "textY": 985
+      },
+      {
+        "src": "raw-footage/app/qm-adjust.mp4",
+        "start": 1,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1330
+      },
+      {
+        "src": "raw-footage/app/lvl1-quick.mp4",
+        "start": 2.55,
+        "rate": 0.8,
+        "focusX": 50,
+        "textY": 1330
+      },
+      {
+        "src": "raw-footage/app/lvl10-quick.mp4",
+        "start": 2.55,
+        "rate": 0.8,
+        "focusX": 50,
+        "textY": 1265
+      },
+      {
+        "src": "raw-footage/app/qm-adjust.mp4",
+        "start": 4,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1000
+      },
+      {
+        "src": "raw-footage/app/lvl10-level-page.mp4",
+        "start": 0.4,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1400,
+        "shiftY": 150
+      },
+      {
+        "src": "raw-footage/app/lvl10-level-page.mp4",
+        "start": 7.9,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1400
+      },
+      {
+        "src": "raw-footage/app/lvl10-level-page.mp4",
+        "start": 4.2,
+        "rate": 1,
+        "focusX": 50,
+        "textY": 1400
+      }
+    ],
+    "brollGrade": "app"
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "One workout for everyone? Not here ⚡ Quick Mission opens on your Fit level: EASY at Fit levels 1-2, MEDIUM 3-5, HARD 6-9, ADVANCED from Fit level 10. Pick another in ADJUST for today. Link in bio. #homeworkout #fitnessapp #workoutmotivation #combatfitness #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "One workout for everyone? Not here. ⚡\n\nQuick Mission opens on your level, set mostly by your Fit work: EASY at Fit levels 1-2, MEDIUM 3-5, HARD 6-9, ADVANCED from Fit level 10. The higher you climb, the harder it starts.\n\nWant a different one? Pick any level in ADJUST for today. Next time it starts at your level again.\n\nTap your avatar to see your Level page: what your level means and what you've done.\n\nComment TRAIN and I'll DM you the link.\n\n#homeworkout #fitnessapp #workoutmotivation #quickworkout #combatfitness #trainingmode"
+    },
+    "facebook": {
+      "caption": "One workout for everyone? Not here. ⚡ Quick Mission opens on your level, set mostly by your Fit work: EASY at Fit levels 1-2, MEDIUM 3-5, HARD 6-9, ADVANCED from Fit level 10. Pick another in ADJUST for today. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Your level sets your workout difficulty ⚡ #shorts",
+      "description": "Training Mode's Quick Mission opens on your level, set mostly by your Fit work: EASY at Fit levels 1-2, MEDIUM 3-5, HARD 6-9, ADVANCED from Fit level 10. Pick any level in ADJUST for today. Your Level page (tap your avatar) shows what your level means and what you've done.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "workout levels",
+        "quick workout",
+        "home workout",
+        "fitness app",
+        "combat fitness",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "timeline": [
+    {
+      "scene": 0,
+      "text": "One workout for everyone?",
+      "start": 0,
+      "seconds": 2.5,
+      "footage": "lvl1-quick 0.95s to 2.20s at 0.5x"
+    },
+    {
+      "scene": 1,
+      "text": "Quick Mission opens on your level.",
+      "start": 2.5,
+      "seconds": 3.03,
+      "footage": "qm-adjust 1s to 4.03s at 1x"
+    },
+    {
+      "scene": 2,
+      "text": "Fit level 1 opens on EASY.",
+      "start": 5.53,
+      "seconds": 3.03,
+      "footage": "lvl1-quick 2.55s to 4.98s at 0.8x"
+    },
+    {
+      "scene": 3,
+      "text": "Fit level 10 opens on ADVANCED.",
+      "start": 8.57,
+      "seconds": 3.03,
+      "footage": "lvl10-quick 2.55s to 4.98s at 0.8x"
+    },
+    {
+      "scene": 4,
+      "text": "Pick another in ADJUST.",
+      "start": 11.6,
+      "seconds": 2.27,
+      "footage": "qm-adjust 4s to 6.27s at 1x"
+    },
+    {
+      "scene": 5,
+      "text": "Tap your avatar to see your level.",
+      "start": 13.87,
+      "seconds": 3.4,
+      "footage": "lvl10-level-page 0.4s to 3.80s at 1x"
+    },
+    {
+      "scene": 6,
+      "text": "Your Fit work counts most.",
+      "start": 17.27,
+      "seconds": 2.67,
+      "footage": "lvl10-level-page 7.9s to 10.57s at 1x"
+    },
+    {
+      "scene": 7,
+      "text": "The higher you climb, the harder it starts.",
+      "start": 19.93,
+      "seconds": 3.77,
+      "footage": "lvl10-level-page 4.2s to 7.97s at 1x"
+    }
+  ],
+  "seconds": 27.2,
+  "teaches": "Your level picks where Quick Mission starts (EASY, MEDIUM, HARD, ADVANCED), mostly from your Fit work, and you can change it for today in ADJUST.",
+  "voiceover": {
+    "voice": "Coach TM, recorded over the silent reel; plain lines, no hype. Leave a beat of air at each cut.",
+    "script": "One workout for everyone? No. Quick Mission opens on your level. Fit level one opens on easy. Fit level ten opens on advanced. Pick another in Adjust. Tap your avatar to see your level. Your Fit work counts the most. The higher you climb, the harder it starts. Link in bio. Go train.",
+    "lines": [
+      {
+        "scene": 0,
+        "label": "hook",
+        "at": 0.12,
+        "window": 2.3,
+        "text": "One workout for everyone? No."
+      },
+      {
+        "scene": 1,
+        "label": "beat 1",
+        "at": 2.62,
+        "window": 2.83,
+        "text": "Quick Mission opens on your level."
+      },
+      {
+        "scene": 2,
+        "label": "beat 2",
+        "at": 5.65,
+        "window": 2.83,
+        "text": "Fit level one opens on easy."
+      },
+      {
+        "scene": 3,
+        "label": "beat 3",
+        "at": 8.69,
+        "window": 2.83,
+        "text": "Fit level ten opens on advanced."
+      },
+      {
+        "scene": 4,
+        "label": "beat 4",
+        "at": 11.72,
+        "window": 2.07,
+        "text": "Pick another in Adjust."
+      },
+      {
+        "scene": 5,
+        "label": "beat 5",
+        "at": 13.99,
+        "window": 3.2,
+        "text": "Tap your avatar to see your level."
+      },
+      {
+        "scene": 6,
+        "label": "beat 6",
+        "at": 17.39,
+        "window": 2.47,
+        "text": "Your Fit work counts the most."
+      },
+      {
+        "scene": 7,
+        "label": "beat 7",
+        "at": 20.05,
+        "window": 3.57,
+        "text": "The higher you climb, the harder it starts."
+      },
+      {
+        "scene": null,
+        "label": "end card",
+        "at": 23.8,
+        "window": 2.3,
+        "text": "Link in bio. Go train."
+      }
+    ]
+  },
+  "notes": [
+    "Not approved and not published. The owner approves every post (npm run approve) after seeing the render and every caption.",
+    "Facts: level 1-2 EASY, 3-5 MEDIUM (stored NORMAL), 6-9 HARD, 10 and up ADVANCED; own side counts in full, the other side at half (data/athleteLevel.js). The cutoffs are the FIT level (the app labels it FIT LEVEL N and it can sit below the Profile level), so every line says \"Fit level\": never write plain \"level 10 = ADVANCED\". The Level 10 clip athlete is mostly Fit XP (about 4,960).",
+    "The pick in ADJUST lasts for the visit only; the page says \"for today\" and so does this script. No \"unlock\" wording (the app has no lock).",
+    "The proof is on screen: the same 20 MIN Bodyweight Blitz card reads Lunges 6 reps at EASY and Lunges 18 at ADVANCED (SEE ALL opens the list). The level 1 athlete (hook, ADJUST) is a new account; the level 10 athlete (card, Level page) is the same one for every Level page scene.",
+    "Footage: each scene's window in the clip is in \"timeline\". The clips are recorded from the live app by npm run app-broll (needs a built export of the app); after the app changes, re-run it and re-check every window."
+  ],
+  "exports": {
+    "video": "exports/2026-11-07-your-level-sets-the-difficulty/video.mp4",
+    "cover": "exports/2026-11-07-your-level-sets-the-difficulty/cover.jpg",
+    "seconds": 27.2
+  },
+  "renderedAt": "2026-11-07T04:44:11.214Z"
+}

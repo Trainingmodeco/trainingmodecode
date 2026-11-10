@@ -1,0 +1,236 @@
+{
+  "name": "cc-sync-muaythai-2",
+  "discipline": "Muay Thai",
+  "athleteLevel": 10,
+  "difficulty": "ADVANCED",
+  "cadenceSec": 4.5,
+  "seed": 92,
+  "appCommit": "e9c3753",
+  "durationSec": 51.667,
+  "goAtSec": 6.033,
+  "countInBeepsAtSec": [
+    0.083,
+    1.081,
+    2.08
+  ],
+  "roundAnnouncementAtSec": 3.467,
+  "voice": {
+    "id": "mbrola-us2",
+    "engine": "eSpeak NG with MBROLA us2 (American male)"
+  },
+  "calls": [
+    {
+      "index": 1,
+      "kind": "combo",
+      "text": "Feint Cross Low Kick Elbow Knee",
+      "spoken": "feint cross low kick elbow knee",
+      "strikeCount": 4,
+      "pieceCount": 5,
+      "startSec": 6.633,
+      "speechEndSec": 8.561,
+      "nextCallSec": 11.167,
+      "windowSec": 4.533,
+      "strikes": [
+        "Feint (fake a strike)",
+        "Cross",
+        "Low kick (to the thigh)",
+        "Elbow",
+        "Knee"
+      ],
+      "plain": "Feint (fake a strike), Cross, Low kick (to the thigh), Elbow, Knee",
+      "audioOnsetSec": 6.676,
+      "audioFirstSoundSec": 6.591
+    },
+    {
+      "index": 2,
+      "kind": "combo",
+      "text": "Rear Roundhouse",
+      "spoken": "rear roundhouse",
+      "strikeCount": 1,
+      "pieceCount": 1,
+      "startSec": 11.167,
+      "speechEndSec": 11.796,
+      "nextCallSec": 15.633,
+      "windowSec": 4.467,
+      "strikes": [
+        "Rear roundhouse kick"
+      ],
+      "plain": "Rear roundhouse kick",
+      "audioOnsetSec": 11.168,
+      "audioFirstSoundSec": 11.165
+    },
+    {
+      "index": 3,
+      "kind": "combo",
+      "text": "Teep Cross Hook Elbow Knee Roundhouse",
+      "spoken": "teep cross hook elbow knee roundhouse",
+      "strikeCount": 6,
+      "pieceCount": 6,
+      "startSec": 15.633,
+      "speechEndSec": 17.993,
+      "nextCallSec": 20.133,
+      "windowSec": 4.5,
+      "strikes": [
+        "Teep (push kick)",
+        "Cross",
+        "Hook",
+        "Elbow",
+        "Knee",
+        "Roundhouse kick"
+      ],
+      "plain": "Teep (push kick), Cross, Hook, Elbow, Knee, Roundhouse kick",
+      "audioOnsetSec": 15.634,
+      "audioFirstSoundSec": 15.623
+    },
+    {
+      "index": 4,
+      "kind": "combo",
+      "text": "Rear Knee",
+      "spoken": "rear knee",
+      "strikeCount": 1,
+      "pieceCount": 1,
+      "startSec": 20.133,
+      "speechEndSec": 20.45,
+      "nextCallSec": 24.633,
+      "windowSec": 4.5,
+      "strikes": [
+        "Rear knee"
+      ],
+      "plain": "Rear knee",
+      "audioOnsetSec": 20.134,
+      "audioFirstSoundSec": 20.127
+    },
+    {
+      "index": 5,
+      "kind": "combo",
+      "text": "Teep Roundhouse Cross Elbow",
+      "spoken": "teep roundhouse cross elbow",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 24.633,
+      "speechEndSec": 26.312,
+      "nextCallSec": 29.167,
+      "windowSec": 4.533,
+      "strikes": [
+        "Teep (push kick)",
+        "Roundhouse kick",
+        "Cross",
+        "Elbow"
+      ],
+      "plain": "Teep (push kick), Roundhouse kick, Cross, Elbow",
+      "audioOnsetSec": 24.634,
+      "audioFirstSoundSec": 24.623
+    },
+    {
+      "index": 6,
+      "kind": "combo",
+      "text": "Check Counter Kick Elbow Knee",
+      "spoken": "check counter kick elbow knee",
+      "strikeCount": 3,
+      "pieceCount": 4,
+      "startSec": 29.167,
+      "speechEndSec": 30.793,
+      "nextCallSec": 33.633,
+      "windowSec": 4.467,
+      "strikes": [
+        "Check counter (block the kick, fire back)",
+        "Kick",
+        "Elbow",
+        "Knee"
+      ],
+      "plain": "Check counter (block the kick, fire back), Kick, Elbow, Knee",
+      "audioOnsetSec": 29.178,
+      "audioFirstSoundSec": 29.147
+    },
+    {
+      "index": 7,
+      "kind": "combo",
+      "text": "Jab Cross Knee Cross",
+      "spoken": "jab cross knee cross",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 33.633,
+      "speechEndSec": 34.993,
+      "nextCallSec": 38.133,
+      "windowSec": 4.5,
+      "strikes": [
+        "Jab",
+        "Cross",
+        "Knee",
+        "Cross"
+      ],
+      "plain": "Jab, Cross, Knee, Cross",
+      "audioOnsetSec": 33.634,
+      "audioFirstSoundSec": 33.627
+    },
+    {
+      "index": 8,
+      "kind": "combo",
+      "text": "Teep Cross Hook Spinning Elbow",
+      "spoken": "teep cross hook spinning elbow",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 38.133,
+      "speechEndSec": 39.821,
+      "nextCallSec": 42.667,
+      "windowSec": 4.533,
+      "strikes": [
+        "Teep (push kick)",
+        "Cross",
+        "Hook",
+        "Spinning elbow"
+      ],
+      "plain": "Teep (push kick), Cross, Hook, Spinning elbow",
+      "audioOnsetSec": 38.134,
+      "audioFirstSoundSec": 38.123
+    },
+    {
+      "index": 9,
+      "kind": "combo",
+      "text": "Low Kick Cross Hook Knee",
+      "spoken": "low kick cross hook knee",
+      "strikeCount": 4,
+      "pieceCount": 4,
+      "startSec": 42.667,
+      "speechEndSec": 44.15,
+      "nextCallSec": 47.167,
+      "windowSec": 4.5,
+      "strikes": [
+        "Low kick (to the thigh)",
+        "Cross",
+        "Hook",
+        "Knee"
+      ],
+      "plain": "Low kick (to the thigh), Cross, Hook, Knee",
+      "audioOnsetSec": 42.668,
+      "audioFirstSoundSec": 42.665
+    },
+    {
+      "index": 10,
+      "kind": "combo",
+      "text": "Check Counter Elbow Cross Body Kick",
+      "spoken": "check counter elbow cross body kick",
+      "strikeCount": 3,
+      "pieceCount": 4,
+      "startSec": 47.167,
+      "speechEndSec": 49.157,
+      "nextCallSec": 51.667,
+      "windowSec": 4.5,
+      "strikes": [
+        "Check counter (block the kick, fire back)",
+        "Elbow",
+        "Cross",
+        "Kick to the body"
+      ],
+      "plain": "Check counter (block the kick, fire back), Elbow, Cross, Kick to the body",
+      "audioOnsetSec": 47.178,
+      "audioFirstSoundSec": 47.147
+    }
+  ],
+  "roundAnnouncementEndSec": 6.014,
+  "loudness": {
+    "integratedLufs": -15.9,
+    "truePeakDbfs": -1.6,
+    "rangeLu": 10.2
+  }
+}

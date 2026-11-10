@@ -105,17 +105,25 @@ export function anyBasicsComplete(completed = getCompletedLessons()) {
 // discipline. They count toward the round ladder's top rung.
 const LIBRARY_KEY = 'tm_practice_library_drilled';
 
+// Drilled moves are saved by name, so a renamed entry keeps its tick here.
+export const RENAMED_TECHNIQUES = { 'Lead Horizontal Elbow': 'Lead Hook Elbow' };
+
+function drilledList(all, discipline) {
+  const list = Array.isArray(all[discipline]) ? all[discipline] : [];
+  return [...new Set(list.map(n => RENAMED_TECHNIQUES[n] || n))];
+}
+
 export function getLibraryDrilled(discipline) {
   try {
     const all = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '{}');
-    return Array.isArray(all[discipline]) ? all[discipline] : [];
+    return drilledList(all, discipline);
   } catch { return []; }
 }
 
 export function markLibraryDrilled(discipline, name) {
   try {
     const all = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '{}');
-    const list = Array.isArray(all[discipline]) ? all[discipline] : [];
+    const list = drilledList(all, discipline);
     if (!list.includes(name)) all[discipline] = [...list, name];
     localStorage.setItem(LIBRARY_KEY, JSON.stringify(all));
   } catch { /* best-effort */ }
