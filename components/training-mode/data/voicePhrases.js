@@ -17,7 +17,9 @@
 // "3 × 10". Strip the brackets, say "or" for a slash, "seconds" for a
 // trailing s and "by" for a multiplication sign.
 // A clock time "2:00" / "1:30" / "0:45" is said as minutes and seconds, and
-// a " · " separator is a sentence break.
+// a " · " separator is a sentence break, and a range "20-40s" is said
+// "20 to 40 seconds". A chain "5-10-5" or a punch call
+// "1-2" with no unit after it is said as the numbers.
 const clockWords = (m, mm, ss) => {
   const mi = Number(mm), se = Number(ss);
   const parts = [];
@@ -30,6 +32,9 @@ export function normalizeSpeech(text) {
   return String(text)
     .replace(/\b(\d{1,2}):([0-5]\d)\b/g, clockWords)
     .replace(/\s*·\s*/g, '. ')
+    .replace(/\b\d+(?:\s*[-–]\s*\d+){2,}\b/g, (m) => m.split(/\s*[-–]\s*/).join(' '))
+    .replace(/\b([1-8])\s*[-–]\s*([1-8])\b(?!\s*(?:s|sec|secs|seconds|min|mins|minutes|m|reps?|rounds?|sets?|x|%)\b)/gi, '$1 $2')
+    .replace(/(\d)\s*[-–]\s*(?=\d)/g, '$1 to ')
     .replace(/\s*\([^)]*\)/g, '')
     .replace(/\s*\/\s*/g, ' or ')
     .replace(/\s*×\s*/g, ' by ')

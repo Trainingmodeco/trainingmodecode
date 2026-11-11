@@ -162,6 +162,16 @@ await test('phrasesOf: a NUMBERS call is one combo with strike gaps', async () =
   assert.deepEqual(phrases.phrasesOf('Round 3. one, two').map((p) => p.gap), [0, phrases.GAP_SENTENCE, phrases.GAP_STRIKE]);
 });
 
+await test('normalizeSpeech: a range says "to", a chain or punch call says the numbers', async () => {
+  const n = phrases.normalizeSpeech;
+  assert.equal(n('20-40s'), '20 to 40 seconds');
+  assert.equal(n('6-12 reps'), '6 to 12 reps');
+  assert.equal(n('hold 2-3 min'), 'hold 2 to 3 min');
+  assert.equal(n('then 1-2'), 'then 1 2');
+  assert.equal(n('5-10-5 pro agility'), '5 10 5 pro agility');
+  assert.equal(n('Y-W-T'), 'y w t');
+});
+
 await test('planClips: three sentences are three phrases with sentence gaps', async () => {
   const plan = clips.planClips(bank, 'Round 3. High guard defense. Hands glued to your temples.');
   assert.deepEqual(plan.map((p) => p.key), ['round 3', 'high guard defense', 'hands glued to your temples']);
