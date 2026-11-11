@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 11,
+ "version": 13,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -424,7 +424,7 @@
   },
   "300": {
    "file": "300.mp3",
-   "ms": 1536
+   "ms": 576
   },
   "360": {
    "file": "360.mp3",
@@ -436,7 +436,7 @@
   },
   "480": {
    "file": "480.mp3",
-   "ms": 2208
+   "ms": 2088
   },
   "500": {
    "file": "500.mp3",
@@ -9588,7 +9588,7 @@
   },
   "action": {
    "file": "action.mp3",
-   "ms": 1104
+   "ms": 624
   },
   "activation": {
    "file": "activation.mp3",
@@ -13216,7 +13216,7 @@
   },
   "pak": {
    "file": "pak.mp3",
-   "ms": 1056
+   "ms": 504
   },
   "parry and return": {
    "file": "parry_and_return.mp3",
@@ -13336,7 +13336,7 @@
   },
   "planted": {
    "file": "planted.mp3",
-   "ms": 1296
+   "ms": 552
   },
   "planted jab cross": {
    "file": "planted_jab_cross.mp3",
@@ -13560,7 +13560,7 @@
   },
   "punches": {
    "file": "punches.mp3",
-   "ms": 1320
+   "ms": 696
   },
   "punches every round": {
    "file": "punches_every_round.mp3",
@@ -13684,7 +13684,7 @@
   },
   "read": {
    "file": "read.mp3",
-   "ms": 1200
+   "ms": 600
   },
   "read the phantom": {
    "file": "read_the_phantom.mp3",
@@ -13936,7 +13936,7 @@
   },
   "ribs": {
    "file": "ribs.mp3",
-   "ms": 1224
+   "ms": 696
   },
   "ring cutting pressure": {
    "file": "ring_cutting_pressure.mp3",
@@ -14192,7 +14192,7 @@
   },
   "shadow": {
    "file": "shadow.mp3",
-   "ms": 1200
+   "ms": 720
   },
   "shadow fight your strongest self": {
    "file": "shadow_fight_your_strongest_self.mp3",
@@ -14268,7 +14268,7 @@
   },
   "shin": {
    "file": "shin.mp3",
-   "ms": 960
+   "ms": 552
   },
   "short bursts": {
    "file": "short_bursts.mp3",
@@ -14808,7 +14808,7 @@
   },
   "straights": {
    "file": "straights.mp3",
-   "ms": 1176
+   "ms": 624
   },
   "strength circuit": {
    "file": "strength_circuit.mp3",
@@ -15092,7 +15092,7 @@
   },
   "technique": {
    "file": "technique.mp3",
-   "ms": 1344
+   "ms": 816
   },
   "teep & push": {
    "file": "teep_push.mp3",
@@ -15681,6 +15681,22 @@
   "1 minute lead foot in and outs with a jab": {
    "file": "1_minute_lead_foot_in_and_outs_with_a_jab.mp3",
    "ms": 3024
+  },
+  "40 to 60m": {
+   "file": "40_to_60m.mp3",
+   "ms": 1656
+  },
+  "pro agility": {
+   "file": "pro_agility.mp3",
+   "ms": 912
+  },
+  "falling starts into a 10 to 20m acceleration": {
+   "file": "falling_starts_into_a_10_to_20m_acceleration.mp3",
+   "ms": 2976
+  },
+  "then": {
+   "file": "then.mp3",
+   "ms": 984
   }
  },
  "count": 1121,

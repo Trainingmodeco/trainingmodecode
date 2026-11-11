@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 11,
+ "version": 13,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -420,11 +420,11 @@
   },
   "240": {
    "file": "240.mp3",
-   "ms": 3168
+   "ms": 1128
   },
   "300": {
    "file": "300.mp3",
-   "ms": 1848
+   "ms": 696
   },
   "360": {
    "file": "360.mp3",
@@ -9952,7 +9952,7 @@
   },
   "boss": {
    "file": "boss.mp3",
-   "ms": 1800
+   "ms": 576
   },
   "bow stance hold": {
    "file": "bow_stance_hold.mp3",
@@ -9980,7 +9980,7 @@
   },
   "brace": {
    "file": "brace.mp3",
-   "ms": 1440
+   "ms": 576
   },
   "brace for impact": {
    "file": "brace_for_impact.mp3",
@@ -10092,7 +10092,7 @@
   },
   "burst then composure": {
    "file": "burst_then_composure.mp3",
-   "ms": 3384
+   "ms": 1512
   },
   "but keep your form": {
    "file": "but_keep_your_form.mp3",
@@ -10104,7 +10104,7 @@
   },
   "by": {
    "file": "by.mp3",
-   "ms": 816
+   "ms": 384
   },
   "cage control": {
    "file": "cage_control.mp3",
@@ -10424,7 +10424,7 @@
   },
   "combo repetition faster": {
    "file": "combo_repetition_faster.mp3",
-   "ms": 7464
+   "ms": 3312
   },
   "combo repetition relaxed": {
    "file": "combo_repetition_relaxed.mp3",
@@ -10448,7 +10448,7 @@
   },
   "composed": {
    "file": "composed.mp3",
-   "ms": 1800
+   "ms": 552
   },
   "composed cooldown": {
    "file": "composed_cooldown.mp3",
@@ -10460,7 +10460,7 @@
   },
   "composed pace": {
    "file": "composed_pace.mp3",
-   "ms": 2616
+   "ms": 1968
   },
   "cone footwork only": {
    "file": "cone_footwork_only.mp3",
@@ -10680,7 +10680,7 @@
   },
   "cut": {
    "file": "cut.mp3",
-   "ms": 1992
+   "ms": 504
   },
   "cut and recover": {
    "file": "cut_and_recover.mp3",
@@ -11168,7 +11168,7 @@
   },
   "explode": {
    "file": "explode.mp3",
-   "ms": 1224
+   "ms": 960
   },
   "explode again": {
    "file": "explode_again.mp3",
@@ -11484,7 +11484,7 @@
   },
   "form gate under fatigue": {
    "file": "form_gate_under_fatigue.mp3",
-   "ms": 4320
+   "ms": 2544
   },
   "form gated output": {
    "file": "form_gated_output.mp3",
@@ -11764,7 +11764,7 @@
   },
   "hands": {
    "file": "hands.mp3",
-   "ms": 1296
+   "ms": 744
   },
   "hands back the instant the shot lands": {
    "file": "hands_back_the_instant_the_shot_lands.mp3",
@@ -12488,7 +12488,7 @@
   },
   "long exhale": {
    "file": "long_exhale.mp3",
-   "ms": 3216
+   "ms": 2160
   },
   "long guard defense": {
    "file": "long_guard_defense.mp3",
@@ -12520,7 +12520,7 @@
   },
   "lunge": {
    "file": "lunge.mp3",
-   "ms": 1416
+   "ms": 600
   },
   "lunge point control": {
    "file": "lunge_point_control.mp3",
@@ -12572,7 +12572,7 @@
   },
   "mace": {
    "file": "mace.mp3",
-   "ms": 1296
+   "ms": 648
   },
   "make every punch the one that ends it": {
    "file": "make_every_punch_the_one_that_ends_it.mp3",
@@ -13560,7 +13560,7 @@
   },
   "punches": {
    "file": "punches.mp3",
-   "ms": 1296
+   "ms": 792
   },
   "punches every round": {
    "file": "punches_every_round.mp3",
@@ -13840,11 +13840,11 @@
   },
   "relaxed speed": {
    "file": "relaxed_speed.mp3",
-   "ms": 2808
+   "ms": 1344
   },
   "relentless": {
    "file": "relentless.mp3",
-   "ms": 1824
+   "ms": 1248
   },
   "relentless body attack": {
    "file": "relentless_body_attack.mp3",
@@ -13932,7 +13932,7 @@
   },
   "review": {
    "file": "review.mp3",
-   "ms": 1344
+   "ms": 744
   },
   "ribs": {
    "file": "ribs.mp3",
@@ -14608,7 +14608,7 @@
   },
   "squeeze": {
    "file": "squeeze.mp3",
-   "ms": 1584
+   "ms": 648
   },
   "stance & strike": {
    "file": "stance_strike.mp3",
@@ -15172,7 +15172,7 @@
   },
   "tempo roadwork": {
    "file": "tempo_roadwork.mp3",
-   "ms": 2640
+   "ms": 1176
   },
   "tennis ball hat drill or wall bounce": {
    "file": "tennis_ball_hat_drill_or_wall_bounce.mp3",
@@ -15681,6 +15681,22 @@
   "1 minute lead foot in and outs with a jab": {
    "file": "1_minute_lead_foot_in_and_outs_with_a_jab.mp3",
    "ms": 3312
+  },
+  "40 to 60m": {
+   "file": "40_to_60m.mp3",
+   "ms": 2184
+  },
+  "pro agility": {
+   "file": "pro_agility.mp3",
+   "ms": 984
+  },
+  "falling starts into a 10 to 20m acceleration": {
+   "file": "falling_starts_into_a_10_to_20m_acceleration.mp3",
+   "ms": 3264
+  },
+  "then": {
+   "file": "then.mp3",
+   "ms": 624
   }
  },
  "count": 1121,
