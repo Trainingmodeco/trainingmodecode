@@ -331,6 +331,38 @@ function fitToDuration(pool, cardio, cfg) {
   return pick.rows;
 }
 
+// The minutes the setup card can promise, as { lo, hi }. A set scheme fixes
+// every loaded lift's sets, reps and rest, and the list stops at eight rows,
+// so a light scheme over a long session (3×10 for an hour) cannot fill the
+// DURATION picked. Then the card shows what the build runs instead: exact at
+// WEIGHTED, where every row is a loaded lift, and a range at HYBRID, whose
+// bodyweight rows still grow toward the minutes. Rows that cannot change, so
+// this is fitToDuration's own pick: the most rows within 5%, else the closest.
+export function builderPromisedMinutes({ duration, equipment, setScheme } = {}) {
+  const minutes = Number(duration) || 30;
+  const asked = { lo: minutes, hi: minutes };
+  if (!setScheme?.sets || equipment === 'Bodyweight') return asked;
+  const target = minutes * 60;
+  const row = { equipment: 'Dumbbell', sets: setScheme.sets, reps: setScheme.reps, restSeconds: setScheme.restSeconds };
+  const tries = [];
+  for (let k = 1; k <= MAX_EXERCISES; k++) tries.push(builderWorkoutSeconds(Array(k).fill(row)));
+  const near = tries.filter(s => Math.abs(s - target) <= 0.05 * target);
+  const sec = near.length ? near[near.length - 1] : tries.reduce((a, b) => (Math.abs(b - target) < Math.abs(a - target) ? b : a));
+  if (Math.abs(sec - target) <= 0.15 * target) return asked;
+  const built = Math.max(1, Math.round(sec / 60));
+  if (equipment !== 'Hybrid') return { lo: built, hi: built };
+  return { lo: Math.min(built, minutes), hi: Math.max(built, minutes) };
+}
+
+// The setup card's time tag: "30 min" when the build fills the DURATION,
+// "~34 min" or "34–60 min" when the set scheme cannot.
+export function builderPromisedLabel(cfg = {}) {
+  const minutes = Number(cfg.duration) || 30;
+  const { lo, hi } = builderPromisedMinutes(cfg);
+  if (lo === hi) return lo === minutes ? `${lo} min` : `~${lo} min`;
+  return `${lo}–${hi} min`;
+}
+
 // Curated conditioning finishers. The `cardioFinisher` flag in the exercise
 // data is unreliable (it tags strength lifts like barbell lunges as cardio),
 // so a genuine bodyweight-first pool guarantees a real cardio block.

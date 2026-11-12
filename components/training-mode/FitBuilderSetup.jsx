@@ -11,6 +11,9 @@ import AddCardioSheet from './AddCardioSheet';
 import { summarizeCardioAddon } from './data/cardioAddon';
 import { resolveScheme, CHIP_GROUPS, SET_SCHEMES, DURATIONS, DEFAULT_DURATION } from './data/workoutPrograms';
 import { trainAgainPlan } from './data/builderProgression';
+// A set scheme can cap a long session at eight fixed rows: the card says the
+// minutes that will run, not only the DURATION picked.
+import { builderPromisedLabel } from './fit-mode/fitModeGenerator';
 import { loadRoutines, deleteRoutine, MAX_ROUTINES } from './data/savedRoutines';
 import {
   fitKitCSS, SetupHeader, SetupPage, SegRow, SettingsCard, SettingRow, GoldButton, GhostButton, ChoiceSheet, Label, Tag,
@@ -192,7 +195,7 @@ export default function FitBuilderSetup({ onBack, onHome, onFightMode, onGenerat
               <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.16em', textTransform: 'uppercase', color: VIOLET_TEXT }}>Your build</span>
               <h1 style={{ margin: 0, font: `700 21px ${HEAD}`, lineHeight: 1.1, textTransform: 'uppercase', color: chips.length ? '#fff' : '#f87171', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chips.length ? targetValue : 'Pick muscles below'}</h1>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <Tag>{duration} min</Tag>
+                <Tag>{builderPromisedLabel({ duration, equipment: equip.value, setScheme: resolveScheme(schemeId, customScheme) })}</Tag>
                 <Tag>{cap(difficulty)}</Tag>
                 <Tag accent>{equip.value}</Tag>
               </div>

@@ -496,17 +496,47 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   check('43 every Builder pick builds 1 to 8 rows', empty.length === 0, empty.slice(0, 4).join(' | '));
 
   // Set schemes fix every loaded lift's sets, reps and rest, so the row count
-  // (and the bodyweight rows' sets) is all the fit can move.
+  // (and the bodyweight rows' sets) is all the fit can move. Every build runs
+  // within 15% of the DURATION, except these named picks, where eight fixed
+  // rows cannot get there; for those the setup card shows the tag below
+  // instead of the DURATION, and the build runs within 15% of that. A new
+  // miss, or a card that stops naming one of these, fails.
+  const CAPPED = {
+    '15 Weighted 4x8': '~13 min', '15 Hybrid 4x8': '13–15 min',
+    '45 Weighted 3x10': '~34 min', '45 Hybrid 3x10': '34–45 min',
+    '45 Weighted 3x15': '~36 min', '45 Hybrid 3x15': '36–45 min',
+    '60 Weighted 3x10': '~34 min', '60 Hybrid 3x10': '34–60 min',
+    '60 Weighted 3x15': '~36 min', '60 Hybrid 3x15': '36–60 min',
+    '60 Weighted 4x8': '~50 min', '60 Hybrid 4x8': '50–60 min',
+  };
   const schemes = WP.SET_SCHEMES.filter(x => x.sets).map(x => ({ id: x.id, sets: x.sets, reps: x.reps, restSeconds: x.restSeconds }));
-  const offScheme = [];
-  for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const setScheme of schemes) for (const sub of subsets.filter((_, i) => i % 9 === 0)) {
-    const w = build({ muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme });
-    const target = duration * 60, got = BT.builderWorkoutSeconds(w);
-    const longest = Math.max(...w.map(BT.builderRowSeconds));
-    const ok = Math.abs(got - target) <= 0.15 * target || (got < target && w.length === G.MAX_EXERCISES) || Math.abs(got - target) <= longest / 2 + BT.BUILDER_NEXT_ROW_SEC;
-    if (!ok) offScheme.push(`${duration} ${difficulty} ${equipment} ${setScheme.id} ${sub.join('+')}: ${Math.round((got / target - 1) * 100)}% ${w.length} rows`);
+  const offScheme = [], cardWrong = [], cappedSeen = new Set();
+  const within = (min, want) => Math.abs(min - want) <= Math.max(0.15 * want, 0.5);
+  for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const setScheme of schemes) for (const sub of subsets.filter((_, i) => i % 5 === 0)) {
+    const cfg = { muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme };
+    const w = build(cfg);
+    const got = BT.builderWorkoutSeconds(w) / 60;
+    const key = `${duration} ${equipment} ${setScheme.id}`, tag = G.builderPromisedLabel(cfg);
+    const { lo, hi } = G.builderPromisedMinutes(cfg);
+    const say = `${duration} ${difficulty} ${equipment} ${setScheme.id} ${sub.join('+')}: ${got.toFixed(1)} min on ${w.length} rows, card ${tag}`;
+    if (tag === `${duration} min`) { if (!within(got, duration)) offScheme.push(say); continue; }
+    cappedSeen.add(key);
+    if (CAPPED[key] !== tag) cardWrong.push(`${key}: card ${tag}`);
+    if (got < lo - Math.max(0.15 * lo, 0.5) || got > hi + Math.max(0.15 * hi, 0.5)) offScheme.push(say);
   }
-  check('44 a set scheme fits the DURATION as closely as its fixed sets and eight rows allow', offScheme.length === 0, offScheme.slice(0, 4).join(' | '));
+  const missing = Object.keys(CAPPED).filter(k => !cappedSeen.has(k));
+  check('44 a set scheme build runs within 15% of the minutes on the setup card (the DURATION, or the named capped picks)', offScheme.length === 0 && cardWrong.length === 0 && missing.length === 0,
+    `${offScheme.length} off: ${offScheme.slice(0, 3).join(' | ')} ${cardWrong.slice(0, 3).join(' | ')} ${missing.length ? 'no longer capped: ' + missing.join(', ') : ''}`);
+  // A custom scheme at WEIGHTED is all fixed rows, so the card's minutes are
+  // the build's, whatever the numbers.
+  const customs = [{ sets: 1, reps: 1, restSeconds: 15 }, { sets: 2, reps: 5, restSeconds: 30 }, { sets: 4, reps: 10, restSeconds: 60 }, { sets: 6, reps: 12, restSeconds: 120 }, { sets: 8, reps: 50, restSeconds: 300 }];
+  const customOff = [];
+  for (const duration of WP.DURATIONS) for (const s of customs) for (const sub of [['CHEST'], ['LEGS', 'GLUTES'], chips]) {
+    const cfg = { muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment: 'Weighted', difficulty: 'Normal', focus: 'Strength', duration, addCardio: false, setScheme: { id: 'custom', ...s } };
+    const got = BT.builderWorkoutSeconds(build(cfg)) / 60, { lo } = G.builderPromisedMinutes(cfg);
+    if (!within(got, lo)) customOff.push(`${duration} ${s.sets}x${s.reps}/${s.restSeconds} ${sub.join('+')}: ${got.toFixed(1)} min, card ${G.builderPromisedLabel(cfg)}`);
+  }
+  check('44b a WEIGHTED custom scheme builds the minutes its card shows', customOff.length === 0 && G.builderPromisedLabel({ duration: 30, equipment: 'Bodyweight', setScheme: schemes[0] }) === '30 min' && G.builderPromisedLabel({ duration: 60, equipment: 'Weighted', setScheme: null }) === '60 min', customOff.slice(0, 4).join(' | '));
 
   // The swap list's rule: the generator's gear rule and one difficulty step.
   const swapBad = [];
