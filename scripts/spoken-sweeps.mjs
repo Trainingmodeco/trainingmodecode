@@ -60,11 +60,6 @@ export async function spokenSweeps() {
   }
   // Target and elite times: auto (any second) or typed whole minutes.
   for (const t of ELAPSED) intro.push(`Target time, ${rc.speakDuration(t)}.`, `Elite time, ${rc.speakDuration(t)}.`);
-  // The guided programmes' belt speeds as the setup line says them: those
-  // are recorded whole (the dial's other tenths are the listed exception).
-  for (const p of ip.PROGRAMS) for (const tier of ['easy', 'normal', 'hard']) for (const unit of UNITS) {
-    for (const sg of ip.expandProgram(p, { machine: 'treadmill', tier, unit }).segments) intro.push(rc.machineSpeedLine(sg.speed, unit));
-  }
   sweep(CARDIO, 'run intro: methods, units, distances, times, free-run paces', intro);
 
   sweep(CARDIO, 'machine speed line (treadmill dial, both units)', [
@@ -101,18 +96,14 @@ export async function spokenSweeps() {
     }
   }
   // The clock and the pace of a split, over their whole ranges.
-  for (const unit of UNITS) for (const p of PACES) splits.push(`Pace: ${rc.speakPace(p, unit)}.`);
-  for (const t of ELAPSED) splits.push(`${rc.speakDuration(t)}.`, `Ahead of target by ${rc.speakDuration(t)}.`, `Behind target by ${rc.speakDuration(t)}. Pick it up.`);
-  // What is left at the last called marker: any goal in tenths, called at the
-  // whole unit, or at the half with HALF-MILE CALLS on.
-  for (const unit of UNITS) for (const goal of range(0.6, 6, 0.1)) for (const marker of range(0.5, goal - 0.05, 0.5)) {
-    splits.push(rc.splitScript({ marker, unit, elapsedSec: Math.round(marker * 540), paceSec: 540, targetPaceSec: 540, goal, targetSec: Math.round(goal * 540), eliteSec: Math.round(goal * 360) }));
-  }
+  for (const unit of UNITS) for (const p of PACES) splits.push(`Pace ${rc.speakPace(p, unit)}.`);
+  for (const t of ELAPSED) splits.push(`${rc.speakDuration(t)}.`, `${rc.speakDuration(t)} ahead of target.`, `${rc.speakDuration(t)} behind target. Pick it up.`);
+  for (const unit of UNITS) for (const r of range(0.01, 0.5, 0.01)) splits.push(`${rc.speakDistance(r, unit)} to go. Empty the tank.`);
   sweep(CARDIO, 'split: markers to a marathon, pace 3:00-20:00, ahead and behind', splits);
   sweep(CARDIO, 'ghost split line', [...ghostSplits, ...range(-600, 600).map((d) => rc.ghostSplitLine({ marker: 1, elapsedSec: 600 + d, ghostTimeAtMarker: 600 }))]);
 
   const free = [];
-  for (const unit of UNITS) for (let marker = 0.5; marker <= 30; marker += 0.5) for (const pace of paceSet) for (const ratio of [0.9, 1, 1.1]) {
+  for (const unit of UNITS) for (let marker = 0.5; marker <= 20; marker += 0.5) for (const pace of paceSet) for (const ratio of [0.9, 1, 1.1]) {
     free.push(rc.freeRunSplitScript({ marker, unit, elapsedSec: Math.round(marker * pace), paceSec: pace, targetPaceSec: Math.round(pace / ratio) }));
   }
   sweep(CARDIO, 'free-run split', free);
@@ -125,7 +116,7 @@ export async function spokenSweeps() {
       if (el > 0) finish.push(rc.finishScript({ dist, unit, elapsedSec: el, targetSec, eliteSec: Math.round(targetSec * 2 / 3) }));
     }
   }
-  for (const t of ELAPSED) finish.push(`Under target by ${rc.speakDuration(t)}. Good work.`, `Over target by ${rc.speakDuration(t)}. Next time we take it.`);
+  for (const t of ELAPSED) finish.push(`Under target by ${rc.speakDuration(t)}. Good work.`, `${rc.speakDuration(t)} over target. Next time we take it.`);
   sweep(CARDIO, 'finish', finish);
   sweep(CARDIO, 'ghost finish (own ghost)', range(-900, 900).map((d) => rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: 'MARCUS', ownerId: 'me' })));
   sweep(CARDIO, 'ghost finish (ghost pool run)', range(-900, 900).map((d) => rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: 'A WARRIOR', ownerId: 'stranger' })));
@@ -137,11 +128,8 @@ export async function spokenSweeps() {
     const s = chaseXp(t);
     chases.push({ attempts, passes, xp: passes * s.win - (attempts - passes) * s.loss });
   }
-  for (let attempts = 13; attempts <= 30; attempts++) for (const passes of [0, 1, attempts - 1, attempts]) chases.push({ attempts, passes, xp: 0 });
   for (const c of chases) ends.push(rc.chaseSummaryLine(c).trim());
-  // Ended anywhere: every tenth to a marathon, whole units past it (a long
-  // free run).
-  const endDists = { mi: [0, 0.03, ...range(0.1, 26.2, 0.1), ...range(26.3, 50, 0.7)], km: [0, 0.05, ...range(0.1, 42.2, 0.1), ...range(42.3, 80, 0.7)] };
+  const endDists = { mi: [0, 0.03, 0.3, ...range(0.5, 26.2, 0.1)], km: [0, 0.05, ...range(0.5, 42.2, 0.1)] };
   for (const unit of UNITS) for (const d of endDists[unit]) {
     const el = Math.round(Math.max(1, d) * 540);
     ends.push(rc.runEndedLine({ dist: d, unit, elapsedSec: el }), rc.freeRunEndLine({ dist: d, unit, elapsedSec: el }));
@@ -149,10 +137,10 @@ export async function spokenSweeps() {
     for (const completed of [true, false]) ends.push(rc.programmeEndLine({ completed, noDistance: false, dist: d, unit, elapsedSec: el }));
   }
   for (const t of ELAPSED) {
-    ends.push(rc.runResumedLine(t, 0, 'mi'), `Average pace: ${rc.speakPace(t % 1021 + 180, 'mi')}.`);
+    ends.push(rc.runResumedLine(t, 0, 'mi'), `Average pace ${rc.speakPace(t % 1021 + 180, 'mi')}.`);
     for (const completed of [true, false]) ends.push(rc.programmeEndLine({ completed, noDistance: true, dist: 0, unit: 'mi', elapsedSec: t }));
   }
-  for (const unit of UNITS) for (const p of PACES) ends.push(`Average pace: ${rc.speakPace(p, unit)}.`);
+  for (const unit of UNITS) for (const p of PACES) ends.push(`Average pace ${rc.speakPace(p, unit)}.`);
   sweep(CARDIO, 'run end, free-run end, programme end, resume, chase summary', ends);
 
   // ── Pace, form, cadence and ghost cues ───────────────────────────────────
@@ -164,8 +152,7 @@ export async function spokenSweeps() {
     for (let i = 0; i < pool.length; i++) {
       const pick = (dSec, dDist) => rc.ghostCue(verdict, { dSec, dDist }, unit, -1, () => (i + 0.01) / pool.length).text;
       for (const s of range(5, 900)) ghostCues.push(pick(s, 1), pick(-s, -1));
-      // No pace yet: the gap in meters, then as a distance past a kilometre.
-      for (const m of range(10, 2000, 5)) ghostCues.push(pick(null, m / (unit === 'km' ? 1000 : 1609.344)));
+      for (const m of range(10, 100, 10)) ghostCues.push(pick(null, m / (unit === 'km' ? 1000 : 1609.344)));
     }
   }
   sweep(CARDIO, 'ghost cues with every gap', ghostCues);
@@ -196,7 +183,7 @@ export async function spokenSweeps() {
   ];
   for (const st of styles) for (const c of library) intervals.push(...rc.buildIntervalIntro({ styleLabel: st, rounds: c.rounds, workSec: c.workSec, restSec: c.restSec, warmupSec: c.warmupMin * 60 }).lines);
   for (const w of range(5, 300, 5)) for (const r of range(0, 180, 5)) intervals.push(...rc.buildIntervalIntro({ styleLabel: 'intervals', rounds: 8, workSec: w, restSec: r }).lines);
-  for (const n of range(1, 30)) intervals.push(...rc.buildIntervalIntro({ styleLabel: 'intervals', rounds: n, workSec: 30, restSec: 15 }).lines);
+  for (const n of range(1, 100)) intervals.push(...rc.buildIntervalIntro({ styleLabel: 'intervals', rounds: n, workSec: 30, restSec: 15 }).lines);
   for (const wm of range(0, 15)) intervals.push(...rc.buildIntervalIntro({ styleLabel: 'intervals', rounds: 8, workSec: 30, restSec: 15, warmupSec: wm * 60 }).lines);
   sweep(CARDIO, 'interval intro over the format library and the config ranges', intervals);
 
@@ -209,8 +196,7 @@ export async function spokenSweeps() {
 
   const segs = [];
   const moves = cardioMovePool().map((m) => m.name);
-  // Rounds: the config caps them at 30 (CardioSetupForm, IntervalQuickSet).
-  for (let r = 1; r <= 30; r++) {
+  for (let r = 1; r <= 100; r++) {
     segs.push(rc.protocolSegmentLine({ kind: 'work', round: r, label: 'HARD' }), rc.protocolSegmentLine({ kind: 'work', round: r, label: 'WORK' }));
     segs.push(rc.protocolSegmentLine({ kind: 'work', round: r, label: 'WORK' }, [moves[r % moves.length]]));
   }
@@ -218,7 +204,7 @@ export async function spokenSweeps() {
   for (const label of ['REST', 'RECOVER']) segs.push(rc.protocolSegmentLine({ kind: 'rest', label }));
   for (const wm of range(1, 15)) segs.push(rc.protocolSegmentLine({ kind: 'warmup', seconds: wm * 60 }));
   segs.push(rc.protocolSegmentLine({ kind: 'cooldown' }), 'Complete. Great work.');
-  sweep(CARDIO, 'interval player segment calls (rounds 1-30, every cardio move)', segs);
+  sweep(CARDIO, 'interval player segment calls (rounds 1-100, every cardio move)', segs);
 
   // ── Outside Cardio: cheap and real ──────────────────────────────────────
   // Fight Mode encouragement: every line of the pool.

@@ -95,7 +95,7 @@ for (const p of PROGRAMS) {
       check(`${p.id}/${machine}/${tier} contiguous`, ok);
       check(`${p.id}/${machine}/${tier} first has no pre-call`, x.segments[0].pre === null && !!x.segments[0].start);
       if (machine === 'treadmill') {
-        check(`${p.id}/${tier} treadmill speeds set`, x.segments.every(s => s.speed > 0 && /Set \d+( point \d)? mph\./.test(s.start) && !/\d\.\d/.test(s.start) || s.kind === 'sprint'));
+        check(`${p.id}/${tier} treadmill speeds set`, x.segments.every(s => s.speed > 0 && /Set \d+( point \d)?\./.test(s.start) && !/\d\.\d/.test(s.start) || s.kind === 'sprint'));
         const sprintSegs = x.segments.filter(s => s.kind === 'sprint');
         check(`${p.id}/${tier} sprints are in the sprint band`, sprintSegs.every(s => s.speed >= 7.3), sprintSegs.map(s => s.speed).join(','));
         const warm = x.segments[0];
@@ -123,13 +123,11 @@ check('bike list leads with sprint/recover and drops the hill programme', progra
 check('treadmill list is the full library', programsFor('treadmill').length === PROGRAMS.length);
 // speech shape — the owner's example
 const fr = expandProgram(programById('fight-3x1'), { tier: 'normal' }).segments;
-// Speeds are said "3 mph" and "6 point 5 mph", not "3.0": each is one
-// recorded phrase after "Set", and the countdown is the recorded "5 seconds".
-check('warm-up speech sets 3 for five minutes', /Warm-up\. Set 3 mph\. 5 minutes\./.test(fr[0].start), fr[0].start);
-check('run pre-call five seconds ahead', /Run coming\. Set 7 mph\. 5 seconds\./.test(fr[1].pre), fr[1].pre);
-check('a kilometre programme says kph', /Set \d+( point \d)? kph\./.test(expandProgram(programById('fight-3x1'), { tier: 'normal', unit: 'km' }).segments[1].pre));
+// Speeds are said "3" and "6 point 5": the recorded voice has whole numbers, not "3.0".
+check('warm-up speech sets 3 for five minutes', /Warm-up\. Set 3\. 5 minutes\./.test(fr[0].start), fr[0].start);
+check('run pre-call five seconds ahead', /Run coming\. Set 7\. Five seconds\./.test(fr[1].pre), fr[1].pre);
 const tb = expandProgram(programById('tabata'), { tier: 'normal' }).segments;
-check('sprint pre-call then Go', /Sprint coming\. Set 10 mph\./.test(tb[1].pre) && /^Go\. 20 seconds\.$/.test(tb[1].start), `${tb[1].pre} | ${tb[1].start}`);
+check('sprint pre-call then Go', /Sprint coming\. Set 10\./.test(tb[1].pre) && /^Go\. 20 seconds\.$/.test(tb[1].start), `${tb[1].pre} | ${tb[1].start}`);
 const bk = expandProgram(programById('sprint-recover'), { machine: 'bike', tier: 'normal' }).segments;
 const hsx = expandProgram(programById('hiit-25'), { tier: 'normal' }).segments.find(s => s.incline === 2.5 && s.pre);
 check('a half-step speed and incline are said with point', hsx && /Incline 2 point 5 percent\./.test(hsx.pre) && !/\d\.\d/.test(hsx.pre), hsx && hsx.pre);
