@@ -471,7 +471,7 @@ const ONE_PUNCH_STAGES = [
       rounds: 5,
       tasksPerRound: [
         { id: 'op4-f1', type: 'cadenceReps', title: 'Push-Ups', instructions: 'Steady rhythm. 20 reps non-stop.', reps: 20, cadence: 'moderate', cadenceMs: 2000, restSeconds: 25, equipment: 'None', category: 'push' },
-        { id: 'op4-f2', type: 'cadenceReps', title: 'Squats', instructions: 'Full depth. No half-reps.', reps: 20, cadence: 'moderate', cadenceMs: 1800, restSeconds: 25, equipment: 'None', category: 'legs' },
+        { id: 'op4-f2', type: 'cadenceReps', title: 'Squats', instructions: 'Full depth. No half-reps.', reps: 20, cadence: 'moderate', cadenceMs: 1750, restSeconds: 25, equipment: 'None', category: 'legs' },
         { id: 'op4-f3', type: 'cadenceReps', title: 'Sit-Ups', instructions: 'Full range. Keep the rhythm.', reps: 20, cadence: 'moderate', cadenceMs: 2000, restSeconds: 30, equipment: 'None', category: 'core' },
       ],
       totalReps: { pushUps: 100, sitUps: 100, squats: 100 },

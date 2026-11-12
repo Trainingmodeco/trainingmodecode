@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { C } from '../Styles';
 import { ARCADE } from '../ArcadeUI';
+import { CADENCE_MIN_MS, CADENCE_MAX_MS, CADENCE_STEP_MS, snapCadenceMs } from './cadenceGrid';
 
 const GOLD = C.yellow;
 
@@ -10,9 +11,7 @@ export const CADENCE_PRESETS = {
   fast: 1250,
 };
 
-export const CADENCE_MIN_MS = 750;
-export const CADENCE_MAX_MS = 4000;
-export const CADENCE_STEP_MS = 250;
+export { CADENCE_MIN_MS, CADENCE_MAX_MS, CADENCE_STEP_MS };
 
 const PRESET_OPTIONS = ['slow', 'moderate', 'fast', 'custom'];
 const PRESET_LABELS = { slow: 'SLOW', moderate: 'MODERATE', fast: 'FAST', custom: 'CUSTOM' };
@@ -59,10 +58,7 @@ function presetFromValue(value) {
   return 'custom';
 }
 
-function clampMs(ms) {
-  const stepped = Math.round(ms / CADENCE_STEP_MS) * CADENCE_STEP_MS;
-  return Math.min(CADENCE_MAX_MS, Math.max(CADENCE_MIN_MS, stepped));
-}
+const clampMs = snapCadenceMs;
 
 export default function CadenceSlider({
   value = CADENCE_PRESETS.moderate,

@@ -5,7 +5,8 @@ import BattleHUD from './shared/BattleHUD';
 import { SkipForward, RotateCcw } from 'lucide-react';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
-import { waitUnpaused, awaitResume } from './shared/pausableWait';
+import { createBeatClock, waitBeat } from './shared/pausableWait';
+import { CADENCE_MIN_MS as MIN_CADENCE_MS, CADENCE_MAX_MS as MAX_CADENCE_MS, CADENCE_STEP_MS as CADENCE_STEP, snapCadenceMs } from './shared/cadenceGrid';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 
 const CADENCE_STYLES = `
@@ -29,9 +30,6 @@ const CADENCE_STYLES = `
 `;
 
 const GOLD = C.yellow;
-const MIN_CADENCE_MS = 750;
-const MAX_CADENCE_MS = 4000;
-const CADENCE_STEP = 250;
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -95,9 +93,11 @@ export default function ArcadeCadenceRepPlayer({
   task, taskIdx, totalTasks, stage, series, arcadeSettings, nextTaskTitle, onComplete, onSkip, onExit, onHome, integrity,
 }) {
   const targetReps = task?.reps || 10;
-  const baseCadenceMs = arcadeSettings?.cadenceMs || task?.cadenceMs || 2000;
+  // The task's own pace first: the series screen always hands down a default
+  // cadenceMs of 2000, which used to override every fast and slow task. Snapped
+  // to the slider grid so the slider and the beat agree.
+  const baseCadenceMs = snapCadenceMs(task?.cadenceMs || arcadeSettings?.cadenceMs || 2000);
   const restSeconds = task?.restSeconds || 20;
-  const cadenceLocked = task?.cadenceLocked || arcadeSettings?.cadenceLocked || false;
 
   const [cadenceMs, setCadenceMs] = useState(baseCadenceMs);
   const [currentRep, setCurrentRep] = useState(0);
@@ -204,14 +204,14 @@ export default function ArcadeCadenceRepPlayer({
         if (stale()) return;
       }
 
+      const clock = createBeatClock();
       for (let i = startFrom + 1; i <= targetReps; i++) {
         if (stale()) return;
 
-        // Only unpaused time counts. The old wall-clock deadline kept expiring
-        // during a pause, so the next rep fired the instant the athlete
-        // resumed instead of a full cadence interval later.
-        if (!await waitUnpaused(cadenceMsRef.current, { isPaused: pausedNow, isStale: stale })) return;
-        if (!await awaitResume({ isPaused: pausedNow, isStale: stale })) return;
+        // Absolute beat clock: the voice never moves it, and a pause restarts
+        // the beat a full interval from RESUME (a pause must not let the next
+        // rep fire the instant the athlete resumes).
+        if (!await waitBeat(clock, cadenceMsRef.current, { isPaused: pausedNow, isStale: stale })) return;
 
         repRef.current = i;
         setCurrentRep(i);
@@ -221,7 +221,7 @@ export default function ArcadeCadenceRepPlayer({
         if (cadenceCountEnabledRef.current && voiceEnabledRef.current) {
           // The bank holds the count as digits ("9", "21"); the words past
           // "eight" have no clip and would fall to the phone's speech engine.
-          speakAsync(String(i), { rate: 1.45 });
+          speakAsync(String(i), { rate: 1.45, dropIfBusy: true });
         }
 
         if (cadenceVersionRef.current !== version) return;
@@ -280,7 +280,7 @@ export default function ArcadeCadenceRepPlayer({
     setAnnouncerText(newRep === 0 ? 'Restarting...' : `Back to rep ${newRep}`);
     // Restart cadence from new position. Bumping the version ends the running
     // loop, so a new one must start even while paused: it waits out the pause
-    // (waitUnpaused/awaitResume) and carries on at RESUME. Skipping the restart
+    // (waitBeat) and carries on a full interval after RESUME. Skipping the restart
     // while paused left a set that never advanced again.
     cadenceVersionRef.current++;
     if (phase === 'active') {
@@ -332,9 +332,8 @@ export default function ArcadeCadenceRepPlayer({
   }, [targetReps]);
 
   const handleCadenceChange = useCallback((e) => {
-    if (cadenceLocked) return;
-    setCadenceMs(Number(e.target.value));
-  }, [cadenceLocked]);
+    setCadenceMs(snapCadenceMs(e.target.value));
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -423,10 +422,10 @@ export default function ArcadeCadenceRepPlayer({
       <div style={{ padding: '0 4px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
           <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: '0.14em' }}>CADENCE · {cadenceLabel}</span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: cadenceLocked ? 'rgba(239,68,68,0.7)' : GOLD }}>{cadenceLocked ? 'LOCKED' : `${(cadenceMs / 1000).toFixed(2)}s / rep`}</span>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: GOLD }}>{`${(cadenceMs / 1000).toFixed(2)}s / rep`}</span>
         </div>
-        <input type="range" min={MIN_CADENCE_MS} max={MAX_CADENCE_MS} step={CADENCE_STEP} value={cadenceMs} onChange={handleCadenceChange} disabled={cadenceLocked}
-          style={{ width: '100%', height: 5, borderRadius: 999, outline: 'none', background: cadenceLocked ? 'rgba(239,68,68,0.15)' : `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`, opacity: cadenceLocked ? 0.5 : 1, cursor: cadenceLocked ? 'not-allowed' : 'pointer' }} />
+        <input type="range" min={MIN_CADENCE_MS} max={MAX_CADENCE_MS} step={CADENCE_STEP} value={cadenceMs} onChange={handleCadenceChange}
+          style={{ width: '100%', height: 5, borderRadius: 999, outline: 'none', background: `linear-gradient(90deg, #a855f7 0%, ${GOLD} ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) ${((cadenceMs - MIN_CADENCE_MS) / (MAX_CADENCE_MS - MIN_CADENCE_MS)) * 100}%, rgba(255,255,255,0.08) 100%)`, cursor: 'pointer' }} />
       </div>
       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
         <button onClick={handleRewind} style={{ flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid rgba(168,85,247,0.3)', cursor: 'pointer', background: 'rgba(10,0,20,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.neon }}><RotateCcw size={11} color={C.neon}/> -5</button>

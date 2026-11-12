@@ -9,7 +9,9 @@ import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { cleanRoundXp } from './data/xpStakes';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
-import { waitUnpaused, awaitResume } from './shared/pausableWait';
+import { createBeatClock, waitBeat } from './shared/pausableWait';
+import { snapCadenceMs } from './shared/cadenceGrid';
+import { QM_LAST_NUMBER_WAIT_MS } from './data/quickMissionTiming';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import { playBell, unlockAudio } from './data/audioEngine';
 import CadenceSlider, { CADENCE_PRESETS } from './shared/CadenceSlider';
@@ -62,7 +64,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   const [helpOpen, setHelpOpen] = useState(false);
   const [drillsCompleted, setDrillsCompleted] = useState(initialResumeData?.drillsCompleted ?? 0);
   const [roundsCompleted, setRoundsCompleted] = useState(initialResumeData?.roundsCompleted ?? 0);
-  const [cadenceMs, setCadenceMs] = useState(mission.cadenceMs || CADENCE_PRESETS.moderate);
+  const [cadenceMs, setCadenceMs] = useState(snapCadenceMs(mission.cadenceMs || CADENCE_PRESETS.moderate));
   const [cadencePreset, setCadencePreset] = useState(mission.cadencePreset || 'moderate');
 
   const phaseRef = useRef('ready');
@@ -212,6 +214,14 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     setCadenceActive(false);
   };
 
+  // One count on the beat. Never queued: a number that cannot start on time is
+  // dropped. The last one is given a short window to finish so the drill can end
+  // right after it.
+  const speakCadenceCount = async (i, last) => {
+    const said = speakAsync(String(i), { dropIfBusy: true });
+    if (i >= last) await Promise.race([said, delay(QM_LAST_NUMBER_WAIT_MS)]);
+  };
+
   const startCadence = (drill) => {
     const version = ++cadenceVersionRef.current;
     setCadenceActive(true);
@@ -223,17 +233,17 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     const isPaused = () => pausedRef.current;
 
     (async () => {
-      // The spoken number is part of the cadence, not added on top of it.
-      let spokenMs = 0;
+      // The beat is on an absolute clock: the voice never moves it, and a
+      // number that cannot start on time is dropped (see createBeatClock). A
+      // pause restarts the beat a full interval from RESUME.
+      const clock = createBeatClock();
       for (let i = 1; i <= targetReps; i++) {
         if (stale()) return;
-        // A plain delay ignores PAUSE — reps kept counting while paused.
-        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
-        if (!await awaitResume({ isPaused, isStale: stale })) return;
+        if (!await waitBeat(clock, Math.max(250, cadenceMsRef.current), { isPaused, isStale: stale })) return;
 
         cadenceRepRef.current = i;
         setRepCount(i);
-        if (voiceOn && !doneRef.current) { const t0 = Date.now(); await speakAsync(String(i)); spokenMs = Date.now() - t0; }
+        if (voiceOn && !doneRef.current) await speakCadenceCount(i, targetReps);
         if (cadenceVersionRef.current !== version) return;
       }
       if (cadenceVersionRef.current !== version) return;
@@ -257,15 +267,14 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     const isPaused = () => pausedRef.current;
 
     (async () => {
-      let spokenMs = 0;
+      const clock = createBeatClock();
       for (let i = startFrom + 1; i <= targetReps; i++) {
         if (stale()) return;
-        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
-        if (!await awaitResume({ isPaused, isStale: stale })) return;
+        if (!await waitBeat(clock, Math.max(250, cadenceMsRef.current), { isPaused, isStale: stale })) return;
 
         cadenceRepRef.current = i;
         setRepCount(i);
-        if (voiceOn && !doneRef.current) { const t0 = Date.now(); await speakAsync(String(i)); spokenMs = Date.now() - t0; }
+        if (voiceOn && !doneRef.current) await speakCadenceCount(i, targetReps);
         if (cadenceVersionRef.current !== version) return;
       }
       if (cadenceVersionRef.current !== version) return;

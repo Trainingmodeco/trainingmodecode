@@ -21,6 +21,9 @@ import {
 } from '../components/training-mode/data/cadence.js';
 
 import { createWakeLockHolder, createTimerBag } from '../components/training-mode/shared/lifecycleGuards.js';
+import { createBeatClock, waitBeat } from '../components/training-mode/shared/pausableWait.js';
+import { snapCadenceMs, CADENCE_MIN_MS, CADENCE_MAX_MS, CADENCE_STEP_MS } from '../components/training-mode/shared/cadenceGrid.js';
+import { readFileSync } from 'node:fs';
 
 // Deterministic noise. The simulations below draw random jitter, and an
 // unseeded run failed a tray-placement check roughly one time in ten with
@@ -334,6 +337,112 @@ ok('stride cross-check is permissive with no speed', strideIsPlausible(109, 0, '
   bag.later(() => { fired++; }, 5);
   await sleep(20);
   ok('a timeout that was not cleared still fires once and drops out', fired === 1 && bag.size() === 0);
+}
+
+// --- Rep count beat clock -------------------------------------------------------
+// The spoken count keeps the slider's beat. Run on a fake clock (now and sleep
+// injected), so the numbers are exact and the test takes no real time.
+{
+  const fake = () => {
+    const f = { t: 1_000_000 };
+    f.now = () => f.t;
+    f.sleepFn = async (ms) => { f.t += ms; };
+    return f;
+  };
+
+  // The voice is NOT awaited, so its length never shifts a beat; the timers
+  // themselves run 15 ms late each time. Beats must stay on the multiples of the
+  // interval from the start (no drift), at the 0.75 s fast end of the slider.
+  {
+    const f = fake();
+    const start = f.t;
+    const clock = createBeatClock({ now: f.now });
+    const fires = [];
+    for (let i = 1; i <= 60; i++) {
+      await waitBeat(clock, 750, { isPaused: () => false, sleepFn: async (ms) => { f.t += ms + 15; } });
+      fires.push(f.t - start);
+    }
+    const worst = Math.max(...fires.map((at, i) => Math.abs(at - (i + 1) * 750)));
+    ok('60 reps at 0.75 s finish on the slider clock, not behind it', fires[59] - 60 * 750 < 60, `last beat at ${fires[59]} ms, ideal ${60 * 750}`);
+    ok('no beat drifts more than one tick off its slot', worst < 60, `worst ${worst} ms`);
+  }
+
+  // A rep that takes longer than its interval to handle (a long count) must not
+  // push the following beats back: the next beat stays on its own slot.
+  {
+    const f = fake();
+    const start = f.t;
+    const clock = createBeatClock({ now: f.now });
+    const fires = [];
+    for (let i = 1; i <= 6; i++) {
+      await waitBeat(clock, 1000, { isPaused: () => false, sleepFn: f.sleepFn });
+      fires.push(f.t - start);
+      if (i === 2) f.t += 1700; // beat 2 was slow to hand off
+    }
+    ok('the beat after a slow one stays on the clock', fires[3] === 4000 && fires[5] === 6000, `beats ${fires.join(', ')}`);
+  }
+
+  // PAUSE stops the beat; RESUME lands one full interval later, not sooner.
+  {
+    const f = fake();
+    const start = f.t;
+    const clock = createBeatClock({ now: f.now });
+    const pausedFrom = start + 1500, resumedAt = start + 9000;
+    const isPaused = () => f.t >= pausedFrom && f.t < resumedAt;
+    const fires = [];
+    for (let i = 1; i <= 3; i++) {
+      await waitBeat(clock, 2000, { isPaused, sleepFn: f.sleepFn });
+      fires.push(f.t - start);
+    }
+    ok('nothing fires while paused', fires.every((at) => at < 1500 + 1 || at >= 9000), `beats ${fires.join(', ')}`);
+    ok('the first beat after RESUME is a full interval away', fires[0] - 9000 >= 2000 && fires[0] - 9000 <= 2000 + 40, `first beat ${fires[0] - 9000} ms after resume`);
+    ok('the beats after that keep the interval', fires[1] - fires[0] === 2000 && fires[2] - fires[1] === 2000, `beats ${fires.join(', ')}`);
+  }
+
+  // A pause longer than the interval must not make the later beats fire back to
+  // back (a fixed due time did exactly that).
+  {
+    const f = fake();
+    const start = f.t;
+    const clock = createBeatClock({ now: f.now });
+    const isPaused = () => f.t >= start + 500 && f.t < start + 20_000;
+    const fires = [];
+    for (let i = 1; i <= 4; i++) {
+      await waitBeat(clock, 1000, { isPaused, sleepFn: f.sleepFn });
+      fires.push(f.t);
+    }
+    const gaps = fires.slice(1).map((at, i) => at - fires[i]);
+    ok('a long pause leaves no catch-up burst', gaps.every((g) => g === 1000), `gaps ${gaps.join(', ')}`);
+  }
+
+  // A superseded run (stop, new set, leaving the screen) ends without firing.
+  {
+    const f = fake();
+    const clock = createBeatClock({ now: f.now });
+    let stale = false;
+    const go = await waitBeat(clock, 1000, { isPaused: () => false, isStale: () => stale, sleepFn: async (ms) => { f.t += ms; stale = true; } });
+    ok('a stale run reports false and does not fire', go === false);
+  }
+
+  // The slider grid: what runs is what the slider shows.
+  ok('a pace off the grid snaps to the nearest step', snapCadenceMs(1800) === 1750 && snapCadenceMs(1900) === 2000);
+  ok('a pace outside the slider is clamped into it', snapCadenceMs(300) === CADENCE_MIN_MS && snapCadenceMs(9000) === CADENCE_MAX_MS);
+  ok('a missing pace falls back to the default', snapCadenceMs(undefined) === 2000 && snapCadenceMs(0) === 2000 && snapCadenceMs('x') === 2000);
+  ok('a pace already on the grid is unchanged', [750, 1000, 1250, 2000, 3500, 4000].every((v) => snapCadenceMs(v) === v));
+  const arcadeSrc = readFileSync(new URL('../components/training-mode/data/trainingArcadeData.js', import.meta.url), 'utf8');
+  const offGrid = [...arcadeSrc.matchAll(/cadenceMs:\s*(\d+)/g)].map((m) => Number(m[1]))
+    .filter((v) => v < CADENCE_MIN_MS || v > CADENCE_MAX_MS || (v - CADENCE_MIN_MS) % CADENCE_STEP_MS !== 0);
+  ok('every arcade task pace sits on the slider grid', offGrid.length === 0, `off grid: ${offGrid.join(', ')}`);
+
+  // The players: the count is never queued and never awaited on the beat.
+  const dir = new URL('../components/training-mode/', import.meta.url);
+  const src = (f) => readFileSync(new URL(f, dir), 'utf8');
+  const frc = src('FitRepCoach.jsx');
+  ok('Fit Rep Coach counts on the beat clock with no interval timer', /waitBeat\(/.test(frc) && !/setInterval\(\(\) => \{\s*if \(pausedRef/.test(frc));
+  ok('Fit Rep Coach never queues a count', /speakAsync\(String\(num\), \{ dropIfBusy: true \}\)/.test(frc));
+  const qm = src('QuickMissionActive.jsx'), cc = src('CombatConditioningActive.jsx');
+  ok('Quick Mission and Combat Conditioning no longer wait pace minus speech time', !/cadenceMsRef\.current - spokenMs/.test(qm + cc) && !/await speakAsync\(String\(i\)\)/.test(qm + cc));
+  ok('the arcade rep player drops a count it cannot say on time', /speakAsync\(String\(i\), \{ rate: 1\.45, dropIfBusy: true \}\)/.test(src('ArcadeCadenceRepPlayer.jsx')));
 }
 
 console.log(`\nFINAL: ${pass} passed, ${fail} failed`);

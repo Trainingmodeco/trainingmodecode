@@ -10,7 +10,8 @@ import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
 import FloatOnLeave from './shared/FloatOnLeave';
-import { waitUnpaused, awaitResume } from './shared/pausableWait';
+import { waitUnpaused, awaitResume, createBeatClock, waitBeat } from './shared/pausableWait';
+import { snapCadenceMs } from './shared/cadenceGrid';
 import { speakAsync, cancelSpeech, primeSpeech, stopVoiceSession, delay, setVoiceGender } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import { generateQuickMission } from './fit-mode/quickMissionGenerator';
@@ -200,7 +201,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   const cadenceRepRef = useRef(0);
   useEffect(() => { cadenceRepRef.current = cadenceRep; }, [cadenceRep]);
   const [cadenceActive, setCadenceActive] = useState(false);
-  const [cadenceMs, setCadenceMs] = useState(missionCfg.cadenceMs || CADENCE_PRESETS.moderate);
+  const [cadenceMs, setCadenceMs] = useState(snapCadenceMs(missionCfg.cadenceMs || CADENCE_PRESETS.moderate));
   const [cadencePreset, setCadencePreset] = useState(missionCfg.cadencePreset || 'moderate');
   const [helpOpen, setHelpOpen] = useState(false);
   // The rest on screen: its full length (the ring and the mini-player) and
@@ -687,6 +688,14 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
   const endDownRef = useRef(null);
   useEffect(() => { endDownRef.current = endDown; });
 
+  // One count on the beat. Never queued: a number that cannot start on time is
+  // dropped. The last one is given QM_LAST_NUMBER_WAIT_MS to finish so the set
+  // can end right after it.
+  const speakCadenceCount = async (i, last) => {
+    const said = speakAsync(String(i), { dropIfBusy: true });
+    if (i >= last) await Promise.race([said, delay(QM_LAST_NUMBER_WAIT_MS)]);
+  };
+
   const startCadence = (exercise) => {
     const version = ++cadenceVersionRef.current;
     setCadenceActive(true);
@@ -697,25 +706,18 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     const isPaused = () => pausedRef.current;
 
     const runCadenceLoop = async () => {
-      // The count is spoken INSIDE the cadence, not on top of it: a "2 s"
-      // cadence measured 3.5 s per rep because the wait only began once the
-      // voice had finished. Subtract what the last number cost.
-      let spokenMs = 0;
+      // The beat is on an absolute clock (see createBeatClock): the voice never
+      // moves it. A number is said on the beat when the coach is free and
+      // dropped when it cannot start on time, so a long count at a fast
+      // cadence no longer stretches every rep. A paused beat is held at the
+      // clock, so a rep can never fire mid-pause.
+      const clock = createBeatClock();
       for (let i = 1; i <= targetReps; i++) {
         if (stale()) return;
-
-        // A plain delay ignores PAUSE, so reps kept being counted and spoken
-        // while the session was paused. Wait unpaused time, then hold at the
-        // gate so a rep can never fire mid-pause.
-        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
-        if (!await awaitResume({ isPaused, isStale: stale })) return;
+        if (!await waitBeat(clock, Math.max(250, cadenceMsRef.current), { isPaused, isStale: stale })) return;
 
         setCadenceRep(i);
-        if (voiceOn) {
-          const t0 = Date.now();
-          await speakAsync(String(i));
-          spokenMs = Date.now() - t0;
-        }
+        if (voiceOn) await speakCadenceCount(i, targetReps);
 
         if (cadenceVersionRef.current !== version) return;
       }
@@ -741,19 +743,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     const isPaused = () => pausedRef.current;
 
     const runCadenceLoop = async () => {
-      let spokenMs = 0;
+      const clock = createBeatClock();
       for (let i = startFrom + 1; i <= targetReps; i++) {
         if (stale()) return;
-
-        if (!await waitUnpaused(Math.max(250, cadenceMsRef.current - spokenMs), { isPaused, isStale: stale })) return;
-        if (!await awaitResume({ isPaused, isStale: stale })) return;
+        if (!await waitBeat(clock, Math.max(250, cadenceMsRef.current), { isPaused, isStale: stale })) return;
 
         setCadenceRep(i);
-        if (voiceOn) {
-          const t0 = Date.now();
-          await speakAsync(String(i));
-          spokenMs = Date.now() - t0;
-        }
+        if (voiceOn) await speakCadenceCount(i, targetReps);
 
         if (cadenceVersionRef.current !== version) return;
       }
@@ -785,13 +781,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
     const generated = isGeneratedMission(mission);
     const runCountLoop = async () => {
-      let due = Date.now();
+      const clock = createBeatClock();
       for (let i = startFrom; i < beats.length; i += 1) {
         if (stale()) return;
         const beat = beats[i];
-        due += beat.ms ?? cadenceMsRef.current;
-        if (!await waitUnpaused(Math.max(0, due - Date.now()), { isPaused, isStale: stale })) return;
-        if (!await awaitResume({ isPaused, isStale: stale })) return;
+        // After a pause the clock restarts a full interval from RESUME; the old
+        // fixed due time made the beats after a long pause fire back to back.
+        if (!await waitBeat(clock, beat.ms ?? cadenceMsRef.current, { isPaused, isStale: stale })) return;
 
         setCadenceRep(beat.n);
         setCadenceStep(beat.step ?? null);

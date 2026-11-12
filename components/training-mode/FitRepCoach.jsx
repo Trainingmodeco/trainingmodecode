@@ -7,6 +7,7 @@ import useWakeLock from './hooks/useWakeLock';
 import { speakAsync, cancelSpeech, setVoiceGender } from './voiceCoach';
 import { playBeep, unlockAudio } from './data/audioEngine';
 import { parseTargetReps } from './fit-mode/isBodyweight';
+import { createBeatClock, waitBeat } from './shared/pausableWait';
 
 const PACE_MAP = { Slow: 3000, Normal: 2000, Fast: 1000 };
 const AUDIO_MODES = ['Voice', 'Beep', 'Voice + Beep', 'Off'];
@@ -68,7 +69,8 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
   const [pace, setPace] = useState('Normal');
   const [audioMode, setAudioMode] = useState('Voice');
 
-  const intervalRef = useRef(null);
+  // Bumped to end the running count loop (a new set, a stop, leaving the screen).
+  const countRunRef = useRef(0);
   const repRef = useRef(0);
   const phaseRef = useRef(phase);
   const pausedRef = useRef(paused);
@@ -79,12 +81,7 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
   useEffect(() => { audioModeRef.current = audioMode; }, [audioMode]);
   useEffect(() => { setVoiceGender(profile?.voiceCoach || 'FEMALE'); }, [profile?.voiceCoach]);
 
-  const clearTimer = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
+  const clearTimer = useCallback(() => { countRunRef.current++; }, []);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => () => { clearTimer(); cancelSpeech(); }, []);
@@ -93,7 +90,7 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
     const mode = audioModeRef.current;
     if (mode === 'Off') return;
     if (mode === 'Beep' || mode === 'Voice + Beep') playBeep();
-    if (mode === 'Voice' || mode === 'Voice + Beep') speakAsync(String(num));
+    if (mode === 'Voice' || mode === 'Voice + Beep') speakAsync(String(num), { dropIfBusy: true });
   }, []);
 
   const finishSetRef = useRef(null);
@@ -118,17 +115,26 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
   const beginCounting = useCallback(() => {
     clearTimer();
     const ms = PACE_MAP[pace] || 2000;
-    intervalRef.current = setInterval(() => {
-      if (pausedRef.current) return;
-      repRef.current++;
-      const r = repRef.current;
-      setCurrentRep(r);
-      doRepAudio(r);
-      if (r >= targetReps) {
-        clearTimer();
-        finishSetRef.current();
+    const run = ++countRunRef.current;
+    const stale = () => countRunRef.current !== run;
+    // The beat is on an absolute clock, so the voice never moves it and a number
+    // that cannot start on time is dropped (a queued count at FAST ran seconds
+    // behind the screen). PAUSE stops the beat; RESUME gives a full interval.
+    (async () => {
+      const clock = createBeatClock();
+      while (true) {
+        if (!await waitBeat(clock, ms, { isPaused: () => pausedRef.current, isStale: stale })) return;
+        repRef.current++;
+        const r = repRef.current;
+        setCurrentRep(r);
+        doRepAudio(r);
+        if (r >= targetReps) {
+          clearTimer();
+          finishSetRef.current();
+          return;
+        }
       }
-    }, ms);
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pace, targetReps]);
 
@@ -142,10 +148,13 @@ export default function FitRepCoach({ exercise, onBack, onComplete, profile }) {
     setPaused(false);
 
     const mode = audioModeRef.current;
+    const run = countRunRef.current;
     const doIntro = async () => {
       if (mode !== 'Off' && (mode === 'Voice' || mode === 'Voice + Beep')) {
         await speakAsync(`Set ${currentSet}, ${exercise.name}. Ready. Go.`);
       }
+      // Left the screen or started over while the coach was talking.
+      if (countRunRef.current !== run) return;
       beginCounting();
     };
     doIntro();
