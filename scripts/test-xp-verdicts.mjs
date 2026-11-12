@@ -224,11 +224,27 @@ import { readFileSync } from 'node:fs';
   const src = (f) => readFileSync(new URL(`../components/training-mode/${f}`, import.meta.url), 'utf8');
   const app = src('App.jsx');
   const first = (head) => { const i = app.indexOf(head); return i < 0 ? '' : app.slice(i + head.length, i + head.length + 140); };
-  const guarded = ['goSummary:     (', 'goComboEnd:    (', 'goFitComplete: (', 'goCombatCondComplete: ('].every((h) => {
-    const i = app.indexOf(h); const body = app.slice(app.indexOf('=> {', i) + 4, app.indexOf('=> {', i) + 200);
-    return /^\s*if \(endedScreenRef\.current === screen\) return;/.test(body);
-  });
-  check('once-only: each session-end handler in App returns early when its screen already ended', guarded, first('goSummary:     ('));
+  // Each run is banked once, and a finish that threw can be retried: the
+  // four end handlers go through bankOnce, and none returns early on its own
+  // (an early return set before the write made a failed finish unrepeatable).
+  const wrapped = /for \(const name of \['goSummary', 'goComboEnd', 'goFitComplete', 'goCombatCondComplete'\]\) \{\s*actions\[name\] = bankOnce\(bankedScreenRef, screen, actions\[name\]\);/.test(app);
+  check('once-only: the four session-end handlers in App are banked once through bankOnce', wrapped && !/if \(endedScreenRef\.current === screen\) return;/.test(app), first('goSummary:     ('));
+  check('once-only: a new session on the screen clears the banked mark', /endedScreenRef\.current = null;[^\n]*\n\s*bankedScreenRef\.current = null;/.test(app));
+  {
+    const { bankOnce } = await import('../components/training-mode/shared/lifecycleGuards.js');
+    const ref = { current: null }; let banked = 0; let fail = true;
+    const end = bankOnce(ref, 'fit_workout', () => { if (fail) throw new Error('quota'); banked += 1; return 'summary'; });
+    let threw = false; try { end(); } catch { threw = true; }
+    check('once-only: a finish that throws banks nothing and leaves the run open', threw && banked === 0 && ref.current === null);
+    fail = false;
+    const out = end();
+    check('once-only: the retry banks the run', out === 'summary' && banked === 1 && ref.current === 'fit_workout');
+    end(); end();
+    check('once-only: further calls for the same run bank nothing more', banked === 1);
+    ref.current = null; // what the app does when a new session mounts on the screen
+    end();
+    check('once-only: a new session on the same screen is banked again', banked === 2);
+  }
   const cc = src('ComboCoachActive.jsx');
   check('combo coach: the final-bell hand-off runs from a timer cleared on unmount, not a bare setTimeout',
     /later\(\(\) => \{ stopVoiceSession\(\{ graceful: true \}\); onEnd\(/.test(cc) && !/setTimeout\(\(\) => \{ stopVoiceSession\(\{ graceful: true \}\); onEnd\(/.test(cc));

@@ -24,6 +24,7 @@ import { refreshEntitlement } from './data/entitlements';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import FeedbackChip from './shared/FeedbackChip';
+import { bankOnce } from './shared/lifecycleGuards';
 // Already in the main bundle via HomeDashboard's Continue Challenge card, so
 // this import adds nothing to the entry chunk.
 import { TRAINING_ARCADE_SERIES, isSeriesPlayable, getSeriesById } from './data/trainingArcadeData';
@@ -265,6 +266,12 @@ export default function App() {
   // endedScreenRef stops the saver from writing it back before the screen
   // changes; the saver clears it when a session screen mounts.
   const endedScreenRef = useRef(null);
+  // The screen whose run has been BANKED (XP and the session row written).
+  // A second end call for the same run (a double tap, a timer firing after
+  // the hand-off) must not bank it again. It is set only once the end handler
+  // has run to its end: a finish that threw (the stats write on a full
+  // storage) banked nothing and has to be retried from the list.
+  const bankedScreenRef = useRef(null);
   // The last Quick Mission run banked (QuickMissionActive's runId).
   const bankedRunIdRef = useRef(null);
   const endSessionFor = useCallback((scr) => {
@@ -463,6 +470,7 @@ export default function App() {
     if (!ACTIVE_SESSION_SCREENS.has(screen)) return undefined;
     if (typeof document === 'undefined') return undefined;
     endedScreenRef.current = null; // a new session on this screen
+    bankedScreenRef.current = null;
     const stash = () => {
       const snap = snapshotRef.current?.('lifecycle');
       // Never for a session that just ended (see endSessionFor).
@@ -893,7 +901,6 @@ export default function App() {
       setScreen('cc_active');
     },
     goCombatCondComplete: (result) => {
-      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
@@ -1138,7 +1145,6 @@ export default function App() {
     startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
     goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); freshStart('timer'); setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
-      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       const total = c.rounds || rounds.length;
@@ -1169,7 +1175,6 @@ export default function App() {
     },
     goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
-      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
@@ -1209,7 +1214,6 @@ export default function App() {
     },
     goFitWorkout:  (c) => { rememberSession('fit', c); freshStart('fit_workout'); setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
-      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);
@@ -1347,6 +1351,10 @@ export default function App() {
       else finish();
     },
   };
+  // Each run is banked once (see bankedScreenRef).
+  for (const name of ['goSummary', 'goComboEnd', 'goFitComplete', 'goCombatCondComplete']) {
+    actions[name] = bankOnce(bankedScreenRef, screen, actions[name]);
+  }
 
   return (
     <>

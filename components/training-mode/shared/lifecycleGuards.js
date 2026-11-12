@@ -96,3 +96,17 @@ export function createHiddenPauseWatcher({
     dispose() { clearTimer(pending); },
   };
 }
+
+// Bank a run once. `end` is a session-end handler that writes XP and the
+// session row; the returned handler ignores a second call for the same
+// screen's run (a double tap, a timer firing after the hand-off). The run is
+// marked only after `end` has returned: a finish that threw (the stats write
+// on a full storage) banked nothing, so the athlete's retry must go through.
+export function bankOnce(ref, screen, end) {
+  return (...args) => {
+    if (ref.current === screen) return undefined;
+    const out = end(...args);
+    ref.current = screen;
+    return out;
+  };
+}
