@@ -175,7 +175,9 @@ export function buildNamedMission(id) {
     title: w.title,
     workoutType: w.workoutType || 'Bodyweight',
     duration: w.estMin,
-    difficulty: 'Hard',
+    // A classic with a stated level (STRIKE FITNESS · EASY) launches at it;
+    // the rest are the hard classics they always were.
+    difficulty: w.difficulty || 'Hard',
     format: 'Auto',
     focus: w.focus,
     exercises: w.build(),

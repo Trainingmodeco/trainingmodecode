@@ -7,7 +7,7 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { ChevronLeft, ChevronRight, Home, Play } from 'lucide-react';
-import { PROGRAMS, programDayIndex, loadCurrentProgram, startProgramDay } from './data/workoutPrograms';
+import { PROGRAMS, programDayIndex, loadCurrentProgram, startProgramDay, programMinutes } from './data/workoutPrograms';
 import { PLAN_PROGRAMS, planDayIndex, planDayMinutes, startPlanDay } from './data/workoutLibrary';
 import { quickMissionConfig } from './data/quickMissionConfig';
 import { isPro } from './data/entitlements';
@@ -68,7 +68,7 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
     if (p.pro && !isPro()) { setMoreOpen(false); onPaywall?.(); return; }
     const mission = startPlanDay(p);
     setMoreOpen(false);
-    onStartMission?.({ ...quickMissionConfig({ duration: mission.duration, focus: mission.focus, difficulty: 'Hard' }), workoutType: mission.workoutType, mission });
+    onStartMission?.({ ...quickMissionConfig({ duration: mission.duration, focus: mission.focus, difficulty: mission.difficulty }), workoutType: mission.workoutType, mission });
   };
   const [equipment, setEquipment] = useState(loadEquip);
   const [current] = useState(() => loadCurrentProgram());
@@ -179,7 +179,7 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
                   }}>
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: '#fff' }}>{titleCase(p.title)}</span>
-                      <span style={{ display: 'block', fontSize: 12, color: '#8E88A8', marginTop: 2 }}>{p.meta}</span>
+                      <span style={{ display: 'block', fontSize: 12, color: '#8E88A8', marginTop: 2 }}>{p.meta} · ~{programMinutes(p, equipment)} min</span>
                     </span>
                     {(isCurrent || next) && (
                       <span style={{

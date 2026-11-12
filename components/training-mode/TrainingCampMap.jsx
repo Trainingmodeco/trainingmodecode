@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { ChevronLeft, Lock, Check, X } from 'lucide-react';
-import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campBlock, campSubs, blockRoundsFor, titleFight } from './protocol/content';
+import { campLevels, roundTemplate, archetypesFor, isSplitAvailable, campSubs, blockRoundsFor, titleFight, campRoundPlan, campSessionMinutes } from './protocol/content';
 import ArchetypePicker from './shared/ArchetypePicker';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { loadProfile } from './data/userProfile';
@@ -187,15 +187,14 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         })),
       };
     }
-    const rt = roundTemplate(discKey, level, diff);
-    const rounds = rt.rounds || 1;
-    const roundMin = rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60);
+    // The same plan the session card states (campSessionMinutes).
+    const { rounds, roundMin, restSec } = campRoundPlan(discKey, level, diff);
     // 2.4b — real per-round goals (skill or conditioning) drive the timer.
     const blockRounds = blockRoundsFor(discKey, level, diff, kind, rounds);
     // The archetype rides along on the cfg so the session and its summary can
     // name the style being trained. The round engine is unchanged — this is a
     // label, not a new input.
-    return { difficulty: diff, rounds, roundMin, restSec: rt.restSec ?? 60, voiceOn: true, encouragement: campEncouragement(), rushMode: false, warmupMin: 3, blockRounds, archetypeId: archetype?.id, archetypeName: archetype?.name };
+    return { difficulty: diff, rounds, roundMin, restSec, voiceOn: true, encouragement: campEncouragement(), rushMode: false, warmupMin: 3, blockRounds, archetypeId: archetype?.id, archetypeName: archetype?.name };
   };
   const launch = (level, diff, slot) => {
     const split = isSplitAvailable(level);
@@ -402,8 +401,6 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                 ].map((m) => {
                   const isDone = !!openSess[m.slot];
                   const isNext = !isDone && (m.slot === 's1' || !!openSess.s1);
-                  // 2.4b — real block content for this mission (module or emphasis).
-                  const blk = campBlock(discKey, open.level, difficulty, m.block);
                   return (
                     <div key={m.slot} style={{
                       borderRadius: 9, padding: '8px 10px', marginBottom: 6,
@@ -417,7 +414,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
                         </span>
                       </div>
                       <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b9a9d8', letterSpacing: '0.04em', marginTop: 2 }}>
-                        {m.ampm} · {m.kind}{blk.durationMin ? ` · ~${blk.durationMin}m` : ''}
+                        {m.ampm} · {m.kind} · ~{campSessionMinutes(discKey, open.level, difficulty)}m
                       </div>
                     </div>
                   );

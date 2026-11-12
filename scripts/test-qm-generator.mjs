@@ -439,5 +439,143 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   check('37 Home\'s Continue card words a Quick Mission\'s level as the page does (MEDIUM for the stored Normal)', ['Easy', 'Normal', 'Hard', 'Advanced'].map(d => LS.describeSession({ kind: 'quick_mission', cfg: { focus: 'Full Body', difficulty: d, duration: 15 } }).diff).join() === 'Easy,Medium,Hard,Advanced');
 }
 
+// ── the Workout Builder: the minutes on the card are the minutes it runs ────
+// The Builder's generator (fit-mode/fitModeGenerator) fits its list to the
+// DURATION by the guided player's own timeline (data/builderTiming). Every
+// DURATION x DIFFICULTY x EQUIPMENT the setup offers, over every muscle pick,
+// lands within 15% of the minutes; a set scheme lands within 15% wherever its
+// fixed sets can, and otherwise as close as eight rows allow.
+{
+  const G = await import('../components/training-mode/fit-mode/fitModeGenerator.js');
+  const BT = await import('../components/training-mode/data/builderTiming.js');
+  const WP = await import('../components/training-mode/data/workoutPrograms.js');
+  const { FIT_MODE_EXERCISES } = await import('../components/training-mode/fit-mode/fitModeExerciseData.js');
+  const byName = new Map(FIT_MODE_EXERCISES.map(e => [e.name, e]));
+  const player = fs.readFileSync(new URL('../components/training-mode/FitBuilderGuidedPlayer.jsx', import.meta.url), 'utf8');
+
+  // The model reads the player's own numbers.
+  const pins = [
+    ['cadence 2 s a rep', /useState\(2\);\s*\n/.test(player) && BT.BUILDER_CADENCE_SEC === 2],
+    ['rep intro 2.6 s, tail 0.7 s', /On my count\.`\);\s*\n\s*await delay\(2600\)/.test(player) && /await delay\(700\);\s*\n\s*live\.current\.finishSet/.test(player) && BT.BUILDER_REP_INTRO_SEC === 2.6 && BT.BUILDER_REP_TAIL_SEC === 0.7],
+    ['weighted window', player.includes('Math.max(60, Math.ceil((reps * 12) / 30) * 30)') && BT.builderSetKind({ reps: 10, equipment: 'Dumbbell' }).windowSec === 120],
+    ['weighted later set 2.8 + 5 + 1.2 s', /Get into position\.`\);\s*\n\s*setPhase\('position'\);\s*\n\s*await delay\(2800\)/.test(player) && /waitSec\(version, 5, \(r\) => setDisplay\(r\)\)/.test(player) && /Get ready\. Lift\.'\);\s*\n\s*await delay\(1200\)/.test(player) && BT.BUILDER_POSITION_SEC === 9],
+    ['hold 2.4 + 5 + 1 s', /await delay\(2400\)/.test(player) && /say\('Get ready\. Go\.'\);\s*\n\s*await delay\(1000\)/.test(player) && Math.abs(BT.BUILDER_HOLD_INTRO_SEC - 8.4) < 1e-9],
+    ['row done 0.9 s, map 1.2 s, count-in 3 x 650 ms', /complete\.`\);\s*\n\s*await delay\(900\)/.test(player) && player.includes("setMapMode('complete'); setMapOpen(true); }, 1200)") && player.includes('await delay(650)') && BT.BUILDER_ROW_DONE_SEC === 0.9],
+    ['loaded pace = the Quick Mission\'s', BT.BUILDER_LOADED_REP_SEC === T.QM_LOADED_REP_SEC && BT.BUILDER_LOADED_SETUP_SEC === T.QM_LOADED_SETUP_SEC],
+  ].filter(([, ok]) => !ok).map(([n]) => n);
+  check('38 the Builder timing model is pinned to the guided player\'s own numbers', pins.length === 0, pins.join(', '));
+
+  // A hand-sized row, worked by hand: 3 x 10 bodyweight reps, 60 s rest.
+  const bwRow = { reps: '6-10', equipment: 'Bodyweight', sets: 3, restSeconds: 60 };
+  const dbRow = { reps: '6-10', equipment: 'Dumbbell', sets: 2, restSeconds: 75 };
+  check('39 the Builder timeline adds up by hand', Math.abs(BT.builderRowSeconds(bwRow) - (3 * (2.6 + 20 + 0.7) + 2 * 60 + 0.9)) < 1e-9
+    && Math.abs(BT.builderRowSeconds(dbRow) - ((5 + 35) + (9 + 35) + 75 + 0.9)) < 1e-9
+    && Math.abs(BT.builderWorkoutSeconds([bwRow, dbRow]) - (BT.BUILDER_START_SEC + BT.builderRowSeconds(bwRow) + BT.builderRowSeconds(dbRow) + BT.BUILDER_NEXT_ROW_SEC)) < 1e-9);
+
+  const chips = Object.keys(WP.CHIP_GROUPS);
+  const subsets = [];
+  for (let m = 1; m < 1 << chips.length; m++) subsets.push(chips.filter((_, i) => m & (1 << i)));
+  const build = (cfg) => { store.clear(); return BT.applySetScheme(G.generateFitModeWorkout(cfg), cfg.setScheme); };
+  const offAuto = [], gear = [], hardInEasy = [], empty = [];
+  for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const sub of subsets) {
+    const w = build({ muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme: null });
+    const tag = `${duration} min ${difficulty} ${equipment} ${sub.join('+')}`;
+    if (!w.length) { empty.push(tag); continue; }
+    const err = BT.builderWorkoutSeconds(w) / (duration * 60) - 1;
+    if (Math.abs(err) > 0.15) offAuto.push(`${tag}: ${Math.round(err * 100)}%`);
+    for (const ex of w) {
+      const src = byName.get(ex.name);
+      if (/^(Cable|Machine)$/.test(ex.equipment) || (equipment === 'Bodyweight' && ex.equipment !== 'Bodyweight') || (equipment === 'Weighted' && ex.equipment === 'Bodyweight')) gear.push(`${tag}: ${ex.name} (${ex.equipment})`);
+      if (difficulty === 'Easy' && /^(Hard|Advanced)$/.test(src?.difficulty || '')) hardInEasy.push(`${tag}: ${ex.name}`);
+    }
+    if (w.length > G.MAX_EXERCISES) empty.push(`${tag}: ${w.length} rows`);
+  }
+  check('40 every Builder pick (AUTO) runs within 15% of its DURATION, 15 to 60 min, every level, gear and muscle pick', offAuto.length === 0, `${offAuto.length} off: ${offAuto.slice(0, 4).join(' | ')}`);
+  check('41 a Builder workout keeps to its gear (no cable or machine, no loaded move at BODYWEIGHT)', gear.length === 0, gear.slice(0, 4).join(' | '));
+  check('42 an Easy Builder workout never gets a Hard move', hardInEasy.length === 0, `${hardInEasy.length}: ${hardInEasy.slice(0, 4).join(' | ')}`);
+  check('43 every Builder pick builds 1 to 8 rows', empty.length === 0, empty.slice(0, 4).join(' | '));
+
+  // Set schemes fix every loaded lift's sets, reps and rest, so the row count
+  // (and the bodyweight rows' sets) is all the fit can move.
+  const schemes = WP.SET_SCHEMES.filter(x => x.sets).map(x => ({ id: x.id, sets: x.sets, reps: x.reps, restSeconds: x.restSeconds }));
+  const offScheme = [];
+  for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const setScheme of schemes) for (const sub of subsets.filter((_, i) => i % 9 === 0)) {
+    const w = build({ muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme });
+    const target = duration * 60, got = BT.builderWorkoutSeconds(w);
+    const longest = Math.max(...w.map(BT.builderRowSeconds));
+    const ok = Math.abs(got - target) <= 0.15 * target || (got < target && w.length === G.MAX_EXERCISES) || Math.abs(got - target) <= longest / 2 + BT.BUILDER_NEXT_ROW_SEC;
+    if (!ok) offScheme.push(`${duration} ${difficulty} ${equipment} ${setScheme.id} ${sub.join('+')}: ${Math.round((got / target - 1) * 100)}% ${w.length} rows`);
+  }
+  check('44 a set scheme fits the DURATION as closely as its fixed sets and eight rows allow', offScheme.length === 0, offScheme.slice(0, 4).join(' | '));
+
+  // The swap list's rule: the generator's gear rule and one difficulty step.
+  const swapBad = [];
+  for (const equipment of TYPES) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const ex of FIT_MODE_EXERCISES) {
+    if (!G.fitsBuilderSlot(ex, { equipment, difficulty })) continue;
+    if (/^(Cable|Machine)$/.test(ex.equipment) || !ex.active) swapBad.push(`${equipment}: ${ex.name} (${ex.equipment})`);
+    if ((difficulty === 'Easy' && /^(Hard|Advanced)$/.test(ex.difficulty)) || (difficulty === 'Hard' && ex.difficulty === 'Easy')) swapBad.push(`${difficulty}: ${ex.name} (${ex.difficulty})`);
+    if ((equipment === 'Bodyweight') !== (ex.equipment === 'Bodyweight') && equipment !== 'Hybrid') swapBad.push(`${equipment}: ${ex.name} (${ex.equipment})`);
+  }
+  const offered = TYPES.every(equipment => ['Easy', 'Normal', 'Hard'].every(difficulty => FIT_MODE_EXERCISES.some(ex => G.fitsBuilderSlot(ex, { equipment, difficulty }))));
+  check('45 a Builder swap never offers cable or machine moves, other gear, or a move two levels away', swapBad.length === 0 && offered, swapBad.slice(0, 4).join(' | '));
+
+  // A program card prints programMinutes for the gear picked: every day, at
+  // every gear and level the Programs screen launches, builds that. (FULL
+  // BODY's card printed a fixed ~40 min; WEIGHTED builds about 34.)
+  const offProg = [];
+  for (const p of WP.PROGRAMS) for (let d = 0; d < p.days.length; d++) for (const equipment of TYPES) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (let i = 0; i < 4; i++) {
+    store.clear(); if (p.rotateKey) store.set(p.rotateKey, String(d));
+    const cfg = WP.startProgramDay(p, { equipment, difficulty });
+    const err = BT.builderWorkoutSeconds(BT.applySetScheme(G.generateFitModeWorkout(cfg), cfg.setScheme)) / (WP.programMinutes(p, equipment) * 60) - 1;
+    if (Math.abs(err) > 0.15) offProg.push(`${p.id} ${p.days[d].label} ${equipment} ${difficulty}: ${Math.round(err * 100)}%`);
+  }
+  check('46 every program day builds within 15% of the minutes on its card', offProg.length === 0 && WP.PROGRAMS.every(p => !/min/.test(p.meta)) && WP.programMinutes(WP.PROGRAMS[0], 'Weighted') === 34 && WP.programMinutes(WP.PROGRAMS[0], 'Bodyweight') === 40, offProg.slice(0, 4).join(' | '));
+}
+
+// ── plan days and classics launch at their own level ────────────────────────
+{
+  const WL = await import('../components/training-mode/data/workoutLibrary.js');
+  const NW = await import('../components/training-mode/data/namedWorkouts.js');
+  const MM = await import('../components/training-mode/data/missionMoves.js');
+  const want = { beginner: 'Easy', intermediate: 'Normal', advanced: 'Advanced' };
+  const bad = [];
+  for (const p of WL.PLAN_PROGRAMS) {
+    store.clear();
+    const lvl = p.meta.split('·')[0].trim().toLowerCase();
+    const m = WL.startPlanDay(p);
+    if (m.difficulty !== (want[lvl] || 'Normal')) bad.push(`${p.id}: ${m.difficulty}`);
+  }
+  const beginner = WL.startPlanDay(WL.planById('shadowbox_mini'));
+  const cfg = C.quickMissionConfig({ duration: beginner.duration, focus: beginner.focus, difficulty: beginner.difficulty });
+  check('47 a plan day launches at its plan\'s level (7-DAY SHADOWBOX MINI is EASY, not HARD)', bad.length === 0 && beginner.difficulty === 'Easy' && cfg.difficulty === 'Easy', bad.slice(0, 4).join(' | '));
+  const sf = ['strike_fitness_easy', 'strike_fitness_mid', 'strike_fitness_adv'].map(id => NW.buildNamedMission(id).difficulty).join();
+  check('48 a classic with a stated level launches at it; the others stay HARD', sf === 'Easy,Normal,Advanced' && NW.buildNamedMission('murph').difficulty === 'Hard', sf);
+  // A bodyweight plan day asks for no load: no move the catalog lists with a
+  // kettlebell, dumbbell, barbell or plate.
+  const byName = new Map(MM.MOVES.map(x => [x.name.toLowerCase(), x]));
+  const loaded = [];
+  for (const p of WL.PLAN_PROGRAMS) p.days.forEach((d, i) => {
+    if ((d.workoutType || 'Bodyweight') !== 'Bodyweight') return;
+    for (const e of d.build()) { const mv = byName.get(e.name.toLowerCase()); if (mv && ['bell', 'db', 'barbell', 'plate'].includes(mv.gear)) loaded.push(`${p.id} day ${i + 1}: ${e.name}`); }
+  });
+  check('49 a bodyweight plan day holds no loaded move', loaded.length === 0, loaded.join(' | '));
+}
+
+// ── camp session cards state the rounds the timer runs ──────────────────────
+{
+  const CC = await import('../components/training-mode/protocol/content.ts');
+  const map = fs.readFileSync(new URL('../components/training-mode/TrainingCampMap.jsx', import.meta.url), 'utf8');
+  const bad = [];
+  for (const d of ['boxing', 'kickboxing', 'muay_thai', 'mma']) for (let level = 1; level <= 12; level++) for (const diff of ['easy', 'normal', 'hard']) {
+    const p = CC.campRoundPlan(d, level, diff);
+    const mins = p.rounds * p.roundMin + (p.rounds - 1) * p.restSec / 60;
+    if (CC.campSessionMinutes(d, level, diff) !== Math.max(1, Math.round(mins)) || !(p.rounds >= 1 && p.roundMin > 0)) bad.push(`${d} L${level} ${diff}`);
+  }
+  // The card prints the plan's minutes and the timer's cfg is built from the
+  // same plan, not the module's duration_min.
+  const wired = /campSessionMinutes\(discKey, open\.level, difficulty\)/.test(map) && /campRoundPlan\(discKey, level, diff\)/.test(map) && !/durationMin/.test(map);
+  check('50 a camp session card states the rounds and rests the timer runs (boxing L4 Normal: ~16m, not ~26m)', bad.length === 0 && wired && CC.campSessionMinutes('boxing', 4, 'normal') === 16, `${bad.slice(0, 4).join(', ')} wired=${wired} L4=${CC.campSessionMinutes('boxing', 4, 'normal')}`);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

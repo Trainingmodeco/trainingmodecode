@@ -95,6 +95,25 @@ export function isSplitAvailable(level: number): boolean {
 export function titleFight(discipline: Discipline, difficulty: Difficulty) {
   return resolveTitleFight(discipline, difficulty, timingTables);
 }
+// The rounds the camp timer runs for a level: what the map hands the round
+// timer and what its session cards state. The cards used to print the
+// workout module's own duration_min (boxing L4 Normal: ~26m) while the timer
+// ran the timing table's rounds (about 16 min), so the card and the clock
+// disagreed; now both read this.
+export function campRoundPlan(discipline: Discipline, level: number, difficulty: Difficulty) {
+  if (level === 12) {
+    const tf = titleFight(discipline, difficulty);
+    return { rounds: tf.rounds, roundMin: tf.roundSec / 60, restSec: tf.restSec };
+  }
+  const rt = roundTemplate(discipline, level, difficulty);
+  const rounds = rt.rounds || 1;
+  return { rounds, roundMin: rt.activeMinutesTarget ? rt.activeMinutesTarget : (rt.roundSec / 60), restSec: rt.restSec ?? 60 };
+}
+// Whole minutes of that plan: every round and the rests between them.
+export function campSessionMinutes(discipline: Discipline, level: number, difficulty: Difficulty): number {
+  const p = campRoundPlan(discipline, level, difficulty);
+  return Math.max(1, Math.round(p.rounds * p.roundMin + (p.rounds - 1) * p.restSec / 60));
+}
 export function evaluate(result: SessionResult, difficulty: Difficulty): Evaluation {
   return evaluateSession(result, difficulty, passRules);
 }

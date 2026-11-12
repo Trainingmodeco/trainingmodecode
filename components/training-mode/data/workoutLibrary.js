@@ -66,7 +66,7 @@ const fmt = (sec) => (sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).pa
 // ── single sessions (Quick Mission · CLASSICS) ──────────────────────────────
 export const LIBRARY_CLASSICS = [
   {
-    id: 'strike_fitness_easy', title: 'STRIKE FITNESS · EASY', tag: 'Day Zero', focus: 'Combat', rounds: 2,
+    id: 'strike_fitness_easy', difficulty: 'Easy', title: 'STRIKE FITNESS · EASY', tag: 'Day Zero', focus: 'Combat', rounds: 2,
     note: 'Beginner strikes and bodyweight, one minute each. Form first — use your hips, don’t over-extend. Two rounds.',
     build: () => [
       t('Push-Ups on Knees', 60, 30), t('Jab', 60, 30), t('Sumo Squat', 60, 30), t('Cross', 60, 30),
@@ -74,7 +74,7 @@ export const LIBRARY_CLASSICS = [
     ],
   },
   {
-    id: 'strike_fitness_mid', title: 'STRIKE FITNESS · INTERMEDIATE', tag: 'Day Zero', focus: 'Combat', rounds: 2,
+    id: 'strike_fitness_mid', difficulty: 'Normal', title: 'STRIKE FITNESS · INTERMEDIATE', tag: 'Day Zero', focus: 'Combat', rounds: 2,
     note: 'Hooks, uppercuts and knees between bodyweight sets. One minute each, two rounds.',
     build: () => [
       t('Incline Push-Ups', 60, 30), t('Hook', 60, 30), t('Hip Hinge', 60, 30), t('Uppercut', 60, 30),
@@ -82,7 +82,7 @@ export const LIBRARY_CLASSICS = [
     ],
   },
   {
-    id: 'strike_fitness_adv', title: 'STRIKE FITNESS · ADVANCED', tag: 'Day Zero', focus: 'Combat', rounds: 2,
+    id: 'strike_fitness_adv', difficulty: 'Advanced', title: 'STRIKE FITNESS · ADVANCED', tag: 'Day Zero', focus: 'Combat', rounds: 2,
     note: 'Punch-kick combos and elbows, a minute of rest between. Chamber every strike. Two rounds.',
     build: () => [
       t('T-Pose Push-Ups', 60, 60), t('One-Two', 60, 60), t('Sissy Squats', 60, 60), t('Punch to Roundhouse Kick', 60, 60),
@@ -387,6 +387,15 @@ function advancePlanDay(p, idx) {
 
 export const planById = (id) => PLAN_PROGRAMS.find(p => p.id === id) || null;
 
+// The level a plan states first on its card ("Beginner · 7 days · …") as the
+// mission's difficulty. Every plan day used to launch as Hard, so a beginner's
+// first week read HARD on the summary and the share card. A plan with no level
+// on its card (All levels, the shadowbox routines) is Normal.
+const PLAN_LEVEL = { beginner: 'Easy', intermediate: 'Normal', advanced: 'Advanced' };
+export function planDifficulty(p) {
+  return PLAN_LEVEL[String(p?.meta || '').split('·')[0].trim().toLowerCase()] || 'Normal';
+}
+
 // Builds the next day's mission. The rotation does NOT advance here - quitting
 // halfway would skip the day; completePlanDay moves it on at the finish.
 export function startPlanDay(p) {
@@ -397,7 +406,7 @@ export function startPlanDay(p) {
     title: `${p.title} · ${day.label}`,
     workoutType: day.workoutType || 'Bodyweight',
     duration: estimateMinutes(exercises),
-    difficulty: 'Hard',
+    difficulty: planDifficulty(p),
     format: 'Auto',
     focus: p.category === 'fight' ? 'Combat' : 'Full Body',
     exercises,

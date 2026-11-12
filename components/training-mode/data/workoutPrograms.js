@@ -1,3 +1,6 @@
+import { builderWorkoutSeconds } from './builderTiming';
+import { MAX_EXERCISES } from '../fit-mode/fitModeGenerator';
+
 // Programming presets for the Workout Builder — shared between the main
 // setup screen (which shows the live summary + generates) and the
 // PROGRAMMING sub-page (which edits them). Kept in one place so the two
@@ -19,7 +22,7 @@ export const SET_SCHEMES = [
 // "3-day" actually cycles through its days.
 export const ALL_CHIP_IDS = ['CHEST', 'BACK', 'SHOULDERS', 'ARMS', 'CORE', 'LEGS', 'GLUTES'];
 export const PROGRAMS = [
-  { id: 'fullbody', title: 'FULL BODY', short: 'Full Body', meta: 'All groups · 3×10 · ~40 min', scheme: { id: '3x10', sets: 3, reps: 10, restSeconds: 60 }, duration: 40, days: [{ label: '', chips: ALL_CHIP_IDS }] },
+  { id: 'fullbody', title: 'FULL BODY', short: 'Full Body', meta: 'All groups · 3×10', scheme: { id: '3x10', sets: 3, reps: 10, restSeconds: 60 }, duration: 40, days: [{ label: '', chips: ALL_CHIP_IDS }] },
   { id: 'ppl', title: 'PUSH / PULL / LEGS', short: 'PPL', meta: '3-day · 4×8', rotateKey: 'tm_prog_ppl', scheme: { id: '4x8', sets: 4, reps: 8, restSeconds: 75 }, duration: 40,
     days: [{ label: 'PUSH', chips: ['CHEST', 'SHOULDERS', 'ARMS'] }, { label: 'PULL', chips: ['BACK', 'ARMS'] }, { label: 'LEGS', chips: ['LEGS', 'GLUTES', 'CORE'] }] },
   { id: 'ul', title: 'UPPER / LOWER', short: 'Upper/Lower', meta: '2-day · 5×5', rotateKey: 'tm_prog_ul', scheme: { id: '5x5', sets: 5, reps: 5, restSeconds: 90 }, duration: 40,
@@ -27,6 +30,18 @@ export const PROGRAMS = [
   { id: 'bro', title: 'BRO SPLIT', short: 'Bro Split', meta: '1 group/day · 4×10', rotateKey: 'tm_prog_bro', scheme: { id: '4x10', sets: 4, reps: 10, restSeconds: 60 }, duration: 40,
     days: [{ label: 'CHEST', chips: ['CHEST'] }, { label: 'BACK', chips: ['BACK'] }, { label: 'SHOULDERS', chips: ['SHOULDERS'] }, { label: 'ARMS', chips: ['ARMS'] }, { label: 'LEGS', chips: ['LEGS'] }] },
 ];
+
+// The minutes a program day runs, for its card. The generator fits each day
+// to the program's minutes by the guided player's timeline, except where the
+// scheme can't stretch: on WEIGHTED every lift runs the scheme's sets, so
+// eight rows of it is as long as the day gets (FULL BODY's 3×10 is about 34
+// min, which its card used to print as ~40).
+export function programMinutes(p, equipment = 'Bodyweight') {
+  const want = Number(p?.duration) || DEFAULT_DURATION;
+  if (equipment !== 'Weighted' || !p?.scheme?.sets) return want;
+  const row = { reps: String(p.scheme.reps), equipment: 'Dumbbell', sets: p.scheme.sets, restSeconds: p.scheme.restSeconds };
+  return Math.min(want, Math.round(builderWorkoutSeconds(Array(MAX_EXERCISES).fill(row)) / 60));
+}
 
 export const DURATIONS = [15, 30, 45, 60];
 export const DEFAULT_DURATION = 30;
