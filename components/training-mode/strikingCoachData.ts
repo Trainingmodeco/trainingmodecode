@@ -1,7 +1,7 @@
 export const COMBOS: Record<string, Record<string, string[]>> = {
   Boxing: {
     easy: ['Jab', 'Jab Cross', 'Double Jab', 'Cross Hook', 'Jab Cross Hook'],
-    normal: ['Jab Cross Hook', 'Jab Cross Hook Cross', 'Double Jab Cross Hook',
+    normal: ['Jab Body Jab Cross', 'Jab Cross Hook Cross', 'Double Jab Cross Hook',
              'Jab Slip Cross', 'Cross Hook Cross', 'Jab Cross Body Hook'],
     hard: ['Jab Cross Hook Cross Hook', 'Slip Cross Hook Cross', 'Jab Cross Hook Body Cross',
            'Double Jab Cross Body Hook Hook', 'Jab Cross Roll Hook Cross'],

@@ -198,6 +198,31 @@ function disciplineMatches(workoutDiscipline, userStyle) {
 }
 
 /**
+ * Prebuilt-level discipline gate. A "Universal/Boxing" circuit is a boxing
+ * circuit with a universal tag, so an MMA athlete must not be dealt it.
+ * Only a prebuilt that is purely Universal (or names the athlete's own style)
+ * is eligible.
+ */
+function prebuiltDisciplineOk(workoutDiscipline, userStyle) {
+  if (userStyle === 'All-Around') return true;
+  const wd = disciplineTokens(workoutDiscipline);
+  const us = disciplineTokens(userStyle);
+  if (wd.some((w) => us.includes(w))) return true;
+  return wd.length > 0 && wd.every((w) => w === 'universal');
+}
+
+/**
+ * A prebuilt more than one step off the requested level is not offered, and
+ * a drill more than one step above it is dropped (the library path never
+ * deals one either), so Easy and Normal never see an Advanced drill.
+ */
+function prebuiltLevelOk(workout, userDifficulty) {
+  const u = difficultyIndex(userDifficulty);
+  const w = difficultyIndex(workout.difficulty);
+  return u < 0 || w < 0 || Math.abs(u - w) <= 1;
+}
+
+/**
  * Checks whether an exercise's discipline tags match the randomizer allowed tags.
  */
 function exerciseDisciplineMatch(exerciseTags, allowedTags) {
@@ -302,6 +327,9 @@ function prebuiltToMission(workout, config) {
       (ex) => ex.name.toLowerCase() === exName.toLowerCase()
     );
     if (!libMatch) return true; // unknown drill — trust the prebuilt
+    const exIdx = difficultyIndex(libMatch.difficulty);
+    const userIdx = difficultyIndex(config.difficulty);
+    if (exIdx >= 0 && userIdx >= 0 && exIdx > userIdx + 1) return false;
     return exerciseEquipmentAllowed(libMatch.equipment, config.equipment);
   });
 
@@ -702,7 +730,9 @@ export function generateCombatConditioningMission(config) {
   // prebuilt out entirely. This gate keeps prebuilts honest about the
   // equipment choice; the library fallback beneath still fills in.
   const eligiblePrebuilts = CC_PREBUILT_WORKOUTS.filter((w) =>
-    equipmentAllowed(w.equipment, normalizedConfig.equipment)
+    equipmentAllowed(w.equipment, normalizedConfig.equipment) &&
+    prebuiltDisciplineOk(w.discipline, normalizedConfig.style) &&
+    prebuiltLevelOk(w, normalizedConfig.difficulty)
   );
   const scored = eligiblePrebuilts.map((w) => ({
     workout: w,

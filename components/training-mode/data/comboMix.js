@@ -322,7 +322,8 @@ function sourceDeck(counts, rng, swing, run) {
 //    table's shares exactly (renormalised over the sources that have combos).
 //  - Inside a source, combos come from a draw-without-replacement deck and
 //    never repeat inside a short window (a quarter of the pool, at most 11).
-//  - EASY-source calls are a single strike singleShare % of the time.
+//  - EASY-source calls are a single strike singleShare % of the time, unless
+//    that side of the pool is spent for the round and the other is not.
 //  - A round holds at most maxHardKicks combos with a difficult kick. They are
 //    spread through the round (the first opens a third of the way in, the second
 //    two thirds), and past the cap the call is redrawn calm from the same source.
@@ -349,6 +350,7 @@ export function dealMixItems({ prepared, tier, count, rng = Math.random }) {
   const counts = cardCounts(m.weights, live);
   const out = [];
   const recent = new Set();
+  const heard = new Set(); // every combo dealt so far in this round
   const run = { band: -1, n: 0 };
   let cards = [];
   // A capped round opens its difficult-kick slots evenly: with 2 in a round of
@@ -369,7 +371,15 @@ export function dealMixItems({ prepared, tier, count, rng = Math.random }) {
     let pick;
     if (source === 'easy') {
       const d = decks.easy;
-      const wantSingle = rng() * 100 < m.singleShare;
+      let wantSingle = rng() * 100 < m.singleShare;
+      // The single and basic decks are small and separate, so a round that
+      // rolls more singles than there are singles would replay one while
+      // basics sit unplayed. Once one deck has nothing fresh for this round,
+      // take the other: a repeat only comes when the pool forces it.
+      const fresh = (list) => list.some(c => !heard.has(c.text) && !(banned && banned.has(c.text)));
+      const singles = bySource.easy.filter(c => c.single), basics = bySource.easy.filter(c => !c.single);
+      if (wantSingle && !fresh(singles) && fresh(basics)) wantSingle = false;
+      else if (!wantSingle && !fresh(basics) && fresh(singles)) wantSingle = true;
       pick = (wantSingle ? d.single(recent, banned) : d.basic(recent, banned)) || d.basic(recent, banned) || d.single(recent, banned);
     } else {
       pick = decks[source](recent, banned);
@@ -387,6 +397,7 @@ export function dealMixItems({ prepared, tier, count, rng = Math.random }) {
     out.push(pick);
     if (pick.hard) hardUsed += 1;
     recent.add(pick.text);
+    heard.add(pick.text);
     if (recent.size > window) recent.delete(recent.values().next().value);
   }
   return out;

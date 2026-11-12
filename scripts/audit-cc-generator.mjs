@@ -9,6 +9,7 @@
 import { generateCombatConditioningMission } from '../components/training-mode/data/combatConditioningGenerator.js';
 import {
   CC_EXERCISE_LIBRARY,
+  CC_PREBUILT_WORKOUTS,
   CC_RANDOMIZER_RULES,
 } from '../components/training-mode/data/combatConditioningData.js';
 
@@ -129,11 +130,49 @@ for (const style of STYLES) {
         if (oobDiff.length) {
           notes.push({ what: 'difficulty gap', style, difficulty, equipment, focus, detail: `${oobDiff.map(d => d.name).join(', ')} more than one difficulty tier off ${difficulty}` });
         }
+        // §4b Easy and Normal never get an Advanced drill, and a prebuilt
+        // never names only other styles (a "Universal/Boxing" circuit is a
+        // boxing circuit for an MMA athlete).
+        if (difficulty === 'Easy' || difficulty === 'Normal') {
+          const adv = m.drills.filter(d => {
+            const lib = CC_EXERCISE_LIBRARY.find(e => e.name.toLowerCase() === d.name.toLowerCase());
+            return lib && lib.difficulty === 'Advanced';
+          });
+          if (adv.length) failures.push({ what: 'advanced drill at ' + difficulty, style, difficulty, equipment, focus, detail: `${adv.map(d => d.name).join(', ')} in ${m.missionName}` });
+        }
+        if (m.sourceType === 'prebuilt') {
+          const pre = CC_PREBUILT_WORKOUTS.find(w => w.id === m.sourceId);
+          const own = style.split('/').map(x => x.trim().toLowerCase());
+          const tags = String(pre.discipline).toLowerCase().split('/').map(x => x.trim());
+          if (!tags.some(t => own.includes(t)) && !tags.every(t => t === 'universal')) {
+            failures.push({ what: 'prebuilt for another style', style, difficulty, equipment, focus, detail: `${pre.id} (${pre.discipline})` });
+          }
+          const gap = Math.abs(DIFFS.indexOf(pre.difficulty) - DIFFS.indexOf(difficulty));
+          if (gap > 1) failures.push({ what: 'prebuilt more than a step off', style, difficulty, equipment, focus, detail: `${pre.id} (${pre.difficulty})` });
+        }
         // §5 must have at least 3 drills to be a real circuit
         if (m.drills.length < 3) {
           failures.push({ what: 'thin circuit', style, difficulty, equipment, focus, detail: `only ${m.drills.length} drills — not a real workout` });
         }
         if (!dupes.length && !oobEquip.length && !oobDisc.length && m.drills.length >= 3) missionsClean++;
+      }
+    }
+  }
+}
+
+// §4c Longer sessions are where the Advanced prebuilt used to win for a
+// beginner, so sweep the clock on Easy and Normal with full gear.
+for (const style of STYLES) {
+  for (const difficulty of ['Easy', 'Normal']) {
+    for (const focus of PRESETS) {
+      for (let rounds = 4; rounds <= 30; rounds += 2) {
+        const cfg = { ...buildConfig({ style, difficulty, equipment: 'WEIGHTS', focus, rounds }), equipment: 'Full Gym' };
+        const m = generateCombatConditioningMission(cfg);
+        const adv = m.drills.filter(d => {
+          const lib = CC_EXERCISE_LIBRARY.find(e => e.name.toLowerCase() === d.name.toLowerCase());
+          return lib && lib.difficulty === 'Advanced';
+        });
+        if (adv.length) failures.push({ what: 'advanced drill at ' + difficulty, style, difficulty, equipment: 'Full Gym', focus, detail: `${adv.map(d => d.name).join(', ')} in ${m.missionName} (${rounds} rounds)` });
       }
     }
   }

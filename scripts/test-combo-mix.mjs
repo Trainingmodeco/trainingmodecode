@@ -140,9 +140,31 @@ for (const t of TIERS) for (const d of M.DISCIPLINES) {
 }
 check('6 EASY: never more than 4 pieces (the pool\'s longest easy combo is 3) in any discipline', M.SOURCE_TIERS.length && M.DISCIPLINES.every(d => at('EASY', d).maxPieces <= 4 && at('EASY', d).maxPieces >= 3), M.DISCIPLINES.map(d => at('EASY', d).maxPieces).join());
 check('6b EASY: never a difficult kick', M.DISCIPLINES.every(d => at('EASY', d).hardMax === 0));
-check('6c EASY: about 30 in 100 easy calls are a single strike, in every discipline (MMA too: Jab, Cross and Teep)',
-  M.DISCIPLINES.every(d => Math.abs((100 * at('EASY', d).singles) / at('EASY', d).easyCalls - 30) <= 5),
-  M.DISCIPLINES.map(d => ((100 * at('EASY', d).singles) / at('EASY', d).easyCalls).toFixed(1)).join());
+// A round of 8 calls: the small single pool (2 or 3 strikes) is not replayed to hit the 30 share,
+// so the share is 30 or what the singles can fill without a repeat, whichever is lower.
+const shortRounds = Object.fromEntries(M.DISCIPLINES.map(d => {
+  const rng = rngOf(77 + d.length); let s = 0, n = 0, rep = 0, rep12 = 0;
+  for (let r = 0; r < 600; r += 1) {
+    const items = M.dealMixItems({ prepared: P[d], tier: 'EASY', count: 8, rng });
+    items.forEach(c => { n += 1; if (c.single) s += 1; });
+    const twelve = M.dealMixRound({ prepared: P[d], tier: 'EASY', count: 12, rng });
+    if (new Set(twelve).size < twelve.length) rep12 += 1;
+    if (new Set(items.map(c => c.text)).size < items.length) rep += 1;
+  }
+  return [d, { share: (100 * s) / n, rep, rep12, singles: P[d].filter(c => c.single).length }];
+}));
+check('6c EASY: about 30 in 100 easy calls are a single strike in a short round, or all the singles the pool has (MMA too: Jab, Cross and Teep)',
+  M.DISCIPLINES.every(d => Math.abs(shortRounds[d].share - Math.min(30, (100 * shortRounds[d].singles) / 8)) <= 5),
+  M.DISCIPLINES.map(d => shortRounds[d].share.toFixed(1)).join(','));
+check('6c3 EASY: a 12-call round never replays a combo while the 15 or more easy ones are not all heard (was about 1 round in 2)',
+  M.DISCIPLINES.every(d => shortRounds[d].rep12 === 0 && shortRounds[d].rep === 0), M.DISCIPLINES.map(d => `${shortRounds[d].rep}/${shortRounds[d].rep12}`).join(','));
+// The typed-out combo lists of the striking coach: a combo sits in one level of a discipline only.
+const { COMBOS: LEVEL_COMBOS } = await import('../components/training-mode/strikingCoachData.ts');
+const dupes = Object.entries(LEVEL_COMBOS).flatMap(([disc, levels]) => {
+  const all = Object.values(levels).flat();
+  return all.filter((t, i) => all.indexOf(t) !== i).map(t => `${disc}: ${t}`);
+});
+check('6c4 no combo is listed at two levels of one discipline (Boxing had Jab Cross Hook at Easy and Normal)', dupes.length === 0, dupes.join('; '));
 check('6c2 every discipline has single strikes in the pool, so a level 1 athlete is dealt single punches first', M.DISCIPLINES.every(d => P[d].filter(c => c.single).length >= 2 && P[d].filter(c => c.single).every(c => c.source === 'easy' && c.pieces === 1)), M.DISCIPLINES.map(d => P[d].filter(c => c.single).length).join());
 check('6d NORMAL: never more than 7 pieces', M.DISCIPLINES.every(d => at('NORMAL', d).maxPieces <= 7), M.DISCIPLINES.map(d => at('NORMAL', d).maxPieces).join());
 check('6e NORMAL: at most 2 difficult-kick combos in any round, and the cap is used where the pool has kicks',
