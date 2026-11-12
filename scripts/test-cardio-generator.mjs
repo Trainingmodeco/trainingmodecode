@@ -7,8 +7,10 @@
 // a set of cones can ever be generated — a suggested session you cannot start
 // is worse than no suggestion.
 
-import { cardioMovePool, availableMoves, generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig, moveAtInterval, scaleForLevel }
+import { cardioMovePool, availableMoves, generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig, moveAtInterval, scaleForLevel, DEFAULT_CARDIO_KIT }
   from '../components/training-mode/data/cardioGenerator.js';
+import { createCardioAddon, cardioAddonToPlayer, summarizeCardioAddon, intervalBlockSeconds }
+  from '../components/training-mode/data/cardioAddon.js';
 let pass=0, fail=0;
 const ok=(n,c,x='')=>{ if(c){pass++;console.log('  ok   '+n+(x?'  '+x:''));} else {fail++;console.log('  FAIL '+n+'  '+x);} };
 
@@ -81,6 +83,46 @@ ok('interval config rounds = moves x rounds', cfg.rounds === 5*s.rounds, String(
 ok('warmup carried in seconds', cfg.warmupSeconds===180);
 ok('coach names move 1 at interval 0', moveAtInterval(s,0).id===s.moves[0].id);
 ok('cycles back round', moveAtInterval(s,5).id===s.moves[0].id);
+
+// A card nobody equipped holds only the athlete's body and a rope (gen-04).
+{
+  const kitOnly = (m) => m.equipment === 'Bodyweight' || DEFAULT_CARDIO_KIT.includes(m.equipment);
+  let bad = [];
+  for (let level = 1; level <= 10; level++) {
+    for (let k = 0; k < 40; k++) {
+      const sess = generateCardioSession({ level, moveCount: 5, equipment: DEFAULT_CARDIO_KIT });
+      bad.push(...sess.moves.filter(m => !kitOnly(m)).map(m => `${level}:${m.name}`));
+      ok(`level ${level} default-kit card is full or the whole pool`, sess.moves.length === Math.min(5, availableMoves(level, DEFAULT_CARDIO_KIT).length));
+      if (k) break;
+    }
+  }
+  ok('default-kit cards ask for no bag, ball, rope or bar', bad.length === 0, bad.slice(0, 4).join(', '));
+  ok('a kit given as an array filters the same as a Set', availableMoves(6, ['Jump Rope']).length === availableMoves(6, new Set(['Jump Rope'])).length
+    && availableMoves(6, ['Jump Rope']).length < availableMoves(6).length);
+  const first = generateCardioSession({ level: 6, moveCount: 5, equipment: DEFAULT_CARDIO_KIT });
+  let swapBad = 0;
+  for (let i = 0; i < 5; i++) swapBad += swapMove(first, i, { level: 6, equipment: DEFAULT_CARDIO_KIT }).moves.filter(m => !kitOnly(m)).length;
+  ok('a swap stays inside the kit', swapBad === 0);
+}
+
+// The add-on's clock, summary and logged time agree (gen-09).
+{
+  for (const style of ['intervals', 'sprints', 'roadwork']) {
+    for (const mins of [10, 20, 30]) {
+      const addon = createCardioAddon({ cardioType: 'burpees', style, targetType: 'time', targetTimeSeconds: mins * 60 });
+      const p = cardioAddonToPlayer(addon);
+      ok(`${style} ${mins} min runs about ${mins} min`, Math.abs(p.estimatedSeconds - mins * 60) <= 60, `${p.estimatedSeconds}s`);
+      ok(`${style} ${mins} min: estimate is what the block builds`, p.estimatedSeconds === intervalBlockSeconds(p.intervalConfig));
+      ok(`${style} ${mins} min: summary names the target`, summarizeCardioAddon(addon).includes(`${mins} min`), summarizeCardioAddon(addon));
+    }
+  }
+  const tab = createCardioAddon({ cardioType: 'burpees', style: 'tabata', targetType: 'time', targetTimeSeconds: 1200 });
+  ok('tabata stays four minutes and the summary says so', cardioAddonToPlayer(tab).estimatedSeconds === 240 && summarizeCardioAddon(tab).includes('4 min') && !summarizeCardioAddon(tab).includes('20 min'), summarizeCardioAddon(tab));
+  const own = createCardioAddon({ cardioType: 'burpees', style: 'intervals', targetType: 'time', targetTimeSeconds: 900, intervals: { workSeconds: 40, restSeconds: 20, rounds: 6 } });
+  ok('a block the athlete shaped keeps its own rounds', cardioAddonToPlayer(own).intervalConfig.rounds === 6 && cardioAddonToPlayer(own).estimatedSeconds === 360);
+  const dist = createCardioAddon({ cardioType: 'burpees', style: 'intervals', targetType: 'distance', targetDistance: 3 });
+  ok('a distance target keeps the preset rounds', cardioAddonToPlayer(dist).intervalConfig.rounds === 8);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail?1:0);

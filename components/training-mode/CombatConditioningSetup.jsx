@@ -280,7 +280,9 @@ function CircuitPresetSelector({ selected, onSelect, compact }) {
       </div>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        // minmax(0, ..) so a long name wraps inside its card instead of
+        // pushing the row past the 16 px gutter on a 320 px phone.
+        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
         gap: 5,
       }}>
         {PRESETS.map(p => (
@@ -338,7 +340,7 @@ function PresetCard({ preset, active, onSelect, compact }) {
       <span style={{
         fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 9,
         color: active ? '#ff9a9a' : '#fff', letterSpacing: '0.02em', lineHeight: 1.1,
-        padding: '0 2px',
+        padding: '0 2px', maxWidth: '100%', overflowWrap: 'anywhere',
       }}>{preset.label}</span>
       {!compact && (
         <>

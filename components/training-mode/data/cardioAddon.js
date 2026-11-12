@@ -119,11 +119,49 @@ function timeLabel(seconds) {
   return `${Math.round(seconds / 60)} min`;
 }
 
+// The length of an interval or Tabata block, counted the way the player
+// builds its segments (CardioProtocolPlayer buildSegments), defaults included.
+export function intervalBlockSeconds(cfg) {
+  const c = cfg || {};
+  const work = c.workSeconds ?? c.fastSeconds ?? c.hardSeconds ?? 30;
+  const rest = c.restSeconds ?? c.easySeconds ?? 15;
+  return (c.rounds || 8) * (work + rest) + (c.warmupSeconds || 0) + (c.cooldownSeconds || 0);
+}
+
+const INTERVAL_STYLES = new Set(['intervals', 'sprints', 'roadwork', 'hiit']);
+
+// A preset block is sized to the time the athlete asked for, so the clock, the
+// summary line and the logged time all say the same thing: "20 min" of
+// intervals used to run the preset's 12 minutes and log 12. A block the
+// athlete shaped (addon.intervals) and Tabata (a fixed 4 minutes) keep their
+// own length; the summary then states that length.
+function presetIntervals(addon) {
+  if (addon.intervals) return addon.intervals;
+  if (addon.style === 'tabata') return INTERVAL_PRESETS.tabata;
+  const preset = INTERVAL_PRESETS[addon.style];
+  if (!preset) return null;
+  if (addon.targetType !== 'time' || !(addon.targetTimeSeconds > 0)) return preset;
+  const cycle = intervalBlockSeconds({ ...preset, rounds: 1 });
+  return { ...preset, rounds: Math.max(1, Math.round(addon.targetTimeSeconds / cycle)) };
+}
+
+// Seconds of the interval block an add-on will really run, or null when the
+// add-on is not an interval block of its own making (steady, custom, or a
+// block the athlete shaped, whose target is the athlete's word).
+function presetBlockSeconds(addon) {
+  if (addon.intervals || !(addon.style === 'tabata' || INTERVAL_STYLES.has(addon.style))) return null;
+  return intervalBlockSeconds(presetIntervals(addon));
+}
+
 // Middle segment of the summary line: the target ("10 min", "5K", "Manual").
 export function cardioTargetLabel(addon) {
   if (addon.targetType === 'distance') return distanceLabel(addon) || 'Distance';
   if (addon.targetType === 'manual') return 'Manual';
-  return timeLabel(addon.targetTimeSeconds);
+  // The athlete's own word while the block honours it to within a minute (a
+  // whole number of rounds rarely lands on the minute); the block's real length
+  // when it cannot, as with Tabata.
+  const block = presetBlockSeconds(addon);
+  return timeLabel(block != null && Math.abs(block - addon.targetTimeSeconds) > 60 ? block : addon.targetTimeSeconds);
 }
 
 // "Running • 10 min • Steady Pace"
@@ -139,27 +177,27 @@ export function cardioAddonToPlayer(addon) {
   const distLabel = addon.targetType === 'distance' ? distanceLabel(addon) : null;
 
   if (addon.style === 'tabata') {
-    const cfg = addon.intervals || INTERVAL_PRESETS.tabata;
+    const cfg = presetIntervals(addon);
     return {
       format: 'tabata',
       intervalConfig: cfg,
       durationSeconds: null,
       methodLabel,
       distanceLabel: distLabel,
-      estimatedSeconds: cfg.rounds * (cfg.hardSeconds + cfg.restSeconds),
+      estimatedSeconds: intervalBlockSeconds(cfg),
       methodId: type.methodId,
     };
   }
 
-  if (addon.style === 'intervals' || addon.style === 'sprints' || addon.style === 'roadwork' || addon.style === 'hiit') {
-    const cfg = addon.intervals || INTERVAL_PRESETS[addon.style];
+  if (INTERVAL_STYLES.has(addon.style)) {
+    const cfg = presetIntervals(addon);
     return {
       format: 'interval',
       intervalConfig: cfg,
       durationSeconds: null,
       methodLabel,
       distanceLabel: distLabel,
-      estimatedSeconds: cfg.rounds * (cfg.easySeconds + cfg.fastSeconds),
+      estimatedSeconds: intervalBlockSeconds(cfg),
       methodId: type.methodId,
     };
   }

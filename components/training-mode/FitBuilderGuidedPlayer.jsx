@@ -16,6 +16,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
+import { sideSuffix } from './fit-mode/sideRule';
 import ExerciseEditSheet from './shared/ExerciseEditSheet';
 import { loadProfile } from './data/userProfile';
 import { XP_PER_FIT_EXERCISE } from './data/userStats';
@@ -492,7 +493,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           if (!await awaitResume({ isPaused, isStale: stale })) return;
           setDisplay(i);
           playBeep();
-          if (voiceOn) speakAsync(String(i), { rate: 1.4 });
+          if (voiceOn) speakAsync(String(i), { rate: 1.4, dropIfBusy: true });
         }
         await delay(700);
         live.current.finishSet(version);
@@ -579,7 +580,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
   const handlePauseToggle = () => {
     setPaused(p => {
       const next = !p;
-      if (next) { cancelSpeech(); setAnnouncer('Paused'); }
+      if (next) { cancelSpeech(); setAnnouncer('Paused — tap ▶ to carry on'); }
       else setAnnouncer('Go!');
       return next;
     });
@@ -1014,9 +1015,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
     };
   }, [mapOpen, rowPointerMove, rowPointerUp]);
 
-  const kindLabel = plan.kind === 'reps' ? `${plan.reps} REPS · ON THE COUNT`
-    : plan.kind === 'weighted' ? `${plan.reps} REPS · ${fmtClock(plan.windowSec)} WINDOW`
-    : `${plan.seconds}s HOLD`;
+  const kindLabel = plan.kind === 'reps' ? `${plan.reps} REPS${sideSuffix(ex.name).toUpperCase()} · ON THE COUNT`
+    : plan.kind === 'weighted' ? `${plan.reps} REPS${sideSuffix(ex.name).toUpperCase()} · ${fmtClock(plan.windowSec)} WINDOW`
+    : `${plan.seconds}s HOLD${sideSuffix(ex.name).toUpperCase()}`;
 
   // The control strip, one footer for every phase: row 1 is the primary row
   // (REWIND · PAUSE · SKIP SET / SKIP REST / SET DONE, or CHANGE WT · START —
@@ -1163,7 +1164,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
           <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: st === 'now' || isGlow ? '#fff' : st === 'done' ? '#e8dcc8' : C.muted }}>{e2.name}</div>
             <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, fontWeight: 600, color: C.faint, marginTop: 1 }}>
-              {chain ? `${e2.reps} · straight into the next` : `${nSets}×${e2.reps} · rest ${e2.restSeconds || parseInt(e2.rest) || 60}s`}
+              {chain ? `${e2.reps}${sideSuffix(e2.name)} · straight into the next` : `${nSets}×${e2.reps}${sideSuffix(e2.name)} · rest ${e2.restSeconds || parseInt(e2.rest) || 60}s`}
             </div>
           </div>
           <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1388,7 +1389,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                     background: 'rgba(242,190,69,0.08)', border: '1px solid rgba(242,190,69,0.45)', color: GOLD,
                     fontFamily: "'Chakra Petch', system-ui, sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.12em',
                   }}
-                >{totalSets} × {ex.reps} · REST {restMax}s · ADJUST</button>
+                >{totalSets} × {ex.reps}{sideSuffix(ex.name)} · REST {restMax}s · ADJUST</button>
               )}
             </div>
 
@@ -1396,11 +1397,15 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
               <div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 54, color: GOLD, lineHeight: 1, textShadow: '0 0 24px rgba(253,224,71,0.55)' }}>✓</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.18em', marginTop: 10 }}>EXERCISE COMPLETE</div>
+                {/* The coach is quiet here, so the screen says what comes next. */}
+                {nextExercise && (
+                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 14, color: '#e6d4ff', marginTop: 10 }}>Up next: {nextExercise.name}</div>
+                )}
               </div>
             ) : phase === 'getready' ? (
               <div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: '#c9a6ff', letterSpacing: '0.22em', marginBottom: 8 }}>NEXT UP · SET 1 OF {totalSets}</div>
-                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 13, color: '#c4a4d8', marginBottom: 14 }}>{totalSets} sets · {plan.reps} reps</div>
+                <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 13, color: '#c4a4d8', marginBottom: 14 }}>{totalSets} sets · {plan.reps} reps{sideSuffix(ex.name)}</div>
                 <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 9, color: GOLD, letterSpacing: '0.2em', marginBottom: 2 }}>LOAD</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: changeWtOpen ? 14 : 0 }}>
                   {changeWtOpen && <button onClick={() => bumpReady(-wStep)} aria-label="Less weight" style={{ width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', background: 'rgba(168,85,247,0.08)', border: '1.5px solid rgba(168,85,247,0.5)', color: '#c9a6ff', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18 }}>−</button>}
@@ -1531,7 +1536,7 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                 }}>
                   <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, letterSpacing: '0.12em', marginBottom: 2, color: st === 'now' ? '#c9a6ff' : st === 'done' ? GOLD : st === 'skipped' ? SKIP_TONE : C.faint }}>{label}</div>
                   <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 8.5, fontWeight: 700, color: st === 'now' ? '#fff' : C.muted, letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2.name}</div>
-                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, fontWeight: 600, color: C.faint, marginTop: 1 }}>{e2.sets}×{e2.reps}</div>
+                  <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, fontWeight: 600, color: C.faint, marginTop: 1 }}>{e2.sets}×{e2.reps}{sideSuffix(e2.name)}</div>
                 </div>
               );
             })}
@@ -1610,7 +1615,9 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
                 </div>
               </div>
               <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 10.5, color: C.faint, marginTop: 4 }}>
-                tap any exercise to start it · hold + drag to reorder
+                {mapMode === 'complete' && exercises[glow]
+                  ? `Up next: ${exercises[glow].name}. Tap START NEXT, or pick another exercise.`
+                  : 'tap any exercise to start it · hold + drag to reorder'}
                 {Object.keys(chainByIdx).length > 0 && ' · ⛓ chains move, start and skip as one.'}
               </div>
             </div>
@@ -1626,17 +1633,32 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
             {/* The completion map: an exercise just finished and the next one
                 glows. Ending here is a quiet option under the list; closing
                 the sheet still starts the glowing one. */}
-            {mapMode === 'complete' && canFinishEarly(doneCount, exercises.length) && (
-              <div style={{ flexShrink: 0, padding: '8px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <button
-                  type="button"
-                  onClick={() => { clearGesture(); setConfirmFinish(true); }}
-                  style={{
-                    width: '100%', height: 44, borderRadius: 10, cursor: 'pointer',
-                    background: 'transparent', border: '1px solid rgba(242,190,69,0.35)', color: GOLD,
-                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.12em',
-                  }}
-                >FINISH WORKOUT</button>
+            {mapMode === 'complete' && (exercises[glow] || canFinishEarly(doneCount, exercises.length)) && (
+              <div style={{ flexShrink: 0, padding: '8px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* One plain way on: the same start the sheet's close gives. */}
+                {exercises[glow] && (
+                  <button
+                    type="button"
+                    onClick={closeMap}
+                    style={{
+                      width: '100%', height: 48, borderRadius: 11, cursor: 'pointer', border: 'none',
+                      background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, color: '#0a0014',
+                      fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
+                      boxShadow: '0 0 16px rgba(253,224,71,0.35)',
+                    }}
+                  >START NEXT</button>
+                )}
+                {canFinishEarly(doneCount, exercises.length) && (
+                  <button
+                    type="button"
+                    onClick={() => { clearGesture(); setConfirmFinish(true); }}
+                    style={{
+                      width: '100%', height: 44, borderRadius: 10, cursor: 'pointer',
+                      background: 'transparent', border: '1px solid rgba(242,190,69,0.35)', color: GOLD,
+                      fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, letterSpacing: '0.12em',
+                    }}
+                  >FINISH WORKOUT</button>
+                )}
               </div>
             )}
           </div>

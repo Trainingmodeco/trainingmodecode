@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { C, NAV_H } from '../Styles';
 import { FLOAT_BACKDROP, floatPanel } from './BottomSheet';
 import { exerciseInfo, difficultyPips } from '../data/exerciseInfo';
+import { equipmentLabel } from '../fit-mode/gearNote';
 
 // Spec 13 (WB-G) — the EXERCISE INFO sheet: "what IS this exercise?", the #1
 // beginner drop-off point. Display-only. Opened from the exercise NAME on a
@@ -133,7 +134,7 @@ export default function ExerciseInfoSheet({ exercise, fromSwap = false, onUse, o
               </div>
               <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
                 {exercise?.primaryMuscle && <Chip>{String(exercise.primaryMuscle).toUpperCase()}</Chip>}
-                {exercise?.equipment && <Chip>{String(exercise.equipment).toUpperCase()}</Chip>}
+                {exercise?.equipment && <Chip>{equipmentLabel(exercise).toUpperCase()}</Chip>}
                 <Chip tone="gold">
                   {diff.pips.map((on, i) => <span key={i} style={{ opacity: on ? 1 : 0.35 }}>●</span>)} {diff.label}
                 </Chip>

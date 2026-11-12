@@ -83,9 +83,16 @@ export function cardioMovePool() {
   return [...fromLibrary, ...ADDITIONS];
 }
 
-/** The movements allowed at this level and with this kit. */
+// What a card is built from until the athlete says otherwise: their own body
+// and a jump rope. The bag, the ball, the rope and the bar are for an athlete
+// who has them, so a card that nobody equipped never prescribes them.
+export const DEFAULT_CARDIO_KIT = ['Jump Rope'];
+
+/** The movements allowed at this level and with this kit (a Set or an array). */
 export function availableMoves(level = 1, equipment = null) {
-  const kit = equipment instanceof Set ? equipment : null;
+  // An array counts too: only a Set used to switch the filter on, so a list
+  // handed in by mistake quietly turned it off.
+  const kit = equipment instanceof Set ? equipment : Array.isArray(equipment) ? new Set(equipment) : null;
   return cardioMovePool().filter(m => {
     if ((DIFFICULTY_MIN_LEVEL[m.difficulty] ?? 99) > level) return false;
     if (kit && m.equipment !== 'Bodyweight' && !kit.has(m.equipment)) return false;

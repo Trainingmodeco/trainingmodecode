@@ -28,7 +28,7 @@ import MachineChooserModal from './shared/MachineChooserModal';
 import SpeedDial from './shared/SpeedDial';
 import IntervalQuickSet from './shared/IntervalQuickSet';
 import CardioSessionCard from './shared/CardioSessionCard';
-import { generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig, canSwap } from './data/cardioGenerator';
+import { generateCardioSession, swapMove, reorderMove, removeMove, sessionToIntervalConfig, canSwap, DEFAULT_CARDIO_KIT } from './data/cardioGenerator';
 import ProgressionNudgeCard from './shared/ProgressionNudgeCard';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -387,8 +387,8 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
     // one more tap before they saw the only controls that matter.
     if (style === 'steady') { setStyle('intervals'); setIntervalMode('target'); }
   };
-  const genOpts = () => ({ level, rng: Math.random });
-  const regenerate = () => setGenSession(generateCardioSession({ level, moveCount: 5 }));
+  const genOpts = () => ({ level, equipment: DEFAULT_CARDIO_KIT, rng: Math.random });
+  const regenerate = () => setGenSession(generateCardioSession({ level, moveCount: 5, equipment: DEFAULT_CARDIO_KIT }));
   const onSwapMove = (i) => setGenSession(prev => swapMove(prev, i, genOpts()));
   const onMoveUp = (i) => setGenSession(prev => reorderMove(prev, i, 'up'));
   const onMoveDown = (i) => setGenSession(prev => reorderMove(prev, i, 'down'));
@@ -772,7 +772,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
       setCategoryId('rounds');
       setStyle('intervals'); setIntervalMode('target');
       setRoundFormat('tabata'); applyFormat('tabata');
-      setGenSession(generateCardioSession({ level, moveCount: 5 }));
+      setGenSession(generateCardioSession({ level, moveCount: 5, equipment: DEFAULT_CARDIO_KIT }));
     }
     setPendingStart(true);
   };
@@ -1128,7 +1128,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                   onMoveDown={onMoveDown}
                   onRemove={onRemoveMove}
                   onRegenerate={regenerate}
-                  canSwapAt={(i) => canSwap(genSession, i, { level })}
+                  canSwapAt={(i) => canSwap(genSession, i, { level, equipment: DEFAULT_CARDIO_KIT })}
                 />
               ) : (
                 <button onClick={regenerate} style={{

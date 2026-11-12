@@ -11,6 +11,7 @@ import FitBuilderGuidedPlayer, { nextOpenIdx } from './FitBuilderGuidedPlayer';
 import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
 import { routineSlotLimit } from './data/entitlements';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
+import { waitUpTo, START_PRIME_CAP_MS } from './shared/tapGate';
 import useWakeLock from './hooks/useWakeLock';
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
 import WarmupTimer from './shared/WarmupTimer';
@@ -21,6 +22,8 @@ import { warmupSuggestionsFor } from './data/warmupSuggestions';
 import ExerciseEditSheet from './shared/ExerciseEditSheet';
 import ExerciseHistorySheet from './shared/ExerciseHistorySheet';
 import ExerciseInfoSheet from './shared/ExerciseInfoSheet';
+import { sideSuffix } from './fit-mode/sideRule';
+import { equipmentLabel } from './fit-mode/gearNote';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { HelpButton } from './shared/WorkoutHelpPanel';
@@ -192,7 +195,7 @@ function SwapSheet({ exercise, alternates, onSelect, onInfo, onClose }) {
                   {alt.name} <span style={{ color: C.violet, fontSize: 9 }}>ⓘ</span>
                 </div>
                 <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, color: C.faint, marginTop: 1 }}>
-                  {alt.sets}x{alt.reps} &middot; {alt.equipment}
+                  {alt.sets}x{alt.reps}{sideSuffix(alt.name)} &middot; {equipmentLabel(alt)}
                 </div>
               </div>
               <ChevronRight size={12} color={C.faint}/>
@@ -302,6 +305,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // half-done workout or coming back to the list after the player skips it
   // (you already warmed up). OFF / 5 / 10, 5 until the athlete picks.
   const [warmupOpen, setWarmupOpen] = useState(false);
+  const [starting, setStarting] = useState(false);   // START tapped, speech unlock still in its beat
   const [warmedUp, setWarmedUp] = useState(!!initialResumeData);
   const [warmupMin, setWarmupMin] = useState(() => {
     const v = loadWarmup('fitBuilder', 5);
@@ -1165,7 +1169,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             // Spec 11 — last-time progression verdict for this row.
             const prog = rowProgression(ex, prevRecRef.current);
             // The dose, the way the design prints it: "4 × 8" or "3 × 40s".
-            const dose = `${ex.sets} × ${ex.reps}`;
+            const dose = `${ex.sets} × ${ex.reps}${sideSuffix(ex.name)}`;
             const isPR = !!prog?.isPR;
             const swiping = gest?.mode === 'swipe' && gest.idx === i;
             const swipeDx = swiping ? gest.dx : 0;
@@ -1393,7 +1397,12 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             } else {
               // Prime speech on the user gesture so the guided coach can talk.
               setVoiceGender(profile?.voiceCoach || 'FEMALE');
-              await primeSpeech();
+              // Pressed at once; the speech unlock gets a beat, not the whole
+              // wait (see shared/tapGate).
+              if (starting) return;
+              setStarting(true);
+              await waitUpTo(primeSpeech(), START_PRIME_CAP_MS);
+              setStarting(false);
               // The first open exercise; if only skipped ones are left, the
               // first of those (starting it clears its skip).
               const n = exercises.length;
@@ -1420,7 +1429,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
           }}
         >
           {allDone ? <Trophy size={18}/> : <Play size={18} fill="currentColor" strokeWidth={0}/>}
-          {allDone ? 'COMPLETE WORKOUT' : 'START'}
+          {allDone ? 'COMPLETE WORKOUT' : starting ? 'STARTING…' : 'START'}
           {!allDone && warmupDue && (
             <span style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.12em', opacity: 0.7, marginLeft: -2 }}>· {warmupMin} MIN WARM-UP</span>
           )}
