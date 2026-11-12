@@ -265,6 +265,9 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   const [effortTier, setEffortTier] = useState(rs?.effortTier ?? 'normal');
   // INTERVALS on an outdoor run — random sprint chases (data/chase.js).
   const [chaseMode, setChaseMode] = useState(!!rs?.chaseMode);
+  // HALF-MILE CALLS: the coach calls every whole mile (or km); a split call
+  // at each half too is the athlete's option, off unless turned on.
+  const [halfCalls, setHalfCalls] = useState(!!rs?.halfCalls);
   // MACHINE: free run or a guided programme, and which programme.
   const [machineMode, setMachineMode] = useState(rs?.machineMode ?? 'free');
   const [programId, setProgramId] = useState(rs?.programId ?? null);
@@ -340,6 +343,9 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   // athlete typed one); the elite time is the usual two-thirds rule.
   const effortPace = effortPaceSec(effortMode === 'jog' ? 'jog' : 'run', effortTier, distanceUnit);
   const hasGoal = useDistanceGauge && !program && effGoalDistance > 0;
+  // Split calls need a distance: GPS, the machine's dial, or a programme on a
+  // machine with one (the rower has none).
+  const callsSplits = usesGps || usesMachine || (!!program && effMachine !== 'row');
   const autoPace = hasGoal ? computeAutoPace(effGoalDistance, distanceUnit, level, customTargetSec ?? Math.round(effGoalDistance * effortPace)) : null;
   // The dial opens on whatever speed holds the target pace, so the common case
   // is zero taps — on the setup screen AND during the run.
@@ -471,7 +477,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
   setupSnapRef.current = {
     categoryId, style, intervalMode, cfgByStyle, goalDistance, distanceUnit,
     customDistance, goalTimeSeconds, customTimeMin, customTargetMin, eqByGroup,
-    effortMode, effortTier, chaseMode, machineMode, programId,
+    effortMode, effortTier, chaseMode, halfCalls, machineMode, programId,
   };
   const reportProtocol = useCallback((st) => {
     onSessionState?.({ live: true, protocol: st, setup: setupSnapRef.current });
@@ -616,6 +622,7 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
       ghost: ghostPick,
       effortMode, effortTier,
       chaseMode: chaseMode && usesGps && !program,
+      halfCalls,
       program,
       machineKind: effMachine,
       noDistance: !!program && effMachine === 'row',
@@ -903,6 +910,21 @@ export default function CardioMode({ onBack, onFightMode, onSessionState, onStar
                     <span style={{ font: `700 9px ${HEAD}`, letterSpacing: '0.1em', color: '#C4A8FF', flexShrink: 0 }}>SET</span>
                   )}
                   <span style={{ font: `700 14px ${HEAD}`, color: '#7D7799' }}>›</span>
+                </button>
+              )}
+
+              {callsSplits && (
+                <button type="button" role="switch" aria-checked={halfCalls ? 'true' : 'false'} className="cm-opt" onClick={() => setHalfCalls(v => !v)} style={{
+                  minHeight: 44, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  background: '#110E1C', border: halfCalls ? `1.5px solid ${ARCADE.goldBorder}` : '1px solid rgba(255,255,255,0.09)', color: '#fff',
+                }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', font: `700 11px ${HEAD}`, letterSpacing: '0.12em', color: halfCalls ? GOLD : '#fff' }}>{distanceUnit === 'km' ? 'HALF-KM CALLS' : 'HALF-MILE CALLS'}</span>
+                    <span style={{ display: 'block', font: `500 11px ${BODY}`, color: MUTED, marginTop: 1, lineHeight: 1.25 }}>{halfCalls ? `A split call every half ${distanceUnit === 'km' ? 'km' : 'mile'} too.` : `Split calls every ${distanceUnit === 'km' ? 'km' : 'mile'}.`}</span>
+                  </span>
+                  <span aria-hidden="true" style={{ width: 36, height: 20, borderRadius: 99, flexShrink: 0, position: 'relative', background: halfCalls ? GOLD : 'rgba(255,255,255,0.12)', transition: 'background .2s' }}>
+                    <span style={{ position: 'absolute', top: 2, left: halfCalls ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left .2s' }}/>
+                  </span>
                 </button>
               )}
             </div>
