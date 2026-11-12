@@ -340,10 +340,16 @@ import { readFileSync } from 'node:fs';
     const quit = settleFightXp({ completed: 0, total: 3, difficulty: 'Normal', integrityResult: run(3, 16), mode: 'fight' });
     const quitCopy = fightSummaryCopy(quit);
     check('fight end: quitting with no round done reads SESSION ENDED, not MISSION FAILED', quitCopy.eyebrow === 'SESSION ENDED' && !/FAILED|NOT THIS TIME/.test(quitCopy.title) && quit.verdict.response === EARLY_NO_XP, JSON.stringify(quitCopy));
+    check('fight end: quitting at the start uses the quiet ended card with no incomplete bar', quitCopy.variant === 'ended' && quitCopy.quiet === true && quitCopy.title === 'ENDED EARLY', JSON.stringify(quitCopy));
+    {
+      const mc = readFileSync(new URL('../components/training-mode/shared/MissionComplete.jsx', import.meta.url), 'utf8');
+      check('fight end: the ended card carries no failure art and no red', /ended:\s+\{ label: 'SESSION ENDED'/.test(mc) && /: ended \? null/.test(mc) && !/ended:[^\n]*#ef4444/.test(mc));
+    }
     const passCopy = fightSummaryCopy(okRun);
     check('fight end: a finished session keeps its normal headline', passCopy.eyebrow === 'SESSION COMPLETE' && passCopy.note === null, JSON.stringify(passCopy));
     const refusedCopy = fightSummaryCopy(refusedRun);
-    check('fight end: a refused session keeps the validation headline', refusedCopy.eyebrow === 'VALIDATION FAILED', JSON.stringify(refusedCopy));
+    check('fight end: a refused session keeps the validation headline', refusedCopy.eyebrow === 'VALIDATION FAILED' && refusedCopy.variant === 'validation_failed' && !refusedCopy.quiet, JSON.stringify(refusedCopy));
+    check('fight end: a finished session keeps the success card', passCopy.variant === 'success' && !passCopy.quiet, JSON.stringify(passCopy));
 
     // B: an early end that pays nothing says why in the existing words.
     clock += 1000;

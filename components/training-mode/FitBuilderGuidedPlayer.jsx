@@ -1321,13 +1321,16 @@ export default function FitBuilderGuidedPlayer({ exercises, exerciseIdx, complet
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '8px 16px calc(max(120px, 18dvh) + env(safe-area-inset-bottom, 0px))' }}>
           {/* Progress — one segment per exercise (✓ gold, skipped amber, current
               fills set by set), tappable to open the workout map. */}
-          <div data-guide="fg-header" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          {/* The volume button sits over the top-right corner of this column
+              (VoiceMixer top 58, right 14), so the two header rows stop short
+              of it: SET 1/3 used to show only its first letter. */}
+          <div data-guide="fg-header" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, paddingRight: 46 }}>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 8, color: C.faint, letterSpacing: '0.12em' }}>EXERCISE {exerciseIdx + 1}/{exercises.length}</span>
             <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 8, color: GOLD, letterSpacing: '0.1em' }}>
               {chainCtx ? `ROUND ${chainCtx.round}/${chainCtx.rounds}` : `SET ${set}/${totalSets}`}
             </span>
           </div>
-          <div role="button" aria-label="Open workout map" onClick={openMap} style={{ flexShrink: 0, display: 'flex', gap: 3, marginBottom: 12, cursor: 'pointer', padding: '2px 0' }}>
+          <div role="button" aria-label="Open workout map" onClick={openMap} style={{ flexShrink: 0, display: 'flex', gap: 3, marginBottom: 12, cursor: 'pointer', padding: '2px 46px 2px 0' }}>
             {exercises.map((_, i) => {
               const st = statusOf(i);
               const setFill = Math.max(0.08, (set - 1 + (phase === 'rest' ? 1 : 0)) / totalSets);

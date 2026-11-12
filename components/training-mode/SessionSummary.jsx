@@ -115,7 +115,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   return (
     <MissionComplete
       onBack={onBack}
-      variant={verdict.preset.variant}
+      variant={copy.variant}
       eyebrow={copy.eyebrow}
       title={copy.title}
       subtitle={cfg.mode === 'Just Train'
@@ -125,7 +125,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       xp={xp}
       heroImage="/static/trophies/mission-complete-fight.webp"
       partialBadge="/static/trophies/good-effort.png"
-      integrityResult={integrityResult}
+      integrityResult={copy.quiet ? undefined : integrityResult}
       stats={statRow}
       extra={recap}
       summary={copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null}

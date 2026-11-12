@@ -38,6 +38,11 @@ export function fightSummaryCopy({ verdict, xp }) {
   return {
     eyebrow: endedEarly ? 'SESSION ENDED' : verdict.preset.eyebrow,
     title: endedEarly ? 'ENDED EARLY' : verdict.preset.title,
+    // The card's look: a session stopped at the start is 'ended' (quiet, no
+    // failure art), and its headline already says so, so the "incomplete"
+    // bar under it is left out.
+    variant: endedEarly ? 'ended' : verdict.preset.variant,
+    quiet: endedEarly,
     // fail and validation_failed already print verdict.response under the headline
     note: xp === 0 && verdict.outcome === 'partial' ? EARLY_MESSAGE : null,
   };

@@ -77,10 +77,13 @@ const VARIANT = {
   partial:           { label: 'GOOD EFFORT',       accent: '#a855f7', eyebrowColor: '#c9a6ff', glow: 'rgba(168,85,247,0.40)', pulse: false },
   fail:              { label: 'MISSION FAILED',    accent: '#ef4444', eyebrowColor: '#fca5a5', glow: 'rgba(239,68,68,0.40)',  pulse: false },
   validation_failed: { label: 'VALIDATION FAILED', accent: '#f59e0b', eyebrowColor: '#fcd34d', glow: 'rgba(245,158,11,0.40)', pulse: false },
+  // A session the athlete chose to stop before anything was done. Not a
+  // failure: no red, no failure art, just a quiet card that says it ended.
+  ended:             { label: 'SESSION ENDED',     accent: '#a8b3c7', eyebrowColor: '#cbd5e1', glow: 'rgba(148,163,184,0.28)', pulse: false },
 };
 
 export default function MissionComplete({
-  variant = 'success',      // 'success' | 'partial' | 'fail' | 'validation_failed'
+  variant = 'success',      // 'success' | 'partial' | 'fail' | 'validation_failed' | 'ended'
   eyebrow,                  // optional override for the ◈ … ◈ line
   title,
   subtitle,
@@ -105,18 +108,22 @@ export default function MissionComplete({
 }) {
   const v = VARIANT[variant] || VARIANT.success;
   const failed = variant === 'fail' || variant === 'validation_failed';
+  const ended = variant === 'ended';
+  // Nothing was earned: the failure variants and a session stopped at the start.
+  const unpaid = failed || ended;
   // `partial` still drives the muted layout (no rays, no pulse, ribbon badge);
-  // the two failure variants share that quieter treatment.
-  const partial = variant === 'partial' || failed;
+  // the failure variants and an ended session share that quieter treatment.
+  const partial = variant === 'partial' || unpaid;
   const label = eyebrow || v.label;
   // A win uses the accent it was handed (modes have their own gold/violet); the
   // failure variants force their own so red always reads as red.
-  const tone = failed ? v.accent : (accent || v.accent);
+  const tone = unpaid ? v.accent : (accent || v.accent);
   // Each variant shows its own emblem: the MISSION COMPLETE badge on a win, the
   // GOOD EFFORT badge on a stopped session. Failure reuses the Arcade art the
   // app already ships. No art → the medal.
   const badge = variant === 'fail' ? '/static/arcade/mission-failure.webp'
     : variant === 'validation_failed' ? '/static/arcade/validation-fail.webp'
+    : ended ? null
     : partial ? partialBadge : heroImage;
   const displayXp = useCountUp(xp);
 
@@ -131,8 +138,8 @@ export default function MissionComplete({
   const weekModes = new Set(weekSess.map(s => s.type)).size;
   const pct = lp.needed ? Math.round((lp.current / lp.needed) * 100) : 100;
 
-  const glowA = failed ? v.glow : partial ? 'rgba(168,85,247,0.4)' : hexA(tone, 0.5);
-  const glowB = failed ? hexA(tone, 0.18) : partial ? 'rgba(168,85,247,0.18)' : hexA(tone, 0.22);
+  const glowA = unpaid ? v.glow : partial ? 'rgba(168,85,247,0.4)' : hexA(tone, 0.5);
+  const glowB = unpaid ? hexA(tone, 0.18) : partial ? 'rgba(168,85,247,0.18)' : hexA(tone, 0.22);
 
   return (
     <PhoneFrame useBrandBg>
@@ -178,19 +185,19 @@ export default function MissionComplete({
               <div style={{
                 position: 'relative', width: 76, height: 76, borderRadius: '50%',
                 background: 'radial-gradient(circle at 50% 35%, rgba(30,10,50,0.95), rgba(8,2,18,0.95))',
-                border: `2px solid ${failed ? tone : partial ? 'rgba(168,85,247,0.5)' : tone}`,
+                border: `2px solid ${unpaid ? tone : partial ? 'rgba(168,85,247,0.5)' : tone}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 ['--mc-glow-a']: glowA, ['--mc-glow-b']: glowB,
                 animation: partial ? 'none' : 'mc-medal-pulse 2.5s ease-in-out infinite',
               }}>
-                <Trophy size={36} color={failed ? tone : partial ? '#b06aff' : tone} strokeWidth={1.6}/>
+                <Trophy size={36} color={unpaid ? tone : partial ? '#b06aff' : tone} strokeWidth={1.6}/>
               </div>
             </div>
             )}
             <div style={{ font: "700 7px 'Press Start 2P',monospace", color: v.eyebrowColor, letterSpacing: '0.16em', marginBottom: 4 }}>◈ {label} ◈</div>
             <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.08 }}>{title}</div>
             {subtitle && <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', marginTop: 2, textAlign: 'center' }}>{subtitle}</div>}
-            {failed && failReason && (
+            {unpaid && failReason && (
               <div style={{ font: "500 10px 'Rajdhani',sans-serif", color: hexA(tone, 0.85), marginTop: 5, textAlign: 'center', maxWidth: 260, lineHeight: 1.45 }}>{failReason}</div>
             )}
           </div>
@@ -202,8 +209,8 @@ export default function MissionComplete({
               third of the height. */}
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
             <div style={{ borderRadius: 10, border: `1px solid ${hexA(tone, 0.45)}`, background: `linear-gradient(135deg, ${hexA(tone, 0.14)}, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
-              <div style={{ font: "900 17px 'Orbitron',sans-serif", color: tone, textShadow: `0 0 14px ${hexA(tone, 0.5)}` }}>{failed ? '0' : `+${displayXp}`}</div>
-              <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: v.eyebrowColor, letterSpacing: '0.08em', marginTop: 1 }}>{failed ? 'NO XP AWARDED' : 'XP EARNED'}</div>
+              <div style={{ font: "900 17px 'Orbitron',sans-serif", color: tone, textShadow: `0 0 14px ${hexA(tone, 0.5)}` }}>{unpaid ? '0' : `+${displayXp}`}</div>
+              <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: v.eyebrowColor, letterSpacing: '0.08em', marginTop: 1 }}>{unpaid ? 'NO XP AWARDED' : 'XP EARNED'}</div>
             </div>
             {stats.map((s, i) => <Stat key={i} {...s}/>)}
           </div>
@@ -233,7 +240,7 @@ export default function MissionComplete({
               failure: a failed session still banks a little XP (the ruleset's
               0.15), which is enough for the share prompt to think it has a win
               to offer. It does not. */}
-          {shareData && !failed && (
+          {shareData && !unpaid && (
             <div style={{ marginBottom: 6 }}>
               <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, level }}/>
             </div>
