@@ -1158,11 +1158,14 @@ export default function App() {
       // number — the same helper the summary reads, so the two agree.
       const fs = fightSessionStats || {};
       const bonusXp = (fs.rush?.xp || 0) + (fs.cleanRoundXp || 0) + (fs.strongFinish?.xp || 0);
-      const { xp } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight', bonusXp });
-      addFightFocusSession(done, total, { justTrain, xp });
+      const { xp, verdict } = settleFightXp({ completed: done, total, difficulty: c.difficulty, integrityResult, mode: justTrain ? 'justTrain' : 'fight', bonusXp });
+      // A session the integrity check refused is logged (it paid 0) but counts
+      // toward no trophy and no lifetime fight total.
+      const unverified = verdict.outcome === 'validation_failed';
+      addFightFocusSession(done, total, { justTrain, xp, unverified });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
-      recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
+      if (!unverified) recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
       trackEvent('session_complete', { mode: justTrain ? 'justTrain' : 'fightFocus', rounds: done });
       // A win over the live ghost challenge settles it (the battle itself was
@@ -1181,14 +1184,15 @@ export default function App() {
       const total = typeof totalRounds === 'number' ? totalRounds : 1;
       const cs = fightSessionStats || {};
       const bonusXp = (cs.rush?.xp || 0) + (cs.cleanRoundXp || 0) + (cs.strongFinish?.xp || 0);
-      const { xp } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo', bonusXp });
-      addComboCoachSession(done, total, { xp });
+      const { xp, verdict } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo', bonusXp });
+      const unverified = verdict.outcome === 'validation_failed';
+      addComboCoachSession(done, total, { xp, unverified });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
       // 1.4 — when the accelerometer counted real thrown strikes, that number
       // (motion-verified) is the one that counts; otherwise the called count.
       const strikeTotal = cs.motionUsed ? (cs.thrown || 0) : (cs.strikes || 0);
-      recordFightSession({ rounds: done, strikes: strikeTotal, peakStreak: cs.peakStreak || 0 });
+      if (!unverified) recordFightSession({ rounds: done, strikes: strikeTotal, peakStreak: cs.peakStreak || 0 });
       tryCompleteDailyMission('comboCoach');
       trackEvent('session_complete', { mode: 'comboCoach', rounds: done });
       const comboCfgSnapshot = comboCfg;

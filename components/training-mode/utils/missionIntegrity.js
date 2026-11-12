@@ -116,8 +116,33 @@ export class IntegritySession {
     }
   }
 
-  startUnit(unitType) {
+  // A session restored after the phone killed the app starts with the rounds it
+  // had already banked, so a resume is not marked down for work it did before
+  // the kill.
+  seedValid(n) {
+    const count = Math.min(Math.max(0, Math.floor(n) || 0), Math.max(0, this.totalUnits));
+    for (let i = 0; i < count; i++) {
+      const at = Date.now();
+      this.units.push({
+        unitId: `${this.mode}_seed_${i}`, unitType: this.rules.validationMode,
+        startedAt: at, completedAt: at, activeElapsedSeconds: this.rules.minValidSeconds,
+        pausedElapsedSeconds: 0, idleElapsedSeconds: 0,
+        minValidSeconds: this.rules.minValidSeconds, maxValidSeconds: this.rules.maxValidSeconds,
+        validityStatus: VALIDITY.VALID, _pausedAt: null,
+      });
+    }
+    this.currentUnitIndex = this.units.length - 1;
+  }
+
+  validCount() {
+    return this.units.filter(u => u.validityStatus === VALIDITY.VALID).length;
+  }
+
+  // carrySeconds: time this round already ran before a restore, so a round
+  // resumed with 10 s left is not "too fast to verify".
+  startUnit(unitType, carrySeconds = 0) {
     const unit = {
+      carrySeconds: Math.max(0, Number(carrySeconds) || 0),
       unitId: `${this.mode}_${Date.now()}_${this.units.length}`,
       unitType: unitType || this.rules.validationMode,
       startedAt: Date.now(),
@@ -143,7 +168,7 @@ export class IntegritySession {
     unit.completedAt = Date.now();
     const totalMs = unit.completedAt - unit.startedAt;
     const pausedMs = unit.pausedElapsedSeconds * 1000;
-    unit.activeElapsedSeconds = Math.max(0, (totalMs - pausedMs) / 1000);
+    unit.activeElapsedSeconds = Math.max(0, (totalMs - pausedMs) / 1000) + (unit.carrySeconds || 0);
 
     unit.validityStatus = this._validateUnit(unit);
     this.lastUserActionAt = Date.now();

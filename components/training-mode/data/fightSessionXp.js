@@ -1,5 +1,5 @@
 import { calculatePartialXp } from '../utils/missionIntegrity';
-import { resolveOutcome, xpForOutcome } from '../shared/sessionOutcome';
+import { resolveOutcome, xpForOutcome, EARLY_NO_XP } from '../shared/sessionOutcome';
 import { fightTimerXp, comboCoachXp } from './userStats';
 
 // The ONE place a fight-timer session's XP is settled.
@@ -25,5 +25,20 @@ export function settleFightXp({ completed, total, difficulty, integrityResult, m
     : (integrityResult ? 0 : baseXp);
   const refused = integrityResult && integrityResult.awardXp === false;
   const bonus = refused || verdict.outcome === 'validation_failed' ? 0 : Math.round(Number(bonusXp) || 0);
-  return { verdict, baseXp, bonusXp: bonus, xp: Math.max(0, xpForOutcome(verdict.outcome, rawXp) + bonus) };
+  const xp = Math.max(0, xpForOutcome(verdict.outcome, rawXp) + bonus);
+  // refused: the integrity check paid nothing, so no bonus line may be shown.
+  return { verdict, baseXp, bonusXp: bonus, xp, refused: !!refused || verdict.outcome === 'validation_failed' };
+}
+
+// The headline and the one-line reason the summary shows. Quitting before a
+// round is done is a deliberate stop, not a failed mission; and a session that
+// pays nothing says why, in the words used for an early end everywhere else.
+export function fightSummaryCopy({ verdict, xp }) {
+  const endedEarly = verdict.outcome === 'fail' && verdict.completionRatio === 0;
+  return {
+    eyebrow: endedEarly ? 'SESSION ENDED' : verdict.preset.eyebrow,
+    title: endedEarly ? 'ENDED EARLY' : verdict.preset.title,
+    // fail and validation_failed already print verdict.response under the headline
+    note: xp === 0 && verdict.outcome === 'partial' ? EARLY_NO_XP : null,
+  };
 }

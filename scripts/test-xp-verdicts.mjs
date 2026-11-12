@@ -308,5 +308,112 @@ import { readFileSync } from 'node:fs';
   check('auto-pause: visible pages never pause', pauses === 1);
 }
 
+// ── striking end screens: a refused session, early ends, restores, trophies ─
+{
+  const { settleFightXp, fightSummaryCopy } = await import('../components/training-mode/data/fightSessionXp.js');
+  const { EARLY_NO_XP } = await import('../components/training-mode/shared/sessionOutcome.js');
+  const { IntegritySession } = await import('../components/training-mode/utils/missionIntegrity.js');
+  const { readCarry, carrySeconds } = await import('../components/training-mode/data/fightResume.js');
+  const realNow = Date.now;
+  let clock = 1_000_000;
+  Date.now = () => clock;
+  // One round of `sec` seconds on a session of `total` rounds.
+  const run = (total, sec, { seed = 0, carry = 0 } = {}) => {
+    const s = new IntegritySession('fightFocus', total);
+    if (seed) s.seedValid(seed);
+    s.startUnit('rounds', carry);
+    clock += sec * 1000;
+    s.completeUnit();
+    const r = s.finalize({});
+    s.destroy();
+    return r;
+  };
+  try {
+    // A: a 10 s Just Train round is refused, and no bonus line may stand beside that.
+    const fast = run(1, 10);
+    const refusedRun = settleFightXp({ completed: 1, total: 1, difficulty: 'Normal', integrityResult: fast, mode: 'justTrain', bonusXp: 5 });
+    check('fight end: a refused session pays no bonus and says refused', refusedRun.xp === 0 && refusedRun.bonusXp === 0 && refusedRun.refused === true && refusedRun.verdict.outcome === 'validation_failed', JSON.stringify(refusedRun));
+    const okRun = settleFightXp({ completed: 1, total: 1, difficulty: 'Normal', integrityResult: run(1, 60), mode: 'justTrain', bonusXp: 5 });
+    check('fight end: a verified session keeps its bonus and is not refused', okRun.refused === false && okRun.bonusXp === 5 && okRun.xp > 5, JSON.stringify(okRun));
+
+    // rtfight-03: quitting before a round ends is not a failed mission.
+    const quit = settleFightXp({ completed: 0, total: 3, difficulty: 'Normal', integrityResult: run(3, 16), mode: 'fight' });
+    const quitCopy = fightSummaryCopy(quit);
+    check('fight end: quitting with no round done reads SESSION ENDED, not MISSION FAILED', quitCopy.eyebrow === 'SESSION ENDED' && !/FAILED|NOT THIS TIME/.test(quitCopy.title) && quit.verdict.response === EARLY_NO_XP, JSON.stringify(quitCopy));
+    const passCopy = fightSummaryCopy(okRun);
+    check('fight end: a finished session keeps its normal headline', passCopy.eyebrow === 'SESSION COMPLETE' && passCopy.note === null, JSON.stringify(passCopy));
+    const refusedCopy = fightSummaryCopy(refusedRun);
+    check('fight end: a refused session keeps the validation headline', refusedCopy.eyebrow === 'VALIDATION FAILED', JSON.stringify(refusedCopy));
+
+    // B: an early end that pays nothing says why in the existing words.
+    clock += 1000;
+    const early = new IntegritySession('fightFocus', 8);
+    early.startUnit('rounds'); clock += 90_000; early.completeUnit();
+    const earlyRes = early.finalize({}); early.destroy();
+    const earlySettled = settleFightXp({ completed: 1, total: 8, difficulty: 'Normal', integrityResult: earlyRes, mode: 'justTrain' });
+    const earlyCopy = fightSummaryCopy(earlySettled);
+    check('fight end: 1 of 8 rounds pays 0 and the screen says why', earlySettled.xp === 0 && earlySettled.verdict.outcome === 'partial' && earlyCopy.note === EARLY_NO_XP, JSON.stringify([earlySettled.xp, earlySettled.verdict.outcome, earlyCopy]));
+    check('fight end: a session that pays XP shows no reason line', fightSummaryCopy({ verdict: okRun.verdict, xp: 20 }).note === null);
+
+    // xp-01: a 6-round session restored at round 4 is paid for the 3 rounds already banked.
+    const plain = settleFightXp({ completed: 6, total: 6, difficulty: 'Normal', integrityResult: run(6, 60), mode: 'fight' });
+    const restored = (() => {
+      const s = new IntegritySession('fightFocus', 6);
+      s.seedValid(3);
+      for (let i = 0; i < 3; i++) { s.startUnit('rounds'); clock += 60_000; s.completeUnit(); }
+      const r = s.finalize({}); s.destroy(); return r;
+    })();
+    const restoredPay = settleFightXp({ completed: 6, total: 6, difficulty: 'Normal', integrityResult: restored, mode: 'fight' });
+    check('restore: banked rounds are seeded, so XP is not halved', restored.validCompletedUnits === 6 && restored.isFullyValid && restoredPay.xp > 0, JSON.stringify(restored));
+    const unseeded = (() => {
+      const s = new IntegritySession('fightFocus', 6);
+      for (let i = 0; i < 3; i++) { s.startUnit('rounds'); clock += 60_000; s.completeUnit(); }
+      const r = s.finalize({}); s.destroy(); return r;
+    })();
+    const unseededPay = settleFightXp({ completed: 6, total: 6, difficulty: 'Normal', integrityResult: unseeded, mode: 'fight' });
+    check('restore: without the seed the same run was paid half (the old bug)', unseededPay.xp < restoredPay.xp, `${unseededPay.xp} vs ${restoredPay.xp}`);
+    void plain;
+    // A restore with 10 s left in the round: the time already run counts.
+    const lateResume = run(6, 10, { seed: 3, carry: carrySeconds({ phase: 'round', remaining: 10 }, 180) });
+    check('restore: a round resumed with 10 s left is not too fast to verify', lateResume.validCompletedUnits === 4 && lateResume.validityStatus !== 'tooFast', JSON.stringify(lateResume));
+    const noCarry = run(6, 10, { seed: 3 });
+    check('restore: a genuinely 10 s round is still refused', noCarry.validCompletedUnits === 3, JSON.stringify(noCarry));
+    check('restore: a rest carries no round time', carrySeconds({ phase: 'rest', remaining: 20 }, 180) === 0 && carrySeconds(null, 180) === 0);
+    const c = readCarry({ valid: 99, thrown: -4, perRound: [5, 'x', 7, 9, 9, 9, 9], clean: 2.7, peak: 12 }, 4);
+    check('restore: the carry is clamped to the session', c.valid === 4 && c.thrown === 0 && c.perRound.length === 4 && c.perRound[1] === 0 && c.clean === 2 && c.peak === 12, JSON.stringify(c));
+    check('restore: an older snapshot with no carry reads as zeros', readCarry(undefined, 3).valid === 0 && readCarry(null, 3).perRound.length === 0);
+  } finally {
+    Date.now = realNow;
+  }
+}
+{
+  // xp-13: a refused session is logged but earns no trophy progress.
+  const store = new Map();
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true, writable: true,
+    value: { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) },
+  });
+  const { addFightFocusSession, addComboCoachSession, loadStats: load } = await import('../components/training-mode/data/userStats.js');
+  const { fightTrophyContext } = await import('../components/training-mode/data/fightTrophies.js');
+  addFightFocusSession(3, 3, { xp: 0, unverified: true });
+  addComboCoachSession(3, 3, { xp: 0, unverified: true });
+  check('trophies: refused sessions are still in the log', load().sessions.length === 2 && load().sessions.every(s => s.unverified));
+  check('trophies: refused sessions do not count as finished fights', fightTrophyContext().finishedFights === 0 && fightTrophyContext().focusSessions === 0);
+  addFightFocusSession(3, 3, { xp: 80 });
+  check('trophies: a verified session still counts', fightTrophyContext().finishedFights === 1);
+  delete globalThis.localStorage;
+}
+{
+  // The screens are React, so the wiring is pinned by reading them.
+  const src = (f) => readFileSync(new URL(`../components/training-mode/${f}`, import.meta.url), 'utf8');
+  const combo = src('ComboCoachActive.jsx'), fight = src('FightFocusTimer.jsx'), app = src('App.jsx');
+  check('timers: Combo Coach has no loose setTimeout left (useLater clears them on leaving)', !/\bsetTimeout\(/.test(combo.replace(/\/\/.*$/gm, '')));
+  check('restore: both timers seed integrity from the carry and report it with every snapshot', [combo, fight].every(f => /useIntegritySession\([^)]*carry\.valid\)/.test(f) && /carry: \{\s*valid: integrity\.validCount\(\)/.test(f)));
+  check('restore: Fight Focus keeps its dealt drills and Combo Coach counts called strikes', /initialResumeData\.rounds/.test(fight) && /called: totalStrikesRef\.current/.test(combo));
+  check('restore: a restored Fight Focus run does not save a ghost', /initialResumeData\?\.carry == null/.test(fight));
+  check('combo rest 0: the count-in names the multi-opponent round', /MULTIPLE OPPONENTS` : `ROUND/.test(combo));
+  check('trophies: App skips lifetime fight totals for a refused session', (app.match(/if \(!unverified\) recordFightSession/g) || []).length === 2);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

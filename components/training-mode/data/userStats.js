@@ -73,7 +73,7 @@ export function fightTimerXp(roundsCompleted, totalRounds, { justTrain = false }
 
 // `xp` is the settled amount from data/fightSessionXp (outcome engine
 // applied); without it the flat rate is banked.
-export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain = false, xp } = {}) {
+export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain = false, xp, unverified = false } = {}) {
   const stats = loadStats();
   const xpEarned = typeof xp === 'number' ? xp : fightTimerXp(roundsCompleted, totalRounds, { justTrain });
   stats.xp += xpEarned;
@@ -84,6 +84,7 @@ export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain =
     completedCount: roundsCompleted,
     totalCount: totalRounds,
     xpEarned,
+    ...(unverified ? { unverified: true } : {}),
   });
   saveStats(stats);
   return xpEarned;
@@ -116,7 +117,7 @@ export function comboCoachXp(roundsCompleted, totalRounds) {
   return (roundsCompleted * XP_PER_COMBO_ROUND) + (roundsCompleted === totalRounds ? XP_SESSION_BONUS : 0);
 }
 
-export function addComboCoachSession(roundsCompleted, totalRounds, { xp } = {}) {
+export function addComboCoachSession(roundsCompleted, totalRounds, { xp, unverified = false } = {}) {
   const stats = loadStats();
   const xpEarned = typeof xp === 'number' ? xp : comboCoachXp(roundsCompleted, totalRounds);
   stats.xp += xpEarned;
@@ -127,6 +128,7 @@ export function addComboCoachSession(roundsCompleted, totalRounds, { xp } = {}) 
     completedCount: roundsCompleted,
     totalCount: totalRounds,
     xpEarned,
+    ...(unverified ? { unverified: true } : {}),
   });
   saveStats(stats);
   return xpEarned;

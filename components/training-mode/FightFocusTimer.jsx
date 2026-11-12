@@ -6,6 +6,7 @@ import { generateFightFocusSession } from './data/sessionGenerator';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import useLater from './hooks/useLater';
+import { readCarry, carrySeconds } from './data/fightResume';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import Emoji from './shared/Emoji';
@@ -68,10 +69,16 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   // 2.4b — a camp block injects its own per-round titles/prompts (real skill or
   // conditioning goals). When present they drive the session instead of the
   // generated fight combos; the normal Fight Focus path is untouched.
+  // A restored session keeps the drills it was dealt: dealing again would
+  // hand out different rounds mid-session and move the repeat-avoidance
+  // history on a second time.
   const rounds = useMemo(
     () => (cfg.blockRounds && cfg.blockRounds.length
       ? cfg.blockRounds
-      : generateFightFocusSession({ discipline, difficulty: cfg.difficulty, rounds: cfg.rounds })),
+      : Array.isArray(initialResumeData?.rounds) && initialResumeData.rounds.length === cfg.rounds
+        ? initialResumeData.rounds
+        : generateFightFocusSession({ discipline, difficulty: cfg.difficulty, rounds: cfg.rounds })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [discipline, cfg.difficulty, cfg.rounds, cfg.blockRounds],
   );
   const baseRoundSec = cfg.roundMin * 60;
@@ -82,7 +89,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   // against 'Hard' — Easy and Hard both fell through to the Normal spacing.
   const diff = String(cfg.difficulty || 'normal').toLowerCase();
 
-  const integrity = useIntegritySession('fightFocus', cfg.rounds);
+  // What an OS-kill restore brings back (rounds banked, strikes, clean rounds).
+  const carryRef = useRef(null);
+  if (!carryRef.current) carryRef.current = readCarry(initialResumeData?.carry, cfg.rounds);
+  const carry = carryRef.current;
+  const integrity = useIntegritySession('fightFocus', cfg.rounds, undefined, carry.valid);
   const integrityStartedRef = useRef(false);
   const [rapidWarning, setRapidWarning] = useState(null);
 
@@ -166,8 +177,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const strike = useStrikeCounter({ active: roundActive });
   const thrownRef = useRef(0);
   const motionRef = useRef(false);
-  thrownRef.current = strike.count;
-  motionRef.current = strike.motionSeen;
+  const thrownNow = strike.count + carry.thrown;
+  thrownRef.current = thrownNow;
+  motionRef.current = strike.motionSeen || carry.thrown > 0;
 
   // Live verdicts — each rush judged against the athlete's own pre-rush strike
   // rate (data/rushVerdict: blind when the phone cannot see them, so nobody
@@ -179,9 +191,11 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const baseStrikesRef = useRef(0);
   const lastVerdictThrownRef = useRef(0);
   const pausesThisRoundRef = useRef(0);
-  const cleanRoundsRef = useRef(0);
-  const verdictRoundStrikesRef = useRef([]);
-  const verdictRoundStartRef = useRef(0);
+  const cleanRoundsRef = useRef(carry.clean);
+  const verdictRoundStrikesRef = useRef([...carry.perRound]);
+  const verdictRoundStartRef = useRef(carry.roundStart);
+  // The restored round keeps the strike mark it started from; later rounds reset.
+  const keepRestoredMark = useRef(initialResumeData?.carry != null);
   const strongFinishRef = useRef(null);
   const [verdictFlash, fireVerdict] = useVerdictFlash();
   useEffect(() => { preloadXpBanners(); }, []);
@@ -226,8 +240,15 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ phase, roundIdx, remaining, sessionElapsed });
+      onStateChange({
+        phase, roundIdx, remaining, sessionElapsed, rounds: cfg.blockRounds?.length ? undefined : rounds,
+        carry: {
+          valid: integrity.validCount(), thrown: thrownRef.current, roundStart: verdictRoundStartRef.current,
+          clean: cleanRoundsRef.current, perRound: verdictRoundStrikesRef.current,
+        },
+      });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, roundIdx, remaining, sessionElapsed, onStateChange]);
 
   // The session clock: one tick a second whenever the session is live —
@@ -365,7 +386,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     lastVerdictThrownRef.current = thrownRef.current;
     pausesThisRoundRef.current = 0;
     rushWinRef.current = null;
-    verdictRoundStartRef.current = thrownRef.current;
+    verdictRoundStartRef.current = keepRestoredMark.current ? carry.roundStart : thrownRef.current;
+    keepRestoredMark.current = false;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
     if (keepRestoredClock.current) keepRestoredClock.current = false;
@@ -373,7 +395,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
     if (!integrityStartedRef.current) {
       integrityStartedRef.current = true;
-      integrity.startUnit('rounds');
+      // A restore during a rest has no round open; the next round opens its own.
+      if (initialResumeData?.phase !== 'rest') integrity.startUnit('rounds', carrySeconds(initialResumeData, roundSec));
     }
 
     if (skipInitialIntro.current) {
@@ -547,7 +570,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
             lastSwitchAtRef.current = el;
             const sw = nextSwitchCall();
             setCurCombo(sw.display);
-            setTimeout(() => setCurCombo(c => (c === sw.display ? null : c)), 2500);
+            later(() => setCurCombo(c => (c === sw.display ? null : c)), 2500);
             if (cfg.voiceOn) speakAsync(sw.speech, { ...vOpts, priority: 2, preempt: true });
           }
         }
@@ -578,7 +601,8 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         // Ghost Battles — close the last round, save this run as a ghost when
         // it's verified, and (if racing) resolve the battle at the final bell.
         perRoundStrikesRef.current.push(thrownRef.current - roundStartThrownRef.current);
-        const ghostVerified = (!integrityResult || integrityResult.isFullyValid) && thrownRef.current > 0;
+        // A restored run has lost its strike times, so it would save a thin ghost: skip it.
+        const ghostVerified = (!integrityResult || integrityResult.isFullyValid) && thrownRef.current > 0 && initialResumeData?.carry == null;
         recordGhostFromSession({
           mode: cfg.mode === 'Just Train' ? 'just_train' : 'fight_focus', discipline, difficulty: diff,
           roundsConfig: { rounds: cfg.rounds, roundSec, restSec: cfg.restSec },
@@ -675,7 +699,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     const actionResult = integrity.recordAction('next');
     if (actionResult.suspicious) {
       setRapidWarning(actionResult.message);
-      setTimeout(() => setRapidWarning(null), 2500);
+      later(() => setRapidWarning(null), 2500);
     }
     if (roundIdx + 1 < cfg.rounds) {
       integrity.completeUnit();
@@ -918,7 +942,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
         {/* 1.4 — live motion strike counter */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, minHeight: 22 }}>
-          <StrikeHud supported={strike.supported} permission={strike.permission} count={strike.count} onOpen={() => setStrikeSheetOpen(true)}/>
+          <StrikeHud supported={strike.supported} permission={strike.permission} count={thrownNow} onOpen={() => setStrikeSheetOpen(true)}/>
         </div>
 
         {/* Ring Timer with dimmed art background — responsive so it never clips on

@@ -7,6 +7,7 @@ import { moveLabCallStrings } from './data/customCombos';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
 import useLater from './hooks/useLater';
+import { readCarry, carrySeconds } from './data/fightResume';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playExtraLife, playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
@@ -110,7 +111,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   // ?? not ||: the setup lets ROUND REST go down to 0, and 0 is a real answer.
   const restSec = cfg.restSec ?? 60;
 
-  const integrity = useIntegritySession('comboCoach', totalRounds);
+  // What an OS-kill restore brings back (rounds banked, strikes, clean rounds).
+  const carryRef = useRef(null);
+  if (!carryRef.current) carryRef.current = readCarry(initialResumeData?.carry, totalRounds);
+  const carry = carryRef.current;
+  const integrity = useIntegritySession('comboCoach', totalRounds, undefined, carry.valid);
   const integrityStartedRef = useRef(false);
   const [rapidWarning, setRapidWarning] = useState(null);
   // Per-round call plans. The old build was ONE ordered pool consumed with
@@ -251,8 +256,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   // 1.5 — session tallies: total strikes called across all combos delivered,
   // and the best streak reached. Refs so they survive re-renders; snapshotted
   // into the summary at session end.
-  const totalStrikesRef = useRef(0);
-  const peakStreakRef = useRef(0);
+  const totalStrikesRef = useRef(carry.called);
+  const peakStreakRef = useRef(carry.peak);
   // 1.4 — motion-verified thrown strikes (accelerometer). Counts only during a
   // live work round. Snapshotted via refs so end-of-session closures aren't stale.
   const [strikeSheetOpen, setStrikeSheetOpen] = useState(false);
@@ -260,8 +265,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const strike = useStrikeCounter({ active: roundActive });
   const thrownRef = useRef(0);
   const motionRef = useRef(false);
-  thrownRef.current = strike.count;
-  motionRef.current = strike.motionSeen;
+  const thrownNow = strike.count + carry.thrown;
+  thrownRef.current = thrownNow;
+  motionRef.current = strike.motionSeen || carry.thrown > 0;
 
   // Live verdicts — each rush judged against the athlete's own pre-rush strike
   // rate (data/rushVerdict: blind when the phone cannot see them, so nobody
@@ -273,9 +279,11 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
   const baseStrikesRef = useRef(0);
   const lastVerdictThrownRef = useRef(0);
   const pausesThisRoundRef = useRef(0);
-  const cleanRoundsRef = useRef(0);
-  const verdictRoundStrikesRef = useRef([]);
-  const verdictRoundStartRef = useRef(0);
+  const cleanRoundsRef = useRef(carry.clean);
+  const verdictRoundStrikesRef = useRef([...carry.perRound]);
+  const verdictRoundStartRef = useRef(carry.roundStart);
+  // The restored round keeps the strike mark it started from; later rounds reset.
+  const keepRestoredMark = useRef(initialResumeData?.carry != null);
   const strongFinishRef = useRef(null);
   const [verdictFlash, fireVerdict] = useVerdictFlash();
   useEffect(() => { preloadXpBanners(); }, []);
@@ -294,7 +302,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
       fireVerdict({ pass: true, xp, banner: pickXpBanner('gain', { mode: 'fight', tier: verdictTier }) });
       // Said after the phase flip's effect cleanups have run (they cancel
       // speech), queued behind "Rest." (voice audit CC-3).
-      if (cfg.voiceOn !== false) setTimeout(() => speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 }), 450);
+      if (cfg.voiceOn !== false) later(() => speakAsync(`Rush held. Plus ${xp} X P.`, { priority: 2 }), 450);
     }
   };
   const closeRound = (isFinal) => {
@@ -302,7 +310,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     verdictRoundStartRef.current = thrownRef.current;
     if (pausesThisRoundRef.current === 0) {
       cleanRoundsRef.current += 1;
-      if (!isFinal && cfg.voiceOn !== false) setTimeout(() => speakAsync('Clean round. Plus five.', { priority: 1 }), 450);
+      if (!isFinal && cfg.voiceOn !== false) later(() => speakAsync('Clean round. Plus five.', { priority: 1 }), 450);
     }
     if (isFinal) {
       // Strong finish — the last round against the first two (data/roundIntensity).
@@ -340,8 +348,16 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
   useEffect(() => {
     if (typeof onStateChange === 'function') {
-      onStateChange({ phase, roundIdx, remaining });
+      onStateChange({
+        phase, roundIdx, remaining,
+        carry: {
+          valid: integrity.validCount(), thrown: thrownRef.current, roundStart: verdictRoundStartRef.current,
+          clean: cleanRoundsRef.current, perRound: verdictRoundStrikesRef.current,
+          called: totalStrikesRef.current, peak: peakStreakRef.current,
+        },
+      });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, roundIdx, remaining, onStateChange]);
 
   const voiceRate = cfg.speed === 'slow' ? 0.85 : cfg.speed === 'turbo' ? 1.1 : 1.0;
@@ -381,7 +397,9 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     const aborted = () => version !== roundVersion.current;
     const voice = cfg.voiceOn !== false;
 
-    setCountdownSub(`ROUND ${rIdx + 1}`);
+    // With ROUND REST 0 there is no rest cue ("Up next: multiple opponents"),
+    // so the count-in itself says what is coming.
+    setCountdownSub(rIdx === multiRound ? `ROUND ${rIdx + 1} \u2022 MULTIPLE OPPONENTS` : `ROUND ${rIdx + 1}`);
 
     setCountdown('3');
     await speakOrDelay('3', 1000, { voice });
@@ -428,7 +446,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     lastVerdictThrownRef.current = thrownRef.current;
     pausesThisRoundRef.current = 0;
     rushWinRef.current = null;
-    verdictRoundStartRef.current = thrownRef.current;
+    verdictRoundStartRef.current = keepRestoredMark.current ? carry.roundStart : thrownRef.current;
+    keepRestoredMark.current = false;
     encourageSchedule.current = scheduleEncouragements(roundSec, cfg.encouragement || 'normal');
     encourageFiredSet.current = new Set();
     if (keepRestoredClock.current) keepRestoredClock.current = false;
@@ -436,7 +455,8 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
     if (!integrityStartedRef.current) {
       integrityStartedRef.current = true;
-      integrity.startUnit('rounds');
+      // A restore during a rest has no round open; the next round opens its own.
+      if (initialResumeData?.phase !== 'rest') integrity.startUnit('rounds', carrySeconds(initialResumeData, roundSec));
     }
 
     if (skipInitialIntro.current) {
@@ -589,7 +609,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         setDone(true);
         finishedRef.current = true;
         const integrityResult = integrity.finalize({ thrown: thrownRef.current, motionUsed: motionRef.current });
-        setTimeout(() => {
+        later(() => {
           if (cfg.voiceOn !== false) speakAsync(getCoachCopy('fightComplete'), { priority: 3 });
         }, 400);
         // The closing line (and a "Rush held" verdict queued behind it) runs on
@@ -612,7 +632,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         setPhase('rest');
         setRemaining(restSec);
         const nextMulti = roundIdxRef.current + 1 === multiRound;
-        setTimeout(() => { if (cfg.voiceOn !== false) speakAsync(nextMulti ? 'Rest. Up next: multiple opponents.' : 'Rest.', { priority: 2 }); }, 400);
+        later(() => { if (cfg.voiceOn !== false) speakAsync(nextMulti ? 'Rest. Up next: multiple opponents.' : 'Rest.', { priority: 2 }); }, 400);
       }
     } else {
       setPhase('round');
@@ -763,7 +783,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
     const actionResult = integrity.recordAction('next');
     if (actionResult.suspicious) {
       setRapidWarning(actionResult.message);
-      setTimeout(() => setRapidWarning(null), 2500);
+      later(() => setRapidWarning(null), 2500);
     }
     if (roundIdx + 1 < totalRounds) {
       integrity.completeUnit();
@@ -895,7 +915,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
 
         {/* 1.4 — live motion strike counter */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 26 }}>
-          <StrikeHud supported={strike.supported} permission={strike.permission} count={strike.count} onOpen={() => setStrikeSheetOpen(true)}/>
+          <StrikeHud supported={strike.supported} permission={strike.permission} count={thrownNow} onOpen={() => setStrikeSheetOpen(true)}/>
         </div>
 
         {/* Pulsing beat-orb (design 13b) — responsive so it never clips on narrow

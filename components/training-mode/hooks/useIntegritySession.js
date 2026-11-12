@@ -1,12 +1,14 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { IntegritySession, MODE_RULES, canManualComplete, saveIntegrityResult } from '../utils/missionIntegrity';
 
-export default function useIntegritySession(mode, totalUnits, customRules) {
+// seedValid: rounds already banked before a restore (see IntegritySession.seedValid).
+export default function useIntegritySession(mode, totalUnits, customRules, seedValid = 0) {
   const sessionRef = useRef(null);
 
   if (!sessionRef.current) {
     const rules = customRules || MODE_RULES[mode];
     sessionRef.current = new IntegritySession(mode, totalUnits, rules);
+    if (seedValid > 0) sessionRef.current.seedValid(seedValid);
   }
 
   useEffect(() => {
@@ -17,9 +19,11 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
     };
   }, []);
 
-  const startUnit = useCallback((unitType) => {
-    return sessionRef.current?.startUnit(unitType) || null;
+  const startUnit = useCallback((unitType, carrySeconds) => {
+    return sessionRef.current?.startUnit(unitType, carrySeconds) || null;
   }, []);
+
+  const validCount = useCallback(() => sessionRef.current?.validCount() || 0, []);
 
   const completeUnit = useCallback(() => {
     return sessionRef.current?.completeUnit() || null;
@@ -69,6 +73,7 @@ export default function useIntegritySession(mode, totalUnits, customRules) {
 
   return {
     startUnit,
+    validCount,
     completeUnit,
     skipUnit,
     pause,

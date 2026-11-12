@@ -28,6 +28,9 @@ export const OUTCOME_PRESET = {
   },
 };
 
+// The one plain reason shown when an early end pays nothing.
+export const EARLY_NO_XP = 'Ended early — finish a full round to earn XP.';
+
 const clamp01 = (n) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0);
 
 /**
@@ -125,7 +128,7 @@ export function resolveOutcome({
     response = 'Ended early — the work you completed counts toward your stats.';
   } else if (ev.outcome === 'fail' && completionRatio === 0) {
     // Beta ND-04 — consequence language, never system language.
-    response = 'Ended early — finish a full round to earn XP.';
+    response = EARLY_NO_XP;
   }
 
   return {

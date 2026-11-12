@@ -82,7 +82,8 @@ export const FIGHT_TROPHIES = [
 
 // Snapshot of every stat the triggers read, computed once per render.
 export function fightTrophyContext() {
-  const sessions = loadStats().sessions || [];
+  // A session the integrity check refused paid nothing and earns no trophy.
+  const sessions = (loadStats().sessions || []).filter((s) => !s.unverified);
   const count = (type) => sessions.filter((s) => s.type === type).length;
   return {
     fight: loadFightStats(),

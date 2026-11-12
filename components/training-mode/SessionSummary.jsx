@@ -1,6 +1,6 @@
 import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
-import { settleFightXp } from './data/fightSessionXp';
+import { settleFightXp, fightSummaryCopy } from './data/fightSessionXp';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
@@ -20,12 +20,13 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   const strong = fightStats?.strongFinish || null;
   const roundSecForRate = Math.max(1, (cfg.roundMin || 3) * 60);
   const perMin = (rate) => Math.round((rate || 0) * 60);
-  const { verdict, xp, bonusXp } = settleFightXp({
+  const { verdict, xp, bonusXp, refused } = settleFightXp({
     completed, total: totalPlanned, difficulty: cfg.difficulty, integrityResult,
     mode: isCombo ? 'combo' : cfg.mode === 'Just Train' ? 'justTrain' : 'fight',
     bonusXp: (rush?.xp || 0) + cleanXp + (strong?.xp || 0),
   });
   const stoppedEarly = verdict.outcome !== 'pass';
+  const copy = fightSummaryCopy({ verdict, xp });
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);
   // Just Train runs on the Fight Focus timer but is its own thing to the
@@ -62,7 +63,8 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   // the outcome screen past a single viewport.
   const RECAP_MAX = 3;
   // Live verdicts — what the rushes and clean rounds did to the number.
-  const verdictLines = bonusXp !== 0 || rush?.attempts > 0 || cleanRounds > 0 ? (
+  // A refused session pays no bonus, so none of the +XP lines are shown for it.
+  const verdictLines = !refused && (bonusXp !== 0 || rush?.attempts > 0 || cleanRounds > 0) ? (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginBottom: 6, font: "900 8.5px 'Orbitron',sans-serif", letterSpacing: '0.12em' }}>
       {rush?.attempts > 0 && <span style={{ color: '#ffd27a' }}>⚡ RUSH {rush.passes}/{rush.attempts} · +{rush.xp} XP</span>}
       {rush?.blind > 0 && rush?.attempts === 0 && <span style={{ color: '#9a90b8' }}>⚡ RUSH · PHONE COULD NOT SEE YOU</span>}
@@ -73,7 +75,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   ) : null;
   // The rush log — how each rush was tracked, so a verdict is never a mystery:
   // the round, the athlete's rate before the call, the rate during it.
-  const rushLog = rush?.results?.length ? (
+  const rushLog = !refused && rush?.results?.length ? (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 6, font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8', letterSpacing: '0.04em' }}>
       {rush.results.slice(0, 4).map((r, i) => (
         <div key={i}>
@@ -114,8 +116,8 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
     <MissionComplete
       onBack={onBack}
       variant={verdict.preset.variant}
-      eyebrow={verdict.preset.eyebrow}
-      title={verdict.preset.title}
+      eyebrow={copy.eyebrow}
+      title={copy.title}
       subtitle={cfg.mode === 'Just Train'
         ? `${discipline} · ${modeName}`
         : `${discipline} · ${cfg.difficulty} · ${cfg.archetypeName || modeName}`}
@@ -126,6 +128,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       integrityResult={integrityResult}
       stats={statRow}
       extra={recap}
+      summary={copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null}
       failReason={verdict.response}
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
       actions={[
