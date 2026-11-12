@@ -382,11 +382,27 @@ export const GPS_MAX_ACCURACY_M = 35;   // ignore fixes the phone itself says ar
 export const GPS_RELAXED_ACCURACY_M = 50;
 export const GPS_WEAK_SIGNAL_MS = 20000;
 export const GPS_MAX_SPEED_MPS = 12;    // ~27 mph — nobody runs faster; it's a GPS jump
-export const GPS_MIN_STEP_M = 2;        // sub-2m moves are jitter while standing still
+export const GPS_MIN_STEP_M = 3;        // sub-3m moves are jitter while standing still
+// A step only counts when it is longer than this many times the WORSE of the
+// two accuracies it was measured between. Scatter while standing is about the
+// reported accuracy, so anything under ~2x it cannot be told from noise.
+export const GPS_JITTER_K = 2;
+// Phone-reported speed (coords.speed, doppler based) under this, over the last
+// few fixes, means standing: noise cannot add distance then.
+export const GPS_STILL_SPEED_MPS = 0.5;
+export const GPS_STILL_FIXES = 3;
+// A new anchor (start, resume, reload, or a position that shifted and stayed)
+// needs this many fixes that agree with each other before it is trusted.
+export const GPS_CONFIRM_FIXES = 3;
+const GPS_SMOOTH_FIXES = 5;             // position = mean of the last few fixes...
+const GPS_SMOOTH_MS = 6000;             // ...no older than this
+
+const worseAcc = (a, b) => Math.max(Number.isFinite(a) ? a : 0, Number.isFinite(b) ? b : 0);
 
 // Decide whether a fix advances the distance. Returns { accept, meters }.
-// `prev` is the last ACCEPTED fix ({ lat, lng, t }), `fix` the new one
-// ({ lat, lng, t, accuracy }). Time in ms.
+// `prev` is the last ACCEPTED fix ({ lat, lng, t, accuracy }), `fix` the new
+// one. Time in ms. This is the one-step rule; the players use
+// createGpsTracker() below, which adds smoothing, standing still and re-basing.
 // opts.relaxed: accept fixes up to GPS_RELAXED_ACCURACY_M (weak-signal fallback).
 export function evaluateFix(prev, fix, opts = {}) {
   if (!fix || !Number.isFinite(fix.lat) || !Number.isFinite(fix.lng)) return { accept: false, meters: 0, reason: 'bad' };
@@ -396,10 +412,95 @@ export function evaluateFix(prev, fix, opts = {}) {
   const d = haversineMeters(prev.lat, prev.lng, fix.lat, fix.lng);
   const dt = (fix.t - prev.t) / 1000;
   // Noise floor scales with the reported accuracy: a 20 m fix cannot resolve a 3 m move.
-  const floor = Math.max(GPS_MIN_STEP_M, Number.isFinite(fix.accuracy) ? fix.accuracy / 4 : GPS_MIN_STEP_M);
+  const floor = Math.max(GPS_MIN_STEP_M, GPS_JITTER_K * worseAcc(prev.accuracy, fix.accuracy));
   if (d < floor) return { accept: false, meters: 0, reason: 'jitter' };
   if (dt > 0 && d / dt > GPS_MAX_SPEED_MPS) return { accept: false, meters: 0, reason: 'jump' };
   return { accept: true, meters: d, reason: 'ok' };
+}
+
+// Two fixes that could both be the same real place: closer than the speed
+// limit allows plus their own accuracy.
+function consistentFixes(a, b) {
+  const dt = Math.abs(b.t - a.t) / 1000;
+  const slack = 2 * worseAcc(a.accuracy, b.accuracy);
+  return haversineMeters(a.lat, a.lng, b.lat, b.lng) <= GPS_MAX_SPEED_MPS * dt + slack;
+}
+
+function meanPos(fixes) {
+  let la = 0; let ln = 0;
+  for (const f of fixes) { la += f.lat; ln += f.lng; }
+  return { lat: la / fixes.length, lng: ln / fixes.length };
+}
+
+// The stateful filter every GPS run uses. Distance is measured from the last
+// COUNTED anchor, on positions smoothed over the last few seconds, and only
+// counts once the move is longer than max(GPS_MIN_STEP_M, K x the worse
+// accuracy). The anchor never moves on a rejected fix, so noise cannot add up
+// step by step. Several fixes reporting ~0 speed mean standing: nothing counts.
+// A start, resume or reload needs GPS_CONFIRM_FIXES fixes that agree before
+// anything is measured, and a position that jumps and STAYS is re-based
+// (anchor moved, no distance added) instead of counted as a long step.
+//
+// push(fix, { relaxed }) -> { accept, meters, reason, pos }
+//   reasons: bad, accuracy (not a usable fix), pending (still confirming a new
+//   anchor), first (anchor set, meters 0), rebase (anchor moved, meters 0),
+//   jump, still, jitter (rejected), ok (counted; pos is the smoothed position).
+// reset() forgets everything: call it when the run was away (pause, lock, reload).
+export function createGpsTracker() {
+  let anchor = null;   // { lat, lng, t, accuracy }: last counted (smoothed) position
+  let cand = [];       // fixes waiting to become a trusted anchor
+  let far = [];        // fixes rejected as impossible jumps that agree with each other
+  let win = [];        // recent accepted raw fixes, for smoothing
+  let speeds = [];     // recent { t, v } speed readings
+
+  const rebaseTo = (fixes, last, reason) => {
+    const p = meanPos(fixes);
+    anchor = { lat: p.lat, lng: p.lng, t: last.t, accuracy: last.accuracy };
+    win = fixes.slice(-GPS_SMOOTH_FIXES);
+    cand = [];
+    far = [];
+    speeds = [];
+    return { accept: true, meters: 0, reason, pos: p };
+  };
+
+  const push = (fix, opts = {}) => {
+    const v0 = evaluateFix(null, fix, opts);
+    if (v0.reason === 'bad' || v0.reason === 'accuracy') return { accept: false, meters: 0, reason: v0.reason };
+    if (!anchor) {
+      if (cand.length && !consistentFixes(cand[cand.length - 1], fix)) cand = [];
+      cand.push(fix);
+      if (cand.length < GPS_CONFIRM_FIXES) return { accept: false, meters: 0, reason: 'pending' };
+      return rebaseTo(cand, fix, 'first');
+    }
+    // Judge a jump against the previous fix, not the anchor: after minutes of
+    // standing the anchor is old and would let a stray fix through.
+    const ref = win.length ? win[win.length - 1] : anchor;
+    if (!consistentFixes(ref, fix)) {
+      // Too far, too fast. One stray fix is dropped; several that agree with
+      // each other mean the position really moved (or a bad lock): re-base.
+      if (far.length && !consistentFixes(far[far.length - 1], fix)) far = [];
+      far.push(fix);
+      if (far.length >= GPS_CONFIRM_FIXES) return rebaseTo(far, fix, 'rebase');
+      return { accept: false, meters: 0, reason: 'jump' };
+    }
+    far = [];
+    win.push(fix);
+    while (win.length > GPS_SMOOTH_FIXES || (win.length > 1 && fix.t - win[0].t > GPS_SMOOTH_MS)) win.shift();
+    if (Number.isFinite(fix.speed) && fix.speed >= 0) speeds.push({ t: fix.t, v: fix.speed });
+    speeds = speeds.filter((s) => fix.t - s.t <= 10000).slice(-GPS_STILL_FIXES);
+    if (speeds.length >= GPS_STILL_FIXES && speeds.reduce((a, s) => a + s.v, 0) / speeds.length < GPS_STILL_SPEED_MPS) {
+      return { accept: false, meters: 0, reason: 'still' };
+    }
+    const pos = meanPos(win);
+    const d = haversineMeters(anchor.lat, anchor.lng, pos.lat, pos.lng);
+    const floor = Math.max(GPS_MIN_STEP_M, GPS_JITTER_K * worseAcc(anchor.accuracy, fix.accuracy));
+    if (d < floor) return { accept: false, meters: 0, reason: 'jitter' };
+    anchor = { lat: pos.lat, lng: pos.lng, t: fix.t, accuracy: fix.accuracy };
+    return { accept: true, meters: d, reason: 'ok', pos };
+  };
+
+  const reset = () => { anchor = null; cand = []; far = []; win = []; speeds = []; };
+  return { push, reset, hasAnchor: () => !!anchor };
 }
 
 // Rolling pace from recent (tSec, meters) samples: distance covered in the

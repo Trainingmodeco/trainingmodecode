@@ -11,7 +11,7 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import { ARCADE } from './ArcadeUI';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
-import { buildIntervalIntro, buildSteadyIntro, steadyBrief, protocolSegmentLine, evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS } from './data/runCoach';
+import { buildIntervalIntro, buildSteadyIntro, steadyBrief, protocolSegmentLine, createGpsTracker, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS } from './data/runCoach';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
 
@@ -276,7 +276,7 @@ export default function CardioProtocolPlayer({
 
   // Real GPS tracking (outdoor runs). Accumulates distance between fixes and keeps
   // a route trail; falls back to the simulation when GPS is unavailable/denied.
-  const gpsRef = useRef({ watchId: null, last: null, meters: 0, pts: [], gaps: [], totalGapMs: 0 });
+  const gpsRef = useRef({ watchId: null, tracker: createGpsTracker(), meters: 0, pts: [], gaps: [], totalGapMs: 0 });
   const [gpsMeters, setGpsMeters] = useState(0);
   const [gpsFix, setGpsFix] = useState(false);
   const [gpsRoute, setGpsRoute] = useState([]);
@@ -508,24 +508,22 @@ export default function CardioProtocolPlayer({
         (pos) => {
           const { latitude, longitude, speed, accuracy } = pos.coords;
           const t = pos.timestamp || Date.now();
-          const fix = { lat: latitude, lng: longitude, t, accuracy };
+          const fix = { lat: latitude, lng: longitude, t, accuracy, speed };
           const relaxed = Date.now() - lastGoodAt > GPS_WEAK_SIGNAL_MS;
           if (!Number.isFinite(fix.accuracy) || fix.accuracy <= GPS_MAX_ACCURACY_M) lastGoodAt = Date.now();
-          const verdict = evaluateFix(gpsRef.current.last, fix, { relaxed });
+          const verdict = gpsRef.current.tracker.push(fix, { relaxed });
           if (!verdict.accept) {
-            if (verdict.reason !== 'first' && verdict.reason !== 'jitter') {
-              // an 'accuracy' or 'jump' reject still counts as a live fix
-              setGpsFix(true);
-            }
-            if (verdict.reason === 'first') gpsRef.current.last = fix;
+            // Any reject but 'pending' (a new anchor still being confirmed) is
+            // still a fix the phone delivered.
+            if (verdict.reason !== 'pending') setGpsFix(true);
             return;
           }
           if (verdict.meters > 0) {
             gpsRef.current.meters += verdict.meters;
             setGpsMeters(gpsRef.current.meters);
           }
-          gpsRef.current.last = fix;
-          gpsRef.current.pts.push({ lat: latitude, lng: longitude });
+          const at = verdict.pos || fix;
+          gpsRef.current.pts.push({ lat: at.lat, lng: at.lng });
           if (gpsRef.current.pts.length > 240) gpsRef.current.pts.shift();
           setGpsRoute(gpsRef.current.pts.slice());
           if (typeof speed === 'number' && speed >= 0) setGpsSpeed(speed);

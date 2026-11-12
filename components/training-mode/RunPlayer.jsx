@@ -37,7 +37,7 @@ import {
   buildRunIntro, machineSpeedLine, chaseIntroLine, chaseStartLine, chaseResultLine, chaseSummaryLine,
   ghostIntroLine, runResumedLine, programmeEndLine, freeRunEndLine, runEndedLine, crossedMarkers, crossedTenths, splitScript, freeRunSplitScript, finishScript,
   paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
-  evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS, rollingPaceSec, projectedFinish,
+  createGpsTracker, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS, rollingPaceSec, projectedFinish,
   ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
 } from './data/runCoach';
 
@@ -107,7 +107,6 @@ function newRun(cfg) {
     route: [],
     samples: [],
     trace: [],          // (t, d) every few seconds — becomes this run's ghost
-    lastFix: null,
     markersDone: [],
     splits: [],
     tenth: 0,
@@ -135,6 +134,10 @@ function newRun(cfg) {
 
 export default function RunPlayer({ cfg, restore = null, autoStart = true, onState, onGpsDenied, onComplete, onCaption }) {
   const runRef = useRef(null);
+  // The distance filter: smoothing, standing still, re-basing. Not persisted, so a
+  // reload starts it empty and nothing is measured from the pre-reload position.
+  const trackerRef = useRef(null);
+  if (!trackerRef.current) trackerRef.current = createGpsTracker();
   if (!runRef.current) runRef.current = restore ? { ...newRun(cfg), ...restore, cfg: restore.cfg || cfg } : newRun(cfg);
   const run = runRef.current;
   const unit = run.cfg.unit || 'mi';
@@ -290,7 +293,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     r.pauseAccumMs += Date.now() - r.pausedAt;
     r.pausedAt = null;
     // Distance resumes from wherever the athlete is now, no phantom jump.
-    r.lastFix = null;
+    trackerRef.current.reset();
     setRunning(true);
     persist(true);
     report({ running: true });
@@ -455,6 +458,13 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     // Only worth saying if the run was actually away (a call, a reload) —
     // tapping back and straight in again does not need a re-brief.
     const awayMs = Date.now() - (restore.updatedAt || 0);
+    // Time the app was dead (reload, OS kill) is a gap like a locked screen: the
+    // tracker above starts empty, so the first fixes only re-set the anchor.
+    if (useGps && restore.updatedAt && !r.pausedAt && awayMs >= 15000) {
+      r.gaps = [...(r.gaps || []), { atSec: Math.round(el), durationMs: awayMs }];
+      r.totalGapMs = (r.totalGapMs || 0) + awayMs;
+      persist(true);
+    }
     const t = setTimeout(() => {
       if (awayMs > 15000) say(runResumedLine(el, d, unit));
       else setCaption(`Back in. ${fmtClock(el)} on the clock.`);
@@ -509,10 +519,10 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     const onFix = (pos) => {
       if (!aliveRef.current) return;
       const r = runRef.current;
-      const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp || Date.now(), accuracy: pos.coords.accuracy };
+      const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp || Date.now(), accuracy: pos.coords.accuracy, speed: pos.coords.speed };
       const relaxed = Date.now() - lastGoodAt > GPS_WEAK_SIGNAL_MS;
       if (!Number.isFinite(fix.accuracy) || fix.accuracy <= GPS_MAX_ACCURACY_M) lastGoodAt = Date.now();
-      const verdict = evaluateFix(r.lastFix, fix, { relaxed });
+      const verdict = trackerRef.current.push(fix, { relaxed });
       if (verdict.reason === 'accuracy') { armStale(); return; }
       setGpsStatus('live');
       armStale();
@@ -525,15 +535,17 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         if (r.samples.length > SAMPLES_MAX) r.samples.shift();
         const last = r.trace[r.trace.length - 1];
         if (!last || el - last.t >= 3) r.trace.push({ t: Math.round(el * 10) / 10, d: +(r.meters / metersPerUnit(unit)).toFixed(4) });
-        r.route.push({ lat: fix.lat, lng: fix.lng, t: Math.round(el), m: Math.round(r.meters) });
+        // The smoothed position the distance was measured to, not the raw fix.
+        const at = verdict.pos || fix;
+        r.route.push({ lat: at.lat, lng: at.lng, t: Math.round(el), m: Math.round(r.meters) });
         if (r.route.length > ROUTE_SOFT_MAX) r.route = thinRoute(r.route, ROUTE_KEEP);
         setMeters(r.meters);
         setRoute(r.route.slice());
         persist();
       } else if (r.route.length === 0) {
-        r.route.push({ lat: fix.lat, lng: fix.lng, t: 0, m: 0 });
+        const at = verdict.pos || fix;
+        r.route.push({ lat: at.lat, lng: at.lng, t: 0, m: 0 });
       }
-      r.lastFix = fix;
     };
     const onErr = (err) => {
       if (!aliveRef.current) return;
@@ -836,7 +848,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           const r = runRef.current;
           r.gaps.push({ atSec: Math.round(liveRunElapsedSec(r)), durationMs: gapMs });
           r.totalGapMs += gapMs;
-          r.lastFix = null;
+          trackerRef.current.reset();
           setCaption('Clock kept running while the app was away. GPS distance resumes from here.');
           persist(true);
         }
@@ -855,9 +867,12 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   }, [persist]);
 
   // ── Derived numbers for the HUD ───────────────────────────────────────────
+  // A GPS run that has measured something and then lost the signal has no
+  // current pace; the target pace is only the stand-in while nothing was ever measured.
+  const gpsLost = useGps && !machine && !usingGps && meters > 0;
   const curPace = machine ? paceFromSpeed(speedNow)
     : usingGps ? (rollingPaceSec(run.samples, elapsedSec, unit, 30) || (dist > 0.1 ? elapsedSec / dist : null))
-      : (running ? run.cfg.targetPaceSec : null);
+      : (running && !gpsLost ? run.cfg.targetPaceSec : null);
   // A projected finish needs a finish. Free runs and programmes have none.
   const projected = (!freeRun && !program) ? projectedFinish(dist, elapsedSec, goal) : null;
   const vsTarget = projected != null && run.cfg.targetSec != null ? projected - run.cfg.targetSec : null;
@@ -929,13 +944,16 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
   // ── Done card ─────────────────────────────────────────────────────────────
   if (phase === 'done' && result) {
     const avg = result.avgPaceSec;
+    // No fix was ever measured: the distance is the clock at target pace, and so
+    // is the pace. Say so, and do not grade it against the target it came from.
+    const estDone = !noDistance && !machine && !result.gps;
     return (
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 0' }}>
         <div style={{ fontFamily: mono, fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: '0.22em', marginBottom: 6 }}>
           {result.program ? (result.completed ? 'PROGRAMME COMPLETE' : 'PROGRAMME ENDED') : result.freeRun ? 'RUN COMPLETE' : result.completed ? 'GOAL REACHED' : 'RUN ENDED'}
         </div>
         {!noDistance && (
-          <div style={{ fontFamily: mono, fontSize: 52, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{result.completedDistance.toFixed(2)}<span style={{ fontSize: 14, color: GOLD, marginLeft: 6 }}>{unit.toUpperCase()}</span></div>
+          <div style={{ fontFamily: mono, fontSize: 52, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 18px rgba(253,224,71,0.35)' }}>{result.completedDistance.toFixed(2)}<span style={{ fontSize: 14, color: GOLD, marginLeft: 6 }}>{unit.toUpperCase()}</span>{estDone && <span style={{ fontSize: 14, color: '#9a90b8', marginLeft: 6 }}>EST</span>}</div>
         )}
         <div style={{ fontFamily: mono, fontSize: noDistance ? 52 : 28, fontWeight: 900, color: GOLD, marginTop: 8 }}>{fmtClock(result.completedTimeSeconds)}</div>
         {result.program && (
@@ -944,10 +962,10 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           </div>
         )}
         <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {!noDistance && <Stat label="AVG PACE" value={avg ? fmtPace(avg, unit) : '--'} />}
+          {!noDistance && <Stat label={estDone ? 'AVG PACE · EST' : 'AVG PACE'} value={avg ? fmtPace(avg, unit) : '--'} />}
           {result.targetSec != null ? (
             <Stat label="VS TARGET" value={fmtSignedDelta(result.completedTimeSeconds - result.targetSec)} color={result.beatTarget ? '#8fe8ac' : '#ff9a52'} />
-          ) : (!noDistance && avg && result.targetPaceSec ? (
+          ) : (!noDistance && !estDone && avg && result.targetPaceSec ? (
             <Stat label="VS TARGET PACE" value={fmtSignedDelta(avg - result.targetPaceSec)} color={avg <= result.targetPaceSec ? '#8fe8ac' : '#ff9a52'} />
           ) : null)}
           {result.eliteSec ? <Stat label="VS ELITE" value={fmtSignedDelta(result.completedTimeSeconds - result.eliteSec)} color={result.beatElite ? '#8fe8ac' : '#c9a6ff'} /> : null}
@@ -1118,7 +1136,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
 
       {/* Pace + targets */}
       <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 12 }}>
-        {!noDistance && <Chip label="PACE" value={curPace ? fmtClock(curPace) : '--:--'} sub={`/${unit}`} color={paceColor} />}
+        {!noDistance && <Chip label="PACE" value={curPace ? fmtClock(curPace) : '--:--'} sub={gpsLost ? 'GPS LOST' : `/${unit}`} color={paceColor} />}
         {program && progSeg ? (
           <>
             <Chip label="SET" value={progSeg.speed ? fmtSpeed(progSeg.speed) : progSeg.label} sub={progSeg.speed ? `${speedUnitLabel(unit)}${progSeg.incline ? ` · ${progSeg.incline}%` : ''}` : String(progSeg.target).toUpperCase()} color={progSeg.kind === 'sprint' ? GOLD : '#fff'} />
