@@ -3,7 +3,7 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { getCurrentUser, onAuthChange, signInWithGoogle, signOut, userProfile } from './data/authClient';
 import { refreshEntitlement, clearEntitlementCache } from './data/entitlements';
-import { onSyncState, syncNow, listLocalBackups, restoreLocalBackup, SYNC_ERROR_STORAGE, SYNC_ERROR_SWITCH } from './data/cloudSync';
+import { onSyncState, syncNow } from './data/cloudSync';
 
 // Account card for the Profile screen. Signed out → "Continue with Google";
 // signed in → the athlete's Google identity + sign out. Sign-in is optional —
@@ -40,10 +40,6 @@ export default function AccountCard() {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sync, setSync] = useState({ status: 'idle', at: null });
-  // Copies the sync kept before it changed this device. The first tap asks,
-  // the second restores.
-  const [backups, setBackups] = useState([]);
-  const [confirmRestore, setConfirmRestore] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -60,8 +56,7 @@ export default function AccountCard() {
     // Fail open: never leave the card stuck on its placeholder if the auth
     // client is slow or unavailable — fall back to the signed-out state.
     const t = setTimeout(() => { if (alive) setReady(true); }, 1500);
-    // listLocalBackups reads only the short list of copies, not the copies.
-    const unsubSync = onSyncState((s) => { if (alive) { setSync(s); setBackups(listLocalBackups()); } });
+    const unsubSync = onSyncState((s) => { if (alive) setSync(s); });
     return () => { alive = false; clearTimeout(t); unsub(); unsubSync(); };
   }, []);
 
@@ -106,28 +101,11 @@ export default function AccountCard() {
             }}/>
             <span style={{ font: "600 9px 'Rajdhani',sans-serif", color: sync.status === 'error' ? '#f87171' : '#9a90b8', letterSpacing: '0.02em' }}>
               {sync.status === 'syncing' ? 'Backing up…'
-                : sync.status === 'error' && sync.error === SYNC_ERROR_SWITCH ? 'Storage full: this account can\'t sync here yet. Free up space, then tap'
-                : sync.status === 'error' && sync.error === SYNC_ERROR_STORAGE ? 'Storage full: free up space, then tap to retry'
                 : sync.status === 'error' ? 'Backup failed — tap to retry'
                 : sync.status === 'offline' ? 'Offline — will back up later'
                 : sync.at ? `Progress backed up ${agoLabel(sync.at)}` : 'Tap to back up progress'}
             </span>
           </button>
-          {backups.length > 0 && (
-            <button
-              onClick={() => {
-                if (!confirmRestore) { setConfirmRestore(true); return; }
-                setConfirmRestore(false);
-                restoreLocalBackup();
-                setBackups(listLocalBackups());
-              }}
-              style={{ background: 'none', border: 'none', padding: '3px 0 0', cursor: 'pointer', display: 'block', textAlign: 'left', font: "600 9px 'Rajdhani',sans-serif", color: confirmRestore ? '#fde047' : '#9a90b8', letterSpacing: '0.02em' }}
-            >
-              {confirmRestore
-                ? `Tap again to restore the copy from ${agoLabel(backups[0].at)}`
-                : 'Restore previous copy'}
-            </button>
-          )}
         </div>
         <button onClick={() => { clearEntitlementCache(); signOut(); }} style={{ flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '7px 11px', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", color: '#f87171', letterSpacing: '0.08em' }}>SIGN OUT</button>
       </div>

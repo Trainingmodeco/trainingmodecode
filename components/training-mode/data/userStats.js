@@ -1,8 +1,6 @@
 import { generatedMissionXp } from './quickMissionXp';
 
 const STORAGE_KEY = 'tm_user_stats';
-// The cloud sync's restorable copies and their list (data/cloudSync.js).
-const SYNC_COPY_KEYS = ['tm_sync_backups', 'tm_sync_backup_index', 'tm_sync_backup'];
 
 export const WEEKLY_GOAL = 5;
 
@@ -50,17 +48,7 @@ export function loadStats() {
 function saveStats(stats) {
   _statsCache = null; // invalidate → next loadStats re-parses a fresh object
   if (typeof localStorage === 'undefined') return;
-  const text = JSON.stringify(stats);
-  try {
-    localStorage.setItem(STORAGE_KEY, text);
-  } catch {
-    // Storage full. The cloud sync's restorable copies (data/cloudSync.js)
-    // are the one thing on the device that can go without losing anything
-    // the athlete did; a workout cannot. Drop them and try once more (a
-    // second failure throws, as before).
-    for (const k of SYNC_COPY_KEYS) { try { localStorage.removeItem(k); } catch { /* noop */ } }
-    localStorage.setItem(STORAGE_KEY, text);
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('training-mode-stats-updated'));
   }

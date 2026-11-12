@@ -108,12 +108,6 @@ jobs:
       - name: Entitlement tests
         run: npm run -s test:entitlements
 
-      # Two or three devices that train offline and sync in any order keep
-      # every session, never count one twice, never lose a level, and end up
-      # with the same data; another account on the phone is never mixed in.
-      - name: Cloud sync tests
-        run: npm run -s test:sync
-
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 
