@@ -9,7 +9,7 @@ import { getAudioContext, getCueOut, getVoiceVolume, getAudioSettings, VOICE_MAX
 // silent. A line the coach says is cut into phrases (voicePhrases.js); when
 // every phrase has a clip, the clips play back to back through Web Audio and
 // the speech engine is not touched. Otherwise the line goes to the speech
-// engine exactly as before.
+// engine, and when the engine cannot speak the phrases that have clips play.
 //
 // Manifest (fixed): GET /voice/<voice>/manifest.json
 //   { "voice": "female"|"male", "version": 1,
@@ -97,10 +97,26 @@ export function forgetVoiceBank(voice) {
   banks.delete(key);
 }
 
+// A whole number from 101 to 9999 that has no clip of its own, said from
+// parts the bank holds: thousands ("1000".."9000"), hundreds ("100".."900"),
+// then the rest (1..99). 105 -> "100" + "5", 2350 -> "2000" + "300" + "50".
+// Null when it is not such a number or a part has no clip.
+export function numberParts(bank, word) {
+  if (!/^[1-9]\d{2,3}$/.test(String(word))) return null;
+  const n = Number(word);
+  if (n < 101) return null;
+  const parts = [];
+  if (n >= 1000) parts.push(String(Math.floor(n / 1000) * 1000));
+  if (n % 1000 >= 100) parts.push(String(Math.floor((n % 1000) / 100) * 100));
+  if (n % 100) parts.push(String(n % 100));
+  return parts.every((k) => bank.clips[k]) ? parts : null;
+}
+
 // A phrase the bank has no whole clip for, as the fewest clips that say it in
 // order: "straight into goblet squats" -> "straight into" + "goblet squats",
 // "plus 20 x p" -> "plus" + "20" + "x p". Digits split from the words around
-// them first (tokensOf). Null when some word has no clip at all.
+// them first (tokensOf). A number with no clip of its own is said from its
+// parts (numberParts). Null when some word has no clip at all.
 const MAX_PIECE_WORDS = 8;
 export function piecesFor(bank, phrase) {
   const words = tokensOf(phrase).flatMap((t) => t.split(/\s+/)).filter(Boolean);
@@ -108,34 +124,49 @@ export function piecesFor(bank, phrase) {
   if (!n || n > 40) return null;
   const best = new Array(n + 1).fill(null);
   best[0] = [];
+  const take = (i, keys) => { if (!best[i] || keys.length < best[i].length) best[i] = keys; };
   for (let i = 1; i <= n; i++) {
     for (let j = Math.max(0, i - MAX_PIECE_WORDS); j < i; j++) {
       if (!best[j]) continue;
       const key = words.slice(j, i).join(' ');
-      if (!bank.clips[key]) continue;
-      if (!best[i] || best[j].length + 1 < best[i].length) best[i] = [...best[j], key];
+      if (bank.clips[key]) { take(i, [...best[j], key]); continue; }
+      if (i - j !== 1) continue;
+      const parts = numberParts(bank, key);
+      if (parts) take(i, [...best[j], ...parts]);
     }
   }
   return best[n];
 }
 
-// A line -> the clips to play, in order, or null when any phrase can't be
-// said from clips (the whole line then goes to the speech engine). Each
-// phrase is looked up whole first, then as the fewest pieces (piecesFor),
-// with GAP_STRIKE between the pieces.
-export function planClips(bank, line) {
+// A line -> its plan as far as the bank can say it: { plan, missing }.
+// `plan` holds the clips of every phrase the bank can say, in order (each
+// phrase whole first, then as the fewest pieces, GAP_STRIKE between the
+// pieces); `missing` lists the phrases it cannot. Null for an empty line or
+// no bank.
+export function planLine(bank, line) {
   if (!bank || !bank.clips) return null;
   const phrases = phrasesOf(line);
   if (!phrases.length) return null;
   const plan = [];
+  const missing = [];
   for (const ph of phrases) {
+    // A skipped phrase leaves no silence of its own: the first phrase that
+    // plays starts at once, the others keep their usual gap.
+    const gap = plan.length ? ph.gap : 0;
     const whole = bank.clips[ph.text];
-    if (whole) { plan.push({ key: ph.text, file: whole.file, ms: whole.ms, gap: ph.gap }); continue; }
+    if (whole) { plan.push({ key: ph.text, file: whole.file, ms: whole.ms, gap }); continue; }
     const keys = piecesFor(bank, ph.text);
-    if (!keys) return null;
-    keys.forEach((t, i) => plan.push({ key: t, file: bank.clips[t].file, ms: bank.clips[t].ms, gap: i === 0 ? ph.gap : GAP_STRIKE }));
+    if (!keys) { missing.push(ph.text); continue; }
+    keys.forEach((t, i) => plan.push({ key: t, file: bank.clips[t].file, ms: bank.clips[t].ms, gap: i === 0 ? gap : GAP_STRIKE }));
   }
-  return plan;
+  return { plan, missing };
+}
+
+// A line -> the clips to play, in order, or null when any phrase can't be
+// said from clips (the whole line then goes to the speech engine).
+export function planClips(bank, line) {
+  const r = planLine(bank, line);
+  return r && !r.missing.length ? r.plan : null;
 }
 
 // Milliseconds a plan takes at `rate`, from the manifest's clip lengths.

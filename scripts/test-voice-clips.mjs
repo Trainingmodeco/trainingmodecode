@@ -5,6 +5,7 @@
 // gaps, cancellation and the start/end signals can be checked.
 // Run: npm run test:clips   (also in check:all)
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const nowMs = () => performance.now();
@@ -36,9 +37,11 @@ function makeFetch(serve = ['female'], broken = new Set()) {
 // when + duration / playbackRate; stop() cancels it; decodeAudioData reads
 // the fake clip bytes back into { duration, key }.
 class FakeAudioContext {
-  constructor() { this.t0 = nowMs(); this.state = 'running'; this.destination = { kind: 'destination' }; this.log = { started: [], stopped: [], ramps: 0 }; FakeAudioContext.last = this; }
+  constructor() { this.t0 = nowMs(); this.state = 'running'; this.destination = { kind: 'destination' }; this.log = { started: [], stopped: [], ramps: 0, resumes: 0 }; this.listeners = {}; FakeAudioContext.last = this; }
   get currentTime() { return (nowMs() - this.t0) / 1000; }
-  resume() { this.state = 'running'; return Promise.resolve(); }
+  resume() { this.log.resumes += 1; this.state = 'running'; return Promise.resolve(); }
+  addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); }
+  fire(type) { for (const fn of this.listeners[type] || []) fn({ type }); }
   createGain() { const ctx = this; return { gain: { value: 1, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime() { ctx.log.ramps += 1; } }, connect() {} }; }
   createDynamicsCompressor() { return { threshold: {}, knee: {}, ratio: {}, attack: {}, release: {}, connect() {} }; }
   createBufferSource() {
@@ -96,6 +99,12 @@ async function test(name, fn) {
 globalThis.localStorage = (() => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; })();
 globalThis.SpeechSynthesisUtterance = Utter;
 globalThis.window = { AudioContext: FakeAudioContext };
+// The page, for the audio recovery listeners (visibility, the next touch).
+globalThis.document = {
+  visibilityState: 'visible', listeners: {},
+  addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); },
+  fire(type) { for (const fn of this.listeners[type] || []) fn({ type }); },
+};
 
 // The clips module and the audio engine are shared by every load below (same
 // URL); the coach is re-imported per test for fresh lock / version state.
@@ -475,6 +484,217 @@ await test('speakTest: reports engine clips when the test line is in the bank', 
   const t = await vc.speakTest('Say something the bank does not hold');
   assert.equal(t.engine, 'tts');
   assert.ok(t.started || t.ended);
+});
+
+
+// ── numbers said from parts ──────────────────────────────────────────────
+// A small bank: the composer needs only the part clips.
+const numBank = { clips: Object.fromEntries(['100', '300', '1000', '2000', '5', '50', '120', 'seconds', 'rest', 'up next', 'goblet squats'].map((k) => [k, { file: k + '.mp3', ms: MS }])) };
+
+await test('piecesFor: a number with no clip of its own is said from thousands, hundreds and the rest', async () => {
+  assert.deepEqual(clips.piecesFor(numBank, '105 seconds'), ['100', '5', 'seconds']);
+  assert.deepEqual(clips.piecesFor(numBank, '2350'), ['2000', '300', '50']);
+  assert.deepEqual(clips.piecesFor(numBank, '1005'), ['1000', '5']);
+  assert.deepEqual(clips.piecesFor(numBank, '1300'), ['1000', '300']);
+  assert.deepEqual(clips.piecesFor(numBank, '120 seconds'), ['120', 'seconds'], 'a number with its own clip keeps it');
+  assert.equal(clips.piecesFor(numBank, '700'), null, 'a missing part: no plan');
+  assert.equal(clips.piecesFor(numBank, '05'), null, 'zero-padded is not a number to compose');
+  assert.equal(clips.piecesFor(numBank, '10000'), null, 'over 9999 is not composed');
+  assert.equal(clips.numberParts(numBank, '100'), null, '100 and below come from their own clips');
+  const plan = clips.planClips(numBank, 'Rest. 105 seconds. Up next: Goblet Squats.');
+  assert.deepEqual(plan.map((p) => p.key), ['rest', '100', '5', 'seconds', 'up next', 'goblet squats']);
+});
+
+// The clips the orchestrator records for this work (record list); counted
+// as present so the check passes before and after they land in the banks.
+const RECORDED = ['1000', '2000', '3000', '4000', '5000', '6000', '7000', '8000', '9000', '700', 'voice check'];
+await test('real banks: every whole number 101..9999 is said from clips, given the recorded parts', async () => {
+  for (const voice of ['female', 'male']) {
+    const m = JSON.parse(fs.readFileSync(new URL(`../public/voice/${voice}/manifest.json`, import.meta.url), 'utf8'));
+    const real = { clips: Object.assign(Object.create(null), m.clips) };
+    // The part keys the composer needs that the bank lacks are exactly the
+    // recorded number parts: the record list is the smallest that works.
+    const need = new Set();
+    for (let n = 101; n <= 9999; n++) {
+      if (real.clips[String(n)]) continue;
+      const parts = [];
+      if (n >= 1000) parts.push(String(Math.floor(n / 1000) * 1000));
+      if (n % 1000 >= 100) parts.push(String(Math.floor((n % 1000) / 100) * 100));
+      if (n % 100) parts.push(String(n % 100));
+      for (const k of parts) if (!real.clips[k]) need.add(k);
+    }
+    assert.deepEqual([...need].sort(), RECORDED.filter((k) => /^\d+$/.test(k)).filter((k) => !real.clips[k]).sort(), `${voice}: number parts to record`);
+    for (const k of RECORDED) if (!real.clips[k]) real.clips[k] = { file: k + '.mp3', ms: MS };
+    const lost = [];
+    for (let n = 101; n <= 9999; n++) if (!clips.planClips(real, `Rest. ${n} seconds.`)) lost.push(n);
+    assert.deepEqual(lost.slice(0, 10), [], `${voice}: ${lost.length} numbers have no plan`);
+    assert.ok(clips.planClips(real, 'Rest. 105 seconds. Up next: Goblet Squats.'), `${voice}: the Up next line`);
+    assert.deepEqual(clips.planClips(real, 'Voice check. Three. Two. One. Go!').map((p) => p.key), ['voice check', 'three', 'two', 'one', 'go'], `${voice}: the VOICE CHECK line`);
+  }
+});
+
+// ── a phrase with no clip, the miss log ──────────────────────────────────
+const missesNow = () => JSON.parse(globalThis.localStorage.getItem('tm_voice_misses') || '[]');
+
+await test('planLine: the phrases with clips, and the ones without', async () => {
+  const r = clips.planLine(bank, 'Keep your hands up. Jab Cross. Breathe.');
+  assert.deepEqual(r.plan.map((p) => p.key), ['jab', 'cross']);
+  assert.deepEqual(r.plan.map((p) => p.gap), [0, phrases.GAP_STRIKE], 'the first phrase that plays starts at once');
+  assert.deepEqual(r.missing, ['keep your hands up', 'breathe']);
+  assert.equal(clips.planClips(bank, 'Keep your hands up. Jab Cross. Breathe.'), null, 'no full plan: the engine gets it while it works');
+});
+
+await test('no speech engine: the phrases that have clips play, the line is kept as partial', async () => {
+  const { vc } = await loadCoach({ synth: null });
+  await vc.primeSpeech();
+  await clips.loadVoiceBank('female');
+  vc.clearVoiceMisses();
+  const unheard = vc.getSpeechHealth().unheard;
+  const n = ctxLog().started.length;
+  await vc.speakAsync('Round 3. Keep your hands up. Jab Cross.');
+  assert.deepEqual(sinceStarted(n).map((x) => x.key), ['round 3', 'jab', 'cross']);
+  const h = vc.getSpeechHealth();
+  assert.equal(h.unheard, unheard + 1, 'a line said in part counts as lost');
+  assert.equal(h.misses.count, 1);
+  assert.deepEqual(h.misses.list.map((m) => [m.line, m.reason]), [['round 3. keep your hands up. jab cross.', 'partial']]);
+  assert.deepEqual(missesNow().map((m) => m.reason), ['partial'], 'kept on the device');
+  // Nothing in the line has a clip: nothing plays, and it is kept as no-clip.
+  await vc.speakAsync('Keep your hands up');
+  assert.deepEqual(vc.getSpeechHealth().misses.list.map((m) => m.reason), ['no-clip', 'partial']);
+  vc.clearVoiceMisses();
+  assert.deepEqual(vc.getSpeechHealth().misses, { count: 0, list: [] });
+  assert.equal(globalThis.localStorage.getItem('tm_voice_misses'), null);
+});
+
+await test('silent engine: a line with a missing phrase plays its clips and is not sent to the engine', async () => {
+  const { synth, vc } = await loadCoach();
+  await vc.primeSpeech();
+  await clips.loadVoiceBank('female');
+  const realSpeak = synth.speak.bind(synth);
+  let swallow = 2;
+  synth.speak = (u) => { if (swallow > 0) { swallow--; synth.log.speaks.push({ text: u.text }); return; } realSpeak(u); };
+  await vc.speakAsync('keep your hands up and breathe');
+  await vc.speakAsync('circle out and reset');
+  assert.equal(vc.getSpeechHealth().silent, true);
+  vc.clearVoiceMisses();
+  const speaks = synth.log.speaks.length;
+  const n = ctxLog().started.length;
+  await vc.speakAsync('Jab Cross. Keep your hands up.');
+  assert.deepEqual(sinceStarted(n).map((x) => x.key), ['jab', 'cross']);
+  assert.equal(synth.log.speaks.length, speaks, 'the engine was not given the line');
+  assert.equal(vc.getSpeechHealth().misses.list[0].reason, 'partial');
+});
+
+await test('miss log: a working engine says the whole line (no-clip); a failed clip is late; distinct and capped', async () => {
+  const { synth, vc } = await loadCoach({ fetchFn: makeFetch(['female'], new Set(['cross'])) });
+  await vc.primeSpeech();
+  await clips.loadVoiceBank('female');
+  vc.clearVoiceMisses();
+  const unheard = vc.getSpeechHealth().unheard;
+  await vc.speakAsync('Jab. Keep your hands up.');
+  assert.ok(synth.log.started.includes('jab. keep your hands up.'), 'the engine got the whole line');
+  await vc.speakAsync('Jab Cross');
+  assert.ok(synth.log.started.includes('jab cross'));
+  let h = vc.getSpeechHealth();
+  assert.deepEqual(h.misses.list.map((m) => [m.line, m.reason]), [['jab cross', 'late'], ['jab. keep your hands up.', 'no-clip']]);
+  assert.equal(h.unheard, unheard, 'the engine said both: nothing was lost');
+  await vc.speakAsync('Jab. Keep your hands up.');
+  h = vc.getSpeechHealth();
+  assert.equal(h.misses.count, 3, 'every line is counted');
+  assert.equal(h.misses.list.length, 2, 'the list keeps distinct lines');
+  assert.equal(h.misses.list[0].line, 'jab. keep your hands up.', 'a line seen again moves to the front');
+  const m = await import('../components/training-mode/data/voiceMisses.js');
+  for (let i = 0; i < 40; i++) m.noteVoiceMiss(`line ${i}`, 'no-clip');
+  assert.equal(missesNow().length, m.MAX_MISSES);
+  assert.equal(missesNow()[0].line, 'line 39');
+  assert.ok(missesNow().every((x) => typeof x.at === 'number' && x.at > 0));
+  m.noteVoiceMiss('anything', 'made-up reason');
+  assert.equal(missesNow()[0].line, 'line 39', 'only the four reasons are kept');
+  vc.clearVoiceMisses();
+});
+
+await test('miss log: a queued line replaced by a newer one is kept as dropped', async () => {
+  const { vc } = await loadCoach();
+  await vc.primeSpeech();
+  await clips.loadVoiceBank('female');
+  await sleep(400);
+  vc.clearVoiceMisses();
+  const n = ctxLog().started.length;
+  const a = vc.speakAsync('Round 3. High guard defense. Hands glued to your temples.');
+  await sleep(50);
+  const b = vc.speakAsync('Jab Cross');
+  const c = vc.speakAsync('Rush held. Plus 20 X P.');
+  await Promise.all([a, b, c]);
+  const keys = sinceStarted(n).map((x) => x.key);
+  assert.ok(keys.includes('rush held') && !keys.includes('jab'), `played: ${keys}`);
+  assert.deepEqual(vc.getSpeechHealth().misses.list.map((m) => [m.line, m.reason]), [['jab cross', 'dropped']]);
+  vc.clearVoiceMisses();
+});
+
+await test('speakTest: clips whose sound never started are not a pass; a line with no clip says so', async () => {
+  const { vc } = await loadCoach();
+  vc.setVoiceGender('female');
+  await clips.loadVoiceBank('female');
+  const ctx = FakeAudioContext.last;
+  const frozenAt = ctx.currentTime;
+  Object.defineProperty(ctx, 'currentTime', { configurable: true, get: () => frozenAt });
+  let r;
+  try { r = await vc.speakTest('Voice check. Three. Two. One. Go!'); } finally { delete ctx.currentTime; }
+  assert.equal(r.engine, 'clips');
+  assert.equal(r.started, false);
+  assert.equal(r.ended, false, 'not reported as spoken');
+  assert.equal(r.error, 'no_sound');
+  assert.equal(r.clipLine, true);
+  const t = await vc.speakTest('Say something the bank does not hold');
+  assert.equal(t.engine, 'tts');
+  assert.equal(t.clipLine, false);
+  assert.equal(t.clipError, 'no clip for this line');
+});
+
+await test('mixer warning: lines lost after clips have played still count as unheard', async () => {
+  const { synth, vc } = await loadCoach();
+  await vc.primeSpeech();
+  await clips.loadVoiceBank('female');
+  await vc.speakAsync('Jab Cross');
+  assert.ok(vc.getSpeechHealth().clipsSpoken > 0);
+  const unheard = vc.getSpeechHealth().unheard;
+  synth.speak = (u) => { synth.log.speaks.push({ text: u.text }); };   // the engine goes quiet
+  await vc.speakAsync('keep your hands up and breathe');
+  await vc.speakAsync('circle out and reset');
+  await vc.speakAsync('stay light on your feet');
+  assert.equal(vc.getSpeechHealth().unheard, unheard + 3, 'each engine line that never started is lost');
+  vc.clearVoiceMisses();
+});
+
+// ── audio recovery after a call, Siri or a Bluetooth switch ──────────────
+await test('audio recovery: an interrupted context resumes on statechange, on return to the page, and on the next touch', async () => {
+  const ctx = audio.getAudioContext();
+  assert.equal(ctx, FakeAudioContext.last);
+  let resumes = ctx.log.resumes;
+  ctx.state = 'interrupted'; ctx.fire('statechange');
+  assert.equal(ctx.log.resumes, resumes + 1, 'statechange while visible');
+  assert.equal(ctx.state, 'running');
+  // Hidden page: wait for it to come back, then resume.
+  globalThis.document.visibilityState = 'hidden';
+  ctx.state = 'interrupted'; ctx.fire('statechange');
+  resumes = ctx.log.resumes;
+  assert.equal(ctx.state, 'interrupted', 'not while the page is hidden');
+  globalThis.document.visibilityState = 'visible';
+  globalThis.document.fire('visibilitychange');
+  assert.equal(ctx.log.resumes, resumes + 1, 'back on screen');
+  // The next touch anywhere.
+  ctx.state = 'suspended';
+  resumes = ctx.log.resumes;
+  globalThis.document.fire('pointerdown');
+  assert.equal(ctx.log.resumes, resumes + 1, 'the next touch');
+  globalThis.document.fire('pointerdown');
+  assert.equal(ctx.log.resumes, resumes + 1, 'a running context is left alone');
+  // A bell on an interrupted context wakes it (it used to check only 'suspended').
+  ctx.state = 'interrupted';
+  resumes = ctx.log.resumes;
+  try { audio.playBell(1); } catch { /* the fake has no bell file */ }
+  assert.equal(ctx.log.resumes, resumes + 1, 'the bell resumed it');
+  ctx.state = 'running';
 });
 
 console.log(results.join('\n'));

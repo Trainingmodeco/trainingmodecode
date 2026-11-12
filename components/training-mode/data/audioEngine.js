@@ -269,7 +269,48 @@ function getCtx() {
   } catch {
     return null;
   }
+  watchCtx(audioCtx);
   return audioCtx;
+}
+
+// A phone call, Siri, an alarm or a Bluetooth switch leaves the context
+// 'interrupted' (iOS) or 'suspended', and every bell, beep and coach clip
+// stays silent until something resumes it. Checking only for 'suspended'
+// missed iOS's 'interrupted'. So: any state but running (or closed) is woken.
+function wakeCtx(ctx) {
+  if (!ctx || ctx.state === 'running' || ctx.state === 'closed' || typeof ctx.resume !== 'function') return;
+  try { Promise.resolve(ctx.resume()).catch(() => {}); } catch { /* the next try may work */ }
+}
+
+// Resume the shared context after an interruption, from the one place that
+// owns it: when it leaves 'running' while the page is on screen, when the
+// page comes back on screen, and on the next touch (some phones only let a
+// context start again from a tap). Bells and the recorded coach both play
+// through this context, so this brings both back.
+export function resumeAudioIfStalled() {
+  if (!audioCtx || audioCtx.state === 'closed') return false;
+  if (audioCtx.state === 'running') return false;
+  wakeCtx(audioCtx);
+  return true;
+}
+const pageVisible = () => {
+  try { return typeof document === 'undefined' || document.visibilityState !== 'hidden'; } catch { return true; }
+};
+let recoveryOn = false;
+function watchCtx(ctx) {
+  try {
+    if (typeof ctx.addEventListener === 'function') {
+      ctx.addEventListener('statechange', () => { if (ctx === audioCtx && pageVisible()) resumeAudioIfStalled(); });
+    }
+  } catch { /* old engines: the page and touch listeners still apply */ }
+  if (recoveryOn || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
+  recoveryOn = true;
+  try {
+    document.addEventListener('visibilitychange', () => { if (pageVisible()) resumeAudioIfStalled(); });
+    for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
+      document.addEventListener(type, resumeAudioIfStalled, { capture: true, passive: true });
+    }
+  } catch { /* no listeners: each sound still tries to resume */ }
 }
 
 // The recorded coach voice (voiceClips.js) plays through the same context
@@ -290,9 +331,7 @@ export function unlockAudio() {
   initExternalAudioSession();
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === 'suspended') {
-    ctx.resume().catch(() => {});
-  }
+  wakeCtx(ctx);
   loadBellBuffer();
 }
 
@@ -376,7 +415,7 @@ function loadBellBuffer() {
 function playBellSegment(count) {
   const ctx = getCtx();
   if (!ctx || !bellBuffer) return;
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  wakeCtx(ctx);
 
   const seg = BELL_SEGMENTS[count] || BELL_SEGMENTS[1];
   const vol = getCueGain();
@@ -393,7 +432,7 @@ function playBellSegment(count) {
 export function playBell(count = 1) {
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  wakeCtx(ctx);
 
   const seg = BELL_SEGMENTS[count] || BELL_SEGMENTS[1];
   duckAppAudio(Math.ceil(seg.duration * 1000) + 200);
@@ -409,7 +448,7 @@ export function playBell(count = 1) {
 function playTone(freq, duration, type, volume, startTime) {
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  wakeCtx(ctx);
 
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -438,7 +477,7 @@ export function playBeep() {
 export function playRiser() {
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  wakeCtx(ctx);
 
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -467,7 +506,7 @@ export function playRiser() {
 export function playPowerDown() {
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  wakeCtx(ctx);
 
   const t0 = ctx.currentTime;
   const dur = 0.55;
@@ -523,7 +562,7 @@ export function playPowerDown() {
 export function playExtraLife() {
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  wakeCtx(ctx);
 
   const t0 = ctx.currentTime;
   const vol = Math.max(0.0001, 0.28 * getCueGain());

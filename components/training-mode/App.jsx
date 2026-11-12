@@ -18,7 +18,7 @@ import { packIdForCampaign } from './data/voicePacks';
 import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
-import { stopVoiceSession } from './voiceCoach';
+import { stopVoiceSession, setVoiceGender } from './voiceCoach';
 import { trackEvent, setErrorScreen, trackSessionStart } from './data/analytics';
 import { refreshEntitlement } from './data/entitlements';
 import ScreenGuide from './shared/ScreenGuide';
@@ -544,6 +544,10 @@ export default function App() {
   // choice. resumeSession() feeds isResuming, which starts the player paused
   // and skips the warm-up, so they land exactly where they were with the clock
   // held and tap RESUME to carry on.
+  // The athlete's coach voice, set before the boot restore below: a player
+  // the app comes back into never passes a setup screen that would set it,
+  // and without this it spoke in the default voice. Also follows a change.
+  useEffect(() => { setVoiceGender(profile?.voiceCoach || 'FEMALE'); }, [profile?.voiceCoach]);
   const bootRestoredRef = useRef(false);
   useEffect(() => {
     if (bootRestoredRef.current) return;

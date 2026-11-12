@@ -68,10 +68,13 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
   // silence as the only sign (voice audit ENG-11 / VP-05).
   const [health, setHealth] = useState(() => getSpeechHealth());
   useEffect(() => onSpeechHealth(setHealth), []);
-  // The recorded coach voice does not use the speech engine: once a line has
-  // played from clips this session, the engine's silence is not the coach's.
+  // The recorded coach voice does not use the speech engine, so a played clip
+  // says nothing about the engine. What matters is whether lines are being
+  // lost: any line this session the phone said in part or not at all
+  // (health.unheard) keeps the warning on, clips or no clips.
   const clipsTalking = !!(health.clips && health.clips.ready) && (health.clipsSpoken || 0) > 0;
-  const engineQuiet = !muted && !clipsTalking && health.supported !== false && (health.silent || (health.attempted >= 3 && health.spoken === 0));
+  const linesLost = (health.unheard || 0) > 0;
+  const engineQuiet = !muted && (linesLost || (!clipsTalking && health.supported !== false && (health.silent || (health.attempted >= 3 && health.spoken === 0))));
   const iconColor = muted ? '#f87171' : engineQuiet ? '#fb923c' : '#fde047';
 
   return (
@@ -108,8 +111,8 @@ export default function VoiceMixer({ top = 12, right = 12, dataGuide }) {
           )}
           {engineQuiet && (
             <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#fb923c', maxWidth: 210, lineHeight: 1.35 }}>
-              The phone&apos;s speech engine isn&apos;t answering, so the coach can&apos;t be
-              heard. Profile → Settings → TEST THE VOICE shows what to check.
+              Some coach lines aren&apos;t being heard on this phone. Profile → Settings →
+              TEST THE VOICE shows which, and what to check.
             </div>
           )}
         </div>
