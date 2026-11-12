@@ -28,7 +28,10 @@ export const OUTCOME_PRESET = {
   },
 };
 
-// The one plain reason shown when an early end pays nothing.
+// Shown when a session ended before the XP threshold (some rounds done, not
+// enough to pay). The same words the solo missions use for an early end.
+export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
+// Shown when no full round was done at all.
 export const EARLY_NO_XP = 'Ended early — finish a full round to earn XP.';
 
 const clamp01 = (n) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0);

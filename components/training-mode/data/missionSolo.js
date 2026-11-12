@@ -8,7 +8,7 @@
 //     the honor-system XP settle.
 import { moveById, estMsFor, slotDose, mmss, LEVEL_LABEL, repCapFor } from './missionMoves';
 import { MODE_RULES } from '../utils/missionIntegrity';
-import { resolveOutcome, xpForOutcome, OUTCOME_PRESET } from '../shared/sessionOutcome';
+import { resolveOutcome, xpForOutcome, OUTCOME_PRESET, EARLY_MESSAGE } from '../shared/sessionOutcome';
 import { generatedMissionXp } from './quickMissionXp';
 
 // Seconds per unit when a rep is a distance or a calorie (Murph's mile; M is
@@ -427,7 +427,7 @@ export function soloFloorSec(mission) {
 export const TOO_FAST_MESSAGE = "Faster than elite pace, so this one can't count.";
 // Today's mission at your pace (mission.atYourPace) names the floor itself.
 export const TOO_FAST_TIME_MESSAGE = "Under half the elite time, so this one can't count.";
-export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
+export { EARLY_MESSAGE };
 
 // SOLO is honor-system: the floor is the check. Swaps never change totalSlots
 // or the clock, so they never change XP. A stopped clock pays the minutes it

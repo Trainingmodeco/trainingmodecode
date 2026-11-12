@@ -311,7 +311,7 @@ import { readFileSync } from 'node:fs';
 // ── striking end screens: a refused session, early ends, restores, trophies ─
 {
   const { settleFightXp, fightSummaryCopy } = await import('../components/training-mode/data/fightSessionXp.js');
-  const { EARLY_NO_XP } = await import('../components/training-mode/shared/sessionOutcome.js');
+  const { EARLY_NO_XP, EARLY_MESSAGE } = await import('../components/training-mode/shared/sessionOutcome.js');
   const { IntegritySession } = await import('../components/training-mode/utils/missionIntegrity.js');
   const { readCarry, carrySeconds } = await import('../components/training-mode/data/fightResume.js');
   const realNow = Date.now;
@@ -352,7 +352,15 @@ import { readFileSync } from 'node:fs';
     const earlyRes = early.finalize({}); early.destroy();
     const earlySettled = settleFightXp({ completed: 1, total: 8, difficulty: 'Normal', integrityResult: earlyRes, mode: 'justTrain' });
     const earlyCopy = fightSummaryCopy(earlySettled);
-    check('fight end: 1 of 8 rounds pays 0 and the screen says why', earlySettled.xp === 0 && earlySettled.verdict.outcome === 'partial' && earlyCopy.note === EARLY_NO_XP, JSON.stringify([earlySettled.xp, earlySettled.verdict.outcome, earlyCopy]));
+    check('fight end: 1 of 8 rounds pays 0 and the screen says why', earlySettled.xp === 0 && earlySettled.verdict.outcome === 'partial' && earlyCopy.note === EARLY_MESSAGE && !/full round/.test(earlyCopy.note), JSON.stringify([earlySettled.xp, earlySettled.verdict.outcome, earlyCopy]));
+    const noteSweep = [1, 2, 3, 4, 5, 6, 7].map((n) => {
+      const s = new IntegritySession('fightFocus', 8);
+      for (let i = 0; i < n; i++) { s.startUnit('rounds'); clock += 90_000; s.completeUnit(); }
+      const r = s.finalize({}); s.destroy();
+      const st = settleFightXp({ completed: n, total: 8, difficulty: 'Normal', integrityResult: r, mode: 'justTrain' });
+      return { n, note: fightSummaryCopy(st).note };
+    });
+    check('fight end: with a round done the note never says to finish a full round', noteSweep.every((x) => x.note === null || !/full round/.test(x.note)), JSON.stringify(noteSweep));
     check('fight end: a session that pays XP shows no reason line', fightSummaryCopy({ verdict: okRun.verdict, xp: 20 }).note === null);
 
     // xp-01: a 6-round session restored at round 4 is paid for the 3 rounds already banked.

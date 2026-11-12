@@ -1,5 +1,5 @@
 import { calculatePartialXp } from '../utils/missionIntegrity';
-import { resolveOutcome, xpForOutcome, EARLY_NO_XP } from '../shared/sessionOutcome';
+import { resolveOutcome, xpForOutcome, EARLY_MESSAGE } from '../shared/sessionOutcome';
 import { fightTimerXp, comboCoachXp } from './userStats';
 
 // The ONE place a fight-timer session's XP is settled.
@@ -39,6 +39,6 @@ export function fightSummaryCopy({ verdict, xp }) {
     eyebrow: endedEarly ? 'SESSION ENDED' : verdict.preset.eyebrow,
     title: endedEarly ? 'ENDED EARLY' : verdict.preset.title,
     // fail and validation_failed already print verdict.response under the headline
-    note: xp === 0 && verdict.outcome === 'partial' ? EARLY_NO_XP : null,
+    note: xp === 0 && verdict.outcome === 'partial' ? EARLY_MESSAGE : null,
   };
 }
