@@ -1,5 +1,6 @@
 // GPS fix filter (data/runCoach.js evaluateFix) — the rules every run's
 // distance depends on. Run: npm run test:gps
+import { readFileSync } from 'node:fs';
 import {
   evaluateFix, haversineMeters, createGpsTracker, GPS_MAX_ACCURACY_M, GPS_RELAXED_ACCURACY_M, GPS_WEAK_SIGNAL_MS,
 } from '../components/training-mode/data/runCoach.js';
@@ -250,6 +251,18 @@ for (const [nm, noise, acc] of [['white s3 acc 6', { kind: 'white', s: 3 }, 6], 
   check('slow walk on a poor signal counts, short by at most the floor', m > 480 - 2 * 25 - 10 && m < 480 * 1.05, `${m.toFixed(0)} vs 480`);
   const crawl = row('crawl 0.3 m/s 600 s acc 6 (true 180 m)', makeTrack({ dur: 600, vel: 0.3, noise: { kind: 'white', s: 2 }, acc: 6, seed: 72 }), 180);
   check('a crawl under 0.5 m/s counts nothing (known cost)', crawl === 0, `${crawl.toFixed(0)} m`);
+}
+
+// The PACE chip reads the speed state. A stop produces only 'still' or
+// 'jitter' rejects, so the speed must be updated before the reject return or
+// the chip keeps the last running pace while the runner stands.
+{
+  const src = readFileSync(new URL('../components/training-mode/CardioProtocolPlayer.jsx', import.meta.url), 'utf8');
+  const push = src.indexOf('tracker.push(fix');
+  const set = src.indexOf('setGpsSpeed(speed)', push);
+  const gate = src.indexOf('if (!verdict.accept)', push);
+  check('cardio PACE speed updates before the reject return', push > 0 && set > push && set < gate);
+  check('cardio speed is set in one place only', src.split('setGpsSpeed(speed)').length === 2);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

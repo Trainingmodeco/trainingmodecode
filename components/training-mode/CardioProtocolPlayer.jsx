@@ -512,6 +512,10 @@ export default function CardioProtocolPlayer({
           const relaxed = Date.now() - lastGoodAt > GPS_WEAK_SIGNAL_MS;
           if (!Number.isFinite(fix.accuracy) || fix.accuracy <= GPS_MAX_ACCURACY_M) lastGoodAt = Date.now();
           const verdict = gpsRef.current.tracker.push(fix, { relaxed });
+          // Speed follows every fix the phone delivered, counted or not. When
+          // the runner stops, fixes come back 'still' or 'jitter'; without
+          // this the PACE chip would keep the last running speed.
+          if (verdict.reason !== 'bad' && verdict.reason !== 'accuracy' && typeof speed === 'number' && speed >= 0) setGpsSpeed(speed);
           if (!verdict.accept) {
             // Any reject but 'pending' (a new anchor still being confirmed) is
             // still a fix the phone delivered.
@@ -526,7 +530,6 @@ export default function CardioProtocolPlayer({
           gpsRef.current.pts.push({ lat: at.lat, lng: at.lng });
           if (gpsRef.current.pts.length > 240) gpsRef.current.pts.shift();
           setGpsRoute(gpsRef.current.pts.slice());
-          if (typeof speed === 'number' && speed >= 0) setGpsSpeed(speed);
           setGpsFix(true);
         },
         () => { setGpsFix(false); },
