@@ -66,35 +66,58 @@ export function fmtSignedDelta(sec) {
 }
 
 // Spoken forms. TTS reads "3 mi" as "three em eye", so everything the coach
-// says goes through here.
+// says goes through here. They are also built to play from the recorded clips
+// (public/voice): whole numbers 0..100 are clips and the words around them are
+// a few short pieces ("miles", "per mile", "point"), so "3.1", "5:05" or
+// "125 minutes", which have no clip, are never said as such.
+export function speakNumber(n) {
+  const t = Math.round((Number(n) || 0) * 10) / 10;
+  if (Number.isInteger(t)) return String(t);
+  const whole = Math.floor(t);
+  return `${whole} point ${Math.round((t - whole) * 10)}`;
+}
+
 export function speakDistance(value, unit = 'mi') {
   const v = Math.round(value * 100) / 100;
   const name = unit === 'km' ? 'kilometer' : 'mile';
-  if (v === 0.1) return `a tenth of a ${name}`;
   if (v === 0.25) return `a quarter ${name}`;
-  if (v === 0.5) return `half a ${name}`;
-  if (v === 1) return `one ${name}`;
-  if (Number.isInteger(v)) return `${v} ${name}s`;
-  if (Math.abs(v - Math.round(v * 2) / 2) < 1e-9 && v > 1) return `${Math.floor(v)} and a half ${name}s`;
-  return `${v} ${name}s`;
+  const t = Math.round(v * 10) / 10;
+  if (t === 0.1) return `a tenth of a ${name}`;
+  if (t === 0.5) return `half a ${name}`;
+  if (t === 1) return `one ${name}`;
+  if (Number.isInteger(t)) return `${t} ${name}s`;
+  if (t > 1 && Math.abs(t * 2 - Math.round(t * 2)) < 1e-9) return `${Math.floor(t)} and a half ${name}s`;
+  return `${speakNumber(t)} ${name}s`;
 }
 
+// "45 seconds", "1 minute", "12 minutes 30". Past an hour the seconds are
+// dropped and the hours said ("1 hour 25 minutes"), so no number goes past 59.
 export function speakDuration(sec) {
   const s = Math.max(0, Math.round(sec));
+  const unitOf = (n, one) => (n === 1 ? `1 ${one}` : `${n} ${one}s`);
+  if (s >= 3600) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return m ? `${unitOf(h, 'hour')} ${unitOf(m, 'minute')}` : unitOf(h, 'hour');
+  }
   const m = Math.floor(s / 60);
   const r = s % 60;
-  if (m === 0) return `${r} seconds`;
-  const mins = m === 1 ? '1 minute' : `${m} minutes`;
+  if (m === 0) return unitOf(r, 'second');
+  const mins = unitOf(m, 'minute');
   if (r === 0) return mins;
   return `${mins} ${r}`;
 }
 
+// "5 42 per mile"; seconds under ten "5 oh 5 per mile" (a padded "05" has no
+// clip); on the minute "5 minutes per mile".
 export function speakPace(secPerUnit, unit = 'mi') {
   if (!Number.isFinite(secPerUnit) || secPerUnit <= 0 || secPerUnit > 3600) return '';
   const s = Math.round(secPerUnit);
   const m = Math.floor(s / 60);
   const r = s % 60;
-  return `${m} ${String(r).padStart(2, '0')} per ${unit === 'km' ? 'kilometer' : 'mile'}`;
+  const per = `per ${unit === 'km' ? 'kilometer' : 'mile'}`;
+  if (r === 0) return `${m} minute${m === 1 ? '' : 's'} ${per}`;
+  return `${m} ${r < 10 ? `oh ${r}` : r} ${per}`;
 }
 
 // ── Scripts ──────────────────────────────────────────────────────────────────
@@ -121,12 +144,87 @@ export function buildRunIntro({ methodLabel = 'Run', useGps = true, distance, un
   return { lines: parts, ready: 'Ready.', go: 'Go!' };
 }
 
-// Interval / tabata intro for the time-based player.
+// Interval / tabata intro for the time-based player. Work and rest past a
+// minute are said as minutes ("3 minutes work"), so no number goes past 59.
 export function buildIntervalIntro({ styleLabel = 'intervals', rounds, workSec, restSec, warmupSec = 0 }) {
   const parts = ['Cardio mode.', `${String(styleLabel).toLowerCase()}.`];
-  if (rounds) parts.push(`${rounds} rounds, ${workSec} seconds work, ${restSec} seconds rest.`);
+  if (rounds) parts.push(`${rounds} round${rounds === 1 ? '' : 's'}, ${speakDuration(workSec)} work, ${speakDuration(restSec)} rest.`);
   if (warmupSec > 0) parts.push(`${Math.round(warmupSec / 60)} minute warm up first.`);
   return { lines: parts, ready: 'Ready.', go: 'Go!' };
+}
+
+// Steady protocol (bike, rower, any timed machine): "Cardio mode." then
+// "elliptical, 20 minutes steady." The brief is the same line with "Go!" for
+// a player that was started by hand.
+const methodWord = (methodLabel) => String(methodLabel || 'cardio').toLowerCase();
+export function buildSteadyIntro({ methodLabel, durationSeconds }) {
+  return { lines: ['Cardio mode.', `${methodWord(methodLabel)}, ${speakDuration(durationSeconds || 600)} steady.`], ready: 'Ready.', go: 'Go!' };
+}
+export function steadyBrief({ methodLabel, durationSeconds }) {
+  return `${methodWord(methodLabel)}, ${speakDuration(durationSeconds || 600)} steady. Go!`;
+}
+
+// The call at each segment change of the interval player.
+export function protocolSegmentLine(sg, moveNames = null) {
+  if (!sg) return '';
+  if (sg.kind === 'work') {
+    const move = moveNames && moveNames.length ? moveNames[(sg.round - 1 + moveNames.length) % moveNames.length] : null;
+    return move ? `Round ${sg.round}. ${move}. Go!` : `Round ${sg.round}. ${sg.label === 'HARD' ? 'Hard!' : 'Work!'}`;
+  }
+  if (sg.kind === 'rest') return sg.label === 'REST' ? 'Rest.' : 'Recover. Easy pace.';
+  if (sg.kind === 'warmup') return `Warm up. ${speakDuration(sg.seconds)}, easy.`;
+  if (sg.kind === 'cooldown') return 'Cool down. Bring it down.';
+  return '';
+}
+
+// A belt speed: "6" for 6.0, "6 point 5" for 6.5.
+export const speakSpeed = (speed) => speakNumber(Math.round((Number(speed) || 0) * 10) / 10);
+
+// Added to a machine run's brief.
+export function machineSpeedLine(speed, unit = 'mi') {
+  return `Set the machine to ${speakSpeed(speed)} ${unit === 'km' ? 'kph' : 'mph'} and match the dial if you change it.`;
+}
+
+// Added to a run's brief when the sprint chases are on.
+export function chaseIntroLine({ threshold, win, loss }) {
+  return `Intervals are on. When I call a sprint, beat your own pace by ${Math.round(threshold * 100)} percent to escape and bank ${win} X P. Get caught and it costs ${loss}.`;
+}
+export const chaseStartLine = (windowSec) => `Sprint! ${speakDuration(windowSec)}. Go!`;
+export const chaseResultLine = (pass, stakes) => (pass
+  ? `Escaped. ${stakes.win} X P banked. Ease back.`
+  : `Caught. ${stakes.loss} X P gone. Next one's yours. Ease back.`);
+
+// Said at the end of a run with chases: " 2 of 3 chases escaped, 20 bonus X P."
+export function chaseSummaryLine(chase) {
+  if (!chase || !(chase.attempts > 0)) return '';
+  const xp = chase.xp > 0 ? `, ${chase.xp} bonus X P` : chase.xp < 0 ? `, ${-chase.xp} X P given up` : '';
+  return ` ${chase.passes} of ${chase.attempts} chases escaped${xp}.`;
+}
+
+// Added to a run's brief when racing a ghost. A run ghost is the athlete's
+// own; another owner's name has no clip, so it gets a sentence of its own.
+export function ghostIntroLine(ghost) {
+  const dur = speakDuration(ghost.totalSec);
+  if (ghost.ownerId === 'me') return `Ghost mode. You are racing your own run, ${dur}. Beat it.`;
+  return `Ghost mode. You are racing this run: ${ghost.ownerName}. ${dur}. Beat it.`;
+}
+
+// After the app was away mid-run (a call, a reload).
+export function runResumedLine(elapsedSec, dist, unit = 'mi') {
+  return `Run resumed. ${speakDuration(elapsedSec)} on the clock. ${dist > 0.05 ? `${speakDistance(+dist.toFixed(2), unit)} so far.` : ''}`.trim();
+}
+
+// The last call of a guided programme, a free run, or a run ended early.
+export function programmeEndLine({ completed, noDistance, dist, unit = 'mi', elapsedSec }) {
+  if (completed) return `Programme complete. ${noDistance ? speakDuration(elapsedSec) : `${speakDistance(dist, unit)} in ${speakDuration(elapsedSec)}`}. Good work.`;
+  return `Programme ended at ${speakDuration(elapsedSec)}.${noDistance ? '' : ` ${speakDistance(dist, unit)}.`}`;
+}
+export function freeRunEndLine({ dist, unit = 'mi', elapsedSec, chase = null }) {
+  const avg = dist > 0.05 ? ` Average pace ${speakPace(elapsedSec / dist, unit)}.` : '';
+  return `Run complete. ${speakDistance(dist, unit)} in ${speakDuration(elapsedSec)}.${avg}${chaseSummaryLine(chase)}`;
+}
+export function runEndedLine({ dist, unit = 'mi', elapsedSec, chase = null }) {
+  return `Run ended. ${speakDistance(dist, unit)} in ${speakDuration(elapsedSec)}.${chaseSummaryLine(chase)}`;
 }
 
 // ── Milestones ───────────────────────────────────────────────────────────────
@@ -386,10 +484,13 @@ export function ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker }) {
   return delta < 0 ? `${speakDuration(-delta)} ahead of your ghost.` : `${speakDuration(delta)} behind your ghost.`;
 }
 
-export function ghostFinishLine({ elapsedSec, ghostTotalSec, ownerName = 'your ghost' }) {
-  const who = ownerName && ownerName !== 'YOU' && ownerName !== 'your ghost' ? ownerName : 'your ghost';
+// A run ghost is the athlete's own run (ownerId 'me'), so it is "your ghost":
+// the owner name on it is the athlete's profile name, which has no clip. Any
+// other owner's name is said in a sentence of its own, ahead of the verdict.
+export function ghostFinishLine({ elapsedSec, ghostTotalSec, ownerName = 'your ghost', ownerId = 'me' }) {
+  const named = ownerId !== 'me' && ownerName && ownerName !== 'YOU' && ownerName !== 'your ghost' ? `${ownerName}. ` : '';
   const delta = Math.round(elapsedSec - ghostTotalSec);
-  if (Math.abs(delta) < 2) return `Dead heat with ${who}. A draw.`;
-  if (delta < 0) return `Ghost defeated. You beat ${who} by ${speakDuration(-delta)}.`;
-  return `${who === 'your ghost' ? 'The ghost' : who} takes this one by ${speakDuration(delta)}. Run it back.`;
+  if (Math.abs(delta) < 2) return `${named}Dead heat with your ghost. A draw.`;
+  if (delta < 0) return `${named}Ghost defeated. You beat your ghost by ${speakDuration(-delta)}.`;
+  return `${named}The ghost takes this one by ${speakDuration(delta)}. Run it back.`;
 }

@@ -11,7 +11,7 @@ import FloatOnLeave from './shared/FloatOnLeave';
 import { ARCADE } from './ArcadeUI';
 import { speakAsync, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
-import { buildIntervalIntro, speakDuration, evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS } from './data/runCoach';
+import { buildIntervalIntro, buildSteadyIntro, steadyBrief, protocolSegmentLine, evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS } from './data/runCoach';
 import { CARDIO_SAFETY_COPY } from './data/cardioProtocolData';
 import TrainingCTA from './shared/TrainingCTA';
 
@@ -340,7 +340,7 @@ export default function CardioProtocolPlayer({
         // block) had no spoken start at all: no bell, no "Go!" (voice audit
         // ACP-05). START is the gesture, so claim audio here and say one line.
         unlockAudio();
-        const brief = `${String(methodLabel || 'cardio').toLowerCase()}, ${speakDuration(durationSeconds || 600)} steady. Go!`;
+        const brief = steadyBrief({ methodLabel, durationSeconds });
         if (voice) primeSpeech().then(() => { playBell(1); say(brief, { rate: 1.05 }); }).catch(() => {});
         else playBell(1);
       } else if (totalElapsed > 0) say('Resume. Go!');
@@ -390,15 +390,10 @@ export default function CardioProtocolPlayer({
     lastSpokenSegRef.current = segIndex;
     const sg = segments[segIndex];
     if (!sg) return;
-    if (sg.kind === 'work') {
-      playBell(1);
-      const move = moveNames && moveNames.length ? moveNames[(sg.round - 1 + moveNames.length) % moveNames.length] : null;
-      say(move ? `Round ${sg.round}. ${move}. Go!` : `Round ${sg.round}. ${sg.label === 'HARD' ? 'Hard!' : 'Work!'}`);
-    }
-    else if (sg.kind === 'rest') say(sg.label === 'REST' ? 'Rest.' : 'Recover. Easy pace.');
-    else if (sg.kind === 'warmup') say(`Warm up. ${speakDuration(sg.seconds)}, easy.`);
-    else if (sg.kind === 'cooldown') say('Cool down. Bring it down.');
-    else if (sg.kind === 'steady' && totalElapsed === 0) { /* intro covers it */ }
+    // The lines are built in data/runCoach.js, where test:spoken checks them.
+    // A steady segment says nothing: the intro covers it.
+    if (sg.kind === 'work') playBell(1);
+    say(protocolSegmentLine(sg, moveNames));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segIndex, running, done, distanceMode]);
 
@@ -428,7 +423,7 @@ export default function CardioProtocolPlayer({
           const cfg = intervalConfig || {};
           const intro = (format === 'interval' || format === 'tabata')
             ? buildIntervalIntro({ styleLabel: styleLabel || format, rounds, workSec: cfg.workSeconds ?? cfg.fastSeconds ?? cfg.hardSeconds ?? 30, restSec: cfg.restSeconds ?? cfg.easySeconds ?? 15, warmupSec: cfg.warmupSeconds ?? 0 })
-            : { lines: ['Cardio mode.', `${String(methodLabel || 'cardio').toLowerCase()}, ${speakDuration(durationSeconds || 600)} steady.`], ready: 'Ready.', go: 'Go!' };
+            : buildSteadyIntro({ methodLabel, durationSeconds });
           for (const line of intro.lines) { if (cancelled) return; await speakAsync(line).catch(() => {}); }
           if (cancelled) return;
           await speakAsync(intro.ready).catch(() => {});

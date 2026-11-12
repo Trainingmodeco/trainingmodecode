@@ -18,7 +18,7 @@ import {
   chasePaceFromWindow, evaluateChase, chaseBeepAt, chaseSummary,
   CHASE_LEAD_IN_SEC, CHASE_BASELINE_WINDOW_SEC, CHASE_THRESHOLD, chaseXp,
 } from './data/chase';
-import { segmentAt } from './data/intervalPrograms';
+import { segmentAt, programIntro } from './data/intervalPrograms';
 import { saveLiveRun, clearLiveRun, liveRunElapsedSec } from './data/liveRun';
 import { recordRunGhost, ghostDistanceAt, ghostTimeAt, ghostArt } from './data/runGhosts';
 import { thinRoute } from './data/geoRoute';
@@ -33,8 +33,9 @@ import {
   defaultSpeed, fmtSpeed, speedUnitLabel, applyMachineCorrection,
 } from './data/machineSpeed';
 import {
-  metersPerUnit, fmtClock, fmtPace, fmtSignedDelta, speakDuration, speakDistance, speakPace,
-  buildRunIntro, crossedMarkers, crossedTenths, splitScript, freeRunSplitScript, finishScript,
+  metersPerUnit, fmtClock, fmtPace, fmtSignedDelta,
+  buildRunIntro, machineSpeedLine, chaseIntroLine, chaseStartLine, chaseResultLine, chaseSummaryLine,
+  ghostIntroLine, runResumedLine, programmeEndLine, freeRunEndLine, runEndedLine, crossedMarkers, crossedTenths, splitScript, freeRunSplitScript, finishScript,
   paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
   evaluateFix, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS, rollingPaceSec, projectedFinish,
   ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
@@ -370,26 +371,23 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     setChaseUi(null);
     clearLiveRun();
     report({ live: false, running: false });
-    const chaseLine = chase && chase.attempts > 0
-      ? ` ${chase.passes} of ${chase.attempts} chases escaped${chase.xp > 0 ? `, ${chase.xp} bonus X P` : chase.xp < 0 ? `, ${-chase.xp} X P given up` : ''}.`
-      : '';
+    // The lines are built in data/runCoach.js, where test:spoken checks
+    // every one of them has recorded clips.
+    const chaseLine = chaseSummaryLine(chase);
     if (program) {
       playBell(3);
-      say(completed
-        ? `Programme complete. ${noDistance ? speakDuration(el) : `${speakDistance(d, unit)} in ${speakDuration(el)}`}. Good work.`
-        : `Programme ended at ${speakDuration(el)}.${noDistance ? '' : ` ${speakDistance(d, unit)}.`}`);
+      say(programmeEndLine({ completed, noDistance, dist: d, unit, elapsedSec: el }));
     } else if (freeRun) {
       playBell(3);
-      const avg = d > 0.05 ? ` Average pace ${speakPace(el / d, unit)}.` : '';
-      say(`Run complete. ${speakDistance(d, unit)} in ${speakDuration(el)}.${avg}${chaseLine}`);
+      say(freeRunEndLine({ dist: d, unit, elapsedSec: el, chase }));
     } else if (completed) {
       playBell(3);
       const lines = [finishScript({ dist: d, unit, elapsedSec: el, targetSec: r.cfg.targetSec, eliteSec: r.cfg.eliteSec })];
-      if (res.ghost) lines.push(ghostFinishLine({ elapsedSec: el, ghostTotalSec: ghost.totalSec, ownerName: ghost.ownerName }));
+      if (res.ghost) lines.push(ghostFinishLine({ elapsedSec: el, ghostTotalSec: ghost.totalSec, ownerName: ghost.ownerName, ownerId: ghost.ownerId }));
       if (chaseLine) lines.push(chaseLine.trim());
       say(lines.join(' '));
     } else {
-      say(`Run ended. ${speakDistance(d, unit)} in ${speakDuration(el)}.${chaseLine}`);
+      say(runEndedLine({ dist: d, unit, elapsedSec: el, chase }));
     }
   }, [estimating, machine, measuring, goal, unit, report, say, ghost, freeRun, chaseMode, program, noDistance, setChaseFlash]);
 
@@ -407,25 +405,17 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         if (program) {
           // A guided programme briefs itself: what it is, how long, and the
           // first segment's own instruction (the belt speed on a treadmill).
-          const where = program.machine === 'row' ? 'Rower' : program.machine === 'bike' ? 'Bike' : 'Treadmill';
-          intro = {
-            lines: [
-              'Cardio mode.',
-              `${where} intervals. ${String(program.label).toLowerCase()}, ${speakDuration(program.totalSec)}.`,
-              program.segments[0]?.start || 'Warm up first.',
-            ],
-            ready: 'Ready.', go: 'Go!',
-          };
+          intro = programIntro(program);
         } else {
           intro = buildRunIntro({
             methodLabel: run.cfg.methodLabel, useGps, distance: goal, unit,
             targetSec: run.cfg.targetSec, eliteSec: run.cfg.eliteSec,
             freeRun, targetPaceSec: run.cfg.targetPaceSec,
           });
-          if (machine) intro.lines.push(`Set the machine to ${fmtSpeed(speedAt(run.speedSegs, 0))} ${speedUnitLabel(unit).toLowerCase()} and match the dial if you change it.`);
-          if (chaseMode) intro.lines.push(`Intervals are on. When I call a sprint, beat your own pace by ${Math.round(CHASE_THRESHOLD * 100)} percent to escape and bank ${chaseXp(run.cfg.effortTier).win} X P. Get caught and it costs ${chaseXp(run.cfg.effortTier).loss}.`);
+          if (machine) intro.lines.push(machineSpeedLine(speedAt(run.speedSegs, 0), unit));
+          if (chaseMode) intro.lines.push(chaseIntroLine({ threshold: CHASE_THRESHOLD, ...chaseXp(run.cfg.effortTier) }));
         }
-        if (ghost) intro.lines.push(`Ghost mode. You are racing ${ghost.ownerId === 'me' ? 'your' : ghost.ownerName + "'s"} ${ghost.ownerId === 'me' ? 'own run' : 'run'}, ${speakDuration(ghost.totalSec)}. Beat it.`);
+        if (ghost) intro.lines.push(ghostIntroLine(ghost));
         for (const line of intro.lines) {
           if (cancelled) return;
           await say(line, { rate: 1.0 });
@@ -466,7 +456,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
     // tapping back and straight in again does not need a re-brief.
     const awayMs = Date.now() - (restore.updatedAt || 0);
     const t = setTimeout(() => {
-      if (awayMs > 15000) say(`Run resumed. ${speakDuration(el)} on the clock. ${d > 0.05 ? `${speakDistance(+d.toFixed(2), unit)} so far.` : ''}`);
+      if (awayMs > 15000) say(runResumedLine(el, d, unit));
       else setCaption(`Back in. ${fmtClock(el)} on the clock.`);
     }, 400);
     report({ live: true, running: !r.pausedAt });
@@ -707,11 +697,11 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
         if (v.pass) {
           c.passes += 1;
           playExtraLife();
-          say(`Escaped. ${stakes.win} X P banked. Ease back.`);
+          say(chaseResultLine(true, stakes));
         } else {
           c.fails += 1;
           playPowerDown();
-          say(`Caught. ${stakes.loss} X P gone. Next one's yours. Ease back.`);
+          say(chaseResultLine(false, stakes));
         }
         const plate = { mode: 'cardio', tier: r.cfg.effortTier };
         setChaseFlash(v.pass
@@ -749,7 +739,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
           c.leadInAtSec = null;
           setChaseUi({ until: c.activeUntilSec, windowSec, requiredPaceSec: baseline * (1 - CHASE_THRESHOLD), baselinePaceSec: baseline });
           playBell(1);
-          say(`Sprint! ${windowSec} seconds. Go!`);
+          say(chaseStartLine(windowSec));
           r.lastCueSec = sec;
           persist(true);
           return;

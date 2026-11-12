@@ -15,7 +15,7 @@
 
 import { kindSpeed } from './runEffort';
 import { clampSpeed, fmtSpeed, speedUnitLabel } from './machineSpeed';
-import { speakDuration } from './runCoach';
+import { speakDuration, speakNumber, speakSpeed } from './runCoach';
 
 const seg = (kind, seconds, extra = {}) => ({ kind, seconds, ...extra });
 const rep = (n, list) => Array.from({ length: n }, () => list).flat();
@@ -154,10 +154,11 @@ function speechFor(kind, machine, speed, unit, seconds, incline) {
   const words = (EFFORT_WORDS[machine] || EFFORT_WORDS.treadmill)[kind] || kind;
   const dur = speakDuration(seconds);
   if (machine === 'treadmill' && speed != null) {
-    const inc = incline > 0 ? ` Incline ${incline} percent.` : '';
+    // "Set 6 point 5", not "Set 6.5": the recorded voice has whole numbers.
+    const inc = incline > 0 ? ` Incline ${speakNumber(incline)} percent.` : '';
     return {
-      pre: `${words} coming. Set ${fmtSpeed(speed)}.${inc} Five seconds.`,
-      start: kind === 'sprint' ? `Go. ${dur}.` : `${words}. Set ${fmtSpeed(speed)}. ${dur}.`,
+      pre: `${words} coming. Set ${speakSpeed(speed)}.${inc} Five seconds.`,
+      start: kind === 'sprint' ? `Go. ${dur}.` : `${words}. Set ${speakSpeed(speed)}. ${dur}.`,
     };
   }
   return {
@@ -195,6 +196,31 @@ export function expandProgram(program, { machine = 'treadmill', tier = 'normal',
 }
 
 /** Index of the segment running at `sec`, or -1 once the programme is over. */
+// A programme's name as the coach says it: "FIGHT ROUNDS 3×1" is "fight
+// rounds 3 by 1", "HILL & SPRINT 30" is "hill and sprint 30".
+export function spokenProgramName(label) {
+  return String(label || '').toLowerCase()
+    .replace(/\s*×\s*/g, ' by ')
+    .replace(/\s*&\s*/g, ' and ')
+    .replace(/(\d)\s*\/\s*(\d)/g, '$1 $2')
+    .replace(/\s*\/\s*/g, ' and ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// The brief of a guided programme: what it is, how long, and the first
+// segment's own instruction (the belt speed on a treadmill).
+export function programIntro(expanded) {
+  const where = expanded.machine === 'row' ? 'Rower' : expanded.machine === 'bike' ? 'Bike' : 'Treadmill';
+  return {
+    lines: [
+      'Cardio mode.',
+      `${where} intervals. ${spokenProgramName(expanded.label)}, ${speakDuration(expanded.totalSec)}.`,
+      expanded.segments[0]?.start || 'Warm up first.',
+    ],
+    ready: 'Ready.', go: 'Go!',
+  };
+}
+
 export function segmentAt(expanded, sec) {
   const list = expanded?.segments || [];
   for (let i = 0; i < list.length; i++) if (sec < list[i].endSec) return i;

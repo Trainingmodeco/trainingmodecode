@@ -17,8 +17,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { phrasesOf } from '../components/training-mode/data/voicePhrases.js';
-import { planClips } from '../components/training-mode/data/voiceClips.js';
+import { phrasesOf, tokensOf } from '../components/training-mode/data/voicePhrases.js';
+import { planClips, piecesFor } from '../components/training-mode/data/voiceClips.js';
 import { spokenCall } from '../components/training-mode/data/practiceRound.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -44,7 +44,24 @@ const SCREENS = {
   'Training Camp': ['CampFitRunner.jsx', 'CampFitSetRunner.jsx'],
   'Training Arcade': ['ArcadeBenchmarkPlayer.jsx', 'ArcadeCadenceRepPlayer.jsx', 'ArcadeCardioPlayer.jsx', 'ArcadeStageIntroOverlay.jsx'],
   'Warm-up and mobility': ['shared/WarmupTimer.jsx', 'shared/MobilityBlock.jsx'],
+  'Voice check': ['shared/VoiceCheck.jsx'],
 };
+// Every file that imports a speaking call from voiceCoach must be in the list
+// above, so a new screen that talks cannot be left out. Files that only prime,
+// stop or read the voice (primeSpeech, setVoiceGender, getSpeechHealth...)
+// say nothing and need no entry.
+const SPEAKING = new Set(['speakAsync', 'speakOrDelay', 'speakTest']);
+const listed = new Set(Object.values(SCREENS).flat());
+const sources = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? sources(path.join(dir, e.name)) : /\.(jsx?|tsx?)$/.test(e.name) ? [path.join(dir, e.name)] : []));
+const unlisted = [];
+for (const file of sources(TM)) {
+  const src = fs.readFileSync(file, 'utf8');
+  for (const m of src.matchAll(/import\s*\{([^}]*)\}\s*from\s*['"](?:\.\.?\/)+voiceCoach(?:\.js)?['"]/g)) {
+    const names = m[1].split(',').map((x) => x.trim().split(/\s+as\s+/)[0]).filter(Boolean);
+    const rel = path.relative(TM, file).split(path.sep).join('/');
+    if (names.some((n) => SPEAKING.has(n)) && !listed.has(rel)) unlisted.push(rel);
+  }
+}
 // Split a template's text at ${...}, keeping only the fixed words; ternary
 // string branches inside ${} are fixed words too.
 function fixedPieces(lit) {
@@ -65,7 +82,7 @@ function fixedPieces(lit) {
 }
 // Every string and template literal inside a speak call's parentheses
 // (ternaries, || fallbacks and joins included).
-const CALL_START = /\b(?:speakAsync|speakOrDelay|speak|say|announce)\(/g;
+const CALL_START = /\b(?:speakAsync|speakOrDelay|speakTest|speak|say|announce)\(/g;
 function callLiterals(src, at) {
   const out = []; let depth = 1, i = at;
   while (i < src.length && depth > 0) {
@@ -146,9 +163,12 @@ fromData('Quick Mission', missions.LOADOUT_MISSIONS, ['introSay', 'safety', 'say
 const named = await import('../components/training-mode/data/namedWorkouts.js');
 fromData('Quick Mission', named.NAMED_WORKOUTS, ['introSay', 'say', 'name']);
 
-for (const rel of ['fit-mode/fitModeExerciseData.js', 'fit-mode/combatConditioningData.js']) {
-  for (const n of quoted(rel, /\bname:\s*'([^']+)'/g)) { add('Workout Builder', n); add('Combat Conditioning', n); }
-}
+for (const n of quoted('fit-mode/fitModeExerciseData.js', /\bname:\s*'([^']+)'/g)) add('Workout Builder', n);
+// Combat Conditioning speaks from the live library in data/ (the copy under
+// fit-mode/ is imported by nothing): exercise names and the prebuilt circuits.
+const cc = await import('../components/training-mode/data/combatConditioningData.js');
+for (const e of cc.CC_EXERCISE_LIBRARY) add('Combat Conditioning', e.name);
+for (const w of cc.CC_PREBUILT_WORKOUTS) (w.exercises || []).forEach((n) => add('Combat Conditioning', typeof n === 'string' ? n : n?.name));
 fromData('Workout Builder', { q: quoted('FitBuilderGuidedPlayer.jsx', /^\s*'([^']{12,})',?\s*$/gm) }, ['q']);
 
 const intervals = await import('../components/training-mode/data/intervalPrograms.js');
@@ -202,6 +222,14 @@ for (const n of quoted('shared/MobilityBlock.jsx', /\bcue:\s*'([^']+)'/g)) add('
   }
 }
 
+// ── 2c. lines built at runtime from numbers (Cardio Mode and others) ─────
+// The same sweeps test:spoken runs: every line the run coach, the interval
+// player and the other data-built lines can say, over their real ranges.
+{
+  const { spokenSweeps } = await import('./spoken-sweeps.mjs');
+  for (const sw of await spokenSweeps()) sw.lines.forEach((l) => add(sw.feature, l));
+}
+
 // ── 3. the bank inventory (combos, rush, fight focus, coach copy) ──────────
 {
   const tmp = path.join(ROOT, 'node_modules/.cache/voice-inventory.json');
@@ -213,6 +241,12 @@ for (const n of quoted('shared/MobilityBlock.jsx', /\bcue:\s*'([^']+)'/g)) add('
 
 // ── check ───────────────────────────────────────────────────────────────────
 const banks = Object.fromEntries(['female', 'male'].map((v) => [v, JSON.parse(fs.readFileSync(path.join(ROOT, 'public/voice', v, 'manifest.json'), 'utf8'))]));
+// SPOKEN_ASSUME=<record.json> treats that list's keys as recorded (as in
+// test:spoken), to check a record list before it is recorded.
+if (process.env.SPOKEN_ASSUME) {
+  const keys = JSON.parse(fs.readFileSync(process.env.SPOKEN_ASSUME, 'utf8')).map((r) => (typeof r === 'string' ? r : r.key));
+  for (const b of Object.values(banks)) for (const k of keys) if (!b.clips[k]) b.clips[k] = { file: 'assumed.mp3', ms: 500 };
+}
 const missing = {};
 const rows = [];
 for (const [feature, lines] of Object.entries(features)) {
@@ -222,7 +256,15 @@ for (const [feature, lines] of Object.entries(features)) {
   for (const v of ['female', 'male']) {
     const miss = [...phrases].filter((p) => !planClips(banks[v], p));
     row[v] = miss.length;
-    for (const p of miss) (missing[p] = missing[p] || new Set()).add(v);
+    // A phrase with a number in it is said from parts: what to record is the
+    // word runs around the number that have no clip, never the phrase with
+    // its number (a number the planner can say from parts is fine).
+    for (const p of miss) {
+      const parts = /\d/.test(p)
+        ? tokensOf(p).filter((t) => (/^\d/.test(t) ? !planClips(banks[v], t) : !piecesFor(banks[v], t)))
+        : [p];
+      for (const k of parts) (missing[k] = missing[k] || new Set()).add(v);
+    }
   }
   rows.push(row);
 }
@@ -233,4 +275,8 @@ const list = Object.entries(missing).map(([p, vs]) => ({ phrase: p, voices: [...
 console.log(`\nmissing phrases: ${list.length} (female ${list.filter((m) => m.voices.includes('female')).length}, male ${list.filter((m) => m.voices.includes('male')).length})`);
 const out = opt('json');
 if (out) fs.writeFileSync(out, JSON.stringify(list, null, 1));
+if (unlisted.length) {
+  console.log(`\nFAIL: these files speak through voiceCoach but are not in SCREENS in scripts/voice-coverage.mjs:\n  ${unlisted.join('\n  ')}`);
+  process.exit(1);
+}
 if (argv.includes('--strict') && list.length) process.exit(1);
