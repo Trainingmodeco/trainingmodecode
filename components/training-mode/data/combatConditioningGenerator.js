@@ -176,6 +176,13 @@ function exerciseEquipmentAllowed(exerciseEquipment, userEquipment) {
   );
 }
 
+// Whole discipline names, split on "/". Never a substring test:
+// 'kickboxing' contains 'boxing', which served Boxing athletes kick and knee
+// drills and the Kickboxing/Muay Thai prebuilt.
+function disciplineTokens(text) {
+  return String(text || '').toLowerCase().split('/').map((s) => s.trim()).filter(Boolean);
+}
+
 /**
  * Checks if a workout discipline matches the user's style.
  */
@@ -183,39 +190,19 @@ function disciplineMatches(workoutDiscipline, userStyle) {
   if (userStyle === 'All-Around') {
     return true;
   }
-  const wd = workoutDiscipline.toLowerCase();
-  const us = userStyle.toLowerCase();
-
-  // Direct containment check
-  if (wd.includes(us) || us.includes(wd)) return true;
-
-  // Handle slash-separated disciplines
-  const parts = wd.split('/').map((s) => s.trim());
-  const userParts = us.split('/').map((s) => s.trim());
-
-  for (const wp of parts) {
-    for (const up of userParts) {
-      if (wp.includes(up) || up.includes(wp)) return true;
-    }
-  }
-
+  const wd = disciplineTokens(workoutDiscipline);
   // Universal workouts match all styles
-  if (wd === 'universal') return true;
-
-  return false;
+  if (wd.includes('universal')) return true;
+  const us = disciplineTokens(userStyle);
+  return wd.some((w) => us.includes(w));
 }
 
 /**
  * Checks whether an exercise's discipline tags match the randomizer allowed tags.
  */
 function exerciseDisciplineMatch(exerciseTags, allowedTags) {
-  return exerciseTags.some((tag) =>
-    allowedTags.some(
-      (allowed) =>
-        tag.toLowerCase().includes(allowed.toLowerCase()) ||
-        allowed.toLowerCase().includes(tag.toLowerCase())
-    )
-  );
+  const allowed = allowedTags.flatMap(disciplineTokens);
+  return exerciseTags.some((tag) => disciplineTokens(tag).some((t) => allowed.includes(t)));
 }
 
 // ─── Mission Name Generator ────────────────────────────────────────────────────

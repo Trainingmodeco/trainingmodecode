@@ -64,3 +64,35 @@ export function createTimerBag() {
     size: () => ids.size,
   };
 }
+
+// Auto-pause when the page is hidden while a session is running (the logic of
+// hooks/useAutoPauseOnHidden.js). `check` is called on every visibilitychange
+// AND whenever the session turns running: a count-in or the Fight Focus
+// finisher counts as not running, so a page hidden during one never fires a
+// visibilitychange once it ends, and the round used to run on in the
+// background. After settleMs it re-reads hidden/running, then leaves a
+// picture-in-picture window alone (the athlete is still watching the clock).
+export function createHiddenPauseWatcher({
+  doc, isRunning, pause, cancelSpeech = () => {}, noteHonestPause = () => {},
+  settleMs = 400, setTimer = setTimeout, clearTimer = clearTimeout,
+}) {
+  let pending = null;
+  return {
+    check() {
+      clearTimer(pending);
+      if (!doc.hidden || !isRunning()) return;
+      pending = setTimer(() => {
+        if (!doc.hidden || !isRunning()) return;
+        if (doc.pictureInPictureElement) {
+          // Still an honest background event, not a cheat signal.
+          noteHonestPause();
+          return;
+        }
+        cancelSpeech();
+        pause();
+        noteHonestPause();
+      }, settleMs);
+    },
+    dispose() { clearTimer(pending); },
+  };
+}

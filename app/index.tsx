@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import App from '@/components/training-mode/App';
 import { reportError, installErrorReporting } from '@/components/training-mode/data/analytics';
+import { STALE_BUNDLE, createStaleReloadGuard } from '@/components/training-mode/data/staleBundleGuard';
 
 // Script errors and rejected promises outside React's reach go to Plausible
 // as "App Error" events (see data/analytics.js).
@@ -17,8 +18,11 @@ if (typeof window !== 'undefined') installErrorReporting();
 // of stranding the athlete on an error screen mid-session, catch exactly that
 // class of error and reload once — a blink instead of a dead end. Guarded by
 // sessionStorage so a genuinely broken build can't spin in a reload loop.
-const STALE_BUNDLE = /Requiring unknown module|Loading chunk|dynamically imported module|Importing a module script failed|error loading dynamically imported/i;
-const RELOAD_FLAG = 'tm_stale_bundle_reload';
+
+// sessionStorage can throw on access (private mode, blocked site data).
+function safeStorage() {
+  try { return window.sessionStorage; } catch { return null; }
+}
 
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null };
@@ -27,21 +31,28 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
     return { error };
   }
 
+  guard = createStaleReloadGuard({
+    storage: safeStorage(),
+    setTimer: (fn: () => void, ms: number) => setTimeout(fn, ms),
+    reload: () => window.location.reload(),
+  });
+
   componentDidMount() {
-    // Mounted clean — arm the one-shot reload again for a future mismatch.
-    try { sessionStorage.removeItem(RELOAD_FLAG); } catch { /* private mode */ }
+    // Mounted clean — arm the one-shot reload again for a future mismatch, but
+    // not yet: this also runs when the first render threw, just before
+    // componentDidCatch, and the flag has to survive until that check.
+    this.guard.onMount(() => !!this.state.error);
+  }
+
+  componentWillUnmount() {
+    this.guard.onUnmount((t: ReturnType<typeof setTimeout>) => clearTimeout(t));
   }
 
   componentDidCatch(error: Error) {
     // A real crash (the athlete sees the error screen) is reported; a stale
     // bundle after a deploy is expected and fixes itself with a reload.
     if (!STALE_BUNDLE.test(error?.message || '')) { reportError(error, 'crash-screen'); return; }
-    try {
-      if (sessionStorage.getItem(RELOAD_FLAG)) return; // already tried once
-      sessionStorage.setItem(RELOAD_FLAG, '1');
-    } catch { /* private mode — fall through and reload anyway */ }
-    // Navigations are network-first, so this pulls a matching bundle + chunks.
-    setTimeout(() => { try { window.location.reload(); } catch { /* no-op */ } }, 60);
+    this.guard.onCatch(error?.message || '');
   }
 
   render() {

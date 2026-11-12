@@ -899,6 +899,7 @@ export default function App() {
       setScreen('cc_active');
     },
     goCombatCondComplete: (result) => {
+      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
@@ -1143,6 +1144,7 @@ export default function App() {
     startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
     goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); freshStart('timer'); setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
+      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       const total = c.rounds || rounds.length;
@@ -1173,6 +1175,7 @@ export default function App() {
     },
     goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
+      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       const done = typeof roundsDone === 'number' ? roundsDone : 0;
@@ -1212,6 +1215,7 @@ export default function App() {
     },
     goFitWorkout:  (c) => { rememberSession('fit', c); freshStart('fit_workout'); setFitCfg(c); setScreen('fit_workout'); },
     goFitComplete: (c, done, total) => {
+      if (endedScreenRef.current === screen) return; // this run already ended: a second call must not bank it again
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
       addFitModeSession(done, total, c?.difficulty);

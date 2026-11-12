@@ -1,6 +1,6 @@
 import { Share2, MessageCircle, Mail, Link, Download, X } from 'lucide-react';
 import { C } from './Styles';
-import { showShareToast } from './data/shareUtils';
+import { showShareToast, shareCardCanvas } from './data/shareUtils';
 import { PUBLIC_SITE_URL } from './data/links';
 
 function captureCard(cardRef) {
@@ -86,32 +86,17 @@ export default function ShareActions({ cardRef, shareData, onClose }) {
   const link = shareData.shareLink || 'https://trainingmode.co';
 
   const handleShare = async () => {
-    try {
-      const canvas = await captureCard(cardRef);
-      if (canvas && typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-          if (!blob) { fallbackShareText(); return; }
-          const file = new File([blob], 'training-mode-workout-share.png', { type: 'image/png' });
-          const data = { files: [file], text: caption };
-          if (navigator.canShare(data)) {
-            await navigator.share(data);
-          } else {
-            await navigator.share({ text: caption });
-          }
-        }, 'image/png');
-      } else if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ text: caption });
-      } else {
-        fallbackShareText();
-      }
-    } catch (_e) {
-      fallbackShareText();
-    }
+    let canvas = null;
+    try { canvas = await captureCard(cardRef); } catch (_e) { /* share the caption alone */ }
+    await shareCardCanvas(canvas, caption, {
+      nav: typeof navigator !== 'undefined' ? navigator : null,
+      onFallback: fallbackShareText,
+    });
   };
 
   const fallbackShareText = async () => {
     await copyToClipboard(caption);
-    showShareToast('Image saved. Caption copied.');
+    showShareToast('Caption copied.');
   };
 
   const handleText = () => {

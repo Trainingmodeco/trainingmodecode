@@ -39,7 +39,9 @@ function disciplineOk(exercise, styleKey) {
   const lib = CC_EXERCISE_LIBRARY.find(e => e.name.toLowerCase() === exercise.name.toLowerCase());
   if (!lib) return true;
   const rules = CC_RANDOMIZER_RULES[styleKey] || CC_RANDOMIZER_RULES['All-Around'];
-  return lib.disciplineTags.some(t => rules.allowedTags.some(a => t.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(t.toLowerCase())));
+  // Whole names, not substrings: 'kickboxing' contains 'boxing'.
+  const allowed = rules.allowedTags.map(a => a.toLowerCase());
+  return lib.disciplineTags.some(t => allowed.includes(t.toLowerCase()));
 }
 function difficultyOk(exercise, requested) {
   const order = ['Easy', 'Normal', 'Hard', 'Advanced'];
@@ -116,6 +118,11 @@ for (const style of STYLES) {
         const oobDisc = m.drills.filter(d => !disciplineOk(d, style));
         if (oobDisc.length) {
           failures.push({ what: 'discipline mismatch', style, difficulty, equipment, focus, detail: `${oobDisc.map(d => d.name).join(', ')} not tagged for ${style}` });
+        }
+        // §3b a Boxing session never carries a kick or knee drill
+        if (style === 'Boxing') {
+          const kicks = m.drills.filter(d => /kick|knee|muay/i.test(d.name));
+          if (kicks.length) failures.push({ what: 'kick or knee drill in Boxing', style, difficulty, equipment, focus, detail: kicks.map(d => d.name).join(', ') });
         }
         // §4 difficulty within ±1
         const oobDiff = m.drills.filter(d => !difficultyOk(d, difficulty));

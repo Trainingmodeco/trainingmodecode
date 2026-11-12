@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { cancelSpeech } from '../voiceCoach';
+import { createHiddenPauseWatcher } from '../shared/lifecycleGuards';
 
 // Auto-pause a running session when the app is backgrounded or the tab loses
 // visibility (`visibilitychange` → `document.hidden`). It does exactly what
@@ -27,6 +28,7 @@ export default function useAutoPauseOnHidden(isRunning, onAutoPause, integrity) 
   const runningRef = useRef(isRunning);
   const pauseRef = useRef(onAutoPause);
   const integrityRef = useRef(integrity);
+  const watcherRef = useRef(null);
   useEffect(() => { runningRef.current = isRunning; }, [isRunning]);
   useEffect(() => { pauseRef.current = onAutoPause; }, [onAutoPause]);
   useEffect(() => { integrityRef.current = integrity; }, [integrity]);
@@ -41,23 +43,20 @@ export default function useAutoPauseOnHidden(isRunning, onAutoPause, integrity) 
     // few frames later, so the decision waits briefly and then checks whether
     // a window exists. Where the platform refused the window, this pauses
     // exactly as before.
-    let pending = null;
-    const onVisibility = () => {
-      clearTimeout(pending);
-      if (!document.hidden || !runningRef.current) return;
-      pending = setTimeout(() => {
-        if (!document.hidden || !runningRef.current) return;
-        if (document.pictureInPictureElement) {
-          // Still an honest background event, not a cheat signal.
-          integrityRef.current?.noteHonestPause?.();
-          return;
-        }
-        cancelSpeech();
-        pauseRef.current?.();
-        integrityRef.current?.noteHonestPause?.();
-      }, PIP_SETTLE_MS);
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => { clearTimeout(pending); document.removeEventListener('visibilitychange', onVisibility); };
+    const watcher = createHiddenPauseWatcher({
+      doc: document,
+      isRunning: () => runningRef.current,
+      pause: () => pauseRef.current?.(),
+      cancelSpeech,
+      noteHonestPause: () => integrityRef.current?.noteHonestPause?.(),
+      settleMs: PIP_SETTLE_MS,
+    });
+    watcherRef.current = watcher;
+    document.addEventListener('visibilitychange', watcher.check);
+    return () => { watcher.dispose(); watcherRef.current = null; document.removeEventListener('visibilitychange', watcher.check); };
   }, []);
+
+  // The session just turned running (a count-in or finisher ended) with the
+  // page still hidden: no visibilitychange will come, so look now.
+  useEffect(() => { if (isRunning) watcherRef.current?.check(); }, [isRunning]);
 }

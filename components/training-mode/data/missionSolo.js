@@ -432,6 +432,12 @@ export const EARLY_MESSAGE = 'Ended early. Go a little longer to earn XP.';
 // SOLO is honor-system: the floor is the check. Swaps never change totalSlots
 // or the clock, so they never change XP. A stopped clock pays the minutes it
 // ran (the work in them); a finish pays the whole clock.
+// The reps a capped for-time score holds, or null when it holds none.
+function cappedReps(score) {
+  if (!score) return null;
+  const n = Number(score.kind === 'roundsHeld' ? score.value : (score.reps ?? score.value));
+  return Number.isFinite(n) ? n : null;
+}
 export function settleSoloXp(result) {
   const mission = result?.mission || {};
   if (isMaxReps(mission)) return settleMaxRepsSolo(result, mission);
@@ -443,7 +449,17 @@ export function settleSoloXp(result) {
   const expected = soloExpectedSec(mission);
   const ratio = expected > 0 ? Math.min(1, elapsed / expected) : 0;
   const pass = { xp: full, outcome: 'pass', ratio, message: null };
-  if (result?.capped) return pass;
+  if (result?.capped) {
+    // The clock ran out: the reps scored decide the pay, never the cap itself,
+    // so starting a for-time run and letting it expire pays nothing. A run with
+    // no scored reps (or no score) has nothing to measure and keeps the pass.
+    const reps = cappedReps(result?.score);
+    const of = repsPerRound(mission) * (mission.rounds || 1);
+    if (reps === null || !(of > 0) || reps >= of) return pass;
+    const share = Math.max(0, reps) / of;
+    if (share < 0.25) return { xp: 0, outcome: 'none', ratio: share, message: EARLY_MESSAGE };
+    return { xp: missionXp(mission, { slots, ratio: share }), outcome: 'partial', ratio: share, message: null };
+  }
   if (format === 'forTime' && result?.completed) {
     return elapsed >= soloFloorSec(mission) ? pass : { xp: 0, outcome: 'too_fast', ratio, message: mission.atYourPace ? TOO_FAST_TIME_MESSAGE : TOO_FAST_MESSAGE };
   }

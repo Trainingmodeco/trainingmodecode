@@ -204,5 +204,93 @@ check('build workout: FINISH WORKOUT goes when all are done', canFinishEarly(7, 
   check('advancedAs touches nothing but ADVANCED', ['Easy', 'Normal', 'Hard'].every(d => [0, 50, 92, 100].every(n => resolveOutcome({ completed: n, total: 100, difficulty: d }).outcome === resolveOutcome({ completed: n, total: 100, difficulty: d, advancedAs: 'hard' }).outcome)));
 }
 
+// ── audit fixes: cardio minutes, once-only ends, reload guard, share, auto-pause
+import { readFileSync } from 'node:fs';
+{
+  const store = new Map();
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true, writable: true,
+    value: { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) },
+  });
+  const { addCardioSession, XP_CARDIO_MAX_MINUTES } = await import('../components/training-mode/data/userStats.js');
+  const ok = addCardioSession({ completedTimeSeconds: 30 * 60 });
+  const huge = addCardioSession({ completedTimeSeconds: 99999 * 60 });
+  const edge = addCardioSession({ completedTimeSeconds: XP_CARDIO_MAX_MINUTES * 60 });
+  check('cardio: 30 real minutes still pay 20 + 5 a minute', ok === 170, String(ok));
+  check('cardio: a typed 99999 minutes pays the cap, not 500015', huge === 20 + XP_CARDIO_MAX_MINUTES * 5 && huge === edge, `${huge} ${edge}`);
+  delete globalThis.localStorage;
+}
+{
+  const src = (f) => readFileSync(new URL(`../components/training-mode/${f}`, import.meta.url), 'utf8');
+  const app = src('App.jsx');
+  const first = (head) => { const i = app.indexOf(head); return i < 0 ? '' : app.slice(i + head.length, i + head.length + 140); };
+  const guarded = ['goSummary:     (', 'goComboEnd:    (', 'goFitComplete: (', 'goCombatCondComplete: ('].every((h) => {
+    const i = app.indexOf(h); const body = app.slice(app.indexOf('=> {', i) + 4, app.indexOf('=> {', i) + 200);
+    return /^\s*if \(endedScreenRef\.current === screen\) return;/.test(body);
+  });
+  check('once-only: each session-end handler in App returns early when its screen already ended', guarded, first('goSummary:     ('));
+  const cc = src('ComboCoachActive.jsx');
+  check('combo coach: the final-bell hand-off runs from a timer cleared on unmount, not a bare setTimeout',
+    /later\(\(\) => \{ stopVoiceSession\(\{ graceful: true \}\); onEnd\(/.test(cc) && !/setTimeout\(\(\) => \{ stopVoiceSession\(\{ graceful: true \}\); onEnd\(/.test(cc));
+  check('combo coach: a round rest of 0 is kept (?? not ||) and skips the rest phase', /const restSec = cfg\.restSec \?\? 60;/.test(cc) && /if \(restSec <= 0\) \{/.test(cc) && !/cfg\.restSec \|\| 60/.test(cc));
+}
+{
+  // The stale-bundle reload guard, through 20 loads of a chunk that keeps
+  // failing. React mounts the fallback (componentDidMount) BEFORE
+  // componentDidCatch in the same commit, so mount must not clear the flag.
+  const { createStaleReloadGuard, STALE_BUNDLE } = await import('../components/training-mode/data/staleBundleGuard.js');
+  const sess = new Map();
+  const storage = { getItem: (k) => (sess.has(k) ? sess.get(k) : null), setItem: (k, v) => sess.set(k, String(v)), removeItem: (k) => sess.delete(k) };
+  let reloads = 0;
+  for (let load = 0; load < 20; load++) {
+    const timers = [];
+    const g = createStaleReloadGuard({ storage, setTimer: (fn, ms) => { timers.push({ fn, ms }); return timers.length; }, reload: () => { reloads++; } });
+    let error = null;
+    error = new Error('Requiring unknown module 42'); // first render throws
+    g.onMount(() => !!error);
+    g.onCatch(error.message);
+    // The page reloads after 60 ms; the 15 s re-arm timer dies with it.
+    timers.filter(t => t.ms === 60).forEach(t => t.fn());
+  }
+  check('reload guard: a chunk that fails on every load reloads once, not 20 times', reloads === 1, String(reloads));
+  // A clean load that stays up 15 s re-arms it for a later deploy.
+  const t2 = [];
+  const g2 = createStaleReloadGuard({ storage, setTimer: (fn, ms) => { t2.push({ fn, ms }); return t2.length; }, reload: () => { reloads++; } });
+  g2.onMount(() => false);
+  t2.filter(t => t.ms === 15000).forEach(t => t.fn());
+  check('reload guard: a screen that stays up clears the flag, so the next stale deploy reloads once more', sess.size === 0 && g2.onCatch('Loading chunk 7 failed') === true && reloads === 1 && (t2.filter(t => t.ms === 60).forEach(t => t.fn()), reloads === 2));
+  const g3 = createStaleReloadGuard({ storage, setTimer: (fn) => fn(), reload: () => {} });
+  check('reload guard: a real crash is not a reload', g3.onCatch('x is undefined') === false && STALE_BUNDLE.test('Importing a module script failed'));
+}
+{
+  // Sharing the card: every rejection ends in the fallback, a dismissed sheet in nothing.
+  const { shareCardCanvas } = await import('../components/training-mode/data/shareUtils.js');
+  globalThis.File = globalThis.File || class { constructor(parts, name, o) { this.name = name; this.type = o?.type; } };
+  const canvas = { toBlob: (cb) => cb({ size: 1 }) };
+  const run = async (nav, c = canvas) => { let fell = 0; await shareCardCanvas(c, 'cap', { nav, onFallback: () => { fell++; } }); return fell; };
+  const named = (name) => Object.assign(new Error(name), { name });
+  check('share: a NotAllowedError from the share sheet falls back (no unhandled rejection)', await run({ canShare: () => true, share: async () => { throw named('NotAllowedError'); } }) === 1);
+  check('share: a dismissed sheet (AbortError) is quiet', await run({ canShare: () => true, share: async () => { throw named('AbortError'); } }) === 0);
+  check('share: a canvas that gives no blob falls back', await run({ canShare: () => true, share: async () => {} }, { toBlob: (cb) => cb(null) }) === 1);
+  check('share: no share API falls back, a good share does not', await run({}) === 1 && await run({ canShare: () => true, share: async () => {} }) === 0);
+}
+{
+  // Auto-pause when the page is hidden while a count-in ends.
+  const { createHiddenPauseWatcher } = await import('../components/training-mode/shared/lifecycleGuards.js');
+  const doc = { hidden: false, pictureInPictureElement: null };
+  let running = false, pauses = 0, honest = 0;
+  const timers = [];
+  const w = createHiddenPauseWatcher({ doc, isRunning: () => running, pause: () => { pauses++; }, noteHonestPause: () => { honest++; }, setTimer: (fn) => { timers.push(fn); return timers.length; }, clearTimer: () => {} });
+  const flush = () => { while (timers.length) timers.shift()(); };
+  doc.hidden = true; w.check(); flush(); // hidden during the count-in: nothing runs yet
+  check('auto-pause: hidden while not running does nothing', pauses === 0);
+  running = true; w.check(); flush(); // the count-in ends with the page still hidden
+  check('auto-pause: the session turning running while hidden pauses it', pauses === 1 && honest === 1);
+  running = true; doc.hidden = true; doc.pictureInPictureElement = {}; w.check(); flush();
+  check('auto-pause: a picture-in-picture clock is left running', pauses === 1 && honest === 2);
+  doc.pictureInPictureElement = null; doc.hidden = false; w.check(); flush();
+  check('auto-pause: visible pages never pause', pauses === 1);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

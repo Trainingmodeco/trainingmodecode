@@ -337,13 +337,16 @@ export function addPracticeWeeklyBonus(xpAward) {
 
 const XP_CARDIO_BASE = 20;
 const XP_CARDIO_PER_MINUTE = 5;
+// Minutes are self-reported on the log screen, so only the first four hours of
+// a session pay: a typo or a made-up 99999 must not set the level.
+export const XP_CARDIO_MAX_MINUTES = 240;
 
 export function addCardioSession(session) {
   const stats = loadStats();
   const minutes = session?.completedTimeSeconds
     ? Math.round(session.completedTimeSeconds / 60)
     : 0;
-  const xpEarned = XP_CARDIO_BASE + minutes * XP_CARDIO_PER_MINUTE;
+  const xpEarned = XP_CARDIO_BASE + Math.min(minutes, XP_CARDIO_MAX_MINUTES) * XP_CARDIO_PER_MINUTE;
   stats.xp += xpEarned;
   stats.sessions.push({
     id: makeId(),

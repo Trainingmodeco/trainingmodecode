@@ -1803,5 +1803,17 @@ check('unknown mission / level is null', build('nope') === null && build('fx_box
 check('level change drops a swap that no longer applies', build('quota_300', { level: 'standard', swaps: { burpee: 'burpee-tuck-jump' } }).scaled === false
   && build('quota_300', { level: 'beginner', swaps: { burpee: 'burpee-tuck-jump' } }).scaled === true);
 
+// A for-time run that hits its time cap is paid by the reps scored, never the
+// full finish: starting it and letting the clock run out pays nothing.
+{
+  const of = S.repsPerRound(oneBell) * (oneBell.rounds || 1);
+  const cap = (reps) => settle(oneBell, { completed: true, capped: true, elapsedSec: oneBell.capSec, score: { kind: 'time', capped: true, reps, value: reps } });
+  const c0 = cap(0), cHalf = cap(Math.round(of / 2)), cFull = cap(of);
+  check('cap: 0 reps at the cap pays 0 XP, not the finish', of > 0 && c0.xp === 0 && c0.outcome === 'none' && c0.message === S.EARLY_MESSAGE, show(c0));
+  check('cap: half the reps is a partial below the finish, all of them still the pass',
+    cHalf.outcome === 'partial' && cHalf.xp > 0 && cHalf.xp < cFull.xp && cFull.outcome === 'pass' && cFull.xp === settle(oneBell, { completed: true, elapsedSec: 1200 }).xp, show([cHalf, cFull]));
+  check('cap: more reps never pay less', [0, 0.25, 0.5, 0.75, 1].map(f => cap(Math.round(of * f)).xp).every((x, i, a) => i === 0 || x >= a[i - 1]));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

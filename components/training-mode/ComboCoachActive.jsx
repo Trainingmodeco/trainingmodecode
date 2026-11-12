@@ -6,6 +6,7 @@ import { generateComboCoachSession, generateComboCoachRoundPlans } from './data/
 import { moveLabCallStrings } from './data/customCombos';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, setVoiceGender, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
+import useLater from './hooks/useLater';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { playExtraLife, playBell, playBeep, playRiser, unlockAudio } from './data/audioEngine';
@@ -103,9 +104,11 @@ const activeCSS = `
 
 export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
   useWakeLock(true);
+  const later = useLater();
   const totalRounds = cfg.rounds || 3;
   const roundSec = (cfg.roundMin || 3) * 60;
-  const restSec = cfg.restSec || 60;
+  // ?? not ||: the setup lets ROUND REST go down to 0, and 0 is a real answer.
+  const restSec = cfg.restSec ?? 60;
 
   const integrity = useIntegritySession('comboCoach', totalRounds);
   const integrityStartedRef = useRef(false);
@@ -591,11 +594,20 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
         }, 400);
         // The closing line (and a "Rush held" verdict queued behind it) runs on
         // into the summary instead of being cut at 1.5 s (voice audit CC-4).
-        setTimeout(() => { stopVoiceSession({ graceful: true }); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult, sessionStats()); }, 1500);
+        // later(): cleared if the athlete leaves first, so it cannot bank the session from another screen.
+        later(() => { stopVoiceSession({ graceful: true }); onEnd(roundIdxRef.current + 1, totalRounds, integrityResult, sessionStats()); }, 1500);
       } else {
         if (!roundEndBellPlayedRef.current) {
           roundEndBellPlayedRef.current = true;
           playBell(2);
+        }
+        if (restSec <= 0) {
+          // ROUND REST 0: straight into the next round's count-in, as Fight
+          // Focus does. A clock already at 0 would never tick.
+          setPhase('round');
+          integrity.startUnit('rounds');
+          setRoundIdx(i => i + 1);
+          return;
         }
         setPhase('rest');
         setRemaining(restSec);

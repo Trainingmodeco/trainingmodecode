@@ -120,3 +120,27 @@ export function showShareToast(message) {
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2200);
   setTimeout(() => toast.remove(), 2600);
 }
+
+// Share a captured card through the phone's share sheet. Everything that can
+// reject (turning the canvas into a file, the share call itself, a lapsed tap
+// on iOS) sits inside one try, so a failure ends in `onFallback` instead of an
+// unhandled rejection and a button that did nothing. Dismissing the sheet
+// (AbortError) is the athlete's choice: no fallback, no toast.
+export async function shareCardCanvas(canvas, caption, { nav, onFallback }) {
+  try {
+    if (canvas && nav && nav.share && nav.canShare) {
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) { await onFallback(); return; }
+      const file = new File([blob], 'training-mode-workout-share.png', { type: 'image/png' });
+      const data = { files: [file], text: caption };
+      await nav.share(nav.canShare(data) ? data : { text: caption });
+    } else if (nav && nav.share) {
+      await nav.share({ text: caption });
+    } else {
+      await onFallback();
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    await onFallback();
+  }
+}
