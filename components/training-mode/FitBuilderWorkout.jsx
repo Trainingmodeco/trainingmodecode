@@ -6,6 +6,7 @@ import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark,
 import { C, NAV_H, fixedColumnBar } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout, fitsBuilderSlot } from './fit-mode/fitModeGenerator';
+import { builderWorkoutMinutes } from './data/builderTiming';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitBuilderGuidedPlayer, { nextOpenIdx } from './FitBuilderGuidedPlayer';
 import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
@@ -1112,7 +1113,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             gear, count. The muscle groups are in the title already. */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
           {[
-            cfg.duration ? `${cfg.duration} min` : null,
+            // The length of THIS list on the player's own clock, the same sum the
+            // setup card and the programme rows show, so one workout never reads
+            // "~34 min" on one screen and "60 min" on the next.
+            exercises.length ? `~${builderWorkoutMinutes(exercises)} min` : (cfg.duration ? `${cfg.duration} min` : null),
             cfg.difficulty,
             { label: cfg.equipment, accent: true },
             `${exercises.length} exercises`,
