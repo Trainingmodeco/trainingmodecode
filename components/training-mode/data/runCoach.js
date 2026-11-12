@@ -391,6 +391,14 @@ export const GPS_JITTER_K = 2;
 // few fixes, means standing: noise cannot add distance then.
 export const GPS_STILL_SPEED_MPS = 0.5;
 export const GPS_STILL_FIXES = 3;
+// ...but the speed is believed only while the position agrees. Some phones
+// report a speed of 0 when they have no speed reading at all, and trusting
+// that would count nothing for a whole run. Once the position is this far
+// from the anchor (metres, or this many noise floors, whichever is more)
+// while the phone still says "standing", the speed is ignored until the next
+// reset and the noise floor alone does the work.
+export const GPS_STILL_DOUBT_M = 40;
+export const GPS_STILL_DOUBT_K = 4;
 // A new anchor (start, resume, reload, or a position that shifted and stayed)
 // needs this many fixes that agree with each other before it is trusted.
 export const GPS_CONFIRM_FIXES = 3;
@@ -452,6 +460,7 @@ export function createGpsTracker() {
   let far = [];        // fixes rejected as impossible jumps that agree with each other
   let win = [];        // recent accepted raw fixes, for smoothing
   let speeds = [];     // recent { t, v } speed readings
+  let speedLies = false; // the phone said "standing" while the position clearly moved
 
   const rebaseTo = (fixes, last, reason) => {
     const p = meanPos(fixes);
@@ -488,18 +497,20 @@ export function createGpsTracker() {
     while (win.length > GPS_SMOOTH_FIXES || (win.length > 1 && fix.t - win[0].t > GPS_SMOOTH_MS)) win.shift();
     if (Number.isFinite(fix.speed) && fix.speed >= 0) speeds.push({ t: fix.t, v: fix.speed });
     speeds = speeds.filter((s) => fix.t - s.t <= 10000).slice(-GPS_STILL_FIXES);
-    if (speeds.length >= GPS_STILL_FIXES && speeds.reduce((a, s) => a + s.v, 0) / speeds.length < GPS_STILL_SPEED_MPS) {
-      return { accept: false, meters: 0, reason: 'still' };
-    }
+    const still = !speedLies && speeds.length >= GPS_STILL_FIXES && speeds.reduce((a, s) => a + s.v, 0) / speeds.length < GPS_STILL_SPEED_MPS;
     const pos = meanPos(win);
     const d = haversineMeters(anchor.lat, anchor.lng, pos.lat, pos.lng);
     const floor = Math.max(GPS_MIN_STEP_M, GPS_JITTER_K * worseAcc(anchor.accuracy, fix.accuracy));
+    if (still) {
+      if (d < Math.max(GPS_STILL_DOUBT_M, GPS_STILL_DOUBT_K * floor)) return { accept: false, meters: 0, reason: 'still' };
+      speedLies = true; // far from the anchor while "standing": count this step and stop believing the speed
+    }
     if (d < floor) return { accept: false, meters: 0, reason: 'jitter' };
     anchor = { lat: pos.lat, lng: pos.lng, t: fix.t, accuracy: fix.accuracy };
     return { accept: true, meters: d, reason: 'ok', pos };
   };
 
-  const reset = () => { anchor = null; cand = []; far = []; win = []; speeds = []; };
+  const reset = () => { anchor = null; cand = []; far = []; win = []; speeds = []; speedLies = false; };
   return { push, reset, hasAnchor: () => !!anchor };
 }
 

@@ -249,8 +249,39 @@ for (const [nm, noise, acc] of [['white s3 acc 6', { kind: 'white', s: 3 }, 6], 
 {
   const m = row('slow walk 0.8 m/s 600 s acc 25 (true 480 m)', makeTrack({ dur: 600, vel: 0.8, noise: { kind: 'ar1', s: 8 }, acc: 25, seed: 71 }), 480);
   check('slow walk on a poor signal counts, short by at most the floor', m > 480 - 2 * 25 - 10 && m < 480 * 1.05, `${m.toFixed(0)} vs 480`);
+  // The speed is believed only while the position agrees. A crawl reads as
+  // "standing" by speed, but once it is clearly away from the anchor the
+  // position wins, so it is counted (late, not lost).
   const crawl = row('crawl 0.3 m/s 600 s acc 6 (true 180 m)', makeTrack({ dur: 600, vel: 0.3, noise: { kind: 'white', s: 2 }, acc: 6, seed: 72 }), 180);
-  check('a crawl under 0.5 m/s counts nothing (known cost)', crawl === 0, `${crawl.toFixed(0)} m`);
+  check('a crawl under the still speed is counted once the position proves it', crawl > 180 - 30 && crawl < 180 * 1.05, `${crawl.toFixed(0)} vs 180`);
+}
+// A phone that reports speed 0 while moving (it has no speed reading and says
+// 0 instead of nothing) must not turn a whole run into 0 m.
+for (const [label, vel, dur, acc] of [['run 3.3 m/s', 3.3, 900, 6], ['walk 1.4 m/s', 1.4, 600, 6], ['run 3.3 m/s on a poor signal', 3.3, 900, 20]]) {
+  for (const seed of [81, 82]) {
+    const truth = vel * dur;
+    const fixes = makeTrack({ dur, vel, noise: { kind: 'ar1', s: 3 }, acc, seed }).map((f) => ({ ...f, speed: 0 }));
+    const m = row(`${label} with a phone that says speed 0, seed ${seed}`, fixes, truth);
+    check(`${label}: speed stuck at 0 still counts the distance (seed ${seed})`, m > truth * 0.94 && m < truth * 1.04, `${m.toFixed(0)} vs ${truth.toFixed(0)}`);
+  }
+}
+// ...and after a reset the speed is trusted again.
+{
+  const tr = createGpsTracker();
+  for (const f of makeTrack({ dur: 120, vel: 3, noise: { kind: 'white', s: 2 }, acc: 6, seed: 83 }).map((x) => ({ ...x, speed: 0 }))) tr.push(f);
+  tr.reset();
+  let m = 0;
+  for (const f of makeTrack({ dur: 300, vel: 0, noise: { kind: 'uni', s: 10 }, acc: 5, seed: 84 })) m += tr.push(f).meters;
+  check('a reset trusts the speed again: standing after it counts nothing', m < 30, `${m.toFixed(0)} m`);
+}
+// The cardio player starts its GPS watch at the start and after every pause,
+// and must begin each from a clean tracker (no long step across a pause).
+{
+  const src = readFileSync(new URL('../components/training-mode/CardioProtocolPlayer.jsx', import.meta.url), 'utf8');
+  const eff = src.indexOf('if (!useGps || !distanceMode || !running) return undefined;');
+  const reset = src.indexOf('gpsRef.current.tracker.reset()', eff);
+  const watch = src.indexOf('const startWatch', eff);
+  check('cardio player resets the tracker when its GPS watch (re)starts', eff > 0 && reset > eff && reset < watch);
 }
 
 // The PACE chip reads the speed state. A stop produces only 'still' or

@@ -486,6 +486,10 @@ export default function CardioProtocolPlayer({
   useEffect(() => {
     if (!useGps || !distanceMode || !running) return undefined;
     if (typeof navigator === 'undefined' || !navigator.geolocation) return undefined;
+    // This effect starts at the start of the run and again after every pause.
+    // Distance resumes from wherever the athlete is now: a walk to the water
+    // fountain while paused must not come back as one long step.
+    gpsRef.current.tracker.reset();
 
     let wakeLock = null;
     const acquireWakeLock = async () => {
