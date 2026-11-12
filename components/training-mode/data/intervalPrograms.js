@@ -15,7 +15,7 @@
 
 import { kindSpeed } from './runEffort';
 import { clampSpeed, fmtSpeed, speedUnitLabel } from './machineSpeed';
-import { speakDuration, speakNumber, speakSpeed } from './runCoach';
+import { speakDuration, speakNumber, speakSpeedUnit } from './runCoach';
 
 const seg = (kind, seconds, extra = {}) => ({ kind, seconds, ...extra });
 const rep = (n, list) => Array.from({ length: n }, () => list).flat();
@@ -154,15 +154,18 @@ function speechFor(kind, machine, speed, unit, seconds, incline) {
   const words = (EFFORT_WORDS[machine] || EFFORT_WORDS.treadmill)[kind] || kind;
   const dur = speakDuration(seconds);
   if (machine === 'treadmill' && speed != null) {
-    // "Set 6 point 5", not "Set 6.5": the recorded voice has whole numbers.
+    // "Set 6 point 5 mph", not "Set 6.5": every speed and incline these
+    // programmes can produce is one recorded phrase ("6 point 5 mph",
+    // "2 point 5 percent") after its lead-in.
     const inc = incline > 0 ? ` Incline ${speakNumber(incline)} percent.` : '';
+    const set = `Set ${speakSpeedUnit(speed, unit)}.`;
     return {
-      pre: `${words} coming. Set ${speakSpeed(speed)}.${inc} Five seconds.`,
-      start: kind === 'sprint' ? `Go. ${dur}.` : `${words}. Set ${speakSpeed(speed)}. ${dur}.`,
+      pre: `${words} coming. ${set}${inc} 5 seconds.`,
+      start: kind === 'sprint' ? `Go. ${dur}.` : `${words}. ${set} ${dur}.`,
     };
   }
   return {
-    pre: `${words} coming. Five seconds.`,
+    pre: `${words} coming. 5 seconds.`,
     start: kind === 'sprint' ? `Go. All out. ${dur}.` : `${words}. ${dur}.`,
   };
 }

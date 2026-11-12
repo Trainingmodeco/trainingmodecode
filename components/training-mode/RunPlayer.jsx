@@ -35,7 +35,7 @@ import {
 import {
   metersPerUnit, fmtClock, fmtPace, fmtSignedDelta,
   buildRunIntro, machineSpeedLine, chaseIntroLine, chaseStartLine, chaseResultLine, chaseSummaryLine,
-  ghostIntroLine, runResumedLine, programmeEndLine, freeRunEndLine, runEndedLine, crossedMarkers, crossedTenths, splitScript, freeRunSplitScript, finishScript,
+  ghostIntroLine, runResumedLine, programmeEndLine, freeRunEndLine, runEndedLine, crossedMarkers, crossedTenths, spokenMarkers, splitScript, freeRunSplitScript, finishScript,
   paceVerdict, PACE_CUES, RUN_TIPS, pickCue, shouldCue, nextCueGap,
   createGpsTracker, GPS_MAX_ACCURACY_M, GPS_WEAK_SIGNAL_MS, rollingPaceSec, projectedFinish,
   ghostGap, ghostVerdict, ghostCue, ghostSplitLine, ghostFinishLine,
@@ -49,8 +49,9 @@ import {
 //  2. The clock is wall time (see data/liveRun.js). Leave the player, leave the
 //     app, take a call — the run is still running when you come back.
 //  3. The coach TALKS: an intro with the target and the elite time, then a
-//     split call at every half and whole unit, pace verdicts between them, and
-//     form tips. The pure scripts live in data/runCoach.js.
+//     split call at every whole unit (every half too with HALF-MILE CALLS
+//     on), pace verdicts between them, and form tips. The pure scripts live
+//     in data/runCoach.js.
 //  4. Every change is persisted, so the OS killing the PWA loses nothing but
 //     the GPS meters covered while it was away.
 //
@@ -611,12 +612,16 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
 
     const markers = crossedMarkers(prev, dist, 0.5).filter(m => (freeRun || m < goal - 1e-9) && !r.markersDone.includes(m));
     if (markers.length) {
-      const marker = markers[markers.length - 1];
+      // Every half unit is kept for the split table; the coach calls the
+      // whole unit, and the halves only with HALF-MILE CALLS on.
+      markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
+      const called = spokenMarkers(markers, !!r.cfg.halfCalls);
+      if (!called.length) { persist(true); return; }
+      const marker = called[called.length - 1];
       const pace = machine
         ? (paceFromSpeed(speedNow) || r.cfg.targetPaceSec)
         : usingGps ? (rollingPaceSec(r.samples, elapsedSec, unit, 60) || (dist > 0.05 ? elapsedSec / dist : 0))
           : r.cfg.targetPaceSec;
-      markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
       r.lastSplitSec = elapsedSec;
       playBell(1);
       persist(true);
