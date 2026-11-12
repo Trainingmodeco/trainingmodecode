@@ -11,7 +11,6 @@ import FitBuilderGuidedPlayer, { nextOpenIdx } from './FitBuilderGuidedPlayer';
 import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
 import { routineSlotLimit } from './data/entitlements';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
-import { waitUpTo, START_PRIME_CAP_MS } from './shared/tapGate';
 import useWakeLock from './hooks/useWakeLock';
 import { recordBuilderWorkout, rowProgression, loadLastBuilderWorkout } from './data/builderProgression';
 import WarmupTimer from './shared/WarmupTimer';
@@ -305,6 +304,7 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
   // half-done workout or coming back to the list after the player skips it
   // (you already warmed up). OFF / 5 / 10, 5 until the athlete picks.
   const [warmupOpen, setWarmupOpen] = useState(false);
+  const startingRef = useRef(false);
   const [starting, setStarting] = useState(false);   // START tapped, speech unlock still in its beat
   const [warmedUp, setWarmedUp] = useState(!!initialResumeData);
   const [warmupMin, setWarmupMin] = useState(() => {
@@ -1397,11 +1397,15 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
             } else {
               // Prime speech on the user gesture so the guided coach can talk.
               setVoiceGender(profile?.voiceCoach || 'FEMALE');
-              // Pressed at once; the speech unlock gets a beat, not the whole
-              // wait (see shared/tapGate).
-              if (starting) return;
+              // Pressed at once (STARTING...), but the session still waits for
+              // the voice: every clip is held until it is ready, so starting
+              // early only stacks the count-in late. The ref stops a second tap
+              // in the same render.
+              if (startingRef.current) return;
+              startingRef.current = true;
               setStarting(true);
-              await waitUpTo(primeSpeech(), START_PRIME_CAP_MS);
+              try { await primeSpeech(); } catch { /* speech optional */ }
+              startingRef.current = false;
               setStarting(false);
               // The first open exercise; if only skipped ones are left, the
               // first of those (starting it clears its skip).

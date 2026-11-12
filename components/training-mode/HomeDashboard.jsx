@@ -18,7 +18,6 @@ import { qmV2Enabled } from './data/qmV2';
 import { loadShelfPrefs } from './data/loadoutMissions';
 import { startsAtYourPace } from './data/soloFromGenerated';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
-import { waitUpTo, START_PRIME_CAP_MS } from './shared/tapGate';
 import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './data/ghostChallenges';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
 
@@ -205,7 +204,7 @@ export default function HomeDashboard({
   // be unlocked here the same way each setup screen does before it starts.
   const primeThen = async (fn) => {
     setVoiceGender(profile?.voiceCoach || 'FEMALE');
-    await waitUpTo(primeSpeech(), START_PRIME_CAP_MS);
+    await primeSpeech().catch(() => {});
     fn();
   };
 

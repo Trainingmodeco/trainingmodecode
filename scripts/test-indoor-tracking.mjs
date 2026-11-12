@@ -24,7 +24,6 @@ import { createWakeLockHolder, createTimerBag } from '../components/training-mod
 import { createBeatClock, waitBeat } from '../components/training-mode/shared/pausableWait.js';
 import { snapCadenceMs, CADENCE_MIN_MS, CADENCE_MAX_MS, CADENCE_STEP_MS } from '../components/training-mode/shared/cadenceGrid.js';
 import { readFileSync } from 'node:fs';
-import { waitUpTo, START_PRIME_CAP_MS } from '../components/training-mode/shared/tapGate.js';
 
 // Deterministic noise. The simulations below draw random jitter, and an
 // unseeded run failed a tray-placement check roughly one time in ten with
@@ -449,23 +448,12 @@ ok('stride cross-check is permissive with no speed', strideIsPlausible(109, 0, '
 // Fitness screens: START answers at once, the Builder counts never queue, and
 // the screen says what comes next.
 {
-  const t0 = Date.now();
-  await waitUpTo(new Promise((r) => setTimeout(r, 1500)), 60);
-  ok('a slow speech unlock holds the tap for the cap, not the whole wait', Date.now() - t0 < 400, `${Date.now() - t0} ms`);
-  const t1 = Date.now();
-  await waitUpTo(Promise.resolve('ready'), 500);
-  ok('a quick unlock does not wait out the cap', Date.now() - t1 < 100);
-  let threw = false;
-  try { await waitUpTo(Promise.reject(new Error('no speech')), 500); } catch { threw = true; }
-  ok('a failed unlock never blocks or throws', !threw);
-  ok('the START cap is a beat, well under the old 2.5 s wait', START_PRIME_CAP_MS > 0 && START_PRIME_CAP_MS <= 500);
-
   const dir2 = new URL('../components/training-mode/', import.meta.url);
   const src2 = (f) => readFileSync(new URL(f, dir2), 'utf8');
   const gp = src2('FitBuilderGuidedPlayer.jsx'), fw = src2('FitBuilderWorkout.jsx'), hd = src2('HomeDashboard.jsx');
   ok('the Builder count is dropped, not queued, when it cannot start on the beat', /speakAsync\(String\(i\), \{ rate: 1\.4, dropIfBusy: true \}\)/.test(gp));
-  ok('Builder START shows STARTING at once and does not wait out the speech unlock', /waitUpTo\(primeSpeech\(\), START_PRIME_CAP_MS\)/.test(fw) && /'STARTING…'/.test(fw) && !/await primeSpeech\(\)/.test(fw));
-  ok('Home START does not wait out the speech unlock either', /waitUpTo\(primeSpeech\(\), START_PRIME_CAP_MS\)/.test(hd) && !/await primeSpeech\(\)/.test(hd));
+  ok('Builder START shows STARTING at once, guards a second tap, and still waits for the voice', /'STARTING…'/.test(fw) && /startingRef\.current/.test(fw) && /await primeSpeech\(\)/.test(fw) && !/waitUpTo/.test(fw));
+  ok('Home START waits for the voice unlock in full', /await primeSpeech\(\)\.catch/.test(hd) && !/waitUpTo/.test(hd));
   ok('a manual pause says how to carry on', /setAnnouncer\('Paused — tap ▶ to carry on'\)/.test(gp));
   ok('the done card and the map both name the next exercise', /Up next: \{nextExercise\.name\}/.test(gp) && /Up next: \$\{exercises\[glow\]\.name\}/.test(gp));
   ok('the completion map has a START NEXT button that does what closing does', /onClick=\{closeMap\}[^]*?>START NEXT</.test(gp));
