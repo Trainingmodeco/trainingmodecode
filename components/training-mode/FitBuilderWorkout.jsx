@@ -5,7 +5,7 @@ import Embers from './Embers';
 import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark, Link2, Flag } from 'lucide-react';
 import { C, NAV_H, fixedColumnBar } from './Styles';
 import BottomSheet from './shared/BottomSheet';
-import { generateFitModeWorkout } from './fit-mode/fitModeGenerator';
+import { generateFitModeWorkout, fitsBuilderSlot } from './fit-mode/fitModeGenerator';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitBuilderGuidedPlayer, { nextOpenIdx } from './FitBuilderGuidedPlayer';
 import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
@@ -143,13 +143,21 @@ function getAlternates(exercise, cfg, takenNames, seed) {
   // title case in `primaryMuscle` — compare case-insensitively or the list
   // always comes back empty.
   const muscle = String(exercise.primaryMuscle || exercise.muscle || '').toLowerCase();
-  const pool = seededShuffle(FIT_MODE_EXERCISES.filter(ex =>
+  const sameMuscle = FIT_MODE_EXERCISES.filter(ex =>
     ex.active &&
     String(ex.primaryMuscle || '').toLowerCase() === muscle &&
     // Never offer a movement the workout already contains (in ANY slot) —
     // swapping to it would put the same exercise in twice.
     !takenNames.has(String(ex.name).toLowerCase())
-  ), seed);
+  );
+  // A swap follows the same rule as the build: kit the athlete has, and no
+  // more than one step from their level (an Easy workout is not offered a
+  // Hard hold). A bodyweight move stays a fallback for any kit. Thin muscle
+  // groups keep the old open list rather than an empty sheet.
+  const fits = (ex) => fitsBuilderSlot(ex, cfg)
+    || (ex.equipment === 'Bodyweight' && fitsBuilderSlot(ex, { equipment: 'Bodyweight', difficulty: cfg.difficulty }));
+  const fitting = sameMuscle.filter(fits);
+  const pool = seededShuffle(fitting.length >= 3 ? fitting : sameMuscle, seed);
   const isBw = (ex) => ex.equipment === 'Bodyweight';
 
   // Weighted workouts swap to weighted work: ~80% loaded alternatives —

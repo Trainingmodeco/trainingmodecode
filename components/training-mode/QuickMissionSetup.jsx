@@ -587,7 +587,7 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
     // The classic's own workoutType drives the brief, the prep lines and the
     // status strip; countType keeps the count exactly as before (bodyweight,
     // whatever GEAR says).
-    onStart?.({ ...cfg, cardioAddon, workoutType: m.workoutType, countType: 'Bodyweight', duration: m.duration, difficulty: 'Hard', focus: m.focus, mission: m });
+    onStart?.({ ...cfg, cardioAddon, workoutType: m.workoutType, countType: 'Bodyweight', duration: m.duration, difficulty: m.difficulty || 'Hard', focus: m.focus, mission: m });
   };
   const handleStart = () => {
     if (v2Mission) { startV2(v2Mission, runMode); return; }
