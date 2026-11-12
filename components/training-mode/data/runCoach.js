@@ -162,27 +162,29 @@ export function buildRunIntro({ methodLabel = 'Run', useGps = true, distance, un
 }
 
 // Interval / tabata intro for the time-based player: "Tabata. 8 rounds. 20
-// seconds of work, 10 seconds of rest." "of work" and "of rest" are their own
-// recorded endings: the bare "Work!" and "Rest." are the shouted calls.
+// seconds work, 10 seconds rest." Each "20 seconds work" is recorded whole: a
+// number clip with "of work" glued after it was a second voice cutting in,
+// and the bare "Work!" and "Rest." are the shouted calls.
 export function buildIntervalIntro({ styleLabel = 'intervals', rounds, workSec, restSec, warmupSec = 0 }) {
   const parts = ['Cardio mode.', `${String(styleLabel).toLowerCase()}.`];
   if (rounds) {
     parts.push(`${unitOf(rounds, 'round')}.`);
-    parts.push(restSec > 0 ? `${speakDuration(workSec)} of work, ${speakDuration(restSec)} of rest.` : `${speakDuration(workSec)} of work. No rest.`);
+    parts.push(restSec > 0 ? `${speakDuration(workSec)} work, ${speakDuration(restSec)} rest.` : `${speakDuration(workSec)} work. No rest.`);
   }
   if (warmupSec > 0) parts.push(`Warm up first: ${speakDuration(warmupSec)}.`);
   return { lines: parts, ready: 'Ready.', go: 'Go!' };
 }
 
 // Steady protocol (bike, rower, any timed machine): "Cardio mode." then
-// "elliptical, 20 minutes steady." The brief is the same line with "Go!" for
+// "elliptical, steady for 20 minutes." "Steady for" is the recorded lead-in,
+// so the number is never followed by a tail from another clip. The brief is the same line with "Go!" for
 // a player that was started by hand.
 const methodWord = (methodLabel) => String(methodLabel || 'cardio').toLowerCase();
 export function buildSteadyIntro({ methodLabel, durationSeconds }) {
-  return { lines: ['Cardio mode.', `${methodWord(methodLabel)}, ${speakDuration(durationSeconds || 600)} steady.`], ready: 'Ready.', go: 'Go!' };
+  return { lines: ['Cardio mode.', `${methodWord(methodLabel)}, steady for ${speakDuration(durationSeconds || 600)}.`], ready: 'Ready.', go: 'Go!' };
 }
 export function steadyBrief({ methodLabel, durationSeconds }) {
-  return `${methodWord(methodLabel)}, ${speakDuration(durationSeconds || 600)} steady. Go!`;
+  return `${methodWord(methodLabel)}, steady for ${speakDuration(durationSeconds || 600)}. Go!`;
 }
 
 // The call at each segment change of the interval player.
@@ -235,9 +237,11 @@ export function ghostIntroLine(ghost) {
   return `Ghost mode. ${ghost.ownerName}. You are racing their run, ${dur}. Beat it.`;
 }
 
-// After the app was away mid-run (a call, a reload).
+// After the app was away mid-run (a call, a reload): "Run resumed at 12
+// minutes. Distance so far: 2 miles." The numbers come after a recorded
+// lead-in, never before a tail.
 export function runResumedLine(elapsedSec, dist, unit = 'mi') {
-  return `Run resumed. ${speakDuration(elapsedSec)} on the clock. ${dist > 0.05 ? `${cap(speakDistance(+dist.toFixed(2), unit))} so far.` : ''}`.trim();
+  return `Run resumed at ${speakDuration(elapsedSec)}. ${dist > 0.05 ? `Distance so far: ${speakDistance(+dist.toFixed(2), unit)}.` : ''}`.trim();
 }
 
 // The last call of a guided programme, a free run, or a run ended early:
@@ -278,9 +282,12 @@ export function crossedTenths(prevDist, dist) {
 
 // Which of the crossed markers the coach calls. The owner's rule: track by the
 // whole mile (or kilometre). A call at each half unit too is the athlete's
-// option (HALF-MILE CALLS on the run setup), off unless they turn it on.
-export function spokenMarkers(markers, halfCalls = false) {
-  return (markers || []).filter((m) => halfCalls || Math.abs(m - Math.round(m)) < 1e-9);
+// option (HALF-MILE CALLS on the run setup), off unless they turn it on. Past
+// a marathon a distance is said to the whole unit, so a half marker there
+// would be called as the next mile; those halves are not called.
+export function spokenMarkers(markers, halfCalls = false, unit = 'mi') {
+  const limit = TENTHS_UP_TO[unit] || TENTHS_UP_TO.mi;
+  return (markers || []).filter((m) => Math.abs(m - Math.round(m)) < 1e-9 || (halfCalls && m <= limit));
 }
 
 // Verdict of a running clock against target and elite. delta < 0 is ahead.
@@ -622,7 +629,7 @@ export const GHOST_CUES = {
     'You are beating your ghost. Great job. Keep it there.',
     'Ahead of your ghost by {gap}. Do not let it back in.',
     'Your ghost is behind you. Stay smooth, stay ahead.',
-    'You are winning this race. {gap} clear.',
+    'You are winning this race by {gap}.',
   ],
   trail: [
     'Your ghost is winning. Chase it down.',

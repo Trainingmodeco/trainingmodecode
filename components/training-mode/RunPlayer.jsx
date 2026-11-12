@@ -615,7 +615,7 @@ export default function RunPlayer({ cfg, restore = null, autoStart = true, onSta
       // Every half unit is kept for the split table; the coach calls the
       // whole unit, and the halves only with HALF-MILE CALLS on.
       markers.forEach(m => { r.markersDone.push(m); r.splits.push({ marker: m, elapsedSec: Math.round(elapsedSec) }); });
-      const called = spokenMarkers(markers, !!r.cfg.halfCalls);
+      const called = spokenMarkers(markers, !!r.cfg.halfCalls, unit);
       if (!called.length) { persist(true); return; }
       const marker = called[called.length - 1];
       const pace = machine

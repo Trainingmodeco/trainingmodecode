@@ -126,13 +126,22 @@ same('the finish', rc.finishScript({ dist: 3, unit: 'mi', elapsedSec: 1754, targ
 same('a finish right on the target says so, not "0 seconds"', rc.finishScript({ dist: 3, unit: 'mi', elapsedSec: 1800, targetSec: 1800, eliteSec: 1200 }),
   'Goal reached. 3 miles. Your time: 30 minutes. Right on target. Good work.');
 same('interval brief', rc.buildIntervalIntro({ styleLabel: 'Tabata', rounds: 8, workSec: 20, restSec: 10, warmupSec: 180 }).lines.join(' '),
-  'Cardio mode. tabata. 8 rounds. 20 seconds of work, 10 seconds of rest. Warm up first: 3 minutes.');
+  'Cardio mode. tabata. 8 rounds. 20 seconds work, 10 seconds rest. Warm up first: 3 minutes.');
+same('steady brief: the lead-in, then the time', rc.steadyBrief({ methodLabel: 'Elliptical', durationSeconds: 1200 }), 'elliptical, steady for 20 minutes. Go!');
+same('resume: the lead-ins, then the numbers', rc.runResumedLine(720, 2, 'mi'), 'Run resumed at 12 minutes. Distance so far: 2 miles.');
 same('chase summary', rc.chaseSummaryLine({ attempts: 3, passes: 2, xp: 20 }), ' 3 chases, 2 escaped.');
 
 // Half-unit calls are the athlete's option (HALF-MILE CALLS, off by
 // default): the coach calls the whole unit, the split table keeps the halves.
 same('splits are called at the whole unit', rc.spokenMarkers([0.5, 1, 1.5, 2]).join(','), '1,2');
 same('half-unit calls when turned on', rc.spokenMarkers([0.5, 1, 1.5, 2], true).join(','), '0.5,1,1.5,2');
+{
+  // Past a marathon a distance is said to the whole unit: a called 26.5 would
+  // say "27 miles", and then 27 would say it again. Those halves stay quiet.
+  const said = rc.spokenMarkers([26, 26.5, 27, 27.5, 28], true, 'mi').map((m) => rc.freeRunSplitScript({ marker: m, unit: 'mi', elapsedSec: m * 600, paceSec: 600, targetPaceSec: 600 }).split('.')[0]);
+  same('half calls past a marathon never repeat or round up a distance', said.join(' | '), '26 miles | 27 miles | 28 miles');
+  same('half-km calls run to the marathon in km', rc.spokenMarkers([41.5, 42, 42.5], true, 'km').join(','), '41.5,42');
+}
 {
   // Over a 5-mile run with the option off, no half-unit distance is said.
   const said = [];
@@ -152,13 +161,20 @@ const sweeps = await spokenSweeps();
 for (const sw of sweeps) mustPlan(`${sw.feature}: ${sw.name}`, sw.lines);
 
 // ── Cardio Mode sounds like one voice, not a tiled list ──────────────────
-// Each phrase of a Cardio line is one recorded clip, or two: a lead-in and a
-// number said with its unit ("under target by" + "46 seconds"). A bare
+// Each phrase of a Cardio line is one recorded clip, or two of one shape: a
+// recorded lead-in and then a number said with its unit ("under target by" +
+// "46 seconds"), or a number with its unit and then "per mile" or "per
+// kilometer" ("9 minutes" + "per mile"). Two fixed words glued together
+// ("run" + "coming", where "run" is a shouted call) or a tail after a number
+// ("20 seconds" + "of work") is a second voice cutting in, and fails. A bare
 // number clip ("14", "46") is recorded as a rep count, a short shout, and
 // never plays inside a Cardio line. The one exception: a belt speed typed on
 // the treadmill dial can be any tenth, too many to record, so the setup's
 // speed line may say it from pieces. The programmes' speeds are recorded.
 const BARE_NUMBER = /^\d+(\.\d+)?$/;
+const WITH_UNIT = /\d|^(one|half a|a tenth of a|a quarter) (mile|kilometer)$/;
+const UNIT_TAILS = new Set(['per mile', 'per kilometer']);
+const pairOk = ([a, b]) => (!WITH_UNIT.test(a) && WITH_UNIT.test(b)) || (WITH_UNIT.test(a) && UNIT_TAILS.has(b));
 const TILE_EXCEPTIONS = new Set(['machine speed line (treadmill dial, both units)']);
 for (const sw of sweeps) {
   if (sw.feature !== 'Cardio Mode' || TILE_EXCEPTIONS.has(sw.name)) continue;
@@ -170,12 +186,12 @@ for (const sw of sweeps) {
       seen.add(ph.text);
       const keys = banks[v].clips[ph.text] ? [ph.text] : piecesFor(banks[v], ph.text);
       if (!keys) continue; // no plan at all: mustPlan already failed it
-      if (keys.length > 2 || keys.some((k) => BARE_NUMBER.test(k))) bad.push(`${v}: "${ph.text}" = ${keys.join(' + ')}`);
+      if (keys.length > 2 || keys.some((k) => BARE_NUMBER.test(k)) || (keys.length === 2 && !pairOk(keys))) bad.push(`${v}: "${ph.text}" = ${keys.join(' + ')}`);
     }
   }
   if (!bad.length) { pass++; console.log(`  ok   ${sw.feature}: ${sw.name}: every phrase one clip, or a lead-in and one`); continue; }
   fail++;
-  console.log(`  FAIL ${sw.feature}: ${sw.name}: ${bad.length} phrases tiled from more than two clips or a bare number`);
+  console.log(`  FAIL ${sw.feature}: ${sw.name}: ${bad.length} phrases tiled from more than two clips, a bare number, or two pieces that are not a lead-in and a number`);
   for (const m of bad.slice(0, 6)) console.log(`         ${m}`);
 }
 
