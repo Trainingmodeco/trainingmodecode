@@ -1,6 +1,6 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY, getAccessToken, getCurrentUser, onAuthChange } from './authClient';
 import { migrateArcadeIds } from './arcadeIdMigration';
-import { TIMES_KEY, mergeSnapshots, normalize } from './syncMerge';
+import { TIMES_KEY, mergeSnapshots, normalize, ledgerStats, withLedger, mergeKey } from './syncMerge';
 
 // ── Cloud progress sync ──────────────────────────────────────────────────────
 // The app is local-first and stays that way: every screen reads localStorage and
@@ -22,8 +22,11 @@ import { TIMES_KEY, mergeSnapshots, normalize } from './syncMerge';
 //  • Local data belongs to one account (meta.owner). Signing in as someone
 //    else sets the previous account's data aside on this device and starts
 //    from the new account's cloud copy; accounts are never merged.
-//  • Before a sync changes anything on the device the old values go into
-//    tm_sync_backups (the last 5), which the account card can restore.
+//  • When a sync changes the device, the old values of the keys it changed go
+//    into tm_sync_backups (the last 5, kept small so they never crowd out
+//    the athlete's own data), which the account card can restore.
+//  • The athlete's data always comes before the copies: when storage is full
+//    the copies go first, and a sync that still cannot write says so.
 //  • Nothing on the device changes, and the page never reloads, while a
 //    workout is live: the merge still goes up, the device catches up after.
 //  • Never syncs: entitlements (server-authoritative), the paused-session
@@ -33,7 +36,19 @@ const ENDPOINT = `${SUPABASE_URL}/rest/v1/progress_snapshots`;
 const META_KEY = 'tm_sync_meta';
 const LEGACY_BACKUP_KEY = 'tm_sync_backup';   // the single copy older versions kept
 const BACKUPS_KEY = 'tm_sync_backups';
+const BACKUP_INDEX_KEY = 'tm_sync_backup_index';   // [{ at, owner, size }], read by the account card
 const MAX_BACKUPS = 5;
+// All copies together stay under about 1 MB (browsers count two bytes a
+// character) and under a fifth of what the synced keys use, but may always
+// use 40 KB: with little data a fifth would not fit even one changed setting.
+const BACKUP_MAX_CHARS = 500000;
+const BACKUP_MIN_CHARS = 20000;
+const BACKUP_SHARE = 0.2;
+const PROBE_KEY = 'tm_sync_probe';
+const STATS_KEY = 'tm_user_stats';
+// What the account card shows when storage stops a sync.
+export const SYNC_ERROR_STORAGE = 'storage full';
+export const SYNC_ERROR_SWITCH = 'storage full: account switch';
 const USER_STASH_PREFIX = 'tm_sync_user_';    // another account's data, set aside
 const RESTORE_FLAG = 'tm_sync_restored';   // sessionStorage, stops reload loops
 
@@ -84,7 +99,10 @@ function trainingLive() { try { return !!liveCheck(); } catch { return true; } }
 // ── local meta ───────────────────────────────────────────────────────────────
 function readMeta() {
   if (!isBrowser) return {};
-  try { return JSON.parse(localStorage.getItem(META_KEY) || '{}') || {}; } catch { return {}; }
+  try {
+    const m = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+    return isObj(m) ? m : {};
+  } catch { return {}; }
 }
 function writeMeta(patch) {
   if (!isBrowser) return {};
@@ -107,6 +125,28 @@ function deviceLabel() {
   if (/Mac/.test(ua)) return 'Mac';
   if (/Windows/.test(ua)) return 'Windows';
   return 'device';
+}
+
+// ── storage ──────────────────────────────────────────────────────────────────
+function trySet(k, v) {
+  try { localStorage.setItem(k, v); return true; } catch { return false; }
+}
+// The copies are the only thing the sync keeps that can go without losing
+// anything the athlete did. userStats.js drops the same keys when a workout
+// save meets full storage.
+function clearBackupList() {
+  for (const k of [BACKUPS_KEY, BACKUP_INDEX_KEY]) { try { localStorage.removeItem(k); } catch { /* noop */ } }
+}
+function dropBackups() {
+  clearBackupList();
+  try { localStorage.removeItem(LEGACY_BACKUP_KEY); } catch { /* noop */ }
+}
+// Write a key the athlete's data needs; if storage is full, drop the copies
+// and try once more.
+function setData(k, v) {
+  if (trySet(k, v)) return true;
+  dropBackups();
+  return trySet(k, v);
 }
 
 // ── snapshot ─────────────────────────────────────────────────────────────────
@@ -145,6 +185,9 @@ function keyHashes(snap) {
   for (const k of SYNC_KEYS) if (typeof snap[k] === 'string') out[k] = hashText(snap[k]);
   return out;
 }
+
+// Per-key hashes as one text, whatever order the keys are in.
+const hashesKey = (h) => (isObj(h) ? Object.keys(h).sort().map((k) => `${k}=${h[k]}`).join('|') : '');
 
 function xpOf(snap) {
   try { return JSON.parse(snap.tm_user_stats || '{}').xp || 0; } catch { return 0; }
@@ -188,6 +231,9 @@ function noticeLocalChanges(snap) {
 }
 
 // ── backups ──────────────────────────────────────────────────────────────────
+// Each copy holds only the keys one sync changed, as they were before it:
+// { at, owner, snap: { key: old text }, size }. The list of copies (times and
+// sizes) is kept apart, so the account card never reads the copies.
 function readBackups() {
   if (!isBrowser) return [];
   try {
@@ -195,37 +241,106 @@ function readBackups() {
     return Array.isArray(list) ? list.filter((b) => isObj(b) && isObj(b.snap)) : [];
   } catch { return []; }
 }
-// Newest first, the last MAX_BACKUPS kept. When storage is full keep fewer
-// copies rather than none; false only when not even one fits.
-function writeBackups(list) {
-  for (let n = Math.min(MAX_BACKUPS, list.length); n >= 0; n--) {
-    try {
-      if (n === 0) localStorage.removeItem(BACKUPS_KEY);
-      else localStorage.setItem(BACKUPS_KEY, JSON.stringify(list.slice(0, n)));
-      return n > 0 || list.length === 0;
-    } catch { /* quota: try with fewer */ }
-  }
-  return false;
+const sizeOf = (b) => JSON.stringify(b).length;
+function backupCap(snap) {
+  let used = 0;
+  for (const k of SYNC_KEYS) if (typeof snap[k] === 'string') used += snap[k].length;
+  return Math.min(BACKUP_MAX_CHARS, Math.max(BACKUP_MIN_CHARS, Math.floor(used * BACKUP_SHARE)));
 }
-function saveBackup(snap) {
-  const owner = readMeta().owner || null;
-  return writeBackups([{ at: deps.now(), owner, snap }, ...readBackups()]);
+// Newest first: at most MAX_BACKUPS, all together within `cap`. When storage
+// is full keep fewer rather than fail. Returns how many were kept.
+function writeBackups(list, cap) {
+  const keep = [];
+  let total = 0;
+  for (const b of list.slice(0, MAX_BACKUPS)) {
+    const size = sizeOf(b);
+    if (total + size > cap) break;
+    keep.push({ ...b, size });
+    total += size;
+  }
+  for (let n = keep.length; n >= 0; n--) {
+    const index = JSON.stringify(keep.slice(0, n).map((b) => ({ at: b.at || 0, owner: b.owner ?? null, size: b.size })));
+    if (n === 0) { clearBackupList(); trySet(BACKUP_INDEX_KEY, '[]'); return 0; }
+    if (trySet(BACKUPS_KEY, JSON.stringify(keep.slice(0, n)))) {
+      if (!trySet(BACKUP_INDEX_KEY, index)) { clearBackupList(); return 0; }
+      return n;
+    }
+  }
+  return 0;
+}
+// A copy that is larger than the cap leaves out the stats: their merge only
+// ever adds sessions and grows the XP counters, so that copy matters least
+// and costs most. Null when even the rest does not fit.
+function fitBackup(b, cap) {
+  if (sizeOf(b) <= cap) return b;
+  const { [STATS_KEY]: _s, ...rest } = b.snap;
+  const slim = { ...b, snap: rest };
+  return Object.keys(rest).length && sizeOf(slim) <= cap ? slim : null;
+}
+function saveBackup(before, keys) {
+  const snap = {};
+  for (const k of keys) if (typeof before[k] === 'string') snap[k] = before[k];
+  if (!Object.keys(snap).length) return;
+  const cap = backupCap(before);
+  const b = fitBackup({ at: deps.now(), owner: readMeta().owner || null, snap }, cap);
+  if (b) writeBackups([b, ...readBackups()], cap);
+}
+// Leave room for at least twice the stats (and the sync's own small notes
+// written after this), so the next workout save fits: drop the oldest copies
+// until a probe that size can be written.
+function keepHeadroom() {
+  if (!isBrowser) return;
+  const index = localStorage.getItem(BACKUP_INDEX_KEY);
+  const has = (index !== null && index !== '[]') || (index === null && localStorage.getItem(BACKUPS_KEY) !== null)
+    || localStorage.getItem(LEGACY_BACKUP_KEY) !== null;
+  if (!has) return;
+  const stats = (localStorage.getItem(STATS_KEY) || '').length;
+  if (!stats) return;
+  const need = 2 * stats + 20000;
+  const probe = () => { const ok = trySet(PROBE_KEY, 'x'.repeat(need)); try { localStorage.removeItem(PROBE_KEY); } catch { /* noop */ } return ok; };
+  let list = readBackups();
+  const cap = backupCap(collectSnapshot());
+  while (!probe()) {
+    if (!list.length) { dropBackups(); return; }
+    list = list.slice(0, -1);
+    if (!writeBackups(list, cap)) list = [];
+  }
 }
 // The single copy older versions kept becomes the oldest entry, owned by the
 // account this device's data is first claimed for.
 function adoptLegacyBackup(owner) {
   try {
     const b = JSON.parse(localStorage.getItem(LEGACY_BACKUP_KEY) || 'null');
-    if (isObj(b?.snap) && writeBackups([...readBackups(), { at: b.at || 0, owner, snap: b.snap }])) {
-      localStorage.removeItem(LEGACY_BACKUP_KEY);
-    }
+    if (!isObj(b?.snap)) return;
+    const cap = backupCap(collectSnapshot());
+    const old = fitBackup({ at: b.at || 0, owner, snap: b.snap }, cap);
+    const list = readBackups();
+    if (old && writeBackups([...list, old], cap) > list.length) localStorage.removeItem(LEGACY_BACKUP_KEY);
   } catch { /* keep the old copy where it is */ }
+}
+
+function readBackupIndex() {
+  if (!isBrowser) return [];
+  try {
+    const raw = localStorage.getItem(BACKUP_INDEX_KEY);
+    if (raw !== null) {
+      const list = JSON.parse(raw);
+      return Array.isArray(list) ? list.filter(isObj) : [];
+    }
+  } catch { return []; }
+  // Copies written before the list was kept apart (whole snapshots): trim
+  // them to the size rules and build the list, once.
+  if (localStorage.getItem(BACKUPS_KEY) === null) return [];
+  const cap = backupCap(collectSnapshot());
+  const list = readBackups().map((b) => fitBackup(b, cap)).filter(Boolean);
+  const n = writeBackups(list, cap);
+  return list.slice(0, n).map((b) => ({ at: b.at || 0, owner: b.owner ?? null }));
 }
 
 /** Copies this account can restore on this device, newest first: [{ at }]. */
 export function listLocalBackups() {
   const owner = readMeta().owner || null;
-  return readBackups().filter((b) => b.owner === owner).map((b) => ({ at: b.at || 0 }));
+  return readBackupIndex().filter((b) => (b.owner ?? null) === owner).map((b) => ({ at: b.at || 0 }));
 }
 
 // Put back the newest copy taken before a sync changed this device, and drop
@@ -236,16 +351,25 @@ export function restoreLocalBackup() {
   if (!isBrowser) return false;
   const owner = readMeta().owner || null;
   const list = readBackups();
-  const i = list.findIndex((b) => b.owner === owner);
-  if (i < 0) return false;
+  const i = list.findIndex((b) => (b.owner ?? null) === owner);
+  // No copy for this account: the list may be stale (a workout save that met
+  // full storage drops the copies), so write it again from what is there.
+  if (i < 0) { writeBackups(list, Infinity); return false; }
   try {
     for (const k of SYNC_KEYS) {
-      const v = list[i].snap[k];
-      if (typeof v === 'string') localStorage.setItem(k, v);
+      let v = list[i].snap[k];
+      if (typeof v !== 'string') continue;
+      // Stats are put back merged with what the device has now: the next
+      // sync would bring the sessions back anyway, and the XP counters must
+      // never go back (a later penalty would then be lost against the
+      // cloud's larger count).
+      const now = localStorage.getItem(k);
+      if (k === STATS_KEY && typeof now === 'string') v = mergeKey(k, { v, t: 0 }, { v: now, t: 0 }).v;
+      if (!setData(k, v)) return false;
     }
   } catch { return false; }
   list.splice(i, 1);
-  writeBackups(list);
+  writeBackups(list, Infinity);
   noticeLocalChanges(collectSnapshot());
   announceLocalChange();
   scheduleReload('manual', true);
@@ -256,10 +380,26 @@ export function restoreLocalBackup() {
 // Set the current account's data aside under its own key, clear the synced
 // keys, and bring back the new account's own set-aside data if this device
 // has some. False (and nothing changed) if the old data could not be kept.
+//
+// When storage is too full for the set-aside copy, the copies go first; if
+// it still does not fit and the data on the device is exactly what the last
+// sync left in the old account's cloud row, that row is its copy and the
+// switch goes ahead without one. Otherwise the switch waits: the data stays
+// under the old account and the new one does not sync here (syncNow says
+// so on the account card), so the two are never mixed in either cloud row.
+//
+// Known gap, left as it is: a device that has no owner yet (it last synced
+// on a version that did not keep one) is claimed by whoever syncs first,
+// even if it holds someone else's data. That version already uploaded it to
+// the signed-in account as soon as they trained, so this is not new.
 function switchOwner(fromId, toId) {
   const meta = readMeta();
-  const stash = { at: deps.now(), snap: collectSnapshot(), times: meta.times || {}, seen: meta.seen || null, synced: !!meta.synced };
-  try { localStorage.setItem(USER_STASH_PREFIX + fromId, JSON.stringify(stash)); } catch { return false; }
+  const snap = collectSnapshot();
+  const stash = JSON.stringify({ at: deps.now(), snap, times: meta.times || {}, seen: meta.seen || null, synced: !!meta.synced });
+  if (!setData(USER_STASH_PREFIX + fromId, stash)) {
+    const inCloud = !!meta.cloudHolds && meta.cloudHolds === hashesKey(keyHashes(snap));
+    if (!inCloud) return false;
+  }
   let back = null;
   try { back = JSON.parse(localStorage.getItem(USER_STASH_PREFIX + toId) || 'null'); } catch { back = null; }
   if (!isObj(back?.snap)) back = null;
@@ -268,7 +408,7 @@ function switchOwner(fromId, toId) {
   if (back) {
     for (const k of SYNC_KEYS) {
       const v = back.snap[k];
-      if (typeof v === 'string') { try { localStorage.setItem(k, v); } catch { restored = false; } }
+      if (typeof v === 'string' && !setData(k, v)) restored = false;
     }
   }
   const now = collectSnapshot();
@@ -278,9 +418,56 @@ function switchOwner(fromId, toId) {
     seen: back && isObj(back.seen) ? back.seen : keyHashes(now),
     synced: !!back?.synced,
     lastPushedHash: null,
+    cloudHolds: null,
+    // The account's own data, back from where it was set aside: its XP was
+    // already counted, so the ledger takes it as a first look, not as XP
+    // this device just earned.
+    bonusId: null,
   });
   if (back && restored) { try { localStorage.removeItem(USER_STASH_PREFIX + toId); } catch { /* noop */ } }
   return true;
+}
+
+// ── XP ledger ────────────────────────────────────────────────────────────────
+// Bring the device's own stats in line with the bonus ledger (syncMerge.js,
+// ledgerStats) before anything is merged: XP the sessions do not explain
+// goes on this device's counter, so a penalty stays taken and two devices'
+// bonuses add up. Runs on every tick, signed in or not. Returns the snapshot
+// to merge (with the ledger, even if storage was too full to write it).
+function keepLedger(snap) {
+  const text = snap[STATS_KEY];
+  const meta = readMeta();
+  const first = !meta.bonusId;
+  const id = meta.bonusId || deviceId();
+  if (typeof text !== 'string') {
+    if (first) writeMeta({ bonusId: id });
+    return snap;
+  }
+  // Stats unchanged since they were last found in line: nothing to do (this
+  // skips parsing a long history on every quiet tick).
+  const h = hashText(text);
+  if (!first && meta.ledgerOk === h) return snap;
+  const freshId = `${deviceId()}.${deps.now().toString(36)}`;
+  const r = ledgerStats(text, { id, first, freshId });
+  if (r.text === text) {
+    writeMeta({ bonusId: r.id, ledgerOk: h });
+    return snap;
+  }
+  if (!setData(STATS_KEY, r.text)) {
+    // A fresh counter only counts if it is kept: merging it unwritten and
+    // making another next tick would count the same XP twice. Merge the
+    // stats as they are instead (their extra XP is a claim on the shared
+    // bucket, which can only count once).
+    return r.id === id ? { ...snap, [STATS_KEY]: r.text } : snap;
+  }
+  const m = readMeta();
+  const hNew = hashText(r.text);
+  writeMeta({ bonusId: r.id, ledgerOk: hNew, ...(isObj(m.seen) ? { seen: { ...m.seen, [STATS_KEY]: hNew } } : {}) });
+  // userStats.js caches the parsed stats and drops the cache on this event;
+  // a stale copy saved over the ledger would be absorbed again, but this
+  // keeps it from happening at all.
+  try { window.dispatchEvent(new Event('storage')); } catch { /* noop */ }
+  return { ...snap, [STATS_KEY]: r.text };
 }
 
 // ── state broadcast (for the Profile card) ───────────────────────────────────
@@ -375,25 +562,62 @@ function cloudTimesOf(row) {
   return out;
 }
 
-// Write the merge onto the device, after keeping a copy of what it replaces.
-// False (and nothing written) if no copy could be kept.
+// Write the merge onto the device, data first, then a copy of what it
+// replaced. Returns { wrote, failed }: the keys written and the keys storage
+// could not take even after dropping the copies (those keep their old value
+// and their old change time, so the next sync tries again).
 function applyMerged(merged, removed, times, before) {
-  if (!saveBackup(before)) return false;
-  for (const k of SYNC_KEYS) {
-    if (typeof merged[k] === 'string' && normalize(k, merged[k]) !== normalize(k, before[k])) { try { localStorage.setItem(k, merged[k]); } catch { /* quota */ } }
-  }
+  const changed = SYNC_KEYS.filter((k) => typeof merged[k] === 'string' && normalize(k, merged[k]) !== normalize(k, before[k]));
+  // The stats first: they hold the workouts.
+  changed.sort((a, b) => (b === STATS_KEY) - (a === STATS_KEY));
+  const wrote = [];
+  const failed = [];
+  for (const k of changed) (setData(k, merged[k]) ? wrote : failed).push(k);
   for (const k of removed) { try { localStorage.removeItem(k); } catch { /* noop */ } }
   // The cloud may hold data from a device that has not taken the arcade-id
   // rename yet, so it can carry legacy campaign / series / stage ids.
   // Re-running the migration here is what stops a restore from resurrecting
   // them (and is why that migration is deliberately flag-free and idempotent).
   try { migrateArcadeIds(); } catch { /* never block a restore */ }
-  writeMeta({ times, seen: keyHashes(collectSnapshot()) });
-  return true;
+  const meta = readMeta();
+  const kept = { ...times };
+  const oldTimes = isObj(meta.times) ? meta.times : {};
+  for (const k of failed) { if (k in oldTimes) kept[k] = oldTimes[k]; else delete kept[k]; }
+  writeMeta({ times: kept, seen: keyHashes(collectSnapshot()) });
+  if (wrote.length || removed.length) saveBackup(before, [...wrote, ...removed]);
+  keepHeadroom();
+  return { wrote, failed };
+}
+
+// The time to send as the row's change time. Older versions take the cloud
+// row only when it is more than 2 s newer than their own last change, and
+// then replace their data with it.
+//  • Normally the latest change of any key, not the moment of the upload, so
+//    a push that adds only bookkeeping never looks newer than a change an
+//    older device has not uploaded yet.
+//  • When the merge holds data the cloud row did not (another device's
+//    older session, say), just past the row's own time: an older device that
+//    has not changed anything since that row takes the merge, and one that
+//    has (its change time is later) keeps its own and uploads it.
+function changeTimeFor(times, row, news) {
+  let t = 0;
+  for (const v of Object.values(times)) if (Number.isFinite(v) && v > t) t = v;
+  t = Math.min(t, deps.now());
+  const rowAt = Date.parse(row?.client_changed_at || '');
+  return news && Number.isFinite(rowAt) ? Math.max(t, rowAt + 2001) : t;
 }
 
 // ── the one entry point ──────────────────────────────────────────────────────
 let running = false;
+
+// The device's data as the sync sees it: change times stamped, the XP
+// ledger kept. `snap` is what to merge, `base` what storage holds.
+function readLocal() {
+  const raw = collectSnapshot();
+  noticeLocalChanges(raw);
+  const snap = keepLedger(raw);
+  return { snap, base: snap === raw ? raw : collectSnapshot() };
+}
 
 export async function syncNow({ reason = 'manual', keepalive = false } = {}) {
   if (!isBrowser || running) return state;
@@ -401,8 +625,7 @@ export async function syncNow({ reason = 'manual', keepalive = false } = {}) {
   try {
     // Stamp local changes on every tick, signed in or not, online or not, so
     // each key's time is close to when it really changed.
-    let snap = collectSnapshot();
-    noticeLocalChanges(snap);
+    let { snap, base } = readLocal();
     if (pendingReload && reason !== 'unload') scheduleReload(reason);
 
     const user = await deps.getUser();
@@ -423,10 +646,12 @@ export async function syncNow({ reason = 'manual', keepalive = false } = {}) {
     } else if (meta.owner !== user.id) {
       // Not mid-workout: that would swap the data under a live session.
       if (trainingLive()) { setState({ status: 'idle' }); return state; }
-      if (!switchOwner(meta.owner, user.id)) throw new Error('storage full');
+      if (!switchOwner(meta.owner, user.id)) {
+        setState({ status: 'error', error: SYNC_ERROR_SWITCH });
+        return state;
+      }
       switched = true;
-      snap = collectSnapshot();
-      noticeLocalChanges(snap);
+      ({ snap, base } = readLocal());
       meta = readMeta();
     }
 
@@ -436,29 +661,54 @@ export async function syncNow({ reason = 'manual', keepalive = false } = {}) {
     // of its own takes the account's settings, not the defaults it wrote on
     // first run.
     const localTimes = !meta.synced && !hasRealProgress(snap) ? {} : (meta.times || {});
+    // The cloud's stats are this device's own last upload from before the XP
+    // ledger: their bonus part is an older copy of this device's own.
+    const cloudStats = cloudSnap[STATS_KEY];
+    const ownStats = !!row && !!meta.lastPushedHash && typeof cloudStats === 'string' && !cloudStats.includes('"bonus"')
+      && meta.lastPushedHash === hashSnapshot(cloudSnap);
     const { merged, times, removed } = mergeSnapshots(snap, cloudSnap, {
-      keys: SYNC_KEYS, localTimes, cloudTimes: row ? cloudTimesOf(row) : {},
+      keys: SYNC_KEYS, localTimes, cloudTimes: row ? cloudTimesOf(row) : {}, ownStats,
     });
+    if (typeof merged[STATS_KEY] === 'string') merged[STATS_KEY] = withLedger(merged[STATS_KEY]);
 
-    const deviceChanges = removed.length > 0 || SYNC_KEYS.some((k) => normalize(k, merged[k] ?? null) !== normalize(k, snap[k] ?? null));
+    const deviceChanges = removed.length > 0 || SYNC_KEYS.some((k) => normalize(k, merged[k] ?? null) !== normalize(k, base[k] ?? null));
     let applied = false;
+    let failed = [];
+    let up = merged;
+    let concurrent = false;
     if (deviceChanges && !trainingLive()) {
       // Something saved while we were talking to the server: leave the device
       // alone this round (the merge still goes up) and come back to it.
-      if (hashSnapshot(collectSnapshot()) === hashSnapshot(snap)) applied = applyMerged(merged, removed, times, snap);
-      else deps.later(() => syncNow({ reason: 'storage' }), 4000);
+      if (hashSnapshot(collectSnapshot()) === hashSnapshot(base)) {
+        const res = applyMerged(merged, removed, times, base);
+        applied = res.wrote.length > 0 || removed.length > 0;
+        failed = res.failed;
+        // Always upload the merge, never the device's unmerged data: only
+        // keys the arcade-id migration just rewrote are read back.
+        const after = collectSnapshot();
+        up = { ...merged };
+        for (const k of SYNC_KEYS) {
+          if (failed.includes(k)) continue;
+          const expect = res.wrote.includes(k) ? merged[k] : (removed.includes(k) ? undefined : base[k]);
+          if (after[k] !== expect) { if (typeof after[k] === 'string') up[k] = after[k]; else delete up[k]; }
+        }
+      } else { concurrent = true; deps.later(() => syncNow({ reason: 'storage' }), 4000); }
     }
 
-    const upSnap = applied ? collectSnapshot() : merged;
-    const up = { ...upSnap, [TIMES_KEY]: JSON.stringify(times) };
-    const upHash = dataHash(up);
+    const upFull = { ...up, [TIMES_KEY]: JSON.stringify(times) };
+    const upHash = dataHash(upFull);
     if (!row || upHash !== dataHash(cloudSnap)) {
-      await pushRow(headers, user.id, up, deps.now(), keepalive);
+      const news = !!row && SYNC_KEYS.some((k) => normalize(k, up[k] ?? null) !== normalize(k, typeof cloudSnap[k] === 'string' ? cloudSnap[k] : null));
+      await pushRow(headers, user.id, upFull, changeTimeFor(times, row, news), keepalive);
       writeMeta({ lastPushedHash: upHash, lastPushedAt: deps.now() });
     }
-    writeMeta({ synced: true, lastPulledAt: deps.now() });
+    // Whether the cloud row now holds exactly the data on this device (an
+    // account switch may then go ahead without a set-aside copy).
+    const holds = !failed.length && !concurrent && (applied || !deviceChanges);
+    writeMeta({ synced: true, lastPulledAt: deps.now(), cloudHolds: holds ? hashesKey(readMeta().seen) : null });
 
-    setState({ status: 'synced', at: deps.now(), ...(applied ? { restoredXp: xpOf(merged) } : {}) });
+    if (failed.length) setState({ status: 'error', error: SYNC_ERROR_STORAGE });
+    else setState({ status: 'synced', at: deps.now(), ...(applied ? { restoredXp: xpOf(merged) } : {}) });
     if (applied || switched) {
       announceLocalChange();
       scheduleReload(reason, switched);

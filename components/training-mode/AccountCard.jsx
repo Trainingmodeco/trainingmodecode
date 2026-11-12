@@ -3,7 +3,7 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { getCurrentUser, onAuthChange, signInWithGoogle, signOut, userProfile } from './data/authClient';
 import { refreshEntitlement, clearEntitlementCache } from './data/entitlements';
-import { onSyncState, syncNow, listLocalBackups, restoreLocalBackup } from './data/cloudSync';
+import { onSyncState, syncNow, listLocalBackups, restoreLocalBackup, SYNC_ERROR_STORAGE, SYNC_ERROR_SWITCH } from './data/cloudSync';
 
 // Account card for the Profile screen. Signed out → "Continue with Google";
 // signed in → the athlete's Google identity + sign out. Sign-in is optional —
@@ -60,6 +60,7 @@ export default function AccountCard() {
     // Fail open: never leave the card stuck on its placeholder if the auth
     // client is slow or unavailable — fall back to the signed-out state.
     const t = setTimeout(() => { if (alive) setReady(true); }, 1500);
+    // listLocalBackups reads only the short list of copies, not the copies.
     const unsubSync = onSyncState((s) => { if (alive) { setSync(s); setBackups(listLocalBackups()); } });
     return () => { alive = false; clearTimeout(t); unsub(); unsubSync(); };
   }, []);
@@ -105,6 +106,8 @@ export default function AccountCard() {
             }}/>
             <span style={{ font: "600 9px 'Rajdhani',sans-serif", color: sync.status === 'error' ? '#f87171' : '#9a90b8', letterSpacing: '0.02em' }}>
               {sync.status === 'syncing' ? 'Backing up…'
+                : sync.status === 'error' && sync.error === SYNC_ERROR_SWITCH ? 'Storage full: this account can\'t sync here yet. Free up space, then tap'
+                : sync.status === 'error' && sync.error === SYNC_ERROR_STORAGE ? 'Storage full: free up space, then tap to retry'
                 : sync.status === 'error' ? 'Backup failed — tap to retry'
                 : sync.status === 'offline' ? 'Offline — will back up later'
                 : sync.at ? `Progress backed up ${agoLabel(sync.at)}` : 'Tap to back up progress'}

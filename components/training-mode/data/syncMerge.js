@@ -20,8 +20,9 @@ export const TIMES_KEY = 'tm_sync_times';
 // Every key cloudSync carries, and how it merges. One table so a new key has
 // to be placed on purpose.
 //   stats       tm_user_stats: sessions are a log (union by id); XP is the
-//               sessions' XP plus the larger of the two bonus parts (bonus XP
-//               has no session row, so it cannot be recounted). Never goes down.
+//               sessions' XP plus the bonus ledger kept in `bonus` (see
+//               mergeStats). Bonus XP has no session row, so it is counted
+//               by counters that only grow.
 //   fightStats  lifetime totals and best streak with no log behind them: the
 //               larger of each.
 //   earliest    map of id -> first time earned (achievements): union, keep
@@ -66,7 +67,7 @@ export const KEY_KINDS = {
   tm_arsenal: { kind: 'setMap' },
   tm_practice_library_drilled: { kind: 'setMap' },
   tm_practice_invite_v1: { kind: 'lww' },
-  tm_ghost_challenge_v1: { kind: 'lww', max: [['beaten']] },
+  tm_ghost_challenge_v1: { kind: 'lww', max: [['beaten']], shape: (v) => !!v && typeof v === 'object' && !Array.isArray(v) },
   tm_comeback_v1: { kind: 'lww' },
   tm_fit_builder_history: { kind: 'lww' },
   tm_cardio_sessions: { kind: 'log', id: 'id', time: 'completedAt', cap: 200 },
@@ -76,7 +77,9 @@ export const KEY_KINDS = {
   tm_prog_ul: { kind: 'lww' },
   tm_game_plan_v1: { kind: 'lww' },
   tm_equipment: { kind: 'lww' },
-  tm_combo_v1: { kind: 'lww', rank: (v) => String(v?.lastProcessed || ''), max: [['state', 'longestCombo']] },
+  // Only a real day counts as progress: a missing, empty or odd lastProcessed
+  // ranks lowest, and text that is not an object never beats one that is.
+  tm_combo_v1: { kind: 'lww', rank: (v) => (typeof v?.lastProcessed === 'string' ? v.lastProcessed : ''), max: [['state', 'longestCombo']], shape: (v) => !!v && typeof v === 'object' && !Array.isArray(v) },
   tm_ghosts_v1: { kind: 'lww' },
   tm_audio_settings: { kind: 'lww' },
   tm_reminder_settings: { kind: 'lww' },
@@ -133,14 +136,114 @@ function unionRows(a, b, keyOf, timeField, cap) {
 const sessionXp = (sessions) => (Array.isArray(sessions) ? sessions : [])
   .reduce((sum, s) => sum + Math.max(0, num(s?.xpEarned)), 0);
 
-function mergeStats(a, b) {
-  if (!Array.isArray(a?.sessions)) return b;
-  if (!Array.isArray(b?.sessions)) return a;
+// The bonus ledger inside tm_user_stats:
+//   bonus: { legacy: number | null, by: { [counterId]: { p, n } } }
+// Bonus XP and penalties have no session row, so the sessions cannot recount
+// them. Each device adds what it earned to its own p and what it lost to its
+// own n; both only ever grow, so the merge takes the larger of each per
+// device and nothing either device did is dropped or counted twice.
+// `legacy` is one shared bucket for the bonus that was there before the
+// ledger (and anything an older app version adds, since it does not know
+// the counters): every device that starts the ledger puts the same
+// pre-ledger amount there, so it merges by the larger and counts once. null
+// means "no claim" (a device that started from empty stats).
+//   xp = max(0, sessionXp + legacy + sum(p - n))
+// cleanBy keeps only well-formed counters, in a fixed order.
+function cleanBy(by) {
+  const out = {};
+  if (!isObj(by)) return out;
+  for (const id of Object.keys(by).sort()) {
+    const c = by[id];
+    if (isObj(c)) out[id] = { p: Math.max(0, num(c.p)), n: Math.max(0, num(c.n)) };
+  }
+  return out;
+}
+const sumBy = (by) => Object.keys(by).sort().reduce((s, id) => s + (by[id].p - by[id].n), 0);
+const rawXp = (sXp, legacy, by) => sXp + (legacy ?? 0) + sumBy(by);
+const xpOfRaw = (raw) => Math.max(0, raw);
+const hasLegacy = (b) => isObj(b) && (b.legacy === null || Number.isFinite(b.legacy));
+// XP is whole numbers in the app; the slack only absorbs rounding in the sums.
+const sameXp = (a, b) => Math.abs(a - b) < 1e-6;
+
+// What one side's stats say about the bonus part. A side whose XP matches
+// its own ledger is taken as it is. One that does not was changed by code
+// that does not keep the ledger (an older app version, or stats from before
+// it): the part its sessions and counters do not explain is its claim on
+// the shared bucket.
+function bonusOf(st) {
+  const b = isObj(st.bonus) ? st.bonus : null;
+  const by = cleanBy(b?.by);
+  const xp = Math.max(0, num(st.xp));
+  const sXp = sessionXp(st.sessions);
+  if (hasLegacy(b) && sameXp(xp, xpOfRaw(rawXp(sXp, b.legacy, by)))) return { has: true, legacy: b.legacy, by };
+  return { has: !!b, legacy: xp - sXp - sumBy(by), by };
+}
+
+// `own`: the cloud side (b) is this device's own last upload from before the
+// ledger, so its bonus part is an older copy of this device's own, not
+// news; the device's present amount stands (an offline penalty taken before
+// the update stays taken). Sessions still merge as always.
+function mergeStats(a, b, _spec, own = false) {
   const sessions = unionRows(a.sessions, b.sessions, (s) => (s && s.id != null ? `id:${s.id}` : `row:${JSON.stringify(s)}`), 'completedAt');
-  const bonus = Math.max(num(a.xp) - sessionXp(a.sessions), num(b.xp) - sessionXp(b.sessions));
-  const { xp: _xa, sessions: _sa, ...restA } = a;
-  const { xp: _xb, sessions: _sb, ...restB } = b;
-  return { ...larger(restA, restB), xp: sessionXp(sessions) + bonus, sessions };
+  const ka = bonusOf(a);
+  const kb = bonusOf(b);
+  const claims = [ka.legacy, own && !kb.has ? null : kb.legacy].filter(Number.isFinite);
+  const legacy = claims.length ? Math.max(...claims) : null;
+  const by = {};
+  for (const id of sortedKeys(ka.by, kb.by)) {
+    const x = ka.by[id] || { p: 0, n: 0 }; const y = kb.by[id] || { p: 0, n: 0 };
+    by[id] = { p: Math.max(x.p, y.p), n: Math.max(x.n, y.n) };
+  }
+  const { xp: _xa, sessions: _sa, bonus: _ba, ...restA } = a;
+  const { xp: _xb, sessions: _sb, bonus: _bb, ...restB } = b;
+  const out = { ...larger(restA, restB), xp: xpOfRaw(rawXp(sessionXp(sessions), legacy, by)), sessions };
+  // Stats that never had a ledger (older versions only) stay as they were.
+  if (ka.has || kb.has) out.bonus = { legacy, by };
+  return out;
+}
+
+// A device's own stats, brought in line with its ledger before it syncs.
+// XP that its sessions and counters do not explain was earned or lost on
+// this device since it last looked (bonus XP, penalties, or any code that
+// changes xp directly), so it goes on this device's own counter.
+//   first:   the first look on this device in this version. Everything so
+//            far predates the ledger: it goes to the shared bucket.
+//   id:      this device's counter.
+//   freshId: used when stats have no ledger although this device keeps one
+//            (stats started again from empty); a new counter, so nothing
+//            the old counter already holds can be counted again.
+// Returns { text, id }: the stats text to keep (the same text when nothing
+// changed) and the counter id to use from now on.
+export function ledgerStats(text, { id, first = false, freshId = id } = {}) {
+  const st = parse(text);
+  if (!isObj(st) || !Array.isArray(st.sessions)) return { text, id };
+  const b = isObj(st.bonus) ? st.bonus : null;
+  const xp = Math.max(0, num(st.xp));
+  const sXp = sessionXp(st.sessions);
+  let by = cleanBy(b?.by);
+  let legacy;
+  let useId = id;
+  if (first) legacy = xp - sXp - sumBy(by);
+  else if (!b) { legacy = null; by = {}; useId = freshId; }
+  else legacy = hasLegacy(b) ? b.legacy : xp - sXp - sumBy(by);
+  const raw = rawXp(sXp, legacy, by);
+  if (!first && !sameXp(xp, xpOfRaw(raw))) {
+    const delta = xp > 0 ? xp - raw : -raw;
+    const c = by[useId] || { p: 0, n: 0 };
+    by = cleanBy({ ...by, [useId]: { p: c.p + Math.max(0, delta), n: c.n + Math.max(0, -delta) } });
+  }
+  const bonus = { legacy, by };
+  if (b && st.xp === xp && JSON.stringify(b) === JSON.stringify(bonus)) return { text, id: useId };
+  return { text: JSON.stringify({ ...st, xp, bonus }), id: useId };
+}
+
+// Merged stats that have no ledger yet (both sides came from older
+// versions) get one before they land on a device that keeps it, with
+// everything so far in the shared bucket. XP does not change.
+export function withLedger(text) {
+  const st = parse(text);
+  if (!isObj(st) || !Array.isArray(st.sessions) || isObj(st.bonus)) return text;
+  return ledgerStats(text, { first: true }).text;
 }
 
 function mergeFightStats(a, b) {
@@ -263,7 +366,8 @@ function mergeSeries(a, b) {
   const cleared = Object.values(completedStages).filter((s) => s?.completed).length;
   if ('currentStage' in a || 'currentStage' in b) out.currentStage = Math.max(num(a.currentStage), num(b.currentStage), cleared + 1);
   if (Array.isArray(a.unlockedStages) || Array.isArray(b.unlockedStages)) {
-    const nums = new Set([...(a.unlockedStages || []), ...(b.unlockedStages || [])].map(num));
+    const list = (v) => (Array.isArray(v) ? v : []);
+    const nums = new Set([...list(a.unlockedStages), ...list(b.unlockedStages)].map(num));
     for (let i = 1; i <= cleared + 1; i++) nums.add(i);
     out.unlockedStages = [...nums].sort((x, y) => x - y);
   }
@@ -281,6 +385,22 @@ function mergeArcade(a, b) {
   for (const k of sortedKeys(a, b)) out[k] = mergeSeries(a[k], b[k]);
   return out;
 }
+
+// The shape each merged kind must parse to. Text that does not (garbage,
+// 'null', a list where a map belongs) is no news: the other side is kept.
+const SHAPES = {
+  stats: (v) => isObj(v) && Array.isArray(v.sessions),
+  fightStats: isObj,
+  earliest: isObj,
+  arcade: isObj,
+  maxMap: isObj,
+  trueMap: isObj,
+  trueTree: isObj,
+  set: Array.isArray,
+  setMap: isObj,
+  log: Array.isArray,
+  logMap: isObj,
+};
 
 const PARSED_MERGES = {
   stats: mergeStats,
@@ -315,6 +435,9 @@ function lwwEntry(x0, y0, spec) {
   const px = x.v == null ? undefined : parse(x.v);
   const py = y.v == null ? undefined : parse(y.v);
   const rank = (p) => (spec.rank && p !== undefined ? spec.rank(p) : '');
+  // A side that parses to the key's shape beats one that does not, whatever
+  // the clocks say (a newer 'null' must not replace real state).
+  const fit = (e, p) => (spec.shape && e.v != null && spec.shape(p) ? 1 : 0);
   // Compared without the grow-only fields, so raising those never changes
   // which side wins.
   const tieText = (e, p) => {
@@ -325,7 +448,7 @@ function lwwEntry(x0, y0, spec) {
     for (const path of spec.max) setPath(c, path, null);
     return JSON.stringify(c);
   };
-  let win = cmpStr(rank(px), rank(py)) || (x.t === y.t ? 0 : (x.t > y.t ? 1 : -1)) || cmpStr(tieText(x, px), tieText(y, py));
+  let win = (fit(x, px) - fit(y, py)) || cmpStr(rank(px), rank(py)) || (x.t === y.t ? 0 : (x.t > y.t ? 1 : -1)) || cmpStr(tieText(x, px), tieText(y, py));
   if (win === 0) win = 1;
   const w = win > 0 ? x : y;
   if (w.v == null || !spec.max) return w;
@@ -340,7 +463,8 @@ function lwwEntry(x0, y0, spec) {
 
 // ── one key ──────────────────────────────────────────────────────────────────
 // x and y are { v, t } for the same key on two sides. Returns { v, t }.
-export function mergeKey(key, x, y) {
+// `opts.own`: see mergeStats (tm_user_stats only).
+export function mergeKey(key, x, y, opts = {}) {
   const spec = KEY_KINDS[key] || { kind: 'lww' };
   const t = Math.max(x.t, y.t);
   if (spec.kind === 'lww') return lwwEntry(x, y, spec);
@@ -351,14 +475,19 @@ export function mergeKey(key, x, y) {
   if (spec.kind === 'maxNumber') {
     const a = parseInt(x.v, 10); const b = parseInt(y.v, 10);
     if (Number.isFinite(a) && Number.isFinite(b)) return { v: String(Math.max(a, b)), t };
+    if (Number.isFinite(a) !== Number.isFinite(b)) return { v: Number.isFinite(a) ? x.v : y.v, t };
     return lwwEntry(x, y, spec);
   }
-  const a = parse(x.v); const b = parse(y.v);
   const fn = PARSED_MERGES[spec.kind];
-  // Text that does not parse cannot be merged field by field: fall back to
-  // the side changed last, as before.
-  if (!fn || a === undefined || b === undefined || a === null || b === null) return lwwEntry(x, y, spec);
-  return { v: JSON.stringify(fn(a, b, spec)), t };
+  const shape = SHAPES[spec.kind];
+  if (!fn || !shape) return lwwEntry(x, y, spec);
+  const a = parse(x.v); const b = parse(y.v);
+  const okA = shape(a); const okB = shape(b);
+  if (okA && okB) return { v: JSON.stringify(fn(a, b, spec, key === 'tm_user_stats' && !!opts.own)), t };
+  // Only one side holds real data: keep it, however new the other text is.
+  if (okA !== okB) return { v: okA ? x.v : y.v, t };
+  // Neither does: nothing to merge field by field, so the side changed last.
+  return lwwEntry(x, y, spec);
 }
 
 // The same data in one fixed form (sorted sets, rows in time order, fields in
@@ -372,14 +501,15 @@ export function normalize(key, text) {
   if (spec.kind === 'maxNumber') { const n = parseInt(text, 10); return Number.isFinite(n) ? String(n) : text; }
   const a = parse(text);
   const fn = PARSED_MERGES[spec.kind];
-  if (!fn || a === undefined || a === null) return text;
+  if (!fn || !SHAPES[spec.kind]?.(a)) return text;
   return JSON.stringify(fn(a, a, spec));
 }
 
 // Whole snapshots. local / cloud: { key: text }. localTimes / cloudTimes:
 // { key: change time }; a time with no value is a removal. Returns the merged
 // snapshot, its times, and the keys to remove from the device.
-export function mergeSnapshots(local, cloud, { keys, localTimes = {}, cloudTimes = {} } = {}) {
+// ownStats: the cloud's stats are this device's own last upload (mergeStats).
+export function mergeSnapshots(local, cloud, { keys, localTimes = {}, cloudTimes = {}, ownStats = false } = {}) {
   const merged = {};
   const times = {};
   const removed = [];
@@ -388,7 +518,7 @@ export function mergeSnapshots(local, cloud, { keys, localTimes = {}, cloudTimes
     const x = { v: typeof local[k] === 'string' ? local[k] : null, t: tOf(localTimes, k) };
     const y = { v: typeof cloud[k] === 'string' ? cloud[k] : null, t: tOf(cloudTimes, k) };
     if (x.v == null && y.v == null && x.t === -Infinity && y.t === -Infinity) continue;
-    const r = mergeKey(k, x, y);
+    const r = mergeKey(k, x, y, { own: ownStats });
     if (Number.isFinite(r.t)) times[k] = r.t;
     if (r.v == null) { if (x.v != null) removed.push(k); } else merged[k] = r.v;
   }
