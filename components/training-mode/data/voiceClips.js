@@ -56,7 +56,8 @@ function validManifest(m, voice) {
     clips,
     count,
     base: `${BASE}${voice}/`,
-    buffers: new Map(), // key -> Promise<AudioBuffer>
+    buffers: new Map(), // key -> Promise<AudioBuffer>, oldest first (see MAX_DECODED)
+    warmed: new Set(),  // keys fetched but not unpacked, so the service worker holds them
   };
 }
 
@@ -143,12 +144,35 @@ export function planMs(plan, rate = 1) {
   return Math.round(plan.reduce((s, p) => s + (p.ms + p.gap * 1000) / r, 0));
 }
 
-// The decoded clip for `key`, fetched and decoded once per bank. A failed
+// Unpacked audio is big: a clip is decoded to the phone's sample rate as
+// 32-bit samples, about 190 KB for each second of speech. The whole bank
+// unpacked is over a gigabyte per voice, and a phone closes a page long
+// before that. So only what a session says stays unpacked: the hot keys
+// always, and the MAX_DECODED most recently used of the rest. A clip that is
+// dropped is fetched again from the service worker's copy when next needed.
+export const MAX_DECODED = 240;
+function trimDecoded(bank, keep) {
+  let extra = 0;
+  for (const k of bank.buffers.keys()) if (!HOT_SET.has(k)) extra += 1;
+  if (extra <= MAX_DECODED) return;
+  for (const k of bank.buffers.keys()) {
+    if (extra <= MAX_DECODED) break;
+    if (HOT_SET.has(k) || k === keep) continue;
+    bank.buffers.delete(k);
+    extra -= 1;
+  }
+}
+
+// The decoded clip for `key`, fetched and decoded on first use. A failed
 // fetch is forgotten so the next line tries again (the phone may be back online).
 export function getBuffer(bank, key) {
   if (!bank || !bank.clips || !bank.clips[key]) return Promise.reject(new Error('no clip: ' + key));
   const hit = bank.buffers.get(key);
-  if (hit) return hit;
+  if (hit) {
+    // Used again: move it to the young end so it is the last to be dropped.
+    if (!HOT_SET.has(key)) { bank.buffers.delete(key); bank.buffers.set(key, hit); }
+    return hit;
+  }
   const p = (async () => {
     const ctx = getAudioContext();
     if (!ctx) throw new Error('no audio context');
@@ -165,6 +189,7 @@ export function getBuffer(bank, key) {
   })();
   bank.buffers.set(key, p);
   p.catch(() => { if (bank.buffers.get(key) === p) bank.buffers.delete(key); });
+  trimDecoded(bank, key);
   return p;
 }
 
@@ -172,12 +197,27 @@ export function getBuffer(bank, key) {
 // Decoded before the rest of the bank so they are ready when the clock starts.
 export const HOT_KEYS = ['ready', 'three', 'two', 'one', 'go', 'begin', 'rest', 'halfway', 'last one', 'switch', 'time', 'done', 'work', 'hold', 'great work', 'free flow', 'round', '1', '2', '3', '4', '5', '10', '15', '20', '30'];
 
-// Decode every clip of the bank in the background so the lines of a session
-// do not wait on the network. opts.first lists keys to decode before the
-// rest (default HOT_KEYS), opts.onlyFirst stops there; opts.gapMs (default 0)
-// idles between clips so a
-// full-bank decode never crowds out the screen that is starting. Never
-// throws; calling it again only picks up clips that failed before.
+const HOT_SET = new Set(HOT_KEYS);
+
+// Fetch a clip without unpacking it, so the service worker keeps a copy for a
+// session with no signal. Costs the download and no memory.
+async function warmClip(bank, key) {
+  if (!bank.warmed) bank.warmed = new Set();
+  if (bank.warmed.has(key) || bank.buffers.has(key)) return;
+  if (typeof fetch !== 'function') return;
+  const res = await fetch(bank.base + bank.clips[key].file);
+  if (!res || !res.ok) return;
+  try { await res.arrayBuffer(); } catch { return; }
+  bank.warmed.add(key);
+}
+
+// Get the bank ready in the background. The hot keys (opts.first, default
+// HOT_KEYS) are decoded so the count-in and round calls never wait. The rest
+// of the bank is only fetched, never decoded (see MAX_DECODED): a line
+// decodes its own clips when it is said. opts.onlyFirst stops after the hot
+// keys; opts.gapMs (default 0) idles between clips so the download never
+// crowds out the screen that is starting. Never throws; calling it again
+// only picks up clips that failed before.
 export function prefetchBank(bank, opts = {}) {
   if (!bank || !bank.clips) return Promise.resolve();
   const concurrency = Math.max(1, opts.concurrency || 4);
@@ -185,13 +225,14 @@ export function prefetchBank(bank, opts = {}) {
   const first = (opts.first || HOT_KEYS).filter((k) => bank.clips[k]);
   const seen = new Set(first);
   const rest = opts.onlyFirst ? [] : Object.keys(bank.clips).filter((k) => !seen.has(k));
-  const keys = first.concat(rest).filter((k) => !bank.buffers.has(k));
+  const jobs = first.filter((k) => !bank.buffers.has(k)).map((k) => () => getBuffer(bank, k))
+    .concat(rest.map((k) => () => warmClip(bank, k)));
   let i = 0;
   const worker = async () => {
-    while (i < keys.length) {
-      const k = keys[i++];
-      try { await getBuffer(bank, k); } catch { /* the line falls back to the speech engine */ }
-      if (gapMs && i < keys.length) await wait(gapMs);
+    while (i < jobs.length) {
+      const job = jobs[i++];
+      try { await job(); } catch { /* the line falls back to the speech engine */ }
+      if (gapMs && i < jobs.length) await wait(gapMs);
     }
   };
   const runners = [];

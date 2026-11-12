@@ -306,17 +306,43 @@ await test('planClips: a phrase named like an Object.prototype member is not a c
   assert.equal(clips.planClips(bank, 'Jab. valueOf 3.'), null);
 });
 
-await test('prefetchBank: decodes every clip, never throws, safe to repeat', async () => {
+await test('prefetchBank: decodes the hot keys, only downloads the rest, safe to repeat', async () => {
   clips.forgetVoiceBank('male');
   globalThis.fetch = makeFetch(['female', 'male'], new Set(['x p']));
   const male = await clips.loadVoiceBank('male');
   await clips.prefetchBank(male, { concurrency: 4 });
-  assert.equal(male.buffers.size, PHRASES.length - 1);
+  const hot = PHRASES.filter((p) => clips.HOT_KEYS.includes(p));
+  assert.ok(hot.length > 0 && hot.length < PHRASES.length);
+  assert.equal(male.buffers.size, hot.length, 'only the hot keys are unpacked');
+  assert.equal(male.warmed.size, PHRASES.length - hot.length - 1, 'the rest is downloaded, and the failed clip is not marked');
   await clips.prefetchBank(male);
   const fetched = globalThis.fetch.log.filter((u) => u.startsWith('/voice/male/') && !u.endsWith('manifest.json'));
   assert.equal(fetched.length, PHRASES.length + 1, 'only the failed clip is fetched again');
   globalThis.fetch = makeFetch();
   clips.forgetVoiceBank('male');
+});
+
+await test('getBuffer: the hot keys and only the most recent clips stay unpacked', async () => {
+  // A bank far bigger than the cap: the whole bank unpacked is over a
+  // gigabyte on a phone, so what stays decoded must be bounded.
+  const N = clips.MAX_DECODED + 60;
+  const keys = Array.from({ length: N }, (_, i) => `line ${i}`);
+  const big = { voice: 'female', base: '/voice/big/', buffers: new Map(), warmed: new Set(), clips: Object.fromEntries(keys.concat(['go', 'rest']).map((k) => [k, { file: k.replace(/ /g, '_') + '.mp3', ms: MS }])) };
+  const saved = globalThis.fetch;
+  globalThis.fetch = async (url) => ({ ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(JSON.stringify({ key: String(url), ms: MS })).buffer });
+  await clips.getBuffer(big, 'go');
+  await clips.getBuffer(big, 'rest');
+  for (const k of keys.slice(0, 200)) await clips.getBuffer(big, k);
+  await clips.getBuffer(big, 'line 0');                 // used again: now the youngest
+  for (const k of keys.slice(200)) await clips.getBuffer(big, k);
+  assert.equal(big.buffers.size, clips.MAX_DECODED + 2, 'the cap, plus the two hot keys');
+  assert.ok(big.buffers.has('go') && big.buffers.has('rest'), 'hot keys are never dropped');
+  assert.ok(big.buffers.has('line 0'), 'a clip used again is kept over older ones');
+  assert.ok(!big.buffers.has('line 1'), 'the oldest unused clip was dropped');
+  assert.ok(big.buffers.has(`line ${N - 1}`), 'the newest clip is kept');
+  const again = await clips.getBuffer(big, 'line 1');     // a dropped clip decodes again on demand
+  assert.ok(again && big.buffers.has('line 1'));
+  globalThis.fetch = saved;
 });
 
 // ── the coach ────────────────────────────────────────────────────────────

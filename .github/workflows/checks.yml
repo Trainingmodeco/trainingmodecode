@@ -97,6 +97,17 @@ jobs:
       - name: Voice coverage
         run: npm run -s voice:coverage -- --strict
 
+      # Lines the app builds from data (a count, a pace, a distance) never
+      # reach voice:coverage, so they are built here with real values and
+      # planned against the real clip banks in both voices.
+      - name: Spoken lines have clips
+        run: npm run -s test:spoken
+
+      # The cached Pro entitlement survives an outage and only a real answer
+      # or a sign-out changes it; Fight Focus hands its full result on.
+      - name: Entitlement tests
+        run: npm run -s test:entitlements
+
       - name: Combat Conditioning audit
         run: npm run -s audit:cc
 

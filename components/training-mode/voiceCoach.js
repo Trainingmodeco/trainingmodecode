@@ -137,23 +137,46 @@ function loadClips(prefetch) {
   } catch { return Promise.resolve(null); }
 }
 
-// Decoding the whole bank (hundreds of clips) the moment a session starts
-// crowded out the screen that was mounting. The count-in and round calls
-// decode at once; the rest follows after the screen has settled, one clip
-// at a time with a breath between, so it never competes with the session.
+// The count-in and round calls are decoded at once. The rest of the bank is
+// never decoded ahead of time: unpacked it is over a gigabyte a voice, which
+// closes the page on a phone. A line decodes its own clips when it is said.
+// What the background pass does for the rest is only download it, once per
+// bank version, so the service worker holds every clip for a session with no
+// signal. It waits until the screen has settled and goes one clip at a time.
 const PREFETCH_HOT_CONCURRENCY = 2;
 const PREFETCH_SETTLE_MS = 2500;
 const PREFETCH_GAP_MS = 25;
+const WARM_KEY = 'tm_voice_warm';
 const prefetched = new WeakSet();
 function schedulePrefetch(bank) {
   if (prefetched.has(bank)) return;
   prefetched.add(bank);
   try { prefetchBank(bank, { concurrency: PREFETCH_HOT_CONCURRENCY, first: undefined, gapMs: 0, onlyFirst: true }); } catch { /* ignore */ }
-  // The whole bank is tens of MB: on mobile data or data saver keep to the
-  // hot clips; the rest load the first time a line needs them (and the
-  // service worker keeps them).
-  if (onMeteredNetwork()) return;
-  setTimeout(() => { try { prefetchBank(bank, { concurrency: 1, gapMs: PREFETCH_GAP_MS }); } catch { /* ignore */ } }, PREFETCH_SETTLE_MS);
+  // The whole bank is tens of MB. Download it only where something will keep
+  // it (a service worker in control of the page), never on a connection the
+  // phone reports as metered, and only once for each version of the bank.
+  if (onMeteredNetwork() || !hasServiceWorker() || warmedVersion(bank) === bank.version) return;
+  setTimeout(() => {
+    try {
+      prefetchBank(bank, { concurrency: 1, gapMs: PREFETCH_GAP_MS }).then(() => {
+        if (bank.warmed && bank.warmed.size + bank.buffers.size >= bank.count) markWarmed(bank);
+      });
+    } catch { /* ignore */ }
+  }, PREFETCH_SETTLE_MS);
+}
+
+function hasServiceWorker() {
+  try { return typeof navigator !== 'undefined' && !!(navigator.serviceWorker && navigator.serviceWorker.controller); } catch { return false; }
+}
+function warmedVersion(bank) {
+  try { return JSON.parse(localStorage.getItem(WARM_KEY) || '{}')[bank.voice] || 0; } catch { return 0; }
+}
+function markWarmed(bank) {
+  try {
+    const all = JSON.parse(localStorage.getItem(WARM_KEY) || '{}');
+    all[bank.voice] = bank.version;
+    localStorage.setItem(WARM_KEY, JSON.stringify(all));
+  } catch { /* storage full or off: the next session downloads again */ }
 }
 
 function onMeteredNetwork() {

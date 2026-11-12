@@ -493,7 +493,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <WithWarmup minutes={cfg.warmupMin} enabled={!isResuming} title={cfg.mode === 'Just Train' ? 'JUST TRAIN' : 'FIGHT FOCUS'}>
-          <FightFocusTimer discipline={disc} cfg={cfg} onEnd={(rounds, c, completed, integrityResult) => goSummary(rounds, c, completed, integrityResult)} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+          <FightFocusTimer discipline={disc} cfg={cfg} onEnd={goSummary} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
         </WithWarmup>
       </WithNav>
     );

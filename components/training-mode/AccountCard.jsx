@@ -43,11 +43,13 @@ export default function AccountCard() {
 
   useEffect(() => {
     let alive = true;
-    const done = (u) => {
+    const done = (u, event) => {
       if (!alive) return;
       setUser(u); setReady(true);
-      // Keep the cached Pro entitlement in sync with the account.
-      if (u) refreshEntitlement(); else clearEntitlementCache();
+      // Keep the cached Pro entitlement in sync with the account. "No user"
+      // on its own is not a sign-out: offline with an expired token reads the
+      // same way, and a member must not lose Pro in a gym with no signal.
+      if (u) refreshEntitlement(); else if (event === 'SIGNED_OUT') clearEntitlementCache();
     };
     getCurrentUser().then(done).catch(() => done(null));
     const unsub = onAuthChange(done);
@@ -105,7 +107,7 @@ export default function AccountCard() {
             </span>
           </button>
         </div>
-        <button onClick={() => signOut()} style={{ flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '7px 11px', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", color: '#f87171', letterSpacing: '0.08em' }}>SIGN OUT</button>
+        <button onClick={() => { clearEntitlementCache(); signOut(); }} style={{ flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '7px 11px', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", color: '#f87171', letterSpacing: '0.08em' }}>SIGN OUT</button>
       </div>
     );
   }

@@ -9,6 +9,11 @@
 const BUILD_ID = '__TM_BUILD_ID__'; // literal in dev; replaced per build
 const CACHE = 'tm-cache-' + (BUILD_ID.indexOf('__') === 0 ? 'dev' : BUILD_ID);
 const SHELL = ['/', '/index.html', '/manifest.json'];
+// The recorded coach voice (/voice/*, about 55 MB a voice) has its own cache
+// that a new build does NOT delete. Clearing it with the build cache cost
+// every phone the whole download again after each deploy, and left the first
+// session after an update with no coach when there was no signal.
+const VOICE_CACHE = 'tm-voice-v1';
 
 // A worker's scope is the whole ORIGIN, so one registered from a local
 // production preview goes on intercepting the Metro dev server afterwards —
@@ -51,7 +56,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== VOICE_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -118,12 +123,18 @@ self.addEventListener('fetch', (event) => {
   // revalidate — serve the cached copy instantly, refresh it in the
   // background so same-path image swaps propagate without a version bump
   // or manual cache clear.
+  // A file that is missing on the server comes back as the app's HTML page
+  // (the SPA fallback). Storing that under a clip or image URL would keep
+  // serving it, so an HTML answer for a file path is never cached.
+  const isFile = /\.[a-z0-9]{2,5}$/i.test(url.pathname) && !/\.html?$/i.test(url.pathname);
   event.respondWith(
-    caches.open(CACHE).then((c) =>
+    caches.open(url.pathname.startsWith('/voice/') ? VOICE_CACHE : CACHE).then((c) =>
       c.match(req).then((cached) => {
         const network = fetch(req)
           .then((res) => {
-            if (res && res.ok && res.type === 'basic') c.put(req, res.clone());
+            const type = (res && res.headers.get('content-type')) || '';
+            const fallbackPage = isFile && type.indexOf('text/html') !== -1;
+            if (res && res.ok && res.type === 'basic' && !fallbackPage) c.put(req, res.clone());
             return res;
           })
           .catch(() => cached);

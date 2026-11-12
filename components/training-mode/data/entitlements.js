@@ -93,8 +93,12 @@ export function isPro() {
 
 // Fetch the latest entitlement from Supabase and cache it. Call after sign-in
 // and after returning from Stripe checkout. Returns the cached entitlement.
-export async function refreshEntitlement() {
-  const ent = await fetchEntitlement();
+// fetchEntitlement answers null when it could not find out (offline, a server
+// error, a token that could not be refreshed): that is "unknown", not "free",
+// so the last good answer stays. Only a real answer replaces it, and only a
+// sign-out (clearEntitlementCache) removes it.
+export async function refreshEntitlement(fetcher = fetchEntitlement) {
+  const ent = await fetcher();
   try {
     if (typeof localStorage !== 'undefined') {
       if (ent) localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -102,7 +106,6 @@ export async function refreshEntitlement() {
         current_period_end: ent.current_period_end || null, cancel_at_period_end: !!ent.cancel_at_period_end,
         fetched_at: Date.now(),
       }));
-      else localStorage.removeItem(CACHE_KEY);
     }
   } catch { /* quota */ }
   return ent;

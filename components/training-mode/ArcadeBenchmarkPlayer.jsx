@@ -363,7 +363,9 @@ export default function ArcadeBenchmarkPlayer({ series, stage, arcadeSettings, o
         setAnnouncerText(countText);
         playBeep();
         if (cadenceCountEnabledRef.current && voiceEnabledRef.current) {
-          speakAsync(countText, { rate: 1.45 });
+          // The bank holds the count as digits ("9", "21"); the words past
+          // "eight" have no clip and would fall to the phone's speech engine.
+          speakAsync(String(i), { rate: 1.45 });
         }
 
         if (cadenceVersionRef.current !== version) return;

@@ -74,11 +74,13 @@ export async function getCurrentUser() {
   } catch { return null; }
 }
 
-// Subscribe to sign-in / sign-out. Returns an unsubscribe function.
+// Subscribe to sign-in / sign-out. cb(user, event): event is Supabase's name
+// for what happened ('SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', ...).
+// Returns an unsubscribe function.
 export function onAuthChange(cb) {
   const sb = getSupabase();
   if (!sb) return () => {};
-  const { data } = sb.auth.onAuthStateChange((_event, session) => cb(session?.user || null));
+  const { data } = sb.auth.onAuthStateChange((event, session) => cb(session?.user || null, event));
   return () => data?.subscription?.unsubscribe?.();
 }
 
