@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { C } from './Styles';
 import { Play, Pause, Square, RotateCcw, MoveHorizontal as MoreHorizontal, Zap } from 'lucide-react';
 import { speakAsync, cancelSpeech } from './voiceCoach';
-import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useLater from './hooks/useLater';
 import { playBeep } from './data/audioEngine';
 import { ARCADE, ArcadeStatusChip } from './ArcadeUI';
@@ -85,7 +84,7 @@ function CircularTimer({ progress, size = 200, strokeWidth = 10, color, bgColor,
 
 export default function ArcadeCardioPlayer({
   method, methodLabel, durationSeconds, distanceLabel, speedBoosts: speedBoostConfig,
-  onComplete, onSkip, onExit, integrity,
+  onComplete, onSkip, onExit,
 }) {
   // End-of-session lines and the hand-off to the summary are cleared if the
   // screen is left before they fire.
@@ -107,6 +106,11 @@ export default function ArcadeCardioPlayer({
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
   const activeTimeRef = useRef(0);
+  // Wall-clock bookkeeping: ms counted before the current running stretch, and
+  // when that stretch began. Ticks only refresh the display, so a hidden app
+  // (timers throttled) catches up on return and the block is never short.
+  const activeMsRef = useRef(0);
+  const segStartRef = useRef(null);
   const pausedRef = useRef(false);
   const elapsedRef = useRef(0);
   const boostsRef = useRef([]);
@@ -141,18 +145,24 @@ export default function ArcadeCardioPlayer({
   useEffect(() => {
     if (phase !== 'active') { clearInterval(timerRef.current); return; }
     if (paused) { clearInterval(timerRef.current); return; }
+    segStartRef.current = Date.now();
     timerRef.current = setInterval(() => {
-      setElapsed(e => {
-        const next = e + 1;
-        activeTimeRef.current = next;
-        if (next >= totalDuration) {
-          clearInterval(timerRef.current);
-          handleAutoComplete();
-        }
-        return next;
-      });
+      const ms = activeMsRef.current + (Date.now() - segStartRef.current);
+      const next = Math.min(totalDuration, Math.floor(ms / 1000));
+      activeTimeRef.current = next;
+      setElapsed(next);
+      if (next >= totalDuration) {
+        clearInterval(timerRef.current);
+        handleAutoComplete();
+      }
     }, 1000);
-    return () => clearInterval(timerRef.current);
+    return () => {
+      clearInterval(timerRef.current);
+      if (segStartRef.current != null) {
+        activeMsRef.current += Date.now() - segStartRef.current;
+        segStartRef.current = null;
+      }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, paused, totalDuration]);
 
@@ -221,19 +231,17 @@ export default function ArcadeCardioPlayer({
     }
   }, [paused]);
 
-  // The clock counts one-second ticks, which stop or crawl while the app is
-  // hidden. Pause like PAUSE does so a real block is never short-changed.
-  useAutoPauseOnHidden(phase === 'active' && !paused, () => {
-    setPaused(true);
-    setAnnouncerText('Paused');
-  }, integrity);
-
   const handleRewind = useCallback(() => {
-    const newElapsed = Math.max(0, elapsed - 60);
+    const now = Date.now();
+    const running = segStartRef.current != null;
+    const total = activeMsRef.current + (running ? now - segStartRef.current : 0);
+    activeMsRef.current = Math.max(0, total - 60000);
+    if (running) segStartRef.current = now;
+    const newElapsed = Math.floor(activeMsRef.current / 1000);
     setElapsed(newElapsed);
     activeTimeRef.current = newElapsed;
     setAnnouncerText('Rewound 1 minute.');
-  }, [elapsed]);
+  }, []);
 
   const handleReset = useCallback(() => {
     cancelSpeech();
@@ -241,6 +249,8 @@ export default function ArcadeCardioPlayer({
     clearInterval(boostTimerRef.current);
     setElapsed(0);
     activeTimeRef.current = 0;
+    activeMsRef.current = 0;
+    segStartRef.current = null;
     setPaused(false);
     setBoostActive(false);
     setBoostRemaining(0);

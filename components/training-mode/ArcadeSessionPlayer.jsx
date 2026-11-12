@@ -182,8 +182,9 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   // Auto-pause a running timer/benchmark task when the app is backgrounded — the
   // user returns to the paused Play button. Un-flag it with the integrity
   // session so an honest pause isn't a cheat signal.
-  // The cardio and cadence-rep players own their clocks, so they get this same
-  // handle and pause themselves when the app is backgrounded.
+  // The cadence-rep players own their clocks, so they get this same handle and
+  // pause themselves when the app is backgrounded. Cardio keeps running instead
+  // (owner's rule) and works its clock out from the wall time.
   const honestPause = useRef({ noteHonestPause: () => integrityRef.current?.noteHonestPause?.() }).current;
   useAutoPauseOnHidden(
     timerActive || benchmarkActive,
@@ -631,7 +632,6 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
             />
           ) : isCardioTask && cardioPhase === 'play' ? (
             <ArcadeCardioPlayer
-              integrity={honestPause}
               method={cardioMethod}
               methodLabel={cardioMethod ? (CARDIO_METHODS.find(m => m.id === cardioMethod)?.label || cardioMethod) : null}
               durationSeconds={task?.durationSeconds || (stage?.cardioBlock?.durationMinutes ? stage.cardioBlock.durationMinutes * 60 : 300)}
