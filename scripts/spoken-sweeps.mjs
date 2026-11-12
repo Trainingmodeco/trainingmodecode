@@ -9,6 +9,11 @@ import fs from 'node:fs';
 
 const TM = new URL('../components/training-mode/', import.meta.url);
 
+// A name the app cannot know, so no clip can exist for it. withoutName drops
+// a sentence that is only that name; a name said inside a sentence stays.
+export const UNKNOWN_NAME = 'ZORAVEN QUILT';
+export const withoutName = (line, name = UNKNOWN_NAME) => line.split(/(?<=[.!?])\s+/).filter((s) => s.replace(/[.!?]+$/, '').trim() !== name).join(' ');
+
 const range = (lo, hi, step = 1) => { const out = []; for (let v = lo; v <= hi + 1e-9; v += step) out.push(Math.round(v * 100) / 100); return out; };
 
 export async function spokenSweeps() {
@@ -68,6 +73,13 @@ export async function spokenSweeps() {
     'Sprint in five. Get ready.',
   ]);
   sweep(CARDIO, 'ghost intro (own run, every ghost time)', ELAPSED.filter((t) => t >= 60).map((t) => rc.ghostIntroLine({ ownerId: 'me', ownerName: 'MARCUS', totalSec: t })));
+  // Another owner's ghost: the ghost pool's runs are 'A WARRIOR' (ghostCloud),
+  // a fixed name that is recorded. Any other name has no clip, so it must be
+  // a sentence of its own: the line is checked with that sentence left out,
+  // and a name said inside a sentence stays in and fails.
+  const GHOST_TIMES = ELAPSED.filter((t) => t >= 60);
+  sweep(CARDIO, 'ghost intro (ghost pool run)', GHOST_TIMES.map((t) => rc.ghostIntroLine({ ownerId: 'stranger', ownerName: 'A WARRIOR', totalSec: t })));
+  sweep(CARDIO, 'ghost intro (another owner, name left out)', GHOST_TIMES.map((t) => withoutName(rc.ghostIntroLine({ ownerId: 'stranger', ownerName: UNKNOWN_NAME, totalSec: t }))));
 
   // ── Splits ───────────────────────────────────────────────────────────────
   const goals = { mi: [1, 3, 5, 6.2, 10, 13.1, 26.2], km: [5, 10, 21.1, 42.2] };
@@ -107,6 +119,8 @@ export async function spokenSweeps() {
   for (const t of ELAPSED) finish.push(`Under target by ${rc.speakDuration(t)}. Good work.`, `${rc.speakDuration(t)} over target. Next time we take it.`);
   sweep(CARDIO, 'finish', finish);
   sweep(CARDIO, 'ghost finish (own ghost)', range(-900, 900).map((d) => rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: 'MARCUS', ownerId: 'me' })));
+  sweep(CARDIO, 'ghost finish (ghost pool run)', range(-900, 900).map((d) => rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: 'A WARRIOR', ownerId: 'stranger' })));
+  sweep(CARDIO, 'ghost finish (another owner, name left out)', range(-900, 900).map((d) => withoutName(rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: UNKNOWN_NAME, ownerId: 'stranger' }))));
 
   const ends = [];
   const chases = [null];

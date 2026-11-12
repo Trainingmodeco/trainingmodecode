@@ -102,6 +102,10 @@ same('distance, tenths', rc.speakDistance(3.1, 'mi'), '3 point 1 miles');
 same('distance, hundredths round to one place', rc.speakDistance(13.14, 'mi'), '13 point 1 miles');
 same('belt speed', rc.machineSpeedLine(6.5, 'mi'), 'Set the machine to 6 point 5 mph and match the dial if you change it.');
 same('own ghost is "your ghost", never the profile name', rc.ghostFinishLine({ elapsedSec: 590, ghostTotalSec: 600, ownerName: 'MARCUS', ownerId: 'me' }), 'Ghost defeated. You beat your ghost by 10 seconds.');
+same("another owner's ghost: name in its own sentence, then the ghost", rc.ghostFinishLine({ elapsedSec: 590, ghostTotalSec: 600, ownerName: 'A WARRIOR', ownerId: 'stranger' }), 'A WARRIOR. Ghost defeated. You beat the ghost by 10 seconds.');
+same("another owner's ghost, lost", rc.ghostFinishLine({ elapsedSec: 610, ghostTotalSec: 600, ownerName: 'A WARRIOR', ownerId: 'stranger' }), 'A WARRIOR. The ghost takes this one by 10 seconds. Run it back.');
+same("another owner's ghost, draw", rc.ghostFinishLine({ elapsedSec: 600, ghostTotalSec: 600, ownerName: 'A WARRIOR', ownerId: 'stranger' }), 'A WARRIOR. Dead heat. A draw.');
+same("another owner's ghost intro", rc.ghostIntroLine({ ownerId: 'stranger', ownerName: 'A WARRIOR', totalSec: 1800 }), 'Ghost mode. A WARRIOR. You are racing their run, 30 minutes. Beat it.');
 {
   const intro = rc.buildRunIntro({ methodLabel: 'Running', useGps: true, distance: 3, unit: 'mi', targetSec: 1800, eliteSec: 1200 });
   same("the owner's brief", [...intro.lines, intro.ready, intro.go].join(' '), 'Cardio mode. GPS run, 3 miles. Target time, 30 minutes. Elite time, 20 minutes. Ready. Go!');

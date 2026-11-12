@@ -201,12 +201,13 @@ export function chaseSummaryLine(chase) {
   return ` ${chase.passes} of ${chase.attempts} chases escaped${xp}.`;
 }
 
-// Added to a run's brief when racing a ghost. A run ghost is the athlete's
-// own; another owner's name has no clip, so it gets a sentence of its own.
+// Added to a run's brief when racing a ghost. A run ghost is mostly the
+// athlete's own. Another owner's name may have no clip, so it is a sentence
+// of its own and the rest of the line still plays without it.
 export function ghostIntroLine(ghost) {
   const dur = speakDuration(ghost.totalSec);
   if (ghost.ownerId === 'me') return `Ghost mode. You are racing your own run, ${dur}. Beat it.`;
-  return `Ghost mode. You are racing this run: ${ghost.ownerName}. ${dur}. Beat it.`;
+  return `Ghost mode. ${ghost.ownerName}. You are racing their run, ${dur}. Beat it.`;
 }
 
 // After the app was away mid-run (a call, a reload).
@@ -484,13 +485,19 @@ export function ghostSplitLine({ marker, elapsedSec, ghostTimeAtMarker }) {
   return delta < 0 ? `${speakDuration(-delta)} ahead of your ghost.` : `${speakDuration(delta)} behind your ghost.`;
 }
 
-// A run ghost is the athlete's own run (ownerId 'me'), so it is "your ghost":
-// the owner name on it is the athlete's profile name, which has no clip. Any
-// other owner's name is said in a sentence of its own, ahead of the verdict.
+// The athlete's own run (ownerId 'me') is "your ghost": the owner name on it
+// is their profile name, which has no clip. Another owner's run is not theirs,
+// so it is "the ghost", with the owner's name in a sentence of its own ahead
+// of the verdict.
 export function ghostFinishLine({ elapsedSec, ghostTotalSec, ownerName = 'your ghost', ownerId = 'me' }) {
-  const named = ownerId !== 'me' && ownerName && ownerName !== 'YOU' && ownerName !== 'your ghost' ? `${ownerName}. ` : '';
   const delta = Math.round(elapsedSec - ghostTotalSec);
-  if (Math.abs(delta) < 2) return `${named}Dead heat with your ghost. A draw.`;
-  if (delta < 0) return `${named}Ghost defeated. You beat your ghost by ${speakDuration(-delta)}.`;
+  if (ownerId === 'me') {
+    if (Math.abs(delta) < 2) return 'Dead heat with your ghost. A draw.';
+    if (delta < 0) return `Ghost defeated. You beat your ghost by ${speakDuration(-delta)}.`;
+    return `The ghost takes this one by ${speakDuration(delta)}. Run it back.`;
+  }
+  const named = ownerName && ownerName !== 'YOU' && ownerName !== 'your ghost' ? `${ownerName}. ` : '';
+  if (Math.abs(delta) < 2) return `${named}Dead heat. A draw.`;
+  if (delta < 0) return `${named}Ghost defeated. You beat the ghost by ${speakDuration(-delta)}.`;
   return `${named}The ghost takes this one by ${speakDuration(delta)}. Run it back.`;
 }
