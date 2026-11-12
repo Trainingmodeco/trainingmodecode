@@ -33,7 +33,7 @@ import { migrateArcadeIds } from './data/arcadeIdMigration';
 import ChallengeInboundModal from './shared/ChallengeInboundModal';
 import ParQSheet from './shared/ParQSheet';
 import { loadParq, saveParq } from './data/parq';
-import { startCloudSync } from './data/cloudSync';
+import { startCloudSync, setTrainingLiveCheck } from './data/cloudSync';
 import { rememberSession, loadLastSession, programFor } from './data/lastSession';
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
@@ -568,6 +568,12 @@ export default function App() {
   // Cloud progress sync. No-ops entirely while signed out; once an account
   // exists it mirrors local progress up and restores it on a fresh device.
   useEffect(() => startCloudSync(), []);
+  // The sync never reloads the page or changes this device's data while a
+  // workout is live; it asks here, with the same test the paused-session
+  // saver uses, at the moment it needs to know.
+  useEffect(() => {
+    setTrainingLiveCheck(() => ACTIVE_SESSION_SCREENS.has(screen) && isSessionScreenLive(screen, activeSessionStateRef.current));
+  }, [screen]);
 
   // Reset scroll to the top on every screen change so a new page never opens
   // mid-scroll carried over from the previous one.
