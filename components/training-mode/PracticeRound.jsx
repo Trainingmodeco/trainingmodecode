@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft } from 'lucide-react';
 import { playBell, unlockAudio } from './data/audioEngine';
 import { primeSpeech, setVoiceGender, speakAsync, cancelSpeech, stopVoiceSession } from './voiceCoach';
+import useWakeLock from './hooks/useWakeLock';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import { buildRound, PLANS, REST_SEC, mmss, planLine, planMinutes, spokenCall } from './data/practiceRound';
 
 // Practice Round (Simplify revamp, PracticeRound.dc.html) — opened from a
@@ -127,6 +129,12 @@ export default function PracticeRound({ discipline, focus, prior, learned, profi
       advanceCall();
     }
   }, [elapsed, view, phase, workTotal, round, advanceCall, say, xp, plan, onFinish]);
+
+  // A round runs on a phone that is often propped up, not touched: keep the
+  // screen awake while it ticks, and pause (as PAUSE does) if the app is
+  // hidden so the coach never talks to a locked phone.
+  useWakeLock(view === 'live' && !paused);
+  useAutoPauseOnHidden(view === 'live' && !paused, () => setPaused(true));
 
   useEffect(() => () => stopVoiceSession(), []);
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { Square, SkipForward, Check, RefreshCw, Dumbbell } from 'lucide-react';
 import useWakeLock from './hooks/useWakeLock';
+import useLater from './hooks/useLater';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
@@ -38,6 +39,9 @@ const repCadenceMs = (d, category) => {
 };
 
 export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
+  // End-of-session lines and the hand-off to the summary are cleared if the
+  // screen is left before they fire.
+  const later = useLater();
   useWakeLock(true);
   const packId = cfg.voicePack || 'coach';
   const vOpts = packOpts(packId);
@@ -142,7 +146,7 @@ export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateCha
     setPhase('done');
     const ir = integrity.finalize({});
     const rounds = (session || []).map((e) => ({ round_title: e.name, coach_prompt: doseLabel(e) }));
-    setTimeout(() => { stopVoiceSession(); onEnd(rounds, cfg, completedCount ?? total, ir); }, 900);
+    later(() => { stopVoiceSession(); onEnd(rounds, cfg, completedCount ?? total, ir); }, 900);
   };
 
   // ── Announcer countdown → first set ────────────────────────────────────────

@@ -4,7 +4,7 @@
 
 export const SCREEN_GUIDES = {
   home: [
-    { target: null, title: '🏠 HOME', body: 'Your daily command center. If you only ever tap one thing, tap the gold START at the top — everything else on this screen is a way to choose something different.' },
+    { target: null, title: '🏠 HOME', body: 'Your daily command center. If you only ever press one thing, make it the gold START at the top (once this guide is closed) — everything else on this screen is a way to choose something different.' },
     { target: 'home-level', title: 'LEVEL · RANK · STREAK', body: 'Every finished workout adds XP and fills the bar. Fill it and you level up and climb the ranks. The 🔥 number is how many days in a row you\'ve trained.' },
     { target: 'home-continue', title: 'CONTINUE', body: 'The session you paused, or the last one you started — START runs it again with the same settings. A program moves on to its next day. New here? It shows a workout picked for you instead. A quick mission marked AT YOUR PACE runs the moves and a timer, no coach voice. SURPRISE ME deals a random quick mission; ADJUST opens the settings first.' },
     { target: 'home-modes', title: 'FIT OR FIGHT', body: 'The two sides of Training Mode. FIT MODE builds strength and cardio; FIGHT MODE builds striking skill. Everything else in the app lives inside one of these.' },
@@ -41,7 +41,7 @@ export const SCREEN_GUIDES = {
   // Everything cut from the core is covered by each screen's own ? guide,
   // and the whole tour stays available under Profile → Replay Intro Guide.
   full_intro: [
-    { screen: 'home', target: 'home-continue', title: '▶ START HERE', body: 'This card always holds your next workout — one picked for you today, and after that, whatever you trained last, ready to run again with the same settings. If you only ever tap one thing, tap START.' },
+    { screen: 'home', target: 'home-continue', title: '▶ START HERE', body: 'This card always holds your next workout — one picked for you today, and after that, whatever you trained last, ready to run again with the same settings. If you only ever press one thing, make it START (once this tour is closed).' },
 
     { screen: 'fit_hub', target: null, title: '🥊 FIT OR FIGHT', body: 'Every workout in the app lives under one of these two tabs. FIGHT MODE builds striking skill, FIT MODE builds strength and cardio. They sit side by side at the top of both training hubs, so you are never more than one tap from the other — mix them however you like.' },
     { screen: 'fit_hub', target: 'nav-tabs', title: 'WHERE THINGS LIVE', body: 'TRAIN opens your training tabs. HOME is your daily pick. PROGRESS holds your stats, trophies and badges. PROFILE has your fighter, settings and sign-in.' },

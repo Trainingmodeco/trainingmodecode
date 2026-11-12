@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PhoneFrame from './PhoneFrame';
 import { Square, SkipForward } from 'lucide-react';
 import useWakeLock from './hooks/useWakeLock';
+import useLater from './hooks/useLater';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import useMiniPlayer from './hooks/useMiniPlayer';
@@ -27,6 +28,9 @@ const RING_R = 113;
 const RING_STROKE = 12;
 
 export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
+  // End-of-session lines and the hand-off to the summary are cleared if the
+  // screen is left before they fire.
+  const later = useLater();
   useWakeLock(true);
   const total = cfg.rounds || (cfg.blockRounds ? cfg.blockRounds.length : 1);
   const baseRoundSec = Math.round((cfg.roundMin || 1) * 60);
@@ -182,15 +186,15 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
         if (!bellEndRef.current) { bellEndRef.current = true; playBell(3); }
         setDone(true);
         const ir = integrity.finalize({});
-        setTimeout(() => say(flavored ? packLine(packId, 'done') : 'Work done. Recover well.'), 300);
-        setTimeout(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, total, ir); }, 1300); // the closing line runs on (voice audit FIT-05)
+        later(() => say(flavored ? packLine(packId, 'done') : 'Work done. Recover well.'), 300);
+        later(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, total, ir); }, 1300); // the closing line runs on (voice audit FIT-05)
       } else {
         playBell(2);
         setPhase('rest');
         setRemaining(restSecFor(roundIdxRef.current));
         // Rest + next-up: name the coming block so nothing needs reading.
         const nxt = rounds[roundIdxRef.current + 1];
-        setTimeout(() => say(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`), 300);
+        later(() => say(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`), 300);
       }
     } else {
       setPhase('work');
@@ -202,7 +206,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
       // Announce the new block by name + cue as it begins.
       const idx = roundIdxRef.current + 1;
       const r = rounds[idx];
-      if (r) setTimeout(() => say([`Round ${idx + 1}. ${r.round_title || ''}.`, r.coach_prompt || null].filter(Boolean).join(' ')), 350);
+      if (r) later(() => say([`Round ${idx + 1}. ${r.round_title || ''}.`, r.coach_prompt || null].filter(Boolean).join(' ')), 350);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);

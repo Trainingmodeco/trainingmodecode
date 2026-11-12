@@ -182,10 +182,13 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   // Auto-pause a running timer/benchmark task when the app is backgrounded — the
   // user returns to the paused Play button. Un-flag it with the integrity
   // session so an honest pause isn't a cheat signal.
+  // The cardio and cadence-rep players own their clocks, so they get this same
+  // handle and pause themselves when the app is backgrounded.
+  const honestPause = useRef({ noteHonestPause: () => integrityRef.current?.noteHonestPause?.() }).current;
   useAutoPauseOnHidden(
     timerActive || benchmarkActive,
     () => { setTimerActive(false); setBenchmarkActive(false); },
-    { noteHonestPause: () => integrityRef.current?.noteHonestPause?.() },
+    honestPause,
   );
   const [sessionPhase, setSessionPhase] = useState(() => {
     if (initialPaused || initialResumeData) return 'active';
@@ -417,6 +420,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   if (isCadenceTask && sessionPhase === 'active') {
     return (
       <ArcadeCadenceRepPlayer
+        integrity={honestPause}
         key={`${currentBlock}-${task?.id || taskIdx}`}
         task={task}
         taskIdx={taskIdx}
@@ -592,6 +596,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
             </div>
           ) : isCadenceTask ? (
             <ArcadeCadenceRepPlayer
+              integrity={honestPause}
               task={task}
               taskIdx={taskIdx}
               totalTasks={tasks.length}
@@ -626,6 +631,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
             />
           ) : isCardioTask && cardioPhase === 'play' ? (
             <ArcadeCardioPlayer
+              integrity={honestPause}
               method={cardioMethod}
               methodLabel={cardioMethod ? (CARDIO_METHODS.find(m => m.id === cardioMethod)?.label || cardioMethod) : null}
               durationSeconds={task?.durationSeconds || (stage?.cardioBlock?.durationMinutes ? stage.cardioBlock.durationMinutes * 60 : 300)}
@@ -660,6 +666,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
             />
           ) : isBackBalance && backBalancePhase === 'active' && task?._selectedOption ? (
             <ArcadeCadenceRepPlayer
+              integrity={honestPause}
               key={`bb-${taskIdx}-${task._selectedOption.id || task._selectedOption.label}`}
               task={{
                 ...task,

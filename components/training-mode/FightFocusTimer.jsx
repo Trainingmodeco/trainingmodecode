@@ -5,6 +5,7 @@ import { ChevronLeft, RotateCcw, Square, SkipForward, CircleCheck as CheckCircle
 import { generateFightFocusSession } from './data/sessionGenerator';
 import { speakAsync, speakOrDelay, cancelSpeech, primeSpeech, stopVoiceSession, delay } from './voiceCoach';
 import useWakeLock from './hooks/useWakeLock';
+import useLater from './hooks/useLater';
 import useIntegritySession from './hooks/useIntegritySession';
 import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 import Emoji from './shared/Emoji';
@@ -60,6 +61,9 @@ function getTipPosition(offset, circ, R, cx, cy) {
 }
 
 export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused, onStateChange, initialResumeData }) {
+  // End-of-session lines and the hand-off to the summary are cleared if the
+  // screen is left before they fire.
+  const later = useLater();
   useWakeLock(true);
   // 2.4b — a camp block injects its own per-round titles/prompts (real skill or
   // conditioning goals). When present they drive the session instead of the
@@ -340,13 +344,13 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
       setGhostVerdict({ outcome: result.outcome, headline });
       ghostDelay = 3600;
       // Queued behind the closing line (priority 3, no pre-empt) so both are heard.
-      if (cfg.voiceOn) setTimeout(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', { ...vOpts, priority: 3 }), 1400);
+      if (cfg.voiceOn) later(() => speakAsync(result.outcome === 'victory' ? 'Ghost defeated.' : result.outcome === 'defeat' ? 'The ghost takes this one. Run it back.' : 'Dead heat. A draw.', { ...vOpts, priority: 3 }), 1400);
     }
     // The closing line queues behind a "Rush held" verdict at the final bell
     // instead of cutting it, and the graceful stop lets it run on into the
     // summary rather than cutting it at 1.5 s (voice audit FIGHT-05).
-    setTimeout(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), { ...vOpts, priority: 3 }); }, 400);
-    setTimeout(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current, ...verdictStats() }); }, ghostDelay);
+    later(() => { if (cfg.voiceOn) speakAsync((flavored && packLine(packId, 'done')) || getCoachCopy('fightComplete'), { ...vOpts, priority: 3 }); }, 400);
+    later(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, cfg.rounds, integrityResult, { thrown: thrownRef.current, motionUsed: motionRef.current, ...verdictStats() }); }, ghostDelay);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghost, cfg, vOpts, flavored, packId, rounds, onEnd]);
 
@@ -587,7 +591,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           endArgsRef.current = integrityResult;
           const f0 = finishers[0];
           setFinisher({ idx: 0, remaining: f0.work_sec });
-          if (cfg.voiceOn) setTimeout(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, { ...vOpts, priority: 3, preempt: true }), 300);
+          if (cfg.voiceOn) later(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, { ...vOpts, priority: 3, preempt: true }), 300);
         } else {
           endNow(integrityResult);
         }
@@ -612,7 +616,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
           setRemaining(restNow);
           // Rest + next-up (spec 22): name the coming round so nothing needs reading.
           const nxt = rounds[roundIdxRef.current + 1];
-          setTimeout(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, { ...vOpts, priority: 2 }); }, 400);
+          later(() => { if (cfg.voiceOn) speakAsync(`${(flavored && packLine(packId, 'rest')) || 'Rest.'}${nxt?.round_title ? ` Up next: ${nxt.round_title}.` : ''}`, { ...vOpts, priority: 2 }); }, 400);
         }
       }
     } else {
@@ -692,7 +696,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         endArgsRef.current = integrityResult;
         const f0 = finishers[0];
         setFinisher({ idx: 0, remaining: f0.work_sec });
-        if (cfg.voiceOn) setTimeout(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, vOpts), 300);
+        if (cfg.voiceOn) later(() => speakAsync(`Finisher. ${f0.movement}. ${f0.work_sec} seconds. Go!`, vOpts), 300);
       } else {
         endNow(integrityResult);
       }

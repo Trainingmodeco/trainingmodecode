@@ -20,6 +20,8 @@ import {
   createCadenceMeter, strideFromSpeedAndCadence, cadenceVerdict, bandFor, strideIsPlausible,
 } from '../components/training-mode/data/cadence.js';
 
+import { createWakeLockHolder, createTimerBag } from '../components/training-mode/shared/lifecycleGuards.js';
+
 // Deterministic noise. The simulations below draw random jitter, and an
 // unseeded run failed a tray-placement check roughly one time in ten with
 // the same code. Same seed, same samples, same verdict every time.
@@ -271,6 +273,68 @@ ok('stride cross-check rejects a false low rate', !strideIsPlausible(78, 6, 'mi'
 ok('stride cross-check rejects a false high rate', !strideIsPlausible(210, 1.0, 'mi'),
   `stride ${strideFromSpeedAndCadence(1.0, 210, 'mi').toFixed(2)} m`);
 ok('stride cross-check is permissive with no speed', strideIsPlausible(109, 0, 'mi'));
+
+// --- Lifecycle guards (wake lock + end-of-session timers) ---------------------
+// A wake lock request is async. If PAUSE or the end of the session lands before
+// it resolves, the late lock must be let go at once, not kept.
+{
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const mkNav = (delayMs) => {
+    const locks = [];
+    return {
+      locks,
+      nav: {
+        wakeLock: {
+          request: async () => {
+            await sleep(delayMs);
+            const lock = { released: false, listeners: [], addEventListener(_t, f) { this.listeners.push(f); },
+              async release() { this.released = true; this.listeners.forEach((f) => f()); } };
+            locks.push(lock);
+            return lock;
+          },
+        },
+      },
+    };
+  };
+
+  const a = mkNav(20);
+  const changes = [];
+  const h = createWakeLockHolder(() => a.nav, (v) => changes.push(v));
+  const p = h.request();
+  await h.dispose(); // cleaned up while the request is still in flight
+  await p;
+  ok('late wake lock is released when the run was cleaned up first',
+    a.locks.length === 1 && a.locks[0].released && !h.isHeld(), `locks ${a.locks.length}, released ${a.locks[0]?.released}`);
+  ok('a cleaned-up run never reports the screen as held', !changes.includes(true));
+
+  const b = mkNav(5);
+  const h2 = createWakeLockHolder(() => b.nav);
+  await h2.request();
+  ok('an in-time wake lock is held', h2.isHeld() && !b.locks[0].released);
+  await h2.request();
+  ok('asking again while held does not stack a second lock', b.locks.length === 1);
+  await h2.dispose();
+  ok('dispose releases the held lock', b.locks[0].released && !h2.isHeld());
+
+  const c = mkNav(20);
+  const h3 = createWakeLockHolder(() => c.nav);
+  h3.request(); h3.request(); // visibility re-request during an in-flight one
+  await sleep(40);
+  ok('overlapping requests make one lock', c.locks.length === 1);
+  await h3.dispose();
+
+  const bag = createTimerBag();
+  let fired = 0;
+  bag.later(() => { fired++; }, 10);
+  bag.later(() => { fired++; }, 10);
+  ok('timer bag tracks pending timeouts', bag.size() === 2);
+  bag.clearAll();
+  await sleep(30);
+  ok('cleared end-of-session timeouts never fire', fired === 0 && bag.size() === 0, `fired ${fired}`);
+  bag.later(() => { fired++; }, 5);
+  await sleep(20);
+  ok('a timeout that was not cleared still fires once and drops out', fired === 1 && bag.size() === 0);
+}
 
 console.log(`\nFINAL: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

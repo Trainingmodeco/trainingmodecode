@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { C } from './Styles';
 import { Play, Pause, Square, RotateCcw, MoveHorizontal as MoreHorizontal, Zap } from 'lucide-react';
 import { speakAsync, cancelSpeech } from './voiceCoach';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
+import useLater from './hooks/useLater';
 import { playBeep } from './data/audioEngine';
 import { ARCADE, ArcadeStatusChip } from './ArcadeUI';
 
@@ -83,8 +85,11 @@ function CircularTimer({ progress, size = 200, strokeWidth = 10, color, bgColor,
 
 export default function ArcadeCardioPlayer({
   method, methodLabel, durationSeconds, distanceLabel, speedBoosts: speedBoostConfig,
-  onComplete, onSkip, onExit,
+  onComplete, onSkip, onExit, integrity,
 }) {
+  // End-of-session lines and the hand-off to the summary are cleared if the
+  // screen is left before they fire.
+  const later = useLater();
   const totalDuration = durationSeconds || 1800;
   const minValidSeconds = Math.floor(totalDuration * 0.6);
 
@@ -200,10 +205,10 @@ export default function ArcadeCardioPlayer({
     setBoostActive(false);
     setAnnouncerText('Cardio complete!');
     speakAsync('Cardio complete. Great work.');
-    setTimeout(() => {
+    later(() => {
       onComplete({ valid: true, elapsed: activeTimeRef.current, partial: false });
     }, 1500);
-  }, [onComplete]);
+  }, [onComplete, later]);
 
   const handlePauseToggle = useCallback(() => {
     if (paused) {
@@ -215,6 +220,13 @@ export default function ArcadeCardioPlayer({
       setAnnouncerText('Paused');
     }
   }, [paused]);
+
+  // The clock counts one-second ticks, which stop or crawl while the app is
+  // hidden. Pause like PAUSE does so a real block is never short-changed.
+  useAutoPauseOnHidden(phase === 'active' && !paused, () => {
+    setPaused(true);
+    setAnnouncerText('Paused');
+  }, integrity);
 
   const handleRewind = useCallback(() => {
     const newElapsed = Math.max(0, elapsed - 60);
@@ -251,17 +263,17 @@ export default function ArcadeCardioPlayer({
     if (activeTime < minValidSeconds) {
       setAnnouncerText('Too fast to verify. Partial credit only.');
       speakAsync('Too fast to verify.');
-      setTimeout(() => {
+      later(() => {
         onComplete({ valid: false, elapsed: activeTime, partial: true, reason: 'too_fast' });
       }, 1500);
     } else {
       setAnnouncerText('Cardio complete!');
       speakAsync('Cardio complete.');
-      setTimeout(() => {
+      later(() => {
         onComplete({ valid: true, elapsed: activeTime, partial: false });
       }, 1200);
     }
-  }, [onComplete, minValidSeconds]);
+  }, [onComplete, minValidSeconds, later]);
 
   const handleStopConfirm = useCallback(() => {
     clearInterval(timerRef.current);

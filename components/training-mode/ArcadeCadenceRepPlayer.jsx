@@ -6,6 +6,7 @@ import { SkipForward, RotateCcw } from 'lucide-react';
 import { speakAsync, cancelSpeech, delay } from './voiceCoach';
 import { playBeep } from './data/audioEngine';
 import { waitUnpaused, awaitResume } from './shared/pausableWait';
+import useAutoPauseOnHidden from './hooks/useAutoPauseOnHidden';
 
 const CADENCE_STYLES = `
 @keyframes cadence-ring-pulse {
@@ -91,7 +92,7 @@ function CircularProgress({ progress, size = 200, strokeWidth = 10, color, bgCol
 }
 
 export default function ArcadeCadenceRepPlayer({
-  task, taskIdx, totalTasks, stage, series, arcadeSettings, nextTaskTitle, onComplete, onSkip, onExit, onHome,
+  task, taskIdx, totalTasks, stage, series, arcadeSettings, nextTaskTitle, onComplete, onSkip, onExit, onHome, integrity,
 }) {
   const targetReps = task?.reps || 10;
   const baseCadenceMs = arcadeSettings?.cadenceMs || task?.cadenceMs || 2000;
@@ -258,6 +259,14 @@ export default function ArcadeCadenceRepPlayer({
     setAnnouncerText('Resume!');
   }, []);
 
+  // Backgrounding pauses the set (and rest) the way PAUSE does; ticks and the
+  // rep clock would otherwise stall or drift while the app is hidden.
+  useAutoPauseOnHidden(
+    (phase === 'active' || phase === 'rest') && !paused,
+    handlePause,
+    integrity,
+  );
+
   const handlePauseToggle = useCallback(() => {
     if (paused) handleResume();
     else handlePause();
@@ -269,12 +278,15 @@ export default function ArcadeCadenceRepPlayer({
     repRef.current = newRep;
     setCurrentRep(newRep);
     setAnnouncerText(newRep === 0 ? 'Restarting...' : `Back to rep ${newRep}`);
-    // Restart cadence from new position
+    // Restart cadence from new position. Bumping the version ends the running
+    // loop, so a new one must start even while paused: it waits out the pause
+    // (waitUnpaused/awaitResume) and carries on at RESUME. Skipping the restart
+    // while paused left a set that never advanced again.
     cadenceVersionRef.current++;
-    if (!paused && phase === 'active') {
+    if (phase === 'active') {
       resumeCadenceLoop();
     }
-  }, [paused, phase, resumeCadenceLoop]);
+  }, [phase, resumeCadenceLoop]);
 
   const handleReset = useCallback(() => {
     cancelSpeech();

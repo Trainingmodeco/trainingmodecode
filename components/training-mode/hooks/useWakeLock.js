@@ -1,57 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createWakeLockHolder } from '../shared/lifecycleGuards';
 
 export default function useWakeLock(active) {
-  const wakeLockRef = useRef(null);
   const [supported, setSupported] = useState(true);
   const [acquired, setAcquired] = useState(false);
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('wakeLock' in navigator)) {
       setSupported(false);
-      return;
+      return undefined;
     }
+    if (!active) return undefined;
 
-    async function request() {
-      if (!active) return;
-      try {
-        const lock = await navigator.wakeLock.request('screen');
-        wakeLockRef.current = lock;
-        setAcquired(true);
-        lock.addEventListener('release', () => {
-          wakeLockRef.current = null;
-          setAcquired(false);
-        });
-      } catch (_e) {
-        setAcquired(false);
-      }
-    }
-
-    async function release() {
-      if (wakeLockRef.current) {
-        try { await wakeLockRef.current.release(); } catch (_e) { /* ignored */ }
-        wakeLockRef.current = null;
-        setAcquired(false);
-      }
-    }
+    // One holder per run: cleanup disposes it, and a lock that arrives after
+    // that is released at once (see createWakeLockHolder).
+    const holder = createWakeLockHolder(() => navigator, setAcquired);
 
     function handleVisibility() {
       if (typeof document === 'undefined') return;
-      if (document.visibilityState === 'visible' && active) {
-        request();
-      }
+      if (document.visibilityState === 'visible') holder.request();
     }
 
-    if (active) {
-      request();
-      if (typeof document !== 'undefined') {
-        document.addEventListener('visibilitychange', handleVisibility);
-      }
-    } else {
-      release();
+    holder.request();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibility);
     }
 
     return () => {
-      release();
+      holder.dispose();
       if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibility);
       }
