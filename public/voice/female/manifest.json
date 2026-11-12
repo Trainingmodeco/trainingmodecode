@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 13,
+ "version": 15,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -446,6 +446,10 @@
    "file": "600.mp3",
    "ms": 984
   },
+  "700": {
+   "file": "700.mp3",
+   "ms": 1032
+  },
   "720": {
    "file": "720.mp3",
    "ms": 1632
@@ -458,9 +462,45 @@
    "file": "900.mp3",
    "ms": 912
   },
+  "1000": {
+   "file": "1000.mp3",
+   "ms": 1104
+  },
   "1020": {
    "file": "1020.mp3",
    "ms": 1248
+  },
+  "2000": {
+   "file": "2000.mp3",
+   "ms": 1248
+  },
+  "3000": {
+   "file": "3000.mp3",
+   "ms": 1032
+  },
+  "4000": {
+   "file": "4000.mp3",
+   "ms": 1344
+  },
+  "5000": {
+   "file": "5000.mp3",
+   "ms": 1584
+  },
+  "6000": {
+   "file": "6000.mp3",
+   "ms": 1320
+  },
+  "7000": {
+   "file": "7000.mp3",
+   "ms": 1296
+  },
+  "8000": {
+   "file": "8000.mp3",
+   "ms": 1200
+  },
+  "9000": {
+   "file": "9000.mp3",
+   "ms": 1656
   },
   "body cross": {
    "file": "body_cross.mp3",
@@ -15697,6 +15737,1034 @@
   "then": {
    "file": "then.mp3",
    "ms": 984
+  },
+  "cardio mode": {
+   "file": "cardio_mode.mp3",
+   "ms": 1488
+  },
+  "gps run": {
+   "file": "gps_run.mp3",
+   "ms": 1536
+  },
+  "gps jog": {
+   "file": "gps_jog.mp3",
+   "ms": 1632
+  },
+  "free run": {
+   "file": "free_run.mp3",
+   "ms": 792
+  },
+  "end it when you are done": {
+   "file": "end_it_when_you_are_done.mp3",
+   "ms": 1128
+  },
+  "target pace": {
+   "file": "target_pace.mp3",
+   "ms": 1176
+  },
+  "elite time": {
+   "file": "elite_time.mp3",
+   "ms": 912
+  },
+  "treadmill": {
+   "file": "treadmill.mp3",
+   "ms": 648
+  },
+  "rower": {
+   "file": "rower.mp3",
+   "ms": 624
+  },
+  "elliptical": {
+   "file": "elliptical.mp3",
+   "ms": 1056
+  },
+  "stair climber": {
+   "file": "stair_climber.mp3",
+   "ms": 864
+  },
+  "machine": {
+   "file": "machine.mp3",
+   "ms": 648
+  },
+  "running": {
+   "file": "running.mp3",
+   "ms": 576
+  },
+  "jog": {
+   "file": "jog.mp3",
+   "ms": 576
+  },
+  "cardio": {
+   "file": "cardio.mp3",
+   "ms": 792
+  },
+  "miles": {
+   "file": "miles.mp3",
+   "ms": 840
+  },
+  "kilometers": {
+   "file": "kilometers.mp3",
+   "ms": 936
+  },
+  "point": {
+   "file": "point.mp3",
+   "ms": 624
+  },
+  "one mile": {
+   "file": "one_mile.mp3",
+   "ms": 792
+  },
+  "one kilometer": {
+   "file": "one_kilometer.mp3",
+   "ms": 864
+  },
+  "half a mile": {
+   "file": "half_a_mile.mp3",
+   "ms": 912
+  },
+  "half a kilometer": {
+   "file": "half_a_kilometer.mp3",
+   "ms": 1056
+  },
+  "and a half miles": {
+   "file": "and_a_half_miles.mp3",
+   "ms": 1128
+  },
+  "and a half kilometers": {
+   "file": "and_a_half_kilometers.mp3",
+   "ms": 1512
+  },
+  "a tenth of a mile": {
+   "file": "a_tenth_of_a_mile.mp3",
+   "ms": 1224
+  },
+  "a tenth of a kilometer": {
+   "file": "a_tenth_of_a_kilometer.mp3",
+   "ms": 1296
+  },
+  "a quarter mile": {
+   "file": "a_quarter_mile.mp3",
+   "ms": 936
+  },
+  "a quarter kilometer": {
+   "file": "a_quarter_kilometer.mp3",
+   "ms": 1032
+  },
+  "1 second": {
+   "file": "1_second.mp3",
+   "ms": 768
+  },
+  "1 minute": {
+   "file": "1_minute.mp3",
+   "ms": 744
+  },
+  "1 hour": {
+   "file": "1_hour.mp3",
+   "ms": 648
+  },
+  "hours": {
+   "file": "hours.mp3",
+   "ms": 744
+  },
+  "pace": {
+   "file": "pace.mp3",
+   "ms": 624
+  },
+  "average pace": {
+   "file": "average_pace.mp3",
+   "ms": 1032
+  },
+  "per mile": {
+   "file": "per_mile.mp3",
+   "ms": 1152
+  },
+  "per kilometer": {
+   "file": "per_kilometer.mp3",
+   "ms": 1008
+  },
+  "oh": {
+   "file": "oh.mp3",
+   "ms": 480
+  },
+  "so far": {
+   "file": "so_far.mp3",
+   "ms": 768
+  },
+  "steady": {
+   "file": "steady.mp3",
+   "ms": 576
+  },
+  "ahead of target": {
+   "file": "ahead_of_target.mp3",
+   "ms": 1008
+  },
+  "behind target": {
+   "file": "behind_target.mp3",
+   "ms": 1464
+  },
+  "pick it up": {
+   "file": "pick_it_up.mp3",
+   "ms": 792
+  },
+  "right on target": {
+   "file": "right_on_target.mp3",
+   "ms": 1104
+  },
+  "you are on elite pace": {
+   "file": "you_are_on_elite_pace.mp3",
+   "ms": 1728
+  },
+  "ahead of your target pace": {
+   "file": "ahead_of_your_target_pace.mp3",
+   "ms": 1560
+  },
+  "under your target pace": {
+   "file": "under_your_target_pace.mp3",
+   "ms": 1344
+  },
+  "right on pace": {
+   "file": "right_on_pace.mp3",
+   "ms": 1200
+  },
+  "goal reached": {
+   "file": "goal_reached.mp3",
+   "ms": 1032
+  },
+  "outstanding": {
+   "file": "outstanding.mp3",
+   "ms": 984
+  },
+  "under target by": {
+   "file": "under_target_by.mp3",
+   "ms": 1416
+  },
+  "over target": {
+   "file": "over_target.mp3",
+   "ms": 768
+  },
+  "next time we take it": {
+   "file": "next_time_we_take_it.mp3",
+   "ms": 1104
+  },
+  "ghost mode": {
+   "file": "ghost_mode.mp3",
+   "ms": 816
+  },
+  "you are racing your own run": {
+   "file": "you_are_racing_your_own_run.mp3",
+   "ms": 1680
+  },
+  "beat it": {
+   "file": "beat_it.mp3",
+   "ms": 600
+  },
+  "ahead of your ghost": {
+   "file": "ahead_of_your_ghost.mp3",
+   "ms": 1320
+  },
+  "behind your ghost": {
+   "file": "behind_your_ghost.mp3",
+   "ms": 1224
+  },
+  "level with your ghost": {
+   "file": "level_with_your_ghost.mp3",
+   "ms": 1320
+  },
+  "dead heat with your ghost": {
+   "file": "dead_heat_with_your_ghost.mp3",
+   "ms": 1344
+  },
+  "you beat your ghost by": {
+   "file": "you_beat_your_ghost_by.mp3",
+   "ms": 1416
+  },
+  "you are racing their run": {
+   "file": "you_are_racing_their_run.mp3",
+   "ms": 1296
+  },
+  "you beat the ghost by": {
+   "file": "you_beat_the_ghost_by.mp3",
+   "ms": 2496
+  },
+  "a warrior": {
+   "file": "a_warrior.mp3",
+   "ms": 816
+  },
+  "you are beating your ghost": {
+   "file": "you_are_beating_your_ghost.mp3",
+   "ms": 1464
+  },
+  "great job": {
+   "file": "great_job.mp3",
+   "ms": 1416
+  },
+  "keep it there": {
+   "file": "keep_it_there.mp3",
+   "ms": 864
+  },
+  "ahead of your ghost by": {
+   "file": "ahead_of_your_ghost_by.mp3",
+   "ms": 1584
+  },
+  "do not let it back in": {
+   "file": "do_not_let_it_back_in.mp3",
+   "ms": 1152
+  },
+  "meters": {
+   "file": "meters.mp3",
+   "ms": 864
+  },
+  "your ghost is behind you": {
+   "file": "your_ghost_is_behind_you.mp3",
+   "ms": 1824
+  },
+  "stay smooth": {
+   "file": "stay_smooth.mp3",
+   "ms": 1368
+  },
+  "stay ahead": {
+   "file": "stay_ahead.mp3",
+   "ms": 936
+  },
+  "you are winning this race": {
+   "file": "you_are_winning_this_race.mp3",
+   "ms": 1344
+  },
+  "clear": {
+   "file": "clear.mp3",
+   "ms": 552
+  },
+  "your ghost is winning": {
+   "file": "your_ghost_is_winning.mp3",
+   "ms": 1512
+  },
+  "chase it down": {
+   "file": "chase_it_down.mp3",
+   "ms": 984
+  },
+  "ghost is": {
+   "file": "ghost_is.mp3",
+   "ms": 624
+  },
+  "ahead": {
+   "file": "ahead.mp3",
+   "ms": 624
+  },
+  "close the gap": {
+   "file": "close_the_gap.mp3",
+   "ms": 864
+  },
+  "you are behind your ghost": {
+   "file": "you_are_behind_your_ghost.mp3",
+   "ms": 1464
+  },
+  "pick the pace up and reel it in": {
+   "file": "pick_the_pace_up_and_reel_it_in.mp3",
+   "ms": 2256
+  },
+  "the ghost is getting away": {
+   "file": "the_ghost_is_getting_away.mp3",
+   "ms": 1272
+  },
+  "go get it": {
+   "file": "go_get_it.mp3",
+   "ms": 768
+  },
+  "neck and neck with your ghost": {
+   "file": "neck_and_neck_with_your_ghost.mp3",
+   "ms": 1824
+  },
+  "push now and take the lead": {
+   "file": "push_now_and_take_the_lead.mp3",
+   "ms": 1824
+  },
+  "dead level with your ghost": {
+   "file": "dead_level_with_your_ghost.mp3",
+   "ms": 1824
+  },
+  "this is where you win it": {
+   "file": "this_is_where_you_win_it.mp3",
+   "ms": 1176
+  },
+  "set the machine to": {
+   "file": "set_the_machine_to.mp3",
+   "ms": 1272
+  },
+  "mph": {
+   "file": "mph.mp3",
+   "ms": 1152
+  },
+  "kph": {
+   "file": "kph.mp3",
+   "ms": 1200
+  },
+  "and match the dial if you change it": {
+   "file": "and_match_the_dial_if_you_change_it.mp3",
+   "ms": 1992
+  },
+  "intervals are on": {
+   "file": "intervals_are_on.mp3",
+   "ms": 1152
+  },
+  "when i call a sprint": {
+   "file": "when_i_call_a_sprint.mp3",
+   "ms": 1800
+  },
+  "beat your own pace by": {
+   "file": "beat_your_own_pace_by.mp3",
+   "ms": 1440
+  },
+  "to escape and bank": {
+   "file": "to_escape_and_bank.mp3",
+   "ms": 1800
+  },
+  "get caught and it costs": {
+   "file": "get_caught_and_it_costs.mp3",
+   "ms": 1896
+  },
+  "chases escaped": {
+   "file": "chases_escaped.mp3",
+   "ms": 1344
+  },
+  "bonus x p": {
+   "file": "bonus_x_p.mp3",
+   "ms": 1344
+  },
+  "x p given up": {
+   "file": "x_p_given_up.mp3",
+   "ms": 1824
+  },
+  "treadmill intervals": {
+   "file": "treadmill_intervals.mp3",
+   "ms": 1656
+  },
+  "bike intervals": {
+   "file": "bike_intervals.mp3",
+   "ms": 1680
+  },
+  "rower intervals": {
+   "file": "rower_intervals.mp3",
+   "ms": 984
+  },
+  "fight rounds 3 by 1": {
+   "file": "fight_rounds_3_by_1.mp3",
+   "ms": 2568
+  },
+  "fight rounds 5 by 1": {
+   "file": "fight_rounds_5_by_1.mp3",
+   "ms": 2448
+  },
+  "tabata sprints": {
+   "file": "tabata_sprints.mp3",
+   "ms": 1320
+  },
+  "30 30 assault": {
+   "file": "30_30_assault.mp3",
+   "ms": 2016
+  },
+  "ladder": {
+   "file": "ladder.mp3",
+   "ms": 360
+  },
+  "norwegian 4 by 4": {
+   "file": "norwegian_4_by_4.mp3",
+   "ms": 1584
+  },
+  "hiit 25": {
+   "file": "hiit_25.mp3",
+   "ms": 1032
+  },
+  "hill and sprint 30": {
+   "file": "hill_and_sprint_30.mp3",
+   "ms": 2232
+  },
+  "rise and shine 20": {
+   "file": "rise_and_shine_20.mp3",
+   "ms": 1368
+  },
+  "sprint and recover": {
+   "file": "sprint_and_recover.mp3",
+   "ms": 1632
+  },
+  "coming": {
+   "file": "coming.mp3",
+   "ms": 576
+  },
+  "incline": {
+   "file": "incline.mp3",
+   "ms": 768
+  },
+  "all out": {
+   "file": "all_out.mp3",
+   "ms": 888
+  },
+  "light warm up spin": {
+   "file": "light_warm_up_spin.mp3",
+   "ms": 1416
+  },
+  "strong spin": {
+   "file": "strong_spin.mp3",
+   "ms": 1560
+  },
+  "easy spin": {
+   "file": "easy_spin.mp3",
+   "ms": 840
+  },
+  "light warm up strokes": {
+   "file": "light_warm_up_strokes.mp3",
+   "ms": 1992
+  },
+  "strong strokes": {
+   "file": "strong_strokes.mp3",
+   "ms": 1368
+  },
+  "easy strokes": {
+   "file": "easy_strokes.mp3",
+   "ms": 1296
+  },
+  "warm up first": {
+   "file": "warm_up_first.mp3",
+   "ms": 1176
+  },
+  "random intervals": {
+   "file": "random_intervals.mp3",
+   "ms": 1680
+  },
+  "target intervals": {
+   "file": "target_intervals.mp3",
+   "ms": 1320
+  },
+  "tabata": {
+   "file": "tabata.mp3",
+   "ms": 672
+  },
+  "intervals": {
+   "file": "intervals.mp3",
+   "ms": 720
+  },
+  "interval": {
+   "file": "interval.mp3",
+   "ms": 552
+  },
+  "battle rope waves": {
+   "file": "battle_rope_waves.mp3",
+   "ms": 1632
+  },
+  "battle rope slams": {
+   "file": "battle_rope_slams.mp3",
+   "ms": 1944
+  },
+  "hurdle jumps": {
+   "file": "hurdle_jumps.mp3",
+   "ms": 936
+  },
+  "airdyne or assault bike tabata": {
+   "file": "airdyne_or_assault_bike_tabata.mp3",
+   "ms": 3048
+  },
+  "bag takedown drills": {
+   "file": "bag_takedown_drills.mp3",
+   "ms": 1416
+  },
+  "cable machine teep or push kicks": {
+   "file": "cable_machine_teep_or_push_kicks.mp3",
+   "ms": 1824
+  },
+  "farmer's carries": {
+   "file": "farmer_s_carries.mp3",
+   "ms": 1176
+  },
+  "focus mitt flurries": {
+   "file": "focus_mitt_flurries.mp3",
+   "ms": 2112
+  },
+  "landmine": {
+   "file": "landmine.mp3",
+   "ms": 864
+  },
+  "lateral bound to stick": {
+   "file": "lateral_bound_to_stick.mp3",
+   "ms": 1776
+  },
+  "medicine ball rotational throw against wall": {
+   "file": "medicine_ball_rotational_throw_against_wall.mp3",
+   "ms": 2784
+  },
+  "mirror drill": {
+   "file": "mirror_drill.mp3",
+   "ms": 1056
+  },
+  "partner neck ties": {
+   "file": "partner_neck_ties.mp3",
+   "ms": 1200
+  },
+  "plate pinches": {
+   "file": "plate_pinches.mp3",
+   "ms": 1296
+  },
+  "plyo push up to box": {
+   "file": "plyo_push_up_to_box.mp3",
+   "ms": 1680
+  },
+  "plyometric push up to punch": {
+   "file": "plyometric_push_up_to_punch.mp3",
+   "ms": 2328
+  },
+  "push up variation": {
+   "file": "push_up_variation.mp3",
+   "ms": 1464
+  },
+  "reactive lateral shuffle to sprint": {
+   "file": "reactive_lateral_shuffle_to_sprint.mp3",
+   "ms": 2376
+  },
+  "weighted step ups with knee drive": {
+   "file": "weighted_step_ups_with_knee_drive.mp3",
+   "ms": 1584
+  },
+  "zercher carries": {
+   "file": "zercher_carries.mp3",
+   "ms": 1416
+  },
+  "pivot & circle drills": {
+   "file": "pivot_circle_drills.mp3",
+   "ms": 1680
+  },
+  "voice check": {
+   "file": "voice_check.mp3",
+   "ms": 984
+  },
+  "check x roundhouse drill": {
+   "file": "check_x_roundhouse_drill.mp3",
+   "ms": 1560
+  },
+  "step up x knee": {
+   "file": "step_up_x_knee.mp3",
+   "ms": 1488
+  },
+  "get in position": {
+   "file": "get_in_position.mp3",
+   "ms": 912
+  },
+  "grab your weight and prepare": {
+   "file": "grab_your_weight_and_prepare.mp3",
+   "ms": 1680
+  },
+  "prepare your setup": {
+   "file": "prepare_your_setup.mp3",
+   "ms": 1416
+  },
+  "you are well under the speed limit": {
+   "file": "you_are_well_under_the_speed_limit.mp3",
+   "ms": 1800
+  },
+  "pick it up now": {
+   "file": "pick_it_up_now.mp3",
+   "ms": 1224
+  },
+  "way off pace": {
+   "file": "way_off_pace.mp3",
+   "ms": 1032
+  },
+  "shorten your stride and turn your legs over faster": {
+   "file": "shorten_your_stride_and_turn_your_legs_over_faster.mp3",
+   "ms": 3336
+  },
+  "this is a jog": {
+   "file": "this_is_a_jog.mp3",
+   "ms": 1152
+  },
+  "we came here to run": {
+   "file": "we_came_here_to_run.mp3",
+   "ms": 1656
+  },
+  "you are under the speed limit": {
+   "file": "you_are_under_the_speed_limit.mp3",
+   "ms": 1512
+  },
+  "a little slow": {
+   "file": "a_little_slow.mp3",
+   "ms": 1176
+  },
+  "find the target pace and hold it": {
+   "file": "find_the_target_pace_and_hold_it.mp3",
+   "ms": 1896
+  },
+  "behind pace": {
+   "file": "behind_pace.mp3",
+   "ms": 1392
+  },
+  "drive the arms": {
+   "file": "drive_the_arms.mp3",
+   "ms": 2784
+  },
+  "the legs will follow": {
+   "file": "the_legs_will_follow.mp3",
+   "ms": 1104
+  },
+  "lift the tempo": {
+   "file": "lift_the_tempo.mp3",
+   "ms": 1080
+  },
+  "ten seconds harder": {
+   "file": "ten_seconds_harder.mp3",
+   "ms": 1944
+  },
+  "then settle": {
+   "file": "then_settle.mp3",
+   "ms": 864
+  },
+  "good pace": {
+   "file": "good_pace.mp3",
+   "ms": 888
+  },
+  "hold it right there": {
+   "file": "hold_it_right_there.mp3",
+   "ms": 1272
+  },
+  "that is the pace": {
+   "file": "that_is_the_pace.mp3",
+   "ms": 1440
+  },
+  "on target": {
+   "file": "on_target.mp3",
+   "ms": 1224
+  },
+  "smooth and steady": {
+   "file": "smooth_and_steady.mp3",
+   "ms": 1584
+  },
+  "perfect rhythm": {
+   "file": "perfect_rhythm.mp3",
+   "ms": 1080
+  },
+  "keep it": {
+   "file": "keep_it.mp3",
+   "ms": 600
+  },
+  "ahead of pace": {
+   "file": "ahead_of_pace.mp3",
+   "ms": 1104
+  },
+  "settle in and hold it": {
+   "file": "settle_in_and_hold_it.mp3",
+   "ms": 1896
+  },
+  "make sure you can keep this to the finish": {
+   "file": "make_sure_you_can_keep_this_to_the_finish.mp3",
+   "ms": 1728
+  },
+  "stay controlled": {
+   "file": "stay_controlled.mp3",
+   "ms": 1464
+  },
+  "relax your shoulders": {
+   "file": "relax_your_shoulders.mp3",
+   "ms": 2040
+  },
+  "hands loose": {
+   "file": "hands_loose.mp3",
+   "ms": 792
+  },
+  "like you are holding a chip you do not want to break": {
+   "file": "like_you_are_holding_a_chip_you_do_not_want_to_break.mp3",
+   "ms": 2280
+  },
+  "quick": {
+   "file": "quick.mp3",
+   "ms": 504
+  },
+  "light steps": {
+   "file": "light_steps.mp3",
+   "ms": 1392
+  },
+  "land under your hips": {
+   "file": "land_under_your_hips.mp3",
+   "ms": 1632
+  },
+  "not out in front": {
+   "file": "not_out_in_front.mp3",
+   "ms": 1008
+  },
+  "breathe in for three steps": {
+   "file": "breathe_in_for_three_steps.mp3",
+   "ms": 1584
+  },
+  "out for two": {
+   "file": "out_for_two.mp3",
+   "ms": 864
+  },
+  "chest tall": {
+   "file": "chest_tall.mp3",
+   "ms": 1272
+  },
+  "run like someone is pulling a string from the top of your head": {
+   "file": "run_like_someone_is_pulling_a_string_from_the_top_of_your_head.mp3",
+   "ms": 2808
+  },
+  "drive the elbows straight back": {
+   "file": "drive_the_elbows_straight_back.mp3",
+   "ms": 2136
+  },
+  "no crossing the body": {
+   "file": "no_crossing_the_body.mp3",
+   "ms": 1464
+  },
+  "slight lean from the ankles": {
+   "file": "slight_lean_from_the_ankles.mp3",
+   "ms": 1704
+  },
+  "tension in the face costs you energy": {
+   "file": "tension_in_the_face_costs_you_energy.mp3",
+   "ms": 2064
+  },
+  "count your steps for ten seconds": {
+   "file": "count_your_steps_for_ten_seconds.mp3",
+   "ms": 1728
+  },
+  "aim for around thirty": {
+   "file": "aim_for_around_thirty.mp3",
+   "ms": 1656
+  },
+  "your feet are slow": {
+   "file": "your_feet_are_slow.mp3",
+   "ms": 1344
+  },
+  "quicken them up": {
+   "file": "quicken_them_up.mp3",
+   "ms": 768
+  },
+  "shorter steps": {
+   "file": "shorter_steps.mp3",
+   "ms": 1200
+  },
+  "same speed": {
+   "file": "same_speed.mp3",
+   "ms": 864
+  },
+  "you are over striding": {
+   "file": "you_are_over_striding.mp3",
+   "ms": 1128
+  },
+  "take quicker": {
+   "file": "take_quicker.mp3",
+   "ms": 936
+  },
+  "lighter steps and let your foot land under you": {
+   "file": "lighter_steps_and_let_your_foot_land_under_you.mp3",
+   "ms": 2016
+  },
+  "pick the cadence up": {
+   "file": "pick_the_cadence_up.mp3",
+   "ms": 1176
+  },
+  "think quick and light": {
+   "file": "think_quick_and_light.mp3",
+   "ms": 1296
+  },
+  "not long and hard": {
+   "file": "not_long_and_hard.mp3",
+   "ms": 1272
+  },
+  "good cadence": {
+   "file": "good_cadence.mp3",
+   "ms": 1440
+  },
+  "your turnover is right where it should be": {
+   "file": "your_turnover_is_right_where_it_should_be.mp3",
+   "ms": 2112
+  },
+  "stay there": {
+   "file": "stay_there.mp3",
+   "ms": 816
+  },
+  "nice rhythm": {
+   "file": "nice_rhythm.mp3",
+   "ms": 744
+  },
+  "that is the cadence to remember": {
+   "file": "that_is_the_cadence_to_remember.mp3",
+   "ms": 1392
+  },
+  "great turnover": {
+   "file": "great_turnover.mp3",
+   "ms": 1464
+  },
+  "let your stride open up a touch": {
+   "file": "let_your_stride_open_up_a_touch.mp3",
+   "ms": 1824
+  },
+  "cadence is high": {
+   "file": "cadence_is_high.mp3",
+   "ms": 1032
+  },
+  "relax and let each step carry you a little further": {
+   "file": "relax_and_let_each_step_carry_you_a_little_further.mp3",
+   "ms": 3000
+  },
+  "cadence is low": {
+   "file": "cadence_is_low.mp3",
+   "ms": 1272
+  },
+  "spin a little lighter and faster": {
+   "file": "spin_a_little_lighter_and_faster.mp3",
+   "ms": 2112
+  },
+  "drop a gear and pick the revolutions up": {
+   "file": "drop_a_gear_and_pick_the_revolutions_up.mp3",
+   "ms": 2016
+  },
+  "smooth circles": {
+   "file": "smooth_circles.mp3",
+   "ms": 1680
+  },
+  "hold it": {
+   "file": "hold_it.mp3",
+   "ms": 648
+  },
+  "that is a strong spin": {
+   "file": "that_is_a_strong_spin.mp3",
+   "ms": 1704
+  },
+  "spinning fast": {
+   "file": "spinning_fast.mp3",
+   "ms": 1632
+  },
+  "add a touch of resistance and settle": {
+   "file": "add_a_touch_of_resistance_and_settle.mp3",
+   "ms": 2976
+  },
+  "stroke rate is low": {
+   "file": "stroke_rate_is_low.mp3",
+   "ms": 1536
+  },
+  "quicken the recovery": {
+   "file": "quicken_the_recovery.mp3",
+   "ms": 1008
+  },
+  "keep the drive strong": {
+   "file": "keep_the_drive_strong.mp3",
+   "ms": 1128
+  },
+  "pick the rate up": {
+   "file": "pick_the_rate_up.mp3",
+   "ms": 768
+  },
+  "fast hands away": {
+   "file": "fast_hands_away.mp3",
+   "ms": 1800
+  },
+  "good rating": {
+   "file": "good_rating.mp3",
+   "ms": 1416
+  },
+  "strong drive": {
+   "file": "strong_drive.mp3",
+   "ms": 1128
+  },
+  "patient slide": {
+   "file": "patient_slide.mp3",
+   "ms": 1656
+  },
+  "that is the rhythm": {
+   "file": "that_is_the_rhythm.mp3",
+   "ms": 1368
+  },
+  "rate is high": {
+   "file": "rate_is_high.mp3",
+   "ms": 840
+  },
+  "lengthen the slide and make each stroke count": {
+   "file": "lengthen_the_slide_and_make_each_stroke_count.mp3",
+   "ms": 2568
+  },
+  "step rate is low": {
+   "file": "step_rate_is_low.mp3",
+   "ms": 1176
+  },
+  "quicker feet": {
+   "file": "quicker_feet.mp3",
+   "ms": 960
+  },
+  "full steps": {
+   "file": "full_steps.mp3",
+   "ms": 1080
+  },
+  "pick the pace up": {
+   "file": "pick_the_pace_up.mp3",
+   "ms": 1176
+  },
+  "drive through the whole foot": {
+   "file": "drive_through_the_whole_foot.mp3",
+   "ms": 1632
+  },
+  "good step rate": {
+   "file": "good_step_rate.mp3",
+   "ms": 1224
+  },
+  "tall through the hips": {
+   "file": "tall_through_the_hips.mp3",
+   "ms": 1440
+  },
+  "take the full step rather than the fast half one": {
+   "file": "take_the_full_step_rather_than_the_fast_half_one.mp3",
+   "ms": 2424
+  },
+  "you're still in the fight": {
+   "file": "you_re_still_in_the_fight.mp3",
+   "ms": 1224
+  },
+  "don't fade now": {
+   "file": "don_t_fade_now.mp3",
+   "ms": 960
+  },
+  "you're almost there": {
+   "file": "you_re_almost_there.mp3",
+   "ms": 1344
+  },
+  "don't quit on this round": {
+   "file": "don_t_quit_on_this_round.mp3",
+   "ms": 1464
+  },
+  "don't stand still": {
+   "file": "don_t_stand_still.mp3",
+   "ms": 1872
+  },
+  "you're doing good": {
+   "file": "you_re_doing_good.mp3",
+   "ms": 1008
+  },
+  "don't admire your work": {
+   "file": "don_t_admire_your_work.mp3",
+   "ms": 1320
+  },
+  "exit clean": {
+   "file": "exit_clean.mp3",
+   "ms": 1128
+  },
+  "don't rush it": {
+   "file": "don_t_rush_it.mp3",
+   "ms": 768
+  },
+  "don't let the round beat you": {
+   "file": "don_t_let_the_round_beat_you.mp3",
+   "ms": 1632
+  },
+  "don't back down": {
+   "file": "don_t_back_down.mp3",
+   "ms": 1944
+  },
+  "break their rhythm": {
+   "file": "break_their_rhythm.mp3",
+   "ms": 2112
+  },
+  "don't stop working": {
+   "file": "don_t_stop_working.mp3",
+   "ms": 1104
+  },
+  "finish the round like you're built for this": {
+   "file": "finish_the_round_like_you_re_built_for_this.mp3",
+   "ms": 2016
   }
  },
  "count": 1121,
