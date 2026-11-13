@@ -33,7 +33,8 @@ for (const b of batch.split(',')) for (const c of JSON.parse(fs.readFileSync(`${
 const OUT = `${B}takes/`;
 const slug = (t) => String(t).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'x';
 export const fileFor = (key) => (key.endsWith(',') ? slug(key) + '__mid.mp3' : key.endsWith('.') ? slug(key) + '__end.mp3' : key.includes(', ') ? slug(key) + '__s.mp3' : slug(key) + '.mp3');
-const syll = (text) => Math.max(1, (say(text).toLowerCase().replace(/gps/g, 'geepeeess').match(/[aeiouy]+/g) || []).length);
+// Syllables, near enough: letter names said aloud ("GPS", "X P") are spelled the way they sound first.
+const syll = (text) => Math.max(1, (say(text).toLowerCase().replace(/gps/g, 'geepeeess').replace(/\bx p\b/g, 'ex pee').match(/[aeiouy]+/g) || []).length);
 
 function frames(s) { const fr = []; for (let i = 0; i < s.length; i += F) { let e = 0; const n = Math.min(F, s.length - i); for (let j = 0; j < n; j++) e += s[i + j] * s[i + j]; fr.push(Math.sqrt(e / n)); } return fr; }
 function voiced(fr) {
@@ -129,11 +130,15 @@ if (process.argv[1].endsWith('cutbank.mjs')) for (const v of ['female', 'male'])
     // A short phrase, or one that opens its recording, is said with more weight than the fitted rate allows for:
     // give those more room on the long side when every cut of the recording is sure.
     const [lo, hi] = t.anyWeak ? [0.7, 1.4] : [0.6, t.idx === 0 || t.syl <= 3 ? 1.95 : 1.6];
-    t.score = (t.edge ? 100 : 0) + (t.weak ? 50 : 0) + (t.ratio < lo || t.ratio > hi ? 40 : 0) + (t.inner > 220 ? 30 : 0); }
+    // A count-off ("1 2 3 4 combo sprints") is said with a beat between the numbers: that is not a break.
+    const innerMax = (String(t.text).match(/\d+/g) || []).length >= 3 ? 320 : 220;
+    t.score = (t.edge ? 100 : 0) + (t.weak ? 50 : 0) + (t.ratio < lo || t.ratio > hi ? 40 : 0) + (t.inner > innerMax ? 30 : 0); }
   const byKey = new Map(); for (const t of takes) if (t.key && !t.fail) (byKey.get(t.key) || byKey.set(t.key, []).get(t.key)).push(t);
   const keys = {}, need = []; const wanted = new Set(); for (const c of Object.values(carriers)) if (!c.voice || c.voice === v) for (const kd of c.keys) wanted.add(kd.key);
   for (const key of wanted) {
     const list = (byKey.get(key) || []).slice().sort((p, q) => p.score - q.score); const ok = list.filter((t) => t.score < 30);
+    // Last resort after three tries: a take whose cuts, edges and inside are all sound and that is only a little slow.
+    if (!ok.length && list.length >= 3) { const slow = list.filter((t) => t.score === 40 && t.ratio > 1 && t.ratio <= 1.75); if (slow.length) ok.push(slow.sort((p, q) => p.ratio - q.ratio)[0]); }
     if (!ok.length) { need.push({ key, best: list[0] ? list[0].score : null, carriers: Object.values(carriers).filter((c) => (!c.voice || c.voice === v) && c.keys.some((kd) => kd.key === key)).map((c) => c.id) }); continue; }
     const med = ok.map((t) => t.voicedMs).sort((p, q) => p - q)[Math.floor(ok.length / 2)]; ok.sort((p, q) => Math.abs(p.voicedMs - med) - Math.abs(q.voicedMs - med));
     keys[key] = { file: fileFor(key), take: ok[0], takes: list.length };
