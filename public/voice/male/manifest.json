@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 15,
+ "version": 16,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -5300,7 +5300,7 @@
   },
   "cool down": {
    "file": "cool_down.mp3",
-   "ms": 936
+   "ms": 744
   },
   "cooldown + ankle care": {
    "file": "cooldown_ankle_care.mp3",
@@ -6960,7 +6960,7 @@
   },
   "locking gps": {
    "file": "locking_gps.mp3",
-   "ms": 1920
+   "ms": 1248
   },
   "logged": {
    "file": "logged.mp3",
@@ -8396,7 +8396,7 @@
   },
   "sprint in five": {
    "file": "sprint_in_five.mp3",
-   "ms": 1632
+   "ms": 1200
   },
   "sprint intervals": {
    "file": "sprint_intervals.mp3",
@@ -15752,7 +15752,7 @@
   },
   "free run": {
    "file": "free_run.mp3",
-   "ms": 1056
+   "ms": 888
   },
   "end it when you are done": {
    "file": "end_it_when_you_are_done.mp3",
@@ -15768,7 +15768,7 @@
   },
   "treadmill": {
    "file": "treadmill.mp3",
-   "ms": 1512
+   "ms": 672
   },
   "rower": {
    "file": "rower.mp3",
@@ -15780,7 +15780,7 @@
   },
   "stair climber": {
    "file": "stair_climber.mp3",
-   "ms": 1200
+   "ms": 1032
   },
   "machine": {
    "file": "machine.mp3",
@@ -15972,7 +15972,7 @@
   },
   "dead heat with your ghost": {
    "file": "dead_heat_with_your_ghost.mp3",
-   "ms": 1656
+   "ms": 1488
   },
   "you beat your ghost by": {
    "file": "you_beat_your_ghost_by.mp3",
@@ -15988,11 +15988,11 @@
   },
   "a warrior": {
    "file": "a_warrior.mp3",
-   "ms": 1440
+   "ms": 840
   },
   "you are beating your ghost": {
    "file": "you_are_beating_your_ghost.mp3",
-   "ms": 4104
+   "ms": 1704
   },
   "great job": {
    "file": "great_job.mp3",
@@ -16016,7 +16016,7 @@
   },
   "your ghost is behind you": {
    "file": "your_ghost_is_behind_you.mp3",
-   "ms": 1944
+   "ms": 1680
   },
   "stay smooth": {
    "file": "stay_smooth.mp3",
@@ -16060,7 +16060,7 @@
   },
   "pick the pace up and reel it in": {
    "file": "pick_the_pace_up_and_reel_it_in.mp3",
-   "ms": 2664
+   "ms": 2040
   },
   "the ghost is getting away": {
    "file": "the_ghost_is_getting_away.mp3",
@@ -16072,11 +16072,11 @@
   },
   "neck and neck with your ghost": {
    "file": "neck_and_neck_with_your_ghost.mp3",
-   "ms": 1944
+   "ms": 1536
   },
   "push now and take the lead": {
    "file": "push_now_and_take_the_lead.mp3",
-   "ms": 1824
+   "ms": 1656
   },
   "dead level with your ghost": {
    "file": "dead_level_with_your_ghost.mp3",
@@ -16200,15 +16200,15 @@
   },
   "light warm up spin": {
    "file": "light_warm_up_spin.mp3",
-   "ms": 1920
+   "ms": 1056
   },
   "strong spin": {
    "file": "strong_spin.mp3",
-   "ms": 1080
+   "ms": 1056
   },
   "easy spin": {
    "file": "easy_spin.mp3",
-   "ms": 1152
+   "ms": 984
   },
   "light warm up strokes": {
    "file": "light_warm_up_strokes.mp3",
@@ -16216,7 +16216,7 @@
   },
   "strong strokes": {
    "file": "strong_strokes.mp3",
-   "ms": 1176
+   "ms": 1056
   },
   "easy strokes": {
    "file": "easy_strokes.mp3",
@@ -16228,7 +16228,7 @@
   },
   "random intervals": {
    "file": "random_intervals.mp3",
-   "ms": 1704
+   "ms": 1344
   },
   "target intervals": {
    "file": "target_intervals.mp3",
@@ -16368,7 +16368,7 @@
   },
   "shorten your stride and turn your legs over faster": {
    "file": "shorten_your_stride_and_turn_your_legs_over_faster.mp3",
-   "ms": 3360
+   "ms": 2496
   },
   "this is a jog": {
    "file": "this_is_a_jog.mp3",
@@ -16416,7 +16416,7 @@
   },
   "good pace": {
    "file": "good_pace.mp3",
-   "ms": 2040
+   "ms": 744
   },
   "hold it right there": {
    "file": "hold_it_right_there.mp3",
@@ -16440,7 +16440,7 @@
   },
   "keep it": {
    "file": "keep_it.mp3",
-   "ms": 1464
+   "ms": 648
   },
   "ahead of pace": {
    "file": "ahead_of_pace.mp3",
@@ -16448,7 +16448,7 @@
   },
   "settle in and hold it": {
    "file": "settle_in_and_hold_it.mp3",
-   "ms": 1680
+   "ms": 1344
   },
   "make sure you can keep this to the finish": {
    "file": "make_sure_you_can_keep_this_to_the_finish.mp3",
@@ -16460,7 +16460,7 @@
   },
   "relax your shoulders": {
    "file": "relax_your_shoulders.mp3",
-   "ms": 1560
+   "ms": 1272
   },
   "hands loose": {
    "file": "hands_loose.mp3",
@@ -16504,11 +16504,11 @@
   },
   "drive the elbows straight back": {
    "file": "drive_the_elbows_straight_back.mp3",
-   "ms": 2280
+   "ms": 1704
   },
   "no crossing the body": {
    "file": "no_crossing_the_body.mp3",
-   "ms": 1536
+   "ms": 1392
   },
   "slight lean from the ankles": {
    "file": "slight_lean_from_the_ankles.mp3",
@@ -16516,11 +16516,11 @@
   },
   "tension in the face costs you energy": {
    "file": "tension_in_the_face_costs_you_energy.mp3",
-   "ms": 2904
+   "ms": 2232
   },
   "count your steps for ten seconds": {
    "file": "count_your_steps_for_ten_seconds.mp3",
-   "ms": 2160
+   "ms": 2040
   },
   "aim for around thirty": {
    "file": "aim_for_around_thirty.mp3",
@@ -16568,7 +16568,7 @@
   },
   "good cadence": {
    "file": "good_cadence.mp3",
-   "ms": 1368
+   "ms": 864
   },
   "your turnover is right where it should be": {
    "file": "your_turnover_is_right_where_it_should_be.mp3",
@@ -16584,7 +16584,7 @@
   },
   "that is the cadence to remember": {
    "file": "that_is_the_cadence_to_remember.mp3",
-   "ms": 2424
+   "ms": 1944
   },
   "great turnover": {
    "file": "great_turnover.mp3",
@@ -16596,15 +16596,15 @@
   },
   "cadence is high": {
    "file": "cadence_is_high.mp3",
-   "ms": 1536
+   "ms": 1368
   },
   "relax and let each step carry you a little further": {
    "file": "relax_and_let_each_step_carry_you_a_little_further.mp3",
-   "ms": 3576
+   "ms": 3552
   },
   "cadence is low": {
    "file": "cadence_is_low.mp3",
-   "ms": 1320
+   "ms": 1632
   },
   "spin a little lighter and faster": {
    "file": "spin_a_little_lighter_and_faster.mp3",
@@ -16632,7 +16632,7 @@
   },
   "add a touch of resistance and settle": {
    "file": "add_a_touch_of_resistance_and_settle.mp3",
-   "ms": 2712
+   "ms": 2112
   },
   "stroke rate is low": {
    "file": "stroke_rate_is_low.mp3",
@@ -16765,6 +16765,3238 @@
   "finish the round like you're built for this": {
    "file": "finish_the_round_like_you_re_built_for_this.mp3",
    "ms": 2424
+  },
+  "pace,": {
+   "file": "pace__mid.mp3",
+   "ms": 576
+  },
+  "8 minutes,": {
+   "file": "8_minutes__mid.mp3",
+   "ms": 840
+  },
+  "1 second per mile.": {
+   "file": "1_second_per_mile__end.mp3",
+   "ms": 1608
+  },
+  "ahead of target,": {
+   "file": "ahead_of_target__mid.mp3",
+   "ms": 1080
+  },
+  "12 seconds.": {
+   "file": "12_seconds__end.mp3",
+   "ms": 1080
+  },
+  "15 minutes,": {
+   "file": "15_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "2 seconds per mile.": {
+   "file": "2_seconds_per_mile__end.mp3",
+   "ms": 1440
+  },
+  "under target,": {
+   "file": "under_target__mid.mp3",
+   "ms": 936
+  },
+  "23 seconds.": {
+   "file": "23_seconds__end.mp3",
+   "ms": 1224
+  },
+  "22 minutes,": {
+   "file": "22_minutes__mid.mp3",
+   "ms": 1224
+  },
+  "3 seconds per mile.": {
+   "file": "3_seconds_per_mile__end.mp3",
+   "ms": 1464
+  },
+  "over target,": {
+   "file": "over_target__mid.mp3",
+   "ms": 984
+  },
+  "34 seconds.": {
+   "file": "34_seconds__end.mp3",
+   "ms": 1416
+  },
+  "29 minutes,": {
+   "file": "29_minutes__mid.mp3",
+   "ms": 1272
+  },
+  "4 seconds per mile.": {
+   "file": "4_seconds_per_mile__end.mp3",
+   "ms": 1416
+  },
+  "behind target,": {
+   "file": "behind_target__mid.mp3",
+   "ms": 1152
+  },
+  "45 seconds.": {
+   "file": "45_seconds__end.mp3",
+   "ms": 1536
+  },
+  "36 minutes,": {
+   "file": "36_minutes__mid.mp3",
+   "ms": 1320
+  },
+  "5 seconds per mile.": {
+   "file": "5_seconds_per_mile__end.mp3",
+   "ms": 1296
+  },
+  "56 seconds.": {
+   "file": "56_seconds__end.mp3",
+   "ms": 1584
+  },
+  "43 minutes,": {
+   "file": "43_minutes__mid.mp3",
+   "ms": 1272
+  },
+  "6 seconds per mile.": {
+   "file": "6_seconds_per_mile__end.mp3",
+   "ms": 1368
+  },
+  "8 seconds.": {
+   "file": "8_seconds__end.mp3",
+   "ms": 936
+  },
+  "50 minutes,": {
+   "file": "50_minutes__mid.mp3",
+   "ms": 1080
+  },
+  "7 seconds per mile.": {
+   "file": "7_seconds_per_mile__end.mp3",
+   "ms": 1752
+  },
+  "19 seconds.": {
+   "file": "19_seconds__end.mp3",
+   "ms": 1248
+  },
+  "57 minutes,": {
+   "file": "57_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "8 seconds per mile.": {
+   "file": "8_seconds_per_mile__end.mp3",
+   "ms": 1392
+  },
+  "30 seconds.": {
+   "file": "30_seconds__end.mp3",
+   "ms": 960
+  },
+  "5 minutes,": {
+   "file": "5_minutes__mid.mp3",
+   "ms": 1128
+  },
+  "9 seconds per mile.": {
+   "file": "9_seconds_per_mile__end.mp3",
+   "ms": 1584
+  },
+  "41 seconds.": {
+   "file": "41_seconds__end.mp3",
+   "ms": 1608
+  },
+  "12 minutes,": {
+   "file": "12_minutes__mid.mp3",
+   "ms": 1032
+  },
+  "10 seconds per mile.": {
+   "file": "10_seconds_per_mile__end.mp3",
+   "ms": 1536
+  },
+  "52 seconds.": {
+   "file": "52_seconds__end.mp3",
+   "ms": 1392
+  },
+  "19 minutes,": {
+   "file": "19_minutes__mid.mp3",
+   "ms": 1248
+  },
+  "11 seconds per mile.": {
+   "file": "11_seconds_per_mile__end.mp3",
+   "ms": 1824
+  },
+  "4 seconds.": {
+   "file": "4_seconds__end.mp3",
+   "ms": 1080
+  },
+  "26 minutes,": {
+   "file": "26_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "12 seconds per mile.": {
+   "file": "12_seconds_per_mile__end.mp3",
+   "ms": 1632
+  },
+  "15 seconds.": {
+   "file": "15_seconds__end.mp3",
+   "ms": 984
+  },
+  "33 minutes,": {
+   "file": "33_minutes__mid.mp3",
+   "ms": 1464
+  },
+  "13 seconds per mile.": {
+   "file": "13_seconds_per_mile__end.mp3",
+   "ms": 1536
+  },
+  "26 seconds.": {
+   "file": "26_seconds__end.mp3",
+   "ms": 1416
+  },
+  "40 minutes,": {
+   "file": "40_minutes__mid.mp3",
+   "ms": 936
+  },
+  "14 seconds per mile.": {
+   "file": "14_seconds_per_mile__end.mp3",
+   "ms": 1632
+  },
+  "37 seconds.": {
+   "file": "37_seconds__end.mp3",
+   "ms": 1440
+  },
+  "47 minutes,": {
+   "file": "47_minutes__mid.mp3",
+   "ms": 1344
+  },
+  "15 seconds per mile.": {
+   "file": "15_seconds_per_mile__end.mp3",
+   "ms": 1824
+  },
+  "48 seconds.": {
+   "file": "48_seconds__end.mp3",
+   "ms": 1344
+  },
+  "54 minutes,": {
+   "file": "54_minutes__mid.mp3",
+   "ms": 1248
+  },
+  "16 seconds per mile.": {
+   "file": "16_seconds_per_mile__end.mp3",
+   "ms": 1848
+  },
+  "59 seconds.": {
+   "file": "59_seconds__end.mp3",
+   "ms": 1272
+  },
+  "2 minutes,": {
+   "file": "2_minutes__mid.mp3",
+   "ms": 888
+  },
+  "17 seconds per mile.": {
+   "file": "17_seconds_per_mile__end.mp3",
+   "ms": 1704
+  },
+  "11 seconds.": {
+   "file": "11_seconds__end.mp3",
+   "ms": 1152
+  },
+  "9 minutes,": {
+   "file": "9_minutes__mid.mp3",
+   "ms": 912
+  },
+  "18 seconds per mile.": {
+   "file": "18_seconds_per_mile__end.mp3",
+   "ms": 1584
+  },
+  "22 seconds.": {
+   "file": "22_seconds__end.mp3",
+   "ms": 1440
+  },
+  "16 minutes,": {
+   "file": "16_minutes__mid.mp3",
+   "ms": 1344
+  },
+  "19 seconds per mile.": {
+   "file": "19_seconds_per_mile__end.mp3",
+   "ms": 1992
+  },
+  "33 seconds.": {
+   "file": "33_seconds__end.mp3",
+   "ms": 1608
+  },
+  "23 minutes,": {
+   "file": "23_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "20 seconds per mile.": {
+   "file": "20_seconds_per_mile__end.mp3",
+   "ms": 1512
+  },
+  "44 seconds.": {
+   "file": "44_seconds__end.mp3",
+   "ms": 912
+  },
+  "30 minutes,": {
+   "file": "30_minutes__mid.mp3",
+   "ms": 960
+  },
+  "21 seconds per mile.": {
+   "file": "21_seconds_per_mile__end.mp3",
+   "ms": 1656
+  },
+  "55 seconds.": {
+   "file": "55_seconds__end.mp3",
+   "ms": 1584
+  },
+  "37 minutes,": {
+   "file": "37_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "22 seconds per mile.": {
+   "file": "22_seconds_per_mile__end.mp3",
+   "ms": 1680
+  },
+  "7 seconds.": {
+   "file": "7_seconds__end.mp3",
+   "ms": 1080
+  },
+  "44 minutes,": {
+   "file": "44_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "23 seconds per mile.": {
+   "file": "23_seconds_per_mile__end.mp3",
+   "ms": 1536
+  },
+  "18 seconds.": {
+   "file": "18_seconds__end.mp3",
+   "ms": 1032
+  },
+  "51 minutes,": {
+   "file": "51_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "24 seconds per mile.": {
+   "file": "24_seconds_per_mile__end.mp3",
+   "ms": 2040
+  },
+  "29 seconds.": {
+   "file": "29_seconds__end.mp3",
+   "ms": 1296
+  },
+  "58 minutes,": {
+   "file": "58_minutes__mid.mp3",
+   "ms": 1080
+  },
+  "25 seconds per mile.": {
+   "file": "25_seconds_per_mile__end.mp3",
+   "ms": 1776
+  },
+  "40 seconds.": {
+   "file": "40_seconds__end.mp3",
+   "ms": 1104
+  },
+  "6 minutes,": {
+   "file": "6_minutes__mid.mp3",
+   "ms": 1032
+  },
+  "26 seconds per mile.": {
+   "file": "26_seconds_per_mile__end.mp3",
+   "ms": 1704
+  },
+  "51 seconds.": {
+   "file": "51_seconds__end.mp3",
+   "ms": 1248
+  },
+  "13 minutes,": {
+   "file": "13_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "27 seconds per mile.": {
+   "file": "27_seconds_per_mile__end.mp3",
+   "ms": 1920
+  },
+  "3 seconds.": {
+   "file": "3_seconds__end.mp3",
+   "ms": 1272
+  },
+  "20 minutes,": {
+   "file": "20_minutes__mid.mp3",
+   "ms": 1056
+  },
+  "28 seconds per mile.": {
+   "file": "28_seconds_per_mile__end.mp3",
+   "ms": 1848
+  },
+  "14 seconds.": {
+   "file": "14_seconds__end.mp3",
+   "ms": 1200
+  },
+  "27 minutes,": {
+   "file": "27_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "29 seconds per mile.": {
+   "file": "29_seconds_per_mile__end.mp3",
+   "ms": 1920
+  },
+  "25 seconds.": {
+   "file": "25_seconds__end.mp3",
+   "ms": 1416
+  },
+  "34 minutes,": {
+   "file": "34_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "30 seconds per mile.": {
+   "file": "30_seconds_per_mile__end.mp3",
+   "ms": 1752
+  },
+  "36 seconds.": {
+   "file": "36_seconds__end.mp3",
+   "ms": 1272
+  },
+  "41 minutes,": {
+   "file": "41_minutes__mid.mp3",
+   "ms": 1104
+  },
+  "31 seconds per mile.": {
+   "file": "31_seconds_per_mile__end.mp3",
+   "ms": 1584
+  },
+  "47 seconds.": {
+   "file": "47_seconds__end.mp3",
+   "ms": 1584
+  },
+  "48 minutes,": {
+   "file": "48_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "32 seconds per mile.": {
+   "file": "32_seconds_per_mile__end.mp3",
+   "ms": 1728
+  },
+  "58 seconds.": {
+   "file": "58_seconds__end.mp3",
+   "ms": 1320
+  },
+  "55 minutes,": {
+   "file": "55_minutes__mid.mp3",
+   "ms": 1320
+  },
+  "33 seconds per mile.": {
+   "file": "33_seconds_per_mile__end.mp3",
+   "ms": 1680
+  },
+  "10 seconds.": {
+   "file": "10_seconds__end.mp3",
+   "ms": 1104
+  },
+  "3 minutes,": {
+   "file": "3_minutes__mid.mp3",
+   "ms": 1056
+  },
+  "34 seconds per mile.": {
+   "file": "34_seconds_per_mile__end.mp3",
+   "ms": 1728
+  },
+  "21 seconds.": {
+   "file": "21_seconds__end.mp3",
+   "ms": 1200
+  },
+  "10 minutes,": {
+   "file": "10_minutes__mid.mp3",
+   "ms": 984
+  },
+  "35 seconds per mile.": {
+   "file": "35_seconds_per_mile__end.mp3",
+   "ms": 1704
+  },
+  "32 seconds.": {
+   "file": "32_seconds__end.mp3",
+   "ms": 1488
+  },
+  "17 minutes,": {
+   "file": "17_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "36 seconds per mile.": {
+   "file": "36_seconds_per_mile__end.mp3",
+   "ms": 1896
+  },
+  "43 seconds.": {
+   "file": "43_seconds__end.mp3",
+   "ms": 1368
+  },
+  "24 minutes,": {
+   "file": "24_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "37 seconds per mile.": {
+   "file": "37_seconds_per_mile__end.mp3",
+   "ms": 2088
+  },
+  "54 seconds.": {
+   "file": "54_seconds__end.mp3",
+   "ms": 1608
+  },
+  "31 minutes,": {
+   "file": "31_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "38 seconds per mile.": {
+   "file": "38_seconds_per_mile__end.mp3",
+   "ms": 1680
+  },
+  "6 seconds.": {
+   "file": "6_seconds__end.mp3",
+   "ms": 1104
+  },
+  "38 minutes,": {
+   "file": "38_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "39 seconds per mile.": {
+   "file": "39_seconds_per_mile__end.mp3",
+   "ms": 1704
+  },
+  "17 seconds.": {
+   "file": "17_seconds__end.mp3",
+   "ms": 1200
+  },
+  "45 minutes,": {
+   "file": "45_minutes__mid.mp3",
+   "ms": 1440
+  },
+  "40 seconds per mile.": {
+   "file": "40_seconds_per_mile__end.mp3",
+   "ms": 1752
+  },
+  "28 seconds.": {
+   "file": "28_seconds__end.mp3",
+   "ms": 1296
+  },
+  "52 minutes,": {
+   "file": "52_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "41 seconds per mile.": {
+   "file": "41_seconds_per_mile__end.mp3",
+   "ms": 2352
+  },
+  "39 seconds.": {
+   "file": "39_seconds__end.mp3",
+   "ms": 1512
+  },
+  "59 minutes,": {
+   "file": "59_minutes__mid.mp3",
+   "ms": 1248
+  },
+  "42 seconds per mile.": {
+   "file": "42_seconds_per_mile__end.mp3",
+   "ms": 1800
+  },
+  "50 seconds.": {
+   "file": "50_seconds__end.mp3",
+   "ms": 1224
+  },
+  "7 minutes,": {
+   "file": "7_minutes__mid.mp3",
+   "ms": 984
+  },
+  "43 seconds per mile.": {
+   "file": "43_seconds_per_mile__end.mp3",
+   "ms": 1968
+  },
+  "2 seconds.": {
+   "file": "2_seconds__end.mp3",
+   "ms": 1200
+  },
+  "14 minutes,": {
+   "file": "14_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "44 seconds per mile.": {
+   "file": "44_seconds_per_mile__end.mp3",
+   "ms": 1440
+  },
+  "13 seconds.": {
+   "file": "13_seconds__end.mp3",
+   "ms": 1344
+  },
+  "21 minutes,": {
+   "file": "21_minutes__mid.mp3",
+   "ms": 1152
+  },
+  "45 seconds per mile.": {
+   "file": "45_seconds_per_mile__end.mp3",
+   "ms": 2112
+  },
+  "24 seconds.": {
+   "file": "24_seconds__end.mp3",
+   "ms": 1440
+  },
+  "28 minutes,": {
+   "file": "28_minutes__mid.mp3",
+   "ms": 1224
+  },
+  "46 seconds per mile.": {
+   "file": "46_seconds_per_mile__end.mp3",
+   "ms": 2136
+  },
+  "35 seconds.": {
+   "file": "35_seconds__end.mp3",
+   "ms": 1464
+  },
+  "35 minutes,": {
+   "file": "35_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "47 seconds per mile.": {
+   "file": "47_seconds_per_mile__end.mp3",
+   "ms": 2016
+  },
+  "46 seconds.": {
+   "file": "46_seconds__end.mp3",
+   "ms": 1224
+  },
+  "42 minutes,": {
+   "file": "42_minutes__mid.mp3",
+   "ms": 1224
+  },
+  "48 seconds per mile.": {
+   "file": "48_seconds_per_mile__end.mp3",
+   "ms": 2040
+  },
+  "57 seconds.": {
+   "file": "57_seconds__end.mp3",
+   "ms": 1344
+  },
+  "49 minutes,": {
+   "file": "49_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "49 seconds per mile.": {
+   "file": "49_seconds_per_mile__end.mp3",
+   "ms": 1872
+  },
+  "9 seconds.": {
+   "file": "9_seconds__end.mp3",
+   "ms": 1056
+  },
+  "56 minutes,": {
+   "file": "56_minutes__mid.mp3",
+   "ms": 1104
+  },
+  "50 seconds per mile.": {
+   "file": "50_seconds_per_mile__end.mp3",
+   "ms": 1464
+  },
+  "20 seconds.": {
+   "file": "20_seconds__end.mp3",
+   "ms": 1176
+  },
+  "4 minutes,": {
+   "file": "4_minutes__mid.mp3",
+   "ms": 1056
+  },
+  "51 seconds per mile.": {
+   "file": "51_seconds_per_mile__end.mp3",
+   "ms": 1752
+  },
+  "31 seconds.": {
+   "file": "31_seconds__end.mp3",
+   "ms": 1440
+  },
+  "11 minutes,": {
+   "file": "11_minutes__mid.mp3",
+   "ms": 984
+  },
+  "52 seconds per mile.": {
+   "file": "52_seconds_per_mile__end.mp3",
+   "ms": 1728
+  },
+  "42 seconds.": {
+   "file": "42_seconds__end.mp3",
+   "ms": 1224
+  },
+  "18 minutes,": {
+   "file": "18_minutes__mid.mp3",
+   "ms": 1128
+  },
+  "53 seconds per mile.": {
+   "file": "53_seconds_per_mile__end.mp3",
+   "ms": 2064
+  },
+  "53 seconds.": {
+   "file": "53_seconds__end.mp3",
+   "ms": 1296
+  },
+  "25 minutes,": {
+   "file": "25_minutes__mid.mp3",
+   "ms": 1200
+  },
+  "54 seconds per mile.": {
+   "file": "54_seconds_per_mile__end.mp3",
+   "ms": 1992
+  },
+  "5 seconds.": {
+   "file": "5_seconds__end.mp3",
+   "ms": 960
+  },
+  "32 minutes,": {
+   "file": "32_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "55 seconds per mile.": {
+   "file": "55_seconds_per_mile__end.mp3",
+   "ms": 2016
+  },
+  "16 seconds.": {
+   "file": "16_seconds__end.mp3",
+   "ms": 1464
+  },
+  "39 minutes,": {
+   "file": "39_minutes__mid.mp3",
+   "ms": 1176
+  },
+  "56 seconds per mile.": {
+   "file": "56_seconds_per_mile__end.mp3",
+   "ms": 1728
+  },
+  "27 seconds.": {
+   "file": "27_seconds__end.mp3",
+   "ms": 1536
+  },
+  "46 minutes,": {
+   "file": "46_minutes__mid.mp3",
+   "ms": 1296
+  },
+  "57 seconds per mile.": {
+   "file": "57_seconds_per_mile__end.mp3",
+   "ms": 2304
+  },
+  "38 seconds.": {
+   "file": "38_seconds__end.mp3",
+   "ms": 1200
+  },
+  "53 minutes,": {
+   "file": "53_minutes__mid.mp3",
+   "ms": 1272
+  },
+  "58 seconds per mile.": {
+   "file": "58_seconds_per_mile__end.mp3",
+   "ms": 1632
+  },
+  "49 seconds.": {
+   "file": "49_seconds__end.mp3",
+   "ms": 1464
+  },
+  "1 minute,": {
+   "file": "1_minute__mid.mp3",
+   "ms": 864
+  },
+  "59 seconds per mile.": {
+   "file": "59_seconds_per_mile__end.mp3",
+   "ms": 1656
+  },
+  "1 second.": {
+   "file": "1_second__end.mp3",
+   "ms": 864
+  },
+  "average pace,": {
+   "file": "average_pace__mid.mp3",
+   "ms": 1032
+  },
+  "1 second per kilometer.": {
+   "file": "1_second_per_kilometer__end.mp3",
+   "ms": 1728
+  },
+  "2 seconds per kilometer.": {
+   "file": "2_seconds_per_kilometer__end.mp3",
+   "ms": 1680
+  },
+  "3 seconds per kilometer.": {
+   "file": "3_seconds_per_kilometer__end.mp3",
+   "ms": 1920
+  },
+  "4 seconds per kilometer.": {
+   "file": "4_seconds_per_kilometer__end.mp3",
+   "ms": 1704
+  },
+  "5 seconds per kilometer.": {
+   "file": "5_seconds_per_kilometer__end.mp3",
+   "ms": 1704
+  },
+  "6 seconds per kilometer.": {
+   "file": "6_seconds_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "7 seconds per kilometer.": {
+   "file": "7_seconds_per_kilometer__end.mp3",
+   "ms": 2472
+  },
+  "8 seconds per kilometer.": {
+   "file": "8_seconds_per_kilometer__end.mp3",
+   "ms": 1680
+  },
+  "9 seconds per kilometer.": {
+   "file": "9_seconds_per_kilometer__end.mp3",
+   "ms": 1920
+  },
+  "10 seconds per kilometer.": {
+   "file": "10_seconds_per_kilometer__end.mp3",
+   "ms": 1704
+  },
+  "11 seconds per kilometer.": {
+   "file": "11_seconds_per_kilometer__end.mp3",
+   "ms": 1656
+  },
+  "12 seconds per kilometer.": {
+   "file": "12_seconds_per_kilometer__end.mp3",
+   "ms": 1704
+  },
+  "13 seconds per kilometer.": {
+   "file": "13_seconds_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "14 seconds per kilometer.": {
+   "file": "14_seconds_per_kilometer__end.mp3",
+   "ms": 2112
+  },
+  "15 seconds per kilometer.": {
+   "file": "15_seconds_per_kilometer__end.mp3",
+   "ms": 2280
+  },
+  "16 seconds per kilometer.": {
+   "file": "16_seconds_per_kilometer__end.mp3",
+   "ms": 2136
+  },
+  "17 seconds per kilometer.": {
+   "file": "17_seconds_per_kilometer__end.mp3",
+   "ms": 2208
+  },
+  "18 seconds per kilometer.": {
+   "file": "18_seconds_per_kilometer__end.mp3",
+   "ms": 1920
+  },
+  "19 seconds per kilometer.": {
+   "file": "19_seconds_per_kilometer__end.mp3",
+   "ms": 1944
+  },
+  "20 seconds per kilometer.": {
+   "file": "20_seconds_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "21 seconds per kilometer.": {
+   "file": "21_seconds_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "22 seconds per kilometer.": {
+   "file": "22_seconds_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "23 seconds per kilometer.": {
+   "file": "23_seconds_per_kilometer__end.mp3",
+   "ms": 2208
+  },
+  "24 seconds per kilometer.": {
+   "file": "24_seconds_per_kilometer__end.mp3",
+   "ms": 2304
+  },
+  "25 seconds per kilometer.": {
+   "file": "25_seconds_per_kilometer__end.mp3",
+   "ms": 2160
+  },
+  "26 seconds per kilometer.": {
+   "file": "26_seconds_per_kilometer__end.mp3",
+   "ms": 1872
+  },
+  "27 seconds per kilometer.": {
+   "file": "27_seconds_per_kilometer__end.mp3",
+   "ms": 2256
+  },
+  "28 seconds per kilometer.": {
+   "file": "28_seconds_per_kilometer__end.mp3",
+   "ms": 2136
+  },
+  "29 seconds per kilometer.": {
+   "file": "29_seconds_per_kilometer__end.mp3",
+   "ms": 2160
+  },
+  "30 seconds per kilometer.": {
+   "file": "30_seconds_per_kilometer__end.mp3",
+   "ms": 1704
+  },
+  "31 seconds per kilometer.": {
+   "file": "31_seconds_per_kilometer__end.mp3",
+   "ms": 1560
+  },
+  "32 seconds per kilometer.": {
+   "file": "32_seconds_per_kilometer__end.mp3",
+   "ms": 2088
+  },
+  "33 seconds per kilometer.": {
+   "file": "33_seconds_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "34 seconds per kilometer.": {
+   "file": "34_seconds_per_kilometer__end.mp3",
+   "ms": 1968
+  },
+  "35 seconds per kilometer.": {
+   "file": "35_seconds_per_kilometer__end.mp3",
+   "ms": 2136
+  },
+  "36 seconds per kilometer.": {
+   "file": "36_seconds_per_kilometer__end.mp3",
+   "ms": 2232
+  },
+  "37 seconds per kilometer.": {
+   "file": "37_seconds_per_kilometer__end.mp3",
+   "ms": 2472
+  },
+  "38 seconds per kilometer.": {
+   "file": "38_seconds_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "39 seconds per kilometer.": {
+   "file": "39_seconds_per_kilometer__end.mp3",
+   "ms": 2184
+  },
+  "40 seconds per kilometer.": {
+   "file": "40_seconds_per_kilometer__end.mp3",
+   "ms": 1584
+  },
+  "41 seconds per kilometer.": {
+   "file": "41_seconds_per_kilometer__end.mp3",
+   "ms": 2040
+  },
+  "42 seconds per kilometer.": {
+   "file": "42_seconds_per_kilometer__end.mp3",
+   "ms": 2040
+  },
+  "43 seconds per kilometer.": {
+   "file": "43_seconds_per_kilometer__end.mp3",
+   "ms": 2280
+  },
+  "44 seconds per kilometer.": {
+   "file": "44_seconds_per_kilometer__end.mp3",
+   "ms": 1824
+  },
+  "45 seconds per kilometer.": {
+   "file": "45_seconds_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "46 seconds per kilometer.": {
+   "file": "46_seconds_per_kilometer__end.mp3",
+   "ms": 2112
+  },
+  "47 seconds per kilometer.": {
+   "file": "47_seconds_per_kilometer__end.mp3",
+   "ms": 2304
+  },
+  "48 seconds per kilometer.": {
+   "file": "48_seconds_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "49 seconds per kilometer.": {
+   "file": "49_seconds_per_kilometer__end.mp3",
+   "ms": 2280
+  },
+  "50 seconds per kilometer.": {
+   "file": "50_seconds_per_kilometer__end.mp3",
+   "ms": 1848
+  },
+  "51 seconds per kilometer.": {
+   "file": "51_seconds_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "52 seconds per kilometer.": {
+   "file": "52_seconds_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "53 seconds per kilometer.": {
+   "file": "53_seconds_per_kilometer__end.mp3",
+   "ms": 1920
+  },
+  "54 seconds per kilometer.": {
+   "file": "54_seconds_per_kilometer__end.mp3",
+   "ms": 1992
+  },
+  "55 seconds per kilometer.": {
+   "file": "55_seconds_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "56 seconds per kilometer.": {
+   "file": "56_seconds_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "57 seconds per kilometer.": {
+   "file": "57_seconds_per_kilometer__end.mp3",
+   "ms": 1896
+  },
+  "58 seconds per kilometer.": {
+   "file": "58_seconds_per_kilometer__end.mp3",
+   "ms": 1968
+  },
+  "59 seconds per kilometer.": {
+   "file": "59_seconds_per_kilometer__end.mp3",
+   "ms": 2040
+  },
+  "target time,": {
+   "file": "target_time__mid.mp3",
+   "ms": 936
+  },
+  "1 minute.": {
+   "file": "1_minute__end.mp3",
+   "ms": 888
+  },
+  "aim pace,": {
+   "file": "aim_pace__mid.mp3",
+   "ms": 840
+  },
+  "4 minutes per mile.": {
+   "file": "4_minutes_per_mile__end.mp3",
+   "ms": 1584
+  },
+  "2 minutes.": {
+   "file": "2_minutes__end.mp3",
+   "ms": 864
+  },
+  "5 minutes per mile.": {
+   "file": "5_minutes_per_mile__end.mp3",
+   "ms": 1752
+  },
+  "3 minutes.": {
+   "file": "3_minutes__end.mp3",
+   "ms": 936
+  },
+  "6 minutes per mile.": {
+   "file": "6_minutes_per_mile__end.mp3",
+   "ms": 1344
+  },
+  "4 minutes.": {
+   "file": "4_minutes__end.mp3",
+   "ms": 1104
+  },
+  "7 minutes per mile.": {
+   "file": "7_minutes_per_mile__end.mp3",
+   "ms": 1680
+  },
+  "5 minutes.": {
+   "file": "5_minutes__end.mp3",
+   "ms": 1152
+  },
+  "8 minutes per mile.": {
+   "file": "8_minutes_per_mile__end.mp3",
+   "ms": 1920
+  },
+  "6 minutes.": {
+   "file": "6_minutes__end.mp3",
+   "ms": 1032
+  },
+  "9 minutes per mile.": {
+   "file": "9_minutes_per_mile__end.mp3",
+   "ms": 1512
+  },
+  "7 minutes.": {
+   "file": "7_minutes__end.mp3",
+   "ms": 1008
+  },
+  "10 minutes per mile.": {
+   "file": "10_minutes_per_mile__end.mp3",
+   "ms": 1248
+  },
+  "8 minutes.": {
+   "file": "8_minutes__end.mp3",
+   "ms": 912
+  },
+  "11 minutes per mile.": {
+   "file": "11_minutes_per_mile__end.mp3",
+   "ms": 1608
+  },
+  "9 minutes.": {
+   "file": "9_minutes__end.mp3",
+   "ms": 1056
+  },
+  "12 minutes per mile.": {
+   "file": "12_minutes_per_mile__end.mp3",
+   "ms": 1464
+  },
+  "10 minutes.": {
+   "file": "10_minutes__end.mp3",
+   "ms": 864
+  },
+  "13 minutes per mile.": {
+   "file": "13_minutes_per_mile__end.mp3",
+   "ms": 1848
+  },
+  "11 minutes.": {
+   "file": "11_minutes__end.mp3",
+   "ms": 1056
+  },
+  "14 minutes per mile.": {
+   "file": "14_minutes_per_mile__end.mp3",
+   "ms": 1608
+  },
+  "12 minutes.": {
+   "file": "12_minutes__end.mp3",
+   "ms": 960
+  },
+  "15 minutes per mile.": {
+   "file": "15_minutes_per_mile__end.mp3",
+   "ms": 2088
+  },
+  "13 minutes.": {
+   "file": "13_minutes__end.mp3",
+   "ms": 1200
+  },
+  "16 minutes per mile.": {
+   "file": "16_minutes_per_mile__end.mp3",
+   "ms": 1584
+  },
+  "14 minutes.": {
+   "file": "14_minutes__end.mp3",
+   "ms": 1152
+  },
+  "17 minutes per mile.": {
+   "file": "17_minutes_per_mile__end.mp3",
+   "ms": 1656
+  },
+  "15 minutes.": {
+   "file": "15_minutes__end.mp3",
+   "ms": 1104
+  },
+  "18 minutes per mile.": {
+   "file": "18_minutes_per_mile__end.mp3",
+   "ms": 1656
+  },
+  "16 minutes.": {
+   "file": "16_minutes__end.mp3",
+   "ms": 1152
+  },
+  "19 minutes per mile.": {
+   "file": "19_minutes_per_mile__end.mp3",
+   "ms": 1824
+  },
+  "17 minutes.": {
+   "file": "17_minutes__end.mp3",
+   "ms": 1536
+  },
+  "20 minutes per mile.": {
+   "file": "20_minutes_per_mile__end.mp3",
+   "ms": 1416
+  },
+  "18 minutes.": {
+   "file": "18_minutes__end.mp3",
+   "ms": 1032
+  },
+  "21 minutes per mile.": {
+   "file": "21_minutes_per_mile__end.mp3",
+   "ms": 1776
+  },
+  "19 minutes.": {
+   "file": "19_minutes__end.mp3",
+   "ms": 1200
+  },
+  "22 minutes per mile.": {
+   "file": "22_minutes_per_mile__end.mp3",
+   "ms": 1824
+  },
+  "20 minutes.": {
+   "file": "20_minutes__end.mp3",
+   "ms": 1008
+  },
+  "23 minutes per mile.": {
+   "file": "23_minutes_per_mile__end.mp3",
+   "ms": 1776
+  },
+  "21 minutes.": {
+   "file": "21_minutes__end.mp3",
+   "ms": 1104
+  },
+  "24 minutes per mile.": {
+   "file": "24_minutes_per_mile__end.mp3",
+   "ms": 1800
+  },
+  "22 minutes.": {
+   "file": "22_minutes__end.mp3",
+   "ms": 1032
+  },
+  "25 minutes per mile.": {
+   "file": "25_minutes_per_mile__end.mp3",
+   "ms": 1728
+  },
+  "23 minutes.": {
+   "file": "23_minutes__end.mp3",
+   "ms": 1440
+  },
+  "26 minutes per mile.": {
+   "file": "26_minutes_per_mile__end.mp3",
+   "ms": 1656
+  },
+  "24 minutes.": {
+   "file": "24_minutes__end.mp3",
+   "ms": 1224
+  },
+  "27 minutes per mile.": {
+   "file": "27_minutes_per_mile__end.mp3",
+   "ms": 1824
+  },
+  "25 minutes.": {
+   "file": "25_minutes__end.mp3",
+   "ms": 1176
+  },
+  "28 minutes per mile.": {
+   "file": "28_minutes_per_mile__end.mp3",
+   "ms": 1416
+  },
+  "26 minutes.": {
+   "file": "26_minutes__end.mp3",
+   "ms": 1248
+  },
+  "29 minutes per mile.": {
+   "file": "29_minutes_per_mile__end.mp3",
+   "ms": 1848
+  },
+  "27 minutes.": {
+   "file": "27_minutes__end.mp3",
+   "ms": 1368
+  },
+  "30 minutes per mile.": {
+   "file": "30_minutes_per_mile__end.mp3",
+   "ms": 1608
+  },
+  "28 minutes.": {
+   "file": "28_minutes__end.mp3",
+   "ms": 1056
+  },
+  "3 minutes per mile.": {
+   "file": "3_minutes_per_mile__end.mp3",
+   "ms": 1440
+  },
+  "29 minutes.": {
+   "file": "29_minutes__end.mp3",
+   "ms": 1152
+  },
+  "30 minutes.": {
+   "file": "30_minutes__end.mp3",
+   "ms": 1152
+  },
+  "31 minutes.": {
+   "file": "31_minutes__end.mp3",
+   "ms": 1224
+  },
+  "32 minutes.": {
+   "file": "32_minutes__end.mp3",
+   "ms": 1368
+  },
+  "33 minutes.": {
+   "file": "33_minutes__end.mp3",
+   "ms": 1320
+  },
+  "34 minutes.": {
+   "file": "34_minutes__end.mp3",
+   "ms": 1152
+  },
+  "35 minutes.": {
+   "file": "35_minutes__end.mp3",
+   "ms": 1296
+  },
+  "36 minutes.": {
+   "file": "36_minutes__end.mp3",
+   "ms": 1416
+  },
+  "37 minutes.": {
+   "file": "37_minutes__end.mp3",
+   "ms": 1248
+  },
+  "38 minutes.": {
+   "file": "38_minutes__end.mp3",
+   "ms": 1152
+  },
+  "39 minutes.": {
+   "file": "39_minutes__end.mp3",
+   "ms": 1320
+  },
+  "40 minutes.": {
+   "file": "40_minutes__end.mp3",
+   "ms": 1056
+  },
+  "41 minutes.": {
+   "file": "41_minutes__end.mp3",
+   "ms": 1464
+  },
+  "42 minutes.": {
+   "file": "42_minutes__end.mp3",
+   "ms": 1176
+  },
+  "43 minutes.": {
+   "file": "43_minutes__end.mp3",
+   "ms": 1536
+  },
+  "44 minutes.": {
+   "file": "44_minutes__end.mp3",
+   "ms": 1464
+  },
+  "45 minutes.": {
+   "file": "45_minutes__end.mp3",
+   "ms": 1224
+  },
+  "46 minutes.": {
+   "file": "46_minutes__end.mp3",
+   "ms": 1704
+  },
+  "47 minutes.": {
+   "file": "47_minutes__end.mp3",
+   "ms": 1392
+  },
+  "48 minutes.": {
+   "file": "48_minutes__end.mp3",
+   "ms": 1224
+  },
+  "49 minutes.": {
+   "file": "49_minutes__end.mp3",
+   "ms": 1128
+  },
+  "50 minutes.": {
+   "file": "50_minutes__end.mp3",
+   "ms": 936
+  },
+  "51 minutes.": {
+   "file": "51_minutes__end.mp3",
+   "ms": 1296
+  },
+  "52 minutes.": {
+   "file": "52_minutes__end.mp3",
+   "ms": 1200
+  },
+  "53 minutes.": {
+   "file": "53_minutes__end.mp3",
+   "ms": 1056
+  },
+  "54 minutes.": {
+   "file": "54_minutes__end.mp3",
+   "ms": 1224
+  },
+  "55 minutes.": {
+   "file": "55_minutes__end.mp3",
+   "ms": 1176
+  },
+  "56 minutes.": {
+   "file": "56_minutes__end.mp3",
+   "ms": 1320
+  },
+  "57 minutes.": {
+   "file": "57_minutes__end.mp3",
+   "ms": 1464
+  },
+  "58 minutes.": {
+   "file": "58_minutes__end.mp3",
+   "ms": 1272
+  },
+  "59 minutes.": {
+   "file": "59_minutes__end.mp3",
+   "ms": 1368
+  },
+  "elite time,": {
+   "file": "elite_time__mid.mp3",
+   "ms": 912
+  },
+  "1 hour,": {
+   "file": "1_hour__mid.mp3",
+   "ms": 744
+  },
+  "2 minutes per kilometer.": {
+   "file": "2_minutes_per_kilometer__end.mp3",
+   "ms": 1704
+  },
+  "2 hours,": {
+   "file": "2_hours__mid.mp3",
+   "ms": 888
+  },
+  "3 minutes per kilometer.": {
+   "file": "3_minutes_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "3 hours,": {
+   "file": "3_hours__mid.mp3",
+   "ms": 936
+  },
+  "4 minutes per kilometer.": {
+   "file": "4_minutes_per_kilometer__end.mp3",
+   "ms": 1944
+  },
+  "4 hours,": {
+   "file": "4_hours__mid.mp3",
+   "ms": 1032
+  },
+  "5 minutes per kilometer.": {
+   "file": "5_minutes_per_kilometer__end.mp3",
+   "ms": 1896
+  },
+  "5 hours,": {
+   "file": "5_hours__mid.mp3",
+   "ms": 1104
+  },
+  "6 minutes per kilometer.": {
+   "file": "6_minutes_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "6 hours,": {
+   "file": "6_hours__mid.mp3",
+   "ms": 984
+  },
+  "7 minutes per kilometer.": {
+   "file": "7_minutes_per_kilometer__end.mp3",
+   "ms": 1752
+  },
+  "7 hours,": {
+   "file": "7_hours__mid.mp3",
+   "ms": 1008
+  },
+  "8 minutes per kilometer.": {
+   "file": "8_minutes_per_kilometer__end.mp3",
+   "ms": 1992
+  },
+  "8 hours,": {
+   "file": "8_hours__mid.mp3",
+   "ms": 912
+  },
+  "9 minutes per kilometer.": {
+   "file": "9_minutes_per_kilometer__end.mp3",
+   "ms": 1680
+  },
+  "9 hours,": {
+   "file": "9_hours__mid.mp3",
+   "ms": 984
+  },
+  "10 minutes per kilometer.": {
+   "file": "10_minutes_per_kilometer__end.mp3",
+   "ms": 1656
+  },
+  "10 hours,": {
+   "file": "10_hours__mid.mp3",
+   "ms": 936
+  },
+  "11 minutes per kilometer.": {
+   "file": "11_minutes_per_kilometer__end.mp3",
+   "ms": 1872
+  },
+  "11 hours,": {
+   "file": "11_hours__mid.mp3",
+   "ms": 936
+  },
+  "12 minutes per kilometer.": {
+   "file": "12_minutes_per_kilometer__end.mp3",
+   "ms": 1800
+  },
+  "12 hours,": {
+   "file": "12_hours__mid.mp3",
+   "ms": 960
+  },
+  "13 minutes per kilometer.": {
+   "file": "13_minutes_per_kilometer__end.mp3",
+   "ms": 2136
+  },
+  "13 hours,": {
+   "file": "13_hours__mid.mp3",
+   "ms": 1296
+  },
+  "14 minutes per kilometer.": {
+   "file": "14_minutes_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "14 hours,": {
+   "file": "14_hours__mid.mp3",
+   "ms": 1224
+  },
+  "15 minutes per kilometer.": {
+   "file": "15_minutes_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "15 hours,": {
+   "file": "15_hours__mid.mp3",
+   "ms": 1080
+  },
+  "16 minutes per kilometer.": {
+   "file": "16_minutes_per_kilometer__end.mp3",
+   "ms": 1752
+  },
+  "17 minutes per kilometer.": {
+   "file": "17_minutes_per_kilometer__end.mp3",
+   "ms": 1896
+  },
+  "18 minutes per kilometer.": {
+   "file": "18_minutes_per_kilometer__end.mp3",
+   "ms": 1584
+  },
+  "19 minutes per kilometer.": {
+   "file": "19_minutes_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "20 minutes per kilometer.": {
+   "file": "20_minutes_per_kilometer__end.mp3",
+   "ms": 1680
+  },
+  "your time,": {
+   "file": "your_time__mid.mp3",
+   "ms": 864
+  },
+  "1 hour.": {
+   "file": "1_hour__end.mp3",
+   "ms": 912
+  },
+  "2 hours.": {
+   "file": "2_hours__end.mp3",
+   "ms": 840
+  },
+  "3 hours.": {
+   "file": "3_hours__end.mp3",
+   "ms": 1056
+  },
+  "4 hours.": {
+   "file": "4_hours__end.mp3",
+   "ms": 912
+  },
+  "5 hours.": {
+   "file": "5_hours__end.mp3",
+   "ms": 1080
+  },
+  "6 hours.": {
+   "file": "6_hours__end.mp3",
+   "ms": 984
+  },
+  "7 hours.": {
+   "file": "7_hours__end.mp3",
+   "ms": 888
+  },
+  "8 hours.": {
+   "file": "8_hours__end.mp3",
+   "ms": 912
+  },
+  "9 hours.": {
+   "file": "9_hours__end.mp3",
+   "ms": 1008
+  },
+  "10 hours.": {
+   "file": "10_hours__end.mp3",
+   "ms": 816
+  },
+  "11 hours.": {
+   "file": "11_hours__end.mp3",
+   "ms": 1392
+  },
+  "12 hours.": {
+   "file": "12_hours__end.mp3",
+   "ms": 984
+  },
+  "13 hours.": {
+   "file": "13_hours__end.mp3",
+   "ms": 1272
+  },
+  "14 hours.": {
+   "file": "14_hours__end.mp3",
+   "ms": 1296
+  },
+  "15 hours.": {
+   "file": "15_hours__end.mp3",
+   "ms": 1080
+  },
+  "gps run,": {
+   "file": "gps_run__mid.mp3",
+   "ms": 1152
+  },
+  "one mile.": {
+   "file": "one_mile__end.mp3",
+   "ms": 864
+  },
+  "2 miles.": {
+   "file": "2_miles__end.mp3",
+   "ms": 984
+  },
+  "3 miles.": {
+   "file": "3_miles__end.mp3",
+   "ms": 1056
+  },
+  "4 miles.": {
+   "file": "4_miles__end.mp3",
+   "ms": 1032
+  },
+  "5 miles.": {
+   "file": "5_miles__end.mp3",
+   "ms": 1104
+  },
+  "6 miles.": {
+   "file": "6_miles__end.mp3",
+   "ms": 816
+  },
+  "7 miles.": {
+   "file": "7_miles__end.mp3",
+   "ms": 1176
+  },
+  "8 miles.": {
+   "file": "8_miles__end.mp3",
+   "ms": 816
+  },
+  "9 miles.": {
+   "file": "9_miles__end.mp3",
+   "ms": 1032
+  },
+  "10 miles.": {
+   "file": "10_miles__end.mp3",
+   "ms": 912
+  },
+  "11 miles.": {
+   "file": "11_miles__end.mp3",
+   "ms": 1200
+  },
+  "12 miles.": {
+   "file": "12_miles__end.mp3",
+   "ms": 1392
+  },
+  "13 miles.": {
+   "file": "13_miles__end.mp3",
+   "ms": 1104
+  },
+  "14 miles.": {
+   "file": "14_miles__end.mp3",
+   "ms": 1296
+  },
+  "15 miles.": {
+   "file": "15_miles__end.mp3",
+   "ms": 1224
+  },
+  "16 miles.": {
+   "file": "16_miles__end.mp3",
+   "ms": 1176
+  },
+  "17 miles.": {
+   "file": "17_miles__end.mp3",
+   "ms": 1224
+  },
+  "18 miles.": {
+   "file": "18_miles__end.mp3",
+   "ms": 1056
+  },
+  "19 miles.": {
+   "file": "19_miles__end.mp3",
+   "ms": 1176
+  },
+  "20 miles.": {
+   "file": "20_miles__end.mp3",
+   "ms": 1104
+  },
+  "21 miles.": {
+   "file": "21_miles__end.mp3",
+   "ms": 1416
+  },
+  "22 miles.": {
+   "file": "22_miles__end.mp3",
+   "ms": 1248
+  },
+  "23 miles.": {
+   "file": "23_miles__end.mp3",
+   "ms": 1224
+  },
+  "24 miles.": {
+   "file": "24_miles__end.mp3",
+   "ms": 1584
+  },
+  "25 miles.": {
+   "file": "25_miles__end.mp3",
+   "ms": 1464
+  },
+  "26 miles.": {
+   "file": "26_miles__end.mp3",
+   "ms": 1320
+  },
+  "27 miles.": {
+   "file": "27_miles__end.mp3",
+   "ms": 1296
+  },
+  "28 miles.": {
+   "file": "28_miles__end.mp3",
+   "ms": 1344
+  },
+  "29 miles.": {
+   "file": "29_miles__end.mp3",
+   "ms": 1464
+  },
+  "30 miles.": {
+   "file": "30_miles__end.mp3",
+   "ms": 984
+  },
+  "half a mile.": {
+   "file": "half_a_mile__end.mp3",
+   "ms": 960
+  },
+  "1 and a half miles.": {
+   "file": "1_and_a_half_miles__end.mp3",
+   "ms": 1584
+  },
+  "2 and a half miles.": {
+   "file": "2_and_a_half_miles__end.mp3",
+   "ms": 1440
+  },
+  "3 and a half miles.": {
+   "file": "3_and_a_half_miles__end.mp3",
+   "ms": 912
+  },
+  "4 and a half miles.": {
+   "file": "4_and_a_half_miles__end.mp3",
+   "ms": 1536
+  },
+  "5 and a half miles.": {
+   "file": "5_and_a_half_miles__end.mp3",
+   "ms": 1464
+  },
+  "6 and a half miles.": {
+   "file": "6_and_a_half_miles__end.mp3",
+   "ms": 1704
+  },
+  "7 and a half miles.": {
+   "file": "7_and_a_half_miles__end.mp3",
+   "ms": 1440
+  },
+  "8 and a half miles.": {
+   "file": "8_and_a_half_miles__end.mp3",
+   "ms": 1416
+  },
+  "9 and a half miles.": {
+   "file": "9_and_a_half_miles__end.mp3",
+   "ms": 1608
+  },
+  "10 and a half miles.": {
+   "file": "10_and_a_half_miles__end.mp3",
+   "ms": 1344
+  },
+  "11 and a half miles.": {
+   "file": "11_and_a_half_miles__end.mp3",
+   "ms": 1632
+  },
+  "12 and a half miles.": {
+   "file": "12_and_a_half_miles__end.mp3",
+   "ms": 1416
+  },
+  "13 and a half miles.": {
+   "file": "13_and_a_half_miles__end.mp3",
+   "ms": 1728
+  },
+  "14 and a half miles.": {
+   "file": "14_and_a_half_miles__end.mp3",
+   "ms": 1896
+  },
+  "15 and a half miles.": {
+   "file": "15_and_a_half_miles__end.mp3",
+   "ms": 1896
+  },
+  "3 point 1 miles.": {
+   "file": "3_point_1_miles__end.mp3",
+   "ms": 1392
+  },
+  "6 point 2 miles.": {
+   "file": "6_point_2_miles__end.mp3",
+   "ms": 1632
+  },
+  "13 point 1 miles.": {
+   "file": "13_point_1_miles__end.mp3",
+   "ms": 1824
+  },
+  "26 point 2 miles.": {
+   "file": "26_point_2_miles__end.mp3",
+   "ms": 1656
+  },
+  "a quarter mile.": {
+   "file": "a_quarter_mile__end.mp3",
+   "ms": 1104
+  },
+  "a tenth of a mile.": {
+   "file": "a_tenth_of_a_mile__end.mp3",
+   "ms": 1152
+  },
+  "one kilometer.": {
+   "file": "one_kilometer__end.mp3",
+   "ms": 1056
+  },
+  "2 kilometers.": {
+   "file": "2_kilometers__end.mp3",
+   "ms": 960
+  },
+  "3 kilometers.": {
+   "file": "3_kilometers__end.mp3",
+   "ms": 1272
+  },
+  "4 kilometers.": {
+   "file": "4_kilometers__end.mp3",
+   "ms": 1248
+  },
+  "5 kilometers.": {
+   "file": "5_kilometers__end.mp3",
+   "ms": 1056
+  },
+  "6 kilometers.": {
+   "file": "6_kilometers__end.mp3",
+   "ms": 1056
+  },
+  "7 kilometers.": {
+   "file": "7_kilometers__end.mp3",
+   "ms": 1152
+  },
+  "8 kilometers.": {
+   "file": "8_kilometers__end.mp3",
+   "ms": 936
+  },
+  "9 kilometers.": {
+   "file": "9_kilometers__end.mp3",
+   "ms": 1176
+  },
+  "10 kilometers.": {
+   "file": "10_kilometers__end.mp3",
+   "ms": 864
+  },
+  "11 kilometers.": {
+   "file": "11_kilometers__end.mp3",
+   "ms": 1176
+  },
+  "12 kilometers.": {
+   "file": "12_kilometers__end.mp3",
+   "ms": 1104
+  },
+  "13 kilometers.": {
+   "file": "13_kilometers__end.mp3",
+   "ms": 1464
+  },
+  "14 kilometers.": {
+   "file": "14_kilometers__end.mp3",
+   "ms": 1248
+  },
+  "15 kilometers.": {
+   "file": "15_kilometers__end.mp3",
+   "ms": 1512
+  },
+  "16 kilometers.": {
+   "file": "16_kilometers__end.mp3",
+   "ms": 1392
+  },
+  "17 kilometers.": {
+   "file": "17_kilometers__end.mp3",
+   "ms": 1392
+  },
+  "18 kilometers.": {
+   "file": "18_kilometers__end.mp3",
+   "ms": 1248
+  },
+  "19 kilometers.": {
+   "file": "19_kilometers__end.mp3",
+   "ms": 1512
+  },
+  "20 kilometers.": {
+   "file": "20_kilometers__end.mp3",
+   "ms": 1248
+  },
+  "21 kilometers.": {
+   "file": "21_kilometers__end.mp3",
+   "ms": 1272
+  },
+  "22 kilometers.": {
+   "file": "22_kilometers__end.mp3",
+   "ms": 1176
+  },
+  "23 kilometers.": {
+   "file": "23_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "24 kilometers.": {
+   "file": "24_kilometers__end.mp3",
+   "ms": 1344
+  },
+  "25 kilometers.": {
+   "file": "25_kilometers__end.mp3",
+   "ms": 1656
+  },
+  "26 kilometers.": {
+   "file": "26_kilometers__end.mp3",
+   "ms": 1536
+  },
+  "27 kilometers.": {
+   "file": "27_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "28 kilometers.": {
+   "file": "28_kilometers__end.mp3",
+   "ms": 1560
+  },
+  "29 kilometers.": {
+   "file": "29_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "30 kilometers.": {
+   "file": "30_kilometers__end.mp3",
+   "ms": 1200
+  },
+  "31 kilometers.": {
+   "file": "31_kilometers__end.mp3",
+   "ms": 1440
+  },
+  "32 kilometers.": {
+   "file": "32_kilometers__end.mp3",
+   "ms": 1416
+  },
+  "33 kilometers.": {
+   "file": "33_kilometers__end.mp3",
+   "ms": 1536
+  },
+  "34 kilometers.": {
+   "file": "34_kilometers__end.mp3",
+   "ms": 1560
+  },
+  "35 kilometers.": {
+   "file": "35_kilometers__end.mp3",
+   "ms": 1464
+  },
+  "36 kilometers.": {
+   "file": "36_kilometers__end.mp3",
+   "ms": 1416
+  },
+  "37 kilometers.": {
+   "file": "37_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "38 kilometers.": {
+   "file": "38_kilometers__end.mp3",
+   "ms": 1656
+  },
+  "39 kilometers.": {
+   "file": "39_kilometers__end.mp3",
+   "ms": 1464
+  },
+  "40 kilometers.": {
+   "file": "40_kilometers__end.mp3",
+   "ms": 1152
+  },
+  "41 kilometers.": {
+   "file": "41_kilometers__end.mp3",
+   "ms": 1344
+  },
+  "42 kilometers.": {
+   "file": "42_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "43 kilometers.": {
+   "file": "43_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "44 kilometers.": {
+   "file": "44_kilometers__end.mp3",
+   "ms": 1632
+  },
+  "45 kilometers.": {
+   "file": "45_kilometers__end.mp3",
+   "ms": 1512
+  },
+  "46 kilometers.": {
+   "file": "46_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "47 kilometers.": {
+   "file": "47_kilometers__end.mp3",
+   "ms": 1416
+  },
+  "48 kilometers.": {
+   "file": "48_kilometers__end.mp3",
+   "ms": 1536
+  },
+  "49 kilometers.": {
+   "file": "49_kilometers__end.mp3",
+   "ms": 1368
+  },
+  "50 kilometers.": {
+   "file": "50_kilometers__end.mp3",
+   "ms": 936
+  },
+  "half a kilometer.": {
+   "file": "half_a_kilometer__end.mp3",
+   "ms": 1176
+  },
+  "1 and a half kilometers.": {
+   "file": "1_and_a_half_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "2 and a half kilometers.": {
+   "file": "2_and_a_half_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "3 and a half kilometers.": {
+   "file": "3_and_a_half_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "4 and a half kilometers.": {
+   "file": "4_and_a_half_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "6 and a half kilometers.": {
+   "file": "6_and_a_half_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "7 and a half kilometers.": {
+   "file": "7_and_a_half_kilometers__end.mp3",
+   "ms": 2040
+  },
+  "8 and a half kilometers.": {
+   "file": "8_and_a_half_kilometers__end.mp3",
+   "ms": 1608
+  },
+  "9 and a half kilometers.": {
+   "file": "9_and_a_half_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "10 and a half kilometers.": {
+   "file": "10_and_a_half_kilometers__end.mp3",
+   "ms": 1392
+  },
+  "11 and a half kilometers.": {
+   "file": "11_and_a_half_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "12 and a half kilometers.": {
+   "file": "12_and_a_half_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "13 and a half kilometers.": {
+   "file": "13_and_a_half_kilometers__end.mp3",
+   "ms": 2016
+  },
+  "14 and a half kilometers.": {
+   "file": "14_and_a_half_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "15 and a half kilometers.": {
+   "file": "15_and_a_half_kilometers__end.mp3",
+   "ms": 2016
+  },
+  "16 and a half kilometers.": {
+   "file": "16_and_a_half_kilometers__end.mp3",
+   "ms": 1968
+  },
+  "17 and a half kilometers.": {
+   "file": "17_and_a_half_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "18 and a half kilometers.": {
+   "file": "18_and_a_half_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "19 and a half kilometers.": {
+   "file": "19_and_a_half_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "20 and a half kilometers.": {
+   "file": "20_and_a_half_kilometers__end.mp3",
+   "ms": 1632
+  },
+  "21 and a half kilometers.": {
+   "file": "21_and_a_half_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "22 and a half kilometers.": {
+   "file": "22_and_a_half_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "23 and a half kilometers.": {
+   "file": "23_and_a_half_kilometers__end.mp3",
+   "ms": 1872
+  },
+  "24 and a half kilometers.": {
+   "file": "24_and_a_half_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "25 and a half kilometers.": {
+   "file": "25_and_a_half_kilometers__end.mp3",
+   "ms": 1728
+  },
+  "21 point 1 kilometers.": {
+   "file": "21_point_1_kilometers__end.mp3",
+   "ms": 2184
+  },
+  "42 point 2 kilometers.": {
+   "file": "42_point_2_kilometers__end.mp3",
+   "ms": 2136
+  },
+  "a quarter kilometer.": {
+   "file": "a_quarter_kilometer__end.mp3",
+   "ms": 1224
+  },
+  "a tenth of a kilometer.": {
+   "file": "a_tenth_of_a_kilometer__end.mp3",
+   "ms": 1344
+  },
+  "distance so far,": {
+   "file": "distance_so_far__mid.mp3",
+   "ms": 1176
+  },
+  "0 point 3 miles.": {
+   "file": "0_point_3_miles__end.mp3",
+   "ms": 1944
+  },
+  "0 point 4 miles.": {
+   "file": "0_point_4_miles__end.mp3",
+   "ms": 1824
+  },
+  "0 point 6 miles.": {
+   "file": "0_point_6_miles__end.mp3",
+   "ms": 1656
+  },
+  "0 point 7 miles.": {
+   "file": "0_point_7_miles__end.mp3",
+   "ms": 1872
+  },
+  "0 point 8 miles.": {
+   "file": "0_point_8_miles__end.mp3",
+   "ms": 1608
+  },
+  "0 point 9 miles.": {
+   "file": "0_point_9_miles__end.mp3",
+   "ms": 1752
+  },
+  "1 point 2 miles.": {
+   "file": "1_point_2_miles__end.mp3",
+   "ms": 1632
+  },
+  "1 point 3 miles.": {
+   "file": "1_point_3_miles__end.mp3",
+   "ms": 1536
+  },
+  "1 point 4 miles.": {
+   "file": "1_point_4_miles__end.mp3",
+   "ms": 1632
+  },
+  "1 point 6 miles.": {
+   "file": "1_point_6_miles__end.mp3",
+   "ms": 1632
+  },
+  "1 point 7 miles.": {
+   "file": "1_point_7_miles__end.mp3",
+   "ms": 2112
+  },
+  "1 point 8 miles.": {
+   "file": "1_point_8_miles__end.mp3",
+   "ms": 1536
+  },
+  "1 point 9 miles.": {
+   "file": "1_point_9_miles__end.mp3",
+   "ms": 1920
+  },
+  "2 point 1 miles.": {
+   "file": "2_point_1_miles__end.mp3",
+   "ms": 1416
+  },
+  "2 point 2 miles.": {
+   "file": "2_point_2_miles__end.mp3",
+   "ms": 1656
+  },
+  "2 point 3 miles.": {
+   "file": "2_point_3_miles__end.mp3",
+   "ms": 1416
+  },
+  "2 point 4 miles.": {
+   "file": "2_point_4_miles__end.mp3",
+   "ms": 1560
+  },
+  "2 point 6 miles.": {
+   "file": "2_point_6_miles__end.mp3",
+   "ms": 1440
+  },
+  "2 point 7 miles.": {
+   "file": "2_point_7_miles__end.mp3",
+   "ms": 1560
+  },
+  "2 point 8 miles.": {
+   "file": "2_point_8_miles__end.mp3",
+   "ms": 1416
+  },
+  "2 point 9 miles.": {
+   "file": "2_point_9_miles__end.mp3",
+   "ms": 1608
+  },
+  "3 point 2 miles.": {
+   "file": "3_point_2_miles__end.mp3",
+   "ms": 1248
+  },
+  "3 point 3 miles.": {
+   "file": "3_point_3_miles__end.mp3",
+   "ms": 1632
+  },
+  "3 point 4 miles.": {
+   "file": "3_point_4_miles__end.mp3",
+   "ms": 1464
+  },
+  "3 point 6 miles.": {
+   "file": "3_point_6_miles__end.mp3",
+   "ms": 1560
+  },
+  "3 point 7 miles.": {
+   "file": "3_point_7_miles__end.mp3",
+   "ms": 1704
+  },
+  "3 point 8 miles.": {
+   "file": "3_point_8_miles__end.mp3",
+   "ms": 1584
+  },
+  "3 point 9 miles.": {
+   "file": "3_point_9_miles__end.mp3",
+   "ms": 1608
+  },
+  "4 point 1 miles.": {
+   "file": "4_point_1_miles__end.mp3",
+   "ms": 1368
+  },
+  "4 point 2 miles.": {
+   "file": "4_point_2_miles__end.mp3",
+   "ms": 1776
+  },
+  "4 point 3 miles.": {
+   "file": "4_point_3_miles__end.mp3",
+   "ms": 1704
+  },
+  "4 point 4 miles.": {
+   "file": "4_point_4_miles__end.mp3",
+   "ms": 1536
+  },
+  "4 point 7 miles.": {
+   "file": "4_point_7_miles__end.mp3",
+   "ms": 1488
+  },
+  "4 point 8 miles.": {
+   "file": "4_point_8_miles__end.mp3",
+   "ms": 1488
+  },
+  "4 point 9 miles.": {
+   "file": "4_point_9_miles__end.mp3",
+   "ms": 1608
+  },
+  "5 point 1 miles.": {
+   "file": "5_point_1_miles__end.mp3",
+   "ms": 1680
+  },
+  "5 point 2 miles.": {
+   "file": "5_point_2_miles__end.mp3",
+   "ms": 1632
+  },
+  "5 point 3 miles.": {
+   "file": "5_point_3_miles__end.mp3",
+   "ms": 1632
+  },
+  "5 point 4 miles.": {
+   "file": "5_point_4_miles__end.mp3",
+   "ms": 1632
+  },
+  "5 point 6 miles.": {
+   "file": "5_point_6_miles__end.mp3",
+   "ms": 1584
+  },
+  "5 point 7 miles.": {
+   "file": "5_point_7_miles__end.mp3",
+   "ms": 1728
+  },
+  "5 point 8 miles.": {
+   "file": "5_point_8_miles__end.mp3",
+   "ms": 1776
+  },
+  "6 point 1 miles.": {
+   "file": "6_point_1_miles__end.mp3",
+   "ms": 1416
+  },
+  "6 point 3 miles.": {
+   "file": "6_point_3_miles__end.mp3",
+   "ms": 1344
+  },
+  "6 point 4 miles.": {
+   "file": "6_point_4_miles__end.mp3",
+   "ms": 1728
+  },
+  "6 point 6 miles.": {
+   "file": "6_point_6_miles__end.mp3",
+   "ms": 1392
+  },
+  "6 point 7 miles.": {
+   "file": "6_point_7_miles__end.mp3",
+   "ms": 1752
+  },
+  "6 point 8 miles.": {
+   "file": "6_point_8_miles__end.mp3",
+   "ms": 1656
+  },
+  "6 point 9 miles.": {
+   "file": "6_point_9_miles__end.mp3",
+   "ms": 1512
+  },
+  "7 point 1 miles.": {
+   "file": "7_point_1_miles__end.mp3",
+   "ms": 1560
+  },
+  "7 point 2 miles.": {
+   "file": "7_point_2_miles__end.mp3",
+   "ms": 1848
+  },
+  "7 point 3 miles.": {
+   "file": "7_point_3_miles__end.mp3",
+   "ms": 1872
+  },
+  "7 point 4 miles.": {
+   "file": "7_point_4_miles__end.mp3",
+   "ms": 1680
+  },
+  "7 point 6 miles.": {
+   "file": "7_point_6_miles__end.mp3",
+   "ms": 2040
+  },
+  "7 point 7 miles.": {
+   "file": "7_point_7_miles__end.mp3",
+   "ms": 1728
+  },
+  "7 point 8 miles.": {
+   "file": "7_point_8_miles__end.mp3",
+   "ms": 1512
+  },
+  "7 point 9 miles.": {
+   "file": "7_point_9_miles__end.mp3",
+   "ms": 1608
+  },
+  "8 point 2 miles.": {
+   "file": "8_point_2_miles__end.mp3",
+   "ms": 1584
+  },
+  "8 point 3 miles.": {
+   "file": "8_point_3_miles__end.mp3",
+   "ms": 1800
+  },
+  "8 point 4 miles.": {
+   "file": "8_point_4_miles__end.mp3",
+   "ms": 1704
+  },
+  "8 point 6 miles.": {
+   "file": "8_point_6_miles__end.mp3",
+   "ms": 1704
+  },
+  "8 point 7 miles.": {
+   "file": "8_point_7_miles__end.mp3",
+   "ms": 1392
+  },
+  "8 point 8 miles.": {
+   "file": "8_point_8_miles__end.mp3",
+   "ms": 1224
+  },
+  "8 point 9 miles.": {
+   "file": "8_point_9_miles__end.mp3",
+   "ms": 1536
+  },
+  "9 point 1 miles.": {
+   "file": "9_point_1_miles__end.mp3",
+   "ms": 1656
+  },
+  "9 point 2 miles.": {
+   "file": "9_point_2_miles__end.mp3",
+   "ms": 1440
+  },
+  "9 point 3 miles.": {
+   "file": "9_point_3_miles__end.mp3",
+   "ms": 1584
+  },
+  "9 point 4 miles.": {
+   "file": "9_point_4_miles__end.mp3",
+   "ms": 1632
+  },
+  "9 point 7 miles.": {
+   "file": "9_point_7_miles__end.mp3",
+   "ms": 1824
+  },
+  "9 point 8 miles.": {
+   "file": "9_point_8_miles__end.mp3",
+   "ms": 1632
+  },
+  "9 point 9 miles.": {
+   "file": "9_point_9_miles__end.mp3",
+   "ms": 1776
+  },
+  "0 point 2 kilometers.": {
+   "file": "0_point_2_kilometers__end.mp3",
+   "ms": 2016
+  },
+  "0 point 3 kilometers.": {
+   "file": "0_point_3_kilometers__end.mp3",
+   "ms": 1728
+  },
+  "0 point 4 kilometers.": {
+   "file": "0_point_4_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "0 point 6 kilometers.": {
+   "file": "0_point_6_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "0 point 7 kilometers.": {
+   "file": "0_point_7_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "0 point 8 kilometers.": {
+   "file": "0_point_8_kilometers__end.mp3",
+   "ms": 1968
+  },
+  "0 point 9 kilometers.": {
+   "file": "0_point_9_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "1 point 1 kilometers.": {
+   "file": "1_point_1_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "1 point 2 kilometers.": {
+   "file": "1_point_2_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "1 point 3 kilometers.": {
+   "file": "1_point_3_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "1 point 4 kilometers.": {
+   "file": "1_point_4_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "1 point 6 kilometers.": {
+   "file": "1_point_6_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "1 point 7 kilometers.": {
+   "file": "1_point_7_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "1 point 8 kilometers.": {
+   "file": "1_point_8_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "1 point 9 kilometers.": {
+   "file": "1_point_9_kilometers__end.mp3",
+   "ms": 1728
+  },
+  "10 point 1 kilometers.": {
+   "file": "10_point_1_kilometers__end.mp3",
+   "ms": 1368
+  },
+  "10 point 2 kilometers.": {
+   "file": "10_point_2_kilometers__end.mp3",
+   "ms": 1656
+  },
+  "10 point 3 kilometers.": {
+   "file": "10_point_3_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "10 point 4 kilometers.": {
+   "file": "10_point_4_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "10 point 6 kilometers.": {
+   "file": "10_point_6_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "10 point 7 kilometers.": {
+   "file": "10_point_7_kilometers__end.mp3",
+   "ms": 1632
+  },
+  "10 point 8 kilometers.": {
+   "file": "10_point_8_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "10 point 9 kilometers.": {
+   "file": "10_point_9_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "11 point 1 kilometers.": {
+   "file": "11_point_1_kilometers__end.mp3",
+   "ms": 1944
+  },
+  "11 point 2 kilometers.": {
+   "file": "11_point_2_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "11 point 3 kilometers.": {
+   "file": "11_point_3_kilometers__end.mp3",
+   "ms": 1968
+  },
+  "11 point 4 kilometers.": {
+   "file": "11_point_4_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "11 point 6 kilometers.": {
+   "file": "11_point_6_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "11 point 7 kilometers.": {
+   "file": "11_point_7_kilometers__end.mp3",
+   "ms": 1968
+  },
+  "11 point 8 kilometers.": {
+   "file": "11_point_8_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "11 point 9 kilometers.": {
+   "file": "11_point_9_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "12 point 1 kilometers.": {
+   "file": "12_point_1_kilometers__end.mp3",
+   "ms": 1920
+  },
+  "12 point 2 kilometers.": {
+   "file": "12_point_2_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "12 point 3 kilometers.": {
+   "file": "12_point_3_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "12 point 4 kilometers.": {
+   "file": "12_point_4_kilometers__end.mp3",
+   "ms": 1512
+  },
+  "12 point 6 kilometers.": {
+   "file": "12_point_6_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "12 point 7 kilometers.": {
+   "file": "12_point_7_kilometers__end.mp3",
+   "ms": 2088
+  },
+  "12 point 8 kilometers.": {
+   "file": "12_point_8_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "12 point 9 kilometers.": {
+   "file": "12_point_9_kilometers__end.mp3",
+   "ms": 1872
+  },
+  "13 point 1 kilometers.": {
+   "file": "13_point_1_kilometers__end.mp3",
+   "ms": 2160
+  },
+  "13 point 2 kilometers.": {
+   "file": "13_point_2_kilometers__end.mp3",
+   "ms": 2112
+  },
+  "13 point 3 kilometers.": {
+   "file": "13_point_3_kilometers__end.mp3",
+   "ms": 1920
+  },
+  "13 point 4 kilometers.": {
+   "file": "13_point_4_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "13 point 6 kilometers.": {
+   "file": "13_point_6_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "13 point 7 kilometers.": {
+   "file": "13_point_7_kilometers__end.mp3",
+   "ms": 2160
+  },
+  "13 point 8 kilometers.": {
+   "file": "13_point_8_kilometers__end.mp3",
+   "ms": 2040
+  },
+  "13 point 9 kilometers.": {
+   "file": "13_point_9_kilometers__end.mp3",
+   "ms": 2280
+  },
+  "14 point 1 kilometers.": {
+   "file": "14_point_1_kilometers__end.mp3",
+   "ms": 2424
+  },
+  "14 point 2 kilometers.": {
+   "file": "14_point_2_kilometers__end.mp3",
+   "ms": 2016
+  },
+  "14 point 3 kilometers.": {
+   "file": "14_point_3_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "14 point 4 kilometers.": {
+   "file": "14_point_4_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "14 point 6 kilometers.": {
+   "file": "14_point_6_kilometers__end.mp3",
+   "ms": 1944
+  },
+  "14 point 7 kilometers.": {
+   "file": "14_point_7_kilometers__end.mp3",
+   "ms": 1992
+  },
+  "14 point 8 kilometers.": {
+   "file": "14_point_8_kilometers__end.mp3",
+   "ms": 1992
+  },
+  "14 point 9 kilometers.": {
+   "file": "14_point_9_kilometers__end.mp3",
+   "ms": 2088
+  },
+  "2 point 1 kilometers.": {
+   "file": "2_point_1_kilometers__end.mp3",
+   "ms": 1416
+  },
+  "2 point 2 kilometers.": {
+   "file": "2_point_2_kilometers__end.mp3",
+   "ms": 1656
+  },
+  "2 point 3 kilometers.": {
+   "file": "2_point_3_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "2 point 4 kilometers.": {
+   "file": "2_point_4_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "2 point 6 kilometers.": {
+   "file": "2_point_6_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "2 point 7 kilometers.": {
+   "file": "2_point_7_kilometers__end.mp3",
+   "ms": 1536
+  },
+  "2 point 8 kilometers.": {
+   "file": "2_point_8_kilometers__end.mp3",
+   "ms": 1560
+  },
+  "2 point 9 kilometers.": {
+   "file": "2_point_9_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "3 point 1 kilometers.": {
+   "file": "3_point_1_kilometers__end.mp3",
+   "ms": 1848
+  },
+  "3 point 2 kilometers.": {
+   "file": "3_point_2_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "3 point 3 kilometers.": {
+   "file": "3_point_3_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "3 point 4 kilometers.": {
+   "file": "3_point_4_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "3 point 6 kilometers.": {
+   "file": "3_point_6_kilometers__end.mp3",
+   "ms": 2040
+  },
+  "3 point 7 kilometers.": {
+   "file": "3_point_7_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "3 point 8 kilometers.": {
+   "file": "3_point_8_kilometers__end.mp3",
+   "ms": 1992
+  },
+  "3 point 9 kilometers.": {
+   "file": "3_point_9_kilometers__end.mp3",
+   "ms": 1656
+  },
+  "4 point 1 kilometers.": {
+   "file": "4_point_1_kilometers__end.mp3",
+   "ms": 1512
+  },
+  "4 point 2 kilometers.": {
+   "file": "4_point_2_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "4 point 3 kilometers.": {
+   "file": "4_point_3_kilometers__end.mp3",
+   "ms": 1968
+  },
+  "4 point 4 kilometers.": {
+   "file": "4_point_4_kilometers__end.mp3",
+   "ms": 1968
+  },
+  "4 point 6 kilometers.": {
+   "file": "4_point_6_kilometers__end.mp3",
+   "ms": 1512
+  },
+  "4 point 7 kilometers.": {
+   "file": "4_point_7_kilometers__end.mp3",
+   "ms": 2088
+  },
+  "4 point 8 kilometers.": {
+   "file": "4_point_8_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "4 point 9 kilometers.": {
+   "file": "4_point_9_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "5 point 1 kilometers.": {
+   "file": "5_point_1_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "5 point 2 kilometers.": {
+   "file": "5_point_2_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "5 point 3 kilometers.": {
+   "file": "5_point_3_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "5 point 4 kilometers.": {
+   "file": "5_point_4_kilometers__end.mp3",
+   "ms": 2208
+  },
+  "5 point 6 kilometers.": {
+   "file": "5_point_6_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "5 point 7 kilometers.": {
+   "file": "5_point_7_kilometers__end.mp3",
+   "ms": 1944
+  },
+  "5 point 8 kilometers.": {
+   "file": "5_point_8_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "5 point 9 kilometers.": {
+   "file": "5_point_9_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "6 point 1 kilometers.": {
+   "file": "6_point_1_kilometers__end.mp3",
+   "ms": 1632
+  },
+  "6 point 2 kilometers.": {
+   "file": "6_point_2_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "6 point 3 kilometers.": {
+   "file": "6_point_3_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "6 point 4 kilometers.": {
+   "file": "6_point_4_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "6 point 6 kilometers.": {
+   "file": "6_point_6_kilometers__end.mp3",
+   "ms": 1488
+  },
+  "6 point 7 kilometers.": {
+   "file": "6_point_7_kilometers__end.mp3",
+   "ms": 1944
+  },
+  "6 point 8 kilometers.": {
+   "file": "6_point_8_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "6 point 9 kilometers.": {
+   "file": "6_point_9_kilometers__end.mp3",
+   "ms": 1680
+  },
+  "7 point 1 kilometers.": {
+   "file": "7_point_1_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "7 point 2 kilometers.": {
+   "file": "7_point_2_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "7 point 3 kilometers.": {
+   "file": "7_point_3_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "7 point 4 kilometers.": {
+   "file": "7_point_4_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "7 point 6 kilometers.": {
+   "file": "7_point_6_kilometers__end.mp3",
+   "ms": 1848
+  },
+  "7 point 7 kilometers.": {
+   "file": "7_point_7_kilometers__end.mp3",
+   "ms": 2064
+  },
+  "7 point 8 kilometers.": {
+   "file": "7_point_8_kilometers__end.mp3",
+   "ms": 1800
+  },
+  "7 point 9 kilometers.": {
+   "file": "7_point_9_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "8 point 1 kilometers.": {
+   "file": "8_point_1_kilometers__end.mp3",
+   "ms": 1536
+  },
+  "8 point 2 kilometers.": {
+   "file": "8_point_2_kilometers__end.mp3",
+   "ms": 1656
+  },
+  "8 point 3 kilometers.": {
+   "file": "8_point_3_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "8 point 4 kilometers.": {
+   "file": "8_point_4_kilometers__end.mp3",
+   "ms": 1560
+  },
+  "8 point 6 kilometers.": {
+   "file": "8_point_6_kilometers__end.mp3",
+   "ms": 1704
+  },
+  "8 point 7 kilometers.": {
+   "file": "8_point_7_kilometers__end.mp3",
+   "ms": 1752
+  },
+  "8 point 8 kilometers.": {
+   "file": "8_point_8_kilometers__end.mp3",
+   "ms": 1896
+  },
+  "8 point 9 kilometers.": {
+   "file": "8_point_9_kilometers__end.mp3",
+   "ms": 1584
+  },
+  "9 point 2 kilometers.": {
+   "file": "9_point_2_kilometers__end.mp3",
+   "ms": 1824
+  },
+  "9 point 3 kilometers.": {
+   "file": "9_point_3_kilometers__end.mp3",
+   "ms": 1920
+  },
+  "9 point 4 kilometers.": {
+   "file": "9_point_4_kilometers__end.mp3",
+   "ms": 2088
+  },
+  "9 point 6 kilometers.": {
+   "file": "9_point_6_kilometers__end.mp3",
+   "ms": 1872
+  },
+  "9 point 7 kilometers.": {
+   "file": "9_point_7_kilometers__end.mp3",
+   "ms": 2016
+  },
+  "9 point 8 kilometers.": {
+   "file": "9_point_8_kilometers__end.mp3",
+   "ms": 1848
+  },
+  "9 point 9 kilometers.": {
+   "file": "9_point_9_kilometers__end.mp3",
+   "ms": 1728
+  },
+  "all out coming.": {
+   "file": "all_out_coming__end.mp3",
+   "ms": 1152
+  },
+  "speed,": {
+   "file": "speed__mid.mp3",
+   "ms": 672
+  },
+  "3 mph.": {
+   "file": "3_mph__end.mp3",
+   "ms": 1440
+  },
+  "incline,": {
+   "file": "incline__mid.mp3",
+   "ms": 792
+  },
+  "2 point 5 percent.": {
+   "file": "2_point_5_percent__end.mp3",
+   "ms": 1344
+  },
+  "cool down coming.": {
+   "file": "cool_down_coming__end.mp3",
+   "ms": 1104
+  },
+  "6 mph.": {
+   "file": "6_mph__end.mp3",
+   "ms": 1440
+  },
+  "4 percent.": {
+   "file": "4_percent__end.mp3",
+   "ms": 984
+  },
+  "easy coming.": {
+   "file": "easy_coming__end.mp3",
+   "ms": 864
+  },
+  "4 point 8 kph.": {
+   "file": "4_point_8_kph__end.mp3",
+   "ms": 2256
+  },
+  "5 percent.": {
+   "file": "5_percent__end.mp3",
+   "ms": 936
+  },
+  "easy spin coming.": {
+   "file": "easy_spin_coming__end.mp3",
+   "ms": 1464
+  },
+  "9 point 7 kph.": {
+   "file": "9_point_7_kph__end.mp3",
+   "ms": 2232
+  },
+  "6 percent.": {
+   "file": "6_percent__end.mp3",
+   "ms": 912
+  },
+  "easy strokes coming.": {
+   "file": "easy_strokes_coming__end.mp3",
+   "ms": 1320
+  },
+  "7 mph.": {
+   "file": "7_mph__end.mp3",
+   "ms": 1464
+  },
+  "7 percent.": {
+   "file": "7_percent__end.mp3",
+   "ms": 1008
+  },
+  "recover coming.": {
+   "file": "recover_coming__end.mp3",
+   "ms": 960
+  },
+  "4 mph.": {
+   "file": "4_mph__end.mp3",
+   "ms": 1344
+  },
+  "8 percent.": {
+   "file": "8_percent__end.mp3",
+   "ms": 816
+  },
+  "run coming.": {
+   "file": "run_coming__end.mp3",
+   "ms": 864
+  },
+  "11 point 3 kph.": {
+   "file": "11_point_3_kph__end.mp3",
+   "ms": 2112
+  },
+  "sprint coming.": {
+   "file": "sprint_coming__end.mp3",
+   "ms": 1104
+  },
+  "6 point 4 kph.": {
+   "file": "6_point_4_kph__end.mp3",
+   "ms": 2208
+  },
+  "strong spin coming.": {
+   "file": "strong_spin_coming__end.mp3",
+   "ms": 1416
+  },
+  "8 mph.": {
+   "file": "8_mph__end.mp3",
+   "ms": 1224
+  },
+  "strong strokes coming.": {
+   "file": "strong_strokes_coming__end.mp3",
+   "ms": 1464
+  },
+  "5 mph.": {
+   "file": "5_mph__end.mp3",
+   "ms": 1464
+  },
+  "12 point 9 kph.": {
+   "file": "12_point_9_kph__end.mp3",
+   "ms": 2160
+  },
+  "8 kph.": {
+   "file": "8_kph__end.mp3",
+   "ms": 1560
+  },
+  "9 mph.": {
+   "file": "9_mph__end.mp3",
+   "ms": 1344
+  },
+  "14 point 5 kph.": {
+   "file": "14_point_5_kph__end.mp3",
+   "ms": 2328
+  },
+  "10 mph.": {
+   "file": "10_mph__end.mp3",
+   "ms": 1176
+  },
+  "16 point 1 kph.": {
+   "file": "16_point_1_kph__end.mp3",
+   "ms": 2520
+  },
+  "11 point 5 mph.": {
+   "file": "11_point_5_mph__end.mp3",
+   "ms": 2112
+  },
+  "7 point 4 mph.": {
+   "file": "7_point_4_mph__end.mp3",
+   "ms": 2088
+  },
+  "7 point 9 mph.": {
+   "file": "7_point_9_mph__end.mp3",
+   "ms": 2016
+  },
+  "8 point 5 mph.": {
+   "file": "8_point_5_mph__end.mp3",
+   "ms": 2040
+  },
+  "9 point 5 mph.": {
+   "file": "9_point_5_mph__end.mp3",
+   "ms": 2040
+  },
+  "8 point 7 kph.": {
+   "file": "8_point_7_kph__end.mp3",
+   "ms": 1944
+  },
+  "11 point 9 kph.": {
+   "file": "11_point_9_kph__end.mp3",
+   "ms": 2088
+  },
+  "12 point 8 kph.": {
+   "file": "12_point_8_kph__end.mp3",
+   "ms": 2256
+  },
+  "13 point 6 kph.": {
+   "file": "13_point_6_kph__end.mp3",
+   "ms": 2304
+  },
+  "15 point 4 kph.": {
+   "file": "15_point_4_kph__end.mp3",
+   "ms": 2256
+  },
+  "6 point 3 mph.": {
+   "file": "6_point_3_mph__end.mp3",
+   "ms": 2304
+  },
+  "8 point 2 mph.": {
+   "file": "8_point_2_mph__end.mp3",
+   "ms": 1776
+  },
+  "8 point 8 mph.": {
+   "file": "8_point_8_mph__end.mp3",
+   "ms": 2112
+  },
+  "9 point 4 mph.": {
+   "file": "9_point_4_mph__end.mp3",
+   "ms": 2040
+  },
+  "10 point 6 mph.": {
+   "file": "10_point_6_mph__end.mp3",
+   "ms": 2064
+  },
+  "10 point 2 kph.": {
+   "file": "10_point_2_kph__end.mp3",
+   "ms": 2136
+  },
+  "13 point 2 kph.": {
+   "file": "13_point_2_kph__end.mp3",
+   "ms": 2592
+  },
+  "14 point 2 kph.": {
+   "file": "14_point_2_kph__end.mp3",
+   "ms": 2496
+  },
+  "15 point 1 kph.": {
+   "file": "15_point_1_kph__end.mp3",
+   "ms": 2160
+  },
+  "17 point 1 kph.": {
+   "file": "17_point_1_kph__end.mp3",
+   "ms": 2376
+  },
+  "10 point 8 mph.": {
+   "file": "10_point_8_mph__end.mp3",
+   "ms": 1704
+  },
+  "12 point 2 mph.": {
+   "file": "12_point_2_mph__end.mp3",
+   "ms": 1608
+  },
+  "11 point 6 kph.": {
+   "file": "11_point_6_kph__end.mp3",
+   "ms": 2184
+  },
+  "15 point 2 kph.": {
+   "file": "15_point_2_kph__end.mp3",
+   "ms": 2040
+  },
+  "16 point 3 kph.": {
+   "file": "16_point_3_kph__end.mp3",
+   "ms": 2424
+  },
+  "17 point 4 kph.": {
+   "file": "17_point_4_kph__end.mp3",
+   "ms": 2424
+  },
+  "19 point 6 kph.": {
+   "file": "19_point_6_kph__end.mp3",
+   "ms": 2328
+  },
+  "5 point 6 mph.": {
+   "file": "5_point_6_mph__end.mp3",
+   "ms": 2256
+  },
+  "5 point 8 mph.": {
+   "file": "5_point_8_mph__end.mp3",
+   "ms": 2376
+  },
+  "5 point 9 mph.": {
+   "file": "5_point_9_mph__end.mp3",
+   "ms": 2280
+  },
+  "6 point 5 mph.": {
+   "file": "6_point_5_mph__end.mp3",
+   "ms": 1656
+  },
+  "6 point 6 mph.": {
+   "file": "6_point_6_mph__end.mp3",
+   "ms": 2232
+  },
+  "9 kph.": {
+   "file": "9_kph__end.mp3",
+   "ms": 1608
+  },
+  "9 point 3 kph.": {
+   "file": "9_point_3_kph__end.mp3",
+   "ms": 2256
+  },
+  "9 point 6 kph.": {
+   "file": "9_point_6_kph__end.mp3",
+   "ms": 2064
+  },
+  "9 point 9 kph.": {
+   "file": "9_point_9_kph__end.mp3",
+   "ms": 2280
+  },
+  "10 point 5 kph.": {
+   "file": "10_point_5_kph__end.mp3",
+   "ms": 2136
+  },
+  "6 point 7 mph.": {
+   "file": "6_point_7_mph__end.mp3",
+   "ms": 2136
+  },
+  "7 point 1 mph.": {
+   "file": "7_point_1_mph__end.mp3",
+   "ms": 2088
+  },
+  "7 point 6 mph.": {
+   "file": "7_point_6_mph__end.mp3",
+   "ms": 2040
+  },
+  "10 point 8 kph.": {
+   "file": "10_point_8_kph__end.mp3",
+   "ms": 1800
+  },
+  "11 point 2 kph.": {
+   "file": "11_point_2_kph__end.mp3",
+   "ms": 2112
+  },
+  "11 point 5 kph.": {
+   "file": "11_point_5_kph__end.mp3",
+   "ms": 2280
+  },
+  "12 point 2 kph.": {
+   "file": "12_point_2_kph__end.mp3",
+   "ms": 2064
+  },
+  "8 point 4 mph.": {
+   "file": "8_point_4_mph__end.mp3",
+   "ms": 1752
+  },
+  "8 point 6 mph.": {
+   "file": "8_point_6_mph__end.mp3",
+   "ms": 1800
+  },
+  "13 point 9 kph.": {
+   "file": "13_point_9_kph__end.mp3",
+   "ms": 2568
+  },
+  "machine speed,": {
+   "file": "machine_speed__mid.mp3",
+   "ms": 888
+  },
+  "match the dial if you change it.": {
+   "file": "match_the_dial_if_you_change_it__end.mp3",
+   "ms": 1848
+  },
+  "1 minute per mile.": {
+   "file": "1_minute_per_mile__end.mp3",
+   "ms": 1464
+  },
+  "1 minute per kilometer.": {
+   "file": "1_minute_per_kilometer__end.mp3",
+   "ms": 1536
+  },
+  "2 minutes per mile.": {
+   "file": "2_minutes_per_mile__end.mp3",
+   "ms": 1320
+  },
+  "21 minutes per kilometer.": {
+   "file": "21_minutes_per_kilometer__end.mp3",
+   "ms": 1896
+  },
+  "31 minutes per mile.": {
+   "file": "31_minutes_per_mile__end.mp3",
+   "ms": 1536
+  },
+  "22 minutes per kilometer.": {
+   "file": "22_minutes_per_kilometer__end.mp3",
+   "ms": 1680
+  },
+  "32 minutes per mile.": {
+   "file": "32_minutes_per_mile__end.mp3",
+   "ms": 1704
+  },
+  "23 minutes per kilometer.": {
+   "file": "23_minutes_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "33 minutes per mile.": {
+   "file": "33_minutes_per_mile__end.mp3",
+   "ms": 1488
+  },
+  "24 minutes per kilometer.": {
+   "file": "24_minutes_per_kilometer__end.mp3",
+   "ms": 1776
+  },
+  "34 minutes per mile.": {
+   "file": "34_minutes_per_mile__end.mp3",
+   "ms": 1776
+  },
+  "25 minutes per kilometer.": {
+   "file": "25_minutes_per_kilometer__end.mp3",
+   "ms": 2064
+  },
+  "35 minutes per mile.": {
+   "file": "35_minutes_per_mile__end.mp3",
+   "ms": 1896
+  },
+  "26 minutes per kilometer.": {
+   "file": "26_minutes_per_kilometer__end.mp3",
+   "ms": 2016
+  },
+  "27 minutes per kilometer.": {
+   "file": "27_minutes_per_kilometer__end.mp3",
+   "ms": 2112
+  },
+  "37 minutes per mile.": {
+   "file": "37_minutes_per_mile__end.mp3",
+   "ms": 1968
+  },
+  "28 minutes per kilometer.": {
+   "file": "28_minutes_per_kilometer__end.mp3",
+   "ms": 2280
+  },
+  "39 minutes per mile.": {
+   "file": "39_minutes_per_mile__end.mp3",
+   "ms": 1752
+  },
+  "30 minutes per kilometer.": {
+   "file": "30_minutes_per_kilometer__end.mp3",
+   "ms": 1608
+  },
+  "40 minutes per mile.": {
+   "file": "40_minutes_per_mile__end.mp3",
+   "ms": 1272
+  },
+  "31 minutes per kilometer.": {
+   "file": "31_minutes_per_kilometer__end.mp3",
+   "ms": 2136
   }
  },
  "count": 1121,
