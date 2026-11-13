@@ -154,11 +154,11 @@ function speechFor(kind, machine, speed, unit, seconds, incline) {
   const words = (EFFORT_WORDS[machine] || EFFORT_WORDS.treadmill)[kind] || kind;
   const dur = speakDuration(seconds);
   if (machine === 'treadmill' && speed != null) {
-    // "Set 6 point 5 mph", not "Set 6.5": every speed and incline these
+    // "Speed: 6 point 5 mph", not "6.5": every speed and incline these
     // programmes can produce is one recorded phrase ("6 point 5 mph",
-    // "2 point 5 percent") after its lead-in.
-    const inc = incline > 0 ? ` Incline ${speakNumber(incline)} percent.` : '';
-    const set = `Set ${speakSpeedUnit(speed, unit)}.`;
+    // "2 point 5 percent") after a label and a colon.
+    const inc = incline > 0 ? ` Incline: ${speakNumber(incline)} percent.` : '';
+    const set = `Speed: ${speakSpeedUnit(speed, unit)}.`;
     return {
       pre: `${words} coming. ${set}${inc} 5 seconds.`,
       start: kind === 'sprint' ? `Go. ${dur}.` : `${words}. ${set} ${dur}.`,
@@ -210,7 +210,8 @@ export function spokenProgramName(label) {
     .replace(/\s+/g, ' ').trim();
 }
 
-// The brief of a guided programme: what it is, how long, and the first
+// The brief of a guided programme (the names with a number in them, such as
+// "fight rounds 3 by 1", are a fixed list of ten): what it is, how long, and the first
 // segment's own instruction (the belt speed on a treadmill).
 export function programIntro(expanded) {
   const where = expanded.machine === 'row' ? 'Rower' : expanded.machine === 'bike' ? 'Bike' : 'Treadmill';

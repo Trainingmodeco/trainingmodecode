@@ -4,6 +4,7 @@ import { Play, Pause, Square, RotateCcw, MoveHorizontal as MoreHorizontal, Zap }
 import { speakAsync, cancelSpeech } from './voiceCoach';
 import useLater from './hooks/useLater';
 import { playBeep } from './data/audioEngine';
+import { speedBoostLine, speakDuration } from './data/runCoach';
 import { ARCADE, ArcadeStatusChip } from './ArcadeUI';
 
 const CARDIO_STYLES = `
@@ -186,8 +187,8 @@ export default function ArcadeCardioPlayer({
   const triggerSpeedBoost = useCallback((duration) => {
     setBoostActive(true);
     setBoostRemaining(duration);
-    setAnnouncerText(`SPEED BOOST! Push the pace for ${duration} seconds.`);
-    speakAsync(`Speed boost. Push the pace for ${duration} seconds.`);
+    setAnnouncerText(`SPEED BOOST! Push the pace: ${speakDuration(duration)}.`);
+    speakAsync(speedBoostLine(duration));
     playBeep();
 
     let remaining = duration;

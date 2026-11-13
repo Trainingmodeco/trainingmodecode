@@ -95,7 +95,7 @@ for (const p of PROGRAMS) {
       check(`${p.id}/${machine}/${tier} contiguous`, ok);
       check(`${p.id}/${machine}/${tier} first has no pre-call`, x.segments[0].pre === null && !!x.segments[0].start);
       if (machine === 'treadmill') {
-        check(`${p.id}/${tier} treadmill speeds set`, x.segments.every(s => s.speed > 0 && /Set \d+( point \d)? mph\./.test(s.start) && !/\d\.\d/.test(s.start) || s.kind === 'sprint'));
+        check(`${p.id}/${tier} treadmill speeds set`, x.segments.every(s => s.speed > 0 && /Speed: \d+( point \d)? mph\./.test(s.start) && !/\d\.\d/.test(s.start) || s.kind === 'sprint'));
         const sprintSegs = x.segments.filter(s => s.kind === 'sprint');
         check(`${p.id}/${tier} sprints are in the sprint band`, sprintSegs.every(s => s.speed >= 7.3), sprintSegs.map(s => s.speed).join(','));
         const warm = x.segments[0];
@@ -124,16 +124,30 @@ check('treadmill list is the full library', programsFor('treadmill').length === 
 // speech shape — the owner's example
 const fr = expandProgram(programById('fight-3x1'), { tier: 'normal' }).segments;
 // Speeds are said "3 mph" and "6 point 5 mph", not "3.0": each is one
-// recorded phrase after "Set", and the countdown is the recorded "5 seconds".
-check('warm-up speech sets 3 for five minutes', /Warm-up\. Set 3 mph\. 5 minutes\./.test(fr[0].start), fr[0].start);
-check('run pre-call five seconds ahead', /Run coming\. Set 7 mph\. 5 seconds\./.test(fr[1].pre), fr[1].pre);
-check('a kilometre programme says kph', /Set \d+( point \d)? kph\./.test(expandProgram(programById('fight-3x1'), { tier: 'normal', unit: 'km' }).segments[1].pre));
+// recorded phrase after "Speed:", and the countdown is the recorded "5 seconds".
+check('warm-up speech sets 3 for five minutes', /Warm-up\. Speed: 3 mph\. 5 minutes\./.test(fr[0].start), fr[0].start);
+check('run pre-call five seconds ahead', /Run coming\. Speed: 7 mph\. 5 seconds\./.test(fr[1].pre), fr[1].pre);
+check('a kilometre programme says kph', /Speed: \d+( point \d)? kph\./.test(expandProgram(programById('fight-3x1'), { tier: 'normal', unit: 'km' }).segments[1].pre));
 const tb = expandProgram(programById('tabata'), { tier: 'normal' }).segments;
-check('sprint pre-call then Go', /Sprint coming\. Set 10 mph\./.test(tb[1].pre) && /^Go\. 20 seconds\.$/.test(tb[1].start), `${tb[1].pre} | ${tb[1].start}`);
+check('sprint pre-call then Go', /Sprint coming\. Speed: 10 mph\./.test(tb[1].pre) && /^Go\. 20 seconds\.$/.test(tb[1].start), `${tb[1].pre} | ${tb[1].start}`);
 const bk = expandProgram(programById('sprint-recover'), { machine: 'bike', tier: 'normal' }).segments;
 const hsx = expandProgram(programById('hiit-25'), { tier: 'normal' }).segments.find(s => s.incline === 2.5 && s.pre);
-check('a half-step speed and incline are said with point', hsx && /Incline 2 point 5 percent\./.test(hsx.pre) && !/\d\.\d/.test(hsx.pre), hsx && hsx.pre);
+check('a half-step speed and incline are said with point', hsx && /Incline: 2 point 5 percent\./.test(hsx.pre) && !/\d\.\d/.test(hsx.pre), hsx && hsx.pre);
 check('bike sprint is all out, recovery an easy spin', /^Go\. All out\./.test(bk[1].start) && /Recover, easy spin/.test(bk[2].start), `${bk[1].start} | ${bk[2].start}`);
 
+// Spoken lines: steady brief without a label, boost wording, aim-pace sweep
+const rcMod = await import('../components/training-mode/data/runCoach.js');
+const { spokenSweeps } = await import('./spoken-sweeps.mjs');
+check('steady brief without a label has no lone Cardio sentence', rcMod.steadyBrief({ methodLabel: null, durationSeconds: 600 }) === 'Steady: 10 minutes. Go!', rcMod.steadyBrief({ methodLabel: null, durationSeconds: 600 }));
+check('steady brief with a label keeps the machine sentence', rcMod.steadyBrief({ methodLabel: 'Elliptical', durationSeconds: 1200 }) === 'Elliptical. Steady: 20 minutes. Go!');
+check('boost line says a minute for 60 seconds', rcMod.speedBoostLine(60) === 'Speed boost. Push the pace: 1 minute.');
+const sweptIntro = new Set((await spokenSweeps()).filter((g) => g.feature === 'Cardio Mode').flatMap((g) => g.lines));
+const unswept = new Set();
+for (const unit of ['mi', 'km']) for (let d = 0.5; d <= (unit === 'mi' ? 26.2 : 42.2); d += 0.7) for (let m = 1; m <= 360; m++) {
+  for (const line of rcMod.buildRunIntro({ methodLabel: 'Running', useGps: true, distance: Math.round(d * 10) / 10, unit, targetSec: m * 60 }).lines) {
+    if (/^(Aim pace|Target time): /.test(line) && !sweptIntro.has(line)) unswept.add(line);
+  }
+}
+check('every typed-target aim pace and target time is swept', unswept.size === 0, [...unswept].slice(0, 5).join(' | '));
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

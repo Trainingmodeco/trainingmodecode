@@ -58,8 +58,18 @@ export async function spokenSweeps() {
     }
     for (const p of PACES) intro.push(...rc.buildRunIntro({ methodLabel: m.label, useGps: m.gps, freeRun: true, unit, targetPaceSec: p }).lines);
   }
-  // Target and elite times: auto (any second) or typed whole minutes.
-  for (const t of ELAPSED) intro.push(`Target time, ${rc.speakDuration(t)}.`, `Elite time, ${rc.speakDuration(t)}.`);
+  // Target and elite times: auto (any second) or typed whole minutes. The aim
+  // pace is the target time over the distance, so any pace the player can show.
+  // A typed target has no upper limit and an easy-jog marathon auto target is
+  // about 8.7 h, so the whole minutes run to 9 h.
+  for (const t of [...ELAPSED, ...range(21660, 32400, 60)]) intro.push(`Target time: ${rc.speakDuration(t)}.`, `Elite time: ${rc.speakDuration(t)}.`);
+  // The aim pace is any whole second under an hour per unit: a typed target
+  // (no upper limit) over a short distance can say 26 minutes per mile.
+  for (const unit of UNITS) for (const p of range(1, 3599)) intro.push(`Aim pace: ${rc.speakPace(p, unit)}.`);
+  // Aim pace from real targets: every whole-minute target over a spread of distances.
+  for (const unit of UNITS) for (const distance of dists[unit].filter((d, i) => i % 7 === 0)) for (const mins of range(5, 180, 5)) {
+    intro.push(...rc.buildRunIntro({ methodLabel: 'Running', useGps: true, distance, unit, targetSec: mins * 60, eliteSec: Math.round(mins * 40) }).lines);
+  }
   // The guided programmes' belt speeds as the setup line says them: those
   // are recorded whole (the dial's other tenths are the listed exception).
   for (const p of ip.PROGRAMS) for (const tier of ['easy', 'normal', 'hard']) for (const unit of UNITS) {
@@ -102,7 +112,7 @@ export async function spokenSweeps() {
   }
   // The clock and the pace of a split, over their whole ranges.
   for (const unit of UNITS) for (const p of PACES) splits.push(`Pace: ${rc.speakPace(p, unit)}.`);
-  for (const t of ELAPSED) splits.push(`${rc.speakDuration(t)}.`, `Ahead of target by ${rc.speakDuration(t)}.`, `Behind target by ${rc.speakDuration(t)}. Pick it up.`);
+  for (const t of ELAPSED) splits.push(`${rc.speakDuration(t)}.`, `Ahead of target: ${rc.speakDuration(t)}.`, `Behind target: ${rc.speakDuration(t)}. Pick it up.`);
   // What is left at the last called marker: any goal in tenths, called at the
   // whole unit, or at the half with HALF-MILE CALLS on.
   for (const unit of UNITS) for (const goal of range(0.6, 6, 0.1)) for (const marker of range(0.5, goal - 0.05, 0.5)) {
@@ -125,7 +135,7 @@ export async function spokenSweeps() {
       if (el > 0) finish.push(rc.finishScript({ dist, unit, elapsedSec: el, targetSec, eliteSec: Math.round(targetSec * 2 / 3) }));
     }
   }
-  for (const t of ELAPSED) finish.push(`Under target by ${rc.speakDuration(t)}. Good work.`, `Over target by ${rc.speakDuration(t)}. Next time we take it.`);
+  for (const t of ELAPSED) finish.push(`Under target: ${rc.speakDuration(t)}. Good work.`, `Over target: ${rc.speakDuration(t)}. Next time we take it.`);
   sweep(CARDIO, 'finish', finish);
   sweep(CARDIO, 'ghost finish (own ghost)', range(-900, 900).map((d) => rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: 'MARCUS', ownerId: 'me' })));
   sweep(CARDIO, 'ghost finish (ghost pool run)', range(-900, 900).map((d) => rc.ghostFinishLine({ elapsedSec: 1800 + d, ghostTotalSec: 1800, ownerName: 'A WARRIOR', ownerId: 'stranger' })));
@@ -178,6 +188,12 @@ export async function spokenSweeps() {
     for (const s of x.segments) prog.push(s.pre, s.start);
   }
   sweep(CARDIO, 'guided programmes: intro, every pre-call and start, every machine and tier', prog);
+
+  // Arcade cardio block: the speed boost lasts 20 to 60 s (the stage configs).
+  sweep(CARDIO, 'arcade cardio speed boost', [
+    ...range(20, 60).map(rc.speedBoostLine),
+    'Begin cardio. Steady pace.', 'Recover. Return to steady pace.', 'Cardio complete. Great work.', 'Too fast to verify.', 'Cardio complete.',
+  ]);
 
   sweep(CARDIO, 'run player fixed lines', [
     'Ready.', 'Go!', 'Paused.', 'Resume. Go!', 'Locking GPS. You start the moment it is ready.', 'Warm up first.',
