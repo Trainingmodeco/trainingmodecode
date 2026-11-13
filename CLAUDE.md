@@ -34,8 +34,48 @@ moves, missions, camp or arcade content, new spoken lines in a screen):
    either tool treats a list of `{ key, text }` as recorded, to prove a
    record list is complete before spending credits.
 
-How lines are matched: `data/voicePhrases.js` splits a line into phrases
-(sentences; a combo into one phrase per strike), and `data/voiceClips.js`
-plays each phrase from its whole clip, else from the fewest recorded pieces.
-Put names and numbers in their own sentence or after a colon when writing a
-new spoken line ("Up next: Goblet Squats."), so they reuse existing clips.
+How lines are matched: `data/voicePhrases.js` splits a line into sentences
+and phrases (a combo into one phrase per strike), and `data/voiceClips.js`
+plays each sentence from its one-take recording if the bank has it, else each
+phrase from the take recorded for its place (mid-sentence or closing, below),
+else from its plain clip, else from the fewest recorded pieces. Put names and
+numbers in their own sentence or after a colon when writing a new spoken line
+("Up next: Goblet Squats."), so they reuse existing clips.
+
+## Natural-sounding lines (owner's rule, 2026-11-13)
+
+A phrase recorded on its own comes out slow, with a full stop on it; stitched
+together, such clips sound choppy (the owner's complaint about Cardio Mode).
+So, for any line worth hearing often:
+
+- **A sentence with a comma or colon inside is ONE recording** ("Drive the
+  arms, the legs will follow."). Bank key: its phrases joined with `, `.
+- **A phrase that carries a number is recorded inside a real sentence and cut
+  out at the pause**, in the tone of its place: a mid-sentence take (key ends
+  with a comma: `20 minutes,`) and a closing take (key ends with a full stop:
+  `32 seconds.`). A label before a value is a mid take too (`pace,`).
+- **Write the line so recordings meet only at a comma, a colon or a full
+  stop.** A number stays with its unit ("3 miles", "40 seconds per mile") and
+  a label ends with a colon ("Target time: 30 minutes."); never a number glued
+  after other words ("ahead of target by 20 seconds").
+- After a mid take the pause is 0.10 s at a comma and 0.15 s at a colon.
+  Loudness is set per recorded sentence (-16 LUFS), not per piece.
+- `test:spoken` holds every Cardio line to this (one take per sentence, or one
+  clip per phrase); its exception list names the few values said from pieces.
+
+To record them: write each carrier sentence with its numbers spelled out
+("Pace: nine minutes, forty seconds per mile."), record it with the voices
+above, and save one `{ "phrase": <carrier id>, "url": <wav> }` line per take
+to `<work>/<queue>/jobs.jsonl`. **The generator charges by length, about 0.1
+credit per second of audio**: keep carriers short, and check the balance
+after the first hundred takes, before quoting or spending the rest. Then:
+
+    VOICE_WORK=<work> node scripts/voice-takes/cutbank.mjs <batches> <femaleQueues> <maleQueues> --encode
+    VOICE_WORK=<work> node scripts/voice-takes/place.mjs
+
+`cutbank.mjs` (its header describes the carrier file) cuts each recording at
+its pauses and listens by numbers: a real pause at each cut, length against
+the voice's own rate, no break inside, a clean start and end. `need.json`
+lists the keys to record again: expect about one in ten, more for the female
+voice, which often runs "minutes, seconds" together. `place.mjs` installs the
+chosen takes and bumps the bank version.
