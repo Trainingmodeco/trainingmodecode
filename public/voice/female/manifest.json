@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 20,
+ "version": 21,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20741,6 +20741,30 @@
   "10 x p.": {
    "file": "10_x_p__end.mp3",
    "ms": 1056
+  },
+  "breathe in for three steps, out for two": {
+   "file": "breathe_in_for_three_steps_out_for_two__s.mp3",
+   "ms": 2616
+  },
+  "shorter steps, same speed": {
+   "file": "shorter_steps_same_speed__s.mp3",
+   "ms": 2160
+  },
+  "take quicker, lighter steps and let your foot land under you": {
+   "file": "take_quicker_lighter_steps_and_let_your_foot_land_under_you__s.mp3",
+   "ms": 4152
+  },
+  "quicker feet, full steps": {
+   "file": "quicker_feet_full_steps__s.mp3",
+   "ms": 1968
+  },
+  "stay smooth, stay ahead": {
+   "file": "stay_smooth_stay_ahead__s.mp3",
+   "ms": 1800
+  },
+  "recover, easy spin coming": {
+   "file": "recover_easy_spin_coming__s.mp3",
+   "ms": 2256
   }
  },
  "count": 1121,

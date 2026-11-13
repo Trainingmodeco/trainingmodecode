@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 20,
+ "version": 21,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20825,6 +20825,30 @@
   "3 x p.": {
    "file": "3_x_p__end.mp3",
    "ms": 1200
+  },
+  "quick, light steps": {
+   "file": "quick_light_steps__s.mp3",
+   "ms": 2160
+  },
+  "slight lean from the ankles, not the waist": {
+   "file": "slight_lean_from_the_ankles_not_the_waist__s.mp3",
+   "ms": 2808
+  },
+  "quick, light feet": {
+   "file": "quick_light_feet__s.mp3",
+   "ms": 1824
+  },
+  "recover, easy spin coming": {
+   "file": "recover_easy_spin_coming__s.mp3",
+   "ms": 2688
+  },
+  "cool down, easy strokes coming": {
+   "file": "cool_down_easy_strokes_coming__s.mp3",
+   "ms": 2208
+  },
+  "shadowbox, knees only": {
+   "file": "shadowbox_knees_only__s.mp3",
+   "ms": 2280
   }
  },
  "count": 1121,
