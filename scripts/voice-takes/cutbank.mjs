@@ -113,7 +113,8 @@ if (process.argv[1].endsWith('cutbank.mjs')) for (const v of ['female', 'male'])
     const r = cut(wav, c.parts.length, !!c.sentence);
     if (!r.ok) { takes.push({ q: j.q, id: j.id, wav, fail: r.why }); continue; }
     if (r.sentence) { takes.push({ q: j.q, id: j.id, wav, idx: 0, n: 1, key: c.keys[0].key, text: c.parts.map((p) => p.text).join(', '), ranges: r.ranges, a: r.ranges[0][0], b: r.ranges[r.ranges.length - 1][1], voicedMs: r.voicedMs,
-      inner: r.longGaps > c.parts.length - 1 ? r.inner : 0, margin: 999, edge: r.headCut || r.tailCut, syl: c.parts.reduce((n, p) => n + syll(p.text), 0) }); continue; }
+      // a long sentence also takes a breath where no comma is written: one more pause allowed per eight syllables
+      inner: r.longGaps > c.parts.length - 1 + Math.floor(c.parts.reduce((n, p) => n + syll(p.text), 0) / 8) ? r.inner : 0, margin: 999, edge: r.headCut || r.tailCut, syl: c.parts.reduce((n, p) => n + syll(p.text), 0) }); continue; }
     for (const kd of c.keys) { const i = kd.from; const p = r.parts[i]; takes.push({ q: j.q, id: j.id, wav, idx: i, n: r.parts.length, key: kd.key, text: c.parts[i].text, a: p.a, b: p.b, voicedMs: p.voicedMs, inner: p.inner, margin: r.margin, weak: p.weak, anyWeak: r.anyWeak,
       edge: (i === 0 && r.headCut) || (i === r.parts.length - 1 && r.tailCut), syl: syll(c.parts[i].text) }); }
   }
