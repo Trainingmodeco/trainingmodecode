@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 19,
+ "version": 20,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20733,6 +20733,14 @@
   "get caught and it costs 8 x p.": {
    "file": "get_caught_and_it_costs_8_x_p__end.mp3",
    "ms": 2280
+  },
+  "9 point 3 kilometers.": {
+   "file": "9_point_3_kilometers__end.mp3",
+   "ms": 1944
+  },
+  "10 x p.": {
+   "file": "10_x_p__end.mp3",
+   "ms": 1056
   }
  },
  "count": 1121,
