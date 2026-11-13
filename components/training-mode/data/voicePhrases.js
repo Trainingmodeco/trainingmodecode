@@ -73,26 +73,103 @@ export const GAP_STRIKE = 0.03;
 export const GAP_SENTENCE = 0.28;
 
 // A line -> [{ text, gap }]: the phrases to say in order, `gap` the silence
-// before each (0 for the first). Sentences split on . ! ? ; : , and dashes;
-// a sentence made only of strike words is a combo, one phrase per strike.
+// before each (0 for the first). A line splits into phrases at . ! ? ; : ,
+// and dashes (sentences end at . ! ? and dashes only); a phrase made only of
+// strike words is a combo, one entry per strike.
 // A NUMBERS-style punch call ("one", "three to the body"): formatCall joins
 // them with commas, but they are one combo, so they get the strike gap.
 const NUMBER_CALL = /^(one|two|three|four|five|six|seven|eight)( to the body)?$/;
 export const isNumberCall = (s) => NUMBER_CALL.test(s);
 
+// The silence after a phrase played from a mid take (a phrase recorded
+// inside a sentence, its voice carrying on): a short breath at a comma or a
+// semicolon, a little more at a colon. Recordings join only at these marks.
+export const GAP_COMMA = 0.10;
+export const GAP_COLON = 0.15;
+
+// The mark that ends a run of punctuation between two phrases: a sentence end
+// ('' : . ! ? or a dash), else a colon, a semicolon or a comma.
+function sepOf(run) {
+  if (!run || /[.!?]/.test(run)) return '';
+  if (run.includes(':')) return ':';
+  if (run.includes(';')) return ';';
+  return ',';
+}
+
+// Each entry: { text, gap } as before, plus where it sits:
+//   sentence  index of its sentence in the line (sentences end at . ! ? and dashes)
+//   phrase    index of its phrase in that sentence (phrases end at , ; :)
+//   phrases   how many phrases that sentence has
+//   last      true for the last phrase of its sentence
+//   sep       the mark after its phrase: ',' ';' ':' or '' (the sentence ends)
+//   kind      'text', or 'strike' (one strike of a combo), or 'call' (a
+//             NUMBERS punch call); strikes and calls are planned as they always were
 export function phrasesOf(line) {
   const text = normalizeSpeech(line).replace(/(\d)\.(\d)/g, '$1\u0001$2').replace(/[—–]/g, '.');
-  const sentences = text.split(/[.!?;:,]+\s*/).map((s) => s.replace(/\u0001/g, '.').trim()).filter(Boolean);
+  // Pieces at even indexes, the punctuation runs between them at odd ones.
+  const bits = text.split(/([.!?;:,]+)\s*/);
+  const pieces = [];
+  for (let i = 0; i < bits.length; i += 2) {
+    const s = bits[i].replace(/\u0001/g, '.').trim();
+    const run = i + 1 < bits.length ? bits[i + 1] : '';
+    if (s) pieces.push({ s, run });
+    // An empty piece between two runs ("go!. rest"): its run belongs to the phrase before.
+    else if (pieces.length) pieces[pieces.length - 1].run += run;
+  }
+  const sentences = pieces.map((p) => p.s);
+  // Where each phrase sits in its sentence.
+  const where = [];
+  let si = 0, pi = 0, start = 0;
+  pieces.forEach((p, i) => {
+    // The end of the line ends its sentence, whatever mark is left over.
+    const sep = i === pieces.length - 1 ? '' : sepOf(p.run);
+    where.push({ sentence: si, phrase: pi, sep, last: sep === '' });
+    if (sep === '') {
+      for (let k = start; k <= i; k++) where[k].phrases = pi + 1;
+      si += 1; pi = 0; start = i + 1;
+    } else pi += 1;
+  });
+  const call = (i) => isNumberCall(sentences[i]) && ((i > 0 && isNumberCall(sentences[i - 1])) || (i + 1 < sentences.length && isNumberCall(sentences[i + 1])));
   const out = [];
   sentences.forEach((s, si) => {
     const words = s.split(/\s+/);
+    const at = where[si];
     if (words.length > 1 && words.every((w) => STRIKE_WORDS.has(w))) {
-      strikePieces(words).forEach((p, pi) => out.push({ text: p, gap: si === 0 && pi === 0 ? 0 : pi === 0 ? GAP_SENTENCE : GAP_STRIKE }));
+      strikePieces(words).forEach((p, pi) => out.push({ text: p, gap: si === 0 && pi === 0 ? 0 : pi === 0 ? GAP_SENTENCE : GAP_STRIKE, ...at, kind: 'strike' }));
     } else if (si > 0 && isNumberCall(s) && isNumberCall(sentences[si - 1])) {
-      out.push({ text: s, gap: GAP_STRIKE });
-    } else out.push({ text: s, gap: si === 0 ? 0 : GAP_SENTENCE });
+      out.push({ text: s, gap: GAP_STRIKE, ...at, kind: 'call' });
+    } else out.push({ text: s, gap: si === 0 ? 0 : GAP_SENTENCE, ...at, kind: call(si) ? 'call' : 'text' });
   });
   return out;
+}
+
+// A line -> its sentences, each the list of its phrasesOf entries in order.
+export function sentencesOf(line) {
+  const out = [];
+  for (const e of phrasesOf(line)) (out[e.sentence] = out[e.sentence] || []).push(e);
+  return out.filter(Boolean);
+}
+
+// Bank keys for the takes a phrase can be recorded in (see voiceClips.js):
+//   midKey('20 minutes')     '20 minutes,'   said inside a sentence, the voice carrying on
+//   closingKey('32 seconds') '32 seconds.'   the last phrase of a sentence, the voice at rest
+//   sentenceKey(['drive the arms', 'the legs will follow'])
+//                            'drive the arms, the legs will follow'   a whole sentence in one take
+// A sentence key joins its phrases with ', ' whatever mark parted them, so one
+// sentence take serves "Pace: go", "Pace; go" and "Pace, go" alike: the
+// recorded pause plays the same. Write lines that differ only in that mark as
+// one line; the record list (test:spoken --json) warns when they do not.
+export const midKey = (phrase) => `${phrase},`;
+export const closingKey = (phrase) => `${phrase}.`;
+export const sentenceKey = (phrases) => phrases.map((p) => (typeof p === 'string' ? p : p.text)).join(', ');
+
+// Which kind of take a bank key is: 'mid', 'closing', 'sentence' or 'plain'.
+export function keyKind(key) {
+  const k = String(key);
+  if (k.endsWith(',')) return 'mid';
+  if (k.endsWith('.')) return 'closing';
+  if (k.includes(', ')) return 'sentence';
+  return 'plain';
 }
 
 // A phrase with a number in it ("6 glute bridges", "plus 20 x p", "40 seconds")
@@ -107,4 +184,15 @@ export function tokensOf(phrase) {
 // The file name a phrase's clip is stored under.
 export function clipSlug(phrase) {
   return String(phrase).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'x';
+}
+
+// The file a bank key is stored in, by its kind: 'slug.mp3' for a plain
+// phrase, 'slug__mid.mp3' for a mid take, 'slug__end.mp3' for a closing take
+// and 'slug__s.mp3' for a sentence take, the slug made from the key without
+// its trailing mark. Used when a bank is built; the app reads the manifest.
+const FILE_TAIL = { plain: '', mid: '__mid', closing: '__end', sentence: '__s' };
+export function clipFileFor(key) {
+  const kind = keyKind(key);
+  const bare = kind === 'mid' || kind === 'closing' ? String(key).slice(0, -1) : String(key);
+  return `${clipSlug(bare)}${FILE_TAIL[kind]}.mp3`;
 }

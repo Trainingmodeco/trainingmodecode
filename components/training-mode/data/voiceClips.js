@@ -1,4 +1,4 @@
-import { phrasesOf, tokensOf, GAP_STRIKE } from './voicePhrases';
+import { phrasesOf, tokensOf, midKey, closingKey, sentenceKey, keyKind, clipFileFor, GAP_STRIKE, GAP_COMMA, GAP_COLON } from './voicePhrases';
 import { getAudioContext, getCueOut, getVoiceVolume, getAudioSettings, VOICE_MAX } from './audioEngine';
 
 // The recorded coach voice: a bank of clips built into the app, one mp3 per
@@ -14,7 +14,13 @@ import { getAudioContext, getCueOut, getVoiceVolume, getAudioSettings, VOICE_MAX
 // Manifest (fixed): GET /voice/<voice>/manifest.json
 //   { "voice": "female"|"male", "version": 1,
 //     "clips": { "<phrase as phrasesOf yields it>": { "file": "<slug>.mp3", "ms": <int> }, ... } }
+// A key may also be a take of a phrase recorded inside a sentence ('pace,',
+// '32 seconds.') or a whole sentence ('a, b'); see planLine. The file name
+// always comes from the manifest, never from the key.
 // Clip URL: /voice/<voice>/<file>.
+
+// The take keys and file names, lent to the tools that build and check banks.
+export { midKey, closingKey, sentenceKey, keyKind, clipFileFor };
 
 const BASE = '/voice/';
 const banks = new Map(); // voice -> { status: 'loading'|'ready'|'missing', bank, promise }
@@ -139,27 +145,86 @@ export function piecesFor(bank, phrase) {
 }
 
 // A line -> its plan as far as the bank can say it: { plan, missing }.
-// `plan` holds the clips of every phrase the bank can say, in order (each
-// phrase whole first, then as the fewest pieces, GAP_STRIKE between the
-// pieces); `missing` lists the phrases it cannot. Null for an empty line or
-// no bank.
-export function planLine(bank, line) {
+// `plan` holds the clips of every phrase the bank can say, in order;
+// `missing` lists the phrases it cannot. Null for an empty line or no bank.
+//
+// A bank can hold four kinds of take (voicePhrases.js names their keys):
+//   plain     'pace'                a phrase on its own
+//   sentence  'a, b'                a sentence of two or more phrases in one take
+//   mid       'pace,'               a phrase said inside a sentence, the voice carrying on
+//   closing   '50 seconds per mile.' the last phrase of a sentence, the voice at rest
+// Each sentence plays from its sentence take when the bank has one. Else
+// each phrase plays from the take that fits its place (mid inside the
+// sentence, closing at its end), else from its plain clip or the fewest
+// pieces (GAP_STRIKE between the pieces), else from the other take. A
+// phrase that follows a mid take waits GAP_COMMA after a comma or semicolon,
+// GAP_COLON after a colon; every other phrase keeps its usual gap. Strikes
+// of a combo and NUMBERS calls are planned as always: whole clip, else
+// pieces. A bank with only plain clips plans exactly as it always did.
+//
+// planDetail gives the same plan with how each part was said:
+//   { plan, missing, parts: [{ sentence, texts, how, keys }] }
+// `how` is 'sentence', 'mid', 'closing', 'plain', 'pieces', or 'missing'
+// (keys empty); `texts` the phrase or phrases the part says.
+const has = (bank, key) => !!bank.clips[key];
+function wholeOrPieces(bank, text) {
+  if (has(bank, text)) return { how: 'plain', keys: [text] };
+  const keys = piecesFor(bank, text);
+  return keys ? { how: 'pieces', keys } : null;
+}
+function takeFor(bank, e) {
+  if (e.kind === 'strike' || e.kind === 'call') return wholeOrPieces(bank, e.text);
+  const mid = midKey(e.text), end = closingKey(e.text);
+  if (e.phrases >= 2 && !e.last) return has(bank, mid) ? { how: 'mid', keys: [mid] } : wholeOrPieces(bank, e.text) || (has(bank, end) ? { how: 'closing', keys: [end] } : null);
+  if (e.phrases >= 2) return has(bank, end) ? { how: 'closing', keys: [end] } : wholeOrPieces(bank, e.text) || (has(bank, mid) ? { how: 'mid', keys: [mid] } : null);
+  if (has(bank, e.text)) return { how: 'plain', keys: [e.text] };
+  if (has(bank, end)) return { how: 'closing', keys: [end] };
+  const keys = piecesFor(bank, e.text);
+  return keys ? { how: 'pieces', keys } : null;
+}
+export function planDetail(bank, line) {
   if (!bank || !bank.clips) return null;
-  const phrases = phrasesOf(line);
-  if (!phrases.length) return null;
+  const entries = phrasesOf(line);
+  if (!entries.length) return null;
   const plan = [];
   const missing = [];
-  for (const ph of phrases) {
+  const parts = [];
+  const push = (keys, gap) => keys.forEach((k, i) => plan.push({ key: k, file: bank.clips[k].file, ms: bank.clips[k].ms, gap: i === 0 ? gap : GAP_STRIKE }));
+  for (const sent of sentencesOfEntries(entries)) {
     // A skipped phrase leaves no silence of its own: the first phrase that
     // plays starts at once, the others keep their usual gap.
-    const gap = plan.length ? ph.gap : 0;
-    const whole = bank.clips[ph.text];
-    if (whole) { plan.push({ key: ph.text, file: whole.file, ms: whole.ms, gap }); continue; }
-    const keys = piecesFor(bank, ph.text);
-    if (!keys) { missing.push(ph.text); continue; }
-    keys.forEach((t, i) => plan.push({ key: t, file: bank.clips[t].file, ms: bank.clips[t].ms, gap: i === 0 ? gap : GAP_STRIKE }));
+    const first = sent[0];
+    const plainOnly = sent.every((e) => e.kind === 'text');
+    const whole = first.phrases >= 2 && plainOnly ? sentenceKey(sent) : null;
+    if (whole && has(bank, whole)) {
+      push([whole], plan.length ? first.gap : 0);
+      parts.push({ sentence: first.sentence, texts: sent.map((e) => e.text), how: 'sentence', keys: [whole] });
+      continue;
+    }
+    let afterMid = null; // the mark after the phrase before, when it played from a mid take
+    for (const e of sent) {
+      const usual = afterMid && e.kind === 'text' ? (afterMid === ':' ? GAP_COLON : GAP_COMMA) : e.gap;
+      const gap = plan.length ? usual : 0;
+      const t = takeFor(bank, e);
+      if (!t) { missing.push(e.text); parts.push({ sentence: e.sentence, texts: [e.text], how: 'missing', keys: [] }); afterMid = null; continue; }
+      push(t.keys, gap);
+      parts.push({ sentence: e.sentence, texts: [e.text], how: t.how, keys: t.keys });
+      afterMid = t.how === 'mid' ? e.sep : null;
+    }
   }
-  return { plan, missing };
+  return { plan, missing, parts };
+}
+const sentencesOfEntries = (entries) => {
+  const out = [];
+  for (const e of entries) {
+    const cur = out[out.length - 1];
+    if (cur && cur[0].sentence === e.sentence) cur.push(e); else out.push([e]);
+  }
+  return out;
+};
+export function planLine(bank, line) {
+  const r = planDetail(bank, line);
+  return r && { plan: r.plan, missing: r.missing };
 }
 
 // A line -> the clips to play, in order, or null when any phrase can't be

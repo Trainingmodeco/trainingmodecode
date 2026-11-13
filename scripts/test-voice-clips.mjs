@@ -697,7 +697,269 @@ await test('audio recovery: an interrupted context resumes on statechange, on re
   ctx.state = 'running';
 });
 
+// ── takes recorded inside a sentence: the planning rules ─────────────────
+// A small bank with every kind of key: plain 'pace', mid 'pace,', closing
+// '50 seconds per mile.', sentence 'drive the arms, the legs will follow'.
+const takeBank = (keys) => ({ clips: Object.assign(Object.create(null), Object.fromEntries(keys.map((k, i) => [k, { file: phrases.clipFileFor(k), ms: 100 + i }]))) });
+const keysOf = (bank, line) => clips.planClips(bank, line)?.map((p) => p.key) ?? null;
+const gapsOf = (bank, line) => clips.planClips(bank, line)?.map((p) => p.gap) ?? null;
+const { GAP_SENTENCE, GAP_STRIKE, GAP_COMMA, GAP_COLON } = phrases;
+
+await test('take keys: names, kinds and file names', async () => {
+  assert.equal(phrases.midKey('20 minutes'), '20 minutes,');
+  assert.equal(phrases.closingKey('32 seconds'), '32 seconds.');
+  assert.equal(phrases.sentenceKey(['drive the arms', 'the legs will follow']), 'drive the arms, the legs will follow');
+  assert.equal(phrases.sentenceKey(phrases.phrasesOf('Drive the arms, the legs will follow.')), 'drive the arms, the legs will follow');
+  assert.deepEqual(['pace', 'pace,', '50 seconds per mile.', 'a, b', '3.5 seconds'].map(phrases.keyKind), ['plain', 'mid', 'closing', 'sentence', 'plain']);
+  assert.equal(phrases.clipFileFor('pace'), 'pace.mp3');
+  assert.equal(phrases.clipFileFor('20 minutes,'), '20_minutes__mid.mp3');
+  assert.equal(phrases.clipFileFor('32 seconds.'), '32_seconds__end.mp3');
+  assert.equal(phrases.clipFileFor('drive the arms, the legs will follow'), 'drive_the_arms_the_legs_will_follow__s.mp3');
+  assert.equal(clips.clipFileFor, phrases.clipFileFor, 'the clips module lends the same helper');
+});
+
+await test('phrasesOf: each phrase knows its sentence, its place and the mark after it', async () => {
+  const ph = phrases.phrasesOf('Pace: 9 minutes, 50 seconds per mile. Ahead; now — go');
+  assert.deepEqual(ph.map((p) => [p.text, p.sentence, p.phrase, p.phrases, p.last, p.sep]), [
+    ['pace', 0, 0, 3, false, ':'], ['9 minutes', 0, 1, 3, false, ','], ['50 seconds per mile', 0, 2, 3, true, ''],
+    ['ahead', 1, 0, 2, false, ';'], ['now', 1, 1, 2, true, ''], ['go', 2, 0, 1, true, ''],
+  ]);
+  assert.deepEqual(ph.map((p) => p.gap), [0, GAP_SENTENCE, GAP_SENTENCE, GAP_SENTENCE, GAP_SENTENCE, GAP_SENTENCE], 'the gaps are as they always were');
+  assert.deepEqual(phrases.phrasesOf('3.5 seconds, rest').map((p) => [p.text, p.sep]), [['3.5 seconds', ','], ['rest', '']], 'a decimal point is not a sentence end');
+  assert.deepEqual(phrases.phrasesOf('Rest,').map((p) => [p.text, p.last]), [['rest', true]], 'the end of the line ends the sentence');
+  assert.deepEqual(phrases.phrasesOf('Throw it: jab cross').map((p) => p.kind), ['text', 'strike', 'strike']);
+  assert.deepEqual(phrases.phrasesOf('Round 3. one, two').map((p) => p.kind), ['text', 'call', 'call'], 'the first call of a NUMBERS run is a call too');
+  assert.deepEqual(phrases.sentencesOf('Pace: 9 minutes. Go').map((s) => s.map((p) => p.text)), [['pace', '9 minutes'], ['go']]);
+});
+
+await test('planLine: a sentence take beats the phrase takes', async () => {
+  const b = takeBank(['drive the arms, the legs will follow', 'drive the arms,', 'the legs will follow.', 'drive the arms', 'the legs will follow', 'go']);
+  assert.deepEqual(keysOf(b, 'Drive the arms, the legs will follow. Go!'), ['drive the arms, the legs will follow', 'go']);
+  assert.deepEqual(gapsOf(b, 'Drive the arms, the legs will follow. Go!'), [0, GAP_SENTENCE]);
+  assert.deepEqual(keysOf(b, 'Go! Drive the arms, the legs will follow.'), ['go', 'drive the arms, the legs will follow']);
+  assert.deepEqual(gapsOf(b, 'Go! Drive the arms, the legs will follow.'), [0, GAP_SENTENCE]);
+  assert.equal(clips.planDetail(b, 'Drive the arms, the legs will follow.').parts[0].how, 'sentence');
+  // A sentence take is a sentence of two or more phrases: 'go' alone is its plain clip.
+  const one = takeBank(['go', 'go.']);
+  assert.deepEqual(keysOf(one, 'Go.'), ['go']);
+});
+
+await test('planLine: inside a sentence the mid take, at its end the closing take, with comma and colon gaps', async () => {
+  const b = takeBank(['pace,', 'pace', '9 minutes,', '9 minutes', '50 seconds per mile.', '50 seconds per mile', 'ahead,', 'now.']);
+  assert.deepEqual(keysOf(b, 'Pace: 9 minutes, 50 seconds per mile.'), ['pace,', '9 minutes,', '50 seconds per mile.']);
+  assert.deepEqual(gapsOf(b, 'Pace: 9 minutes, 50 seconds per mile.'), [0, GAP_COLON, GAP_COMMA]);
+  assert.deepEqual(gapsOf(b, 'Ahead; now.'), [0, GAP_COMMA], 'a semicolon takes the comma gap');
+  // Between sentences: the sentence gap, whatever came before.
+  assert.deepEqual(gapsOf(b, 'Ahead, now. Pace: 9 minutes, 50 seconds per mile.'), [0, GAP_COMMA, GAP_SENTENCE, GAP_COLON, GAP_COMMA]);
+  const d = clips.planDetail(b, 'Pace: 9 minutes, 50 seconds per mile.');
+  assert.deepEqual(d.parts.map((p) => p.how), ['mid', 'mid', 'closing']);
+});
+
+await test('planLine: a phrase inside a sentence falls back to its plain clip, its pieces, then its closing take', async () => {
+  // no 'pace,': the plain clip, and the next phrase keeps the sentence gap
+  let b = takeBank(['pace', '9 minutes.']);
+  assert.deepEqual(keysOf(b, 'Pace: 9 minutes.'), ['pace', '9 minutes.']);
+  assert.deepEqual(gapsOf(b, 'Pace: 9 minutes.'), [0, GAP_SENTENCE]);
+  // no whole clip: the fewest pieces, strike gaps between them
+  b = takeBank(['average', 'pace', '9 minutes.']);
+  assert.deepEqual(keysOf(b, 'Average pace: 9 minutes.'), ['average', 'pace', '9 minutes.']);
+  assert.deepEqual(gapsOf(b, 'Average pace: 9 minutes.'), [0, GAP_STRIKE, GAP_SENTENCE]);
+  // nothing but a closing take of it
+  b = takeBank(['pace.', '9 minutes.']);
+  assert.deepEqual(keysOf(b, 'Pace: 9 minutes.'), ['pace.', '9 minutes.']);
+  assert.deepEqual(gapsOf(b, 'Pace: 9 minutes.'), [0, GAP_SENTENCE], 'a closing take is not a mid take: the usual gap');
+});
+
+await test('planLine: the last phrase falls back to its plain clip, its pieces, then its mid take', async () => {
+  let b = takeBank(['pace,', '9 minutes', '9 minutes,']);
+  assert.deepEqual(keysOf(b, 'Pace: 9 minutes.'), ['pace,', '9 minutes']);
+  assert.deepEqual(gapsOf(b, 'Pace: 9 minutes.'), [0, GAP_COLON]);
+  b = takeBank(['pace,', '9', 'minutes']);
+  assert.deepEqual(keysOf(b, 'Pace: 9 minutes.'), ['pace,', '9', 'minutes']);
+  assert.deepEqual(gapsOf(b, 'Pace: 9 minutes.'), [0, GAP_COLON, GAP_STRIKE]);
+  b = takeBank(['pace,', '9 minutes,', 'go']);
+  assert.deepEqual(keysOf(b, 'Pace: 9 minutes. Go.'), ['pace,', '9 minutes,', 'go']);
+  assert.deepEqual(gapsOf(b, 'Pace: 9 minutes. Go.'), [0, GAP_COLON, GAP_SENTENCE], 'a new sentence after a mid take: the sentence gap');
+});
+
+await test('planLine: a sentence of one phrase is its plain clip, else its closing take, else its pieces, never a mid take', async () => {
+  assert.deepEqual(keysOf(takeBank(['29 minutes', '29 minutes.']), '29 minutes.'), ['29 minutes']);
+  assert.deepEqual(keysOf(takeBank(['29 minutes.', '29', 'minutes']), '29 minutes.'), ['29 minutes.']);
+  assert.deepEqual(keysOf(takeBank(['29', 'minutes', '29 minutes,']), '29 minutes.'), ['29', 'minutes']);
+  assert.equal(keysOf(takeBank(['29 minutes,']), '29 minutes.'), null);
+});
+
+await test('planLine: combos and NUMBERS calls are planned as always', async () => {
+  const b = takeBank(['jab', 'cross', 'body hook', 'jab,', 'jab.', 'cross.', 'throw it,', 'one', 'two', 'three', 'one,', 'two,', 'three.', 'one, two, three']);
+  assert.deepEqual(keysOf(b, 'Jab Cross Body Hook'), ['jab', 'cross', 'body hook']);
+  assert.deepEqual(gapsOf(b, 'Jab Cross Body Hook'), [0, GAP_STRIKE, GAP_STRIKE]);
+  assert.deepEqual(keysOf(b, 'one, two, three'), ['one', 'two', 'three'], 'no takes, no sentence take for a punch call');
+  assert.deepEqual(gapsOf(b, 'one, two, three'), [0, GAP_STRIKE, GAP_STRIKE]);
+  // A combo after a lead-in said from its mid take keeps its own gap.
+  assert.deepEqual(keysOf(b, 'Throw it: jab cross.'), ['throw it,', 'jab', 'cross']);
+  assert.deepEqual(gapsOf(b, 'Throw it: jab cross.'), [0, GAP_SENTENCE, GAP_STRIKE]);
+});
+
+await test('planLine: a partial plan lists the phrases it cannot say; planMs counts the new gaps', async () => {
+  const b = takeBank(['pace,', '50 seconds per mile.', 'go']);
+  const r = clips.planLine(b, 'Pace: 9 minutes, 50 seconds per mile. Go.');
+  assert.deepEqual(r.missing, ['9 minutes']);
+  assert.deepEqual(r.plan.map((p) => [p.key, p.gap]), [['pace,', 0], ['50 seconds per mile.', GAP_SENTENCE], ['go', GAP_SENTENCE]], 'after a skipped phrase, the usual gap');
+  assert.equal(clips.planClips(b, 'Pace: 9 minutes, 50 seconds per mile. Go.'), null);
+  assert.deepEqual(Object.keys(r.plan[0]).sort(), ['file', 'gap', 'key', 'ms'], 'plan entries keep their shape');
+  const r2 = clips.planLine(b, 'Nothing here: 9 minutes, 50 seconds per mile.');
+  assert.deepEqual(r2.plan.map((p) => [p.key, p.gap]), [['50 seconds per mile.', 0]], 'the first clip that plays starts at once');
+  const full = takeBank(['pace,', '9 minutes,', '50 seconds per mile.']);
+  const plan = clips.planClips(full, 'Pace: 9 minutes, 50 seconds per mile.');
+  assert.equal(clips.planMs(plan), Math.round(plan[0].ms + plan[1].ms + plan[2].ms + (GAP_COLON + GAP_COMMA) * 1000));
+  assert.equal(clips.planMs(plan, 2), Math.round((plan[0].ms + plan[1].ms + plan[2].ms + (GAP_COLON + GAP_COMMA) * 1000) / 2));
+});
+
+await test('takes with marks in their keys are fetched, decoded and kept like any clip', async () => {
+  const keys = ['go', 'pace,', '9 minutes,', '50 seconds per mile.', 'drive the arms, the legs will follow'];
+  const b = { voice: 'female', base: '/voice/takes/', buffers: new Map(), warmed: new Set(), clips: Object.fromEntries(keys.map((k) => [k, { file: phrases.clipFileFor(k), ms: MS }])) };
+  const saved = globalThis.fetch;
+  const asked = [];
+  globalThis.fetch = async (url) => { asked.push(String(url)); return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(JSON.stringify({ key: String(url), ms: MS })).buffer }; };
+  try {
+    await clips.prefetchBank(b, { concurrency: 2 });
+    assert.ok(b.buffers.has('go'), 'the hot key is decoded');
+    assert.deepEqual([...b.warmed].sort(), keys.filter((k) => k !== 'go').sort(), 'every take is downloaded');
+    assert.ok(asked.includes('/voice/takes/9_minutes__mid.mp3') && asked.includes('/voice/takes/50_seconds_per_mile__end.mp3') && asked.includes('/voice/takes/drive_the_arms_the_legs_will_follow__s.mp3'), asked.join(' '));
+    const buf = await clips.getBuffer(b, 'pace,');
+    assert.equal(buf.key, '/voice/takes/pace__mid.mp3');
+    assert.ok(b.buffers.has('pace,'));
+    const n = ctxLog().started.length;
+    await clips.playPlan(clips.planClips(b, 'Pace: 9 minutes, 50 seconds per mile.'), { bank: b }).done;
+    assert.equal(ctxLog().started.length - n, 3);
+  } finally { globalThis.fetch = saved; }
+});
+
+// ── the real banks plan every line exactly as before ─────────────────────
+// A frozen copy of the planner as it was before takes existed (phrases split
+// at every . ! ? ; : , and dash, each phrase whole else from the fewest
+// pieces, gaps 0.28 between phrases and 0.03 between strikes and pieces).
+// With today's banks, which hold only plain clips, the planner must give the
+// same clips, gaps and missing list for every line the coach can say.
+const FROZEN_GAP_STRIKE = 0.03, FROZEN_GAP_SENTENCE = 0.28;
+function frozenPhrasesOf(line) {
+  const text = phrases.normalizeSpeech(line).replace(/(\d)\.(\d)/g, '$1\u0001$2').replace(/[—–]/g, '.');
+  const sentences = text.split(/[.!?;:,]+\s*/).map((s) => s.replace(/\u0001/g, '.').trim()).filter(Boolean);
+  const out = [];
+  sentences.forEach((s, si) => {
+    const words = s.split(/\s+/);
+    if (words.length > 1 && words.every((w) => phrases.STRIKE_WORDS.has(w))) {
+      phrases.strikePieces(words).forEach((p, pi) => out.push({ text: p, gap: si === 0 && pi === 0 ? 0 : pi === 0 ? FROZEN_GAP_SENTENCE : FROZEN_GAP_STRIKE }));
+    } else if (si > 0 && phrases.isNumberCall(s) && phrases.isNumberCall(sentences[si - 1])) {
+      out.push({ text: s, gap: FROZEN_GAP_STRIKE });
+    } else out.push({ text: s, gap: si === 0 ? 0 : FROZEN_GAP_SENTENCE });
+  });
+  return out;
+}
+function frozenPlanLine(bank, line) {
+  if (!bank || !bank.clips) return null;
+  const list = frozenPhrasesOf(line);
+  if (!list.length) return null;
+  const plan = [];
+  const missing = [];
+  for (const ph of list) {
+    const gap = plan.length ? ph.gap : 0;
+    const whole = bank.clips[ph.text];
+    if (whole) { plan.push({ key: ph.text, file: whole.file, ms: whole.ms, gap }); continue; }
+    const keys = clips.piecesFor(bank, ph.text);
+    if (!keys) { missing.push(ph.text); continue; }
+    keys.forEach((t, i) => plan.push({ key: t, file: bank.clips[t].file, ms: bank.clips[t].ms, gap: i === 0 ? gap : FROZEN_GAP_STRIKE }));
+  }
+  return { plan, missing };
+}
+
+// The real banks gain takes as they are recorded. Each take key must be
+// stored under the file its kind names (clipFileFor), and that file must be
+// on disk, so a take never shadows or overwrites a plain clip.
+await test('real banks: every take key is stored under the file its kind names, and the file is there', async () => {
+  for (const voice of ['female', 'male']) {
+    const m = JSON.parse(fs.readFileSync(new URL(`../public/voice/${voice}/manifest.json`, import.meta.url), 'utf8'));
+    const bad = [];
+    for (const [k, c] of Object.entries(m.clips)) {
+      if (phrases.keyKind(k) === 'plain') continue;
+      if (c.file !== phrases.clipFileFor(k)) bad.push(`${k} -> ${c.file}, want ${phrases.clipFileFor(k)}`);
+      else if (!fs.existsSync(new URL(`../public/voice/${voice}/${c.file}`, import.meta.url))) bad.push(`${k} -> ${c.file} is not on disk`);
+    }
+    assert.deepEqual(bad, [], `${voice}: take keys`);
+  }
+});
+
+// The plain clips of a real bank: what today's planner knew. Takes recorded
+// later are left out, so the frozen planner stays a fair yardstick.
+const plainBankOf = (clipsObj) => ({ clips: Object.assign(Object.create(null), Object.fromEntries(Object.entries(clipsObj).filter(([k]) => phrases.keyKind(k) === 'plain'))) });
+
+await test('equality bank: a recorded take is left out, so the plain plan is still compared', () => {
+  const m = JSON.parse(fs.readFileSync(new URL('../public/voice/female/manifest.json', import.meta.url), 'utf8'));
+  const withTake = { ...m.clips, 'rest,': { file: 'rest__mid.mp3', ms: 400 } };
+  const bank = plainBankOf(withTake);
+  assert.equal(bank.clips['rest,'], undefined);
+  assert.deepEqual(clips.planLine(bank, 'Rest: 30 seconds.'), frozenPlanLine(bank, 'Rest: 30 seconds.'));
+  // With the take in, the new planner does use it: the comparison would not hold.
+  const full = { clips: Object.assign(Object.create(null), withTake) };
+  assert.equal(clips.planLine(full, 'Rest: 30 seconds.').plan[0].key, 'rest,');
+});
+
+let equalityNote = '';
+await test('real banks: every line the coach can say plans exactly as before, in both voices', async () => {
+  // The content modules the gatherer loads listen on the page: give the
+  // fake page the listener calls while they load.
+  const savedWindow = globalThis.window;
+  globalThis.window = { ...savedWindow, addEventListener() {}, removeEventListener() {} };
+  let features;
+  try {
+    const { gatherFeatures } = await import('./voice-coverage.mjs');
+    ({ features } = await gatherFeatures());
+  } finally { globalThis.window = savedWindow; }
+  // Cardio Mode builds over a hundred thousand lines from its sweeps: an even
+  // spread of a few thousand of them keeps this quick and covers every shape.
+  const CARDIO_CAP = 4000;
+  const corpus = [];
+  for (const [feature, lines] of Object.entries(features)) {
+    const all = [...lines];
+    if (feature === 'Cardio Mode' && all.length > CARDIO_CAP) {
+      const step = all.length / CARDIO_CAP;
+      for (let i = 0; i < CARDIO_CAP; i++) corpus.push(all[Math.floor(i * step)]);
+    } else corpus.push(...all);
+  }
+  // Plus the shapes the tests above lean on.
+  corpus.push('Round 3. one, two', 'one, two, three to the body, two', 'Go!. Rest,', 'Throw it: jab cross body hook.', '3.5 seconds, rest', 'Rest. 105 seconds. Up next: Goblet Squats.', ':', '');
+  assert.ok(corpus.length > 5000, `corpus of ${corpus.length} lines`);
+  let checked = 0;
+  for (const line of corpus) {
+    assert.deepEqual(phrases.phrasesOf(line).map((p) => ({ text: p.text, gap: p.gap })), frozenPhrasesOf(line), `phrasesOf "${line}"`);
+  }
+  for (const voice of ['female', 'male']) {
+    const m = JSON.parse(fs.readFileSync(new URL(`../public/voice/${voice}/manifest.json`, import.meta.url), 'utf8'));
+    const real = plainBankOf(m.clips);
+    for (const line of corpus) {
+      assert.deepEqual(clips.planLine(real, line), frozenPlanLine(real, line), `${voice}: "${line}"`);
+      checked += 1;
+    }
+  }
+  equalityNote = `(${checked} line plans compared with the frozen planner, ${corpus.length} lines per voice)`;
+});
+
+await test('voice:coverage names something to record for every phrase that does not plan', async () => {
+  const savedWindow = globalThis.window;
+  globalThis.window = { ...savedWindow, addEventListener() {}, removeEventListener() {} };
+  let recordPartsOf;
+  try { ({ recordPartsOf } = await import('./voice-coverage.mjs')); } finally { globalThis.window = savedWindow; }
+  const bank = { clips: Object.assign(Object.create(null), { go: { file: 'go.mp3', ms: 1 }, 5: { file: '5.mp3', ms: 1 } }) };
+  assert.deepEqual(recordPartsOf(bank, 'drive on'), ['drive on']);
+  assert.deepEqual(recordPartsOf(bank, 'go 5 far'), ['far']);
+  // Each token plans (40 words, then 5), but 41 words are too many to tile: the whole phrase.
+  const long = Array(40).fill('go').join(' ') + ' 5';
+  assert.equal(clips.planClips(bank, long), null);
+  assert.deepEqual(recordPartsOf(bank, long), [long]);
+});
+
 console.log(results.join('\n'));
+if (equalityNote) console.log(`     ${equalityNote}`);
 if (failures) { console.error(`\n${failures} voice clips test(s) failed`); process.exit(1); }
 console.log(`\nvoice clips: ${results.length} tests passed`);
 process.exit(0);
