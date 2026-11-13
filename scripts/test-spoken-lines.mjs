@@ -144,6 +144,11 @@ const ONE_VOICE_EXCEPTIONS = [
   /\b(5[1-9]|[6-9]\d|\d{3,}) kilometers\b/i,
   /\b(1[6-9]|[2-9]\d) and a half miles\b/i,
   /\b(2[6-9]|[3-9]\d) and a half kilometers\b/i,
+  // Counts past what a session normally reaches are said from pieces: more
+  // than 12 sprint chases, more than 20 interval rounds, a round call past 12.
+  /\b(1[3-9]|[2-9]\d) (chases|escapes)\b/i,
+  /\b(2[1-9]|[3-9]\d) rounds\b/i,
+  /\bround (1[3-9]|[2-9]\d)\b/i,
 ];
 const exempt = (line) => ONE_VOICE_EXCEPTIONS.some((re) => re.test(line));
 
@@ -171,6 +176,8 @@ const same = (name, got, want) => {
 same('pace with seconds', rc.speakPace(342, 'mi'), '5 minutes, 42 seconds per mile');
 same('pace with seconds under ten', rc.speakPace(305, 'km'), '5 minutes, 5 seconds per kilometer');
 same('pace on the minute', rc.speakPace(300, 'mi'), '5 minutes per mile');
+same('a very slow pace on the minute says its seconds', rc.speakPace(42 * 60, 'mi'), '42 minutes, 0 seconds per mile');
+same('and so does one past 20 minutes a kilometre', rc.speakPace(21 * 60, 'km'), '21 minutes, 0 seconds per kilometer');
 same('duration under a minute', rc.speakDuration(45), '45 seconds');
 same('one second', rc.speakDuration(1), '1 second');
 same('one minute', rc.speakDuration(60), '1 minute');

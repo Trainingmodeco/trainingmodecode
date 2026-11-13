@@ -125,6 +125,7 @@ export function speakDuration(sec) {
 
 // "9 minutes, 50 seconds per mile"; on the minute "9 minutes per mile". The
 // seconds and the unit are one recorded phrase ("50 seconds per mile").
+export const WHOLE_MINUTE_PACE = { mi: [3, 30], km: [2, 20] };
 export function speakPace(secPerUnit, unit = 'mi') {
   if (!Number.isFinite(secPerUnit) || secPerUnit <= 0) return '';
   const s = Math.round(secPerUnit);
@@ -132,7 +133,14 @@ export function speakPace(secPerUnit, unit = 'mi') {
   const m = Math.floor(s / 60);
   const r = s % 60;
   const per = `per ${unit === 'km' ? 'kilometer' : 'mile'}`;
-  if (r === 0) return `${unitOf(m, 'minute')} ${per}`;
+  if (r === 0) {
+    // On the minute, the paces people run and walk are one recorded phrase
+    // each ("10 minutes per mile"). Outside them the seconds are said too
+    // ("42 minutes, 0 seconds per mile"), which plays from the minute and
+    // seconds takes instead of needing a recording per value.
+    const [lo, hi] = WHOLE_MINUTE_PACE[unit === 'km' ? 'km' : 'mi'];
+    return m >= lo && m <= hi ? `${unitOf(m, 'minute')} ${per}` : `${unitOf(m, 'minute')}, 0 seconds ${per}`;
+  }
   if (m === 0) return `${unitOf(r, 'second')} ${per}`;
   return `${unitOf(m, 'minute')}, ${unitOf(r, 'second')} ${per}`;
 }
