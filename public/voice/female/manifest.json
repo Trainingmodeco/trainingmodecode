@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 17,
+ "version": 19,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -19872,7 +19872,7 @@
   },
   "9 point 8 miles.": {
    "file": "9_point_8_miles__end.mp3",
-   "ms": 1776
+   "ms": 2040
   },
   "0 point 6 kilometers.": {
    "file": "0_point_6_kilometers__end.mp3",
@@ -20645,6 +20645,94 @@
   "free run.": {
    "file": "free_run__end.mp3",
    "ms": 672
+  },
+  "8 point 1 kilometers.": {
+   "file": "8_point_1_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "6 point 7 mph.": {
+   "file": "6_point_7_mph__end.mp3",
+   "ms": 2376
+  },
+  "12 escapes.": {
+   "file": "12_escapes__end.mp3",
+   "ms": 1368
+  },
+  "6 escapes.": {
+   "file": "6_escapes__end.mp3",
+   "ms": 1056
+  },
+  "45 seconds rest.": {
+   "file": "45_seconds_rest__end.mp3",
+   "ms": 2016
+  },
+  "20 meters.": {
+   "file": "20_meters__end.mp3",
+   "ms": 1272
+  },
+  "550 meters.": {
+   "file": "550_meters__end.mp3",
+   "ms": 1944
+  },
+  "60 meters.": {
+   "file": "60_meters__end.mp3",
+   "ms": 1248
+  },
+  "850 meters.": {
+   "file": "850_meters__end.mp3",
+   "ms": 1848
+  },
+  "0 point 4 miles to go.": {
+   "file": "0_point_4_miles_to_go__end.mp3",
+   "ms": 1944
+  },
+  "0 point 6 miles to go.": {
+   "file": "0_point_6_miles_to_go__end.mp3",
+   "ms": 2064
+  },
+  "0 point 8 miles to go.": {
+   "file": "0_point_8_miles_to_go__end.mp3",
+   "ms": 2520
+  },
+  "to escape and bank 15 x p.": {
+   "file": "to_escape_and_bank_15_x_p__end.mp3",
+   "ms": 2736
+  },
+  "to escape and bank 8 x p.": {
+   "file": "to_escape_and_bank_8_x_p__end.mp3",
+   "ms": 2208
+  },
+  "get caught and it costs 3 x p.": {
+   "file": "get_caught_and_it_costs_3_x_p__end.mp3",
+   "ms": 2352
+  },
+  "0 seconds per mile.": {
+   "file": "0_seconds_per_mile__end.mp3",
+   "ms": 1488
+  },
+  "300 meters.": {
+   "file": "300_meters__end.mp3",
+   "ms": 1632
+  },
+  "15 x p.": {
+   "file": "15_x_p__end.mp3",
+   "ms": 1512
+  },
+  "8 x p.": {
+   "file": "8_x_p__end.mp3",
+   "ms": 1344
+  },
+  "1 2 3 4 combo sprints on heavy bag.": {
+   "file": "1_2_3_4_combo_sprints_on_heavy_bag__end.mp3",
+   "ms": 3528
+  },
+  "3 x p.": {
+   "file": "3_x_p__end.mp3",
+   "ms": 1536
+  },
+  "get caught and it costs 8 x p.": {
+   "file": "get_caught_and_it_costs_8_x_p__end.mp3",
+   "ms": 2280
   }
  },
  "count": 1121,

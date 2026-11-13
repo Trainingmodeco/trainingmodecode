@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 17,
+ "version": 19,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20733,6 +20733,98 @@
   "free run.": {
    "file": "free_run__end.mp3",
    "ms": 840
+  },
+  "1 point 1 miles.": {
+   "file": "1_point_1_miles__end.mp3",
+   "ms": 1872
+  },
+  "9 point 6 miles.": {
+   "file": "9_point_6_miles__end.mp3",
+   "ms": 1944
+  },
+  "9 point 1 kilometers.": {
+   "file": "9_point_1_kilometers__end.mp3",
+   "ms": 1920
+  },
+  "10 point 1 mph.": {
+   "file": "10_point_1_mph__end.mp3",
+   "ms": 1872
+  },
+  "13 point 5 kph.": {
+   "file": "13_point_5_kph__end.mp3",
+   "ms": 2424
+  },
+  "1 escape.": {
+   "file": "1_escape__end.mp3",
+   "ms": 1200
+  },
+  "11 escapes.": {
+   "file": "11_escapes__end.mp3",
+   "ms": 1272
+  },
+  "4 minutes work,": {
+   "file": "4_minutes_work__mid.mp3",
+   "ms": 1176
+  },
+  "40 seconds rest.": {
+   "file": "40_seconds_rest__end.mp3",
+   "ms": 1464
+  },
+  "5 seconds rest.": {
+   "file": "5_seconds_rest__end.mp3",
+   "ms": 1416
+  },
+  "8 rounds.": {
+   "file": "8_rounds__end.mp3",
+   "ms": 1104
+  },
+  "25 seconds work.": {
+   "file": "25_seconds_work__end.mp3",
+   "ms": 1872
+  },
+  "45 seconds work.": {
+   "file": "45_seconds_work__end.mp3",
+   "ms": 1776
+  },
+  "30 meters.": {
+   "file": "30_meters__end.mp3",
+   "ms": 936
+  },
+  "600 meters.": {
+   "file": "600_meters__end.mp3",
+   "ms": 1488
+  },
+  "700 meters.": {
+   "file": "700_meters__end.mp3",
+   "ms": 1656
+  },
+  "0 point 3 kilometers to go.": {
+   "file": "0_point_3_kilometers_to_go__end.mp3",
+   "ms": 2496
+  },
+  "0 point 3 miles to go.": {
+   "file": "0_point_3_miles_to_go__end.mp3",
+   "ms": 1752
+  },
+  "to escape and bank 10 x p.": {
+   "file": "to_escape_and_bank_10_x_p__end.mp3",
+   "ms": 2472
+  },
+  "1 2 3 4 combo sprints on heavy bag.": {
+   "file": "1_2_3_4_combo_sprints_on_heavy_bag__end.mp3",
+   "ms": 3096
+  },
+  "get caught and it costs 3 x p.": {
+   "file": "get_caught_and_it_costs_3_x_p__end.mp3",
+   "ms": 2904
+  },
+  "15 x p.": {
+   "file": "15_x_p__end.mp3",
+   "ms": 1488
+  },
+  "3 x p.": {
+   "file": "3_x_p__end.mp3",
+   "ms": 1200
   }
  },
  "count": 1121,
