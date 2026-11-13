@@ -127,10 +127,24 @@ export function mustPlan(name, lines, feature = '') {
   console.log(`  FAIL ${name}: ${missing.length} of ${uniq.length * VOICES.length} have no clip`);
   for (const m of missing.slice(0, 12)) console.log(`         ${m}`);
 }
-// Cardio lines that may be said from pieces, each with the reason. Empty: a
-// line that cannot be recorded whole would go here (as a belt speed typed on
-// the dial once did, any tenth being too many to record).
-const ONE_VOICE_EXCEPTIONS = [];
+// Cardio lines that may be said from pieces, each with the reason. Their
+// values are too many to record one by one and are rarely said; everything
+// else in the line still plays from its own takes.
+const ONE_VOICE_EXCEPTIONS = [
+  // A belt speed typed on the dial can be any tenth. The guided programmes'
+  // speeds ("Speed: 6 point 5 mph.") are recorded whole.
+  /^machine speed: /i,
+  // A distance to the tenth is recorded up to 10 miles / 15 kilometres, plus
+  // the race distances. Past that it is said from pieces.
+  /\b[1-9]\d point \d miles\b/i,
+  /\b(1[5-9]|[2-9]\d) point \d kilometers\b/i,
+  // Past 30 miles / 50 kilometres (and halves past 15 / 25) a distance is
+  // said from pieces: an ultra, not a training run.
+  /\b(3[1-9]|[4-9]\d|\d{3,}) miles\b/i,
+  /\b(5[1-9]|[6-9]\d|\d{3,}) kilometers\b/i,
+  /\b(1[6-9]|[2-9]\d) and a half miles\b/i,
+  /\b(2[6-9]|[3-9]\d) and a half kilometers\b/i,
+];
 const exempt = (line) => ONE_VOICE_EXCEPTIONS.some((re) => re.test(line));
 
 // ── Training Arcade rep counts ───────────────────────────────────────────
