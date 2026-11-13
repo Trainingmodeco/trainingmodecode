@@ -126,7 +126,9 @@ if (process.argv[1].endsWith('cutbank.mjs')) for (const v of ['female', 'male'])
     pool = pool.filter((t) => { const r = t.voicedMs / Math.max(120, a0 + b * t.syl); return r > 0.65 && r < 1.5; });
   }
   for (const t of takes) { if (t.fail || !t.key) continue; t.ratio = +(t.voicedMs / Math.max(120, a0 + b * t.syl)).toFixed(2);
-    const [lo, hi] = t.anyWeak ? [0.7, 1.4] : [0.6, 1.6];
+    // A short phrase, or one that opens its recording, is said with more weight than the fitted rate allows for:
+    // give those more room on the long side when every cut of the recording is sure.
+    const [lo, hi] = t.anyWeak ? [0.7, 1.4] : [0.6, t.idx === 0 || t.syl <= 3 ? 1.95 : 1.6];
     t.score = (t.edge ? 100 : 0) + (t.weak ? 50 : 0) + (t.ratio < lo || t.ratio > hi ? 40 : 0) + (t.inner > 220 ? 30 : 0); }
   const byKey = new Map(); for (const t of takes) if (t.key && !t.fail) (byKey.get(t.key) || byKey.set(t.key, []).get(t.key)).push(t);
   const keys = {}, need = []; const wanted = new Set(); for (const c of Object.values(carriers)) if (!c.voice || c.voice === v) for (const kd of c.keys) wanted.add(kd.key);
