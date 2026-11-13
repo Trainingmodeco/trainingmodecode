@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 16,
+ "version": 17,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -17232,7 +17232,7 @@
   },
   "31 minutes,": {
    "file": "31_minutes__mid.mp3",
-   "ms": 1296
+   "ms": 1176
   },
   "38 seconds per mile.": {
    "file": "38_seconds_per_mile__end.mp3",
@@ -17436,7 +17436,7 @@
   },
   "32 minutes,": {
    "file": "32_minutes__mid.mp3",
-   "ms": 1176
+   "ms": 1296
   },
   "55 seconds per mile.": {
    "file": "55_seconds_per_mile__end.mp3",
@@ -18272,7 +18272,7 @@
   },
   "10 hours.": {
    "file": "10_hours__end.mp3",
-   "ms": 816
+   "ms": 1296
   },
   "11 hours.": {
    "file": "11_hours__end.mp3",
@@ -18284,7 +18284,7 @@
   },
   "13 hours.": {
    "file": "13_hours__end.mp3",
-   "ms": 1272
+   "ms": 1440
   },
   "14 hours.": {
    "file": "14_hours__end.mp3",
@@ -18292,7 +18292,7 @@
   },
   "15 hours.": {
    "file": "15_hours__end.mp3",
-   "ms": 1080
+   "ms": 1344
   },
   "gps run,": {
    "file": "gps_run__mid.mp3",
@@ -18428,7 +18428,7 @@
   },
   "2 and a half miles.": {
    "file": "2_and_a_half_miles__end.mp3",
-   "ms": 1440
+   "ms": 1968
   },
   "3 and a half miles.": {
    "file": "3_and_a_half_miles__end.mp3",
@@ -18824,7 +18824,7 @@
   },
   "distance so far,": {
    "file": "distance_so_far__mid.mp3",
-   "ms": 1176
+   "ms": 1200
   },
   "0 point 3 miles.": {
    "file": "0_point_3_miles__end.mp3",
@@ -19908,7 +19908,7 @@
   },
   "machine speed,": {
    "file": "machine_speed__mid.mp3",
-   "ms": 888
+   "ms": 1032
   },
   "match the dial if you change it.": {
    "file": "match_the_dial_if_you_change_it__end.mp3",
@@ -19997,6 +19997,742 @@
   "31 minutes per kilometer.": {
    "file": "31_minutes_per_kilometer__end.mp3",
    "ms": 2136
+  },
+  "5 and a half kilometers.": {
+   "file": "5_and_a_half_kilometers__end.mp3",
+   "ms": 1776
+  },
+  "0 point 2 miles.": {
+   "file": "0_point_2_miles__end.mp3",
+   "ms": 1608
+  },
+  "4 point 6 miles.": {
+   "file": "4_point_6_miles__end.mp3",
+   "ms": 1584
+  },
+  "5 point 9 miles.": {
+   "file": "5_point_9_miles__end.mp3",
+   "ms": 1992
+  },
+  "8 point 1 miles.": {
+   "file": "8_point_1_miles__end.mp3",
+   "ms": 1464
+  },
+  "18 point 5 kph.": {
+   "file": "18_point_5_kph__end.mp3",
+   "ms": 3384
+  },
+  "5 point 4 mph.": {
+   "file": "5_point_4_mph__end.mp3",
+   "ms": 2256
+  },
+  "7 point 2 mph.": {
+   "file": "7_point_2_mph__end.mp3",
+   "ms": 2016
+  },
+  "6 point 1 mph.": {
+   "file": "6_point_1_mph__end.mp3",
+   "ms": 2016
+  },
+  "10 point 7 kph.": {
+   "file": "10_point_7_kph__end.mp3",
+   "ms": 2160
+  },
+  "6 point 9 mph.": {
+   "file": "6_point_9_mph__end.mp3",
+   "ms": 2520
+  },
+  "7 point 7 mph.": {
+   "file": "7_point_7_mph__end.mp3",
+   "ms": 2016
+  },
+  "12 point 4 kph.": {
+   "file": "12_point_4_kph__end.mp3",
+   "ms": 2376
+  },
+  "12 kph.": {
+   "file": "12_kph__end.mp3",
+   "ms": 1440
+  },
+  "1 chase.": {
+   "file": "1_chase__end.mp3",
+   "ms": 888
+  },
+  "10 chases.": {
+   "file": "10_chases__end.mp3",
+   "ms": 1056
+  },
+  "10 escapes.": {
+   "file": "10_escapes__end.mp3",
+   "ms": 936
+  },
+  "11 chases.": {
+   "file": "11_chases__end.mp3",
+   "ms": 1176
+  },
+  "12 chases.": {
+   "file": "12_chases__end.mp3",
+   "ms": 1080
+  },
+  "12 escapes.": {
+   "file": "12_escapes__end.mp3",
+   "ms": 1080
+  },
+  "2 chases.": {
+   "file": "2_chases__end.mp3",
+   "ms": 1032
+  },
+  "2 escapes.": {
+   "file": "2_escapes__end.mp3",
+   "ms": 1008
+  },
+  "3 chases.": {
+   "file": "3_chases__end.mp3",
+   "ms": 960
+  },
+  "3 escapes.": {
+   "file": "3_escapes__end.mp3",
+   "ms": 1344
+  },
+  "4 chases.": {
+   "file": "4_chases__end.mp3",
+   "ms": 936
+  },
+  "4 escapes.": {
+   "file": "4_escapes__end.mp3",
+   "ms": 840
+  },
+  "5 chases.": {
+   "file": "5_chases__end.mp3",
+   "ms": 1392
+  },
+  "5 escapes.": {
+   "file": "5_escapes__end.mp3",
+   "ms": 1224
+  },
+  "6 chases.": {
+   "file": "6_chases__end.mp3",
+   "ms": 1176
+  },
+  "6 escapes.": {
+   "file": "6_escapes__end.mp3",
+   "ms": 1248
+  },
+  "7 chases.": {
+   "file": "7_chases__end.mp3",
+   "ms": 1248
+  },
+  "7 escapes.": {
+   "file": "7_escapes__end.mp3",
+   "ms": 1296
+  },
+  "8 chases.": {
+   "file": "8_chases__end.mp3",
+   "ms": 1080
+  },
+  "8 escapes.": {
+   "file": "8_escapes__end.mp3",
+   "ms": 1128
+  },
+  "9 chases.": {
+   "file": "9_chases__end.mp3",
+   "ms": 1296
+  },
+  "9 escapes.": {
+   "file": "9_escapes__end.mp3",
+   "ms": 1128
+  },
+  "no escapes.": {
+   "file": "no_escapes__end.mp3",
+   "ms": 1104
+  },
+  "1 round.": {
+   "file": "1_round__end.mp3",
+   "ms": 1032
+  },
+  "1 minute work,": {
+   "file": "1_minute_work__mid.mp3",
+   "ms": 1296
+  },
+  "1 minute rest.": {
+   "file": "1_minute_rest__end.mp3",
+   "ms": 1296
+  },
+  "10 rounds.": {
+   "file": "10_rounds__end.mp3",
+   "ms": 792
+  },
+  "10 seconds work,": {
+   "file": "10_seconds_work__mid.mp3",
+   "ms": 1200
+  },
+  "10 seconds rest.": {
+   "file": "10_seconds_rest__end.mp3",
+   "ms": 1392
+  },
+  "11 rounds.": {
+   "file": "11_rounds__end.mp3",
+   "ms": 1152
+  },
+  "15 seconds work,": {
+   "file": "15_seconds_work__mid.mp3",
+   "ms": 1536
+  },
+  "15 seconds rest.": {
+   "file": "15_seconds_rest__end.mp3",
+   "ms": 1680
+  },
+  "12 rounds.": {
+   "file": "12_rounds__end.mp3",
+   "ms": 1104
+  },
+  "2 minutes work,": {
+   "file": "2_minutes_work__mid.mp3",
+   "ms": 1080
+  },
+  "2 minutes rest.": {
+   "file": "2_minutes_rest__end.mp3",
+   "ms": 1176
+  },
+  "13 rounds.": {
+   "file": "13_rounds__end.mp3",
+   "ms": 1392
+  },
+  "20 seconds work,": {
+   "file": "20_seconds_work__mid.mp3",
+   "ms": 1344
+  },
+  "20 seconds rest.": {
+   "file": "20_seconds_rest__end.mp3",
+   "ms": 1368
+  },
+  "14 rounds.": {
+   "file": "14_rounds__end.mp3",
+   "ms": 1008
+  },
+  "25 seconds work,": {
+   "file": "25_seconds_work__mid.mp3",
+   "ms": 1680
+  },
+  "25 seconds rest.": {
+   "file": "25_seconds_rest__end.mp3",
+   "ms": 1560
+  },
+  "15 rounds.": {
+   "file": "15_rounds__end.mp3",
+   "ms": 1368
+  },
+  "3 minutes work,": {
+   "file": "3_minutes_work__mid.mp3",
+   "ms": 1296
+  },
+  "3 minutes rest.": {
+   "file": "3_minutes_rest__end.mp3",
+   "ms": 1272
+  },
+  "16 rounds.": {
+   "file": "16_rounds__end.mp3",
+   "ms": 1200
+  },
+  "30 seconds work,": {
+   "file": "30_seconds_work__mid.mp3",
+   "ms": 1344
+  },
+  "30 seconds rest.": {
+   "file": "30_seconds_rest__end.mp3",
+   "ms": 1512
+  },
+  "17 rounds.": {
+   "file": "17_rounds__end.mp3",
+   "ms": 1728
+  },
+  "35 seconds work,": {
+   "file": "35_seconds_work__mid.mp3",
+   "ms": 1656
+  },
+  "35 seconds rest.": {
+   "file": "35_seconds_rest__end.mp3",
+   "ms": 1608
+  },
+  "18 rounds.": {
+   "file": "18_rounds__end.mp3",
+   "ms": 912
+  },
+  "19 rounds.": {
+   "file": "19_rounds__end.mp3",
+   "ms": 1224
+  },
+  "40 seconds work,": {
+   "file": "40_seconds_work__mid.mp3",
+   "ms": 1296
+  },
+  "45 seconds rest.": {
+   "file": "45_seconds_rest__end.mp3",
+   "ms": 1464
+  },
+  "2 rounds.": {
+   "file": "2_rounds__end.mp3",
+   "ms": 792
+  },
+  "45 seconds work,": {
+   "file": "45_seconds_work__mid.mp3",
+   "ms": 1536
+  },
+  "20 rounds.": {
+   "file": "20_rounds__end.mp3",
+   "ms": 1200
+  },
+  "5 minutes work,": {
+   "file": "5_minutes_work__mid.mp3",
+   "ms": 1296
+  },
+  "50 seconds rest.": {
+   "file": "50_seconds_rest__end.mp3",
+   "ms": 1248
+  },
+  "5 seconds work,": {
+   "file": "5_seconds_work__mid.mp3",
+   "ms": 1296
+  },
+  "55 seconds rest.": {
+   "file": "55_seconds_rest__end.mp3",
+   "ms": 1704
+  },
+  "50 seconds work,": {
+   "file": "50_seconds_work__mid.mp3",
+   "ms": 1464
+  },
+  "55 seconds work,": {
+   "file": "55_seconds_work__mid.mp3",
+   "ms": 1656
+  },
+  "3 rounds.": {
+   "file": "3_rounds__end.mp3",
+   "ms": 984
+  },
+  "4 rounds.": {
+   "file": "4_rounds__end.mp3",
+   "ms": 1080
+  },
+  "5 rounds.": {
+   "file": "5_rounds__end.mp3",
+   "ms": 1152
+  },
+  "6 rounds.": {
+   "file": "6_rounds__end.mp3",
+   "ms": 1176
+  },
+  "7 rounds.": {
+   "file": "7_rounds__end.mp3",
+   "ms": 1104
+  },
+  "9 rounds.": {
+   "file": "9_rounds__end.mp3",
+   "ms": 1104
+  },
+  "1 minute work.": {
+   "file": "1_minute_work__end.mp3",
+   "ms": 1056
+  },
+  "10 seconds work.": {
+   "file": "10_seconds_work__end.mp3",
+   "ms": 1128
+  },
+  "15 seconds work.": {
+   "file": "15_seconds_work__end.mp3",
+   "ms": 1728
+  },
+  "2 minutes work.": {
+   "file": "2_minutes_work__end.mp3",
+   "ms": 1176
+  },
+  "20 seconds work.": {
+   "file": "20_seconds_work__end.mp3",
+   "ms": 1368
+  },
+  "3 minutes work.": {
+   "file": "3_minutes_work__end.mp3",
+   "ms": 864
+  },
+  "30 seconds work.": {
+   "file": "30_seconds_work__end.mp3",
+   "ms": 1272
+  },
+  "35 seconds work.": {
+   "file": "35_seconds_work__end.mp3",
+   "ms": 1704
+  },
+  "4 minutes work.": {
+   "file": "4_minutes_work__end.mp3",
+   "ms": 1344
+  },
+  "40 seconds work.": {
+   "file": "40_seconds_work__end.mp3",
+   "ms": 1392
+  },
+  "5 minutes work.": {
+   "file": "5_minutes_work__end.mp3",
+   "ms": 1200
+  },
+  "5 seconds work.": {
+   "file": "5_seconds_work__end.mp3",
+   "ms": 1512
+  },
+  "50 seconds work.": {
+   "file": "50_seconds_work__end.mp3",
+   "ms": 1536
+  },
+  "55 seconds work.": {
+   "file": "55_seconds_work__end.mp3",
+   "ms": 1920
+  },
+  "10 meters.": {
+   "file": "10_meters__end.mp3",
+   "ms": 816
+  },
+  "ghost is ahead,": {
+   "file": "ghost_is_ahead__mid.mp3",
+   "ms": 1104
+  },
+  "100 meters.": {
+   "file": "100_meters__end.mp3",
+   "ms": 1176
+  },
+  "150 meters.": {
+   "file": "150_meters__end.mp3",
+   "ms": 1560
+  },
+  "20 meters.": {
+   "file": "20_meters__end.mp3",
+   "ms": 888
+  },
+  "200 meters.": {
+   "file": "200_meters__end.mp3",
+   "ms": 1296
+  },
+  "250 meters.": {
+   "file": "250_meters__end.mp3",
+   "ms": 1920
+  },
+  "300 meters.": {
+   "file": "300_meters__end.mp3",
+   "ms": 1776
+  },
+  "350 meters.": {
+   "file": "350_meters__end.mp3",
+   "ms": 1680
+  },
+  "40 meters.": {
+   "file": "40_meters__end.mp3",
+   "ms": 864
+  },
+  "400 meters.": {
+   "file": "400_meters__end.mp3",
+   "ms": 1056
+  },
+  "450 meters.": {
+   "file": "450_meters__end.mp3",
+   "ms": 2064
+  },
+  "50 meters.": {
+   "file": "50_meters__end.mp3",
+   "ms": 936
+  },
+  "500 meters.": {
+   "file": "500_meters__end.mp3",
+   "ms": 1344
+  },
+  "550 meters.": {
+   "file": "550_meters__end.mp3",
+   "ms": 2160
+  },
+  "60 meters.": {
+   "file": "60_meters__end.mp3",
+   "ms": 984
+  },
+  "650 meters.": {
+   "file": "650_meters__end.mp3",
+   "ms": 1704
+  },
+  "70 meters.": {
+   "file": "70_meters__end.mp3",
+   "ms": 1104
+  },
+  "750 meters.": {
+   "file": "750_meters__end.mp3",
+   "ms": 1584
+  },
+  "80 meters.": {
+   "file": "80_meters__end.mp3",
+   "ms": 1056
+  },
+  "800 meters.": {
+   "file": "800_meters__end.mp3",
+   "ms": 1608
+  },
+  "850 meters.": {
+   "file": "850_meters__end.mp3",
+   "ms": 1776
+  },
+  "90 meters.": {
+   "file": "90_meters__end.mp3",
+   "ms": 1248
+  },
+  "900 meters.": {
+   "file": "900_meters__end.mp3",
+   "ms": 1608
+  },
+  "950 meters.": {
+   "file": "950_meters__end.mp3",
+   "ms": 1536
+  },
+  "0 point 2 kilometers to go.": {
+   "file": "0_point_2_kilometers_to_go__end.mp3",
+   "ms": 1944
+  },
+  "0 point 2 miles to go.": {
+   "file": "0_point_2_miles_to_go__end.mp3",
+   "ms": 1848
+  },
+  "0 point 4 kilometers to go.": {
+   "file": "0_point_4_kilometers_to_go__end.mp3",
+   "ms": 1992
+  },
+  "0 point 4 miles to go.": {
+   "file": "0_point_4_miles_to_go__end.mp3",
+   "ms": 1896
+  },
+  "0 point 6 kilometers to go.": {
+   "file": "0_point_6_kilometers_to_go__end.mp3",
+   "ms": 2136
+  },
+  "0 point 6 miles to go.": {
+   "file": "0_point_6_miles_to_go__end.mp3",
+   "ms": 2040
+  },
+  "0 point 7 kilometers to go.": {
+   "file": "0_point_7_kilometers_to_go__end.mp3",
+   "ms": 2304
+  },
+  "0 point 7 miles to go.": {
+   "file": "0_point_7_miles_to_go__end.mp3",
+   "ms": 2184
+  },
+  "0 point 8 kilometers to go.": {
+   "file": "0_point_8_kilometers_to_go__end.mp3",
+   "ms": 2160
+  },
+  "0 point 8 miles to go.": {
+   "file": "0_point_8_miles_to_go__end.mp3",
+   "ms": 1896
+  },
+  "0 point 9 kilometers to go.": {
+   "file": "0_point_9_kilometers_to_go__end.mp3",
+   "ms": 2280
+  },
+  "0 point 9 miles to go.": {
+   "file": "0_point_9_miles_to_go__end.mp3",
+   "ms": 1920
+  },
+  "a tenth of a kilometer to go.": {
+   "file": "a_tenth_of_a_kilometer_to_go__end.mp3",
+   "ms": 1656
+  },
+  "a tenth of a mile to go.": {
+   "file": "a_tenth_of_a_mile_to_go__end.mp3",
+   "ms": 1464
+  },
+  "half a kilometer to go.": {
+   "file": "half_a_kilometer_to_go__end.mp3",
+   "ms": 1344
+  },
+  "half a mile to go.": {
+   "file": "half_a_mile_to_go__end.mp3",
+   "ms": 1200
+  },
+  "one kilometer to go.": {
+   "file": "one_kilometer_to_go__end.mp3",
+   "ms": 1416
+  },
+  "one mile to go.": {
+   "file": "one_mile_to_go__end.mp3",
+   "ms": 1512
+  },
+  "beat your own pace by 15 percent,": {
+   "file": "beat_your_own_pace_by_15_percent__mid.mp3",
+   "ms": 2376
+  },
+  "to escape and bank 15 x p.": {
+   "file": "to_escape_and_bank_15_x_p__end.mp3",
+   "ms": 2328
+  },
+  "banked,": {
+   "file": "banked__mid.mp3",
+   "ms": 1200
+  },
+  "10 x p.": {
+   "file": "10_x_p__end.mp3",
+   "ms": 1080
+  },
+  "lost,": {
+   "file": "lost__mid.mp3",
+   "ms": 1080
+  },
+  "5 x p.": {
+   "file": "5_x_p__end.mp3",
+   "ms": 1248
+  },
+  "8 x p.": {
+   "file": "8_x_p__end.mp3",
+   "ms": 840
+  },
+  "you beat your ghost,": {
+   "file": "you_beat_your_ghost__mid.mp3",
+   "ms": 1392
+  },
+  "ghost wins,": {
+   "file": "ghost_wins__mid.mp3",
+   "ms": 936
+  },
+  "you beat the ghost,": {
+   "file": "you_beat_the_ghost__mid.mp3",
+   "ms": 1344
+  },
+  "programme ended,": {
+   "file": "programme_ended__mid.mp3",
+   "ms": 1248
+  },
+  "to escape and bank 8 x p.": {
+   "file": "to_escape_and_bank_8_x_p__end.mp3",
+   "ms": 2184
+  },
+  "get caught and it costs 5 x p.": {
+   "file": "get_caught_and_it_costs_5_x_p__end.mp3",
+   "ms": 2208
+  },
+  "get caught and it costs 8 x p.": {
+   "file": "get_caught_and_it_costs_8_x_p__end.mp3",
+   "ms": 2064
+  },
+  "hold that.": {
+   "file": "hold_that__end.mp3",
+   "ms": 792
+  },
+  "drive the arms, the legs will follow": {
+   "file": "drive_the_arms_the_legs_will_follow__s.mp3",
+   "ms": 2424
+  },
+  "ten seconds harder, then settle": {
+   "file": "ten_seconds_harder_then_settle__s.mp3",
+   "ms": 1920
+  },
+  "hands loose, like you are holding a chip you do not want to break": {
+   "file": "hands_loose_like_you_are_holding_a_chip_you_do_not_want_to_break__s.mp3",
+   "ms": 3984
+  },
+  "land under your hips, not out in front": {
+   "file": "land_under_your_hips_not_out_in_front__s.mp3",
+   "ms": 2448
+  },
+  "breathe in for three steps, out for two": {
+   "file": "breathe_in_for_three_steps_out_for_two__s.mp3",
+   "ms": 2928
+  },
+  "eyes up, chest tall": {
+   "file": "eyes_up_chest_tall__s.mp3",
+   "ms": 2160
+  },
+  "shorter steps, same speed": {
+   "file": "shorter_steps_same_speed__s.mp3",
+   "ms": 2184
+  },
+  "take quicker, lighter steps and let your foot land under you": {
+   "file": "take_quicker_lighter_steps_and_let_your_foot_land_under_you__s.mp3",
+   "ms": 3312
+  },
+  "think quick and light, not long and hard": {
+   "file": "think_quick_and_light_not_long_and_hard__s.mp3",
+   "ms": 2736
+  },
+  "quicken the recovery, keep the drive strong": {
+   "file": "quicken_the_recovery_keep_the_drive_strong__s.mp3",
+   "ms": 2832
+  },
+  "strong drive, patient slide": {
+   "file": "strong_drive_patient_slide__s.mp3",
+   "ms": 2856
+  },
+  "quicker feet, full steps": {
+   "file": "quicker_feet_full_steps__s.mp3",
+   "ms": 1896
+  },
+  "stay smooth, stay ahead": {
+   "file": "stay_smooth_stay_ahead__s.mp3",
+   "ms": 2208
+  },
+  "recover, easy spin": {
+   "file": "recover_easy_spin__s.mp3",
+   "ms": 1992
+  },
+  "cool down, easy spin coming": {
+   "file": "cool_down_easy_spin_coming__s.mp3",
+   "ms": 1992
+  },
+  "cool down, easy spin": {
+   "file": "cool_down_easy_spin__s.mp3",
+   "ms": 1632
+  },
+  "recover, easy strokes coming": {
+   "file": "recover_easy_strokes_coming__s.mp3",
+   "ms": 1824
+  },
+  "recover, easy strokes": {
+   "file": "recover_easy_strokes__s.mp3",
+   "ms": 1800
+  },
+  "cool down, easy strokes": {
+   "file": "cool_down_easy_strokes__s.mp3",
+   "ms": 1872
+  },
+  "shadowbox, hands only": {
+   "file": "shadowbox_hands_only__s.mp3",
+   "ms": 2184
+  },
+  "shadowbox, kicks only": {
+   "file": "shadowbox_kicks_only__s.mp3",
+   "ms": 2136
+  },
+  "shadowbox, elbows only": {
+   "file": "shadowbox_elbows_only__s.mp3",
+   "ms": 2352
+  },
+  "chases": {
+   "file": "chases.mp3",
+   "ms": 840
+  },
+  "escapes": {
+   "file": "escapes.mp3",
+   "ms": 912
+  },
+  "0 seconds per kilometer.": {
+   "file": "0_seconds_per_kilometer__end.mp3",
+   "ms": 1824
+  },
+  "0 seconds per mile.": {
+   "file": "0_seconds_per_mile__end.mp3",
+   "ms": 1632
+  },
+  "programme ended": {
+   "file": "programme_ended.mp3",
+   "ms": 1296
+  },
+  "match the dial if you change it": {
+   "file": "match_the_dial_if_you_change_it.mp3",
+   "ms": 1800
+  },
+  "free run.": {
+   "file": "free_run__end.mp3",
+   "ms": 840
   }
  },
  "count": 1121,
