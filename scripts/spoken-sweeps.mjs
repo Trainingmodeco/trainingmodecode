@@ -303,10 +303,8 @@ export async function spokenSweeps() {
     sweep('Quick Mission', 'a generated mission\'s move, said the way the runner says it (lead, chained, next, switch, up next)', said);
   }
 
-  // Sources with a module of their own (scripts/sweeps). They join the test once
-  // their lines are recorded; SPOKEN_NEW_SWEEPS=1 runs them before that, to
-  // print what they need.
-  if (process.env.SPOKEN_NEW_SWEEPS) for (const m of NEW_SWEEP_MODULES) out.push(...await (await import(`./sweeps/${m}.mjs`)).default());
+  // Sources with a module of their own (scripts/sweeps): every line they build must play from recorded clips.
+  for (const m of NEW_SWEEP_MODULES) out.push(...await (await import(`./sweeps/${m}.mjs`)).default());
 
   return out;
 }
