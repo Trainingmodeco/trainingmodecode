@@ -97,12 +97,32 @@ export default async () => {
         plans.push({ campaignId: series.v2Campaign, stageId: stage.id, diff, exercises: plan.exercises });
         // App.jsx:854
         announcer.add(stripAnnouncer(S.announcerLine(series.v2Campaign, stage.id, diff, plan.exercises)));
-        // Fit finishers, App.jsx:857
+        // Fit finishers, App.jsx:878. No campaign stage has a 'fit' finisher today (stageFinishers returns [] for all
+        // of them: the finishers live on the FIGHT modules), so this sweep builds 0 lines. It stays so a finisher
+        // added to a fit module is guarded from the day it lands; the ones the app does say are swept below.
         const fins = S.stageFinishers(series.v2Campaign, stage.id, 'fit', diff);
         fins.forEach((f, i) => {
           // CampFitSetRunner.jsx:249 (the opening one) and :254 (the next ones)
           if (i === 0) finishers.add(`Finisher. ${f.movement}. ${f.work_sec} seconds. Go!`);
           else finishers.add(`${f.movement}. ${f.work_sec} seconds. Go!`);
+        });
+      }
+    }
+  }
+
+  // ── (b2): the FIGHT-path finishers, spoken by FightFocusTimer ──────────────
+  // App.jsx:886-888 withFightFinishers: base.finishers = stageFinishers(campaignId, stage.id, 'fight', diff) for every
+  // open stage except a boss finale (App.jsx:888 `if (!base.bossFinale)`, the flag arcadeCfg sets for isFinalBoss),
+  // at every difficulty, with no prescription needed (a fight stage has none). FightFocusTimer.jsx:618 and :723 say
+  // the first one as `Finisher. ${movement}. ${work_sec} seconds. Go!`, :664 each next one as
+  // `${movement}. ${work_sec} seconds. Go!`.
+  const fightFinishers = new Set();
+  for (const series of campaigns) {
+    for (const stage of series.stages) {
+      if (C.isFinalBoss(series.v2Campaign, stage.id)) continue;
+      for (const diff of DIFFS) {
+        S.stageFinishers(series.v2Campaign, stage.id, 'fight', diff).forEach((f, i) => {
+          fightFinishers.add(i === 0 ? `Finisher. ${f.movement}. ${f.work_sec} seconds. Go!` : `${f.movement}. ${f.work_sec} seconds. Go!`);
         });
       }
     }
@@ -124,15 +144,18 @@ export default async () => {
     const isHold = ex.duration_sec != null;
     if (!isHold && pol.voiceCount) for (let n = 1; n <= ex.reps; n++) counts.add(String(n));
     if (isHold) counts.add('Halfway.');
-    // CampFitSetRunner.jsx:229, rest after a set. A weighted set rests by adaptiveRest, any other by rest_sec or 60.
+    // CampFitSetRunner.jsx:218-229, rest after a set. A weighted set rests by adaptiveRest of the time the athlete
+    // took (COMPLETE is tapped by hand), any other set by rest_sec or 60. adaptiveRest (arcade-session-engine.ts:241)
+    // is clamp(took * 1.5, 60 or 90 by category, 240) rounded, and the runner passes no loadKg, so it saturates at
+    // 240 from a 160 s set on: every whole second of 0 to 400 s taken (a set cannot say a new value past that) is
+    // swept with the exercise's own category, and every distinct result is a rest the app can say.
     const restValues = new Set();
     if (pol.timedCompletion) {
       for (let took = 0; took <= 400; took++) restValues.add(E.adaptiveRest({ timeToCompleteSec: took, category: ex.category, reps: ex.reps }));
     } else restValues.add(ex.rest_sec || 60);
     // Names: after a set the next call names this exercise, after its last set the next one.
     const nexts = [ex.name]; if (nextName) nexts.push(nextName);
-    const realRests = pol.timedCompletion ? [ex.rest_sec || 60, 90, 120, 180, 240] : [...restValues];
-    for (const r of realRests) for (const n of nexts) rests.add(`Rest. ${r} seconds. Next: ${n}.`);
+    for (const r of restValues) for (const n of nexts) rests.add(`Rest. ${r} seconds. Next: ${n}.`);
   };
 
   for (const p of plans) {
@@ -211,7 +234,8 @@ export default async () => {
   push('Training Camp', 'Counted-sets runner, set calls as prescribed and after the weighted review toggle (CampFitSetRunner.jsx:181-184)', sets);
   push('Training Camp', 'Counted-sets runner, rest calls (CampFitSetRunner.jsx:229)', rests);
   push('Training Camp', 'Counted-sets runner, rep counts and Halfway (CampFitSetRunner.jsx:200-201)', counts);
-  push('Training Camp', 'Counted-sets runner, finishers (CampFitSetRunner.jsx:249, :254)', finishers);
+  push('Training Camp', 'Counted-sets runner, finishers (CampFitSetRunner.jsx:249, :254; builds 0 lines today, no fit stage has a finisher)', finishers);
+  push('Training Camp', 'Fight-path finishers (FightFocusTimer.jsx:618, :664, :723; App.jsx:886-888)', fightFinishers);
   push('Training Arcade', 'Legacy arcade cadence player, intro per task and Back-Balance option (ArcadeCadenceRepPlayer.jsx:153)', cadenceIntro);
   push('Training Arcade', 'Legacy arcade cadence player, rest and next workout (ArcadeCadenceRepPlayer.jsx:168)', cadenceRest);
   push('Training Arcade', 'Legacy arcade cadence player, rep counts (ArcadeCadenceRepPlayer.jsx:224)', cadenceCounts);

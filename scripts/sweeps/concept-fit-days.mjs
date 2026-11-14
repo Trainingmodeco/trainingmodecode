@@ -28,9 +28,18 @@
 // shown on screen only (FitBuilderWorkout.jsx:107 buildTitle), the coach note
 // (voiceIntro) is not said by the guided player, and "Load N" is the weight
 // the athlete types. The call-out quotes (QUOTES, :67) are fixed lines of the
-// player, not concept data. Rest seconds 1 to 300 and the rep count are proven
-// by the Quick Mission and Workout Builder sweeps in spoken-sweeps.mjs; here
-// the real values of the concepts are used as they come.
+// player, not concept data.
+//
+// What is and is not covered here. Only the REAL numbers of the concepts' days are
+// built: the sets, reps, hold seconds, weighted windows and rests that
+// fitDayExercises deals. The player's numbers over every value the screens allow
+// (rest "Set complete. Rest N." and "Round N complete. Rest N." for every second
+// of 15-300 as the edit sheet and the custom set scheme allow, "Set s of T" and
+// "Round r of R" for 1-8, reps 1-60, the weighted window with its rest, holds
+// 10-180 s, "N seconds down.", the working weight "Load N.") are NOT proven here
+// and are not proven by spoken-sweeps.mjs either (its Workout Builder sweep says
+// library names only): they are swept by sweeps/builder-numbers.mjs. (The Quick
+// Mission rest call over 1 to 300 s is a different screen, swept by spoken-sweeps.mjs.)
 import { libraryNameLines } from '../spoken-sweeps.mjs';
 
 const TIERS = ['easy', 'normal', 'hard'];

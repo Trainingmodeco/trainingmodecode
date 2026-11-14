@@ -33,8 +33,11 @@ function getEquipmentPrep(drill) {
 // generator (restored afterwards). The setup (CombatConditioningSetup.jsx:102,
 // :23-28, :528-530) offers: styles Boxing, Kickboxing / Muay Thai and MMA; the four
 // focus presets; difficulty Easy to Advanced; equipment NONE, BAG, WEIGHTS mapped to
-// Bodyweight, Bags & Combat Gear, Basic Gym; rounds 2-12, work 10-120 s in fives,
-// rest 0-90 s in fives. 'Any' and 'Full Gym' are added here too (the generator accepts them).
+// Bodyweight, Bags & Combat Gear, Basic Gym; rounds 2-12, work 10-120 s and rest 0-90 s.
+// The WORK and REST steppers step by five but their centre value is a text field (shared/Stepper.jsx
+// StepperRow: digits only, parsed by parseInt, clamped to min..max on blur), so ANY whole second of
+// 10-120 (work) and 0-90 (rest) can be typed and reaches the generator (CombatConditioningSetup.jsx:445
+// always passes both). 'Any' and 'Full Gym' are added here too (the generator accepts them).
 async function harvestCombatConditioning() {
   const G = await import('../../components/training-mode/data/combatConditioningGenerator.js');
   const D = await import('../../components/training-mode/data/combatConditioningData.js');
@@ -96,7 +99,7 @@ async function combatConditioning() {
 
   // Drill start, :312 (timed), :319 (reps on the cadence), :327 (reps, tap done).
   // Each name with every shape and every rep count the generator dealt for it
-  // (work seconds: the default 40 here, the whole 10-120 range is swept below).
+  // (work seconds: the default 40 here, every whole second of 10-120 is swept below).
   const drillStart = [];
   for (const name of names) {
     const e = seen.get(name);
@@ -109,23 +112,30 @@ async function combatConditioning() {
   }
 
   // The numbers of those lines, over every value the setup and the data give a
-  // drill: work 10-120 s in fives (setup stepper), reps 1 to the largest dealt.
-  // One name of each prep kind is enough for the number part.
+  // drill: work every whole second of 10-120 (the WORK field is typable, the
+  // generator hands the number to every timed drill unchanged), reps 1 to the
+  // largest dealt. One name of each prep kind is enough for the number part.
+  // The player says the work time as `${d.workSeconds || 30} seconds`
+  // (CombatConditioningActive.jsx:343): there is no minutes formatter on this
+  // line (60 and 90 are said "60 seconds" and "90 seconds", and normalizeSpeech
+  // only rewrites a clock time such as "1:30"), so nothing else is built.
   const probe = ['Burpees', 'Heavy Bag Power Punch Intervals', 'Kettlebell Swings'];
   const numbers = [];
   for (const name of probe) {
-    for (const w of range(10, 120, 5)) numbers.push(`${name}. ${w} seconds. Ready. Begin.`);
+    for (const w of range(10, 120)) numbers.push(`${name}. ${w} seconds. Ready. Begin.`);
     for (let r = 1; r <= maxReps; r++) numbers.push(`${name}. ${r} reps. On my count. Begin.`, `${name}. ${r} reps. Move with control. Tap done when complete.`);
   }
   // (`${d.reps || '--'}` at :327 says "--" only for a reps drill with no reps; the
   // generator always gives a reps drill a count, so that line is never built.)
 
-  // Rest between drills, :378. The seconds are the REST stepper (0-90 in fives;
-  // 0 is said as 15 because of `|| 15`). The name is every drill of the pools as
-  // "next", with the prep sentence getEquipmentPrep gives it.
+  // Rest between drills, CombatConditioningActive.jsx:412, `Rest. ${drill.restSeconds || 15} seconds.`
+  // The seconds are the REST field, every whole second of 0-90 (0 is said as 15
+  // because of `|| 15`, so 1-90 plus the 15 already built for every name). Said
+  // as plain seconds like the work time, no minutes form. The name is every drill
+  // of the pools as "next", with the prep sentence getEquipmentPrep gives it.
   const rest = [];
   for (const name of names) rest.push(`Rest. 15 seconds. Up next: ${name}. ${getEquipmentPrep({ name })}`);
-  for (const name of probe) for (const sec of range(5, 90, 5)) rest.push(`Rest. ${sec} seconds. Up next: ${name}. ${getEquipmentPrep({ name })}`);
+  for (const name of probe) for (const sec of range(1, 90)) rest.push(`Rest. ${sec} seconds. Up next: ${name}. ${getEquipmentPrep({ name })}`);
 
   // End of a round, :365. Rounds 2-12 are offered, so rounds 1-11 end with a
   // next round. pausesThisRoundRef is reset to 0 on the line just before the
@@ -142,8 +152,8 @@ async function combatConditioning() {
   return [
     { feature: 'Combat Conditioning', name: 'player opener, round end and closing', lines: [...opener, ...rounds, ...closing] },
     { feature: 'Combat Conditioning', name: 'drill start for every drill the generator can deal', lines: drillStart },
-    { feature: 'Combat Conditioning', name: 'drill start numbers (work 10-120 s, reps 1 to max)', lines: numbers },
-    { feature: 'Combat Conditioning', name: 'rest call for every drill as next, with its prep sentence', lines: rest },
+    { feature: 'Combat Conditioning', name: 'drill start numbers (work every second 10-120, reps 1 to max)', lines: numbers },
+    { feature: 'Combat Conditioning', name: 'rest call for every drill as next, with its prep sentence (rest every second 0-90)', lines: rest },
     { feature: 'Combat Conditioning', name: 'cadence rep count', lines: counts },
   ];
 }

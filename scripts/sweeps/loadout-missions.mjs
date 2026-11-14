@@ -3,22 +3,50 @@
 // builders (data/missionMoves.js, data/missionSolo.js) the way
 // components/training-mode/QuickMissionActive.jsx calls them.
 //
-// Which missions: every def, at every level it offers, under several gear
-// profiles (all gear, no gear, and each single piece of gear: a base move whose
-// gear is missing opens on its first allowed alternative), and every one-swap
-// variant the swap sheet can reach (reachableMoves of each row, applied with
-// swapMissionMove from the built base). Two-row swaps only for the intro line
-// "Swapped in: A, B." (the one line that names more than one swapped move).
+// Which missions: every def, at every level it offers, under every gear
+// profile (a base move whose gear is missing opens on its first allowed
+// alternative, and which alternatives a swap can reach depends on the gear),
+// and every one-swap variant the swap sheet can reach (reachableMoves of each
+// row, applied with swapMissionMove from the built base). Two-row swaps only
+// for the intro line "Swapped in: A, B." (the one line that names more than one
+// swapped move).
+//
+// Gear profiles. The profile is gearProfile() (loadoutMissions.js:1578): 'none'
+// plus 'bag' when the Heavy Bag is ticked in the equipment profile, so TODAY the
+// app can only produce {none} and {none, bag}; the other kinds of GEAR_TAGS
+// (bell, db, barbell, plate, rower, box, bar) come from the mission's own
+// loadout (LOADOUT_GEAR), not from the profile. The profile is nonetheless the
+// one input the builders take (every call passes `gear`), so every SUBSET of the
+// eight kinds is swept: 256 profiles, each built per def and level, and one
+// whose built slot list and reachable moves (with their count multipliers) equal
+// those of a profile already built adds nothing and is skipped. The lines that
+// only a profile of two or more pieces builds (none of them reachable until
+// gearProfile() maps a second kind) are kept apart in their own sweep at the
+// end, so they can be told from the lines of {none}, {none, X} and all gear.
+// MEASURED (2026-11-14): across the 256 profiles every mission a profile of two
+// or more pieces builds, base or one swap, is the same mission {none}, {none, X}
+// or all gear builds (2089 distinct built missions in each pass), so that last
+// sweep is empty today. (An earlier look found 36 such "only multi-piece" lines,
+// e.g. first_bell beginner "Minute 21. 10 swings."; they came from calling
+// leadLine for round 2 of a one-round mission and with rounds = total on an
+// until-down run, which the runner never does, QuickMissionActive.jsx:374.)
 //
 // Round-dependent text ("Round 3.", "Minute 7.", the rest tip of the round)
-// depends on the round and not on the swap, so the base builds run every round
-// and a swapped variant runs rounds 1, 2 and the last.
+// depends on the round and not on the swap, but a swapped variant is built
+// at EVERY round and minute all the same: that costs little and adds lines.
+// MEASURED: against rounds 1, 2 and the last it adds 2634 distinct lines
+// (lead lines +1696, rest openers +938), none needing a phrase the other lines
+// do not already need (see SWAPPED_EVERY_ROUND below).
+import process from 'node:process';
 import { buildLoadoutMission, swapMissionMove, reachableMoves, LOADOUT_MISSIONS, levelsOf } from '../../components/training-mode/data/loadoutMissions.js';
 import * as M from '../../components/training-mode/data/missionMoves.js';
 import * as S from '../../components/training-mode/data/missionSolo.js';
 import { QM_WEIGHT_BRIEF } from '../../components/training-mode/data/quickMissionTiming.js';
 
 const FEATURE = 'Quick Mission';
+// Measurement switch: SWEEP_SWAPPED_SPARSE=1 builds a swapped variant at rounds 1, 2 and the last only (the
+// module's earlier behavior), to count the lines the every-round build adds. Never set in the test.
+const SWAPPED_EVERY_ROUND = !process.env.SWEEP_SWAPPED_SPARSE;
 
 export default async () => {
   // Gear profile comes from localStorage unless passed; every call here passes it.
@@ -26,14 +54,23 @@ export default async () => {
     const store = new Map();
     globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), clear: () => store.clear(), key: () => null, length: 0 };
   }
-  const gearSets = [new Set(M.GEAR_TAGS), new Set(['none']), ...M.GEAR_TAGS.filter((g) => g !== 'none').map((g) => new Set(['none', g]))];
+  // Every subset of the gear kinds (the 'none' of GEAR_TAGS is always in a profile). Profiles of at most one piece
+  // and all gear (the first pass) are told from the profiles of two or more pieces short of all (the second pass).
+  const kinds = M.GEAR_TAGS.filter((g) => g !== 'none');
+  const allProfiles = [];
+  for (let mask = 0; mask < (1 << kinds.length); mask++) allProfiles.push({ pieces: kinds.filter((_, i) => mask & (1 << i)), mask });
+  const toSet = (p) => new Set(['none', ...p.pieces]);
+  const FULL = (1 << kinds.length) - 1;
+  const gearSets = [new Set(M.GEAR_TAGS), ...allProfiles.filter((p) => p.pieces.length <= 1 && p.mask !== FULL).map(toSet)];
+  const multiGearSets = allProfiles.filter((p) => p.pieces.length >= 2 && p.mask !== FULL).map(toSet);
 
-  const sets = {
-    intro: new Set(), introPairs: new Set(), lead: new Set(), chained: new Set(), workStart: new Set(), rest: new Set(), count: new Set(),
-    nearEnd: new Set(), calls: new Set(), down: new Set(), max: new Set(), misc: new Set(),
-  };
+  const KEYS = ['intro', 'introPairs', 'lead', 'chained', 'workStart', 'rest', 'count', 'nearEnd', 'calls', 'down', 'max', 'misc'];
+  const newSets = () => Object.fromEntries(KEYS.map((k) => [k, new Set()]));
+  const sets = newSets();      // the first pass: {none}, {none, X} and all gear
+  const multi = newSets();     // the second pass: every other subset
+  let target = sets;
   let maxTop = 200; // at least the 0-200 range of the earlier audit
-  const add = (k, line) => { if (typeof line === 'string' && line.trim()) sets[k].add(line); };
+  const add = (k, line) => { if (typeof line === 'string' && line.trim()) target[k].add(line); };
 
   // The slots a run plays, in order, with the same "next" the runner uses
   // (getNextExerciseInfo: the next slot, the first of the next round, or none).
@@ -128,54 +165,69 @@ export default async () => {
     }
   };
 
-  const built = [];
-  const seen = new Set();
-  const push = (m, full) => {
-    if (!m) return;
-    const key = JSON.stringify([m.id, m.level, m.exercises.map((s) => [s.moveId || s.name, s.mode, s.reps, s.work, s.rest, s.cadenceMs, s.max, s.leave, s.cap, (s.list || []).map((t) => [t.moveId, t.reps, t.work])]), full]);
-    if (seen.has(key)) return;
-    seen.add(key);
-    built.push([m, full]);
-  };
-
-  for (const def of LOADOUT_MISSIONS) {
-    for (const lv of levelsOf(def)) {
-      for (const gear of gearSets) {
-        const base = buildLoadoutMission(def.id, { level: lv.id, gear });
-        if (!base) continue;
-        push(base, true);
-        const keys = M.rowItems(base).map(({ item }) => item.swapKey);
-        const swapped = [];
-        for (const key of keys) {
-          for (const moveId of reachableMoves(base, key, { gear }).keys()) {
-            const m2 = swapMissionMove(base, key, moveId, { gear });
-            if (m2 === base) continue;
-            push(m2, false);
-            swapped.push([key, moveId, m2]);
+  // One pass over a list of profiles. A mission is built once per distinct content (the dedupe key), and a profile
+  // whose built base and reachable moves (with their count multipliers) are those of an earlier profile of the same
+  // def and level is skipped whole: the swap variants, the pairs and so the lines would be the same.
+  const sigSeen = new Set();
+  const runPass = (profiles, into) => {
+    const built = [];
+    const seen = new Set();
+    const push = (m, full) => {
+      if (!m) return;
+      const key = JSON.stringify([m.id, m.level, m.exercises.map((s) => [s.moveId || s.name, s.mode, s.reps, s.work, s.rest, s.cadenceMs, s.max, s.leave, s.cap, (s.list || []).map((t) => [t.moveId, t.reps, t.work])]), full]);
+      if (seen.has(key) || builtAll.has(key)) return;
+      seen.add(key); builtAll.add(key);
+      built.push([m, full]);
+    };
+    target = into;
+    for (const def of LOADOUT_MISSIONS) {
+      for (const lv of levelsOf(def)) {
+        for (const gear of profiles) {
+          const base = buildLoadoutMission(def.id, { level: lv.id, gear });
+          if (!base) continue;
+          const keys = M.rowItems(base).map(({ item }) => item.swapKey);
+          const reach = keys.map((key) => [key, reachableMoves(base, key, { gear })]);
+          const sig = JSON.stringify([def.id, lv.id, base.exercises, reach.map(([k, r]) => [k, [...r].map(([id, v]) => `${id}:${v.x}`).sort()])]);
+          if (sigSeen.has(sig)) continue;
+          sigSeen.add(sig);
+          push(base, true);
+          const swapped = [];
+          for (const [key, moves] of reach) {
+            for (const moveId of moves.keys()) {
+              const m2 = swapMissionMove(base, key, moveId, { gear });
+              if (m2 === base) continue;
+              push(m2, SWAPPED_EVERY_ROUND);
+              swapped.push([key, moveId, m2]);
+            }
           }
-        }
-        // Two different rows swapped: only the intro line "Swapped in: A, B." differs.
-        for (let i = 0; i < swapped.length; i++) {
-          for (let j = i + 1; j < swapped.length; j++) {
-            if (swapped[i][0] === swapped[j][0]) continue;
-            const both = swapMissionMove(swapped[i][2], swapped[j][0], swapped[j][1], { gear });
-            add('introPairs', M.swappedInLine(both));
+          // Two different rows swapped: only the intro line "Swapped in: A, B." differs.
+          for (let i = 0; i < swapped.length; i++) {
+            for (let j = i + 1; j < swapped.length; j++) {
+              if (swapped[i][0] === swapped[j][0]) continue;
+              const both = swapMissionMove(swapped[i][2], swapped[j][0], swapped[j][1], { gear });
+              add('introPairs', M.swappedInLine(both));
+            }
           }
         }
       }
     }
-  }
-
-  for (const [m, full] of built) {
-    const total = m.rounds || 1;
-    const rounds = full ? Array.from({ length: total }, (_, i) => i + 1) : [...new Set([1, 2, total].filter((r) => r >= 1 && r <= total))];
-    sweepMission(m, rounds);
-  }
+    for (const [m, full] of built) {
+      const total = m.rounds || 1;
+      const rounds = full ? Array.from({ length: total }, (_, i) => i + 1) : [...new Set([1, 2, total].filter((r) => r >= 1 && r <= total))];
+      sweepMission(m, rounds);
+    }
+  };
+  const builtAll = new Set();
+  runPass(gearSets, sets);
+  runPass(multiGearSets, multi);
+  target = sets;
   // Done. N reps. for every total a MAX REPS run can reach (0 up to the largest bound found above).
   for (let n = 0; n <= maxTop; n++) add('max', M.maxFinishLine(n));
 
   const list = (k) => [...sets[k]];
   const named = (name, k) => ({ feature: FEATURE, name, lines: list(k) });
+  // What only a profile of two or more pieces builds: the lines of the second pass the first has not got.
+  const onlyMulti = KEYS.flatMap((k) => [...multi[k]].filter((l) => !sets[k].has(l)));
   return [
     named('loadout missions: intro lines (weight brief, swapped in, intro say, MAX OUT safety)', 'intro'),
     named('loadout missions: intro line with two rows swapped (Swapped in: A, B.)', 'introPairs'),
@@ -189,5 +241,6 @@ export default async () => {
     named('loadout missions: until-down finish lines', 'down'),
     named('loadout missions: MAX REPS finish lines', 'max'),
     named('loadout missions: fixed lines (Still going, cap call)', 'misc'),
+    { feature: FEATURE, name: 'loadout missions: lines only a gear profile of two or more pieces builds (not reachable until gearProfile() maps a second kind)', lines: onlyMulti },
   ];
 };
