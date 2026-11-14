@@ -6,6 +6,9 @@
 // the screens they name: a range here that is narrower than the UI is a line
 // nobody checked.
 import fs from 'node:fs';
+import process from 'node:process';
+
+export const NEW_SWEEP_MODULES = ['loadout-missions', 'named-workouts', 'concept-fit-days', 'concept-fight-days', 'arcade-campaigns', 'small-sources'];
 
 const TM = new URL('../components/training-mode/', import.meta.url);
 
@@ -299,6 +302,11 @@ export async function spokenSweeps() {
     }
     sweep('Quick Mission', 'a generated mission\'s move, said the way the runner says it (lead, chained, next, switch, up next)', said);
   }
+
+  // Sources with a module of their own (scripts/sweeps). They join the test once
+  // their lines are recorded; SPOKEN_NEW_SWEEPS=1 runs them before that, to
+  // print what they need.
+  if (process.env.SPOKEN_NEW_SWEEPS) for (const m of NEW_SWEEP_MODULES) out.push(...await (await import(`./sweeps/${m}.mjs`)).default());
 
   return out;
 }
