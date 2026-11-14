@@ -2069,6 +2069,83 @@ await check('practice tutorial plays', async () => {
   const t = await page.evaluate(() => { const v = document.querySelector('video'); return v ? v.currentTime : -1; });
   if (!(t > 0.5)) throw new Error(`the tutorial did not play (currentTime ${t})`);
 }, /KEY POINTS/);
+// Shadowboxing in Practice: the owner's clips arrive as assets (public/static/practice/shadow/index.json), so
+// without that file Practice looks as it always did, and with it a SHADOWBOXING row opens the clips by discipline.
+await check('practice: no shadowboxing row while no clips are delivered', async () => {
+  await fight(); await page.locator('.ft.prac').click(); await S(1500);
+  if (await page.locator('[data-testid="shadow-entry"]').count()) throw new Error('the SHADOWBOXING row shows with no clip list');
+}, /PRACTICE MODE/);
+await check('practice: SHADOWBOXING lists the clips by discipline, plays one and steps through them', async () => {
+  const clips = [
+    { id: 'jab-cross', discipline: 'Boxing', group: 'Combinations', title: 'Jab, cross', video: 'jab-cross.mp4', seconds: 24, level: 'Beginner', note: 'Chin down.' },
+    { id: 'slip-counter', discipline: 'Boxing', group: 'Combinations', title: 'Slip and counter', video: 'slip-counter.mp4', seconds: 38 },
+    { id: 'pivot-flow', discipline: 'Boxing', group: 'Footwork', title: 'Pivot flow', video: 'pivot-flow.mp4', seconds: 60, level: 'Advanced' },
+    { id: 'sprawl-flow', discipline: 'MMA', group: 'Defence', title: 'Sprawl flow', video: 'sprawl-flow.mp4', seconds: 15 },
+    { id: 'bad one', discipline: 'Boxing', title: 'Not a clip', video: '../x.mp4' },
+  ];
+  await page.route('**/static/practice/shadow/index.json', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ clips }) }));
+  await page.route('**/static/practice/shadow/*.{mp4,webp}', (r) => r.fulfill({ status: 404, body: '' }));
+  try {
+    await fight(); await page.locator('.ft.prac').click(); await S(1800);
+    const entry = page.locator('[data-testid="shadow-entry"]');
+    if (!(await entry.count())) throw new Error('no SHADOWBOXING row on Practice');
+    if (!/SHADOWBOXING[\s\S]*3 BOXING CLIPS/.test(await entry.innerText())) throw new Error('the row does not count the 3 Boxing clips: ' + (await entry.innerText()).replace(/\n/g, ' '));
+    await entry.click({ timeout: 4000 }); await S(800);
+    const t = await text();
+    if (!/SHADOWBOXING/.test(t) || !/3 CLIPS/.test(t) || !/COMBINATIONS · 2/.test(t) || !/FOOTWORK · 1/.test(t)) throw new Error('the list is not 3 Boxing clips in two groups: ' + t.slice(0, 200).replace(/\n/g, ' '));
+    if ((await page.locator('.sb-tile').count()) !== 3) throw new Error('not 3 tiles (the bad entry must be dropped)');
+    await page.getByRole('tab', { name: /MMA/i }).click({ timeout: 4000 }); await S(500);
+    if ((await page.locator('.sb-tile').count()) !== 1 || !/Sprawl flow/.test(await text())) throw new Error('MMA does not list its one clip');
+    await page.getByRole('tab', { name: /BOXING/i }).first().click({ timeout: 4000 }); await S(500);
+    await page.getByRole('button', { name: 'Play Jab, cross' }).click({ timeout: 4000 }); await S(800);
+    const dlg = page.locator('[data-testid="shadow-player"]');
+    if (!(await dlg.count())) throw new Error('the clip card did not open');
+    const v = await page.evaluate(() => { const el = document.querySelector('[data-testid="shadow-player"] video'); return el ? { src: el.getAttribute('src'), poster: el.getAttribute('poster'), muted: el.muted } : null; });
+    if (!v || v.src !== '/static/practice/shadow/jab-cross.mp4' || v.poster !== '/static/practice/shadow/jab-cross.webp') throw new Error('wrong video: ' + JSON.stringify(v));
+    if (!/1 \/ 3/.test(await dlg.innerText()) || !/Chin down\./.test(await dlg.innerText())) throw new Error('the card shows no position or note');
+    if (!(await dlg.getByRole('button', { name: /PREVIOUS/ }).isDisabled())) throw new Error('PREVIOUS is live on the first clip');
+    await dlg.getByRole('button', { name: /NEXT/ }).click({ timeout: 4000 }); await S(500);
+    if (!/Slip and counter/.test(await dlg.innerText()) || !/2 \/ 3/.test(await dlg.innerText())) throw new Error('NEXT did not go to the second clip');
+    await dlg.getByRole('button', { name: /NEXT/ }).click({ timeout: 4000 }); await S(500);
+    if (!/Pivot flow/.test(await dlg.innerText()) || !(await dlg.getByRole('button', { name: /NEXT/ }).isDisabled())) throw new Error('the last clip does not end the list');
+    await dlg.getByRole('button', { name: 'Close' }).last().click({ timeout: 4000 }); await S(400);
+    if (await page.locator('[data-testid="shadow-player"]').count()) throw new Error('the card did not close');
+    // The card's action goes on to Combo Coach, and Back returns to Practice.
+    await page.getByRole('button', { name: 'Play Pivot flow' }).click({ timeout: 4000 }); await S(600);
+    await page.locator('[data-testid="shadow-player"]').getByRole('button', { name: /DRILL A COMBO/ }).click({ timeout: 4000 }); await S(1500);
+    if (!/START COMBOS|COMBO COACH/i.test(await text())) throw new Error('DRILL A COMBO did not open Combo Coach');
+    await fight(); await page.locator('.ft.prac').click(); await S(1500);
+    await page.locator('[data-testid="shadow-entry"]').click({ timeout: 4000 }); await S(600);
+    await page.getByRole('button', { name: 'Back to Practice' }).click({ timeout: 4000 }); await S(600);
+    if (!/PRACTICE MODE/.test(await text())) throw new Error('Back did not return to Practice');
+  } finally {
+    await page.unroute('**/static/practice/shadow/index.json'); await page.unroute('**/static/practice/shadow/*.{mp4,webp}');
+  }
+}, /PRACTICE MODE/);
+// The row costs the library grid a line of height: on the smallest phones Practice still shows its entry rows, the
+// grid and the DRILL A COMBO button above the tab bar.
+await check('practice: with shadowboxing clips the screen still fits 412x811 and 360x740', async () => {
+  const clips = [{ id: 'a', discipline: 'Boxing', group: 'Combinations', title: 'Jab, cross', video: 'a.mp4', seconds: 20 }];
+  await page.route('**/static/practice/shadow/index.json', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ clips }) }));
+  try {
+    for (const [w, h] of [[412, 811], [360, 740]]) {
+      await page.setViewportSize({ width: w, height: h });
+      await fight(); await page.locator('.ft.prac').click(); await S(1800);
+      const m = await page.evaluate(() => {
+        const box = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; };
+        const combo = [...document.querySelectorAll('button')].find((b) => /DRILL A COMBO/.test(b.innerText));
+        return { h: innerHeight, w: innerWidth, row: box(document.querySelector('[data-testid="shadow-entry"]')), combo: box(combo), tile: box(document.querySelector('.pm-tile')), doc: document.documentElement.scrollWidth };
+      });
+      if (!m.row || !m.combo || !m.tile) throw new Error(`${w}x${h}: the row, the grid or DRILL A COMBO is missing`);
+      if (m.row.right > m.w + 1 || m.row.left < -1) throw new Error(`${w}x${h}: the SHADOWBOXING row overflows sideways`);
+      if (m.combo.bottom > m.h - 40) throw new Error(`${w}x${h}: DRILL A COMBO sits under the tab bar (${Math.round(m.combo.bottom)} of ${m.h})`);
+      if (m.tile.top < m.row.bottom) throw new Error(`${w}x${h}: the grid starts above the row`);
+      if (m.doc > m.w + 1) throw new Error(`${w}x${h}: the page scrolls sideways`);
+    }
+  } finally {
+    await page.setViewportSize({ width: 390, height: 844 }); await page.unroute('**/static/practice/shadow/index.json');
+  }
+}, /PRACTICE MODE/);
 await check('combat conditioning start', async () => { await fight(); await page.locator('.ft.cond').click(); await S(1500); await page.locator('text=GAS TANK').first().click(); await S(600); await btn(/START CIRCUIT/).click({ timeout: 4000 }); await S(4000); }, /ROUND|DRILL|WARM/i);
 
 // A phone that will not keep what the app saves (full or blocked storage, an in-app browser, wiped site data)

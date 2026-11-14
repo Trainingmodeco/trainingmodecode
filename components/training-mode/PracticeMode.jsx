@@ -8,6 +8,8 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
 import { FightBackdrop } from './shared/FightTimerKit';
 import PracticeRound from './PracticeRound';
+import PracticeShadowboxing from './PracticeShadowboxing';
+import { loadShadowClips, shadowClipsFor } from './data/shadowboxing';
 import { addStartHereLesson, addPracticeSession, addPracticeWeeklyBonus } from './data/userStats';
 import { loadProfile, isBeginnerLearner } from './data/userProfile';
 import { primeSpeech, setVoiceGender, speakAsync, cancelSpeech, stopVoiceSession, delay } from './voiceCoach';
@@ -293,6 +295,14 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
   const [round, setRound] = useState(null);     // the open Practice Round
   const [toast, setToast] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  // The shadowboxing clips (public/static/practice/shadow/index.json). None, and the screen looks as it always did.
+  const [shadowClips, setShadowClips] = useState([]);
+  const [shadowOpen, setShadowOpen] = useState(false);
+  useEffect(() => {
+    let live = true;
+    loadShadowClips().then((list) => { if (live) setShadowClips(list); });
+    return () => { live = false; };
+  }, []);
   const [completed, setCompleted] = useState(() => getCompletedLessons());
   const [drilled, setDrilled] = useState(() => getLibraryDrilled(discipline));
   useEffect(() => { setDrilled(getLibraryDrilled(discipline)); }, [discipline]);
@@ -392,6 +402,11 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
   const lesson = basics[current];
   const allDone = nextIndex < 0;
 
+  if (shadowOpen && shadowClips.length) {
+    return <PracticeShadowboxing clips={shadowClips} onBack={() => setShadowOpen(false)} onComboCoach={onComboCoach}/>;
+  }
+  const shadowHere = shadowClipsFor(shadowClips, discipline).length;
+
   return (
     <PhoneFrame useBrandBg>
       <FightBackdrop/>
@@ -477,6 +492,22 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
             <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lesson.subtitle}</span>
           </div>
         </div>
+
+        {shadowClips.length > 0 && (
+          <button type="button" className="pm-hit pm-txt" data-testid="shadow-entry" data-guide="pm-shadow" onClick={() => setShadowOpen(true)} style={{
+            display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, height: 40, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
+            background: '#0B0F22', border: '1px solid rgba(168,85,247,.45)', color: '#fff', textAlign: 'left',
+          }}>
+            <span style={{
+              width: 24, height: 24, flexShrink: 0, borderRadius: '50%', color: '#1A1204', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)',
+            }}><Play size={10} style={{ marginLeft: 1 }}/></span>
+            <span style={{ font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.1em', flexGrow: 1, whiteSpace: 'nowrap' }}>SHADOWBOXING</span>
+            <span style={{ ...label, letterSpacing: '0.1em', color: '#8FB4FF', whiteSpace: 'nowrap' }}>
+              {shadowHere ? `${shadowHere} ${discipline.toUpperCase()} CLIPS` : `${shadowClips.length} CLIPS`} ›
+            </span>
+          </button>
+        )}
 
         <div data-guide="pm-library" style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 auto', minHeight: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexShrink: 0 }}>

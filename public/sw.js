@@ -73,8 +73,10 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   // Video streams in byte ranges (Safari plays video only from 206 partial
   // responses) and the Cache API refuses partial responses, so the Practice
-  // tutorials (/static/practice/*.mp4) go straight to the network.
-  if (/\.(mp4|webm)$/i.test(url.pathname)) return;
+  // tutorials (/static/practice/*.mp4) go straight to the network. So does the
+  // shadowboxing clip list (a stale copy would hide a new delivery), which the
+  // app reads on opening Practice and treats a failed read as "no clips".
+  if (/\.(mp4|webm)$/i.test(url.pathname) || url.pathname === '/static/practice/shadow/index.json') return;
 
   // Standalone documents (privacy.html, 404.html…) are NOT the SPA. Two bugs
   // lived here (beta ND-03): a failed fetch fell back to the cached app shell,

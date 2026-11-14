@@ -346,6 +346,14 @@ HOW MUCH TO MAKE (guidance):
       Still to film: stances, punches, teeps, low kick, clinch knees,
         specials. Delivered by the console chat; the two chats share what
         each needs in HANDOFF.md.
+- [ ] 1.8 Shadowboxing in Practice (Nov 14). The owner's ~141 follow-along
+      clips (10 s to a minute) go in Fight Mode > Practice > SHADOWBOXING.
+      Built and waiting for footage: a SHADOWBOXING row on Practice (shown only
+      when `public/static/practice/shadow/index.json` holds a clip), a screen of
+      the clips by discipline and group with a player card (PREVIOUS / NEXT,
+      DRILL A COMBO). The console delivers files only (format in HANDOFF.md,
+      2026-11-14); `npm run test:shadow` and two smoke checks cover it. Open:
+      the footage, and what each clip is called and grouped under.
 
 ## PHASE 2 — TRAINING CAMP + ARCADE v2 (protocol-driven; PRO tier)
 > PROTOCOL LANDED Jul 21 (`protocol-src/` on `app`, merged via PR #2 from the

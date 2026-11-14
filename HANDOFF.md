@@ -40,9 +40,48 @@ and the app chat doesn't edit `TM Social Console/`.
   clinch knee and clinch side knee; the specials (flying knee, hurricane kick,
   spinning back fist, double-hand punch, fake teep to sliding elbow, spinning
   jump kick optional); lead and rear spear elbow (the owner names the clips).
-- **Console needs from the app:** nothing right now.
+- **App needs from the console, shadowboxing:** the owner's ~141 follow-along
+  shadowboxing clips (10 s to a minute each) go in **Fight Mode › Practice ›
+  SHADOWBOXING**. Deliver them as assets only, in the format below. Aim for
+  720p at about 1 MB per 25 s (or 540p if the set runs heavy: 141 clips is
+  well over 100 MB in the repo), muted is fine, and a poster per clip.
+- **Console needs from the app:** nothing right now (the shadowboxing format is
+  in the log, newest entry).
 
 ## Log
+
+### 2026-11-14 · app → console · Shadowboxing section in Practice (format for the delivery)
+
+- **Where.** Fight Mode › Practice shows a SHADOWBOXING row (under the
+  Fundamentals Path) once the list below holds a clip; it opens a screen of the
+  clips by discipline (the same Boxing / Kickboxing / Muay Thai / MMA tabs) and
+  by the group each sits under, with a player card (poster, PREVIOUS / NEXT
+  through the discipline's list, DRILL A COMBO). Nothing shows until a delivery
+  lands. `PracticeMode.jsx`, `PracticeShadowboxing.jsx`,
+  `data/shadowboxing.js` (the format is documented at its top).
+- **Delivery = files only, no code.** In `public/static/practice/shadow/`:
+  `<name>.mp4`, the poster `<name>.webp` (same name), and `index.json`:
+
+  ```json
+  { "clips": [
+    { "id": "boxing-jab-cross-slip", "discipline": "Boxing", "group": "Combinations",
+      "title": "Jab, cross, slip", "video": "boxing-jab-cross-slip.mp4",
+      "seconds": 24, "level": "Beginner", "note": "Keep your chin down." } ] }
+  ```
+
+  Required: `id` (unique), `discipline` (Boxing, Kickboxing, Muay Thai or MMA),
+  `title`, `video` (a plain file name ending .mp4: no folders). Optional:
+  `group` (the heading it sits under; clips without one go under
+  "Shadowboxing"), `seconds` (shown as 0:24), `level` (Beginner, Intermediate
+  or Advanced), `note` (one line under the video). Clips show in the file's
+  order; groups in the order each first appears. A bad entry is dropped, the
+  rest still show.
+- **Checks.** `npm run test:shadow` reads the delivered `index.json` too: every
+  entry must be usable and have its video and poster in the folder, and the
+  image lock (`assets.lock.json`) takes the posters like the tutorials'.
+- **Not in the data files.** Unlike the tutorials, these do not attach to a
+  Technique Library entry or lesson (`videoUrl`); say so in the delivery note if
+  a clip should also be linked to one.
 
 ### 2026-11-03 · console → app · 17 Practice tutorials (`claude/console-handoff-2026-11-03`)
 
