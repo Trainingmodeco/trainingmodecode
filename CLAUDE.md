@@ -16,8 +16,11 @@ moves, missions, camp or arcade content, new spoken lines in a screen):
    (`scripts/spoken-sweeps.mjs`) and plans each against the real banks: a
    line built in code never shows up as a typed-out literal, and that is how
    Cardio Mode once shipped with no clips while coverage read 100%. A new
-   line built from data needs a sweep there, and a new screen that speaks is
-   picked up by coverage on its own (it fails until the screen is listed).
+   line built from data needs a sweep there (a module of its own in
+   `scripts/sweeps/` when its source has one: they all run in `test:spoken` over
+   every value the screen can produce, and `scripts/sweeps/_try.mjs <module>`
+   lists what one still needs), and a new screen that speaks is picked up by
+   coverage on its own (it fails until the screen is listed).
 2. Record the missing phrases with Higgsfield `seed_audio`, about 0.1 to 0.2
    credit a clip per voice (an "out of credits" answer in the middle of a
    batch has been a false alarm: check the balance and retry):

@@ -21140,7 +21140,7 @@
   },
   "1 press": {
    "file": "1_press.mp3",
-   "ms": 744
+   "ms": 1056
   },
   "both bells": {
    "file": "both_bells.mp3",
@@ -21352,7 +21352,7 @@
   },
   "1 rep": {
    "file": "1_rep.mp3",
-   "ms": 1008
+   "ms": 864
   },
   "set it down": {
    "file": "set_it_down.mp3",
@@ -23508,7 +23508,7 @@
   },
   "load 247.5": {
    "file": "load_247_5.mp3",
-   "ms": 2664
+   "ms": 2592
   },
   "load 252.5": {
    "file": "load_252_5.mp3",
