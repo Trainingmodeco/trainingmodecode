@@ -176,7 +176,10 @@ export default function CampFitSetRunner({ cfg, onEnd, initialPaused, onStateCha
     const ex = session[ei];
     setReps(0); setStartRef.current = Date.now();
     const pol = countPolicy(ex, cfg.voiceOn);
-    if (pol.timedCompletion) say(`${ex.name}. Set ${si + 1}. ${ex.reps} reps. Go.`);
+    // A weighted hold or carry has seconds, not reps: it used to be announced
+    // as "undefined reps". The athlete still taps COMPLETE, so it keeps "Go."
+    if (pol.timedCompletion && ex.duration_sec != null) say(`${ex.name}. Set ${si + 1}. Hold ${ex.duration_sec} seconds. Go.`);
+    else if (pol.timedCompletion) say(`${ex.name}. Set ${si + 1}. ${ex.reps} reps. Go.`);
     else if (ex.duration_sec != null) say(`${ex.name}. Hold ${ex.duration_sec} seconds.`);
     else say(`${ex.name}. Set ${si + 1}. ${ex.reps} reps.`);
   };
